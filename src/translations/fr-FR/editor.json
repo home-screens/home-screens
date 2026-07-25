@@ -3255,6 +3255,7 @@
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrigez les champs signalés.",
     "liveValueLabel": "Sur l'écran actuellement :",
     "liveValueLabelEditor": "Valeur actuelle :",
+    "liveValueStale": "n’est plus mise à jour",
     "caseMismatchWarning": "L'écran publie '{value}'. La correspondance est sensible à la casse — la valeur doit correspondre exactement.",
     "verdicts": {
       "met": "Remplie",

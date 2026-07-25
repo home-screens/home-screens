@@ -117,28 +117,41 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const updateModule = useEditorStore((s) => s.updateModule);
+
+  const visibility = mod.visibility;
+  const enabled = !!visibility;
+
   // Live values from the selected display's last heartbeat, for the
   // current-value hint and case-mismatch warning on condition inputs.
-  const liveState = useEditorSharedState(selectedDisplayId);
+  //
+  // Gated like every other consumer added this cycle (EditorCanvas on
+  // anyConditionGated, RulesSection on rules.length, TextConfigSection on
+  // referencedKeys.length). Ungated, merely opening this accordion on a module
+  // with no conditions started a 5s poll whose GET marks display interest and
+  // arms the display's fast re-report path — taking that display's full status
+  // POST from 2/min to as much as 12/min while nothing here renders a value.
+  const liveState = useEditorSharedState(
+    selectedDisplayId,
+    (visibility?.conditions.length ?? 0) > 0,
+  );
   // States map for the outcome line; null when the display hasn't reported
   // recently, which renders neutral copy instead of a stale verdict.
   const outcomeStates = liveState.states;
 
-  const providedKeys = useMemo(
-    () => collectProvidedStateKeys(config ? getActiveScreens(config, selectedDisplayId) : []),
-    [config, selectedDisplayId],
-  );
-
   // Plugins exporting searchStateKeys make keys discoverable even with zero
   // static providers configured, so the "no providers" hint would mislead.
   const plugins = usePluginStore((s) => s.plugins);
+
+  const providedKeys = useMemo(
+    () => collectProvidedStateKeys(config ? getActiveScreens(config, selectedDisplayId) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- plugins triggers the recompute; collectProvidedStateKeys reads the registry, not the map. Matches SharedStateSection.
+    [config, selectedDisplayId, plugins],
+  );
+
   const searchAvailable = useMemo(
     () => Array.from(plugins.values()).some(pluginHasStateKeySearch),
     [plugins],
   );
-
-  const visibility = mod.visibility;
-  const enabled = !!visibility;
 
   // Ticking wall clock (display timezone) so a `time` condition's verdict and
   // outcome line stay live; only ticks when the tree has a time condition.

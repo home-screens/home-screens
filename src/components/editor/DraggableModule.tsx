@@ -178,8 +178,13 @@ export default function DraggableModule({
     // same evaluateVisibility the display runs). Neutral when no fresh
     // snapshot exists — display offline must never read as a stale verdict.
     if ((mod.visibility?.conditions?.length ?? 0) > 0) {
+      // `now` is the TZ-shifted clock already used for the schedule badge above.
+      // Omitting it made evaluateVisibility fall back to `new Date()` in the
+      // browser's zone, so a `time` condition could disagree with both the
+      // property panel and the display whenever the editor's zone differs from
+      // the configured display timezone.
       const verdict = verdictStates
-        ? (evaluateVisibility(mod.visibility, verdictStates) ? 'met' : 'unmet')
+        ? (evaluateVisibility(mod.visibility, verdictStates, now) ? 'met' : 'unmet')
         : null;
       badges.push({
         key: 'condition',

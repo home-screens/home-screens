@@ -3255,6 +3255,7 @@
     "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados.",
     "liveValueLabel": "En la pantalla ahora:",
     "liveValueLabelEditor": "Valor ahora mismo:",
+    "liveValueStale": "ya no se actualiza",
     "caseMismatchWarning": "La pantalla publica '{value}'. La comparación distingue mayúsculas y minúsculas: el valor debe coincidir exactamente.",
     "verdicts": {
       "met": "Se cumple",

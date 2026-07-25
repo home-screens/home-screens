@@ -134,74 +134,6 @@ describe('sharedStateStore', () => {
     expect(snapshot().get('a.key')?.value).toBe('1');
   });
 
-  describe('claim/release ownership', () => {
-    it('keeps the value while another claim is still held', () => {
-      const releaseA = sharedStateStore.claim('a.key');
-      const releaseB = sharedStateStore.claim('a.key');
-      sharedStateStore.publish('a.key', '1');
-      releaseA();
-      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeUndefined();
-      releaseB();
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-    });
-
-    it('releasing the last claim tombstones the key and notifies; TTL deletes it', () => {
-      vi.useFakeTimers();
-      const release = sharedStateStore.claim('a.key');
-      sharedStateStore.publish('a.key', '1');
-      const fn = vi.fn();
-      sharedStateStore.subscribe(fn);
-      release();
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-      expect(fn).toHaveBeenCalledTimes(1);
-      vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
-    });
-
-    it('release is idempotent (double-release cannot underflow a second claimant)', () => {
-      const releaseA = sharedStateStore.claim('a.key');
-      const releaseB = sharedStateStore.claim('a.key');
-      sharedStateStore.publish('a.key', '1');
-      releaseA();
-      releaseA();
-      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeUndefined();
-      releaseB();
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-    });
-
-    it('claim on an invalid key is a no-op', () => {
-      const release = sharedStateStore.claim('UPPER');
-      sharedStateStore.publish('a.key', '1');
-      release();
-      expect(sharedStateStore.snapshot().get('a.key')?.value).toBe('1');
-    });
-
-    it('publish without claim then release still clears (single claimant)', () => {
-      vi.useFakeTimers();
-      sharedStateStore.publish('a.key', '1');
-      const release = sharedStateStore.claim('a.key');
-      release();
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-      vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
-    });
-
-    it('clearKey drops an outstanding claim count (unconditional teardown)', () => {
-      vi.useFakeTimers();
-      const release = sharedStateStore.claim('a.key');
-      sharedStateStore.publish('a.key', '1');
-      sharedStateStore.clearKey('a.key');
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-      // Late release of the dropped claim must not throw or resurrect anything
-      release();
-      expect(sharedStateStore.snapshot().get('a.key')?.staleAt).toBeTypeOf('number');
-      vi.advanceTimersByTime(15_000);
-      expect(sharedStateStore.snapshot().get('a.key')).toBeUndefined();
-    });
-  });
-
   describe('clearKeysByPrefix', () => {
     beforeEach(() => {
       vi.useFakeTimers();
@@ -232,12 +164,12 @@ describe('sharedStateStore', () => {
       expect(fn).not.toHaveBeenCalled();
     });
 
-    it('also drops claim counts under the prefix', () => {
-      const release = sharedStateStore.claim('plugin:ha:door');
+    it('tombstones then deletes regardless of how many producers published', () => {
+      // Clears are unconditional: there is no refcount, so a second producer
+      // publishing the same key does not keep it alive past a prefix clear.
       sharedStateStore.publish('plugin:ha:door', 'open');
+      sharedStateStore.publish('plugin:ha:door', 'closed');
       sharedStateStore.clearKeysByPrefix('plugin:ha:');
-      expect(sharedStateStore.snapshot().get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
-      release();
       expect(sharedStateStore.snapshot().get('plugin:ha:door')?.staleAt).toBeTypeOf('number');
       vi.advanceTimersByTime(15_000);
       expect(sharedStateStore.snapshot().get('plugin:ha:door')).toBeUndefined();

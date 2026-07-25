@@ -10,6 +10,8 @@ import {
   getViewportReports,
   recordSharedStateReport,
   getSharedStateReport,
+  recordProviderHealthReport,
+  getProviderHealthReport,
   markSharedStateInterest,
   hasSharedStateInterest,
   __resetForTests,
@@ -471,6 +473,120 @@ describe('shared-state reports', () => {
     recordSharedStateReport('kitchen', {});
     expect(getSharedStateReport('kitchen')!.entries).toEqual({});
   });
+
+  it('keeps a tombstoned entry with its staleAt', () => {
+    // The display holds a cleared key for a 15s grace window and still
+    // evaluates conditions against it, so the report has to carry the
+    // tombstone. Dropping it made the editor's verdict disagree with the
+    // screen for that whole window.
+    recordSharedStateReport('kitchen', {
+      'plugin:ha:door': { value: 'open', updatedAt: 1000, staleAt: 2000 },
+    });
+    expect(getSharedStateReport('kitchen')!.entries['plugin:ha:door']).toEqual({
+      value: 'open', updatedAt: 1000, staleAt: 2000,
+    });
+  });
+
+  it('ignores a malformed staleAt rather than dropping the entry', () => {
+    recordSharedStateReport('kitchen', {
+      'a.key': { value: 'x', updatedAt: 1, staleAt: 'soon' },
+      'b.key': { value: 'y', updatedAt: 1, staleAt: Infinity },
+    });
+    const entries = getSharedStateReport('kitchen')!.entries;
+    // Still live entries, just without a (nonsensical) tombstone marker.
+    expect(entries['a.key']).toEqual({ value: 'x', updatedAt: 1 });
+    expect(entries['b.key']).toEqual({ value: 'y', updatedAt: 1 });
+  });
+});
+
+/**
+ * Mirrors the `shared-state reports` block above against the provider-health
+ * twin. The two ingest the same shape of untrusted heartbeat payload, but only
+ * the shared-state side had a sanitizer suite — the health side was referenced
+ * in exactly one file, mocked with `vi.fn()`. Every branch below was live in
+ * production with nothing failing in CI if it regressed: a broken TTL leaves a
+ * resolved outage showing a permanent "provider unhealthy" banner under
+ * Settings > Automation > Live, and a malformed payload from an out-of-date
+ * plugin could poison the map.
+ */
+describe('provider-health reports', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('stores and returns a well-formed report', () => {
+    recordProviderHealthReport('kitchen', {
+      ha: { message: 'service unreachable', since: 1234 },
+    });
+    const report = getProviderHealthReport('kitchen');
+    expect(report).not.toBeNull();
+    expect(report!.health.ha).toEqual({ message: 'service unreachable', since: 1234 });
+    expect(report!.reportedAt).toBeTypeOf('number');
+  });
+
+  it('lowercases plugin ids so the editor lookup cannot miss on case', () => {
+    recordProviderHealthReport('kitchen', { HomeAssistant: { message: 'down', since: 1 } });
+    expect(getProviderHealthReport('kitchen')!.health).toHaveProperty('homeassistant');
+  });
+
+  it('uses the legacy default slot when displayId is omitted', () => {
+    recordProviderHealthReport(undefined, { ha: { message: 'down', since: 1 } });
+    expect(getProviderHealthReport()!.health.ha?.message).toBe('down');
+    expect(getProviderHealthReport('kitchen')).toBeNull();
+  });
+
+  it('skips out-of-charset plugin ids and malformed entries, keeping the rest', () => {
+    recordProviderHealthReport('kitchen', {
+      'bad id!': { message: 'x', since: 1 },
+      'ok-plugin': { message: 'kept', since: 1 },
+      missingMessage: { since: 1 },
+      badSince: { message: 'x', since: 'nope' },
+      notObject: 'x',
+      infiniteSince: { message: 'x', since: Infinity },
+    });
+    expect(Object.keys(getProviderHealthReport('kitchen')!.health)).toEqual(['ok-plugin']);
+  });
+
+  it('rejects non-object payloads and invalid display ids', () => {
+    recordProviderHealthReport('kitchen', 'garbage');
+    recordProviderHealthReport('kitchen', ['array']);
+    expect(getProviderHealthReport('kitchen')).toBeNull();
+    recordProviderHealthReport('NOT VALID', { ha: { message: 'x', since: 1 } });
+    expect(getProviderHealthReport('NOT VALID')).toBeNull();
+  });
+
+  it('drops messages over the 200-char cap', () => {
+    recordProviderHealthReport('kitchen', {
+      chatty: { message: 'x'.repeat(500), since: 1 },
+      terse: { message: 'ok', since: 1 },
+    });
+    const health = getProviderHealthReport('kitchen')!.health;
+    expect(health.chatty).toBeUndefined();
+    expect(health.terse?.message).toBe('ok');
+  });
+
+  it('rejects a payload with more entries than a real display could publish', () => {
+    // The client store caps at 64, so an oversized payload is malicious or
+    // broken — dropped wholesale, not trimmed.
+    const raw: Record<string, { message: string; since: number }> = {};
+    for (let i = 0; i < 100; i++) raw[`plugin-${i}`] = { message: 'down', since: 1 };
+    recordProviderHealthReport('kitchen', raw);
+    expect(getProviderHealthReport('kitchen')).toBeNull();
+  });
+
+  it('an empty snapshot overwrites a previous one (outage resolved)', () => {
+    recordProviderHealthReport('kitchen', { ha: { message: 'down', since: 1 } });
+    recordProviderHealthReport('kitchen', {});
+    expect(getProviderHealthReport('kitchen')!.health).toEqual({});
+  });
+
+  it('evicts a report past the TTL instead of serving a stale outage forever', () => {
+    vi.useFakeTimers();
+    recordProviderHealthReport('kitchen', { ha: { message: 'down', since: 1 } });
+    expect(getProviderHealthReport('kitchen')).not.toBeNull();
+    vi.advanceTimersByTime(5 * 60 * 1000 + 1);
+    expect(getProviderHealthReport('kitchen')).toBeNull();
+  });
 });
 
 describe('shared-state editor interest', () => {
@@ -501,5 +617,45 @@ describe('shared-state editor interest', () => {
   it('ignores invalid display ids', () => {
     markSharedStateInterest('NOT VALID');
     expect(hasSharedStateInterest('NOT VALID')).toBe(false);
+  });
+});
+
+/**
+ * The `knownDisplays` / MAX_KNOWN_DISPLAYS gate on both untrusted-heartbeat
+ * ingest paths. It is the backstop that stops a spoofed or misconfigured poster
+ * from growing the in-memory maps past the display ceiling — and it was the one
+ * branch neither sanitizer covered, on either twin.
+ */
+describe('report ingest respects the known-display cap', () => {
+  /** Register the cap's worth of displays the way a real Pi does — by polling. */
+  function fillKnownDisplays() {
+    for (let i = 0; i < 64; i++) drainCommands(`display-${i}`);
+  }
+
+  it('drops a shared-state report from an unregistered display once the cap is reached', () => {
+    fillKnownDisplays();
+    recordSharedStateReport('stranger', { 'a.key': { value: 'x', updatedAt: 1 } });
+    expect(getSharedStateReport('stranger')).toBeNull();
+  });
+
+  it('drops a provider-health report from an unregistered display once the cap is reached', () => {
+    fillKnownDisplays();
+    recordProviderHealthReport('stranger', { ha: { message: 'down', since: 1 } });
+    expect(getProviderHealthReport('stranger')).toBeNull();
+  });
+
+  it('still accepts reports from displays registered before the cap was hit', () => {
+    fillKnownDisplays();
+    // display-0 is inside the cap, so its reports must keep landing — the gate
+    // refuses NEW ids, it does not freeze the whole hub.
+    recordSharedStateReport('display-0', { 'a.key': { value: 'x', updatedAt: 1 } });
+    recordProviderHealthReport('display-0', { ha: { message: 'down', since: 1 } });
+    expect(getSharedStateReport('display-0')!.entries['a.key']?.value).toBe('x');
+    expect(getProviderHealthReport('display-0')!.health.ha?.message).toBe('down');
+  });
+
+  it('accepts an unknown id while there is still room under the cap', () => {
+    recordSharedStateReport('newcomer', { 'a.key': { value: 'x', updatedAt: 1 } });
+    expect(getSharedStateReport('newcomer')).not.toBeNull();
   });
 });

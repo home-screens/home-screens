@@ -400,6 +400,18 @@ export function SourceKeyInput({
             Date.now(),
             { locale: formattingLocale },
           )}
+          {/* The producer has cleared this key and the bus is holding its last
+              value through the 15s grace window. The display still evaluates
+              against it, so the value is not wrong — just no longer being
+              refreshed, which is worth saying rather than showing it as live. */}
+          {liveEntry.staleAt !== undefined && (
+            <>
+              {' · '}
+              <span className="text-hs-warning">
+                {t('visibilityConditions.liveValueStale')}
+              </span>
+            </>
+          )}
         </span>
       )}
       {unknown && !liveEntry && !withinPickGrace && (

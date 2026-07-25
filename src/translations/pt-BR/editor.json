@@ -3255,6 +3255,7 @@
     "invalidHint": "Estas condições ainda não podem ser salvas. Corrija os campos destacados.",
     "liveValueLabel": "No display agora:",
     "liveValueLabelEditor": "Valor agora:",
+    "liveValueStale": "não está mais sendo atualizado",
     "caseMismatchWarning": "O display publica '{value}'. A comparação diferencia maiúsculas de minúsculas — o valor deve corresponder exatamente.",
     "verdicts": {
       "met": "Atendida",

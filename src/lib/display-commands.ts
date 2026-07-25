@@ -232,10 +232,20 @@ export function recordSharedStateReport(displayId: string | undefined, raw: unkn
   for (const [key, val] of Object.entries(raw)) {
     if (!SHARED_STATE_KEY_RE.test(key)) continue;
     if (!val || typeof val !== 'object') continue;
-    const { value, updatedAt } = val as { value?: unknown; updatedAt?: unknown };
+    const { value, updatedAt, staleAt } = val as {
+      value?: unknown; updatedAt?: unknown; staleAt?: unknown;
+    };
     if (typeof value !== 'string' || value.length > MAX_SHARED_STATE_VALUE_LENGTH) continue;
     if (typeof updatedAt !== 'number' || !Number.isFinite(updatedAt)) continue;
-    entries[key] = { value, updatedAt };
+    // `staleAt` marks a tombstoned key — still held by the display through its
+    // 15s grace window, so it must survive the round trip. Dropping tombstones
+    // made the editor's verdict disagree with the display for that whole window
+    // (the editor showed "hidden, waiting for <key>" while the kiosk still
+    // rendered the module). Same validation posture as updatedAt.
+    const staleValid = typeof staleAt === 'number' && Number.isFinite(staleAt);
+    entries[key] = staleValid
+      ? { value, updatedAt, staleAt: staleAt as number }
+      : { value, updatedAt };
   }
   sharedStateReports.set(displayId ?? DEFAULT_DISPLAY_KEY, {
     entries,

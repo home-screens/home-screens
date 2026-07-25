@@ -3249,6 +3249,7 @@
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",
     "liveValueLabel": "Nu op het display:",
     "liveValueLabelEditor": "Waarde nu:",
+    "liveValueStale": "wordt niet meer bijgewerkt",
     "caseMismatchWarning": "Het display publiceert '{value}'. Vergelijking is hoofdlettergevoelig — de waarde moet exact overeenkomen.",
     "verdicts": {
       "met": "Voldaan",

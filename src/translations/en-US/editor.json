@@ -3249,6 +3249,7 @@
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
     "liveValueLabel": "On the display now:",
     "liveValueLabelEditor": "Value right now:",
+    "liveValueStale": "no longer updating",
     "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly.",
     "verdicts": {
       "met": "Met",

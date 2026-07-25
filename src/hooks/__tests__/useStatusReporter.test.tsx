@@ -110,24 +110,33 @@ describe('useStatusReporter shared-state re-reporting', () => {
     expect(statusBodies()).toHaveLength(1);
   });
 
-  it('filters tombstoned entries, sends one empty snapshot, then omits the field', () => {
+  it('ships tombstoned entries with staleAt, then one empty snapshot, then omits the field', () => {
     renderReporter();
     displayFetchMock.mockClear();
 
     act(() => sharedStateStore.publish('plugin:ha:door', 'open'));
     act(() => vi.advanceTimersByTime(6_000)); // past the throttle window
 
-    // Clearing tombstones the entry; the re-report must not ship it as live,
-    // and must send an explicit empty snapshot so the hub drops the value.
+    // Clearing tombstones the entry. It is still reported, carrying `staleAt`:
+    // the display's own evaluation keeps seeing the key through the grace
+    // window, so filtering it here made the editor's verdict disagree with the
+    // screen for those 15 seconds.
     act(() => sharedStateStore.clearKey('plugin:ha:door'));
     let bodies = statusBodies();
     expect(bodies).toHaveLength(2);
-    expect(bodies[1].sharedState).toEqual({});
+    expect(bodies[1].sharedState).toMatchObject({
+      'plugin:ha:door': { value: 'open', staleAt: expect.any(Number) },
+    });
 
-    // Next heartbeat (30s periodic) with a still-empty bus omits the field.
+    // Once the grace window expires the entry is deleted for real, and THEN the
+    // explicit empty snapshot goes out so the hub drops the value.
+    act(() => vi.advanceTimersByTime(15_000));
+    bodies = statusBodies();
+    expect(bodies[bodies.length - 1].sharedState).toEqual({});
+
+    // Next heartbeat with a still-empty bus omits the field entirely.
     act(() => vi.advanceTimersByTime(30_000));
     bodies = statusBodies();
-    expect(bodies.length).toBeGreaterThan(2);
     expect('sharedState' in bodies[bodies.length - 1]).toBe(false);
   });
 

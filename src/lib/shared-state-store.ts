@@ -10,15 +10,25 @@
  * Because the write path is open, it is hardened: key format, key count,
  * and value length are all capped.
  *
- * Producer lifecycle contract — two entry styles, never mixed on one key:
- * - Hook-managed native producers (usePublishState) `claim()` their key on
- *   mount and release on unmount. The value is deleted only when the LAST
- *   claimant releases, so N instances publishing the same key (e.g. a
- *   background provider plus a visible copy) can unmount independently
- *   without wiping each other's value.
- * - Imperative producers (plugin SDK `clearState`, plugin unregister/reload)
- *   use `clearKey` / `clearKeysByPrefix`, which tear down unconditionally —
- *   including any outstanding claim counts.
+ * Producer lifecycle contract — clears are UNCONDITIONAL. `clearKey` /
+ * `clearKeysByPrefix` (plugin SDK `clearState`, plugin unregister/reload)
+ * tombstone the key regardless of how many producers are publishing it.
+ *
+ * There is deliberately no refcount. The SDK's publish/clear API is a plain
+ * `(pluginId, key)` pair with no per-producer handle, so the store cannot tell
+ * two publishers of one key apart and could not decrement correctly. A
+ * refcounting `claim()` existed for a native hook that never shipped a single
+ * production caller, which meant two lifecycle models coexisted for one key
+ * space with nothing enforcing the "never mixed" rule.
+ *
+ * The practical consequence for plugin authors: do NOT call `clearState` from a
+ * component's unmount cleanup. Screen rotation unmounts modules routinely, and
+ * a module clearing a key on unmount will tombstone a value its own still-alive
+ * `stateProvider` owns. Clear a key only when the value genuinely no longer
+ * exists (entity removed, connection dropped for good). The 15s tombstone grace
+ * below limits the damage but does not remove it: an event-driven provider that
+ * only republishes on the next upstream change can leave the key unknown, and
+ * every module conditioned on it hidden, for hours.
  */
 
 import { SHARED_STATE_KEY_RE, type SharedStateEntry } from '@/lib/shared-state-types';
@@ -45,7 +55,6 @@ class SharedStateStore {
   private state = new Map<string, SharedStateEntry>();
   private subscribers = new Set<() => void>();
   private cachedSnapshot: ReadonlyMap<string, SharedStateEntry> | null = null;
-  private claims = new Map<string, number>();
   private tombstoneTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   // Arrow-function properties, NOT method shorthand — subscribe/snapshot are
@@ -101,37 +110,14 @@ class SharedStateStore {
   };
 
   /**
-   * Claim shared ownership of a key. Returns an idempotent release function.
-   * While at least one claim is held, another claimant unmounting never wipes
-   * the value; when the LAST claim is released the key is deleted (consumers
-   * see it as unknown). Invalid keys return a no-op release.
-   */
-  claim = (key: string): (() => void) => {
-    if (typeof key !== 'string' || !SHARED_STATE_KEY_RE.test(key)) return () => {};
-    this.claims.set(key, (this.claims.get(key) ?? 0) + 1);
-    let released = false;
-    return () => {
-      if (released) return;
-      released = true;
-      const remaining = (this.claims.get(key) ?? 0) - 1;
-      if (remaining > 0) {
-        this.claims.set(key, remaining);
-        return;
-      }
-      this.claims.delete(key);
-      this.clearKey(key);
-    };
-  };
-
-  /**
-   * Explicit clear (SDK clearState, plugin unregister, last claim release).
-   * Also drops any outstanding claim count — see the lifecycle contract in
-   * the module docblock. The value is NOT deleted immediately: the entry is
+   * Explicit clear (SDK clearState, plugin unregister/reload). Unconditional —
+   * see the lifecycle contract in the module docblock; there is no refcount and
+   * a second producer of the same key does not hold it alive. The value is NOT
+   * deleted immediately: the entry is
    * tombstoned and survives for TOMBSTONE_TTL_MS unless a fresh publish
    * revives it, so consumers ride out routine producer restarts.
    */
   clearKey = (key: string): void => {
-    this.claims.delete(key);
     if (this.tombstone(key)) {
       this.cachedSnapshot = null;
       this.notify();
@@ -145,9 +131,6 @@ class SharedStateStore {
       if (key.startsWith(prefix) && this.tombstone(key)) {
         changed = true;
       }
-    }
-    for (const key of Array.from(this.claims.keys())) {
-      if (key.startsWith(prefix)) this.claims.delete(key);
     }
     if (changed) {
       this.cachedSnapshot = null;
@@ -190,7 +173,6 @@ class SharedStateStore {
   /** Test-only reset; not part of the producer/consumer contract. */
   __resetForTests = (): void => {
     this.state.clear();
-    this.claims.clear();
     for (const timer of this.tombstoneTimers.values()) clearTimeout(timer);
     this.tombstoneTimers.clear();
     this.cachedSnapshot = null;

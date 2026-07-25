@@ -325,14 +325,20 @@ function reportStatus(s: {
 
   // Shared-state bus snapshot for the editor's live-value hints. Caps are
   // bus-enforced (256 keys × 1KB values) so worst case is ~300KB and typical
-  // is under 1KB. Tombstoned entries are excluded — the hub would store them
-  // as live (it only keeps value/updatedAt), so the editor could show a
-  // value the display already cleared.
-  const sharedState: Record<string, { value: string; updatedAt: number }> = {};
+  // is under 1KB.
+  //
+  // Tombstoned entries are INCLUDED, carrying their `staleAt`. They used to be
+  // filtered out, which made the editor disagree with the display for the whole
+  // 15s grace window: the display's own evaluation still sees a tombstoned key
+  // (`states.has(key)` is true), so reloading a plugin with the visibility panel
+  // open flipped the editor to "Hidden right now, waiting for <key>" while the
+  // kiosk still showed the module. Sending `staleAt` lets the editor evaluate
+  // exactly as the display does and badge the value as stale.
+  const sharedState: Record<string, { value: string; updatedAt: number; staleAt?: number }> = {};
   for (const [key, entry] of sharedStateStore.snapshot()) {
-    if (entry.staleAt === undefined) {
-      sharedState[key] = { value: entry.value, updatedAt: entry.updatedAt };
-    }
+    sharedState[key] = entry.staleAt === undefined
+      ? { value: entry.value, updatedAt: entry.updatedAt }
+      : { value: entry.value, updatedAt: entry.updatedAt, staleAt: entry.staleAt };
   }
   // Omit the field while empty so installs with no producers never pay for
   // it — but send ONE empty snapshot after the last key clears, otherwise

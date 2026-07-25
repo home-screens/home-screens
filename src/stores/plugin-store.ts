@@ -5,6 +5,7 @@ import { unregisterModule } from '@/lib/module-registry';
 import { deregisterFetchKey } from '@/lib/fetch-keys';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
+import { providerHealthStore } from '@/lib/provider-health-store';
 import type { ModuleType } from '@/types/config';
 import { logger } from '@/lib/logger';
 
@@ -109,7 +110,14 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     // Purge the plugin's shared-state keys so conditions on them go back to
     // "unknown" instead of holding a dead producer's last value.
     const manifest = get().plugins.get(moduleType)?.manifest;
-    if (manifest) sharedStateStore.clearKeysByPrefix(pluginStatePrefix(manifest.id));
+    if (manifest) {
+      sharedStateStore.clearKeysByPrefix(pluginStatePrefix(manifest.id));
+      // Health entries have no TTL and no eviction, and the only thing that
+      // clears one is an `{ok:true}` report from the plugin — which an
+      // uninstalled plugin can never send. Uninstalling during an outage left
+      // "service unreachable" next to those conditions permanently.
+      providerHealthStore.clear(manifest.id);
+    }
     unregisterModule(moduleType as ModuleType);
     set((state) => {
       const plugins = new Map(state.plugins);
@@ -123,6 +131,8 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     for (const [moduleType, entry] of plugins) {
       if (!opts?.preserveSharedState) {
         sharedStateStore.clearKeysByPrefix(pluginStatePrefix(entry.manifest.id));
+        // Same reasoning as unregisterPlugin: nothing else ever evicts these.
+        providerHealthStore.clear(entry.manifest.id);
       }
       unregisterModule(moduleType as ModuleType);
       deregisterFetchKey(moduleType);

@@ -3249,6 +3249,7 @@
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
     "liveValueLabel": "På skærmen lige nu:",
     "liveValueLabelEditor": "Værdi lige nu:",
+    "liveValueStale": "opdateres ikke længere",
     "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist.",
     "verdicts": {
       "met": "Opfyldt",

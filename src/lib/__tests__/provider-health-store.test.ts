@@ -86,3 +86,53 @@ describe('providerHealthStore', () => {
     unsub();
   });
 });
+
+/**
+ * `clear(pluginId)` is the uninstall/reload path. It exists because a
+ * `report({ok:true})` is the only other way an entry leaves the store, and an
+ * uninstalled plugin can never send one — so without it, uninstalling during an
+ * outage left "service unreachable" next to the affected conditions forever.
+ */
+describe('providerHealthStore.clear', () => {
+  it('removes an entry and notifies subscribers', () => {
+    providerHealthStore.report('ha', { ok: false, message: 'down', since: 1 });
+    expect(providerHealthStore.snapshot().has('ha')).toBe(true);
+
+    const spy = vi.fn();
+    const unsub = providerHealthStore.subscribe(spy);
+    providerHealthStore.clear('ha');
+
+    expect(providerHealthStore.snapshot().has('ha')).toBe(false);
+    expect(spy).toHaveBeenCalledTimes(1);
+    unsub();
+  });
+
+  it('matches the lowercasing that report() applied when storing', () => {
+    // `report` lowercases the id, so a caller passing the manifest's original
+    // casing must still hit the stored key. Drop the toLowerCase and the entry
+    // survives an uninstall — a banner nothing can ever clear.
+    providerHealthStore.report('HomeAssistant', { ok: false, message: 'down', since: 1 });
+    expect(providerHealthStore.snapshot().has('homeassistant')).toBe(true);
+
+    providerHealthStore.clear('HomeAssistant');
+    expect(providerHealthStore.snapshot().has('homeassistant')).toBe(false);
+  });
+
+  it('is a silent no-op for an unknown id or a non-string', () => {
+    const spy = vi.fn();
+    const unsub = providerHealthStore.subscribe(spy);
+    providerHealthStore.clear('never-reported');
+    providerHealthStore.clear(undefined as unknown as string);
+    // No entry changed, so no re-render is provoked.
+    expect(spy).not.toHaveBeenCalled();
+    unsub();
+  });
+
+  it('leaves other plugins untouched', () => {
+    providerHealthStore.report('ha', { ok: false, message: 'down', since: 1 });
+    providerHealthStore.report('strava', { ok: false, message: 'down', since: 1 });
+    providerHealthStore.clear('ha');
+    expect(providerHealthStore.snapshot().has('ha')).toBe(false);
+    expect(providerHealthStore.snapshot().has('strava')).toBe(true);
+  });
+});

@@ -3249,6 +3249,7 @@
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
     "liveValueLabel": "Aktuell auf dem Display:",
     "liveValueLabelEditor": "Aktueller Wert:",
+    "liveValueStale": "wird nicht mehr aktualisiert",
     "caseMismatchWarning": "Das Display veröffentlicht '{value}'. Der Vergleich unterscheidet Groß-/Kleinschreibung – der Wert muss exakt übereinstimmen.",
     "verdicts": {
       "met": "Erfüllt",

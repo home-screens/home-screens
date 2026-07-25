@@ -28,11 +28,17 @@ export interface EditorSharedState extends DisplaySharedState {
  * ground truth for "why is my module hidden right now"; the editor bus is a
  * stand-in, not a second authority.
  *
- * The local view mirrors what display heartbeats report: tombstoned entries
- * (`staleAt` set) are filtered out. And an EMPTY local bus never counts as a
- * source — `states` stays null so an offline display keeps rendering neutral
- * verdicts, never a confident "unmet" conjured from a bus nothing publishes
- * to (the phase-4 never-stale-green invariant).
+ * The local view mirrors what display heartbeats report, tombstones included:
+ * an entry with `staleAt` set is KEPT, because the display's own evaluation
+ * still sees it for the 15s grace window. Consumers distinguish it by
+ * `staleAt` and badge the value as no longer updating.
+ *
+ * An EMPTY local bus still never counts as a source — `states` stays null so
+ * an offline display keeps rendering neutral verdicts, never a confident
+ * "unmet" conjured from a bus nothing publishes to (the phase-4
+ * never-stale-green invariant). A bus holding only tombstones is not that
+ * case: those are the values the display is evaluating against right now, and
+ * they drop out on their own once the TTL reaps them.
  */
 export function useEditorSharedState(
   displayId: string | null,
@@ -75,7 +81,11 @@ export function useEditorSharedState(
     const states = new Map<string, SharedStateEntry>();
     let reportedAt: number | null = null;
     for (const [key, entry] of localRaw) {
-      if (entry.staleAt !== undefined) continue;
+      // Tombstoned entries are kept, not skipped. The display's own evaluation
+      // path (useSharedStateKeys → evaluateVisibility) still sees them for the
+      // 15s grace window, so dropping them here made the editor's verdict
+      // disagree with the screen the user is looking at. Consumers distinguish
+      // them via `staleAt` and badge the value instead.
       entries[key] = entry;
       states.set(key, entry);
       if (reportedAt === null || entry.updatedAt > reportedAt) reportedAt = entry.updatedAt;

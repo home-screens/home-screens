@@ -193,6 +193,19 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                     {formatRelativeTime(Math.min(row.entry.updatedAt, now), now, {
                       locale: formattingLocale,
                     })}
+                    {/* This page exists to answer "is this value still
+                        arriving?", so a cleared key riding out its grace window
+                        must not read as live. The condition editor badges the
+                        same state; without this the two surfaces contradict
+                        each other about the same key. */}
+                    {row.entry.staleAt !== undefined && (
+                      <>
+                        {' · '}
+                        <span className="text-hs-warning">
+                          {t('visibilityConditions.liveValueStale')}
+                        </span>
+                      </>
+                    )}
                   </span>
                 ) : (
                   <span className="text-[11px] font-medium text-hs-danger shrink-0">

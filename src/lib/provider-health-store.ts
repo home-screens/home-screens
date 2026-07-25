@@ -101,6 +101,21 @@ class ProviderHealthStore {
     this.notify();
   };
 
+  /**
+   * Drop a plugin's entry outright, for uninstall/reload.
+   *
+   * `report({ok:true})` is the only other exit, and an uninstalled plugin can
+   * never send one — so without this an outage recorded just before uninstall
+   * would sit next to the affected conditions forever (no TTL, no eviction).
+   */
+  clear = (pluginId: string): void => {
+    if (typeof pluginId !== 'string') return;
+    if (this.state.delete(pluginId.toLowerCase())) {
+      this.cachedSnapshot = null;
+      this.notify();
+    }
+  };
+
   /** Referentially stable between changes (useSyncExternalStore safe). */
   snapshot = (): ReadonlyMap<string, ProviderHealthEntry> => {
     if (!this.cachedSnapshot) {

@@ -414,6 +414,14 @@ publishState('my-plugin', 'binary_sensor.door', 'open');
 clearState('my-plugin', 'binary_sensor.door');
 ```
 
+{% callout type="warning" title="Don't clear keys on unmount" %}
+`clearState` is unconditional: there is no reference counting, so it clears the key even if another part of your plugin is still publishing it.
+
+Do not call it from a component's cleanup function. Screens rotate constantly, so your module unmounts as a matter of course, and clearing there will wipe a value your own background state provider still owns. The bus holds a cleared value for 15 seconds before dropping it, which hides brief restarts, but an event-driven provider that only republishes when something upstream changes may not publish again for hours; every module conditioned on that key stays hidden until it does.
+
+Clear a key only when its value genuinely no longer exists, such as an entity being removed or a connection dropping for good.
+{% /callout %}
+
 How keys work:
 
 - Every key is force-prefixed with your plugin's namespace: publishing `binary_sensor.door` from plugin `my-plugin` stores `plugin:my-plugin:binary_sensor.door`. Plugin ids are lowercased in the prefix. This prevents accidental collisions between producers; it is not a security boundary.

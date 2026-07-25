@@ -71,7 +71,13 @@ describe('useEditorSharedState', () => {
     expect(result.current.states?.get('plugin:ha:light.tv')?.value).toBe('off');
   });
 
-  it('filters tombstoned entries from the local view, matching display heartbeats', () => {
+  it('keeps tombstoned entries, matching how the display evaluates them', () => {
+    // The display's own path (useSharedStateKeys → evaluateVisibility) still
+    // sees a tombstoned key for its 15s grace window, so the editor must too.
+    // Filtering them here made the editor announce "Hidden right now, waiting
+    // for <key>" while the kiosk was still showing the module — a disagreement
+    // that fired exactly when someone had the inspector open during a plugin
+    // reload. `staleAt` is preserved so the UI can badge the value instead.
     const { result } = renderHook(() => useEditorSharedState('main'));
     act(() => {
       sharedStateStore.publish('plugin:ha:alive', 'yes');
@@ -80,17 +86,33 @@ describe('useEditorSharedState', () => {
     });
     expect(result.current.source).toBe('editor');
     expect(result.current.states?.has('plugin:ha:alive')).toBe(true);
-    expect(result.current.states?.has('plugin:ha:cleared')).toBe(false);
+    expect(result.current.states?.has('plugin:ha:cleared')).toBe(true);
+    expect(result.current.states?.get('plugin:ha:cleared')?.value).toBe('gone');
+    expect(result.current.states?.get('plugin:ha:cleared')?.staleAt).toBeTypeOf('number');
+    // The live key is not marked stale.
+    expect(result.current.states?.get('plugin:ha:alive')?.staleAt).toBeUndefined();
   });
 
-  it('treats a fully tombstoned bus as no source at all', () => {
-    const { result } = renderHook(() => useEditorSharedState('main'));
-    act(() => {
-      sharedStateStore.publish('plugin:ha:cleared', 'gone');
-      sharedStateStore.clearKey('plugin:ha:cleared');
-    });
-    expect(result.current.source).toBeNull();
-    expect(result.current.states).toBeNull();
+  it('still reports a source while the bus holds only tombstoned entries', () => {
+    // Those entries are what the display is evaluating against right now, so
+    // "no source at all" would be wrong for the whole grace window. Once the
+    // TTL reaps them the bus is genuinely empty and the source goes null.
+    vi.useFakeTimers();
+    try {
+      const { result } = renderHook(() => useEditorSharedState('main'));
+      act(() => {
+        sharedStateStore.publish('plugin:ha:cleared', 'gone');
+        sharedStateStore.clearKey('plugin:ha:cleared');
+      });
+      expect(result.current.source).toBe('editor');
+      expect(result.current.states?.has('plugin:ha:cleared')).toBe(true);
+
+      act(() => { vi.advanceTimersByTime(15_001); });
+      expect(result.current.source).toBeNull();
+      expect(result.current.states).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('returns the neutral snapshot and skips the bus subscription when disabled', () => {
