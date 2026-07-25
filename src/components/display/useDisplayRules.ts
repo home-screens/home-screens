@@ -11,6 +11,7 @@ import {
   releaseTakeover,
   rulesContainTimeCondition,
   takeoverDeadline,
+  TAKEOVER_SLEEP_OVERRIDE_MS,
   type ActiveTakeover,
 } from '@/lib/display-rules';
 
@@ -54,6 +55,13 @@ export function useDisplayRules(
 ): {
   /** The screen a takeover is currently pinning, or null when rotation owns the render. */
   takeoverScreen: Screen | null;
+  /**
+   * True while the takeover still outranks the sleep/dim schedule. Goes false
+   * TAKEOVER_SLEEP_OVERRIDE_MS after the takeover started, even though
+   * `takeoverScreen` stays pinned — so a latching condition cannot hold a
+   * display lit indefinitely.
+   */
+  takeoverOverridesSleep: boolean;
   /** Manual-navigation release (human wins). Safe to call when no takeover is active. */
   releaseActiveTakeover: () => void;
 } {
@@ -123,5 +131,19 @@ export function useDisplayRules(
     return allScreens.find((s) => s.id === takeover.screenId && s.enabled !== false) ?? null;
   }, [takeover, allScreens]);
 
-  return { takeoverScreen, releaseActiveTakeover };
+  // Whether the takeover still outranks the sleep/dim schedule. Expires
+  // TAKEOVER_SLEEP_OVERRIDE_MS after the takeover started, while the takeover
+  // itself keeps its screen pinned — so a latching sensor shows its alert
+  // screen and the display still sleeps on schedule.
+  //
+  // `tick` is in the deps because takeoverDeadline now reports the override
+  // expiry as a wake-up point, so the timer that fires there re-renders us and
+  // this recomputes to false.
+  const takeoverOverridesSleep = useMemo(() => {
+    if (!takeover) return false;
+    return Date.now() - takeover.startedAt < TAKEOVER_SLEEP_OVERRIDE_MS;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick is the deliberate re-evaluation trigger
+  }, [takeover, tick]);
+
+  return { takeoverScreen, takeoverOverridesSleep, releaseActiveTakeover };
 }

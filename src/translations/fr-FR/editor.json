@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Choisissez un écran que cette règle doit afficher.",
         "modeLabel": "Durée",
         "modeWhile": "Tant que les conditions sont vraies",
+        "modeWhileSleepHint": "Reste affiché tant que les conditions sont vraies. Si l’écran se met en veille, il s’éteint quand même à l’heure prévue, mais une règle qui vient de se déclencher le garde allumé jusqu’à 5 minutes.",
         "modeFor": "Pendant une durée définie",
         "secondsLabel": "Secondes",
         "cooldownLabel": "Délai (secondes)",

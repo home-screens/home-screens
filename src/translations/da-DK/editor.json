@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Vælg den skærm, reglen skal vise.",
         "modeLabel": "Hvor længe",
         "modeWhile": "Så længe betingelserne er sande",
+        "modeWhileSleepHint": "Bliver vist, så længe betingelserne er sande. Hvis skærmen går i dvale, slukker den stadig til tiden, men en regel, der lige er startet, holder den tændt i op til 5 minutter.",
         "modeFor": "I et fast tidsrum",
         "secondsLabel": "Sekunder",
         "cooldownLabel": "Ventetid (sekunder)",

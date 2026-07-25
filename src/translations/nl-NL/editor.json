@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Kies een scherm dat deze regel moet tonen.",
         "modeLabel": "Hoe lang",
         "modeWhile": "Zolang de voorwaarden waar zijn",
+        "modeWhileSleepHint": "Blijft staan zolang de voorwaarden kloppen. Als het scherm gaat slapen, gaat het toch op tijd uit, maar een regel die net is gestart houdt het nog tot 5 minuten aan.",
         "modeFor": "Voor een vaste tijd",
         "secondsLabel": "Seconden",
         "cooldownLabel": "Wachttijd (seconden)",

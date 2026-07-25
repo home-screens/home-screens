@@ -324,7 +324,7 @@ Rules use the same condition types as [module visibility conditions](/docs/confi
 
 A rule can:
 
-- **Show a screen** -- either for as long as the conditions stay true (with a 5-second minimum hold, so a flickering sensor can't rapid-fire the display), or for a fixed number of seconds before normal rotation resumes
+- **Show a screen** -- either for as long as the conditions stay true (with a 5-second minimum hold, so a flickering sensor can't rapid-fire the display), or for a fixed number of seconds before normal rotation resumes. If the display is on a sleep schedule, a rule that has just started keeps the screen lit for up to 5 minutes; after that the display sleeps as normal with the rule's screen still pinned underneath, so a sensor left on overnight can't keep a bedroom display bright
 - **Wake the display** -- holds it awake for 5 minutes, then it goes back to its normal sleep schedule
 - **Put the display to sleep**
 

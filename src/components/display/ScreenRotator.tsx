@@ -193,7 +193,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // A rule-fired sleep is exactly the remote sleep command — any touch or the
   // sleep schedule wakes it as usual. The engine already released the takeover.
   const onRuleSleep = useCallback(() => { sleepRef.current(); }, []);
-  const { takeoverScreen, releaseActiveTakeover } = useDisplayRules(rules, allScreens, settings.timezone, onRuleWake, onRuleSleep);
+  const { takeoverScreen, takeoverOverridesSleep, releaseActiveTakeover } = useDisplayRules(rules, allScreens, settings.timezone, onRuleWake, onRuleSleep);
   const renderedScreen = takeoverScreen ?? currentScreen;
 
   // Poll background rotation for the profile-visible screens plus, while a
@@ -527,10 +527,15 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {/* A takeover implies wake: suppress the sleep overlay rather than
           calling wake() — the sleep manager re-asserts a scheduled sleep
           window every 10s, so suppression is the only way an asleep display
-          shows the alert screen AND resumes sleeping when it releases. */}
+          shows the alert screen AND resumes sleeping when it releases.
+
+          Time-boxed by takeoverOverridesSleep. A `while` takeover has no end
+          while its condition holds, so an unbounded suppression let a latching
+          sensor keep a bedroom display at full brightness all night. Past the
+          window the overlay returns over the still-pinned takeover screen. */}
       <SleepOverlay
-        displayState={takeoverScreen ? 'active' : displayState}
-        dimOpacity={takeoverScreen ? 0 : dimOpacity}
+        displayState={takeoverOverridesSleep ? 'active' : displayState}
+        dimOpacity={takeoverOverridesSleep ? 0 : dimOpacity}
         screensaver={settings.screensaver}
         timezone={settings.timezone}
       />

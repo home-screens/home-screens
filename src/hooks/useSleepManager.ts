@@ -103,10 +103,18 @@ export function useSleepManager(
     }
   }, []);
 
-  // Track user activity (mouse, touch, keyboard) for idle detection
+  // Track user activity (mouse, touch, keyboard) for idle detection.
+  //
+  // Bound unconditionally, not just when `enabled`. `sleep.enabled` governs the
+  // *automatic* idle/schedule machinery, but a display can also be put to sleep
+  // explicitly — by a rule's `sleep` action, the remote sleep command, or a
+  // display-control module — and those work regardless of the setting. Gating
+  // the listeners on `enabled` left a sleep-disabled display with no way to be
+  // woken by touch, which is the only input a kiosk has.
+  //
+  // Cheap when nothing ever sleeps: `onActivity` is a no-op state write while
+  // the display is already 'active', so React bails out without re-rendering.
   useEffect(() => {
-    if (!enabled) return;
-
     function onActivity() {
       lastActivityRef.current = Date.now();
       setBrightnessOverride(null);
@@ -118,6 +126,21 @@ export function useSleepManager(
     return () => {
       events.forEach((e) => window.removeEventListener(e, onActivity));
     };
+  }, []);
+
+  // Turning sleep OFF must brighten a display that is already asleep.
+  //
+  // `settings.sleep` is live-pushed by useLiveConfig, so this is a prop change
+  // with no remount: the timer effect below just stops running and would leave
+  // `displayState` stuck at 'asleep'/'dimmed' forever. The old `!enabled`
+  // short-circuit in dimOpacity used to mask that, but it also broke every
+  // explicit sleep, so the recovery belongs here — on the transition — rather
+  // than as a blanket guard on the opacity. An explicit forceSleep() while
+  // already disabled does not re-run this, so that path stays fixed.
+  useEffect(() => {
+    if (enabled) return;
+    setBrightnessOverride(null);
+    setDisplayState('active');
   }, [enabled]);
 
   // Timer that checks idle time, dim schedule, and sleep schedule
@@ -197,7 +220,16 @@ export function useSleepManager(
     if (brightnessOverride !== null) {
       return 1 - brightnessOverride / 100;
     }
-    if (!enabled) return 0;
+    // No `!enabled` short-circuit here on purpose. `displayState` is the single
+    // source of truth for "am I asleep"; `enabled` only decides whether the
+    // automatic transitions run. With sleep disabled the state stays 'active'
+    // on the default path and this switch already returns 0, so the guard only
+    // ever broke the explicit forceSleep()/remote-sleep path, leaving the
+    // display frozen on one screen at full brightness with no way back.
+    // ('dimmed' with a null brightnessOverride is unreachable while sleep is
+    // disabled: the only route there is setRemoteBrightness(1..99), which sets
+    // brightnessOverride and returns above — and a state left over from when
+    // sleep WAS enabled is cleared by the disable-transition effect.)
     switch (displayState) {
       case 'active':
         return 0;

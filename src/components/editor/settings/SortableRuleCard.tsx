@@ -370,6 +370,15 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                     />
                   )}
                 </div>
+                {/* `while` has no end while its condition holds, so its effect
+                    on a sleeping display is capped — otherwise a latching
+                    sensor keeps a bedroom display lit all night. The sibling
+                    `wake` action documents its own cap; this one was silent. */}
+                {action.mode === 'while' && (
+                  <p className="text-[10px] text-hs-text-dim">
+                    {t('settings.rulesPage.card.modeWhileSleepHint')}
+                  </p>
+                )}
               </>
             )}
 

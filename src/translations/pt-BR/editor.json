@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Escolha a tela que esta regra deve mostrar.",
         "modeLabel": "Por quanto tempo",
         "modeWhile": "Enquanto as condições forem verdadeiras",
+        "modeWhileSleepHint": "Fica na tela enquanto as condições forem verdadeiras. Se a tela entrar em repouso, ela desliga no horário normal, mas uma regra que acabou de começar a mantém acesa por até 5 minutos.",
         "modeFor": "Por um tempo definido",
         "secondsLabel": "Segundos",
         "cooldownLabel": "Espera (segundos)",

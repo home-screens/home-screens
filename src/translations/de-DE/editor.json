@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Wähle einen Bildschirm, den diese Regel zeigen soll.",
         "modeLabel": "Wie lange",
         "modeWhile": "Solange die Bedingungen zutreffen",
+        "modeWhileSleepHint": "Bleibt so lange, wie die Bedingungen zutreffen. Wenn das Display schlafen geht, schaltet sich der Bildschirm trotzdem wie geplant aus. Eine gerade gestartete Regel hält ihn aber noch bis zu 5 Minuten hell.",
         "modeFor": "Für eine feste Zeit",
         "secondsLabel": "Sekunden",
         "cooldownLabel": "Wartezeit (Sekunden)",

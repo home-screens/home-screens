@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Elige la pantalla que esta regla debe mostrar.",
         "modeLabel": "Duración",
         "modeWhile": "Mientras las condiciones se cumplan",
+        "modeWhileSleepHint": "Se mantiene mientras las condiciones se cumplan. Si la pantalla se duerme, se apaga igualmente a su hora, pero una regla que acaba de empezar la mantiene encendida hasta 5 minutos.",
         "modeFor": "Durante un tiempo fijo",
         "secondsLabel": "Segundos",
         "cooldownLabel": "Espera (segundos)",

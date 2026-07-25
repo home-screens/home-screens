@@ -41,6 +41,26 @@ import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri } from 
 /** Minimum time a `while`-mode takeover stays up, to ride out condition flaps. */
 export const MIN_WHILE_HOLD_MS = 5_000;
 
+/**
+ * How long a takeover suppresses the sleep and dim overlays before the schedule
+ * takes back over. The takeover itself keeps its screen pinned past this — only
+ * the "ignore the sleep schedule" part expires.
+ *
+ * Uncapped, a `while` takeover on a latching sensor (garage door left open,
+ * window open, printer offline) held a bedroom display at full brightness all
+ * night: the sleep manager re-asserted `asleep` every 10s, but the render
+ * unconditionally passed `displayState='active'` and `dimOpacity=0` while a
+ * takeover existed. `for`-mode takeovers were already bounded by their own
+ * `seconds`, and the sibling `wake` rule action was deliberately capped at
+ * RULE_WAKE_HOLD_MS for exactly this reason; `while` was the only unbounded
+ * path.
+ *
+ * Deliberately a separate constant from RULE_WAKE_HOLD_MS even though the
+ * values match: one governs a rule waking a sleeping display, the other governs
+ * a takeover outranking the sleep schedule. They are free to diverge.
+ */
+export const TAKEOVER_SLEEP_OVERRIDE_MS = 5 * 60_000;
+
 export interface ActiveTakeover {
   ruleId: string;
   screenId: string;
@@ -177,11 +197,25 @@ export function takeoverDeadline(
 ): number | null {
   const takeover = state.takeover;
   if (!takeover) return null;
-  if (takeover.mode === 'for') return takeover.until ?? null;
+  const overrideEnd = takeover.startedAt + TAKEOVER_SLEEP_OVERRIDE_MS;
+  if (takeover.mode === 'for') {
+    // The sleep override expires for `for`-mode takeovers too, and `seconds` is
+    // unbounded (the editor accepts any positive number, and nothing clamps it
+    // server-side). Reporting only `until` meant a `for: 1800` rule left
+    // `takeoverOverridesSleep` stuck true for its whole 30 minutes, because
+    // nothing bumped the tick that recomputes it — the exact all-night-bright
+    // scenario this cap exists to prevent, just with a different mode.
+    if (takeover.until == null) return overrideEnd > Date.now() ? overrideEnd : null;
+    return overrideEnd > Date.now() ? Math.min(takeover.until, overrideEnd) : takeover.until;
+  }
   const rule = rules.find((r) => r.id === takeover.ruleId);
   const holdEnd = takeover.startedAt + MIN_WHILE_HOLD_MS;
   // Condition already false → release exactly when the min hold elapses.
   if (!rule || rule.enabled === false || evaluateRuleCondition(rule, states, now) !== true) return holdEnd;
+  // Condition still true, so the takeover itself has no end — but the sleep
+  // override does. Report its expiry so the hook re-renders and lets the sleep
+  // overlay come back over the still-pinned screen.
+  if (overrideEnd > Date.now()) return overrideEnd;
   return null;
 }
 

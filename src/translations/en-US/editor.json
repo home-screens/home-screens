@@ -1157,6 +1157,7 @@
         "screenMissingWarning": "Pick a screen for this rule to show.",
         "modeLabel": "How long",
         "modeWhile": "While the conditions are true",
+        "modeWhileSleepHint": "Stays up as long as the conditions are true. If the display goes to sleep, the screen still turns off on schedule, but a rule that just started keeps it lit for up to 5 minutes first.",
         "modeFor": "For a set time",
         "secondsLabel": "Seconds",
         "cooldownLabel": "Cooldown (seconds)",
