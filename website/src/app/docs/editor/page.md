@@ -12,12 +12,13 @@ The editor is the main interface for designing your display screens. Access it a
 
 ## Layout
 
-The editor has four main areas:
+The editor has five main areas:
 
 - **Module Palette** (left sidebar) — browse and drag modules onto the canvas
 - **Canvas** (center) — the visual representation of your screen at actual display resolution
 - **Property Panel** (right sidebar) — configure the selected module's settings and appearance
 - **Screen Tabs** (top) — manage multiple screens
+- **Toolbar** (top right) — **Plugins** opens the add-on store, **Settings** opens the settings pages, and **Preview** opens the current display in a new tab so you can see your work full size. A small indicator next to them shows **Saving…** or **Saved**, and offers a **Retry** button if a save ever fails.
 
 ## Appearance
 
@@ -25,7 +26,7 @@ The editor has a **theme toggle** in the settings header that cycles through **D
 
 ## Display Switcher (multi-display)
 
-When the hub has more than one display registered, a **Display Switcher** pill appears in the editor toolbar showing the current display name and dimensions. Click it to drop down to any registered display — the canvas, screen tabs, and property panel all switch to that display's content. The pill is hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+As soon as you register your first display, a **Display Switcher** pill appears in the editor toolbar showing the current display name and dimensions. (Registering a display also creates a **main** display alongside it, holding what you had before, so you will usually see two entries right away.) Click it to drop down to any registered display — the canvas, screen tabs, and property panel all switch to that display's content. The pill is hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
 ## Canvas Controls
 
@@ -37,7 +38,8 @@ The canvas supports zooming from 25% to 300%:
 
 - **Trackpad pinch** or **Ctrl+Scroll** — zoom in/out centered on the cursor
 - **Zoom buttons** — use the **+** and **−** buttons in the floating toolbar
-- **Fit to screen** — click the fit button to reset zoom so the entire canvas is visible
+- **Keyboard** — `Cmd+=` / `Ctrl+=` to zoom in, `Cmd+-` / `Ctrl+-` to zoom out, `Cmd+0` / `Ctrl+0` to fit
+- **Fit to screen** — click the fit button to reset zoom so the entire canvas is visible. The button only appears while you are zoomed in or out; at 100% there is nothing to fit
 - The current zoom percentage is displayed in the toolbar
 
 When zoomed in beyond the viewport, the canvas becomes scrollable.
@@ -75,19 +77,22 @@ Categories in the palette are collapsible. Click a category header to expand or 
 
 - **Click** a module on the canvas to select it
 - **Drag** a selected module to reposition it
-- **Resize** by dragging the module's edges or corners
+- **Resize** by selecting the module first, then dragging the small square handle at its bottom-right corner. That handle is the only way to resize, and it appears only while the module is selected. Modules can't be made smaller than 40 × 40
+- **Delete** by selecting the module and clicking **Delete Module** at the bottom of the Property Panel. You'll be asked to confirm first. The Delete key does nothing on the canvas
 - Position and size can also be set precisely using the X, Y, W, H fields in the Property Panel
 
 ## Configuring Modules
 
-Select a module to open its settings in the **Property Panel** on the right. Related fields are grouped into `PropertyGroup` blocks (labeled rows sharing a visual container) so the panel stays scannable even on dense modules like the clock or chore chart. Style-heavy sections roll up into collapsible `AccordionSection` blocks — Style, Schedule, Background — so the panel shows only what you're actively editing.
+Select a module to open its settings in the **Property Panel** on the right. Related fields are grouped into labeled blocks sharing a visual container, so the panel stays scannable even on dense modules like the clock or chore chart. Each block is a collapsible section, so the panel shows only what you're actively editing.
 
 ### Property Panel
 
 The panel has two operating states:
 
-- **Module selected** — the module's config section at the top, followed by Style, Schedule, and (where relevant) module-specific accordion sections. The background picker stays hidden while a module is selected so the panel stays focused on the module's own fields.
-- **No module selected** — the panel shows **Screen Settings** (rotation duration, transition effect) followed by the Background picker accordion for the current screen. You can tweak rotation and backgrounds without first dropping a module on the canvas.
+- **Module selected** — collapsible sections in this order: **Position & Size**, **Style**, **Config** (the module's own options), then for add-ons **Connection** and **Secrets**, and finally **Visibility**, **Schedule**, and **Conditions**. A **Delete Module** button sits at the bottom. The Background picker is hidden while a module is selected, so the panel stays focused on the module's own fields.
+- **No module selected** — the panel shows **Screen settings** (the screen's name and module count, a rotation-duration override, and a schedule for the screen itself), followed by the Background picker for the current screen. You can set rotation, screen schedules, and backgrounds without first dropping a module on the canvas.
+
+Full-screen modules (full-screen calendar, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & Size or Style sections at all.
 
 ### Module Settings
 
@@ -104,16 +109,30 @@ See the [Module Reference](/docs/module-reference) for all available options.
 
 ### Style Settings
 
-Every module can be styled with:
+Every module (except the full-screen ones) can be styled. The controls are grouped into four blocks:
 
-- **Opacity** — fade the module (0–1 slider)
-- **Border Radius** — round the corners
-- **Padding** — add inner spacing
-- **Background Color** — set the module's background (supports transparency via rgba)
+**Shape**
+
+- **Border Radius** — round the corners (0–50)
+- **Padding** — add inner spacing (0–64)
+- **Border Width** — draw an outline around the module (0–4)
+
+**Effects**
+
+- **Opacity** — fade the module (0–1, in steps of 0.05)
+- **Backdrop Blur** — apply a frosted glass effect behind the module (0–40)
+- **Shadow Size** — drop a soft shadow behind the module (0–48)
+
+**Color**
+
+- **Background** — set the module's background (supports transparency via rgba)
+- **Border Color** — the color of the outline set by Border Width
 - **Text Color** — set the text color
+
+**Text**
+
+- **Font Size** — set the base font size (8–72)
 - **Font Family** — choose from available fonts
-- **Font Size** — set the base font size
-- **Backdrop Blur** — apply a frosted glass effect behind the module
 
 ## Managing Screens
 
@@ -121,7 +140,7 @@ The display can rotate through multiple screens automatically.
 
 ### Adding a Screen
 
-Click the **+** button in the Screen Tabs to create a new screen. Each screen has its own set of modules and background.
+Click the **+** button in the Screen Tabs and choose **Blank Screen** to start from scratch, or **From Template…** to start from a pre-built layout. Each screen has its own set of modules and background.
 
 ### Enabling and Disabling a Screen
 
@@ -141,15 +160,29 @@ Right-click a screen tab to open the context menu and choose **Rename**, or doub
 
 Drag screen tabs left or right to reorder them. You can also right-click a tab and choose **Move Left** or **Move Right** from the context menu. Screen order determines the rotation sequence on the display.
 
+### Exporting a Single Screen
+
+Right-click a screen tab and choose **Export This Screen** to save just that screen's layout to a file. Useful for sharing one screen with someone else without handing over your whole configuration.
+
 ### Removing a Screen
 
-Right-click a screen tab and choose **Delete** from the context menu. You must have at least one screen.
+Right-click a screen tab and choose **Delete** from the context menu, or click the small **x** on the tab itself. You must have at least one screen, so the last one can't be deleted.
+
+### Scheduling a Screen
+
+A whole screen can come and go on a schedule, the same way an individual module can:
+
+1. Click an empty area of the canvas to deselect any module
+2. Open **Screen settings** in the Property Panel
+3. Set the days of the week and the time window
+
+Outside that window the display skips the screen in rotation, exactly as if you had disabled it, but it turns itself back on automatically. A scheduled tab shows a small clock icon, and hovering it says "scheduled". Handy for a school-morning screen or a weekend-only photo screen.
 
 ### Screen Rotation
 
-The global rotation interval lives in **Settings > Screen > Rotation & appearance** (or the property panel's **Screen Settings** section when no module is selected — see [Property Panel](#property-panel) below). Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
+The global rotation interval lives in **Settings > Screen > Rotation & appearance**. Screens cycle in order at this interval. The display view shows small indicator dots at the bottom.
 
-Any individual screen can **override** the global interval via its `rotationDurationMs` field. Click an empty area of the canvas to deselect any module, then use the property panel's **Screen Settings** section to set a custom duration for the current screen, or clear it to inherit the global default. When a screen has a custom value, a small **duration pill** appears on its tab (e.g. `10s`) so you can see the override at a glance.
+Any individual screen can **override** the global interval via its `rotationDurationMs` field. Click an empty area of the canvas to deselect any module, then use the property panel's **Screen settings** section to set a custom duration for the current screen, or click **Reset** to go back to inheriting the global default. When a screen has a custom value, a small **duration pill** appears on its tab (e.g. `10s`) so you can see the override at a glance.
 
 Setting the duration to **0** on a screen makes it **sticky** — the display pauses rotation on that screen entirely. The tab shows an amber `0s` pill as a warning, and the screen must be advanced manually (via `/api/display/next-screen`, the display-control module, or another touch). Useful for one-off "stay on this screen until I say otherwise" surfaces like a dinner timer or a guest-mode photo frame.
 
@@ -172,16 +205,19 @@ The transition effect and duration are configurable in **Settings > Screen**. Th
 
 ## Backgrounds
 
-Open the **Background Picker** to manage screen backgrounds.
+Click an empty area of the canvas to deselect any module; the **Background** section appears in the right sidebar only when no module is selected.
 
 ### Upload a Background
 
-1. Click the upload area or drag an image file onto it
-2. Images are stored in `public/backgrounds/`
-3. Maximum file size: 10 MB (videos for the Video module can be up to 200 MB)
-4. Supported image formats: JPEG, PNG, WebP, GIF, AVIF. Supported video formats: MP4, WebM, MOV
+1. Switch to the **Local** tab and click **Upload Background**
+2. Pick an image file from your computer
+3. Images are stored in `public/backgrounds/`
+4. Maximum file size: 10 MB per image
+5. Supported image formats: JPEG, PNG, WebP, GIF, AVIF
 
-You can also fill your library from Apple Photos: in the media library browser, use **Import from an iCloud link** to download everything a shared album link (or a "Copy iCloud Link" photo link) contains into the selected folder. See the [Backgrounds guide](/docs/backgrounds#icloud-shared-albums) for details.
+Backgrounds are still images only. Videos live in the same library but are picked from a photo or video module's settings, not from here.
+
+You can also fill your library from Apple Photos, using **Import from an iCloud link** to download everything a shared album link (or a "Copy iCloud Link" photo link) contains. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo slideshow, or Full-screen photo module. Anything you import there lands in the same library the background picker's Local tab reads from. See the [Backgrounds guide](/docs/backgrounds#i-cloud-shared-albums) for details.
 
 ### Unsplash Integration
 
@@ -192,7 +228,7 @@ If you've set an Unsplash access key in Settings, you can:
 
 ### Per-Screen Backgrounds
 
-Each screen can have its own background image. Select a screen tab, then choose a background.
+Each screen can have its own background image. Select a screen tab, deselect any module, then choose a background.
 
 ## Global Settings
 
@@ -203,188 +239,108 @@ Open the **Settings Panel** to configure system-wide options. Pages are grouped 
 - **Automation** — Profiles, Rules, and Shared state (three tabs on one page)
 - **Maintenance** — Security, Network, System & updates, Backups & data, and Status
 
-The search box at the top of the sidebar matches individual setting names as well as page titles — search "brightness" or "timezone" and it jumps straight to that field and briefly highlights it, even if you don't know which page it lives on. The full documentation is always one click away via the **Docs** link in the sidebar footer.
+Rather than documenting every field here, the fastest way to find one is the **search box at the top of the sidebar** — it matches individual setting names as well as page titles, so searching "brightness" or "timezone" jumps straight to that field and briefly highlights it, even if you don't know which page it lives on. What follows is the behaviour you can't infer from the labels.
 
-When you add a second display, the sidebar automatically splits into two groups:
+### Defaults vs Per display
 
-- **Defaults** — the same set of pages above, holding the shared source-of-truth values that apply to *every* display until a specific one overrides them. Each Defaults page shows a backlink banner at the top listing which displays currently override its fields, with one click to jump to that display.
-- **Per display** — one drill-down page per registered display (plus an **All displays** landing page that holds the adoption card grid). Each display page has two sub-tabs: **Overview** (profile, identity, and adoption info) and **Overrides** (screen, sleep, and alert settings for this display). Every field that can inherit shows an **Override** button, and once overridden a **Reset to default** button, so you can always see at a glance whether a value is this display's own or borrowed from Defaults. Resolution, rotation, and flip are the exception: every display has its own screen, so those are plain inputs with nothing to inherit.
+As soon as you register a second display, the sidebar splits into two groups:
 
-See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+- **Defaults** — the same pages as above, holding the shared source-of-truth values that apply to *every* display until a specific one overrides them. Each Defaults page shows a backlink banner listing which displays currently override its fields, with one click to jump there.
+- **Per display** — one page per registered display, plus an **All displays** landing page holding the adoption card grid. Each display page has two sub-tabs: **Overview** (profile, identity, adoption info) and **Overrides** (screen, sleep, and alert settings). Every field that can inherit shows an **Override** button, and once overridden a **Reset to default** button, so you can always tell whether a value is this display's own or borrowed.
+
+Resolution, rotation, and flip are the exception: every display has its own physical screen, so those are plain inputs with nothing to inherit. For the same reason, the orientation, resolution, and flip controls on the **Defaults > Screen** page only appear in single-display installs.
+
+Multi-display features (the sidebar split, the All displays page, the Display Switcher pill, the remote's Display Picker) stay hidden until you register a display. See the [Multi-display guide](/docs/multi-display) for the full setup.
 
 ### Screen
 
-Everything about how the screen looks and when it turns itself down, across three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**.
+Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most controls are self-explanatory sliders and dropdowns; these are the ones that aren't:
 
-#### Rotation & appearance
+- **Dim and Sleep schedules** support overnight spans — `23:00–06:00` works and wraps past midnight as you'd expect.
+- **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (skip straight to sleep).
+- **Touchscreen Pause** (on by default) — double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
+- **Theme** sets the color scheme used by the full-screen modules, not the editor.
 
-- **Orientation** — toggle between portrait and landscape mode (swaps width and height)
-- **Resolution Preset** — choose from standard resolutions (720p, 1080p, 1440p, 4K) or set a custom resolution (320–7680px)
-- **Flip Display** — rotate the output 180° for physically inverted mounts
-- **Screen Rotation** — how long each screen is shown before cycling (5–120 seconds, default 30)
-- **Transition Effect** — animation when cycling between screens (see [Screen Transitions](#screen-transitions) above for the full list)
-- **Transition Duration** — how long the transition takes (0.3–2 seconds, default 0.6)
-- **Cursor Auto-Hide** — cursor hides after a configurable idle period (1–30 seconds, default 3); move the mouse to restore it
-- **Touchscreen Pause** — when enabled (default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) resumes rotation after a period of inactivity
-
-#### Sleep & dimming
-
-- **Enable/Disable** — master toggle for display sleep
-- **Dim After** — minutes of inactivity before dimming (1–60, default 10)
-- **Sleep After Dimming** — minutes after dimming before fully blanking (0–120, 0 = never)
-- **Dim Brightness** — how much to dim (5–80%, default 20%)
-- **Screensaver** — what to show during the dimmed state: drifting clock, blank, or off (skip to sleep)
-- **Dim Schedule** — automatically dim during set hours (supports overnight spans like 23:00–06:00)
-- **Sleep Schedule** — fully blank the screen during set hours (ignores activity, supports overnight spans)
-
-#### Alerts
-
-- **Enable/Disable** — toggle the alert notification overlay
-- **Position** — display alerts at the top or bottom of the screen
-- **Max Visible** — limit how many alerts show simultaneously (1–10, default 3)
-- **Default Duration** — how long alerts remain visible before auto-dismissing (0 = per-type defaults)
-- **Alert Size** — scale alert dimensions from 75% to 200% (default 100%); affects text, padding, border radius, and icons proportionally
-
-### Per display (All displays)
-
-The **All displays** landing page under **Per display** manages the hub-and-spoke registry when more than one Pi spoke is connected to the hub. Each registered display appears as a card with its name, dimensions, rotation, online dot, last-seen timestamp, source IP, and screen count. Powered-on Pi spokes that haven't been registered yet appear under **Unadopted Displays** and can be adopted with one click.
-
-- **Adopt** — register an unadopted spoke. Give it a friendly name and confirm the dimensions/rotation (pre-filled from the spoke's reported viewport). The display ID cannot be changed at adoption time because the spoke continues using its original ID.
-- **Edit screens** — switch the editor's selected display to this one and drop the canvas onto its screens.
-- **Open display** — jump into the display's drill-down page (Overview / Overrides sub-tabs) to edit its friendly name, dimensions, rotation, per-display overrides, and active profile. The `main` display is edited the same way — it's a regular display node that owns its own dimensions.
-- **Delete** — remove a display. Spokes still pointed at the deleted URL show a 60-second countdown and auto-navigate to the current default display.
-
-Multi-display features (the Defaults / Per display sidebar split, the All displays landing page, the Display Switcher pill, the remote's Display Picker) are hidden in single-display installs. See the [Multi-display guide](/docs/multi-display) for the full setup, including the spoke install command.
-
-### Automation
-
-The Automation page holds three tabs: **Profiles**, **Rules**, and **Shared state**.
-
-### Profiles
-
-Profiles let you define named groups of screens that activate based on a schedule or manually. See the [Profiles](#profiles-1) section below for details.
-
-### Rules
-
-Rules make a display react to live conditions instead of just the clock — for example, jumping to a camera screen when a doorbell sensor fires. See the [Display Rules guide](/docs/profiles#display-rules) for the full walkthrough.
-
-### Shared state
-
-Shows the values your installed add-ons are publishing, in two tabs: **Watching** lists what this display is actively using, and **Available** is a searchable, browsable catalogue of everything your add-ons could share, grouped by add-on, whether or not anything on your display uses it yet.
+Sleep and dimming draw a black layer over the page rather than powering the panel down, so a dimmed display is still backlit. That distinction matters when [diagnosing a black screen](/docs/raspberry-pi#screen-keeps-going-black).
 
 ### Location & language
 
-- **Location Lookup** — search by zip code or city name to auto-fill coordinates
-- **Detect** — auto-detect location via browser geolocation or IP-based fallback
-- **Manual Coordinates** — expandable section for editing latitude/longitude directly
-- **Timezone** — override the server's OS timezone for time-based modules (all IANA timezones available)
-- **Time Comparison** — displays browser time and server time side-by-side to verify timezone settings
-- **Language** — pick the display language from any of the shipped locales (English, German, French, Spanish, Dutch, Brazilian Portuguese, Danish). Switching is instant; both the editor and the display pick it up on the next render.
-- **Formatting Locale** (optional) — override date and number formatting only, without changing the active dictionary. Useful when you want English UI text but, say, European date order — leave blank to follow Language.
+- **Location Lookup** searches by zip code or city name; **Detect** uses browser geolocation with an IP-based fallback. Weather modules show nothing until a location is set, whichever provider you use.
+- **Timezone** overrides the server's OS timezone for time-based modules. The **Time Comparison** readout shows browser time and server time side by side so you can confirm it took.
+- **Formatting Locale** (optional) overrides date and number formatting *only*, without changing the interface language. Useful when you want English text but European date order. Leave it blank to follow **Language**.
 
 ### Weather
 
-- **Units** — metric (°C, km/h) or imperial (°F, mph), displayed as a segmented control at the top of the section
-- **Provider cards** — each of the {% $stats.weatherProviderCount %} weather providers appears as its own card showing its name, a status pill (Default, Ready, Free, Key Required, Not Configured, or Key Saved), and inline actions:
-  - **Open-Meteo** — free, no API key required, global coverage (default)
-  - **WeatherAPI** — free tier, no credit card required
-  - **OpenWeatherMap** — requires One Call 3.0 subscription
-  - **Pirate Weather** — free Dark Sky replacement
-  - **NOAA / NWS** — free, no API key required, US only
-  - **Yr.no** — free, no API key required, global (Norwegian Meteorological Institute)
-  - **SMHI** — free, no API key required, Nordic coverage (Swedish Meteorological and Hydrological Institute)
-  - **Met Office** — free, no API key required, UK coverage
-  - **Environment Canada** — free, no API key required, Canadian cities (ECCC citypage feeds)
-- **Set as default** — make a provider the active weather source for all weather modules
-- **Test** — verify your weather setup with a live API call
-- **API Key** — manage the API key inline on each card (not needed for Open-Meteo or NOAA)
+Units are a segmented control at the top; each of the {% $stats.weatherProviderCount %} providers is a card below with its own inline key field, a **Test** button, and a **Set as default** action. The status pill reads **Ready**, **Configured**, or **Needs setup**, with **Default ·** in front of the active one.
+
+Which provider to pick, and which need a key, is covered in [Weather providers](/docs/getting-started#weather-providers-settings-weather).
 
 ### Calendar
 
-- **iCal / ICS Feeds** — add calendar feeds by URL. Works with Google Calendar's [private iCal address](https://support.google.com/calendar/answer/37648?hl=en), Apple iCloud, Outlook, Fastmail, and anything else that publishes ICS. Simplest path — no credentials needed.
-- **Google Calendar (OAuth)** — optional advanced path: sign in with Google via OAuth device flow to get native multi-calendar selection and Google's own color-coding. Requires OAuth credentials on the API keys page first.
-- **Calendar Selection** — after OAuth sign-in, choose which Google calendars to display (multi-select with color indicators)
-- **iCloud Accounts** — sign in with your Apple ID and an [app-specific password](https://account.apple.com) to sync iCloud calendars directly (multiple accounts supported). Pick which calendars to show — Apple's colors carry over — and optionally add a **Birthdays** calendar built from your contacts. Your password is checked against iCloud before saving and never leaves the server.
-- **Public Holidays** — select a country to show public holidays on calendar modules (data from Nager.Date)
-- **Max Events** — limit the number of events shown (1–100, default 10)
-- **Days Ahead** — how far ahead to look for events (1–90, default 7)
+Add feeds by URL under **iCal / ICS Feeds**, or sign in under **Google Calendar (OAuth)** or **iCloud Accounts** for a calendar picker with native colors. iCloud additionally offers a **Birthdays** calendar built from your contacts, and your app-specific password is verified against iCloud before saving and never leaves the server. **Public Holidays** overlays a country's holidays (from Nager.Date) onto calendar modules.
+
+Full walkthroughs for all three, including how to choose, are in [Calendar setup](/docs/getting-started#calendar-setup).
 
 ### API keys
 
-The **API keys** page is where you configure all API keys and external service connections. Keys are stored separately in `data/secrets.json` — no `.env.local` needed. Each key shows a status indicator (configured/not configured) and can be saved or removed individually.
+All keys live here and are stored in `data/secrets.json` — no `.env.local` needed. Each shows a configured/not-configured indicator and can be saved or removed individually. Weather keys are the exception and live on their provider's card under **Settings > Weather**.
 
-- **Google OAuth Client ID** — required for Google Calendar (create at Google Cloud Console, type: TVs and Limited Input devices)
-- **Google OAuth Client Secret** — the client secret from the same OAuth credential
-- **Google Maps API Key** — optional, for the traffic/commute module (requires Routes API)
-- **Unsplash Access Key** — enables browsing HD photos in the background picker (free at unsplash.com/developers)
-- **NASA API Key** — enables Astronomy Picture of the Day browsing and rotation (free at api.nasa.gov)
-- **Todoist API Token** — for the Todoist task integration
-- **Immich Server URL** — your Immich server address (e.g. `http://192.168.1.50:2283`) for self-hosted photo library integration
-- **Immich API Key** — generated from your Immich account settings (Account Settings → API Keys); enables Immich as a photo source for slideshows, fullscreen photo, and background rotation
-- **TomTom API Key** — alternative to Google Maps for traffic data (free at developer.tomtom.com)
-- **GitHub Personal Access Token** — optional, increases rate limit for version checks from 60 to 5,000 requests/hour. Only shown when **Advanced Mode** is enabled on the System & updates page.
+Which integrations need which key is listed in [API keys](/docs/getting-started#api-keys-settings-api-keys). Two gotchas worth repeating:
+
+- **TomTom** — the Geocoding, Reverse Geocoding, and Routing APIs must be enabled **on the key itself**, not just on your account, or the traffic module fails with an unhelpful error.
+- **GitHub token** — only appears when **Advanced Mode** is on (System & updates).
 
 ### Security
 
-The editor can be protected with a password to prevent unauthorized access. Once enabled, accessing the editor and all write operations requires entering the password. The display view authenticates separately using a display token.
+The editor has no password until you set one. Once set, it covers the editor and `/remote`; the display authenticates separately with a display token, and the kids' `/chores` view deliberately stays open.
 
-- **Set Password** — enable authentication with a new password (minimum 8 characters)
-- **Change Password** — update the password (invalidates all other sessions)
-- **Disable Authentication** — remove the password (requires current password)
-- **Remember Me** — check this box on the login page for a 90-day session (default is 30 days)
-- **Display Token** — auto-generated Bearer token used by the display and remote to authenticate API requests; can be revealed, copied to clipboard, or regenerated (regenerating requires the display to reload)
-- **Revoke All Sessions** — invalidate all active sessions immediately (useful if a device is lost or compromised)
-- **Log Out** — end the current session
-- **Password Reset** — if you forget your password, delete `data/auth.json` on the device to reset
+- **Change Password** invalidates every other session. **Revoke All Sessions** does the same without changing the password.
+- **Remember Me** on the login page gives a 90-day session instead of the default 30.
+- **Display Token** can be revealed, copied, or regenerated — regenerating requires the display to reload.
+- **Forgot the password?** Delete `data/auth.json` on the device and set a new one.
 
 #### IP Allowlist
 
-Below the password controls, the Security section has an **IP Allowlist** panel with two independent toggles and a shared CIDR list. Your current IP is displayed above the list so you know what to add before enabling a toggle.
+Two independent toggles over a shared CIDR list. Your current IP is shown above the list so you know what to add before enabling either.
 
-- **Allow these IPs to bypass authentication** — trusted IPs (e.g. your LAN subnet) can access the editor and write APIs without entering the password. The password form still works for anyone coming in from outside the list.
-- **Restrict access to these IPs** — blocks any non-allowlisted IP from reaching every route except `/login` and `/api/auth/status`. Enabling this toggle with your own IP outside the list triggers a lockout warning and is rejected until you either add your IP or click **Save Anyway**.
-- **Add / Remove CIDR entries** — each entry is a CIDR block like `192.168.1.0/24` or `10.0.0.5/32`. Invalid entries (including leading-zero octets) are rejected inline.
+- **Allow these IPs to bypass authentication** — trusted addresses reach the editor and write APIs without the password; everyone else still gets the login form.
+- **Restrict access to these IPs** — blocks non-allowlisted addresses from every route except `/login` and `/api/auth/status`. Enabling it with your own IP outside the list triggers a lockout warning and is rejected until you add your IP or click **Save Anyway**.
 
 Two things to know before enabling restriction:
-1. IP matching is **IPv4-only**. If your server sees your client as an IPv6 address (`::1`, `fe80::...`), add an IPv4 entry that would match your actual address and make sure the client is reaching the server over IPv4. The panel shows a warning in this case.
-2. The feature trusts the `x-forwarded-for` header. If Home Screens sits behind a reverse proxy that does not strip client-supplied XFF headers, a clever attacker can spoof an allowlisted IP. Either run without a proxy or configure the proxy to overwrite XFF.
+
+1. Matching is **IPv4-only**. If the server sees your client as IPv6 (`::1`, `fe80::…`), add an IPv4 entry that matches your real address and make sure the client connects over IPv4. The panel warns you when it detects this.
+2. It trusts the `x-forwarded-for` header. Behind a reverse proxy that doesn't strip client-supplied XFF, an attacker can spoof an allowlisted IP. Either run without a proxy or configure the proxy to overwrite XFF.
 
 ### Backups & data
 
-- **Share Layout** — export your screen layout (screens, modules, visual settings) without personal data; safe to share with others
-- **Import Layout** — import a previously exported layout file
-- **Templates** — start from a pre-built template while preserving your existing settings
-- **Full Backup** — export or restore the entire configuration including all settings, location, calendars, and device preferences
-- **Backup Reminder** — a configurable reminder that shows a toast when you haven't backed up in a while; set the interval or disable it entirely
-- **Config Backups** — the snapshots taken automatically before each upgrade, with download and restore options. These live here alongside your manual backups so every backup is in one place.
+**Full Backup** exports everything including chore and meal history — but **not your API keys**, so after restoring onto a new device you'll re-enter those before weather and calendars work again. **Share Layout** exports only screens and modules, with no personal data, and is the safe one to hand to someone else. **Templates** start you from a pre-built layout while keeping your existing settings.
+
+**Config Backups** are the snapshots taken automatically before each upgrade, listed here alongside your manual ones. **Backup Reminder** nags you on a configurable interval, or can be switched off.
 
 ### Status
 
-The Status page is a live dashboard of system health and application state:
+A live dashboard: display state, hardware, cache statistics, CPU and thermal, memory, storage, configuration counts, and which integrations are configured. **CPU & Thermal** is the first place to look if the display feels sluggish — it reports whether the Pi is being throttled by heat or a weak power supply.
 
-- **Display Status** — connection state (active, dimmed, sleeping), current screen, and active profile
-- **Data Cache** — cache entries, hit rate, fresh/stale counts, and a detail table showing individual cached API responses
-- **Disk Usage** — filesystem usage and a breakdown of Home Screens data (backgrounds, backups, config)
-- **Configuration** — screen count, module count, profiles, and a breakdown of module types in use
-- **Integrations** — which API keys are configured at a glance
-- **Server** — hostname, platform, Node.js version, uptime, and memory usage, plus a **Download bundle** button that exports a redacted diagnostics archive for bug reports
-- **Anonymous Telemetry** — on by default, with an opt-out toggle for anonymous usage statistics; expandable "What we collect" section lists exactly what's sent (install ID, app version, platform, display counts, module-type histogram, plugin list). No PII, one beacon per 24 hours.
+The **Server** card has a **Download bundle** button that exports a redacted diagnostics archive for bug reports, and **Anonymous Telemetry** holds the opt-out toggle plus an expandable list of exactly what gets sent.
 
 ### System & updates
 
-- **Version** — current app version with commit hash and installation method (git or release)
-- **Update Channel** — switch between Stable and Pre-release (dev) channels. Only shown when **Advanced Mode** is enabled.
-- **Check for Updates** — query GitHub for new releases
-- **Update Notification** — opt-in toggle (off by default). When enabled, the editor shows a dismissible toast and `/remote` shows a banner whenever a newer release is available on GitHub. Dismissals are tracked per release tag so the same upgrade won't re-surface; a new release will surface a new prompt.
-- **Upgrade** — download and install a newer version (with confirmation dialog)
-- **Changelog** — expandable view of recent release notes
-- **Version History** — list of installed versions with rollback option for each. The config snapshot taken before each upgrade lives on the **Backups & data** page.
-- **Advanced Mode** — toggle that exposes developer surfaces. When on, you'll see the Update Channel switcher (above), the GitHub Personal Access Token card in API keys, and the Developer tab in the Plugins panel. Off by default — turn it on if you're contributing plugins, testing pre-release builds, or want a higher GitHub rate limit for version checks.
-- **Power** — restart the Home Screens service, or reboot the entire Raspberry Pi
+Version info, **Check for Updates**, **Upgrade**, an expandable **Changelog**, and **Version History** with per-version rollback. **Power** restarts the Home Screens service or reboots the Pi.
+
+- **Update Notification** is opt-in and off by default. Dismissals are tracked per release tag, so dismissing one upgrade prompt won't hide the next release.
+- **Advanced Mode** is the gate for developer surfaces: turning it on reveals the Update Channel switcher here, the GitHub token card under API keys, and the Developer tab in the Plugins panel.
+
+### Automation
+
+Three tabs on one page:
+
+- **Profiles** — named groups of screens that activate on a schedule or manually. See [Profiles](#profiles) below.
+- **Rules** — make a display react to live conditions instead of just the clock, for example jumping to a camera screen when a doorbell sensor fires. See the [Display Rules guide](/docs/profiles#display-rules).
+- **Shared state** — the values your installed add-ons are publishing. **Watching** lists what this display is actively using; **Available** is a searchable catalogue of everything your add-ons could share, grouped by add-on, whether or not anything uses it yet.
 
 ### Docs
 
-A persistent link in the sidebar footer (not a settings page) to the full documentation at [homescreens.dev/docs](https://homescreens.dev/docs), organized by section (Introduction, Guides, Reference). Opens in a new tab.
+A persistent link in the sidebar footer (not a settings page) to the full documentation, opened in a new tab.
 
 ## Profiles
 
@@ -422,12 +378,28 @@ This is useful for showing a commute module only on weekday mornings or a sports
 
 ## Module Visibility
 
-Beyond scheduling, each module has a **Visibility** section in the Property Panel:
+Beyond scheduling, the Property Panel has two separate sections that control when a module appears. **Visibility** sits just above Schedule, and **Conditions** sits just below it.
 
-- **On/off toggle** — turn a module off without deleting it. A disabled module disappears from the display (and stops fetching data) but stays visible, dimmed, in the editor so you can turn it back on later.
-- **Conditions** — show the module only when live values match rules you define. Values come from plugins that publish state (for example, a Home Assistant plugin publishing sensor readings). Add one or more conditions — "sensor equals open", "temperature above 30" — and combine them with all/any/none groups. All top-level conditions must match for the module to show.
+### Visibility
 
-Conditions pair well with an always-hidden provider module: the Visibility section also has a **background provider** option that keeps a module's data running behind the scenes (it never renders on screen) so the values it publishes stay fresh across screen rotation.
+- **Show on display** — turn a module off without deleting it. A hidden module disappears from the display (and stops fetching data) but stays visible, dimmed, in the editor so you can turn it back on later.
+- **Run hidden in the background** — keeps a module's data running behind the scenes without ever drawing it on screen, so the values it shares stay fresh across screen rotation. This one is background-only: if you want the widget visible too, add a second copy without this turned on. It only shows up on modules that can share values in the first place.
+
+### Conditions
+
+Conditions show a module only when live values match rules you define. Values come from add-ons that share state, for example a Home Assistant add-on publishing sensor readings.
+
+- **Show only when conditions match** — the master switch for this section. Leave it off and the module ignores conditions entirely. Turn it on with no conditions added and the module always shows.
+- **Conditions** — add one or more rules. There are six kinds:
+  - **Value matches** — a value is (or is not) something, like "front door is open". You can list several values separated by commas to match any of them
+  - **Number is in range** — a number is above and/or below a bound, like "temperature above 30"
+  - **Time of day** — a plain clock and day-of-week window, with no sensor involved. Useful for fencing the rest of the rules to daytime hours
+  - **All of…**, **Any of…**, **None of…** — group other conditions together
+- **Before data arrives** — what to do while a value hasn't been reported yet: **Hide the module** (the default) or **Show the module**. This is worth knowing about, because it applies whenever *any* value your conditions mention is missing, and it decides the outcome before the rules are even looked at. If an add-on restarts, its values briefly go missing and, on the default setting, the module disappears until they come back. Switch this to **Show the module** if you'd rather it stay put.
+
+When you have more than one condition at the top level, all of them must match for the module to show.
+
+While you're editing, each condition shows a badge saying whether it is **Met**, **Not met**, or **Waiting** on the display right now, along with the display's current value for that key. If the value you typed differs only by capitalization, a warning points it out, since matching is case-sensitive. A summary line at the top of the section says whether the module is shown or hidden right now and why.
 
 ## Saving
 
@@ -435,4 +407,4 @@ Changes are saved automatically when you modify settings. The editor fetches and
 
 ## Import & Export
 
-See [Data](#data) in Global Settings for export/import options including layout sharing, templates, and full backup/restore.
+See [Backups & data](#backups-and-data) in Global Settings for export/import options including layout sharing, templates, and full backup/restore.

@@ -8,7 +8,7 @@ nextjs:
       canonical: /docs
 ---
 
-A free, open-source smart display for your kitchen, hallway, or family command center. Runs on a Raspberry Pi, configured from your phone, with {% $stats.moduleCount %} built-in modules. **About 30–45 minutes from unboxing to first screen.** {% .lead %}
+A free, open-source smart display for your kitchen, hallway, or family command center. Runs on a Raspberry Pi, configured from your phone, with {% $stats.moduleCount %} built-in modules. **About 30 minutes from unboxing to first screen.** {% .lead %}
 
 ---
 
@@ -41,30 +41,17 @@ Total: **~$90** plus a display. Budget tip: a repurposed old monitor or a small 
 
 ## Privacy & safety
 
-- **All your data stays on your Pi.** No cloud accounts, no database, no required servers.
-- **The pre-built image has a default username and SSH password** (`hs` / `screens`). Change it with `passwd` on first login, or leave SSH disabled if you don't need shell access.
-- **You can always roll back.** Every upgrade keeps the previous version on disk for instant rollback from Settings > System & updates.
-
----
-
-## Key features
-
-- **{% $stats.moduleCount %} modules** — clock, weather, calendar, news, stocks, sports, chore chart, meal planner, photos, and more
-- **Visual drag-and-drop editor** — no JSON required
-- **{% $stats.weatherProviderCount %} weather providers** — Open-Meteo works zero-config worldwide; NOAA (US), Yr.no (global), SMHI (Nordic), Met Office (UK), and Environment Canada (Canada) are also free with no key; OpenWeatherMap, WeatherAPI, and Pirate Weather round out the key-required options
-- **Google Calendar + iCal** — two paths to Google (iCal URL or OAuth); iCal also works with Apple, Outlook, Fastmail, and anything else that publishes ICS
-- **Profile system** — different screens at different times of day (morning vs. evening, weekdays vs. weekends)
-- **Multi-display** — one server, many Pis, each with its own layout
-- **Multi-language** — ships in 7 languages (English, German, French, Spanish, Dutch, Brazilian Portuguese, Danish); date and number formats can be locked to a separate locale
-
-Built with Next.js 16, React 19, and Tailwind CSS. Configuration is a single JSON file — no database.
+- **Your content stays on your Pi.** Your screens, photos, calendars, chores, and API keys live in files on the device. No cloud accounts, no database, no required servers.
+- **One anonymous usage report a day.** Home Screens sends its version, platform, and how many screens and modules you have. Never your calendar events, photos, notes, or API keys, and nothing with your name on it. The report itself carries no location and no network address, though the server that receives it can see where the request came from, the same as any website you visit. Turn it off in Settings > Status, or read exactly what it sends in the [FAQ](/docs/faq#does-home-screens-collect-any-data).
+- **The editor has no password until you set one.** Anyone on your home network can open it and change your screens. Set a password in Settings > Security; it covers the editor and the phone remote, and the kids' chore view stays open on purpose.
+- **The pre-built image turns SSH on at first boot** with the username `hs` and the password `screens`. Change the password right away with `passwd`, or switch SSH off entirely with `sudo systemctl disable --now ssh` if you don't need it.
+- **You can always roll back.** Settings > System & updates lists every published version; pick an older one and Home Screens re-installs it, which needs an internet connection. If an upgrade fails its health check, the previous version is put back automatically.
 
 ---
 
 ## Getting help
 
-- [GitHub Issues](https://github.com/home-screens/home-screens/issues) — report bugs or request features
-- [GitHub Discussions](https://github.com/home-screens/home-screens/discussions) — ask questions and share your setup
+- [GitHub Issues](https://github.com/home-screens/home-screens/issues) — report bugs, request features, or ask a question
 - [Releases](https://github.com/home-screens/home-screens/releases) — check for the latest version
 - [FAQ](/docs/faq) — common questions and failure modes
 

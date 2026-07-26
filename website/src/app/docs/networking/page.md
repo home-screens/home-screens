@@ -20,8 +20,10 @@ Home Screens runs a Next.js server on **port 3000** by default. Once installed, 
 |---|---|
 | `http://<ip>:3000/` | Redirects to `/editor` |
 | `http://<ip>:3000/display` | Fullscreen kiosk view (what the display shows) |
+| `http://<ip>:3000/display/<display-id>` | A specific display in a multi-display setup |
 | `http://<ip>:3000/editor` | Configuration editor |
 | `http://<ip>:3000/remote` | Mobile remote control |
+| `http://<ip>:3000/chores` | Kid-facing chore view, never asks for a password |
 
 Any device on the same LAN can reach these URLs. The display view is designed for the connected screen; the editor is designed for phones, tablets, and laptops. Visiting the root URL (`/`) redirects to the editor since users navigating to the bare hostname are typically in a setup/configuration context. Pi displays are unaffected — the kiosk launches Chromium directly at `/display`.
 
@@ -49,37 +51,47 @@ Pass the `--port` flag to the install script:
 
 ### After installation
 
-Write the desired port number to `data/port.conf` and restart the service:
+Changing the port takes three steps. Write the new port number, re-run the system setup step so the change is picked up, then restart:
 
 ```bash
 echo 8080 > /opt/home-screens/current/data/port.conf
+bash /opt/home-screens/current/scripts/upgrade.sh setup-system
 sudo systemctl restart home-screens
 ```
 
+{% callout type="warning" %}
+Do not skip the `setup-system` line. Writing `port.conf` on its own looks like it worked, because nothing reports an error, but the server keeps running on the old port. The kiosk browser reads `port.conf` fresh on every boot, so the mismatch does not show up until the next reboot, when Chromium opens the new port, finds nothing listening, and the screen goes to a browser error page.
+{% /callout %}
+
 ### Checking the current port
 
+`port.conf` records what the port *should* be. To see what the server is actually running on, read the service file:
+
 ```bash
-cat /opt/home-screens/current/data/port.conf
+grep PORT /etc/systemd/system/home-screens.service
 ```
 
-If the file does not exist, the default port 3000 is in use.
+If `port.conf` does not exist, the default port 3000 is in use.
 
 ### Resetting to default
 
 ```bash
 rm /opt/home-screens/current/data/port.conf
+bash /opt/home-screens/current/scripts/upgrade.sh setup-system
 sudo systemctl restart home-screens
 ```
 
-### Port resolution order
+### How the port is decided
 
-The port is resolved in order of priority:
+The port is chosen **when `setup-system` runs**, in this order:
 
 1. `PORT` environment variable (if set)
 2. `data/port.conf` file
 3. Default: **3000**
 
-The `data/port.conf` file is preserved across upgrades and deployments.
+That value is then written into the `home-screens.service` file as `Environment=PORT=`, which is what the server actually reads at startup. The running server never re-reads `port.conf`, which is why a plain `systemctl restart` is not enough on its own.
+
+The `data/port.conf` file is preserved across upgrades and deployments, and upgrades re-run `setup-system` for you.
 
 ---
 
@@ -134,8 +146,8 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # The display polls /api/display/commands every 3s.
-        # Keep proxy timeouts generous for long-lived connections.
+        # Not required. The display uses short 3s polls, not long-lived
+        # connections, but a generous timeout is harmless.
         proxy_read_timeout 86400;
         proxy_send_timeout 86400;
     }
@@ -143,6 +155,10 @@ server {
 ```
 
 The `Upgrade` and `Connection` headers are included in case you use any WebSocket-based features in the future.
+
+{% callout type="warning" %}
+Behind a proxy, every request looks like it came from the proxy. Home Screens decides who a request came from using the actual network connection, not the `X-Forwarded-For` header, so with this config in front of it **every** visitor appears to be `127.0.0.1`. That breaks the IP allowlist described below. If you use both, set `HS_TRUSTED_PROXIES` in the service environment so the forwarded address is honored; see [Restrict access by IP](#restrict-access-by-ip).
+{% /callout %}
 
 ---
 
@@ -196,6 +212,24 @@ Simple commands (no payload needed) can be sent via GET or POST:
 
 The GET endpoints are bookmarkable, so you can save them as shortcuts on your phone's home screen.
 
+### If you have set a password
+
+**Every** `/api/display/*` endpoint on this page needs a credential once you set a password under **Settings > Security**, including the simple GET commands above. Without one they return `401`. This catches people out: the commands work fine, then stop working the day a password is set, and nothing on the phone or in Home Assistant explains why.
+
+Home Screens generates a **display token** for exactly this purpose. Find it under **Settings > Security > Display Token**, where you can reveal, copy, and regenerate it. There are two ways to send it:
+
+```bash
+# Header form, best for scripts and automations
+curl -H 'Authorization: Bearer <token>' http://<ip>:3000/api/display/wake
+
+# Query form, for links you want to bookmark on a phone
+http://<ip>:3000/api/display/wake?token=<token>
+```
+
+The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the token is.
+
+One command is stricter than the rest: **profile** switching changes your saved configuration, so it requires a full editor login and will not accept a display token.
+
 ### Commands with payloads
 
 These require a POST with a JSON body:
@@ -208,7 +242,9 @@ curl -X POST http://<ip>:3000/api/display/brightness \
   -d '{"value": 50}'
 ```
 
-**Profile** — switch to a named profile (requires authentication if enabled):
+Brightness works by fading a black layer over the page, not by changing the panel's backlight. At `0` the screen is drawn fully black but the monitor is still powered on and lit.
+
+**Profile** — switch to a named profile (this one needs a full editor login, not just a display token):
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/profile \
@@ -224,15 +260,19 @@ curl -X POST http://<ip>:3000/api/display/alert \
   -d '{"type": "info", "title": "Dinner is ready!", "message": "Come to the kitchen", "duration": 30000}'
 ```
 
-Alert types: `info`, `warning`, `urgent`. The `duration` field is in milliseconds. Optional fields: `icon` (Lucide icon name), `dismissible` (boolean).
+Alert types: `info`, `warning`, `urgent`. The `duration` field is in milliseconds. Optional fields: `icon` (a short piece of text or an emoji shown just before the title, for example `"🍕"`) and `dismissible` (boolean).
+
+The colored symbol beside an alert is chosen by its `type` and cannot be replaced. Setting `icon` to an icon name such as `"AlertTriangle"` prints those letters in front of your title rather than drawing anything.
 
 ### Querying display status
 
 The display reports its status to the server every 30 seconds and on any state change. Query it with:
 
 ```bash
-curl http://<ip>:3000/api/display/status
+curl 'http://<ip>:3000/api/display/status?display=kitchen'
 ```
+
+Leave off `?display=` only on a single-display install. As soon as you have more than one display set up, each one reports under its own ID, and the bare URL has nothing to answer with, so it returns `404 {"error": "No status reported yet"}`.
 
 Response:
 
@@ -244,11 +284,23 @@ Response:
   "displayState": "active",
   "timestamp": 1711300000000,
   "reportedViewport": { "width": 1080, "height": 1920 },
-  "hwStats": { "cpuUsagePercent": 14.2, "cpuTemperatureC": 52.1, "memoryUsagePercent": 46.0, "uptimeSeconds": 86400, "model": "..." }
+  "hwStats": {
+    "piModel": "Raspberry Pi 4 Model B Rev 1.5",
+    "cpuModel": "Cortex-A72",
+    "cpuCores": 4,
+    "cpuTempC": 52.1,
+    "load1": 0.4, "load5": 0.3, "load15": 0.25,
+    "throttled": { "raw": "0x0", "active": false, "underVoltage": false, "previouslyThrottled": false },
+    "memoryTotal": 4045000704,
+    "memoryFree": 2100000000,
+    "diskTotal": 31000000000,
+    "diskFree": 24000000000,
+    "reportedAt": "2026-07-25T18:00:00.000Z"
+  }
 }
 ```
 
-The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` is present only when a per-Pi reporter is posting to the hub. Display-only spoke Pis run `scripts/reporter.sh` on a 30-second systemd timer and POST to `/api/display/hw-stats` (adoption-gated — no bearer token, the spoke just has to appear in the hub's displays registry).
+The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` is present only when a per-Pi reporter is posting to the hub. Memory and disk figures are raw byte counts, and CPU load is reported as 1/5/15-minute load averages rather than a percentage. Display-only spoke Pis run `scripts/reporter.sh` on a 30-second systemd timer and POST to `/api/display/hw-stats` (adoption-gated — no bearer token, the spoke just has to appear in the hub's displays registry).
 
 ### Home Assistant integration
 
@@ -259,18 +311,34 @@ rest_command:
   homescreens_wake:
     url: "http://192.168.1.100:3000/api/display/wake"
     method: GET
+    headers:
+      authorization: !secret homescreens_auth
   homescreens_sleep:
     url: "http://192.168.1.100:3000/api/display/sleep"
     method: GET
+    headers:
+      authorization: !secret homescreens_auth
   homescreens_next:
     url: "http://192.168.1.100:3000/api/display/next-screen"
     method: GET
+    headers:
+      authorization: !secret homescreens_auth
   homescreens_alert:
     url: "http://192.168.1.100:3000/api/display/alert"
     method: POST
     content_type: "application/json"
+    headers:
+      authorization: !secret homescreens_auth
     payload: '{"type": "info", "title": "{{ title }}", "message": "{{ message }}"}'
 ```
+
+Add the header value to Home Assistant's `secrets.yaml`, including the word `Bearer`, since `!secret` substitutes the whole value:
+
+```yaml
+homescreens_auth: "Bearer your-display-token-here"
+```
+
+If you have not set a Home Screens password the `headers` blocks are simply ignored, so it is safe to include them from the start; that way your automations keep working the day you do add a password.
 
 Then use these in automations, scripts, or dashboards.
 
@@ -292,7 +360,9 @@ The install script applies several WiFi reliability hardening measures for Raspb
 - **Masked suspend/hibernate** — `brcmfmac` cannot recover WiFi after suspend, so power management sleep states are disabled
 - **Connectivity watchdog** — a timer checks connectivity every 2 minutes and escalates through three recovery steps: NetworkManager reconnect, interface cycle, and driver reload
 
-These changes are applied automatically by both the install script and the pre-built image. No manual configuration is needed.
+These changes are applied automatically by the full install and by the pre-built image. No manual configuration is needed.
+
+Note that display-only spoke Pis installed with `--display-only` do **not** get these settings today; that install path finishes before the system-tuning step runs. Headless spokes are exactly the machines that benefit most from it, so this is a known gap rather than a deliberate choice.
 
 ### Offline indicator
 
@@ -340,6 +410,8 @@ No inbound ports beyond the web server port are required. All external service c
 
 ## Security best practices
 
+Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your WiFi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here.
+
 ### Enable password protection
 
 Set a password in the editor under **Settings > Security**. When enabled:
@@ -347,6 +419,7 @@ Set a password in the editor under **Settings > Security**. When enabled:
 - The editor (`/editor`) requires login
 - All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie — **except** the chore-toggle endpoint (`POST /api/chores`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
+- Every display-control endpoint (`/api/display/*`) requires either a login or the display token, described under [Remote display control](#if-you-have-set-a-password)
 - The display view (`/display`) remains accessible without login
 - The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
 - Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
@@ -365,7 +438,20 @@ In addition to (or instead of) a password, Home Screens can gate every route on 
 
 **Scope and caveats.**
 - **IPv4 only.** Home Screens normalizes IPv4-mapped IPv6 (`::ffff:127.0.0.1` → `127.0.0.1`) before matching but cannot match raw IPv6 addresses like `::1` or `fe80::...`. If your clients connect over IPv6, the allowlist will block them and the editor shows a dedicated warning so you know to switch the client to IPv4 (or leave the restriction off). The caller's detected IP is always displayed in the settings panel so you can verify what the server sees.
-- **The `x-forwarded-for` header is trusted.** If Home Screens sits behind a reverse proxy or a CDN that does not strip or overwrite client-supplied `x-forwarded-for` headers, an attacker on the public internet can spoof an allowlisted IP. Either run Home Screens without a proxy or configure the proxy to rewrite XFF before passing the request through.
+- **Forwarded headers are ignored by default.** Home Screens works out who a request came from using the address of the actual network connection, and overwrites any `x-forwarded-for` or `x-real-ip` header the caller supplied, so an attacker cannot spoof their way past the allowlist. The trade-off is that a reverse proxy hides the real client: put the [nginx config above](#reverse-proxy-setup-nginx) in front and every request appears to come from `127.0.0.1`, which makes the allowlist match everyone or no one. To use both together, set `HS_TRUSTED_PROXIES` to a comma-separated list of your proxy's exact IP addresses. Home Screens then trusts the forwarded chain from those addresses only. The same applies to login rate limiting, which otherwise buckets every attempt together.
+
+  Add it as a systemd override rather than editing the service file directly, because upgrades rewrite the service file and would discard your change:
+
+  ```bash
+  sudo systemctl edit home-screens
+  ```
+
+  Then add these two lines, and restart with `sudo systemctl restart home-screens`:
+
+  ```ini
+  [Service]
+  Environment=HS_TRUSTED_PROXIES=127.0.0.1
+  ```
 - **Lockout recovery.** If you lock yourself out (e.g. your router handed you a new DHCP lease and the old IP was the only one in the list), SSH into the server and either edit `data/auth.json` to add your new IP, or delete the `ipAllowlist` array entirely — the feature fails open when the list is empty.
 - **Allowlist survives password changes.** Setting, changing, clearing, or disabling the editor password no longer drops the IP allowlist — the restriction stays in force even during a password reset.
 - **Audit logged.** Every change to the allowlist or either toggle emits an `ip_allowlist_change` audit event so you can spot unexpected edits in the audit log.
@@ -384,21 +470,35 @@ Home Screens is designed for local network use. If you need remote access, consi
 
 ### Backup sensitive data
 
-The `data/` directory contains your configuration, API keys, authentication state, and Google OAuth tokens. These files are excluded from deploys and git by default. Back them up separately:
+The `data/` directory contains your configuration, API keys, authentication state, and Google OAuth tokens. These files are excluded from deploys and git by default.
+
+**The simplest reliable advice is to back up the whole `data/` directory.** Everything Home Screens owns lives there, so copying the folder cannot miss anything, and new files added by future versions are covered automatically.
 
 ```bash
-# Files to back up
-data/config.json         # Screen configuration
-data/secrets.json        # API keys
-data/auth.json           # Password hash and session secret
-data/google-tokens.json  # Google OAuth tokens
-data/icloud-accounts.json # iCloud calendar sign-ins (app-specific passwords)
-data/plugin-tokens/      # Plugin account connection tokens
-data/port.conf           # Custom port (if set)
-data/meals.json          # Meal planner data (saved meals, weekly plan, grocery list)
-data/chores.json         # Chore chart data (members, chores, completions)
-data/rewards.json        # Chore rewards data (definitions, balances, redemptions)
-data/backup-state.json   # Backup reminder tracking
+# Back up everything
+tar -czf home-screens-backup.tar.gz -C /opt/home-screens/current data
 ```
 
-The editor also supports config backups under **System > Backups**.
+If you would rather pick files individually, these are the ones that matter:
+
+```bash
+data/config.json              # Screen configuration
+data/secrets.json             # API keys
+data/auth.json                # Password hash and session secret
+data/google-tokens.json       # Google OAuth tokens
+data/icloud-accounts.json     # iCloud calendar sign-ins (app-specific passwords)
+data/plugins/                 # Installed plugins themselves
+data/plugin-tokens/           # Plugin account connection tokens
+data/plugin-secrets/          # Plugin credentials
+data/port.conf                # Custom port (if set)
+data/meals.json               # Meal planner data (saved meals, weekly plan, grocery list)
+data/chores.json              # Chore chart members and chore definitions
+data/chore-completions.json   # Chore history: who did what, and when
+data/rewards.json             # Chore rewards data (definitions, balances, redemptions)
+data/todo-state.json          # Which todo items are ticked off
+data/backup-state.json        # Backup reminder tracking
+```
+
+Two of these are easy to miss and painful to lose. Chore history lives in `data/chore-completions.json`, **not** in `chores.json`, and reward balances are calculated from it, so skipping it wipes everyone's earned rewards. And `data/plugins/` holds the installed plugins themselves; without it, every plugin module on your screens comes back empty after a restore.
+
+The editor also supports config backups under **Settings > Backups & data**.

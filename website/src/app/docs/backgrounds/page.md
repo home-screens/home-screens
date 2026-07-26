@@ -10,6 +10,10 @@ nextjs:
 
 Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, pull from an iCloud shared album, and optionally enable auto-rotation to keep things fresh.
 
+{% callout type="note" title="Finding the Background section" %}
+The **Background** section appears in the editor's right sidebar only when no module is selected. If you can't find it, click an empty part of the canvas first to deselect whatever module you were editing. Every procedure on this page assumes you've done that.
+{% /callout %}
+
 ---
 
 ## Setting a static background
@@ -17,9 +21,10 @@ Each screen in Home Screens can have its own background image. You can upload yo
 Every screen has a `backgroundImage` field that points to a locally stored image. To set a background in the editor:
 
 1. Select the screen you want to customize using the **Screen Tabs** at the top
-2. Open the **Background** section in the right sidebar
-3. Switch to the **Local** tab to see your uploaded images
-4. Click a thumbnail to apply it, or click **None** to remove the background
+2. Click an empty part of the canvas to deselect any module
+3. Open the **Background** section in the right sidebar
+4. Switch to the **Local** tab to see your uploaded images
+5. Click a thumbnail to apply it, or click **None** to remove the background
 
 The selected image fills the entire screen using CSS `cover` sizing, so it scales to fill the display without distortion.
 
@@ -27,43 +32,15 @@ The selected image fills the entire screen using CSS `cover` sizing, so it scale
 
 ## Uploading custom images
 
-### From the editor
-
-1. Open the **Background** section in the right sidebar
-2. Switch to the **Local** tab
-3. Click **Upload Background**
-4. Select an image file from your computer
+1. Click an empty part of the canvas to deselect any module
+2. Open the **Background** section in the right sidebar
+3. Switch to the **Local** tab
+4. Click **Upload Background**
+5. Select an image file from your computer
 
 The image is saved to `public/backgrounds/` on the server and immediately available for use. Uploading an image automatically sets it as the current screen's background.
 
-### Via the API
-
-You can also upload backgrounds programmatically:
-
-```bash
-curl -X POST http://your-display:3000/api/backgrounds \
-  -F "file=@/path/to/photo.jpg"
-```
-
-The response includes the serve path:
-
-```json
-{ "path": "/api/backgrounds/serve?file=photo.jpg" }
-```
-
-To upload multiple files in one request:
-
-```bash
-curl -X POST http://your-display:3000/api/backgrounds \
-  -F "file=@photo1.jpg" \
-  -F "file=@photo2.jpg"
-```
-
-The multi-file response returns an array of paths:
-
-```json
-{ "paths": ["/api/backgrounds/serve?file=photo1.jpg", "/api/backgrounds/serve?file=photo2.jpg"] }
-```
+The Upload Background button opens a file chooser; there is no drop zone to drag files onto. It offers image files only. Videos can be added to the same library from a photo or video module's media library browser, but they can't be used as a screen background.
 
 ### Constraints
 
@@ -73,47 +50,11 @@ The multi-file response returns an array of paths:
 
 ---
 
-## Organizing backgrounds in directories
+## Where background files live
 
-Backgrounds support subdirectories within `public/backgrounds/`. You can use directories to organize images by theme, season, or source.
+Backgrounds must sit **directly in `public/backgrounds/`** to appear in the editor's Local tab. The picker doesn't browse folders, so anything filed into a subdirectory disappears from it.
 
-### Uploading to a directory
-
-Pass the `directory` parameter when uploading via the API:
-
-```bash
-curl -X POST http://your-display:3000/api/backgrounds \
-  -F "file=@christmas-tree.jpg" \
-  -F "directory=holidays/christmas"
-```
-
-The directory is created automatically if it does not exist. The resulting serve path includes the directory:
-
-```
-/api/backgrounds/serve?file=holidays/christmas/christmas-tree.jpg
-```
-
-### Listing a directory
-
-```bash
-# List root backgrounds
-curl http://your-display:3000/api/backgrounds
-
-# List a subdirectory
-curl http://your-display:3000/api/backgrounds?directory=holidays/christmas
-```
-
-Both return a JSON array of serve URLs for the images in that directory.
-
-### Deleting from a directory
-
-```bash
-curl -X DELETE http://your-display:3000/api/backgrounds \
-  -H "Content-Type: application/json" \
-  -d '{"file": "christmas-tree.jpg", "directory": "holidays/christmas"}'
-```
-
-In the editor's Local tab, hover over any thumbnail and click the delete button to remove it.
+Subdirectories still work for the photo modules' media library browser and for the [backgrounds API](/docs/api#backgrounds), which takes a `directory` parameter on upload, list, and delete.
 
 ---
 
@@ -129,7 +70,7 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 
 ### Browsing and selecting
 
-1. Open the **Background** section in the right sidebar
+1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
 2. The **Unsplash** tab is shown by default
 3. Use the search bar or click a preset category (Nature, Mountains, Ocean, Forest, Sky, Space, City, Abstract, Flowers, Seasons)
 4. Click a photo to download it and set it as the screen background
@@ -179,7 +120,7 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 
 ### Browsing and selecting
 
-1. Open the **Background** section in the right sidebar
+1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
 2. Switch to the **Immich** tab (only visible when both Immich keys are configured)
 3. Optionally filter by album using the dropdown
 4. Click **Refresh** to load a new batch of photos
@@ -203,8 +144,8 @@ iCloud shared albums work without an Apple account or API key — all you need i
 
 ### Using it
 
-- **As a rotation source** — in the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers.
-- **Importing into your library** — in the media library browser, use **Import from an iCloud link** to download everything a link contains into the selected folder. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days — importing keeps the photos even after the link dies.
+- **As a rotation source** — deselect any module, open the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
+- **Importing into your library** — use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo slideshow, or Full-screen photo module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
 
@@ -214,13 +155,16 @@ Auto-rotation periodically replaces the screen background with a new image from 
 
 ### Enabling rotation
 
-1. Open the **Background** section in the right sidebar
-2. Toggle **Auto-rotate background** on
-3. Choose a **Source**: Unsplash, NASA Picture of the Day, Immich, or iCloud Shared Album
-4. For Unsplash, enter a **Search query** (default: "nature landscape")
-5. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
-6. For iCloud, paste the shared album link
-7. Set the **Rotate every** interval
+1. Click an empty part of the canvas to deselect any module
+2. Open the **Background** section in the right sidebar
+3. Toggle **Auto-rotate background** on
+4. Choose a **Source**: Unsplash, NASA Picture of the Day, Immich, or iCloud Shared Album
+5. For Unsplash, enter a **Search query** (default: "nature landscape")
+6. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
+7. For iCloud, paste the shared album link
+8. Set the **Rotate every** interval
+
+Unsplash, NASA, and Immich appear in the Source list only once their key is saved on the **Settings > API keys** page. iCloud shared albums need no key, so that option is always there. If the list looks short, a missing key is why.
 
 ### Interval options
 
@@ -240,9 +184,13 @@ The display client polls the server every 60 seconds. The server maintains a cac
 - **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
 - **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
 - **Immich rotation** fetches a random photo from your Immich library, optionally filtered by album, person, or favorites. The server caches Immich filter parameters so changing your album or person selection immediately busts the cache and fetches a fresh photo.
-- **iCloud rotation** fetches a random photo from the shared album. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
+- **iCloud rotation** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 
 If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
+
+### Housekeeping
+
+Rotated images are saved into `public/backgrounds/` with a `rotation-` prefix, and tidied up automatically after each rotation: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and iCloud imports are never touched. If you see a rotated photo you want to keep for good, download it and upload it again as a regular background.
 
 ### Rotation and manual backgrounds
 
@@ -279,74 +227,10 @@ Portrait-oriented images work best for the default portrait display layout. Unsp
 
 ## Background configuration in JSON
 
-Backgrounds are configured per-screen in `data/config.json`. Here is the relevant portion of the `Screen` object:
-
-```json
-{
-  "id": "screen-1",
-  "name": "Main",
-  "backgroundImage": "/api/backgrounds/serve?file=unsplash-abc123.jpg",
-  "backgroundRotation": {
-    "enabled": true,
-    "source": "unsplash",
-    "query": "nature landscape",
-    "intervalMinutes": 60
-  },
-  "modules": []
-}
-```
-
-### BackgroundRotation fields
-
-| Field | Type | Description |
-|---|---|---|
-| `enabled` | `boolean` | Whether auto-rotation is active |
-| `source` | `'unsplash' \| 'nasa-apod' \| 'immich'` | Image source for rotation |
-| `query` | `string` | Search query (Unsplash only; ignored for other sources) |
-| `intervalMinutes` | `number` | Minutes between background changes |
-| `immichAlbumId` | `string` | Immich album filter (optional) |
-| `immichPersonId` | `string` | Immich person (face) filter (optional) |
-| `immichFavoritesOnly` | `boolean` | Only use photos marked as favorites in Immich (optional) |
-
-### Static background only
-
-To use a static background without rotation, set `backgroundImage` and either omit `backgroundRotation` or set `enabled` to `false`:
-
-```json
-{
-  "id": "screen-1",
-  "name": "Main",
-  "backgroundImage": "/api/backgrounds/serve?file=my-photo.jpg",
-  "modules": []
-}
-```
-
-### No background
-
-To use no background (transparent/black), set `backgroundImage` to an empty string:
-
-```json
-{
-  "backgroundImage": ""
-}
-```
+Backgrounds are stored per-screen on the `Screen` object: `backgroundImage` for a static image and `backgroundRotation` for the rotation settings. Field-by-field types are in the [Configuration reference](/docs/configuration#screen).
 
 ---
 
 ## API reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/backgrounds` | List uploaded background images |
-| `GET` | `/api/backgrounds?directory=subdir` | List images in a subdirectory |
-| `POST` | `/api/backgrounds` | Upload one or more images (multipart form) |
-| `DELETE` | `/api/backgrounds` | Delete an uploaded image |
-| `GET` | `/api/backgrounds/serve?file=name.jpg` | Serve a background image |
-| `GET` | `/api/backgrounds/rotate?screenId=X` | Get the current rotated background for a screen |
-| `GET` | `/api/unsplash?query=...` | Search Unsplash photos |
-| `POST` | `/api/unsplash` | Download an Unsplash photo to local storage |
-| `GET` | `/api/nasa?type=apod&count=12` | Fetch random APOD images |
-| `GET` | `/api/nasa?type=search&query=...` | Search NASA Image Library |
-| `POST` | `/api/nasa` | Download a NASA image to local storage |
-
-Served background images are cached by the browser for 24 hours (`Cache-Control: public, max-age=86400`).
+Every backgrounds, Unsplash, and NASA endpoint is documented under [Backgrounds](/docs/api#backgrounds) in the API reference.

@@ -150,14 +150,6 @@ describe('website stats stay in sync with the codebase', () => {
     );
   });
 
-  it('configuration ClockConfig code block carries CLOCK_VIEW_COUNT', () => {
-    assertContains(
-      path.join(WEBSITE_DOCS, 'configuration/page.md'),
-      `one of the ${CLOCK_VIEW_COUNT} view names below`,
-      'configuration ClockConfig code block',
-    );
-  });
-
   it('og-image.html social-card template carries MODULE_COUNT', () => {
     // og-image.html is rendered headlessly to public/images/og-home.jpg (the
     // OpenGraph card embedded in social shares). It's plain HTML — no React

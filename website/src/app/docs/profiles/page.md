@@ -26,7 +26,7 @@ Profiles are defined in your configuration alongside screens:
 
 ```typescript
 {
-  version: 1,
+  version: 5,
   settings: {
     activeProfile: "morning",   // manually selected profile
     // ...
@@ -56,8 +56,9 @@ Profiles are managed in the editor under **Settings > Automation > Profiles**.
 ### Adding a profile
 
 1. Open **Settings > Automation > Profiles**
-2. Click **Add Profile** -- a new profile is created with all screens selected
-3. Give it a descriptive name (e.g. "Morning", "Weekend", "Office Hours")
+2. If you have more than one display, pick the one you're working on from the **Editing profiles for** dropdown at the top of the page. Profiles belong to a single display, and a new profile picks up that display's screens, so choosing the wrong one here builds the profile against the wrong screens. Switching displays here also switches which display the editor canvas is showing.
+3. Click **Add Profile** -- a new profile is created with all screens selected
+4. Give it a descriptive name (e.g. "Morning", "Weekend", "Office Hours")
 
 ### Selecting and ordering screens
 
@@ -149,6 +150,8 @@ Screen schedules use the same `ModuleSchedule` format as profile and module sche
 
 Screen schedules are re-evaluated every minute, piggybacking on the same timezone-aware clock used by profile and module schedules. Evaluation happens **before profile resolution**, so a scheduled-off screen never enters the candidate set -- even if the active profile explicitly references it. Manual navigation respects this too: scheduled-off screens are pulled out of the rotation pool entirely, so `nextScreen`/`prevScreen` skip them.
 
+Every schedule on this page -- screen, profile, and module -- reads the clock in the timezone set under **Settings > Location & language**. If you leave that blank, each display falls back to its own device clock, so set a timezone if your displays aren't all in the same place.
+
 {% callout type="note" %}
 **Empty-after-filter safety.** If every screen has a schedule and none of them currently match, the display falls back to showing all enabled screens rather than going blank. A scheduled display should never become an empty kiosk.
 {% /callout %}
@@ -178,15 +181,31 @@ Module schedules use the same `ModuleSchedule` format as profile schedules:
 }
 ```
 
-### How module visibility is evaluated
+### How a module schedule is evaluated
 
-The display re-evaluates module visibility every minute. A module is visible when:
+The display re-evaluates module schedules every minute. A module passes its schedule when:
 
 1. Its `daysOfWeek` includes the current day (or is omitted/empty, meaning every day)
 2. The current time falls within the `startTime`--`endTime` window (or both are omitted, meaning all day)
 3. If `invert` is true, the logic is flipped -- the module is hidden when conditions 1 and 2 match, and shown otherwise
 
-Overnight time windows and day-of-week rollover for the post-midnight portion work the same way as profile schedules.
+Overnight time windows and day-of-week rollover for the post-midnight portion work the same way as profile schedules. Like every other schedule, they read the clock in the timezone set under **Settings > Location & language**, falling back to each display's own device clock when no timezone is set.
+
+### The three switches that hide a module
+
+The schedule is only one of three switches, and a module has to clear **all three** to appear on the display:
+
+| Switch | Where it lives | What it does |
+|---|---|---|
+| **Show on display** | The **Visibility** section of the Property Panel | Turn it off to hide a module everywhere without deleting it. It stays visible (dimmed) in the editor so you can turn it back on. |
+| **Schedule** | The **Schedule** section of the Property Panel | Hides the module outside the days and times you set, as described above. |
+| **Show only when conditions match** | The **Visibility** section of the Property Panel | Hides the module unless live values from your connected services match the conditions you set. |
+
+Turning any one of them off hides the module, so if a module has unexpectedly disappeared, check all three before assuming the schedule is at fault.
+
+Visibility conditions react to live values published by add-ons, such as a Home Assistant integration. A single condition can check that a value matches (or doesn't match) something you type, check that a number falls in a range, or fence the module by time of day and day of week; **All of** / **Any of** / **None of** groups combine several conditions into one rule. There's also a setting for what to do before the value ever arrives, so a module can either stay hidden or show by default while it waits. See [Module visibility conditions](/docs/configuration#module-visibility) for the stored shape and the [Editor guide](/docs/editor) for the controls themselves.
+
+One more setting sits alongside these: **Run hidden in the background**. A module marked that way never appears on screen at all. It runs quietly so its data keeps updating while other screens are showing, which is what lets one add-on feed conditions on modules elsewhere. If you want the widget visible too, add a second copy without that setting.
 
 ---
 
@@ -226,6 +245,7 @@ Time check (every minute)
 | Two scheduled profiles both match | First one in the list wins (drag to reorder) |
 | Scheduled profile matches but its screens were deleted | Falls through to next match or manual active |
 | A screen's schedule hides it right now | That screen is excluded from the rotation pool, even if the active profile includes it |
+| A scheduled profile matches, but every screen in it is hidden by its own schedule right now | That profile is skipped as if it hadn't matched, and the next matching profile (or the manual one, or all screens) is used instead |
 | No profiles exist | All screens shown, as if profiles are disabled |
 
 ---
@@ -242,7 +262,7 @@ Rotation pauses automatically when the display is asleep -- no point cycling thr
 
 ### Per-screen override (`rotationDurationMs`)
 
-Any individual screen can override the global rotation interval — useful for dinner-prep displays, guest-mode timers, or a hero screen that needs to linger. In the editor, select a screen tab and open its properties to set a per-screen duration. Set the override to **0** to pin the screen indefinitely (no rotation until manually advanced). Screens without an override inherit the global interval.
+Any individual screen can override the global rotation interval — useful for dinner-prep displays, guest-mode timers, or a hero screen that needs to linger. In the editor, select a screen tab, open the **Screen settings** panel (the right-hand property panel when no module is selected), and find **Duration** under **Rotation**. It starts out inheriting the global interval and shows what that interval currently is; click **Override** to start editing it, and **Reset** to go back to inheriting. Set the override to **0** to pin the screen indefinitely (no rotation until manually advanced).
 
 ### Transition effects
 
@@ -313,12 +333,12 @@ User activity (wake)      -->  any input restores full brightness
 Rules make a display react to what's happening, not just to the clock. When a rule's conditions become true, it can jump to a screen or wake the display -- for example, showing a doorbell camera screen when the bell rings, or waking up when someone unlocks the front door. Add and edit rules in **Settings > Automation > Rules**.
 
 {% callout type="note" %}
-Rules need a source of live data to react to -- a plugin (like a Home Assistant integration) publishing values your display can read. See the [Plugins guide](/docs/plugins) for what's available.
+Most rules react to live values published by an add-on, like a Home Assistant integration -- see the [Plugins guide](/docs/plugins) for what's available. You can also build a rule purely on the clock, using a time-of-day and day-of-week condition, with no add-on at all.
 {% /callout %}
 
 ### Conditions
 
-Rules use the same condition types as [module visibility conditions](/docs/configuration#modulevisibility): a value published by an add-on, a numeric threshold, or a time-of-day/day-of-week window, combined with AND/OR/NOT groups. A rule only fires the moment its conditions become true, not on every check while they stay true -- so a reboot or a restarting add-on won't slam the display onto an alert screen for something that's been true for hours. Each condition row shows a live met/not-met indicator, so you can see exactly why a rule has or hasn't fired.
+Rules use the same condition types as [module visibility conditions](/docs/configuration#module-visibility): a value published by an add-on, a numeric threshold, or a time-of-day/day-of-week window, combined with AND/OR/NOT groups. A rule only fires the moment its conditions become true, not on every check while they stay true -- so a reboot or a restarting add-on won't slam the display onto an alert screen for something that's been true for hours. Each condition row shows a live met/not-met indicator, so you can see exactly why a rule has or hasn't fired.
 
 ### Actions
 

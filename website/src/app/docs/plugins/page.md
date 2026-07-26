@@ -26,11 +26,13 @@ Plugins follow the same module registry pattern as built-in modules, but load dy
 When the app starts, plugin loading follows this sequence:
 
 1. Fetch the installed plugins list from `/api/plugins/installed`
-2. For each enabled plugin, fetch its `manifest.json` and `dist/bundle.js` in parallel
+2. Load every enabled plugin in parallel; within each one, fetch its `manifest.json` first, then its version-stamped `dist/bundle.js`
 3. Execute each bundle via inline `<script>` injection, reading exports from `window.__HS_PLUGIN__`
 4. Register the plugin in the module registry and the Zustand plugin store
-5. Run any pending config migrations (sequentially, to avoid concurrent config writes)
-6. Load dev plugins from `localStorage` and start hot-reload polling
+5. (Editor only) Load dev plugins from `localStorage` and start hot-reload polling
+6. (Editor only) Run any pending config migrations, sequentially, to avoid concurrent config writes
+
+Steps 5 and 6 run in that order on purpose: a dev override that fails to load falls back to the installed copy, which can queue a migration the loop still has to process. Both steps are skipped on a display page, which is unauthenticated and could not write config anyway.
 
 ---
 
@@ -62,7 +64,9 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 }
 ```
 
-### Required Fields
+### Manifest Fields
+
+The host only *rejects* a manifest missing `id`, `name`, `version`, `moduleType`, or `category`. Everything else in this table is required for a good listing and for registry submission, and `exports.component` falls back to the bundle's `default` export when omitted. Treat the whole table as required when you publish; treat the five above as the hard floor.
 
 | Field | Type | Description |
 |---|---|---|
@@ -78,20 +82,21 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 | `icon` | string | Lucide icon name (e.g., `"sparkles"`, `"cloud-rain"`). |
 | `defaultConfig` | object | Default configuration values for new instances of this module. |
 | `defaultSize` | object | Default grid size as `{ w: number, h: number }` in pixels. |
-| `exports` | object | Maps export names: `component` (required) and `configSection` (optional). |
+| `exports` | object | Maps export names in your bundle: `component` (defaults to `default`), `configSection` (optional, see [Custom Config Section](#custom-config-section)), and `stateProvider` (optional headless publisher, see [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions)). |
 
 ### Optional Fields
 
 | Field | Type | Description |
 |---|---|---|
 | `defaultStyle` | object | Partial `ModuleStyle` overrides (e.g., `{ "fontSize": 26 }`). |
-| `configSchema` | object | JSON Schema with UI widget annotations for declarative config rendering (see below). |
+| `configSchema` | object | JSON Schema with UI widget annotations for declarative config rendering (see below). Ignored entirely if your bundle also exports a `ConfigSection`. |
+| `settingsSchema` | object | Same dialect as `configSchema`, but for values shared by every instance of the plugin rather than per module (see [Settings Schema](#settings-schema)). |
 | `dataRequirements` | array | Data the plugin needs from the host: `"location"`, `"weather"`, `"calendar"`. |
 | `prefetchUrl` | string | URL to prefetch on the display for faster initial load. Registered with a 5-minute TTL. |
 | `secrets` | array | API keys and credentials the plugin requires (see [Plugin Secrets](#plugin-secrets)). |
 | `auth` | object | Server-side auth adapter for APIs that need more than a static key: a declarative OAuth2 flow or the named Garmin Connect adapter. The host runs the entire sign-in flow and injects the resulting token into proxy requests (see [Server-Side Auth](#server-side-auth)). |
 | `allowedDomains` | array | Domains the plugin proxy can reach (e.g., `["api.example.com", "*.openweathermap.org"]`). Required for `pluginFetch` to work. |
-| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"oauth"`, `"localNetwork"`. All except `"localNetwork"` are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local addresses. With it, the relaxed check still blocks loopback and cloud-metadata IPs. Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
+| `permissions` | array | Declared capabilities: `"network"`, `"secrets"`, `"events"`, `"storage"`, `"oauth"`, `"localNetwork"`. All except `"localNetwork"` are informational (transparency only); `"localNetwork"` is **runtime-enforced** — without it the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local / loopback addresses. With it, those become reachable and only cloud-metadata and unspecified addresses stay blocked (see [LAN access](#lan-access)). Required for any plugin whose `allowedDomains` uses the `*` wildcard. |
 | `configMigrations` | object | Version-keyed migration rules for renaming or adding config fields on update. |
 | `translations` | object | BCP-47 tag → path to a dictionary JSON file inside the plugin (e.g. `{ "de-DE": "translations/de-DE.json" }`). Looked up under the namespace `plugin:<pluginId>` via `__HS_SDK__.translate`. See [Translations](#translations) below. |
 | `providesState` | array | Shared-state keys the plugin publishes via `__HS_SDK__.publishState`, so the editor's visibility-condition picker can offer them. Each entry is `{ "key": "...", "label": "...", "sampleValues": ["..."] }` (sampleValues optional). Keys are declared un-prefixed, use only `a-z 0-9 _ : . -`, and the host prefixes them with `plugin:<id>:` (id lowercased). See [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions). |
@@ -99,6 +104,10 @@ Every plugin must include a `manifest.json` at its root. This file defines metad
 ### Config Schema
 
 The `configSchema` field uses a JSON Schema dialect with UI widget annotations. The editor renders config controls automatically from this schema, so many plugins don't need a custom `ConfigSection` component at all.
+
+{% callout type="warning" title="configSchema and ConfigSection are mutually exclusive" %}
+The schema renderer is a **fallback**. If your bundle exports a `ConfigSection`, the editor renders that and nothing else: every field in `configSchema` silently disappears from the property panel, with no error and no visual clue. Pick one. If you ship a `ConfigSection`, it must render every control you want the user to have. See [Custom Config Section](#custom-config-section).
+{% /callout %}
 
 ```json
 {
@@ -212,7 +221,9 @@ Behind the scenes, the install process:
 
 ### Beta Versions
 
-Some plugins offer a beta channel — pre-release builds you can try before they become the stable release. Turn on **Show beta plugins** in the plugin browser's Browse tab to see them; beta plugins and versions are marked with a **Beta** badge in Browse, Installed, and Updates. Installing a beta build shows a short warning that it's still being tested. A plugin you've already installed from the beta channel keeps getting beta updates regardless of the toggle — turning it off just stops beta plugins from showing up while you're browsing for new ones.
+Some plugins offer a beta channel — pre-release builds you can try before they become the stable release. Turn on **Show beta plugins** in the plugin browser's Browse tab to see them; beta plugins and versions are marked with a **Beta** badge in Browse, Installed, and Updates. Installing a beta build shows a short warning that it's still being tested. A plugin you've already installed from the beta channel keeps getting beta updates regardless of the toggle; turning it off just stops beta plugins from showing up while you're browsing for new ones.
+
+If you want off a beta, the **Updates** tab shows a **Go back to stable** row for any plugin whose installed beta is newer than the latest stable release. It appears whether or not *Show beta plugins* is on, and switching back keeps your saved API keys and connected accounts, so you don't have to uninstall and reinstall.
 
 ### From a URL
 
@@ -234,6 +245,8 @@ You can also install a plugin directly from any HTTPS tarball URL — useful for
 | `/api/plugins/install` | PATCH | Enable/disable a plugin or clear migration state (`{ pluginId, enabled?, clearPrevVersion? }`) |
 | `/api/plugins/manifest/<id>` | GET | Read a plugin's manifest |
 | `/api/plugins/bundle/<id>` | GET | Serve a plugin's JavaScript bundle |
+| `/api/plugins/asset/<id>/<path>` | GET | Serve a file from inside a plugin's directory, such as a translation dictionary |
+| `/api/plugins/settings/<id>` | GET / PUT | Read and write the plugin-level values declared by `settingsSchema` |
 
 ---
 
@@ -266,28 +279,51 @@ my-plugin/
 
 ### Writing the Component
 
-Your plugin's main component receives its config as props. Use the host SDK (`window.__HS_SDK__`) for shared utilities:
+Your plugin's main component receives its config as props. Use the host SDK (`window.__HS_SDK__`) for shared utilities. External data goes through `pluginFetch`, which posts to the proxy on your behalf:
 
 ```tsx
-const { useFetchData, ModuleLoadingState, getHostSettings, pluginFetch, emit } = window.__HS_SDK__;
+const { ModuleLoadingState, getHostSettings, pluginFetch } = window.__HS_SDK__;
 
 export default function MyWidget({ config }: { config: { message: string; refreshInterval: number } }) {
   const settings = getHostSettings();
-  const [data, error] = useFetchData(
-    `/api/plugins/proxy/my-plugin`,
-    config.refreshInterval * 1000
-  );
+  const [data, setData] = useState<{ value: string } | null>(null);
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await pluginFetch('my-plugin', {
+          url: 'https://api.example.com/data',
+          cacheTtlMs: config.refreshInterval * 1000,
+        });
+        if (!res.ok) throw new Error(`Upstream ${res.status}`);
+        const json = await res.json();
+        if (alive) { setData(json); setError(undefined); }
+      } catch (err) {
+        if (alive) setError(err instanceof Error ? err.message : String(err));
+      }
+    };
+    load();
+    const id = setInterval(load, config.refreshInterval * 1000);
+    return () => { alive = false; clearInterval(id); };
+  }, [config.refreshInterval]);
 
   return (
     <ModuleLoadingState loading={!data} error={error}>
       <div style={{ padding: 16 }}>
         <h2>{config.message}</h2>
         <p>Timezone: {settings.timezone}</p>
+        <p>{data?.value}</p>
       </div>
     </ModuleLoadingState>
   );
 }
 ```
+
+{% callout type="warning" title="useFetchData cannot call the plugin proxy" %}
+`useFetchData` issues a GET. The plugin proxy at `/api/plugins/proxy/<pluginId>` only exports a `POST` handler and requires a JSON body naming the upstream `url`, so a GET returns 405 and the module renders an error forever. Use `useFetchData` only for host GET routes such as `/api/weather`; use `pluginFetch` for everything outside the host.
+{% /callout %}
 
 ### Plugin SDK (`window.__HS_SDK__`)
 
@@ -295,7 +331,7 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 
 | Member | Type | Description |
 |---|---|---|
-| `useFetchData` | hook | `useFetchData(url, intervalMs)` — polls an API endpoint at a set interval |
+| `useFetchData` | hook | `useFetchData(url, intervalMs)` — polls a **host** API endpoint at a set interval. It issues a GET, so it cannot call the plugin proxy; use `pluginFetch` for anything outside the host. |
 | `ModuleLoadingState` | component | Renders loading/error states with consistent styling |
 | `Slider` | component | Slider input control |
 | `ColorPicker` | component | Color picker control |
@@ -303,23 +339,37 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `SectionHeading` | component | Section heading for editor panels |
 | `displayCache` | object | `{ get, set, prefetch }` — client-side data cache |
 | `getHostSettings` | function | Returns `{ timezone, units, latitude, longitude, displayWidth, displayHeight, appVersion }` |
+| `getPluginSettings` | function | `getPluginSettings(pluginId)` — returns a copy of the plugin-level values declared by `settingsSchema` (see [Settings Schema](#settings-schema)) |
+| `setPluginSettings` | function | `setPluginSettings(pluginId, updates)` — merges into those values and persists them. Returns a Promise of `{ ok, error? }`. Real behavior in the editor only. |
 | `emit` | function | Emit events to the host (see [Plugin Events](#plugin-events)) |
 | `on` | function | Subscribe to host-published events such as `weather.conditions`, `weather.alerts`, and `time.period` (see [Subscribing to Host Events](#subscribing-to-host-events)) |
 | `pluginFetch` | function | Server-side proxy for API calls (see [API Proxy](#plugin-api-proxy)) |
 | `publishState` | function | `publishState(pluginId, key, value)` — publish a named string value other modules can condition their visibility on (see [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions)) |
 | `clearState` | function | `clearState(pluginId, key)` — remove a published value so conditions on it evaluate as unknown again |
-| `getAuthStatus` | function | `getAuthStatus(pluginId)` — returns `{ connected, expiresAt? }` for a plugin with an [auth adapter](#server-side-auth), so a component can show connection-dependent UI. Read-only; connecting happens in the editor. |
+| `reportProviderHealth` | function | `reportProviderHealth(pluginId, status)` — tell the host your upstream service is down or recovered (see [Reporting Service Outages](#reporting-service-outages)) |
+| `getAuthStatus` | function | `getAuthStatus(pluginId)` — returns a **Promise** of `{ connected, expiresAt? }` for a plugin with an [auth adapter](#server-side-auth). Resolves to `{ connected: false }` on any error, so it never rejects. Read-only; connecting happens in the editor. |
+| `startAuth` | function | `startAuth(pluginId)` — opens the Connection panel's sign-in flow, so a custom config section can embed its own "Connect" button (see [Server-Side Auth](#server-side-auth)). Real behavior in the editor only. |
+| `locale` | string | The active BCP-47 locale tag, kept up to date as the user changes it |
+| `translate` | function | `translate(key, vars?)` — looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
+| `formatDate` | function | `formatDate(date, pattern)` — formats a `Date` or epoch-ms value using the host's formatting locale |
+| `formatNumber` | function | `formatNumber(n, opts?)` — locale-aware number formatting, taking the same options as `Intl.NumberFormat` |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |
-| `translate` | function | `translate(key, vars?)` — looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
 
-**Editor-only members** (available when running in the editor, not on the display):
+`getAuthStatus` is asynchronous. Reading `.connected` off the returned Promise is always truthy, so always await it:
+
+```tsx
+const { connected } = await getAuthStatus('my-plugin');
+```
+
+`startAuth` and `setPluginSettings` are always present on `window.__HS_SDK__`, on both surfaces, so you can call them without feature-detecting. On a display they log a warning and do nothing: `startAuth` is a no-op and `setPluginSettings` resolves `{ ok: false, error: 'setPluginSettings is editor-only' }`.
+
+Two members are genuinely absent on the display, so guard for `undefined` if a component of yours can render on both:
 
 | Member | Type | Description |
 |---|---|---|
 | `AccordionSection` | component | Collapsible section for editor property panels |
 | `useModuleConfig` | hook | `useModuleConfig(moduleId, screenId)` — returns `{ config, set }` for reading and updating module config |
-| `startAuth` | function | `startAuth(pluginId)` — opens the Connection panel's sign-in flow, so a custom config section can embed its own "Connect" button (see [Server-Side Auth](#server-side-auth)) |
 
 ### Translations
 
@@ -362,25 +412,23 @@ esbuild src/index.tsx \
   --outfile=dist/bundle.js
 ```
 
-The host reads `window.__HS_PLUGIN__[manifest.exports.component]` (typically `"default"`) to find the display component, and optionally `window.__HS_PLUGIN__[manifest.exports.configSection]` for a custom editor panel.
+The host reads `window.__HS_PLUGIN__[manifest.exports.component]` (typically `"default"`) to find the display component, and optionally `window.__HS_PLUGIN__[manifest.exports.configSection]` for a custom editor panel and `[manifest.exports.stateProvider]` for a headless state publisher. It also looks for two conventionally named exports that cannot live in a JSON manifest because they are functions: `deriveProvidedKeys` and `searchStateKeys`, both described under [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions).
 
 ### Custom Config Section
 
 For editor UIs that go beyond what `configSchema` can express, export a `ConfigSection` component:
 
 ```tsx
-const { AccordionSection, useModuleConfig, INPUT_CLASS } = window.__HS_SDK__;
+const { AccordionSection, INPUT_CLASS } = window.__HS_SDK__;
 
-export function ConfigSection({ moduleId, screenId }: { moduleId: string; screenId: string }) {
-  const { config, set } = useModuleConfig(moduleId, screenId);
-
+export function ConfigSection({ config, onChange }) {
   return (
     <AccordionSection title="My Plugin Settings">
       <label className="block text-xs text-neutral-400 mb-1">Message</label>
       <input
         className={INPUT_CLASS}
-        value={config.message ?? ''}
-        onChange={(e) => set({ message: e.target.value })}
+        value={(config.message as string) ?? ''}
+        onChange={(e) => onChange({ message: e.target.value })}
       />
     </AccordionSection>
   );
@@ -398,6 +446,25 @@ Reference the export in your manifest:
 }
 ```
 
+{% callout type="warning" title="A ConfigSection replaces the schema renderer" %}
+Shipping a `ConfigSection` is not additive: the editor renders it *instead of* the `configSchema` controls, not alongside them. Every field in your manifest's `configSchema` will vanish from the property panel, with no error and no warning.
+
+A plugin with a `ConfigSection` has to render every control it wants the user to have, itself. Keep `configSchema` only for plugins that have no `ConfigSection`.
+{% /callout %}
+
+**Props the host injects.** Your section receives four:
+
+| Prop | Type | Description |
+|---|---|---|
+| `config` | object | The current module instance's config values |
+| `onChange` | function | `onChange(updates)` shallow-merges `updates` into that config and saves |
+| `moduleId` | string | Id of the selected module instance |
+| `screenId` | string | Id of the screen it sits on |
+
+`config` and `onChange` are a complete alternative to the editor-only `useModuleConfig` hook, and they are the option to reach for if you want your bundle to stay free of editor-only SDK members. If you prefer the hook, `useModuleConfig(moduleId, screenId)` returns the same `{ config, set }` pair.
+
+The section is wrapped in an error boundary keyed on the module id, so a throw shows a "could not be shown" fallback for that one panel and leaves the rest of the editor, and any unsaved edits, intact.
+
 ### Shared State and Visibility Conditions
 
 Plugins can publish named string values to a per-tab shared-state bus, and users can then show or hide any module based on those values (Conditions in the editor's module Visibility panel). A typical use is a Home Assistant plugin publishing sensor states that gate an alert widget.
@@ -409,8 +476,8 @@ const { publishState, clearState } = window.__HS_SDK__;
 publishState('my-plugin', 'binary_sensor.door', 'open');
 
 // Optional: clear a key so conditions on it fall back to their
-// "before data arrives" behavior. All of a plugin's keys are also
-// cleared automatically when the plugin is unregistered or reloaded.
+// "before data arrives" behavior. Keys are also cleared automatically
+// when the plugin is uninstalled or disabled.
 clearState('my-plugin', 'binary_sensor.door');
 ```
 
@@ -425,8 +492,9 @@ Clear a key only when its value genuinely no longer exists, such as an entity be
 How keys work:
 
 - Every key is force-prefixed with your plugin's namespace: publishing `binary_sensor.door` from plugin `my-plugin` stores `plugin:my-plugin:binary_sensor.door`. Plugin ids are lowercased in the prefix. This prevents accidental collisions between producers; it is not a security boundary.
-- Keys use lowercase letters, digits, and `_ : . -`, up to 128 characters after prefixing. Values are strings capped at 1&nbsp;KB, and the store holds at most 256 keys. Writes that break these rules are dropped with a console warning.
+- Keys use lowercase letters, digits, and `_ : . -`, up to 128 characters after prefixing. Values are strings; anything over 1&nbsp;KB is truncated to 1&nbsp;KB and published, with a console warning. An invalid key is dropped, and so is a new key that would push the store past its 256-key cap.
 - Values live in the display's browser tab only. They are not persisted and not shared across displays; each kiosk tab sees only what its own plugin instances publish.
+- A **reload** (a config change, a dev hot-reload) deliberately keeps your published keys, so modules conditioned on them don't blink out while your producer remounts. Only plugins missing from the new installed set get purged. The exception is a failed reload: if the installed-plugins fetch itself errors, every preserved key is purged, because nothing is going to remount and republish.
 
 Advertise your keys so they appear in the editor's condition picker:
 
@@ -442,10 +510,56 @@ window.__HS_PLUGIN__ = {
 };
 ```
 
+#### `searchStateKeys`
+
+For plugins with a large or remote key space (a Home Assistant install can expose thousands of entities), export a `searchStateKeys` function alongside `deriveProvidedKeys`. Like `deriveProvidedKeys`, it is a conventional named export on your bundle rather than a manifest field, because a manifest is static JSON and this has to be a function. It powers the friendly-name combobox in the editor's condition builder and is **never called on the display**.
+
+```ts
+searchStateKeys: async (query, { limit, settings }) => StateKeyDescriptor[]
+```
+
+Each returned descriptor is:
+
+| Field | Type | Description |
+|---|---|---|
+| `key` | string | The **full, prefixed** bus key (`plugin:<id>:<rest>`), not the un-prefixed form you pass to `publishState` |
+| `label` | string | Friendly name, e.g. "Back Door Sensor" |
+| `group` | string? | Grouping header inside your results, such as an area or domain |
+| `valueType` | string | `"enum"`, `"numeric"`, or `"string"` |
+| `valueOptions` | array? | For `enum`: the selectable raw values, each `{ value, label? }` |
+| `unit` | string? | For `numeric`: a unit hint such as `"°F"` |
+| `currentValue` | string? | The live raw value if you know it cheaply. Shown as a hint, never stored. |
+
+**Matching on the full key is part of the contract.** The host also calls `searchStateKeys` with a complete prefixed bus key as the query, to resolve an already-saved condition back to its descriptor. A label-only fuzzy matcher will return nothing for that call, and every saved condition quietly loses its value picker and unit hint.
+
+Serve results from a short-lived cache (the editor debounces, but a burst of keystrokes still fans out), tolerate an empty query by returning the most useful `limit` keys, and don't worry about throwing: errors and timeouts degrade to the static suggestion list.
+
+#### Reporting Service Outages
+
+When your upstream goes down, your keys stop updating, and every module conditioned on them looks broken for no visible reason. `reportProviderHealth` closes that gap: the editor shows your message next to any condition, rule, or key that depends on your plugin, so a hidden module reads as "the service is unreachable" rather than "your condition is wrong".
+
+```js
+const { reportProviderHealth } = window.__HS_SDK__;
+
+// On the first failure, and again on each consecutive failure:
+reportProviderHealth('my-plugin', {
+  ok: false,
+  message: 'Home Assistant is not responding',
+  since: firstFailureAtMs,
+});
+
+// Exactly once, when it comes back:
+reportProviderHealth('my-plugin', { ok: true });
+```
+
+- `since` is the epoch-ms timestamp of the outage's **first** failure and must stay the same for the whole outage, so the editor can say how long it has been down.
+- Report nothing while healthy. Only report `{ ok: true }` on the transition back.
+- `message` is rendered verbatim, so localize it yourself with `translate` before passing it in.
+
 For a value to stay fresh while the display rotates through screens, the publishing module instance must keep running. There are two ways to do that:
 
 - **`backgroundProvider` instance** — users mark an instance "Run hidden in the background" in the editor, which mounts it in a persistent background layer independent of screen rotation. Simple, but the plugin still needs a module instance on the canvas to act as the publisher.
-- **`stateProvider` export** (recommended) — a headless component the host mounts once per plugin, with no module instance required. It's fed a demand-driven `demandedKeys` list — every shared-state key of your plugin's namespace that's actually referenced by a visibility condition or a Text-module token anywhere on the display — and should publish only those, clearing a key when it drops out of the list. Because it's demand-driven, it also runs live in the editor tab (fed from the draft config), so condition verdicts update as you build them without needing an actual display open. See the manifest's `exports.stateProvider` field for the full contract.
+- **`stateProvider` export** (recommended) — a headless component the host mounts once per plugin, with no module instance required. It's fed a demand-driven `demandedKeys` list — every shared-state key of your plugin's namespace that's actually referenced by a visibility condition, a display rule, or a Text-module token anywhere on the display — and should publish only those, clearing a key when it drops out of the list. Because it's demand-driven, it also runs live in the editor tab (fed from the draft config), so condition verdicts update as you build them without needing an actual display open. See the manifest's `exports.stateProvider` field for the full contract.
 
 ### Dev Mode
 
@@ -453,12 +567,7 @@ During development, you can load a plugin directly from a local dev server witho
 
 1. **Start a local server** that serves `manifest.json` and `dist/bundle.js` from the root (e.g., `http://localhost:5555/manifest.json`)
 
-2. **Register the dev plugin** in the editor using the dev plugin panel, or programmatically:
-
-   ```js
-   const { loadDevPlugin } = await import('@/lib/plugin-loader');
-   await loadDevPlugin('http://localhost:5555');
-   ```
+2. **Register the dev plugin** in the editor's **Developer** tab by pasting that URL. (There is no browser-console equivalent: `loadDevPlugin` lives in host source behind the build-time `@/` alias and is not exposed on `window`.)
 
 When a dev plugin is loaded:
 
@@ -469,7 +578,13 @@ When a dev plugin is loaded:
 - The dev mapping is stored in `localStorage` (not in the config file)
 - **Hot reload polling** starts automatically, checking the bundle's ETag every 2 seconds and reloading when it changes
 
-Dev plugins override installed versions of the same plugin. To unload a dev plugin, call `unloadDevPlugin(pluginId)`.
+Registering a dev plugin also runs the **full** manifest validation server-side and writes `manifest.json` into `data/plugins/<id>/` with an enabled `installed.json` entry, so a dev plugin shows up in the Installed tab and a manifest that fails validation is rejected with an error before `pluginFetch` will work at all. To unload one, use the **Unload** button on its card in the Developer tab.
+
+{% callout type="note" title="Dev overrides apply in the editor tab only" %}
+A dev plugin overrides the installed version of the same plugin **in the editor**. A `/display` tab in the same browser always loads the installed copy, even though `localStorage` is shared across the origin: the display path deliberately ignores dev plugins, so that a plugin with a dev override registered in this browser doesn't vanish from the kiosk entirely.
+
+So test dev builds in the editor preview. To see a build on a real kiosk, install it for real; **Install from URL…** accepts a pre-release tarball.
+{% /callout %}
 
 ---
 
@@ -524,9 +639,10 @@ const res = await pluginFetch('my-plugin', {
 | `url` | string | (required) | The upstream URL to fetch. Must match a domain in `allowedDomains`. |
 | `method` | string | `"GET"` | HTTP method. Allowed: `GET`, `POST`, `PUT`, `PATCH`. |
 | `headers` | object | `{}` | Headers to send to the upstream server. |
-| `payload` | string | — | Request body for POST/PUT/PATCH requests. |
+| `payload` | string | — | Request body for POST/PUT/PATCH requests. Capped at 1 MB. |
 | `secretInjections` | object | — | Secret placeholders to resolve (see below). |
 | `cacheTtlMs` | number | `60000` | Cache TTL for GET responses (0 to disable, max 1 hour). |
+| `skipAuth` | boolean | `false` | Skip auth-adapter token injection for this one request. Use it for a public endpoint that lives on a `tokenTargetDomains` host and would reject an `Authorization` header. |
 
 ### Secret Injection
 
@@ -541,15 +657,17 @@ For example, if a plugin declares a secret with key `api_key` and the user has c
 
 - **Domain allowlist** — the proxy only forwards requests to domains declared in the manifest's `allowedDomains`. Wildcard prefixes are supported (e.g., `*.example.com` matches `api.example.com`).
 - **Rate limiting** — 60 requests per minute per plugin (240 for plugins with the `localNetwork` permission, since self-hosted LAN services like Home Assistant tolerate frequent polling). Returns HTTP 429 when exceeded.
+- **Request body** — `payload` is capped at 1 MB; anything larger comes back as HTTP 413.
 - **Response size** — maximum 5 MB per response.
 - **Timeout** — upstream requests time out after 15 seconds.
-- **Caching** — GET responses with text/JSON/XML content types are cached per URL + headers hash, with the TTL specified by `cacheTtlMs`.
+- **Redirects** — followed manually, up to 5 hops. Every hop is re-checked against `allowedDomains` and the SSRF rules, so an upstream that redirects to a host you did not declare fails rather than being followed. Exceeding the hop limit returns HTTP 502.
+- **Caching** — GET responses with text/JSON/XML content types are cached per URL + headers hash, with the TTL specified by `cacheTtlMs`. The cache holds at most 50 entries across all plugins, so a plugin fetching many distinct URLs will evict its own earlier entries.
 
 ---
 
 ## Plugin Secrets
 
-Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk at `data/plugin-secrets/<pluginId>.json` (mode `0700`), outside the plugin's installation directory so plugin upgrades don't wipe them. Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated automatically the next time the plugin is updated.
+Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk at `data/plugin-secrets/<pluginId>.json` (file mode `0600`, directory mode `0700`), outside the plugin's installation directory so plugin upgrades don't wipe them. Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated automatically the next time the plugin is updated.
 
 ### Declaring Secrets
 
@@ -618,30 +736,43 @@ Tokens are stored at `data/plugin-tokens/<pluginId>.json` (owner-only file permi
 }
 ```
 
-| Field | Type | Description |
-|---|---|---|
-| `flow` | string | `"authorization_code"` (browser redirect, PKCE on by default), `"device_code"` (enter a code on another device, polled until approved), or `"client_credentials"` (no user interaction; runs from configured secrets alone). |
-| `authorizationUrl` | string | Authorization endpoint. Required for `authorization_code` and `device_code`. |
-| `tokenUrl` | string | Token endpoint. Always required. |
-| `revokeUrl` | string | Optional revocation endpoint called on disconnect. `revokeTokenType` picks which token to revoke (`"access_token"` default, or `"refresh_token"`). |
-| `scopes` | array | OAuth scopes to request. `scopeSeparator` overrides the default space separator. |
-| `pkce` | boolean | Default `true` for `authorization_code`. |
-| `clientAuthentication` | string | How client credentials are sent to the token endpoint: `"body"` (default), `"header"`, or `"none"`. |
-| `tokenPlacement` | string | How the access token rides on proxy requests: `"header"` (`Authorization: Bearer ...`) or `"query"` (requires `tokenParamName`). |
-| `tokenTargetDomains` | array | The subset of `allowedDomains` that receive the token. Required and non-empty; other allowed domains are proxied without it. |
-| `extraAuthParams` / `extraTokenParams` | object | Extra key-value pairs appended to the authorization / token requests, for providers with non-standard parameters. |
-| `tokenResponseTransform` | object | Dot paths for non-standard token responses (`accessTokenPath`, `refreshTokenPath`, `expiresInPath`, `expiresInUnit`). |
-| `secrets` | object | Which entries in the manifest's `secrets` array hold the OAuth client credentials: `{ "clientId": "<secret key>", "clientSecret": "<secret key>" }`. `clientSecret` is optional for public PKCE clients. |
+| Field | Required | Type | Description |
+|---|---|---|---|
+| `flow` | yes | string | `"authorization_code"` (browser redirect, PKCE on by default), `"device_code"` (enter a code on another device, polled until approved), or `"client_credentials"` (no user interaction; runs from configured secrets alone). |
+| `authorizationUrl` | for `authorization_code` and `device_code` | string | Authorization endpoint. |
+| `tokenUrl` | yes | string | Token endpoint. |
+| `revokeUrl` | no | string | Revocation endpoint called on disconnect. `revokeTokenType` picks which token to revoke (`"access_token"` default, or `"refresh_token"`). |
+| `scopes` | yes | array | OAuth scopes to request; must contain at least one string, **including for `client_credentials`**, where a provider may genuinely need none. An empty array fails validation and the install is rejected, so pass whatever the provider treats as its default scope. `scopeSeparator` overrides the default space separator. |
+| `pkce` | no | boolean | Default `true` for `authorization_code`. |
+| `clientAuthentication` | no | string | How client credentials are sent to the token endpoint: `"body"` (default), `"header"`, or `"none"`. |
+| `tokenPlacement` | yes | string | How the access token rides on proxy requests: exactly `"header"` (`Authorization: Bearer ...`) or `"query"`. `"query"` additionally requires a non-empty `tokenParamName`. |
+| `tokenTargetDomains` | yes | array | The subset of `allowedDomains` that receive the token; must be non-empty. Other allowed domains are proxied without it. |
+| `extraAuthParams` / `extraTokenParams` | no | object | Extra key-value pairs appended to the authorization / token requests, for providers with non-standard parameters. |
+| `tokenResponseTransform` | no | object | Dot paths for non-standard token responses (`accessTokenPath`, `refreshTokenPath`, `expiresInPath`, `expiresInUnit`). |
+| `secrets` | yes | object | Which entries in the manifest's `secrets` array hold the OAuth client credentials: `{ "clientId": "<secret key>", "clientSecret": "<secret key>" }`. `clientId` is required and `clientSecret` is optional for public PKCE clients, but each one you name must match a `key` that actually appears in your `secrets` array. |
+
+Two rules catch people out at install time, because a manifest that breaks either is rejected outright rather than degraded:
+
+- **`tokenTargetDomains` must be a verbatim subset of `allowedDomains`.** The check is an exact string match, so a wildcard entry like `*.example.com` in `allowedDomains` does **not** cover a `tokenTargetDomains` value of `api.example.com`. List the concrete host in both.
+- **`scopes` must be non-empty**, even for `client_credentials`.
 
 ### The Garmin Adapter
 
-Garmin Connect has no public OAuth endpoint, so the host ships a named adapter for its mobile SSO flow (email + password + optional one-time code). The declaration is just:
+Garmin Connect has no public OAuth endpoint, so the host ships a named adapter for its mobile SSO flow (email + password + optional one-time code). The complete declaration is:
 
 ```json
-{ "auth": { "type": "garmin" } }
+{
+  "auth": { "type": "garmin" },
+  "allowedDomains": ["connectapi.garmin.com", "connect.garmin.com"]
+}
 ```
 
-No URLs, scopes, or client credentials -- the flow is fixed and implemented by the host. Tokens are injected as an `Authorization: Bearer` header on proxy requests to the plugin's `garmin.com` domains.
+No URLs, scopes, or client credentials: the flow is fixed and implemented by the host. Two validation rules apply, and a manifest that breaks either is rejected at install time:
+
+- The `auth` object must contain **only** `type`. Any extra field is treated as a misauthored manifest and fails validation.
+- `allowedDomains` must include at least one `garmin.com` host, since token injection only fires on those and a plugin without one could never receive the token it asked for.
+
+Tokens are injected as an `Authorization: Bearer` header on proxy requests to the plugin's `garmin.com` domains.
 
 ### Connecting and Token Refresh
 
@@ -788,9 +919,10 @@ PATCH /api/plugins/install
 ### Uninstall
 
 1. All plugin secrets are deleted from `data/plugin-secrets/<pluginId>.json` (and any legacy `data/plugins/<pluginId>/secrets.json`)
-2. The plugin directory `data/plugins/<pluginId>/` is removed
-3. The entry is removed from `data/plugins/installed.json`
-4. The module is unregistered from the module registry and Zustand store
+2. Stored auth tokens at `data/plugin-tokens/<pluginId>.json` are deleted, along with any half-finished sign-in flow
+3. The plugin directory `data/plugins/<pluginId>/` is removed
+4. The entry is removed from `data/plugins/installed.json`
+5. The module is unregistered from the module registry and Zustand store, and the plugin's shared-state keys are cleared
 
 Any module instances of that plugin type remaining in the config will render as empty/missing modules until removed by the user.
 
@@ -831,7 +963,20 @@ A plugin with an empty or missing `allowedDomains` array cannot make any proxy r
 
 By default, the plugin proxy hardens itself against SSRF by rejecting any URL whose hostname resolves to a private (RFC1918), loopback, link-local, or mDNS address. This protects routers, internal admin pages, and the host machine itself from a malicious or buggy plugin.
 
-Plugins that legitimately need to talk to a LAN device (a Hue bridge, Home Assistant, a Plex server, a smart printer, etc.) must declare the `"localNetwork"` permission. With it, the proxy applies a relaxed check: RFC1918 and `.local` mDNS targets are allowed, but loopback (`127.0.0.0/8`, `::1`) and cloud metadata endpoints (`169.254.169.254`, `fd00:ec2::254`) are still blocked, and only `http(s)` schemes are permitted.
+Plugins that legitimately need to talk to a LAN device (a Hue bridge, Home Assistant, a Plex server, a smart printer, etc.) must declare the `"localNetwork"` permission. With it, the proxy applies a relaxed check.
+
+**Allowed** once the user has consented by installing a plugin that declares the permission:
+
+- RFC1918 private ranges (`10/8`, `172.16/12`, `192.168/16`) and `.local` mDNS names
+- Link-local / APIPA (`169.254/16`), IPv6 unique-local (`fc00::/7`) and IPv6 link-local (`fe80::/10`)
+- Loopback (`127.0.0.0/8`, `::1`), which single-box installs need when Home Assistant and Home Screens run on the same machine
+
+**Still blocked regardless of the permission:**
+
+- Cloud metadata endpoints (`169.254.169.254`, `fd00:ec2::254`)
+- The unspecified addresses (`0.0.0.0`, `::`) and empty or invalid hostnames
+
+Only `http` and `https` schemes are permitted, and every address the hostname resolves to is re-checked against that blocklist, so a DNS-rebinding attempt still fails.
 
 ```json
 {
@@ -852,7 +997,7 @@ Secret values are never sent to the client. The proxy resolves `{{placeholder}}`
 
 Plugin bundles execute in the browser's main thread via inline `<script>` injection. They share the same JavaScript context as the host application. The host reads the plugin's exports from `window.__HS_PLUGIN__` immediately after execution and then cleans up the global.
 
-Plugins have access to the full browser environment but should only interact with the host through the documented SDK (`window.__HS_SDK__`). The `permissions` field in the manifest is mostly informational — `"network"`, `"secrets"`, `"events"`, and `"storage"` exist for transparency so users see at a glance what a plugin does. The exception is `"localNetwork"`, which **is runtime-enforced**: without it, the proxy rejects URLs that resolve to RFC1918 / mDNS / link-local IPs. See [LAN access (`localNetwork`)](#lan-access-localnetwork) below.
+Plugins have access to the full browser environment but should only interact with the host through the documented SDK (`window.__HS_SDK__`). The `permissions` field in the manifest is mostly informational — `"network"`, `"secrets"`, `"events"`, and `"storage"` exist for transparency so users see at a glance what a plugin does. The exception is `"localNetwork"`, which **is runtime-enforced**: without it, the proxy rejects URLs that resolve to RFC1918, mDNS, link-local, or loopback addresses. See [LAN access (`localNetwork`)](#lan-access) below.
 
 ### Rate Limiting
 

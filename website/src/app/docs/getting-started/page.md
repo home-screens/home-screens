@@ -3,7 +3,7 @@ title: Installation
 nextjs:
   metadata:
     title: Installation
-    description: Install Home Screens on Raspberry Pi or any Linux machine. Free, self-hosted smart display with drag-and-drop editor.
+    description: Install Home Screens on a Raspberry Pi with the pre-built image or the install script. Free, self-hosted smart display with drag-and-drop editor.
     alternates:
       canonical: /docs/getting-started
 ---
@@ -85,7 +85,7 @@ Insert the microSD card into your Pi and power it on. **What you'll see:**
 3. **Brief console text** while the filesystem expands and WiFi connects
 4. **Home Screens starts rotating** — you're done booting
 
-Total time: 2–3 minutes. If the screen is still black after 5 minutes, see [Troubleshooting](/docs/troubleshooting).
+Total time: 2–3 minutes. If the screen is still black after 5 minutes, see [First boot troubleshooting](/docs/troubleshooting#first-boot).
 
 The first boot performs:
 
@@ -155,6 +155,14 @@ git clone https://github.com/home-screens/home-screens.git
 ~/home-screens/scripts/install.sh
 ```
 
+Running Pi OS **Desktop** instead of Lite? Add the `--desktop` flag, which needs the `-s --` form when you pipe the script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --desktop
+```
+
+The full flag list is in the [Raspberry Pi guide](/docs/raspberry-pi).
+
 After installation, reboot. The display starts automatically and you can configure it at `http://<pi-ip>:3000/editor` from another device on your network.
 
 For display orientation, installer flags, service management, upgrading, and troubleshooting, see the full [Raspberry Pi guide](/docs/raspberry-pi).
@@ -168,13 +176,14 @@ Run Home Screens on your own machine for development or testing. This requires b
 ### Prerequisites
 
 - Node.js 22+
-- npm
+- npm **11.6.2 exactly**. The repo pins this version, and the pin is enforced, so any other npm stops the install with an `EBADENGINE` error instead of a warning. Node 22 ships npm 10, so you almost certainly need to install it.
 
 ### Install
 
 ```bash
 git clone https://github.com/home-screens/home-screens.git
 cd home-screens
+npm install -g npm@11.6.2   # the repo pins npm; other versions fail to install
 npm install
 ```
 
@@ -198,34 +207,51 @@ Then visit:
 
 ## Configuration
 
-All API keys and credentials are configured through the editor UI at **Settings > API keys**. There is no need to manually edit environment files.
+Everything is set up in the editor; you never need to edit environment files by hand. Most keys live in **Settings > API keys**, with two exceptions worth knowing: weather keys are entered next to each provider on **Settings > Weather**, and iCloud sign-in lives on **Settings > Calendar**.
 
-The following integrations can be configured through the editor:
+Everything you configure is saved in one folder on the Pi, `/opt/home-screens/current/data/` (`config.json` holds your screens, `secrets.json` holds your keys). Upgrades leave that folder alone, and you can download a copy of it from **Settings > Backups & data**.
+
+### Calendars (Settings > Calendar)
+
+Three ways to get events in: **iCal feeds** (any ICS URL), **Google OAuth**, and **iCloud**. [Calendar setup](#calendar-setup) below walks through all three and helps you pick.
+
+### Weather providers (Settings > Weather)
+
+Pick one provider as your default; keys are entered on the provider's own card, not on the API keys page. {% $stats.weatherProviderCount %} providers ship built in.
+
+| Provider | Coverage | API key |
+|---|---|---|
+| Open-Meteo | Global | Not needed (this is the default) |
+| NOAA | United States | Not needed |
+| Yr.no | Global (Norwegian Meteorological Institute) | Not needed |
+| SMHI | Nordic (Swedish Meteorological and Hydrological Institute) | Not needed |
+| Environment Canada | Canadian cities (ECCC citypage feeds) | Not needed |
+| OpenWeatherMap | Global | Required (free tier available) |
+| WeatherAPI | Global | Required (free tier available) |
+| Pirate Weather | Global (Dark Sky replacement) | Required (free tier available) |
+| Met Office | United Kingdom | Required — sign up at datahub.metoffice.gov.uk and subscribe to the Site-Specific API |
+
+### API keys (Settings > API keys)
 
 | Integration | Description | Required |
 |---|---|---|
-| iCal feeds | Subscribe to any iCal/ICS URL (Google, Apple, Outlook, Fastmail, etc.) | For calendar module (simplest path) |
-| Google Calendar OAuth | OAuth client ID and secret for the calendar picker + native color-coding | Optional — only if you want OAuth instead of an iCal URL |
-| iCloud Calendar | Apple ID + app-specific password for the iCloud calendar picker and contact birthdays | Optional — only for iCloud calendars without public sharing links |
-| OpenWeatherMap | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| WeatherAPI | Weather data provider | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Pirate Weather | Weather data provider (Dark Sky replacement) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| NOAA | Free weather data (US only, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Open-Meteo | Free weather data (global coverage, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Yr.no | Free weather data (global, Norwegian Meteorological Institute, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| SMHI | Free weather data (Nordic coverage, Swedish Meteorological and Hydrological Institute, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Met Office | Free weather data (UK coverage, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Environment Canada | Free weather data (Canadian cities, ECCC citypage feeds, no API key needed) | Optional (one of {% $stats.weatherProviderCount %} weather providers) |
-| Google Maps | Google Routes API key for traffic module | For traffic module |
-| TomTom | TomTom API key — alternative to Google Maps for traffic. Enable **Geocoding API**, **Reverse Geocoding API**, and **Routing API** on the key (per-key, not just account-wide). | For traffic module |
+| Google Maps | Google Routes API key for the traffic module | For traffic module |
+| TomTom | Alternative to Google Maps for traffic. Enable **Geocoding API**, **Reverse Geocoding API**, and **Routing API** on the key (per-key, not just account-wide). | For traffic module |
+| Immich | Server URL + API key for your self-hosted photo library | For Immich photos in the photo-slideshow module |
+| Unsplash | Access key for HD background photos. The free tier allows 50 requests per hour. | Optional — for Unsplash backgrounds |
+| NASA | API key for the Astronomy Picture of the Day (1,000 requests per hour). Image Library search works without a key. | Optional — for NASA imagery |
+| Todoist | API token, checked when you save it | For todoist module |
+| GitHub | A personal access token, only used for update checks. Raises the rate limit from 60 to 5,000 requests per hour. | Optional |
 
 ## Password Protection
 
-The editor supports optional password protection. Set a password in **Settings > Security** to require authentication before accessing the editor. The display authenticates separately using an auto-generated display token.
+**The editor has no password until you set one**, so until then anyone on your home network can open it and change your screens. Set a password in **Settings > Security** to require a sign-in. It covers the editor and the phone remote at `/remote`; the kids' chore view at `/chores` deliberately stays open. The display signs in on its own using an auto-generated display token.
+
+The same page has an IP allowlist, so you can let displays on trusted networks skip the sign-in, or block everything outside those networks entirely. If you forget the password, delete `data/auth.json` on the Pi and set a new one.
 
 ## System Management
 
-The editor includes a system management panel under **Settings > System & updates** for upgrade, rollback, backups, and power control -- particularly useful when running on a Raspberry Pi.
+The editor includes a system management panel under **Settings > System & updates** for updates, rollback, and power control -- particularly useful when running on a Raspberry Pi. Config snapshots live on their own page, **Settings > Backups & data**.
 
 ## Calendar setup
 
@@ -251,7 +277,7 @@ The calendar module has three ways to get events in. **iCal feeds** are the univ
    - **Google:** Calendar settings → *Settings for my calendars* → pick a calendar → **Secret address in iCal format** ([Google's guide](https://support.google.com/calendar/answer/37648?hl=en))
    - **Apple iCloud:** Calendar → right-click calendar → *Share Calendar* → *Public Calendar*
    - **Outlook/Microsoft 365:** Settings → *Shared calendars* → *Publish a calendar* → ICS link
-2. In the editor, go to **Settings > Calendar > iCal Feeds**
+2. In the editor, go to **Settings > Calendar > iCal / ICS Feeds**
 3. Paste the URL, give it a name, pick a color — done
 
 Repeat once per calendar you want displayed.
@@ -274,19 +300,36 @@ OAuth uses Google's **Device Flow**, so you can authorize from any phone or lapt
 Sign in to iCloud with an **app-specific password** — a password you create just for Home Screens, so your real Apple ID password is never stored. Your calendars stay private; nothing has to be shared publicly.
 
 1. Go to [account.apple.com](https://account.apple.com) > **Sign-In and Security > App-Specific Passwords** and create one (name it anything, e.g. "Home Screens")
-2. In the editor, go to **Settings > Calendar > iCloud Accounts** and add your Apple ID email and the app-specific password — you can add more than one account
+2. In the editor, go to **Settings > Calendar > iCloud Calendar**, click **Add iCloud account**, and enter your Apple ID email and the app-specific password — you can add more than one account
 3. Pick which calendars to display — Apple's calendar colors carry over automatically
 4. Optionally turn on the **Birthdays** calendar, built from the birthdays saved in your contacts
 
-### Zero-config defaults
+### What works without an API key
 
-Out of the box, **weather works worldwide with no setup** (Open-Meteo). You only need API keys if you want a specific provider (OpenWeatherMap, Pirate Weather, etc.) or extras like Immich photos, Todoist, or traffic routing.
+**Weather needs no API key.** A new install starts on Open-Meteo, which is free and covers the whole world. It does need to know where you are, though: open **Settings > Location & language** and set your location, or a weather module will have nothing to show.
+
+You only need a key if you want a specific provider (OpenWeatherMap, WeatherAPI, Pirate Weather, or the Met Office) or extras like Immich photos, Todoist, or traffic routing.
 
 ## Update Channel
 
-By default, Home Screens uses the **Stable** channel for updates, which only includes tested releases.
+By default, Home Screens uses the **Stable channel** for updates, which only includes tested releases.
 
-You can switch to the **Dev** channel in **Settings > System & updates** to get pre-release builds for testing new features before they are officially released. Dev builds may contain breaking changes or incomplete functionality. If you encounter issues, switch back to the Stable channel to return to the latest stable release.
+To get early builds instead, go to **Settings > System & updates**, turn on **Show advanced options**, then switch the channel from **Stable channel** to **Pre-release channel**. Pre-release builds let you try new features before they are officially released, but they may contain breaking changes or unfinished work. If you run into trouble, switch back to the Stable channel to return to the latest stable release.
+
+## Removing Home Screens
+
+There is no uninstall script yet. If you installed with the install script and want the Pi back the way it was, take a backup of your settings first from **Settings > Backups & data**, then run these over SSH:
+
+```bash
+sudo systemctl disable --now home-screens
+sudo rm -rf /opt/home-screens
+sudo rm /etc/systemd/system/home-screens.service
+sudo rm /etc/systemd/system/getty@tty1.service.d/autologin.conf
+sudo systemctl daemon-reload
+rm -rf ~/.config/labwc
+```
+
+Then open `~/.bash_profile` and delete the Home Screens block near the bottom, which is what launches the kiosk at login. If you want the Raspberry Pi desktop back, run `sudo systemctl set-default graphical.target` and re-enable your display manager. If you used the pre-built image, the simplest route is to flash the SD card with plain Raspberry Pi OS.
 
 ## Next Steps
 

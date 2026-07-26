@@ -20,19 +20,27 @@ Yes. Home Screens is free and open source under the MIT license. There are no su
 
 ### Does Home Screens collect any data?
 
-Home Screens ships with **anonymous telemetry on by default**. It sends one beacon per 24 hours containing:
+Home Screens ships with **anonymous telemetry on by default**. It sends one message per 24 hours, and this is the whole of it:
 
-- A random install ID (not tied to you, no account)
-- App version and update channel
-- Platform (e.g. "linux-arm64")
-- How many displays, screens, and modules you have (counts only, no content)
-- Which module types and plugins are installed (marketplace plugin names and versions only, no settings; plugins installed from outside the marketplace are counted but never named)
+- An anonymous install ID (a random UUID, not tied to you or any account)
+- App version and platform (operating system and processor type)
+- Display resolution and orientation, plus the same for each display if you run more than one
+- How many displays, screens, modules, and profiles you have
+- Which module types are in use (e.g. clock, weather), as counts
+- Which weather provider and screen transition effect you picked
+- Whether sleep, alerts, and a password are switched on --- the on/off setting only, never the password itself
+- Whether a calendar is connected (Google or an iCal feed), but never anything in it
+- Installed plugins (marketplace names and versions; plugins from outside the marketplace are counted but never named)
 
-It does **not** send your calendar events, photos, API keys, IP address, or any content you've configured. Disable it at any time in **Settings > Status > Anonymous Telemetry**. All other data — your config, meals, chores, photos, calendars — stays on your Pi.
+The report itself carries no location and no network address, and it never contains your calendar events, notes, photos, file names, display names, or API keys. Sending it does reveal where the request came from to the server that receives it, the same as any website you visit.
+
+Disable it at any time in **Settings > Status > Anonymous Telemetry** --- the same list is shown there, so you can always check it against this page. Everything else --- your config, meals, chores, photos, calendars --- stays on your Pi.
 
 ### How do I give my kids access to check off chores?
 
-Home Screens has a separate kid-friendly view at `/chores` that is **not password-protected**, even when the editor requires a password. Bookmark `http://<your-pi>:3000/chores` on a kid's tablet or old phone — they can mark today's chores complete and see their rewards, but can't change settings, backdate, or manage anything. The admin-only chore management lives at `/remote`. (Pre-built-image users can use `http://home-screens.local:3000/chores`; install-script users should use their Pi's hostname or IP.)
+Home Screens has a separate kid-friendly view at `/chores`. It is **not password-protected**, even when you have set a password for the editor: anyone on your home network who opens that address can use it. That is deliberate, so a kid never has to log in, and it is worth knowing before you open your network up to guests.
+
+Bookmark `http://<your-pi>:3000/chores` on a kid's tablet or old phone. They can check off today's chores and spend the tickets they have earned. They cannot add or change chores, adjust anyone's ticket balance, change settings, or check off a chore for an earlier day. Everything they cannot do lives on the `/remote` page, which does ask for the password once you have set one. (Pre-built-image users can use `http://home-screens.local:3000/chores`; install-script users should use their Pi's hostname or IP.)
 
 ### What hardware do I need?
 
@@ -48,7 +56,9 @@ Yes. Home Screens runs on any machine with **Node.js 22+**. You can run it on a 
 
 ### What display orientation is supported?
 
-The default is **portrait at 1080x1920**, which works well for wall-mounted displays. During installation, you can choose from portrait, landscape, inverted, or counter-clockwise portrait. The resolution is also configurable --- you can set any custom resolution through the editor at **Settings > Screen**.
+The default is **portrait at 1080x1920**, which works well for wall-mounted displays. During installation, you can choose from portrait, landscape, inverted, or counter-clockwise portrait.
+
+The editor's **Settings > Screen** page sets the size of the canvas your modules are laid out on. Match it to your physical screen so everything lines up. It does not change the signal the Pi sends to the monitor --- that is picked during installation and stored in `data/kiosk.conf`, so setting 3840x2160 in the editor on a 1080p screen gives you a squashed layout, not a 4K picture.
 
 ---
 
@@ -58,25 +68,17 @@ The default is **portrait at 1080x1920**, which works well for wall-mounted disp
 
 Go to **Settings > System & updates > Check for Updates** in the editor and click **Upgrade**. The upgrade downloads a pre-built release from GitHub, swaps the application directory, and restarts the service. No build step is needed on the Pi.
 
-{% callout type="note" %}
-From the command line: `curl -X POST http://localhost:3000/api/system/upgrade`.
-{% /callout %}
+You can also drive it from the command line — see [Upgrade and rollback via API](/docs/raspberry-pi#upgrade-and-rollback-via-api).
 
 ### How do I rollback after a bad update?
 
-If something goes wrong after an upgrade:
+Go to **Settings > System & updates > Rollback** in the editor and pick the version you want.
 
-1. **From the editor** --- go to **Settings > System & updates > Rollback** to revert to the previous version.
-2. **From the command line**:
-   ```bash
-   curl -X POST http://localhost:3000/api/system/rollback
-   ```
-
-Home Screens keeps the previous version on disk so rollbacks are instant.
+Rolling back downloads the version you picked from GitHub and installs it the same way an upgrade does, so it needs an internet connection and takes about as long as an upgrade. Your configuration is copied to a backup file before every upgrade, so your settings come through the trip intact.
 
 ### How do I backup my configuration?
 
-Go to **Settings > Backups & data > Full Backup** in the editor and click **Export**. This downloads a JSON file containing your entire configuration --- screens, modules, settings, location, calendars, and device preferences. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
+Go to **Settings > Backups & data > Full Backup** in the editor and click **Backup All Data**. This downloads a JSON file containing your screens, modules, settings, location, calendars, device preferences, and your chore and meal data. **API keys are not included**, so you'll re-enter those after a restore. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
 
 A configurable backup reminder will notify you when you haven't backed up recently (configurable in Settings > Backups & data).
 
@@ -84,7 +86,7 @@ You can also use the **Share Layout** option to export just the visual layout (s
 
 ### How do I restore a backup?
 
-Go to **Settings > Backups & data > Full Backup** in the editor and click **Import**. Select a previously exported JSON backup file. Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
+Go to **Settings > Backups & data > Full Backup** in the editor and click **Restore Backup**. Select a backup file you saved earlier. (Don't confuse this with **Import Layout** in the Share Layout card, which only brings in screens and modules.) Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
 
 ### How do I reset to factory defaults?
 
@@ -104,47 +106,6 @@ Yes. Home Screens supports a hub-and-spoke deployment where one Next.js server (
 ### How do I change the port?
 
 Most users don't need to. Home Screens runs on port 3000 and is accessed at `http://<your-pi>:3000/editor` (or `http://home-screens.local:3000/editor` if you used the pre-built image). If port 3000 is already taken on your network, pass `--port 8080` when running the installer, or see [Advanced Networking](/docs/networking#custom-port-configuration) for other options.
-
----
-
-## First-boot problems
-
-### I flashed the SD card but the screen is still black after 5 minutes
-
-A few things to check:
-
-1. **HDMI cable** — Pi 5 uses **micro-HDMI**, not full-size. A regular HDMI cable won't fit. Try a micro-HDMI-to-HDMI adapter or cable.
-2. **Power supply** — Pi 5 needs a 27 W USB-C PSU. Cheaper phone chargers cause under-voltage warnings and may not boot.
-3. **SD card** — try re-flashing with a fresh copy of the image. A bad write is common with cheap or old cards.
-4. **Wait longer** — on a slow SD card, first boot can take up to 5 minutes. If you see the rainbow splash but then it goes black, it's probably still working.
-
-### WiFi didn't connect on first boot
-
-If you used `wifi.txt` but the Pi never came online:
-
-1. Re-insert the SD card in your computer. Is `wifi.txt` still there (not deleted)? If so, the Pi never read it — check the filename (it needs to be exactly `wifi.txt`, not `wifi.txt.txt`, a common Windows trap).
-2. Double-check the `SSID=` and `PASSWORD=` lines for typos. Passwords with special characters should not be quoted.
-3. **Try Ethernet as a fallback** — plug in a network cable, boot, then configure WiFi from the editor's **Settings > Network** page.
-
-### I can't find my Pi on the network
-
-If you used the **pre-built image**, the hostname is baked in as `home-screens`:
-
-```bash
-ping home-screens.local
-```
-
-If you used the **install script**, the Pi keeps whatever hostname Raspberry Pi OS was set up with (usually `raspberrypi`, or whatever you entered in Imager's advanced options):
-
-```bash
-ping raspberrypi.local
-```
-
-If mDNS doesn't resolve at all (some ISP routers disable it), check your router's admin page for the device and use its IP directly: `http://<pi-ip>:3000/editor`.
-
-### The screen is rotated the wrong way
-
-Go to **Settings > Screen > Rotation & appearance** in the editor, or see [Troubleshooting > Screen rotation issues](/docs/troubleshooting#screen-rotation-issues) for the command-line fix.
 
 ---
 
@@ -170,36 +131,26 @@ If you want HA to drive the *display itself* (wake/sleep, switch screens, push a
 
 ### Can I create custom modules?
 
-Yes. Home Screens uses a module registry pattern. To add a new module, you create a React component, register it in the module registry, and add its configuration to the property panel. See the [Development Guide](/docs/development) for a walkthrough of the full process.
+Yes, two ways. [Plugins](/docs/plugins) add modules at runtime without touching the core — that's the usual route. If you're forking Home Screens and want a module built in, the [Development Guide](/docs/development#adding-a-new-module) walks through the registry pattern with code.
 
 ### Why isn't my weather, calendar, or stocks data updating?
 
-The most common cause is a missing or invalid API key. Check the following:
+The most common cause is a missing location or a missing key. Check the following:
 
-1. Open the editor and go to **Settings > API keys**
-2. Verify that the relevant API key is entered and correct
-3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google OAuth or an iCloud account, confirm the sign-in has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for all the options.
+1. For weather, open the editor and go to **Settings > Weather**. Each provider has its own card there, with its key field inside. Then check **Settings > Location & language** --- without a location there is nothing to forecast. Stocks and news need no key at all.
+2. For services that do use a key (Immich, Todoist, traffic, Google Maps), go to **Settings > API keys** and check the key is entered and correct
+3. For calendars, check **Settings > Calendar**. If you're using an iCal feed, confirm the URL loads in a browser (most providers allow anonymous fetch). If you're using Google or an iCloud account, confirm the sign-in has been completed. See [Calendar setup](/docs/getting-started#calendar-setup) for all the options.
 4. Check the browser console or server logs for error messages
 
 Some modules also have a refresh interval --- data won't update more frequently than the configured interval.
 
 ### Which weather provider should I choose?
 
-Home Screens supports {% $stats.weatherProviderCount %} weather providers. Here's a comparison:
+Regional providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the most accurate option within the area they cover. Of those, only Met Office asks you to sign up for a key. For global coverage with no signup at all, use **Open-Meteo**, which is what a fresh install starts on. For the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
 
-| Provider | API Key Required | Cost | Coverage | Features |
-|---|---|---|---|---|
-| **Open-Meteo** | No | Free | Global | Good general-purpose option, no signup needed |
-| **NOAA** | No | Free | US only | Reliable for US locations, no signup needed |
-| **Yr.no** | No | Free | Global | Norwegian Meteorological Institute, high-quality global forecasts |
-| **SMHI** | No | Free | Nordic | Swedish Meteorological and Hydrological Institute, Nordic coverage |
-| **Met Office** | No | Free | UK | UK Met Office DataHub, UK coverage |
-| **Environment Canada** | No | Free | Canada | Official ECCC citypage feeds for Canadian cities |
-| **OpenWeatherMap** | Yes | Free tier available | Global | Most popular, includes air quality and UV data |
-| **WeatherAPI** | Yes | Free tier available | Global | Good accuracy, generous free tier |
-| **Pirate Weather** | Yes | Free tier available | Global | Dark Sky replacement, includes minutely precipitation and alerts |
+All {% $stats.weatherProviderCount %} providers, their coverage, and which ones need a key are listed in [Weather providers](/docs/getting-started#weather-providers-settings-weather).
 
-Regional free providers (NOAA, Yr.no, SMHI, Met Office, Environment Canada) are usually the highest-accuracy option within their coverage area. For zero-setup global coverage, use **Open-Meteo**. For the most features (air quality, UV index, minute-by-minute precipitation), go with **OpenWeatherMap** or **Pirate Weather**.
+Whichever provider you pick, set your location first at **Settings > Location & language** --- a new install has no location yet, so the weather module has nothing to look up until you do.
 
 ### What photo sources are supported?
 
@@ -228,20 +179,14 @@ Several built-in features help prevent burn-in:
 - **Screen rotation** --- cycle through multiple screens at a set interval so no single layout stays on screen indefinitely
 - **Sleep schedule** --- configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule** --- reduce brightness during certain hours without fully blanking the screen
-- **Screensaver** --- during sleep, a minimal clock can be shown that moves position to avoid static pixels
+- **Screensaver** --- while the display is dimmed, before it fully sleeps, a minimal clock can drift slowly around the screen so nothing sits in one place. Once the display is fully asleep the screen is blank, which protects it even better
 - **Background rotation** --- automatically cycle background images from Unsplash, NASA, Immich, or an iCloud shared album to vary what's on screen
 
 ### Can I control the display remotely?
 
-Yes. The `/api/display` endpoints let you control the display from any device on your network:
+Yes, three ways: the phone [remote](/docs/remote-control) at `/remote`, a **Display Control** module placed on a touchscreen, or the `/api/display/*` endpoints from any script or home-automation system.
 
-- **Wake/Sleep** --- `POST /api/display/wake` and `POST /api/display/sleep`
-- **Brightness** --- `POST /api/display/brightness` with a value from 0 to 100
-- **Navigation** --- `POST /api/display/next-screen` and `POST /api/display/prev-screen` to step through screens
-- **Profiles** --- `POST /api/display/profile` to activate a named profile
-- **Alerts** --- `POST /api/display/alert` to push a notification to the screen
-
-See the [API Reference](/docs/api) for full endpoint documentation.
+The endpoints cover wake, sleep, brightness, next/previous screen, profile switching, and pushing alerts. See [Display Control](/docs/api#display-control) in the API reference for the full list, and [Remote display control](/docs/networking#remote-display-control) for the auth and Home Assistant setup.
 
 ### How do I use profiles for different times of day?
 
@@ -257,21 +202,6 @@ The display will automatically switch to the matching profile at the scheduled t
 ---
 
 ## Development
-
-### How do I add a new module?
-
-Adding a module involves several steps:
-
-1. Create a React component in `src/components/modules/`
-2. Add a type to the `ModuleType` union in `src/types/config.ts`
-3. Define a config interface in `src/types/config.ts`
-4. Set default dimensions in `src/lib/constants.ts`
-5. Register it in `src/lib/module-registry.ts`
-6. Add a dynamic import in `src/lib/module-components.ts`
-7. Add editor configuration in `src/components/editor/PropertyPanel.tsx`
-8. Optionally add an API route in `src/app/api/`
-
-See the [Development Guide](/docs/development) for a detailed walkthrough.
 
 ### How do I contribute?
 

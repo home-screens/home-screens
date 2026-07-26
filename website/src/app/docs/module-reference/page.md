@@ -12,9 +12,17 @@ Exhaustive per-module option tables for every built-in module. If you're new to 
 
 Home Screens includes {% $stats.moduleCount %} built-in modules organized into {% $stats.categoryCount %} categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
+One of those categories, **Health & Fitness**, has no built-in modules yet. It is reserved for add-ons such as Strava and Garmin, stays hidden in the module palette until you install one, and so has no section below.
+
+Where a module has a `refreshIntervalMs` option, its default comes from that module's fetch cache lifetime rather than a value written into the module itself, so it stays in step with how long the server caches the same data. The numbers below are the current defaults; you can always override them per module.
+
 ## Full Screen
 
 These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag — position, size, and style controls are hidden in the editor since the module always occupies the full display area.
+
+**Themes:** all four full-screen modules share one `theme` field with six color palettes: `linen`, `paper`, and `mist` (light), `charcoal`, `midnight`, and `slate` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the six ids falls back to Linen.
+
+The older `darkMode` boolean on Full-Screen Calendar and Full-Screen Chore Chart has been superseded by `theme` and is no longer shown in the editor. It still works as a fallback so older configurations keep rendering: `darkMode: true` maps to `charcoal` and `false` maps to `linen`. It is ignored entirely whenever `theme` is set.
 
 ### Full-Screen Calendar
 
@@ -31,21 +39,28 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `showWeather` | boolean | `true` | Show weather data alongside calendar events |
 | `showNowLine` | boolean | `true` | Show a line indicating the current time |
 | `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
-| `darkMode` | boolean | `false` | Use dark color scheme |
+| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
+| `darkMode` | boolean | `false` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `todayHighlightStyle` | string | `"full"` | How strongly today is highlighted: `full` (accent-tinted fill), `subtle` (faint background), `minimal` (marker only), or `off` |
 | `eventOverlap` | string | `"columns"` | How overlapping events are laid out in schedule and day timeline views: `columns` (side-by-side, with a "+N" indicator when events don't fit) or `stacked` (cascading overlap) |
 | `wrapEventTitles` | boolean | `false` | Wrap long event titles onto a second line in schedule and month views instead of truncating |
 | `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
 | `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
 | `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
+| `scheduleShowDescription` | boolean | `false` | Show the event description under the title in schedule view |
 | `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
+| `weekShowDescription` | boolean | `false` | Show the event description under the title in week list view |
 | `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
 | `monthMaxEventsPerCell` | number | `0` | Max events per cell in month grid (0 = auto) |
 | `dayHourStart` | number | `6` | Day timeline view start hour |
 | `dayHourEnd` | number | `22` | Day timeline view end hour |
 | `dayShowLocation` | boolean | `true` | Show event locations in day timeline view |
+| `dayShowDescription` | boolean | `false` | Show the event description under the title in day timeline view |
 | `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
 | `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
+| `agendaShowDescription` | boolean | `false` | Show the event description under the title in agenda view |
+
+In the schedule and day timeline views, descriptions only draw when the event block is tall enough to fit them, so short events show the title alone even with the toggle on.
 
 **View details:**
 
@@ -67,7 +82,9 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
-| `darkMode` | boolean | `true` | Use dark color scheme (false = light theme) |
+| `allowDisplayComplete` | boolean | `true` | Let anyone tap a chore on the display itself to mark it done |
+| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
+| `darkMode` | boolean | `true` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
@@ -95,7 +112,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `showTags` | boolean | `true` | Show meal tags |
 | `showEmoji` | boolean | `true` | Show meal emoji |
 | `showDifficulty` | boolean | `false` | Show difficulty indicator |
-| `theme` | string | — | Color theme preset |
+| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change.
@@ -131,6 +148,7 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
+| `theme` | string | — | Color palette for the clock overlay and empty states: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
 
 {% callout type="note" title="Immich source" %}
 The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive — selecting one clears the other.
@@ -175,6 +193,9 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `showLocation` | boolean | `false` | Show event locations |
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/month views |
+| `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
+| `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
+| `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 
 Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/getting-started#calendar-setup). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
@@ -186,7 +207,7 @@ Counts down to one or more future events with visual progress rings.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"all"` | Display mode: `all` (show all events) or `next` (show only the next upcoming event) |
-| `events` | array | `[]` | List of events, each with `id`, `name`, `date`, optional `recurring` (`"yearly"`), and optional `source` (`"custom"` or `"holiday"`) |
+| `events` | array | `[]` | List of events, each with `id`, `name`, `date`, optional `recurring` (`"yearly"`), optional `source` (`"custom"` or `"holiday"`), and optional `backgroundImage` |
 | `showPastEvents` | boolean | `false` | Continue showing events after they pass |
 | `stayUntilEndOfDay` | boolean | `false` | Keep an event that has reached zero on screen until the end of that day, so a birthday or anniversary stays up all day instead of vanishing at midnight |
 | `scale` | number | `1` | Visual scale factor (0.5–4) |
@@ -250,6 +271,12 @@ A dedicated date display module with multiple visual layouts and optional metada
 
 Unified weather module with {% $stats.weatherViewCount %} views and {% $stats.weatherProviderCount %} provider options.
 
+{% callout type="note" title="Set your location first" %}
+Every weather view needs a latitude and longitude. Set them once in **Settings > Weather**. Without a location the module shows an error rather than a forecast.
+
+Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), **Yr.no**, **SMHI**, and **Environment Canada**. Four need a free key added under **Settings > API keys**: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather**, and **Met Office**.
+{% /callout %}
+
 **Views:** `current`, `hourly`, `daily`, `combined`, `compact`, `table`, `precipitation`, `alerts`
 
 | Option | Type | Default | Description |
@@ -279,7 +306,7 @@ Unified weather module with {% $stats.weatherViewCount %} views and {% $stats.we
 - **compact** — Minimal current temperature and icon, fits small spaces.
 - **table** — Tabular hourly data with columns for each stat.
 - **precipitation** — Minute-by-minute precipitation chart for the next 60 minutes. Requires Pirate Weather provider for minutely data.
-- **alerts** — Active weather alerts with severity levels. Requires Pirate Weather provider for alert data.
+- **alerts** — Active weather alerts with severity levels. Needs a provider that publishes alerts: **Pirate Weather** or **NOAA** (US only, no API key needed). Other providers return no alerts.
 
 ### Moon Phase
 
@@ -292,7 +319,7 @@ Current moon phase with visual representation.
 
 Uses the `suncalc` library for calculations based on your configured latitude/longitude.
 
-### Sunrise & Sunset
+### Sunrise / Sunset
 
 Today's sunrise and sunset times with visual arc.
 
@@ -310,9 +337,9 @@ Air quality index and pollutant levels.
 |---|---|---|---|
 | `showAQI` | boolean | `true` | Show air quality index |
 | `showPollutants` | boolean | `false` | Show individual pollutant levels (PM2.5, PM10, O3, NO2) |
-| `refreshIntervalMs` | number | `900000` | Refresh interval (15 min default) |
+| `refreshIntervalMs` | number | `300000` | Refresh interval (5 min) |
 
-Requires an OpenWeatherMap API key.
+Requires an **OpenWeatherMap** API key (Settings > API keys) and a location set in **Settings > Weather**. The location is checked first, so a missing location shows an error even when the key is in place.
 
 ### Rain Map
 
@@ -322,7 +349,7 @@ Animated precipitation radar map powered by RainViewer. Displays past radar and 
 |---|---|---|---|
 | `latitude` | number | `0` | Map center latitude (falls back to global setting) |
 | `longitude` | number | `0` | Map center longitude (falls back to global setting) |
-| `zoom` | number | `6` | Map zoom level |
+| `zoom` | number | `6` | Map zoom level (1–12). Radar imagery is only published up to zoom 7, so higher values sharpen the base map but stretch the radar layer |
 | `animationSpeedMs` | number | `500` | Delay between animation frames |
 | `extraDelayLastFrameMs` | number | `2000` | Extra pause on the last frame before looping |
 | `colorScheme` | number | `2` | RainViewer color scheme ID |
@@ -338,7 +365,7 @@ Animated precipitation radar map powered by RainViewer. Displays past radar and 
 
 ## News & Finance
 
-### News
+### News Headlines
 
 Rotating RSS feed headlines with multiple view modes.
 
@@ -361,19 +388,21 @@ Real-time stock prices from Yahoo Finance.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `symbols` | string | `"AAPL,GOOGL,MSFT"` | Comma-separated stock symbols |
-| `refreshIntervalMs` | number | `60000` | Refresh interval (1 min) |
+| `refreshIntervalMs` | number | `30000` | Refresh interval (30 sec) |
 | `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
+| `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). The quickest way to make prices readable across a room. Not used by the ticker view |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
-### Crypto
+### Crypto Price
 
 Cryptocurrency prices from CoinGecko.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `ids` | string | `"bitcoin,ethereum"` | Comma-separated CoinGecko IDs |
-| `refreshIntervalMs` | number | `60000` | Refresh interval (1 min) |
+| `refreshIntervalMs` | number | `30000` | Refresh interval (30 sec) |
 | `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
+| `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). Not used by the ticker view |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
 ### Sports Scores
@@ -423,18 +452,18 @@ Displays a random dad joke that refreshes periodically.
 | `accentColor` | string | `"#000000"` | Accent color for background tint and decorative elements |
 | `showDividers` | boolean | `true` | Show decorative dividers |
 
-### Quote
+### Quote of the Day
 
 Daily inspirational quote from ZenQuotes.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `refreshIntervalMs` | number | `300000` | Refresh interval (5 min) |
+| `refreshIntervalMs` | number | `3600000` | Refresh interval (1 hour) |
 | `accentColor` | string | `"#000000"` | Accent color for decorative quotation mark, left border, and attribution divider |
 
 ### Word of the Day
 
-Displays a vocabulary word with definition and usage. The word is computed from a built-in list based on the current date.
+Displays a vocabulary word with its part of speech and definition. Words come from a built-in list in your configured language (all seven shipped languages have their own list), and the word is picked from the date, so every display shows the same word on the same day.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -443,7 +472,7 @@ Displays a vocabulary word with definition and usage. The word is computed from 
 
 ### This Day in History
 
-Historical events that happened on today's date. Fetches from two data sources — Wikipedia "On This Day" and MuffinLabs — in parallel, deduplicates by year (preferring Wikipedia's richer text), and shuffles. Each source degrades gracefully if the other fails.
+Historical events that happened on today's date. Fetches from two data sources — Wikipedia "On This Day" and MuffinLabs — in parallel, deduplicates by year (preferring Wikipedia's richer text), and shuffles. Each source degrades gracefully if the other fails. Both sources return English text (the Wikipedia feed this module uses is English-only), and each contributes up to 10 events per day.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -458,7 +487,7 @@ Historical events that happened on today's date. Fetches from two data sources �
 
 ## Personal
 
-### To-Do
+### To-Do List
 
 A checklist with completable items.
 
@@ -488,7 +517,7 @@ Displays tasks from the Todoist API with filtering, grouping, and multiple view 
 | `showProject` | boolean | `true` | Show project name and color dot |
 | `showDescription` | boolean | `false` | Show task description text |
 | `maxTasks` | number | `30` | Maximum number of tasks to display |
-| `refreshIntervalMs` | number | `300000` | How often to fetch tasks (5 min) |
+| `refreshIntervalMs` | number | `60000` | How often to fetch tasks (1 min) |
 | `allowComplete` | boolean | `false` | Show a tappable circle on each task. Tapping marks the task complete in Todoist (optimistic, with cache invalidation so the task disappears immediately). When off, the priority bar is shown instead. |
 | `title` | string | `"Todoist"` | Module header title |
 
@@ -506,7 +535,7 @@ A colored note card for freeform text.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `content` | string | `""` | Note text content |
+| `content` | string | `"Write something here..."` | Note text content |
 | `noteColor` | string | `"#fef08a"` | Background color of the note |
 
 ### Greeting
@@ -544,7 +573,7 @@ Supports up to 3 collection types: trash, recycling, and a customizable third ty
 
 ### Affirmations
 
-Displays rotating positive affirmations with multiple visual styles. Time-aware selection adjusts messages based on time of day, day of week, and season. Weather-aware scoring quietly boosts entries that match the current conditions without hiding anything, so a rainy morning is more likely to surface a cozy gratitude entry and a snow day is more likely to surface a mindfulness entry tagged `snow`.
+Displays rotating positive affirmations with multiple visual styles. Time-aware selection adjusts messages based on time of day, day of week, and season. Weather-aware scoring quietly boosts entries that match the current conditions without hiding anything, so a rainy morning is more likely to surface a cozy gratitude entry and a snow day is more likely to surface a mindfulness entry tagged `snow`. The day-of-week and season rules are stricter than the weather one: an entry tagged for a specific day or season is held back entirely outside it, rather than just ranked lower.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -553,7 +582,7 @@ Displays rotating positive affirmations with multiple visual styles. Time-aware 
 | `rotationIntervalMs` | number | `15000` | How often to rotate to the next affirmation (15 sec) |
 | `showCategoryLabel` | boolean | `false` | Show the category label below the affirmation |
 | `timeAware` | boolean | `true` | Select affirmations based on time of day, day of week, and season |
-| `weatherAware` | boolean | `true` | Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Affirmations config section if location is missing. |
+| `weatherAware` | boolean | `true` | Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Only takes effect while **Time-aware** is on, since the weather boost is part of the same scoring pass. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Affirmations config section if location is missing. |
 | `customEntries` | array | `[]` | Custom affirmations, each with `id`, `text`, and optional `attribution` |
 | `accentColor` | string | `"#a78bfa"` | Accent color for card/typewriter views |
 
@@ -596,14 +625,14 @@ A chore tracking module for families or housemates. Assign chores to members wit
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"board"` | Display style: `board`, `star-chart`, `today`, `progress`, or `compact` |
-| `members` | array | `[]` | Household members, each with `id`, `name`, `emoji`, and `color` |
-| `chores` | array | `[]` | Chore definitions with `id`, `name`, `emoji`, `points`, `frequency` (`daily` \| `weekly` \| `biweekly` \| `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency === "once"`), `assigneeIds`, `rotation`, and (when `rotation === "schedule"`) a `schedule` map of memberId → days-of-week |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
 | `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Show time-of-day labels (morning, afternoon, evening) |
 | `allowDisplayComplete` | boolean | `true` | Allow marking chores complete from the display view |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+
+**Members and chores are shared household data**, not module options. They live in `data/chores.json` and are edited from the editor's **Edit chore chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week.
 
 **View details:**
 
@@ -632,37 +661,93 @@ Chore ticket values can be any non-negative integer — `0` is allowed and is us
 
 Rich text block with multiple display modes, effects, and styling options.
 
+**Content and layout**
+
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `content` | string | `""` | Text content (supports markdown when enabled) |
+| `content` | string | `"Hello, World!"` | Text content (supports markdown when enabled) |
 | `alignment` | string | `"center"` | Text alignment: `left`, `center`, or `right` |
 | `orientation` | string | `"horizontal"` | Text direction: `horizontal`, `vertical`, or `sideways` |
 | `verticalAlign` | string | `"center"` | Vertical alignment: `top`, `center`, or `bottom` |
 | `markdown` | boolean | `false` | Enable markdown rendering |
 | `autoFit` | boolean | `false` | Auto-fit text size to fill the container |
-| `effect` | string | `"none"` | Text effect: `none`, `typewriter`, `fade-in`, `gradient-sweep`, or `glow` |
-| `rotationEnabled` | boolean | `false` | Rotate through content split by separator |
-| `rotationIntervalMs` | number | `5000` | Rotation interval in milliseconds |
-| `rotationSeparator` | string | `"---"` | Separator string for splitting content into rotation items |
+| `icon` | string | `""` | Icon prefix (emoji or short text shown before content) |
+| `maxWidth` | number | `0` | Maximum text width in pixels (0 = no limit) |
+| `wrapMode` | string | `"normal"` | Line-wrapping style: `normal`, `nowrap`, `balance` (even line lengths), or `pretty` (avoids lonely last words) |
+
+**Typography**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `fontFamily` | string | — | Font registry id overriding the module's Style font (see [Module Styling](#module-styling) for the list). Unset = use the Style font |
+| `fontWeight` | number | `400` | Numeric weight, 100–900 |
+| `italic` | boolean | `false` | Italicize the text |
+| `lineHeight` | number | `1.2` | Line height as a multiple of the font size |
+| `letterSpacing` | number | `0` | Letter spacing in pixels |
+| `wordSpacing` | number | `0` | Word spacing in pixels |
+| `textTransform` | string | `"none"` | Text transform: `none`, `uppercase`, `lowercase`, or `capitalize` |
+| `textDecoration` | string | `"none"` | Line decoration: `none`, `underline`, `overline`, or `line-through` |
+| `textDecorationColor` | string | `"#ffffff"` | Color of that line |
+| `textDecorationThickness` | number | `2` | Thickness of that line in pixels |
+
+**Effects**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `effect` | string | `"none"` | Text effect: `none`, `typewriter`, `fade-in`, `gradient-sweep`, `glow`, `outline`, `shadow`, `3d`, `neon`, `wave`, `bounce`, `shake`, or `color-cycle` |
+| `animationSpeed` | number | `2` | Seconds per cycle for the animated effects |
+| `outlineWidth` | number | `2` | Stroke width in pixels (outline effect) |
+| `outlineColor` | string | `"#000000"` | Stroke color (outline effect) |
+| `shadowOffsetX` | number | `2` | Horizontal shadow offset in pixels (shadow effect) |
+| `shadowOffsetY` | number | `2` | Vertical shadow offset in pixels (shadow effect) |
+| `shadowBlur` | number | `4` | Shadow blur radius in pixels (shadow effect) |
+| `shadowColor` | string | `"rgba(0,0,0,0.5)"` | Shadow color (shadow effect) |
+| `colorCyclePalette` | array | 6 preset colors | Colors the `color-cycle` effect cycles through |
 | `gradientEnabled` | boolean | `false` | Enable gradient text coloring |
 | `gradientFrom` | string | `"#a78bfa"` | Gradient start color |
 | `gradientTo` | string | `"#22d3ee"` | Gradient end color |
 | `gradientAngle` | number | `90` | Gradient angle in degrees |
-| `textTransform` | string | `"none"` | Text transform: `none`, `uppercase`, `lowercase`, or `capitalize` |
-| `letterSpacing` | number | `0` | Letter spacing in pixels |
-| `icon` | string | `""` | Icon prefix (emoji or short text shown before content) |
-| `templateVariables` | boolean | `false` | Enable dynamic variables like `{{time}}`, `{{date}}`, `{{greeting}}` |
+
+**Rotation and scrolling**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `rotationEnabled` | boolean | `false` | Rotate through content split by separator |
+| `rotationIntervalMs` | number | `5000` | Rotation interval in milliseconds |
+| `rotationSeparator` | string | `"---"` | Separator string for splitting content into rotation items |
+| `revealOnRotation` | string | `"none"` | How each new item appears: `none`, `fade`, `slide-up`, `slide-down`, or `zoom`. Only used while rotation is on |
 | `marquee` | boolean | `false` | Enable marquee (scrolling) text |
-| `marqueeSpeed` | number | `5` | Marquee scroll speed |
+| `marqueeSpeed` | number | `30` | Seconds for one full scroll pass (5–120). Higher is slower |
 | `marqueeDirection` | string | `"left"` | Marquee direction: `left`, `right`, `up`, or `down` |
+
+**Decoration**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `dropCap` | boolean | `false` | Enlarge the first letter as a drop cap |
+| `dropCapColor` | string | — | Drop cap color (falls back to `accentColor`, then the text color) |
+| `textBackground` | string | — | Color drawn directly behind the glyphs, separate from the module's own background |
+| `textBackgroundPadding` | number | `4` | Padding around that background in pixels |
+| `textBackgroundRadius` | number | `4` | Corner rounding of that background in pixels |
+| `showDividers` | boolean | `false` | Show decorative divider lines above and below the text |
+| `accentColor` | string | `"#ffffff"` | Color for the dividers and the typewriter cursor |
+| `templateVariables` | boolean | `false` | Enable dynamic variables like `{{time}}` and `{{date}}` (see below) |
 
 **Text effects:**
 - **typewriter** — Types out the text character by character
 - **fade-in** — Fades the text in smoothly
 - **gradient-sweep** — Animated gradient sweep across the text
 - **glow** — Pulsing glow effect
+- **outline** — Hollow, stroked letters
+- **shadow** — Offset drop shadow behind the letters
+- **3d** — Layered letters for a raised, extruded look
+- **neon** — Neon-tube style glow with a bright core
+- **wave** — Letters ripple up and down one after another
+- **bounce** — Letters bounce in sequence
+- **shake** — Letters jitter in place
+- **color-cycle** — Letters cycle through `colorCyclePalette`
 
-**Template variables:** When enabled, special placeholders are replaced with live data: `{{time}}`, `{{date}}`, `{{greeting}}`, `{{dayOfWeek}}`, and more.
+**Template variables:** When enabled, seven placeholders are replaced with live data: `{{time}}` (24-hour), `{{time12}}` (12-hour), `{{date}}`, `{{day}}` (weekday name), `{{month}}`, `{{year}}`, and `{{greeting}}`. Anything else stays on screen exactly as typed, so watch the spelling: it is `{{day}}`, not `{{dayOfWeek}}`. The greeting words are currently English only.
 
 **Shared-state tokens:** Single-brace `{<key>}` (separate from the double-brace template variables above) inserts a live value published by an add-on, e.g. `{plugin:ha:sensor.temp}`. Add a filter after a `|` to format it: `|round:1` rounds a numeric value to a set number of decimal places, and `|default:TEXT` supplies placeholder text for a key that hasn't published a value yet — e.g. `{plugin:ha:sensor.temp|round:1|default:n/a}`. Unknown keys render as an en dash with no filter.
 
@@ -693,10 +778,10 @@ Plays a video clip — a file from your media library, a direct video URL, or a 
 | `maxDurationMs` | number | — | Stop playing after this many milliseconds (0 or unset = keep playing) |
 
 {% callout type="note" title="Best format for Raspberry Pi" %}
-MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4 — if a clip shows a black box, convert it to MP4 (H.264) first. If a video ever fails to load or stalls, the display skips past it instead of freezing.
+MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4 — if a clip shows a black box, convert it to MP4 (H.264) first. If a video fails to load or stalls, playback stops cleanly instead of freezing the screen, and in a photo slideshow the show advances to the next slide.
 {% /callout %}
 
-**Sound:** Videos are silent by default. To play sound, turn on the module's sound toggle. Displays installed or upgraded from this release onward allow video sound automatically; older installs pick it up on their next upgrade.
+**Sound:** Videos are silent by default. To play sound, turn on the module's sound toggle. Sound also needs a setting on the display itself, which every install and upgrade turns on automatically. If sound stays off on an older Pi, re-run the upgrade.
 
 **YouTube links:** Paste any YouTube link (`youtube.com/watch`, `youtu.be`, or a Short) into the URL field and the module plays it with YouTube's own player — autoplaying, without on-screen controls, using the privacy-friendly no-cookie player. The sound and repeat toggles work; the time limit doesn't apply (YouTube controls its own playback). Needs internet access on the display, and the video must allow embedding.
 
@@ -756,6 +841,8 @@ Embeds any web page or dashboard. Acts as a universal adapter for Home Assistant
 | `scrollable` | boolean | `false` | Allow scrolling within the embedded page |
 | `sandboxEnabled` | boolean | `false` | Apply sandbox restrictions to the iframe |
 | `sandbox` | string | `"allow-scripts allow-forms allow-popups"` | Sandbox permission tokens (when enabled) |
+
+**About the sandbox list:** what you type is checked before it is applied. Only the 13 standard sandbox tokens are recognized and anything else is ignored. `allow-same-origin` is also dropped whenever `allow-scripts` is set, because that pair lets an embedded page step outside its own sandbox, so if a self-hosted dashboard needs same-origin access, turn the sandbox off entirely rather than combining the two. Only `http` and `https` addresses can be embedded; anything else shows an error in place of the page.
 
 **Note:** Some websites (e.g. YouTube, Yahoo Finance, Twitter) set `frame-ancestors` or `X-Frame-Options` headers that prevent embedding. Self-hosted services, published Google Docs/Sheets, and sites that explicitly support embedding will work.
 
@@ -824,7 +911,7 @@ Decorative shapes and dividers for layout polish — the visual equivalent of a 
 
 ### Display Control
 
-Touch-friendly on-screen controls for waking, sleeping, advancing screens, and adjusting brightness. Dispatches the same commands used by `/remote` — useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone.
+Touch-friendly on-screen controls for putting a display to sleep, advancing screens, and adjusting brightness. To wake a sleeping display, touch the screen or use `/remote`. Dispatches the same commands used by `/remote` — useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -833,6 +920,8 @@ Touch-friendly on-screen controls for waking, sleeping, advancing screens, and a
 | `allowRetargeting` | boolean | `true` | Show a target picker so users can retarget at runtime (hidden in single-display mode) |
 
 **Behavior:** Sleep requires a 1-second hold to confirm; prev/next buttons are debounced at 200ms to collapse rapid taps. Brightness commits on pointer release so dragging the slider doesn't spam the hub.
+
+`defaultTarget` is resolved when the module mounts. A display id that doesn't match anything in the registry **silently falls back to `self`** — there's no error, so a typo here looks like the buttons are controlling the wrong screen rather than a broken setting.
 
 ---
 
@@ -849,6 +938,14 @@ Shows estimated travel times for configured routes.
 
 Supports Google Routes API or TomTom as providers. Origins and destinations are address strings.
 
+{% callout type="warning" title="Requires an API key" %}
+Add either a **Google Maps** key or a **TomTom** key under **Settings > API keys**. Google is used when both are present.
+
+Without a key the module still shows travel times, but they are randomly generated placeholders rather than real ones. The response is marked `mock: true` if you ever need to confirm which you are looking at.
+
+With TomTom, each origin and destination address is looked up on a map first, so addresses need to be specific enough to find.
+{% /callout %}
+
 ---
 
 ## Module Styling
@@ -860,11 +957,17 @@ Every module supports these style properties, configurable in the Property Panel
 | `opacity` | number | `1` | Module opacity (0–1) |
 | `borderRadius` | number | `12` | Corner rounding in pixels |
 | `padding` | number | `16` | Inner padding in pixels |
-| `backgroundColor` | string | `"rgba(0,0,0,0.4)"` | Background color |
+| `backgroundColor` | string | `"rgba(0, 0, 0, 0.4)"` | Background color |
 | `textColor` | string | `"#ffffff"` | Text color |
-| `fontFamily` | string | `"Inter, system-ui, sans-serif"` | Font family |
+| `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
 | `fontSize` | number | `16` | Base font size in pixels |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
-| `borderWidth` | number | `0` | Border width in pixels |
-| `borderColor` | string | `"#ffffff"` | Border color |
-| `shadowSize` | number | `0` | Box shadow size in pixels |
+| `borderWidth` | number | `1` | Border width in pixels |
+| `borderColor` | string | `"rgba(255, 255, 255, 0.15)"` | Border color |
+| `shadowSize` | number | `8` | Box shadow size in pixels |
+
+These are the values a newly added module starts with. A few modules override some of them on add: the four full-screen modules plus **Shape & Divider** and **Icon** start transparent with no padding, blur, border, or shadow; **Video** and **Web Embed** start with no padding; and **Multi-Month Calendar** and **Chore Chart** start at a larger base font size.
+
+## Settings every module shares
+
+Alongside the options above, every module on a screen carries four instance settings that decide *whether* it renders: an on/off switch, a day-and-time schedule, conditional visibility driven by live values published by add-ons, and a background-provider flag that keeps a module's data loop running while other screens are showing. See the [Configuration reference](/docs/configuration#module-instance) for their exact shape, and the [Editor guide](/docs/editor) for how to set them.

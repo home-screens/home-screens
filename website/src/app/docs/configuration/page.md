@@ -21,17 +21,28 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/config.json` | Screens, modules, profiles, global settings, multi-display registry | `/api/config` |
 | `data/secrets.json` | API keys for external integrations (weather, calendar, photos, etc.) | `/api/secrets` |
 | `data/auth.json` | Password hash and session secret for editor authentication | (internal) |
-| `data/meals.json` | Meal library, weekly plan, grocery list, household meal settings | `/api/meals/data` |
-| `data/chores.json` | Chore definitions, members, completion records | `/api/chores/data` |
+| `data/meals.json` | Meal library, weekly plan, checked-off grocery items, household meal settings | `/api/meals/data` |
+| `data/chores.json` | Chore definitions and family members | `/api/chores/data` |
+| `data/chore-completions.json` | Chore completion history (last 90 days) | `/api/chores` |
 | `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
+| `data/backup-state.json` | Last-backup and last-dismissed timestamps behind the backup reminder | `/api/backup` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
 | `data/plugin-tokens/` | Per-plugin account tokens from server-side auth adapters | `/api/plugins/auth/*` |
+| `data/plugin-secrets/` | Per-plugin secrets you enter yourself, kept outside `data/plugins/` because a plugin upgrade replaces that folder wholesale | `/api/plugins/secrets` |
 
-The main config is read via `GET /api/config` and written via `PUT /api/config`.
+Chore definitions and chore completions are **two separate files**. Copying only `data/chores.json` leaves every completion (and therefore every earned point) behind.
+
+Other files under `data/` (`backups/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`) are written and managed by the app; they are not meant to be edited by hand.
+
+The main config is read via `GET /api/config` and written via `PUT /api/config`. If you have set an editor password, both endpoints require an `hs-session` cookie: `PUT` accepts nothing else, and `GET` also accepts a display bearer token. With no password set, authentication is off and both are open on your local network.
+
+{% callout type="warning" %}
+**Close the editor tab before hand-editing `data/config.json`.** The editor loads the whole config into memory when the page opens and writes the whole file back when you save, so any change you made on disk in between is silently overwritten. `PUT /api/config` works the same way; it replaces the file wholesale rather than merging your changes into it.
+{% /callout %}
 
 ## API Keys & Credentials
 
@@ -44,6 +55,7 @@ Supported secret keys:
 | `openweathermap_key` | Weather (OpenWeatherMap provider), Air Quality |
 | `weatherapi_key` | Weather (WeatherAPI provider) |
 | `pirateweather_key` | Weather (Pirate Weather provider) |
+| `metoffice_key` | Weather (Met Office provider) |
 | `unsplash_access_key` | Background rotation (Unsplash) |
 | `todoist_token` | Todoist module |
 | `google_maps_key` | Traffic module (Google Routes) |
@@ -86,7 +98,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   rotationIntervalMs: number    // Screen rotation interval (default: 30000)
   displayWidth: number          // Canvas width in pixels (default: 1080)
   displayHeight: number         // Canvas height in pixels (default: 1920)
-  displayTransform?: 'normal' | '90' | '180' | '270'  // Screen rotation
+  displayTransform?: 'normal' | '90' | '180' | '270'  // Screen rotation (default: '90', portrait)
 
   latitude: number              // Global location latitude
   longitude: number             // Global location longitude
@@ -141,7 +153,13 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
 
   telemetryEnabled?: boolean      // Enable anonymous usage telemetry (on by default)
 
-  fullscreenTheme?: string        // Global preset for fullscreen modules (e.g. "lavender", "sunset")
+  updateNotification?: {
+    enabled: boolean              // Show a banner when a new release is available
+  }
+
+  fullscreenTheme?: string        // Global theme preset for fullscreen modules. One of
+                                  // "linen", "paper", "mist" (light) or "charcoal",
+                                  // "midnight", "slate" (dark).
 
   locale?: string                 // BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US".
                                   // Controls display language, dictionary lookup, and (unless
@@ -281,7 +299,7 @@ Controls when a module (or profile) is active based on day of week and time wind
 
 ### ModuleVisibility
 
-Shows or hides a module based on values published to the shared state bus (by plugins via `publishState`, or by background-provider module instances). Conditions follow Home Assistant-style semantics.
+Shows or hides a module based on values published to the shared state bus. Only plugins publish, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, none of which publish anything. Conditions follow Home Assistant-style semantics.
 
 ```typescript
 {
@@ -313,7 +331,9 @@ type VisibilityCondition =
   | { kind: 'not';     conditions: VisibilityCondition[] }
 ```
 
-`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
+`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field, or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
+
+Save-time limits: at most 32 conditions per module (leaves and groups combined) and 5 levels of `and` / `or` / `not` nesting, and a group condition must have at least one child. Exceeding any of these makes `PUT /api/config` fail with a 400 rather than saving.
 
 ### Profile
 
@@ -328,7 +348,7 @@ Named groups of screens that can be activated manually or on a schedule.
 }
 ```
 
-Profiles support overnight windows (e.g. 23:00–06:00). When multiple profiles have overlapping schedules, the first matching profile wins. Manual activation via `settings.activeProfile` overrides scheduled profiles.
+Profiles support overnight windows (e.g. 23:00–06:00). Scheduled profiles take precedence: at each tick the first profile in list order whose schedule matches, and that still resolves to at least one screen, wins. `settings.activeProfile` is the fallback used when no scheduled profile matches. If neither produces screens, all screens are shown.
 
 ### DisplayRule
 
@@ -346,6 +366,8 @@ A condition → action rule owned by a display. Rules reuse the `VisibilityCondi
 ```
 
 When multiple rules could fire at once, the first one in list order wins; reorder rules by dragging their cards. In multi-display setups, a rule can be copied to another display — since screens are per-display, a copied `showScreen` action arrives with its target screen cleared, ready to point at a screen on the new display.
+
+Save-time limit: at most 64 rules per display. The `when` tree obeys the same condition and nesting limits as `ModuleVisibility` above.
 
 ### RuleAction
 
@@ -415,13 +437,16 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 | Display ID format | URL-safe slug — lowercase letters, digits, hyphens; must start with a letter or digit |
 | Display ID length | ≤ 64 characters |
 | IDs must be unique | Yes |
-| Reserved IDs | `all` cannot be used (it is the broadcast keyword on command endpoints) |
 | Maximum displays | 64 per config |
 | Maximum screens per display | 256 |
 | Dimensions | Positive integers, ≤ 16384 |
 | Owned profile IDs | Must be unique within the display's `profiles` list |
 | Owned profile `screenIds` | Must reference the display's own `screens` (not the global pool) |
 | `activeProfile` references | When owned profiles are present, must be a member of `profiles`; otherwise must reference the global profile list |
+
+{% callout type="warning" %}
+**Do not name a display `all`.** The command endpoints treat `all` as the keyword meaning "every display", so a display with that id never receives anything sent to it. This is not currently rejected when the config is saved, so the name has to be avoided by hand.
+{% /callout %}
 
 ### ModuleType
 
@@ -486,7 +511,7 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   padding: number               // Pixels
   backgroundColor: string      // CSS color (e.g. "rgba(0,0,0,0.4)")
   textColor: string             // CSS color (e.g. "#ffffff")
-  fontFamily: string            // CSS font-family
+  fontFamily: string            // Font registry id (default "inter"); see the list below
   fontSize: number              // Base font size in pixels
   backdropBlur: number          // Backdrop blur in pixels
   borderWidth: number           // Border width in pixels
@@ -495,615 +520,28 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
 }
 ```
 
+`fontFamily` stores a font registry **id**, not a raw CSS stack. The available ids are `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, and `pacifico`. The fonts themselves are bundled at build time, so only these ids are guaranteed to load. A raw CSS stack is still accepted for backward compatibility, but anything the registry does not recognize is passed to the browser verbatim and will fall back to a system font.
+
 ## Module Configs
 
-### ClockConfig
+Each `ModuleInstance.config` object holds the fields for its module type. Those fields, with their defaults and allowed values, are documented one table per module in the **[Module Reference](/docs/module-reference)** — that page is the source of truth for module options, and the stored JSON matches it exactly.
 
-```typescript
-{
-  view: ClockView              // one of the 18 view names below
-  format24h: boolean
-  showSeconds: boolean
-  showDate: boolean
-  dateFormat: string
-  showWeekNumber: boolean
-  showDayOfYear: boolean
+## Shared data files
 
-  // View-specific fields (safe to leave at defaults for views that ignore them)
-  showNumerals: boolean        // analog: hour numbers on the clock face
-  animateFlip: boolean         // flip: animate digit flips
-  accentColor: string          // shared accent color for several views
-  worldZones: WorldClockZone[] // world: up to 3 extra timezones
-  referenceTime: string        // elapsed: ISO timestamp or time string
-  referenceLabel: string       // elapsed: label ("market open", "shift start")
-  countUp: boolean             // elapsed: count up (true) or down (false)
-  elapsedFormat: ElapsedFormat        // elapsed: how the units are rendered
-  elapsedPrecision: ElapsedPrecision  // elapsed: which units are shown
-}
+Three features deliberately keep their data **outside** `config.json`. The per-module config holds display options only; the data itself lives in a shared file so every module instance stays in sync, and so a save from the editor can never clobber something changed from `/remote` or tapped on a display.
 
-type ClockView =
-  | 'classic' | 'digital' | 'analog' | 'minimal' | 'flip'
-  | 'word'    | 'binary'  | 'vertical' | 'split' | 'progress'
-  | 'fuzzy'   | 'world'   | 'dot-matrix' | 'radial' | 'arc'
-  | 'neon'    | 'bar'     | 'elapsed'
+### data/meals.json
 
-// Two independent axes, both single-select. Shared with CountdownConfig.
-type ElapsedFormat =
-  | 'units'       // 50d 20h 13m   (default)
-  | 'unitsUpper'  // 50D 20H 13M
-  | 'unitsShort'  // 50day 20hr 13min
-  | 'colon'       // 50:20:13:00
-  | 'words'       // 50 days, 20 hours, 13 minutes (localized)
-  | 'wordsTitle'  // 50 Days, 20 Hours, 13 Minutes (localized, unit words capitalized)
-
-type ElapsedPrecision =
-  | 'auto'        // default; see the auto rule below
-  | 'days'
-  | 'daysHours'
-  | 'daysHoursMinutes'
-  | 'daysHoursMinutesSeconds'
-
-interface WorldClockZone {
-  label: string
-  timezone: string             // IANA zone, e.g. "America/Los_Angeles"
-}
-```
-
-The `words` and `wordsTitle` formats are localized through `Intl.DurationFormat`, so they follow the active [formatting locale](#globalsettings) including its connectors ("and", ", "). Every named precision shows its full unit set unconditionally, zeros included. Only `'auto'` is adaptive, and each module defines its own rule — for the clock's elapsed view: days and hours are dropped while zero, hours come back once days are showing, minutes are always shown, and seconds appear only when the total is under an hour. The `colon` format keeps its seconds segment at every magnitude, so its rightmost column always means seconds.
-
-### CalendarConfig
-
-```typescript
-{
-  viewMode: 'daily' | 'agenda' | 'week' | 'month'
-  daysToShow: number
-  showTime: boolean
-  showLocation: boolean
-  maxEvents: number
-  showWeekNumbers: boolean
-  accentColor?: string         // Event indicator bar and today highlights (default '#3b82f6')
-}
-```
-
-### FullscreenCalendarConfig
-
-Fullscreen ambient calendar display with 5 views. Uses the `fillsCanvas` flag to auto-size to display dimensions.
-
-```typescript
-{
-  view: 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
-  density: 'cozy' | 'snug'
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
-  accentColor: string
-  dimPastEvents: boolean
-  shadeWeekends: boolean
-  showWeather: boolean
-  showNowLine: boolean
-  sourceFilter?: string[]        // Calendar source IDs (empty = all)
-  darkMode: boolean
-  theme?: string                 // Fullscreen theme preset (overrides settings.fullscreenTheme)
-  todayHighlightStyle?: 'full' | 'subtle' | 'minimal' | 'off'  // default 'full'; today fill
-                                 // derives from accentColor
-  eventOverlap?: 'columns' | 'stacked'  // default 'columns' (side-by-side with "+N"
-                                 // indicator); 'stacked' = cascading overlap.
-                                 // Applies to schedule and day-timeline views
-  wrapEventTitles?: boolean      // default false; wrap long titles to 2 lines
-                                 // (schedule + month views)
-
-  // Schedule view
-  scheduleDaysToShow: number     // 1-7, 0 = auto
-  scheduleHourStart: number      // 0-23
-  scheduleHourEnd: number        // 1-24
-  scheduleShowDescription?: boolean
-
-  // Week list view
-  weekCollapsePastDays: boolean
-  weekShowDescription?: boolean
-
-  // Month grid view
-  monthShowWeekNumbers: boolean
-  monthMaxEventsPerCell: number  // 0 = auto
-
-  // Day timeline view
-  dayHourStart: number
-  dayHourEnd: number
-  dayShowLocation: boolean
-  dayShowDescription?: boolean
-
-  // Agenda view
-  agendaDaysAhead: number        // 7-30
-  agendaHideEmptyDays: boolean
-  agendaShowDescription?: boolean
-}
-```
-
-### WeatherConfig
-
-{% $stats.weatherProviderCount %} providers are supported: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather** (a Dark Sky replacement with minutely precipitation and alerts), **NOAA** (free, no API key, US only), **Open-Meteo** (free, no API key, global coverage), **Yr.no** (free, no API key, Norwegian Meteorological Institute, global coverage), **SMHI** (free, no API key, Swedish Meteorological and Hydrological Institute, Nordic coverage), **Met Office** (free, no API key, UK coverage), and **Environment Canada** (free, no API key, Canadian cities via ECCC citypage feeds). {% $stats.weatherViewCount %} views are available.
-
-```typescript
-{
-  view: 'current' | 'hourly' | 'daily' | 'combined' | 'compact' | 'table' | 'precipitation' | 'alerts'
-  iconSet: 'outline' | 'color'
-  provider: 'global' | 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo' | 'yr' | 'smhi' | 'metoffice' | 'envcanada'
-  hoursToShow: number
-  showFeelsLike: boolean
-  daysToShow: number
-  showHighLow: boolean
-  showPrecipAmount: boolean
-  showPrecipitation: boolean
-  showHumidity: boolean
-  showWind: boolean
-  showPressure: boolean
-  showVisibility: boolean
-  showDewPoint: boolean
-  hideWhenNoAlerts: boolean    // For alerts view: hide module when no active alerts
-}
-```
-
-### CountdownConfig
-
-```typescript
-{
-  events: CountdownEvent[]
-  showPastEvents: boolean
-  stayUntilEndOfDay?: boolean // keep an event that has hit zero visible until
-                              // the end of that calendar day in the configured timezone
-  scale: number               // 0.5 – 4, default 1
-  view: 'all' | 'next'
-  holidayCountry?: string
-  format: CountdownFormat     // how units render, default 'flip'
-  precision: CountdownPrecision // which units are shown, default 'auto'
-}
-
-type CountdownFormat = 'flip' | 'units' | 'unitsUpper' | 'unitsShort' | 'colon' | 'words' | 'wordsTitle'
-type CountdownPrecision = 'auto' | 'days' | 'daysHours' | 'daysHoursMinutes' | 'daysHoursMinutesSeconds'
-```
-
-`'flip'` is the countdown's own style — the animated flip cards — and is the default. The other six values are the same text styles the clock's elapsed view uses; see [ClockConfig](#clockconfig) for what each one renders. Precision works the same way too, except for the `'auto'` rule: the countdown shows days only when there is at least one, and always shows hours, minutes, and seconds.
-
-### CountdownEvent
-
-```typescript
-{
-  id: string
-  name: string
-  date: string                // ISO date string
-  recurring?: 'yearly'
-  source?: 'custom' | 'holiday'
-  backgroundImage?: string
-}
-```
-
-### DadJokeConfig
-
-```typescript
-{
-  refreshIntervalMs: number
-  accentColor?: string         // Accent color for background tint and decorative elements
-  showDividers?: boolean       // Show decorative dividers (default true)
-}
-```
-
-### TextConfig
-
-```typescript
-{
-  content: string
-  alignment: 'left' | 'center' | 'right'
-  orientation?: 'horizontal' | 'vertical' | 'sideways'
-  verticalAlign?: 'top' | 'center' | 'bottom'
-  markdown?: boolean                    // Enable markdown rendering
-  autoFit?: boolean                     // Auto-fit text to container
-  effect?: 'none' | 'typewriter' | 'fade-in' | 'gradient-sweep' | 'glow'
-  rotationEnabled?: boolean             // Rotate through content chunks
-  rotationIntervalMs?: number           // Rotation interval
-  rotationSeparator?: string            // Separator for splitting content
-  gradientEnabled?: boolean             // Enable gradient text
-  gradientFrom?: string                 // Gradient start color
-  gradientTo?: string                   // Gradient end color
-  gradientAngle?: number                // Gradient angle
-  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
-  letterSpacing?: number                // Letter spacing in px
-  icon?: string                         // Icon prefix (emoji)
-  templateVariables?: boolean           // Enable {{time}}, {{date}}, etc.
-  marquee?: boolean                     // Enable marquee scrolling
-  marqueeSpeed?: number                 // Marquee scroll speed
-  marqueeDirection?: 'left' | 'right' | 'up' | 'down'
-}
-```
-
-### ImageConfig
-
-```typescript
-{
-  src: string
-  objectFit: 'cover' | 'contain' | 'fill'
-  alt: string
-}
-```
-
-### VideoConfig
-
-Plays a video clip from the media library, a direct URL, or a YouTube link. Videos are muted by default; sound additionally requires the display's autoplay setting.
-
-```typescript
-{
-  source: 'file' | 'url'
-  file?: string                  // Media library path (file source)
-  url?: string                   // Direct MP4/WebM URL or any YouTube link (url source)
-  objectFit: 'cover' | 'contain' | 'fill'
-  muted: boolean                 // Default true
-  loop: boolean                  // Restart when the clip ends
-  maxDurationMs?: number         // Force-advance a stalled clip; 0/undefined = uncapped
-}
-```
-
-### QuoteConfig
-
-```typescript
-{
-  refreshIntervalMs: number
-  accentColor?: string         // Accent color for decorative elements and borders
-}
-```
-
-### TodoConfig
-
-```typescript
-{
-  title: string
-  items: { id: string; text: string; completed: boolean }[]
-  accentColor?: string         // Accent color for checkboxes and progress indicator
-}
-```
-
-### StickyNoteConfig
-
-```typescript
-{
-  content: string
-  noteColor: string
-}
-```
-
-### GreetingConfig
-
-```typescript
-{
-  name: string
-  accentColor?: string         // Accent color for the greeting text
-  weatherAware?: boolean       // Default true. Shows a contextual subtitle
-                               // like "Rainy day ahead" when weather data
-                               // is available. Requires location configured
-                               // in Settings > Weather.
-}
-```
-
-### NewsConfig
-
-```typescript
-{
-  feedUrl: string
-  view: 'headline' | 'list' | 'ticker' | 'compact'
-  refreshIntervalMs: number
-  rotateIntervalMs: number
-  maxItems: number
-  showTimestamp: boolean
-  showDescription: boolean
-  tickerSpeed: number
-  accentColor?: string         // List bullet color (optional)
-}
-```
-
-### StockTickerConfig
-
-```typescript
-{
-  symbols: string
-  refreshIntervalMs: number
-  view: 'cards' | 'ticker' | 'table' | 'compact'
-  cardScale: number
-  tickerSpeed: number
-}
-```
-
-### CryptoConfig
-
-```typescript
-{
-  ids: string
-  refreshIntervalMs: number
-  view: 'cards' | 'ticker' | 'table' | 'compact'
-  cardScale: number
-  tickerSpeed: number
-}
-```
-
-### WordOfDayConfig
-
-```typescript
-{
-  accentColor?: string         // Accent color for underline and part-of-speech tag
-  showDividers?: boolean       // Show decorative dividers (default true)
-}
-```
-
-### HistoryConfig
-
-```typescript
-{
-  refreshIntervalMs: number
-  rotationIntervalMs: number
-  accentColor?: string         // Accent color for years-ago badge and dividers
-  showDividers?: boolean       // Show decorative dividers (default true)
-  sourceMuffinLabs?: boolean   // Enable MuffinLabs data source (default true)
-  sourceWikipedia?: boolean    // Enable Wikipedia "On This Day" data source (default true)
-}
-```
-
-### MoonPhaseConfig
-
-```typescript
-{
-  showIllumination: boolean
-  showMoonTimes: boolean
-}
-```
-
-### SunriseSunsetConfig
-
-```typescript
-{
-  view: 'default' | 'arc'   // 'default' text layout, or arc-shaped day diagram
-  showDayLength: boolean
-  showGoldenHour: boolean
-}
-```
-
-### PhotoSlideshowConfig
-
-```typescript
-{
-  directory: string
-  intervalMs: number
-  transition: 'fade' | 'none'
-  objectFit: 'cover' | 'contain' | 'fill'
-  refreshIntervalMs: number
-  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
-  immichAlbumId?: string               // Immich album filter
-  immichPersonId?: string              // Immich person (face) filter
-  immichFavoritesOnly?: boolean        // Only use Immich favorites
-  immichCount?: number                 // Photos per refresh (10–200, default 50)
-  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
-  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
-  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
-}
-```
-
-### QRCodeConfig
-
-```typescript
-{
-  mode: 'custom' | 'wifi'
-  // Custom mode
-  data: string
-  label: string
-  // WiFi mode
-  ssid: string
-  password: string
-  authType: 'WPA' | 'WEP' | 'nopass'
-  hiddenNetwork: boolean
-  showPassword: boolean
-  showNetworkName: boolean
-  // Shared
-  fgColor: string
-  bgColor: string
-}
-```
-
-### YearProgressConfig
-
-```typescript
-{
-  showYear: boolean
-  showMonth: boolean
-  showWeek: boolean
-  showDay: boolean
-  showPercentage: boolean
-  accentColor?: string         // Accent color for progress bars and glow effects
-}
-```
-
-### TrafficConfig
-
-```typescript
-{
-  routes: { label: string; origin: string; destination: string }[]
-  refreshIntervalMs: number
-}
-```
-
-### SportsConfig
-
-```typescript
-{
-  view: 'scoreboard' | 'cards' | 'list' | 'ticker'
-  leagues: string[]
-  refreshIntervalMs: number
-  tickerSpeed: number
-}
-```
-
-### AirQualityConfig
-
-```typescript
-{
-  showAQI: boolean
-  showPollutants: boolean
-  refreshIntervalMs: number
-}
-```
-
-### TodoistConfig
-
-Connects to the Todoist API (requires a Todoist API token configured in Settings > API keys).
-
-```typescript
-{
-  viewMode: 'list' | 'board' | 'focus'
-  groupBy: 'none' | 'project' | 'priority' | 'date' | 'label'
-  sortBy: 'default' | 'priority' | 'due_date' | 'alphabetical'
-  projectFilter: string
-  labelFilter: string
-  showNoDueDate: boolean
-  showSubtasks: boolean
-  showLabels: boolean
-  showProject: boolean
-  showDescription: boolean
-  maxTasks: number
-  refreshIntervalMs: number
-  title: string
-}
-```
-
-### RainMapConfig
-
-Animated precipitation radar overlay on a map tile layer. Uses RainViewer API.
-
-```typescript
-{
-  latitude: number
-  longitude: number
-  zoom: number
-  animationSpeedMs: number
-  extraDelayLastFrameMs: number
-  colorScheme: number
-  smooth: boolean
-  showSnow: boolean
-  opacity: number
-  showTimestamp: boolean
-  showTimeline: boolean
-  refreshIntervalMs: number
-  mapStyle: 'dark' | 'standard'
-}
-```
-
-### MultiMonthConfig
-
-Displays multiple months in a calendar grid.
-
-```typescript
-{
-  view: 'vertical' | 'horizontal'
-  monthCount: number
-  startDay: 'sunday' | 'monday'
-  showWeekNumbers: boolean
-  highlightWeekends: boolean
-  showAdjacentDays: boolean
-}
-```
-
-### GarbageDayConfig
-
-Tracks collection schedules for trash, recycling, and a custom bin. Supports weekly or biweekly frequencies.
-
-```typescript
-{
-  trashDay: number            // 0=Sun, 1=Mon, ..., 6=Sat, -1=disabled
-  trashFrequency: 'weekly' | 'biweekly'
-  trashStartDate: string      // ISO date anchor for biweekly calculation
-  trashColor: string
-  recyclingDay: number
-  recyclingFrequency: 'weekly' | 'biweekly'
-  recyclingStartDate: string
-  recyclingColor: string
-  customDay: number
-  customFrequency: 'weekly' | 'biweekly'
-  customStartDate: string
-  customColor: string
-  customLabel: string
-  highlightMode: 'day-of' | 'day-before'
-}
-```
-
-### AffirmationsConfig
-
-Rotating positive affirmations with 4 visual styles and 5 categories. Supports time-aware selection and optional weather-aware scoring.
-
-```typescript
-{
-  view: 'elegant' | 'card' | 'minimal' | 'typewriter'
-  categories: ('affirmations' | 'compliments' | 'motivational' | 'gratitude' | 'mindfulness')[]
-  rotationIntervalMs: number
-  showCategoryLabel: boolean
-  timeAware: boolean           // Adjust messages based on time of day, day of week, season
-  weatherAware?: boolean       // Default true. Boosts entries tagged with
-                               // a matching weather condition (+2 score)
-                               // without hiding non-matching entries.
-                               // Requires location configured in
-                               // Settings > Weather.
-  customEntries: { id: string; text: string; attribution?: string }[]
-  accentColor: string          // Accent color for card/typewriter views
-}
-```
-
-### StandingsConfig
-
-Displays league standings from ESPN. Supports {% $stats.standingsLeagueCount %} leagues with team colors. Three views: full table, compact, and conference.
-
-```typescript
-{
-  view: 'table' | 'compact' | 'conference'
-  league: string
-  grouping: 'division' | 'conference' | 'league'
-  teamsToShow: number
-  showPlayoffLine: boolean
-  rotationIntervalMs: number
-  refreshIntervalMs: number
-}
-```
-
-### DateConfig
-
-Date display module with 5 visual styles.
-
-```typescript
-{
-  view: 'full' | 'minimal' | 'stacked' | 'editorial' | 'banner'
-  dateFormat: string
-  showDayName: boolean
-  showYear: boolean
-  showWeekNumber: boolean
-  showDayOfYear: boolean
-  accentColor: string
-}
-```
-
-### MealPlannerConfig
-
-Weekly meal planning with 5 views and 4 meal slots. Time-aware display highlights the current or next meal. The per-module config only contains visual options — the meal library, weekly plan, grocery list, and household-wide settings (enabled slots, week start day, default serving times, time format) all live in `data/meals.json` via the `/api/meals/data` endpoint with atomic writes. This keeps every meal-planner module on the same display in sync without duplicating settings into each module.
-
-```typescript
-{
-  view: 'week' | 'today' | 'next-meal' | 'compact' | 'list'
-  showEmoji: boolean
-  showPrepTime: boolean
-  showTags: boolean
-  accentColor: string
-  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
-                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
-}
-```
-
-Meal data is stored separately in `data/meals.json`:
+The meal library, weekly plan, grocery check-offs, and household-wide planning settings, written atomically via `/api/meals/data`. Settings live here rather than on each module so `/remote` and every meal-planner instance agree.
 
 ```typescript
 {
   settings: MealSettings      // Household-wide planning settings (enabled slots, week start, slot times, time format)
   savedMeals: SavedMeal[]     // Meal library (name, emoji, tags, prep/cook time, difficulty, ingredients, etc.)
   plan: PlannedMeal[]         // Weekly schedule entries
-  grocery: string[]           // Grocery list items
+  groceryChecked: string[]    // Ingredient names that have been checked off. The grocery
+                              // list itself is derived from the planned meals' ingredients
+                              // and is not stored.
 }
 ```
 
@@ -1127,129 +565,71 @@ Each `PlannedMeal` uses an ISO date string to support multi-week planning:
   mealId?: string             // References a SavedMeal.id
   customText?: string         // Freeform text (e.g. "Eating out", "Leftovers")
   notes?: string
+  time?: string               // Serving time, "HH:MM" 24h. Overrides
+                              // settings.defaultSlotTimes[slot] for this one entry,
+                              // so Tuesday's dinner can be at 18:30 and Friday's at 19:00.
 }
 ```
 
 Old configs that used `day: number` (day-of-week index) are automatically migrated to ISO date format on first read.
 
-### IframeConfig
+### data/chores.json
 
-Embeds an external web page. Supports configurable refresh and sandboxing.
-
-```typescript
-{
-  url: string
-  refreshIntervalMs: number
-  scrollable: boolean
-  sandboxEnabled: boolean
-  sandbox: string
-  title: string
-}
-```
-
-### ChoreChartConfig
-
-Family chore tracking with 5 views, point system, and rotation support.
+Family members and chore definitions, served by `/api/chores/data` and edited from the `/remote` Chores tab.
 
 ```typescript
 {
-  view: 'board' | 'star-chart' | 'today' | 'progress' | 'compact'
-  members: { id: string; name: string; emoji: string; color: string }[]
-  chores: {
-    id: string
-    name: string
-    emoji: string
-    points: number            // 0 or greater (a 0-point chore has no reward impact)
-    frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
-    specificDate?: string     // Only used when frequency === 'once'. ISO YYYY-MM-DD.
-    daysOfWeek: number[]
-    timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
-    assigneeIds: string[]
-    rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule'
-    schedule?: Record<string, number[]>  // memberId → days-of-week (0–6).
-                                          // Only used when rotation === 'schedule'.
-                                          // Lets you assign different members to
-                                          // different days, e.g. Alice Mon/Wed,
-                                          // Bob Tue/Thu, everyone Fri–Sun.
-  }[]
-  weekStartDay: 'sunday' | 'monday'
-  showPoints: boolean
-  showStreaks: boolean
-  showTimeOfDay: boolean
-  allowDisplayComplete: boolean
-  accentColor: string
+  members: ChoreMember[]
+  chores: ChoreDefinition[]
 }
 ```
 
-### FullscreenChoreChartConfig
+```typescript
+interface ChoreMember {
+  id: string
+  name: string
+  emoji: string
+  color: string
+}
 
-Fullscreen ambient chore chart display. Uses the `fillsCanvas` flag to auto-size to display dimensions. Reads members and chores from shared `data/chores.json` rather than per-module config.
+interface ChoreDefinition {
+  id: string
+  name: string
+  emoji: string
+  points: number            // 0 or greater (a 0-point chore has no reward impact)
+  frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
+  specificDate?: string     // Only used when frequency === 'once'. ISO YYYY-MM-DD.
+  daysOfWeek: number[]
+  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
+  assigneeIds: string[]
+  rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule'
+  schedule?: Record<string, number[]>  // memberId → days-of-week (0–6).
+                                        // Only used when rotation === 'schedule'.
+                                        // Lets you assign different members to
+                                        // different days, e.g. Alice Mon/Wed,
+                                        // Bob Tue/Thu, everyone Fri–Sun.
+}
+```
+
+Completions live in a **separate** file, `data/chore-completions.json`, served by `/api/chores`:
 
 ```typescript
 {
-  view: 'chores' | 'rewards-store'
-  showRewardsButton: boolean
-  weekStartDay: 'sunday' | 'monday'
-  showPoints: boolean
-  showStreaks: boolean
-  showTimeOfDay: boolean
-  darkMode: boolean
-  density: 'cozy' | 'snug'
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
-  accentColor: string
+  completions: { choreId: string; memberId: string; date: string }[]  // date is YYYY-MM-DD
 }
 ```
 
-### FullscreenMealPlannerConfig
+### data/todo-state.json
 
-Fullscreen ambient meal planner with 4 views. Uses the `fillsCanvas` flag to auto-size to display dimensions. Reads meal data from shared `data/meals.json` like the standard meal planner module.
-
-```typescript
-{
-  view: 'week' | 'today' | 'menu-board' | 'next-meal'
-  density: 'cozy' | 'snug'
-  typographySize: 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large'
-  accentColor: string
-  showPrepTime: boolean
-  showTags: boolean
-  showEmoji: boolean
-  showDifficulty: boolean
-  theme?: string                             // Color theme preset
-  tapRecipeAction?: 'off' | 'qr' | 'iframe'  // Tap a meal with a saved recipe link:
-                                             // 'qr' fullscreen QR overlay, 'iframe' embeds the page
-}
-```
-
-### FullscreenPhotoConfig
-
-Fullscreen photo frame with slideshow and single-photo modes. Uses the `fillsCanvas` flag to auto-size to display dimensions. When `file` is set, the viewer shows that one photo statically and ignores the rotation fields.
-
-```typescript
-{
-  directory: string
-  file?: string                        // Single pinned photo (overrides slideshow fields)
-  intervalMs: number
-  transition: 'fade' | 'slide' | 'zoom' | 'none'
-  objectFit: 'cover' | 'contain' | 'fill'
-  shuffle: boolean
-  showClock: boolean
-  kenBurns: boolean                    // Slow pan/zoom effect
-  theme?: string                       // Color theme preset (empty states + clock overlay)
-  source?: 'local' | 'immich' | 'icloud'  // Photo source (default: local)
-  immichAlbumId?: string               // Immich album filter
-  immichPersonId?: string              // Immich person (face) filter
-  immichFavoritesOnly?: boolean        // Only use Immich favorites
-  immichCount?: number                 // Photos per refresh (10–200, default 50)
-  icloudAlbumUrl?: string              // iCloud shared album link or bare token (icloud source)
-  mediaTypes?: 'photos' | 'videos' | 'both'  // What to show (default: photos)
-  maxVideoDurationMs?: number          // Force-advance cap for video slides (default 60000)
-}
-```
+For a To-Do module with `interactive` on, each item's `completed` value in `config.json` is only the *starting* state. Taps are persisted here instead, keyed by item id, via `/api/todo/state` and `/api/todo/toggle`. That keeps completions out of `config.json` so an editor save can't wipe them, and lets every display showing the same list stay in step.
 
 ## Display Resolution Presets
 
+In the editor you pick a resolution and an orientation separately: four presets, labelled **720p HD**, **1080p Full HD**, **1440p QHD**, and **4K UHD**, each with a Portrait/Landscape toggle that swaps the two dimensions. That gives eight combinations:
+
 | Preset | Width | Height |
 |---|---|---|
+| Portrait 720p | 720 | 1280 |
 | Portrait 1080p | 1080 | 1920 |
 | Portrait 1440p | 1440 | 2560 |
 | Portrait 4K | 2160 | 3840 |
@@ -1260,7 +640,11 @@ Fullscreen photo frame with slideshow and single-photo modes. Uses the `fillsCan
 
 ## Config Migrations
 
-Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load.
+Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load. The current schema version is **5**.
+
+Migration runs when the config is read and the result is written back to disk automatically, so `version` in `data/config.json` updates itself the first time newer code reads an older config. If a migration fails, the un-migrated config is returned as-is rather than falling back to defaults, so a bad upgrade can never quietly replace your setup with an empty one.
+
+Do not hand-edit `version`. A config marked with a version newer than the running code is left alone; there is no downgrade path.
 
 ## Validation CLI
 
@@ -1274,10 +658,13 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 ## Backup & Restore
 
-- **Export** from the editor's Data section or the remote's Settings sheet downloads a full backup as JSON
+- **Export** from the editor's Data section or the remote's Settings sheet downloads a backup as JSON. The bundle contains your config, chores, chore completions, meals, and rewards.
 - **Import** replaces the current config with an uploaded JSON file (available in both the editor and the remote)
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
-- Manual backups: copy `data/config.json` to a safe location
+
+{% callout type="warning" %}
+**The export is not everything.** API keys, iCloud and Google credentials, plugin bundles, and plugin account tokens are deliberately left out of the backup file, so restoring on a new Pi comes up with your integrations disconnected and your plugins missing. Re-enter them after a restore. For a genuinely complete copy, take the whole `data/` directory instead. Copying `data/config.json` on its own is narrower still: it captures none of your chores, completions, meals, or rewards.
+{% /callout %}
 
 ## Example
 
@@ -1298,7 +685,9 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
       "units": "imperial"
     },
     "calendar": {
+      "googleCalendarId": "",
       "googleCalendarIds": ["primary"],
+      "icalSources": [],
       "maxEvents": 10,
       "daysAhead": 7
     }
@@ -1316,6 +705,7 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
           "size": { "w": 1040, "h": 220 },
           "zIndex": 1,
           "config": {
+            "view": "classic",
             "format24h": false,
             "showSeconds": true,
             "showDate": true
@@ -1326,9 +716,12 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
             "padding": 16,
             "backgroundColor": "rgba(0,0,0,0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
-            "backdropBlur": 12
+            "backdropBlur": 12,
+            "borderWidth": 1,
+            "borderColor": "rgba(255,255,255,0.15)",
+            "shadowSize": 8
           }
         }
       ]

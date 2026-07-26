@@ -28,19 +28,57 @@ sequenceDiagram
     API-->>Client: JSON response
 ```
 
+---
+
+## Access
+
+Most endpoints are protected, but **only once you set a password** in Settings > Security. On a fresh install with no password, every check described here does nothing and the whole API is open to anyone on your network. That is the default, and it is why the endpoints below say "requires a valid session" rather than "always requires a valid session".
+
+There are three levels of protection:
+
+| Level | What it accepts | Used by |
+|---|---|---|
+| Session | The `hs-session` cookie set by `POST /api/auth/login` | Endpoints that change settings or read credentials |
+| Display | The session cookie **or** a display token | Everything a screen polls: config, weather, calendar, commands, chore data |
+| Media | Display access **or** a signed `mt` token bound to one file | The routes that serve photos and videos into `<img>` and `<video>` tags |
+
+Endpoints below that say "requires a valid session" are the first level. Endpoints that say "display access" are the second, and a browser session works for those too.
+
+A few endpoints are open at every level on purpose, and each one says so where it appears: `GET`/`POST /api/chores` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, and `GET /api/plugins/auth/callback`.
+
+### Using the display token
+
+`GET /api/auth/display-token` returns the token (session required). Send it as a header:
+
+```
+Authorization: Bearer hs_abc123...
+```
+
+For bookmarkable links, the `/api/display/*` routes also accept the token as a `?token=` query parameter, for example `/api/display/wake?display=kitchen&token=hs_abc123...`. That shortcut is scoped to `/api/display/*` and nowhere else; every other endpoint needs the header or the session cookie. Query tokens end up in browser history and server logs, so use the header wherever you can send one.
+
+If you have an IP allowlist configured with **Bypass authentication for trusted IPs** turned on, requests from those addresses clear display access with no token at all.
+
+---
+
 ## Configuration
 
 ### GET /api/config
 
-Returns the current screen configuration.
+Returns the current screen configuration. Display access, so a screen can poll it with its token.
 
 **Response:** `ScreenConfiguration` object (see [Configuration](/docs/configuration))
 
 ### PUT /api/config
 
-Saves the screen configuration. Performs an atomic write (temp file + rename) to prevent corruption. Also syncs kiosk.conf for the kiosk launcher and applies display settings (rotation/resolution) immediately via wlr-randr when they change.
+Saves the screen configuration. Requires a valid session; unlike the `GET`, a display token is not enough to write config. Performs an atomic write (temp file + rename) to prevent corruption. Also syncs kiosk.conf for the kiosk launcher and applies display settings (rotation/resolution) immediately via wlr-randr when they change.
 
 **Body:** `ScreenConfiguration` object
+
+Three checks run before anything is written, each returning `400 { "error": "..." }`:
+
+- The body must include a `screens` array and a `settings` object.
+- If a `displays` registry is present it must pass validation: unique URL-safe IDs of 64 characters or less, at most 64 displays, at most 256 screens per display, and dimensions within the allowed range.
+- Every screen schedule, module schedule, and module visibility condition must be well formed.
 
 **Response:** The full `ScreenConfiguration` object as saved.
 
@@ -50,7 +88,7 @@ Saves the screen configuration. Performs an atomic write (temp file + rename) to
 
 ### GET /api/weather
 
-Fetches weather data from the configured provider. Supports {% $stats.weatherProviderCount %} providers: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, and Environment Canada. Results are cached for 5 minutes.
+Fetches weather data from the configured provider. Supports {% $stats.weatherProviderCount %} providers: OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, and Environment Canada. Results are cached for 5 minutes. Display access.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -58,7 +96,7 @@ Fetches weather data from the configured provider. Supports {% $stats.weatherPro
 | `provider` | string | from config | `openweathermap`, `weatherapi`, `pirateweather`, `noaa`, `open-meteo`, `yr`, `smhi`, `metoffice`, or `envcanada` |
 | `lat` | number | from config | Latitude |
 | `lon` | number | from config | Longitude |
-| `units` | string | `"imperial"` | `metric` or `imperial` |
+| `units` | string | from config (`imperial`) | `metric` or `imperial` |
 
 **Response:**
 ```json
@@ -74,7 +112,9 @@ Fetches weather data from the configured provider. Supports {% $stats.weatherPro
 }
 ```
 
-The `minutely` and `alerts` fields are included when the provider supports them (e.g. Pirate Weather).
+The example above is what `type=both` returns. With `type=forecast` only the `forecast` key is present, and with `type=hourly` only `hourly`. The `minutely` and `alerts` fields are included when the provider supports them (e.g. Pirate Weather).
+
+If no location is set (in the query or in your weather settings), the route returns `400 { "error": "Missing required query params: lat, lon" }`.
 
 ---
 
@@ -82,38 +122,49 @@ The `minutely` and `alerts` fields are included when the provider supports them 
 
 ### GET /api/calendar
 
-Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source) — plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured.
+Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source) — plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured. Display access. Results are cached for 2 minutes.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `calendarIds` | string | Comma-separated calendar IDs |
-| `timeMin` | string | ISO 8601 start time |
-| `timeMax` | string | ISO 8601 end time |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `calendarIds` | string | your configured Google calendars | Comma-separated calendar IDs |
+| `timeMin` | string | now, rounded down to the minute | ISO 8601 start time |
+| `timeMax` | string | `timeMin` plus your **days ahead** setting | ISO 8601 end time |
+
+Values that can't be parsed as dates fall back to the defaults, and a `timeMax` at or before `timeMin` is reset to the default window. The span between them is capped at 400 days; anything wider is trimmed to that.
+
+If every configured source fails at once, the route returns an error rather than caching an empty list, so a temporary outage doesn't blank your calendar for the next two minutes.
 
 **Response:**
 ```json
 [
   {
     "id": "event-id",
-    "summary": "Team Meeting",
+    "title": "Team Meeting",
     "start": "2026-03-08T10:00:00-06:00",
     "end": "2026-03-08T11:00:00-06:00",
+    "allDay": false,
     "location": "Room 42",
-    "calendarColor": "#4285f4"
+    "calendarColor": "#4285f4",
+    "sourceId": "ical-1",
+    "sourceName": "Soccer Schedule"
   }
 ]
 ```
 
+`title` and `allDay` are always present. `location`, `description`, `calendarColor`, `sourceId`, and `sourceName` are optional; `sourceId` and `sourceName` are how a client tells a feed's events apart from a Google calendar's.
+
 ### GET /api/calendars
 
-Lists the authenticated user's Google Calendars (OAuth only — used by the editor's calendar picker).
+Lists the authenticated user's Google Calendars (OAuth only — used by the editor's calendar picker). Requires a valid session.
 
 **Response:**
 ```json
 [
-  { "id": "primary", "summary": "My Calendar", "backgroundColor": "#4285f4" }
+  { "id": "primary", "summary": "My Calendar", "backgroundColor": "#4285f4", "primary": true }
 ]
 ```
+
+If Google isn't connected, this returns `403` with an `error` string explaining which of the three cases applies: no tokens saved yet, tokens saved without a refresh token, or a refresh that Google rejected.
 
 ---
 
@@ -198,11 +249,20 @@ Toggles a chore completion. If the completion already exists for the given chore
 
 The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 days. Future dates, invalid calendar dates (e.g. `2026-02-30`), and dates outside the retention window are rejected with `400`. Toggling a chore with a non-zero point value also credits or debits the member's reward balance; if removing a past completion would drive the balance negative, the response includes a `warning` string explaining the deficit.
 
-**Response:** `{ "completions": [...], "warning"?: "..." }`
+**Response:**
+```json
+{
+  "completions": [ ... ],
+  "rewards": { "rewards": [ ... ], "balances": { "member-1": 122 }, "redemptions": [ ... ] },
+  "warning": "..."
+}
+```
+
+`rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `warning` is only present in the deficit case described above.
 
 ### GET /api/chores/data
 
-Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart module, the fullscreen chore chart module, and the remote Chores tab.
+Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart module, the fullscreen chore chart module, and the remote Chores tab. Display access.
 
 **Response:**
 ```json
@@ -234,11 +294,16 @@ Updates the shared chore member and definition data. Requires a valid session.
 ```json
 {
   "members": [ ... ],
-  "chores": [ ... ]
+  "chores": [ ... ],
+  "force": false
 }
 ```
 
 Both `members` and `chores` must be arrays. The full set replaces the existing data.
+
+If **both** arrays are empty and there is existing data to lose, the write is refused with `409 { "error": "Refusing to overwrite non-empty chore data with empty payload. Send { force: true } to confirm." }`. Send `force: true` to go ahead anyway. Sending one empty array alongside a non-empty one is a normal write and is not blocked.
+
+Removing a member here also clears their point balance and redemption history from the reward data, so the two stores don't drift apart.
 
 **Response:** The saved `{ members, chores }` object.
 
@@ -288,7 +353,7 @@ The entire read-modify-write cycle runs inside the meal-data store queue, so cro
 }
 ```
 
-When present, `savedMeals`, `plan`, and `groceryChecked` must be arrays. An empty-overwrite guard fires whenever `savedMeals` OR `plan` is being written as `[]` against non-empty existing data — set `force: true` to override. Settings-only and grocery-only writes skip the guard.
+When present, `savedMeals`, `plan`, and `groceryChecked` must be arrays. An empty-overwrite guard fires when every `savedMeals` / `plan` field present in the body is `[]` and the existing data is not empty; the write is refused with `409` and you can resend with `force: true` to override. If the body sends both fields and only one of them is empty, that is a normal write and the guard stays out of the way. Settings-only and grocery-only writes skip the guard entirely.
 
 **Response:** The full `{ savedMeals, plan, groceryChecked, settings }` object after the write.
 
@@ -353,9 +418,12 @@ Updates reward definitions (add, edit, remove rewards). Requires a valid session
 **Body:**
 ```json
 {
-  "rewards": [ ... ]
+  "rewards": [ ... ],
+  "force": false
 }
 ```
+
+`rewards` must be an array. Sending an empty array when there are existing rewards is refused with `409 { "error": "Refusing to overwrite non-empty reward data with empty payload. Send { force: true } to confirm." }`; resend with `force: true` to clear the list on purpose.
 
 **Response:** `{ "rewards": [...] }` (the saved reward definitions)
 
@@ -381,18 +449,18 @@ Positive amounts credit points; negative amounts debit. Amount must be non-zero.
 
 ### GET /api/auth/status
 
-Returns whether password authentication is enabled, whether the current session is authenticated, and whether the caller is blocked by the optional IP allowlist.
+Returns whether password authentication is enabled, whether the current session is authenticated, whether a display token exists, and whether the caller is blocked by the optional IP allowlist. Open to anyone; the login page calls it before you sign in.
 
 **Response:**
 ```json
-{ "authEnabled": true, "authenticated": true, "ipRestricted": false }
+{ "authEnabled": true, "authenticated": true, "hasDisplayToken": true, "ipRestricted": false }
 ```
 
-The `ipRestricted` field is `true` when the **Restrict access by IP** toggle is on and the caller's IP is not in the configured allowlist. The login page uses this to show an explanatory banner instead of a sign-in form, since no amount of correct credentials would let the caller through.
+`hasDisplayToken` is always `false` when no password is set, since there is nothing to protect. The `ipRestricted` field is `true` when the **Restrict access by IP** toggle is on and the caller's IP is not in the configured allowlist. The login page uses this to show an explanatory banner instead of a sign-in form, since no amount of correct credentials would let the caller through.
 
 ### POST /api/auth/login
 
-Authenticates with a password. Sets a session cookie on success. Rate-limited to 5 failed attempts per 15-minute window (shared with the password endpoint).
+Authenticates with a password. Sets a session cookie on success. Rate-limited to 5 failed attempts per 15-minute window, counted per caller IP. The limit is this endpoint's own; `POST /api/auth/password` keeps a separate count of the same size.
 
 **Body:** `{ "password": "...", "rememberMe": false }`
 
@@ -417,9 +485,9 @@ Sets, changes, or disables the password. Requires a valid session if auth is alr
 
 **Body (disable):** `{ "currentPassword": "...", "action": "disable" }`
 
-**Constraints:** Password must be at least 8 characters.
+**Constraints:** Password must be at least 8 characters. A wrong `currentPassword` returns `401` and counts against this endpoint's own limit of 5 failed attempts per 15-minute window.
 
-**Response:** `{ "success": true, "authEnabled": true }`
+**Response:** `{ "ok": true, "authEnabled": true }`, with a `Set-Cookie` header carrying a fresh session. The disable path returns `{ "ok": true, "authEnabled": false }` and a `Set-Cookie` that clears the session instead.
 
 ### GET /api/auth/display-token
 
@@ -454,9 +522,9 @@ Returns the current IP allowlist configuration along with the caller's detected 
 **Response:**
 ```json
 {
-  "ipAllowlist": ["192.168.1.0/24", "10.0.0.5/32"],
-  "ipBypassAuth": true,
-  "ipRestrictAccess": false,
+  "allowlist": ["192.168.1.0/24", "10.0.0.5/32"],
+  "bypassAuth": true,
+  "restrictAccess": false,
   "callerIp": "192.168.1.42"
 }
 ```
@@ -465,19 +533,44 @@ IPv4-mapped IPv6 addresses are normalized to IPv4 before being returned in `call
 
 ### PUT /api/auth/ip-allowlist
 
-Updates the IP allowlist configuration. Requires a valid session. Validates every entry as CIDR notation (`a.b.c.d/prefix`, prefix 0–32) and rejects leading-zero octets to match Node's `net.isIPv4()` behavior. If **Restrict access by IP** is being enabled and the caller's own IP is not in the list, the route returns `409 Conflict` **without saving** so the UI can show a lockout warning; the admin can resubmit with `force: true` to override.
+Updates the IP allowlist configuration. Requires a valid session.
 
 **Body:**
 ```json
 {
-  "ipAllowlist": ["192.168.1.0/24"],
-  "ipBypassAuth": true,
-  "ipRestrictAccess": true,
+  "allowlist": ["192.168.1.0/24", "10.0.0.5"],
+  "bypassAuth": true,
+  "restrictAccess": true,
   "force": false
 }
 ```
 
-**Response:** `{ "ok": true }` on success. On lockout: `409 { "error": "...", "reason": "your_ip_not_in_allowlist", "callerIp": "..." }`. An `ip_allowlist_change` audit event is emitted on every successful save.
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `allowlist` | string[] | yes | The addresses and ranges to trust |
+| `bypassAuth` | boolean | yes | Let these addresses skip the password |
+| `restrictAccess` | boolean | yes | Block every address that is not on the list |
+| `force` | boolean | no | Save even if it would lock you out (see below) |
+
+All three of `allowlist`, `bypassAuth`, and `restrictAccess` must be present and the right type, or the request is rejected with `400 { "error": "Invalid request body" }`.
+
+Each entry is either a bare IPv4 address (matched as a single address, the same as `/32`) or CIDR notation with a prefix of 0–32. Leading-zero octets like `192.168.001.5` are rejected. A bad entry returns `400 { "error": "Invalid entry \"...\": ..." }`.
+
+#### The lockout guard
+
+Turning **Restrict access by IP** on while your own address is missing from the list would lock you out of the editor with no way back in short of editing files on the Pi. To stop that, the route checks your address before it saves anything. If `restrictAccess` is `true`, the list is not empty, and your address does not match any entry, nothing is written and you get:
+
+```json
+{
+  "error": "Lockout warning",
+  "reason": "your_ip_not_in_allowlist",
+  "callerIp": "192.168.1.42"
+}
+```
+
+with status `409`. The `callerIp` in that response is the address you'd need to add. If you meant it (you're setting this up from a different machine than the one you'll use later, for instance), resend the same body with `force: true` and it saves.
+
+**Response:** `{ "saved": true }` on success. An `ip_allowlist_change` audit event is recorded on every successful save.
 
 ---
 
@@ -535,14 +628,21 @@ Returns which API keys are configured (as booleans, not the actual values). Requ
   "openweathermap_key": true,
   "weatherapi_key": false,
   "pirateweather_key": false,
+  "metoffice_key": false,
   "unsplash_access_key": true,
+  "nasa_api_key": false,
   "todoist_token": false,
   "google_maps_key": false,
   "tomtom_key": false,
   "google_client_id": true,
-  "google_client_secret": true
+  "google_client_secret": true,
+  "github_token": false,
+  "immich_url": false,
+  "immich_api_key": false
 }
 ```
+
+Every key is always present with a `true` or `false` value, so the response is the full list of key names the other two methods accept.
 
 ### PUT /api/secrets
 
@@ -550,11 +650,13 @@ Saves an API key or credential. Validates Todoist tokens before saving. Requires
 
 **Body:** `{ "key": "openweathermap_key", "value": "abc123..." }`
 
+`key` must be one of the names returned by `GET /api/secrets`; anything else is rejected with `400 { "error": "Invalid secret key: <key>" }`. A Todoist token that Todoist itself rejects also comes back as a `400` with the reason.
+
 **Response:** `{ "ok": true }`
 
 ### DELETE /api/secrets
 
-Deletes an API key or credential. Requires a valid session.
+Deletes an API key or credential. Requires a valid session. As with `PUT`, an unrecognized `key` is rejected with `400`.
 
 **Body:** `{ "key": "openweathermap_key" }`
 
@@ -604,7 +706,7 @@ Atomically flips one To-Do item's completion state. The addressed module must ex
 
 ### GET /api/todoist
 
-Fetches all tasks, projects, sections, and labels from the Todoist API. Enriches tasks with project names, colors, section names, and label colors. Requires a Todoist API token to be configured in Settings > API keys.
+Fetches all tasks, projects, sections, and labels from the Todoist API. Enriches tasks with project names, colors, section names, and label colors. Requires a Todoist API token to be configured in Settings > API keys. Display access. Results are cached for 1 minute.
 
 **Response:**
 ```json
@@ -630,9 +732,14 @@ Fetches all tasks, projects, sections, and labels from the Todoist API. Enriches
   ],
   "projects": [
     { "id": "456", "name": "Personal", "color": "#4073ff", "order": 1 }
-  ]
+  ],
+  "truncated": true
 }
 ```
+
+A task with no due date has `due: null`, and a task due on a day rather than at a time has `due.datetime: null`.
+
+`truncated` only appears, and is only ever `true`, when the account has more tasks than one request can walk. The list you get back is a partial one; anything relying on a complete task set should treat it as incomplete rather than as "that's everything".
 
 ### PUT /api/todoist
 
@@ -642,34 +749,47 @@ Saves a Todoist API token. Validates the token against the Todoist API before st
 
 **Response:** `{ "ok": true }`
 
+### POST /api/todoist/close
+
+Marks a Todoist task complete. This is what an interactive Todoist module calls when someone taps a task on a screen. Display access, since it changes data in your real Todoist account; a plain LAN request without a token is refused.
+
+**Body:** `{ "taskId": "123" }`
+
+`taskId` must be present and made up of letters and digits only, or you get `400 { "error": "Invalid taskId" }`. A successful close clears the cached task list so the next `GET /api/todoist` reflects it right away.
+
+**Response:** `{ "ok": true }`. If Todoist rejects the request you get its `401` or `403` back; anything else upstream becomes a `502`, both with an `error` and a `detail` string.
+
 ---
 
 ## Data Feeds
 
 ### GET /api/stocks
 
-Fetches stock prices from Yahoo Finance.
+Fetches stock prices from Yahoo Finance. Cached for 30 seconds.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `symbols` | string | Comma-separated stock symbols (e.g. `AAPL,GOOGL`) |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `symbols` | string | `"AAPL"` | Comma-separated stock symbols (e.g. `AAPL,GOOGL`) |
 
 **Response:**
 ```json
 {
   "stocks": [
     { "symbol": "AAPL", "price": 178.52, "change": 2.31, "changePercent": 1.31 }
-  ]
+  ],
+  "failedSymbols": ["NOTREAL"]
 }
 ```
 
+Symbols are fetched independently, so one bad ticker doesn't sink the rest: the ones that worked come back in `stocks` and the ones that didn't are listed in `failedSymbols`, which is omitted when everything succeeded. If every symbol fails you get `502 { "error": "Failed to fetch any stock data" }`.
+
 ### GET /api/crypto
 
-Fetches cryptocurrency prices from CoinGecko.
+Fetches cryptocurrency prices from CoinGecko. Cached for 30 seconds.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `ids` | string | Comma-separated CoinGecko IDs (e.g. `bitcoin,ethereum`) |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `ids` | string | `"bitcoin,ethereum"` | Comma-separated CoinGecko IDs (e.g. `bitcoin,ethereum`) |
 
 **Response:**
 ```json
@@ -682,11 +802,13 @@ Fetches cryptocurrency prices from CoinGecko.
 
 ### GET /api/news
 
-Parses an RSS feed and returns articles.
+Parses an RSS feed and returns articles. Cached for 5 minutes per feed URL.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `feed` | string | RSS feed URL |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `feed` | string | BBC News (`https://feeds.bbci.co.uk/news/rss.xml`) | RSS feed URL |
+
+The feed has to be a public internet address. Feeds on your own network, on `localhost`, or on link-local addresses are turned away with `400 { "error": "Invalid or blocked feed URL" }`; that guard is there so nobody can use this endpoint to poke around inside your network. A feed that exists but doesn't respond returns `502`.
 
 **Response:**
 ```json
@@ -708,7 +830,7 @@ Returns a random dad joke.
 
 ### GET /api/quote
 
-Returns a daily inspirational quote from ZenQuotes.
+Returns a random inspirational quote from ZenQuotes. Cached for 1 hour, so the quote changes hourly rather than daily.
 
 **Response:**
 ```json
@@ -740,20 +862,36 @@ Returns historical events for today's date. Fetches from Wikipedia "On This Day"
 
 ### GET /api/traffic
 
-Fetches estimated travel times. Supports Google Routes API or TomTom.
+Fetches estimated travel times. Supports Google Routes API or TomTom. Results are cached for 5 minutes.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `routes` | string | JSON-encoded array of `{ label, origin, destination }` objects |
+| `routes` | string | JSON-encoded array of `{ label, origin, destination }` objects, required |
+
+A missing `routes` parameter, a value that isn't valid JSON, or an empty array each return `400` with an `error` explaining which.
 
 **Response:**
 ```json
 {
   "routes": [
-    { "label": "To Work", "duration": "25 mins", "distance": "18.3 mi", "trafficDelay": "5 mins" }
+    { "label": "To Work", "durationMinutes": 25, "durationInTrafficMinutes": 30, "delayMinutes": 5 }
   ]
 }
 ```
+
+All three numbers are whole minutes. `durationMinutes` is the drive with no traffic, `durationInTrafficMinutes` is the drive right now, and `delayMinutes` is the difference (never below zero). There is no distance field; only travel times are requested.
+
+**Without an API key you get sample data, not real travel times.** If neither a Google Maps nor a TomTom key is configured, the route makes up plausible-looking numbers so the module has something to show, and flags them:
+
+```json
+{
+  "routes": [ ... ],
+  "mock": true,
+  "note": "Add a Google Maps or TomTom API key in Settings > Integrations for real traffic data"
+}
+```
+
+Check for `mock` before trusting anything in `routes`. Those minutes are random, and a display showing them looks exactly like a display showing real ones.
 
 ---
 
@@ -763,9 +901,11 @@ Fetches estimated travel times. Supports Google Routes API or TomTom.
 
 Fetches live scores from ESPN. Results are cached for 1 minute.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `leagues` | string | Comma-separated: `nfl`, `nba`, `mlb`, `nhl`, `mls`, `epl` |
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `leagues` | string | `"nfl,nba"` | Comma-separated, from: `nfl`, `nba`, `wnba`, `mlb`, `nhl`, `mls`, `epl`, `laliga`, `bundesliga`, `seriea`, `ligue1`, `liga_mx` |
+
+A league name that isn't in that list contributes no games rather than causing an error.
 
 **Response:**
 ```json
@@ -808,6 +948,8 @@ Fetches league standings from ESPN. Results are cached for 5 minutes. Team color
 | `league` | string | `"nfl"` | One of: `nfl`, `nba`, `wnba`, `mlb`, `nhl`, `mls`, `epl`, `laliga`, `bundesliga`, `seriea`, `ligue1`, `liga_mx` |
 | `grouping` | string | `"division"` | `division`, `conference`, or `league` |
 
+Unlike the scores endpoint, an unrecognized league here returns `400 { "error": "Unknown league: <name>" }`.
+
 **Response:**
 ```json
 {
@@ -844,12 +986,9 @@ Entries include sport-specific fields: `ties`, `pointsFor`, `pointsAgainst`, `di
 
 ### GET /api/air-quality
 
-Returns air quality and UV data from OpenWeatherMap.
+Returns air quality data from OpenWeatherMap. Results are cached for 5 minutes. Requires an OpenWeatherMap key.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `lat` | number | Latitude (falls back to config) |
-| `lon` | number | Longitude (falls back to config) |
+This endpoint takes no parameters. The location always comes from the location in your weather settings; there is no way to ask it for somewhere else. If no location is set you get `400 { "error": "Missing latitude/longitude in weather settings" }`.
 
 **Response:**
 ```json
@@ -858,8 +997,7 @@ Returns air quality and UV data from OpenWeatherMap.
   "pm25": 12.5,
   "pm10": 18.3,
   "o3": 45.2,
-  "no2": 15.8,
-  "uv": 6.3
+  "no2": 15.8
 }
 ```
 
@@ -899,7 +1037,7 @@ Returns precipitation map tile data from RainViewer. Results are cached for 5 mi
 
 ### GET /api/image-proxy
 
-Proxies external images through the server to avoid CORS and mixed-content issues. Responses are cached in-memory for 24 hours (max 200 entries). Only allows requests to whitelisted hosts (currently `a.espncdn.com`).
+Proxies external images through the server to avoid CORS and mixed-content issues. Responses are cached in-memory for 24 hours, up to 50 entries (the shared limit every server-side cache in the app uses). Only allows requests to whitelisted hosts (currently `a.espncdn.com`).
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -930,48 +1068,93 @@ Returns the current server time. Useful for synchronizing display clocks with th
 
 ### GET /api/backgrounds
 
-Lists all uploaded background images.
+Lists uploaded backgrounds as ready-to-use URLs, not bare filenames. Display access.
 
-**Response:**
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `media` | string | none | `photos`, `videos`, or `both`. Changes the response shape (see below) |
+| `directory` | string | the top level | List a subfolder instead |
+| `file` | string | none | Look up one known file instead of listing a folder |
+
+Without `media`, you get images only, as a plain list of URLs:
+
 ```json
-["sunset.jpg", "mountains.png", "city-night.webp"]
+[
+  "/api/backgrounds/serve?file=sunset.jpg",
+  "/api/backgrounds/serve?file=mountains.png"
+]
 ```
+
+With `media` set, you get one object per item instead, and video URLs arrive with a short-lived `mt` token already attached so a `<video>` tag can play them:
+
+```json
+[
+  { "url": "/api/backgrounds/serve?file=sunset.jpg", "type": "image" },
+  { "url": "/api/backgrounds/serve?file=clip.mp4&mt=...", "type": "video" }
+]
+```
+
+The `file` form always returns the object shape, as a one-item list, and an empty list when the file is missing or filtered out by `media`. A subfolder that doesn't exist also comes back as an empty list; an unusable `media`, `directory`, or `file` value is a `400`.
+
+Because of the token, build video URLs from this endpoint rather than assembling them by hand.
 
 ### POST /api/backgrounds
 
-Uploads a new background image or video.
+Uploads one or more background images or videos. Requires a valid session.
 
-**Body:** `multipart/form-data` with `file` field
+**Body:** `multipart/form-data` with one or more `file` fields, plus an optional `directory` field naming the subfolder to upload into.
 
 **Constraints:**
 - Max size: 10 MB per image, 200 MB per video
 - Accepted types: JPEG, PNG, WebP, GIF, AVIF, MP4, WebM, MOV
+- A request whose declared size is over 200 MB is turned away before the upload is read, with `413 { "error": "File too large (max 200 MB)" }`
 
-**Response:** `{ success: true, filename: "uploaded-name.jpg" }`
+Every file is checked before any of them are written, so a batch with one bad file saves nothing. Names are cleaned up on the way in: anything outside letters, digits, `.`, `-`, and `_` becomes an underscore.
+
+**Response (201):** `{ "path": "/api/backgrounds/serve?file=sunset.jpg" }` for a single file, or `{ "paths": [ ... ] }` when several were sent in one request.
 
 ### DELETE /api/backgrounds
 
-Deletes a background image.
+Deletes a background file. Requires a valid session.
 
-| Parameter | Type | Description |
-|---|---|---|
-| `filename` | string | Name of the file to delete |
+**Body:**
+```json
+{ "file": "sunset.jpg", "directory": "Nature" }
+```
+
+`file` is required and is the field name to use (not `filename`, and not a query parameter); `directory` is optional and defaults to the top level. A missing `file` returns `400`, and a file that isn't there returns `404 { "error": "File not found" }`.
+
+**Response:** `{ "deleted": "sunset.jpg" }`
 
 ### GET /api/backgrounds/serve
 
-Serves a background image file.
+Serves a background image or video from disk. Media-level access: a session or display token works, and so does a signed `mt` token bound to this exact file.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `file` | string | Filename to serve |
+| `file` | string | Path to serve, relative to the backgrounds folder. Required |
+| `mt` | string | Media token, needed when a password is set and the request can't send a header |
+
+Images are returned whole. Videos stream with range support, so a `<video>` element can seek: a ranged request gets `206` with the slice, and a range past the end of the file gets `416`. Both get a 24-hour browser cache.
+
+A bare `<video src="...">` can't send an `Authorization` header, which is why the `mt` token exists. Take video URLs from `GET /api/backgrounds?media=videos`, which mints the token for you, rather than building them yourself.
 
 ### GET /api/backgrounds/rotate
 
-Returns a rotating background image from Unsplash, NASA APOD, or Immich.
+Returns the current rotating background for a screen, fetching a new one from Unsplash, NASA APOD, Immich, or a shared iCloud album only when that screen's rotation interval has elapsed. Display access.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `screenId` | string | Screen ID for per-screen rotation |
+| `screenId` | string | Which screen's rotation to read. Required |
+
+A missing `screenId` returns `400 { "error": "screenId required" }`.
+
+**Response:**
+```json
+{ "path": "/api/backgrounds/serve?file=unsplash-1709913600000.jpg", "fresh": true }
+```
+
+`fresh` is `true` when a new image was just fetched and `false` when the previous one is still within its interval. If the screen has no rotation set up, the screen ID is unknown, or the fetch fails, you get `{ "path": ... }` with no `fresh` field, falling back to the screen's own background image, and `path` is `null` when there isn't one.
 
 ### GET /api/backgrounds/directories
 
@@ -1061,8 +1244,9 @@ Returns random photos from the Immich library with optional filters. Cached for 
 | `personId` | string | — | Filter to a recognized person |
 | `favorites` | boolean | `false` | Only return favorites |
 | `count` | number | `50` | Number of photos (max 200) |
+| `media` | string | — | `photos`, `videos`, or `both`. Changes the response shape (see below) |
 
-**Response:** Array of image URLs served through the proxy:
+Without `media`, the response is a plain array of image URLs served through the proxy:
 ```json
 [
   "/api/immich/serve?assetId=abc123&size=preview",
@@ -1070,11 +1254,26 @@ Returns random photos from the Immich library with optional filters. Cached for 
 ]
 ```
 
-When `albumId` is specified, photos are fetched from the album directly (since Immich's random search does not support album filtering). Otherwise, photos are fetched via Immich's `search/random` endpoint.
+With `media` set, you get one object per item instead, and videos carry a still to show before playback starts plus their length in milliseconds when Immich reports one:
+```json
+[
+  { "url": "/api/immich/serve?assetId=abc123&size=preview", "type": "image" },
+  {
+    "url": "/api/immich/video?assetId=def456&mt=...",
+    "type": "video",
+    "posterUrl": "/api/immich/serve?assetId=def456&size=preview",
+    "durationMs": 8400
+  }
+]
+```
+
+Any other `media` value returns `400 { "error": "Invalid media parameter" }`. Results are cached for 5 minutes per combination of filters.
+
+Every filter combination is served by Immich's `search/random` endpoint, with `albumId` passed along as `albumIds`. Because that endpoint takes exactly one asset type per call, `media=both` runs two searches, one for photos and one for videos, then shuffles the two sets together.
 
 ### GET /api/immich/serve
 
-Proxies an Immich image through the server. Validates the asset ID format and caches the response for 24 hours.
+Proxies an Immich image through the server. Validates the asset ID format and caches the response on the server for 24 hours.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -1082,7 +1281,7 @@ Proxies an Immich image through the server. Validates the asset ID format and ca
 | `size` | string | `"preview"` | Image size: `preview` (1080px) or `thumbnail` (250px) |
 | `type` | string | `"asset"` | Asset type: `asset` (photo) or `person` (face thumbnail) |
 
-**Response:** The image binary with appropriate `Content-Type` header and a 24-hour browser cache (`Cache-Control: public, max-age=86400, immutable`).
+**Response:** The image binary with appropriate `Content-Type` header and a 7-day browser cache (`Cache-Control: public, max-age=604800, immutable`). The 24 hours above is how long the server holds its own copy; the browser keeps it longer.
 
 ### GET /api/immich/video
 
@@ -1228,7 +1427,11 @@ Downloads a chosen Unsplash photo to the local backgrounds directory and fires U
 }
 ```
 
-**Response (201):** `{ "path": "/backgrounds/unsplash-<timestamp>.jpg" }`
+A missing `imageUrl`, or one that points somewhere on your own network rather than the public internet, is rejected with `400`.
+
+**Response (201):** `{ "path": "/api/backgrounds/serve?file=unsplash-1709913600000.jpg" }`
+
+The `path` is a serve URL you can use directly as an image source. The extension follows what the source actually sent, so it may be `.png` or `.webp` rather than `.jpg`.
 
 ---
 
@@ -1264,6 +1467,8 @@ Fetches NASA images. Supports two modes: Image Library search and Astronomy Pict
 }
 ```
 
+Search results come back 12 per page, and `totalPages` is `total` divided by that.
+
 #### Astronomy Picture of the Day (requires NASA API key)
 
 | Parameter | Type | Default | Description |
@@ -1294,7 +1499,11 @@ Downloads a NASA image and saves it as a background. Requires a valid session.
 
 **Body:** `{ "imageUrl": "https://...", "filename": "nasa-horsehead" }`
 
-**Response (201):** `{ "filename": "nasa-horsehead.jpg", "path": "..." }`
+A missing `imageUrl`, or one that points somewhere on your own network rather than the public internet, is rejected with `400`.
+
+**Response (201):** `{ "path": "/api/backgrounds/serve?file=nasa-horsehead.jpg" }`
+
+As with the Unsplash download, `path` is a serve URL and the extension follows what the source sent.
 
 ### GET /api/nasa/asset
 
@@ -1319,7 +1528,7 @@ The plugin system allows third-party modules to be installed from a central regi
 
 ### GET /api/plugins/registry
 
-Fetches the plugin registry listing all available plugins and their versions.
+Fetches the plugin registry listing all available plugins and their versions. This is the one plugin endpoint that stays open when a password is set, so the browse-and-install screen can load before you sign in.
 
 **Response:**
 ```json
@@ -1385,13 +1594,20 @@ Installs a plugin from the registry. Downloads the tarball, verifies its SHA-256
 
 ### POST /api/plugins/install-external
 
-Installs a plugin from any HTTPS tarball URL — for private plugins, pre-release builds, or forks that aren't in the public registry. Runs through the same extract / validate pipeline as the registry install and cannot overwrite an ID already installed from the marketplace (the collision check is re-run after acquiring the per-ID lock to close a TOCTOU window). Requires a valid session.
+Installs a plugin from any HTTPS tarball URL — for private plugins, pre-release builds, or forks that aren't in the public registry. `http://localhost` and `http://127.0.0.1` are also accepted, so you can test a build you're serving locally. Runs through the same extract / validate pipeline as the registry install and cannot overwrite an ID already installed from the marketplace (the collision check is re-run after acquiring the per-ID lock to close a TOCTOU window). Requires a valid session.
 
 **Body:** `{ "tarballUrl": "https://example.com/my-plugin-{version}.tgz", "version": "1.2.0" }`
 
 `version` is optional; when omitted, the URL must not contain a `{version}` placeholder or the server returns `400`. When present, `{version}` in the URL is substituted before download.
 
-**Response:** `{ "ok": true }`. Query-string tokens on the tarball URL are stripped from all error messages and audit-log entries.
+**Response:**
+```json
+{ "ok": true, "pluginId": "example-plugin", "version": "1.2.0", "sha256": "abc123..." }
+```
+
+`sha256` is the checksum of the tarball that was actually downloaded, so you can compare it against what the build produced. Query-string tokens on the tarball URL are stripped from all error messages and audit-log entries.
+
+An ID that is already installed returns `409`, a download that redirects somewhere unsafe returns `400`, and too many redirects (more than five) or a failed download returns `502`.
 
 ### DELETE /api/plugins/install
 
@@ -1458,8 +1674,27 @@ Server-side proxy for plugin API requests. Handles domain validation (only reque
 | `secretInjections.header` | object | | Headers with `{{key}}` placeholders replaced by stored secrets |
 | `secretInjections.query` | object | | Query params with `{{key}}` placeholders replaced by stored secrets |
 | `cacheTtlMs` | number | `60000` | Cache TTL in ms (0 to disable, max 1 hour) |
+| `skipAuth` | boolean | `false` | Skip token injection for this one request (see below) |
 
-**Response:** The upstream response body with its original `Content-Type`.
+`payload` is capped at 1 MB; anything larger returns `413 { "error": "Payload too large (max 1MB)" }`.
+
+Four situations return `403`: the plugin's manifest declares no `allowedDomains` at all; it declares `"*"` without also asking for the `localNetwork` permission; the URL's domain isn't on the list; or the URL resolves to an address the server refuses to reach.
+
+**Response:** The upstream response body with its original `Content-Type`, and the upstream's status code passed through, so a `404` from the API you called arrives at the plugin as a `404`, not as a `200` wrapping an error.
+
+Only successful `GET` responses that are text, JSON, or XML are cached. Binary responses are never cached, whatever `cacheTtlMs` says.
+
+#### Plugins that sign in
+
+When a plugin declares a [server-side auth adapter](/docs/plugins#server-side-auth), the proxy attaches its access token automatically for the domains that adapter covers; the plugin never sees or handles the token. If the upstream answers `401`, the proxy refreshes the token once and retries the request before giving up.
+
+If tokens exist but can no longer be refreshed, the proxy returns `401`:
+
+```json
+{ "error": "auth_expired", "message": "Plugin authentication expired. Reconnect in the module settings." }
+```
+
+That is the plugin's cue to prompt for a reconnect. A plugin that has never signed in gets its request sent through unauthenticated, since it may be calling a public endpoint. Set `skipAuth: true` on a request that should go out without the token, for a public endpoint on the same domain that would reject one.
 
 ### GET /api/plugins/secrets/:pluginId
 
@@ -1517,7 +1752,9 @@ Replaces a plugin's settings object, validated against the manifest's `settingsS
 
 ### GET /api/plugins/asset/:pluginId/\*
 
-Serves a static file from an installed plugin's directory (icons, images, translation files). Path traversal outside the plugin's own directory is rejected. Authenticated with display credentials, so the kiosk can fetch plugin assets without an editor session.
+Serves a static file from an installed plugin's directory (icons, images, translation files). Path traversal outside the plugin's own directory is rejected. Display access, so the kiosk can fetch plugin assets without an editor session.
+
+**Response:** the file, with `Content-Type: application/json` for `.json`, `text/plain` for `.txt`, and a generic byte stream for everything else. Assets are cached by the browser for 5 minutes, short on purpose so a plugin update isn't masked by a stale icon.
 
 ### POST /api/plugins/auth/:pluginId/start
 
@@ -1537,19 +1774,21 @@ Begins the sign-in flow for a plugin that declares a [server-side auth adapter](
 
 Shared OAuth redirect target for every plugin's `authorization_code` flow. The plugin ID travels inside an HMAC-signed `state` parameter, so a provider only ever needs this one callback URL registered.
 
+Unlike the rest of this section, it is open with no sign-in, because the provider sends the browser here with no session cookie of ours; it only acts on a `state` value carrying a valid signature. It returns a small HTML page rather than JSON: the page hands the result back to the window that opened it, then closes itself.
+
 ### PUT /api/plugins/auth/:pluginId/poll
 
-Advances a pending flow. Requires a valid session. For `device_code`, polls the provider for approval and returns `{ "status": "pending" | "connected", ... }`. For the Garmin adapter, submits the one-time code as `{ "mfaCode": "..." }`; returns 409 if the sign-in attempt has expired.
+Advances a pending flow. Requires a valid session. For `device_code`, polls the provider for approval and returns `{ "status": "pending" | "connected" | "expired", ... }`, where `expired` means the user took too long and needs to start over. For the Garmin adapter, submits the one-time code as `{ "mfaCode": "..." }`; a wrong code comes back as a normal `200` with `{ "status": "mfa_required", "error": "..." }` so the user can try again, while `409` means the whole sign-in attempt has expired.
 
 ### GET /api/plugins/auth/:pluginId/status
 
-Returns the connection state for a plugin's auth adapter. Accepts display requests as well as editor sessions (backs the SDK's `getAuthStatus`). Never returns token values.
+Returns the connection state for a plugin's auth adapter. Display access as well as editor sessions (backs the SDK's `getAuthStatus`). Never returns token values. Returns 404 if the plugin declares no auth adapter.
 
 **Response:** `{ "connected": true, "expiresAt": 1760000000000 }`
 
 ### DELETE /api/plugins/auth/:pluginId/disconnect
 
-Revokes (best-effort, when the adapter declares a `revokeUrl`) and deletes the plugin's stored tokens and any pending sign-in state. Requires a valid session.
+Revokes (best-effort, when the adapter declares a `revokeUrl`) and deletes the plugin's stored tokens and any pending sign-in state. Requires a valid session. Returns 404 if the plugin declares no auth adapter.
 
 **Response:** `{ "connected": false }`
 
@@ -1558,6 +1797,8 @@ Revokes (best-effort, when the adapter declares a `revokeUrl`) and deletes the p
 Registers a development plugin on the server. Called automatically by the client-side dev plugin loader. Validates the manifest before accepting.
 
 **Body:** `{ "manifest": { ... } }` (full `PluginManifest` object)
+
+A manifest whose `allowedDomains` contains `"*"` without also declaring the `localNetwork` permission is rejected with `400`, matching the rule the proxy enforces at request time.
 
 **Response:** `{ "ok": true }`
 
@@ -1572,6 +1813,7 @@ Returns the current application version, available tags, and upgrade status. Req
 | Parameter | Type | Description |
 |---|---|---|
 | `check` | string | Set to `"true"` to force-check for updates |
+| `channel` | string | Set to `"dev"` to include prerelease versions |
 
 **Response:**
 ```json
@@ -1579,6 +1821,7 @@ Returns the current application version, available tags, and upgrade status. Req
   "current": "0.10.0",
   "currentCommit": "a3b2e17",
   "latest": "0.11.0",
+  "latestCommit": "f91d40c",
   "updateAvailable": true,
   "installedVia": "tarball",
   "channel": "release",
@@ -1587,11 +1830,29 @@ Returns the current application version, available tags, and upgrade status. Req
 }
 ```
 
+`tags` holds the 20 most recent versions, not the whole history. `latest` and `latestCommit` are `null` when no newer version could be found.
+
+### GET /api/system/update-notification
+
+Returns whether an available-update notice has been dismissed, so the editor doesn't keep re-announcing a version you've already waved off. Display access.
+
+**Response:** `{ "lastDismissedVersion": "0.11.0" }`
+
+### POST /api/system/update-notification
+
+Dismisses the notice for one version. Display access.
+
+**Body:** `{ "action": "dismiss", "version": "0.11.0" }`
+
+`action` must be `"dismiss"`, and `version` must be a non-empty string of 64 characters or fewer; anything else returns `400`.
+
+**Response:** the updated state, the same shape the `GET` returns.
+
 ### GET /api/system/build-id
 
-Returns the current build hash. Used by the display to detect new deployments and auto-reload.
+Returns the current build hash. Used by the display to detect new deployments and auto-reload. Open with no sign-in on purpose: if it needed a token, a screen running code from before a deploy could never notice the new one and would stay on the old version forever.
 
-**Response:** Plain text build ID (e.g. `abc123`)
+**Response:** Plain text build ID (e.g. `abc123`), sent with no caching.
 
 ### GET /api/system/status
 
@@ -1602,6 +1863,10 @@ Returns an SSE (Server-Sent Events) stream of upgrade/rollback progress. Used by
 ### GET /api/system/changelog
 
 Returns recent release notes from the GitHub repository. Falls back to tags if no releases are published. Requires a valid session.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `channel` | string | Set to `"dev"` to include prerelease versions |
 
 **Response:**
 ```json
@@ -1623,11 +1888,23 @@ Triggers an upgrade to a specific version tag. Downloads a pre-built release tar
 
 **Body:** `{ "tag": "v0.10.0" }`
 
+`tag` is required and must look like a version number: three numbers separated by dots, optionally with a leading `v` and a suffix such as `-beta.1`. Anything else returns `400 { "error": "Invalid tag format" }`. If an upgrade or rollback is already under way you get `409 { "error": "An upgrade is already in progress" }`.
+
 **Response:** `{ "ok": true, "message": "Upgrade to v0.10.0 started" }`
+
+### DELETE /api/system/upgrade
+
+Cancels an upgrade that is still downloading or preparing. Requires a valid session.
+
+There are three outcomes:
+
+- Nothing is running: `404 { "error": "No upgrade is currently running" }`.
+- The update has reached the install step: `409 { "error": "Cannot cancel during deploy — the update is being installed" }`. Past that point stopping halfway would leave a half-installed app, so it has to finish.
+- Otherwise `{ "ok": true }` (or `{ "ok": false }` if the cancel didn't take).
 
 ### POST /api/system/rollback
 
-Reverts to a specific previous version tag. Progress is streamed via the `/api/system/status` SSE endpoint. Requires a valid session.
+Reverts to a specific previous version tag. Progress is streamed via the `/api/system/status` SSE endpoint. Requires a valid session. Same `tag` format rule and same `409` when something is already running as the upgrade endpoint.
 
 **Body:** `{ "tag": "v0.9.0" }`
 
@@ -1714,6 +1991,26 @@ Full household backup bundle — exports `config`, `chores`, `choreCompletions`,
 
 Secrets in `data/secrets.json` are **not** included; you'll re-enter API keys after restore. This is what **Settings > Backups & data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
+A restore body is capped at 25 MB. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
+
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+
+### GET /api/backup/reminder
+
+Returns when you last took a backup and when you last dismissed the reminder about it, which is how the editor decides whether to nudge you. Display access.
+
+**Response:** `{ "lastBackupDate": "2026-03-08T12:00:00.000Z", "lastDismissedDate": null }`
+
+Both fields are `null` until the corresponding thing has happened.
+
+### POST /api/backup/reminder
+
+Updates that state. Display access.
+
+**Body:** `{ "action": "dismiss" }` to put the reminder off, or `{ "action": "backed-up" }` to record that a backup was taken (which also clears the dismissal). Any other `action` returns `400 { "error": "Invalid action" }`.
+
+**Response:** the updated state, the same shape the `GET` returns.
+
 ### GET /api/system/backups
 
 Lists available configuration backups. Requires a valid session.
@@ -1757,7 +2054,9 @@ Triggers a fresh WiFi scan on the given interface and returns the nearby network
 
 ### POST /api/system/network/wifi/connect
 
-Connects the given interface to an SSID. When the target interface is the management interface, the call is two-phase: the first request returns `{ requiresConfirmation: true, warning: "..." }` and the client must resubmit with `confirmed: true`. A 60-second rollback is scheduled automatically on the management-interface path.
+Connects the given interface to an SSID. When the target interface is the management interface, the call is two-phase: the first request returns `{ requiresConfirmation: true, warning: "..." }` and the client must resubmit with `confirmed: true`. A 60-second rollback is scheduled on the management-interface path whenever the current connection could be captured first; if it couldn't, the change is applied with no safety net.
+
+If a previous change is still waiting to be confirmed, this returns `409 { "error": "A network change is already pending confirmation. Wait for it to complete or be reverted." }`. Confirm or wait out the pending one first.
 
 **Body:**
 ```json
@@ -1780,7 +2079,7 @@ Brings down a saved WiFi connection by UUID. Like `connect`, management-interfac
 
 Lists saved WiFi connection profiles with last-used timestamps. Pass `?showPasswords=true` to include the PSK — only honored when editor auth is enabled and the host can read NetworkManager secrets via sudo.
 
-**Response:** Array of `{ id, name, ssid, autoconnect, lastUsed, password? }`.
+**Response:** Array of `{ id, name, ssid, autoconnect, lastUsed, password? }`. A profile that has never been connected has `lastUsed` set to the literal string `"never"` rather than a date.
 
 ### DELETE /api/system/network/wifi/saved
 
@@ -1800,7 +2099,7 @@ Sets the system hostname via `hostnamectl`, rewrites the matching line in `/etc/
 
 ### PUT /api/system/network/ip
 
-Switches a connection between DHCP and static IP, then cycles the connection to apply the change. Like WiFi changes, management-interface edits require `confirmed: true` and schedule a 60-second rollback.
+Switches a connection between DHCP and static IP, then cycles the connection to apply the change. Like WiFi changes, management-interface edits require `confirmed: true`, schedule a 60-second rollback when the previous settings could be captured, and return `409` if another change is already awaiting confirmation.
 
 **Body (auto / DHCP):** `{ "connectionId": "<uuid>", "method": "auto", "confirmed": false }`
 
@@ -1816,6 +2115,8 @@ Switches a connection between DHCP and static IP, then cycles the connection to 
   "confirmed": false
 }
 ```
+
+In manual mode `address`, `prefix`, and `gateway` are all required; `dns` is optional. A missing or malformed one of the three returns `400` naming the field.
 
 **Response:** `{ "ok": true, "rollbackId": "<uuid>" }` (`rollbackId` only when scheduled).
 
@@ -1853,6 +2154,8 @@ Confirms a pending network change. Cancels the 60-second auto-revert timer and u
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
+If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [brightness](#post-api-display-brightness), [profile](#post-api-display-profile), and [alert](#post-api-display-alert). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+
 ### Targeting a display (multi-display)
 
 When the hub has more than one display registered, every display-control endpoint accepts an optional display target. There are two ways to provide it:
@@ -1864,9 +2167,19 @@ Use the reserved word `all` as the display target to broadcast to every register
 
 Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
+**Bookmarks need a token once you set a password.** Every endpoint in this section is protected at the display level, and a link you tap from your phone can't send an `Authorization` header. Add the display token to the link instead:
+
+```
+/api/display/wake?display=kitchen&token=hs_abc123...
+```
+
+Get the token from `GET /api/auth/display-token`. This `?token=` shortcut works on `/api/display/*` and nowhere else; anything outside that path needs the header or a signed-in browser session. With no password set, none of this is needed and the plain URL works.
+
 ### GET /api/displays
 
-Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's **Per display > All displays** page and by display-only Pis waiting for adoption.
+Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's **Per display > All displays** page and by display-only Pis waiting for adoption. Display access.
+
+The configuration behind this response is re-read at most every 1.5 seconds, so a change you just saved can take one poll cycle to show up here.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -1881,6 +2194,8 @@ Read-only registry of all configured displays plus runtime heartbeat data the hu
       "id": "kitchen",
       "name": "Kitchen",
       "screenCount": 3,
+      "activeProfile": "evening",
+      "settings": { "rotationInterval": 30, "transitionEffect": "fade" },
       "displayWidth": 1080,
       "displayHeight": 1920,
       "displayTransform": "90",
@@ -1908,11 +2223,13 @@ Read-only registry of all configured displays plus runtime heartbeat data the hu
 { "adopted": true, "displayId": "kitchen" }
 ```
 
+`settings` is that display's full set of [per-display overrides](/docs/multi-display): rotation interval, transitions, sleep schedule, screensaver, theme, alerts, and so on. It only contains the values that display actually overrides. `lastSeen` is `null`, rather than missing, for a display that has never checked in.
+
 This endpoint is read-only — all writes go through `PUT /api/config` so undo/redo and validation stay consistent.
 
 ### GET /api/display/commands
 
-Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
+**Client protocol.** Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
 
 **Response:**
 ```json
@@ -1920,13 +2237,16 @@ Returns and drains all pending commands from the queue. The display polls this e
   "commands": [
     { "type": "wake" },
     { "type": "brightness", "payload": { "value": 50 } }
-  ]
+  ],
+  "sharedStateWatched": false
 }
 ```
 
+`sharedStateWatched` tells the screen whether anyone is currently watching its shared values in the editor. While it is `true`, the screen reports changes as they happen instead of waiting for its next 30-second heartbeat, so the editor sees live values; while it is `false`, it stays on the slower schedule. A display client that ignores this flag still works, it just never speeds up.
+
 ### GET /api/display/status
 
-Returns the last-known display status as reported by the display client. Accepts `?display=<id>` for the multi-display case — without a target, the legacy default queue's status is returned.
+Returns the last-known display status as reported by the display client. Accepts `?display=<id>` for the multi-display case; without a target, the legacy default queue's status is returned. Before the first heartbeat arrives this returns `404 { "error": "No status reported yet" }`.
 
 **Response:**
 ```json
@@ -1944,6 +2264,34 @@ Returns the last-known display status as reported by the display client. Accepts
 ```
 
 `hwStats` is present only when the per-Pi reporter has posted to `/api/display/hw-stats`. `browserStats` is present once the display has sent at least one heartbeat from a modern client; older clients omit it.
+
+### GET /api/display/shared-state
+
+Returns the most recent snapshot of a display's [shared values](/docs/plugins#shared-state-and-visibility-conditions), the named values plugins publish and that modules can be shown or hidden by. The editor polls this while a visibility-conditions panel is open so it can show what each value currently is on the real screen.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `display` | string | Which display's snapshot to read. Omit it in single-display mode |
+
+**Response:**
+```json
+{
+  "entries": {
+    "livingroom_motion": { "value": "on", "updatedAt": 1709913600000 },
+    "front_door": { "value": "closed", "updatedAt": 1709913000000, "staleAt": 1709913500000 }
+  },
+  "reportedAt": 1709913600000,
+  "providerHealth": {
+    "home-assistant": { "ok": false, "message": "Can't reach Home Assistant", "since": 1709913000000 }
+  }
+}
+```
+
+An entry with `staleAt` is one whose publisher has let go of it: the last known value is kept for a short grace window so a plugin restarting doesn't make conditioned modules blink, and the editor badges it as no longer updating.
+
+A display that hasn't reported yet returns `{ "entries": {}, "reportedAt": null }` rather than a `404`, because having no snapshot yet is a normal state while a screen is starting up, not an error. You'll get the same empty answer for a display that has stopped reporting for more than five minutes. `providerHealth` only appears when a plugin publishing these values is currently having trouble, and lists only the ones that are.
+
+Polling this endpoint is also the signal that someone is watching. It marks the display as watched for the next 15 seconds, which turns on the `sharedStateWatched` flag in that display's next command drain and switches it to reporting changes as they happen. Stop polling and it drifts back to the 30-second heartbeat on its own.
 
 ### GET /api/display/:command
 ### POST /api/display/:command
@@ -1966,6 +2314,8 @@ Switches the active profile. Persists the selection to the config file. Requires
 
 **Body:** `{ "profile": "profile-id", "displayId": "kitchen" }` (`displayId` optional)
 
+An unknown display returns `404 { "error": "Unknown display: <id>" }`, and a profile that display can't use returns `404 { "error": "Unknown profile: <id>" }`. The config is updated in one read-modify-write step, so switching a profile here can't wipe out an editor save happening at the same moment.
+
 **Response:** `{ "ok": true, "profile": "profile-id", "displayId": "kitchen" }`
 
 ### POST /api/display/alert
@@ -1984,13 +2334,13 @@ Shows an alert overlay on the display.
 }
 ```
 
-The `type` field accepts `info`, `warning`, or `urgent`. The `icon`, `duration`, and `dismissible` fields are optional.
+The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly becomes `info` rather than failing. The `icon`, `duration`, and `dismissible` fields are optional. At least one of `title` or `message` is required; send neither and you get `400 { "error": "title or message required" }`.
 
 **Response:** `{ "ok": true, "command": "alert" }`
 
 ### POST /api/display/status
 
-Reports the current display state. Called by the browser display client every 30 seconds (and on any state change). Goes through `withDisplayAuth` — the kiosk sends a display bearer token on every request.
+**Client protocol.** Reports the current display state. Called by the browser display client every 30 seconds (and on any state change). Goes through `withDisplayAuth` — the kiosk sends a display bearer token on every request.
 
 **Body:**
 ```json
@@ -2007,6 +2357,12 @@ Reports the current display state. Called by the browser display client every 30
     "viewportHeight": 1920,
     "userAgent": "Mozilla/5.0 ...",
     "timezone": "America/Chicago"
+  },
+  "sharedState": {
+    "livingroom_motion": { "value": "on", "updatedAt": 1709913600000 }
+  },
+  "providerHealth": {
+    "home-assistant": { "ok": false, "message": "Can't reach Home Assistant", "since": 1709913000000 }
   }
 }
 ```
@@ -2015,11 +2371,13 @@ Required fields: `currentScreen` (object with `id` string), `displayState` (one 
 
 `browserStats` is optional — when present, its `viewportWidth`/`viewportHeight` are also mirrored into a legacy top-level `reportedViewport` field so older consumers keep working. Any `hwStats` field sent to this endpoint is silently dropped — hardware telemetry now posts to `/api/display/hw-stats` instead.
 
+`sharedState` and `providerHealth` are both optional and both ride along on the heartbeat rather than having endpoints of their own. `sharedState` is this tab's snapshot of its [shared values](/docs/plugins#shared-state-and-visibility-conditions) and `providerHealth` reports any plugin currently failing to supply them. Neither is stored with the rest of the status; they go into their own store and come back out of [`GET /api/display/shared-state`](#get-api-display-shared-state).
+
 **Response:** `{ "ok": true }`
 
 ### POST /api/display/hw-stats
 
-Accepts a hardware-stats snapshot from a display Pi's bash reporter (`scripts/reporter.sh`, on a systemd timer). Adoption IS authorization: the endpoint is **not** wrapped in `withDisplayAuth` because the reporter runs on a separate Pi that can't reasonably carry a display bearer token. Instead, the `displayId` must appear in `config.displays` (or be the literal `main` in legacy single-display mode). The LAN is the trust boundary.
+**Client protocol.** Accepts a hardware-stats snapshot from a display Pi's bash reporter (`scripts/reporter.sh`, on a systemd timer). Adoption IS authorization: the endpoint is **not** wrapped in `withDisplayAuth` because the reporter runs on a separate Pi that can't reasonably carry a display bearer token. Instead, the `displayId` must appear in `config.displays` (or be the literal `main` in legacy single-display mode). The LAN is the trust boundary.
 
 **Body:** `{ "displayId": "kitchen", "hwStats": { "cpuUsagePercent": 14.2, "cpuTemperatureC": 52.1, "memoryUsagePercent": 46.0, "uptimeSeconds": 86400, "model": "Raspberry Pi 5 Model B Rev 1.0" } }`
 
@@ -2027,7 +2385,7 @@ Accepts a hardware-stats snapshot from a display Pi's bash reporter (`scripts/re
 
 ### POST /api/display/console-log
 
-Uploads a batch of browser console entries for a display. Called by the kiosk in response to a `dump-console-log` command (which `/api/system/diagnostics` broadcasts before composing its bundle). Goes through `withDisplayAuth`.
+**Client protocol.** Uploads a batch of browser console entries for a display. Called by the kiosk in response to a `dump-console-log` command (which `/api/system/diagnostics` broadcasts before composing its bundle). Goes through `withDisplayAuth`.
 
 **Body:**
 ```json
@@ -2051,24 +2409,27 @@ Entries are capped at 500 per request and messages at 2 000 characters each (lon
 
 ### GET /api/geocode
 
-Geocodes a location name to coordinates. Used by the weather location picker in settings.
+Turns a place name into coordinates, using OpenStreetMap's Nominatim service. No API key needed. Used by the weather location picker in settings. Requires a valid session.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `q` | string | Location query (e.g. "Minneapolis, MN") |
+| `q` | string | Location to look up (e.g. "Minneapolis, MN", or a US ZIP code) |
+| `detect` | string | Set to `"ip"` to skip the search and locate the caller instead |
 
 **Response:**
 ```json
-[
-  {
-    "name": "Minneapolis",
-    "state": "Minnesota",
-    "country": "US",
-    "lat": 44.9778,
-    "lon": -93.2650
-  }
-]
+{
+  "latitude": 44.9778,
+  "longitude": -93.265,
+  "displayName": "Minneapolis, Minnesota, US"
+}
 ```
+
+This is a single object, not a list: only the best match is returned. A missing `q` returns `400`, and a search with no match returns `404 { "error": "Location not found" }`.
+
+#### Locating by IP address
+
+`GET /api/geocode?detect=ip` ignores `q` and works out roughly where the request came from, based on your public IP address. It exists because browsers refuse to share precise location on pages served over plain `http`, which is how most people reach their hub on the home network, so the "use my location" button needs a fallback. It returns the same three fields, or `502 { "error": "IP geolocation failed" }` if the lookup service can't be reached. Expect city-level accuracy at best.
 
 ---
 
@@ -2080,12 +2441,16 @@ Fetches one or more translation dictionaries for a locale. Used by the client-si
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `locale` (path) | string | — | BCP-47 tag (e.g. `en-US`, `de-DE`). Unknown tags fall back to `en-US` silently — there is no 404 path. |
+| `locale` (path) | string | — | BCP-47 tag (e.g. `en-US`, `de-DE`). See the fallback rules below; there is no 404 path. |
 | `ns` (query) | string | `core` | Comma-separated namespace list. Valid namespaces are `core`, `editor`, `modules`, `remote`, `weather`. |
 
-**Response:** `{ <namespace>: <dictionary>, ... }` where each `<dictionary>` is a nested JSON object of translation keys. Missing keys fall back per-namespace through the locale's language siblings and finally to `en-US`, so a partially translated locale stays usable.
+A tag that isn't one of the shipped locales isn't simply dropped to English: it walks its language relatives first, so `de-AT` is served the registered `de-DE`. Only a language nobody ships lands on `en-US`. A tag that doesn't look like a language tag at all goes straight to `en-US`. A namespace name outside the safe character set returns `400 { "error": "Invalid namespace \"...\"" }`.
 
-**Caching:** Responses are cached aggressively in the browser and at any CDN tier. The full URL (locale + `?ns=` query) is the cache key, so each `(locale, namespace-set)` combination is cached independently.
+**Response:** `{ <namespace>: <dictionary>, ... }` where each `<dictionary>` is a nested JSON object of translation keys. Missing keys fall back per-namespace through the same chain, so a partially translated locale stays usable.
+
+Three response headers describe what happened: `X-Locale` is the tag whose chain was walked, `X-Locale-Registered` is `true` or `false` for whether that exact tag ships with the app, and `X-Available-Locales` lists every tag that does.
+
+**Caching:** In production, responses are cached aggressively in the browser and at any CDN tier. The full URL (locale + `?ns=` query) is the cache key, so each `(locale, namespace-set)` combination is cached independently. In development nothing is cached, so edits to a dictionary show up on reload.
 
 **Example:**
 ```
