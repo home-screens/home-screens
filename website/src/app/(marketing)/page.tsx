@@ -9,6 +9,7 @@ import { FitnessPlugins } from '@/components/FitnessPlugins';
 import { EditorExperience } from '@/components/EditorExperience';
 import { RemoteShowcase } from '@/components/RemoteShowcase';
 import { TemplatesGallery } from '@/components/TemplatesGallery';
+import { getGalleryTemplates } from '@/lib/templates';
 import { HowItWorks } from '@/components/HowItWorks';
 import { OpenSourceCTA } from '@/components/OpenSourceCTA';
 import { Footer } from '@/components/Footer';
@@ -40,7 +41,7 @@ export default function Home() {
         <FitnessPlugins />
         <EditorExperience />
         <RemoteShowcase />
-        <TemplatesGallery />
+        <TemplatesGallery templates={getGalleryTemplates()} />
         <HowItWorks />
         <OpenSourceCTA />
       </main>
