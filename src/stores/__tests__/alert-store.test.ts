@@ -97,6 +97,26 @@ describe('auto-dismiss', () => {
     expect(store().alerts).toHaveLength(1);
   });
 
+  // The remote's "Persistent" duration button sends a literal 0 for whatever
+  // type the user picked. It has to stay persistent for info and warning too,
+  // not just urgent — 0 must not be treated as "no duration given", which
+  // would silently fall back to the 10s / 30s type defaults.
+  for (const type of ['info', 'warning'] as const) {
+    it(`keeps an explicit duration 0 persistent for ${type} alerts`, () => {
+      store().showAlert({ type, title: 'X', message: '', duration: 0 });
+      expect(store().alerts[0].duration).toBe(0);
+      vi.advanceTimersByTime(60_000);
+      expect(store().alerts).toHaveLength(1);
+    });
+  }
+
+  it('lets an explicit duration 0 override a configured defaultDuration', () => {
+    store().configure({ defaultDuration: 15_000 });
+    store().showAlert({ type: 'info', title: 'X', message: '', duration: 0 });
+    vi.advanceTimersByTime(60_000);
+    expect(store().alerts).toHaveLength(1);
+  });
+
   it('clears timer on manual dismiss', () => {
     store().showAlert({ type: 'info', title: 'X', message: '' });
     const id = store().alerts[0].id;

@@ -58,7 +58,12 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
           type,
           title: title.trim() || undefined,
           message: message.trim() || undefined,
-          duration: duration || undefined,
+          // Send 0 as-is. `0` is the persistent sentinel the alert store reads
+          // (`alert-store.ts` only starts an auto-dismiss timer when duration
+          // is > 0), and it must survive as a real number — coercing it to
+          // undefined would hand the store a "not specified" value and fall
+          // back to the per-type defaults, which auto-dismiss info and warning.
+          duration,
           ...(target ? { displayId: target } : {}),
         }),
       }),
