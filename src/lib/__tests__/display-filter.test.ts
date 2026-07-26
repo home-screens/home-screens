@@ -12,6 +12,9 @@ import {
   findMainDisplay,
   isMainDisplay,
   pruneDanglingScreenRefs,
+  isValidDisplayId,
+  RESERVED_DISPLAY_IDS,
+  SLUG_RE,
   MAIN_DISPLAY_ID,
 } from '@/lib/display-filter';
 import type {
@@ -266,6 +269,54 @@ describe('validateDisplays', () => {
         displays: [{ id: longId, name: 'X', screens: [] }],
       });
       expect(validateDisplays(config)).toMatch(/Invalid display id/);
+    });
+  });
+
+  describe('reserved IDs', () => {
+    // `all` is the broadcast keyword in enqueueCommand. A display allowed to
+    // claim it would turn every command aimed at that one screen into a
+    // whole-house broadcast, so it must be rejected at the config validator
+    // and at the shared predicate the command queues use.
+    it('rejects a display named "all"', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [{ id: 'all', name: 'All', screens: [] }],
+      });
+      const err = validateDisplays(config);
+      expect(err).toMatch(/is reserved/);
+      // Not the generic slug message — "all" is a perfectly legal slug, so the
+      // user needs to be told why it is refused.
+      expect(err).not.toMatch(/Invalid display id/);
+    });
+
+    it('reports the reserved ID even when it also duplicates another display', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [
+          { id: 'all', name: 'A', screens: [] },
+          { id: 'all', name: 'B', screens: [] },
+        ],
+      });
+      expect(validateDisplays(config)).toMatch(/is reserved/);
+    });
+
+    it('rejects reserved IDs from isValidDisplayId', () => {
+      expect(isValidDisplayId('all')).toBe(false);
+      expect(isValidDisplayId('__default__')).toBe(false);
+    });
+
+    it('still accepts IDs that merely contain a reserved word', () => {
+      expect(isValidDisplayId('all-upstairs')).toBe(true);
+      expect(isValidDisplayId('hallway')).toBe(true);
+    });
+
+    it('rejects the legacy default queue key by slug rule as well as reservation', () => {
+      // `__default__` is doubly excluded: SLUG_RE forbids a leading
+      // underscore, and it is in the reserved set. Asserted so a future
+      // loosening of SLUG_RE cannot quietly let a display collide with the
+      // single-display command queue.
+      expect(SLUG_RE.test('__default__')).toBe(false);
+      expect(RESERVED_DISPLAY_IDS.has('__default__')).toBe(true);
     });
   });
 

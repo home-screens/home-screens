@@ -504,7 +504,7 @@ export function enqueueCommand(
  *
  * Invalid slugs (anything that fails `isValidDisplayId`, including the
  * literal `'all'` which is only valid in the broadcast meaning of
- * `enqueueCommand`) drain the legacy default queue and do **not** pollute
+ * `enqueueCommand`) return no commands and do **not** pollute
  * `knownDisplays`. This stops a probe loop like
  * `?display=probe-$i for i in 1..1M` from growing the in-memory maps.
  */

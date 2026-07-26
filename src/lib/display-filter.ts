@@ -300,6 +300,22 @@ export const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 export const MAX_DISPLAY_ID_LEN = 64;
 
 /**
+ * IDs a display may never claim, because the command layer already gives
+ * them a meaning. `all` is the broadcast keyword in `enqueueCommand`
+ * (`display-commands.ts`), so a display actually named `all` would turn
+ * every command aimed at that one screen into a whole-house broadcast — a
+ * `display-control` button meant to sleep the kitchen would sleep the
+ * entire home.
+ *
+ * `__default__` (the legacy single-display queue key) cannot reach here —
+ * `SLUG_RE` already rejects a leading underscore — but it is listed so the
+ * reserved set is the complete answer to "which IDs are spoken for?" rather
+ * than a partial one that relies on the slug rule staying as strict as it
+ * is today.
+ */
+export const RESERVED_DISPLAY_IDS: ReadonlySet<string> = new Set(['all', '__default__']);
+
+/**
  * Hard upper bound on per-display canvas dimensions. 16384 is well past
  * any plausible physical display and matches the WebGL / browser texture
  * limits on commodity hardware, so any value beyond this is almost
@@ -312,12 +328,18 @@ const MAX_DISPLAYS = 64;
 const MAX_SCREENS_PER_DISPLAY = 256;
 
 /**
- * True when `id` is a non-empty, URL-safe slug within the length cap.
- * Shared by both the in-memory command queues and the config validator
- * so a display ID rejected at one layer is rejected at every layer.
+ * True when `id` is a non-empty, URL-safe slug within the length cap and is
+ * not one of the reserved IDs. Shared by both the in-memory command queues
+ * and the config validator so a display ID rejected at one layer is rejected
+ * at every layer.
+ *
+ * Note that `enqueueCommand` tests for the broadcast keyword `all` *before*
+ * calling this, so broadcasting still works; every other caller treats its
+ * argument as one specific display, which `all` never is.
  */
 export function isValidDisplayId(id: string | undefined | null): boolean {
   if (!id) return false;
+  if (RESERVED_DISPLAY_IDS.has(id)) return false;
   return id.length <= MAX_DISPLAY_ID_LEN && SLUG_RE.test(id);
 }
 
@@ -328,6 +350,12 @@ interface DisplayValidationCtx {
 }
 
 function validateDisplayId(display: DisplayNode, seen: Set<string>): string | null {
+  // Checked ahead of the slug rule so a reserved id gets an explanation
+  // instead of the generic "must be lowercase letters and hyphens" message,
+  // which would be baffling for an id like "all" that follows every rule.
+  if (RESERVED_DISPLAY_IDS.has(display.id)) {
+    return `Display id "${display.id}" is reserved: it already has a special meaning when sending commands to displays. Please pick a different id, such as "kitchen" or "bedroom-tv"`;
+  }
   if (!isValidDisplayId(display.id)) {
     return `Invalid display id "${display.id}": must be lowercase letters, digits, and hyphens (e.g. "kitchen", "bedroom-tv"), max ${MAX_DISPLAY_ID_LEN} chars`;
   }
