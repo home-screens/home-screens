@@ -51,7 +51,7 @@ This is the second-biggest filter and the one most people underestimate.
 
 **Dakboard:** Typically 15–30 minutes. You sign up, drag widgets onto a canvas in their web editor, and load the URL on your Pi's display. The UI is polished and the experience is smooth — this is what you're paying for.
 
-**Home Screens:** Typically 10–20 minutes — the fastest of the three. A one-line install script does everything: sets up the app and configures your Pi to display it full-screen. The visual editor runs in any browser on your home network. Drag modules onto the canvas like Dakboard, but everything stays on your Pi. [See the installation guide](/docs/getting-started) for the full one-liner.
+**Home Screens:** Typically 10–20 minutes of hands-on work — the fastest of the three, though the download, SD card flash, and first boot add to that. A one-line install script does everything: sets up the app and configures your Pi to display it full-screen. The visual editor runs in any browser on your home network. Drag modules onto the canvas like Dakboard, but everything stays on your Pi. [See the installation guide](/docs/getting-started) for the full one-liner.
 
 ## Where does my data actually go?
 

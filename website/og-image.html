@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!--
+  Social card template. Rendered headlessly at 1200x630 to
+  public/images/og-home.jpg, which every share of homescreens.dev shows.
+
+  Open this file from the website/ directory so the relative image path
+  resolves; do not reintroduce an absolute path, it only works on one machine.
+
+  Render with any headless Chromium, then convert to JPEG, e.g. on macOS:
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless \
+      --window-size=1200,630 --screenshot=og-home.png og-image.html
+    sips -s format jpeg og-home.png --out public/images/og-home.jpg
+-->
 <html>
 <head>
 <meta charset="utf-8">
@@ -220,7 +232,7 @@
 
     <div class="display-side">
       <div class="display-frame">
-        <img src="file:///Users/bryan/Github/home-screens/website/public/images/display-1.jpg" alt="Display">
+        <img src="public/images/display-1.jpg" alt="Display">
       </div>
     </div>
   </div>

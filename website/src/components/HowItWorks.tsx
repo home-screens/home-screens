@@ -9,7 +9,7 @@ const steps = [
     number: '01',
     title: 'Flash & Boot',
     description:
-      'Write the image to an SD card, plug it into your Pi, and power on. Takes five minutes.',
+      'Write the image to an SD card, plug it into your Pi, and power on. About ten minutes of hands-on work, a little longer with the download and first boot.',
   },
   {
     number: '02',

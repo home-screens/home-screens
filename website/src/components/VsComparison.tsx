@@ -139,7 +139,7 @@ const groups: Group[] = [
       {
         feature: 'Weather providers',
         note: 'Providers supported by the built-in weather module',
-        magicMirror: { kind: 'text', label: '11' },
+        magicMirror: { kind: 'text', label: '12' },
         dakboard: { kind: 'text', label: '4' },
         homeScreens: { kind: 'text', label: String(WEATHER_PROVIDER_COUNT) },
       },

@@ -50,7 +50,7 @@ const featuresRight: Feature[] = [
   {
     icon: Shield,
     title: 'Password Protected',
-    description: 'Lock down the editor. Optional auth with password or device flow.',
+    description: 'Lock the editor with an optional password, plus an allowed-address list so devices on your own network skip the prompt.',
   },
   {
     icon: Paintbrush,

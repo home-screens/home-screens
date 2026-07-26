@@ -1,13 +1,19 @@
 import { Container } from '@/components/Container';
 import { Logo } from '@/components/Logo';
+import { siteNavLinks } from '@/lib/site-navigation';
+
+// The footer renders on every marketing surface, not just the homepage, so the
+// homepage section links have to come from siteNavLinks (which uses absolute
+// /#section paths) rather than bare #section fragments that only resolve on /.
+const homepageSections = siteNavLinks.filter((link) =>
+  link.href.startsWith('/#'),
+);
 
 const columns = [
   {
     title: 'Product',
     links: [
-      { label: 'Features', href: '#features' },
-      { label: 'Modules', href: '#modules' },
-      { label: 'Templates', href: '#templates' },
+      ...homepageSections,
       { label: 'vs MagicMirror / Dakboard', href: '/vs' },
     ],
   },

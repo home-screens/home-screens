@@ -31,7 +31,7 @@ We believe Home Screens is different. It's a free, self-hosted web app that runs
 
 **{% $stats.moduleCount %} built-in modules.** Weather (with {% $stats.weatherProviderCount %} providers), calendars, clocks, news, sports scores, stock tickers, meal planners, chore charts, photo slideshows, and more. Each module has multiple views — the clock alone has {% $stats.clockViewCount %} different styles.
 
-**Your data stays local.** No cloud accounts, no telemetry you can't disable, no subscriptions. Everything is stored in a single JSON file on your Pi. You own your data completely.
+**Your data stays local.** No cloud accounts, no telemetry you can't disable, no subscriptions. Your configuration and data live in plain JSON files in one folder on your Pi, so backing everything up is a single copy. You own your data completely.
 
 **Multi-display support.** Run one hub pi and connect multiple displays around your home. Each display gets its own layout, dimensions, and rotation but share data for consistency. Manage them all from one editor.
 
@@ -51,7 +51,7 @@ Home Screens includes a remote control panel at `/remote` that turns any phone o
 
 ## Getting started
 
-Home Screens runs on any Raspberry Pi 4 or 5 with 2GB+ RAM. Installation takes about five minutes and you can one-shot the install like:
+Home Screens runs on any Raspberry Pi 4 or 5 with 2GB+ RAM. Installing takes about ten minutes of hands-on work, and you can one-shot the install like:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash

@@ -8,7 +8,7 @@ import {
   Newspaper, TrendingUp, Bitcoin, Trophy, Medal,
   Laugh, Quote, BookOpen, History,
   ListTodo, StickyNote, HandMetal, ListChecks, Trash2, Sparkles, UtensilsCrossed, ClipboardList,
-  Type, ImageIcon, Image, QrCode, Globe, LayoutGrid, Star, Shapes,
+  Type, ImageIcon, Image, Video, QrCode, Globe, LayoutGrid, Star, Shapes,
   Car,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -21,6 +21,9 @@ interface ModuleItem {
   label: string;
 }
 
+// These lists must total MODULE_COUNT, which the section header advertises.
+// Health & Fitness is the one registry category with no tab here: it ships no
+// built-in modules and only appears in the app once a plugin uses it.
 const categories: Record<string, ModuleItem[]> = {
   'Full Screen': [
     { icon: Columns3, label: 'Calendar' },
@@ -69,6 +72,7 @@ const categories: Record<string, ModuleItem[]> = {
   'Media & Display': [
     { icon: Type, label: 'Text' },
     { icon: ImageIcon, label: 'Image' },
+    { icon: Video, label: 'Video' },
     { icon: Image, label: 'Photo Slideshow' },
     { icon: QrCode, label: 'QR Code' },
     { icon: Globe, label: 'Web Embed' },
