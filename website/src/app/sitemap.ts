@@ -4,7 +4,7 @@ import path from 'node:path'
 import { execSync } from 'node:child_process'
 import { getAllPosts } from '@/lib/blog'
 import { navigation } from '@/lib/docs-navigation'
-import { getChangelog } from '@/lib/changelog'
+import { getChangelog, RECENT_ENTRY_LIMIT } from '@/lib/changelog'
 
 export const dynamic = 'force-static'
 
@@ -34,10 +34,28 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://homescreens.dev'
 
   let changelogLastMod = new Date()
+  let archivedEntries: ReturnType<typeof getChangelog> = []
   try {
     const entries = getChangelog()
     if (entries[0]?.date) changelogLastMod = new Date(entries[0].date)
+    archivedEntries = entries.slice(RECENT_ENTRY_LIMIT)
   } catch {}
+
+  // The archive only holds releases pushed off the main changelog, so it stays
+  // out of the sitemap until there is something on it.
+  const archiveEntry =
+    archivedEntries.length > 0
+      ? [
+          {
+            url: `${baseUrl}/changelog/archive`,
+            lastModified: archivedEntries[0]?.date
+              ? new Date(archivedEntries[0].date)
+              : new Date(),
+            changeFrequency: 'yearly' as const,
+            priority: 0.7,
+          },
+        ]
+      : []
 
   const docHrefs = navigation.flatMap((section) =>
     section.links.map((link) => link.href),
@@ -71,6 +89,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    ...archiveEntry,
     {
       url: `${baseUrl}${docIndexHref}`,
       lastModified: docPageLastModified(docIndexHref),

@@ -91,10 +91,35 @@ export interface LatestImageRelease {
   releaseUrl: string;
 }
 
-// Pre-built SD card images ship only for major/minor releases (patch === 0).
-// Returns null when no qualifying release exists yet.
+// Tags whose GitHub release actually publishes a `home-screens-<tag>.img.xz`
+// SD card image. Checked in rather than derived: the site is a static export
+// with no network at build time, and there is no rule to derive it from. The
+// history is genuinely irregular — v1.4.0 shipped no image while the v1.4.1
+// patch did — so guessing from the version number produces a 404 download link
+// on the first step of the recommended install path.
+//
+// When a release publishes an image, add its tag here. Until then the site
+// links to the newest release that really has one, which is stale but works.
+const IMAGE_RELEASE_TAGS = new Set([
+  'v1.8.0',
+  'v1.7.0',
+  'v1.6.0',
+  'v1.5.0',
+  'v1.4.1',
+  'v1.3.0',
+  'v1.2.0',
+  'v1.1.0',
+  'v1.0.0',
+  'v0.25.0',
+  'v0.23.0',
+]);
+
+// Returns the newest release with a published SD card image, or null when none
+// of the tags above has release notes on the site yet.
 export function getLatestImageRelease(): LatestImageRelease | null {
-  const latest = getChangelog().find((entry) => entry.version.endsWith('.0'));
+  const latest = getChangelog().find((entry) =>
+    IMAGE_RELEASE_TAGS.has(entry.tag),
+  );
   if (!latest) return null;
   const asset = `home-screens-${latest.tag}.img.xz`;
   return {

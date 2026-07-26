@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {
+  ArrowLeft,
   ArrowRight,
   Github,
   Hash,
@@ -10,6 +11,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,12 +61,29 @@ function formatDate(iso: string | null): string {
   });
 }
 
+const DEFAULT_HEADING = (
+  <>
+    What&apos;s <span className="text-cyan-400">new</span>
+  </>
+);
+
+const DEFAULT_INTRO =
+  'The most recent stable releases, in detail. New modules, editor improvements, infrastructure work, and the bugs we squashed along the way.';
+
 export function Changelog({
   entries,
   hasArchive,
+  heading = DEFAULT_HEADING,
+  intro = DEFAULT_INTRO,
+  backToRecent = false,
 }: {
   entries: ChangelogEntry[];
+  /** Renders the "Older releases" link to the archive below the timeline. */
   hasArchive: boolean;
+  heading?: ReactNode;
+  intro?: ReactNode;
+  /** Renders a link back to /changelog above the timeline (archive page). */
+  backToRecent?: boolean;
 }) {
   return (
     <>
@@ -91,12 +110,10 @@ export function Changelog({
               Changelog
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              What&apos;s <span className="text-cyan-400">new</span>
+              {heading}
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-400">
-              Every stable release, in detail. New modules, editor
-              improvements, infrastructure work, and the bugs we squashed
-              along the way.
+              {intro}
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button
@@ -115,6 +132,14 @@ export function Changelog({
       {/* Timeline */}
       <section className="pb-24 sm:pb-32">
         <Container>
+          {backToRecent && (
+            <div className="mx-auto mb-10 max-w-3xl">
+              <Button href="/changelog" variant="outline">
+                <ArrowLeft className="h-4 w-4" />
+                Back to recent releases
+              </Button>
+            </div>
+          )}
           {entries.length === 0 ? (
             <p className="mx-auto max-w-2xl text-center text-neutral-500">
               No releases published yet.
