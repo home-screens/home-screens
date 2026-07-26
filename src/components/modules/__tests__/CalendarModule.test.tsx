@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { addDays, addHours, format } from 'date-fns';
@@ -43,11 +43,32 @@ function makeConfig(overrides: Partial<CalendarConfig> = {}): CalendarConfig {
 
 const LOCAL = "yyyy-MM-dd'T'HH:mm:ss";
 
-// Events relative to the real clock (the module reads the current time):
-// one that ended earlier today, one from yesterday, one upcoming tomorrow.
-// The shared display fetch may hand every view a month-wide window, so the
-// module itself must keep past events out of upcoming-only views.
-const now = new Date();
+// A fixed midweek instant, not the real clock. The module reads the current
+// time to decide which week and month to show, so fixtures built off the real
+// clock drift across those boundaries: run in the first three hours of a
+// Sunday and "three hours ago" lands on Saturday, which the week view (which
+// starts on Sunday) correctly puts in the *previous* week. That is a real
+// 1.8%-of-the-week failure, and it only shows up in CI because CI runs in UTC
+// while a developer three hours west is still on Saturday evening.
+//
+// Noon on a Wednesday leaves three clear days on either side, so every
+// relative event below stays inside both the displayed week and the month.
+const NOW = new Date(2026, 6, 15, 12, 0, 0); // Wednesday, 15 July 2026
+
+beforeAll(() => {
+  // shouldAdvanceTime keeps React's scheduler from stalling under fake timers.
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(NOW);
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
+// One event that ended earlier today, one from yesterday, one upcoming
+// tomorrow. The shared display fetch may hand every view a month-wide window,
+// so the module itself must keep past events out of upcoming-only views.
+const now = NOW;
 const events: CalendarEvent[] = [
   {
     id: 'ended-today',
@@ -101,8 +122,10 @@ describe('CalendarModule past-event visibility per view', () => {
     const { queryByText } = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week' })} style={style} events={events} /></Wrapper>,
     );
-    // "Ended today" is always within the displayed week; "yesterday" may
-    // fall in the previous week, so only assert the guaranteed one.
+    // With the clock pinned to midweek both past events sit inside the
+    // displayed week, so the week view has to show them rather than filtering
+    // them out the way the upcoming-only views do.
     expect(queryByText('Ended Today Standup')).not.toBeNull();
+    expect(queryByText('Yesterday Retro')).not.toBeNull();
   });
 });
