@@ -5,6 +5,7 @@ import path from 'path';
 import os from 'os';
 import { readConfig, writeConfig, updateConfigAtomic } from '../config';
 import { getLatestSchemaVersion } from '../migrations';
+import { createWeatherProvider } from '../weather';
 
 // Override process.cwd to use a temp directory for tests
 let tmpDir: string;
@@ -29,7 +30,17 @@ describe('readConfig', () => {
     expect(config.version).toBe(getLatestSchemaVersion());
     expect(config.screens).toHaveLength(1);
     expect(config.screens[0].id).toBe('default');
-    expect(config.settings.weather.provider).toBe('weatherapi');
+    expect(config.settings.weather.provider).toBe('open-meteo');
+  });
+
+  it('seeds a weather provider that works without an API key', async () => {
+    // A fresh install has no secrets.json, so the shipped default must be a
+    // keyless provider or the very first thing a new user sees is a weather
+    // error. Every keyed provider throws from its constructor when handed no
+    // key, so building the seeded default through the real factory is the
+    // ratchet: swapping the seed to a keyed provider fails here, not on a Pi.
+    const config = await readConfig();
+    expect(() => createWeatherProvider(config.settings.weather.provider)).not.toThrow();
   });
 
   it('reads existing config file', async () => {

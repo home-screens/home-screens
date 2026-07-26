@@ -17,7 +17,10 @@ const DEFAULT_CONFIG: ScreenConfiguration = {
     latitude: 0,
     longitude: 0,
     weather: {
-      provider: 'weatherapi',
+      // Open-Meteo needs no API key, so a fresh install renders weather as
+      // soon as the user sets their location. Every keyed provider would
+      // show an error until a key is entered.
+      provider: 'open-meteo',
       latitude: 0,
       longitude: 0,
       units: 'imperial',
