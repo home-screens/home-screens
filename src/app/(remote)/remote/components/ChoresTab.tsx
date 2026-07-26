@@ -12,6 +12,7 @@ import type {
   ChoreToggleRequest,
   ChoreToggleResponse,
 } from '@/types/config';
+import type { ChoreData } from '@/lib/chore-data';
 import {
   resolveAssignee,
   choreAppliesToday,
@@ -41,18 +42,25 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 };
 
 interface ChoresTabProps {
+  /** Display settings read from the first chore module placed on a screen. */
   config: ChoreChartConfig;
+  /**
+   * Household members and chores from the shared data file, read server-side
+   * so the first paint is populated. These are data, not module config, which
+   * is why they arrive as their own prop rather than inside `config`.
+   */
+  choreData: ChoreData;
   /** When false, hides Manage sub-view and restricts Rewards to redeem/history only. */
   isAdmin?: boolean;
 }
 
-export default function ChoresTab({ config, isAdmin = false }: ChoresTabProps) {
+export default function ChoresTab({ config, choreData, isAdmin = false }: ChoresTabProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
   // ── Lifted state (shared between Today + Manage views) ──
-  const [members, setMembers] = useState<ChoreMember[]>(config.members ?? []);
-  const [chores, setChores] = useState<ChoreDefinition[]>(config.chores ?? []);
+  const [members, setMembers] = useState<ChoreMember[]>(choreData.members ?? []);
+  const [chores, setChores] = useState<ChoreDefinition[]>(choreData.chores ?? []);
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 

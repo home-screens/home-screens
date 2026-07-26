@@ -473,8 +473,6 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'affirmations.weatherAware': 'not-observable',
   'air-quality.refreshIntervalMs': 'timing-only',
   'chore-chart.allowDisplayComplete': 'covered-elsewhere',
-  'chore-chart.chores': 'not-observable',
-  'chore-chart.members': 'not-observable',
   'chore-chart.showStreaks': 'not-observable',
   'countdown.holidayCountry': 'not-observable',
   'crypto.ids': 'fetch-only',

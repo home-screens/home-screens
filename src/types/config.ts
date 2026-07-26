@@ -1361,10 +1361,14 @@ export interface ChoreToggleResponse {
   warning?: string;
 }
 
+/**
+ * Per-module display settings for the chore chart. Members and chores are
+ * deliberately absent: they are household data shared by every chore surface
+ * and live in `data/chores.json`, served by `/api/chores/data`. Putting them
+ * in module config would mean each placed module carried its own private copy.
+ */
 export interface ChoreChartConfig {
   view: ChoreChartView;
-  members: ChoreMember[];
-  chores: ChoreDefinition[];
   weekStartDay: 'sunday' | 'monday';
   showPoints: boolean;
   showStreaks: boolean;

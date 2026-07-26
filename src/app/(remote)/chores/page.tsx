@@ -27,7 +27,6 @@ export default async function ChoresPage() {
   const choreConfig: ChoreChartConfig | null =
     modConfig !== null
       ? {
-          ...choreData,
           weekStartDay: (modConfig?.weekStartDay as 'sunday' | 'monday') ?? 'monday',
           showPoints: (modConfig?.showPoints as boolean) ?? true,
           showStreaks: (modConfig?.showStreaks as boolean) ?? true,
@@ -44,7 +43,7 @@ export default async function ChoresPage() {
 
   return (
     <div className="min-h-screen bg-hs-body">
-      <ChoresTab config={choreConfig} />
+      <ChoresTab config={choreConfig} choreData={choreData} />
     </div>
   );
 }

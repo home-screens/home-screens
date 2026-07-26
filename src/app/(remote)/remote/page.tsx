@@ -54,7 +54,6 @@ export default async function RemotePage() {
   const choreConfig: ChoreChartConfig | null =
     modConfig !== null
       ? {
-          ...choreData,
           weekStartDay: (modConfig?.weekStartDay as 'sunday' | 'monday') ?? 'monday',
           showPoints: (modConfig?.showPoints as boolean) ?? true,
           showStreaks: (modConfig?.showStreaks as boolean) ?? true,
@@ -96,7 +95,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, profiles, activeProfile, choreConfig, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
+      initialData={{ screens, profiles, activeProfile, choreConfig, choreData, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
     />
   );
 }

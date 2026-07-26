@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { ChoreChartConfig } from '@/types/config';
+import type { ChoreData } from '@/lib/chore-data';
 import { useRemoteStatus } from './hooks';
 import { DisplayTargetContext, withDisplayTarget, type DisplayTargetValue } from './display-target';
 import StatusBar from './components/StatusBar';
@@ -32,6 +33,8 @@ interface RemoteInitialData {
   /** Global active profile — used for the All target and legacy single-display installs. */
   activeProfile: string | undefined;
   choreConfig: ChoreChartConfig | null;
+  /** Household members and chores from `data/chores.json`, not module config. */
+  choreData: ChoreData;
   hasMeals: boolean;
   hasPhotos: boolean;
   photoDirectory: string;
@@ -218,7 +221,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
         ) : activeTab === 'chores' ? (
           <>
             <div className="px-4 pb-8 pt-4">
-              <ChoresTab config={initialData.choreConfig!} isAdmin />
+              <ChoresTab config={initialData.choreConfig!} choreData={initialData.choreData} isAdmin />
             </div>
             <div className="h-20" />
           </>
