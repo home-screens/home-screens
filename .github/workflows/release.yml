@@ -19,7 +19,9 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
 
-      - run: npm install -g npm@11.6.2
+      # Node 22 bundles npm 10; raise it to the engines floor in package.json.
+      - run: |
+          npm install -g "npm@$(node -p 'require("./package.json").engines.npm' | tr -d '>=^~ ')"
 
       - run: npm ci
 

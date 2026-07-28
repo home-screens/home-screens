@@ -101,23 +101,39 @@ install_node() {
   info "Node $(node -v) / npm $(npm -v)"
 }
 
-ensure_pinned_npm() {
-  # Match npm to the exact engines.npm pin in package.json. The repo ships
-  # engine-strict=true in .npmrc, so a mismatched npm makes any npm install
-  # a hard failure instead of a warning.
-  # Usage: ensure_pinned_npm <app_dir>
-  local app_dir="${1:?ensure_pinned_npm: app dir required}"
-  local pinned current
-  pinned=$( (cd "${app_dir}" && node -p "require('./package.json').engines.npm") 2>/dev/null || true)
-  if [ -z "${pinned}" ] || [ "${pinned}" = "undefined" ]; then
+ensure_npm_floor() {
+  # Raise npm to the minimum version in engines.npm, and never lower it.
+  # Node 22 bundles npm 10, which ignores the cpu/os fields on optional
+  # dependencies and so installs every platform's prebuilt binaries: about
+  # 114 extra packages of ARM, s390x and BSD builds this Pi will never run.
+  # npm 11 filters them to the host platform. npm 11.6.2 in turn drops nested
+  # entries for transitive optional deps when it rewrites package-lock.json,
+  # so the floor is 11.6.3. .npmrc sets engine-strict=true, so an npm below
+  # the floor also makes every install a hard failure.
+  # Usage: ensure_npm_floor <app_dir>
+  local app_dir="${1:?ensure_npm_floor: app dir required}"
+  local floor current
+  floor=$( (cd "${app_dir}" && node -p "(require('./package.json').engines || {}).npm || ''") 2>/dev/null || true)
+  # engines.npm is a range (">=11.6.3"); the floor is its version part.
+  floor="${floor#*=}"
+  floor="${floor#[\^~>]}"
+  if [ -z "${floor}" ] || [ "${floor}" = "undefined" ]; then
     return 0
   fi
   current=$(npm --version 2>/dev/null || true)
-  if [ "${current}" = "${pinned}" ]; then
+  if [ -n "${current}" ] && node -e '
+    const part = (s) => s.split(".").map(Number);
+    const [a, b] = [part(process.argv[1]), part(process.argv[2])];
+    for (let i = 0; i < 3; i++) {
+      const [x, y] = [a[i] || 0, b[i] || 0];
+      if (x !== y) process.exit(x > y ? 0 : 1);
+    }
+    process.exit(0);
+  ' "${current}" "${floor}" 2>/dev/null; then
     return 0
   fi
-  info "Updating npm ${current:-not found} -> ${pinned} (pinned in package.json)..."
-  sudo npm install -g "npm@${pinned}"
+  info "Updating npm ${current:-not found} -> ${floor} (minimum required by package.json)..."
+  sudo npm install -g "npm@${floor}"
   info "npm $(npm --version) installed."
 }
 

@@ -176,14 +176,14 @@ Run Home Screens on your own machine for development or testing. This requires b
 ### Prerequisites
 
 - Node.js 22+
-- npm **11.6.2 exactly**. The repo pins this version, and the pin is enforced, so any other npm stops the install with an `EBADENGINE` error instead of a warning. Node 22 ships npm 10, so you almost certainly need to install it.
+- npm **11.6.3 or newer**. Anything older stops the install with an `EBADENGINE` error, because npm 10 downloads prebuilt binaries for every platform instead of just yours and ends up with a much larger `node_modules`. Node 22 still ships npm 10, so check with `npm -v` first.
 
 ### Install
 
 ```bash
 git clone https://github.com/home-screens/home-screens.git
 cd home-screens
-npm install -g npm@11.6.2   # the repo pins npm; other versions fail to install
+npm install -g npm@11.6.3   # only if `npm -v` is older; newer is fine
 npm install
 ```
 

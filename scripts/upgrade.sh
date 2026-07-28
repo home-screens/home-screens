@@ -13,7 +13,7 @@ set -euo pipefail
 #   upgrade.sh restart                - Restart the systemd service (spawns finalize-deploy)
 #   upgrade.sh health-check           - Verify server is responding
 #   upgrade.sh setup-system           - Apply system config (services, kiosk, boot target)
-#   upgrade.sh ensure-npm             - Align npm with the engines pin in package.json
+#   upgrade.sh ensure-npm             - Raise npm to the engines floor in package.json
 #   upgrade.sh list-backups           - List config backups
 #   upgrade.sh restore-backup <file>  - Restore a config backup
 #
@@ -321,16 +321,25 @@ case "${action}" in
     ;;
 
   ensure-npm)
-    # .npmrc ships engine-strict=true, so an npm older than the engines pin
+    # .npmrc ships engine-strict=true, so an npm below the engines floor
     # hard-fails every install. Called by deploy.sh before installing deps.
-    ensure_pinned_npm "${APP_DIR}" 2>&1
+    ensure_npm_floor "${APP_DIR}" 2>&1
     echo "{\"ok\":true}"
     ;;
 
   install)
-    # Align npm with the engines pin first (guarded: common.sh may be absent
-    # on very old checkouts this legacy path upgrades from).
-    type -t ensure_pinned_npm >/dev/null && ensure_pinned_npm "${APP_DIR}" 2>&1
+    # Raise Node, then npm, to what package.json declares. Nothing else in this
+    # legacy path provisions either, so without this an install stranded on an
+    # older Node fails the engine check instead of being repaired.
+    # Node goes first: a NodeSource install ships its own npm and would undo
+    # the floor if npm were raised beforehand.
+    # (Both guarded: common.sh may be absent on very old checkouts this legacy
+    # path upgrades from.)
+    if [ -f "${APP_DIR}/.node-version" ] && type -t install_node >/dev/null; then
+      node_major=$(tr -d '[:space:]' < "${APP_DIR}/.node-version")
+      [ -n "${node_major}" ] && install_node "${node_major}" 2>&1
+    fi
+    type -t ensure_npm_floor >/dev/null && ensure_npm_floor "${APP_DIR}" 2>&1
     # Force include devDependencies (TypeScript etc.) even when
     # NODE_ENV=production is inherited from the systemd service.
     npm install --include=dev 2>&1

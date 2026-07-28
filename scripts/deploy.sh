@@ -120,8 +120,8 @@ rm -rf "$CHECK_CONFIG_TMPDIR"
 # --- Install dependencies ---
 if [ "$SKIP_INSTALL" = false ]; then
   step "Installing dependencies..."
-  # .npmrc ships engine-strict=true, so the Pi's npm must match the
-  # engines pin in package.json before npm install can run.
+  # .npmrc ships engine-strict=true, so the Pi's npm must meet the
+  # engines floor in package.json before npm install can run.
   ssh_cmd "cd $REMOTE_DIR && bash scripts/upgrade.sh ensure-npm && npm install --omit=dev"
 fi
 

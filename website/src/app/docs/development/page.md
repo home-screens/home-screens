@@ -412,10 +412,15 @@ A new route needs test coverage of its own, or the `ROUTE_DECISIONS` ratchet fro
 
 ## Setup
 
-The repo pins an exact npm version. `package.json` sets `"engines": { "npm": "11.6.2" }` and `.npmrc` sets `engine-strict=true`, so `npm install` hard-fails on any other npm release rather than warning. Install the pinned version first:
+The repo sets a minimum npm version, not an exact one. `package.json` declares `"engines": { "node": ">=22", "npm": ">=11.6.3" }` and `.npmrc` sets `engine-strict=true`, so an npm below that floor stops the install with an error instead of a warning. Any newer npm works as-is.
+
+Two reasons for the floor:
+
+- npm 10 ignores the `cpu` and `os` fields on optional dependencies, so it downloads every platform's prebuilt binaries: roughly 114 extra packages of ARM, s390x and BSD builds this machine will never run. npm 11 filters them to the host platform, which matters most when building on a Raspberry Pi. Node 22 still bundles npm 10, so CI and the Pi upgrade scripts raise npm to the floor before installing.
+- npm 11.6.2 specifically drops nested entries for transitive optional dependencies when it rewrites `package-lock.json`, which leaves a lockfile that every other npm rejects with `Missing: ... from lock file`. Fixed in 11.6.3, which is why that is the floor.
 
 ```bash
-npm i -g npm@11.6.2
+npm i -g npm@11.6.3   # only if `npm -v` reports something older
 npm install
 ```
 
