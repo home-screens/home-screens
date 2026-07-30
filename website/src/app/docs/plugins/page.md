@@ -889,23 +889,27 @@ Handlers run in insertion order and are isolated from each other — an exceptio
 
 ### Config Migrations
 
-Declare migrations in the manifest keyed by the version they migrate *from*:
+Declare migrations in the manifest keyed by the version that *introduces* the change. If you rename a field in 1.1.0, key that migration `"1.1.0"`:
 
 ```json
 {
   "configMigrations": {
-    "1.0.0": {
+    "1.1.0": {
       "renames": { "oldFieldName": "newFieldName" },
       "defaults": { "newFeatureEnabled": true }
     },
-    "1.1.0": {
+    "1.2.0": {
       "defaults": { "anotherNewField": "default-value" }
     }
   }
 }
 ```
 
-When updating from version 1.0.0 to 1.2.0, migrations for versions between the old and new version are applied in ascending order, followed by a deep merge with the new `defaultConfig`.
+Updating runs every migration keyed above the version the user is coming from, up to and including the version being installed, in ascending order, followed by a deep merge with the new `defaultConfig`. In the example above, someone updating from 1.0.0 to 1.2.0 gets the 1.1.0 entry and then the 1.2.0 entry. Someone already on 1.1.0 gets only the 1.2.0 entry.
+
+You do not need an entry for every release, only for the ones that change your config shape. Users coming from a version with no entry of its own are still caught: someone on 1.0.1 updating to 1.1.0 gets the 1.1.0 migration just like someone on 1.0.0 does.
+
+Getting the key wrong is worth avoiding carefully, because the symptom is inconsistent rather than obvious. A migration keyed one version too low is skipped for people taking the update that ships it, but still runs for people who skip past that version later. Those two groups then end up with differently shaped configs.
 
 ### Enable / Disable
 

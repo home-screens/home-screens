@@ -374,11 +374,13 @@ test('a dev-plugin version bump migrates module configs', async ({ page, request
     await loadDev();
     await expect(page.locator('[data-plugin-marker="e2e-dev"]')).toHaveText('DEV V1');
 
-    // Bump the manifest and reload. `applyMigrationToModule` runs the migrations
-    // keyed strictly between the old and new versions, so the 1.1.0 rename is the
-    // one that applies on a 1.0.0 → 1.2.0 jump.
+    // Bump the manifest and reload. Migrations are keyed by the version that
+    // introduces them and run over (oldVersion, newVersion], so a one-step
+    // 1.0.0 → 1.1.0 update applies the entry keyed at 1.1.0. This is the
+    // ordinary case a plugin author hits, and the case that silently applied
+    // nothing while the upper bound was exclusive.
     dev.setManifest({
-      version: '1.2.0',
+      version: '1.1.0',
       configMigrations: { '1.1.0': { renames: { oldKey: 'newKey' } } },
     });
     dev.setBundle('DEV V2');

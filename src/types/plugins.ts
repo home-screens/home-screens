@@ -83,7 +83,17 @@ export interface PluginManifest {
   auth?: PluginAuth;
   allowedDomains?: string[];  // e.g. ["api.spotify.com", "*.openweathermap.org"]
   permissions?: PluginPermission[];
-  /** Maps fromVersion → { renames, defaults } for config migration on update */
+  /**
+   * Config migrations to run when the plugin is updated, keyed by the version
+   * that *introduces* each change — rename a field in 1.1.0 and you key that
+   * migration `"1.1.0"`. Updating from `oldVersion` runs every entry above
+   * `oldVersion` and up to and including `version`, in ascending order.
+   *
+   * Mis-keying is not a harmless no-op: an entry keyed one version too low is
+   * skipped for the update that ships it but still runs for anyone who skips
+   * past that version, so the config ends up in a different shape depending on
+   * how many releases a user happened to miss.
+   */
   configMigrations?: Record<string, { renames?: Record<string, string>; defaults?: Record<string, unknown> }>;
   /**
    * Optional translation dictionaries shipped with the plugin.

@@ -158,22 +158,125 @@ describe('applyMigrationToModule', () => {
     expect(result.theme).toBe('light');
   });
 
-  it('only applies migrations in the (oldVersion, manifest.version) range', () => {
+  it('only applies migrations in the (oldVersion, manifest.version] range', () => {
     const manifest = stubManifest({
       version: '3.0.0',
       defaultConfig: {},
       configMigrations: {
-        '1.0.0': { defaults: { tooOld: true } },   // at oldVersion boundary — excluded
-        '1.5.0': { defaults: { inRange: true } },   // in range — included
-        '3.0.0': { defaults: { atTarget: true } },  // at manifest.version boundary — excluded
-        '4.0.0': { defaults: { tooNew: true } },    // above manifest.version — excluded
+        '0.9.0': { defaults: { tooOld: true } },     // below oldVersion — excluded
+        '1.0.0': { defaults: { atOld: true } },      // introduced by the version the config was
+                                                     // written at, so already applied — excluded
+        '1.5.0': { defaults: { inRange: true } },    // in range — included
+        '3.0.0': { defaults: { atTarget: true } },   // introduced by the version being installed
+                                                     // — INCLUDED, this is the whole point
+        '4.0.0': { defaults: { tooNew: true } },     // above manifest.version — excluded
       },
     });
     const result = applyMigrationToModule({}, manifest, '1.0.0');
     expect(result.tooOld).toBeUndefined();
+    expect(result.atOld).toBeUndefined();
     expect(result.inRange).toBe(true);
-    expect(result.atTarget).toBeUndefined();
+    expect(result.atTarget).toBe(true);
     expect(result.tooNew).toBeUndefined();
+  });
+
+  // Regression: the upper bound used to be strict, so a migration keyed at the
+  // version that introduced it never ran on a one-step update — the single most
+  // common case. A plugin going 1.0.0 -> 1.1.0 with a `"1.1.0"` entry applied
+  // nothing at all.
+  it('runs a migration keyed at manifest.version on a single-step update', () => {
+    const manifest = stubManifest({
+      version: '1.1.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { renames: { oldKey: 'newKey' }, defaults: { added: true } },
+      },
+    });
+    const result = applyMigrationToModule({ oldKey: 'value' }, manifest, '1.0.0');
+    expect(result.newKey).toBe('value');
+    expect(result.oldKey).toBeUndefined();
+    expect(result.added).toBe(true);
+  });
+
+  // Regression: keying migrations by the version they migrate *from* silently
+  // skipped anyone whose installed version fell between two keys, because a
+  // migration entry is normally added retroactively and cannot be expected to
+  // line up with every released patch version. Keying by the introducing
+  // version makes the result independent of the path a user took to get here.
+  it('applies a migration regardless of which intermediate version the user is on', () => {
+    const manifest = stubManifest({
+      version: '1.1.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { renames: { oldKey: 'newKey' } },
+      },
+    });
+    // 1.0.1 was a bugfix release that changed no config shape, so nothing is
+    // keyed at it. The user still needs 1.1.0's rename.
+    for (const from of ['1.0.0', '1.0.1', '1.0.9']) {
+      const result = applyMigrationToModule({ oldKey: 'value' }, manifest, from);
+      expect(result.newKey, `updating from ${from}`).toBe('value');
+      expect(result.oldKey, `updating from ${from}`).toBeUndefined();
+    }
+  });
+
+  // The exact example published in website/src/app/docs/plugins/page.md.
+  it('matches the documented 1.0.0 to 1.2.0 example', () => {
+    const manifest = stubManifest({
+      version: '1.2.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { renames: { oldFieldName: 'newFieldName' }, defaults: { newFeatureEnabled: true } },
+        '1.2.0': { defaults: { anotherNewField: 'default-value' } },
+      },
+    });
+    const result = applyMigrationToModule({ oldFieldName: 'kept' }, manifest, '1.0.0');
+    expect(result).toEqual({
+      newFieldName: 'kept',
+      newFeatureEnabled: true,
+      anotherNewField: 'default-value',
+    });
+  });
+
+  it('applies nothing when the plugin is reinstalled at the same version', () => {
+    const manifest = stubManifest({
+      version: '1.1.0',
+      defaultConfig: {},
+      configMigrations: {
+        '1.1.0': { defaults: { shouldNotRun: true } },
+      },
+    });
+    const result = applyMigrationToModule({}, manifest, '1.1.0');
+    expect(result.shouldNotRun).toBeUndefined();
+  });
+
+  // Splitting an update into steps must not double-apply or skip anything.
+  it('applies each migration exactly once across a split update', () => {
+    const migrations = {
+      '1.1.0': { defaults: { a: 1 } },
+      '1.2.0': { defaults: { b: 2 } },
+    };
+    const step1 = applyMigrationToModule(
+      {},
+      stubManifest({ version: '1.1.0', defaultConfig: {}, configMigrations: migrations }),
+      '1.0.0',
+    );
+    expect(step1).toEqual({ a: 1 });
+
+    const step2 = applyMigrationToModule(
+      step1,
+      stubManifest({ version: '1.2.0', defaultConfig: {}, configMigrations: migrations }),
+      '1.1.0',
+    );
+    expect(step2).toEqual({ a: 1, b: 2 });
+
+    // ...and the same end state as jumping straight there.
+    const direct = applyMigrationToModule(
+      {},
+      stubManifest({ version: '1.2.0', defaultConfig: {}, configMigrations: migrations }),
+      '1.0.0',
+    );
+    expect(direct).toEqual(step2);
   });
 
   it('applies multiple migrations in version order', () => {

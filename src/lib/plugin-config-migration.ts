@@ -33,7 +33,24 @@ export function deepMergeConfig(
   return result;
 }
 
-/** Apply version-stepped migrations (renames/defaults) then deep-merge with defaultConfig. */
+/**
+ * Apply version-stepped migrations (renames/defaults) then deep-merge with defaultConfig.
+ *
+ * `configMigrations` is keyed by the version that *introduces* each change, so
+ * an entry under `"1.1.0"` describes what 1.1.0 did to the config shape.
+ * Updating from `oldVersion` runs every entry in `(oldVersion, manifest.version]`
+ * — exclusive at the bottom, because a config written at `oldVersion` already
+ * has that version's shape, and inclusive at the top, because the version being
+ * installed is precisely the one whose change has not been applied yet.
+ *
+ * Keying on the introducing version rather than the version migrated *away
+ * from* is what makes this robust to intermediate releases. A migration entry
+ * is normally added retroactively — you only know a rename needs migrating once
+ * you have decided to rename — so the host cannot assume a user's installed
+ * version lines up with a key. Under `(old, new]` a user on 1.0.1 updating to
+ * 1.1.0 picks up the `"1.1.0"` entry exactly like a user on 1.0.0 does; keying
+ * from-version would have silently skipped them, since no entry sits at 1.0.1.
+ */
 export function applyMigrationToModule(
   config: Record<string, unknown>,
   manifest: PluginManifest,
@@ -43,7 +60,7 @@ export function applyMigrationToModule(
 
   if (manifest.configMigrations) {
     const versions = Object.keys(manifest.configMigrations)
-      .filter((v) => compareSemver(v, oldVersion) > 0 && compareSemver(v, manifest.version) < 0)
+      .filter((v) => compareSemver(v, oldVersion) > 0 && compareSemver(v, manifest.version) <= 0)
       .sort(compareSemver);
 
     for (const ver of versions) {
