@@ -6,7 +6,13 @@ import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
 import { audit } from '@/lib/audit';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
-import { isAllowedDomain, followRedirectsWithValidation } from '@/lib/plugin-proxy';
+import {
+  isAllowedDomain,
+  followRedirectsWithValidation,
+  inRefreshCooldown,
+  startRefreshCooldown,
+  looksLikeExpiredToken,
+} from '@/lib/plugin-proxy';
 import { getValidAccessToken, loadPluginTokens, tokenInjectionSpec } from '@/lib/plugin-auth';
 import type { TokenInjectionSpec } from '@/lib/plugin-auth';
 
@@ -296,8 +302,14 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
 
   // Make the upstream request, following redirects with per-hop SSRF
   // re-validation (see followRedirectsWithValidation for the full rationale).
-  // On a 401 with an injected token, force-refresh once and retry — a token
-  // can go stale between our expiry check and the upstream's clock.
+  //
+  // On a 401 that names an invalid token, and only when we actually injected
+  // one, force-refresh once and retry — a token can go stale between our expiry
+  // check and the upstream's clock. A 401 that survives the refresh is not a
+  // staleness problem (usually insufficient scope), so it starts a cooldown and
+  // the upstream's own 401 is passed through to the plugin rather than being
+  // relabelled `auth_expired`: telling the user to reconnect would not fix a
+  // scope error.
   const payload = body.payload;
   async function makeRequest(force: boolean) {
     const headers = { ...upstreamHeaders };
@@ -316,9 +328,24 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     return { followed, injected };
   }
 
-  let { followed } = await makeRequest(false);
-  if (followed.ok && followed.response.status === 401 && injectAuth) {
-    ({ followed } = await makeRequest(true));
+  let { followed, injected } = await makeRequest(false);
+  // Only retry when we actually sent a token and the upstream says that token
+  // is bad. Retrying a request that carried no token cannot help — there is
+  // nothing stale to refresh — and it used to burn a refresh grant anyway.
+  if (
+    followed.ok &&
+    followed.response.status === 401 &&
+    injectAuth &&
+    injected &&
+    looksLikeExpiredToken(followed.response) &&
+    !inRefreshCooldown(safeId)
+  ) {
+    ({ followed, injected } = await makeRequest(true));
+    // Still 401 after a real refresh: refreshing is not the fix. Back off so a
+    // polling display cannot grind the provider's token endpoint.
+    if (followed.ok && followed.response.status === 401) {
+      startRefreshCooldown(safeId);
+    }
   }
   if (!followed.ok) return followed.error;
   const upstreamRes = followed.response;

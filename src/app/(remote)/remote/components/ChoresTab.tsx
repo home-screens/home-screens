@@ -23,7 +23,7 @@ import {
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoreHistoryBanner from './ChoreHistoryBanner';
@@ -64,6 +64,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
+  // ── Today view state ──
+  const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
+  const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
+  const [toggling, setToggling] = useState<Set<string>>(new Set());
+  // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete)
+  // or a failed auto-save. Rendered as a dismissible banner so the user gets
+  // in-UI feedback without DevTools.
+  const [lastWarning, setLastWarning] = useState<string | null>(null);
+
   // Debounced auto-save. `skipInitial` skips the first effect run after mount
   // (initial state comes from props), and `flushOnUnmount` ensures any pending
   // save in the debounce window runs before the component unmounts.
@@ -79,17 +88,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           chores,
           force: members.length === 0 && chores.length === 0,
         }),
-      }),
+      }).then(throwIfNotOk),
+    // Without `throwIfNotOk` above a 500 resolved and this never fired: the new
+    // member stayed on screen and was gone after reload, with no warning.
+    onError: (err) => {
+      if (isSessionExpired(err)) return;
+      log.error('Chore auto-save failed:', err);
+      setLastWarning(t('choresTab.saveFailed'));
+    },
   });
-
-
-  // ── Today view state ──
-  const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
-  const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
-  const [toggling, setToggling] = useState<Set<string>>(new Set());
-  // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete).
-  // Rendered as a dismissible banner so the admin gets in-UI feedback without DevTools.
-  const [lastWarning, setLastWarning] = useState<string | null>(null);
 
   // Track mounted state so in-flight fetches don't setState after unmount.
   const isMountedRef = useRef(true);
@@ -339,6 +346,48 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         ))}
       </div>
 
+      {/* Server-side warning banner — e.g. a save that failed, or a balance that went
+          negative after an un-complete. Rendered above the sub-view switch because the
+          edits that produce these warnings happen in Manage, not in Today.
+          Dismissible so the warning is acknowledged explicitly. */}
+      {lastWarning && (
+        <div
+          role="alert"
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+            padding: '12px 14px',
+            background: 'color-mix(in srgb, var(--hs-danger) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)',
+            borderRadius: 10,
+            marginBottom: 10,
+            fontSize: 13,
+            color: 'var(--hs-danger)',
+            lineHeight: 1.4,
+          }}
+        >
+          <span style={{ flex: 1 }}>{lastWarning}</span>
+          <button
+            type="button"
+            onClick={() => setLastWarning(null)}
+            aria-label={t('choresTab.warningDismissAriaLabel')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--hs-danger)',
+              cursor: 'pointer',
+              fontSize: 16,
+              lineHeight: 1,
+              padding: '0 4px',
+              fontWeight: 700,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {subView === 'rewards' ? (
         <RewardsView members={members} accentColor={accentColor} isAdmin={isAdmin} />
       ) : subView === 'manage' ? (
@@ -375,46 +424,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         </div>
       ) : (
         <>
-          {/* Server-side warning banner — e.g. balance went negative after an un-complete.
-              Dismissible so admins acknowledge it explicitly. */}
-          {lastWarning && (
-            <div
-              role="alert"
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 10,
-                padding: '12px 14px',
-                background: 'color-mix(in srgb, var(--hs-danger) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)',
-                borderRadius: 10,
-                marginBottom: 10,
-                fontSize: 13,
-                color: 'var(--hs-danger)',
-                lineHeight: 1.4,
-              }}
-            >
-              <span style={{ flex: 1 }}>{lastWarning}</span>
-              <button
-                type="button"
-                onClick={() => setLastWarning(null)}
-                aria-label={t('choresTab.warningDismissAriaLabel')}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--hs-danger)',
-                  cursor: 'pointer',
-                  fontSize: 16,
-                  lineHeight: 1,
-                  padding: '0 4px',
-                  fontWeight: 700,
-                }}
-              >
-                ×
-              </button>
-            </div>
-          )}
-
           {/* Day history strip */}
           <ChoreHistoryNav
             viewingDate={viewingDate}

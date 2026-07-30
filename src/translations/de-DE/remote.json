@@ -86,7 +86,8 @@
     "ticketCountSingular": "{n} Ticket",
     "ticketCountPlural": "{n} Tickets",
     "choreAriaLabelMarkComplete": "Abhaken: {chore}",
-    "choreAriaLabelCompleted": "Geschafft: {chore}"
+    "choreAriaLabelCompleted": "Geschafft: {chore}",
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
   },
   "choreHistoryNav": {
     "prevMonthAriaLabel": "Vorheriger Monat",
@@ -416,7 +417,8 @@
         "afterRewardSingular": " eingelöst — {n} Ticket",
         "afterRewardPlural": " eingelöst — {n} Tickets"
       }
-    }
+    },
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
   },
   "settingsSheet": {
     "title": "Einstellungen",

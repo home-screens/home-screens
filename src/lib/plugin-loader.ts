@@ -4,8 +4,8 @@ import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import { usePluginStore } from '@/stores/plugin-store';
 import { registerPluginModule } from '@/lib/module-registry';
 import { registerFetchKey } from '@/lib/fetch-keys';
-import { compareSemver } from '@/lib/semver';
 import { displayFetch } from '@/lib/display-fetch';
+import { editorFetch } from '@/lib/editor-fetch';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { pluginStatePrefix } from '@/lib/plugin-state-keys';
 import {
@@ -79,22 +79,40 @@ export async function loadDevPlugin(url: string): Promise<void> {
   // 3. Execute bundle
   const { component, configSection, stateProvider, deriveProvidedKeys, searchStateKeys } = executeBundle(bundleText, manifest);
 
-  // 4. Migrate configs if dev plugin version changed
-  const devPlugins = getDevPlugins();
-  const prev = devPlugins.get(manifest.id);
-  if (prev && prev.manifest.version !== manifest.version) {
-    await migratePluginConfigs(manifest, prev.manifest.version);
+  // 4. Register server-side so the proxy can find the manifest and allowedDomains.
+  // This writes manifest.json to disk, which is the same file the config-migration
+  // route reads, so it has to run *before* the migration in step 5: a dev plugin
+  // that was never installed would otherwise 404, and a previously installed one
+  // would migrate against its stale manifest.
+  let registered = false;
+  try {
+    const devRes = await fetch('/api/plugins/dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manifest }),
+    });
+    registered = devRes.ok;
+  } catch {
+    // Handled below alongside a non-ok response.
   }
-
-  // 5. Register server-side so the proxy can find the manifest and allowedDomains
-  await fetch('/api/plugins/dev', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ manifest }),
-  }).catch(() => {
+  if (!registered) {
     // Non-fatal — proxy features won't work but the plugin will still render
     log.warn(`Failed to register dev plugin "${manifest.id}" server-side — pluginFetch will not work`);
-  });
+  }
+
+  // 5. Migrate configs if dev plugin version changed. Skipped when step 4 failed,
+  // because the on-disk manifest is then stale and migrating from it would apply
+  // the wrong rules rather than none.
+  const devPlugins = getDevPlugins();
+  const prev = devPlugins.get(manifest.id);
+  if (registered && prev && prev.manifest.version !== manifest.version) {
+    const migrated = await migratePluginConfigs(manifest, prev.manifest.version);
+    if (!migrated) {
+      log.warn(
+        `Config migration for dev plugin "${manifest.id}" did not run — module configs may still use the ${prev.manifest.version} shape`,
+      );
+    }
+  }
 
   // 6. Register client-side
   registerPluginModule(manifest, { deriveProvidedKeys, hasStateProvider: Boolean(stateProvider) });
@@ -191,103 +209,28 @@ function stopAllDevPolling(): void {
 // Config migration — deep-merge on version change
 // ---------------------------------------------------------------------------
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/** Deep-merge source into target: new keys get source values, existing keys kept */
-export function deepMergeConfig(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>,
-): Record<string, unknown> {
-  const result = { ...target };
-  for (const key of Object.keys(source)) {
-    if (!(key in result)) {
-      result[key] = source[key];
-    } else if (isPlainObject(result[key]) && isPlainObject(source[key])) {
-      result[key] = deepMergeConfig(
-        result[key] as Record<string, unknown>,
-        source[key] as Record<string, unknown>,
-      );
-    }
-    // else: existing value preserved (including arrays)
-  }
-  return result;
-}
-
-/** Apply version-stepped migrations (renames/defaults) then deep-merge with defaultConfig. */
-export function applyMigrationToModule(
-  config: Record<string, unknown>,
-  manifest: PluginManifest,
-  oldVersion: string,
-): Record<string, unknown> {
-  const result = { ...config };
-
-  if (manifest.configMigrations) {
-    const versions = Object.keys(manifest.configMigrations)
-      .filter((v) => compareSemver(v, oldVersion) > 0 && compareSemver(v, manifest.version) < 0)
-      .sort(compareSemver);
-
-    for (const ver of versions) {
-      const migration = manifest.configMigrations[ver];
-      if (migration.renames) {
-        for (const [oldKey, newKey] of Object.entries(migration.renames)) {
-          if (oldKey in result && !(newKey in result)) {
-            result[newKey] = result[oldKey];
-            delete result[oldKey];
-          }
-        }
-      }
-      if (migration.defaults) {
-        for (const [key, value] of Object.entries(migration.defaults)) {
-          if (!(key in result)) result[key] = value;
-        }
-      }
-    }
-  }
-
-  return deepMergeConfig(result, manifest.defaultConfig);
-}
-
 /**
  * Migrate module configs when a plugin version changes.
  * Returns true if migration succeeded (or no migration was needed),
  * false if it failed and should be retried on next load.
+ *
+ * The migration itself runs server-side (`/api/plugins/migrate-config`) so the
+ * read-modify-write is serialized against editor saves and covers every
+ * display's screens, not just the legacy global pool. Uses `editorFetch` so an
+ * expired session surfaces as a login redirect rather than a migration that
+ * silently "fails" and retries on every subsequent load forever.
  */
 async function migratePluginConfigs(
   manifest: PluginManifest,
   oldVersion: string,
 ): Promise<boolean> {
-  const moduleType = `plugin:${manifest.moduleType}`;
-
   try {
-    const res = await fetch('/api/config');
-    if (!res.ok) return false;
-    const config = await res.json();
-
-    let changed = false;
-    for (const screen of config.screens ?? []) {
-      for (const mod of screen.modules ?? []) {
-        if (mod.type !== moduleType) continue;
-        const originalJson = JSON.stringify(mod.config);
-        const migrated = applyMigrationToModule(mod.config, manifest, oldVersion);
-        if (JSON.stringify(migrated) !== originalJson) {
-          mod.config = migrated;
-          changed = true;
-        }
-      }
-    }
-
-    if (changed) {
-      const putRes = await fetch('/api/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config),
-      });
-      if (!putRes.ok) return false;
-    }
-
-    return true;
+    const res = await editorFetch('/api/plugins/migrate-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pluginId: manifest.id, oldVersion }),
+    });
+    return res.ok;
   } catch (err) {
     log.warn(`Config migration for ${manifest.id} failed:`, err);
     return false;
@@ -964,6 +907,3 @@ export async function reloadPluginTranslations(): Promise<void> {
     }),
   );
 }
-
-// Re-export from @/lib/semver for backward compatibility
-export { compareSemver } from '@/lib/semver';

@@ -139,3 +139,63 @@ export async function followRedirectsWithValidation(
   }
   return { ok: true, response: upstreamRes };
 }
+
+// --- Auth-refresh throttling ---
+//
+// A forced token refresh that still yields a 401 means refreshing cannot fix
+// this request (most often an insufficient-scope 401, which is
+// indistinguishable from an expired token at the HTTP layer). Without a
+// cooldown, a display polling a permanently-401ing endpoint every 60s performs
+// ~1,440 refresh grants a day. Providers that rotate the refresh token on every
+// grant may rate-limit or revoke one that refreshes that abusively, which would
+// take out the user's whole account connection. `refreshSerialized` in
+// plugin-auth.ts collapses *concurrent* refreshes; this bounds them *over time*.
+
+export const REFRESH_COOLDOWN_MS = 5 * 60 * 1000;
+
+const refreshCooldowns = new Map<string, number>();
+
+export function inRefreshCooldown(pluginId: string, now: number = Date.now()): boolean {
+  const until = refreshCooldowns.get(pluginId);
+  if (until === undefined) return false;
+  if (now >= until) {
+    refreshCooldowns.delete(pluginId);
+    return false;
+  }
+  return true;
+}
+
+export function startRefreshCooldown(pluginId: string, now: number = Date.now()): void {
+  refreshCooldowns.set(pluginId, now + REFRESH_COOLDOWN_MS);
+  // Evict expired entries while we're here so the map can't grow unbounded.
+  for (const [id, until] of refreshCooldowns) {
+    if (now >= until) refreshCooldowns.delete(id);
+  }
+}
+
+/** Test seam — clears all cooldown state. */
+export function _resetRefreshCooldowns(): void {
+  refreshCooldowns.clear();
+}
+
+/**
+ * True when a 401 actually indicates a stale token.
+ *
+ * RFC 6750 says a bearer-token error carries `WWW-Authenticate: Bearer
+ * error="invalid_token"`. Treating *every* 401 as staleness makes a permanent
+ * scope error look like an expiry, so an explicit error code that is anything
+ * other than `invalid_token` suppresses the retry.
+ *
+ * The `error` parameter is optional in RFC 6750, and plenty of providers answer
+ * an expired token with a bare `Bearer realm="..."`. Those get the retry, same
+ * as a response with no `WWW-Authenticate` at all — the retry is what recovers
+ * the case where our stored expiry says "valid" but the provider disagrees
+ * (clock skew, early revocation), and there is nothing to lose by trying once.
+ */
+export function looksLikeExpiredToken(res: Response): boolean {
+  const header = res.headers.get('www-authenticate');
+  if (!header) return true;
+  const errorCode = /error\s*=\s*"?([\w-]+)"?/i.exec(header)?.[1];
+  if (!errorCode) return true;
+  return errorCode.toLowerCase() === 'invalid_token';
+}

@@ -229,6 +229,64 @@ export function takeoverDeadline(
  * profile filter (an alert screen may be deliberately excluded from normal
  * rotation).
  */
+/**
+ * Decide which rules are armed after this advance.
+ *
+ * "Armed" means the rule's condition has just made a *fresh edge* into definite
+ * true and is therefore eligible to fire. Extracted from `advanceRuleEngine` so
+ * the branch chain can be tested directly over the tri-state cross product —
+ * the three ordering subtleties below are what the whole feature's correctness
+ * rests on, and each produces a failure that is unreproducible in the field
+ * ("the doorbell screen didn't come up that one time"):
+ *
+ * 1. `contentEdited` is tested BEFORE the `was === false` edge. Otherwise
+ *    autosaving a condition into an already-true state reads as a false→true
+ *    edge and fires the rule mid-edit.
+ * 2. `was === undefined` (a rule new to the engine) falls through silently.
+ *    Otherwise every newly-created rule fires the instant it is created.
+ * 3. The `unknown → true` arm additionally consults `newlyKnown`. Otherwise
+ *    every reboot slams the display onto whichever alert screen happens to have
+ *    been true for days.
+ *
+ * Pure: reads `state` but never mutates it, and returns a fresh Set.
+ */
+export function computeArmed(
+  state: RuleEngineState,
+  rules: readonly DisplayRule[],
+  current: ReadonlyMap<string, boolean | 'unknown'>,
+  fingerprints: ReadonlyMap<string, string>,
+  newlyKnown: ReadonlySet<string>,
+): Set<string> {
+  // Arm on fresh edges into definite true; disarm rules whose condition
+  // left true, that were disabled, or that were deleted from the list.
+  const armed = new Set(state.armed);
+  for (const rule of rules) {
+    const is = current.get(rule.id);
+    const was = state.prev.get(rule.id);
+    // A rule whose condition CONTENT changed since the last advance was just
+    // edited: re-baseline it (like `was === undefined`), never arm on this
+    // advance. Otherwise autosaving a condition into an already-true state
+    // would read as a false→true (or unknown→true) edge and fire mid-edit.
+    const contentEdited =
+      state.prev.has(rule.id) && state.fingerprints.get(rule.id) !== fingerprints.get(rule.id);
+    if (is !== true || rule.enabled === false) {
+      armed.delete(rule.id);
+    } else if (contentEdited) {
+      armed.delete(rule.id);
+    } else if (was === false) {
+      armed.add(rule.id);
+    } else if (was === 'unknown' && !ruleReferencesAny(rule, newlyKnown)) {
+      armed.add(rule.id);
+    }
+    // `was === undefined` — rule new to the engine — is a baseline, never an edge.
+  }
+  // Drop rules that were deleted from the list entirely.
+  for (const id of armed) {
+    if (!current.has(id)) armed.delete(id);
+  }
+  return armed;
+}
+
 export function advanceRuleEngine(
   state: RuleEngineState,
   rules: readonly DisplayRule[],
@@ -271,32 +329,7 @@ export function advanceRuleEngine(
     if (!state.knownKeys.has(key)) newlyKnown.add(key);
   }
 
-  // Arm on fresh edges into definite true; disarm rules whose condition
-  // left true, that were disabled, or that were deleted from the list.
-  const armed = new Set(state.armed);
-  for (const rule of rules) {
-    const is = current.get(rule.id);
-    const was = state.prev.get(rule.id);
-    // A rule whose condition CONTENT changed since the last advance was just
-    // edited: re-baseline it (like `was === undefined`), never arm on this
-    // advance. Otherwise autosaving a condition into an already-true state
-    // would read as a false→true (or unknown→true) edge and fire mid-edit.
-    const contentEdited =
-      state.prev.has(rule.id) && state.fingerprints.get(rule.id) !== fingerprints.get(rule.id);
-    if (is !== true || rule.enabled === false) {
-      armed.delete(rule.id);
-    } else if (contentEdited) {
-      armed.delete(rule.id);
-    } else if (was === false) {
-      armed.add(rule.id);
-    } else if (was === 'unknown' && !ruleReferencesAny(rule, newlyKnown)) {
-      armed.add(rule.id);
-    }
-    // `was === undefined` — rule new to the engine — is a baseline, never an edge.
-  }
-  for (const id of armed) {
-    if (!current.has(id)) armed.delete(id);
-  }
+  const armed = computeArmed(state, rules, current, fingerprints, newlyKnown);
 
   // Maintain the active takeover before considering new firings — an active
   // takeover is never preempted (only released).

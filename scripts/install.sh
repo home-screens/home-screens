@@ -374,6 +374,9 @@ else
   ) &
 fi
 
+# Flag list must stay in step with the hub launcher in upgrade.sh and with
+# start-display.sh. --remote-debugging-port is what lets a deploy reload the
+# page over CDP instead of killing and relaunching the browser.
 exec chromium \
   --app="${TARGET_URL}" \
   --noerrdialogs \
@@ -385,6 +388,7 @@ exec chromium \
   --check-for-update-interval=31536000 \
   --password-store=basic \
   --ozone-platform=wayland \
+  --remote-debugging-port=9222 \
   --ignore-gpu-blocklist \
   --enable-zero-copy \
   --num-raster-threads=2 \

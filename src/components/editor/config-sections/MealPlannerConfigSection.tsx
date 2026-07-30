@@ -1,23 +1,19 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import ViewSelect from '@/components/editor/ViewSelect';
-import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { DEFAULT_ACCENT_COLOR, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { displayCache } from '@/lib/display-cache';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import type {
   ModuleInstance,
   MealPlannerView,
-  MealSettings,
-  SavedMeal,
-  PlannedMeal,
   RecipeTapAction,
 } from '@/types/config';
 
@@ -30,12 +26,6 @@ type Config = {
   tapRecipeAction?: RecipeTapAction;
 };
 
-interface MealsPayload {
-  savedMeals: SavedMeal[];
-  plan: PlannedMeal[];
-  settings: MealSettings;
-}
-
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
@@ -47,85 +37,11 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
     { value: 'list', label: t('configSections.meal-planner.viewList') },
   ];
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<MealsPayload>({
-    savedMeals: [],
-    plan: [],
-    settings: { ...DEFAULT_MEAL_SETTINGS },
+  const { mealData, handleModalUpdate, saveError } = useMealPlannerData<Config>({
+    mod,
+    set,
+    showModal,
   });
-
-  const fetchMealData = useCallback(() => {
-    editorFetch('/api/meals/data')
-      .then((r) => r.json())
-      .then((d) => setMealData({
-        savedMeals: d.savedMeals ?? [],
-        plan: d.plan ?? [],
-        settings: d.settings ?? { ...DEFAULT_MEAL_SETTINGS },
-      }))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
-
-  // Ref for stable closure in handleModalUpdate
-  const mealDataRef = useRef(mealData);
-  mealDataRef.current = mealData;
-
-  // One-time migration: strip stale fields from the in-memory module config.
-  //
-  // The server-side migration (in `parseAndMigrate` / `migrateLegacyMealSettings`)
-  // already harvests any embedded `savedMeals` / `plan` from data/config.json
-  // into the shared meals.json atomically on first read. This effect just
-  // removes the now-orphan fields from the local Zustand store so the next
-  // editor save doesn't persist them again. No network round-trip needed,
-  // which eliminates the race where two mounted meal-planner modules
-  // simultaneously GET-merge-PUT and clobber each other's embedded data.
-  useEffect(() => {
-    const raw = mod.config as Record<string, unknown>;
-    const hasStaleFields = raw?.slots !== undefined || raw?.weekStartDay !== undefined
-      || raw?.savedMeals !== undefined || raw?.plan !== undefined || raw?.previousPlan !== undefined;
-    if (!hasStaleFields) return;
-    set({ savedMeals: undefined, plan: undefined, previousPlan: undefined, slots: undefined, weekStartDay: undefined } as unknown as Config);
-    // Nudge the canvas preview so it re-fetches the (now migrated) meals.json
-    // in case the server just backfilled embedded meals from this module.
-    displayCache.invalidate('/api/meals/data');
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
-    const current = mealDataRef.current;
-    // The modal only edits meals + plan. Don't include `settings` in the PUT body —
-    // the API preserves existing settings when the field is omitted, which avoids
-    // clobbering changes made concurrently from /remote or Settings → Meals since
-    // this panel last fetched (the cached `current.settings` could be stale).
-    const optimistic: MealsPayload = {
-      savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
-      plan: (updates.plan as PlannedMeal[]) ?? current.plan,
-      settings: current.settings, // local optimistic state only — not sent
-    };
-    setMealData(optimistic);
-    try {
-      const res = await editorFetch('/api/meals/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          savedMeals: optimistic.savedMeals,
-          plan: optimistic.plan,
-          // settings deliberately omitted — API preserves existing
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMealData({
-          savedMeals: data.savedMeals,
-          plan: data.plan,
-          // Use the server-returned settings (which may have been updated by
-          // another surface in the meantime) so the local cache stays correct.
-          settings: data.settings ?? optimistic.settings,
-        });
-      }
-      displayCache.invalidate('/api/meals/data');
-    } catch {}
-  }, []);
 
   return (
     <>
@@ -200,6 +116,9 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         >
           {t('configSections.meal-planner.editMealPlan')}
         </Button>
+        {saveError && (
+          <p role="alert" className="text-xs text-hs-danger">{t('common.saveError')}</p>
+        )}
       </div>
 
       {/* Modal */}

@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { test, expect } from '../fixtures';
 import type { APIRequestContext } from '@playwright/test';
-import { putConfig } from '../helpers/api';
+import { putConfig, getConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { MANIFEST as FIXTURE_MANIFEST, BUNDLE as FIXTURE_BUNDLE } from '../helpers/fixture-plugin';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
@@ -260,11 +260,14 @@ function devBundle(label: string): string {
     + `return R.createElement('div',{'data-plugin-marker':'e2e-dev'},'${label}');}};})();`;
 }
 
-/** A dev server whose served bundle can be swapped to simulate an edit. */
-async function startDevServer(): Promise<LocalServer & { setBundle: (label: string) => void }> {
+/** A dev server whose served bundle and manifest can be swapped to simulate an edit. */
+async function startDevServer(): Promise<LocalServer & {
+  setBundle: (label: string) => void;
+  setManifest: (patch: Record<string, unknown>) => void;
+}> {
   let bundle = devBundle('DEV V1');
   let etag = 1;
-  const manifestBody = JSON.stringify(DEV_MANIFEST);
+  let manifestBody = JSON.stringify(DEV_MANIFEST);
   const server = await startServer((req, res) => {
     const url = new URL(req.url ?? '/', 'http://local');
     if (url.pathname === '/manifest.json') {
@@ -291,6 +294,9 @@ async function startDevServer(): Promise<LocalServer & { setBundle: (label: stri
     setBundle: (label: string) => {
       bundle = devBundle(label);
       etag += 1;
+    },
+    setManifest: (patch: Record<string, unknown>) => {
+      manifestBody = JSON.stringify({ ...DEV_MANIFEST, ...patch });
     },
   };
 }
@@ -328,6 +334,62 @@ test('a dev-mode plugin loads from a dev server and re-registers a changed bundl
     dev.setBundle('DEV V2');
     await loadDev();
     await expect(page.locator('[data-plugin-marker="e2e-dev"]')).toHaveText('DEV V2');
+  } finally {
+    await dev.close();
+  }
+});
+
+/**
+ * A dev plugin is not installed on disk until the loader registers it
+ * server-side, and that registration is what writes the manifest the
+ * config-migration route reads. Registering after the migration meant a
+ * never-installed dev plugin 404'd (no migration at all) and a previously
+ * installed one migrated against its stale manifest.
+ */
+test('a dev-plugin version bump migrates module configs', async ({ page, request }) => {
+  const dev = await startDevServer();
+  try {
+    await putConfig(request, baseConfig({
+      settings: { advancedMode: true },
+      screens: [makeScreen('s1', 'S1', [
+        pluginModule('plugin:e2e-dev', { id: 'dev-mod', config: { oldKey: 'keep me' } }),
+      ])],
+    }));
+
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+    const loadDev = async () => {
+      await page.getByRole('button', { name: 'Plugins' }).click();
+      const dialog = page.getByRole('dialog', { name: 'Plugins' });
+      await dialog.getByRole('button', { name: 'Developer' }).click();
+      await dialog.getByPlaceholder('http://localhost:5173').fill(dev.origin);
+      await dialog.getByRole('button', { name: 'Load', exact: true }).click();
+      await expect(dialog.getByText('E2E Dev Plugin')).toBeVisible();
+      await page.getByRole('button', { name: 'Close dialog' }).click();
+      await expect(dialog).toBeHidden();
+    };
+
+    // First load at 1.0.0 — nothing to migrate from, so the config is untouched.
+    await loadDev();
+    await expect(page.locator('[data-plugin-marker="e2e-dev"]')).toHaveText('DEV V1');
+
+    // Bump the manifest and reload. `applyMigrationToModule` runs the migrations
+    // keyed strictly between the old and new versions, so the 1.1.0 rename is the
+    // one that applies on a 1.0.0 → 1.2.0 jump.
+    dev.setManifest({
+      version: '1.2.0',
+      configMigrations: { '1.1.0': { renames: { oldKey: 'newKey' } } },
+    });
+    dev.setBundle('DEV V2');
+    await loadDev();
+    await expect(page.locator('[data-plugin-marker="e2e-dev"]')).toHaveText('DEV V2');
+
+    await expect.poll(async () => {
+      const config = await getConfig(request);
+      const mod = config.screens[0].modules.find((m) => m.id === 'dev-mod');
+      return mod?.config as Record<string, unknown> | undefined;
+    }).toMatchObject({ newKey: 'keep me' });
   } finally {
     await dev.close();
   }

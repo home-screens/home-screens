@@ -1,33 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
-import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
-import { DEFAULT_ACCENT_COLOR, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { displayCache } from '@/lib/display-cache';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
-  MealSettings,
-  SavedMeal,
-  PlannedMeal,
 } from '@/types/config';
 
 type Config = Partial<FullscreenMealPlannerConfig>;
-
-interface MealsPayload {
-  savedMeals: SavedMeal[];
-  plan: PlannedMeal[];
-  settings: MealSettings;
-}
 
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -48,81 +38,11 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   const typographySizeOptions = useTypographySizeOptions();
 
   const [showModal, setShowModal] = useState(false);
-  const [mealData, setMealData] = useState<MealsPayload>({
-    savedMeals: [],
-    plan: [],
-    settings: { ...DEFAULT_MEAL_SETTINGS },
+  const { mealData, handleModalUpdate, saveError } = useMealPlannerData<Config>({
+    mod,
+    set,
+    showModal,
   });
-
-  const fetchMealData = useCallback(() => {
-    editorFetch('/api/meals/data')
-      .then((r) => r.json())
-      .then((d) => setMealData({
-        savedMeals: d.savedMeals ?? [],
-        plan: d.plan ?? [],
-        settings: d.settings ?? { ...DEFAULT_MEAL_SETTINGS },
-      }))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
-
-  // One-time migration: strip stale slots/weekStartDay fields from this
-  // module's in-memory config. These fields used to live on
-  // FullscreenMealPlannerConfig but now come from the shared meals.json
-  // `settings` block. The server migration (parseAndMigrate) atomically
-  // harvests any embedded data from data/config.json on first read, so
-  // this effect only needs to clean up the local Zustand store.
-  useEffect(() => {
-    const raw = mod.config as Record<string, unknown>;
-    if (raw?.slots !== undefined || raw?.weekStartDay !== undefined) {
-      set({ slots: undefined, weekStartDay: undefined } as unknown as Config);
-      displayCache.invalidate('/api/meals/data');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Ref for stable closure in handleModalUpdate
-  const mealDataRef = useRef(mealData);
-  useEffect(() => { mealDataRef.current = mealData; }, [mealData]);
-
-  const handleModalUpdate = useCallback(async (updates: Record<string, unknown>) => {
-    const current = mealDataRef.current;
-    // The modal only edits meals + plan. Don't include `settings` in the PUT body —
-    // the API preserves existing settings when the field is omitted, which avoids
-    // clobbering changes made concurrently from /remote or Settings → Meals since
-    // this panel last fetched (the cached `current.settings` could be stale).
-    const optimistic: MealsPayload = {
-      savedMeals: (updates.savedMeals as SavedMeal[]) ?? current.savedMeals,
-      plan: (updates.plan as PlannedMeal[]) ?? current.plan,
-      settings: current.settings, // local optimistic state only — not sent
-    };
-    // Update local state immediately so the modal reflects changes without waiting for the server
-    setMealData(optimistic);
-    try {
-      const res = await editorFetch('/api/meals/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          savedMeals: optimistic.savedMeals,
-          plan: optimistic.plan,
-          // settings deliberately omitted — API preserves existing
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setMealData({
-          savedMeals: data.savedMeals,
-          plan: data.plan,
-          // Use the server-returned settings (which may have been updated by
-          // another surface in the meantime) so the local cache stays correct.
-          settings: data.settings ?? optimistic.settings,
-        });
-      }
-      // Notify the canvas preview to refetch via displayCache invalidation
-      displayCache.invalidate('/api/meals/data');
-    } catch {}
-  }, []);
 
   return (
     <>
@@ -201,6 +121,9 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         >
           {t('configSections.fullscreen-meal-planner.editMealPlanner')}
         </Button>
+        {saveError && (
+          <p role="alert" className="text-xs text-hs-danger">{t('common.saveError')}</p>
+        )}
       </div>
 
       {/* Mobile hint */}

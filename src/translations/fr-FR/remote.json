@@ -86,7 +86,8 @@
     "ticketCountSingular": "{n} ticket",
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Cocher : {chore}",
-    "choreAriaLabelCompleted": "Fait : {chore}"
+    "choreAriaLabelCompleted": "Fait : {chore}",
+    "saveFailed": "Échec de l'enregistrement. Réessaie."
   },
   "choreHistoryNav": {
     "prevMonthAriaLabel": "Mois précédent",
@@ -416,7 +417,8 @@
         "afterRewardSingular": " — {n} ticket",
         "afterRewardPlural": " — {n} tickets"
       }
-    }
+    },
+    "saveFailed": "Échec de l'enregistrement. Réessaie."
   },
   "settingsSheet": {
     "title": "Paramètres",

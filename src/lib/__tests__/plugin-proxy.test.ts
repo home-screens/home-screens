@@ -12,7 +12,15 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 });
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { isAllowedDomain, followRedirectsWithValidation } from '@/lib/plugin-proxy';
+import {
+  isAllowedDomain,
+  followRedirectsWithValidation,
+  looksLikeExpiredToken,
+  inRefreshCooldown,
+  startRefreshCooldown,
+  _resetRefreshCooldowns,
+  REFRESH_COOLDOWN_MS,
+} from '@/lib/plugin-proxy';
 
 // --- Helpers ---
 
@@ -219,5 +227,113 @@ describe('followRedirectsWithValidation', () => {
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.response.status).toBe(304);
     expect(fetchWithTimeout).toHaveBeenCalledTimes(1);
+  });
+});
+
+/* ─── Auth-refresh throttling ─────────────────────
+ * The proxy used to force-refresh a token on ANY upstream 401, with no check
+ * that a token was even sent and no cooldown. A plugin polling one
+ * permanently-401ing endpoint every 60s performed ~1,440 refresh grants a day;
+ * providers that rotate the refresh token on each grant can revoke the whole
+ * connection for that.
+ */
+
+describe('looksLikeExpiredToken', () => {
+  function resWith(headers: Record<string, string>): Response {
+    return { headers: new Headers(headers) } as unknown as Response;
+  }
+
+  it('treats a missing WWW-Authenticate as possibly-expired (providers vary)', () => {
+    expect(looksLikeExpiredToken(resWith({}))).toBe(true);
+  });
+
+  it('recognises the RFC 6750 invalid_token error', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer error="invalid_token"' }),
+    )).toBe(true);
+  });
+
+  it('recognises invalid_token without quotes', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer error=invalid_token' }),
+    )).toBe(true);
+  });
+
+  it('is case-insensitive', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'BEARER ERROR="INVALID_TOKEN"' }),
+    )).toBe(true);
+  });
+
+  // The whole point: a scope error must not be mistaken for an expiry, because
+  // refreshing cannot possibly fix it.
+  it('rejects an insufficient_scope error', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer error="insufficient_scope"' }),
+    )).toBe(false);
+  });
+
+  it('rejects invalid_request', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer error="invalid_request"' }),
+    )).toBe(false);
+  });
+
+  // The `error` parameter is optional in RFC 6750, and plenty of providers answer
+  // an expired token with a bare challenge. Suppressing the retry there would lose
+  // the only recovery for a token our stored expiry still believes is valid.
+  it('allows a retry on a bare Bearer challenge with no error code', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer realm="api"' }),
+    )).toBe(true);
+  });
+
+  it('allows a retry on a bare Bearer challenge with no parameters at all', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer' }),
+    )).toBe(true);
+  });
+
+  // An unrecognised-but-explicit error code is still an explicit "this is not an
+  // expiry" signal, so it keeps suppressing the retry.
+  it('rejects an unrecognised explicit error code', () => {
+    expect(looksLikeExpiredToken(
+      resWith({ 'WWW-Authenticate': 'Bearer error="account_locked"' }),
+    )).toBe(false);
+  });
+});
+
+describe('refresh cooldown', () => {
+  beforeEach(() => {
+    _resetRefreshCooldowns();
+  });
+
+  it('reports no cooldown for a plugin that never failed', () => {
+    expect(inRefreshCooldown('plugin-a')).toBe(false);
+  });
+
+  it('holds a plugin in cooldown after a failed refresh', () => {
+    startRefreshCooldown('plugin-a', 1_000);
+    expect(inRefreshCooldown('plugin-a', 1_000)).toBe(true);
+    expect(inRefreshCooldown('plugin-a', 1_000 + REFRESH_COOLDOWN_MS - 1)).toBe(true);
+  });
+
+  it('releases the cooldown once the window elapses', () => {
+    startRefreshCooldown('plugin-a', 1_000);
+    expect(inRefreshCooldown('plugin-a', 1_000 + REFRESH_COOLDOWN_MS)).toBe(false);
+  });
+
+  it('scopes cooldowns per plugin', () => {
+    startRefreshCooldown('plugin-a', 1_000);
+    expect(inRefreshCooldown('plugin-a', 1_000)).toBe(true);
+    expect(inRefreshCooldown('plugin-b', 1_000)).toBe(false);
+  });
+
+  it('evicts expired entries rather than growing unbounded', () => {
+    startRefreshCooldown('stale', 0);
+    // A later cooldown for another plugin sweeps the expired entry out.
+    startRefreshCooldown('fresh', REFRESH_COOLDOWN_MS + 1);
+    expect(inRefreshCooldown('stale', REFRESH_COOLDOWN_MS + 1)).toBe(false);
+    expect(inRefreshCooldown('fresh', REFRESH_COOLDOWN_MS + 1)).toBe(true);
   });
 });

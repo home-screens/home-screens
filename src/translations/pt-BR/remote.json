@@ -86,7 +86,8 @@
     "ticketCountSingular": "{n} ticket",
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Marcar como concluída: {chore}",
-    "choreAriaLabelCompleted": "Concluída: {chore}"
+    "choreAriaLabelCompleted": "Concluída: {chore}",
+    "saveFailed": "Falha ao salvar. Tente novamente."
   },
   "choreHistoryNav": {
     "prevMonthAriaLabel": "Mês anterior",
@@ -416,7 +417,8 @@
         "afterRewardSingular": " — {n} ticket",
         "afterRewardPlural": " — {n} tickets"
       }
-    }
+    },
+    "saveFailed": "Falha ao salvar. Tente novamente."
   },
   "settingsSheet": {
     "title": "Configurações",

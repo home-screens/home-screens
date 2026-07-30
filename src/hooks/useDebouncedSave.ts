@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+
+const log = logger('save');
 
 interface UseDebouncedSaveOptions {
   /** Dependencies to watch. When any value in the array changes, schedule a save. */
@@ -31,7 +34,17 @@ interface UseDebouncedSaveOptions {
    * fire it immediately. Default false.
    */
   flushOnUnmount?: boolean;
-  /** Called with any error thrown by `save`. Default: silent. */
+  /**
+   * Called with any error thrown by `save`.
+   *
+   * Defaults to logging rather than silence: a save that fails without a trace
+   * shows the user their edit as applied while the server never received it.
+   * Pass an explicit handler to surface it in the UI as well.
+   *
+   * Note `save` must *reject* to get here — chain `throwIfNotOk` from
+   * `@/lib/editor-fetch` if you use `editorFetch`, which resolves for every
+   * status except 401.
+   */
   onError?: (err: unknown) => void;
 }
 
@@ -122,13 +135,17 @@ export function useDebouncedSave(options: UseDebouncedSaveOptions): UseDebounced
   useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   const runSave = useCallback(() => {
+    const report = (err: unknown) => {
+      if (onErrorRef.current) onErrorRef.current(err);
+      else log.error('Debounced save failed:', err);
+    };
     try {
       const result = saveRef.current();
       if (result && typeof (result as Promise<unknown>).then === 'function') {
-        (result as Promise<unknown>).catch((err) => onErrorRef.current?.(err));
+        (result as Promise<unknown>).catch(report);
       }
     } catch (err) {
-      onErrorRef.current?.(err);
+      report(err);
     }
   }, []);
 

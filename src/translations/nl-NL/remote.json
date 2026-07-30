@@ -86,7 +86,8 @@
     "ticketCountSingular": "{n} ticket",
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Afvinken: {chore}",
-    "choreAriaLabelCompleted": "Klaar: {chore}"
+    "choreAriaLabelCompleted": "Klaar: {chore}",
+    "saveFailed": "Opslaan mislukt. Probeer het opnieuw."
   },
   "choreHistoryNav": {
     "prevMonthAriaLabel": "Vorige maand",
@@ -416,7 +417,8 @@
         "afterRewardSingular": " ingewisseld — {n} ticket",
         "afterRewardPlural": " ingewisseld — {n} tickets"
       }
-    }
+    },
+    "saveFailed": "Opslaan mislukt. Probeer het opnieuw."
   },
   "settingsSheet": {
     "title": "Instellingen",

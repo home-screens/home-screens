@@ -88,6 +88,49 @@ export function getDisplayScreens(display: DisplayNode): Screen[] {
 }
 
 /**
+ * Every screen the installation has, across every display.
+ *
+ * This is the reader for surfaces that ask "does a module of type X exist
+ * anywhere?" — `/remote`, `/chores`, system stats, plugin config migration.
+ * They are display-agnostic by nature, so they must not read `config.screens`
+ * directly: once the user adds a display, `config.screens` becomes a frozen
+ * snapshot that `withActiveScreens` deliberately never writes to again, and
+ * every later edit lands on `config.displays[*].screens`.
+ *
+ * In multi-display mode this counts ONLY the per-display screens, never
+ * `config.screens`, because `addDisplay` seeds the `main` display from the
+ * globals at migration time — including both would double-count. This mirrors
+ * `buildMultiDisplayBreakdown` in `telemetry.ts`, which made the same call for
+ * the same reason.
+ */
+export function getAllScreens(config: ScreenConfiguration): Screen[] {
+  const displays = config.displays;
+  if (!displays || displays.length === 0) return config.screens;
+  return displays.flatMap(getDisplayScreens);
+}
+
+/**
+ * Every profile the installation has, across every display, de-duplicated by id.
+ *
+ * Companion to `getAllScreens` for the same display-agnostic surfaces. Uses
+ * `getDisplayProfiles` per display so the owned → global precedence is applied
+ * exactly once: displays that own a list contribute theirs, displays that do
+ * not contribute the shared pool. De-duplication by id keeps the shared pool
+ * from being counted once per display that inherits it.
+ */
+export function getAllProfiles(config: ScreenConfiguration): Profile[] {
+  const displays = config.displays;
+  if (!displays || displays.length === 0) return config.profiles ?? [];
+  const byId = new Map<string, Profile>();
+  for (const display of displays) {
+    for (const profile of getDisplayProfiles(display, config.profiles)) {
+      if (!byId.has(profile.id)) byId.set(profile.id, profile);
+    }
+  }
+  return [...byId.values()];
+}
+
+/**
  * Pick the effective profile list for a display:
  *
  *   1. `display.profiles` — owned profiles, scoped to this display's screens (preferred)

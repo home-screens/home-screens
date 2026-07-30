@@ -85,6 +85,31 @@ test('admin adds a member and it round-trips to chores.json', async ({ page, req
     .toContain('Charlie');
 });
 
+// The save that fails happens in Manage, so the warning has to be visible in
+// Manage. It previously rendered only inside the Today sub-view's non-empty
+// branch, which is unreachable from here: the member vanished on reload with
+// nothing on screen to say why.
+test('a failed member save warns in the sub-view where the edit happened', async ({ page }) => {
+  await page.route('**/api/chores/data', async (route) => {
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"nope"}' });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.goto('/remote');
+  await openManage(page);
+
+  await page.getByRole('button', { name: 'Members' }).click();
+  await page.getByRole('button', { name: 'Add Member' }).click();
+  await page.getByPlaceholder('Enter name...').fill('Charlie');
+  await page.getByRole('button', { name: 'Add Member' }).last().click();
+
+  // Not getByRole('alert') — Next's route announcer is also role="alert".
+  await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+});
+
 test('admin edits a member name and it round-trips', async ({ page, request }) => {
   await seedChores(request, ONE_MEMBER);
   await page.goto('/remote');

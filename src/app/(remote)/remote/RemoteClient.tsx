@@ -28,6 +28,8 @@ import PhotosTab from './components/PhotosTab';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
+  /** Per-display screen lists, keyed by display id. Authoritative in multi-display mode. */
+  displayScreens: Record<string, Array<{ id: string; name: string }>>;
   /** Global profile pool — used for the All target and legacy single-display installs. */
   profiles: Array<{ id: string; name: string }>;
   /** Global active profile — used for the All target and legacy single-display installs. */
@@ -121,6 +123,14 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     });
   }, [status]);
 
+  // Screens of the display whose status we are showing. The rotation index in
+  // a heartbeat is relative to that display's own screen list, so resolving a
+  // name from any other list (the legacy global pool, or a flat union across
+  // displays) yields the wrong screen name.
+  const targetScreens =
+    (statusPollTarget ? initialData.displayScreens[statusPollTarget] : undefined) ??
+    initialData.screens;
+
   // Merge optimistic overrides into effective status
   const effectiveStatus: DisplayStatus | null = status
     ? {
@@ -131,7 +141,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
             ? {
                 ...status.currentScreen,
                 index: optimistic.screenIndex,
-                name: initialData.screens[optimistic.screenIndex]?.name ?? status.currentScreen.name,
+                name: targetScreens[optimistic.screenIndex]?.name ?? status.currentScreen.name,
               }
             : status.currentScreen,
       }

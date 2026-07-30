@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { deepMergeConfig, compareSemver, applyMigrationToModule } from '../plugin-loader';
+import { deepMergeConfig, applyMigrationToModule, migrateConfigModules } from '../plugin-config-migration';
+import type { ScreenConfiguration, Screen } from '@/types/config';
 import type { PluginManifest } from '@/types/plugins';
 
 /** Build a minimal manifest stub for testing migrations. */
@@ -16,41 +17,6 @@ function stubManifest(overrides: Partial<PluginManifest> = {}): PluginManifest {
     ...overrides,
   } as PluginManifest;
 }
-
-describe('compareSemver', () => {
-  it('returns 0 for equal versions', () => {
-    expect(compareSemver('1.0.0', '1.0.0')).toBe(0);
-    expect(compareSemver('0.16.0', '0.16.0')).toBe(0);
-  });
-
-  it('correctly compares major versions', () => {
-    expect(compareSemver('2.0.0', '1.0.0')).toBeGreaterThan(0);
-    expect(compareSemver('1.0.0', '2.0.0')).toBeLessThan(0);
-  });
-
-  it('correctly compares minor versions', () => {
-    expect(compareSemver('1.2.0', '1.1.0')).toBeGreaterThan(0);
-    expect(compareSemver('1.1.0', '1.2.0')).toBeLessThan(0);
-  });
-
-  it('correctly compares patch versions', () => {
-    expect(compareSemver('1.0.2', '1.0.1')).toBeGreaterThan(0);
-    expect(compareSemver('1.0.1', '1.0.2')).toBeLessThan(0);
-  });
-
-  it('handles double-digit version numbers correctly (not lexicographic)', () => {
-    // This was the original bug: "9.0.0" > "10.0.0" is true lexicographically
-    expect(compareSemver('9.0.0', '10.0.0')).toBeLessThan(0);
-    expect(compareSemver('10.0.0', '9.0.0')).toBeGreaterThan(0);
-    expect(compareSemver('1.9.0', '1.10.0')).toBeLessThan(0);
-    expect(compareSemver('1.0.9', '1.0.10')).toBeLessThan(0);
-  });
-
-  it('handles missing segments gracefully', () => {
-    expect(compareSemver('1.0.0', '1')).toBe(0);
-    expect(compareSemver('1.2', '1.2.0')).toBe(0);
-  });
-});
 
 describe('deepMergeConfig', () => {
   it('adds missing keys from source', () => {
@@ -237,5 +203,93 @@ describe('applyMigrationToModule', () => {
     const original = { a: 1 };
     applyMigrationToModule(original, manifest, '1.0.0');
     expect(original).toEqual({ a: 1 });
+  });
+});
+
+describe('migrateConfigModules', () => {
+  const MIGRATING_MANIFEST = stubManifest({
+    version: '2.0.0',
+    moduleType: 'test',
+    defaultConfig: {},
+    configMigrations: { '1.1.0': { renames: { oldKey: 'newKey' } } },
+  });
+
+  function screenWith(modConfig: Record<string, unknown>): Screen {
+    return {
+      id: 's1',
+      name: 'Screen 1',
+      modules: [{ id: 'm1', type: 'plugin:test', x: 0, y: 0, w: 2, h: 2, config: modConfig }],
+    } as unknown as Screen;
+  }
+
+  function baseConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfiguration {
+    return {
+      version: 4,
+      screens: [],
+      settings: {},
+      ...overrides,
+    } as unknown as ScreenConfiguration;
+  }
+
+  it('migrates modules in the legacy global screen pool', () => {
+    const config = baseConfig({ screens: [screenWith({ oldKey: 'value' })] });
+    const changed = migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0');
+    expect(changed).toBe(true);
+    expect(config.screens[0].modules[0].config).toEqual({ newKey: 'value' });
+  });
+
+  // The bug this function exists to fix: walking only `config.screens` skipped
+  // every instance on every display the user added, because `config.screens`
+  // becomes a frozen snapshot once multi-display is enabled.
+  it('migrates modules owned by a display', () => {
+    const config = baseConfig({
+      screens: [],
+      displays: [
+        { id: 'main', name: 'Main', screens: [screenWith({ oldKey: 'a' })] },
+        { id: 'kitchen', name: 'Kitchen', screens: [screenWith({ oldKey: 'b' })] },
+      ],
+    } as unknown as Partial<ScreenConfiguration>);
+
+    const changed = migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0');
+
+    expect(changed).toBe(true);
+    expect(config.displays![0].screens[0].modules[0].config).toEqual({ newKey: 'a' });
+    expect(config.displays![1].screens[0].modules[0].config).toEqual({ newKey: 'b' });
+  });
+
+  it('migrates the global pool and every display in one pass', () => {
+    const config = baseConfig({
+      screens: [screenWith({ oldKey: 'pool' })],
+      displays: [{ id: 'main', name: 'Main', screens: [screenWith({ oldKey: 'owned' })] }],
+    } as unknown as Partial<ScreenConfiguration>);
+
+    expect(migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0')).toBe(true);
+    expect(config.screens[0].modules[0].config).toEqual({ newKey: 'pool' });
+    expect(config.displays![0].screens[0].modules[0].config).toEqual({ newKey: 'owned' });
+  });
+
+  it('reports no change when nothing needed migrating', () => {
+    const config = baseConfig({
+      displays: [{ id: 'main', name: 'Main', screens: [screenWith({ newKey: 'already' })] }],
+    } as unknown as Partial<ScreenConfiguration>);
+    expect(migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0')).toBe(false);
+  });
+
+  it('ignores modules belonging to other plugins', () => {
+    const other = {
+      id: 's1',
+      name: 'Screen 1',
+      modules: [{ id: 'm1', type: 'plugin:other', x: 0, y: 0, w: 2, h: 2, config: { oldKey: 'x' } }],
+    } as unknown as Screen;
+    const config = baseConfig({ screens: [other] });
+    expect(migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0')).toBe(false);
+    expect(config.screens[0].modules[0].config).toEqual({ oldKey: 'x' });
+  });
+
+  it('tolerates displays and screens with no modules array', () => {
+    const config = baseConfig({
+      displays: [{ id: 'main', name: 'Main', screens: [{ id: 's', name: 'S' }] }],
+    } as unknown as Partial<ScreenConfiguration>);
+    expect(() => migrateConfigModules(config, MIGRATING_MANIFEST, '1.0.0')).not.toThrow();
   });
 });

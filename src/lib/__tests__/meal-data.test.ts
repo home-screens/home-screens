@@ -244,6 +244,47 @@ describe('legacy meal-settings migration from data/config.json', () => {
     expect(data.settings.enabledSlots).toEqual(['lunch', 'dinner']);
   });
 
+  /**
+   * In multi-display mode `config.screens` is a frozen snapshot and every later
+   * edit lands on `displays[*].screens`, so a meal-planner module can exist only
+   * there. Missing it here loses the data outright — the client strips the legacy
+   * embedded fields from the module config on mount regardless of whether the
+   * server harvested them first.
+   */
+  it('harvests from a display-owned screen in multi-display mode', async () => {
+    const dataDir = path.join(tmpDir, 'data');
+    await fs.mkdir(dataDir, { recursive: true });
+    await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [{
+          id: 'screen1',
+          name: 'Default',
+          modules: [{
+            type: 'meal-planner',
+            config: {
+              weekStartDay: 'monday',
+              slots: ['breakfast', 'dinner'],
+              savedMeals: [{ id: 'm1', name: 'Tacos' }],
+            },
+          }],
+        }],
+      }],
+    }));
+    await fs.writeFile(path.join(dataDir, 'meals.json'), JSON.stringify({
+      savedMeals: [],
+      plan: [],
+      groceryChecked: [],
+    }));
+
+    const data = await readMealData();
+    expect(data.settings.weekStartDay).toBe('monday');
+    expect(data.settings.enabledSlots).toEqual(['breakfast', 'dinner']);
+    expect(data.savedMeals.map((m) => m.name)).toEqual(['Tacos']);
+  });
+
   it('takes the largest slot set when multiple modules disagree', async () => {
     await writeLegacyConfig([
       { type: 'meal-planner', config: { slots: ['breakfast', 'dinner'] } },

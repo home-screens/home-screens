@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
@@ -896,6 +896,7 @@ export default function ChoreChartModal({
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [showAddChore, setShowAddChore] = useState(false);
@@ -925,9 +926,18 @@ export default function ChoreChartModal({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ members, chores }),
-      }).then(() => {
-        displayCache.invalidate('/api/chores/data');
-      }),
+      })
+        .then(throwIfNotOk)
+        .then(() => {
+          setSaveError(false);
+          displayCache.invalidate('/api/chores/data');
+        }),
+    // The read path above already surfaced failures via `loadError`; the write
+    // path checked nothing, so a 500 left the edit on screen and gone on reload.
+    onError: (err) => {
+      if (isSessionExpired(err)) return;
+      setSaveError(true);
+    },
   });
 
   // ── Member CRUD ──
@@ -990,6 +1000,11 @@ export default function ChoreChartModal({
       {loadError && (
         <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
           {t('choreChartModal.loadError')}
+        </div>
+      )}
+      {saveError && (
+        <div role="alert" className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
+          {t('common.saveError')}
         </div>
       )}
       <div className="flex flex-1 min-h-0">

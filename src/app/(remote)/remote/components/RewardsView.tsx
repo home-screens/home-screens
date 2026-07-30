@@ -5,7 +5,7 @@ import { Plus, Minus } from 'lucide-react';
 import type { ChoreMember } from '@/types/config';
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
@@ -37,6 +37,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
   const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
+  const [saveError, setSaveError] = useState(false);
 
   // ── Fetch ──
   const fetchData = useCallback(async () => {
@@ -101,33 +102,50 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
     setRedeemTarget(null);
   };
 
+  /**
+   * Persist a rewards list, rolling back to `snapshot` if the write fails.
+   *
+   * `editorFetch` resolves for every status except 401, so omitting the
+   * `res.ok` check treated a 500 as success: a saved reward vanished on
+   * reload, and a deleted one came back. These are surfaces children use, so
+   * phantom state here is the worst place for it.
+   */
+  const persistRewards = async (updated: RewardDefinition[], snapshot: RewardsData | null) => {
+    setSaveError(false);
+    try {
+      const res = await editorFetch('/api/rewards/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewards: updated }),
+      });
+      if (!res.ok) {
+        setData(snapshot);
+        setSaveError(true);
+      }
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      setData(snapshot);
+      setSaveError(true);
+    }
+  };
+
   const handleSaveReward = async (reward: RewardDefinition) => {
+    const snapshot = data;
     const existing = data?.rewards ?? [];
     const updated = editingReward === 'new'
       ? [...existing, reward]
       : existing.map((r) => (r.id === reward.id ? reward : r));
     setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [] }));
     setEditingReward(null);
-    try {
-      await editorFetch('/api/rewards/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewards: updated }),
-      });
-    } catch { /* silent */ }
+    await persistRewards(updated, snapshot);
   };
 
   const handleDeleteReward = async (id: string) => {
+    const snapshot = data;
     const updated = (data?.rewards ?? []).filter((r) => r.id !== id);
     setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [] }));
     setEditingReward(null);
-    try {
-      await editorFetch('/api/rewards/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewards: updated }),
-      });
-    } catch { /* silent */ }
+    await persistRewards(updated, snapshot);
   };
 
   const handleAdjust = async (memberId: string, amount: number) => {
@@ -185,6 +203,23 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
   // ── Render ──
   return (
     <div>
+      {saveError && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: 12,
+            padding: '8px 12px',
+            borderRadius: 8,
+            background: 'color-mix(in srgb, var(--hs-danger) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--hs-danger) 30%, transparent)',
+            color: 'var(--hs-danger)',
+            fontSize: 12,
+          }}
+        >
+          {t('rewardsView.saveFailed')}
+        </div>
+      )}
+
       {/* Inner toggle: Redeem / Manage / History */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 14, padding: '0 2px' }}>
         {(isAdmin ? ['redeem', 'rewards', 'balances', 'history'] as InnerView[] : ['redeem', 'history'] as InnerView[]).map((v) => (

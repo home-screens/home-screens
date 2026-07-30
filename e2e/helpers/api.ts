@@ -33,7 +33,17 @@ export const CHORE_DATA = {
 };
 
 export async function seedChores(request: APIRequestContext, data: unknown = CHORE_DATA): Promise<void> {
-  const res = await request.put('/api/chores/data', { data });
+  // Clearing the store needs `force`, same as ChoresTab's own save: the route
+  // refuses an empty payload over non-empty data. Specs that seed an empty
+  // store (the empty-state suite) are doing it deliberately, and the worker's
+  // sandbox persists across tests, so without this they 409 whenever an
+  // earlier spec left chores behind.
+  const d = data as { members?: unknown[]; chores?: unknown[] } | null;
+  const isEmpty = Array.isArray(d?.members) && d.members.length === 0
+    && Array.isArray(d?.chores) && d.chores.length === 0;
+  const res = await request.put('/api/chores/data', {
+    data: isEmpty ? { ...d, force: true } : data,
+  });
   expect(res.ok()).toBe(true);
 }
 
@@ -58,7 +68,14 @@ export function mealData() {
 }
 
 export async function seedMeals(request: APIRequestContext, data: unknown = mealData()): Promise<void> {
-  const res = await request.put('/api/meals/data', { data });
+  // `force` for the same reason as seedChores — /api/meals/data carries the
+  // identical empty-overwrite guard.
+  const d = data as { savedMeals?: unknown[]; plan?: unknown[] } | null;
+  const isEmpty = Array.isArray(d?.savedMeals) && d.savedMeals.length === 0
+    && Array.isArray(d?.plan) && d.plan.length === 0;
+  const res = await request.put('/api/meals/data', {
+    data: isEmpty ? { ...d, force: true } : data,
+  });
   expect(res.ok()).toBe(true);
 }
 

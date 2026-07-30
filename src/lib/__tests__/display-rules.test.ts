@@ -5,6 +5,7 @@ import {
   MIN_WHILE_HOLD_MS,
   advanceRuleEngine,
   collectRuleSourceKeys,
+  computeArmed,
   createRuleEngineState,
   evaluateRuleCondition,
   releaseTakeover,
@@ -706,5 +707,180 @@ describe('takeoverDeadline', () => {
     ws = step(ws, [whileRule], { [KEY]: 'on' }, 1_000).next;
     expect(takeoverDeadline(ws, [whileRule], states({ [KEY]: 'on' }))).toBeNull();
     expect(takeoverDeadline(ws, [whileRule], states({ [KEY]: 'off' }))).toBe(1_000 + MIN_WHILE_HOLD_MS);
+  });
+});
+
+/* ─── computeArmed: the arming branch chain in isolation ─────────────────
+ *
+ * The whole rules feature rests on three ordering subtleties inside this chain,
+ * and each failure mode is unreproducible in the field ("the doorbell screen
+ * didn't come up that one time"). Testing the chain directly over the tri-state
+ * cross product is what stops them being tribal knowledge.
+ */
+
+describe('computeArmed', () => {
+  const RULE_ID = 'r';
+
+  /** Build an engine state directly so each arm can be hit without driving a poll. */
+  function stateWith(opts: {
+    prev?: Map<string, boolean | 'unknown'>;
+    fingerprints?: Map<string, string>;
+    armed?: Set<string>;
+    knownKeys?: Set<string>;
+  }): RuleEngineState {
+    return {
+      initialized: true,
+      prev: opts.prev ?? new Map(),
+      fingerprints: opts.fingerprints ?? new Map(),
+      knownKeys: opts.knownKeys ?? new Set([KEY]),
+      armed: opts.armed ?? new Set(),
+      takeover: null,
+      lastFiredAt: new Map(),
+    } as unknown as RuleEngineState;
+  }
+
+  const FP = 'fp-original';
+  function currentMap(v: boolean | 'unknown'): Map<string, boolean | 'unknown'> {
+    return new Map([[RULE_ID, v]]);
+  }
+  const fpMap = (fp = FP) => new Map([[RULE_ID, fp]]);
+
+  /* --- the tri-state edge table --- */
+
+  const EDGE_TABLE: Array<{
+    was: boolean | 'unknown' | undefined;
+    is: boolean | 'unknown';
+    armed: boolean;
+    why: string;
+  }> = [
+    { was: false, is: true, armed: true, why: 'false→true is the canonical firing edge' },
+    { was: 'unknown', is: true, armed: true, why: 'unknown→true fires when no key just arrived' },
+    { was: true, is: true, armed: false, why: 'true→true is not an edge' },
+    { was: false, is: false, armed: false, why: 'never true, never armed' },
+    { was: true, is: false, armed: false, why: 'leaving true disarms' },
+    { was: true, is: 'unknown', armed: false, why: 'going undecidable disarms' },
+    { was: false, is: 'unknown', armed: false, why: 'undecidable is not true' },
+    // Subtlety 2: a rule new to the engine must be a baseline, never an edge.
+    { was: undefined, is: true, armed: false, why: 'a newly-created rule must not fire on creation' },
+    { was: undefined, is: false, armed: false, why: 'new rule, not true' },
+  ];
+
+  for (const { was, is, armed, why } of EDGE_TABLE) {
+    it(`${String(was)} → ${String(is)} ⇒ ${armed ? 'armed' : 'not armed'} (${why})`, () => {
+      const prev = was === undefined
+        ? new Map<string, boolean | 'unknown'>()
+        : new Map<string, boolean | 'unknown'>([[RULE_ID, was]]);
+      const result = computeArmed(
+        stateWith({ prev, fingerprints: was === undefined ? new Map() : fpMap() }),
+        [makeRule({ id: RULE_ID })],
+        currentMap(is),
+        fpMap(),
+        new Set(),
+      );
+      expect(result.has(RULE_ID)).toBe(armed);
+    });
+  }
+
+  /* --- Subtlety 1: contentEdited must be tested before the false→true edge --- */
+
+  it('does not arm when the condition content changed, even on a false→true edge', () => {
+    const result = computeArmed(
+      stateWith({
+        prev: new Map([[RULE_ID, false]]),
+        fingerprints: fpMap('fp-before-edit'),
+      }),
+      [makeRule({ id: RULE_ID })],
+      currentMap(true),
+      fpMap('fp-after-edit'),
+      new Set(),
+    );
+    expect(result.has(RULE_ID)).toBe(false);
+  });
+
+  it('disarms an already-armed rule whose condition was just edited', () => {
+    const result = computeArmed(
+      stateWith({
+        prev: new Map([[RULE_ID, true]]),
+        fingerprints: fpMap('fp-before-edit'),
+        armed: new Set([RULE_ID]),
+      }),
+      [makeRule({ id: RULE_ID })],
+      currentMap(true),
+      fpMap('fp-after-edit'),
+      new Set(),
+    );
+    expect(result.has(RULE_ID)).toBe(false);
+  });
+
+  /* --- Subtlety 3: unknown→true must consult newlyKnown --- */
+
+  it('does NOT arm on unknown→true when one of the rule\'s keys just arrived', () => {
+    // A provider's first publish can be days stale; treating it as an edge
+    // slams the display onto that alert screen on every reboot.
+    const result = computeArmed(
+      stateWith({ prev: new Map([[RULE_ID, 'unknown']]), fingerprints: fpMap() }),
+      [makeRule({ id: RULE_ID })],
+      currentMap(true),
+      fpMap(),
+      new Set([KEY]),
+    );
+    expect(result.has(RULE_ID)).toBe(false);
+  });
+
+  it('arms on unknown→true when the newly-known key is unrelated to the rule', () => {
+    const result = computeArmed(
+      stateWith({ prev: new Map([[RULE_ID, 'unknown']]), fingerprints: fpMap() }),
+      [makeRule({ id: RULE_ID })],
+      currentMap(true),
+      fpMap(),
+      new Set([KEY2]),
+    );
+    expect(result.has(RULE_ID)).toBe(true);
+  });
+
+  it('still arms on false→true even when a key just arrived (only unknown→true consults it)', () => {
+    const result = computeArmed(
+      stateWith({ prev: new Map([[RULE_ID, false]]), fingerprints: fpMap() }),
+      [makeRule({ id: RULE_ID })],
+      currentMap(true),
+      fpMap(),
+      new Set([KEY]),
+    );
+    expect(result.has(RULE_ID)).toBe(true);
+  });
+
+  /* --- disabled and deleted rules --- */
+
+  it('never arms a disabled rule, and disarms one that was just disabled', () => {
+    const result = computeArmed(
+      stateWith({
+        prev: new Map([[RULE_ID, false]]),
+        fingerprints: fpMap(),
+        armed: new Set([RULE_ID]),
+      }),
+      [makeRule({ id: RULE_ID, enabled: false })],
+      currentMap(true),
+      fpMap(),
+      new Set(),
+    );
+    expect(result.has(RULE_ID)).toBe(false);
+  });
+
+  it('drops a rule that was deleted from the list entirely', () => {
+    const result = computeArmed(
+      stateWith({ prev: new Map([[RULE_ID, true]]), armed: new Set([RULE_ID]) }),
+      [],
+      new Map(),
+      new Map(),
+      new Set(),
+    );
+    expect(result.has(RULE_ID)).toBe(false);
+  });
+
+  it('does not mutate the incoming state\'s armed set', () => {
+    const armed = new Set([RULE_ID]);
+    const state = stateWith({ prev: new Map([[RULE_ID, true]]), armed });
+    computeArmed(state, [], new Map(), new Map(), new Set());
+    expect(armed.has(RULE_ID)).toBe(true);
   });
 });

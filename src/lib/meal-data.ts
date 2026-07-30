@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType } from '@/types/config';
 import { createJsonStore } from './json-store';
 import { readConfig } from './config';
+import { getAllScreens } from './display-filter';
 import { toISODate, DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from './meal-constants';
 import { logger } from '@/lib/logger';
 
@@ -113,7 +114,12 @@ async function migrateLegacyMealSettings(): Promise<LegacyMealBackfill> {
   }
 
   const mealConfigs: Record<string, unknown>[] = [];
-  for (const screen of config.screens ?? []) {
+  // `getAllScreens`, not `config.screens` — in multi-display mode the legacy pool
+  // is not what renders, so a meal-planner module can live only on a display's
+  // own screens. Missing it here loses the data outright: the client strips the
+  // legacy embedded fields from the module config on mount whether or not the
+  // server harvested them first.
+  for (const screen of getAllScreens(config)) {
     for (const mod of screen.modules ?? []) {
       if (mod.type !== 'meal-planner' && mod.type !== 'fullscreen-meal-planner') continue;
       // The typed config from readConfig has `mod.config` as a per-module union;

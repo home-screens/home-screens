@@ -21,3 +21,18 @@ export async function editorFetch(url: string, options?: RequestInit): Promise<R
 export function isSessionExpired(e: unknown): boolean {
   return e instanceof Error && e.message === SESSION_EXPIRED_MESSAGE;
 }
+
+/**
+ * Convert a non-2xx response into a rejection.
+ *
+ * `editorFetch` resolves normally for every status except 401, so any caller
+ * that relies on promise rejection to detect failure — notably
+ * `useDebouncedSave`, which only routes a *rejected* promise to `onError` —
+ * silently treats a 500 as success. Chain this to opt into rejection:
+ *
+ *     editorFetch(url, { method: 'PUT', ... }).then(throwIfNotOk)
+ */
+export function throwIfNotOk(res: Response): Response {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res;
+}

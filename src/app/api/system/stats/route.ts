@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { withAuth } from '@/lib/api-utils';
 import { readConfig } from '@/lib/config';
+import { getAllProfiles, getAllScreens } from '@/lib/display-filter';
 import { getSecretStatus } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
@@ -67,8 +68,10 @@ export const GET = withAuth(async () => {
     getLocalHardwareStats().catch(() => null),
   ]);
 
-  // Count modules across all screens
-  const screens = config?.screens ?? [];
+  // Count modules across all screens on every display. Reading
+  // `config.screens` directly would report a frozen snapshot in
+  // multi-display mode, so stats would stop moving as the user edits.
+  const screens = config ? getAllScreens(config) : [];
   const moduleTypeCounts: Record<string, number> = {};
   let totalModules = 0;
   for (const screen of screens) {
@@ -113,7 +116,7 @@ export const GET = withAuth(async () => {
       screens: screens.length,
       modules: totalModules,
       moduleTypes: moduleTypeCounts,
-      profiles: config?.profiles?.length ?? 0,
+      profiles: config ? getAllProfiles(config).length : 0,
       configuredSecrets,
       configSize,
     },

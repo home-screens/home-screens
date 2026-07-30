@@ -9,6 +9,8 @@ import {
   findScreenById,
   getDisplayScreens,
   getDisplayProfiles,
+  getAllScreens,
+  getAllProfiles,
   findMainDisplay,
   isMainDisplay,
   pruneDanglingScreenRefs,
@@ -1334,5 +1336,93 @@ describe('validateModuleVisibility', () => {
       screens: [],
       displays: [{ id: 'kitchen', name: 'Kitchen', screens: [ownedScreen] }],
     }))).toMatch(/display "kitchen" screen "k-s1" module "m1"/);
+  });
+});
+
+/* ─── getAllScreens / getAllProfiles ─────────────── */
+
+describe('getAllScreens', () => {
+  it('returns the legacy global pool when no displays are registered', () => {
+    const config = makeConfig({ screens: [makeScreen('a'), makeScreen('b')] });
+    expect(getAllScreens(config).map((s) => s.id)).toEqual(['a', 'b']);
+  });
+
+  it('returns the legacy global pool when the displays array is empty', () => {
+    const config = makeConfig({ screens: [makeScreen('a')], displays: [] });
+    expect(getAllScreens(config).map((s) => s.id)).toEqual(['a']);
+  });
+
+  // The bug these readers exist to fix: once a display is added, config.screens
+  // is a frozen snapshot that withActiveScreens deliberately never writes to,
+  // so anything reading it stops seeing the user's edits.
+  it('unions every display\'s screens once displays exist', () => {
+    const config = makeConfig({
+      screens: [makeScreen('stale')],
+      displays: [
+        { id: 'main', name: 'Main', screens: [makeScreen('m1'), makeScreen('m2')] } as DisplayNode,
+        { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k1')] } as DisplayNode,
+      ],
+    });
+    expect(getAllScreens(config).map((s) => s.id)).toEqual(['m1', 'm2', 'k1']);
+  });
+
+  it('excludes the frozen global pool so main\'s inherited screens are not double-counted', () => {
+    const inherited = makeScreen('shared');
+    const config = makeConfig({
+      screens: [inherited],
+      displays: [{ id: 'main', name: 'Main', screens: [inherited] } as DisplayNode],
+    });
+    expect(getAllScreens(config)).toHaveLength(1);
+  });
+
+  it('returns an empty list when displays exist but own no screens', () => {
+    const config = makeConfig({
+      screens: [makeScreen('stale')],
+      displays: [{ id: 'main', name: 'Main', screens: [] } as DisplayNode],
+    });
+    expect(getAllScreens(config)).toEqual([]);
+  });
+});
+
+describe('getAllProfiles', () => {
+  it('returns the global pool when no displays are registered', () => {
+    const config = makeConfig({ profiles: [makeProfile('p1'), makeProfile('p2')] });
+    expect(getAllProfiles(config).map((p) => p.id)).toEqual(['p1', 'p2']);
+  });
+
+  it('returns an empty list when there are no profiles at all', () => {
+    expect(getAllProfiles(makeConfig())).toEqual([]);
+  });
+
+  it('counts the shared pool once, not once per inheriting display', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('shared')],
+      displays: [
+        { id: 'main', name: 'Main', screens: [] } as DisplayNode,
+        { id: 'kitchen', name: 'Kitchen', screens: [] } as DisplayNode,
+      ],
+    });
+    expect(getAllProfiles(config).map((p) => p.id)).toEqual(['shared']);
+  });
+
+  it('unions owned profiles with the pool inherited by other displays', () => {
+    const config = makeConfig({
+      profiles: [makeProfile('shared')],
+      displays: [
+        { id: 'main', name: 'Main', screens: [], profiles: [makeProfile('owned')] } as DisplayNode,
+        { id: 'kitchen', name: 'Kitchen', screens: [] } as DisplayNode,
+      ],
+    });
+    expect(getAllProfiles(config).map((p) => p.id).sort()).toEqual(['owned', 'shared']);
+  });
+
+  it('de-duplicates profiles owned under the same id by two displays', () => {
+    const config = makeConfig({
+      displays: [
+        { id: 'main', name: 'Main', screens: [], profiles: [makeProfile('dup')] } as DisplayNode,
+        { id: 'kitchen', name: 'Kitchen', screens: [], profiles: [makeProfile('dup')] } as DisplayNode,
+      ],
+    });
+    expect(getAllProfiles(config).map((p) => p.id)).toEqual(['dup']);
   });
 });

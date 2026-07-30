@@ -86,7 +86,8 @@
     "ticketCountSingular": "{n} billet",
     "ticketCountPlural": "{n} billetter",
     "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
-    "choreAriaLabelCompleted": "Afsluttet: {chore}"
+    "choreAriaLabelCompleted": "Afsluttet: {chore}",
+    "saveFailed": "Failed to save. Please try again."
   },
   "choreHistoryNav": {
     "prevMonthAriaLabel": "Forrige måned",
@@ -416,7 +417,8 @@
         "afterRewardSingular": " — {n} ticket",
         "afterRewardPlural": " — {n} tickets"
       }
-    }
+    },
+    "saveFailed": "Failed to save. Please try again."
   },
   "settingsSheet": {
     "title": "Indstillinger",
