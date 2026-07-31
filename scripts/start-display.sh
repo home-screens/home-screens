@@ -52,19 +52,10 @@ fi
 rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
 
 echo "Launching Chromium in app mode..."
-chromium \
-  --app=http://localhost:${PORT}/display \
-  --noerrdialogs \
-  --disable-infobars \
-  --no-first-run \
-  --disable-session-crashed-bubble \
-  --disable-translate \
-  --autoplay-policy=no-user-gesture-required \
-  --remote-debugging-port=9222 \
-  --ignore-gpu-blocklist \
-  --enable-zero-copy \
-  --num-raster-threads=2 \
-  --force-gpu-mem-available-mb=256 &
+# Flags come from lib/common.sh. The Pi-only list is deliberately not used
+# here: this script also runs on developer machines, where --ozone-platform=wayland
+# would fail.
+chromium --app=http://localhost:${PORT}/display "${CHROMIUM_KIOSK_FLAGS[@]}" &
 BROWSER_PID=$!
 
 echo "Display running. Press Ctrl+C to stop."

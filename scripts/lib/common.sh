@@ -137,6 +137,45 @@ ensure_npm_floor() {
   info "npm $(npm --version) installed."
 }
 
+# --- Chromium kiosk flags ---
+#
+# The kiosk browser invocation is emitted or executed from five places: the
+# display-only launcher (install.sh), the hub launcher (upgrade.sh setup-system),
+# upgrade.sh's reload-browser relaunch fallback (twice, with and without
+# dbus-run-session), and start-display.sh. They drift: --remote-debugging-port
+# went missing from the display-only launcher, and that is the flag letting a
+# deploy reload the page over CDP instead of killing and relaunching Chromium.
+#
+# Two lists, because one difference between the copies is legitimate rather than
+# drift. CHROMIUM_KIOSK_FLAGS are safe anywhere, including a developer machine.
+# CHROMIUM_KIOSK_PI_FLAGS assume the Pi's Wayland session, so start-display.sh
+# deliberately omits them: --ozone-platform=wayland fails outright on a macOS or
+# X11 dev box.
+#
+# NOTE: upgrade.sh sources this file conditionally (`[ -f ... ] && source`), and
+# that really does continue with these undefined when the file is absent. Any
+# use of these from upgrade.sh must either guard, or make that source
+# unconditional first.
+CHROMIUM_KIOSK_FLAGS=(
+  --noerrdialogs
+  --disable-infobars
+  --no-first-run
+  --disable-session-crashed-bubble
+  --disable-translate
+  --autoplay-policy=no-user-gesture-required
+  --remote-debugging-port=9222
+  --ignore-gpu-blocklist
+  --enable-zero-copy
+  --num-raster-threads=2
+  --force-gpu-mem-available-mb=256
+)
+
+CHROMIUM_KIOSK_PI_FLAGS=(
+  --check-for-update-interval=31536000
+  --password-store=basic
+  --ozone-platform=wayland
+)
+
 # --- Kiosk block management ---
 
 write_kiosk_block() {

@@ -287,6 +287,135 @@ export function computeArmed(
   return armed;
 }
 
+/**
+ * Phase 1 — evaluate every rule's condition against the bus snapshot, and
+ * fingerprint its condition content so a later advance can tell "the user
+ * edited this rule" apart from "the world changed". Pure.
+ */
+export function computeCurrent(
+  rules: readonly DisplayRule[],
+  states: ReadonlyMap<string, SharedStateEntry>,
+  nowDate: Date,
+): { current: Map<string, boolean | 'unknown'>; fingerprints: Map<string, string> } {
+  const current = new Map<string, boolean | 'unknown'>();
+  const fingerprints = new Map<string, string>();
+  for (const rule of rules) {
+    current.set(rule.id, evaluateRuleCondition(rule, states, nowDate));
+    fingerprints.set(rule.id, conditionFingerprint(rule));
+  }
+  return { current, fingerprints };
+}
+
+/**
+ * Phase 4 — decide whether a takeover carried in from a previous advance
+ * survives this one. An active takeover is never preempted, only released, so
+ * this runs BEFORE any new firing is considered.
+ *
+ * Four release reasons, in priority order:
+ *   1. the target screen was deleted or disabled mid-takeover
+ *   2. the firing rule was deleted or switched off (the natural way to kill a
+ *      misfiring takeover; releases in both modes, because the minimum hold
+ *      protects against condition flaps, not against config edits)
+ *   3. `for` mode: its `until` deadline passed
+ *   4. `while` mode: the condition stopped holding AND the minimum hold elapsed
+ *
+ * Pure. Returns the surviving takeover, or null.
+ */
+export function maintainTakeover(
+  takeover: ActiveTakeover | null,
+  rules: readonly DisplayRule[],
+  current: ReadonlyMap<string, boolean | 'unknown'>,
+  renderableScreenIds: ReadonlySet<string>,
+  now: number,
+): ActiveTakeover | null {
+  if (!takeover) return null;
+
+  if (!renderableScreenIds.has(takeover.screenId)) return null;
+
+  const rule = rules.find((r) => r.id === takeover.ruleId);
+  if (!rule || rule.enabled === false) return null;
+
+  if (takeover.mode === 'for') {
+    if (takeover.until !== undefined && now >= takeover.until) return null;
+    return takeover;
+  }
+
+  const conditionHolds = current.get(rule.id) === true;
+  const holdElapsed = now - takeover.startedAt >= MIN_WHILE_HOLD_MS;
+  if (!conditionHolds && holdElapsed) return null;
+  return takeover;
+}
+
+/**
+ * Phase 5 — fire the armed rules, in list order.
+ *
+ * `wake`/`sleep` actions do not contend for the render, so they skip the
+ * takeover gate and fire immediately (still subject to their own cooldown).
+ * `showScreen` is blocked by an active takeover, and crucially does NOT consume
+ * its arming when blocked: the rule stays armed and fires at release if its
+ * condition still holds. Every other showScreen outcome (cooldown, missing
+ * target, success) does consume it.
+ *
+ * The first armed showScreen rule in list order wins; later showScreen rules
+ * then hit the takeover gate this function just closed.
+ *
+ * Pure: copies `armed` and `lastFiredAt` rather than mutating the caller's.
+ */
+export function fireArmed(
+  armedIn: ReadonlySet<string>,
+  rules: readonly DisplayRule[],
+  takeoverIn: ActiveTakeover | null,
+  lastFiredAtIn: ReadonlyMap<string, number>,
+  renderableScreenIds: ReadonlySet<string>,
+  now: number,
+): {
+  armed: Set<string>;
+  takeover: ActiveTakeover | null;
+  lastFiredAt: Map<string, number>;
+  wake: boolean;
+  sleep: boolean;
+} {
+  const armed = new Set(armedIn);
+  const lastFiredAt = new Map(lastFiredAtIn);
+  let takeover = takeoverIn;
+  let wake = false;
+  let sleep = false;
+
+  for (const rule of rules) {
+    if (!armed.has(rule.id)) continue;
+
+    if (rule.action.kind === 'wake' || rule.action.kind === 'sleep') {
+      armed.delete(rule.id);
+      if (!inCooldown(rule, lastFiredAt, now)) {
+        lastFiredAt.set(rule.id, now);
+        if (rule.action.kind === 'wake') wake = true;
+        else sleep = true;
+      }
+      continue;
+    }
+
+    if (takeover) continue; // blocked, arming deliberately preserved
+
+    armed.delete(rule.id); // every outcome below consumes the arming
+
+    if (inCooldown(rule, lastFiredAt, now)) continue; // swallowed, not deferred
+    if (!renderableScreenIds.has(rule.action.screenId)) continue; // target gone
+
+    lastFiredAt.set(rule.id, now);
+    takeover = {
+      ruleId: rule.id,
+      screenId: rule.action.screenId,
+      mode: rule.action.mode,
+      startedAt: now,
+      ...(rule.action.mode === 'for'
+        ? { until: now + (rule.action.seconds ?? 0) * 1000 }
+        : {}),
+    };
+  }
+
+  return { armed, takeover, lastFiredAt, wake, sleep };
+}
+
 export function advanceRuleEngine(
   state: RuleEngineState,
   rules: readonly DisplayRule[],
@@ -302,12 +431,9 @@ export function advanceRuleEngine(
    */
   nowDate: Date = new Date(now),
 ): RuleEngineStep {
-  const current = new Map<string, boolean | 'unknown'>();
-  const fingerprints = new Map<string, string>();
-  for (const rule of rules) {
-    current.set(rule.id, evaluateRuleCondition(rule, states, nowDate));
-    fingerprints.set(rule.id, conditionFingerprint(rule));
-  }
+  // Phase 1 — where every rule stands right now.
+  const { current, fingerprints } = computeCurrent(rules, states, nowDate);
+
   // "Known" here means present in the map, which includes tombstoned entries:
   // `clearKey` keeps the last value and marks `staleAt` rather than deleting,
   // and only really deletes after TOMBSTONE_TTL_MS (`shared-state-store.ts`).
@@ -326,102 +452,52 @@ export function advanceRuleEngine(
     };
   }
 
-  // Keys that became published since the last advance. An unknown→true
-  // transition fires ONLY when none of the rule's keys just arrived — the
-  // truth then came from a key that was already known changing value, not
-  // from a provider's first (possibly days-stale) publish.
+  // Phase 2 — keys that became published since the last advance. An
+  // unknown→true transition fires ONLY when none of the rule's keys just
+  // arrived: the truth then came from a key that was already known changing
+  // value, not from a provider's first (possibly days-stale) publish.
   const newlyKnown = new Set<string>();
   for (const key of knownKeys) {
     if (!state.knownKeys.has(key)) newlyKnown.add(key);
   }
 
-  const armed = computeArmed(state, rules, current, fingerprints, newlyKnown);
+  // Phase 3 — arm on fresh edges into definite true, disarm everything else.
+  const armedAfterEdges = computeArmed(state, rules, current, fingerprints, newlyKnown);
 
-  // Maintain the active takeover before considering new firings — an active
-  // takeover is never preempted (only released).
-  let takeover = state.takeover;
-  if (takeover) {
-    const rule = rules.find((r) => r.id === takeover!.ruleId);
-    if (!renderableScreenIds.has(takeover.screenId)) {
-      takeover = null; // target screen deleted/disabled mid-takeover
-    } else if (!rule || rule.enabled === false) {
-      // The firing rule was deleted or switched off — the natural way to
-      // kill a misfiring takeover. Releases immediately in both modes; the
-      // min hold protects against condition flaps, not config edits.
-      takeover = null;
-    } else if (takeover.mode === 'for') {
-      if (takeover.until !== undefined && now >= takeover.until) takeover = null;
-    } else {
-      const conditionHolds = current.get(rule.id) === true;
-      const holdElapsed = now - takeover.startedAt >= MIN_WHILE_HOLD_MS;
-      if (!conditionHolds && holdElapsed) takeover = null;
-    }
-  }
+  // Phase 4 — release the carried-in takeover if it no longer holds. Runs
+  // before phase 5 because an active takeover is never preempted, only
+  // released, and phase 5 gates on whether one is still standing.
+  const heldTakeover = maintainTakeover(state.takeover, rules, current, renderableScreenIds, now);
 
-  const lastFiredAt = new Map(state.lastFiredAt);
-  let wake = false;
-  let sleep = false;
+  // Phase 5 — fire.
+  const fired = fireArmed(armedAfterEdges, rules, heldTakeover, state.lastFiredAt, renderableScreenIds, now);
+  const armed = fired.armed;
+  let takeover = fired.takeover;
 
-  for (const rule of rules) {
-    if (!armed.has(rule.id)) continue;
-
-    if (rule.action.kind === 'wake' || rule.action.kind === 'sleep') {
-      // Neither contends for the render, so both skip the takeover gate and
-      // fire immediately (still subject to their own cooldown). A `sleep`
-      // firing additionally releases any active takeover below — a black
-      // sleep overlay must never sit on top of a live takeover render.
-      armed.delete(rule.id);
-      if (!inCooldown(rule, lastFiredAt, now)) {
-        lastFiredAt.set(rule.id, now);
-        if (rule.action.kind === 'wake') wake = true;
-        else sleep = true;
-      }
-      continue;
-    }
-
-    // showScreen: an active takeover blocks it. The arming is NOT consumed —
-    // the rule stays armed and fires at release if its condition still holds.
-    if (takeover) continue;
-
-    armed.delete(rule.id); // every outcome below consumes the arming
-
-    if (inCooldown(rule, lastFiredAt, now)) {
-      continue; // swallowed by cooldown — not deferred
-    }
-    if (!renderableScreenIds.has(rule.action.screenId)) {
-      continue; // target missing/disabled — cannot fire
-    }
-
-    lastFiredAt.set(rule.id, now);
-    takeover = {
-      ruleId: rule.id,
-      screenId: rule.action.screenId,
-      mode: rule.action.mode,
-      startedAt: now,
-      ...(rule.action.mode === 'for'
-        ? { until: now + (rule.action.seconds ?? 0) * 1000 }
-        : {}),
-    };
-    // First armed showScreen rule in list order wins; later showScreen
-    // rules now hit the `takeover` gate above, later wake/sleep rules fire.
-  }
-
-  // Sleep wins over any takeover, regardless of rule order: releasing here
-  // (rather than gating the showScreen loop on `sleep`) guarantees both a
+  // Post-pass: sleep wins over any takeover, regardless of rule order.
+  // Releasing here rather than gating phase 5 on `sleep` guarantees BOTH a
   // takeover carried in from a previous advance AND one that fired earlier in
-  // THIS loop are gone, so the display genuinely blacks out. Armed showScreen
-  // rules are dropped too so the next advance can't immediately re-take the
-  // sleeping display — they re-fire only on a fresh edge (same posture as a
-  // manual-navigation release).
-  if (sleep) {
+  // this same phase are gone, so the display genuinely blacks out. Armed
+  // showScreen rules are dropped too so the next advance can't immediately
+  // re-take the sleeping display — they re-fire only on a fresh edge, the same
+  // posture as a manual-navigation release.
+  if (fired.sleep) {
     takeover = null;
     armed.clear();
   }
 
   return {
-    next: { initialized: true, prev: current, fingerprints, knownKeys, armed, lastFiredAt, takeover },
-    wake,
-    sleep,
+    next: {
+      initialized: true,
+      prev: current,
+      fingerprints,
+      knownKeys,
+      armed,
+      lastFiredAt: fired.lastFiredAt,
+      takeover,
+    },
+    wake: fired.wake,
+    sleep: fired.sleep,
   };
 }
 

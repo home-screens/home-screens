@@ -35,11 +35,19 @@ const NO_RULES: readonly DisplayRule[] = [];
  * alert screen may be deliberately excluded from normal rotation. Disabled
  * screens are never takeover targets (disabled means off, everywhere).
  *
- * `onWake` fires when a rule with the `wake` action triggers; `onSleep` when a
- * `sleep` action triggers (which also ends any active takeover in the engine).
- * `showScreen` takeovers call neither — ScreenRotator suppresses the sleep
- * overlay for the takeover's duration instead, so scheduled sleep (which the
- * sleep manager re-asserts every 10s) resumes by itself when the takeover ends.
+ * `wake`/`sleep`-action firings are reported as the incrementing counters
+ * `wakeRequest` / `sleepRequest` rather than invoked as callbacks. This hook
+ * has to run ABOVE `useDisplayControl` in ScreenRotator, because it produces
+ * the `renderedScreen` that `useDisplayControl` consumes — so it cannot call
+ * that hook's `wake`/`forceSleep` directly. Counters make that ordering an
+ * ordinary data dependency the caller resolves below, where both are in scope.
+ * (This previously went through late-bound refs, which meant reordering the two
+ * hook calls left the refs on their no-op initializers and silently stopped
+ * `wake`/`sleep` rules from doing anything.)
+ *
+ * `showScreen` takeovers bump neither counter — ScreenRotator suppresses the
+ * sleep overlay for the takeover's duration instead, so scheduled sleep (which
+ * the sleep manager re-asserts every 10s) resumes by itself when it ends.
  *
  * `timezone` is the display's configured timezone; `time` conditions are
  * evaluated against it (matching how module/profile schedules resolve their
@@ -50,8 +58,6 @@ export function useDisplayRules(
   rules: DisplayRule[] | undefined,
   allScreens: Screen[],
   timezone?: string,
-  onWake?: () => void,
-  onSleep?: () => void,
 ): {
   /** The screen a takeover is currently pinning, or null when rotation owns the render. */
   takeoverScreen: Screen | null;
@@ -64,6 +70,13 @@ export function useDisplayRules(
   takeoverOverridesSleep: boolean;
   /** Manual-navigation release (human wins). Safe to call when no takeover is active. */
   releaseActiveTakeover: () => void;
+  /**
+   * Increments once per `wake`-action firing. Starts at 0, so a caller must
+   * act on *changes* rather than on the value being truthy.
+   */
+  wakeRequest: number;
+  /** Increments once per `sleep`-action firing. Same contract as `wakeRequest`. */
+  sleepRequest: number;
 } {
   const ruleList = rules ?? (NO_RULES as DisplayRule[]);
 
@@ -85,12 +98,8 @@ export function useDisplayRules(
   // where no state or config change would otherwise re-run us.
   const [tick, bumpTick] = useReducer((n: number) => n + 1, 0);
 
-  const onWakeRef = useRef(onWake);
-  const onSleepRef = useRef(onSleep);
-  useEffect(() => {
-    onWakeRef.current = onWake;
-    onSleepRef.current = onSleep;
-  }, [onWake, onSleep]);
+  const [wakeRequest, requestWake] = useReducer((n: number) => n + 1, 0);
+  const [sleepRequest, requestSleep] = useReducer((n: number) => n + 1, 0);
 
   useEffect(() => {
     const nowDate = createTZDate(timezone);
@@ -101,8 +110,8 @@ export function useDisplayRules(
     // Unchanged takeovers keep their object identity through the engine, so
     // this setState bails out (Object.is) on the common no-change tick.
     setTakeover(next.takeover);
-    if (wake) onWakeRef.current?.();
-    if (sleep) onSleepRef.current?.();
+    if (wake) requestWake();
+    if (sleep) requestSleep();
 
     const deadline = takeoverDeadline(next, ruleList, states, nowDate);
     if (deadline === null) return;
@@ -145,5 +154,5 @@ export function useDisplayRules(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- tick is the deliberate re-evaluation trigger
   }, [takeover, tick]);
 
-  return { takeoverScreen, takeoverOverridesSleep, releaseActiveTakeover };
+  return { takeoverScreen, takeoverOverridesSleep, releaseActiveTakeover, wakeRequest, sleepRequest };
 }

@@ -93,9 +93,8 @@ describe('useDisplayRules', () => {
   });
 
   it('manual release wins and the rule does not reassert while still true', () => {
-    const onWake = vi.fn();
     const rules = [makeRule({ action: { kind: 'showScreen', screenId: 'cameras', mode: 'while' } })];
-    const { result } = renderHook(() => useDisplayRules(rules, screens, undefined, onWake));
+    const { result } = renderHook(() => useDisplayRules(rules, screens));
     act(() => sharedStateStore.publish(KEY, 'off'));
     act(() => sharedStateStore.publish(KEY, 'on'));
     expect(result.current.takeoverScreen?.id).toBe('cameras');
@@ -114,14 +113,31 @@ describe('useDisplayRules', () => {
     expect(result.current.takeoverScreen?.id).toBe('cameras');
   });
 
-  it('invokes onWake for wake-action rules without taking over the render', () => {
-    const onWake = vi.fn();
+  it('bumps wakeRequest for wake-action rules without taking over the render', () => {
     const rules = [makeRule({ action: { kind: 'wake' } })];
-    const { result } = renderHook(() => useDisplayRules(rules, screens, undefined, onWake));
+    const { result } = renderHook(() => useDisplayRules(rules, screens));
+    expect(result.current.wakeRequest).toBe(0);
+
     act(() => sharedStateStore.publish(KEY, 'off'));
     act(() => sharedStateStore.publish(KEY, 'on'));
-    expect(onWake).toHaveBeenCalledTimes(1);
+    expect(result.current.wakeRequest).toBe(1);
     expect(result.current.takeoverScreen).toBeNull();
+
+    // A second edge is a second request, so a consumer comparing against the
+    // previous value performs it again rather than deduplicating it away.
+    act(() => sharedStateStore.publish(KEY, 'off'));
+    act(() => sharedStateStore.publish(KEY, 'on'));
+    expect(result.current.wakeRequest).toBe(2);
+  });
+
+  it('bumps sleepRequest for sleep-action rules', () => {
+    const rules = [makeRule({ action: { kind: 'sleep' } })];
+    const { result } = renderHook(() => useDisplayRules(rules, screens));
+    expect(result.current.sleepRequest).toBe(0);
+
+    act(() => sharedStateStore.publish(KEY, 'off'));
+    act(() => sharedStateStore.publish(KEY, 'on'));
+    expect(result.current.sleepRequest).toBe(1);
   });
 
   it('handles no rules and undefined rules without subscribing', () => {

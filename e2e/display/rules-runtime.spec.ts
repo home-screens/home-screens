@@ -308,3 +308,50 @@ test('rules on a DisplayNode drive that display (multi-display filter path)', as
   await expect(page.getByText('KIOSK CAMERAS')).toBeVisible();
   await expect(page.getByText('KIOSK HOME')).toBeVisible({ timeout: 10_000 });
 });
+
+/**
+ * The `wake` action's counterpart to the sleep-rule spec above. This path had
+ * no display-level coverage: `useDisplayRules` reports a wake firing to
+ * ScreenRotator, which performs it against the sleep manager with a hold, and
+ * the hold is what stops the schedule from re-sleeping the display seconds
+ * later. Both halves are display-side, so only an end-to-end run exercises them.
+ */
+test('a wake rule lights a scheduled-asleep display and holds it awake', async ({ page, request }) => {
+  test.setTimeout(90_000);
+  const config = rulesConfig([
+    doorbellRule({ id: 'rise', name: 'Rise', action: { kind: 'wake' } }),
+  ]);
+  // Scheduled sleep covering "now", so the display settles asleep on its own
+  // and only the rule can wake it.
+  config.settings.sleep = {
+    enabled: true,
+    dimAfterMinutes: 600,
+    sleepAfterMinutes: 600,
+    dimBrightness: 40,
+    schedule: windowAround(-120, 120),
+  };
+  await renderOnDisplay(page, request, config);
+  await waitForSdk(page);
+
+  const overlayOpacity = async () => {
+    const layer = page.locator('div[style*="z-index: 9997"] > div').first();
+    if ((await layer.count()) === 0) return 0;
+    return Number.parseFloat(await layer.evaluate((el) => getComputedStyle(el).opacity));
+  };
+
+  // Settles asleep under the schedule (~10s sleep-manager interval).
+  await expect.poll(overlayOpacity, { timeout: 30_000, intervals: [500] }).toBeGreaterThan(0.98);
+
+  // A fresh edge fires the wake rule.
+  await publishState(page, 'ring', 'off');
+  await publishState(page, 'ring', 'on');
+  await expect.poll(overlayOpacity, { timeout: 10_000, intervals: [250] }).toBeLessThan(0.02);
+
+  // A `wake` action pins nothing, so rotation still owns the render.
+  await expect(page.getByText('HOME ANCHOR')).toBeVisible();
+
+  // The hold is the point: the sleep manager re-asserts the scheduled window
+  // every 10s, so without it the display would black out again almost at once.
+  await page.waitForTimeout(15_000);
+  expect(await overlayOpacity()).toBeLessThan(0.02);
+});

@@ -6,6 +6,8 @@ import {
   advanceRuleEngine,
   collectRuleSourceKeys,
   computeArmed,
+  fireArmed,
+  maintainTakeover,
   createRuleEngineState,
   evaluateRuleCondition,
   releaseTakeover,
@@ -882,5 +884,131 @@ describe('computeArmed', () => {
     const state = stateWith({ prev: new Map([[RULE_ID, true]]), armed });
     computeArmed(state, [], new Map(), new Map(), new Set());
     expect(armed.has(RULE_ID)).toBe(true);
+  });
+});
+
+/**
+ * `maintainTakeover` and `fireArmed` were phases inlined in `advanceRuleEngine`
+ * and are only separately testable since the extraction. The suite above
+ * exercises them end-to-end; these lock in each phase's contract directly, so a
+ * future change to one phase fails against that phase rather than against a
+ * whole-engine scenario that is harder to read.
+ */
+const RULE_ID = 'r';
+
+describe('maintainTakeover', () => {
+  const TAKEOVER = {
+    ruleId: RULE_ID,
+    screenId: 'cameras',
+    mode: 'while' as const,
+    startedAt: 0,
+  };
+
+  it('returns null when there is no takeover to maintain', () => {
+    expect(maintainTakeover(null, [], new Map(), SCREENS, 0)).toBeNull();
+  });
+
+  it('releases when the target screen is no longer renderable', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const held = maintainTakeover(TAKEOVER, [rule], new Map([[RULE_ID, true]]), new Set(['home']), 0);
+    expect(held).toBeNull();
+  });
+
+  it('releases when the firing rule was deleted', () => {
+    const held = maintainTakeover(TAKEOVER, [], new Map(), SCREENS, 0);
+    expect(held).toBeNull();
+  });
+
+  it('releases when the firing rule was disabled, even inside the minimum hold', () => {
+    const rule = makeRule({ id: RULE_ID, enabled: false });
+    // Well inside MIN_WHILE_HOLD_MS: the hold guards against condition flaps,
+    // not against the user switching the rule off.
+    const held = maintainTakeover(TAKEOVER, [rule], new Map([[RULE_ID, true]]), SCREENS, 1_000);
+    expect(held).toBeNull();
+  });
+
+  it('holds a `for` takeover until its deadline, then releases', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const forTakeover = { ...TAKEOVER, mode: 'for' as const, until: 10_000 };
+    expect(maintainTakeover(forTakeover, [rule], new Map(), SCREENS, 9_999)).toEqual(forTakeover);
+    expect(maintainTakeover(forTakeover, [rule], new Map(), SCREENS, 10_000)).toBeNull();
+  });
+
+  it('holds a `while` takeover whose condition went false until the minimum hold elapses', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const falseNow = new Map<string, boolean | 'unknown'>([[RULE_ID, false]]);
+    expect(
+      maintainTakeover(TAKEOVER, [rule], falseNow, SCREENS, MIN_WHILE_HOLD_MS - 1),
+    ).toEqual(TAKEOVER);
+    expect(
+      maintainTakeover(TAKEOVER, [rule], falseNow, SCREENS, MIN_WHILE_HOLD_MS),
+    ).toBeNull();
+  });
+
+  it('holds a `while` takeover indefinitely while its condition still holds', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const held = maintainTakeover(TAKEOVER, [rule], new Map([[RULE_ID, true]]), SCREENS, 10_000_000);
+    expect(held).toEqual(TAKEOVER);
+  });
+});
+
+describe('fireArmed', () => {
+  it('opens a takeover for an armed showScreen rule', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const out = fireArmed(new Set([RULE_ID]), [rule], null, new Map(), SCREENS, 100);
+    expect(out.takeover).toMatchObject({ ruleId: RULE_ID, screenId: 'cameras', startedAt: 100 });
+    expect(out.armed.has(RULE_ID)).toBe(false); // arming consumed
+  });
+
+  // The subtlety worth isolating: a blocked showScreen keeps its arming so it
+  // fires at release, while every other outcome consumes it.
+  it('preserves the arming of a showScreen rule blocked by an active takeover', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const blocking = { ruleId: 'other', screenId: 'security', mode: 'while' as const, startedAt: 0 };
+    const out = fireArmed(new Set([RULE_ID]), [rule], blocking, new Map(), SCREENS, 100);
+    expect(out.takeover).toEqual(blocking);
+    expect(out.armed.has(RULE_ID)).toBe(true);
+  });
+
+  it('consumes the arming when the target screen is missing', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const out = fireArmed(new Set([RULE_ID]), [rule], null, new Map(), new Set(['home']), 100);
+    expect(out.takeover).toBeNull();
+    expect(out.armed.has(RULE_ID)).toBe(false);
+  });
+
+  it('consumes the arming when swallowed by cooldown, without firing', () => {
+    const rule = makeRule({ id: RULE_ID, cooldownSeconds: 300 });
+    const out = fireArmed(new Set([RULE_ID]), [rule], null, new Map([[RULE_ID, 0]]), SCREENS, 1_000);
+    expect(out.takeover).toBeNull();
+    expect(out.armed.has(RULE_ID)).toBe(false);
+  });
+
+  it('lets wake and sleep skip the takeover gate that blocks showScreen', () => {
+    const wakeRule = makeRule({ id: 'w', action: { kind: 'wake' } });
+    const blocking = { ruleId: 'other', screenId: 'security', mode: 'while' as const, startedAt: 0 };
+    const out = fireArmed(new Set(['w']), [wakeRule], blocking, new Map(), SCREENS, 100);
+    expect(out.wake).toBe(true);
+    expect(out.takeover).toEqual(blocking); // wake does not disturb the takeover
+  });
+
+  it('gives the first armed showScreen rule in list order the takeover', () => {
+    const first = makeRule({ id: 'a' });
+    const second = makeRule({
+      id: 'b',
+      action: { kind: 'showScreen', screenId: 'security', mode: 'for', seconds: 60 },
+    });
+    const out = fireArmed(new Set(['a', 'b']), [first, second], null, new Map(), SCREENS, 0);
+    expect(out.takeover?.ruleId).toBe('a');
+    expect(out.armed.has('b')).toBe(true); // second was blocked, keeps its arming
+  });
+
+  it('does not mutate the caller\'s armed set or lastFiredAt map', () => {
+    const rule = makeRule({ id: RULE_ID });
+    const armed = new Set([RULE_ID]);
+    const lastFiredAt = new Map<string, number>();
+    fireArmed(armed, [rule], null, lastFiredAt, SCREENS, 100);
+    expect(armed.has(RULE_ID)).toBe(true);
+    expect(lastFiredAt.size).toBe(0);
   });
 });
