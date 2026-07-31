@@ -559,7 +559,7 @@ function executeBundle(
 
 /**
  * Resolve the active locale for plugin translation lookup. Reads
- * `globalSettings.locale` from `/api/config`; on any failure (no config,
+ * `settings.locale` from `/api/config`; on any failure (no config,
  * network error, missing field) falls back to `DEFAULT_LOCALE`. Cached for
  * the lifetime of a single `loadAllPlugins` call so parallel
  * `loadSinglePlugin` invocations don't all re-issue the request.
@@ -586,10 +586,9 @@ export async function getActiveLocale(): Promise<string> {
       return DEFAULT_LOCALE;
     }
     const config = await res.json();
-    // `/api/config` returns the raw `ScreenConfiguration`, whose locale
-    // lives at `settings.locale` (not the legacy `globalSettings` shape).
-    // Matching the actual on-the-wire field is the only way plugin
-    // translations resolve to the user's chosen locale.
+    // `/api/config` returns the raw `ScreenConfiguration`, whose locale lives
+    // at `settings.locale`. Matching the actual on-the-wire field is the only
+    // way plugin translations resolve to the user's chosen locale.
     const locale = config?.settings?.locale;
     const value = typeof locale === 'string' && locale ? locale : DEFAULT_LOCALE;
     activeLocaleCache = { value, fetchedAt: now };
@@ -874,8 +873,11 @@ export async function loadPluginTranslations(
  * Zustand store currently knows about, under the *current* active locale.
  *
  * Called by the editor's locale-change save flow after persisting the new
- * locale to `globalSettings.locale`. Sequence:
- *   1. PUT /api/config { ...globalSettings: { locale: newTag } }
+ * locale to `settings.locale`. Sequence:
+ *   1. PUT /api/config with the WHOLE config snapshot, `settings.locale`
+ *      set to the new tag. The route takes a full `ScreenConfiguration`, not
+ *      a partial patch, so sending only the changed field drops everything
+ *      else.
  *   2. clearActiveLocaleCache()           — drop the stale cached value
  *   3. await reloadPluginTranslations()  — refill the namespace cache
  *   4. router.refresh()                   — re-render with new strings

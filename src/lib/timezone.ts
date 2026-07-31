@@ -115,7 +115,7 @@ export function createTZDate(timezone?: string): Date {
  *
  * `locale` is the BCP-47 tag used for the Intl formatter — defaults to
  * `DEFAULT_LOCALE` (en-US). Pass the value from `useFormattingLocale()`
- * (client) or from `globalSettings.formattingLocale` (server) for
+ * (client) or from `settings.formattingLocale` (server) for
  * locale-aware output.
  */
 export function formatTimeInTZ(
@@ -152,7 +152,7 @@ export function formatTimeInTZ(
  *
  * `locale` is the BCP-47 tag used for the Intl formatter — defaults to
  * `DEFAULT_LOCALE` (en-US). Pass the value from `useFormattingLocale()`
- * (client) or from `globalSettings.formattingLocale` (server) for
+ * (client) or from `settings.formattingLocale` (server) for
  * locale-aware output.
  */
 export function formatDateInTZ(

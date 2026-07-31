@@ -24,7 +24,7 @@ import { renderOnDisplay } from '../helpers/display';
  *
  * Reload note: `LanguageFields.handleLocaleChange` awaits `saveConfig()` then
  * calls `router.refresh()`. The editor layout is `force-dynamic` and re-reads
- * `globalSettings.locale` server-side, re-rendering `<I18nProvider locale>`
+ * `settings.locale` server-side, re-rendering `<I18nProvider locale>`
  * with a fresh locale blob. So the chrome flips live — no `page.reload()` is
  * required for the new dictionary to take effect. The loop below asserts the
  * translated copy appears after `router.refresh()` alone, which confirms this.

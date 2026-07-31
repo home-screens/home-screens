@@ -33,11 +33,23 @@ interface FilteredDisplayConfig {
 }
 
 /**
- * Canonical id for the primary/main display. The first display a user adds is
- * always created with this id by `addDisplay`, and the legacy single-display
- * redirect prefers this id when present. Importing this constant instead of
- * hard-coding `'main'` prevents the invariant from eroding across the
- * codebase — previous audits found 14 scattered literal comparisons.
+ * Canonical id for the primary/main display.
+ *
+ * `addDisplay` guarantees a display with this id exists once the registry is
+ * populated, but NOT that it is the display the user just added: adding a
+ * first display called something else seeds a sibling `main` from the legacy
+ * globals beside it, while adding `main` first lets that display inherit the
+ * globals directly. Either way the user's chosen id is preserved.
+ *
+ * The legacy `/display` route resolves this id via `findMainDisplay` and
+ * renders that display **inline**. There is deliberately no redirect —
+ * Chromium `--app` mode opens a duplicate window when it follows a 307 with
+ * an RSC body, and the two windows then drain the same command queue. See the
+ * header comment in `app/(display)/display/page.tsx` before reintroducing one.
+ *
+ * Importing this constant instead of hard-coding `'main'` prevents the
+ * invariant from eroding across the codebase — previous audits found 14
+ * scattered literal comparisons.
  */
 export const MAIN_DISPLAY_ID = 'main';
 
@@ -68,8 +80,9 @@ export function orientDimensions(
 /**
  * Find the main display in a list, preferring the canonical `main` id and
  * falling back to the first registered display. Returns `undefined` when
- * the list is empty. Used by the legacy single-display redirect and by any
- * UI that needs a "default display" when no specific id is in scope.
+ * the list is empty. Used by the legacy `/display` route, which renders the
+ * result inline rather than redirecting to it, and by any UI that needs a
+ * "default display" when no specific id is in scope.
  */
 export function findMainDisplay(displays: DisplayNode[] | undefined): DisplayNode | undefined {
   if (!displays || displays.length === 0) return undefined;
@@ -260,11 +273,11 @@ export function filterConfigForDisplay(
 
 /**
  * Remove every reference to a deleted screen id across every place it can
- * live: the global profile pool, each `display.profiles[*].screenIds`
- * (owned-profiles mode), and any display rule whose `showScreen` action
- * targets the deleted screen (the target is blanked, which turns the rule
- * into a saveable never-fires "incomplete" rule rather than deleting the
- * user's conditions with it).
+ * live: the legacy global profile pool, each `display.profiles[*].screenIds`
+ * (owned-profiles mode, self-contained per display), and any display rule
+ * whose `showScreen` action targets the deleted screen (the target is
+ * blanked, which turns the rule into a saveable never-fires "incomplete"
+ * rule rather than deleting the user's conditions with it).
  *
  * Takes a config that already has the screen removed from
  * `config.screens` / the active display's owned screens, and returns a
@@ -282,8 +295,12 @@ export function pruneDanglingScreenRefs(
 ): ScreenConfiguration {
   let next = config;
 
-  // Global profile pool — profiles are shared across displays and may
-  // reference owned-screen ids from any display.
+  // The global `config.profiles` pool is the LEGACY single-display pool: its
+  // `screenIds` reference `config.screens`, so it is pruned unconditionally
+  // regardless of which display is selected. It is not a cross-display
+  // mechanism — owned profiles are self-contained and are pruned separately
+  // below. `validateDisplayProfiles` rejects an owned profile that reaches
+  // into the global pool.
   if (next.profiles) {
     const prunedProfiles = next.profiles.map((p) => ({
       ...p,

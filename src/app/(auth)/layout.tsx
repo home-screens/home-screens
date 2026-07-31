@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: 'Login — Home Screens',
 };
 
-// Reads `data/config.json` for `globalSettings.locale` so the login page
+// Reads `data/config.json` for `config.settings.locale` so the login page
 // renders in the active language. Opt out of static prerender — the locale
 // changes at runtime.
 export const dynamic = 'force-dynamic';

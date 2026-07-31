@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic';
 export const GET = withDisplayAuth(async () => {
   const now = new Date();
   // Resolve the formatting locale via the standard cascade so the
-  // returned `formatted` string honors `globalSettings.formattingLocale`
-  // when set, otherwise falls through to `globalSettings.locale`, and
+  // returned `formatted` string honors `settings.formattingLocale`
+  // when set, otherwise falls through to `settings.locale`, and
   // finally to en-US. `readConfig` failures (missing/corrupt config)
   // are swallowed — the en-US default always works.
   const config = await readConfig().catch(() => null);

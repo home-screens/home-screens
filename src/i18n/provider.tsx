@@ -342,7 +342,7 @@ export function useLocale(): string {
  * `formattingLocale ?? locale` cascade so consumers don't have to.
  *
  * Use this for date / number / relative-time formatters — anything that
- * should follow the household's `globalSettings.formattingLocale`
+ * should follow the household's `settings.formattingLocale`
  * override when set, and otherwise fall through to the UI locale.
  *
  * In dev mode, warns once per process when called outside an

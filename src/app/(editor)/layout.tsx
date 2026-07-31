@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: 'Home Screen Editor',
 };
 
-// Reads `data/config.json` to pick up the current `globalSettings.locale`,
+// Reads `data/config.json` to pick up the current `config.settings.locale`,
 // which is mutable at runtime — so the layout must opt out of static
 // pre-rendering or a build-time snapshot would freeze the locale until the
 // next deploy.

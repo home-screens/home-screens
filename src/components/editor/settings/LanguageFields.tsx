@@ -11,7 +11,7 @@ import { reloadPluginTranslations, clearActiveLocaleCache } from '@/lib/plugin-l
 /**
  * Language fields card for the "Defaults → Location & language" page.
  *
- * Owns two fields on `globalSettings`:
+ * Owns two fields on `config.settings` (typed `GlobalSettings`):
  *   - `locale` (BCP-47, drives the i18n provider for editor / display / remote)
  *   - `formattingLocale` (optional override for date/number formatting only)
  *
@@ -76,7 +76,7 @@ export default function LanguageFields() {
     // right strings; without this, plugin namespaces would stay frozen
     // at the previous locale until a hard reload.
     void reloadPluginTranslations();
-    // The editor layout reads `globalSettings.locale` server-side and
+    // The editor layout reads `settings.locale` server-side and
     // wires it into `<I18nProvider>`. After the save lands, `router.refresh()`
     // re-runs that server function with the freshly-saved value so the
     // editor surface itself flips to the new language without a hard
