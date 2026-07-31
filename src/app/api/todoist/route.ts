@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
+import { logger } from '@/lib/logger';
+
+const log = logger('todoist');
 
 export const dynamic = 'force-dynamic';
 
@@ -141,7 +144,7 @@ async function fetchTodoistList(
   } while (cursor && pageCount < MAX_PAGES);
 
   if (cursor) {
-    console.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages — returning a truncated list`);
+    log.error(`Todoist ${endpoint} still had a next_cursor after ${MAX_PAGES} pages — returning a truncated list`);
   }
 
   return { items: results, truncated: cursor !== null };
@@ -202,13 +205,13 @@ const { GET, cache } = cachedProxyRoute<unknown>({
     const rawLabels = labelsResult.status === 'fulfilled' ? labelsResult.value.items : [];
 
     if (projectsResult.status === 'rejected') {
-      console.error('Failed to fetch Todoist projects (continuing without them):', projectsResult.reason);
+      log.error('Failed to fetch Todoist projects (continuing without them):', projectsResult.reason);
     }
     if (sectionsResult.status === 'rejected') {
-      console.error('Failed to fetch Todoist sections (continuing without them):', sectionsResult.reason);
+      log.error('Failed to fetch Todoist sections (continuing without them):', sectionsResult.reason);
     }
     if (labelsResult.status === 'rejected') {
-      console.error('Failed to fetch Todoist labels (continuing without them):', labelsResult.reason);
+      log.error('Failed to fetch Todoist labels (continuing without them):', labelsResult.reason);
     }
 
     const projectMap = new Map<string, { name: string; color: string }>();

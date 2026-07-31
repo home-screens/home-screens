@@ -4,6 +4,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { snapshotStates } from '@/lib/condition-verdicts';
 import { stableStringify } from '@/lib/stable-stringify';
+import { SHARED_STATE_POLL_MS } from '@/lib/constants';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 
@@ -37,7 +38,8 @@ export interface DisplaySharedState {
   providerHealth: Record<string, ProviderHealthEntry>;
 }
 
-const POLL_MS = 5_000;
+// The hub's interest TTL is derived from this; see constants.ts.
+const POLL_MS = SHARED_STATE_POLL_MS;
 const EMPTY: DisplaySharedState = { entries: {}, reportedAt: null, states: null, providerHealth: {} };
 const EMPTY_ENTRIES_JSON = stableStringify(EMPTY.entries);
 const EMPTY_PROVIDER_HEALTH_JSON = stableStringify(EMPTY.providerHealth);

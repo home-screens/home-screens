@@ -28,6 +28,7 @@
 
 import type { CacheStats } from './display-cache';
 import { isValidDisplayId } from './display-filter';
+import { SHARED_STATE_INTEREST_TTL_MS } from './constants';
 import { SHARED_STATE_KEY_RE, type SharedStateEntry } from './shared-state-types';
 import type { ProviderHealthEntry } from './provider-health-store';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from './hardware-stats';
@@ -263,9 +264,10 @@ export function recordSharedStateReport(displayId: string | undefined, raw: unkn
  * cadence for data nobody is reading.
  *
  * The TTL covers two missed editor polls; the display's 3s command poll
- * picks up a watch-state change within one cycle either way.
+ * picks up a watch-state change within one cycle either way. It is derived
+ * from the editor's poll cadence in `constants.ts` rather than restated here,
+ * so changing that cadence cannot silently strand the flag.
  */
-const SHARED_STATE_INTEREST_TTL_MS = 15_000;
 const sharedStateInterest = new Map<string, number>();
 
 export function markSharedStateInterest(displayId?: string): void {

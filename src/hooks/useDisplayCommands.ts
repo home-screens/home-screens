@@ -5,6 +5,7 @@ import type { DisplayCommand } from '@/lib/display-commands';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { getDisplayClientId } from '@/lib/display-client-id';
+import { MAIN_DISPLAY_ID } from '@/lib/display-filter';
 import { snapshotConsoleBuffer } from '@/lib/console-buffer';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore } from '@/lib/provider-health-store';
@@ -185,7 +186,7 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  displayId: displayId ?? 'main',
+                  displayId: displayId ?? MAIN_DISPLAY_ID,
                   entries,
                 }),
               }).catch(() => {});

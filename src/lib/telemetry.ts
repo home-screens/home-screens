@@ -6,6 +6,7 @@ import { isAuthEnabled } from '@/lib/auth';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { createJsonStore } from '@/lib/json-store';
 import { filterConfigForDisplay } from '@/lib/display-filter';
+import { fetchWithTimeout } from '@/lib/api-utils';
 import type { ScreenConfiguration, Screen, DisplayNode } from '@/types/config';
 import type { InstalledPlugin } from '@/types/plugins';
 
@@ -430,20 +431,20 @@ export async function buildBeaconPayload(
 let sending = false;
 
 async function sendBeacon(payload: TelemetryBeacon): Promise<boolean> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), BEACON_TIMEOUT_MS);
   try {
-    const res = await fetch(TELEMETRY_ENDPOINT, {
+    // Fire-and-forget: a dropped beacon is not worth retrying, and the next
+    // one is 24h out anyway. `retries: 0` says that rather than leaving it to
+    // the wrapper's default.
+    const res = await fetchWithTimeout(TELEMETRY_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-      signal: controller.signal,
+      timeout: BEACON_TIMEOUT_MS,
+      retries: 0,
     });
     return res.ok;
   } catch {
     return false;
-  } finally {
-    clearTimeout(timeout);
   }
 }
 

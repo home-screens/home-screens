@@ -40,6 +40,18 @@ export const CALENDAR_REFRESH_MS = 5 * 60 * 1000;
 // default.
 export const DEFAULT_CALENDAR_DAYS_AHEAD = 7;
 
+// How often the editor polls GET /api/display/shared-state while a condition
+// panel is open. That poll doubles as the "an editor is watching" signal, so
+// the hub's interest TTL below is derived from it rather than restated: the
+// two live in different files (a client hook and the server command store) and
+// drifted apart would silently degrade live shared-state values to the 30s
+// heartbeat with nothing erroring.
+export const SHARED_STATE_POLL_MS = 5_000;
+
+// Interest expires after three poll intervals, i.e. it survives two missed
+// polls. Derived, so raising the poll cadence cannot strand the flag.
+export const SHARED_STATE_INTEREST_TTL_MS = 3 * SHARED_STATE_POLL_MS;
+
 
 // Grid snap size (in display pixels)
 export const GRID_SIZE = 20;

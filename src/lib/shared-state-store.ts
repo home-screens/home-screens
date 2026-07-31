@@ -48,6 +48,17 @@ const MAX_VALUE_LENGTH = 1024;
  * module unmounting the instant the old producer tears down. 15s covers a
  * slow plugin's fetch+mount+first-publish cycle; a truly removed producer's
  * keys still disappear shortly after.
+ *
+ * **This value also decides whether a display rule fires after a producer
+ * restart**, which is not obvious from here. `advanceRuleEngine`
+ * (`display-rules.ts`) derives `knownKeys` from `states.keys()`, and a
+ * tombstoned entry is still present in the map. So a reload finishing inside
+ * this window reads as an ordinary `false -> true` edge and the rule fires;
+ * a reload finishing outside it makes the key newly-known again and the
+ * cold-start guard suppresses arming. Shortening this TTL to make conditioned
+ * modules hide faster would silently turn "rules fire after a plugin reload"
+ * into "rules stay suppressed". Covered by
+ * `__tests__/tombstone-rule-engine-coupling.test.ts`.
  */
 const TOMBSTONE_TTL_MS = 15_000;
 

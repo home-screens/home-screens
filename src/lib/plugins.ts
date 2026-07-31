@@ -6,6 +6,7 @@ import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
 import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
 import { deletePluginTokens, deletePendingAuth } from '@/lib/plugin-auth';
+import { fetchWithTimeout } from '@/lib/api-utils';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
 import { createJsonStore } from '@/lib/json-store';
 import { SHARED_STATE_KEY_RE, MAX_SHARED_STATE_KEY_LENGTH } from '@/lib/shared-state-types';
@@ -652,7 +653,10 @@ export async function fetchRegistry(registryUrl?: string): Promise<PluginRegistr
   }
 
   const url = registryUrl ?? DEFAULT_REGISTRY_URL;
-  const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+  // Fetched over the Pi's WiFi, so a single transient blip would otherwise
+  // surface as "Registry fetch failed" in the Plugin Store. Retry/backoff
+  // comes from the shared wrapper.
+  const res = await fetchWithTimeout(url);
   if (!res.ok) throw new Error(`Registry fetch failed: ${res.status}`);
   const data = (await res.json()) as PluginRegistry;
   registryCache = { data, fetchedAt: now };

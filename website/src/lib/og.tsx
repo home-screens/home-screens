@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { ImageResponse } from 'next/og'
 
+import { LogoMark } from '@/components/LogoMark'
 import { getAllPosts } from './blog'
 import { navigation } from './docs-navigation'
 
@@ -106,48 +107,7 @@ function createOgImage({
         >
           {/* Brand header */}
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 48 48"
-              fill="none"
-            >
-              <path
-                d="M9 21.5L24 10L39 21.5"
-                stroke="#A5F3FC"
-                strokeWidth={3}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <rect
-                x="11.5"
-                y="20.5"
-                width="25"
-                height="16"
-                rx="5"
-                fill="#082F49"
-                stroke="#67E8F9"
-                strokeWidth={2.5}
-              />
-              <rect
-                x="17"
-                y="25"
-                width="14"
-                height="2.5"
-                rx="1.25"
-                fill="#A5F3FC"
-                fillOpacity={0.95}
-              />
-              <rect
-                x="17"
-                y="29.5"
-                width="9"
-                height="2.5"
-                rx="1.25"
-                fill="#CFFAFE"
-                fillOpacity={0.85}
-              />
-            </svg>
+            <LogoMark size={32} forSatori />
             <div
               style={{
                 display: 'flex',

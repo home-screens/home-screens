@@ -550,7 +550,9 @@ describe('GET /api/todoist', () => {
     // Enrichment degrades instead of failing the route.
     expect(json.tasks[0].projectName).toBe('Unknown');
     expect(json.projects).toEqual([]);
+    // Routed through the tagged logger, so the tag is the first argument.
     expect(consoleError).toHaveBeenCalledWith(
+      '[todoist]',
       expect.stringContaining('projects'),
       expect.anything(),
     );

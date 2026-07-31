@@ -308,6 +308,12 @@ export function advanceRuleEngine(
     current.set(rule.id, evaluateRuleCondition(rule, states, nowDate));
     fingerprints.set(rule.id, conditionFingerprint(rule));
   }
+  // "Known" here means present in the map, which includes tombstoned entries:
+  // `clearKey` keeps the last value and marks `staleAt` rather than deleting,
+  // and only really deletes after TOMBSTONE_TTL_MS (`shared-state-store.ts`).
+  // So that TTL is the boundary deciding whether a producer restart looks like
+  // an ordinary value edge or like a cold start to the guard below. See
+  // `__tests__/tombstone-rule-engine-coupling.test.ts`.
   const knownKeys: ReadonlySet<string> = new Set(states.keys());
 
   // First advance after boot: record baselines, never fire. A rule that is

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { getSecret } from './secrets';
 import { compareSemver, isPrerelease } from '@/lib/semver';
+import { fetchWithTimeout } from '@/lib/api-utils';
 
 export const GITHUB_REPO = 'home-screens/home-screens';
 
@@ -126,34 +127,29 @@ export async function fetchGitHubReleases(options?: {
     headers['If-None-Match'] = cachedGitHubReleases.etag;
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  // 304 is not a transient status, so the ETag path below is unaffected by
+  // the retry wrapper.
+  const res = await fetchWithTimeout(
+    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=30`,
+    { headers },
+  );
 
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=30`,
-      { headers, signal: controller.signal },
-    );
-
-    if (res.status === 304 && cachedGitHubReleases) {
-      cachedGitHubReleases.fetchedAt = Date.now();
-      const cached = cachedGitHubReleases.releases;
-      return includePrerelease ? cached : cached.filter((r) => !r.prerelease);
-    }
-
-    if (!res.ok) {
-      throw new Error(`GitHub API returned ${res.status}`);
-    }
-
-    const releases: GitHubRelease[] = await res.json();
-    const etag = res.headers.get('etag');
-    const nonDraft = releases.filter((r) => !r.draft);
-
-    cachedGitHubReleases = { releases: nonDraft, etag, fetchedAt: Date.now() };
-    return includePrerelease ? nonDraft : nonDraft.filter((r) => !r.prerelease);
-  } finally {
-    clearTimeout(timeout);
+  if (res.status === 304 && cachedGitHubReleases) {
+    cachedGitHubReleases.fetchedAt = Date.now();
+    const cached = cachedGitHubReleases.releases;
+    return includePrerelease ? cached : cached.filter((r) => !r.prerelease);
   }
+
+  if (!res.ok) {
+    throw new Error(`GitHub API returned ${res.status}`);
+  }
+
+  const releases: GitHubRelease[] = await res.json();
+  const etag = res.headers.get('etag');
+  const nonDraft = releases.filter((r) => !r.draft);
+
+  cachedGitHubReleases = { releases: nonDraft, etag, fetchedAt: Date.now() };
+  return includePrerelease ? nonDraft : nonDraft.filter((r) => !r.prerelease);
 }
 
 /** @internal Convert GitHub releases to TagInfo array, sorted by semver descending */

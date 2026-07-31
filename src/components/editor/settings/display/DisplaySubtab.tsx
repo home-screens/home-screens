@@ -9,6 +9,7 @@ import OverrideRow from '@/components/editor/settings/OverrideRow';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useEditorStore } from '@/stores/editor-store';
 import { MAX_DISPLAY_DIMENSION, orientDimensions } from '@/lib/display-filter';
+import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import { useTranslate } from '@/i18n';
 import type {
@@ -78,10 +79,10 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   // partial input states (e.g. "10" while the user types "1080") from
   // resizing the canvas mid-edit.
   const [widthDraft, setWidthDraft] = useState<string>(
-    String(display.displayWidth ?? settings.displayWidth ?? 1080),
+    String(display.displayWidth ?? settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH),
   );
   const [heightDraft, setHeightDraft] = useState<string>(
-    String(display.displayHeight ?? settings.displayHeight ?? 1920),
+    String(display.displayHeight ?? settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT),
   );
 
   // On blur / Enter, commit the parsed draft back to the store if it's
@@ -100,7 +101,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   // drill-downs — each subtab is self-saving by contract.
   const commitWidth = async () => {
     const n = parseInt(widthDraft, 10);
-    const current = display.displayWidth ?? settings.displayWidth ?? 1080;
+    const current = display.displayWidth ?? settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH;
     if (Number.isFinite(n) && n > 0 && n <= MAX_DISPLAY_DIMENSION) {
       if (n !== current) {
         updateDisplay(display.id, { displayWidth: n });
@@ -112,7 +113,7 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   };
   const commitHeight = async () => {
     const n = parseInt(heightDraft, 10);
-    const current = display.displayHeight ?? settings.displayHeight ?? 1920;
+    const current = display.displayHeight ?? settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT;
     if (Number.isFinite(n) && n > 0 && n <= MAX_DISPLAY_DIMENSION) {
       if (n !== current) {
         updateDisplay(display.id, { displayHeight: n });
@@ -124,8 +125,8 @@ export default function DisplaySubtab({ config, display }: DisplaySubtabProps) {
   };
 
   const handleTransform = async (next: 'normal' | '90' | '180' | '270') => {
-    const w = display.displayWidth ?? settings.displayWidth ?? 1080;
-    const h = display.displayHeight ?? settings.displayHeight ?? 1920;
+    const w = display.displayWidth ?? settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH;
+    const h = display.displayHeight ?? settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT;
     const { width: finalW, height: finalH } = orientDimensions(w, h, next);
     updateDisplay(display.id, {
       displayTransform: next,

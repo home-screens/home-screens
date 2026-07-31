@@ -22,6 +22,7 @@ import os from 'os';
 import { withAuth } from '@/lib/api-utils';
 import { toWebStream } from '@/lib/web-stream';
 import { readConfig } from '@/lib/config';
+import { MAIN_DISPLAY_ID } from '@/lib/display-filter';
 import { getSecretStatus, readSecrets } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getInstalledPlugins } from '@/lib/plugins';
@@ -163,9 +164,9 @@ async function solicitConsoleLogs(
   }
   // Legacy single-display clients poll without a ?display= parameter and
   // drain the __default__ queue, so also push there when we fell back to
-  // the conventional 'main' ID. This is the one case where a single
+  // the conventional main ID. This is the one case where a single
   // solicit must land in two queues.
-  if (displayIds.length === 1 && displayIds[0] === 'main') {
+  if (displayIds.length === 1 && displayIds[0] === MAIN_DISPLAY_ID) {
     enqueueCommand(undefined, 'dump-console-log');
   }
 
@@ -190,12 +191,12 @@ async function solicitConsoleLogs(
 export const GET = withAuth(async (request) => {
   const config = await readConfig();
   // Multi-display installs enumerate the registry; legacy single-display
-  // installs fall back to the conventional 'main' ID so we still dump
+  // installs fall back to the conventional main ID so we still dump
   // whatever status/console data the lone display has posted.
   const displayIds =
     config.displays && config.displays.length > 0
       ? config.displays.map((d) => d.id)
-      : ['main'];
+      : [MAIN_DISPLAY_ID];
 
   const [
     statuses,
