@@ -6,12 +6,13 @@
  *   - `?section=display&id=kitchen&subtab=overrides` — a per-display drill-down page
  *   - `?section=displays`                            — the all-displays card grid
  *
- * Extracted from `app/(editor)/editor/settings/page.tsx` so the legacy
- * `?tab=X` redirect can be unit-tested without a `window`. The existing test
- * environment is `node`, not `jsdom`, and the original parser was buried
- * inside a client component that touched `window.history.replaceState` —
- * both blockers to a simple test. Everything in this file is intentionally
- * `string`-in / data-out so the tests don't need any DOM.
+ * Extracted from `app/(editor)/editor/settings/page.tsx` so the parsing
+ * and canonicalization can be unit-tested without a `window`. The existing
+ * test environment is `node`, not `jsdom`, and the original parser was
+ * buried inside a client component that touched
+ * `window.history.replaceState` — both blockers to a simple test.
+ * Everything in this file is intentionally `string`-in / data-out so the
+ * tests don't need any DOM.
  */
 
 /**
@@ -25,7 +26,6 @@
  *   - display + sleep + alerts            → `screen`
  *   - profiles + rules + shared-state     → `automation`
  *   - docs left the sidebar (footer link)
- * Old page ids stay routable via `LEGACY_PAGE_REDIRECTS` below.
  */
 export const DEFAULT_PAGE_IDS = [
   'screen',
@@ -53,8 +53,7 @@ export type DefaultPageId = (typeof DEFAULT_PAGE_IDS)[number];
  * The reorganization collapsed six subtabs into two: `overview` absorbed
  * the old `profile` and `identity` subtabs, and `overrides` merged the
  * old `display`, `sleep`, and `alerts` subtabs (mirroring the merged
- * Defaults → Screen page). Old subtab ids map via
- * `LEGACY_SUBTAB_REDIRECTS`.
+ * Defaults → Screen page).
  */
 export const PER_DISPLAY_SUBTABS = ['overview', 'overrides'] as const;
 
@@ -86,93 +85,15 @@ export type SettingsRoute =
       kind: 'defaults';
       page: DefaultPageId;
       /**
-       * Active intra-page tab, when the page has one.
-       *
-       * Without this the route type was strictly less expressive than the URL
-       * it canonicalizes: every retired id that used to be its own page
-       * (`sleep`, `alerts`, `rules`, `shared-state`, ...) resolved to just
-       * `{page: 'screen'}` / `{page: 'automation'}`, the canonicalizer emitted
-       * no `panel`, and the section fell through to its default tab. A
-       * bookmark to the old "Sleep & dimming" page opened on rotation and
-       * theme settings, and the URL bar was rewritten to that, destroying the
-       * original intent. Every future page absorption would repeat it.
+       * Active intra-page tab, when the page has one. Carried on the route
+       * (rather than each section privately re-reading `?panel=`) so the
+       * section renders the right tab on the first paint and the
+       * canonicalizer can keep the URL bar's `?panel=` honest.
        */
       panel?: SettingsPanelId;
     }
   | { kind: 'display'; displayId: string; subtab: PerDisplaySubtab }
   | { kind: 'displays' };
-
-/**
- * Map a retired `?section=defaults&page=X` value onto the page that
- * absorbed it. These were canonical URLs between the Phase-4 settings
- * split and the page-merge reorganization, so bookmarks and stale links
- * from that window must keep landing on real content. `docs` maps to
- * `screen` (the landing page) because the docs list moved out of the
- * settings content area entirely — it's a footer link now.
- */
-export const LEGACY_PAGE_REDIRECTS: Record<
-  string,
-  { page: DefaultPageId; panel?: SettingsPanelId }
-> = {
-  display: { page: 'screen', panel: 'appearance' },
-  sleep: { page: 'screen', panel: 'sleep' },
-  alerts: { page: 'screen', panel: 'alerts' },
-  profiles: { page: 'automation', panel: 'profiles' },
-  rules: { page: 'automation', panel: 'rules' },
-  'shared-state': { page: 'automation', panel: 'live' },
-  // No panel: the docs list left the settings content area entirely, so there
-  // is no tab that corresponds to it. Lands on the Screen page's default tab.
-  docs: { page: 'screen' },
-};
-
-/**
- * Map a retired `?subtab=X` value onto the subtab that absorbed it.
- * Unknown values (not listed here, not in `PER_DISPLAY_SUBTABS`) still
- * fall back to `overview`.
- */
-export const LEGACY_SUBTAB_REDIRECTS: Record<string, PerDisplaySubtab> = {
-  display: 'overrides',
-  sleep: 'overrides',
-  alerts: 'overrides',
-  profile: 'overview',
-  identity: 'overview',
-};
-
-/**
- * Map a legacy `?tab=X` value (from the old flat sidebar) onto the new
- * section/page shape. Bookmarks survive: anyone visiting an old URL
- * lands on the right content on the first render and the page rewrites
- * the URL bar to the canonical form.
- */
-export const LEGACY_TAB_REDIRECTS: Record<string, SettingsRoute> = {
-  display: { kind: 'defaults', page: 'screen', panel: 'appearance' },
-  sleep: { kind: 'defaults', page: 'screen', panel: 'sleep' },
-  alerts: { kind: 'defaults', page: 'screen', panel: 'alerts' },
-  location: { kind: 'defaults', page: 'location' },
-  // Language was merged into the Location page on 2026-05-17 — the
-  // standalone "Language & region" tab no longer exists. Legacy
-  // `?tab=language` bookmarks land on the merged page so the language
-  // picker (now rendered above the location form) is still one click away.
-  language: { kind: 'defaults', page: 'location' },
-  weather: { kind: 'defaults', page: 'weather' },
-  calendar: { kind: 'defaults', page: 'calendar' },
-  meals: { kind: 'defaults', page: 'meals' },
-  profiles: { kind: 'defaults', page: 'automation', panel: 'profiles' },
-  rules: { kind: 'defaults', page: 'automation', panel: 'rules' },
-  integrations: { kind: 'defaults', page: 'integrations' },
-  security: { kind: 'defaults', page: 'security' },
-  data: { kind: 'defaults', page: 'data' },
-  stats: { kind: 'defaults', page: 'stats' },
-  system: { kind: 'defaults', page: 'system' },
-  network: { kind: 'defaults', page: 'network' },
-  docs: { kind: 'defaults', page: 'screen' },
-  displays: { kind: 'displays' },
-  // Hidden routes that briefly existed — bookmarks of those collapse to
-  // the proper Defaults pages.
-  'default-display': { kind: 'defaults', page: 'screen', panel: 'appearance' },
-  'default-sleep': { kind: 'defaults', page: 'screen', panel: 'sleep' },
-  'default-alerts': { kind: 'defaults', page: 'screen', panel: 'alerts' },
-};
 
 const DEFAULT_PAGE_ID_SET: Set<string> = new Set(DEFAULT_PAGE_IDS);
 const PER_DISPLAY_SUBTAB_SET: Set<string> = new Set(PER_DISPLAY_SUBTABS);
@@ -205,24 +126,15 @@ export function validPanelFor(
  * route derives directly from the current URL without a popstate listener.
  *
  * Order matters:
- *   1. Legacy `?tab=X` wins so old bookmarks land on the right page
- *      before the canonicalization rewrite fires.
- *   2. `?section=display` requires a non-empty `id` to dispatch to
- *      a per-display page; a retired `subtab` maps through
- *      `LEGACY_SUBTAB_REDIRECTS` and an unrecognized one falls back
+ *   1. `?section=display` requires a non-empty `id` to dispatch to
+ *      a per-display page; an unrecognized `subtab` falls back
  *      to `overview`.
- *   3. `?section=displays` is the all-displays index.
- *   4. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`,
- *      mapping retired page ids through `LEGACY_PAGE_REDIRECTS`.
- *   5. Unknown / missing params land on `defaults/screen`, the
+ *   2. `?section=displays` is the all-displays index.
+ *   3. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
+ *   4. Unknown / missing params land on `defaults/screen`, the
  *      first-visit landing page.
  */
 export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
-  const legacyTab = params.get('tab');
-  if (legacyTab && LEGACY_TAB_REDIRECTS[legacyTab]) {
-    return LEGACY_TAB_REDIRECTS[legacyTab];
-  }
-
   const section = params.get('section');
   if (section === 'display') {
     const id = params.get('id');
@@ -230,7 +142,7 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
       const rawSubtab = params.get('subtab') ?? 'overview';
       const subtab: PerDisplaySubtab = PER_DISPLAY_SUBTAB_SET.has(rawSubtab)
         ? (rawSubtab as PerDisplaySubtab)
-        : LEGACY_SUBTAB_REDIRECTS[rawSubtab] ?? 'overview';
+        : 'overview';
       return { kind: 'display', displayId: id, subtab };
     }
   }
@@ -241,25 +153,22 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
     const rawPage = params.get('page') ?? 'screen';
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
       const page = rawPage as DefaultPageId;
-      // An explicit `?panel=` on a current page id passes through, validated
-      // against that page's own panel set so a stray value can't stick.
+      // An explicit `?panel=` passes through, validated against that page's
+      // own panel set so a stray value can't stick.
       const panel = validPanelFor(page, params.get('panel'));
       return panel ? { kind: 'defaults', page, panel } : { kind: 'defaults', page };
-    }
-    const legacy = LEGACY_PAGE_REDIRECTS[rawPage];
-    if (legacy) {
-      return legacy.panel
-        ? { kind: 'defaults', page: legacy.page, panel: legacy.panel }
-        : { kind: 'defaults', page: legacy.page };
     }
   }
   return { kind: 'defaults', page: 'screen' };
 }
 
 /**
- * Resolve a query string to its parsed route AND, if a legacy `?tab=X`
- * key, a retired `page` id, or a retired `subtab` id was present, the
- * canonical query string the page should rewrite the URL bar to.
+ * Resolve a query string to its parsed route AND, when the URL claims a
+ * `page` / `panel` / `subtab` that is not what the parser resolved (an
+ * unknown page id that fell back to `screen`, a `?panel=` the page does
+ * not own, an unknown subtab coerced to `overview`), the canonical query
+ * string the page should rewrite the URL bar to. Params the URL does not
+ * carry are never added, so a bare `/editor/settings` visit stays bare.
  * Returns `redirectedQuery: undefined` when no rewrite is needed.
  *
  * The page component uses this from a `useEffect` that calls
@@ -279,55 +188,30 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
   const params = new URLSearchParams(trimmed);
   const route = parseSettingsRoute(params);
 
-  const legacyTab = params.get('tab');
-  const hasLegacyTab = !!legacyTab && !!LEGACY_TAB_REDIRECTS[legacyTab];
-  // A retired `page` / `subtab` value only counts as legacy when the parser
-  // actually consumed it — e.g. `?section=defaults&page=sleep` needs a
-  // rewrite, but a stray `page=sleep` on a `?section=displays` URL doesn't
-  // change what renders and isn't worth a history rewrite.
-  const hasLegacyPage =
-    route.kind === 'defaults' &&
-    params.get('section') === 'defaults' &&
-    !!params.get('page') &&
-    !DEFAULT_PAGE_ID_SET.has(params.get('page')!) &&
-    !!LEGACY_PAGE_REDIRECTS[params.get('page')!];
-  // A current page id carrying a `?panel=` its page doesn't own (e.g. a
-  // hand-edited `page=screen&panel=rules`) also needs a rewrite, otherwise the
-  // URL bar keeps advertising a tab that isn't the one being rendered.
-  const hasStalePanel =
-    route.kind === 'defaults' &&
-    params.get('section') === 'defaults' &&
-    !!params.get('panel') &&
-    route.panel !== params.get('panel');
-  const hasLegacySubtab =
-    route.kind === 'display' &&
-    !!params.get('subtab') &&
-    !PER_DISPLAY_SUBTAB_SET.has(params.get('subtab')!) &&
-    !!LEGACY_SUBTAB_REDIRECTS[params.get('subtab')!];
-
-  if (!hasLegacyTab && !hasLegacyPage && !hasLegacySubtab && !hasStalePanel) {
-    return { route };
-  }
-
-  // Build the canonical query string the page should rewrite to. We keep
-  // any unrelated params (e.g. analytics tags) so navigation context isn't
-  // silently dropped on the redirect.
-  const next = new URLSearchParams(params);
-  next.delete('tab');
+  // Any rewrite keeps unrelated params (e.g. analytics tags) so navigation
+  // context isn't silently dropped on the redirect.
   if (route.kind === 'defaults') {
+    const pageParam = params.get('page');
+    const panelParam = params.get('panel');
+    const stale =
+      (pageParam !== null && pageParam !== route.page) ||
+      (panelParam !== null && panelParam !== (route.panel ?? null));
+    if (!stale) return { route };
+    const next = new URLSearchParams(params);
     next.set('section', 'defaults');
     next.set('page', route.page);
-    // Emit the panel so a retired page id lands on the tab it actually became,
-    // rather than the destination page's default tab.
-    if (route.panel) next.set('panel', route.panel);
-    else next.delete('panel');
-  } else if (route.kind === 'displays') {
-    next.set('section', 'displays');
-    next.delete('page');
-  } else if (route.kind === 'display') {
-    next.set('section', 'display');
-    next.set('id', route.displayId);
-    next.set('subtab', route.subtab);
+    // `route.panel`, when set, is always the URL's own `?panel=` value
+    // (`validPanelFor` passes it through or drops it), so a rewrite only
+    // ever strips the param.
+    next.delete('panel');
+    return { route, redirectedQuery: next.toString() };
   }
-  return { route, redirectedQuery: next.toString() };
+  if (route.kind === 'display') {
+    const subtabParam = params.get('subtab');
+    if (subtabParam === null || subtabParam === route.subtab) return { route };
+    const next = new URLSearchParams(params);
+    next.set('subtab', route.subtab);
+    return { route, redirectedQuery: next.toString() };
+  }
+  return { route };
 }

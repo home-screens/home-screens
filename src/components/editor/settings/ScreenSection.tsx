@@ -132,10 +132,8 @@ export default function ScreenSection({
   const searchParams = useSearchParams();
 
   // The active tab comes from the resolved route, not from a second, private
-  // read of `?panel=`. That parse could not see a legacy id's intended tab
-  // (`?tab=sleep` carries no panel at all), so the page flashed Appearance
-  // until the canonicalizing replace landed — and the two parsers were free to
-  // drift. `?highlight=` still selects a tab when the route names none, so a
+  // read of `?panel=` — two parsers of the same URL would be free to drift.
+  // `?highlight=` still selects a tab when the route names none, so a
   // field-search result can jump straight to the tab that renders it.
   const panel: ScreenPanel = isScreenPanel(routePanel)
     ? routePanel

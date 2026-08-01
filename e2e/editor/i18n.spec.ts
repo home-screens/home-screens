@@ -18,7 +18,8 @@ import { renderOnDisplay } from '../helpers/display';
  *     UI but format dates the German way" case.
  *
  * The Language card renders on the Location defaults page: the standalone
- * language tab was merged into it (see `settings-route.ts`). `LanguageFields`
+ * language tab was merged into it (the `location` entry in the settings
+ * page renders `<LanguageFields />` above `LocationSection`). `LanguageFields`
  * associates the picker with a `<label>Language</label>` (htmlFor
  * `hs-language-select`), so `getByLabel('Language')` addresses it.
  *

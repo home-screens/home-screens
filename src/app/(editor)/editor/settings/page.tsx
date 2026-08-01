@@ -72,9 +72,9 @@ type TabId =
  * The settings sidebar URL shape — `?section=defaults&page=X`,
  * `?section=display&id=X&subtab=Y`, `?section=displays` — is parsed by
  * the pure helpers in `lib/settings-route.ts`. The parser was hoisted
- * out so the legacy `?tab=X` redirect can be unit-tested without a
- * `window`. The page still drives content branching off the `kind`
- * field of the resolved route below.
+ * out so it can be unit-tested without a `window`. The page still
+ * drives content branching off the `kind` field of the resolved route
+ * below.
  */
 
 export default function SettingsPage() {
@@ -117,35 +117,32 @@ function SettingsPageContent() {
   // `useSearchParams` re-renders this component whenever Next's router
   // updates — so browser back/forward, `router.push` from the sidebar,
   // and every `<Link>` click all stay in sync without a popstate listener.
-  // The parser lives in `lib/settings-route` so the legacy `?tab=X`
-  // redirect can be unit-tested without a `window`. The `redirectedQuery`
-  // field tells the effect below whether the URL bar needs to be
-  // rewritten to the canonical shape.
+  // The parser lives in `lib/settings-route` so it can be unit-tested
+  // without a `window`. The `redirectedQuery` field tells the effect
+  // below whether the URL bar needs to be rewritten to the canonical
+  // shape.
   const { route: sectionRoute, redirectedQuery } = useMemo(
     () => resolveSettingsRoute(searchParams?.toString() ?? ''),
     [searchParams],
   );
 
-  // One-shot legacy URL canonicalization. The pure helper above already
-  // resolved the route from the legacy `?tab=X`, so the first render
-  // shows the right content. This effect just flushes the canonical
-  // query string into the URL bar so subsequent navigations don't see
-  // the legacy key. No-op on every pass after the first.
+  // One-shot URL canonicalization. The pure helper above already
+  // resolved the route, so the first render shows the right content.
+  // This effect just flushes the canonical query string into the URL bar
+  // when a stale `?panel=` needs dropping. No-op on every pass after
+  // the first.
   useEffect(() => {
     if (!redirectedQuery) return;
     router.replace(`?${redirectedQuery}`);
   }, [redirectedQuery, router]);
 
   // `activeTab` is derived from sectionRoute when a Defaults page is
-  // active. The legacy content branches below still key off it
-  // (`activeTab === 'display'`, etc.) so the routing change stays
-  // surgical — only the sidebar and the URL parser need to know about
-  // the new shape.
+  // active. The content dispatch below keys off it — the
+  // `DEFAULTS_PAGE_CONTENT` record plus a couple of width special cases
+  // (`activeTab === 'stats'` / `'integrations'`).
   const activeTab: TabId | null = sectionRoute.kind === 'defaults' ? sectionRoute.page : null;
-  // The route now carries the intra-page tab, so the sections no longer parse
-  // `?panel=` themselves. That is what makes a legacy id like `?tab=sleep`
-  // land on the Sleep tab on the FIRST render, instead of flashing the default
-  // tab until the canonicalizing router.replace lands.
+  // The route carries the intra-page tab, so the sections no longer parse
+  // `?panel=` themselves and can't drift from what the URL resolved to.
   const activePanel = sectionRoute.kind === 'defaults' ? sectionRoute.panel : undefined;
   // Load config on mount (handles hard refresh / direct URL visit)
   useEffect(() => {

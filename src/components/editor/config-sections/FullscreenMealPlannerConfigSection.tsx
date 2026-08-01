@@ -129,7 +129,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
-        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
+        <a href="/editor/settings?section=defaults&page=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
         {t('configSections.fullscreen-meal-planner.mobileHintSuffix')} <span className="text-hs-text-muted">/remote</span> {t('configSections.fullscreen-meal-planner.mobileHintEnd')}
       </p>
 

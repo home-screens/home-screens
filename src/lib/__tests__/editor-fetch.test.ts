@@ -26,8 +26,8 @@ beforeEach(() => {
   // tests can assert on where the redirect landed without needing jsdom.
   const fakeLocation = {
     pathname: '/editor/settings',
-    search: '?tab=display',
-    get href() { return 'http://localhost/editor/settings?tab=display'; },
+    search: '?section=defaults&page=screen',
+    get href() { return 'http://localhost/editor/settings?section=defaults&page=screen'; },
     set href(v: string) { hrefAssignments.push(v); },
   };
   (globalThis as { window: unknown }).window = { location: fakeLocation };

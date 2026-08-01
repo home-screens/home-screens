@@ -318,9 +318,8 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   // Derive the active highlight from the current URL via the same
   // `parseSettingsRoute` helper the parent settings page uses to decide
   // what content to render. Routing through the parser (instead of reading
-  // `section` / `page` directly off the query) means legacy `?tab=X`
-  // bookmarks highlight the correct sidebar item on the very first render,
-  // not one frame later after `router.replace` canonicalizes the URL.
+  // `section` / `page` directly off the query) keeps the sidebar's idea of
+  // the active item identical to what the page actually renders.
   // `useSearchParams` re-renders on every Next route change (Link click,
   // router.push, back button), so this stays in sync automatically.
   const activeRoute = useMemo(

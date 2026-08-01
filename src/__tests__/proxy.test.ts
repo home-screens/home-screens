@@ -327,11 +327,13 @@ describe('proxy — auth enabled: editor pages require authentication', () => {
     expect(redirect!.from).toBe('/editor/settings');
   });
 
-  it('redirects GET /editor/settings?tab=calendar and preserves the query string in from', () => {
-    const result = proxy(makeRequest('/editor/settings', { search: '?tab=calendar' }));
+  it('redirects GET /editor/settings?section=defaults&page=calendar and preserves the query string in from', () => {
+    const result = proxy(
+      makeRequest('/editor/settings', { search: '?section=defaults&page=calendar' }),
+    );
     const redirect = isRedirect(result);
     expect(redirect).not.toBeNull();
-    expect(redirect!.from).toBe('/editor/settings?tab=calendar');
+    expect(redirect!.from).toBe('/editor/settings?section=defaults&page=calendar');
   });
 
   it('redirects GET /editor/screens/abc/modules (deep path)', () => {

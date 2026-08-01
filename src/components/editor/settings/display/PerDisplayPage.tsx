@@ -193,7 +193,6 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       params.set('section', 'display');
       params.set('id', displayId);
       params.set('subtab', next);
-      params.delete('tab');
       router.push(`?${params.toString()}`);
     },
     [displayId, router, searchParams],

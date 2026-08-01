@@ -53,8 +53,7 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
   const setSelectedDisplay = useEditorStore((s) => s.setSelectedDisplay);
 
   // From the resolved route rather than a private second read of `?panel=`;
-  // see the matching note in ScreenSection. A legacy `?page=rules` bookmark now
-  // opens the Rules tab on the first render instead of Profiles.
+  // see the matching note in ScreenSection.
   const panel: AutomationPanel = (AUTOMATION_PANELS as readonly string[]).includes(routePanel ?? '')
     ? (routePanel as AutomationPanel)
     : 'profiles';

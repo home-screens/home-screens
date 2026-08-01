@@ -98,7 +98,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           (in the editor) or the /remote settings drawer. */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
-        <a href="/editor/settings?tab=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</a>{' '}
+        <a href="/editor/settings?section=defaults&page=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</a>{' '}
         {t('configSections.meal-planner.sharedSettingsOr')} <span className="text-hs-text-muted">/remote</span> {t('configSections.meal-planner.sharedSettingsSuffix')}
       </p>
 

@@ -46,7 +46,7 @@ function TodoistTokenStatus() {
         <p className="text-[10px] text-hs-text-faint">
           {t('configSections.todoist.notConfigured')}{' '}
           <a
-            href="/editor/settings?tab=integrations"
+            href="/editor/settings?section=defaults&page=integrations"
             className="text-hs-accent hover:text-hs-accent-hover underline"
           >
             {t('configSections.todoist.settingsIntegrationsLink')}
