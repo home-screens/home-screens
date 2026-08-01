@@ -41,7 +41,7 @@ export async function dispatchDisplayCommand(
   await displayFetch(url, { method: 'GET' }).catch(() => {});
 }
 
-export function buildDisplayCommandUrl(
+function buildDisplayCommandUrl(
   type: DisplayCommandType,
   target?: string,
   payload?: Record<string, unknown>,

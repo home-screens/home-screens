@@ -162,6 +162,25 @@ describe('plugin-auth state signing', () => {
     const { verifyAuthFlowState } = await import('../plugin-auth');
     expect(await verifyAuthFlowState('not-a-real-state')).toBeNull();
   });
+
+  it('concurrent first-time signs share one persisted secret', async () => {
+    const { signAuthFlowState } = await import('../plugin-auth');
+    // Both start before the .state-secret file exists. Un-serialized, each
+    // read misses, each generates its own secret, and only one write
+    // survives — the loser's state then fails verification at the callback.
+    const [stateA, stateB] = await Promise.all([
+      signAuthFlowState('spotify'),
+      signAuthFlowState('garmin'),
+    ]);
+
+    // Verify through a fresh module instance so verification reads the
+    // persisted file, not any in-memory memo. Both states must match what
+    // actually landed on disk.
+    vi.resetModules();
+    const fresh = await import('../plugin-auth');
+    expect(await fresh.verifyAuthFlowState(stateA)).toBe('spotify');
+    expect(await fresh.verifyAuthFlowState(stateB)).toBe('garmin');
+  });
 });
 
 describe('plugin-auth getValidAccessToken', () => {

@@ -37,7 +37,7 @@ export type DocsSection = (typeof navigation)[number]
 export type DocsLink = DocsSection['links'][number]
 
 /** Every doc link flattened in sidebar order. */
-export const allDocsLinks: DocsLink[] = navigation.flatMap(
+const allDocsLinks: DocsLink[] = navigation.flatMap(
   (section) => section.links,
 )
 

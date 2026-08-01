@@ -4,7 +4,7 @@
 
 import type { TextConfig } from '@/types/config';
 
-export const GRADIENT_TEXT_CSS = `
+const GRADIENT_TEXT_CSS = `
 [data-text-gradient] {
   -webkit-background-clip: text !important;
   background-clip: text !important;
@@ -12,20 +12,20 @@ export const GRADIENT_TEXT_CSS = `
   color: transparent !important;
 }`;
 
-export const GRADIENT_SWEEP_CSS = `
+const GRADIENT_SWEEP_CSS = `
 @keyframes _textGradientSweep {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }`;
 
-export const GLOW_CSS = `
+const GLOW_CSS = `
 @keyframes _textGlow {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.3); }
 }`;
 
-export const NEON_CSS = `
+const NEON_CSS = `
 @keyframes _textNeonFlicker {
   0%, 100% { opacity: 1; }
   41% { opacity: 1; }
@@ -33,32 +33,32 @@ export const NEON_CSS = `
   43% { opacity: 1; }
 }`;
 
-export const MARQUEE_CSS = `
+const MARQUEE_CSS = `
 @keyframes _marqueeLeft  { from { transform: translateX(100%);  } to { transform: translateX(-100%);  } }
 @keyframes _marqueeRight { from { transform: translateX(-100%); } to { transform: translateX(100%);  } }
 @keyframes _marqueeUp    { from { transform: translateY(100%);  } to { transform: translateY(-100%);  } }
 @keyframes _marqueeDown  { from { transform: translateY(-100%); } to { transform: translateY(100%);  } }
 `;
 
-export const FADE_IN_CSS = `
+const FADE_IN_CSS = `
 @keyframes _textFadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }`;
 
-export const WAVE_CSS = `
+const WAVE_CSS = `
 @keyframes _textWave {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-0.4em); }
 }`;
 
-export const BOUNCE_CSS = `
+const BOUNCE_CSS = `
 @keyframes _textBounce {
   0%, 80%, 100% { transform: translateY(0); }
   40% { transform: translateY(-0.5em); }
 }`;
 
-export const SHAKE_CSS = `
+const SHAKE_CSS = `
 @keyframes _textShake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-2px) rotate(-1deg); }
@@ -75,7 +75,7 @@ export const REVEAL_CSS = `
 `;
 
 // Per-instance color-cycle keyframes (palette is dynamic, so we build the rule)
-export function buildColorCycleCss(name: string, palette: string[]): string {
+function buildColorCycleCss(name: string, palette: string[]): string {
   if (palette.length === 0) return '';
   const stops = palette
     .map((c, i) => {

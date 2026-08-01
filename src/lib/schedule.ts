@@ -35,7 +35,7 @@ export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date)
  * a `not` group. `now` must already be shifted to the display's timezone
  * (callers use `useTZClock` / `createTZDate`).
  */
-export function matchesTimeWindow(
+function matchesTimeWindow(
   daysOfWeek: number[] | undefined,
   startTime: string | undefined,
   endTime: string | undefined,

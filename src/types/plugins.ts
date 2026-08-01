@@ -475,13 +475,13 @@ export interface RegistryPlugin {
 export interface RegistryPluginVersion {
   version: string;
   minAppVersion: string;
-  maxAppVersion?: string;
   /**
    * Per-version channel; lets a stable plugin ship a beta build (e.g.
    * '1.2.0-beta.1') without changing the plugin's own channel. Absent = stable.
    */
   channel?: 'stable' | 'beta';
-  releaseDate: string;
+  /** Registry metadata; the host never reads it, so fixtures may omit it. */
+  releaseDate?: string;
   downloadUrl: string;
   sha256: string;
   changelog?: string;

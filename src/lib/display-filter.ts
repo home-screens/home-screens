@@ -357,7 +357,7 @@ export function pruneDanglingScreenRefs(
 export const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 
 /** Hard upper bound on a display ID length. */
-export const MAX_DISPLAY_ID_LEN = 64;
+const MAX_DISPLAY_ID_LEN = 64;
 
 /**
  * IDs a display may never claim, because the command layer already gives
@@ -541,7 +541,7 @@ export function validateModuleSchedule(
 export const MAX_CONDITION_DEPTH = 5;
 
 /** Max total conditions (leaves + groups) per module, to bound evaluation cost. */
-export const MAX_CONDITIONS_PER_MODULE = 32;
+const MAX_CONDITIONS_PER_MODULE = 32;
 
 const CONDITION_KINDS = new Set(['state', 'numeric', 'time', 'and', 'or', 'not']);
 

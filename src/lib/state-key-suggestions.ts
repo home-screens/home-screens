@@ -196,7 +196,7 @@ export function buildAvailableGroups(
 /** How many rows of a single sub-head run render before the rest collapse
  *  behind a "show more" control. Keeps a long category (a room with dozens of
  *  entities) from dominating the page while still surfacing every category. */
-export const CATEGORY_PREVIEW_LIMIT = 10;
+const CATEGORY_PREVIEW_LIMIT = 10;
 
 /** A contiguous run of rows sharing one sub-head (the "no sub-head" flat run
  *  included), with the preview cap applied. `collapsible` means the run is

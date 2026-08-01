@@ -134,10 +134,26 @@ export async function deletePendingAuth(pluginId: string): Promise<void> {
 // once and persisted beside the tokens.
 const STATE_SECRET_FILE = path.join(TOKENS_DIR, '.state-secret');
 
+// Memoized so concurrent first-time callers collapse onto one generation.
+// Without it this is a read-miss → generate → write race: two simultaneous
+// auth starts each sign with their own secret while the file keeps only one,
+// and the loser's flow fails timingSafeEqual at the callback.
+let fileSecretPromise: Promise<string> | null = null;
+
 async function getStateSigningSecret(): Promise<string> {
   const authState = await readAuthState();
   if (authState.cookieSecret) return authState.cookieSecret;
 
+  if (!fileSecretPromise) {
+    fileSecretPromise = readOrCreateFileSecret().catch((err) => {
+      fileSecretPromise = null; // don't cache a failed generation
+      throw err;
+    });
+  }
+  return fileSecretPromise;
+}
+
+async function readOrCreateFileSecret(): Promise<string> {
   const filePath = path.join(process.cwd(), STATE_SECRET_FILE);
   try {
     const existing = (await fs.readFile(filePath, 'utf-8')).trim();

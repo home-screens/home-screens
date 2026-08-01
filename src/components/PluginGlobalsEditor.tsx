@@ -7,6 +7,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { DISPLAY_SDK_STUBS } from '@/lib/plugin-sdk-display-stubs';
+import { filterConfigForDisplay } from '@/lib/display-filter';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { logger } from '@/lib/logger';
@@ -68,7 +69,8 @@ function useModuleConfig<T = Record<string, unknown>>(moduleId: string, screenId
  */
 export default function PluginGlobalsEditor() {
   // Push host settings from the editor store so plugins can read them
-  const settings = useEditorStore((s) => s.config?.settings);
+  const config = useEditorStore((s) => s.config);
+  const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
 
   useLayoutEffect(() => {
     if (!window.__HS_SDK__) {
@@ -118,9 +120,21 @@ export default function PluginGlobalsEditor() {
     };
   }, []);
 
-  // Keep host settings in sync with editor config
+  // Keep host settings in sync with editor config. Plugins must see the same
+  // values here as the display's ScreenRotator pushes on the wall (a plugin's
+  // size-tier logic must not disagree between the editor preview and the
+  // wall), so this mirrors the wall's inputs exactly: the per-display path
+  // resolves settings through filterConfigForDisplay — the same pure function
+  // useLiveConfig feeds ScreenRotator — and the legacy path uses the raw
+  // globals, which is what the legacy /display route passes through
+  // unfiltered. Don't swap this for getActiveDimensions: it orients
+  // unconditionally and skips the display.settings merge, so it can diverge
+  // from the wall in exactly the cases this exists to keep in sync.
   useLayoutEffect(() => {
-    if (!settings) return;
+    if (!config) return;
+    const settings =
+      (selectedDisplayId ? filterConfigForDisplay(config, selectedDisplayId)?.settings : null) ??
+      config.settings;
     const location = getLocation(settings);
     setHostSettings({
       timezone: settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -131,7 +145,7 @@ export default function PluginGlobalsEditor() {
       displayHeight: settings.displayHeight || DEFAULT_DISPLAY_HEIGHT,
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? '',
     });
-  }, [settings]);
+  }, [config, selectedDisplayId]);
 
   return null;
 }

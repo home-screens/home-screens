@@ -1060,7 +1060,6 @@ The plugin registry is a JSON file hosted on GitHub. It lists all available plug
 |---|---|---|---|
 | `version` | string | yes | Semver version string |
 | `minAppVersion` | string | yes | Minimum Home Screens version required |
-| `maxAppVersion` | string | no | Maximum compatible Home Screens version |
 | `releaseDate` | string | yes | ISO 8601 date string |
 | `downloadUrl` | string | yes | URL to the `.tar.gz` archive |
 | `sha256` | string | yes | SHA-256 hash of the archive for integrity verification |

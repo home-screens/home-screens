@@ -622,9 +622,9 @@ export function ConditionVerdictChip({
  * reusing the same input patterns as the module `ScheduleEditor`. Day labels
  * follow the formatting locale. All-days is stored as `undefined` (not a full
  * 0–6 array) so the config stays clean; deselecting the last day is ignored so
- * a window always has at least one active day. Exported for tests.
+ * a window always has at least one active day.
  */
-export function TimeConditionEditor({
+function TimeConditionEditor({
   condition,
   onChange,
   t,

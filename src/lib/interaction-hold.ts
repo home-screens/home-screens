@@ -17,7 +17,7 @@ function emit() {
   for (const listener of listeners) listener();
 }
 
-export function acquireInteractionHold(): () => void {
+function acquireInteractionHold(): () => void {
   holdCount += 1;
   if (holdCount === 1) emit();
   let released = false;
