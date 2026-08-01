@@ -1,4 +1,5 @@
 import { editorFetch } from '@/lib/editor-fetch';
+import { downloadBlob } from '@/lib/download';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { SystemStats } from './types';
 
@@ -40,14 +41,6 @@ export async function generateBundle(): Promise<void> {
   const res = await editorFetch('/api/system/diagnostics');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
   const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  a.href = url;
-  a.download = `home-screens-diagnostics-${ts}.zip`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  // Safari aborts in-flight downloads if we revoke too early.
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(blob, `home-screens-diagnostics-${ts}.zip`);
 }

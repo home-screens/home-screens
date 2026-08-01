@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { editorFetch } from '@/lib/editor-fetch';
+import { downloadBlob } from '@/lib/download';
 import { validateLayoutExport } from '@/lib/layout-export';
 import type { LayoutExport } from '@/types/layout-export';
 import type { BackupReminderSettings } from '@/types/config';
@@ -161,12 +162,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const bundle = await res.json();
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`);
       setLastBackupDate(new Date().toISOString());
     } catch {
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.exportBackupFailed'));

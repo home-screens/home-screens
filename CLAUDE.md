@@ -90,7 +90,7 @@ All API routes are server-side proxies for external services (weather, calendar,
 - `src/lib/google-calendar.ts` — Google Calendar integration (OAuth device flow)
 - `src/lib/caldav-calendar.ts` + `src/lib/icloud-accounts.ts` — iCloud calendar sync (CalDAV via tsdav, per-calendar failure isolation, optional CardDAV contact-birthday source); accounts managed by `/api/icloud/accounts`, calendars listed by `/api/icloud/calendars`
 - `src/lib/meal-data.ts` — shared meal-planner store (`data/meals.json`), atomic writes, settings + savedMeals + plan + groceryChecked
-- `src/stores/editor-store.ts` — Zustand store for all editor state and actions; multi-display helpers (`selectedDisplayId`, `getActiveScreens`, `getActiveDimensions`, `withActiveScreens`, `addDisplay`, `orientDimensions`)
+- `src/stores/editor-store.ts` — Zustand store composition point: wires `mutateConfig` (pure history bookkeeping in `editor-save.ts`: `applyMutation`, `COALESCE_KEYS`) and undo/redo. The actions live in `src/stores/editor-slices/` (config, selection, modules, screens, settings, profiles, rules, displays, layout; `types.ts` holds the decomposed `EditorState`). Multi-display helpers (`getActiveScreens`, `getActiveDimensions`, `withActiveScreens`, `orientDimensions`) are re-exported from `@/lib/editor-multi-display` / `@/lib/display-filter`
 - `src/lib/plugin-loader.ts` — plugin loading, registration, and dev mode
 - `src/lib/display-filter.ts` — `filterConfigForDisplay`, `validateDisplays`, `findScreenById`, `getDisplayScreens` (shared between server route and `useLiveConfig`)
 - `src/lib/display-commands.ts` — per-display command queues, `statusMap`, `viewportReports`, `getUnadoptedDisplays` with stale eviction

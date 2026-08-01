@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
+import { downloadBlob } from '@/lib/download';
 import type { BackupState } from '@/lib/backup-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -95,14 +96,7 @@ export function useBackupReminder({
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const bundle = await res.json();
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      downloadBlob(blob, `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`);
       // Optimistic update — server records the timestamp via fire-and-forget in the GET handler
       setBackupState((prev) => prev ? { ...prev, lastBackupDate: new Date().toISOString(), lastDismissedDate: null } : prev);
       setDismissed(true);

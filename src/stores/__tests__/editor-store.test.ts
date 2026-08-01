@@ -2423,7 +2423,12 @@ describe('editor store', () => {
         return 'blob:test';
       }) as typeof URL.createObjectURL;
       URL.revokeObjectURL = (() => {}) as typeof URL.revokeObjectURL;
-      g.document = { createElement: () => ({ click: () => {} }) };
+      // downloadBlob attaches the anchor to document.body before clicking
+      // (Safari ignores clicks on detached anchors), so the stub needs one.
+      g.document = {
+        createElement: () => ({ click: () => {}, remove: () => {} }),
+        body: { appendChild: () => {} },
+      };
       try {
         store.getState().exportLayout({ name: 'Kitchen' });
       } finally {
