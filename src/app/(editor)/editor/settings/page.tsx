@@ -129,11 +129,18 @@ function SettingsPageContent() {
   // One-shot URL canonicalization. The pure helper above already
   // resolved the route, so the first render shows the right content.
   // This effect just flushes the canonical query string into the URL bar
-  // when a stale `?panel=` needs dropping. No-op on every pass after
+  // when a stale param needs normalizing. No-op on every pass after
   // the first.
+  //
+  // Re-resolved from window.location at replace time rather than reusing
+  // the memoized `redirectedQuery`: `syncEditorUrl` writes `display=` /
+  // `screen=` via raw history.replaceState, which `useSearchParams` never
+  // observes, so replacing with the stale snapshot could silently drop
+  // params added after it was taken.
   useEffect(() => {
     if (!redirectedQuery) return;
-    router.replace(`?${redirectedQuery}`);
+    const { redirectedQuery: fresh } = resolveSettingsRoute(window.location.search);
+    if (fresh) router.replace(`?${fresh}`);
   }, [redirectedQuery, router]);
 
   // `activeTab` is derived from sectionRoute when a Defaults page is

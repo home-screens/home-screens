@@ -75,6 +75,18 @@ describe('parseSettingsRoute', () => {
     expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
   });
 
+  it('parses section-less page/panel params as a defaults route', () => {
+    expect(parseSettingsRoute(new URLSearchParams('page=weather'))).toEqual({
+      kind: 'defaults',
+      page: 'weather',
+    });
+    expect(parseSettingsRoute(new URLSearchParams('page=screen&panel=sleep'))).toEqual({
+      kind: 'defaults',
+      page: 'screen',
+      panel: 'sleep',
+    });
+  });
+
   it('ignores a stray ?tab= param and parses the rest', () => {
     // `?tab=` was the pre-reorganization flat-sidebar shape; it is no
     // longer routable and must not affect what the rest of the URL says.
@@ -155,15 +167,36 @@ describe('resolveSettingsRoute', () => {
     expect(next.get('page')).toBe('screen');
   });
 
-  it('strips a ?panel= arriving without a section', () => {
-    // The parser's fallback never reads `?panel=`, so it is neither honored
-    // nor kept: the rewrite drops it and canonicalizes the fallback page.
-    const result = resolveSettingsRoute('panel=sleep');
+  it('honors a section-less URL carrying page/panel params without a rewrite', () => {
+    // A hand-trimmed or truncated URL keeps its intent: the parser treats a
+    // missing section with settings params as defaults, and since every
+    // param it carries agrees with what renders, nothing is rewritten.
+    expect(resolveSettingsRoute('page=screen&panel=sleep')).toEqual({
+      route: { kind: 'defaults', page: 'screen', panel: 'sleep' },
+    });
+    expect(resolveSettingsRoute('panel=sleep')).toEqual({
+      route: { kind: 'defaults', page: 'screen', panel: 'sleep' },
+    });
+  });
+
+  it('strips a section-less ?panel= no page owns', () => {
+    const result = resolveSettingsRoute('panel=banana');
     expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
     const next = new URLSearchParams(result.redirectedQuery!);
     expect(next.get('panel')).toBeNull();
     expect(next.get('section')).toBe('defaults');
     expect(next.get('page')).toBe('screen');
+  });
+
+  it('rewrites a section that dispatched nowhere to the defaults fallback', () => {
+    // `section=display` with no id renders the Screen defaults page, so the
+    // URL must stop advertising a per-display route (and its subtab).
+    const result = resolveSettingsRoute('section=display&subtab=overrides');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('section')).toBe('defaults');
+    expect(next.get('page')).toBe('screen');
+    expect(next.get('subtab')).toBeNull();
   });
 
   it('does not rewrite a bare legacy ?tab= bookmark (?tab= is an unrelated param now)', () => {

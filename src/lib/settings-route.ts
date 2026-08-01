@@ -131,6 +131,9 @@ export function validPanelFor(
  *      to `overview`.
  *   2. `?section=displays` is the all-displays index.
  *   3. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
+ *      A URL with no `section` at all but a `page` or `panel` param is
+ *      parsed the same way — a hand-trimmed `?page=screen&panel=sleep`
+ *      renders the intended tab instead of silently losing it.
  *   4. Unknown / missing params land on `defaults/screen`, the
  *      first-visit landing page.
  */
@@ -149,7 +152,9 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   if (section === 'displays') {
     return { kind: 'displays' };
   }
-  if (section === 'defaults') {
+  const sectionlessDefaults =
+    section === null && (params.get('page') !== null || params.get('panel') !== null);
+  if (section === 'defaults' || sectionlessDefaults) {
     const rawPage = params.get('page') ?? 'screen';
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
       const page = rawPage as DefaultPageId;
@@ -163,12 +168,15 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
 }
 
 /**
- * Resolve a query string to its parsed route AND, when the URL claims a
- * `page` / `panel` / `subtab` that is not what the parser resolved (an
- * unknown page id that fell back to `screen`, a `?panel=` the page does
- * not own, an unknown subtab coerced to `overview`), the canonical query
- * string the page should rewrite the URL bar to. Params the URL does not
- * carry are never added, so a bare `/editor/settings` visit stays bare.
+ * Resolve a query string to its parsed route AND, when any settings param
+ * the URL carries (`section` / `page` / `panel` / `subtab`) disagrees with
+ * what the parser resolved, the canonical query string the page should
+ * rewrite the URL bar to — an unknown page id that fell back to `screen`,
+ * a `?panel=` the page does not own, an unknown subtab coerced to
+ * `overview`, a `section` that dispatched nowhere. The rewrite normalizes
+ * those params to the resolved route, which can mean adding the canonical
+ * `section`/`page` alongside a stale param; a URL carrying no settings
+ * params at all (including bare `/editor/settings`) is never rewritten.
  * Returns `redirectedQuery: undefined` when no rewrite is needed.
  *
  * The page component uses this from a `useEffect` that calls
@@ -191,9 +199,13 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
   // Any rewrite keeps unrelated params (e.g. analytics tags) so navigation
   // context isn't silently dropped on the redirect.
   if (route.kind === 'defaults') {
+    const sectionParam = params.get('section');
     const pageParam = params.get('page');
     const panelParam = params.get('panel');
     const stale =
+      // A `section` that dispatched nowhere (e.g. `section=display` with no
+      // id) leaves the URL advertising a route that isn't rendering.
+      (sectionParam !== null && sectionParam !== 'defaults') ||
       (pageParam !== null && pageParam !== route.page) ||
       (panelParam !== null && panelParam !== (route.panel ?? null));
     if (!stale) return { route };
@@ -204,6 +216,10 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
     // (`validPanelFor` passes it through or drops it), so a rewrite only
     // ever strips the param.
     next.delete('panel');
+    // Per-display params riding on a URL that resolved to a defaults page
+    // (e.g. `section=display&subtab=X` with no id) are equally stale.
+    next.delete('id');
+    next.delete('subtab');
     return { route, redirectedQuery: next.toString() };
   }
   if (route.kind === 'display') {

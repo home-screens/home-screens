@@ -125,11 +125,19 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   // Guarded on inequality because setSelectedDisplay also resets
   // selectedScreenId / selectedModuleId and rewrites the canvas URL — running
   // it on every render would fight the user's canvas selection.
+  //
+  // Also guarded on the display still existing: during deletion,
+  // removeDisplay re-points the store at `main` while this page is still
+  // mounted on the dead ?id= (IdentitySubtab awaits saveConfig before
+  // navigating away). Without the existence check this effect would
+  // re-select the just-deleted id, leaving every screen mutation silently
+  // targeting the legacy global pool until a reload.
+  const displayExists = !!config?.displays?.some((d) => d.id === displayId);
   useEffect(() => {
-    if (displayId && displayId !== selectedDisplayId) {
+    if (displayId && displayExists && displayId !== selectedDisplayId) {
       setSelectedDisplay(displayId);
     }
-  }, [displayId, selectedDisplayId, setSelectedDisplay]);
+  }, [displayId, displayExists, selectedDisplayId, setSelectedDisplay]);
 
   // Heartbeat poll. The 5s cadence matches DisplaysSection so two open
   // tabs hammer /api/displays at the same rate the route's tiny readConfig
