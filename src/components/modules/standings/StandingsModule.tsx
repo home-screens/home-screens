@@ -9,7 +9,7 @@ import { useTranslate } from '@/i18n';
 import { TableView } from './TableView';
 import { CompactView } from './CompactView';
 import { ConferenceView } from './ConferenceView';
-import type { StandingsGroup } from './types';
+import type { StandingsGroup } from '@/lib/espn-standings';
 
 interface StandingsModuleProps {
   config: StandingsConfig;

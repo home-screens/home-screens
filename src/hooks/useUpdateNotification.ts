@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
-import type { VersionInfo, TagInfo } from '@/lib/version';
+import type { VersionResponse } from '@/lib/version';
 import type { UpdateNotificationState } from '@/lib/update-notification-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -24,8 +24,6 @@ interface UseUpdateNotificationResult {
   currentVersion: string | null;
   handleDismiss: () => void;      // optimistic; POSTs in the background
 }
-
-type VersionResponse = VersionInfo & { tags: TagInfo[]; upgradeRunning: boolean };
 
 export function useUpdateNotification({
   enabled,

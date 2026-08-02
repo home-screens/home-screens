@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cachedProxyRoute, createTTLCache, fetchWithTimeout } from '@/lib/api-utils';
 import { LEAGUE_MAP } from '@/lib/espn';
 import {
-  type ParsedGroup,
+  type StandingsGroup,
   parseStandings,
   groupByConference,
   groupByLeague,
@@ -41,7 +41,7 @@ async function fetchTeamColors(path: string, league: string): Promise<Map<string
   }
 }
 
-const { GET, cache } = cachedProxyRoute<{ groups: ParsedGroup[] }>({
+const { GET, cache } = cachedProxyRoute<{ groups: StandingsGroup[] }>({
   auth: 'display',
   ttlMs: 5 * 60 * 1000, // 5 minutes
   cacheKey: (req) => {

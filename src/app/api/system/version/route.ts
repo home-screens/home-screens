@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getVersionInfo, getVersionTags } from '@/lib/version';
+import { getVersionInfo, getVersionTags, type VersionResponse } from '@/lib/version';
 import { isUpgradeRunning } from '@/lib/upgrade';
 import { withAuth } from '@/lib/api-utils';
 
@@ -15,9 +15,10 @@ export const GET = withAuth(async (request: NextRequest) => {
     getVersionTags({ force: forceCheck, includePrerelease }),
   ]);
 
-  return NextResponse.json({
+  const payload: VersionResponse = {
     ...info,
     tags: tags.slice(0, 20), // Last 20 versions
     upgradeRunning: isUpgradeRunning(),
-  });
+  };
+  return NextResponse.json(payload);
 }, 'Failed to get version info');

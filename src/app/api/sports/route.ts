@@ -1,32 +1,10 @@
 import { cachedProxyRoute, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
 import { LEAGUE_MAP, parseESPNTeam } from '@/lib/espn';
+import type { Game } from '@/components/modules/sports/types';
 
 export const dynamic = 'force-dynamic';
 
-interface GameResult {
-  id: string;
-  league: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeTeamAbbr: string;
-  awayTeamAbbr: string;
-  homeTeamLogo: string;
-  awayTeamLogo: string;
-  homeTeamColor: string;
-  awayTeamColor: string;
-  homeScore: number;
-  awayScore: number;
-  homeRecord: string;
-  awayRecord: string;
-  status: string;
-  detail: string;
-  shortDetail: string;
-  state: 'pre' | 'in' | 'post';
-  startTime: string;
-  broadcast: string;
-}
-
-async function fetchLeague(league: string): Promise<GameResult[]> {
+async function fetchLeague(league: string): Promise<Game[]> {
   const path = LEAGUE_MAP[league.toLowerCase()];
   if (!path) return [];
 
@@ -85,7 +63,7 @@ async function fetchLeague(league: string): Promise<GameResult[]> {
   });
 }
 
-const { GET, cache } = cachedProxyRoute<{ games: GameResult[] }>({
+const { GET, cache } = cachedProxyRoute<{ games: Game[] }>({
   auth: 'display',
   ttlMs: 60 * 1000, // 1 minute
   cacheKey: (req) => {

@@ -24,6 +24,13 @@ export interface TagInfo {
   hasTarball?: boolean;
 }
 
+/** Wire shape of GET /api/system/version — VersionInfo plus the fields the
+ * route layers on top. Shared with the settings UI and the update toast. */
+export interface VersionResponse extends VersionInfo {
+  tags: TagInfo[];
+  upgradeRunning: boolean;
+}
+
 interface GitHubRelease {
   tag_name: string;
   name: string;

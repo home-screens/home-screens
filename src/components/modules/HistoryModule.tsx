@@ -10,23 +10,18 @@ import { SectionHeader } from './shared/SectionHeader';
 import { AccentDivider } from './shared/AccentDivider';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
 import { useTranslate } from '@/i18n';
+import type { HistoryResponse } from '@/lib/history-types';
 
 interface HistoryModuleProps {
   config: HistoryConfig;
   style: ModuleStyle;
 }
 
-interface HistoryEvent {
-  year: string;
-  text: string;
-  source?: 'muffinlabs' | 'wikipedia';
-}
-
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000;
 
 export default function HistoryModule({ config, style }: HistoryModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<{ events: HistoryEvent[] }>(historyUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  const [data, error] = useFetchData<HistoryResponse>(historyUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const events = data?.events ?? [];
 
   const rotationMs = config.rotationIntervalMs ?? 10000;

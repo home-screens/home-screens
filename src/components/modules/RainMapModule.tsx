@@ -9,25 +9,13 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
+import type { RainFrame, RainViewerResponse } from '@/lib/rain-map-types';
 
 interface RainMapModuleProps {
   config: RainMapConfig;
   style: ModuleStyle;
   latitude?: number;
   longitude?: number;
-}
-
-interface RainFrame {
-  time: number;
-  path: string;
-}
-
-interface RainViewerData {
-  host: string;
-  radar: {
-    past: RainFrame[];
-    nowcast: RainFrame[];
-  };
 }
 
 // ── Tile math (standard Web Mercator) ──
@@ -133,7 +121,7 @@ export default function RainMapModule({
   const colorScheme = config.colorScheme ?? 2;
   const refreshMs = config.refreshIntervalMs ?? DEFAULT_REFRESH_MS;
 
-  const [data, error] = useFetchData<RainViewerData>(rainMapUrl(), refreshMs);
+  const [data, error] = useFetchData<RainViewerResponse>(rainMapUrl(), refreshMs);
 
   const [displayIndex, setDisplayIndex] = useState(0);
   const [_imagesReady, setImagesReady] = useState(false);

@@ -1,14 +1,7 @@
 import { cachedProxyRoute, fetchWithTimeout } from '@/lib/api-utils';
+import type { HistoryEvent, HistoryResponse } from '@/lib/history-types';
 
 export const dynamic = 'force-dynamic';
-
-interface HistoryEvent {
-  year: string;
-  text: string;
-  source: 'muffinlabs' | 'wikipedia';
-}
-
-type HistoryResult = { events: HistoryEvent[] };
 
 async function fetchMuffinLabs(): Promise<HistoryEvent[]> {
   try {
@@ -51,7 +44,7 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
-const { GET, cache } = cachedProxyRoute<HistoryResult>({
+const { GET, cache } = cachedProxyRoute<HistoryResponse>({
   auth: 'display',
   ttlMs: 24 * 60 * 60 * 1000,
   cacheKey: (request) => {

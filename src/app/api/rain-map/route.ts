@@ -1,25 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cachedProxyRoute, fetchWithTimeout } from '@/lib/api-utils';
+import type { RainViewerResponse } from '@/lib/rain-map-types';
 
 export const dynamic = 'force-dynamic';
-
-interface RainFrame {
-  time: number;
-  path: string;
-}
-
-interface RainViewerResponse {
-  version: string;
-  generated: number;
-  host: string;
-  radar: {
-    past: RainFrame[];
-    nowcast: RainFrame[];
-  };
-  satellite: {
-    infrared: RainFrame[];
-  };
-}
 
 const { GET, cache } = cachedProxyRoute<RainViewerResponse>({
   auth: 'display',

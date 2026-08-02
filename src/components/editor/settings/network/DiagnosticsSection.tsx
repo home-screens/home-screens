@@ -4,32 +4,7 @@ import { useState, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate, type TranslateFn } from '@/i18n';
-
-/* ─── Types ────────────────────────────────── */
-
-interface GatewayResult {
-  ip: string;
-  reachable: boolean;
-  latencyMs: number | null;
-}
-
-interface InternetResult {
-  ip: string;
-  reachable: boolean;
-  latencyMs: number | null;
-}
-
-interface WatchdogResult {
-  active: boolean;
-  lastRun: string | null;
-}
-
-interface DiagnosticsResult {
-  available: boolean;
-  gateway?: GatewayResult;
-  internet?: InternetResult;
-  watchdog?: WatchdogResult;
-}
+import type { DiagnosticsResult } from '@/lib/network-types';
 
 /* ─── Helpers ──────────────────────────────── */
 

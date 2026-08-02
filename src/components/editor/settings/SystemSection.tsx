@@ -8,26 +8,9 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import type { VersionResponse } from '@/lib/version';
 
 const log = logger('system-settings');
-
-interface TagInfo {
-  tag: string;
-  version: string;
-  commit: string;
-  hasTarball?: boolean;
-}
-
-interface VersionInfo {
-  current: string;
-  currentCommit: string;
-  latest: string | null;
-  updateAvailable: boolean;
-  installedVia: 'git' | 'tarball' | 'unknown';
-  channel: string;
-  tags: TagInfo[];
-  upgradeRunning: boolean;
-}
 
 interface Release {
   tag: string;
@@ -51,7 +34,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
   const { updateSettings, saveConfig } = useEditorStore();
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
+  const [versionInfo, setVersionInfo] = useState<VersionResponse | null>(null);
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);

@@ -5,19 +5,9 @@ import { nmcli, nmcliSudo } from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
 import { parseTerseFields } from '@/lib/network-parse';
 import { isAuthEnabled } from '@/lib/auth';
+import type { SavedNetwork } from '@/lib/network-types';
 
 export const dynamic = 'force-dynamic';
-
-/* ─── Types ─────────────────────────────────── */
-
-interface SavedNetwork {
-  id: string;
-  name: string;
-  ssid: string;
-  autoconnect: boolean;
-  lastUsed: string;
-  password?: string;
-}
 
 /* ─── GET: List saved WiFi connections ──────── */
 

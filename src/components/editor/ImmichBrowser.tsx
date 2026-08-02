@@ -6,8 +6,7 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
-
-interface ImmichAlbum { id: string; name: string; assetCount: number }
+import type { ImmichAlbumSummary } from '@/lib/immich';
 
 interface Props {
   selectedScreenId: string;
@@ -22,7 +21,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
     if (!s.config) return undefined;
     return getActiveScreens(s.config, s.selectedDisplayId).find((sc) => sc.id === selectedScreenId);
   });
-  const { data: albumsData } = useEditorData<ImmichAlbum[]>(hasImmichKey ? '/api/immich/albums' : null);
+  const { data: albumsData } = useEditorData<ImmichAlbumSummary[]>(hasImmichKey ? '/api/immich/albums' : null);
   const albums = albumsData ?? [];
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);

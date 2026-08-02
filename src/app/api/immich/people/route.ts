@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createTTLCache, withAuth } from '@/lib/api-utils';
-import { immichFetch, type ImmichPerson } from '@/lib/immich';
+import { immichFetch, type ImmichPerson, type ImmichPersonSummary } from '@/lib/immich';
 
 export const dynamic = 'force-dynamic';
 
-const cache = createTTLCache<{ id: string; name: string; thumbnailUrl: string }[]>(60_000);
+const cache = createTTLCache<ImmichPersonSummary[]>(60_000);
 
 export const GET = withAuth(async () => {
   const cached = cache.get('people');
@@ -15,7 +15,7 @@ export const GET = withAuth(async () => {
 
   const body = await res.json();
   const people: ImmichPerson[] = body.people ?? body;
-  const result = people
+  const result: ImmichPersonSummary[] = people
     .filter((p) => !p.isHidden && p.name)
     .map((p) => ({
       id: p.id,

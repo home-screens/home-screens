@@ -4,7 +4,7 @@
 
 // ---- Types ----------------------------------------------------------------
 
-interface ParsedEntry {
+export interface StandingsEntry {
   rank: number;
   team: string;
   teamAbbr: string;
@@ -33,10 +33,10 @@ interface ParsedEntry {
   goalDiff?: number;
 }
 
-export interface ParsedGroup {
+export interface StandingsGroup {
   name: string;
   league: string;
-  entries: ParsedEntry[];
+  entries: StandingsEntry[];
 }
 
 /** A node from the ESPN standings tree with its entries and optional conference parent. */
@@ -46,13 +46,13 @@ interface TreeNode {
   entries: Record<string, unknown>[];
 }
 
-// Per-league stat field mappings: each entry maps a ParsedEntry field to
+// Per-league stat field mappings: each entry maps a StandingsEntry field to
 // one or more ESPN stat names to try (first match wins).
 // 'num' fields use getStatNum, 'str' fields use getStat.
 type StatMapping = {
-  num?: Partial<Record<keyof ParsedEntry, string[]>>;
-  str?: Partial<Record<keyof ParsedEntry, string[]>>;
-  postProcess?: (result: ParsedEntry) => void;
+  num?: Partial<Record<keyof StandingsEntry, string[]>>;
+  str?: Partial<Record<keyof StandingsEntry, string[]>>;
+  postProcess?: (result: StandingsEntry) => void;
 };
 
 // ---- Data tables ----------------------------------------------------------
@@ -168,7 +168,7 @@ function getStatNum(stats: Record<string, unknown>[], name: string): number | un
 }
 
 /** Sort parsed entries by points (desc), winPct (desc), wins (desc), then re-assign ranks */
-function sortAndRank(entries: ParsedEntry[]): void {
+function sortAndRank(entries: StandingsEntry[]): void {
   entries.sort((a, b) => {
     if (a.points !== undefined && b.points !== undefined && a.points !== b.points) return b.points - a.points;
     if (a.winPct !== b.winPct) return b.winPct - a.winPct;
@@ -200,7 +200,7 @@ function parseEntry(
   entry: Record<string, unknown>,
   rank: number,
   league: string,
-): ParsedEntry {
+): StandingsEntry {
   const team = entry.team as Record<string, unknown> | undefined;
   const stats = (entry.stats as Record<string, unknown>[]) ?? [];
   const logos = (team?.logos as Record<string, unknown>[]) ?? [];
@@ -213,7 +213,7 @@ function parseEntry(
   const clincher = getStat(stats, 'clincher') as string | undefined;
   const playoffSeed = getStatNum(stats, 'playoffSeed');
 
-  const result: ParsedEntry = {
+  const result: StandingsEntry = {
     rank,
     team: (team?.displayName as string) ?? 'Unknown',
     teamAbbr: (team?.abbreviation as string) ?? '???',
@@ -286,7 +286,7 @@ function walkStandingsTree(data: Record<string, unknown>, league: string): TreeN
   return nodes;
 }
 
-export function parseStandings(data: Record<string, unknown>, league: string): ParsedGroup[] {
+export function parseStandings(data: Record<string, unknown>, league: string): StandingsGroup[] {
   const leagueUpper = league.toUpperCase();
   return walkStandingsTree(data, league)
     .map((node) => {
@@ -300,10 +300,10 @@ export function parseStandings(data: Record<string, unknown>, league: string): P
 
 /** Merge divisions into conferences */
 export function groupByConference(
-  groups: ParsedGroup[],
+  groups: StandingsGroup[],
   data: Record<string, unknown>,
   league: string,
-): ParsedGroup[] {
+): StandingsGroup[] {
   const nodes = walkStandingsTree(data, league);
   if (!nodes.length || nodes[0].confName === null) return groups;
 
@@ -315,7 +315,7 @@ export function groupByConference(
     byConf.set(node.confName!, arr);
   }
 
-  const result: ParsedGroup[] = [];
+  const result: StandingsGroup[] = [];
   for (const [confName, confNodes] of byConf) {
     if (confNodes.length === 1 && confNodes[0].name === confName) {
       // Conference-only (no divisions) — reuse already-parsed group to preserve original sort
@@ -332,14 +332,14 @@ export function groupByConference(
 }
 
 /** Merge everything into one flat list */
-export function groupByLeague(groups: ParsedGroup[], league: string): ParsedGroup[] {
+export function groupByLeague(groups: StandingsGroup[], league: string): StandingsGroup[] {
   const allEntries = groups.flatMap((g) => g.entries);
   sortAndRank(allEntries);
   return [{ name: league.toUpperCase(), league: league.toUpperCase(), entries: allEntries }];
 }
 
 /** Use static division mapping to split conference groups into divisions */
-export function groupByDivision(groups: ParsedGroup[], league: string): ParsedGroup[] {
+export function groupByDivision(groups: StandingsGroup[], league: string): StandingsGroup[] {
   const divMap = DIVISION_MAP[league.toLowerCase()];
   if (!divMap) {
     // No division map available — groups stay as-is (conference level)
@@ -347,7 +347,7 @@ export function groupByDivision(groups: ParsedGroup[], league: string): ParsedGr
   }
 
   const allEntries = groups.flatMap((g) => g.entries);
-  const divGroups: ParsedGroup[] = [];
+  const divGroups: StandingsGroup[] = [];
   for (const [divName, teamAbbrs] of Object.entries(divMap)) {
     const divEntries = allEntries.filter((e) => teamAbbrs.includes(e.teamAbbr));
     sortAndRank(divEntries);

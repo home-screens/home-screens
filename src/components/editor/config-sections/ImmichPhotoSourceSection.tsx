@@ -8,18 +8,7 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useTranslate } from '@/i18n';
-
-interface ImmichAlbum {
-  id: string;
-  name: string;
-  assetCount: number;
-}
-
-interface ImmichPerson {
-  id: string;
-  name: string;
-  thumbnailUrl: string;
-}
+import type { ImmichAlbumSummary, ImmichPersonSummary } from '@/lib/immich';
 
 interface ConnectionStatus {
   reachable: boolean;
@@ -45,9 +34,9 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
   // Albums + people load once the connection authenticates; disabling the URL
   // (null) until then mirrors the old `if (!status?.authenticated) return`.
   const authed = !!status?.authenticated;
-  const { data: albumsData } = useEditorData<ImmichAlbum[]>(authed ? '/api/immich/albums' : null);
+  const { data: albumsData } = useEditorData<ImmichAlbumSummary[]>(authed ? '/api/immich/albums' : null);
   const albums = albumsData ?? [];
-  const { data: peopleData } = useEditorData<ImmichPerson[]>(authed ? '/api/immich/people' : null);
+  const { data: peopleData } = useEditorData<ImmichPersonSummary[]>(authed ? '/api/immich/people' : null);
   const people = peopleData ?? [];
 
   // Preview strip re-fetches whenever the filter-derived URL changes; the

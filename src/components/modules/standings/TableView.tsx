@@ -1,7 +1,7 @@
 'use client';
 
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
-import type { StandingsGroup, StandingsEntry } from './types';
+import type { StandingsGroup, StandingsEntry } from '@/lib/espn-standings';
 import { formatRecord, getPlayoffTeamCount, isSoccer, StandingsHeader, StandingsTeamRow } from './shared';
 
 interface TableViewProps {

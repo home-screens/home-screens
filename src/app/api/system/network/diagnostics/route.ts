@@ -2,36 +2,15 @@ import { NextResponse } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { withAuth } from '@/lib/api-utils';
+import type {
+  GatewayResult,
+  WatchdogResult,
+  DiagnosticsResult,
+} from '@/lib/network-types';
 
 export const dynamic = 'force-dynamic';
 
 const execFileAsync = promisify(execFileCb);
-
-/* ─── Types ─────────────────────────────────── */
-
-interface GatewayResult {
-  ip: string;
-  reachable: boolean;
-  latencyMs: number | null;
-}
-
-interface InternetResult {
-  ip: string;
-  reachable: boolean;
-  latencyMs: number | null;
-}
-
-interface WatchdogResult {
-  active: boolean;
-  lastRun: string | null;
-}
-
-interface DiagnosticsResult {
-  available: boolean;
-  gateway?: GatewayResult;
-  internet?: InternetResult;
-  watchdog?: WatchdogResult;
-}
 
 /* ─── Helpers ───────────────────────────────── */
 

@@ -5,19 +5,13 @@ import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 interface SettingsSheetProps {
   open: boolean;
   onClose: () => void;
   onBackup: () => Promise<boolean>;
   backupBusy: boolean;
-}
-
-interface SystemStats {
-  os: { hostname: string; platform: string; arch: string; uptime: number; nodeVersion: string };
-  memory: { total: number; free: number; used: number };
-  disk: { total: number; used: number; free: number };
-  app: { screens: number; modules: number; profiles: number };
 }
 
 function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {

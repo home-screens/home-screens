@@ -9,6 +9,7 @@ import { getSecretStatus } from '@/lib/secrets';
 import { readTelemetryData } from '@/lib/telemetry';
 import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,7 @@ export const GET = withAuth(async () => {
 
   const dataDirTotal = configSize + backupsSize + backgroundsSize;
 
-  return NextResponse.json({
+  const payload: SystemStats = {
     disk: {
       total: diskStats.total,
       used: diskStats.used,
@@ -128,7 +129,8 @@ export const GET = withAuth(async () => {
       enabled: config?.settings?.telemetryEnabled !== false,
     },
     hardware,
-  });
+  };
+  return NextResponse.json(payload);
 }, 'Failed to gather system stats');
 
 /** Get filesystem stats using Node's fs.statfs */

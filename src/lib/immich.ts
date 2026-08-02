@@ -10,6 +10,20 @@ export interface ImmichAlbum {
   albumThumbnailAssetId: string | null;
 }
 
+/** Post-transform shape served by /api/immich/albums to the editor UI. */
+export interface ImmichAlbumSummary {
+  id: string;
+  name: string;
+  assetCount: number;
+}
+
+/** Post-transform shape served by /api/immich/people to the editor UI. */
+export interface ImmichPersonSummary {
+  id: string;
+  name: string;
+  thumbnailUrl: string;
+}
+
 export interface ImmichAsset {
   id: string;
   type: string;

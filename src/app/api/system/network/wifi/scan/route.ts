@@ -4,20 +4,9 @@ import { nmcli, nmcliSudo } from '@/lib/network-commands';
 import { validateInterfaceRegex } from '@/lib/network-validation';
 import { withAuth } from '@/lib/api-utils';
 import { parseTerseFields } from '@/lib/network-parse';
+import type { WifiNetwork } from '@/lib/network-types';
 
 export const dynamic = 'force-dynamic';
-
-/* ─── Types ─────────────────────────────────── */
-
-interface WifiNetwork {
-  ssid: string;
-  bssid: string;
-  signal: number;    // 0-100
-  frequency: number; // MHz
-  security: string;  // "WPA2", "WPA3", "WEP", "Open"
-  inUse: boolean;    // currently connected
-  saved: boolean;    // has a saved connection profile
-}
 
 /* ─── Rate-limit cache ───────────────────────── */
 

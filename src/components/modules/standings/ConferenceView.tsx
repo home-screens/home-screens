@@ -1,7 +1,7 @@
 'use client';
 
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
-import type { StandingsGroup } from './types';
+import type { StandingsGroup } from '@/lib/espn-standings';
 import { formatRecord, getPlayoffTeamCount, StandingsTeamRow } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
 

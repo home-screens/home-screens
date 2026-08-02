@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { StandingsEntry } from './types';
+import type { StandingsEntry } from '@/lib/espn-standings';
 import { PaginationDots } from '../shared/PaginationDots';
 import { TeamLogo } from '../shared/TeamLogo';
 
