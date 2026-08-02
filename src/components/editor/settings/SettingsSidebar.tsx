@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import {
@@ -27,7 +27,7 @@ const REPO_URL = 'https://github.com/home-screens/home-screens';
 const WEBSITE_URL = 'https://homescreens.dev';
 const DOCS_URL = 'https://homescreens.dev/docs';
 import { useEditorStore, orientDimensions } from '@/stores/editor-store';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import {
   DEFAULT_PAGE_IDS,
   parseSettingsRoute,
@@ -81,15 +81,6 @@ interface SettingsSidebarProps {
    *  The parent settings page handles the actual add flow (form, save,
    *  refresh) — the sidebar only signals intent. */
   onAddDisplay: () => void;
-}
-
-interface DisplayApiEntry {
-  id: string;
-  lastSeen: number | null;
-}
-
-interface DisplaysApiResponse {
-  displays: DisplayApiEntry[];
 }
 
 /**
@@ -186,7 +177,9 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
+  // Live heartbeat polling — only when in multi-display mode. Pauses on
+  // hidden tabs; see useDisplayHeartbeats for the cadence/caching contract.
+  const { data: apiData } = useDisplayHeartbeats({ enabled: isMultiDisplay });
 
   // Client-only filter state, not reflected in the URL — mirrors
   // ModulePalette's search box (no debounce; these lists are small
@@ -261,59 +254,6 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
         : [],
     [query, t, fieldVisibility],
   );
-
-  // Live heartbeat polling — only when in multi-display mode and the
-  // tab is visible, every 5s. Reuses /api/displays which has a 1.5s
-  // server-side cache, so two open settings tabs collapse to one disk
-  // read per cycle. Pausing on hidden tabs keeps background editor
-  // windows from hammering the hub Pi indefinitely.
-  useEffect(() => {
-    if (!isMultiDisplay) return;
-    let cancelled = false;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-
-    const refresh = async () => {
-      try {
-        const res = await editorFetch('/api/displays');
-        if (res.ok && !cancelled) {
-          setApiData((await res.json()) as DisplaysApiResponse);
-        }
-      } catch {
-        // Silent — keep the previous snapshot rather than blanking dots
-      }
-    };
-
-    const start = () => {
-      if (intervalId !== null) return;
-      refresh();
-      intervalId = setInterval(refresh, 5_000);
-    };
-    const stop = () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
-
-    // `useEffect` is client-only in a `'use client'` component, so
-    // `document` is always defined here. Previous iterations of this
-    // block guarded every access behind `typeof document !== 'undefined'`
-    // — that would only have mattered at import/SSR time, and Next
-    // already splits `'use client'` modules so they never run that
-    // path. The guards were load-bearing noise; removing them makes
-    // the visibility-change dance one level easier to read.
-    if (document.visibilityState === 'visible') start();
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') start();
-      else stop();
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    return () => {
-      cancelled = true;
-      stop();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [isMultiDisplay]);
 
   // Derive the active highlight from the current URL via the same
   // `parseSettingsRoute` helper the parent settings page uses to decide

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, LayoutGrid } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { orientDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, type PerDisplaySubtab } from '@/lib/settings-route';
 import { useTranslate, type TranslateFn } from '@/i18n';
@@ -40,30 +40,6 @@ export { PER_DISPLAY_SUBTABS, type PerDisplaySubtab };
 interface PerDisplayPageProps {
   displayId: string;
   subtab: PerDisplaySubtab;
-}
-
-interface ViewportReport {
-  width: number;
-  height: number;
-  lastSeen: number;
-  clientAddress?: string;
-}
-
-interface DisplayApiEntry {
-  id: string;
-  name: string;
-  screenCount: number;
-  displayWidth?: number;
-  displayHeight?: number;
-  displayTransform?: 'normal' | '90' | '180' | '270';
-  lastSeen: number | null;
-  reportedViewport?: { width: number; height: number };
-  viewportReports?: ViewportReport[];
-  status: { displayState?: string; activeProfile?: string | null } | null;
-}
-
-interface DisplaysApiResponse {
-  displays: DisplayApiEntry[];
 }
 
 // The status pill drives styling AND copy off `kind` rather than sniffing the
@@ -112,7 +88,10 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   const router = useRouter();
   const { config, setSelectedDisplay } = useEditorStore();
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
-  const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
+  // Heartbeat poll for the header status pill and the Overview subtab's
+  // live IP / reported viewport. Pauses on hidden tabs; see
+  // useDisplayHeartbeats for the cadence/caching contract.
+  const { data: apiData } = useDisplayHeartbeats();
 
   // Keep the store's notion of "current display" in step with the URL's.
   //
@@ -137,58 +116,6 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       setSelectedDisplay(displayId);
     }
   }, [displayId, displayExists, selectedDisplayId, setSelectedDisplay]);
-
-  // Heartbeat poll. The 5s cadence matches DisplaysSection so two open
-  // tabs hammer /api/displays at the same rate the route's tiny readConfig
-  // cache (1.5s TTL) was sized for. Pauses on hidden tabs so a background
-  // editor window doesn't keep polling the hub forever.
-  useEffect(() => {
-    let cancelled = false;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
-
-    const refresh = async () => {
-      try {
-        const res = await editorFetch('/api/displays');
-        if (res.ok && !cancelled) {
-          const data = (await res.json()) as DisplaysApiResponse;
-          setApiData(data);
-        }
-      } catch {
-        // Silent — preserve previous snapshot rather than blanking the
-        // status pill on transient network blips.
-      }
-    };
-
-    const start = () => {
-      if (intervalId !== null) return;
-      refresh();
-      intervalId = setInterval(refresh, 5_000);
-    };
-    const stop = () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
-    };
-
-    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
-      start();
-    }
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') start();
-      else stop();
-    };
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', onVisibilityChange);
-    }
-    return () => {
-      cancelled = true;
-      stop();
-      if (typeof document !== 'undefined') {
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-      }
-    };
-  }, []);
 
   const navigateToSubtab = useCallback(
     (next: PerDisplaySubtab) => {

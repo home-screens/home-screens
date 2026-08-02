@@ -7,6 +7,7 @@ import {
 } from '@/lib/display-commands';
 import { withDisplayAuth } from '@/lib/api-utils';
 import type { ScreenConfiguration } from '@/types/config';
+import type { DisplaysApiResponse } from '@/lib/displays-api-types';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +65,9 @@ export const GET = withDisplayAuth(async (request) => {
   const statuses = getAllDisplayStatuses();
   const unadopted = getUnadoptedDisplays(registered.map((d) => d.id));
 
-  return NextResponse.json({
+  // Typed against the shared wire contract so the payload the clients
+  // declare (displays-api-types.ts) can't drift from what this route emits.
+  const payload: DisplaysApiResponse = {
     displays: registered.map((d) => {
       const status = statuses.get(d.id);
       const viewportReports = getViewportReports(d.id);
@@ -112,7 +115,8 @@ export const GET = withDisplayAuth(async (request) => {
         viewportReports,
       };
     }),
-  });
+  };
+  return NextResponse.json(payload);
 }, 'Failed to read displays');
 
 /** Test-only escape hatch for clearing the per-process config cache. */

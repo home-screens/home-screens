@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   formatClientAddress,
   collapseReports,
-  type ViewportReport,
 } from '@/components/editor/settings/DisplaysIndexPage';
+import type { ViewportReport } from '@/lib/displays-api-types';
 
 /* ─── formatClientAddress ─────────────────────── */
 

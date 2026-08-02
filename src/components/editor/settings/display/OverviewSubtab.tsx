@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { DisplayNode, GlobalSettings, ScreenConfiguration } from '@/types/config';
+import type { DisplayApiEntry } from '@/lib/displays-api-types';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import {
   DISPLAY_OVERRIDE_FIELDS,
@@ -14,15 +15,11 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
 
-interface DisplayApiEntry {
-  id: string;
-  status: { displayState?: string; activeProfile?: string | null } | null;
-}
-
 interface OverviewSubtabProps {
   config: ScreenConfiguration;
   display: DisplayNode;
-  heartbeat: DisplayApiEntry | null;
+  /** Narrowed to the fields this subtab actually reads from the poll entry. */
+  heartbeat: Pick<DisplayApiEntry, 'id' | 'status'> | null;
 }
 
 /**

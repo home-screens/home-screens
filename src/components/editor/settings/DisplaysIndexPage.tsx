@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Monitor, Plus, RefreshCw, X } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
-import { editorFetch } from '@/lib/editor-fetch';
 import {
   isMainDisplay,
   isValidDisplayId,
@@ -16,48 +15,12 @@ import {
 import { formatLastSeen } from '@/lib/time-format';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
-
-interface ReportedViewport {
-  width: number;
-  height: number;
-}
-
-export interface ViewportReport extends ReportedViewport {
-  lastSeen: number;
-  clientAddress?: string;
-}
-
-interface UnadoptedDisplay {
-  id: string;
-  lastSeen: number | null;
-  reportedViewport?: ReportedViewport;
-  viewportReports?: ViewportReport[];
-}
-
-/**
- * Shape of the per-display entry returned by GET /api/displays. Intentionally
- * does NOT extend `DisplayNode` — the route only returns metadata (id, name,
- * dims, screenCount), not the full `screens` array, to avoid leaking module
- * configs (potentially containing plugin secrets) and to keep the poll
- * payload tiny even for households with many displays.
- */
-interface DisplayApiEntry {
-  id: string;
-  name: string;
-  screenCount: number;
-  displayWidth?: number;
-  displayHeight?: number;
-  displayTransform?: 'normal' | '90' | '180' | '270';
-  lastSeen: number | null;
-  reportedViewport?: ReportedViewport;
-  viewportReports?: ViewportReport[];
-  status: { displayState?: string; activeProfile?: string | null } | null;
-}
-
-interface DisplaysApiResponse {
-  displays: DisplayApiEntry[];
-  unadopted: UnadoptedDisplay[];
-}
+import type {
+  DisplayApiEntry,
+  ReportedViewport,
+  ViewportReport,
+} from '@/lib/displays-api-types';
+import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 
 /**
  * Humanize the raw client address that `getClientIP` returned from the
@@ -406,36 +369,15 @@ export default function DisplaysIndexPage() {
   const router = useRouter();
   const { config, addDisplay, saveConfig } = useEditorStore();
 
-  const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  // Heartbeat poll for the card grid and the unadopted section. Pauses on
+  // hidden tabs (previously this page kept polling from a background tab);
+  // see useDisplayHeartbeats for the cadence/caching contract. `refresh`
+  // also backs the manual Refresh button and the post-save reload.
+  const { data: apiData, refresh, refreshing } = useDisplayHeartbeats();
   const [adding, setAdding] = useState(false);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<'saved' | 'failed' | null>(null);
-
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      const res = await editorFetch('/api/displays');
-      if (res.ok) {
-        const data = (await res.json()) as DisplaysApiResponse;
-        setApiData(data);
-      }
-    } catch {
-      // Ignore — keep previous data
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
-
-  // Initial load + 5s refresh while the tab is open. The route reads config
-  // through a tiny per-process cache (~1.5s TTL) so concurrent polls from the
-  // editor and unadopted Pis collapse to a single disk read.
-  useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 5_000);
-    return () => clearInterval(id);
-  }, [refresh]);
 
   if (!config) return null;
 
