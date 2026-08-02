@@ -71,9 +71,10 @@ describe('POST /api/plugins/dev', () => {
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
-  it('returns 400 for a manifest missing required fields', async () => {
+  it('returns 400 for a manifest missing required fields, naming the field', async () => {
     const res = await POST(makeRequest({ manifest: { id: 'x', name: 'X' } }));
     expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain('"version"');
     expect(mockRegister).not.toHaveBeenCalled();
   });
 
@@ -82,6 +83,7 @@ describe('POST /api/plugins/dev', () => {
     // sanitization; validateManifest must reject it up front.
     const res = await POST(makeRequest({ manifest: { ...VALID, id: 'foo/bar' } }));
     expect(res.status).toBe(400);
+    expect((await res.json()).error).toContain('"id"');
     expect(mockRegister).not.toHaveBeenCalled();
   });
 

@@ -66,7 +66,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const cursorRef = useIdleCursor(settings.cursorHideSeconds ?? 3);
 
   // Load plugins on mount
-  useEffect(() => { loadPlugins(); }, [loadPlugins]);
+  useEffect(() => { loadPlugins('display'); }, [loadPlugins]);
 
   // Install the console ring buffer so the `dump-console-log` command
   // can return recent browser logs as part of a diagnostics bundle.

@@ -73,7 +73,7 @@ describe('loadAllPlugins reload swap', () => {
     sharedStateStore.publish('plugin:foo:door', 'open');
 
     mockInstalledList(['foo']);
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'display' });
 
     expect(sharedStateStore.snapshot().get('plugin:foo:door')?.value).toBe('open');
   });
@@ -86,7 +86,7 @@ describe('loadAllPlugins reload swap', () => {
     sharedStateStore.publish('plugin:stays:door', 'closed');
 
     mockInstalledList(['stays']);
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'display' });
 
     expect(sharedStateStore.snapshot().get('plugin:gone:door')?.staleAt).toBeTypeOf('number');
     vi.advanceTimersByTime(15_000);
@@ -96,32 +96,30 @@ describe('loadAllPlugins reload swap', () => {
     vi.useRealTimers();
   });
 
-  it('purges preserved keys when the installed-plugins fetch throws (no producer will revive them)', async () => {
-    // A failed reload leaves every plugin unregistered and nothing retries
-    // until the next config-driven reload — the preserved keys would gate
-    // conditioned modules on a dead producer's values indefinitely. The
-    // purge tombstones, so a fast successful retry still revives values
-    // within the grace window.
-    vi.useFakeTimers();
+  it('treats a thrown installed-plugins fetch as a no-op: registrations and keys stay live', async () => {
+    // The fetch runs BEFORE any teardown, so a transient failure leaves the
+    // current plugin set mounted and publishing — nothing to purge, nothing
+    // to recover. The next reload trigger retries.
     usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
     sharedStateStore.publish('plugin:foo:door', 'open');
 
     vi.spyOn(global, 'fetch').mockRejectedValue(new Error('network down'));
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'display' });
 
-    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
-    vi.advanceTimersByTime(15_000);
-    expect(sharedStateStore.snapshot().get('plugin:foo:door')).toBeUndefined();
-    vi.useRealTimers();
+    expect(usePluginStore.getState().plugins.has('plugin:foo')).toBe(true);
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeUndefined();
   });
 
-  it('purges preserved keys when the installed-plugins fetch returns non-OK', async () => {
+  it('treats a non-OK installed-plugins fetch as a no-op: registrations and keys stay live', async () => {
     usePluginStore.getState().registerPlugin('plugin:foo', FakeComponent, makeManifest('foo', 'foo'));
     sharedStateStore.publish('plugin:foo:door', 'open');
 
     vi.spyOn(global, 'fetch').mockResolvedValue(new Response('Server Error', { status: 500 }));
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'display' });
 
-    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeTypeOf('number');
+    expect(usePluginStore.getState().plugins.has('plugin:foo')).toBe(true);
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.value).toBe('open');
+    expect(sharedStateStore.snapshot().get('plugin:foo:door')?.staleAt).toBeUndefined();
   });
 });

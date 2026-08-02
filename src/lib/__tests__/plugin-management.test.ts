@@ -224,7 +224,7 @@ describe('validateManifest — secrets and allowedDomains', () => {
         { key: 'api_key', label: 'API Key', required: true },
         { key: 'token-123', label: 'Token', required: false },
       ],
-    })).toBe(true);
+    })).toBeNull();
   });
 
   it('rejects secrets with invalid key format', async () => {
@@ -232,7 +232,7 @@ describe('validateManifest — secrets and allowedDomains', () => {
     expect(validateManifest({
       ...base,
       secrets: [{ key: 'has spaces', label: 'Bad', required: true }],
-    })).toBe(false);
+    })).toContain('"secrets" entry needs a "key"');
   });
 
   it('rejects secrets with non-boolean required', async () => {
@@ -240,12 +240,12 @@ describe('validateManifest — secrets and allowedDomains', () => {
     expect(validateManifest({
       ...base,
       secrets: [{ key: 'key', label: 'Label', required: 'yes' }],
-    })).toBe(false);
+    })).toContain('"required"');
   });
 
   it('rejects non-array secrets', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, secrets: 'not-array' })).toBe(false);
+    expect(validateManifest({ ...base, secrets: 'not-array' })).toContain('"secrets" must be an array');
   });
 
   it('accepts manifest with valid allowedDomains', async () => {
@@ -253,17 +253,17 @@ describe('validateManifest — secrets and allowedDomains', () => {
     expect(validateManifest({
       ...base,
       allowedDomains: ['api.example.com', 'cdn.example.com'],
-    })).toBe(true);
+    })).toBeNull();
   });
 
   it('rejects non-array allowedDomains', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, allowedDomains: 'example.com' })).toBe(false);
+    expect(validateManifest({ ...base, allowedDomains: 'example.com' })).toContain('"allowedDomains"');
   });
 
   it('rejects allowedDomains with non-string entries', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, allowedDomains: [123, 'example.com'] })).toBe(false);
+    expect(validateManifest({ ...base, allowedDomains: [123, 'example.com'] })).toContain('"allowedDomains"');
   });
 });
 
@@ -284,39 +284,39 @@ describe('validateManifest — providesState', () => {
         { key: 'binary_sensor.door', label: 'Door' },
         { key: 'temp', label: 'Temperature', sampleValues: ['70', '71'] },
       ],
-    })).toBe(true);
+    })).toBeNull();
   });
 
   it('rejects non-array providesState', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, providesState: 'door' })).toBe(false);
-    expect(validateManifest({ ...base, providesState: { key: 'k', label: 'L' } })).toBe(false);
+    expect(validateManifest({ ...base, providesState: 'door' })).toContain('"providesState" must be an array');
+    expect(validateManifest({ ...base, providesState: { key: 'k', label: 'L' } })).toContain('"providesState" must be an array');
   });
 
   it('rejects entries missing key or label', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, providesState: [{ label: 'No key' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [{ key: 'k' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: '' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [null] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ label: 'No key' }] })).toContain('needs a "key"');
+    expect(validateManifest({ ...base, providesState: [{ key: 'k' }] })).toContain('"label"');
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: '' }] })).toContain('"label"');
+    expect(validateManifest({ ...base, providesState: [null] })).toContain('must be an object');
   });
 
   it('rejects keys outside the shared-state charset (uppercase, spaces)', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, providesState: [{ key: 'Door', label: 'D' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [{ key: 'has space', label: 'D' }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'Door', label: 'D' }] })).toContain('needs a "key"');
+    expect(validateManifest({ ...base, providesState: [{ key: 'has space', label: 'D' }] })).toContain('needs a "key"');
   });
 
   it('rejects keys that would exceed 128 chars once prefixed with plugin:<id>:', async () => {
     const { validateManifest } = await loadModule();
     // prefix "plugin:test:" is 12 chars → a 120-char key overflows, 116 fits
-    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(120), label: 'D' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(116), label: 'D' }] })).toBe(true);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(120), label: 'D' }] })).toContain('too long');
+    expect(validateManifest({ ...base, providesState: [{ key: 'k'.repeat(116), label: 'D' }] })).toBeNull();
   });
 
   it('rejects malformed sampleValues', async () => {
     const { validateManifest } = await loadModule();
-    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: 'on' }] })).toBe(false);
-    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: [1, 2] }] })).toBe(false);
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: 'on' }] })).toContain('"sampleValues"');
+    expect(validateManifest({ ...base, providesState: [{ key: 'k', label: 'L', sampleValues: [1, 2] }] })).toContain('"sampleValues"');
   });
 });

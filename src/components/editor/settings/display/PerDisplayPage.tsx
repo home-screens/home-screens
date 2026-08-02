@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ExternalLink, LayoutGrid } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { orientDimensions } from '@/lib/display-filter';
@@ -110,7 +110,6 @@ function subtabLabel(tab: PerDisplaySubtab, t: TranslateFn): string {
 export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProps) {
   const t = useTranslate('editor');
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { config, setSelectedDisplay } = useEditorStore();
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const [apiData, setApiData] = useState<DisplaysApiResponse | null>(null);
@@ -196,14 +195,18 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       // Use Next's router so `useSearchParams` in the parent settings
       // page re-renders the content to match the new subtab. Pushes
       // a history entry so the back button returns to the previous
-      // subtab instead of jumping straight out of settings.
-      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      // subtab instead of jumping straight out of settings. Built from
+      // window.location, not the useSearchParams snapshot: `syncEditorUrl`
+      // writes `display=` / `screen=` via raw history.replaceState, which
+      // the snapshot never observes — copying it would drop those params.
+      const params = new URLSearchParams(window.location.search);
       params.set('section', 'display');
       params.set('id', displayId);
       params.set('subtab', next);
+      params.delete('highlight');
       router.push(`?${params.toString()}`);
     },
-    [displayId, router, searchParams],
+    [displayId, router],
   );
 
   if (!config) return null;

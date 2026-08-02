@@ -51,7 +51,6 @@ function saveDevPlugins(devPlugins: Map<string, DevPlugin>): void {
  * and stores the mapping in localStorage (not persisted to disk config).
  */
 export async function loadDevPlugin(url: string): Promise<void> {
-  const store = usePluginStore.getState();
   // Normalise: strip trailing slash
   const base = url.replace(/\/+$/, '');
 
@@ -116,7 +115,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
 
   // 6. Register client-side
   registerPluginModule(manifest, { deriveProvidedKeys, hasStateProvider: Boolean(stateProvider) });
-  store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
+  usePluginStore.getState().registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
   // 7. Persist dev mapping in localStorage
   devPlugins.set(manifest.id, { url: base, manifest });
@@ -255,100 +254,40 @@ function purgePluginStateKeys(pluginIds: Iterable<string>): void {
 }
 
 /**
- * Load all installed+enabled plugins. Called from the plugin Zustand store.
- *
- * Loading sequence per plugin:
- * 1. GET /api/plugins/manifest/<id> → manifest
- * 2. GET /api/plugins/bundle/<id>?v=<version> → IIFE bundle text
- * 3. Execute bundle via script injection → read window.__HS_PLUGIN__
- * 4. Register into Zustand store + module registry
- * 5. After all plugins loaded, run pending config migrations sequentially
+ * The surface a plugin load runs on. The caller always knows which page
+ * mounted it; the loader must not guess from the URL. `editor` unlocks the
+ * authenticated-only work (dev overrides, config migrations); `display`
+ * loads installed bundles only.
  */
-export async function loadAllPlugins(): Promise<void> {
-  const store = usePluginStore.getState();
+export type PluginSurface = 'editor' | 'display';
 
-  // Reload is a swap, not a purge-then-load: registrations are rebuilt from
-  // scratch, but published shared-state keys survive so modules conditioned
-  // on a re-registered plugin's keys don't blink out during the seconds
-  // between the purge and the remounted producer's first publish. Keys for
-  // plugins that are actually gone are cleared below once the new set is
-  // known; `unregisterPlugin` (true removal) still purges unconditionally.
-  const previousPluginIds = new Set(
-    Array.from(store.plugins.values(), (p) => p.manifest.id.toLowerCase()),
-  );
-  store.clearPlugins({ preserveSharedState: true });
-  stopAllDevPolling();
-
-  // Fetch installed plugins list. On failure, purge the preserved keys:
-  // every plugin is already unregistered at this point and nothing retries
-  // until the next config-driven reload, so keeping them would gate
-  // conditioned modules on a dead producer's values indefinitely. The purge
-  // tombstones (15s grace), so a quick successful retry still revives the
-  // values without a blink.
-  let plugins: InstalledPlugin[];
+/**
+ * Fetch the installed+enabled plugin list. Returns null on any failure —
+ * the caller treats that as "reload is a no-op" and leaves the current
+ * plugin set untouched.
+ */
+async function fetchEnabledPlugins(): Promise<InstalledPlugin[] | null> {
   try {
     const res = await displayFetch('/api/plugins/installed');
-    if (!res.ok) {
-      purgePluginStateKeys(previousPluginIds);
-      return;
-    }
+    if (!res.ok) return null;
     const data = await res.json();
-    plugins = (data.plugins ?? []).filter((p: InstalledPlugin) => p.enabled);
+    return (data.plugins ?? []).filter((p: InstalledPlugin) => p.enabled);
   } catch {
-    purgePluginStateKeys(previousPluginIds);
-    return;
+    return null;
   }
+}
 
-  // Refresh plugin-level settings wholesale from the installed payload —
-  // covers dev-overridden plugins too (their installed.json record is the
-  // settings source even when the bundle loads from the dev server).
-  store.setPluginSettingsMap(
-    new Map(plugins.map((p) => [p.id.toLowerCase(), p.settings ?? {}])),
-  );
-
-  // Dev overrides live in localStorage, which is shared across every tab of
-  // the origin — including unauthenticated display tabs. Only the editor
-  // actually loads the dev bundle (see the isEditor gate below), so only the
-  // editor may skip an installed copy in favor of its override. On a display
-  // page the installed copy must still load, otherwise a plugin with a dev
-  // override registered in this browser would load nowhere and its modules
-  // (and stateProvider) would vanish from the display.
-  const devPluginIds = new Set(getDevPlugins().keys());
-  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
-
-  // Now that the new plugin set is known, purge shared-state keys only for
-  // plugins that are gone from it (uninstalled or disabled). A re-registered
-  // plugin keeps its last values until its producer publishes fresh ones.
-  const nextPluginIds = new Set(
-    [...plugins.map((p) => p.id), ...devPluginIds].map((id) => id.toLowerCase()),
-  );
-  for (const id of previousPluginIds) {
-    if (!nextPluginIds.has(id)) {
-      sharedStateStore.clearKeysByPrefix(pluginStatePrefix(id));
-    }
-  }
-
-  // Load installed plugins in parallel, collect pending migrations. On the
-  // editor, skip any plugin whose dev override will load from the dev server;
-  // on a display page the override never loads, so keep the installed copy.
-  const pendingMigrations: PendingMigration[] = [];
-  const installedOnly = plugins.filter((p) => (isEditor ? !devPluginIds.has(p.id) : true));
-
-  if (installedOnly.length > 0) {
-    await Promise.allSettled(
-      installedOnly.map((plugin) => loadSinglePlugin(plugin, store, pendingMigrations)),
-    );
-  }
-
-  // Migrations and dev plugins only run in the editor (authenticated context).
-  // The display page is unauthenticated — PUT /api/config would fail with 401.
-  if (!isEditor) return;
-
-  // Load dev plugins from localStorage (these override installed versions).
-  // Runs before the migration loop: a failed override falls back to
-  // loadSinglePlugin, which can queue a migration the loop must still process.
-  const devPlugins = getDevPlugins();
-  for (const [pluginId, dev] of devPlugins) {
+/**
+ * Editor-only: load dev-override plugins from localStorage. A failed
+ * override falls back to the installed copy it displaced, so a dead dev
+ * server never takes a module off the palette. Can queue migrations via the
+ * fallback path, so it must run before `runPendingMigrations`.
+ */
+async function loadDevOverrides(
+  installedPlugins: InstalledPlugin[],
+  pendingMigrations: PendingMigration[],
+): Promise<void> {
+  for (const [pluginId, dev] of getDevPlugins()) {
     try {
       await loadDevPlugin(dev.url);
       startDevPolling(pluginId);
@@ -365,31 +304,32 @@ export async function loadAllPlugins(): Promise<void> {
 
       // A dead dev server must not take the module off the palette: fall
       // back to the installed copy that was skipped in favor of the override.
-      const installed = plugins.find((p) => p.id === pluginId);
+      const installed = installedPlugins.find((p) => p.id === pluginId);
       if (!installed) {
-        store.setError(pluginId, {
+        usePluginStore.getState().setError(pluginId, {
           message: `Could not load the dev version from ${dev.url} — ${message}`,
           phase: 'load',
         });
         continue;
       }
-      await loadSinglePlugin(installed, store, pendingMigrations);
+      await loadSinglePlugin(installed, pendingMigrations);
 
       // loadSinglePlugin clears the error on success; only replace it with
-      // the informational notice if the fallback actually registered (a
-      // fresh getState() — `store` predates the await and holds the old map).
+      // the informational notice if the fallback actually registered.
       const registered = usePluginStore.getState()
         .plugins.has(`plugin:${installed.moduleType}`);
       if (registered) {
-        store.setError(pluginId, {
+        usePluginStore.getState().setError(pluginId, {
           message: `Dev version at ${dev.url} isn't responding — using installed v${installed.version} instead. Remove it from the Developer tab if you're done developing.`,
           phase: 'load',
         });
       }
     }
   }
+}
 
-  // Run config migrations sequentially to avoid concurrent read-modify-write
+/** Run queued config migrations sequentially to avoid concurrent read-modify-write. */
+async function runPendingMigrations(pendingMigrations: PendingMigration[]): Promise<void> {
   for (const { manifest, oldVersion, pluginId } of pendingMigrations) {
     const migrated = await migratePluginConfigs(manifest, oldVersion);
     // Only clear previousVersion if migration succeeded — otherwise it retries on next load
@@ -403,9 +343,98 @@ export async function loadAllPlugins(): Promise<void> {
   }
 }
 
+/**
+ * Load all installed+enabled plugins. Called from the plugin Zustand store,
+ * which threads `surface` from the mounting component.
+ *
+ * Loading sequence per plugin:
+ * 1. GET /api/plugins/manifest/<id> → manifest
+ * 2. GET /api/plugins/bundle/<id>?v=<version> → IIFE bundle text
+ * 3. Execute bundle via script injection → read window.__HS_PLUGIN__
+ * 4. Register into Zustand store + module registry
+ * 5. After all plugins loaded, run pending config migrations sequentially
+ *
+ * Store access is always through a fresh `usePluginStore.getState()` at the
+ * point of use — never a snapshot captured before an await, which is how a
+ * stale-closure read of `plugins` slipped in here once before.
+ *
+ * Returns false when the installed-list fetch failed and the reload was a
+ * no-op — useLiveConfig keeps its old plugin hash then, so the next poll
+ * retries the reload instead of believing the new set is already live.
+ */
+export async function loadAllPlugins({ surface }: { surface: PluginSurface }): Promise<boolean> {
+  // Fetch the new installed list BEFORE tearing anything down. A transient
+  // failure (hub restart, Pi WiFi blip) is then a no-op: the current
+  // registrations stay mounted, their producers keep publishing, and dev
+  // polling stays armed — the next reload trigger retries. Clearing first
+  // used to leave the tab with zero plugins and nothing to recover it.
+  const plugins = await fetchEnabledPlugins();
+  if (!plugins) return false;
+
+  // Reload is a swap, not a purge-then-load: registrations are rebuilt from
+  // scratch, but published shared-state keys survive so modules conditioned
+  // on a re-registered plugin's keys don't blink out during the seconds
+  // between the purge and the remounted producer's first publish. Keys for
+  // plugins that are actually gone are cleared below once the new set is
+  // known; `unregisterPlugin` (true removal) still purges unconditionally.
+  const previousPluginIds = new Set(
+    Array.from(usePluginStore.getState().plugins.values(), (p) => p.manifest.id.toLowerCase()),
+  );
+  usePluginStore.getState().clearPlugins({ preserveSharedState: true });
+  stopAllDevPolling();
+
+  // Refresh plugin-level settings wholesale from the installed payload —
+  // covers dev-overridden plugins too (their installed.json record is the
+  // settings source even when the bundle loads from the dev server).
+  usePluginStore.getState().setPluginSettingsMap(
+    new Map(plugins.map((p) => [p.id.toLowerCase(), p.settings ?? {}])),
+  );
+
+  // Dev overrides live in localStorage, which is shared across every tab of
+  // the origin — including unauthenticated display tabs. Only the editor
+  // loads dev bundles, so only the editor may skip an installed copy in
+  // favor of its override, and only the editor counts dev ids toward the
+  // "still present" set below — a display never mounts a dev-only producer,
+  // so sparing its shared-state keys would leave conditioned modules
+  // evaluating a dead producer's values forever.
+  const isEditor = surface === 'editor';
+  const devPluginIds = isEditor ? new Set(getDevPlugins().keys()) : new Set<string>();
+
+  // Now that the new plugin set is known, purge shared-state keys only for
+  // plugins that are gone from it (uninstalled or disabled). A re-registered
+  // plugin keeps its last values until its producer publishes fresh ones.
+  const nextPluginIds = new Set(
+    [...plugins.map((p) => p.id), ...devPluginIds].map((id) => id.toLowerCase()),
+  );
+  purgePluginStateKeys(
+    [...previousPluginIds].filter((id) => !nextPluginIds.has(id)),
+  );
+
+  // Load installed plugins in parallel, collect pending migrations. On the
+  // editor, skip any plugin whose dev override will load from the dev server;
+  // on a display page the override never loads, so keep the installed copy.
+  const pendingMigrations: PendingMigration[] = [];
+  const installedOnly = plugins.filter((p) => (isEditor ? !devPluginIds.has(p.id) : true));
+
+  if (installedOnly.length > 0) {
+    await Promise.allSettled(
+      installedOnly.map((plugin) => loadSinglePlugin(plugin, pendingMigrations)),
+    );
+  }
+
+  // Migrations and dev plugins only run in the editor (authenticated context).
+  // The display page is unauthenticated — PUT /api/config would fail with 401.
+  if (!isEditor) return true;
+
+  // Dev overrides before migrations: a failed override falls back to
+  // loadSinglePlugin, which can queue a migration the loop must still process.
+  await loadDevOverrides(plugins, pendingMigrations);
+  await runPendingMigrations(pendingMigrations);
+  return true;
+}
+
 async function loadSinglePlugin(
   plugin: InstalledPlugin,
-  store: ReturnType<typeof usePluginStore.getState>,
   pendingMigrations: PendingMigration[],
 ): Promise<void> {
   const moduleType = `plugin:${plugin.moduleType}`;
@@ -453,7 +482,7 @@ async function loadSinglePlugin(
 
     // 6. Register into module registry and Zustand store
     registerPluginModule(manifest, { deriveProvidedKeys, hasStateProvider: Boolean(stateProvider) });
-    store.registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
+    usePluginStore.getState().registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
     // 7. Wire prefetchUrl into the fetch key registry if declared
     if (manifest.prefetchUrl) {
@@ -466,7 +495,7 @@ async function loadSinglePlugin(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     log.error(`Failed to load plugin ${plugin.id}:`, message);
-    store.setError(plugin.id, { message, phase: 'load' });
+    usePluginStore.getState().setError(plugin.id, { message, phase: 'load' });
   }
 }
 

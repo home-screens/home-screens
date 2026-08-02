@@ -52,8 +52,10 @@ export function createRuleSlice(
     reorderRules: (fromIndex: number, toIndex: number) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
+        // Guard before arrayMove: dnd-kit's arrayMove on an empty list
+        // splices `undefined` in, producing `[undefined]` in the config.
         config: withRules(config, selectedDisplayId, (rules) =>
-          arrayMove(rules, fromIndex, toIndex),
+          rules.length < 2 ? rules : arrayMove(rules, fromIndex, toIndex),
         ),
       }), { coalesce: COALESCE_KEYS.reorderRules });
     },

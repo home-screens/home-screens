@@ -74,7 +74,6 @@ export default function EditorPage() {
   );
 
   const pluginLoading = usePluginStore((s) => s.loading);
-  const loadPlugins = usePluginStore((s) => s.loadPlugins);
 
   useEffect(() => {
     // Zustand is a module-level singleton, so if the user is navigating
@@ -82,9 +81,11 @@ export default function EditorPage() {
     // loadConfig in that case to preserve the undo/redo history (which
     // would otherwise get reset to []), and also to avoid a needless
     // /api/config fetch on every display switch from the Displays tab.
+    // Plugins are NOT loaded here: EditorStateProviderLayer in the (editor)
+    // layout owns the mount-time load for every editor route — a second call
+    // would queue a full duplicate load pass, not dedupe.
     if (!useEditorStore.getState().config) loadConfig();
-    loadPlugins();
-  }, [loadConfig, loadPlugins]);
+  }, [loadConfig]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const data = event.active.data.current;

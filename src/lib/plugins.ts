@@ -104,12 +104,9 @@ async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> 
       + '(expected a root directory wrapping manifest.json and dist/)',
     );
   }
-  if (!validateManifest(manifest)) {
-    const missing = ['id', 'name', 'version', 'moduleType', 'category']
-      .filter((k) => !(manifest as Record<string, unknown>)[k]);
-    throw new Error(
-      `Plugin manifest is invalid${missing.length ? `: missing ${missing.join(', ')}` : ''}`,
-    );
+  const manifestError = validateManifest(manifest);
+  if (manifestError) {
+    throw new Error(`Plugin manifest is invalid: ${manifestError}`);
   }
   try {
     await fs.access(bundlePath);
@@ -531,32 +528,50 @@ function isGarminDomain(domain: string): boolean {
 }
 
 /** Validate the optional `auth` field. `m` is the whole manifest (auth rules
- *  cross-reference `secrets` and `allowedDomains`). */
-function validateAuthConfig(m: Record<string, unknown>): boolean {
+ *  cross-reference `secrets` and `allowedDomains`). Returns a plain-language
+ *  problem description, or null when valid. */
+function validateAuthConfig(m: Record<string, unknown>): string | null {
   const auth = m.auth as Record<string, unknown>;
-  if (!auth || typeof auth !== 'object') return false;
+  if (!auth || typeof auth !== 'object' || Array.isArray(auth)) {
+    return '"auth" must be an object.';
+  }
   const allowedDomains = Array.isArray(m.allowedDomains) ? (m.allowedDomains as string[]) : [];
 
   if (auth.type === 'garmin') {
     // The flow is fixed and host-implemented — extra fields signal a
     // misauthored manifest, so reject rather than silently ignore.
-    if (Object.keys(auth).length !== 1) return false;
+    if (Object.keys(auth).length !== 1) {
+      return 'Garmin auth is host-implemented: "auth" must contain only { "type": "garmin" }, with no other fields.';
+    }
     // Token injection only fires on garmin.com hosts; a manifest without one
     // declared could never receive the token it asked for.
-    return allowedDomains.some(isGarminDomain);
+    if (!allowedDomains.some(isGarminDomain)) {
+      return 'Garmin auth requires "allowedDomains" to include garmin.com (or a *.garmin.com host) — the token is only injected on those hosts.';
+    }
+    return null;
   }
 
-  if (auth.type !== 'oauth2') return false;
-  if (typeof auth.flow !== 'string' || !OAUTH2_FLOWS.has(auth.flow)) return false;
-  if (typeof auth.tokenUrl !== 'string' || !auth.tokenUrl) return false;
+  if (auth.type !== 'oauth2') {
+    return `"auth.type" must be "oauth2" or "garmin" (got ${JSON.stringify(auth.type)}).`;
+  }
+  if (typeof auth.flow !== 'string' || !OAUTH2_FLOWS.has(auth.flow)) {
+    return `"auth.flow" must be one of ${[...OAUTH2_FLOWS].map((f) => `"${f}"`).join(', ')} (got ${JSON.stringify(auth.flow)}).`;
+  }
+  if (typeof auth.tokenUrl !== 'string' || !auth.tokenUrl) {
+    return '"auth.tokenUrl" is required and must be a non-empty string.';
+  }
   if (auth.flow !== 'client_credentials' && (typeof auth.authorizationUrl !== 'string' || !auth.authorizationUrl)) {
-    return false;
+    return `"auth.authorizationUrl" is required for the "${auth.flow}" flow and must be a non-empty string.`;
   }
   if (!Array.isArray(auth.scopes) || auth.scopes.length === 0
-    || !auth.scopes.every((s: unknown) => typeof s === 'string')) return false;
-  if (auth.tokenPlacement !== 'header' && auth.tokenPlacement !== 'query') return false;
+    || !auth.scopes.every((s: unknown) => typeof s === 'string')) {
+    return '"auth.scopes" must be a non-empty array of strings.';
+  }
+  if (auth.tokenPlacement !== 'header' && auth.tokenPlacement !== 'query') {
+    return `"auth.tokenPlacement" must be "header" or "query" (got ${JSON.stringify(auth.tokenPlacement)}).`;
+  }
   if (auth.tokenPlacement === 'query' && (typeof auth.tokenParamName !== 'string' || !auth.tokenParamName)) {
-    return false;
+    return '"auth.tokenParamName" is required when "auth.tokenPlacement" is "query".';
   }
 
   // Client credentials must reference keys the plugin actually declares —
@@ -565,11 +580,15 @@ function validateAuthConfig(m: Record<string, unknown>): boolean {
     Array.isArray(m.secrets) ? (m.secrets as Array<{ key?: unknown }>).map((s) => s?.key) : [],
   );
   const authSecrets = auth.secrets as Record<string, unknown> | undefined;
-  if (!authSecrets || typeof authSecrets !== 'object') return false;
-  if (typeof authSecrets.clientId !== 'string' || !secretKeys.has(authSecrets.clientId)) return false;
+  if (!authSecrets || typeof authSecrets !== 'object') {
+    return '"auth.secrets" is required and must name the secret keys holding the OAuth client credentials.';
+  }
+  if (typeof authSecrets.clientId !== 'string' || !secretKeys.has(authSecrets.clientId)) {
+    return `"auth.secrets.clientId" (${JSON.stringify(authSecrets.clientId)}) must match the "key" of an entry in the manifest's "secrets" array.`;
+  }
   if (authSecrets.clientSecret !== undefined
     && (typeof authSecrets.clientSecret !== 'string' || !secretKeys.has(authSecrets.clientSecret))) {
-    return false;
+    return `"auth.secrets.clientSecret" (${JSON.stringify(authSecrets.clientSecret)}) must match the "key" of an entry in the manifest's "secrets" array.`;
   }
 
   // tokenTargetDomains is REQUIRED and must be a non-empty subset of
@@ -577,67 +596,118 @@ function validateAuthConfig(m: Record<string, unknown>): boolean {
   // bearer, so it never fans out to an unrelated allowed host (e.g. a CDN),
   // and a missing declaration is caught here rather than silently injecting
   // nothing at runtime.
-  if (!Array.isArray(auth.tokenTargetDomains) || auth.tokenTargetDomains.length === 0) return false;
+  if (!Array.isArray(auth.tokenTargetDomains) || auth.tokenTargetDomains.length === 0) {
+    return '"auth.tokenTargetDomains" is required and must be a non-empty array naming which allowed domains receive the access token.';
+  }
   const declared = new Set(allowedDomains);
-  if (!auth.tokenTargetDomains.every((d: unknown) => typeof d === 'string' && declared.has(d))) return false;
-  return true;
+  // findIndex, not find: a literal `undefined` element must still be caught,
+  // and find() would return it indistinguishably from "no match".
+  const rogueIdx = auth.tokenTargetDomains.findIndex((d: unknown) => typeof d !== 'string' || !declared.has(d));
+  if (rogueIdx !== -1) {
+    return `"auth.tokenTargetDomains" includes ${JSON.stringify(auth.tokenTargetDomains[rogueIdx])}, which is not one of the manifest's "allowedDomains".`;
+  }
+  return null;
 }
 
-export function validateManifest(manifest: unknown): manifest is PluginManifest {
-  if (!manifest || typeof manifest !== 'object') return false;
+/**
+ * Validate a plugin manifest. Returns a plain-language description of the
+ * first problem found (surfaced to plugin installers and authors, who are
+ * not necessarily developers), or null when the manifest is valid.
+ * NOTE the polarity: a truthy return means INVALID.
+ */
+export function validateManifest(manifest: unknown): string | null {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    return 'The manifest must be a JSON object.';
+  }
   const m = manifest as Record<string, unknown>;
   // ID must match the on-disk-directory format. Without this check, a manifest
   // ID like "foo/bar" would survive validation, then collide with "foobar"
   // after sanitizePluginId — letting an external install overwrite another
   // plugin's directory inside promotePluginDir.
-  if (typeof m.id !== 'string' || !PLUGIN_ID_PATTERN.test(m.id)) return false;
-  if (typeof m.name !== 'string' || !m.name) return false;
-  if (typeof m.version !== 'string') return false;
-  if (typeof m.moduleType !== 'string' || !m.moduleType) return false;
-  if (typeof m.category !== 'string' || !m.category) return false;
+  if (typeof m.id !== 'string' || !PLUGIN_ID_PATTERN.test(m.id)) {
+    return `"id" is required and may only use letters, numbers, hyphens, and underscores (got ${JSON.stringify(m.id)}).`;
+  }
+  if (typeof m.name !== 'string' || !m.name) {
+    return '"name" is required and must be a non-empty string.';
+  }
+  if (typeof m.version !== 'string') {
+    return `"version" is required and must be a string (got ${JSON.stringify(m.version)}).`;
+  }
+  if (typeof m.moduleType !== 'string' || !m.moduleType) {
+    return '"moduleType" is required and must be a non-empty string.';
+  }
+  if (typeof m.category !== 'string' || !m.category) {
+    return '"category" is required and must be a non-empty string.';
+  }
   // Validate optional secrets array
   if (m.secrets !== undefined) {
-    if (!Array.isArray(m.secrets)) return false;
+    if (!Array.isArray(m.secrets)) {
+      return '"secrets" must be an array.';
+    }
     for (const s of m.secrets) {
-      if (!s || typeof s !== 'object') return false;
-      if (typeof s.key !== 'string' || !/^[a-z0-9_-]+$/i.test(s.key)) return false;
-      if (typeof s.label !== 'string' || !s.label) return false;
-      if (typeof s.required !== 'boolean') return false;
+      if (!s || typeof s !== 'object') {
+        return 'Every entry in "secrets" must be an object with "key", "label", and "required" fields.';
+      }
+      if (typeof s.key !== 'string' || !/^[a-z0-9_-]+$/i.test(s.key)) {
+        return `Every "secrets" entry needs a "key" using only letters, numbers, hyphens, and underscores (got ${JSON.stringify(s.key)}).`;
+      }
+      if (typeof s.label !== 'string' || !s.label) {
+        return `The "secrets" entry "${s.key}" needs a non-empty "label".`;
+      }
+      if (typeof s.required !== 'boolean') {
+        return `The "secrets" entry "${s.key}" needs a "required" field that is true or false.`;
+      }
     }
   }
   // Validate optional allowedDomains array
   if (m.allowedDomains !== undefined) {
-    if (!Array.isArray(m.allowedDomains)) return false;
-    if (!m.allowedDomains.every((d: unknown) => typeof d === 'string')) return false;
+    if (!Array.isArray(m.allowedDomains) || !m.allowedDomains.every((d: unknown) => typeof d === 'string')) {
+      return '"allowedDomains" must be an array of strings.';
+    }
   }
   // Validate optional auth adapter declaration
-  if (m.auth !== undefined && !validateAuthConfig(m)) return false;
+  if (m.auth !== undefined) {
+    const authError = validateAuthConfig(m);
+    if (authError) return authError;
+  }
   // Validate optional settingsSchema — same declarative shape as configSchema.
   // Light structural check only; the PUT settings path type-checks values.
   if (m.settingsSchema !== undefined) {
     const s = m.settingsSchema as Record<string, unknown> | null;
     if (!s || typeof s !== 'object' || s.type !== 'object'
       || !s.properties || typeof s.properties !== 'object' || Array.isArray(s.properties)) {
-      return false;
+      return '"settingsSchema" must be an object schema: { "type": "object", "properties": { ... } }.';
     }
   }
   // Validate optional providesState array. Keys are declared un-prefixed;
   // registration prefixes them with `plugin:<id>:`, so check the charset
   // against the raw key and the length cap against the prefixed key.
   if (m.providesState !== undefined) {
-    if (!Array.isArray(m.providesState)) return false;
+    if (!Array.isArray(m.providesState)) {
+      return '"providesState" must be an array.';
+    }
     const prefix = pluginStatePrefix(m.id);
     for (const p of m.providesState) {
-      if (!p || typeof p !== 'object') return false;
+      if (!p || typeof p !== 'object') {
+        return 'Every entry in "providesState" must be an object with "key" and "label" fields.';
+      }
       const entry = p as Record<string, unknown>;
-      if (typeof entry.key !== 'string' || !SHARED_STATE_KEY_RE.test(entry.key)) return false;
-      if (prefix.length + entry.key.length > MAX_SHARED_STATE_KEY_LENGTH) return false;
-      if (typeof entry.label !== 'string' || !entry.label) return false;
+      if (typeof entry.key !== 'string' || !SHARED_STATE_KEY_RE.test(entry.key)) {
+        return `Every "providesState" entry needs a "key" using only lowercase letters, numbers, dots, colons, hyphens, and underscores (got ${JSON.stringify(entry.key)}).`;
+      }
+      if (prefix.length + entry.key.length > MAX_SHARED_STATE_KEY_LENGTH) {
+        return `The "providesState" key "${entry.key}" is too long: "${prefix}${entry.key}" exceeds the ${MAX_SHARED_STATE_KEY_LENGTH}-character limit.`;
+      }
+      if (typeof entry.label !== 'string' || !entry.label) {
+        return `The "providesState" entry "${entry.key}" needs a non-empty "label".`;
+      }
       if (entry.sampleValues !== undefined
-        && (!Array.isArray(entry.sampleValues) || !entry.sampleValues.every((v: unknown) => typeof v === 'string'))) return false;
+        && (!Array.isArray(entry.sampleValues) || !entry.sampleValues.every((v: unknown) => typeof v === 'string'))) {
+        return `The "providesState" entry "${entry.key}" has a "sampleValues" that is not an array of strings.`;
+      }
     }
   }
-  return true;
+  return null;
 }
 
 // --- External registry fetch + cache ---

@@ -179,7 +179,11 @@ function SettingsPageContent() {
       el.classList.add('animate-settings-highlight');
       classTimer = setTimeout(() => el.classList.remove('animate-settings-highlight'), 1800);
       stripTimer = setTimeout(() => {
-        const params = new URLSearchParams(searchParams?.toString() ?? '');
+        // Rebuilt from window.location at fire time, not the searchParams
+        // snapshot: `syncEditorUrl` writes `display=` / `screen=` via raw
+        // history.replaceState during the pulse window, and replacing with
+        // the stale snapshot would silently drop them.
+        const params = new URLSearchParams(window.location.search);
         params.delete('highlight');
         router.replace(`?${params.toString()}`);
       }, 1800);

@@ -175,12 +175,18 @@ export function useLiveConfig(
             enabled.map((p) => [p.id.toLowerCase(), stableStringify(p.settings ?? {})]),
           );
           if (pluginHashRef.current && newHash !== pluginHashRef.current) {
-            // Plugin set changed — reload plugins, only commit hash on success
+            // Plugin set changed — reload plugins, only commit hash on
+            // success. loadPlugins resolves false (rather than rejecting)
+            // when the reload was a no-op because its installed-list fetch
+            // failed; keeping the old hash makes the next poll retry the
+            // reload instead of believing the new set is already live.
             try {
-              await usePluginStore.getState().loadPlugins();
-              pluginHashRef.current = newHash;
-              // loadAllPlugins refreshed the settings map wholesale
-              settingsFpsRef.current = newFps;
+              const ok = await usePluginStore.getState().loadPlugins('display');
+              if (ok) {
+                pluginHashRef.current = newHash;
+                // loadAllPlugins refreshed the settings map wholesale
+                settingsFpsRef.current = newFps;
+              }
             } catch {
               // Don't advance hash — retry on next poll
             }

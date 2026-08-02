@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// @vitest-environment-options { "url": "http://localhost:3000/editor" }
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadAllPlugins } from '@/lib/plugin-loader';
@@ -170,7 +169,7 @@ describe('loadAllPlugins state provider + settings seeding', () => {
       bundles: { 'provider-plugin': BUNDLE_WITH_PROVIDER },
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     const entry = state.plugins.get('plugin:provider-plugin');
@@ -189,7 +188,7 @@ describe('loadAllPlugins state provider + settings seeding', () => {
       bundles: { halfbaked: BUNDLE_NO_PROVIDER },
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     const entry = state.plugins.get('plugin:halfbaked');
@@ -213,7 +212,7 @@ describe('loadAllPlugins state provider + settings seeding', () => {
       bundles: {},
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const settings = usePluginStore.getState().pluginSettings;
     expect(settings.get('halink')).toEqual({ url: 'http://ha' });
@@ -231,7 +230,7 @@ describe('loadAllPlugins state provider + settings seeding', () => {
       bundles: { searchy: BUNDLE_WITH_SEARCH },
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     expect(state.plugins.get('plugin:searchy')?.searchStateKeys).toBeTypeOf('function');
@@ -246,7 +245,7 @@ describe('loadAllPlugins state provider + settings seeding', () => {
       bundles: { junky: BUNDLE_WITH_BAD_SEARCH },
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     const entry = state.plugins.get('plugin:junky');

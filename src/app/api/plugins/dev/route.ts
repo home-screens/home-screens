@@ -15,8 +15,12 @@ export const POST = withAuth(async (request) => {
   if (body instanceof NextResponse) return body;
   const { manifest } = body;
 
-  if (!manifest || !validateManifest(manifest)) {
+  if (!manifest) {
     return NextResponse.json({ error: 'Invalid manifest' }, { status: 400 });
+  }
+  const manifestError = validateManifest(manifest);
+  if (manifestError) {
+    return NextResponse.json({ error: `Invalid manifest: ${manifestError}` }, { status: 400 });
   }
 
   // Reject wildcard allowedDomains unless the plugin declares localNetwork.

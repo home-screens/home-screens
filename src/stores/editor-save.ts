@@ -135,6 +135,12 @@ export interface MutationResultBase {
  * into, reuses the existing past stack — so a drag or a slider scrub is one
  * undo step. Keys come from `COALESCE_KEYS`.
  *
+ * A mutation whose `fn` returns an empty partial is a legitimate no-op (e.g.
+ * a display-scoped update whose target display no longer exists) and also
+ * returns null: marking the config dirty, burning an undo slot, and wiping
+ * the redo stack for zero change would trigger a pointless save and destroy
+ * a pending redo.
+ *
  * `now` is injectable for tests; production callers omit it.
  */
 export function applyMutation<P extends object>(
@@ -145,6 +151,9 @@ export function applyMutation<P extends object>(
 ): (MutationResultBase & P) | null {
   const { config } = state;
   if (!config) return null;
+
+  const partial = fn(config);
+  if (Object.keys(partial).length === 0) return null;
 
   const actionKey = options?.coalesce ?? '';
   const coalesces =
@@ -163,7 +172,7 @@ export function applyMutation<P extends object>(
     _future: [],
     _lastHistoryTime: now,
     _lastHistoryActionKey: actionKey,
-    ...fn(config),
+    ...partial,
   };
 }
 

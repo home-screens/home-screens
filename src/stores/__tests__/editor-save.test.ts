@@ -56,6 +56,24 @@ describe('applyMutation', () => {
     expect(applyMutation(makeState({ config: null }), rename('x'))).toBeNull();
   });
 
+  it('returns null on an empty partial — no dirty flag, no undo slot, no redo wipe', () => {
+    // e.g. updateDisplaySettings against a display id that no longer exists.
+    // Before the fix this marked the config dirty (triggering a save PUT),
+    // burned an undo slot, and destroyed any pending redo.
+    const staleFuture: HistoryEntry[] = [{
+      config: makeConfig('redo target'),
+      selectedDisplayId: null,
+      selectedScreenId: null,
+      selectedModuleId: null,
+    }];
+    const state = makeState({ _future: staleFuture });
+    expect(applyMutation(state, () => ({}))).toBeNull();
+    // The caller skips dispatch entirely, so the untouched state keeps its
+    // redo stack — assert the input was not mutated either.
+    expect(state._future).toBe(staleFuture);
+    expect(state._past).toHaveLength(0);
+  });
+
   it('pushes a history snapshot, marks dirty, and clears the redo stack', () => {
     const staleFuture: HistoryEntry[] = [
       { config: makeConfig('future'), selectedDisplayId: null, selectedScreenId: null, selectedModuleId: null },

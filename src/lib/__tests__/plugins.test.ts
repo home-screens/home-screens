@@ -68,59 +68,62 @@ describe('validateManifest', () => {
     exports: { component: 'default' },
   };
 
+  // A rejection asserts the message names the rule that fired, not just
+  // non-null: if a refactor makes an earlier check subsume a later one, the
+  // wrong-message failure is what surfaces the now-dead rule.
   it('accepts a valid manifest', () => {
-    expect(validateManifest(validManifest)).toBe(true);
+    expect(validateManifest(validManifest)).toBeNull();
   });
 
   it('rejects null', () => {
-    expect(validateManifest(null)).toBe(false);
+    expect(validateManifest(null)).toContain('must be a JSON object');
   });
 
   it('rejects undefined', () => {
-    expect(validateManifest(undefined)).toBe(false);
+    expect(validateManifest(undefined)).toContain('must be a JSON object');
   });
 
   it('rejects non-object', () => {
-    expect(validateManifest('string')).toBe(false);
-    expect(validateManifest(42)).toBe(false);
+    expect(validateManifest('string')).toContain('must be a JSON object');
+    expect(validateManifest(42)).toContain('must be a JSON object');
   });
 
   it('rejects missing id', () => {
-    expect(validateManifest({ ...validManifest, id: '' })).toBe(false);
-    expect(validateManifest({ ...validManifest, id: undefined })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: '' })).toContain('"id"');
+    expect(validateManifest({ ...validManifest, id: undefined })).toContain('"id"');
   });
 
   // Regression: a manifest ID containing slashes/dots used to pass validation,
   // then collide with another plugin's directory after sanitizePluginId stripped
   // the unsafe chars. validateManifest now enforces the on-disk format directly.
   it('rejects ids with characters that would collide after sanitization', () => {
-    expect(validateManifest({ ...validManifest, id: 'foo/bar' })).toBe(false);
-    expect(validateManifest({ ...validManifest, id: 'foo.bar' })).toBe(false);
-    expect(validateManifest({ ...validManifest, id: '../etc/passwd' })).toBe(false);
-    expect(validateManifest({ ...validManifest, id: 'foo bar' })).toBe(false);
-    expect(validateManifest({ ...validManifest, id: 'foo!' })).toBe(false);
+    expect(validateManifest({ ...validManifest, id: 'foo/bar' })).toContain('"id"');
+    expect(validateManifest({ ...validManifest, id: 'foo.bar' })).toContain('"id"');
+    expect(validateManifest({ ...validManifest, id: '../etc/passwd' })).toContain('"id"');
+    expect(validateManifest({ ...validManifest, id: 'foo bar' })).toContain('"id"');
+    expect(validateManifest({ ...validManifest, id: 'foo!' })).toContain('"id"');
   });
 
   it('rejects missing name', () => {
-    expect(validateManifest({ ...validManifest, name: '' })).toBe(false);
+    expect(validateManifest({ ...validManifest, name: '' })).toContain('"name"');
   });
 
   it('rejects missing moduleType', () => {
-    expect(validateManifest({ ...validManifest, moduleType: '' })).toBe(false);
-    expect(validateManifest({ ...validManifest, moduleType: undefined })).toBe(false);
+    expect(validateManifest({ ...validManifest, moduleType: '' })).toContain('"moduleType"');
+    expect(validateManifest({ ...validManifest, moduleType: undefined })).toContain('"moduleType"');
   });
 
   it('rejects invalid version', () => {
-    expect(validateManifest({ ...validManifest, version: undefined })).toBe(false);
-    expect(validateManifest({ ...validManifest, version: 123 })).toBe(false);
+    expect(validateManifest({ ...validManifest, version: undefined })).toContain('"version"');
+    expect(validateManifest({ ...validManifest, version: 123 })).toContain('"version"');
   });
 
   it('rejects empty category', () => {
-    expect(validateManifest({ ...validManifest, category: '' })).toBe(false);
+    expect(validateManifest({ ...validManifest, category: '' })).toContain('"category"');
   });
 
   it('rejects missing category', () => {
-    expect(validateManifest({ ...validManifest, category: undefined })).toBe(false);
+    expect(validateManifest({ ...validManifest, category: undefined })).toContain('"category"');
   });
 
   it('accepts all built-in categories', () => {
@@ -129,13 +132,13 @@ describe('validateManifest', () => {
       'Knowledge & Fun', 'Personal', 'Media & Display', 'Travel',
     ];
     for (const category of categories) {
-      expect(validateManifest({ ...validManifest, category }), `Failed for: ${category}`).toBe(true);
+      expect(validateManifest({ ...validManifest, category }), `Failed for: ${category}`).toBeNull();
     }
   });
 
   it('accepts custom category strings', () => {
-    expect(validateManifest({ ...validManifest, category: 'Smart Home' })).toBe(true);
-    expect(validateManifest({ ...validManifest, category: 'My Custom Category' })).toBe(true);
+    expect(validateManifest({ ...validManifest, category: 'Smart Home' })).toBeNull();
+    expect(validateManifest({ ...validManifest, category: 'My Custom Category' })).toBeNull();
   });
 
   describe('auth config', () => {
@@ -159,65 +162,78 @@ describe('validateManifest', () => {
     };
 
     it('accepts a valid oauth2 authorization_code manifest', () => {
-      expect(validateManifest(oauthManifest)).toBe(true);
+      expect(validateManifest(oauthManifest)).toBeNull();
     });
 
     it('rejects oauth2 with no tokenTargetDomains declared', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: undefined } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"auth.tokenTargetDomains" is required');
     });
 
     it('rejects oauth2 with an empty tokenTargetDomains', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: [] } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"auth.tokenTargetDomains" is required');
     });
 
     it('accepts oauth2 client_credentials without an authorizationUrl', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'client_credentials', authorizationUrl: undefined } };
-      expect(validateManifest(m)).toBe(true);
+      expect(validateManifest(m)).toBeNull();
     });
 
     it('rejects authorization_code / device_code missing an authorizationUrl', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, authorizationUrl: undefined } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"auth.authorizationUrl"');
     });
 
     it('rejects oauth2 with an unknown flow', () => {
-      expect(validateManifest({ ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'implicit' } })).toBe(false);
+      expect(validateManifest({ ...oauthManifest, auth: { ...oauthManifest.auth, flow: 'implicit' } })).toContain('"auth.flow"');
     });
 
     it('rejects oauth2 whose clientId does not reference a declared secret', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, secrets: { clientId: 'nope' } } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"auth.secrets.clientId"');
     });
 
     it('rejects query token placement without a tokenParamName', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenPlacement: 'query' } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"auth.tokenParamName"');
     });
 
+    // The check whose silent death would be a credential leak: the message must
+    // name the rogue domain so the subset rule is provably the one that fired.
     it('rejects tokenTargetDomains outside allowedDomains', () => {
       const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: ['evil.example.com'] } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"evil.example.com"');
+      expect(validateManifest(m)).toContain('not one of the manifest\'s "allowedDomains"');
+    });
+
+    // A literal `undefined` element is unreachable via JSON.parse but the
+    // validator is exported and independently callable — a find()-based check
+    // once let this exact shape through.
+    it('rejects tokenTargetDomains containing a non-string element', () => {
+      const m = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: ['api.spotify.com', undefined] } };
+      expect(validateManifest(m)).toContain('"allowedDomains"');
+      const n = { ...oauthManifest, auth: { ...oauthManifest.auth, tokenTargetDomains: ['api.spotify.com', null] } };
+      expect(validateManifest(n)).toContain('"allowedDomains"');
     });
 
     it('accepts a garmin manifest that declares a garmin.com domain', () => {
       const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin' } };
-      expect(validateManifest(m)).toBe(true);
+      expect(validateManifest(m)).toBeNull();
     });
 
     it('rejects a garmin manifest with no garmin.com domain', () => {
       const m = { ...validManifest, allowedDomains: ['api.example.com'], auth: { type: 'garmin' } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('garmin.com');
     });
 
     it('rejects a garmin manifest carrying extra fields', () => {
       const m = { ...validManifest, allowedDomains: ['connectapi.garmin.com'], auth: { type: 'garmin', tokenUrl: 'x' } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('no other fields');
     });
 
     it('rejects an unknown auth type', () => {
-      expect(validateManifest({ ...validManifest, auth: { type: 'saml' } })).toBe(false);
+      expect(validateManifest({ ...validManifest, auth: { type: 'saml' } })).toContain('"auth.type"');
     });
   });
 
@@ -227,29 +243,29 @@ describe('validateManifest', () => {
         ...validManifest,
         settingsSchema: { type: 'object', properties: { haUrl: { type: 'string', title: 'Server' } } },
       };
-      expect(validateManifest(m)).toBe(true);
+      expect(validateManifest(m)).toBeNull();
     });
 
     it('rejects null', () => {
-      expect(validateManifest({ ...validManifest, settingsSchema: null })).toBe(false);
+      expect(validateManifest({ ...validManifest, settingsSchema: null })).toContain('"settingsSchema"');
     });
 
     it('rejects a non-object', () => {
-      expect(validateManifest({ ...validManifest, settingsSchema: 'nope' })).toBe(false);
+      expect(validateManifest({ ...validManifest, settingsSchema: 'nope' })).toContain('"settingsSchema"');
     });
 
     it('rejects type other than "object"', () => {
       const m = { ...validManifest, settingsSchema: { type: 'array', properties: {} } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"settingsSchema"');
     });
 
     it('rejects missing properties', () => {
-      expect(validateManifest({ ...validManifest, settingsSchema: { type: 'object' } })).toBe(false);
+      expect(validateManifest({ ...validManifest, settingsSchema: { type: 'object' } })).toContain('"settingsSchema"');
     });
 
     it('rejects properties given as an array', () => {
       const m = { ...validManifest, settingsSchema: { type: 'object', properties: [] } };
-      expect(validateManifest(m)).toBe(false);
+      expect(validateManifest(m)).toContain('"settingsSchema"');
     });
   });
 });

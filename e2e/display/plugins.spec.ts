@@ -345,21 +345,19 @@ test('a manifest providesState key appears in the editor visibility-condition pi
 });
 
 /**
- * Plugin reload — FAILED-fetch FULL purge. When `loadAllPlugins` runs but its
- * `/api/plugins/installed` fetch fails, it tombstones ALL preserved plugin
- * namespaces (no new set is known, so nothing can be kept). We prove it fires
- * the full-purge branch — not the selective swap — by keeping the plugin
- * REPORTED as still installed to the poll that triggers the reload: a
- * successful reload would preserve its keys, so the key purging here can only
- * be the failed-fetch path.
+ * Plugin reload — FAILED-fetch NO-OP. `loadAllPlugins` fetches the new
+ * installed list BEFORE tearing anything down, so when that fetch fails the
+ * reload is a no-op: the current plugin stays mounted, its producer keeps
+ * publishing, and the gated module never blinks. (The old order cleared
+ * first, leaving the tab pluginless with every preserved key purged.)
  *
- * The trap: the FIRST installed poll after arming returns a NEW hash (success),
- * which makes `useLiveConfig` trigger the reload; that reload's OWN installed
- * fetch (the next request) gets a 500 → full purge. The purge tombstones (15s
- * grace), so the flag-gated module coasts through the grace window then hides
- * once the key goes unknown (whenUnknown: 'hide').
+ * The trap: the FIRST installed poll after arming returns a NEW hash
+ * (success), which makes `useLiveConfig` trigger the reload; that reload's
+ * OWN installed fetch (the next request) gets a 500. We then hold well past
+ * the 15s tombstone grace window — if the failed reload had purged anything,
+ * the flag-gated module (whenUnknown: 'hide') would be gone by then.
  */
-test('a failed plugin reload purges all preserved state keys; the gated module hides after the grace window', async ({ page, request }) => {
+test('a failed plugin reload is a no-op: the plugin and its gated module survive past the grace window', async ({ page, request }) => {
   test.setTimeout(50_000);
   const gated = textModule('FULL PURGE CONTENT', {
     id: 'gated',
@@ -400,13 +398,15 @@ test('a failed plugin reload purges all preserved state keys; the gated module h
         }),
       });
     } else {
-      // loadAllPlugins' own fetch (and every later poll): fail → full purge.
+      // loadAllPlugins' own fetch (and every later poll): fail → no-op reload.
       await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"boom"}' });
     }
   });
 
-  // Through the 15s grace the tombstoned key still reads 'on'; once it expires
-  // the key is unknown and whenUnknown:hide drops the module. The reload (≤3s)
-  // + grace (15s) fits comfortably under this bound.
-  await expect(page.locator('[data-module-id="gated"]')).toHaveCount(0, { timeout: 30_000 });
+  // Reload trigger (≤3s) + tombstone grace (15s) + margin: if the failed
+  // reload had purged the key, whenUnknown:hide would have dropped the module
+  // inside this window. It must still be here, alongside the plugin itself.
+  await page.waitForTimeout(22_000);
+  await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
+  await expect(page.getByText('FULL PURGE CONTENT')).toBeVisible();
 });

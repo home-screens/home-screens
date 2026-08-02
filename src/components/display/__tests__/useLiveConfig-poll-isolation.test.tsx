@@ -24,7 +24,7 @@ let buildIdThrows = false;
 let configBody = '';
 let pluginHash = 'hash-1';
 
-const loadPlugins = vi.fn().mockResolvedValue(undefined);
+const loadPlugins = vi.fn().mockResolvedValue(true);
 const setPluginSettingsMap = vi.fn();
 
 vi.mock('@/stores/plugin-store', () => ({

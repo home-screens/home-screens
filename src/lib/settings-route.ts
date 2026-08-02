@@ -131,9 +131,11 @@ export function validPanelFor(
  *      to `overview`.
  *   2. `?section=displays` is the all-displays index.
  *   3. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
- *      A URL with no `section` at all but a `page` or `panel` param is
- *      parsed the same way — a hand-trimmed `?page=screen&panel=sleep`
- *      renders the intended tab instead of silently losing it.
+ *      A URL whose `section` is absent or didn't dispatch above (an
+ *      unrecognized value, or `display` with no id) but that carries a
+ *      `page` or `panel` param is parsed the same way — a hand-trimmed
+ *      `?page=screen&panel=sleep` or a miscased `?section=Defaults&page=X`
+ *      renders the intended page instead of silently losing it.
  *   4. Unknown / missing params land on `defaults/screen`, the
  *      first-visit landing page.
  */
@@ -152,8 +154,11 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   if (section === 'displays') {
     return { kind: 'displays' };
   }
+  // Reached with section absent, unrecognized, or dispatched nowhere — in
+  // every case a present page/panel still names real intent, and the
+  // canonicalizer normalizes the section param afterward.
   const sectionlessDefaults =
-    section === null && (params.get('page') !== null || params.get('panel') !== null);
+    section !== 'defaults' && (params.get('page') !== null || params.get('panel') !== null);
   if (section === 'defaults' || sectionlessDefaults) {
     const rawPage = params.get('page') ?? 'screen';
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
@@ -213,9 +218,11 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
     next.set('section', 'defaults');
     next.set('page', route.page);
     // `route.panel`, when set, is always the URL's own `?panel=` value
-    // (`validPanelFor` passes it through or drops it), so a rewrite only
-    // ever strips the param.
-    next.delete('panel');
+    // (`validPanelFor` passes it through or drops it) — keep it when the
+    // route kept it (the rewrite may be normalizing an unrelated param,
+    // e.g. a miscased `section`), strip it only when the route dropped it.
+    if (route.panel) next.set('panel', route.panel);
+    else next.delete('panel');
     // Per-display params riding on a URL that resolved to a defaults page
     // (e.g. `section=display&subtab=X` with no id) are equally stale.
     next.delete('id');

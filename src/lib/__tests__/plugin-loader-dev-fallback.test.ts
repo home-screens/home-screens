@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// @vitest-environment-options { "url": "http://localhost:3000/editor" }
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadAllPlugins } from '@/lib/plugin-loader';
@@ -129,7 +128,7 @@ describe('loadAllPlugins dev-override fallback', () => {
     seedDevPlugin('garmin');
     mockFetch({ installed: [{ id: 'garmin', version: '1.1.0' }] });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     expect(state.plugins.has('plugin:garmin')).toBe(true);
@@ -144,7 +143,7 @@ describe('loadAllPlugins dev-override fallback', () => {
     seedDevPlugin('ghost');
     mockFetch({ installed: [] });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     expect(state.plugins.has('plugin:ghost')).toBe(false);
@@ -164,7 +163,7 @@ describe('loadAllPlugins dev-override fallback', () => {
       return inner(input as RequestInfo);
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     expect(state.plugins.has('plugin:garmin')).toBe(false);
@@ -176,7 +175,7 @@ describe('loadAllPlugins dev-override fallback', () => {
     seedDevPlugin('garmin');
     mockFetch({ installed: [{ id: 'garmin', version: '1.1.0' }], devServerUp: true });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     const state = usePluginStore.getState();
     expect(state.plugins.get('plugin:garmin')?.manifest.version).toBe('2.0.0-dev');

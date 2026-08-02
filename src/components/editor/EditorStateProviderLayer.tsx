@@ -64,13 +64,15 @@ export default function EditorStateProviderLayer() {
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
 
-  // The layer owns its plugin dependency: it mounts from the (editor) layout
-  // on routes that never load plugins themselves (/editor/settings), and the
-  // canvas route's own call dedupes through loadPlugins' re-entrancy guard.
-  // Bonus on the settings route: a populated plugin map upgrades the bus
-  // inspector's producer labels from raw ids to manifest names.
+  // The layer owns the mount-time plugin load for EVERY editor route: it
+  // mounts once from the (editor) layout, so no page under it may call
+  // loadPlugins on mount — the re-entrancy guard QUEUES a duplicate call as
+  // a full second load pass (refetch + re-execute + remount of every plugin
+  // bundle), it does not dedupe it. Bonus on the settings route: a populated
+  // plugin map upgrades the bus inspector's producer labels from raw ids to
+  // manifest names.
   useEffect(() => {
-    void loadPlugins();
+    void loadPlugins('editor');
   }, [loadPlugins]);
 
   const screens = useMemo(

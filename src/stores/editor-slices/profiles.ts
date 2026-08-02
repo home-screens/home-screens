@@ -57,8 +57,10 @@ export function createProfileSlice(
       const { config, selectedDisplayId } = get();
       if (!config) return;
       mutateConfig(() => ({
+        // Guard before arrayMove: dnd-kit's arrayMove on an empty list
+        // splices `undefined` in, producing `[undefined]` in the config.
         config: withProfiles(config, selectedDisplayId, (profiles) =>
-          arrayMove(profiles, fromIndex, toIndex),
+          profiles.length < 2 ? profiles : arrayMove(profiles, fromIndex, toIndex),
         ),
       }), { coalesce: COALESCE_KEYS.reorderProfiles });
     },

@@ -120,7 +120,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
         throw new Error(msg);
       }
       await fetchData();
-      usePluginStore.getState().loadPlugins();
+      usePluginStore.getState().loadPlugins('editor');
     } catch (err) {
       setActionError(err instanceof Error ? err.message : t('settings.pluginStorePanel.errors.actionFailed'));
     } finally {
@@ -301,7 +301,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           onClose={() => setInstallFromUrlOpen(false)}
           onInstalled={() => {
             fetchData();
-            usePluginStore.getState().loadPlugins();
+            usePluginStore.getState().loadPlugins('editor');
           }}
         />
       )}
@@ -313,7 +313,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           onClose={() => setUpdatingExternal(null)}
           onUpdated={() => {
             fetchData();
-            usePluginStore.getState().loadPlugins();
+            usePluginStore.getState().loadPlugins('editor');
           }}
         />
       )}
@@ -752,7 +752,7 @@ function DeveloperTab({ onError }: { onError: (msg: string) => void }) {
     stopDevPolling(pluginId);
     unloadDevPlugin(pluginId);
     // Reload all plugins so any installed plugin that was overridden gets restored
-    usePluginStore.getState().loadPlugins();
+    usePluginStore.getState().loadPlugins('editor');
     await refreshDevPlugins();
   };
 

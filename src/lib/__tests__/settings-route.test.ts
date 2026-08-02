@@ -75,6 +75,23 @@ describe('parseSettingsRoute', () => {
     expect(parseSettingsRoute(params)).toEqual({ kind: 'defaults', page: 'screen' });
   });
 
+  it('honors page/panel under an unrecognized section value', () => {
+    // A miscased or externally generated `section` must not discard a
+    // perfectly valid page+panel — the canonicalizer fixes the section.
+    expect(parseSettingsRoute(new URLSearchParams('section=Defaults&page=automation&panel=rules'))).toEqual({
+      kind: 'defaults',
+      page: 'automation',
+      panel: 'rules',
+    });
+  });
+
+  it('honors an accompanying page when section=display has no id', () => {
+    expect(parseSettingsRoute(new URLSearchParams('section=display&page=meals'))).toEqual({
+      kind: 'defaults',
+      page: 'meals',
+    });
+  });
+
   it('parses section-less page/panel params as a defaults route', () => {
     expect(parseSettingsRoute(new URLSearchParams('page=weather'))).toEqual({
       kind: 'defaults',
@@ -197,6 +214,17 @@ describe('resolveSettingsRoute', () => {
     expect(next.get('section')).toBe('defaults');
     expect(next.get('page')).toBe('screen');
     expect(next.get('subtab')).toBeNull();
+  });
+
+  it('canonicalizes a miscased section while KEEPING the valid page and panel', () => {
+    // The rewrite normalizes `section` but must not destroy the intent the
+    // URL named — a refresh after the replace still lands on Automation→Rules.
+    const result = resolveSettingsRoute('section=Defaults&page=automation&panel=rules');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'automation', panel: 'rules' });
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('section')).toBe('defaults');
+    expect(next.get('page')).toBe('automation');
+    expect(next.get('panel')).toBe('rules');
   });
 
   it('does not rewrite a bare legacy ?tab= bookmark (?tab= is an unrelated param now)', () => {

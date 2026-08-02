@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-// @vitest-environment-options { "url": "http://localhost:3000/display/main" }
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { loadAllPlugins, stopDevPolling } from '@/lib/plugin-loader';
@@ -141,8 +140,6 @@ describe('loadAllPlugins dev-override display fallback', () => {
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     vi.useRealTimers();
-    // Reset pathname back to the file default for the next test.
-    window.history.pushState({}, '', '/display/main');
   });
 
   it('loads the INSTALLED copy on a display page even when a dev override is registered', async () => {
@@ -158,7 +155,7 @@ describe('loadAllPlugins dev-override display fallback', () => {
       devManifest: manifest,
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'display' });
 
     // Installed copy is the fallback on a display page: it registers, and the
     // dev bundle is never fetched (the dev loop only runs on the editor).
@@ -168,8 +165,6 @@ describe('loadAllPlugins dev-override display fallback', () => {
   });
 
   it('skips the installed copy in favor of the dev override on the editor', async () => {
-    window.history.pushState({}, '', '/editor');
-
     const manifest = makeManifest('overridden', 'overridden');
     localStorage.setItem(
       'hs:devPlugins',
@@ -182,7 +177,7 @@ describe('loadAllPlugins dev-override display fallback', () => {
       devManifest: manifest,
     });
 
-    await loadAllPlugins();
+    await loadAllPlugins({ surface: 'editor' });
 
     // Editor loads the dev bundle and skips the installed one entirely.
     expect(usePluginStore.getState().plugins.has('plugin:overridden')).toBe(true);

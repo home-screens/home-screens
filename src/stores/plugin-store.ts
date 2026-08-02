@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { ComponentType } from 'react';
 import type { PluginManifest, LoadedPlugin, PluginError, PluginConfigSectionProps, StateProviderProps, SearchStateKeys } from '@/types/plugins';
+import type { PluginSurface } from '@/lib/plugin-loader';
 import { unregisterModule } from '@/lib/module-registry';
 import { deregisterFetchKey } from '@/lib/fetch-keys';
 import { sharedStateStore } from '@/lib/shared-state-store';
@@ -28,8 +29,14 @@ interface PluginState {
    */
   pluginSettings: Map<string, Record<string, unknown>>;
 
-  /** Fetch installed plugins → load bundles → register in module registry */
-  loadPlugins: () => Promise<void>;
+  /**
+   * Fetch installed plugins → load bundles → register in module registry.
+   * `surface` names the page mounting the load — the loader must not guess
+   * it from the URL. Editor surfaces get dev overrides + config migrations.
+   * Resolves false when the reload was a no-op (installed-list fetch
+   * failed) so hash-driven callers keep their old hash and retry.
+   */
+  loadPlugins: (surface: PluginSurface) => Promise<boolean>;
   /** Register a single loaded plugin into reactive state */
   registerPlugin: (
     moduleType: string,
@@ -56,7 +63,7 @@ interface PluginState {
 }
 
 /** Re-entrancy guard: deduplicate concurrent loadPlugins calls */
-let loadPromise: Promise<void> | null = null;
+let loadPromise: Promise<boolean> | null = null;
 let reloadPending = false;
 
 export const usePluginStore = create<PluginState>((set, get) => ({
@@ -65,8 +72,10 @@ export const usePluginStore = create<PluginState>((set, get) => ({
   errors: new Map(),
   pluginSettings: new Map(),
 
-  loadPlugins: async () => {
-    // If already loading, mark a reload pending and return the existing promise
+  loadPlugins: async (surface) => {
+    // If already loading, mark a reload pending and return the existing
+    // promise. A tab only ever mounts one surface, so the in-flight load's
+    // surface matches the new request's.
     if (loadPromise) {
       reloadPending = true;
       return loadPromise;
@@ -75,14 +84,17 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     loadPromise = (async () => {
       try {
         const { loadAllPlugins } = await import('@/lib/plugin-loader');
-        await loadAllPlugins();
-        // If a reload was requested during the load, run again to pick up changes
+        let ok = await loadAllPlugins({ surface });
+        // If a reload was requested during the load, run again to pick up
+        // changes — the LAST run's outcome is what callers care about.
         if (reloadPending) {
           reloadPending = false;
-          await loadAllPlugins();
+          ok = await loadAllPlugins({ surface });
         }
+        return ok;
       } catch (err) {
         log.error('Failed to load plugins:', err);
+        return false;
       } finally {
         set({ loading: false });
         loadPromise = null;

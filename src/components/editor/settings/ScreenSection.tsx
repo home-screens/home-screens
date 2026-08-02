@@ -142,14 +142,21 @@ export default function ScreenSection({
   const navigateToPanel = useCallback(
     (next: ScreenPanel) => {
       // Push (not replace) so the back button walks tabs, matching
-      // AutomationSection and PerDisplayPage.
-      const params = new URLSearchParams(searchParams?.toString() ?? '');
+      // AutomationSection and PerDisplayPage. Built from window.location,
+      // not the useSearchParams snapshot: `syncEditorUrl` writes `display=`
+      // / `screen=` via raw history.replaceState, which the snapshot never
+      // observes — copying it would drop those params. `highlight` is a
+      // one-shot arrival param (it also picks the initial tab above);
+      // carrying it across an explicit tab switch would re-arm the pulse on
+      // a panel where the field doesn't exist and wedge it in the URL.
+      const params = new URLSearchParams(window.location.search);
       params.set('section', 'defaults');
       params.set('page', 'screen');
       params.set('panel', next);
+      params.delete('highlight');
       router.push(`?${params.toString()}`);
     },
-    [router, searchParams],
+    [router],
   );
 
   // Scan displays for overrides only when `config` changes. Without the

@@ -185,7 +185,7 @@ describe('plugin-store loadPlugins re-entrancy', () => {
     mockLoadAllPlugins.mockResolvedValue(undefined);
     // Before the call the store is in its initial `loading: true` state;
     // assert on the post-call transition to false.
-    await usePluginStore.getState().loadPlugins();
+    await usePluginStore.getState().loadPlugins('display');
     expect(usePluginStore.getState().loading).toBe(false);
   });
 
@@ -193,8 +193,8 @@ describe('plugin-store loadPlugins re-entrancy', () => {
     // Sequential, fully-awaited calls each start a fresh run — no dedup
     // when there's no in-flight promise to share.
     mockLoadAllPlugins.mockResolvedValue(undefined);
-    await usePluginStore.getState().loadPlugins();
-    await usePluginStore.getState().loadPlugins();
+    await usePluginStore.getState().loadPlugins('display');
+    await usePluginStore.getState().loadPlugins('display');
     expect(mockLoadAllPlugins).toHaveBeenCalledTimes(2);
   });
 
@@ -204,7 +204,7 @@ describe('plugin-store loadPlugins re-entrancy', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockLoadAllPlugins.mockRejectedValue(new Error('kaboom'));
 
-    await usePluginStore.getState().loadPlugins();
+    await usePluginStore.getState().loadPlugins('display');
     expect(usePluginStore.getState().loading).toBe(false);
     expect(consoleError).toHaveBeenCalled();
     consoleError.mockRestore();
