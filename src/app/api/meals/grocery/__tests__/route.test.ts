@@ -73,7 +73,7 @@ describe('POST /api/meals/grocery', () => {
     mockRead.mockResolvedValue(mealData(['milk']));
     const res = await POST(postRequest({ item: 'eggs' }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ groceryChecked: ['milk', 'eggs'] });
+    expect(await res.json()).toEqual({ groceryChecked: ['milk', 'eggs'], changed: true });
     expect(mockWrite).toHaveBeenCalledTimes(1);
     expect(mockWrite.mock.calls[0][0].groceryChecked).toEqual(['milk', 'eggs']);
   });
@@ -82,7 +82,43 @@ describe('POST /api/meals/grocery', () => {
     mockRead.mockResolvedValue(mealData(['milk', 'eggs']));
     const res = await POST(postRequest({ item: 'milk' }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ groceryChecked: ['eggs'] });
+    expect(await res.json()).toEqual({ groceryChecked: ['eggs'], changed: true });
     expect(mockWrite).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes display-cased items to the stored lowercase form', async () => {
+    mockRead.mockResolvedValue(mealData(['milk']));
+    const res = await POST(postRequest({ item: '  Milk ' }));
+    expect(await res.json()).toEqual({ groceryChecked: [], changed: true });
+  });
+
+  it('rejects an invalid direction with 400', async () => {
+    const res = await POST(postRequest({ item: 'milk', direction: 'toggle' }));
+    expect(res.status).toBe(400);
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  it('direction "check" is a no-op on an already-checked item', async () => {
+    mockRead.mockResolvedValue(mealData(['milk']));
+    const res = await POST(postRequest({ item: 'Milk', direction: 'check' }));
+    expect(await res.json()).toEqual({ groceryChecked: ['milk'], changed: false });
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  it('direction "uncheck" is a no-op on an unchecked item', async () => {
+    mockRead.mockResolvedValue(mealData([]));
+    const res = await POST(postRequest({ item: 'milk', direction: 'uncheck' }));
+    expect(await res.json()).toEqual({ groceryChecked: [], changed: false });
+    expect(mockWrite).not.toHaveBeenCalled();
+  });
+
+  it('direction "check" adds when absent and "uncheck" removes when present', async () => {
+    mockRead.mockResolvedValue(mealData([]));
+    let res = await POST(postRequest({ item: 'milk', direction: 'check' }));
+    expect(await res.json()).toEqual({ groceryChecked: ['milk'], changed: true });
+
+    mockRead.mockResolvedValue(mealData(['milk']));
+    res = await POST(postRequest({ item: 'milk', direction: 'uncheck' }));
+    expect(await res.json()).toEqual({ groceryChecked: [], changed: true });
   });
 });

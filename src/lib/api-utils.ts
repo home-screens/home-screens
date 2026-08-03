@@ -76,6 +76,18 @@ export function isTransientError(status: number): boolean {
 }
 
 /**
+ * True iff `s` is a YYYY-MM-DD string AND the components are a real calendar
+ * date. Rejects junk like "2026-99-99" (which the format check alone would
+ * accept). Shared by every route that takes a date parameter.
+ */
+export function isValidISODate(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
+
+/**
  * Parses a `Retry-After` header value (delay-seconds only, not HTTP-date).
  * Returns the delay in milliseconds, clamped to 60s to prevent an upstream
  * from stalling us indefinitely. Returns null if the header is absent or unparseable.

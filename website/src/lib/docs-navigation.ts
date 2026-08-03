@@ -15,6 +15,7 @@ export const navigation = [
       { title: 'Backgrounds', href: '/docs/backgrounds' },
       { title: 'Profiles & Scheduling', href: '/docs/profiles' },
       { title: 'Remote Control', href: '/docs/remote-control' },
+      { title: 'Voice Control', href: '/docs/voice-control' },
       { title: 'Multi-display', href: '/docs/multi-display' },
       { title: 'Networking', href: '/docs/networking' },
       { title: 'Troubleshooting', href: '/docs/troubleshooting' },

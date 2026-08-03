@@ -53,9 +53,18 @@ const nodes = {
   fence: {
     render: Fence,
     attributes: {
-      language: {
-        type: String,
-      },
+      content: { type: String, render: false, required: true },
+      language: { type: String },
+      // {% process=false %} on a fence stops Markdoc from parsing {% ... %}
+      // sequences inside it — required for code samples containing Jinja
+      // templates (Home Assistant YAML).
+      process: { type: Boolean, render: false, default: true },
+    },
+    transform(node, config) {
+      const attributes = node.transformAttributes(config)
+      // Always render the raw fence text: Fence highlights a plain string,
+      // and parsed children would hand it an array instead.
+      return new Tag(this.render, attributes, [node.attributes.content])
     },
   },
 }

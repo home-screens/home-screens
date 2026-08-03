@@ -243,22 +243,52 @@ Toggles a chore completion. If the completion already exists for the given chore
 {
   "choreId": "chore-1",
   "memberId": "member-1",
-  "date": "2026-03-08"
+  "date": "2026-03-08",
+  "direction": "complete"
 }
 ```
 
 The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 days. Future dates, invalid calendar dates (e.g. `2026-02-30`), and dates outside the retention window are rejected with `400`. Toggling a chore with a non-zero point value also credits or debits the member's reward balance; if removing a past completion would drive the balance negative, the response includes a `warning` string explaining the deficit.
 
+`direction` is optional. Omitted, the call is the flip described above. Set to `"complete"` or `"uncomplete"`, the call only ever moves the chore in that direction and is a no-op when it's already there — so a repeated "mark it done" (a voice assistant, a retried request) can never accidentally un-complete a chore and take the points back. Any other value is rejected with `400`.
+
 **Response:**
 ```json
 {
   "completions": [ ... ],
+  "changed": true,
   "rewards": { "rewards": [ ... ], "balances": { "member-1": 122 }, "redemptions": [ ... ] },
   "warning": "..."
 }
 ```
 
-`rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `warning` is only present in the deficit case described above.
+`changed` reports whether this call actually flipped anything — `false` means the directional request found the chore already in the requested state (and no points moved). `rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `warning` is only present in the deficit case described above.
+
+### GET /api/chores/today
+
+Returns the **resolved** per-member chore list for one day — who actually owes what, with rotation (daily/weekly/schedule grids) and frequency rules already applied server-side, plus each chore's completion state. This is what the chore chart renders; use it instead of re-deriving assignments from `/api/chores/data`. Powers the "what chores does Alice have left?" question in the [Voice Control guide](/docs/voice-control). Display access.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `date` | string | Optional `YYYY-MM-DD`. Defaults to today (hub-local). Invalid or impossible dates return `400`. |
+
+**Response:**
+```json
+{
+  "date": "2026-08-03",
+  "members": [
+    {
+      "id": "member-1",
+      "name": "Alice",
+      "chores": [
+        { "id": "chore-1", "name": "Make bed", "points": 2, "timeOfDay": "morning", "completed": true }
+      ]
+    }
+  ]
+}
+```
+
+Every member appears, including those with no chores that day (empty `chores` array).
 
 ### GET /api/chores/data
 
@@ -363,18 +393,37 @@ Returns just the grocery checked state.
 
 **Response:** `{ "groceryChecked": ["tortillas", "cheese"] }`
 
+### GET /api/meals/grocery/list
+
+Returns the **resolved** grocery list for the current week — ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
+
+**Response:**
+```json
+{
+  "week": { "start": "2026-08-02", "end": "2026-08-08" },
+  "categories": [
+    { "category": "bakery", "items": [ { "name": "Tortillas", "amount": "12", "checked": false } ] }
+  ],
+  "total": 4,
+  "checked": 1
+}
+```
+
 ### POST /api/meals/grocery
 
-Toggles a grocery item's checked state. If the item is already checked, it is unchecked; otherwise it is checked. Requires a valid session.
+Toggles a grocery item's checked state. If the item is already checked, it is unchecked; otherwise it is checked. Display access — a display token works, so an automation or voice assistant can check items off. The item name is matched after trimming and lowercasing, so senders can use the display-cased name from `/api/meals/grocery/list`.
 
 **Body:**
 ```json
 {
-  "item": "tortillas"
+  "item": "tortillas",
+  "direction": "check"
 }
 ```
 
-**Response:** `{ "groceryChecked": [...] }` (the full updated list)
+`direction` is optional. Omitted, the call is the historical flip. Set to `"check"` or `"uncheck"`, the call only ever moves the item in that direction and is a no-op when it's already there — so a repeated voice "check off milk" can never silently un-check it. Any other value is rejected with `400`.
+
+**Response:** `{ "groceryChecked": [...], "changed": true }` — `changed` reports whether this call actually flipped anything.
 
 ---
 
@@ -2154,7 +2203,7 @@ Confirms a pending network change. Cancels the 60-second auto-revert timer and u
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [brightness](#post-api-display-brightness), [profile](#post-api-display-profile), and [alert](#post-api-display-alert). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), and [alert](#post-api-display-alert). For a ready-made Home Assistant package built on them — voice sentences included — see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
@@ -2163,7 +2212,7 @@ When the hub has more than one display registered, every display-control endpoin
 - **Query string** — append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
 - **JSON body field** — `{ "displayId": "<id>", … }` (POST only).
 
-Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, alert) and rejected for read-only or mutate-config actions (status, profile).
+Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert) and rejected for read-only or mutate-config actions (status, profile). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
 Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
@@ -2308,9 +2357,27 @@ Sets the display brightness.
 
 **Response:** `{ "ok": true, "command": "brightness", "value": 50 }`
 
+### POST /api/display/goto-screen
+
+Jumps the display straight to a specific screen — the command behind "show the calendar" in the [Voice Control guide](/docs/voice-control) and the Display Control module's screen buttons.
+
+**Body:** `{ "screen": "calendar", "displayId": "kitchen" }` (`displayId` optional)
+
+`screen` is a screen **id or name**; the display client resolves it against its own rotation, matching the id first and then the name case-insensitively. The hub can't validate the target (screen sets are per-display and the queue never reads config), so an unknown target still returns `ok` here and is ignored with a console warning on the display. A screen excluded from the current rotation — for example by the active profile — is also ignored rather than jumped to. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
+
+**Response:** `{ "ok": true, "command": "goto-screen", "screen": "calendar" }`
+
+### POST /api/display/sleep-override
+
+Wakes the display and holds off the automatic sleep machinery — the sleep schedule, the dim schedule, and idle transitions — for a number of minutes. This is "keep the display on tonight": unlike a plain `wake`, which the sleep schedule can undo seconds later, the hold keeps the display awake until it expires. An explicit `sleep` command (or brightness `0`) cancels the hold early. Broadcast with `?display=all` is allowed.
+
+**Body:** `{ "minutes": 480 }` (1 to 1440 — anything longer than 24 hours is rejected with `400`)
+
+**Response:** `{ "ok": true, "command": "sleep-override", "minutes": 480 }`
+
 ### POST /api/display/profile
 
-Switches the active profile. Persists the selection to the config file. Requires a valid session. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
+Switches the active profile. Persists the selection to the config file. Display access — a display token is enough, same as the other command verbs, so a Home Assistant automation can switch profiles; the write only touches the active-profile pointer, the same value the display's own rules engine flips. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
 
 **Body:** `{ "profile": "profile-id", "displayId": "kitchen" }` (`displayId` optional)
 

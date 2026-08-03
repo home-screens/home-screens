@@ -89,7 +89,7 @@ If you have [profiles](/docs/profiles) configured, they appear as horizontal pil
 
 In multi-display installs, the profile pills follow the **Display Picker**: pick a specific display and the pills show that display's own set of profiles and its currently active one (matching the precedence the `/api/display/profile` validator applies). A profile can only be switched on one display at a time, so the pills are hidden while **All** is selected.
 
-Profile switching always needs you to be signed in when a password is set, and a display token is not enough for this one. If your session has expired, tapping a profile takes you to the login page and returns you to the remote afterward.
+When a password is set, the remote switches profiles with your signed-in session; if it has expired, tapping a profile takes you to the login page and returns you to the remote afterward. Scripts and automations can use the display token for this endpoint, the same as the other display commands.
 
 ---
 
@@ -163,7 +163,7 @@ There are two ways to prove who you are: signing in, which gives your phone a se
 | Wake / Sleep | Signed in, or a display token |
 | Brightness | Signed in, or a display token |
 | Send alert | Signed in, or a display token |
-| Profile switching | Signed in |
+| Profile switching | Signed in, or a display token |
 | Settings (system info, backup/restore) | Signed in |
 | Power | Signed in |
 | Chores tab | Checking off chores and spending tickets are open to anyone on your network; adding or editing chores, rewards, and balances needs you signed in |
@@ -279,4 +279,4 @@ The same API endpoints that power the remote can be driven from Home Assistant, 
 http://<pi-ip>:3000/api/display/wake
 ```
 
-Ready-to-paste Home Assistant `rest_command` YAML, including how to store the token in `secrets.yaml`, is in [Home Assistant integration](/docs/networking#home-assistant-integration). The full endpoint list is under [Display Control](/docs/api#display-control) in the API reference.
+Ready-to-paste Home Assistant `rest_command` YAML, including how to store the token in `secrets.yaml`, is in [Home Assistant integration](/docs/networking#home-assistant-integration) — and the **[Voice Control guide](/docs/voice-control)** goes further, with a full Assist package so you can do everything on this page by voice. The full endpoint list is under [Display Control](/docs/api#display-control) in the API reference.

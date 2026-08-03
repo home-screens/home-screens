@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
-import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
+import { publicErrorResponse, parseJsonBody, isValidISODate } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
@@ -9,17 +9,6 @@ import { updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 
 export const dynamic = 'force-dynamic';
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** True iff `s` is a YYYY-MM-DD string AND the components are a real calendar date.
- *  Rejects junk like "2026-99-99" (which the regex alone would accept). */
-function isValidISODate(s: string): boolean {
-  if (!DATE_RE.test(s)) return false;
-  const [y, m, d] = s.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
-  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
-}
 
 /** Format a Date as YYYY-MM-DD in local time */
 function localDateStr(d: Date): string {

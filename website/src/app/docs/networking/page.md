@@ -228,7 +228,7 @@ http://<ip>:3000/api/display/wake?token=<token>
 
 The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the token is.
 
-One command is stricter than the rest: **profile** switching changes your saved configuration, so it requires a full editor login and will not accept a display token.
+The display token covers every command on this page, including profile switching — the only writes it can make are the ones the display itself performs.
 
 ### Commands with payloads
 
@@ -244,12 +244,28 @@ curl -X POST http://<ip>:3000/api/display/brightness \
 
 Brightness works by fading a black layer over the page, not by changing the panel's backlight. At `0` the screen is drawn fully black but the monitor is still powered on and lit.
 
-**Profile** — switch to a named profile (this one needs a full editor login, not just a display token):
+**Profile** — switch to a named profile:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/profile \
   -H 'Content-Type: application/json' \
   -d '{"profile": "nighttime"}'
+```
+
+**Go to screen** — jump straight to a screen by its name (or id) instead of stepping through the rotation. The display matches the name against its own screen list, ignoring case, and ignores names it doesn't have:
+
+```bash
+curl -X POST http://<ip>:3000/api/display/goto-screen \
+  -H 'Content-Type: application/json' \
+  -d '{"screen": "calendar"}'
+```
+
+**Keep the display on** — wake and hold off the sleep schedule, dim schedule, and idle behavior for a number of minutes (up to 24 hours). A plain `wake` can be re-slept by the schedule seconds later; this can't. An explicit `sleep` cancels the hold:
+
+```bash
+curl -X POST http://<ip>:3000/api/display/sleep-override \
+  -H 'Content-Type: application/json' \
+  -d '{"minutes": 480}'
 ```
 
 **Alert** — display an overlay alert on the screen:
@@ -304,7 +320,7 @@ The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` i
 
 ### Home Assistant integration
 
-You can call these endpoints from Home Assistant using the [RESTful Command](https://www.home-assistant.io/integrations/rest_command/) integration:
+For the full setup — every command as a ready-made `rest_command`, voice sentences for Assist ("show the calendar", "tell everyone dinner is ready"), family Q&A sensors, and chore check-off by voice — copy the two-file package in the **[Voice Control guide](/docs/voice-control)**. The short version, if you just want a command or two, is the [RESTful Command](https://www.home-assistant.io/integrations/rest_command/) integration:
 
 ```yaml
 rest_command:
