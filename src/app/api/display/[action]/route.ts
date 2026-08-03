@@ -16,7 +16,6 @@ import {
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
 import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
-import { requireSession } from '@/lib/auth';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 import { validateBrowserStats } from '@/lib/hardware-stats';
 
@@ -197,16 +196,17 @@ async function handleBrightness(
   return NextResponse.json({ ok: true, command: 'brightness', value });
 }
 
+/**
+ * No extra session gate beyond the route's `withDisplayAuth` wrapper: display-
+ * token callers (Home Assistant, curl) may switch profiles, same as the other
+ * command verbs. Profile switching writes config, but only the `activeProfile`
+ * pointer — the same value the display's own rules engine flips — so the
+ * display-token trust level is appropriate.
+ */
 async function handleProfile(
   request: NextRequest,
   queryDisplayId: string | undefined,
 ): Promise<Response> {
-  try {
-    await requireSession(request);
-  } catch (error) {
-    if (error instanceof Response) return error;
-    return errorResponse(error, 'Unauthorized');
-  }
   const body = await safeJson(request);
   const profile = body?.profile;
   if (typeof profile !== 'string') {

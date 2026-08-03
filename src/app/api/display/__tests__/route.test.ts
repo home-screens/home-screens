@@ -59,7 +59,7 @@ import {
   hasSharedStateInterest,
 } from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
-import { requireSession } from '@/lib/auth';
+import { requireDisplayAuth } from '@/lib/auth';
 
 function makeParams(action: string) {
   return { params: Promise.resolve({ action }) };
@@ -338,8 +338,8 @@ describe('POST /api/display/brightness', () => {
 });
 
 describe('POST /api/display/profile', () => {
-  it('requires auth', async () => {
-    vi.mocked(requireSession).mockRejectedValue(
+  it('requires display auth (session OR display token, via the route wrapper)', async () => {
+    vi.mocked(requireDisplayAuth).mockRejectedValueOnce(
       new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 }),
     );
 
@@ -348,7 +348,6 @@ describe('POST /api/display/profile', () => {
   });
 
   it('switches to a valid profile', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     vi.mocked(readConfig).mockResolvedValue({
       version: 1,
       screens: [],
@@ -366,7 +365,6 @@ describe('POST /api/display/profile', () => {
   });
 
   it('rejects unknown profile ID', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     vi.mocked(readConfig).mockResolvedValue({
       version: 1,
       screens: [],
@@ -379,7 +377,6 @@ describe('POST /api/display/profile', () => {
   });
 
   it('clears profile with empty string', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     vi.mocked(readConfig).mockResolvedValue({
       version: 1,
       screens: [],
@@ -396,14 +393,12 @@ describe('POST /api/display/profile', () => {
   });
 
   it('rejects non-string profile', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
 
     const res = await POST(makeRequest({ profile: 42 }), makeParams('profile'));
     expect(res.status).toBe(400);
   });
 
   it('writes per-display activeProfile when displayId is provided', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     const display: { id: string; name: string; screens: never[]; activeProfile?: string } = {
       id: 'kitchen',
       name: 'Kitchen',
@@ -434,7 +429,6 @@ describe('POST /api/display/profile', () => {
   });
 
   it('returns 404 when targeting an unknown display', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     vi.mocked(readConfig).mockResolvedValue({
       version: 3,
       screens: [],
@@ -455,7 +449,6 @@ describe('POST /api/display/profile', () => {
     // inside `display.profiles` — the global pool is empty. The endpoint
     // should still accept it because owned-profiles mode resolves
     // activeProfile against the display's own list.
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     const display: {
       id: string;
       name: string;
@@ -495,7 +488,6 @@ describe('POST /api/display/profile', () => {
     // the owned-profiles display must 404 — this is the whole point of
     // the owned-vs-pool distinction and the only test that locks in
     // "owned-profiles mode ignores the global pool."
-    vi.mocked(requireSession).mockResolvedValue(undefined as never);
     vi.mocked(readConfig).mockResolvedValue({
       version: 3,
       screens: [],

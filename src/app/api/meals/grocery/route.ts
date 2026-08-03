@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, writeMealData } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +11,11 @@ export const GET = withDisplayAuth(async () => {
   return NextResponse.json({ groceryChecked: data.groceryChecked });
 }, 'Failed to read grocery data');
 
-/** POST /api/meals/grocery — toggle a grocery item checked state */
-export const POST = withAuth(async (req: NextRequest) => {
+/** POST /api/meals/grocery — toggle a grocery item checked state.
+ *  Display-token auth (not session-only) so LAN callers like Home Assistant
+ *  voice commands can check items off — a low-risk flip, matching the
+ *  sibling chore toggle endpoint's posture. */
+export const POST = withDisplayAuth(async (req: NextRequest) => {
   const body = await parseJsonBody<{ item?: unknown }>(req);
   if (body instanceof NextResponse) return body;
   const { item } = body;
