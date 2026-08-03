@@ -16,6 +16,9 @@ interface UseDisplayControlParams {
   activeProfile: string | undefined | null;
   nextScreen: () => void;
   prevScreen: () => void;
+  /** Jump to a screen by id or name. The rotator's resolver already clears
+   *  pause and releases takeovers, so no remote wrapper is needed here. */
+  gotoScreen: (target: string) => void;
   resetRotation: () => void;
   clearPause?: () => void;
   /** Multi-display routing key (undefined = legacy single-display mode). */
@@ -32,6 +35,7 @@ export function useDisplayControl({
   activeProfile,
   nextScreen,
   prevScreen,
+  gotoScreen,
   resetRotation,
   clearPause,
   displayId,
@@ -60,6 +64,7 @@ export function useDisplayControl({
       sleep: forceSleep,
       nextScreen: remoteNext,
       prevScreen: remotePrev,
+      gotoScreen,
       setBrightness: setRemoteBrightness,
       reload,
     },

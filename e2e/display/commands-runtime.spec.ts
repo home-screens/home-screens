@@ -93,6 +93,47 @@ test('next-screen and prev-screen navigate the visible screen', async ({ page, r
   await expect(page.getByText('NAV SCREEN BRAVO', { exact: true })).toHaveCount(0);
 });
 
+test('goto-screen jumps to a screen by name (case-insensitive) or id, and ignores unknown targets', async ({ page, request }) => {
+  const id = 'cmd-goto';
+  await openDisplay(
+    page,
+    request,
+    // Rotation frozen (baseConfig default interval is 1h) so only goto-screen
+    // commands change the mounted screen. Screen names are what a voice
+    // sentence would say; ids are what a scripted caller would send.
+    displayConfig(id, [
+      makeScreen('goto-a', 'Front Door', [textModule('GOTO SCREEN ALPHA')]),
+      makeScreen('goto-b', 'Calendar', [textModule('GOTO SCREEN BRAVO')]),
+      makeScreen('goto-c', 'Photos', [textModule('GOTO SCREEN CHARLIE')]),
+    ]),
+    id,
+  );
+
+  await expect(page.getByText('GOTO SCREEN ALPHA', { exact: true })).toBeVisible();
+
+  // By name, wrong case — the resolver (resolveScreenTargetIndex) lowercases
+  // both sides, which is what makes voice targets workable.
+  await sendCommand(request, id, 'goto-screen', { screen: 'calendar' });
+  await expect(page.getByText('GOTO SCREEN BRAVO', { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText('GOTO SCREEN ALPHA', { exact: true })).toHaveCount(0);
+
+  // By exact screen id.
+  await sendCommand(request, id, 'goto-screen', { screen: 'goto-c' });
+  await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible({ timeout: 8000 });
+
+  // Unknown target: command drains but the client warns and stays put.
+  await sendCommand(request, id, 'goto-screen', { screen: 'garage' });
+  // Ride out at least one 3s poll cycle so the bogus command has drained.
+  await page.waitForTimeout(4000);
+  await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible();
+
+  // Broadcast is rejected at the route boundary (screen sets are per-display).
+  const res = await request.post('/api/display/goto-screen?display=all', {
+    data: { screen: 'Calendar' },
+  });
+  expect(res.status()).toBe(400);
+});
+
 test('sleep blacks out the display; wake restores content and resumes a paused rotator', async ({ page, request }) => {
   const id = 'cmd-sleep';
   await openDisplay(

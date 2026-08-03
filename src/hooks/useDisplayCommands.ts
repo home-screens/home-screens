@@ -18,6 +18,9 @@ export interface CommandHandlers {
   sleep: () => void;
   nextScreen: () => void;
   prevScreen: () => void;
+  /** Jump to a screen by id or (case-insensitive) name; resolution happens
+   *  in ScreenRotator, which owns the screen list. */
+  gotoScreen: (target: string) => void;
   setBrightness: (value: number) => void;
   reload: () => void;
 }
@@ -154,6 +157,11 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
               break;
             case 'prev-screen':
               handlersRef.current.prevScreen();
+              break;
+            case 'goto-screen':
+              if (typeof cmd.payload?.screen === 'string') {
+                handlersRef.current.gotoScreen(cmd.payload.screen);
+              }
               break;
             case 'brightness':
               if (typeof cmd.payload?.value === 'number') {

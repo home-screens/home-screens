@@ -135,7 +135,7 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
 
 /**
  * POST handler — used for all command types.
- * Simple commands need no body; brightness/profile/alert require JSON payloads.
+ * Simple commands need no body; brightness/goto-screen/profile/alert require JSON payloads.
  *
  * The optional `displayId` field on the body targets a specific display.
  * Falling back to the query string lets simple URL-based clients
@@ -150,8 +150,10 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
 
   // Broadcast is allowed for command-enqueue actions (simple commands, brightness,
   // alert) and disallowed for read-only or mutate-config actions (status, profile).
-  const isMutationAction = action === 'profile' || action === 'status';
-  const validated = getDisplayIdFromQuery(request, { allowBroadcast: !isMutationAction });
+  // goto-screen is an enqueue action but still excluded: screen sets differ per
+  // display, so a name/id target has no meaning fanned out to every display.
+  const noBroadcast = action === 'profile' || action === 'status' || action === 'goto-screen';
+  const validated = getDisplayIdFromQuery(request, { allowBroadcast: !noBroadcast });
   if (validated instanceof NextResponse) return validated;
   const queryDisplayId = validated;
 
@@ -164,6 +166,8 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
   switch (action) {
     case 'brightness':
       return handleBrightness(request, queryDisplayId);
+    case 'goto-screen':
+      return handleGotoScreen(request, queryDisplayId);
     case 'profile':
       return handleProfile(request, queryDisplayId);
     case 'alert':
@@ -194,6 +198,34 @@ async function handleBrightness(
   if (displayId instanceof NextResponse) return displayId;
   enqueueCommand(displayId, 'brightness', { value });
   return NextResponse.json({ ok: true, command: 'brightness', value });
+}
+
+/**
+ * The queue payload carries the raw target string; the display client resolves
+ * it against its own screen list (id first, then case-insensitive name — see
+ * resolveScreenTargetIndex). The hub can't validate the target here because
+ * screen sets are per-display and the queue layer deliberately never reads
+ * config. The length cap only bounds queue memory — real screen names and ids
+ * are far shorter.
+ */
+const MAX_GOTO_TARGET_LENGTH = 256;
+
+async function handleGotoScreen(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const screen = typeof body?.screen === 'string' ? body.screen.trim() : '';
+  if (screen.length === 0 || screen.length > MAX_GOTO_TARGET_LENGTH) {
+    return NextResponse.json(
+      { error: 'screen must be a screen id or name (non-empty string)' },
+      { status: 400 },
+    );
+  }
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: false });
+  if (displayId instanceof NextResponse) return displayId;
+  enqueueCommand(displayId, 'goto-screen', { screen });
+  return NextResponse.json({ ok: true, command: 'goto-screen', screen });
 }
 
 /**

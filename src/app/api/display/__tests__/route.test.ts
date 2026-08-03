@@ -337,6 +337,73 @@ describe('POST /api/display/brightness', () => {
   });
 });
 
+describe('POST /api/display/goto-screen', () => {
+  it('enqueues the target string on the default queue', async () => {
+    const res = await POST(makeRequest({ screen: 'Calendar' }), makeParams('goto-screen'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true, command: 'goto-screen', screen: 'Calendar' });
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'goto-screen', { screen: 'Calendar' });
+  });
+
+  it('targets a specific display via the body displayId', async () => {
+    const res = await POST(
+      makeRequest({ screen: 'photos', displayId: 'kitchen' }),
+      makeParams('goto-screen'),
+    );
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith('kitchen', 'goto-screen', { screen: 'photos' });
+  });
+
+  it('trims surrounding whitespace from the target', async () => {
+    const res = await POST(makeRequest({ screen: '  Calendar  ' }), makeParams('goto-screen'));
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'goto-screen', { screen: 'Calendar' });
+  });
+
+  it('rejects a missing screen field', async () => {
+    const res = await POST(makeRequest({}), makeParams('goto-screen'));
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-string screen field', async () => {
+    const res = await POST(makeRequest({ screen: 3 }), makeParams('goto-screen'));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects a whitespace-only screen field', async () => {
+    const res = await POST(makeRequest({ screen: '   ' }), makeParams('goto-screen'));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects an over-long target (queue memory bound)', async () => {
+    const res = await POST(makeRequest({ screen: 'x'.repeat(257) }), makeParams('goto-screen'));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects ?display=all — screen sets differ per display, broadcast is meaningless', async () => {
+    const req = new NextRequest('http://localhost/api/display/goto-screen?display=all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ screen: 'Calendar' }),
+    });
+    const res = await POST(req, makeParams('goto-screen'));
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('rejects displayId "all" in the body too', async () => {
+    const res = await POST(
+      makeRequest({ screen: 'Calendar', displayId: 'all' }),
+      makeParams('goto-screen'),
+    );
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/display/profile', () => {
   it('requires display auth (session OR display token, via the route wrapper)', async () => {
     vi.mocked(requireDisplayAuth).mockRejectedValueOnce(

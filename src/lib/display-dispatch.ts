@@ -22,9 +22,9 @@ export async function dispatchDisplayCommand(
   type: DisplayCommandType,
   payload?: Record<string, unknown>,
 ): Promise<void> {
-  // Commands carrying a payload (brightness, alert) require POST with a JSON
-  // body — the API route reads `value`/`displayId` from the body, not the
-  // query string. Simple commands (sleep, wake, next-screen, prev-screen,
+  // Commands carrying a payload (brightness, alert, goto-screen) require POST
+  // with a JSON body — the API route reads `value`/`screen`/`displayId` from
+  // the body, not the query string. Simple commands (sleep, wake, next-screen, prev-screen,
   // reload, clear-alerts) are enqueued via GET with `?display=` so they stay
   // bookmarkable from phones / Home Assistant / curl.
   if (payload && Object.keys(payload).length > 0) {

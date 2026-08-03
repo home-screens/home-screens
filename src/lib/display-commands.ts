@@ -38,6 +38,7 @@ export type DisplayCommandType =
   | 'sleep'
   | 'next-screen'
   | 'prev-screen'
+  | 'goto-screen'
   | 'brightness'
   | 'reload'
   | 'alert'

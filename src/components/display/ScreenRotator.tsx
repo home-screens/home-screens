@@ -20,6 +20,7 @@ import { usePauseRotation } from './usePauseRotation';
 import { useScreenTransition } from './useScreenTransition';
 import { useInteractionHeld } from '@/lib/interaction-hold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
+import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
 import { useTZClock } from '@/hooks/useTZClock';
 import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
@@ -198,6 +199,22 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     goToScreen,
   });
 
+  // Remote `goto-screen` command: the payload is a raw id-or-name string
+  // (voice says names) resolved here against the rotation list — the hub
+  // never sees this display's screens, so resolution can't happen there.
+  // A target outside the current rotation (excluded by profile/schedule, or
+  // a typo'd sentence) is ignored with a warn; jumping to a screen the
+  // rotation can't otherwise show would strand the kiosk on it.
+  const gotoScreenByTarget = useCallback((target: string) => {
+    const index = resolveScreenTargetIndex(screens, target);
+    if (index === -1) {
+      console.warn(`goto-screen: no screen in the current rotation matches "${target}"`);
+      return;
+    }
+    goToScreen(index);
+    clearPause();
+  }, [screens, goToScreen, clearPause]);
+
   // Status reports name the takeover screen when one is pinned, so the
   // editor's "currently showing" readout stays truthful during a rule firing.
   const { displayState, dimOpacity, wake, forceSleep } = useDisplayControl({
@@ -210,6 +227,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     activeProfile: settings.activeProfile,
     nextScreen,
     prevScreen,
+    gotoScreen: gotoScreenByTarget,
     resetRotation,
     clearPause,
     displayId,
