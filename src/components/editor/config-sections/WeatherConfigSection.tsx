@@ -69,11 +69,13 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
 
-  const { status: secrets, loading: secretsLoading } = useSecretStatus();
+  const { status: secrets, loading: secretsLoading, error: secretsError, hasStatus } = useSecretStatus();
   const configuredProviders = useMemo<string[]>(() => {
-    if (secretsLoading) return [];
-    // On a failed status fetch `secrets` is {}, so the keyed providers drop
-    // out but the keyless ones below stay pickable.
+    // Until a good status has landed, return [] and keep the picker hidden:
+    // rendering the select without the saved keyed provider in its options
+    // would misreport it and let a change event overwrite the real value.
+    // A failed refetch after a good status keeps using that last snapshot.
+    if (secretsLoading || (secretsError && !hasStatus)) return [];
     const providers: string[] = [];
     if (secrets.openweathermap_key) providers.push('openweathermap');
     if (secrets.weatherapi_key) providers.push('weatherapi');
@@ -82,7 +84,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     // The rest need no API key and are always available.
     providers.push('noaa', 'open-meteo', 'yr', 'smhi', 'envcanada');
     return providers;
-  }, [secrets, secretsLoading]);
+  }, [secrets, secretsLoading, secretsError, hasStatus]);
 
   // Resolve effective provider for capability gating
   const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'openweathermap');

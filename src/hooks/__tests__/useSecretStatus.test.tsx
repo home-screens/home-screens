@@ -144,6 +144,67 @@ describe('useSecretStatus', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('a failed fetch is not cached — a mount inside the TTL retries', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('nope', { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ tomtom_key: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = renderHook(() => useSecretStatus());
+    await waitFor(() => expect(first.result.current.error).toBe(true));
+    expect(first.result.current.hasStatus).toBe(false);
+    first.unmount();
+
+    // A consumer mounting right after the failure must get its own request
+    // instead of being served the failure as a fresh empty status.
+    const second = renderHook(() => useSecretStatus());
+    await waitFor(() => expect(second.result.current.status).toEqual({ tomtom_key: true }));
+    expect(second.result.current.error).toBe(false);
+    expect(second.result.current.hasStatus).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('a refetch returning the same payload keeps the status object identity', async () => {
+    const fetchMock = vi.fn(async () => jsonResponse({ todoist_token: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useSecretStatus());
+    await waitFor(() => expect(result.current.status).toEqual({ todoist_token: true }));
+    const before = result.current.status;
+
+    await act(async () => {
+      result.current.refetch();
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    // Identity-stable status is what keeps consumers' memos and effects
+    // (e.g. the editor's weather preview fan-out) from re-firing on a
+    // refetch that confirmed the same keys.
+    expect(Object.is(result.current.status, before)).toBe(true);
+  });
+
+  it('a failed refetch keeps the last good status visible with hasStatus set', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ todoist_token: true }))
+      .mockResolvedValueOnce(new Response('nope', { status: 500 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { result } = renderHook(() => useSecretStatus());
+    await waitFor(() => expect(result.current.status).toEqual({ todoist_token: true }));
+
+    await act(async () => {
+      result.current.refetch();
+    });
+    await waitFor(() => expect(result.current.error).toBe(true));
+
+    // error + hasStatus means "latest request failed but the snapshot is
+    // still trustworthy" — consumers must not regress to loading/unknown UI.
+    expect(result.current.hasStatus).toBe(true);
+    expect(result.current.status).toEqual({ todoist_token: true });
+  });
+
   it('does not fetch when disabled and reads empty regardless of the cache', async () => {
     const fetchMock = vi.fn(async () => jsonResponse({ unsplash_access_key: true }));
     vi.stubGlobal('fetch', fetchMock);

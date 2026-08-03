@@ -12,10 +12,13 @@ import { settingsPath } from '@/lib/settings-route';
 
 function TodoistTokenStatus() {
   const t = useTranslate('editor');
-  const { status, loading, error } = useSecretStatus();
-  // On a failed status fetch stay in the neutral "checking" state — claiming
-  // "not connected" would mislead a user whose token is actually saved.
-  const configured = loading || error ? null : !!status.todoist_token;
+  const { status, loading, error, hasStatus } = useSecretStatus();
+  // With no good status ever fetched, stay in the neutral "checking" state —
+  // claiming "not connected" would mislead a user whose token is actually
+  // saved. A failed refetch after a good status keeps that last snapshot
+  // visible, so a verified "Connected" can't regress because some other
+  // panel's fetch failed.
+  const configured = loading || (error && !hasStatus) ? null : !!status.todoist_token;
 
   return (
     <div className="space-y-1">

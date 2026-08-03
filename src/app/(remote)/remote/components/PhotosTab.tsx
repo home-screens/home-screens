@@ -125,11 +125,14 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         setError(t('photosTab.deleteFailed'));
       }
     } catch (err) {
-      if (isSessionExpired(err)) return;
-      setError(t('photosTab.deleteFailed'));
+      // Session-expired: the redirect to login is already underway, so skip
+      // the error banner — but still fall through to the cleanup below so
+      // the confirm overlay never sticks on "Deleting…".
+      if (!isSessionExpired(err)) setError(t('photosTab.deleteFailed'));
+    } finally {
+      setDeletingImage(null);
+      setConfirmDelete(null);
     }
-    setDeletingImage(null);
-    setConfirmDelete(null);
   }, [fetchDirectories, showSuccess, t]);
 
   // Create folder

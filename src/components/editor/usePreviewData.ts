@@ -55,17 +55,19 @@ export function usePreviewData(): PreviewData {
   const longitude = weatherSettings?.longitude;
   const units = weatherSettings?.units;
 
-  // Configured-providers list. Secrets are fetched once per mount — they only
-  // change via the Integrations tab, which forces a config reload anyway.
-  // Keeping this separate from the weather effect avoids hitting /api/secrets
-  // on every coordinate keystroke. Null until the status arrives; on failure
-  // fall back to trying all providers.
-  const { status: secrets, loading: secretsLoading, error: secretsError } = useSecretStatus();
+  // Configured-providers list from the shared secret-status store. The store
+  // keeps `status` identity-stable across refetches unless the payload
+  // actually changed, so this memo — and the weather fan-out effect keyed on
+  // it below — only re-run when a key is really added or removed. Null until
+  // the first status arrives; with no good status ever, fall back to trying
+  // all providers (a failed refetch after a good one keeps the current list).
+  const { status: secrets, loading: secretsLoading, error: secretsError, hasStatus } = useSecretStatus();
+  const statusUnknown = secretsError && !hasStatus;
   const providers = useMemo<string[] | null>(() => {
     if (secretsLoading) return null;
-    if (secretsError) return ALL_PROVIDERS;
+    if (statusUnknown) return ALL_PROVIDERS;
     return ALL_PROVIDERS.filter((p) => NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]);
-  }, [secrets, secretsLoading, secretsError]);
+  }, [secrets, secretsLoading, statusUnknown]);
 
   useEffect(() => {
     // Wait for the providers list before triggering any weather fetches
