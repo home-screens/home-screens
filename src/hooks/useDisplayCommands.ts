@@ -21,6 +21,8 @@ export interface CommandHandlers {
   /** Jump to a screen by id or (case-insensitive) name; resolution happens
    *  in ScreenRotator, which owns the screen list. */
   gotoScreen: (target: string) => void;
+  /** Wake and hold awake for N minutes, suppressing the sleep machinery. */
+  sleepOverride: (minutes: number) => void;
   setBrightness: (value: number) => void;
   reload: () => void;
 }
@@ -161,6 +163,11 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
             case 'goto-screen':
               if (typeof cmd.payload?.screen === 'string') {
                 handlersRef.current.gotoScreen(cmd.payload.screen);
+              }
+              break;
+            case 'sleep-override':
+              if (typeof cmd.payload?.minutes === 'number' && cmd.payload.minutes > 0) {
+                handlersRef.current.sleepOverride(cmd.payload.minutes);
               }
               break;
             case 'brightness':

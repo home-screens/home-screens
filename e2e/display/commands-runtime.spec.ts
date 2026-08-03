@@ -179,6 +179,48 @@ test('sleep blacks out the display; wake restores content and resumes a paused r
   await expect(page.getByText(resumedText, { exact: true })).toBeVisible({ timeout: 8000 });
 });
 
+test('sleep-override holds the display awake against an active sleep schedule; a plain wake does not', async ({ page, request }) => {
+  // Legitimately slow: proving "the schedule tried and failed to re-assert"
+  // means soaking across several real 10s sleep-manager ticks (~50s total).
+  test.setTimeout(90_000);
+  const id = 'cmd-sleep-override';
+  await openDisplay(
+    page,
+    request,
+    // An always-active sleep window: the schedule re-asserts sleep on every
+    // 10s tick, so anything still visible 12s after a wake proves a hold.
+    displayConfig(id, [makeScreen('s', 'S', [textModule('OVERRIDE SCREEN')])], {
+      sleep: {
+        enabled: true,
+        dimAfterMinutes: 600,
+        sleepAfterMinutes: 600,
+        dimBrightness: 20,
+        schedule: { startTime: '00:00', endTime: '23:59' },
+      },
+    }),
+    id,
+  );
+
+  // The schedule blacks the display out within the first tick.
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+
+  // A plain wake is re-slept by the next 10s tick (the control case).
+  await sendCommand(request, id, 'wake');
+  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+
+  // sleep-override: wake + hold. 12s straddles at least one full tick, so the
+  // schedule demonstrably tried and failed to re-assert during the hold.
+  await sendCommand(request, id, 'sleep-override', { minutes: 5 });
+  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  await page.waitForTimeout(12_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
+
+  // An explicit sleep cancels the hold and sticks (forceSleep clears it).
+  await sendCommand(request, id, 'sleep');
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+});
+
 test('brightness dims the display, and brightness 100 restores it', async ({ page, request }) => {
   const id = 'cmd-bright';
   await openDisplay(

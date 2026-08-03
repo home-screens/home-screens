@@ -168,6 +168,8 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       return handleBrightness(request, queryDisplayId);
     case 'goto-screen':
       return handleGotoScreen(request, queryDisplayId);
+    case 'sleep-override':
+      return handleSleepOverride(request, queryDisplayId);
     case 'profile':
       return handleProfile(request, queryDisplayId);
     case 'alert':
@@ -226,6 +228,39 @@ async function handleGotoScreen(
   if (displayId instanceof NextResponse) return displayId;
   enqueueCommand(displayId, 'goto-screen', { screen });
   return NextResponse.json({ ok: true, command: 'goto-screen', screen });
+}
+
+/**
+ * "Keep the display on tonight": a wake whose hold suppresses the automatic
+ * sleep machinery (sleep schedule, dim schedule, idle) for `minutes`. Bounded
+ * at 24h so a mis-spoken duration can't pin a display awake for a month; an
+ * explicit sleep command always cancels the hold client-side regardless.
+ */
+const MAX_SLEEP_OVERRIDE_MINUTES = 24 * 60;
+
+async function handleSleepOverride(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const minutes = typeof body?.minutes === 'number' ? body.minutes : null;
+  if (
+    minutes === null
+    || !Number.isFinite(minutes)
+    || minutes < 1
+    || minutes > MAX_SLEEP_OVERRIDE_MINUTES
+  ) {
+    return NextResponse.json(
+      { error: `minutes must be a number 1-${MAX_SLEEP_OVERRIDE_MINUTES}` },
+      { status: 400 },
+    );
+  }
+  // Broadcast allowed — "keep the displays on" is a natural whole-house ask,
+  // same posture as wake/brightness.
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+  enqueueCommand(displayId, 'sleep-override', { minutes });
+  return NextResponse.json({ ok: true, command: 'sleep-override', minutes });
 }
 
 /**

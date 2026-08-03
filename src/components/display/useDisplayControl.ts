@@ -58,6 +58,12 @@ export function useDisplayControl({
     window.location.reload();
   }, []);
 
+  // "Keep the display on for N minutes": a wake whose hold suppresses the
+  // sleep schedule, dim schedule, and idle transitions (useSleepManager).
+  const sleepOverride = useCallback((minutes: number) => {
+    wake({ holdMs: minutes * 60_000 });
+  }, [wake]);
+
   useDisplayCommands(
     {
       wake,
@@ -65,6 +71,7 @@ export function useDisplayControl({
       nextScreen: remoteNext,
       prevScreen: remotePrev,
       gotoScreen,
+      sleepOverride,
       setBrightness: setRemoteBrightness,
       reload,
     },

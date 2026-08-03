@@ -404,6 +404,63 @@ describe('POST /api/display/goto-screen', () => {
   });
 });
 
+describe('POST /api/display/sleep-override', () => {
+  it('enqueues the hold duration on the default queue', async () => {
+    const res = await POST(makeRequest({ minutes: 120 }), makeParams('sleep-override'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true, command: 'sleep-override', minutes: 120 });
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'sleep-override', { minutes: 120 });
+  });
+
+  it('targets a specific display via the body displayId', async () => {
+    const res = await POST(
+      makeRequest({ minutes: 30, displayId: 'kitchen' }),
+      makeParams('sleep-override'),
+    );
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith('kitchen', 'sleep-override', { minutes: 30 });
+  });
+
+  it('allows broadcast — "keep the displays on" is a whole-house ask', async () => {
+    const req = new NextRequest('http://localhost/api/display/sleep-override?display=all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ minutes: 60 }),
+    });
+    const res = await POST(req, makeParams('sleep-override'));
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith('all', 'sleep-override', { minutes: 60 });
+  });
+
+  it('rejects a missing minutes field', async () => {
+    const res = await POST(makeRequest({}), makeParams('sleep-override'));
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-number minutes field', async () => {
+    const res = await POST(makeRequest({ minutes: 'sixty' }), makeParams('sleep-override'));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects zero and negative minutes', async () => {
+    expect((await POST(makeRequest({ minutes: 0 }), makeParams('sleep-override'))).status).toBe(400);
+    expect((await POST(makeRequest({ minutes: -5 }), makeParams('sleep-override'))).status).toBe(400);
+  });
+
+  it('rejects a hold longer than 24 hours', async () => {
+    const res = await POST(makeRequest({ minutes: 1441 }), makeParams('sleep-override'));
+    expect(res.status).toBe(400);
+  });
+
+  it('accepts the 24-hour boundary exactly', async () => {
+    const res = await POST(makeRequest({ minutes: 1440 }), makeParams('sleep-override'));
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('POST /api/display/profile', () => {
   it('requires display auth (session OR display token, via the route wrapper)', async () => {
     vi.mocked(requireDisplayAuth).mockRejectedValueOnce(

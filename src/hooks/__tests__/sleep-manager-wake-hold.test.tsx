@@ -69,4 +69,74 @@ describe('useSleepManager rule-wake hold', () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
     expect(result.current.displayState).toBe('asleep');
   });
+
+  it('the hold also suppresses a dim schedule ("keep it on" must not creep to dimmed)', async () => {
+    const dimming: SleepSettings = {
+      ...ALWAYS_ASLEEP,
+      schedule: undefined,
+      dimSchedule: { startTime: '00:00', endTime: '23:59' },
+    };
+    const { result } = renderHook(() => useSleepManager(dimming, undefined));
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(result.current.displayState).toBe('dimmed');
+
+    act(() => { result.current.wake({ holdMs: 60_000 }); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(40_000); });
+    expect(result.current.displayState).toBe('active');
+
+    // Hold expired → the dim schedule re-asserts.
+    await act(async () => { await vi.advanceTimersByTimeAsync(40_000); });
+    expect(result.current.displayState).toBe('dimmed');
+  });
+
+  it('the hold suppresses idle-based transitions for its duration', async () => {
+    // 0-minute idle dim: without a hold, every tick past wake would dim.
+    // (sleepAfterMinutes 0 disables the idle-asleep branch, so dimmed is the
+    // deepest idle state reachable here.)
+    const idle: SleepSettings = {
+      enabled: true,
+      dimAfterMinutes: 0,
+      sleepAfterMinutes: 0,
+      dimBrightness: 20,
+    };
+    const { result } = renderHook(() => useSleepManager(idle, undefined));
+
+    act(() => { result.current.wake({ holdMs: 60_000 }); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(40_000); });
+    expect(result.current.displayState).toBe('active');
+
+    // Past the hold, idle rules resume on the next tick.
+    await act(async () => { await vi.advanceTimersByTimeAsync(40_000); });
+    expect(result.current.displayState).toBe('dimmed');
+  });
+
+  it('an explicit forceSleep cancels a standing hold — sleep sticks', async () => {
+    const { result } = renderHook(() => useSleepManager(ALWAYS_ASLEEP, undefined));
+
+    act(() => { result.current.wake({ holdMs: 60 * 60_000 }); });
+    expect(result.current.displayState).toBe('active');
+
+    // Human says "displays to sleep" mid-hold: the hold must die with it,
+    // otherwise a later touch-wake would resurrect an hour-long pin-awake.
+    act(() => { result.current.forceSleep(); });
+    expect(result.current.displayState).toBe('asleep');
+
+    // A plain touch-wake now behaves normally: re-slept by the next tick.
+    act(() => { result.current.wake(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(result.current.displayState).toBe('asleep');
+  });
+
+  it('brightness 0 (explicit sleep) also cancels the hold', async () => {
+    const { result } = renderHook(() => useSleepManager(ALWAYS_ASLEEP, undefined));
+
+    act(() => { result.current.wake({ holdMs: 60 * 60_000 }); });
+    act(() => { result.current.setRemoteBrightness(0); });
+    expect(result.current.displayState).toBe('asleep');
+
+    act(() => { result.current.wake(); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(result.current.displayState).toBe('asleep');
+  });
 });

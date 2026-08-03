@@ -7,9 +7,11 @@ import { createTZDate } from '@/lib/timezone';
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
 /**
- * How long a rule-initiated wake holds the display awake against a scheduled
- * sleep window before the schedule takes back over. Touch/remote wakes get no
- * such hold — they are re-slept by the next 10s tick, unchanged.
+ * How long a rule-initiated wake holds the display awake against the automatic
+ * sleep machinery before it takes back over. Touch/remote wakes get no such
+ * hold — they are re-slept by the next 10s tick, unchanged. The remote
+ * `sleep-override` command uses the same hold with a caller-chosen duration
+ * ("keep the display on tonight").
  */
 export const RULE_WAKE_HOLD_MS = 5 * 60_000;
 
@@ -43,9 +45,11 @@ interface UseSleepManagerResult {
   displayState: DisplayState;
   dimOpacity: number;
   /**
-   * Wake the display. `holdMs` keeps it awake through a scheduled sleep window
-   * for that long before the schedule re-asserts — used only by the rule
-   * `wake` action; a plain `wake()` (touch/remote) sets no hold.
+   * Wake the display. `holdMs` keeps it awake — suppressing the sleep
+   * schedule, dim schedule, and idle transitions — for that long before the
+   * automatic machinery re-asserts. Used by the rule `wake` action and the
+   * remote `sleep-override` command; a plain `wake()` (touch/remote) sets no
+   * hold. An explicit sleep (remote command, brightness 0) cancels the hold.
    */
   wake: (options?: { holdMs?: number }) => void;
   forceSleep: () => void;
@@ -67,15 +71,16 @@ export function useSleepManager(
   const lastActivityRef = useRef(Date.now());
   const wasDimScheduleRef = useRef(false);
   const wasSleepScheduleRef = useRef(false);
-  // Absolute timestamp until which a rule-initiated wake holds the display
-  // awake against the sleep schedule. 0 means no hold (the default path).
-  const ruleWakeHoldUntilRef = useRef(0);
+  // Absolute timestamp until which a held wake (rule action or the remote
+  // sleep-override command) suppresses every automatic transition — sleep
+  // schedule, dim schedule, idle. 0 means no hold (the default path).
+  const wakeHoldUntilRef = useRef(0);
   const enabled = sleep?.enabled ?? false;
 
   const wake = useCallback((options?: { holdMs?: number }) => {
     lastActivityRef.current = Date.now();
     if (options?.holdMs) {
-      ruleWakeHoldUntilRef.current = Date.now() + options.holdMs;
+      wakeHoldUntilRef.current = Date.now() + options.holdMs;
     }
     setBrightnessOverride(null);
     setDisplayState('active');
@@ -83,6 +88,10 @@ export function useSleepManager(
 
   const forceSleep = useCallback(() => {
     lastActivityRef.current = 0;
+    // An explicit sleep is a human decision that outranks any standing
+    // "keep it on" hold — without this, a touch after "displays to sleep"
+    // would resurrect the hold and pin the display awake.
+    wakeHoldUntilRef.current = 0;
     setBrightnessOverride(null);
     setDisplayState('asleep');
   }, []);
@@ -91,6 +100,9 @@ export function useSleepManager(
     const clamped = Math.max(0, Math.min(100, value));
     if (clamped === 0) {
       lastActivityRef.current = 0;
+      // Brightness 0 is an explicit sleep — cancel a standing wake hold,
+      // same as forceSleep above.
+      wakeHoldUntilRef.current = 0;
       setBrightnessOverride(null);
       setDisplayState('asleep');
     } else if (clamped >= 100) {
@@ -155,6 +167,19 @@ export function useSleepManager(
       const inSleepWindow = !!sleep.schedule && isInScheduleWindow(sleep.schedule, tzNow);
       const inDimWindow = !!sleep.dimSchedule && isInScheduleWindow(sleep.dimSchedule, tzNow);
 
+      // A held wake (rule action / sleep-override) suppresses every automatic
+      // transition until it expires — schedule sleep, schedule dim, AND idle;
+      // "keep the display on" must not creep back to dimmed while held. The
+      // window refs still track membership so the leave-window wake detection
+      // stays accurate when the hold outlives a window edge. State is left
+      // untouched on purpose: an explicit sleep during a hold has already
+      // cancelled it (forceSleep / brightness 0), so nothing fights here.
+      if (Date.now() < wakeHoldUntilRef.current) {
+        wasSleepScheduleRef.current = inSleepWindow;
+        wasDimScheduleRef.current = inDimWindow;
+        return;
+      }
+
       // Detect leaving a sleep schedule window — wake the display
       if (wasSleepScheduleRef.current && !inSleepWindow) {
         lastActivityRef.current = Date.now();
@@ -179,9 +204,6 @@ export function useSleepManager(
       // Fixed sleep schedule takes highest priority — force asleep during window
       // Clear brightness override so remote brightness can't prevent full blackout
       if (inSleepWindow) {
-        // A rule-initiated wake holds the display awake through the window for
-        // RULE_WAKE_HOLD_MS; the schedule re-asserts once the hold expires.
-        if (Date.now() < ruleWakeHoldUntilRef.current) return;
         setBrightnessOverride(null);
         setDisplayState('asleep');
         return;
