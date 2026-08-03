@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   parseSettingsRoute,
   resolveSettingsRoute,
+  settingsHref,
+  settingsPath,
   DEFAULT_PAGE_IDS,
   PER_DISPLAY_SUBTABS,
+  type DefaultPageId,
+  type SettingsRoute,
 } from '@/lib/settings-route';
 
 /**
@@ -233,5 +237,98 @@ describe('resolveSettingsRoute', () => {
     const result = resolveSettingsRoute('tab=meals');
     expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
     expect(result.redirectedQuery).toBeUndefined();
+  });
+});
+
+describe('settingsHref', () => {
+  it('builds the three route kinds', () => {
+    expect(settingsHref({ kind: 'defaults', page: 'meals' })).toBe('?section=defaults&page=meals');
+    expect(settingsHref({ kind: 'defaults', page: 'screen', panel: 'sleep' })).toBe(
+      '?section=defaults&page=screen&panel=sleep',
+    );
+    expect(settingsHref({ kind: 'display', displayId: 'kitchen', subtab: 'overrides' })).toBe(
+      '?section=display&id=kitchen&subtab=overrides',
+    );
+    expect(settingsHref({ kind: 'displays' })).toBe('?section=displays');
+  });
+
+  it('round-trips through parseSettingsRoute for every route kind', () => {
+    const routes: SettingsRoute[] = [
+      { kind: 'defaults', page: 'automation' },
+      { kind: 'defaults', page: 'automation', panel: 'rules' },
+      { kind: 'display', displayId: 'kitchen', subtab: 'overview' },
+      { kind: 'displays' },
+    ];
+    for (const route of routes) {
+      expect(parseSettingsRoute(new URLSearchParams(settingsHref(route)))).toEqual(route);
+    }
+  });
+
+  it('never needs a canonicalizing rewrite (built URLs are already canonical)', () => {
+    const routes: SettingsRoute[] = [
+      { kind: 'defaults', page: 'screen', panel: 'alerts' },
+      { kind: 'display', displayId: 'kitchen', subtab: 'overrides' },
+      { kind: 'displays' },
+    ];
+    for (const route of routes) {
+      expect(resolveSettingsRoute(settingsHref(route)).redirectedQuery).toBeUndefined();
+    }
+  });
+
+  it('appends ?highlight= for field-search arrivals', () => {
+    const href = settingsHref(
+      { kind: 'defaults', page: 'screen', panel: 'sleep' },
+      { highlight: 'sleep.dimStart' },
+    );
+    const params = new URLSearchParams(href);
+    expect(params.get('highlight')).toBe('sleep.dimStart');
+    expect(params.get('panel')).toBe('sleep');
+  });
+
+  it('preserves foreign params from `from` while replacing route-owned ones and dropping highlight', () => {
+    // Tab-switch case: `display=`/`screen=` are written by syncEditorUrl and
+    // must survive; the old route params and one-shot highlight must not.
+    const href = settingsHref(
+      { kind: 'defaults', page: 'automation', panel: 'live' },
+      { from: '?section=defaults&page=automation&panel=profiles&highlight=old&display=kitchen&screen=s1' },
+    );
+    const params = new URLSearchParams(href);
+    expect(params.get('display')).toBe('kitchen');
+    expect(params.get('screen')).toBe('s1');
+    expect(params.get('panel')).toBe('live');
+    expect(params.get('highlight')).toBeNull();
+  });
+
+  it('clears stale per-display params when building a defaults route from a display URL', () => {
+    const href = settingsHref(
+      { kind: 'defaults', page: 'screen' },
+      { from: '?section=display&id=kitchen&subtab=overrides' },
+    );
+    const params = new URLSearchParams(href);
+    expect(params.get('id')).toBeNull();
+    expect(params.get('subtab')).toBeNull();
+    expect(params.get('page')).toBe('screen');
+  });
+
+  it('settingsPath prefixes the editor settings pathname', () => {
+    expect(settingsPath({ kind: 'defaults', page: 'integrations' })).toBe(
+      '/editor/settings?section=defaults&page=integrations',
+    );
+  });
+});
+
+describe('DefaultsRoute page↔panel correlation', () => {
+  it('rejects cross-page and untabbed-page panel pairings at compile time', () => {
+    // These lines are the test: `tsc --noEmit` fails if the union ever
+    // loosens, because an unused @ts-expect-error is itself an error.
+    // @ts-expect-error 'rules' belongs to automation, not screen
+    const crossPage: SettingsRoute = { kind: 'defaults', page: 'screen', panel: 'rules' };
+    // @ts-expect-error meals has no tab bar, so no panel may ride along
+    const untabbed: SettingsRoute = { kind: 'defaults', page: 'meals', panel: 'sleep' };
+    // Valid pairings and dynamic page-only routes must keep compiling.
+    const ok: SettingsRoute = { kind: 'defaults', page: 'automation', panel: 'rules' };
+    const dynamicPage: DefaultPageId = DEFAULT_PAGE_IDS[0];
+    const pageOnly: SettingsRoute = { kind: 'defaults', page: dynamicPage };
+    expect([crossPage, untabbed, ok, pageOnly].length).toBe(4);
   });
 });

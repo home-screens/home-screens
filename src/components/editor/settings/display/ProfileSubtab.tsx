@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 
 interface ProfileSubtabProps {
   config: ScreenConfiguration;
@@ -61,7 +62,7 @@ export default function ProfileSubtab({ config, display }: ProfileSubtabProps) {
           <p className="text-[11px] text-hs-text-faint mt-1.5">
             {t('settings.perDisplayPage.profile.helpPart1', { name: display.name })}
             <Link
-              href="?section=defaults&page=automation"
+              href={settingsHref({ kind: 'defaults', page: 'automation' })}
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               {t('settings.perDisplayPage.profile.helpLink')}

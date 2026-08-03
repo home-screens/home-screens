@@ -1,33 +1,14 @@
 import { NextResponse } from 'next/server';
-import { readConfig } from '@/lib/config';
+import { readConfigCached } from '@/lib/config-cache';
 import {
   getAllDisplayStatuses,
   getUnadoptedDisplays,
   getViewportReports,
 } from '@/lib/display-commands';
 import { withDisplayAuth } from '@/lib/api-utils';
-import type { ScreenConfiguration } from '@/types/config';
 import type { DisplaysApiResponse } from '@/lib/displays-api-types';
 
 export const dynamic = 'force-dynamic';
-
-/**
- * Tiny in-process cache for `readConfig()` results. The Displays tab in the
- * editor and every unadopted display poll this route every 5 s, so a single
- * household with 5 unadopted Pis can drive ~6 disk reads / 5 s. The 1.5 s
- * TTL collapses concurrent polls onto one read while still surfacing
- * editor changes within the next refresh cycle.
- */
-const CONFIG_CACHE_TTL_MS = 1_500;
-let configCache: { value: ScreenConfiguration; expiresAt: number } | null = null;
-
-async function getCachedConfig(): Promise<ScreenConfiguration> {
-  const now = Date.now();
-  if (configCache && configCache.expiresAt > now) return configCache.value;
-  const value = await readConfig();
-  configCache = { value, expiresAt: now + CONFIG_CACHE_TTL_MS };
-  return value;
-}
 
 /**
  * Read-only endpoint exposing the multi-display registry alongside the
@@ -53,14 +34,16 @@ export const GET = withDisplayAuth(async (request) => {
 
   // Adoption-check shortcut: only the registered display IDs are needed,
   // and we read those from the cached config to avoid hammering the disk
-  // when many Pis poll for adoption simultaneously.
+  // when many Pis poll for adoption simultaneously. The editor Displays
+  // tab and every unadopted Pi hit this route every 5 s; the shared 1.5 s
+  // cache (`config-cache.ts`) collapses those polls onto one disk read.
   if (id) {
-    const config = await getCachedConfig();
+    const config = await readConfigCached();
     const adopted = (config.displays ?? []).some((d) => d.id === id);
     return NextResponse.json({ adopted, displayId: id });
   }
 
-  const config = await getCachedConfig();
+  const config = await readConfigCached();
   const registered = config.displays ?? [];
   const statuses = getAllDisplayStatuses();
   const unadopted = getUnadoptedDisplays(registered.map((d) => d.id));
@@ -118,8 +101,3 @@ export const GET = withDisplayAuth(async (request) => {
   };
   return NextResponse.json(payload);
 }, 'Failed to read displays');
-
-/** Test-only escape hatch for clearing the per-process config cache. */
-export function __clearDisplaysCacheForTests(): void {
-  configCache = null;
-}

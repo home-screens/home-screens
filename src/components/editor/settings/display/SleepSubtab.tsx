@@ -10,6 +10,7 @@ import type {
 } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 import SleepFormFields, {
   type SleepFormValues,
 } from './SleepFormFields';
@@ -78,13 +79,13 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.sleep.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=screen&panel=sleep"
+      defaultsHref={settingsHref({ kind: 'defaults', page: 'screen', panel: 'sleep' })}
       defaultsLabel={t('settings.perDisplayPage.sleep.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.sleep.infoPart1')}
           <Link
-            href="?section=defaults&page=screen&panel=sleep"
+            href={settingsHref({ kind: 'defaults', page: 'screen', panel: 'sleep' })}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.sleep.defaultsLabel')}

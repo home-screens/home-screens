@@ -60,7 +60,6 @@ import {
 } from '@/lib/display-commands';
 import { readConfig, writeConfig } from '@/lib/config';
 import { requireSession } from '@/lib/auth';
-import { __resetAdoptedCacheForTests } from '@/lib/adopted-display-cache';
 
 function makeParams(action: string) {
   return { params: Promise.resolve({ action }) };
@@ -79,10 +78,6 @@ function makeRequest(body?: Record<string, unknown>): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  // The adopted-id cache is a module-level singleton with a 1.5s TTL. Tests
-  // mutate readConfig's return between cases, so without a reset one test's
-  // config would linger into the next via a cache hit.
-  __resetAdoptedCacheForTests();
 });
 
 // ------- GET tests -------

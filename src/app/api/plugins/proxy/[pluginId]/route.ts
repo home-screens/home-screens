@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withDisplayAuth, parseJsonBody, createTTLCache } from '@/lib/api-utils';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
@@ -69,36 +69,12 @@ async function resolveSecrets(
   return resolved;
 }
 
-// --- Per-entry TTL cache ---
-
-const MAX_CACHE_ENTRIES = 50;
-const proxyCache = new Map<string, { body: string; contentType: string; expiresAt: number }>();
-
-function getCached(key: string): { body: string; contentType: string } | null {
-  const entry = proxyCache.get(key);
-  if (!entry) return null;
-  if (Date.now() > entry.expiresAt) {
-    proxyCache.delete(key);
-    return null;
-  }
-  return { body: entry.body, contentType: entry.contentType };
-}
-
-function setCached(key: string, body: string, contentType: string, ttlMs: number): void {
-  // Evict expired entries when at capacity
-  if (!proxyCache.has(key) && proxyCache.size >= MAX_CACHE_ENTRIES) {
-    const now = Date.now();
-    for (const [k, v] of proxyCache) {
-      if (now > v.expiresAt) proxyCache.delete(k);
-    }
-    // If still full, drop oldest
-    if (proxyCache.size >= MAX_CACHE_ENTRIES) {
-      const oldest = proxyCache.keys().next().value;
-      if (oldest !== undefined) proxyCache.delete(oldest);
-    }
-  }
-  proxyCache.set(key, { body, contentType, expiresAt: Date.now() + ttlMs });
-}
+// --- Response cache ---
+//
+// The TTL is per-request (`cacheTtlMs` from the plugin, clamped below), so
+// every `set` passes an explicit entry TTL; the construction-time default
+// mirrors the request default and never actually applies.
+const proxyCache = createTTLCache<{ body: string; contentType: string }>(60_000);
 
 // --- Constants ---
 
@@ -256,7 +232,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     .digest('hex').slice(0, 8);
   const cacheKey = `${safeId}:${upstreamUrl}:${headerHash}`;
   if (method === 'GET' && cacheTtl > 0) {
-    const cached = getCached(cacheKey);
+    const cached = proxyCache.get(cacheKey);
     if (cached) {
       return new NextResponse(cached.body, {
         headers: { 'Content-Type': cached.contentType },
@@ -374,7 +350,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     const isTextContent = contentType.startsWith('text/') ||
       contentType.includes('json') || contentType.includes('xml');
     if (isTextContent) {
-      setCached(cacheKey, new TextDecoder().decode(rawBuffer), contentType, cacheTtl);
+      proxyCache.set(cacheKey, { body: new TextDecoder().decode(rawBuffer), contentType }, cacheTtl);
     }
   }
 

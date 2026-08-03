@@ -241,6 +241,27 @@ describe('createTTLCache', () => {
     expect(cache.get('key')).toBe('second');
   });
 
+  it('a per-entry TTL override outlives the cache-wide TTL', () => {
+    const cache = createTTLCache<string>(5000);
+    cache.set('long', 'value', 20_000);
+
+    vi.advanceTimersByTime(10_000);
+    expect(cache.get('long')).toBe('value');
+
+    vi.advanceTimersByTime(10_001);
+    expect(cache.get('long')).toBeNull();
+  });
+
+  it('a per-entry TTL override can expire before the cache-wide TTL', () => {
+    const cache = createTTLCache<string>(5000);
+    cache.set('short', 'value', 1000);
+    cache.set('normal', 'value');
+
+    vi.advanceTimersByTime(1001);
+    expect(cache.get('short')).toBeNull();
+    expect(cache.get('normal')).toBe('value');
+  });
+
   it('works with object values', () => {
     const cache = createTTLCache<{ name: string; count: number }>(5000);
     const data = { name: 'test', count: 42 };

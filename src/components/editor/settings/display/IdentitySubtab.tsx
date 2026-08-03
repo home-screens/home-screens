@@ -8,6 +8,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { isMainDisplay } from '@/lib/display-filter';
 import { useTranslate } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 
 interface IdentitySubtabProps {
   display: DisplayNode;
@@ -62,7 +63,7 @@ export default function IdentitySubtab({ display }: IdentitySubtabProps) {
       // "Display not found" placeholder. Done AFTER saveConfig resolves so
       // a save error leaves the user on the current page with the error
       // surface intact.
-      router.push('?section=displays');
+      router.push(settingsHref({ kind: 'displays' }));
     } finally {
       setSaving(false);
     }

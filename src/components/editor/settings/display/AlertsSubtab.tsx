@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { AlertSettings, DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 import AlertFormFields, {
   type AlertFormValues,
 } from './AlertFormFields';
@@ -68,13 +69,13 @@ export default function AlertsSubtab({ config, display }: AlertsSubtabProps) {
     <WholeBlockOverrideCard
       label={t('settings.perDisplayPage.alerts.label')}
       displayName={display.name}
-      defaultsHref="?section=defaults&page=screen&panel=alerts"
+      defaultsHref={settingsHref({ kind: 'defaults', page: 'screen', panel: 'alerts' })}
       defaultsLabel={t('settings.perDisplayPage.alerts.defaultsLabel')}
       infoCopy={
         <>
           {t('settings.perDisplayPage.alerts.infoPart1')}
           <Link
-            href="?section=defaults&page=screen&panel=alerts"
+            href={settingsHref({ kind: 'defaults', page: 'screen', panel: 'alerts' })}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {t('settings.perDisplayPage.alerts.defaultsLabel')}

@@ -13,6 +13,7 @@ import {
   orientDimensions,
 } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
+import { settingsHref } from '@/lib/settings-route';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
 import type {
@@ -421,7 +422,7 @@ export default function DisplaysIndexPage() {
    * that used to live as inline buttons on each row.
    */
   const openDisplay = (id: string) => {
-    router.push(`?section=display&id=${encodeURIComponent(id)}&subtab=overview`);
+    router.push(settingsHref({ kind: 'display', displayId: id, subtab: 'overview' }));
   };
 
   // First-visit copy vs. the concise header existing multi-display installs
@@ -453,10 +454,10 @@ export default function DisplaysIndexPage() {
             <p className="text-sm text-hs-text-faint mt-1">
               {t('settings.displaysIndex.populatedDescriptionPrefix')}
               <a
-                href="?section=defaults&page=screen"
+                href={settingsHref({ kind: 'defaults', page: 'screen' })}
                 onClick={(e) => {
                   e.preventDefault();
-                  router.push('?section=defaults&page=screen');
+                  router.push(settingsHref({ kind: 'defaults', page: 'screen' }));
                 }}
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >

@@ -641,3 +641,34 @@ describe('updateConfigAtomic — no-op detection', () => {
   });
 
 });
+
+describe('write invalidation of the short-TTL read cache', () => {
+  it('writeConfig makes the very next readConfigCached observe the save', async () => {
+    const { readConfigCached, __resetConfigReadCacheForTests } = await import('../config-cache');
+    __resetConfigReadCacheForTests();
+    const before = await readConfigCached();
+    await writeConfig({
+      ...before,
+      screens: [{ id: 'added', name: 'Added', backgroundImage: '', modules: [] }],
+    });
+    // Well inside the 1.5s TTL — without invalidation this would serve the
+    // pre-write snapshot and a freshly adopted display's first hw-stats
+    // POST would 403.
+    const after = await readConfigCached();
+    expect(after.screens.map((s) => s.id)).toEqual(['added']);
+    __resetConfigReadCacheForTests();
+  });
+
+  it('updateConfigAtomic invalidates too', async () => {
+    const { readConfigCached, __resetConfigReadCacheForTests } = await import('../config-cache');
+    __resetConfigReadCacheForTests();
+    await readConfigCached();
+    await updateConfigAtomic((current) => ({
+      ...current,
+      screens: [{ id: 'atomic', name: 'Atomic', backgroundImage: '', modules: [] }],
+    }));
+    const after = await readConfigCached();
+    expect(after.screens.map((s) => s.id)).toEqual(['atomic']);
+    __resetConfigReadCacheForTests();
+  });
+});

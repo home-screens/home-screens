@@ -12,6 +12,7 @@ import {
 import { orientDimensions } from '@/stores/editor-store';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
 
@@ -98,7 +99,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             <div className="text-sm text-hs-text-muted mb-3">
               {t('settings.perDisplayPage.overview.withOverridesPart1', { name: display.name })}
               <Link
-                href="?section=defaults&page=screen"
+                href={settingsHref({ kind: 'defaults', page: 'screen' })}
                 className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
               >
                 {t('settings.perDisplayPage.overview.defaultsLink')}
@@ -121,7 +122,7 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
           <div className="text-sm text-hs-text-faint">
             {t('settings.perDisplayPage.overview.noOverridesPart1', { name: display.name })}
             <Link
-              href="?section=defaults&page=screen"
+              href={settingsHref({ kind: 'defaults', page: 'screen' })}
               className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
             >
               {t('settings.perDisplayPage.overview.defaultsLink')}

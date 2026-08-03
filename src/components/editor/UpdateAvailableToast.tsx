@@ -3,6 +3,7 @@
 import { useEditorStore } from '@/stores/editor-store';
 import { useRouter } from 'next/navigation';
 import { editorFetch } from '@/lib/editor-fetch';
+import { settingsPath } from '@/lib/settings-route';
 import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import { useTranslate } from '@/i18n';
 import { X, Download } from 'lucide-react';
@@ -36,7 +37,7 @@ export default function UpdateAvailableToast() {
           {t('updateAvailable.message', { version: latestVersion })}
         </div>
         <button
-          onClick={() => router.push('/editor/settings?section=defaults&page=system')}
+          onClick={() => router.push(settingsPath({ kind: 'defaults', page: 'system' }))}
           className="flex items-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors"
         >
           <Download className="w-3.5 h-3.5" />

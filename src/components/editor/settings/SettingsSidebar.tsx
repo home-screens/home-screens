@@ -31,6 +31,7 @@ import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import {
   DEFAULT_PAGE_IDS,
   parseSettingsRoute,
+  settingsHref,
   type DefaultPageId,
   type SettingsRoute,
 } from '@/lib/settings-route';
@@ -39,6 +40,7 @@ import { getDisplayProfiles } from '@/lib/display-filter';
 import {
   SETTINGS_FIELD_INDEX,
   resolveSettingsFieldLabel,
+  settingsFieldRoute,
   isSettingsFieldReachable,
   type SettingsFieldEntry,
   type SettingsFieldVisibilityContext,
@@ -315,7 +317,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
                   icon={LayoutGrid}
                   label={t('settings.sidebar.displays')}
                   active={activeRoute.kind === 'displays' || activeRoute.kind === 'display'}
-                  onClick={() => navigate('?section=displays')}
+                  onClick={() => navigate(settingsHref({ kind: 'displays' }))}
                 />
               )}
               <MatchingFieldsSection fields={filteredFields} pageLabelById={pageLabelById} navigate={navigate} t={t} />
@@ -381,7 +383,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           icon={LayoutGrid}
           label={t('settings.sidebar.allDisplays')}
           active={activeRoute.kind === 'displays'}
-          onClick={() => navigate('?section=displays')}
+          onClick={() => navigate(settingsHref({ kind: 'displays' }))}
           badge={String(displays.length)}
         />
       )}
@@ -400,7 +402,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
           <button
             key={display.id}
             type="button"
-            onClick={() => navigate(`?section=display&id=${encodeURIComponent(display.id)}&subtab=overview`)}
+            onClick={() => navigate(settingsHref({ kind: 'display', displayId: display.id, subtab: 'overview' }))}
             className={`w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 ${
               isActive
                 ? 'text-hs-text-primary bg-hs-card border-hs-accent'
@@ -456,7 +458,7 @@ function GroupedPageList({
         // shape — so no params at all naturally highlights `screen`
         // here without a special case.
         active={activeRoute.kind === 'defaults' && activeRoute.page === p.id}
-        onClick={() => navigate(`?section=defaults&page=${p.id}`)}
+        onClick={() => navigate(settingsHref({ kind: 'defaults', page: p.id }))}
       />
     ));
 
@@ -595,11 +597,7 @@ function MatchingFieldsSection({
           // opens the owning tab AND stays there after `highlight` is
           // stripped post-pulse — highlight-only URLs snap back to the
           // first tab once the param disappears.
-          onClick={() =>
-            navigate(
-              `?section=defaults&page=${f.pageId}${f.panel ? `&panel=${f.panel}` : ''}&highlight=${encodeURIComponent(f.fieldId)}`,
-            )
-          }
+          onClick={() => navigate(settingsHref(settingsFieldRoute(f), { highlight: f.fieldId }))}
           className="w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 border-transparent text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover"
         >
           <span className="flex-1 min-w-0 truncate text-left">{resolveSettingsFieldLabel(f, t)}</span>

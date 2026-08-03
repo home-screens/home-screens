@@ -12,6 +12,7 @@ import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
+import { settingsPath } from '@/lib/settings-route';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
@@ -129,7 +130,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
-        <a href="/editor/settings?section=defaults&page=meals" className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
+        <a href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
         {t('configSections.fullscreen-meal-planner.mobileHintSuffix')} <span className="text-hs-text-muted">/remote</span> {t('configSections.fullscreen-meal-planner.mobileHintEnd')}
       </p>
 

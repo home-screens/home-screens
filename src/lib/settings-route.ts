@@ -80,18 +80,44 @@ export type SettingsPanelId =
   | (typeof SCREEN_PANEL_IDS)[number]
   | (typeof AUTOMATION_PANEL_IDS)[number];
 
-export type SettingsRoute =
+/**
+ * Which panel ids are legal on which page. A page absent from this map has no
+ * intra-page tab bar, so any `?panel=` on it is ignored. This map is also the
+ * type-level source of truth: `SettingsRoute` correlates `page` with its own
+ * panel union through it, so `{ page: 'screen', panel: 'rules' }` is a compile
+ * error at every literal call site, not a URL the canonicalizer strips.
+ */
+const PANELS_BY_PAGE = {
+  screen: SCREEN_PANEL_IDS,
+  automation: AUTOMATION_PANEL_IDS,
+} as const satisfies Partial<Record<DefaultPageId, readonly SettingsPanelId[]>>;
+
+/** The Defaults pages that have an intra-page tab bar. */
+export type TabbedPageId = keyof typeof PANELS_BY_PAGE;
+
+/** The panel union owned by one tabbed page. */
+export type PanelIdFor<P extends TabbedPageId> = (typeof PANELS_BY_PAGE)[P][number];
+
+/**
+ * The defaults kind, distributed over every page id so `panel` (the active
+ * intra-page tab, carried on the route rather than each section privately
+ * re-reading `?panel=`) is typed as that page's OWN panel union — untabbed
+ * pages cannot carry one at all. The final member is the escape hatch for
+ * callers holding a runtime-widened `DefaultPageId` (e.g. the sidebar
+ * iterating its page list): a dynamic page is fine as long as no panel
+ * rides along, so `{ page: someId }` type-checks while a mismatched
+ * literal pair like `{ page: 'screen', panel: 'rules' }` never does.
+ */
+export type DefaultsRoute =
   | {
-      kind: 'defaults';
-      page: DefaultPageId;
-      /**
-       * Active intra-page tab, when the page has one. Carried on the route
-       * (rather than each section privately re-reading `?panel=`) so the
-       * section renders the right tab on the first paint and the
-       * canonicalizer can keep the URL bar's `?panel=` honest.
-       */
-      panel?: SettingsPanelId;
-    }
+      [P in DefaultPageId]: { kind: 'defaults'; page: P } & (P extends TabbedPageId
+        ? { panel?: PanelIdFor<P> }
+        : { panel?: never });
+    }[DefaultPageId]
+  | { kind: 'defaults'; page: DefaultPageId; panel?: undefined };
+
+export type SettingsRoute =
+  | DefaultsRoute
   | { kind: 'display'; displayId: string; subtab: PerDisplaySubtab }
   | { kind: 'displays' };
 
@@ -99,13 +125,67 @@ const DEFAULT_PAGE_ID_SET: Set<string> = new Set(DEFAULT_PAGE_IDS);
 const PER_DISPLAY_SUBTAB_SET: Set<string> = new Set(PER_DISPLAY_SUBTABS);
 
 /**
- * Which panel ids are legal on which page. A page absent from this map has no
- * intra-page tab bar, so any `?panel=` on it is ignored.
+ * Every query param the settings router owns. `settingsHref` clears these
+ * before writing a route; `parseSettingsRoute` reads exactly these names.
+ * Adding a routing param means adding it here AND teaching the parser —
+ * everything else on the URL is foreign and passes through untouched.
  */
-const PANELS_BY_PAGE: Partial<Record<DefaultPageId, readonly SettingsPanelId[]>> = {
-  screen: SCREEN_PANEL_IDS,
-  automation: AUTOMATION_PANEL_IDS,
-};
+const ROUTE_OWNED_PARAMS = ['section', 'page', 'panel', 'id', 'subtab', 'highlight'] as const;
+
+export interface SettingsHrefOptions {
+  /**
+   * Field id to arrive on (`?highlight=`) — the page scrolls to the matching
+   * `data-field-id` element and pulses it, then strips the param.
+   */
+  highlight?: string;
+  /**
+   * Existing query params to carry into the new URL. Used by in-page tab
+   * switches, which must preserve params the settings route does not own —
+   * `syncEditorUrl` writes `display=` / `screen=` via raw
+   * `history.replaceState`, so callers pass `window.location.search` (the
+   * `useSearchParams` snapshot never observes those writes). Route-owned
+   * params (`section`/`page`/`panel`/`id`/`subtab`) are replaced, and
+   * `highlight` is dropped unless re-specified: it is a one-shot arrival
+   * param, and carrying it across a tab switch would re-arm the pulse on a
+   * tab where the field may not exist.
+   */
+  from?: URLSearchParams | string;
+}
+
+/**
+ * Build the canonical query string (leading `?` included) for a settings
+ * route — the inverse of `parseSettingsRoute`, so
+ * `parseSettingsRoute(new URLSearchParams(settingsHref(route)))` round-trips
+ * to the same route. The single place that knows the URL shape; components
+ * never hand-write `?section=...` literals.
+ */
+export function settingsHref(route: SettingsRoute, options?: SettingsHrefOptions): string {
+  const params = options?.from ? new URLSearchParams(options.from) : new URLSearchParams();
+  for (const owned of ROUTE_OWNED_PARAMS) {
+    params.delete(owned);
+  }
+  if (route.kind === 'defaults') {
+    params.set('section', 'defaults');
+    params.set('page', route.page);
+    if (route.panel) params.set('panel', route.panel);
+  } else if (route.kind === 'display') {
+    params.set('section', 'display');
+    params.set('id', route.displayId);
+    params.set('subtab', route.subtab);
+  } else {
+    params.set('section', 'displays');
+  }
+  if (options?.highlight) params.set('highlight', options.highlight);
+  return `?${params.toString()}`;
+}
+
+/**
+ * Absolute form of `settingsHref` for links that originate outside the
+ * settings page (config sections, toasts) and must navigate to it first.
+ */
+export function settingsPath(route: SettingsRoute, options?: SettingsHrefOptions): string {
+  return `/editor/settings${settingsHref(route, options)}`;
+}
 
 /** The panel if it is valid for that page, otherwise undefined. */
 export function validPanelFor(
@@ -113,7 +193,10 @@ export function validPanelFor(
   panel: string | null | undefined,
 ): SettingsPanelId | undefined {
   if (!panel) return undefined;
-  const allowed = PANELS_BY_PAGE[page];
+  // Widened lookup: PANELS_BY_PAGE only has keys for the tabbed pages.
+  const allowed = (
+    PANELS_BY_PAGE as Partial<Record<DefaultPageId, readonly SettingsPanelId[]>>
+  )[page];
   if (!allowed) return undefined;
   return (allowed as readonly string[]).includes(panel)
     ? (panel as SettingsPanelId)
@@ -164,9 +247,14 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
     if (DEFAULT_PAGE_ID_SET.has(rawPage)) {
       const page = rawPage as DefaultPageId;
       // An explicit `?panel=` passes through, validated against that page's
-      // own panel set so a stray value can't stick.
+      // own panel set so a stray value can't stick. The cast is sound:
+      // `validPanelFor` only returns panels legal for `page`, which is
+      // exactly the correlation `DefaultsRoute` encodes — TS just can't see
+      // it through two runtime-widened variables.
       const panel = validPanelFor(page, params.get('panel'));
-      return panel ? { kind: 'defaults', page, panel } : { kind: 'defaults', page };
+      return panel
+        ? ({ kind: 'defaults', page, panel } as DefaultsRoute)
+        : { kind: 'defaults', page };
     }
   }
   return { kind: 'defaults', page: 'screen' };
@@ -201,40 +289,39 @@ export function resolveSettingsRoute(queryString: string): SettingsRouteResoluti
   const params = new URLSearchParams(trimmed);
   const route = parseSettingsRoute(params);
 
-  // Any rewrite keeps unrelated params (e.g. analytics tags) so navigation
-  // context isn't silently dropped on the redirect.
+  // The rewrite target is built by settingsHref — the one serializer of the
+  // URL grammar — so the canonicalizer can never disagree with the builder
+  // about what a route looks like. `from: params` keeps unrelated params
+  // (e.g. analytics tags), and `highlight` is re-passed explicitly: a
+  // canonicalizing rewrite is not a navigation, so the one-shot arrival
+  // param must survive it (settingsHref drops it by default because tab
+  // SWITCHES must not carry it).
+  const canonicalQuery = () =>
+    settingsHref(route, {
+      from: params,
+      highlight: params.get('highlight') ?? undefined,
+    }).slice(1); // redirectedQuery is bare — the page prepends the '?'
+
   if (route.kind === 'defaults') {
     const sectionParam = params.get('section');
     const pageParam = params.get('page');
     const panelParam = params.get('panel');
     const stale =
       // A `section` that dispatched nowhere (e.g. `section=display` with no
-      // id) leaves the URL advertising a route that isn't rendering.
+      // id) leaves the URL advertising a route that isn't rendering. Note
+      // `route.panel`, when set, is always the URL's own `?panel=` value
+      // (`validPanelFor` passes it through or drops it), so the rewrite
+      // keeps a panel the route kept and strips one the route dropped.
       (sectionParam !== null && sectionParam !== 'defaults') ||
       (pageParam !== null && pageParam !== route.page) ||
       (panelParam !== null && panelParam !== (route.panel ?? null));
     if (!stale) return { route };
-    const next = new URLSearchParams(params);
-    next.set('section', 'defaults');
-    next.set('page', route.page);
-    // `route.panel`, when set, is always the URL's own `?panel=` value
-    // (`validPanelFor` passes it through or drops it) — keep it when the
-    // route kept it (the rewrite may be normalizing an unrelated param,
-    // e.g. a miscased `section`), strip it only when the route dropped it.
-    if (route.panel) next.set('panel', route.panel);
-    else next.delete('panel');
-    // Per-display params riding on a URL that resolved to a defaults page
-    // (e.g. `section=display&subtab=X` with no id) are equally stale.
-    next.delete('id');
-    next.delete('subtab');
-    return { route, redirectedQuery: next.toString() };
+    return { route, redirectedQuery: canonicalQuery() };
   }
   if (route.kind === 'display') {
     const subtabParam = params.get('subtab');
     if (subtabParam === null || subtabParam === route.subtab) return { route };
-    const next = new URLSearchParams(params);
-    next.set('subtab', route.subtab);
-    return { route, redirectedQuery: next.toString() };
+    return { route, redirectedQuery: canonicalQuery() };
   }
   return { route };
 }

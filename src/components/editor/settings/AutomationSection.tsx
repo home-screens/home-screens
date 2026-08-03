@@ -1,8 +1,7 @@
 'use client';
 
-import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { AUTOMATION_PANEL_IDS } from '@/lib/settings-route';
+import { useNavigateToPanel } from '@/components/editor/settings/useNavigateToPanel';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import ProfilesSection from './ProfilesSection';
@@ -46,7 +45,6 @@ function panelLabel(panel: AutomationPanel, t: TranslateFn): string {
 
 export default function AutomationSection({ panel: routePanel }: { panel?: string } = {}) {
   const t = useTranslate('editor');
-  const router = useRouter();
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
   const setSelectedDisplay = useEditorStore((s) => s.setSelectedDisplay);
@@ -57,24 +55,7 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
     ? (routePanel as AutomationPanel)
     : 'profiles';
 
-  const navigateToPanel = useCallback(
-    (next: AutomationPanel) => {
-      // Push (not replace) so the back button walks tabs, matching
-      // PerDisplayPage's subtab navigation. Built from window.location, not
-      // the useSearchParams snapshot: `syncEditorUrl` writes `display=` /
-      // `screen=` via raw history.replaceState, which the snapshot never
-      // observes — copying it would drop those params. `highlight` is a
-      // one-shot arrival param; carrying it across a tab switch would
-      // re-arm the pulse on a panel where the field may not exist.
-      const params = new URLSearchParams(window.location.search);
-      params.set('section', 'defaults');
-      params.set('page', 'automation');
-      params.set('panel', next);
-      params.delete('highlight');
-      router.push(`?${params.toString()}`);
-    },
-    [router],
-  );
+  const navigateToPanel = useNavigateToPanel('automation');
 
   if (!config) return null;
 

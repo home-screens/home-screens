@@ -18,8 +18,9 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-import { GET, __clearDisplaysCacheForTests } from '@/app/api/displays/route';
+import { GET } from '@/app/api/displays/route';
 import { readConfig } from '@/lib/config';
+import { __resetConfigReadCacheForTests } from '@/lib/config-cache';
 import { getAllDisplayStatuses, getUnadoptedDisplays } from '@/lib/display-commands';
 
 function makeRequest(query = ''): NextRequest {
@@ -28,7 +29,7 @@ function makeRequest(query = ''): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  __clearDisplaysCacheForTests();
+  __resetConfigReadCacheForTests();
 });
 
 /* ─── ?id=<id> adoption-check mode ────────────── */

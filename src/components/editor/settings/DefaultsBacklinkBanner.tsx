@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Info } from 'lucide-react';
 import type { DisplayOverrideSummary } from '@/lib/display-defaults-backlinks';
+import { settingsHref } from '@/lib/settings-route';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
 /**
@@ -77,7 +78,7 @@ function SingleDisplayLine({
       <strong className="text-hs-text-primary">{fieldText}</strong>
       {t('settings.backlinkBanner.singleDisplayPart3', { pageLabel })}
       <Link
-        href={`?section=display&id=${encodeURIComponent(displayId)}`}
+        href={settingsHref({ kind: 'display', displayId, subtab: 'overview' })}
         className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
       >
         {t('settings.backlinkBanner.openDisplayLink', { name: displayName })}
@@ -105,7 +106,7 @@ function MultiDisplayLine({
       {summaries.map((summary, idx) => (
         <span key={summary.displayId}>
           <Link
-            href={`?section=display&id=${encodeURIComponent(summary.displayId)}`}
+            href={settingsHref({ kind: 'display', displayId: summary.displayId, subtab: 'overview' })}
             className="text-hs-accent hover:text-hs-accent-hover underline decoration-dashed underline-offset-2"
           >
             {summary.displayName}

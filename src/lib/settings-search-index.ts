@@ -1,4 +1,9 @@
-import type { DefaultPageId } from '@/lib/settings-route';
+import type {
+  DefaultPageId,
+  PanelIdFor,
+  SettingsRoute,
+  TabbedPageId,
+} from '@/lib/settings-route';
 
 /**
  * One searchable field on a `Defaults → X` page. `fieldId` matches the
@@ -35,10 +40,20 @@ export interface SettingsFieldVisibilityContext {
   transitionEffect: string;
 }
 
+/**
+ * `pageId` correlated with the panel union that page owns (mirroring
+ * `DefaultsRoute`), so a row pairing an untabbed page with a panel — or a
+ * tabbed page with another page's panel — is a compile error rather than a
+ * search result whose link the canonicalizer strips.
+ */
+type SettingsFieldPageBinding = {
+  [P in DefaultPageId]: { pageId: P } & (P extends TabbedPageId
+    ? { panel?: PanelIdFor<P> }
+    : { panel?: never });
+}[DefaultPageId];
+
 interface SettingsFieldEntryBase {
-  pageId: DefaultPageId;
   fieldId: string;
-  panel?: string;
   /**
    * Omitted for the ~90% of fields that always render. When set, the field is
    * only offered as a search result while the predicate holds.
@@ -46,9 +61,19 @@ interface SettingsFieldEntryBase {
   visibleWhen?: (ctx: SettingsFieldVisibilityContext) => boolean;
 }
 
-export type SettingsFieldEntry =
-  | (SettingsFieldEntryBase & { labelKey: string; label?: undefined })
-  | (SettingsFieldEntryBase & { labelKey?: undefined; label: string });
+export type SettingsFieldEntry = SettingsFieldPageBinding &
+  SettingsFieldEntryBase &
+  ({ labelKey: string; label?: undefined } | { labelKey?: undefined; label: string });
+
+/**
+ * Route for a field's destination page + owning tab. The cast is sound —
+ * `SettingsFieldPageBinding` enforces the same page↔panel correlation
+ * `DefaultsRoute` encodes; TS just can't track it through the two separate
+ * property reads.
+ */
+export function settingsFieldRoute(entry: SettingsFieldEntry): SettingsRoute {
+  return { kind: 'defaults', page: entry.pageId, panel: entry.panel } as SettingsRoute;
+}
 
 /** Resolves an entry's visible label — translated if `labelKey` is set, verbatim if `label` is set. */
 export function resolveSettingsFieldLabel(entry: SettingsFieldEntry, t: (key: string) => string): string {

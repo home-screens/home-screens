@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { SCREEN_PANEL_IDS } from '@/lib/settings-route';
+import { useNavigateToPanel } from '@/components/editor/settings/useNavigateToPanel';
 import type { ScreenConfiguration, TransitionEffect } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import {
@@ -128,7 +129,6 @@ export default function ScreenSection({
   onAlertsChange,
 }: ScreenSectionProps) {
   const t = useTranslate('editor');
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // The active tab comes from the resolved route, not from a second, private
@@ -139,25 +139,7 @@ export default function ScreenSection({
     ? routePanel
     : panelForHighlight(searchParams?.get('highlight') ?? null);
 
-  const navigateToPanel = useCallback(
-    (next: ScreenPanel) => {
-      // Push (not replace) so the back button walks tabs, matching
-      // AutomationSection and PerDisplayPage. Built from window.location,
-      // not the useSearchParams snapshot: `syncEditorUrl` writes `display=`
-      // / `screen=` via raw history.replaceState, which the snapshot never
-      // observes — copying it would drop those params. `highlight` is a
-      // one-shot arrival param (it also picks the initial tab above);
-      // carrying it across an explicit tab switch would re-arm the pulse on
-      // a panel where the field doesn't exist and wedge it in the URL.
-      const params = new URLSearchParams(window.location.search);
-      params.set('section', 'defaults');
-      params.set('page', 'screen');
-      params.set('panel', next);
-      params.delete('highlight');
-      router.push(`?${params.toString()}`);
-    },
-    [router],
-  );
+  const navigateToPanel = useNavigateToPanel('screen');
 
   // Scan displays for overrides only when `config` changes. Without the
   // memo this runs on every keystroke into the form (which updates

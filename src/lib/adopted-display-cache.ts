@@ -1,47 +1,30 @@
-import { readConfig } from './config';
+import { readConfigCached } from './config-cache';
 
 /**
- * Tiny in-process cache for the adopted-display-id list.
+ * Adopted-display-id view over the shared short-TTL config cache
+ * (`config-cache.ts`).
  *
- * The hwStats POST path (`POST /api/display/status` with `hwStats`) calls
- * `requireAdoptedDisplay` on every reporter tick. Without this cache, N
- * adopted displays drive N disk reads per 30 s just to re-confirm the
- * registry between admin edits.
- *
- * The 1.5 s TTL matches `/api/displays`: collapses concurrent ticks, still
- * surfaces an adopt/unadopt edit within the next reporter interval.
+ * The reporter's `POST /api/display/hw-stats` calls `requireAdoptedDisplay`
+ * on every tick; the shared cache keeps N adopted displays from driving N
+ * disk reads per 30 s just to re-confirm the registry between admin edits,
+ * and `config.ts` invalidates it on every write so a just-adopted display's
+ * first report is accepted.
  *
  * Returns null when in legacy single-display mode (no `displays` array OR
- * empty array). The caller decides what legacy-mode authorization means.
+ * empty array) — the caller decides what legacy-mode authorization means.
+ * An unreadable config also returns null, which for the hw-stats caller
+ * means falling back to legacy semantics: displayId `main` is ACCEPTED
+ * (fail-open for that one id, matching pre-cache behavior), every other id
+ * is rejected. If that trade ever changes, change it in
+ * `requireAdoptedDisplay`, not by throwing here.
  */
-const ADOPTED_CACHE_TTL_MS = 1_500;
-
-let cache: { ids: string[] | null; expiresAt: number } | null = null;
-let inflight: Promise<string[] | null> | null = null;
-
 export async function getAdoptedDisplayIds(): Promise<string[] | null> {
-  const now = Date.now();
-  if (cache && cache.expiresAt > now) return cache.ids;
-  if (inflight) return inflight;
-  inflight = (async () => {
-    try {
-      const config = await readConfig();
-      const ids = config?.displays && config.displays.length > 0
-        ? config.displays.map((d) => d.id)
-        : null;
-      cache = { ids, expiresAt: Date.now() + ADOPTED_CACHE_TTL_MS };
-      return ids;
-    } catch {
-      cache = { ids: null, expiresAt: Date.now() + ADOPTED_CACHE_TTL_MS };
-      return null;
-    } finally {
-      inflight = null;
-    }
-  })();
-  return inflight;
-}
-
-export function __resetAdoptedCacheForTests(): void {
-  cache = null;
-  inflight = null;
+  try {
+    const config = await readConfigCached();
+    return config?.displays && config.displays.length > 0
+      ? config.displays.map((d) => d.id)
+      : null;
+  } catch {
+    return null;
+  }
 }

@@ -12,6 +12,7 @@ import { MAX_DISPLAY_DIMENSION, orientDimensions } from '@/lib/display-filter';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { TRANSITION_OPTIONS } from '@/lib/transitions';
 import { useTranslate } from '@/i18n';
+import { settingsHref } from '@/lib/settings-route';
 import type {
   DisplayNode,
   ScreenConfiguration,
@@ -23,7 +24,7 @@ interface DisplaySubtabProps {
   display: DisplayNode;
 }
 
-const DEFAULTS_HREF = '?section=defaults&page=screen';
+const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
 
 /**
  * Display detail "Display" — the per-display equivalent of the

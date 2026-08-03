@@ -12,7 +12,7 @@ vi.mock('@/lib/config', () => ({
 import { POST } from '@/app/api/display/hw-stats/route';
 import { setDisplayStatus } from '@/lib/display-commands';
 import { readConfig } from '@/lib/config';
-import { __resetAdoptedCacheForTests } from '@/lib/adopted-display-cache';
+import { __resetConfigReadCacheForTests } from '@/lib/config-cache';
 
 const validHwStats = {
   piModel: 'Raspberry Pi 4 Model B',
@@ -40,7 +40,7 @@ function req(body: unknown): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  __resetAdoptedCacheForTests();
+  __resetConfigReadCacheForTests();
 });
 
 describe('POST /api/display/hw-stats', () => {

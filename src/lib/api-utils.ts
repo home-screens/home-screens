@@ -224,23 +224,25 @@ export async function getLocationFromConfig(
 const SERVER_CACHE_MAX_ENTRIES = 50;
 
 export function createTTLCache<T>(ttlMs: number) {
-  const cache = new Map<string, { data: T; timestamp: number }>();
+  const cache = new Map<string, { data: T; expiresAt: number }>();
   return {
     get(key: string): T | null {
       const entry = cache.get(key);
       if (!entry) return null;
-      if (Date.now() - entry.timestamp > ttlMs) {
+      if (Date.now() > entry.expiresAt) {
         cache.delete(key);
         return null;
       }
       return entry.data;
     },
-    set(key: string, data: T) {
+    /** `entryTtlMs` overrides the cache-wide TTL for this entry only —
+     *  used by callers whose TTL varies per request (the plugin proxy). */
+    set(key: string, data: T, entryTtlMs: number = ttlMs) {
       if (!cache.has(key) && cache.size >= SERVER_CACHE_MAX_ENTRIES) {
         // Evict expired entries first
         const now = Date.now();
         for (const [k, v] of cache) {
-          if (now - v.timestamp > ttlMs) cache.delete(k);
+          if (now > v.expiresAt) cache.delete(k);
         }
         // If still full, drop the oldest entry (Map insertion order)
         if (cache.size >= SERVER_CACHE_MAX_ENTRIES) {
@@ -248,7 +250,7 @@ export function createTTLCache<T>(ttlMs: number) {
           if (oldest !== undefined) cache.delete(oldest);
         }
       }
-      cache.set(key, { data, timestamp: Date.now() });
+      cache.set(key, { data, expiresAt: Date.now() + entryTtlMs });
     },
     clear() {
       cache.clear();
@@ -271,6 +273,10 @@ export function createResolverCache<T>(
   const positive = createTTLCache<T>(ttlMs);
   const negative = createTTLCache<true>(negativeTtlMs);
   const inflight = new Map<string, Promise<T | null>>();
+  // Bumped by clear() so a resolve that was already in flight when the
+  // caller invalidated cannot repopulate the cache with its pre-clear
+  // snapshot — matters for clear-on-write consumers (config-cache).
+  let generation = 0;
   return {
     async fetch(key: string): Promise<T | null> {
       const cached = positive.get(key);
@@ -280,17 +286,29 @@ export function createResolverCache<T>(
       const existing = inflight.get(key);
       if (existing) return existing;
 
+      // TTLs count from the moment the upstream call STARTS: a slow resolve
+      // must not extend how stale a served value can get beyond ttlMs.
+      const start = Date.now();
+      const gen = generation;
       const promise = resolve(key)
         .then((result) => {
-          if (result) positive.set(key, result);
-          else negative.set(key, true);
+          if (gen === generation) {
+            const elapsed = Date.now() - start;
+            if (result) positive.set(key, result, Math.max(0, ttlMs - elapsed));
+            else negative.set(key, true, Math.max(0, negativeTtlMs - elapsed));
+          }
           return result;
         })
-        .finally(() => inflight.delete(key));
+        .finally(() => {
+          // Only remove our own entry — after a clear(), a newer fetch may
+          // have registered a fresh in-flight promise under the same key.
+          if (inflight.get(key) === promise) inflight.delete(key);
+        });
       inflight.set(key, promise);
       return promise;
     },
     clear() {
+      generation++;
       positive.clear();
       negative.clear();
       inflight.clear();

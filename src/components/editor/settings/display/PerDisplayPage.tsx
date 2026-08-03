@@ -8,7 +8,7 @@ import { orientDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
-import { PER_DISPLAY_SUBTABS, type PerDisplaySubtab } from '@/lib/settings-route';
+import { PER_DISPLAY_SUBTABS, settingsHref, type PerDisplaySubtab } from '@/lib/settings-route';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import OverviewSubtab from './OverviewSubtab';
 import OverridesSubtab from './OverridesSubtab';
@@ -122,16 +122,15 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       // Use Next's router so `useSearchParams` in the parent settings
       // page re-renders the content to match the new subtab. Pushes
       // a history entry so the back button returns to the previous
-      // subtab instead of jumping straight out of settings. Built from
-      // window.location, not the useSearchParams snapshot: `syncEditorUrl`
-      // writes `display=` / `screen=` via raw history.replaceState, which
-      // the snapshot never observes — copying it would drop those params.
-      const params = new URLSearchParams(window.location.search);
-      params.set('section', 'display');
-      params.set('id', displayId);
-      params.set('subtab', next);
-      params.delete('highlight');
-      router.push(`?${params.toString()}`);
+      // subtab instead of jumping straight out of settings. `from:
+      // window.location.search` preserves the params this route doesn't
+      // own — see `SettingsHrefOptions.from` for why not `useSearchParams`.
+      router.push(
+        settingsHref(
+          { kind: 'display', displayId, subtab: next },
+          { from: window.location.search },
+        ),
+      );
     },
     [displayId, router],
   );

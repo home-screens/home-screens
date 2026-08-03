@@ -10,6 +10,7 @@ import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
 import { useTranslate } from '@/i18n';
+import { settingsPath } from '@/lib/settings-route';
 
 interface HolidayCountry {
   countryCode: string;
@@ -187,7 +188,7 @@ export default function CalendarSection({ values, onChange }: Props) {
               <p className="text-xs text-hs-text-faint">
                 {t('settings.calendarPage.google.credentialsSetupPart1')}
                 <a
-                  href="/editor/settings?section=defaults&page=integrations"
+                  href={settingsPath({ kind: 'defaults', page: 'integrations' })}
                   className="text-hs-accent hover:text-hs-accent-hover underline"
                 >
                   {t('settings.calendarPage.google.settingsIntegrationsLink')}
@@ -256,7 +257,7 @@ export default function CalendarSection({ values, onChange }: Props) {
                   <p className="text-xs text-hs-text-faint">
                     {t('settings.calendarPage.google.verifyCredentialsPart1')}
                     <a
-                      href="/editor/settings?section=defaults&page=integrations"
+                      href={settingsPath({ kind: 'defaults', page: 'integrations' })}
                       className="text-hs-accent hover:text-hs-accent-hover underline"
                     >
                       {t('settings.calendarPage.google.settingsIntegrationsLink')}

@@ -2,6 +2,10 @@ import type { ScreenConfiguration } from '@/types/config';
 import { CONFIG_FILE_PATH } from './constants';
 import { createJsonStore } from './json-store';
 import { migrateUp, getLatestSchemaVersion } from './migrations';
+// Circular with config-cache (it reads via readConfig, we invalidate it on
+// write) — safe because both sides only touch the other at call time, never
+// during module init.
+import { invalidateConfigReadCache } from './config-cache';
 
 // DEFAULT_CONFIG must track the latest schema version. `version` pulls from
 // `getLatestSchemaVersion()` so adding a new migration automatically updates
@@ -94,7 +98,13 @@ export async function readConfig(): Promise<ScreenConfiguration> {
   return config;
 }
 
-export const writeConfig = configStore.write;
+export async function writeConfig(config: ScreenConfiguration): Promise<void> {
+  await configStore.write(config);
+  // Drop the short-TTL read cache so /api/displays and the adopted-display
+  // check see this save on their very next poll instead of up to 1.5s later
+  // (a freshly adopted display's first hw-stats POST must not 403).
+  invalidateConfigReadCache();
+}
 
 /**
  * Atomic read-modify-write for `config.json`. Routes that need to observe
@@ -117,15 +127,22 @@ export function updateConfigAtomic(
   mutator: (current: ScreenConfiguration) => ScreenConfiguration | Promise<ScreenConfiguration>,
 ): Promise<ScreenConfiguration> {
   const target = getLatestSchemaVersion();
-  return configStore.updateAtomic(async (current) => {
-    // Migrate-on-read inside the queue so the mutator always sees the
-    // current schema. This mirrors what readConfig() does outside the queue.
-    const wasMigrated = (current.version ?? 0) < target;
-    const migrated = wasMigrated ? migrateUp(current, target).config : current;
-    const result = await mutator(migrated);
-    if (result === migrated && !wasMigrated) {
-      return current;
-    }
-    return result;
-  });
+  return configStore
+    .updateAtomic(async (current) => {
+      // Migrate-on-read inside the queue so the mutator always sees the
+      // current schema. This mirrors what readConfig() does outside the queue.
+      const wasMigrated = (current.version ?? 0) < target;
+      const migrated = wasMigrated ? migrateUp(current, target).config : current;
+      const result = await mutator(migrated);
+      if (result === migrated && !wasMigrated) {
+        return current;
+      }
+      return result;
+    })
+    .then((result) => {
+      // Invalidate the short-TTL read cache even on the no-op path — cheaper
+      // than detecting it, and a spurious re-read costs one disk hit.
+      invalidateConfigReadCache();
+      return result;
+    });
 }

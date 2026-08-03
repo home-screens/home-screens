@@ -11,7 +11,7 @@ import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import ScreenSection from '@/components/editor/settings/ScreenSection';
 import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
-import { resolveSettingsRoute, type DefaultPageId } from '@/lib/settings-route';
+import { resolveSettingsRoute, settingsHref, type DefaultPageId } from '@/lib/settings-route';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import LocationSection from '@/components/editor/settings/LocationSection';
 import LanguageFields from '@/components/editor/settings/LanguageFields';
@@ -281,7 +281,7 @@ function SettingsPageContent() {
   // new route and the back button returns the user to the previous
   // section.
   const handleAddDisplayFromSidebar = useCallback(() => {
-    router.push('?section=displays');
+    router.push(settingsHref({ kind: 'displays' }));
   }, [router]);
 
   function handleUpgradeComplete() {

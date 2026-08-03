@@ -10,6 +10,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { logger } from '@/lib/logger';
+import { settingsPath } from '@/lib/settings-route';
 
 const log = logger('todoist');
 
@@ -46,7 +47,7 @@ function TodoistTokenStatus() {
         <p className="text-[10px] text-hs-text-faint">
           {t('configSections.todoist.notConfigured')}{' '}
           <a
-            href="/editor/settings?section=defaults&page=integrations"
+            href={settingsPath({ kind: 'defaults', page: 'integrations' })}
             className="text-hs-accent hover:text-hs-accent-hover underline"
           >
             {t('configSections.todoist.settingsIntegrationsLink')}
