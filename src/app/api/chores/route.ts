@@ -60,11 +60,18 @@ export const POST = async (request: NextRequest) => {
   try {
   const body = await parseJsonBody<ChoreToggleRequest>(request);
   if (body instanceof NextResponse) return body;
-  const { choreId, memberId, date } = body;
+  const { choreId, memberId, date, direction } = body;
 
   if (!choreId || !memberId || !date) {
     return NextResponse.json(
       { error: 'Missing choreId, memberId, or date' },
+      { status: 400 },
+    );
+  }
+
+  if (direction !== undefined && direction !== 'complete' && direction !== 'uncomplete') {
+    return NextResponse.json(
+      { error: 'direction must be "complete" or "uncomplete" when provided' },
       { status: 400 },
     );
   }
@@ -92,10 +99,20 @@ export const POST = async (request: NextRequest) => {
   // Read chore data in parallel with toggle (needed for point value lookup)
   const choreDataPromise = readChoreData();
 
+  // Set inside the mutator so the credit/debit below can be skipped for
+  // directional no-ops — a repeated "I finished the dishes" from a voice
+  // caller must never flip the chore back off or move points twice.
+  let changed = false;
   const result = await updateCompletionsAtomic((data) => {
     const existing = data.completions.findIndex(
       (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
     );
+
+    // Directional requests are idempotent: already in the requested state →
+    // return the same reference, which updateAtomic treats as "skip the write".
+    if (direction === 'complete' && existing >= 0) return data;
+    if (direction === 'uncomplete' && existing < 0) return data;
+    changed = true;
 
     // Return a new object so updateAtomic's reference-equality check sees a
     // change and persists the write. Mutating `data` in-place would look like
@@ -123,7 +140,7 @@ export const POST = async (request: NextRequest) => {
   // returned snapshot is race-free — a concurrent toggle from another kid
   // can't interleave between the write and our read.
   let rewards: RewardData | undefined;
-  if (chore && chore.points > 0) {
+  if (changed && chore && chore.points > 0) {
     if (wasAdded) {
       rewards = await creditPoints(memberId, chore.points);
     } else {
@@ -139,8 +156,11 @@ export const POST = async (request: NextRequest) => {
   // When no credit/debit happened (0-point chore or chore-not-found) we omit
   // `rewards` — balances didn't change, so the client has no reason to refresh
   // its rewards cache from this response.
+  // `changed` lets a repeating caller (voice) distinguish "just done" from
+  // "already done" without re-deriving it from the completions list.
   return NextResponse.json({
     completions: result.completions,
+    changed,
     ...(rewards ? { rewards } : {}),
     ...(warning ? { warning } : {}),
   });

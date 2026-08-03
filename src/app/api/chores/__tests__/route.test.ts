@@ -507,3 +507,89 @@ describe('POST /api/chores', () => {
     expect(json.warning).toBeUndefined();
   });
 });
+
+// ============================================================================
+describe('POST /api/chores with direction (idempotent voice callers)', () => {
+  const base = { choreId: 'chore-pts5', memberId: 'kid-1' };
+
+  it('rejects an unknown direction value', async () => {
+    const res = await POST(
+      makePostRequest({ ...base, date: daysAgo(0), direction: 'flip' }),
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('direction complete adds the completion and reports changed: true', async () => {
+    const res = await POST(
+      makePostRequest({ ...base, date: daysAgo(0), direction: 'complete' }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.changed).toBe(true);
+    expect(json.completions).toHaveLength(1);
+    expect(creditPoints).toHaveBeenCalledWith('kid-1', 5);
+  });
+
+  it('repeated direction complete is a no-op: completion stays, no double credit', async () => {
+    const today = daysAgo(0);
+    await POST(makePostRequest({ ...base, date: today, direction: 'complete' }));
+    vi.mocked(creditPoints).mockClear();
+
+    const res = await POST(
+      makePostRequest({ ...base, date: today, direction: 'complete' }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.changed).toBe(false);
+    // The flip hazard direction exists to prevent: a repeat must NOT remove
+    // the completion or move points in either direction.
+    expect(json.completions).toHaveLength(1);
+    expect(creditPoints).not.toHaveBeenCalled();
+    expect(debitPointsExact).not.toHaveBeenCalled();
+    expect(json.rewards).toBeUndefined();
+  });
+
+  it('direction uncomplete removes an existing completion and debits', async () => {
+    const today = daysAgo(0);
+    await POST(makePostRequest({ ...base, date: today, direction: 'complete' }));
+    vi.mocked(creditPoints).mockClear();
+
+    const res = await POST(
+      makePostRequest({ ...base, date: today, direction: 'uncomplete' }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.changed).toBe(true);
+    expect(json.completions).toHaveLength(0);
+    expect(debitPointsExact).toHaveBeenCalledWith('kid-1', 5);
+  });
+
+  it('direction uncomplete on a not-done chore is a no-op with no debit', async () => {
+    const res = await POST(
+      makePostRequest({ ...base, date: daysAgo(0), direction: 'uncomplete' }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.changed).toBe(false);
+    expect(json.completions).toHaveLength(0);
+    expect(creditPoints).not.toHaveBeenCalled();
+    expect(debitPointsExact).not.toHaveBeenCalled();
+  });
+
+  it('a plain toggle (no direction) still flips and reports changed: true both ways', async () => {
+    const today = daysAgo(0);
+    const res1 = await POST(makePostRequest({ ...base, date: today }));
+    const json1 = await res1.json();
+    expect(json1.changed).toBe(true);
+    expect(json1.completions).toHaveLength(1);
+
+    const res2 = await POST(makePostRequest({ ...base, date: today }));
+    const json2 = await res2.json();
+    expect(json2.changed).toBe(true);
+    expect(json2.completions).toHaveLength(0);
+  });
+});

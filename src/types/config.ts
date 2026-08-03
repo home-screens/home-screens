@@ -1348,6 +1348,13 @@ export interface ChoreToggleRequest {
   memberId: string;
   /** YYYY-MM-DD; must be within the retention window (last 90 days through today). */
   date: string;
+  /**
+   * Idempotent mode for callers that can repeat a request (voice assistants):
+   * 'complete' only ever adds the completion, 'uncomplete' only ever removes
+   * it — a redundant request is a no-op with no points movement. Omitted =
+   * plain toggle (the tap-to-flip behavior every UI surface uses).
+   */
+  direction?: 'complete' | 'uncomplete';
 }
 
 /** Response body for GET and POST /api/chores. */
@@ -1359,6 +1366,9 @@ export interface ChoreToggleResponse {
   /** Set when an admin un-completes a chore whose points were already spent —
    *  the balance went negative as a result. UI should surface a warning. */
   warning?: string;
+  /** POST only: false when a directional request was a no-op (already in the
+   *  requested state), so callers can tell "just done" from "already done". */
+  changed?: boolean;
 }
 
 /**
