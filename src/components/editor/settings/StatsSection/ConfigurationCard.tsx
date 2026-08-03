@@ -6,7 +6,7 @@ import { SectionHeading } from './shared/SectionHeading';
 import { CountTile } from './shared/CountTile';
 import { ModulesCard } from './ModulesCard';
 import { IntegrationsCard } from './IntegrationsCard';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function ConfigurationCard({ stats }: { stats: SystemStats }) {
   const t = useTranslate('editor');

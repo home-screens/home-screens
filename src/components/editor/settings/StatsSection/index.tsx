@@ -6,7 +6,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { fetchStats, fetchDisplayStatus, generateBundle } from './fetchers';
 import type { SemanticColor } from './shared/types';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 import { DisplayCard } from './DisplayCard';
 import { StorageCard } from './StorageCard';
 import { MemoryCard } from './MemoryCard';

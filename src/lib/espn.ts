@@ -35,3 +35,32 @@ export function parseESPNTeam(
     color: (team?.color as string) ?? '666666',
   };
 }
+
+/**
+ * One game in GET /api/sports' payload — the server↔client wire contract,
+ * kept here (not under components/) so the API route never imports from
+ * the client component tree. Built by the route from ESPN's scoreboard
+ * response; rendered by the sports module's views.
+ */
+export interface Game {
+  id: string;
+  league: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeTeamAbbr: string;
+  awayTeamAbbr: string;
+  homeTeamLogo: string;
+  awayTeamLogo: string;
+  homeTeamColor: string;
+  awayTeamColor: string;
+  homeScore: number;
+  awayScore: number;
+  homeRecord: string;
+  awayRecord: string;
+  status: string;
+  detail: string;
+  shortDetail: string;
+  state: 'pre' | 'in' | 'post';
+  startTime: string;
+  broadcast: string;
+}

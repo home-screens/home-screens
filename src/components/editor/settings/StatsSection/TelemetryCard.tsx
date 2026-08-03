@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function TelemetryCard({
   stats,

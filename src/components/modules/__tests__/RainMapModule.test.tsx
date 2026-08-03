@@ -6,17 +6,12 @@ import { DEFAULT_MODULE_STYLE, type RainMapConfig, type ModuleStyle } from '@/ty
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 
-interface RainFrame {
-  time: number;
-  path: string;
-}
-interface RainViewerData {
-  host: string;
-  radar: { past: RainFrame[]; nowcast: RainFrame[] };
-}
+// The real wire contract, so the mock cannot drift from what the route
+// actually serves and the module actually reads.
+import type { RainFrame, RainViewerResponse } from '@/lib/rain-map-types';
 
 // Drive the RainViewer index fetch deterministically.
-let mockData: RainViewerData | null = null;
+let mockData: RainViewerResponse | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: () => [mockData, null],
 }));
@@ -61,9 +56,12 @@ const config: RainMapConfig = {
 const TILES_PER_FRAME = 25;
 
 const frame = (t: number): RainFrame => ({ time: t, path: `/v2/radar/${t}` });
-const makeData = (times: number[]): RainViewerData => ({
+const makeData = (times: number[]): RainViewerResponse => ({
+  version: '2.0',
+  generated: 0,
   host: 'https://tiles.test',
   radar: { past: times.map(frame), nowcast: [] },
+  satellite: { infrared: [] },
 });
 
 /** Count preload requests issued for a given frame timestamp. */

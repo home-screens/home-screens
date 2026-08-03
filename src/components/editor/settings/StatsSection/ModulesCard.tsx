@@ -2,7 +2,7 @@
 
 import { useTranslate } from '@/i18n';
 import { MODULE_PALETTE, MODULE_OTHER_COLOR } from './metadata';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function ModulesCard({ stats }: { stats: SystemStats }) {
   const t = useTranslate('editor');

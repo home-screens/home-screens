@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
-import type { IPv4Info } from './types';
+import type { IPv4Info } from '@/lib/network-types';
 
 /* ─── Props ────────────────────────────────── */
 

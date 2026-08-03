@@ -2,7 +2,7 @@
 
 import Button from '@/components/ui/Button';
 import { useTranslate, type TranslateFn } from '@/i18n';
-import type { NetworkInterface } from './types';
+import type { NetworkInterface } from '@/lib/network-types';
 
 /* ─── Helpers ──────────────────────────────── */
 

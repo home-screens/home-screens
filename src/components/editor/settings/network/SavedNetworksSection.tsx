@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
-import type { SavedNetwork } from './types';
+import type { SavedNetwork } from '@/lib/network-types';
 
 /* ─── Helpers ──────────────────────────────── */
 

@@ -2,7 +2,7 @@
 
 import { useTranslate } from '@/i18n';
 import { INTEGRATION_META } from './metadata';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function IntegrationsCard({ stats }: { stats: SystemStats }) {
   const t = useTranslate('editor');

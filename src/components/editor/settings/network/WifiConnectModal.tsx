@@ -5,7 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useTranslate } from '@/i18n';
-import type { NetworkInterface, WifiNetwork } from './types';
+import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
 
 /* ─── Props ────────────────────────────────── */
 

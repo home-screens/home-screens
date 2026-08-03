@@ -1,7 +1,7 @@
 import { editorFetch } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
 import type { DisplayStatus } from '@/lib/display-commands';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export async function fetchStats(): Promise<
   | { ok: true; stats: SystemStats }

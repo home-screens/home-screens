@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { fetchGitHubReleases, GITHUB_REPO } from '@/lib/version';
+import type { ChangelogRelease } from '@/lib/version';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +14,14 @@ export const GET = withAuth(async (request: NextRequest) => {
     const releases = await fetchGitHubReleases({ includePrerelease });
     if (releases.length > 0) {
       return NextResponse.json({
-        releases: releases.map((r) => ({
-          tag: r.tag_name,
-          name: r.name || r.tag_name,
-          body: r.body || '',
-          published: r.published_at,
-        })),
+        releases: releases.map(
+          (r): ChangelogRelease => ({
+            tag: r.tag_name,
+            name: r.name || r.tag_name,
+            body: r.body || '',
+            published: r.published_at,
+          }),
+        ),
       });
     }
   } catch {
@@ -53,13 +56,14 @@ export const GET = withAuth(async (request: NextRequest) => {
       ? allTags
       : allTags.filter((tag: { name: string }) => !tag.name.replace(/^v/, '').includes('-'));
     return NextResponse.json({
-      releases: filteredTags.map((tag: { name: string; commit: { sha: string } }) => ({
-        tag: tag.name,
-        name: tag.name,
-        body: '',
-        published: null,
-        commit: tag.commit.sha.slice(0, 7),
-      })),
+      releases: filteredTags.map(
+        (tag: { name: string }): ChangelogRelease => ({
+          tag: tag.name,
+          name: tag.name,
+          body: '',
+          published: null,
+        }),
+      ),
     });
   }
 
@@ -69,7 +73,7 @@ export const GET = withAuth(async (request: NextRequest) => {
     : allReleases.filter((r: { draft: boolean; prerelease: boolean }) => !r.draft && !r.prerelease);
   return NextResponse.json({
     releases: filteredReleases.map(
-      (r: { tag_name: string; name: string; body: string; published_at: string }) => ({
+      (r: { tag_name: string; name: string; body: string; published_at: string }): ChangelogRelease => ({
         tag: r.tag_name,
         name: r.name || r.tag_name,
         body: r.body || '',

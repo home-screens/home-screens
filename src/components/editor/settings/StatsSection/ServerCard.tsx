@@ -5,7 +5,7 @@ import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 import { formatUptime } from '@/lib/time-format';
 import { SectionHeading } from './shared/SectionHeading';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function ServerCard({
   stats,

@@ -8,16 +8,9 @@ import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
-import type { VersionResponse } from '@/lib/version';
+import type { ChangelogRelease, VersionResponse } from '@/lib/version';
 
 const log = logger('system-settings');
-
-interface Release {
-  tag: string;
-  name: string;
-  body: string;
-  published: string | null;
-}
 
 type PowerState =
   | { status: 'idle' }
@@ -35,7 +28,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const locale = useFormattingLocale();
   const { updateSettings, saveConfig } = useEditorStore();
   const [versionInfo, setVersionInfo] = useState<VersionResponse | null>(null);
-  const [releases, setReleases] = useState<Release[]>([]);
+  const [releases, setReleases] = useState<ChangelogRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);

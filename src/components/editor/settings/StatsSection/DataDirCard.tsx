@@ -5,7 +5,7 @@ import { useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
 import { formatBytes } from './shared/formatters';
 import { DATA_DIR_COLORS } from './metadata';
-import type { SystemStats } from './types';
+import type { SystemStats } from '@/lib/system-stats-types';
 
 export function DataDirCard({ stats }: { stats: SystemStats }) {
   const t = useTranslate('editor');

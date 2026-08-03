@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
-import type { NetworkInterface, WifiNetwork } from './types';
+import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
 
 /* ─── Constants ────────────────────────────── */
 

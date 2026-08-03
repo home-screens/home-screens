@@ -1,4 +1,4 @@
-import type { Game } from './types';
+import type { Game } from '@/lib/espn';
 import { TeamLogo, isWinner, formatScore, GameStatus } from './shared';
 
 function GameCard({ game }: { game: Game }) {

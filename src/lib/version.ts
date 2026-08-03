@@ -31,6 +31,17 @@ export interface VersionResponse extends VersionInfo {
   upgradeRunning: boolean;
 }
 
+/** One entry in GET /api/system/changelog's `releases` array. Shared with
+ * SystemSection's changelog panel so the route's three payload branches
+ * (cached releases, direct API, tags fallback) cannot drift from what the
+ * UI renders. `published` is null on the tags fallback, which has no dates. */
+export interface ChangelogRelease {
+  tag: string;
+  name: string;
+  body: string;
+  published: string | null;
+}
+
 interface GitHubRelease {
   tag_name: string;
   name: string;

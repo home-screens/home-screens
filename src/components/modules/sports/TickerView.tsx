@@ -1,4 +1,4 @@
-import type { Game } from './types';
+import type { Game } from '@/lib/espn';
 import { TeamLogo, formatScore } from './shared';
 import TickerMarquee from '../TickerMarquee';
 

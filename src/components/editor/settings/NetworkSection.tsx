@@ -11,7 +11,7 @@ import SavedNetworksSection from './network/SavedNetworksSection';
 import HostnameSection from './network/HostnameSection';
 import IPSettingsPanel from './network/IPSettingsPanel';
 import DiagnosticsSection from './network/DiagnosticsSection';
-import type { NetworkOverview, NetworkInterface, WifiNetwork } from './network/types';
+import type { NetworkOverview, NetworkInterface, WifiNetwork } from '@/lib/network-types';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 

@@ -1,6 +1,6 @@
 import { cachedProxyRoute, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
 import { LEAGUE_MAP, parseESPNTeam } from '@/lib/espn';
-import type { Game } from '@/components/modules/sports/types';
+import type { Game } from '@/lib/espn';
 
 export const dynamic = 'force-dynamic';
 

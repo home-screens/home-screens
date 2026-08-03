@@ -1,7 +1,7 @@
 'use client';
 
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
-import type { Game } from './types';
+import type { Game } from '@/lib/espn';
 import { TeamLogo, isWinner, formatScore, GameStatus } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
 

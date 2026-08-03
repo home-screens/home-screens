@@ -10,7 +10,7 @@ import { ScoreboardView } from './ScoreboardView';
 import { CardsView } from './CardsView';
 import { ListView } from './ListView';
 import { TickerView } from './TickerView';
-import type { Game } from './types';
+import type { Game } from '@/lib/espn';
 
 interface SportsModuleProps {
   config: SportsConfig;
