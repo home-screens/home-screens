@@ -1,37 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
-import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
-import { logger } from '@/lib/logger';
 import { settingsPath } from '@/lib/settings-route';
-
-const log = logger('todoist');
 
 function TodoistTokenStatus() {
   const t = useTranslate('editor');
-  const [configured, setConfigured] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    async function check() {
-      try {
-        const res = await editorFetch('/api/secrets');
-        if (res.ok) {
-          const data: Record<string, boolean> = await res.json();
-          setConfigured(!!data.todoist_token);
-        }
-      } catch (err) {
-        log.debug('Failed to check Todoist token status:', err);
-      }
-    }
-    check();
-  }, []);
+  const { status, loading, error } = useSecretStatus();
+  // On a failed status fetch stay in the neutral "checking" state — claiming
+  // "not connected" would mislead a user whose token is actually saved.
+  const configured = loading || error ? null : !!status.todoist_token;
 
   return (
     <div className="space-y-1">

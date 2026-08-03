@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { getCalendarFetchWindow } from '@/lib/calendar-window';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
@@ -54,31 +55,17 @@ export function usePreviewData(): PreviewData {
   const longitude = weatherSettings?.longitude;
   const units = weatherSettings?.units;
 
-  // Configured-providers list. Fetched once per mount — secrets only change
-  // via the Integrations tab, which forces a config reload anyway. Splitting
-  // this out of the weather effect avoids hitting /api/secrets on every
-  // coordinate keystroke.
-  const [providers, setProviders] = useState<string[] | null>(null);
-  useEffect(() => {
-    const controller = new AbortController();
-    (async () => {
-      try {
-        const res = await editorFetch('/api/secrets', { signal: controller.signal });
-        if (!res.ok) {
-          setProviders(ALL_PROVIDERS);
-          return;
-        }
-        const secrets: Record<string, boolean> = await res.json();
-        setProviders(
-          ALL_PROVIDERS.filter((p) => NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]),
-        );
-      } catch {
-        // Fall back to all providers if secrets check fails
-        if (!controller.signal.aborted) setProviders(ALL_PROVIDERS);
-      }
-    })();
-    return () => controller.abort();
-  }, []);
+  // Configured-providers list. Secrets are fetched once per mount — they only
+  // change via the Integrations tab, which forces a config reload anyway.
+  // Keeping this separate from the weather effect avoids hitting /api/secrets
+  // on every coordinate keystroke. Null until the status arrives; on failure
+  // fall back to trying all providers.
+  const { status: secrets, loading: secretsLoading, error: secretsError } = useSecretStatus();
+  const providers = useMemo<string[] | null>(() => {
+    if (secretsLoading) return null;
+    if (secretsError) return ALL_PROVIDERS;
+    return ALL_PROVIDERS.filter((p) => NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]);
+  }, [secrets, secretsLoading, secretsError]);
 
   useEffect(() => {
     // Wait for the providers list before triggering any weather fetches

@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
-import { editorFetch } from '@/lib/editor-fetch';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
@@ -69,29 +69,20 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
 
-  const [configuredProviders, setConfiguredProviders] = useState<string[]>([]);
-  useEffect(() => {
-    async function check() {
-      try {
-        const res = await editorFetch('/api/secrets');
-        if (res.ok) {
-          const data: Record<string, boolean> = await res.json();
-          const providers: string[] = [];
-          if (data.openweathermap_key) providers.push('openweathermap');
-          if (data.weatherapi_key) providers.push('weatherapi');
-          if (data.pirateweather_key) providers.push('pirateweather');
-          if (data.metoffice_key) providers.push('metoffice');
-          providers.push('noaa'); // NOAA always available (no key needed)
-          providers.push('open-meteo'); // Open-Meteo always available (no key needed)
-          providers.push('yr'); // Yr.no always available (no key needed)
-          providers.push('smhi'); // SMHI always available (no key needed)
-          providers.push('envcanada'); // Environment Canada always available (no key needed)
-          setConfiguredProviders(providers);
-        }
-      } catch { /* ignore */ }
-    }
-    check();
-  }, []);
+  const { status: secrets, loading: secretsLoading } = useSecretStatus();
+  const configuredProviders = useMemo<string[]>(() => {
+    if (secretsLoading) return [];
+    // On a failed status fetch `secrets` is {}, so the keyed providers drop
+    // out but the keyless ones below stay pickable.
+    const providers: string[] = [];
+    if (secrets.openweathermap_key) providers.push('openweathermap');
+    if (secrets.weatherapi_key) providers.push('weatherapi');
+    if (secrets.pirateweather_key) providers.push('pirateweather');
+    if (secrets.metoffice_key) providers.push('metoffice');
+    // The rest need no API key and are always available.
+    providers.push('noaa', 'open-meteo', 'yr', 'smhi', 'envcanada');
+    return providers;
+  }, [secrets, secretsLoading]);
 
   // Resolve effective provider for capability gating
   const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'openweathermap');

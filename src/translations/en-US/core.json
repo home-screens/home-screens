@@ -69,6 +69,7 @@
     "uploadFailed": "Upload failed",
     "createFolderFailed": "Failed to create folder",
     "deleteFolderFailed": "Failed to delete folder",
+    "deleteImageFailed": "Failed to delete photo",
     "googleExpired": "Your Google connection has expired. Please sign in again.",
     "deviceFlowFailed": "Failed to start device flow",
     "codeExpired": "Code expired. Please try again.",

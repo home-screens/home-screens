@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} billede uploadet",
     "uploadedPlural": "{n} billeder uploaded",
     "photoDeleted": "Billede blev slettet",
+    "deleteFailed": "Sletning af billede fejlede",
     "folderCreated": "Mappe blev oprettet",
     "failedCreateFolder": "Oprettelse af mappe fejlede",
     "uploadButton": "Upload billeder",

@@ -11,10 +11,8 @@ import ImmichBrowser from './ImmichBrowser';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import Toggle from '@/components/ui/Toggle';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
-import { logger } from '@/lib/logger';
-
-const log = logger('background-picker');
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -87,9 +85,10 @@ export default function BackgroundPicker() {
   const t = useTranslate('editor');
   const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('unsplash');
   const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
-  const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
-  const [hasNasaKey, setHasNasaKey] = useState(false);
-  const [hasImmichKey, setHasImmichKey] = useState(false);
+  const { status: secretStatus } = useSecretStatus();
+  const hasUnsplashKey = !!secretStatus.unsplash_access_key;
+  const hasNasaKey = !!secretStatus.nasa_api_key;
+  const hasImmichKey = !!secretStatus.immich_api_key && !!secretStatus.immich_url;
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
@@ -109,23 +108,6 @@ export default function BackgroundPicker() {
     ],
     [t],
   );
-
-  useEffect(() => {
-    async function checkKeys() {
-      try {
-        const res = await editorFetch('/api/secrets');
-        if (res.ok) {
-          const data: Record<string, boolean> = await res.json();
-          setHasUnsplashKey(!!data.unsplash_access_key);
-          setHasNasaKey(!!data.nasa_api_key);
-          setHasImmichKey(!!data.immich_api_key && !!data.immich_url);
-        }
-      } catch (err) {
-        log.debug('Failed to check API key status:', err);
-      }
-    }
-    checkKeys();
-  }, []);
 
   if (!currentScreen || !selectedScreenId) return null;
 

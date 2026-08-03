@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} Foto hochgeladen",
     "uploadedPlural": "{n} Fotos hochgeladen",
     "photoDeleted": "Foto gelöscht",
+    "deleteFailed": "Foto konnte nicht gelöscht werden",
     "folderCreated": "Ordner erstellt",
     "failedCreateFolder": "Ordner konnte nicht erstellt werden",
     "uploadButton": "Fotos hochladen",

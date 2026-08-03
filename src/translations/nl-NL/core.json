@@ -69,6 +69,7 @@
     "uploadFailed": "Uploaden mislukt",
     "createFolderFailed": "Map kon niet worden aangemaakt",
     "deleteFolderFailed": "Map kon niet worden verwijderd",
+    "deleteImageFailed": "Foto kon niet worden verwijderd",
     "googleExpired": "Je Google-verbinding is verlopen. Log opnieuw in.",
     "deviceFlowFailed": "Apparaataanmelding kon niet worden gestart",
     "codeExpired": "Code verlopen. Probeer het opnieuw.",

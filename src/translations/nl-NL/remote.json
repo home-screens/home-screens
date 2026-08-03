@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} foto geüpload",
     "uploadedPlural": "{n} foto's geüpload",
     "photoDeleted": "Foto verwijderd",
+    "deleteFailed": "Foto verwijderen mislukt",
     "folderCreated": "Map gemaakt",
     "failedCreateFolder": "Map maken mislukt",
     "uploadButton": "Foto's uploaden",

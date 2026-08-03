@@ -69,6 +69,7 @@
     "uploadFailed": "Upload fejlede",
     "createFolderFailed": "Oprettelse af mappen fejlede",
     "deleteFolderFailed": "Sletning af mappen fejlede",
+    "deleteImageFailed": "Sletning af billedet fejlede",
     "googleExpired": "Din Google-forbindelse er udløbet. Log ind igen.",
     "deviceFlowFailed": "Failed to start device flow",
     "codeExpired": "Koden er udløbet. Prøv igen.",

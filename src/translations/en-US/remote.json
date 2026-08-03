@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} photo uploaded",
     "uploadedPlural": "{n} photos uploaded",
     "photoDeleted": "Photo deleted",
+    "deleteFailed": "Failed to delete photo",
     "folderCreated": "Folder created",
     "failedCreateFolder": "Failed to create folder",
     "uploadButton": "Upload Photos",

@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useMemo } from 'react';
 import {
   Globe,
   CheckCircle2,
@@ -11,10 +10,8 @@ import {
 import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
 import { useEditorStore } from '@/stores/editor-store';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate, type TranslateFn } from '@/i18n';
-import { logger } from '@/lib/logger';
-
-const log = logger('integrations');
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -87,27 +84,8 @@ function getStatusInfo(
 
 export default function IntegrationsSection() {
   const t = useTranslate('editor');
-  const [status, setStatus] = useState<SecretStatus>({});
-  const [loading, setLoading] = useState(true);
+  const { status, loading, refetch } = useSecretStatus();
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await editorFetch('/api/secrets');
-      if (res.ok) {
-        const data: SecretStatus = await res.json();
-        setStatus(data);
-      }
-    } catch (err) {
-      log.debug('Failed to fetch secret status:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
 
   // Memoize visible integrations + per-card status info so the labels follow
   // the active locale while the underlying brand names stay verbatim.
@@ -188,7 +166,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.google.clientIdPlaceholder')}
               helpText={t('settings.integrationsPage.google.clientIdHelp')}
               status={!!status.google_client_id}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
             <SecretField
               label={t('settings.integrationsPage.google.clientSecretLabel')}
@@ -196,7 +174,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.google.clientSecretPlaceholder')}
               helpText={t('settings.integrationsPage.google.clientSecretHelp')}
               status={!!status.google_client_secret}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </div>
           <div className="border-t border-hs-border-strong/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
@@ -206,7 +184,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.google.mapsKeyPlaceholder')}
               helpText={t('settings.integrationsPage.google.mapsKeyHelp')}
               status={!!status.google_maps_key}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </div>
         </IntegrationCard>
@@ -234,7 +212,7 @@ export default function IntegrationsSection() {
                 placeholder={t('settings.integrationsPage.immich.urlPlaceholder')}
                 helpText={t('settings.integrationsPage.immich.urlHelp')}
                 status={!!status.immich_url}
-                onSaved={fetchStatus}
+                onSaved={refetch}
               />
               <SecretField
                 label={t('common.apiKey')}
@@ -242,7 +220,7 @@ export default function IntegrationsSection() {
                 placeholder={t('settings.integrationsPage.immich.apiKeyPlaceholder')}
                 helpText={t('settings.integrationsPage.immich.apiKeyHelp')}
                 status={!!status.immich_api_key}
-                onSaved={fetchStatus}
+                onSaved={refetch}
               />
             </div>
           </IntegrationCard>
@@ -262,7 +240,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.unsplash.accessKeyPlaceholder')}
               helpText={t('settings.integrationsPage.unsplash.accessKeyHelp')}
               status={!!status.unsplash_access_key}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </IntegrationCard>
 
@@ -281,7 +259,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.nasa.apiKeyPlaceholder')}
               helpText={t('settings.integrationsPage.nasa.apiKeyHelp')}
               status={!!status.nasa_api_key}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </IntegrationCard>
         </div>
@@ -308,7 +286,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.todoist.tokenPlaceholder')}
               helpText={t('settings.integrationsPage.todoist.tokenHelp')}
               status={!!status.todoist_token}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </IntegrationCard>
 
@@ -327,7 +305,7 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.tomtom.keyPlaceholder')}
               helpText={t('settings.integrationsPage.tomtom.keyHelp')}
               status={!!status.tomtom_key}
-              onSaved={fetchStatus}
+              onSaved={refetch}
             />
           </IntegrationCard>
 
@@ -350,7 +328,7 @@ export default function IntegrationsSection() {
                 placeholder={t('settings.integrationsPage.github.tokenPlaceholder')}
                 helpText={t('settings.integrationsPage.github.tokenHelp')}
                 status={!!status.github_token}
-                onSaved={fetchStatus}
+                onSaved={refetch}
               />
             </IntegrationCard>
           )}

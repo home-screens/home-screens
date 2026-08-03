@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} photo téléversée",
     "uploadedPlural": "{n} photos téléversées",
     "photoDeleted": "Photo supprimée",
+    "deleteFailed": "Impossible de supprimer la photo",
     "folderCreated": "Dossier créé",
     "failedCreateFolder": "Impossible de créer le dossier",
     "uploadButton": "Téléverser des photos",

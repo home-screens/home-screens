@@ -2,13 +2,8 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { deleteLibraryImage, type DirectoryInfo } from '@/lib/library-client';
 import { useTranslate } from '@/i18n';
-
-interface DirectoryInfo {
-  name: string;
-  path: string;
-  imageCount: number;
-}
 
 export default function PhotosTab({ directory: initialDirectory }: { directory: string }) {
   const t = useTranslate('remote');
@@ -119,27 +114,20 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
 
   // Delete handler
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
-    const url = new URL(imageUrl, 'http://localhost');
-    const file = url.searchParams.get('file') || '';
-    if (!file) return;
-
-    const parts = file.split('/');
-    const basename = parts.pop() || '';
-    const directory = parts.join('/');
-
     setDeletingImage(imageUrl);
     try {
-      const res = await editorFetch('/api/backgrounds', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: basename, directory: directory || undefined }),
-      });
-      if (res.ok) {
+      const res = await deleteLibraryImage(imageUrl);
+      if (res?.ok) {
         setImages((prev) => prev.filter((img) => img !== imageUrl));
         fetchDirectories();
         showSuccess(t('photosTab.photoDeleted'));
+      } else {
+        setError(t('photosTab.deleteFailed'));
       }
-    } catch { /* ignore */ }
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      setError(t('photosTab.deleteFailed'));
+    }
     setDeletingImage(null);
     setConfirmDelete(null);
   }, [fetchDirectories, showSuccess, t]);

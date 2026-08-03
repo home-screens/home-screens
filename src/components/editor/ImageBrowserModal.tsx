@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import Button from '@/components/ui/Button';
-import { useImageLibrary, type DirectoryInfo } from '@/hooks/useImageLibrary';
+import { useImageLibrary } from '@/hooks/useImageLibrary';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
+import type { DirectoryInfo } from '@/lib/library-client';
 import type { MediaListItem } from '@/types/config';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -67,7 +69,9 @@ export default function ImageBrowserModal({
   const tCore = useTranslate('core');
   const lib = useImageLibrary({ initialDirectory });
   const [tab, setTab] = useState<'local' | 'unsplash'>('local');
-  const [hasUnsplashKey, setHasUnsplashKey] = useState(false);
+  // Unsplash key gates the second tab, which only exists in pick-image mode.
+  const { status: secretStatus } = useSecretStatus(mode === 'pick-image');
+  const hasUnsplashKey = !!secretStatus.unsplash_access_key;
 
   // Translated category list. Categories are stable per-locale; rebuild only
   // when `t` changes (i.e. on locale switch).
@@ -81,21 +85,6 @@ export default function ImageBrowserModal({
   );
 
   useEscapeKey(onClose);
-
-  // Check if Unsplash key is configured (only in pick-image mode)
-  useEffect(() => {
-    if (mode !== 'pick-image') return;
-    async function checkKey() {
-      try {
-        const res = await editorFetch('/api/secrets');
-        if (res.ok) {
-          const data: Record<string, boolean> = await res.json();
-          setHasUnsplashKey(!!data.unsplash_access_key);
-        }
-      } catch { /* ignore */ }
-    }
-    checkKey();
-  }, [mode]);
 
   const handleConfirm = () => {
     if (mode === 'pick-image' && lib.selectedImage) {

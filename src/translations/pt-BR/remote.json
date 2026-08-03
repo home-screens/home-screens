@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} foto enviada",
     "uploadedPlural": "{n} fotos enviadas",
     "photoDeleted": "Foto excluída",
+    "deleteFailed": "Falha ao excluir foto",
     "folderCreated": "Pasta criada",
     "failedCreateFolder": "Falha ao criar pasta",
     "uploadButton": "Enviar fotos",

@@ -485,6 +485,7 @@
     "uploadedSingular": "{n} foto subida",
     "uploadedPlural": "{n} fotos subidas",
     "photoDeleted": "Foto eliminada",
+    "deleteFailed": "No se pudo eliminar la foto",
     "folderCreated": "Carpeta creada",
     "failedCreateFolder": "No se pudo crear la carpeta",
     "uploadButton": "Subir fotos",

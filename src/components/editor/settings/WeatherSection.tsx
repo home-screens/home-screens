@@ -1,14 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
-import type { SecretStatus } from './shared/SecretField';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { WEATHER_PROVIDERS } from './weather/providers';
 import WeatherProviderCard from './weather/WeatherProviderCard';
 import { useTranslate } from '@/i18n';
-import { logger } from '@/lib/logger';
-
-const log = logger('weather-settings');
 
 interface WeatherSettings {
   provider: string;
@@ -26,26 +21,7 @@ export default function WeatherSection({ values, onChange }: Props) {
   const { provider, units, lat, lon } = values;
   const t = useTranslate('editor');
 
-  const [status, setStatus] = useState<SecretStatus>({});
-  const [loading, setLoading] = useState(true);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await editorFetch('/api/secrets');
-      if (res.ok) {
-        const data: SecretStatus = await res.json();
-        setStatus(data);
-      }
-    } catch (err) {
-      log.debug('Failed to fetch secret status:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatus();
-  }, [fetchStatus]);
+  const { status, loading, refetch } = useSecretStatus();
 
   const hasLocation = parseFloat(lat) !== 0 || parseFloat(lon) !== 0;
 
@@ -113,7 +89,7 @@ export default function WeatherSection({ values, onChange }: Props) {
               provider={p}
               isDefault={provider === p.id}
               keyConfigured={p.secretKey ? !!status[p.secretKey] : true}
-              onSecretSaved={fetchStatus}
+              onSecretSaved={refetch}
               onSetDefault={() => onChange({ provider: p.id })}
               lat={lat}
               lon={lon}

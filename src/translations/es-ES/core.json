@@ -69,6 +69,7 @@
     "uploadFailed": "Error al subir",
     "createFolderFailed": "Error al crear la carpeta",
     "deleteFolderFailed": "Error al eliminar la carpeta",
+    "deleteImageFailed": "Error al eliminar la foto",
     "googleExpired": "Tu conexión con Google ha expirado. Vuelve a iniciar sesión.",
     "deviceFlowFailed": "Error al iniciar el flujo del dispositivo",
     "codeExpired": "Código caducado. Inténtalo de nuevo.",

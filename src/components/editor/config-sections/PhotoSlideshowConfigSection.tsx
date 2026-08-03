@@ -6,7 +6,7 @@ import Slider from '@/components/ui/Slider';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorData } from '@/hooks/useEditorData';
+import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
@@ -32,8 +32,8 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   const [showBrowser, setShowBrowser] = useState(false);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [photoCount, setPhotoCount] = useState(0);
-  const { data: secrets } = useEditorData<Record<string, boolean>>('/api/secrets');
-  const hasImmichKey = !!secrets?.immich_api_key && !!secrets?.immich_url;
+  const { status: secrets } = useSecretStatus();
+  const hasImmichKey = !!secrets.immich_api_key && !!secrets.immich_url;
 
   // iCloud needs no key, so the source select is always shown; Immich joins
   // the list only once its server + API key are configured.

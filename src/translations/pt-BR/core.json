@@ -69,6 +69,7 @@
     "uploadFailed": "Falha no envio",
     "createFolderFailed": "Falha ao criar pasta",
     "deleteFolderFailed": "Falha ao excluir pasta",
+    "deleteImageFailed": "Falha ao excluir foto",
     "googleExpired": "Sua conexão com o Google expirou. Entre novamente.",
     "deviceFlowFailed": "Falha ao iniciar fluxo do dispositivo",
     "codeExpired": "Código expirado. Tente novamente.",

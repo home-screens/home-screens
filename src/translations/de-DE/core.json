@@ -69,6 +69,7 @@
     "uploadFailed": "Upload fehlgeschlagen",
     "createFolderFailed": "Ordner konnte nicht erstellt werden",
     "deleteFolderFailed": "Ordner konnte nicht gelöscht werden",
+    "deleteImageFailed": "Foto konnte nicht gelöscht werden",
     "googleExpired": "Deine Google-Verbindung ist abgelaufen. Bitte melde dich erneut an.",
     "deviceFlowFailed": "Geräte-Anmeldung konnte nicht gestartet werden",
     "codeExpired": "Code abgelaufen. Bitte erneut versuchen.",

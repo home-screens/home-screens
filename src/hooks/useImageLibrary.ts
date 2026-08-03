@@ -2,18 +2,13 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
 import { logger } from '@/lib/logger';
+import { deleteLibraryImage, type DirectoryInfo } from '@/lib/library-client';
 import type { MediaListItem } from '@/types/config';
 
 const log = logger('useImageLibrary');
-
-export interface DirectoryInfo {
-  name: string;
-  path: string;
-  imageCount: number;
-}
 
 interface UseImageLibraryOptions {
   initialDirectory: string;
@@ -185,34 +180,23 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
   }, [selectedDir, fetchImages, fetchDirectories, t]);
 
   const handleDeleteImage = useCallback(async (imageUrl: string) => {
-    // Extract filename from serve URL
-    const url = new URL(imageUrl, 'http://localhost');
-    const file = url.searchParams.get('file') || '';
-    if (!file) return;
-
-    // Extract directory and basename from the file path
-    const parts = file.split('/');
-    const basename = parts.pop() || '';
-    const directory = parts.join('/');
-
     setDeletingImage(imageUrl);
     try {
-      const res = await editorFetch('/api/backgrounds', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: basename, directory: directory || undefined }),
-      });
-      if (res.ok) {
+      const res = await deleteLibraryImage(imageUrl);
+      if (res?.ok) {
         setItems((prev) => prev.filter((item) => item.url !== imageUrl));
         setSelectedImage((prev) => prev === imageUrl ? null : prev);
         fetchDirectories();
         displayCache.invalidateByPrefix('/api/backgrounds');
+      } else {
+        setError(t('errors.deleteImageFailed'));
       }
     } catch (err) {
       log.debug('deleteImage failed:', err);
+      if (!isSessionExpired(err)) setError(t('errors.deleteImageFailed'));
     }
     setDeletingImage(null);
-  }, [fetchDirectories]);
+  }, [fetchDirectories, t]);
 
   const handleCreateFolder = useCallback(async () => {
     if (!newFolderName.trim()) return;

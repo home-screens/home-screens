@@ -69,6 +69,7 @@
     "uploadFailed": "Échec de l'envoi",
     "createFolderFailed": "Échec de la création du dossier",
     "deleteFolderFailed": "Échec de la suppression du dossier",
+    "deleteImageFailed": "Échec de la suppression de la photo",
     "googleExpired": "Ta connexion Google a expiré. Reconnecte-toi.",
     "deviceFlowFailed": "Échec du démarrage de l'authentification par appareil",
     "codeExpired": "Code expiré. Réessaie.",
