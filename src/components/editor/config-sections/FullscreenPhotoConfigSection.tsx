@@ -17,6 +17,7 @@ import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
 
 type Config = Partial<FullscreenPhotoConfig>;
+type PhotoSource = NonNullable<FullscreenPhotoConfig['source']>;
 
 export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -49,13 +50,13 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
 
   // iCloud needs no key, so the source select is always shown; Immich joins
   // the list only once its server + API key are configured.
-  const SOURCE_OPTIONS = [
+  const SOURCE_OPTIONS: { value: PhotoSource; label: string }[] = [
     { value: 'local', label: t('configSections.fullscreen-photo.sourceLocal') },
-    ...(hasImmichKey ? [{ value: 'immich', label: t('configSections.fullscreen-photo.sourceImmich') }] : []),
+    ...(hasImmichKey ? [{ value: 'immich' as const, label: t('configSections.fullscreen-photo.sourceImmich') }] : []),
     { value: 'icloud', label: t('configSections.fullscreen-photo.sourceICloud') },
   ];
 
-  const source = (c.source as string) || 'local';
+  const source: PhotoSource = c.source ?? 'local';
   const directory = (c.directory as string) || '';
   const isSinglePhoto = c.file !== undefined;
 
