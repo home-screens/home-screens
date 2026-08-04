@@ -15,7 +15,9 @@ export function TargetPicker({ mode, value, onChange, options }: TargetPickerPro
   const allOptions = [ALL_OPTION, ...options];
   if (mode === 'chips') {
     return (
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      // data-swipe-ignore: the chip row scrolls sideways — a drag across it
+      // must never trigger screen navigation.
+      <div className="flex gap-1.5 overflow-x-auto pb-1" data-swipe-ignore>
         {allOptions.map((opt) => {
           const active = opt.id === value;
           return (

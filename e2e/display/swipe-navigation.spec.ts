@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 
 /**
  * Flick-to-navigate gesture cluster: a quick horizontal flick anywhere on the
@@ -83,6 +84,39 @@ test('a slow drag is not a flick', async ({ page, request }) => {
   // Same distance as a qualifying flick, but the 700ms hold pushes the
   // gesture past the duration cap.
   await flick(page, { x: 800, y: 1400 }, { x: 300, y: 1400 }, { slowMs: 700 });
+  await page.waitForTimeout(500);
+  await expect(page.getByText(A, { exact: true })).toBeVisible();
+  await expect(page.getByText(B, { exact: true })).toHaveCount(0);
+});
+
+test('a drag on the display-control brightness slider does not navigate', async ({ page, request }) => {
+  // Regression: a slider drag ends in pointerup (never pointercancel), so
+  // without the range-input exclusion every brightness adjustment would also
+  // flip screens.
+  const screens = threeScreens();
+  const displayControl: ModuleInstance = {
+    id: 'dc-1',
+    type: 'display-control',
+    position: { x: 140, y: 700 },
+    size: { w: 680, h: 320 },
+    zIndex: 2,
+    style: { ...DEFAULT_MODULE_STYLE },
+    config: { layout: 'panel', defaultTarget: 'self', allowRetargeting: true },
+  };
+  screens[0].modules.push(displayControl);
+  await renderOnDisplay(page, request, baseConfig({
+    screens,
+    settings: { rotationIntervalMs: 3_600_000 },
+  }));
+  await expect(page.getByText(A, { exact: true })).toBeVisible();
+
+  const slider = page.locator('input[type="range"]').first();
+  await expect(slider).toBeVisible();
+  const box = (await slider.boundingBox())!;
+  const y = box.y + box.height / 2;
+  // A fast, long, horizontal drag starting on the slider — exactly the
+  // gesture that must adjust brightness without changing screens.
+  await flick(page, { x: box.x + box.width * 0.85, y }, { x: box.x + box.width * 0.15, y });
   await page.waitForTimeout(500);
   await expect(page.getByText(A, { exact: true })).toBeVisible();
   await expect(page.getByText(B, { exact: true })).toHaveCount(0);

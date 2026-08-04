@@ -31,7 +31,9 @@ export function BoardView({ config, data }: BoardViewProps) {
       </div>
 
       {/* Columns */}
-      <div className="flex-1 flex gap-2 min-h-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+      {/* data-swipe-ignore: these columns scroll sideways with 5+ members —
+          a horizontal drag here must never trigger screen navigation. */}
+      <div className="flex-1 flex gap-2 min-h-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-swipe-ignore>
         {members.map((member) => {
           const myAssignments = todayAssignments.filter((a) => a.memberId === member.id);
           const sorted = sortChores(myAssignments, config.showTimeOfDay);
