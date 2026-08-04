@@ -537,7 +537,10 @@ describe('filterConfigForDisplay — owned screens', () => {
       expect(filtered?.settings.displayHeight).toBe(1440);
     });
 
-    it('treats undefined transform as landscape', () => {
+    it('trusts explicitly entered dimensions when no rotation is declared anywhere', () => {
+      // The display owns its dimensions but declares no transform, and the
+      // globals declare none either — nothing is authoritative over the
+      // typed order, so it stands (a portrait 1440×2560 stays portrait).
       const config = makeConfig({
         screens: [],
         displays: [{
@@ -549,8 +552,47 @@ describe('filterConfigForDisplay — owned screens', () => {
         }],
       });
       const filtered = filterConfigForDisplay(config, 'kitchen');
-      expect(filtered?.settings.displayWidth).toBe(2560);
-      expect(filtered?.settings.displayHeight).toBe(1440);
+      expect(filtered?.settings.displayWidth).toBe(1440);
+      expect(filtered?.settings.displayHeight).toBe(2560);
+    });
+
+    it('does not let an inherited global transform flip a display\'s own dimensions', () => {
+      // The global '90' describes the hub's own panel (its wlr-randr
+      // rotation). A display node that entered its own landscape dimensions
+      // but declares no rotation must keep them as typed — this was the
+      // silent letterbox-and-shrink footgun for landscape secondary panels.
+      const config = makeConfig({
+        settings: makeSettings({ displayTransform: '90' }),
+        screens: [],
+        displays: [{
+          id: 'shelf',
+          name: 'Shelf',
+          screens: [],
+          displayWidth: 1366,
+          displayHeight: 768,
+        }],
+      });
+      const filtered = filterConfigForDisplay(config, 'shelf');
+      expect(filtered?.settings.displayWidth).toBe(1366);
+      expect(filtered?.settings.displayHeight).toBe(768);
+    });
+
+    it('still orients fully inherited dimensions by the inherited transform', () => {
+      // A display inheriting BOTH dims and transform from the globals is
+      // describing the same panel the globals describe — orientation keeps
+      // the pair self-consistent even when the dims were typed landscape.
+      const config = makeConfig({
+        settings: makeSettings({
+          displayWidth: 1920,
+          displayHeight: 1080,
+          displayTransform: '90',
+        }),
+        screens: [],
+        displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
+      });
+      const filtered = filterConfigForDisplay(config, 'kitchen');
+      expect(filtered?.settings.displayWidth).toBe(1080);
+      expect(filtered?.settings.displayHeight).toBe(1920);
     });
 
     it('treats 180° the same as normal (still landscape)', () => {

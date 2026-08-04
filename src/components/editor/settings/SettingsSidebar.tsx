@@ -26,7 +26,8 @@ import {
 const REPO_URL = 'https://github.com/home-screens/home-screens';
 const WEBSITE_URL = 'https://homescreens.dev';
 const DOCS_URL = 'https://homescreens.dev/docs';
-import { useEditorStore, orientDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import {
   DEFAULT_PAGE_IDS,
@@ -392,7 +393,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
         const lastSeen = heartbeats.get(display.id)?.lastSeen ?? null;
         const oriented =
           display.displayWidth && display.displayHeight
-            ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
+            ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
             : null;
         const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
         const isActive =

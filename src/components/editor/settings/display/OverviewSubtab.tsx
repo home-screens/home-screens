@@ -9,7 +9,7 @@ import {
   SLEEP_OVERRIDE_FIELDS,
   ALERT_OVERRIDE_FIELDS,
 } from '@/lib/display-override-fields';
-import { orientDimensions } from '@/stores/editor-store';
+import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
@@ -46,7 +46,7 @@ interface OverviewSubtabProps {
 export default function OverviewSubtab({ config, display, heartbeat }: OverviewSubtabProps) {
   const t = useTranslate('editor');
   const dims = display.displayWidth && display.displayHeight
-    ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
+    ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
   const screenCount = display.screens.length;
   // Active profile resolution: the per-display field wins over global,

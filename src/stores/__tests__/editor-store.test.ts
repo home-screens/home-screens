@@ -1224,6 +1224,32 @@ describe('editor store', () => {
       expect(dims.width).toBe(2560);
       expect(dims.height).toBe(1440);
     });
+
+    it('does not let an inherited global transform flip a display\'s own dimensions', async () => {
+      const { getActiveDimensions } = await import('@/stores/editor-store');
+      // Mirrors filterConfigForDisplay: the global '90' rotates the hub's
+      // own panel; a display with its own landscape dimensions and no
+      // declared rotation keeps them as typed, so the editor canvas agrees
+      // with what the display actually renders.
+      const config = makeConfig({
+        settings: {
+          ...makeConfig().settings,
+          displayTransform: '90' as const,
+        },
+        displays: [
+          {
+            id: 'shelf',
+            name: 'Shelf',
+            screens: [],
+            displayWidth: 1366,
+            displayHeight: 768,
+          },
+        ],
+      });
+      const dims = getActiveDimensions(config, 'shelf');
+      expect(dims.width).toBe(1366);
+      expect(dims.height).toBe(768);
+    });
   });
 
   /* ─── cascade prune of display references ─────── */

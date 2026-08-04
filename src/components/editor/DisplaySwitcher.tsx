@@ -1,7 +1,8 @@
 'use client';
 
 import { Monitor, ChevronDown } from 'lucide-react';
-import { useEditorStore, orientDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { useTranslate } from '@/i18n';
 
 /**
@@ -25,7 +26,7 @@ export default function DisplaySwitcher() {
   // canvas is actually rendering, even if the stored values are in the
   // "wrong" order relative to the rotation.
   const oriented = active.displayWidth && active.displayHeight
-    ? orientDimensions(active.displayWidth, active.displayHeight, active.displayTransform)
+    ? declaredCanvasDimensions(active.displayWidth, active.displayHeight, active.displayTransform)
     : null;
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
 
@@ -61,7 +62,7 @@ export default function DisplaySwitcher() {
             // landscape rotation (or vice versa) on legacy data that got
             // stored in the "wrong" order.
             const optDims = d.displayWidth && d.displayHeight
-              ? orientDimensions(d.displayWidth, d.displayHeight, d.displayTransform)
+              ? declaredCanvasDimensions(d.displayWidth, d.displayHeight, d.displayTransform)
               : null;
             return (
               <option key={d.id} value={d.id}>

@@ -78,6 +78,23 @@ export function orientDimensions(
 }
 
 /**
+ * Canvas shape for a display node's OWN dimensions: oriented by the node's
+ * own transform when it declares one, otherwise kept exactly as entered — an
+ * inherited global transform never flips explicitly entered dimensions.
+ * Read-side label counterpart of the ownership rule in
+ * `filterConfigForDisplay` / `getActiveDimensions`.
+ */
+export function declaredCanvasDimensions(
+  width: number,
+  height: number,
+  declaredTransform: 'normal' | '90' | '180' | '270' | undefined,
+): { width: number; height: number } {
+  return declaredTransform != null
+    ? orientDimensions(width, height, declaredTransform)
+    : { width, height };
+}
+
+/**
  * Find the main display in a list, preferring the canonical `main` id and
  * falling back to the first registered display. Returns `undefined` when
  * the list is empty. Used by the legacy `/display` route, which renders the
@@ -243,7 +260,17 @@ export function filterConfigForDisplay(
     ...(display.displayTransform != null ? { displayTransform: display.displayTransform } : {}),
   };
 
-  if (merged.displayWidth && merged.displayHeight) {
+  // Rotation is authoritative for canvas orientation — but only a rotation
+  // the display's own scope declares. A display with explicitly entered
+  // dimensions must not have them flipped by the GLOBAL transform, which
+  // describes the hub's own panel (a display-only Pi's rotation lives in its
+  // local kiosk.conf, invisible to this config). Dimensions inherited from
+  // the globals are still oriented by the global transform: both values then
+  // describe the same panel, so orienting keeps them self-consistent.
+  const ownsTransform =
+    display.displayTransform != null || display.settings?.displayTransform != null;
+  const ownsDimensions = display.displayWidth != null || display.displayHeight != null;
+  if (merged.displayWidth && merged.displayHeight && (ownsTransform || !ownsDimensions)) {
     const oriented = orientDimensions(merged.displayWidth, merged.displayHeight, merged.displayTransform);
     merged.displayWidth = oriented.width;
     merged.displayHeight = oriented.height;

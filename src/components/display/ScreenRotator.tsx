@@ -437,7 +437,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       />
 
       <NetworkIndicator displayState={displayState} scale={scale} />
-      <AlertOverlay alertSettings={settings.alerts} displayState={displayState} scale={scale} />
+      <AlertOverlay alertSettings={settings.alerts} displayState={displayState} viewport={viewportSize} />
 
       {/* A takeover implies wake: suppress the sleep overlay rather than
           calling wake() — the sleep manager re-asserts a scheduled sleep

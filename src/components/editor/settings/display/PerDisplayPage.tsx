@@ -4,7 +4,7 @@ import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, LayoutGrid } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
-import { orientDimensions } from '@/lib/display-filter';
+import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
@@ -163,7 +163,7 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   // ensures main has the same shape), then orient against the rotation
   // so the long edge always lines up with the rotation label.
   const dims = display.displayWidth && display.displayHeight
-    ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
+    ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
 
   // Number of screens this display owns.

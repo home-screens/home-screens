@@ -8,8 +8,26 @@ import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 interface AlertOverlayProps {
   alertSettings?: AlertSettings;
   displayState?: 'active' | 'dimmed' | 'asleep';
-  scale?: number;
+  /**
+   * Measured viewport from ScreenRotator. Alerts scale with the viewport so
+   * they hold a consistent fraction of any display — never with the
+   * configured canvas, whose fit factor shrank alerts to unreadability
+   * whenever canvas and viewport disagreed.
+   */
+  viewport?: { w: number; h: number };
 }
+
+/**
+ * Reference viewport the alert sizes below are authored against (the standard
+ * portrait kiosk). Width drives the scale so banners stay a constant fraction
+ * of the display; the height term only guards ultra-short screens (wider than
+ * 2:1), where width-proportional banners would swallow the whole panel.
+ */
+const REF_W = 1080;
+const REF_MIN_H = 540;
+
+/** Minimum dismiss hit target in physical pixels — never scaled down. */
+const MIN_TAP_PX = 44;
 
 const TYPE_COLORS: Record<DisplayAlert['type'], { bg: string; border: string; icon: string }> = {
   info: {
@@ -35,13 +53,13 @@ const TYPE_ICONS: Record<DisplayAlert['type'], typeof Info> = {
   urgent: AlertCircle,
 };
 
-function AlertItem({ alert, onDismiss, alertScale = 1 }: { alert: DisplayAlert; onDismiss: (id: string) => void; alertScale?: number }) {
+function AlertItem({ alert, onDismiss, s }: { alert: DisplayAlert; onDismiss: (id: string) => void; s: number }) {
   const colors = TYPE_COLORS[alert.type] ?? TYPE_COLORS.info;
   const Icon = TYPE_ICONS[alert.type] ?? TYPE_ICONS.info;
-  const s = alertScale;
 
   return (
     <div
+      data-testid="alert-item"
       style={{
         display: 'flex',
         alignItems: 'flex-start',
@@ -81,15 +99,26 @@ function AlertItem({ alert, onDismiss, alertScale = 1 }: { alert: DisplayAlert; 
       </div>
       {alert.dismissible !== false && (
         <button
+          data-testid="alert-dismiss"
           onClick={() => onDismiss(alert.id)}
           style={{
             background: 'none',
             border: 'none',
             color: 'rgba(255,255,255,0.5)',
             cursor: 'pointer',
-            padding: 2 * s,
+            padding: 0,
             flexShrink: 0,
-            marginTop: 1 * s,
+            // Physical-pixel floor: these displays are touch kiosks used by
+            // kids, and the icon alone is far below a reliable fingertip
+            // target. The floor is deliberately NOT multiplied by `s`.
+            minWidth: MIN_TAP_PX,
+            minHeight: MIN_TAP_PX,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            // Recenter the oversized hit box against the text block so the
+            // banner doesn't visibly grow at small scales.
+            margin: `${-10 * s}px ${-10 * s}px ${-10 * s}px 0`,
           }}
         >
           <X style={{ width: 16 * s, height: 16 * s }} />
@@ -99,11 +128,10 @@ function AlertItem({ alert, onDismiss, alertScale = 1 }: { alert: DisplayAlert; 
   );
 }
 
-export default function AlertOverlay({ alertSettings, displayState = 'active', scale = 1 }: AlertOverlayProps) {
+export default function AlertOverlay({ alertSettings, displayState = 'active', viewport }: AlertOverlayProps) {
   const { alerts, maxVisible, position, enabled, configure, dismissAlert } = useAlertStore();
 
   // Sync store config whenever settings change
-  // Note: scale is read directly at render time, not stored in alert-store
   useEffect(() => {
     configure({
       enabled: alertSettings?.enabled ?? true,
@@ -119,9 +147,13 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
     configure,
   ]);
 
-  const alertScale = alertSettings?.scale ?? 1;
-
   if (!enabled || alerts.length === 0 || displayState !== 'active') return null;
+  // Not yet measured — skip the frame rather than flash unscaled banners.
+  if (!viewport || viewport.w <= 0) return null;
+
+  // Viewport fit × the user's size knob (alerts.scale stays a multiplier).
+  const fit = Math.min(viewport.w / REF_W, viewport.h / REF_MIN_H);
+  const s = fit * (alertSettings?.scale ?? 1);
 
   const visible = alerts.slice(-maxVisible);
 
@@ -135,7 +167,7 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
       `}</style>
       <div
         style={{
-          '--alert-slide-offset': position === 'top' ? `-${12 * alertScale}px` : `${12 * alertScale}px`,
+          '--alert-slide-offset': position === 'top' ? `-${12 * s}px` : `${12 * s}px`,
           position: 'fixed',
           left: 0,
           right: 0,
@@ -144,15 +176,13 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', s
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 8 * alertScale,
-          padding: `${16 * alertScale}px ${24 * alertScale}px`,
+          gap: 8 * s,
+          padding: `${16 * s}px ${24 * s}px`,
           pointerEvents: 'none',
-          transform: scale !== 1 ? `scale(${scale})` : undefined,
-          transformOrigin: position === 'top' ? 'top center' : 'bottom center',
         } as React.CSSProperties}
       >
         {visible.map((alert) => (
-          <AlertItem key={alert.id} alert={alert} onDismiss={dismissAlert} alertScale={alertScale} />
+          <AlertItem key={alert.id} alert={alert} onDismiss={dismissAlert} s={s} />
         ))}
       </div>
     </>

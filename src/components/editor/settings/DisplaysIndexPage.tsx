@@ -7,6 +7,7 @@ import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import {
+  declaredCanvasDimensions,
   isMainDisplay,
   isValidDisplayId,
   MAX_DISPLAY_DIMENSION,
@@ -698,7 +699,7 @@ function DisplayCard({
   const t = useTranslate('editor');
   const lastSeen = heartbeat?.lastSeen ?? null;
   const oriented = display.displayWidth && display.displayHeight
-    ? orientDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
+    ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
   const screenCount = displayScreenCount(display);

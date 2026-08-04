@@ -55,13 +55,16 @@ export function withActiveScreens(
  * dimensions win over global; this is what every editor component should
  * consume instead of reading `config.settings.displayWidth` directly.
  *
- * The rotation (`displayTransform`) is authoritative for orientation: the
- * canvas long edge goes along the landscape axis when transform is
- * `normal`/`180`, and along the portrait axis when transform is `90`/`270`.
- * We sort the raw `(width, height)` pair into the right order regardless
- * of how the user typed them in the form, so "1440 × 2560 + Normal
+ * A rotation (`displayTransform`) DECLARED by the same scope as the
+ * dimensions is authoritative for orientation: the canvas long edge goes
+ * along the landscape axis when transform is `normal`/`180`, and along the
+ * portrait axis when transform is `90`/`270` — so "1440 × 2560 + Normal
  * (landscape)" produces a 2560 × 1440 landscape canvas rather than a
- * portrait one whose shape contradicts its rotation label.
+ * portrait one whose shape contradicts its rotation label. A display with
+ * its own dimensions but only an INHERITED transform keeps them as typed:
+ * the global transform describes the hub's panel, not this one. Mirrors
+ * `filterConfigForDisplay` exactly — the editor canvas and the live display
+ * must never disagree.
  */
 export function getActiveDimensions(
   config: ScreenConfiguration,
@@ -70,25 +73,28 @@ export function getActiveDimensions(
   let rawWidth: number;
   let rawHeight: number;
   let transform: 'normal' | '90' | '180' | '270' | undefined;
+  let transformGoverns = true;
 
-  if (selectedDisplayId) {
-    const display = config.displays?.find((d) => d.id === selectedDisplayId);
-    if (display) {
-      rawWidth = display.displayWidth ?? config.settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH;
-      rawHeight = display.displayHeight ?? config.settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT;
-      transform = display.displayTransform ?? config.settings.displayTransform;
-    } else {
-      rawWidth = config.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
-      rawHeight = config.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
-      transform = config.settings.displayTransform;
-    }
+  const display = selectedDisplayId
+    ? config.displays?.find((d) => d.id === selectedDisplayId)
+    : undefined;
+  if (display) {
+    rawWidth = display.displayWidth ?? config.settings.displayWidth ?? DEFAULT_DISPLAY_WIDTH;
+    rawHeight = display.displayHeight ?? config.settings.displayHeight ?? DEFAULT_DISPLAY_HEIGHT;
+    transform = display.displayTransform ?? config.settings.displayTransform;
+    const ownsTransform =
+      display.displayTransform != null || display.settings?.displayTransform != null;
+    const ownsDimensions = display.displayWidth != null || display.displayHeight != null;
+    transformGoverns = ownsTransform || !ownsDimensions;
   } else {
     rawWidth = config.settings.displayWidth || DEFAULT_DISPLAY_WIDTH;
     rawHeight = config.settings.displayHeight || DEFAULT_DISPLAY_HEIGHT;
     transform = config.settings.displayTransform;
   }
 
-  return orientDimensions(rawWidth, rawHeight, transform);
+  return transformGoverns
+    ? orientDimensions(rawWidth, rawHeight, transform)
+    : { width: rawWidth, height: rawHeight };
 }
 
 /**
