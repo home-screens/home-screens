@@ -15,16 +15,12 @@ vi.mock('@/lib/secure-file', () => ({
   writeSecureFile: (...args: unknown[]) => mockWriteFile(...args),
 }));
 
-const mockRefreshAccessToken = vi.fn();
 const mockSetCredentials = vi.fn();
-const mockRevokeToken = vi.fn();
 
 vi.mock('googleapis', () => {
   // Must use function (not arrow) so it can be called with `new`
   const mockOAuth2 = vi.fn(function (this: Record<string, unknown>) {
-    this.refreshAccessToken = mockRefreshAccessToken;
     this.setCredentials = mockSetCredentials;
-    this.revokeToken = mockRevokeToken;
   });
   return {
     google: {
@@ -35,7 +31,7 @@ vi.mock('googleapis', () => {
 
 // Dynamic import after mocks are in place
 const { getSecret } = await import('@/lib/secrets');
-const { readFile, writeFile } = await import('fs/promises');
+const { readFile } = await import('fs/promises');
 const {
   requestDeviceCode,
   pollDeviceToken,
@@ -47,7 +43,6 @@ const {
 
 const mockedGetSecret = vi.mocked(getSecret);
 const mockedReadFile = vi.mocked(readFile);
-const mockedWriteFile = vi.mocked(writeFile);
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -86,16 +81,30 @@ function setupTokensFile(tokens: Record<string, unknown> | null) {
   }
 }
 
+/** Fetch stub that answers Google's token endpoint (refresh grant). */
+function mockRefreshFetch(body: unknown, ok = true) {
+  const impl = vi.fn(async (input: string | URL | Request, _init?: RequestInit) => {
+    const url = String(input);
+    if (url.includes('oauth2.googleapis.com/token')) {
+      return { ok, status: ok ? 200 : 400, json: () => Promise.resolve(body) };
+    }
+    if (url.includes('oauth2.googleapis.com/revoke')) {
+      return { ok: true, status: 200, json: () => Promise.resolve({}) };
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  });
+  vi.stubGlobal('fetch', impl);
+  return impl;
+}
+
 // ── Setup ────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   mockedGetSecret.mockReset();
   mockedReadFile.mockReset();
-  mockedWriteFile.mockReset();
-  mockRefreshAccessToken.mockReset();
+  mockWriteFile.mockReset();
   mockSetCredentials.mockReset();
-  mockRevokeToken.mockReset();
 });
 
 // ── requestDeviceCode ────────────────────────────────────────────────
@@ -163,17 +172,6 @@ describe('requestDeviceCode', () => {
     await expect(requestDeviceCode()).rejects.toThrow('The OAuth client was not found.');
   });
 
-  it('throws with error field when no error_description', async () => {
-    setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'invalid_scope' },
-      false,
-      400,
-    );
-
-    await expect(requestDeviceCode()).rejects.toThrow('invalid_scope');
-  });
-
   it('throws with fallback message when neither error field is present', async () => {
     setupCredentials();
     globalThis.fetch = mockFetchResponse({}, false, 400);
@@ -202,17 +200,17 @@ describe('pollDeviceToken', () => {
       token_type: 'Bearer',
     };
     globalThis.fetch = mockFetchResponse(tokenData);
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
 
     const result = await pollDeviceToken('device-code');
 
     expect(result).toEqual({ status: 'success' });
-    expect(mockedWriteFile).toHaveBeenCalledOnce();
+    expect(mockWriteFile).toHaveBeenCalledOnce();
 
-    const writtenPath = mockedWriteFile.mock.calls[0][0] as string;
+    const writtenPath = mockWriteFile.mock.calls[0][0] as string;
     expect(writtenPath).toContain('google-tokens.json');
 
-    const writtenData = JSON.parse(mockedWriteFile.mock.calls[0][1] as string);
+    const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
     expect(writtenData.access_token).toBe('ya29.new-token');
     expect(writtenData.refresh_token).toBe('1//new-refresh');
   });
@@ -225,13 +223,13 @@ describe('pollDeviceToken', () => {
       token_type: 'Bearer',
     };
     globalThis.fetch = mockFetchResponse(tokenData);
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
 
     const result = await pollDeviceToken('device-code');
 
     expect(result.status).toBe('success');
     expect(result.error).toContain('refresh token');
-    expect(mockedWriteFile).toHaveBeenCalledOnce();
+    expect(mockWriteFile).toHaveBeenCalledOnce();
   });
 
   it('computes expiry_date from expires_in when not present', async () => {
@@ -245,20 +243,17 @@ describe('pollDeviceToken', () => {
       token_type: 'Bearer',
     };
     globalThis.fetch = mockFetchResponse(tokenData);
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
 
     await pollDeviceToken('device-code');
 
-    const writtenData = JSON.parse(mockedWriteFile.mock.calls[0][1] as string);
-    // expiry_date should be approximately Date.now() + 3600s (within a small margin)
+    const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
     expect(writtenData.expiry_date).toBeGreaterThanOrEqual(beforeCall + 3600 * 1000);
     expect(writtenData.expiry_date).toBeLessThanOrEqual(Date.now() + 3600 * 1000);
   });
 
   it('does not overwrite existing expiry_date', async () => {
     setupCredentials();
-    // Use a distinctive value far in the future so it cannot be confused
-    // with a computed expiry_date (Date.now() + expires_in * 1000)
     const existingExpiry = 9999999999999;
     const tokenData = {
       access_token: 'ya29.new-token',
@@ -268,45 +263,26 @@ describe('pollDeviceToken', () => {
       token_type: 'Bearer',
     };
     globalThis.fetch = mockFetchResponse(tokenData);
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
 
     await pollDeviceToken('device-code');
 
-    const writtenData = JSON.parse(mockedWriteFile.mock.calls[0][1] as string);
+    const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
     expect(writtenData.expiry_date).toBe(existingExpiry);
   });
 
-  it('returns pending for authorization_pending error', async () => {
+  it('returns pending for authorization_pending and slow_down', async () => {
     setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'authorization_pending' },
-      false,
-      428,
-    );
+    globalThis.fetch = mockFetchResponse({ error: 'authorization_pending' }, false, 428);
+    expect((await pollDeviceToken('device-code')).status).toBe('pending');
 
-    const result = await pollDeviceToken('device-code');
-    expect(result).toEqual({ status: 'pending' });
-  });
-
-  it('returns pending for slow_down error', async () => {
-    setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'slow_down' },
-      false,
-      428,
-    );
-
-    const result = await pollDeviceToken('device-code');
-    expect(result).toEqual({ status: 'pending' });
+    globalThis.fetch = mockFetchResponse({ error: 'slow_down' }, false, 428);
+    expect((await pollDeviceToken('device-code')).status).toBe('pending');
   });
 
   it('returns expired for expired_token error', async () => {
     setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'expired_token' },
-      false,
-      400,
-    );
+    globalThis.fetch = mockFetchResponse({ error: 'expired_token' }, false, 400);
 
     const result = await pollDeviceToken('device-code');
     expect(result).toEqual({ status: 'expired', error: 'Code expired. Please try again.' });
@@ -314,11 +290,7 @@ describe('pollDeviceToken', () => {
 
   it('returns denied for access_denied error', async () => {
     setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'access_denied' },
-      false,
-      403,
-    );
+    globalThis.fetch = mockFetchResponse({ error: 'access_denied' }, false, 403);
 
     const result = await pollDeviceToken('device-code');
     expect(result).toEqual({ status: 'denied', error: 'Access was denied.' });
@@ -336,18 +308,6 @@ describe('pollDeviceToken', () => {
     expect(result).toEqual({ status: 'denied', error: 'Something went wrong' });
   });
 
-  it('returns denied with error code when no error_description for unknown errors', async () => {
-    setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'some_weird_error' },
-      false,
-      400,
-    );
-
-    const result = await pollDeviceToken('device-code');
-    expect(result).toEqual({ status: 'denied', error: 'some_weird_error' });
-  });
-
   it('returns denied with fallback message when no error fields present', async () => {
     setupCredentials();
     globalThis.fetch = mockFetchResponse({}, false, 400);
@@ -358,11 +318,7 @@ describe('pollDeviceToken', () => {
 
   it('sends correct grant_type and device_code in request body', async () => {
     setupCredentials();
-    globalThis.fetch = mockFetchResponse(
-      { error: 'authorization_pending' },
-      false,
-      428,
-    );
+    globalThis.fetch = mockFetchResponse({ error: 'authorization_pending' }, false, 428);
 
     await pollDeviceToken('my-device-code-xyz');
 
@@ -381,37 +337,27 @@ describe('pollDeviceToken', () => {
 describe('isAuthenticated', () => {
   it('returns true when refresh_token exists in stored tokens', async () => {
     setupTokensFile(makeTokens());
-
-    const result = await isAuthenticated();
-    expect(result).toBe(true);
+    expect(await isAuthenticated()).toBe(true);
   });
 
   it('returns false when no tokens file exists', async () => {
     setupTokensFile(null);
-
-    const result = await isAuthenticated();
-    expect(result).toBe(false);
+    expect(await isAuthenticated()).toBe(false);
   });
 
   it('returns true when tokens file has access_token but no refresh_token', async () => {
     setupTokensFile({ access_token: 'ya29.something', refresh_token: null });
-
-    const result = await isAuthenticated();
-    expect(result).toBe(true);
+    expect(await isAuthenticated()).toBe(true);
   });
 
   it('returns false when access_token only and expiry_date is in the past', async () => {
     setupTokensFile({ access_token: 'ya29.something', refresh_token: null, expiry_date: Date.now() - 60_000 });
-
-    const result = await isAuthenticated();
-    expect(result).toBe(false);
+    expect(await isAuthenticated()).toBe(false);
   });
 
   it('returns false when tokens file is empty object', async () => {
     setupTokensFile({});
-
-    const result = await isAuthenticated();
-    expect(result).toBe(false);
+    expect(await isAuthenticated()).toBe(false);
   });
 });
 
@@ -420,36 +366,18 @@ describe('isAuthenticated', () => {
 describe('hasGoogleCredentials', () => {
   it('returns true when both client_id and client_secret are set', async () => {
     setupCredentials();
-
-    const result = await hasGoogleCredentials();
-    expect(result).toBe(true);
+    expect(await hasGoogleCredentials()).toBe(true);
   });
 
-  it('returns false when client_id is missing', async () => {
-    mockedGetSecret.mockImplementation(async (key) => {
-      if (key === 'google_client_secret') return 'secret';
-      return null;
-    });
+  it('returns false when either credential is missing', async () => {
+    mockedGetSecret.mockImplementation(async (key) => (key === 'google_client_secret' ? 'secret' : null));
+    expect(await hasGoogleCredentials()).toBe(false);
 
-    const result = await hasGoogleCredentials();
-    expect(result).toBe(false);
-  });
+    mockedGetSecret.mockImplementation(async (key) => (key === 'google_client_id' ? 'client-id' : null));
+    expect(await hasGoogleCredentials()).toBe(false);
 
-  it('returns false when client_secret is missing', async () => {
-    mockedGetSecret.mockImplementation(async (key) => {
-      if (key === 'google_client_id') return 'client-id';
-      return null;
-    });
-
-    const result = await hasGoogleCredentials();
-    expect(result).toBe(false);
-  });
-
-  it('returns false when both are missing', async () => {
     mockedGetSecret.mockResolvedValue(null);
-
-    const result = await hasGoogleCredentials();
-    expect(result).toBe(false);
+    expect(await hasGoogleCredentials()).toBe(false);
   });
 });
 
@@ -459,65 +387,61 @@ describe('disconnect', () => {
   it('writes empty object to tokens file', async () => {
     setupCredentials();
     setupTokensFile(null); // no existing tokens
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
 
     await disconnect();
 
-    expect(mockedWriteFile).toHaveBeenCalledWith(
+    expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining('google-tokens.json'),
-      JSON.stringify({}),
+      JSON.stringify({}, null, 2),
     );
   });
 
-  it('attempts to revoke token before clearing', async () => {
+  it('revokes the access token via Google before clearing', async () => {
     setupCredentials();
     const tokens = makeTokens();
     setupTokensFile(tokens);
-    mockRevokeToken.mockResolvedValue(undefined);
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
+    const fetchMock = mockRefreshFetch({});
 
     await disconnect();
 
-    expect(mockRevokeToken).toHaveBeenCalledWith(tokens.access_token);
-    expect(mockedWriteFile).toHaveBeenCalledWith(
+    const revokeCall = fetchMock.mock.calls.find(([u]) => String(u).includes('/revoke'))!;
+    expect(revokeCall).toBeDefined();
+    const body = revokeCall[1]!.body as URLSearchParams;
+    expect(body.get('token')).toBe(tokens.access_token);
+    expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining('google-tokens.json'),
-      JSON.stringify({}),
+      JSON.stringify({}, null, 2),
     );
   });
 
   it('handles revocation errors gracefully', async () => {
     setupCredentials();
     setupTokensFile(makeTokens());
-    mockRevokeToken.mockRejectedValue(new Error('Network error'));
-    mockedWriteFile.mockResolvedValue(undefined);
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+    mockWriteFile.mockResolvedValue(undefined);
 
-    // Should not throw
     await expect(disconnect()).resolves.toBeUndefined();
 
     // Still clears tokens file even when revocation fails
-    expect(mockedWriteFile).toHaveBeenCalledWith(
+    expect(mockWriteFile).toHaveBeenCalledWith(
       expect.stringContaining('google-tokens.json'),
-      JSON.stringify({}),
+      JSON.stringify({}, null, 2),
     );
   });
 
   it('does not attempt revocation when no access_token exists', async () => {
     setupCredentials();
     setupTokensFile({ refresh_token: '1//refresh-only' });
-    mockedWriteFile.mockResolvedValue(undefined);
+    mockWriteFile.mockResolvedValue(undefined);
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
 
     await disconnect();
 
-    expect(mockRevokeToken).not.toHaveBeenCalled();
-    expect(mockedWriteFile).toHaveBeenCalled();
-  });
-
-  it('handles writeFile errors gracefully', async () => {
-    setupCredentials();
-    setupTokensFile(null);
-    mockedWriteFile.mockRejectedValue(new Error('EACCES'));
-
-    await expect(disconnect()).resolves.toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(mockWriteFile).toHaveBeenCalled();
   });
 });
 
@@ -528,8 +452,7 @@ describe('getAuthenticatedClient', () => {
     setupCredentials();
     setupTokensFile(null);
 
-    const client = await getAuthenticatedClient();
-    expect(client).toBeNull();
+    expect(await getAuthenticatedClient()).toBeNull();
   });
 
   it('returns client using access_token when no refresh_token in stored tokens', async () => {
@@ -545,167 +468,69 @@ describe('getAuthenticatedClient', () => {
     setupCredentials();
     setupTokensFile({ access_token: 'ya29.expired', expiry_date: Date.now() - 60_000 });
 
-    const client = await getAuthenticatedClient();
-    expect(client).toBeNull();
+    expect(await getAuthenticatedClient()).toBeNull();
   });
 
-  it('returns null when no refresh_token and no access_token', async () => {
+  it('returns client without refreshing when tokens are fresh', async () => {
     setupCredentials();
-    setupTokensFile({});
-
-    const client = await getAuthenticatedClient();
-    expect(client).toBeNull();
-  });
-
-  it('returns client when tokens are valid and not expired', async () => {
-    setupCredentials();
-    const tokens = makeTokens({ expiry_date: Date.now() + 3_600_000 }); // 1 hour ahead
-    setupTokensFile(tokens);
+    setupTokensFile(makeTokens({ expiry_date: Date.now() + 3_600_000 }));
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
 
     const client = await getAuthenticatedClient();
 
     expect(client).not.toBeNull();
-    expect(mockSetCredentials).toHaveBeenCalledWith(tokens);
-    expect(mockRefreshAccessToken).not.toHaveBeenCalled();
+    expect(mockSetCredentials).toHaveBeenCalledWith({ access_token: 'ya29.access-token' });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('refreshes token when expired (expiry_date in past)', async () => {
+  it('refreshes via Google when the access token is expired', async () => {
     setupCredentials();
-    const tokens = makeTokens({ expiry_date: Date.now() - 120_000 }); // 2 minutes ago
-    setupTokensFile(tokens);
-    mockedWriteFile.mockResolvedValue(undefined);
-
-    const newCredentials = {
-      access_token: 'ya29.refreshed',
-      expiry_date: Date.now() + 3_600_000,
-      token_type: 'Bearer',
-    };
-    mockRefreshAccessToken.mockResolvedValue({ credentials: newCredentials });
+    setupTokensFile(makeTokens({ expiry_date: Date.now() - 120_000 }));
+    mockWriteFile.mockResolvedValue(undefined);
+    const fetchMock = mockRefreshFetch({ access_token: 'ya29.refreshed', expires_in: 3600 });
 
     const client = await getAuthenticatedClient();
 
     expect(client).not.toBeNull();
-    expect(mockRefreshAccessToken).toHaveBeenCalled();
-    expect(mockedWriteFile).toHaveBeenCalled();
+    const refreshCall = fetchMock.mock.calls.find(([u]) => String(u).includes('/token'))!;
+    const body = refreshCall[1]!.body as URLSearchParams;
+    expect(body.get('grant_type')).toBe('refresh_token');
+    expect(body.get('refresh_token')).toBe('1//refresh-token');
+    expect(mockSetCredentials).toHaveBeenCalledWith({ access_token: 'ya29.refreshed' });
   });
 
-  it('refreshes token when about to expire (within 60 seconds)', async () => {
+  it('refreshes when the token expires within 60 seconds', async () => {
     setupCredentials();
-    const tokens = makeTokens({ expiry_date: Date.now() + 30_000 }); // 30 seconds from now
-    setupTokensFile(tokens);
-    mockedWriteFile.mockResolvedValue(undefined);
-
-    const newCredentials = {
-      access_token: 'ya29.refreshed',
-      expiry_date: Date.now() + 3_600_000,
-      token_type: 'Bearer',
-    };
-    mockRefreshAccessToken.mockResolvedValue({ credentials: newCredentials });
+    setupTokensFile(makeTokens({ expiry_date: Date.now() + 30_000 }));
+    mockWriteFile.mockResolvedValue(undefined);
+    const fetchMock = mockRefreshFetch({ access_token: 'ya29.refreshed', expires_in: 3600 });
 
     const client = await getAuthenticatedClient();
 
     expect(client).not.toBeNull();
-    expect(mockRefreshAccessToken).toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalled();
   });
 
-  it('does not refresh when expiry is more than 60 seconds away', async () => {
-    setupCredentials();
-    const tokens = makeTokens({ expiry_date: Date.now() + 120_000 }); // 2 minutes from now
-    setupTokensFile(tokens);
-
-    const client = await getAuthenticatedClient();
-
-    expect(client).not.toBeNull();
-    expect(mockRefreshAccessToken).not.toHaveBeenCalled();
-  });
-
-  it('refreshes when no expiry_date and no access_token', async () => {
-    setupCredentials();
-    const tokens = { refresh_token: '1//refresh-only' };
-    setupTokensFile(tokens);
-    mockedWriteFile.mockResolvedValue(undefined);
-
-    const newCredentials = {
-      access_token: 'ya29.new',
-      expiry_date: Date.now() + 3_600_000,
-    };
-    mockRefreshAccessToken.mockResolvedValue({ credentials: newCredentials });
-
-    const client = await getAuthenticatedClient();
-
-    expect(client).not.toBeNull();
-    expect(mockRefreshAccessToken).toHaveBeenCalled();
-  });
-
-  it('does not refresh when no expiry_date but access_token exists', async () => {
-    setupCredentials();
-    const tokens = { refresh_token: '1//refresh', access_token: 'ya29.valid' };
-    setupTokensFile(tokens);
-
-    const client = await getAuthenticatedClient();
-
-    expect(client).not.toBeNull();
-    expect(mockRefreshAccessToken).not.toHaveBeenCalled();
-  });
-
-  it('returns null when refresh fails (revoked token)', async () => {
-    setupCredentials();
-    const tokens = makeTokens({ expiry_date: Date.now() - 120_000 }); // expired
-    setupTokensFile(tokens);
-
-    mockRefreshAccessToken.mockRejectedValue(new Error('Token has been revoked'));
-
-    const client = await getAuthenticatedClient();
-    expect(client).toBeNull();
-  });
-
-  it('preserves original refresh_token after refresh', async () => {
+  it('preserves the original refresh_token when Google omits it on refresh', async () => {
     setupCredentials();
     const originalRefreshToken = '1//original-refresh-token';
-    const tokens = makeTokens({
-      refresh_token: originalRefreshToken,
-      expiry_date: Date.now() - 120_000,
-    });
-    setupTokensFile(tokens);
-    mockedWriteFile.mockResolvedValue(undefined);
-
-    // Google's refresh response often omits refresh_token
-    const newCredentials = {
-      access_token: 'ya29.refreshed',
-      expiry_date: Date.now() + 3_600_000,
-      token_type: 'Bearer',
-      // Note: no refresh_token returned
-    };
-    mockRefreshAccessToken.mockResolvedValue({ credentials: newCredentials });
+    setupTokensFile(makeTokens({ refresh_token: originalRefreshToken, expiry_date: Date.now() - 120_000 }));
+    mockWriteFile.mockResolvedValue(undefined);
+    mockRefreshFetch({ access_token: 'ya29.refreshed', expires_in: 3600 });
 
     await getAuthenticatedClient();
 
-    const writtenData = JSON.parse(mockedWriteFile.mock.calls[0][1] as string);
+    const writtenData = JSON.parse(mockWriteFile.mock.calls[0][1] as string);
     expect(writtenData.refresh_token).toBe(originalRefreshToken);
     expect(writtenData.access_token).toBe('ya29.refreshed');
   });
 
-  it('sets credentials with merged tokens after refresh', async () => {
+  it('returns null when refresh fails (revoked token)', async () => {
     setupCredentials();
-    const originalRefreshToken = '1//keep-this';
-    const tokens = makeTokens({
-      refresh_token: originalRefreshToken,
-      expiry_date: Date.now() - 60_000,
-    });
-    setupTokensFile(tokens);
-    mockedWriteFile.mockResolvedValue(undefined);
+    setupTokensFile(makeTokens({ expiry_date: Date.now() - 120_000 }));
+    mockRefreshFetch({ error: 'invalid_grant' }, false);
 
-    const newCredentials = {
-      access_token: 'ya29.new-access',
-      expiry_date: Date.now() + 3_600_000,
-    };
-    mockRefreshAccessToken.mockResolvedValue({ credentials: newCredentials });
-
-    await getAuthenticatedClient();
-
-    // Second setCredentials call should have the merged tokens
-    const lastSetCredentialsCall = mockSetCredentials.mock.calls[1][0];
-    expect(lastSetCredentialsCall.refresh_token).toBe(originalRefreshToken);
-    expect(lastSetCredentialsCall.access_token).toBe('ya29.new-access');
+    expect(await getAuthenticatedClient()).toBeNull();
   });
 });

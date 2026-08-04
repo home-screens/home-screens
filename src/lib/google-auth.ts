@@ -1,20 +1,29 @@
 import { google } from 'googleapis';
-import { readFile } from 'fs/promises';
-import { writeSecureFile } from '@/lib/secure-file';
 import path from 'path';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { createGoogleTokenStore, type StoredGoogleTokens } from '@/lib/google-token-store';
 import { logger } from '@/lib/logger';
 
 const log = logger('google-auth');
 
-const TOKENS_PATH = path.join(process.cwd(), 'data', 'google-tokens.json');
+/** Google Calendar auth: the OAuth device-code flow lives here; holding the
+ *  grant (persistence, proactive refresh, revocation) lives in the shared
+ *  google-token-store, which the Google Photos importer also uses. */
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 
 // ── Device Flow ──────────────────────────────────────────────────────
 // Google's device authorization endpoint (no redirect URI needed)
 const DEVICE_CODE_URL = 'https://oauth2.googleapis.com/device/code';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
+
+const store = createGoogleTokenStore({
+  tokensPath: path.join(process.cwd(), 'data', 'google-tokens.json'),
+  clientIdKey: 'google_client_id',
+  clientSecretKey: 'google_client_secret',
+  missingCredentialsMessage: 'Google OAuth Client ID and Secret are not configured. Add them in Settings → Integrations.',
+  logName: 'google-auth',
+});
 
 interface DeviceCodeResponse {
   device_code: string;
@@ -50,9 +59,7 @@ export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
 export async function pollDeviceToken(
   deviceCode: string,
 ): Promise<{ status: 'pending' | 'success' | 'expired' | 'denied'; error?: string }> {
-  const clientId = await getSecret('google_client_id');
-  const clientSecret = await getSecret('google_client_secret');
-  if (!clientId || !clientSecret) throw new Error('Google OAuth Client ID and Secret are not configured. Add them in Settings → Integrations.');
+  const { clientId, clientSecret } = await store.getClientCredentials();
 
   const res = await fetchWithTimeout(TOKEN_URL, {
     method: 'POST',
@@ -73,7 +80,7 @@ export async function pollDeviceToken(
     if (data.expires_in && !data.expiry_date) {
       data.expiry_date = Date.now() + data.expires_in * 1000;
     }
-    await writeSecureFile(TOKENS_PATH, JSON.stringify(data, null, 2));
+    await store.saveTokens(data);
     if (!data.refresh_token) {
       return {
         status: 'success',
@@ -97,118 +104,35 @@ export async function pollDeviceToken(
   return { status: 'denied', error: data.error_description || data.error || 'Unknown error' };
 }
 
-function getRedirectUri(requestUrl?: string) {
-  // Derive base URL from the incoming request so OAuth works regardless
-  // of whether the user accesses via localhost, LAN IP, or hostname.
-  if (requestUrl) {
-    const url = new URL(requestUrl);
-    return `${url.protocol}//${url.host}/api/auth/google/callback`;
-  }
-  const port = process.env.PORT || '3000';
-  const base = process.env.NEXTAUTH_URL || `http://localhost:${port}`;
-  return `${base}/api/auth/google/callback`;
+export async function loadTokens(): Promise<StoredGoogleTokens | null> {
+  return store.loadTokens();
 }
 
-async function createOAuth2Client(requestUrl?: string) {
-  const clientId = await getSecret('google_client_id');
-  const clientSecret = await getSecret('google_client_secret');
-  if (!clientId || !clientSecret) {
-    throw new Error('Google OAuth Client ID and Secret are not configured. Add them in Settings → Integrations.');
-  }
-  return new google.auth.OAuth2(clientId, clientSecret, getRedirectUri(requestUrl));
-}
-
-interface StoredTokens {
-  access_token?: string | null;
-  refresh_token?: string | null;
-  expiry_date?: number | null;
-  token_type?: string | null;
-  scope?: string;
-}
-
-export async function loadTokens(): Promise<StoredTokens | null> {
-  try {
-    const raw = await readFile(TOKENS_PATH, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
+/**
+ * A googleapis client carrying a currently valid access token. Refresh is
+ * handled by the token store before the client is built, so the client
+ * itself never needs to refresh mid-call.
+ */
 export async function getAuthenticatedClient(): Promise<import('googleapis').Common.OAuth2Client | null> {
-  const tokens = await loadTokens();
-  if (!tokens) {
-    log.error('No tokens file found at', TOKENS_PATH);
+  const accessToken = await store.getAccessToken();
+  if (!accessToken) {
+    log.error('No usable Google tokens (missing, expired without refresh token, or refresh rejected)');
     return null;
   }
-  if (!tokens.refresh_token) {
-    log.error('Tokens file exists but has no refresh_token. Keys present:', Object.keys(tokens).join(', '));
-    // Still try to use access_token if available and not expired
-    if (!tokens.access_token) return null;
-    if (tokens.expiry_date && tokens.expiry_date < Date.now()) return null;
-    try {
-      const client = await createOAuth2Client();
-      client.setCredentials(tokens);
-      return client;
-    } catch {
-      return null;
-    }
-  }
-
-  const client = await createOAuth2Client();
-  client.setCredentials(tokens);
-
-  // If token is expired or about to expire, refresh it
-  const needsRefresh = tokens.expiry_date
-    ? tokens.expiry_date < Date.now() + 60_000
-    : !tokens.access_token; // No expiry_date and no access_token → must refresh
-  if (needsRefresh) {
-    try {
-      const { credentials } = await client.refreshAccessToken();
-      // Preserve the refresh token (Google doesn't always return it on refresh)
-      const updated = { ...credentials, refresh_token: tokens.refresh_token };
-      await writeSecureFile(TOKENS_PATH, JSON.stringify(updated, null, 2));
-      client.setCredentials(updated);
-    } catch (err) {
-      log.error('Token refresh failed:', err instanceof Error ? err.message : err);
-      return null;
-    }
-  }
-
+  const { clientId, clientSecret } = await store.getClientCredentials();
+  const client = new google.auth.OAuth2(clientId, clientSecret);
+  client.setCredentials({ access_token: accessToken });
   return client;
 }
 
 export async function isAuthenticated(): Promise<boolean> {
-  const tokens = await loadTokens();
-  if (tokens?.refresh_token) return true;
-  // Access-token-only (no refresh token) — valid until expired
-  if (tokens?.access_token) {
-    if (!tokens.expiry_date) return true;
-    return tokens.expiry_date > Date.now();
-  }
-  return false;
+  return store.isConnected();
 }
 
-export async function disconnect() {
-  try {
-    const tokens = await loadTokens();
-    if (tokens?.access_token) {
-      const client = await createOAuth2Client();
-      client.setCredentials(tokens);
-      await client.revokeToken(tokens.access_token);
-    }
-  } catch {
-    // Best effort revocation
-  }
-  try {
-    await writeSecureFile(TOKENS_PATH, JSON.stringify({}));
-  } catch {
-    // Best effort cleanup
-  }
+export async function disconnect(): Promise<void> {
+  await store.disconnect();
 }
 
 export async function hasGoogleCredentials(): Promise<boolean> {
-  const clientId = await getSecret('google_client_id');
-  const clientSecret = await getSecret('google_client_secret');
-  return Boolean(clientId && clientSecret);
+  return store.hasCredentials();
 }
