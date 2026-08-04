@@ -2368,7 +2368,8 @@
       "stockSymbolsLabel": "Symboles (séparés par des virgules)",
       "cryptoIdsLabel": "Identifiants de monnaies (séparés par des virgules, CoinGecko)",
       "tickerUnitStock": "s/action",
-      "tickerUnitCoin": "s/coin"
+      "tickerUnitCoin": "s/coin",
+      "showSparkline": "Afficher la courbe de tendance"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Planning (grille en colonnes)",

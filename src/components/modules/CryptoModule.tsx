@@ -24,6 +24,7 @@ interface CryptoData {
   name: string;
   price: number;
   change24h: number;
+  sparkline?: number[];
 }
 
 function toFinancialItems(coins: CryptoData[]): FinancialItem[] {
@@ -33,6 +34,7 @@ function toFinancialItems(coins: CryptoData[]): FinancialItem[] {
     price: coin.price,
     changeValue: coin.change24h,
     changeLabel: formatPercent(coin.change24h),
+    sparkline: coin.sparkline,
   }));
 }
 
@@ -87,6 +89,7 @@ export default function CryptoModule({ config, style }: CryptoModuleProps) {
       view={config.view ?? 'cards'}
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
+      showSparkline={config.showSparkline ?? true}
       style={style}
       loadingMessage={t('crypto.loading')}
       emptyMessage={t('crypto.empty')}

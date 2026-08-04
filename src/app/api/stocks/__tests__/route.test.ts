@@ -9,7 +9,7 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, cache } from '@/app/api/stocks/route';
 
-function makeYahooResponse(price: number, previousClose: number) {
+function makeYahooResponse(price: number, previousClose: number, closes?: unknown[]) {
   return {
     chart: {
       result: [
@@ -18,13 +18,16 @@ function makeYahooResponse(price: number, previousClose: number) {
             regularMarketPrice: price,
             chartPreviousClose: previousClose,
           },
+          ...(closes ? { indicators: { quote: [{ close: closes }] } } : {}),
         },
       ],
     },
   };
 }
 
-function mockFetchSuccess(responses: Record<string, { price: number; previousClose: number }>) {
+function mockFetchSuccess(
+  responses: Record<string, { price: number; previousClose: number; closes?: unknown[] }>,
+) {
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string) => {
@@ -36,10 +39,10 @@ function mockFetchSuccess(responses: Record<string, { price: number; previousClo
           json: () => Promise.resolve({}),
         });
       }
-      const { price, previousClose } = responses[symbol];
+      const { price, previousClose, closes } = responses[symbol];
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve(makeYahooResponse(price, previousClose)),
+        json: () => Promise.resolve(makeYahooResponse(price, previousClose, closes)),
       });
     }),
   );
@@ -82,7 +85,34 @@ describe('GET /api/stocks', () => {
       price: 150.12,
       change: 1.62,
       changePercent: 1.09,
+      sparkline: [],
     });
+  });
+
+  it('requests an intraday range and returns the close series as a sparkline', async () => {
+    mockFetchSuccess({
+      AAPL: { price: 150.0, previousClose: 148.0, closes: [148.5, 149.0, 150.0] },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('interval=5m&range=1d'),
+      expect.anything(),
+    );
+    expect(json.stocks[0].sparkline).toEqual([148.5, 149, 150]);
+  });
+
+  it('drops null closes and trims sparkline precision to 6 significant digits', async () => {
+    mockFetchSuccess({
+      AAPL: { price: 150.0, previousClose: 148.0, closes: [148.123456789, null, 149.987654321] },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparkline).toEqual([148.123, 149.988]);
   });
 
   it('calculates change and changePercent correctly with rounding', async () => {

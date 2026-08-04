@@ -1,6 +1,6 @@
 {
   "prices": [
-    { "id": "bitcoin", "name": "Bitcoin", "price": 43000.5, "change24h": 2.5 },
-    { "id": "ethereum", "name": "Ethereum", "price": 2300.75, "change24h": -1.1 }
+    { "id": "bitcoin", "name": "Bitcoin", "price": 43000.5, "change24h": 2.5, "sparkline": [42000, 42400, 42200, 42800, 43100, 43000.5] },
+    { "id": "ethereum", "name": "Ethereum", "price": 2300.75, "change24h": -1.1, "sparkline": [2330, 2310, 2320, 2295, 2305, 2300.75] }
   ]
 }

@@ -25,6 +25,7 @@ interface StockData {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  sparkline?: number[];
 }
 
 function formatChange(val: number) {
@@ -42,6 +43,7 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
       price: stock.price ?? 0,
       changeValue: change,
       changeLabel: `${formatChange(change)} (${formatPercent(changePercent)})`,
+      sparkline: stock.sparkline,
     };
   });
 }
@@ -109,6 +111,7 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       view={config.view ?? 'cards'}
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
+      showSparkline={config.showSparkline ?? true}
       style={style}
       loadingMessage={t('stock-ticker.loading')}
       emptyMessage={t('stock-ticker.empty')}

@@ -23,6 +23,7 @@ interface FinancialDataModuleProps<TItem> {
   view: string;
   cardScale: number;
   tickerSpeed: number;
+  showSparkline?: boolean;
   style: ModuleStyle;
   loadingMessage: string;
   emptyMessage: string;
@@ -40,6 +41,7 @@ export default function FinancialDataModule<TItem>({
   view,
   cardScale,
   tickerSpeed,
+  showSparkline,
   style,
   loadingMessage,
   emptyMessage,
@@ -57,7 +59,7 @@ export default function FinancialDataModule<TItem>({
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'cards' && <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} />}
+      {view === 'cards' && <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline} />}
       {view === 'ticker' && <FinancialTickerView items={toFinancialItems(items)} speed={tickerSpeed} />}
       {view === 'table' && (
         <FinancialTableView

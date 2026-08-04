@@ -1,6 +1,7 @@
 'use client';
 
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
@@ -21,7 +22,7 @@ interface FinancialConfigProps {
 
 function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText }: FinancialConfigProps) {
   const t = useTranslate('editor');
-  const { config: c, set } = useModuleConfig<{ view?: FinancialView; refreshIntervalMs?: number; cardScale?: number; tickerSpeed?: number } & Record<string, unknown>>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ view?: FinancialView; refreshIntervalMs?: number; cardScale?: number; tickerSpeed?: number; showSparkline?: boolean } & Record<string, unknown>>(mod, screenId);
 
   const FINANCIAL_VIEWS: { value: FinancialView; label: string }[] = [
     { value: 'cards', label: t('configSections.financial.viewCards') },
@@ -53,6 +54,13 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           max={3}
           step={0.1}
           onChange={(v) => set({ cardScale: v })}
+        />
+      )}
+      {view === 'cards' && (
+        <Toggle
+          label={t('configSections.financial.showSparkline')}
+          checked={c.showSparkline ?? true}
+          onChange={(v) => set({ showSparkline: v })}
         />
       )}
       {view === 'ticker' && (

@@ -211,8 +211,22 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     },
   },
   news: { type: 'news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },
-  'stock-ticker': { type: 'stock-ticker', kind: 'networked', stubKey: 'stocks', expect: containsText('AAPL') },
-  crypto: { type: 'crypto', kind: 'networked', stubKey: 'crypto', expect: containsText('Bitcoin') },
+  'stock-ticker': {
+    type: 'stock-ticker', kind: 'networked', stubKey: 'stocks',
+    // Default cards view renders one sparkline per stock (showSparkline defaults on).
+    expect: async (mod) => {
+      await containsText('AAPL')(mod);
+      await expect(mod.locator('.financial-sparkline')).toHaveCount(2);
+    },
+  },
+  crypto: {
+    type: 'crypto', kind: 'networked', stubKey: 'crypto',
+    // Default cards view renders one sparkline per coin (showSparkline defaults on).
+    expect: async (mod) => {
+      await containsText('Bitcoin')(mod);
+      await expect(mod.locator('.financial-sparkline')).toHaveCount(2);
+    },
+  },
   sports: { type: 'sports', kind: 'networked', stubKey: 'sports', expect: containsText('BUF') },
   standings: { type: 'standings', kind: 'networked', stubKey: 'standings', expect: containsText('Bills') },
   traffic: {

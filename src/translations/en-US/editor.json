@@ -2363,7 +2363,8 @@
       "stockSymbolsLabel": "Symbols (comma-separated)",
       "cryptoIdsLabel": "Coin IDs (comma-separated, CoinGecko)",
       "tickerUnitStock": "sec/stock",
-      "tickerUnitCoin": "sec/coin"
+      "tickerUnitCoin": "sec/coin",
+      "showSparkline": "Show trend line"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Schedule (Column Grid)",

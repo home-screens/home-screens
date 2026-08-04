@@ -82,6 +82,13 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     config: { view: 'ticker', tickerSpeed: 20 },
     expect: tickerDuration('40s'),
   },
+  {
+    // showSparkline:false removes the trend-line SVGs the default cards render
+    // includes (presence is asserted by the stock-ticker module fixture).
+    type: 'stock-ticker', name: 'hide-sparkline', kind: 'networked', stubKey: 'stocks',
+    config: { view: 'cards', showSparkline: false },
+    expect: async (mod) => { await has('AAPL')(mod); await count('.financial-sparkline', 0)(mod); },
+  },
 
   // -- crypto --
   {
@@ -89,6 +96,13 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     type: 'crypto', name: 'ticker-speed', kind: 'networked', stubKey: 'crypto',
     config: { view: 'ticker', tickerSpeed: 20 },
     expect: tickerDuration('40s'),
+  },
+  {
+    // showSparkline:false removes the trend-line SVGs the default cards render
+    // includes (presence is asserted by the crypto module fixture).
+    type: 'crypto', name: 'hide-sparkline', kind: 'networked', stubKey: 'crypto',
+    config: { view: 'cards', showSparkline: false },
+    expect: async (mod) => { await has('Bitcoin')(mod); await count('.financial-sparkline', 0)(mod); },
   },
 
   // -- sports --

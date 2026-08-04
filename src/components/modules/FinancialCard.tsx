@@ -3,6 +3,7 @@
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
+import { Sparkline } from './financial/shared';
 
 interface FinancialCardProps {
   label: string;
@@ -10,9 +11,10 @@ interface FinancialCardProps {
   changeValue: number;
   changeLabel: string;
   scale: number;
+  sparkline?: number[];
 }
 
-export default function FinancialCard({ label, price, changeValue, changeLabel, scale }: FinancialCardProps) {
+export default function FinancialCard({ label, price, changeValue, changeLabel, scale, sparkline }: FinancialCardProps) {
   const positive = changeValue >= 0;
   const locale = useFormattingLocale();
 
@@ -29,6 +31,7 @@ export default function FinancialCard({ label, price, changeValue, changeLabel, 
       <span className={`whitespace-nowrap tabular-nums ${positive ? 'text-green-400' : 'text-red-400'}`} style={{ fontSize: `${0.75 * scale}em` }}>
         {changeLabel}
       </span>
+      {sparkline && <Sparkline points={sparkline} positive={positive} scale={scale} />}
     </ContentCard>
   );
 }

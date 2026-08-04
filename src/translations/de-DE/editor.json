@@ -2363,7 +2363,8 @@
       "stockSymbolsLabel": "Symbole (kommagetrennt)",
       "cryptoIdsLabel": "Coin-IDs (kommagetrennt, CoinGecko)",
       "tickerUnitStock": "Sek./Aktie",
-      "tickerUnitCoin": "Sek./Coin"
+      "tickerUnitCoin": "Sek./Coin",
+      "showSparkline": "Trendlinie anzeigen"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Stundenplan (Spaltenraster)",

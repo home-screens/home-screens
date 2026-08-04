@@ -811,6 +811,7 @@ export interface StockTickerConfig {
   view: StockTickerView;
   cardScale?: number;
   tickerSpeed?: number;
+  showSparkline?: boolean;  // Trend line on cards view; default true
 }
 
 // Crypto module config
@@ -822,6 +823,7 @@ export interface CryptoConfig {
   view: CryptoView;
   cardScale?: number;
   tickerSpeed?: number;
+  showSparkline?: boolean;  // Trend line on cards view; default true
 }
 
 // Word of the day module config

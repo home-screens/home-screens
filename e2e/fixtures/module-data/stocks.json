@@ -1,6 +1,6 @@
 {
   "stocks": [
-    { "symbol": "AAPL", "price": 150.25, "change": 1.23, "changePercent": 0.55 },
-    { "symbol": "MSFT", "price": 402.10, "change": -2.40, "changePercent": -0.59 }
+    { "symbol": "AAPL", "price": 150.25, "change": 1.23, "changePercent": 0.55, "sparkline": [149.1, 149.6, 149.3, 150.0, 150.4, 150.25] },
+    { "symbol": "MSFT", "price": 402.10, "change": -2.40, "changePercent": -0.59, "sparkline": [404.5, 403.8, 404.1, 403.0, 402.5, 402.1] }
   ]
 }

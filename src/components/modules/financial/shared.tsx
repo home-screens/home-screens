@@ -35,6 +35,49 @@ export function ChangeColor({ value, children }: { value: number; children: Reac
   );
 }
 
+// ── Sparkline ──
+
+interface SparklineProps {
+  points: number[];
+  positive: boolean;
+  scale: number;
+}
+
+/** Tiny trend line — colour matches the change value, shape is the price series */
+export function Sparkline({ points, positive, scale }: SparklineProps) {
+  if (points.length < 2) return null;
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = max - min;
+  const coords = points
+    .map((p, i) => {
+      const x = (i / (points.length - 1)) * 100;
+      // 2-unit padding inside the 32-unit viewBox so the stroke never clips
+      const y = range === 0 ? 16 : 30 - ((p - min) / range) * 28;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(' ');
+  return (
+    <svg
+      className={`financial-sparkline ${positive ? 'text-green-400' : 'text-red-400'}`}
+      viewBox="0 0 100 32"
+      preserveAspectRatio="none"
+      style={{ width: `${5.5 * scale}em`, height: `${1.4 * scale}em`, opacity: 0.85 }}
+      aria-hidden="true"
+    >
+      <polyline
+        points={coords}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        vectorEffect="non-scaling-stroke"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 // ── Shared item shape for cards/ticker views ──
 
 export interface FinancialItem {
@@ -43,12 +86,13 @@ export interface FinancialItem {
   price: number;
   changeValue: number;
   changeLabel: string;
+  sparkline?: number[];
 }
 
 // ── Cards View ──
 
 /** Shared cards view — grid of FinancialCards */
-export function FinancialCardsView({ items, scale }: { items: FinancialItem[]; scale: number }) {
+export function FinancialCardsView({ items, scale, showSparkline }: { items: FinancialItem[]; scale: number; showSparkline?: boolean }) {
   return (
     <div className="flex flex-wrap items-center justify-center h-full gap-3 w-full">
       {items.map((item) => (
@@ -58,6 +102,7 @@ export function FinancialCardsView({ items, scale }: { items: FinancialItem[]; s
           price={item.price}
           changeValue={item.changeValue}
           changeLabel={item.changeLabel}
+          sparkline={showSparkline ? item.sparkline : undefined}
           scale={scale}
         />
       ))}
