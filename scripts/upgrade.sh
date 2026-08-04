@@ -13,7 +13,7 @@ set -euo pipefail
 #   upgrade.sh restart                - Restart the systemd service (spawns finalize-deploy)
 #   upgrade.sh health-check           - Verify server is responding
 #   upgrade.sh setup-system           - Apply system config (services, kiosk, boot target)
-#   upgrade.sh ensure-npm             - Raise npm to the engines floor in package.json
+#   upgrade.sh ensure-runtime         - Raise Node and npm to the engines floor in package.json
 #   upgrade.sh list-backups           - List config backups
 #   upgrade.sh restore-backup <file>  - Restore a config backup
 #
@@ -303,9 +303,15 @@ case "${action}" in
     echo "{\"ok\":true,\"target\":\"${target}\"}"
     ;;
 
-  ensure-npm)
-    # .npmrc ships engine-strict=true, so an npm below the engines floor
-    # hard-fails every install. Called by deploy.sh before installing deps.
+  ensure-runtime)
+    # .npmrc ships engine-strict=true, so a Node or npm below the engines
+    # floor hard-fails every install. Called by deploy.sh before installing
+    # deps. Node goes first: a NodeSource install ships its own npm and
+    # would undo the floor if npm were raised beforehand.
+    if [ -f "${APP_DIR}/.node-version" ]; then
+      node_major=$(tr -d '[:space:]' < "${APP_DIR}/.node-version")
+      [ -n "${node_major}" ] && install_node "${node_major}" 2>&1
+    fi
     ensure_npm_floor "${APP_DIR}" 2>&1
     echo "{\"ok\":true}"
     ;;
