@@ -6,9 +6,24 @@
  * directly in `__tests__/fallback.test.ts`.
  */
 
-import type { Dictionary } from './types';
+import type { Dictionary, TranslateFn } from './types';
 import { isRegisteredLocale } from './manifest';
 import { pluralCategory, type PluralCategory } from './plural';
+
+/**
+ * Look up `key`, falling back to `fallback` when the key isn't registered —
+ * covers labels that come from a runtime registry (transition effects,
+ * fullscreen theme groups, plugin-introduced values) rather than from the
+ * dictionaries.
+ *
+ * `t()` returns the raw key path on a miss — not undefined and not falsy —
+ * so a miss is detected by comparing `result === key`; a `|| fallback` would
+ * silently render the dotted-path key.
+ */
+export function tOrFallback(t: TranslateFn, key: string, fallback: string): string {
+  const result = t(key);
+  return result === key ? fallback : result;
+}
 
 /**
  * Build the lookup chain for `locale`.

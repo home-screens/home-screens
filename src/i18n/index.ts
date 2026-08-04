@@ -8,7 +8,7 @@ export { I18nProvider, useTranslate, useLocale, useFormattingLocale, translate }
 export { formatDate, formatDateSync, formatNumber, formatRelativeTime, preloadDateLocale } from './formatters';
 export { LOCALES, FALLBACK_LOCALE, DEFAULT_LOCALE, isRegisteredLocale } from './manifest';
 export { pluralCategory } from './plural';
-export { resolveLocaleChain, lookupKey } from './fallback';
+export { resolveLocaleChain, lookupKey, tOrFallback } from './fallback';
 export {
   loadNamespace,
   hydrateFromBlob,

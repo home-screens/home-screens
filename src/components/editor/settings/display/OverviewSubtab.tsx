@@ -11,7 +11,7 @@ import {
 } from '@/lib/display-override-fields';
 import { orientDimensions } from '@/stores/editor-store';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
@@ -198,16 +198,6 @@ function OverrideChip({
 
 function formatRotationInterval(ms: number): string {
   return `${Math.round(ms / 1000)}s`;
-}
-
-/**
- * Look up a translation, but fall back to the raw value when the key isn't
- * registered — covers plugin-introduced transition effects (and any future
- * additions to the registry) without rendering the dotted-path key.
- */
-function tOrFallback(t: TranslateFn, key: string, fallback: string): string {
-  const result = t(key);
-  return result === key ? fallback : result;
 }
 
 // Shortened labels — the chip has no room for the parenthetical clarifiers

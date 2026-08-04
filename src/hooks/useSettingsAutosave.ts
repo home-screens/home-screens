@@ -12,7 +12,13 @@ import { logger } from '@/lib/logger';
 
 const log = logger('useSettingsAutosave');
 
-type SaveStatus = 'saved' | 'failed' | null;
+export type SaveStatus = 'saved' | 'failed' | null;
+
+/** Stages a partial edit into one group of the settings form state. */
+export type UpdateSettingsGroup = <K extends keyof SettingsState>(
+  group: K,
+  updates: Partial<SettingsState[K]>,
+) => void;
 
 interface UseSettingsAutosaveParams {
   /** `config.settings` — undefined until config loads. */
@@ -30,7 +36,7 @@ interface UseSettingsAutosaveParams {
 interface UseSettingsAutosaveReturn {
   state: SettingsState;
   setState: React.Dispatch<React.SetStateAction<SettingsState>>;
-  updateGroup: <K extends keyof SettingsState>(group: K, updates: Partial<SettingsState[K]>) => void;
+  updateGroup: UpdateSettingsGroup;
   saving: boolean;
   saveMessage: SaveStatus;
 }

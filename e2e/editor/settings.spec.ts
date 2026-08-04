@@ -65,6 +65,31 @@ test.describe('Defaults › Location', () => {
   });
 });
 
+test('Defaults › Screen: a custom resolution pick survives a tab switch', async ({ page, request }) => {
+  // 1080×1920 is an exact preset match, so nothing but the user's explicit
+  // "Custom..." pick keeps the width/height inputs on screen.
+  await putConfig(request, baseConfig());
+  await page.goto('/editor/settings?section=defaults&page=screen');
+
+  const row = page.locator('[data-field-id="display.canvasResolution"]');
+  const select = row.locator('select');
+  await expect(select).toHaveValue('1080');
+
+  await select.selectOption('custom');
+  await expect(row.getByPlaceholder('Width')).toBeVisible();
+  await expect(row.getByPlaceholder('Height')).toBeVisible();
+
+  // The canvas card only mounts on the appearance tab, so the pick has to be
+  // held by the page above it to survive a round trip through Sleep.
+  await page.getByTestId('screen-tab-sleep').click();
+  await expect(row).toHaveCount(0);
+  await page.getByTestId('screen-tab-appearance').click();
+
+  await expect(select).toHaveValue('custom');
+  await expect(row.getByPlaceholder('Width')).toBeVisible();
+  await expect(row.getByPlaceholder('Height')).toBeVisible();
+});
+
 test('Defaults › Alerts: editing the shared duration persists', async ({ page, request }) => {
   await putConfig(request, baseConfig()); // no alerts block → form hydrates enabled, duration 0
   await page.goto('/editor/settings?section=defaults&page=screen&panel=alerts');
