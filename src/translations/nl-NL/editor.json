@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Nooit",
         "pauseTimeoutSeconds": "{seconds}s",
         "pauseTimeoutHelp": "Hervat de rotatie automatisch na zoveel seconden. Stel in op 0 om gepauzeerd te blijven tot handmatig hervat.",
+        "swipeEnabledLabel": "Vegen om van scherm te wisselen",
+        "swipeEnabledToggle": "Ingeschakeld",
+        "swipeEnabledHelp": "Veeg ergens op het scherm naar links of rechts om naar het volgende of vorige scherm te gaan.",
         "transitionEffectLabel": "Overgangseffect",
         "transitionEffectHelp": "Animatiestijl bij het wisselen tussen schermen. Blur kan zwaar zijn voor de GPU op apparaten met weinig vermogen.",
         "transitionDurationLabel": "Duur van de overgang",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Vervagen",
-        "slide": "Schuiven naar links",
+        "slide": "Schuiven",
         "slide-up": "Schuiven omhoog",
         "zoom": "Zoom",
         "flip": "3D-flip",
@@ -585,6 +588,7 @@
           "transitionDuration": "Duur overgang",
           "pauseEnabled": "Pauze bij tikken",
           "pauseTimeoutSeconds": "Pauze-time-out",
+          "swipeEnabled": "Veegnavigatie",
           "cursorHideSeconds": "Cursor verbergen",
           "fullscreenTheme": "Thema",
           "sleep": "Slaapschema",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Vervagen",
-          "slide": "Schuiven naar links",
+          "slide": "Schuiven",
           "slide-up": "Schuiven omhoog",
           "zoom": "Zoom",
           "flip": "3D-flip",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Uiterlijk",
         "fields": {
           "rotationIntervalSeconds": "{seconds} seconden",
-          "pauseEnabledLabelDisabled": "Uitgeschakeld"
+          "pauseEnabledLabelDisabled": "Uitgeschakeld",
+          "swipeEnabledLabelDisabled": "Uitgeschakeld"
         },
         "footer": {
           "overrideCountSingular": "{count} display-override",

@@ -18,6 +18,7 @@ import { usePrefetchNextScreen } from './usePrefetchNextScreen';
 import { useScreenRotationTimer } from './useScreenRotationTimer';
 import { usePauseRotation } from './usePauseRotation';
 import { useScreenTransition } from './useScreenTransition';
+import { useSwipeNavigation } from './useSwipeNavigation';
 import { useInteractionHeld } from '@/lib/interaction-hold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
@@ -168,9 +169,19 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Every navigation releases an active rule takeover (human wins): the
   // rotation timer is suspended during a takeover, so any call here is a
   // human or remote action. The release is a no-op when no takeover is up.
+  //
+  // Backward navigation passes 'backward' so directional transition effects
+  // (slide, slide-up, flip) animate the way the navigation moves. goToScreen
+  // compares against a ref of the current index rather than listing it as a
+  // dependency — that would churn its identity (it's handed to
+  // usePauseRotation) on every screen change.
+  const safeIndexRef = useRef(safeIndex);
+  useEffect(() => { safeIndexRef.current = safeIndex; }, [safeIndex]);
+
   const goToScreen = useCallback((index: number) => {
     releaseActiveTakeover();
-    transition(() => { setCurrentIndex(index); });
+    const direction = index < safeIndexRef.current ? 'backward' : 'forward';
+    transition(() => { setCurrentIndex(index); }, direction);
   }, [releaseActiveTakeover, transition]);
 
   const nextScreen = useCallback(() => {
@@ -182,7 +193,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const prevScreen = useCallback(() => {
     releaseActiveTakeover();
     if (screens.length <= 1) return;
-    transition(() => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); });
+    transition(() => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); }, 'backward');
   }, [screens.length, releaseActiveTakeover, transition]);
 
   const resetRotation = useCallback(() => {
@@ -232,6 +243,42 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     clearPause,
     displayId,
   });
+
+  // interactionHeld gates both the swipe gesture below and the rotation
+  // timer further down: true while an overlay (e.g. an open recipe) is up.
+  const interactionHeld = useInteractionHeld();
+
+  // Flick navigation. Same triple as remote/plugin nav: navigate, grant the
+  // new screen a full dwell, resume a paused rotator. Gated at pointerdown
+  // inside the hook, and only while fully active: a flick on a dimmed or
+  // asleep display should just wake it (the sleep manager's own touch
+  // listener does that) — navigating too would land the waking user on a
+  // screen they never saw change, and would silently discard an explicit
+  // double-tap pause.
+  useSwipeNavigation({
+    enabled: (settings.swipeEnabled ?? true) && displayState === 'active' && !interactionHeld,
+    onSwipeLeft: () => { nextScreen(); resetRotation(); clearPause(); },
+    onSwipeRight: () => { prevScreen(); resetRotation(); clearPause(); },
+  });
+
+  // Chromium only honours overscroll-behavior at the document root (html/
+  // body) — on an inner div it cannot suppress the edge-swipe history
+  // gesture that would navigate the kiosk away from /display. Set it
+  // imperatively so only display surfaces opt out (globals.css is shared
+  // with the editor and /remote). --overscroll-history-navigation=0 in the
+  // kiosk launch flags is the belt-and-suspenders for this.
+  useEffect(() => {
+    const html = document.documentElement.style;
+    const body = document.body.style;
+    const prevHtml = html.overscrollBehavior;
+    const prevBody = body.overscrollBehavior;
+    html.overscrollBehavior = 'none';
+    body.overscrollBehavior = 'none';
+    return () => {
+      html.overscrollBehavior = prevHtml;
+      body.overscrollBehavior = prevBody;
+    };
+  }, []);
 
   // Perform `wake`/`sleep`-action rule firings. `useDisplayRules` reports them
   // as counters (see its docblock); both guards compare against the previous
@@ -313,7 +360,6 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // rotationEpoch resets the timer after manual navigation or on current-screen changes.
   // interactionHeld pauses rotation while an overlay (e.g. an open recipe) is
   // being read; the overlay's own auto-dismiss timers bound the hold.
-  const interactionHeld = useInteractionHeld();
   useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
@@ -328,6 +374,10 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     //      the overlay's own auto-dismiss timers bound this
     //   5. takeoverScreen  — a display rule is pinning a screen. currentIndex
     //      is untouched, so rotation resumes exactly where it was on release
+    // Unsticking paths: dot taps, remote/voice commands, and (unless
+    // swipeEnabled is off or the display is dimmed/asleep) a horizontal
+    // flick anywhere on the touchscreen — states 3-5 all yield to any of
+    // them.
     active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld && !takeoverScreen,
     resetKey: rotationEpoch,
   });

@@ -163,6 +163,7 @@ CHROMIUM_KIOSK_FLAGS=(
   --disable-session-crashed-bubble
   --disable-translate
   --autoplay-policy=no-user-gesture-required
+  --overscroll-history-navigation=0
   --remote-debugging-port=9222
   --ignore-gpu-blocklist
   --enable-zero-copy

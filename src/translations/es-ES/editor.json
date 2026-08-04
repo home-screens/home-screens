@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Nunca",
         "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Reanuda la rotación automáticamente tras estos segundos. Pon 0 para mantenerla en pausa hasta reanudar manualmente.",
+        "swipeEnabledLabel": "Deslizar para cambiar de pantalla",
+        "swipeEnabledToggle": "Activado",
+        "swipeEnabledHelp": "Desliza a la izquierda o a la derecha en cualquier parte de la pantalla para ir a la pantalla siguiente o anterior.",
         "transitionEffectLabel": "Efecto de transición",
         "transitionEffectHelp": "Estilo de animación al cambiar entre pantallas. El desenfoque puede consumir mucha GPU en dispositivos de baja potencia.",
         "transitionDurationLabel": "Duración de la transición",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Fundido",
-        "slide": "Deslizar a la izquierda",
+        "slide": "Deslizar",
         "slide-up": "Deslizar hacia arriba",
         "zoom": "Zoom",
         "flip": "Giro 3D",
@@ -585,6 +588,7 @@
           "transitionDuration": "Duración de la transición",
           "pauseEnabled": "Pausa al tocar",
           "pauseTimeoutSeconds": "Tiempo de pausa",
+          "swipeEnabled": "Navegación deslizando",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
           "sleep": "Programa de suspensión",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Fundido",
-          "slide": "Deslizar a la izquierda",
+          "slide": "Deslizar",
           "slide-up": "Deslizar hacia arriba",
           "zoom": "Zoom",
           "flip": "Giro 3D",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Apariencia",
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
-          "pauseEnabledLabelDisabled": "Desactivado"
+          "pauseEnabledLabelDisabled": "Desactivado",
+          "swipeEnabledLabelDisabled": "Desactivado"
         },
         "footer": {
           "overrideCountSingular": "{count} anulación de display",

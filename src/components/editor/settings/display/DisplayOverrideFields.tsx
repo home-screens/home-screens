@@ -234,6 +234,31 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               )}
             </OverrideRow>
           )}
+
+          <OverrideRow
+            label={t('settings.defaultDisplayPage.fields.swipeEnabledLabel')}
+            defaultValue={settings.swipeEnabled ?? true}
+            override={overrides.swipeEnabled}
+            onFork={(seed) => setOverride('swipeEnabled', seed)}
+            onReset={() => setOverride('swipeEnabled', undefined)}
+            defaultsPageHref={DEFAULTS_HREF}
+            defaultsPageLabel={DEFAULTS_LABEL}
+            formatValue={(v) =>
+              v
+                ? t('settings.defaultDisplayPage.fields.swipeEnabledToggle')
+                : t('settings.perDisplayPage.display.fields.swipeEnabledLabelDisabled')
+            }
+            displayName={display.name}
+          >
+            {({ value, onChange, disabled }) => (
+              <Toggle
+                label={t('settings.defaultDisplayPage.fields.swipeEnabledToggle')}
+                checked={value}
+                disabled={disabled}
+                onChange={onChange}
+              />
+            )}
+          </OverrideRow>
         </div>
       </div>
 

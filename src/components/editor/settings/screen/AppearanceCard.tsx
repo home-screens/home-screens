@@ -31,6 +31,7 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
     fullscreenTheme,
     pauseEnabled,
     pauseTimeoutSeconds,
+    swipeEnabled,
   } = values;
 
   // TRANSITION_OPTIONS is exported and consumed by multiple call sites
@@ -102,6 +103,18 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
             </FieldHelp>
           </div>
         )}
+      </FieldRow>
+
+      <FieldRow fieldId="display.swipeEnabled">
+        <FieldLabel>{t('settings.defaultDisplayPage.fields.swipeEnabledLabel')}</FieldLabel>
+        <Toggle
+          label={t('settings.defaultDisplayPage.fields.swipeEnabledToggle')}
+          checked={swipeEnabled}
+          onChange={(v) => onChange({ swipeEnabled: v })}
+        />
+        <FieldHelp>
+          {t('settings.defaultDisplayPage.fields.swipeEnabledHelp')}
+        </FieldHelp>
       </FieldRow>
 
       <FieldRow fieldId="display.transitionEffect">

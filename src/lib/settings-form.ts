@@ -22,6 +22,7 @@ export interface DisplayState {
   fullscreenTheme: string;
   pauseEnabled: boolean;
   pauseTimeoutSeconds: number;
+  swipeEnabled: boolean;
 }
 
 export interface LocationState {
@@ -88,6 +89,7 @@ export const FORM_DEFAULTS: SettingsState = {
     fullscreenTheme: 'linen',
     pauseEnabled: true,
     pauseTimeoutSeconds: 300,
+    swipeEnabled: true,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
@@ -122,6 +124,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       fullscreenTheme: s.fullscreenTheme ?? FORM_DEFAULTS.display.fullscreenTheme,
       pauseEnabled: s.pauseEnabled ?? FORM_DEFAULTS.display.pauseEnabled,
       pauseTimeoutSeconds: s.pauseTimeoutSeconds ?? FORM_DEFAULTS.display.pauseTimeoutSeconds,
+      swipeEnabled: s.swipeEnabled ?? FORM_DEFAULTS.display.swipeEnabled,
     },
     location: {
       lat: (s.latitude ?? s.weather.latitude)?.toString() ?? '',
@@ -180,6 +183,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
     fullscreenTheme: display.fullscreenTheme,
     pauseEnabled: display.pauseEnabled,
     pauseTimeoutSeconds: display.pauseTimeoutSeconds,
+    swipeEnabled: display.swipeEnabled,
     latitude: parsedLat,
     longitude: parsedLon,
     locationName: location.locationName ?? undefined,

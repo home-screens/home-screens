@@ -145,6 +145,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
 
   pauseEnabled?: boolean          // Allow double-tap on pagination dot to pause rotation (default true)
   pauseTimeoutSeconds?: number    // Auto-resume after this many seconds (0 = never, default 300)
+  swipeEnabled?: boolean          // Flick left/right on the touchscreen to change screens (default true)
 
   backupReminder?: {
     enabled: boolean              // Show a reminder when backup is overdue (default true)
@@ -423,6 +424,7 @@ Like `screens`, the `profiles` field is owned by the display: owned profile `scr
   cursorHideSeconds?: number
   pauseEnabled?: boolean
   pauseTimeoutSeconds?: number
+  swipeEnabled?: boolean
 }
 ```
 

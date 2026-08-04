@@ -115,6 +115,39 @@ test('a dim schedule window dims the display while keeping content present', asy
   await expect(page.getByText('DIMMED CONTENT')).toBeVisible();
 });
 
+test('a flick on a dimmed display wakes it without changing screens', async ({ page, request }) => {
+  test.setTimeout(45_000);
+  await putConfig(request, baseConfig({
+    screens: [
+      makeScreen('a', 'A', [textModule('DIM SWIPE A')]),
+      makeScreen('b', 'B', [textModule('DIM SWIPE B')]),
+    ],
+    // Frozen rotation so any screen change could only come from the flick.
+    settings: {
+      rotationIntervalMs: 3_600_000,
+      sleep: sleepSettings({ dimSchedule: windowAround(-120, 120) }),
+    },
+  }));
+  await page.goto('/display');
+  await expect(page.getByText('DIM SWIPE A')).toBeVisible();
+  await expect
+    .poll(() => overlayOpacity(page), { timeout: 30_000, intervals: [500] })
+    .toBeGreaterThan(0.5);
+
+  // The swipe gate samples displayState at pointerdown, which still reads
+  // 'dimmed' for the very touch that wakes the display — so this qualifying
+  // flick wakes (via the sleep manager's activity listener) but must not
+  // navigate.
+  await page.mouse.move(800, 1400);
+  await page.mouse.down();
+  await page.mouse.move(300, 1400, { steps: 5 });
+  await page.mouse.up();
+
+  await page.waitForTimeout(500);
+  await expect(page.getByText('DIM SWIPE A')).toBeVisible();
+  await expect(page.getByText('DIM SWIPE B')).toHaveCount(0);
+});
+
 test('a clock screensaver renders during a dim window', async ({ page, request }) => {
   test.setTimeout(45_000);
   await putConfig(request, baseConfig({

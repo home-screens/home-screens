@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import type { GlobalSettings, TransitionEffect } from '@/types/config';
-import { getTransitionConfig, getViewTransitionKeyframes } from '@/lib/transitions';
+import { getTransitionConfig, getViewTransitionKeyframes, type TransitionDirection } from '@/lib/transitions';
 
 const supportsViewTransitions =
   typeof document !== 'undefined' && 'startViewTransition' in document;
@@ -21,6 +21,7 @@ function startScreenTransition(
   effect: TransitionEffect,
   durationMs: number,
   easing: string,
+  direction: TransitionDirection,
 ) {
   if (!supportsViewTransitions || durationMs === 0 || effect === 'none') {
     updateFn();
@@ -31,7 +32,7 @@ function startScreenTransition(
     flushSync(updateFn);
   });
 
-  const kf = getViewTransitionKeyframes(effect);
+  const kf = getViewTransitionKeyframes(effect, direction);
 
   vt.ready
     .then(() => {
@@ -68,7 +69,9 @@ function startScreenTransition(
  * carried an `eslint-disable react-hooks/exhaustive-deps` to account for the
  * refs being read but not declared.
  */
-export function useScreenTransition(settings: GlobalSettings): (updateFn: () => void) => void {
+export function useScreenTransition(
+  settings: GlobalSettings,
+): (updateFn: () => void, direction?: TransitionDirection) => void {
   const tc = getTransitionConfig(settings.transitionEffect, settings.transitionDuration);
 
   const effectRef = useRef<TransitionEffect>(settings.transitionEffect ?? 'fade');
@@ -81,7 +84,9 @@ export function useScreenTransition(settings: GlobalSettings): (updateFn: () => 
     easingRef.current = tc.easing;
   }, [settings.transitionEffect, tc.duration, tc.easing]);
 
-  return useCallback((updateFn: () => void) => {
-    startScreenTransition(updateFn, effectRef.current, durationMsRef.current, easingRef.current);
+  // Direction is a per-call argument (not a ref): backward mirrors the
+  // directional effects so prev navigation animates the way it moves.
+  return useCallback((updateFn: () => void, direction: TransitionDirection = 'forward') => {
+    startScreenTransition(updateFn, effectRef.current, durationMsRef.current, easingRef.current, direction);
   }, []);
 }

@@ -259,6 +259,7 @@ Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most
 - **Dim and Sleep schedules** support overnight spans — `23:00–06:00` works and wraps past midnight as you'd expect.
 - **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (skip straight to sleep).
 - **Touchscreen Pause** (on by default) — double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
+- **Swipe to change screens** (on by default) — flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.
 - **Theme** sets the color scheme used by the full-screen modules, not the editor.
 
 Sleep and dimming draw a black layer over the page rather than powering the panel down, so a dimmed display is still backlit. That distinction matters when [diagnosing a black screen](/docs/raspberry-pi#screen-keeps-going-black).

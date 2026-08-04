@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Never",
         "pauseTimeoutSeconds": "{seconds}s",
         "pauseTimeoutHelp": "Automatically resume rotation after this many seconds. Set to 0 to stay paused until manually resumed.",
+        "swipeEnabledLabel": "Swipe to change screens",
+        "swipeEnabledToggle": "Enabled",
+        "swipeEnabledHelp": "Flick left or right anywhere on the screen to go to the next or previous screen.",
         "transitionEffectLabel": "Transition effect",
         "transitionEffectHelp": "Animation style when cycling between screens. Blur may be GPU-intensive on low-power devices.",
         "transitionDurationLabel": "Transition duration",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Fade",
-        "slide": "Slide Left",
+        "slide": "Slide",
         "slide-up": "Slide Up",
         "zoom": "Zoom",
         "flip": "3D Flip",
@@ -585,6 +588,7 @@
           "transitionDuration": "Transition duration",
           "pauseEnabled": "Pause on tap",
           "pauseTimeoutSeconds": "Pause timeout",
+          "swipeEnabled": "Swipe navigation",
           "cursorHideSeconds": "Hide cursor",
           "fullscreenTheme": "Theme",
           "sleep": "Sleep schedule",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Fade",
-          "slide": "Slide Left",
+          "slide": "Slide",
           "slide-up": "Slide Up",
           "zoom": "Zoom",
           "flip": "3D Flip",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Appearance",
         "fields": {
           "rotationIntervalSeconds": "{seconds} seconds",
-          "pauseEnabledLabelDisabled": "Disabled"
+          "pauseEnabledLabelDisabled": "Disabled",
+          "swipeEnabledLabelDisabled": "Disabled"
         },
         "footer": {
           "overrideCountSingular": "{count} display override",

@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Jamais",
         "pauseTimeoutSeconds": "{seconds} s",
         "pauseTimeoutHelp": "Reprend automatiquement la rotation après ce nombre de secondes. Mets 0 pour rester en pause jusqu'à reprise manuelle.",
+        "swipeEnabledLabel": "Balayer pour changer d'écran",
+        "swipeEnabledToggle": "Activé",
+        "swipeEnabledHelp": "Balaie vers la gauche ou la droite n'importe où sur l'écran pour passer à l'écran suivant ou précédent.",
         "transitionEffectLabel": "Effet de transition",
         "transitionEffectHelp": "Style d'animation lors du passage d'un écran à l'autre. Le flou peut solliciter le GPU sur les appareils peu puissants.",
         "transitionDurationLabel": "Durée de la transition",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Fondu",
-        "slide": "Glisser à gauche",
+        "slide": "Glisser",
         "slide-up": "Glisser vers le haut",
         "zoom": "Zoom",
         "flip": "Retournement 3D",
@@ -585,6 +588,7 @@
           "transitionDuration": "Durée de transition",
           "pauseEnabled": "Pause au toucher",
           "pauseTimeoutSeconds": "Délai de pause",
+          "swipeEnabled": "Navigation par balayage",
           "cursorHideSeconds": "Masquer le curseur",
           "fullscreenTheme": "Thème",
           "sleep": "Calendrier de veille",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Fondu",
-          "slide": "Glisser à gauche",
+          "slide": "Glisser",
           "slide-up": "Glisser vers le haut",
           "zoom": "Zoom",
           "flip": "Retournement 3D",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Apparence",
         "fields": {
           "rotationIntervalSeconds": "{seconds} secondes",
-          "pauseEnabledLabelDisabled": "Désactivée"
+          "pauseEnabledLabelDisabled": "Désactivée",
+          "swipeEnabledLabelDisabled": "Désactivé"
         },
         "footer": {
           "overrideCountSingular": "{count} surcharge d'affichage",

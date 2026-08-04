@@ -143,4 +143,42 @@ describe('getViewTransitionKeyframes', () => {
       }
     }
   });
+
+  describe('backward direction', () => {
+    it('mirrors slide: enters from left, exits to right', () => {
+      const { enter, exit } = getViewTransitionKeyframes('slide', 'backward');
+      expect(enter[0].transform).toContain('translate3d(-100%,0,0)');
+      expect(exit[exit.length - 1].transform).toContain('translate3d(100%,0,0)');
+    });
+
+    it('mirrors slide-up into a slide-down: enters from top, exits to bottom', () => {
+      const { enter, exit } = getViewTransitionKeyframes('slide-up', 'backward');
+      expect(enter[0].transform).toContain('translate3d(0,-100%,0)');
+      expect(exit[exit.length - 1].transform).toContain('translate3d(0,100%,0)');
+    });
+
+    it('mirrors flip: rotateY signs are negated', () => {
+      const { enter, exit } = getViewTransitionKeyframes('flip', 'backward');
+      expect(enter[0].transform).toContain('rotateY(-90deg)');
+      expect(exit[exit.length - 1].transform).toContain('rotateY(90deg)');
+    });
+
+    it('leaves non-directional effects unchanged', () => {
+      for (const effect of ['fade', 'crossfade', 'zoom', 'blur', 'none'] as TransitionEffect[]) {
+        const forward = getViewTransitionKeyframes(effect, 'forward');
+        const backward = getViewTransitionKeyframes(effect, 'backward');
+        expect(backward.enter, `enter for ${effect}`).toEqual(forward.enter);
+        expect(backward.exit, `exit for ${effect}`).toEqual(forward.exit);
+      }
+    });
+
+    it('omitting direction is identical to forward', () => {
+      for (const effect of allEffects) {
+        const implicit = getViewTransitionKeyframes(effect);
+        const explicit = getViewTransitionKeyframes(effect, 'forward');
+        expect(explicit.enter, `enter for ${effect}`).toEqual(implicit.enter);
+        expect(explicit.exit, `exit for ${effect}`).toEqual(implicit.exit);
+      }
+    });
+  });
 });

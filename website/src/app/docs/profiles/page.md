@@ -271,8 +271,8 @@ Configure the animation between screens in **Settings > Screen > Rotation & appe
 | Effect | Description |
 |---|---|
 | **Fade** | Cross-dissolve between screens (default) |
-| **Slide Left** | Old screen slides left, new slides in from right |
-| **Slide Up** | Old screen slides up, new slides in from bottom |
+| **Slide** | Old screen slides out, new slides in — the direction follows the navigation (forward slides left, backward slides right) |
+| **Slide Up** | Old screen slides up, new slides in from bottom (reversed when navigating backward) |
 | **Zoom** | Old screen zooms out, new zooms in |
 | **3D Flip** | Perspective flip between screens |
 | **Blur** | Dissolve through a blur (may be GPU-intensive on low-power devices) |
@@ -283,7 +283,9 @@ Transition duration is configurable from 0.3 to 2.0 seconds. All effects except 
 
 ### Manual navigation
 
-The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. **Double-tap the active (highlighted) dot** to pause screen rotation — double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Screen) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
+The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. On a touchscreen you can also **flick left or right anywhere on the display** to go to the next or previous screen (on by default; turn it off with **Swipe to change screens** in Settings > Screen). **Double-tap the active (highlighted) dot** to pause screen rotation — double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Screen) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
+
+If your kiosk runs a custom Chromium setup, adding the `--overscroll-history-navigation=0` flag keeps an edge swipe from triggering the browser's own back gesture. The display page also disables overscroll navigation at the document root, but the flag is the most dependable guard.
 
 ---
 

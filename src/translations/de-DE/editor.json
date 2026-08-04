@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Nie",
         "pauseTimeoutSeconds": "{seconds}s",
         "pauseTimeoutHelp": "Setzt den Bildschirmwechsel nach Ablauf dieser Zeit automatisch fort. Setze auf 0, um pausiert zu bleiben, bis manuell fortgesetzt wird.",
+        "swipeEnabledLabel": "Wischen zum Bildschirmwechsel",
+        "swipeEnabledToggle": "Aktiviert",
+        "swipeEnabledHelp": "Wische irgendwo auf dem Bildschirm nach links oder rechts, um zum nächsten oder vorherigen Bildschirm zu wechseln.",
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Animationsstil beim Wechsel zwischen Bildschirmen. „Unschärfe“ kann auf leistungsschwachen Geräten GPU-intensiv sein.",
         "transitionDurationLabel": "Übergangsdauer",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Überblenden",
-        "slide": "Nach links schieben",
+        "slide": "Schieben",
         "slide-up": "Nach oben schieben",
         "zoom": "Zoom",
         "flip": "3D-Drehung",
@@ -585,6 +588,7 @@
           "transitionDuration": "Übergangsdauer",
           "pauseEnabled": "Pause per Tippen",
           "pauseTimeoutSeconds": "Pause-Timeout",
+          "swipeEnabled": "Wisch-Navigation",
           "cursorHideSeconds": "Mauszeiger ausblenden",
           "fullscreenTheme": "Design",
           "sleep": "Schlafzeitplan",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Überblenden",
-          "slide": "Nach links schieben",
+          "slide": "Schieben",
           "slide-up": "Nach oben schieben",
           "zoom": "Zoom",
           "flip": "3D-Drehung",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Erscheinungsbild",
         "fields": {
           "rotationIntervalSeconds": "{seconds} Sekunden",
-          "pauseEnabledLabelDisabled": "Deaktiviert"
+          "pauseEnabledLabelDisabled": "Deaktiviert",
+          "swipeEnabledLabelDisabled": "Deaktiviert"
         },
         "footer": {
           "overrideCountSingular": "{count} Anzeige-Überschreibung",

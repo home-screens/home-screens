@@ -521,6 +521,9 @@
         "pauseTimeoutNever": "Nunca",
         "pauseTimeoutSeconds": "{seconds}s",
         "pauseTimeoutHelp": "Retoma a rotação automaticamente após esse número de segundos. Defina como 0 para permanecer pausado até retomar manualmente.",
+        "swipeEnabledLabel": "Deslizar para trocar de tela",
+        "swipeEnabledToggle": "Ativado",
+        "swipeEnabledHelp": "Deslize para a esquerda ou direita em qualquer lugar da tela para ir à tela seguinte ou anterior.",
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Estilo de animação ao alternar entre telas. Desfoque pode exigir muito da GPU em dispositivos mais fracos.",
         "transitionDurationLabel": "Duração da transição",
@@ -534,7 +537,7 @@
       },
       "transitionOptions": {
         "fade": "Fade",
-        "slide": "Deslizar à esquerda",
+        "slide": "Deslizar",
         "slide-up": "Deslizar para cima",
         "zoom": "Zoom",
         "flip": "Giro 3D",
@@ -585,6 +588,7 @@
           "transitionDuration": "Duração da transição",
           "pauseEnabled": "Pausa ao tocar",
           "pauseTimeoutSeconds": "Tempo de pausa",
+          "swipeEnabled": "Navegação por deslize",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
           "sleep": "Agenda de suspensão",
@@ -598,7 +602,7 @@
         },
         "transitionLabels": {
           "fade": "Fade",
-          "slide": "Deslizar à esquerda",
+          "slide": "Deslizar",
           "slide-up": "Deslizar para cima",
           "zoom": "Zoom",
           "flip": "Giro 3D",
@@ -645,7 +649,8 @@
         "appearanceHeading": "Aparência",
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
-          "pauseEnabledLabelDisabled": "Desativada"
+          "pauseEnabledLabelDisabled": "Desativada",
+          "swipeEnabledLabelDisabled": "Desativado"
         },
         "footer": {
           "overrideCountSingular": "{count} substituição de tela",

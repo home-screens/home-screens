@@ -306,6 +306,8 @@ export interface GlobalSettings {
   fullscreenTheme?: string;
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
+  /** Flick left/right on the touchscreen to change screens. Default true. */
+  swipeEnabled?: boolean;
   backupReminder?: BackupReminderSettings;
   updateNotification?: UpdateNotificationSettings;
   /** BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US". */
@@ -389,6 +391,7 @@ export interface DisplayNodeSettings {
   cursorHideSeconds?: number;
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
+  swipeEnabled?: boolean;
   alerts?: AlertSettings;
 
   // NOTE: per-display location overrides (latitude/longitude/locationName/

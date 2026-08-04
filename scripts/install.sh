@@ -385,6 +385,7 @@ exec chromium \
   --disable-session-crashed-bubble \
   --disable-translate \
   --autoplay-policy=no-user-gesture-required \
+  --overscroll-history-navigation=0 \
   --check-for-update-interval=31536000 \
   --password-store=basic \
   --ozone-platform=wayland \
