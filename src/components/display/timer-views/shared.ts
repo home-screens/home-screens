@@ -4,13 +4,23 @@ import type { MaterializedTimerSession, RoutineStep } from '@/types/timers';
 /** Fraction of the step remaining at which the almost-done nudge kicks in. */
 export const NUDGE_FRACTION = 0.2;
 
+/**
+ * The canvas the timer mockups were authored on (portrait 1080×1920). The
+ * overlay covers the raw viewport — not the scaled screen renderer — so the
+ * view scale is the viewport fit of THIS canvas, never the display's
+ * configured canvas (a landscape display's canvas fit is ~1, which would
+ * overflow the portrait composition vertically).
+ */
+export const TIMER_CANVAS_W = 1080;
+export const TIMER_CANVAS_H = 1920;
+
 export type TimerTranslate = (key: string, vars?: Record<string, string | number>) => string;
 
 /**
  * Common contract for the four takeover views. All sizes inside views are
- * mockup pixels (1080-wide portrait canvas) multiplied by `s`, the same
- * canvas scale AlertOverlay uses, so the views reproduce the approved mockup
- * proportions on any display resolution.
+ * mockup pixels (1080×1920 portrait canvas) multiplied by `s`, the viewport
+ * fit of that canvas (`min(vw/1080, vh/1920)`), so the views reproduce the
+ * approved mockup proportions — and fit — on any display shape.
  */
 export interface TimerViewProps {
   session: MaterializedTimerSession;

@@ -14,7 +14,7 @@ export default function CascadeTimerView({
   const next = isRoutine ? session.steps[session.stepIndex + 1] : undefined;
 
   return (
-    <div style={{ position: 'absolute', inset: 0, backgroundColor: '#0c0f14', color: '#fff', overflow: 'hidden' }}>
+    <div data-testid="timer-view" data-timer-view="cascade" style={{ position: 'absolute', inset: 0, backgroundColor: '#0c0f14', color: '#fff', overflow: 'hidden' }}>
       <div
         style={{
           position: 'absolute', left: 0, right: 0, bottom: 0,

@@ -32,7 +32,7 @@ export default function PathTimerView({
   const ringMask = 'radial-gradient(closest-side, transparent 89%, #000 89.5%)';
 
   const bubbleStyle = (dim: number): CSSProperties => ({
-    width: 170 * s, height: 170 * s, borderRadius: '50%',
+    width: 170 * s, height: 170 * s, borderRadius: '50%', flexShrink: 0,
     backgroundColor: '#262051', border: `${4 * s}px solid rgba(255,255,255,0.22)`,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: 78 * s, lineHeight: 1,
@@ -41,6 +41,8 @@ export default function PathTimerView({
 
   return (
     <div
+      data-testid="timer-view"
+      data-timer-view="path"
       style={{
         position: 'absolute', inset: 0, color: '#fff', overflow: 'hidden',
         background: 'radial-gradient(140% 100% at 80% 0%, #2b1f5e 0%, #1a1440 45%, #100c2a 100%)',
@@ -100,8 +102,9 @@ export default function PathTimerView({
           )}
 
           <div
+            data-testid="timer-dial"
             style={{
-              position: 'relative', width: 560 * s, height: 560 * s, borderRadius: '50%',
+              position: 'relative', width: 560 * s, height: 560 * s, borderRadius: '50%', flexShrink: 0,
               backgroundColor: '#221b50', display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center', textAlign: 'center',
             }}

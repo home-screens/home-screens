@@ -21,6 +21,8 @@ export default function RingTimerView({
 
   return (
     <div
+      data-testid="timer-view"
+      data-timer-view="ring"
       style={{
         position: 'absolute',
         inset: 0,
@@ -51,7 +53,7 @@ export default function RingTimerView({
         </div>
       )}
 
-      <div style={{ position: 'relative', width: 720 * s, height: 720 * s, marginTop: 110 * s }}>
+      <div data-testid="timer-dial" style={{ position: 'relative', width: 720 * s, height: 720 * s, marginTop: 110 * s, flexShrink: 0 }}>
         <div
           style={{
             position: 'absolute', inset: 0, borderRadius: '50%',

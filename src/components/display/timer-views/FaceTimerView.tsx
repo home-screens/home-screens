@@ -18,6 +18,8 @@ export default function FaceTimerView({
 
   return (
     <div
+      data-testid="timer-view"
+      data-timer-view="face"
       style={{
         position: 'absolute',
         inset: 0,
@@ -37,7 +39,10 @@ export default function FaceTimerView({
         </div>
       )}
 
-      <div style={{ position: 'relative', width: 780 * s, height: 780 * s, marginTop: 130 * s }}>
+      {/* flexShrink 0: the dial's children are all absolutely positioned, so
+          its min-content height is 0 and column overflow (e.g. a long wrapped
+          routine title) would squash the circle into an oval. */}
+      <div data-testid="timer-dial" style={{ position: 'relative', width: 780 * s, height: 780 * s, marginTop: 130 * s, flexShrink: 0 }}>
         <div
           style={{
             position: 'absolute', inset: 0, borderRadius: '50%', backgroundColor: '#fff',

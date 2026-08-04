@@ -28,6 +28,8 @@ export default function TimerCelebration({
 
   return (
     <div
+      data-testid="timer-view"
+      data-timer-view="celebration"
       style={{
         position: 'absolute', inset: 0, overflow: 'hidden', color: '#fff',
         background: 'radial-gradient(120% 90% at 50% 30%, #0f2018 0%, #0a1410 55%, #070d0a 100%)',
@@ -47,8 +49,9 @@ export default function TimerCelebration({
       ))}
 
       <div
+        data-testid="timer-dial"
         style={{
-          marginTop: 460 * s, width: 400 * s, height: 400 * s, borderRadius: '50%',
+          marginTop: 460 * s, width: 400 * s, height: 400 * s, borderRadius: '50%', flexShrink: 0,
           backgroundColor: 'rgba(52,211,153,0.14)', border: `${8 * s}px solid #34d399`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 200 * s, fontWeight: 800, color: '#34d399',

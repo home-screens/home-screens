@@ -5,7 +5,7 @@ import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, TimerSession } from '@/types/timers';
-import { NUDGE_FRACTION, formatQuickName } from './timer-views/shared';
+import { NUDGE_FRACTION, TIMER_CANVAS_H, TIMER_CANVAS_W, formatQuickName } from './timer-views/shared';
 import { playTimerSound } from './timer-views/timer-sounds';
 import RingTimerView from './timer-views/RingTimerView';
 import FaceTimerView from './timer-views/FaceTimerView';
@@ -19,8 +19,13 @@ const TICK_MS = 250;
 interface TimerOverlayProps {
   /** Undefined on the legacy single-display route — matches every session. */
   displayId?: string;
-  /** Canvas scale from ScreenRotator (same one AlertOverlay uses). */
-  scale?: number;
+  /**
+   * Measured viewport from ScreenRotator. The views scale against the timer
+   * mockup canvas (1080×1920), NOT the display's configured canvas — a
+   * landscape display's canvas-fit scale is ~1, which would overflow the
+   * portrait composition and let flexbox squash the clock faces into ovals.
+   */
+  viewport?: { w: number; h: number };
 }
 
 /**
@@ -35,7 +40,7 @@ interface TimerOverlayProps {
  * alerts still surface. Rotation continues underneath, covered — when the
  * session ends the display is exactly where rotation would have put it.
  */
-export default function TimerOverlay({ displayId, scale = 1 }: TimerOverlayProps) {
+export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps) {
   const t = useTranslate('core');
   const [serverSession, setServerSession] = useState<TimerSession | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -129,10 +134,15 @@ export default function TimerOverlay({ displayId, scale = 1 }: TimerOverlayProps
 
   if (!live || !matches || live.status === 'cancelled') return null;
 
-  const s = scale;
+  // 0 until the rotator has measured the viewport — same invisible-first-frame
+  // convention as the screen renderer, preventing an unscaled flash.
+  const s = viewport && viewport.w > 0
+    ? Math.min(viewport.w / TIMER_CANVAS_W, viewport.h / TIMER_CANVAS_H)
+    : 0;
 
   return (
     <div
+      data-testid="timer-overlay"
       style={{
         position: 'absolute',
         inset: 0,
