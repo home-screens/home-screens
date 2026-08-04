@@ -12,6 +12,8 @@ export type SecretKey =
   | 'tomtom_key'
   | 'google_client_id'
   | 'google_client_secret'
+  | 'google_web_client_id'
+  | 'google_web_client_secret'
   | 'github_token'
   | 'immich_url'
   | 'immich_api_key';
@@ -30,6 +32,8 @@ const ALL_KEYS: SecretKey[] = [
   'tomtom_key',
   'google_client_id',
   'google_client_secret',
+  'google_web_client_id',
+  'google_web_client_secret',
   'github_token',
   'immich_url',
   'immich_api_key',

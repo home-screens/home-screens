@@ -11,6 +11,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
+import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
 import type { ModuleInstance } from '@/types/config';
 
@@ -120,6 +121,16 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
               <p className="text-[10px] text-hs-text-faint mt-1">{t('configSections.photo-slideshow.noPhotosInFolder')}</p>
             )}
           </div>
+
+          {/* Google Photos → local library import (Picker API). On finish,
+              point the slideshow at the import folder so photos show up
+              without further clicks. */}
+          <GooglePhotosImportSection
+            onImported={(folder) => {
+              set({ directory: folder });
+              fetchPreviews(folder);
+            }}
+          />
         </>
       )}
 

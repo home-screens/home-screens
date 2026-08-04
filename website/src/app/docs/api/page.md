@@ -685,6 +685,8 @@ Returns which API keys are configured (as booleans, not the actual values). Requ
   "tomtom_key": false,
   "google_client_id": true,
   "google_client_secret": true,
+  "google_web_client_id": false,
+  "google_web_client_secret": false,
   "github_token": false,
   "immich_url": false,
   "immich_api_key": false

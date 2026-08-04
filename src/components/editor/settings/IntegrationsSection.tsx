@@ -50,7 +50,9 @@ type Integration = {
 };
 
 const INTEGRATIONS: Integration[] = [
-  { name: 'Google', keys: ['google_client_id', 'google_client_secret', 'google_maps_key'] },
+  // The web-client keys count toward "any key configured" (summary bar) but
+  // are excluded from the card's Connected/partial status — see cardStatus.
+  { name: 'Google', keys: ['google_client_id', 'google_client_secret', 'google_web_client_id', 'google_web_client_secret', 'google_maps_key'] },
   { name: 'Immich', keys: ['immich_url', 'immich_api_key'] },
   { name: 'Unsplash', keys: ['unsplash_access_key'] },
   { name: 'NASA', keys: ['nasa_api_key'] },
@@ -96,6 +98,8 @@ export default function IntegrationsSection() {
     return {
       visibleIntegrations: visible,
       cardStatus: {
+        // The Photos-import web client is optional — it must not demote a
+        // fully configured Calendar+Maps setup from "Connected" to "partial".
         google: getStatusInfo(status, ['google_client_id', 'google_client_secret', 'google_maps_key'], t),
         immich: getStatusInfo(status, ['immich_url', 'immich_api_key'], t),
         unsplash: getStatusInfo(status, ['unsplash_access_key'], t),
@@ -174,6 +178,27 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.google.clientSecretPlaceholder')}
               helpText={t('settings.integrationsPage.google.clientSecretHelp')}
               status={!!status.google_client_secret}
+              onSaved={refetch}
+            />
+          </div>
+          {/* Google Photos import uses a separate "Web application" OAuth
+              client: the picker scope is rejected by the TV/device flow the
+              calendar client uses. */}
+          <div className="border-t border-hs-border-strong/60 mt-4 pt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <SecretField
+              label={t('settings.integrationsPage.google.webClientIdLabel')}
+              secretKey="google_web_client_id"
+              placeholder={t('settings.integrationsPage.google.clientIdPlaceholder')}
+              helpText={t('settings.integrationsPage.google.webClientIdHelp')}
+              status={!!status.google_web_client_id}
+              onSaved={refetch}
+            />
+            <SecretField
+              label={t('settings.integrationsPage.google.webClientSecretLabel')}
+              secretKey="google_web_client_secret"
+              placeholder={t('settings.integrationsPage.google.clientSecretPlaceholder')}
+              helpText={t('settings.integrationsPage.google.webClientSecretHelp')}
+              status={!!status.google_web_client_secret}
               onSaved={refetch}
             />
           </div>

@@ -444,6 +444,15 @@ test('photo-slideshow: switching Transition persists', async ({ page, request })
   expect((await moduleConfig(request, 'photo-slideshow')).transition).toBe('none');
 });
 
+test('photo-slideshow: the Google Photos import panel opens and reports setup state', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('photo-slideshow'));
+
+  // The local source shows an import entry point; the sandbox has no Google
+  // web client secrets, so opening it lands on the setup hint.
+  await page.getByRole('button', { name: 'Import from Google Photos' }).click();
+  await expect(page.getByText('add a Google Photos import Client ID')).toBeVisible();
+});
+
 test('qr-code: switching Mode persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('qr-code', {
     mode: 'custom', data: 'https://example.com/e2e', label: 'E2E QR',

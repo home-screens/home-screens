@@ -149,6 +149,34 @@ iCloud shared albums work without an Apple account or API key — all you need i
 
 ---
 
+## Google Photos
+
+Google no longer lets apps read your photo library directly, but it does let you hand-pick photos to share — so Home Screens brings them in as an import. You choose photos in Google Photos itself, and they download into your library's `google-photos` folder as ordinary local files. After that, no Google connection is needed to display them: they keep working even if you disconnect. Re-running an import only downloads photos you haven't imported before.
+
+### One-time setup
+
+Google Photos needs its own sign-in credential, separate from the Google Calendar one (Google requires a different credential type for this):
+
+1. In [Google Cloud console](https://console.cloud.google.com/apis/credentials) (the same project you may already use for Google Calendar), go to **APIs & Services > Credentials** and create an **OAuth client ID** with the type **Web application**
+2. Under **Authorized redirect URIs**, add exactly `https://homescreens.dev/connect/google` (leave **Authorized JavaScript origins** empty)
+3. In the **API Library**, search for **Google Photos Picker API** and enable it
+4. Paste the new client ID and secret into **Settings > API keys**, in the Google card's **Photos Import** fields
+
+The redirect page at homescreens.dev is just a message board: after you approve access, Google sends your browser there, and the page shows a code to copy back into the editor. It never sees your password, your secret, or your photos.
+
+### Importing photos
+
+1. Select a Photo slideshow or Full-screen photo module and click **Import from Google Photos** (under the folder picker)
+2. The first time, click **Sign in with Google**, approve access, and paste the code you're given
+3. Click **Choose photos** — Google Photos opens with its own photo picker
+4. Pick the photos you want and confirm; the import starts on its own and shows progress as it saves
+
+When it finishes, the module automatically points at the `google-photos` folder. To add more photos later, run the import again and pick more — existing photos are skipped, new ones are added.
+
+Photos are saved as high-quality display-sized copies (up to 4096 pixels on the long edge), which keeps imports fast and light on the SD card. Imports are capped at 2000 photos at a time.
+
+---
+
 ## Background rotation
 
 Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, Immich, or an iCloud shared album.

@@ -62,6 +62,8 @@ Supported secret keys:
 | `tomtom_key` | Traffic module (TomTom) |
 | `google_client_id` | Google Calendar OAuth |
 | `google_client_secret` | Google Calendar OAuth |
+| `google_web_client_id` | Google Photos import (web application OAuth client) |
+| `google_web_client_secret` | Google Photos import (web application OAuth client) |
 | `nasa_api_key` | Background rotation (NASA APOD) |
 | `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
 | `immich_api_key` | Immich API key (Account Settings → API Keys) |

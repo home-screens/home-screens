@@ -108,7 +108,15 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-2NF75R9G5W');
+            // /connect/* pages carry single-use OAuth codes in the query
+            // string — never let those reach Analytics as page_location.
+            // (The connect page also replaceState-strips its query on load;
+            // this guard covers the window before that effect runs.)
+            var gtagConfig = {};
+            if (location.pathname.indexOf('/connect/') === 0) {
+              gtagConfig.page_location = location.origin + location.pathname;
+            }
+            gtag('config', 'G-2NF75R9G5W', gtagConfig);
           `}
         </Script>
         <Providers>{children}</Providers>

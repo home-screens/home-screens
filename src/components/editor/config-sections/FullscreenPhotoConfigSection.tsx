@@ -12,6 +12,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
 import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
+import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
@@ -177,6 +178,17 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
                 <p className="text-[10px] text-hs-text-faint mt-1">{t('configSections.fullscreen-photo.noPhotosInFolder')}</p>
               )}
             </div>
+          )}
+
+          {/* Google Photos → local library import (Picker API); slideshow
+              mode only, since a single-photo module picks one file. */}
+          {!isSinglePhoto && (
+            <GooglePhotosImportSection
+              onImported={(folder) => {
+                set({ directory: folder });
+                fetchPreviews(folder);
+              }}
+            />
           )}
         </>
       )}

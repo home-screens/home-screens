@@ -126,7 +126,7 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 ### Full-Screen Photo Viewer
 
-A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, or an iCloud shared album, **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
+A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, or an iCloud shared album (with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
 
 The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label — nothing stores a "mode" setting on the module itself.
 
@@ -787,7 +787,7 @@ MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone re
 
 ### Photo Slideshow
 
-Rotates through images from a local directory, an Immich photo library, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade.
+Rotates through images from a local directory, an Immich photo library, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library — see [Google Photos](/docs/backgrounds#google-photos).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
