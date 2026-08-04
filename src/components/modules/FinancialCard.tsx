@@ -20,7 +20,7 @@ export default function FinancialCard({ label, price, changeValue, changeLabel, 
 
   return (
     <ContentCard
-      className="flex flex-col items-center"
+      className="flex flex-col items-center justify-center"
       style={{
         padding: `${0.75 * scale}em ${1 * scale}em`,
         gap: `${0.25 * scale}em`,

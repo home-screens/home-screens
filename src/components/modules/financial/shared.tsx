@@ -91,10 +91,15 @@ export interface FinancialItem {
 
 // ── Cards View ──
 
-/** Shared cards view — grid of FinancialCards */
+/** Shared cards view — grid of FinancialCards. Equal grid tracks (not
+ * flex-wrap) so cards on different rows stay column-aligned regardless
+ * of how wide each card's price/change text is. */
 export function FinancialCardsView({ items, scale, showSparkline }: { items: FinancialItem[]; scale: number; showSparkline?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center justify-center h-full gap-3 w-full">
+    <div
+      className="grid content-center h-full gap-3 w-full"
+      style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${9 * scale}em, 1fr))` }}
+    >
       {items.map((item) => (
         <FinancialCard
           key={item.key}
