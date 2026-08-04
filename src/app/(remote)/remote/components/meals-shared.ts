@@ -68,12 +68,42 @@ export const INPUT_STYLE: React.CSSProperties = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 };
 
+// Section heading shared by the meal-settings sheet's sections
+export const SECTION_HEADING_STYLE: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 700,
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  color: 'var(--hs-text-faint)',
+  margin: '0 0 8px',
+};
+
 export const CARD_STYLE: React.CSSProperties = {
   background: 'var(--hs-bg-card)',
   border: '1px solid var(--hs-border)',
   borderRadius: 12,
   padding: 14,
 };
+
+/**
+ * The sub-views the Meals tab switches between, in nav order. The array is the
+ * source of truth: `MealsSubNav` maps over it, so a new member renders a tab
+ * instead of silently existing only in the type.
+ */
+export const MEALS_SUB_VIEWS = ['week', 'plan', 'library', 'grocery'] as const;
+
+export type MealsSubView = (typeof MEALS_SUB_VIEWS)[number];
+
+/**
+ * A pending destructive action awaiting confirmation. The Meals tab keeps at
+ * most one of these at a time and renders it as a `ConfirmSheet`.
+ */
+export interface MealsConfirmAction {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+}
 
 export interface MealsViewProps {
   savedMeals: SavedMeal[];

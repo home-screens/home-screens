@@ -9,10 +9,13 @@
  * stay in the editor; this sheet is purely about meal management.
  */
 
-import { useState, useRef } from 'react';
-import type { MealSettings, MealSlotType } from '@/types/config';
-import { SLOT_ORDER, SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
+import type { MealSettings } from '@/types/config';
 import { useTranslate } from '@/i18n';
+import { useMealsSettingsDraft } from '../hooks/useMealsSettingsDraft';
+import MealsSettingsSlotsSection from './MealsSettingsSlotsSection';
+import MealsSettingsWeekStartSection from './MealsSettingsWeekStartSection';
+import MealsSettingsTimeFormatSection from './MealsSettingsTimeFormatSection';
+import MealsSettingsDefaultTimesSection from './MealsSettingsDefaultTimesSection';
 
 interface MealsSettingsSheetProps {
   settings: MealSettings;
@@ -25,56 +28,9 @@ interface MealsSettingsSheetProps {
 export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsSettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
-  // Slot labels live in the `modules` namespace under `meal-planner.slots.*`,
-  // so we need a second translator to resolve `getMealSlotLabelKey` against
-  // the dictionary that already ships those keys.
-  const tModules = useTranslate('modules');
 
-  // Local working copy so the user can cancel without persisting partial edits.
-  // Sync draft ONLY on mount (not on every settings prop change) — otherwise a
-  // parent optimistic update during an in-flight save would silently overwrite
-  // the user's in-progress edits while the sheet is open.
-  const initialSettingsRef = useRef(settings);
-  const [draft, setDraft] = useState<MealSettings>(() => initialSettingsRef.current);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const toggleSlot = (slot: MealSlotType) => {
-    const has = draft.enabledSlots.includes(slot);
-    const next = has
-      ? draft.enabledSlots.filter((s) => s !== slot)
-      : [...draft.enabledSlots, slot];
-    if (next.length === 0) return; // require at least one
-    setDraft({ ...draft, enabledSlots: next });
-  };
-
-  const setDefaultTime = (slot: MealSlotType, time: string | undefined) => {
-    const nextTimes = { ...draft.defaultSlotTimes };
-    if (time) {
-      nextTimes[slot] = time;
-    } else {
-      delete nextTimes[slot];
-    }
-    setDraft({ ...draft, defaultSlotTimes: nextTimes });
-  };
-
-  const handleSave = async () => {
-    if (saving) return;
-    setSaving(true);
-    setSaveError(null);
-    try {
-      const ok = await onSave(draft);
-      if (ok) {
-        onClose();
-      } else {
-        setSaveError(t('mealsSettings.save.saveFailed'));
-      }
-    } catch {
-      setSaveError(t('mealsSettings.save.networkError'));
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { draft, setDraft, toggleSlot, setDefaultTime, saving, saveError, handleSave } =
+    useMealsSettingsDraft(settings, onSave, onClose);
 
   return (
     <div
@@ -152,293 +108,27 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
 
         {/* Body */}
         <div style={{ overflow: 'auto', padding: '16px 16px 80px', flex: 1 }}>
-          {/* ── Meal Slots ── */}
-          <section style={{ marginBottom: 24 }}>
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.06em',
-                color: 'var(--hs-text-faint)',
-                margin: '0 0 8px',
-              }}
-            >
-              {t('mealsSettings.slots.heading')}
-            </h4>
-            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              {t('mealsSettings.slots.description')}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {SLOT_ORDER.map((slot) => {
-                const isEnabled = draft.enabledSlots.includes(slot);
-                const meta = SLOT_META[slot];
-                const slotLabel = tModules(getMealSlotLabelKey(slot));
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => toggleSlot(slot)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: '12px 14px',
-                      minHeight: 50,
-                      borderRadius: 10,
-                      border: isEnabled
-                        ? `1px solid ${meta.color}40`
-                        : '1px solid var(--hs-border)',
-                      background: isEnabled ? `${meta.color}12` : 'var(--hs-bg-panel)',
-                      color: 'inherit',
-                      cursor: 'pointer',
-                      textAlign: 'left' as const,
-                      fontFamily: 'inherit',
-                    }}
-                    aria-pressed={isEnabled}
-                    aria-label={
-                      isEnabled
-                        ? t('mealsSettings.slots.toggleAriaLabelEnabled', { label: slotLabel })
-                        : t('mealsSettings.slots.toggleAriaLabelDisabled', { label: slotLabel })
-                    }
-                  >
-                    <div
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 4,
-                        border: `2px solid ${isEnabled ? meta.color : 'var(--hs-text-faint)'}`,
-                        background: isEnabled ? meta.color : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {isEnabled && (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </div>
-                    <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: 'var(--hs-text-primary)' }}>
-                      {slotLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <MealsSettingsSlotsSection
+            enabledSlots={draft.enabledSlots}
+            onToggleSlot={toggleSlot}
+          />
 
-          {/* ── Week Start ── */}
-          <section style={{ marginBottom: 24 }}>
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.06em',
-                color: 'var(--hs-text-faint)',
-                margin: '0 0 8px',
-              }}
-            >
-              {t('mealsSettings.weekStart.heading')}
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {(['sunday', 'monday'] as const).map((day) => {
-                const isSelected = draft.weekStartDay === day;
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => setDraft({ ...draft, weekStartDay: day })}
-                    style={{
-                      padding: '12px',
-                      minHeight: 48,
-                      borderRadius: 10,
-                      border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
-                      color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                    aria-pressed={isSelected}
-                  >
-                    {day === 'sunday'
-                      ? t('mealsSettings.weekStart.sunday')
-                      : t('mealsSettings.weekStart.monday')}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <MealsSettingsWeekStartSection
+            weekStartDay={draft.weekStartDay}
+            onChange={(day) => setDraft({ ...draft, weekStartDay: day })}
+          />
 
-          {/* ── Time Format ── */}
-          <section style={{ marginBottom: 24 }}>
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.06em',
-                color: 'var(--hs-text-faint)',
-                margin: '0 0 8px',
-              }}
-            >
-              {t('mealsSettings.timeFormat.heading')}
-            </h4>
-            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              {t('mealsSettings.timeFormat.description')}
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {(['12h', '24h'] as const).map((fmt) => {
-                const isSelected = draft.timeFormat === fmt;
-                const sample = fmt === '12h' ? '6:30 PM' : '18:30';
-                return (
-                  <button
-                    key={fmt}
-                    type="button"
-                    onClick={() => setDraft({ ...draft, timeFormat: fmt })}
-                    style={{
-                      padding: '12px',
-                      minHeight: 56,
-                      borderRadius: 10,
-                      border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                      background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
-                      color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      display: 'flex',
-                      flexDirection: 'column' as const,
-                      alignItems: 'center',
-                      gap: 2,
-                    }}
-                    aria-pressed={isSelected}
-                  >
-                    <span style={{ fontSize: 14, fontWeight: 700 }}>
-                      {fmt === '12h'
-                        ? t('mealsSettings.timeFormat.twelveHourLabel')
-                        : t('mealsSettings.timeFormat.twentyFourHourLabel')}
-                    </span>
-                    <span style={{ fontSize: 11, fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>{sample}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+          <MealsSettingsTimeFormatSection
+            timeFormat={draft.timeFormat}
+            onChange={(fmt) => setDraft({ ...draft, timeFormat: fmt })}
+          />
 
-          {/* ── Default Serving Times ── */}
-          <section>
-            <h4
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase' as const,
-                letterSpacing: '0.06em',
-                color: 'var(--hs-text-faint)',
-                margin: '0 0 8px',
-              }}
-            >
-              {t('mealsSettings.defaultTimes.heading')}
-            </h4>
-            <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
-              {t('mealsSettings.defaultTimes.description')}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {draft.enabledSlots.map((slot) => {
-                const meta = SLOT_META[slot];
-                const currentTime = draft.defaultSlotTimes[slot];
-                const presets = getSlotTimePresets(slot);
-                const slotLabel = tModules(getMealSlotLabelKey(slot));
-                return (
-                  <div
-                    key={slot}
-                    style={{
-                      padding: 12,
-                      borderRadius: 10,
-                      border: '1px solid var(--hs-border)',
-                      background: 'var(--hs-bg-panel)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: meta.color }}>
-                        {slotLabel}
-                      </span>
-                      {currentTime && (
-                        <button
-                          type="button"
-                          onClick={() => setDefaultTime(slot, undefined)}
-                          style={{
-                            minHeight: 28,
-                            padding: '4px 10px',
-                            borderRadius: 6,
-                            border: '1px solid var(--hs-border)',
-                            background: 'transparent',
-                            color: 'var(--hs-text-muted)',
-                            fontSize: 11,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                          }}
-                          aria-label={t('mealsSettings.defaultTimes.clearAriaLabel', { name: slotLabel })}
-                        >
-                          {t('mealsSettings.defaultTimes.clear')}
-                        </button>
-                      )}
-                    </div>
-                    <input
-                      type="time"
-                      value={currentTime ?? ''}
-                      onChange={(e) => setDefaultTime(slot, e.target.value || undefined)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        minHeight: 44,
-                        borderRadius: 8,
-                        border: '1px solid var(--hs-border)',
-                        background: 'var(--hs-bg-body)',
-                        color: 'var(--hs-text-primary)',
-                        fontSize: 15,
-                        fontFamily: 'inherit',
-                        colorScheme: 'dark',
-                        marginBottom: 8,
-                      }}
-                      aria-label={t('mealsSettings.defaultTimes.timeInputAriaLabel', { name: slotLabel })}
-                    />
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
-                      {presets.map((preset) => {
-                        const isSelected = preset === currentTime;
-                        return (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => setDefaultTime(slot, preset)}
-                            style={{
-                              padding: '8px',
-                              minHeight: 36,
-                              borderRadius: 6,
-                              border: isSelected ? `1px solid ${meta.color}` : '1px solid var(--hs-border)',
-                              background: isSelected ? `${meta.color}15` : 'var(--hs-bg-body)',
-                              color: isSelected ? meta.color : 'var(--hs-text-muted)',
-                              fontSize: 12,
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontVariantNumeric: 'tabular-nums',
-                              fontFamily: 'inherit',
-                            }}
-                          >
-                            {formatMealTime(preset, draft.timeFormat)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          <MealsSettingsDefaultTimesSection
+            enabledSlots={draft.enabledSlots}
+            defaultSlotTimes={draft.defaultSlotTimes}
+            timeFormat={draft.timeFormat}
+            onSetTime={setDefaultTime}
+          />
         </div>
 
         {/* Footer — sticky save bar */}
