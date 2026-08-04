@@ -132,5 +132,23 @@
         "other": "Outros"
       }
     }
+  },
+  "timer": {
+    "stepCount": "Passo {current} de {total}",
+    "quickName": "Timer de {minutes} minutos",
+    "almostDone": "Quase lá!",
+    "done": "Pronto!",
+    "paused": "Pausado",
+    "allDone": "Tudo pronto!",
+    "timesUp": "O tempo acabou!",
+    "finished": "{name} concluído",
+    "stepsDone": "passos feitos",
+    "totalTime": "tempo total",
+    "nextUp": "A seguir:",
+    "minutesShort": "{minutes} min",
+    "moreSteps": "+{count} mais",
+    "progressWords": "{done} feitos · {left} restantes",
+    "quickNameSeconds": "Timer de {seconds} segundos",
+    "quickNameClock": "Timer de {time}"
   }
 }

@@ -92,6 +92,7 @@ describe('GET /api/backup', () => {
         'choreCompletions',
         'meals',
         'rewards',
+        'routines',
       ].sort(),
     );
     // Nothing in the serialized bundle looks like a bearer/api key value.
@@ -144,6 +145,7 @@ describe('POST /api/backup — restore', () => {
       choreCompletions: true,
       meals: true,
       rewards: true,
+      routines: true,
     });
 
     expect((await readConfig()).screens[0].id).toBe('roundtrip-screen');

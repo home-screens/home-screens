@@ -132,5 +132,23 @@
         "other": "Overig"
       }
     }
+  },
+  "timer": {
+    "stepCount": "Stap {current} van {total}",
+    "quickName": "Timer van {minutes} minuten",
+    "almostDone": "Bijna klaar!",
+    "done": "Klaar!",
+    "paused": "Gepauzeerd",
+    "allDone": "Alles klaar!",
+    "timesUp": "De tijd is om!",
+    "finished": "{name} is klaar",
+    "stepsDone": "stappen gedaan",
+    "totalTime": "totale tijd",
+    "nextUp": "Hierna:",
+    "minutesShort": "{minutes} min",
+    "moreSteps": "+{count} meer",
+    "progressWords": "{done} gedaan · {left} te gaan",
+    "quickNameSeconds": "Timer van {seconds} seconden",
+    "quickNameClock": "Timer van {time}"
   }
 }

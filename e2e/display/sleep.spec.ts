@@ -130,6 +130,12 @@ test('a flick on a dimmed display wakes it without changing screens', async ({ p
   }));
   await page.goto('/display');
   await expect(page.getByText('DIM SWIPE A')).toBeVisible();
+  // Position the cursor BEFORE the display dims: mousemove is a wake-activity
+  // event, and a move after dimming races the pointerdown against React
+  // committing the wake — on a slow runner the gate samples 'active' and the
+  // flick navigates. A real touch has no such prelude (pointerdown precedes
+  // touchstart), so parking the cursor first matches hardware ordering.
+  await page.mouse.move(800, 1400);
   await expect
     .poll(() => overlayOpacity(page), { timeout: 30_000, intervals: [500] })
     .toBeGreaterThan(0.5);
@@ -138,7 +144,6 @@ test('a flick on a dimmed display wakes it without changing screens', async ({ p
   // 'dimmed' for the very touch that wakes the display — so this qualifying
   // flick wakes (via the sleep manager's activity listener) but must not
   // navigate.
-  await page.mouse.move(800, 1400);
   await page.mouse.down();
   await page.mouse.move(300, 1400, { steps: 5 });
   await page.mouse.up();

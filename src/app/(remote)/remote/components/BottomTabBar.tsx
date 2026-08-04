@@ -14,6 +14,12 @@ const CONTROL_TAB: Tab = {
   svgPath: 'M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7',
 };
 
+const TIMERS_TAB: Tab = {
+  id: 'timers',
+  labelKey: 'tabs.timers',
+  svgPath: 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z',
+};
+
 const CHORES_TAB: Tab = {
   id: 'chores',
   labelKey: 'tabs.chores',
@@ -42,12 +48,13 @@ interface BottomTabBarProps {
 
 export default function BottomTabBar({ activeTab, onChange, hasChores, hasMeals, hasPhotos }: BottomTabBarProps) {
   const t = useTranslate('remote');
-  const tabs: Tab[] = [CONTROL_TAB];
+  // Timers is always present — it's the invocation surface for display
+  // timers and needs no module or config to exist, so the bar always has
+  // at least Control + Timers.
+  const tabs: Tab[] = [CONTROL_TAB, TIMERS_TAB];
   if (hasChores) tabs.push(CHORES_TAB);
   if (hasMeals) tabs.push(MEALS_TAB);
   if (hasPhotos) tabs.push(PHOTOS_TAB);
-
-  if (tabs.length < 2) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">

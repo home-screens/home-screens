@@ -181,6 +181,21 @@ body {
   to { transform: translateX(100%); }
 }
 
+/* Gentle breathing of the timer overlay's almost-done state — a nudge,
+   never an alarm (see TimerOverlay). */
+@keyframes hs-timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Slow confetti drift on the timer celebration screen. Each piece sets its
+   own base rotation via --hs-confetti-rotate (an animated transform would
+   otherwise override the inline one). */
+@keyframes hs-timer-confetti {
+  from { transform: translateY(0) rotate(var(--hs-confetti-rotate, 0deg)); }
+  to { transform: translateY(28px) rotate(calc(var(--hs-confetti-rotate, 0deg) + 40deg)); }
+}
+
 .animate-ticker-scroll {
   animation: ticker-scroll linear infinite;
 }
@@ -234,6 +249,19 @@ body {
 }
 
 ::view-transition-group(sleep-overlay) {
+  animation: none;
+  z-index: 9997;
+}
+
+/* Timer takeover opts out of screen-rotation transitions the same way the
+   sleep overlay does; later rule wins the z tie so a running timer paints
+   over the sleep dim during a transition, matching the DOM order. */
+::view-transition-old(timer-overlay),
+::view-transition-new(timer-overlay) {
+  animation: none;
+}
+
+::view-transition-group(timer-overlay) {
   animation: none;
   z-index: 9997;
 }

@@ -130,6 +130,8 @@ describe('POST /api/backup — cross-file rollback', () => {
       choreCompletions: true,
       meals: true,
       rewards: true,
+      // This bundle carries no routines — flag present but false.
+      routines: false,
     });
     // Each store written exactly once (no rollback path taken).
     expect(writeConfig).toHaveBeenCalledTimes(1);

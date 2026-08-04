@@ -132,5 +132,23 @@
         "other": "Andet"
       }
     }
+  },
+  "timer": {
+    "stepCount": "Trin {current} af {total}",
+    "quickName": "{minutes} minutters timer",
+    "almostDone": "Næsten færdig!",
+    "done": "Færdig!",
+    "paused": "På pause",
+    "allDone": "Alt er klaret!",
+    "timesUp": "Tiden er gået!",
+    "finished": "{name} er færdig",
+    "stepsDone": "trin klaret",
+    "totalTime": "samlet tid",
+    "nextUp": "Næste:",
+    "minutesShort": "{minutes} min.",
+    "moreSteps": "+{count} mere",
+    "progressWords": "{done} klaret · {left} tilbage",
+    "quickNameSeconds": "{seconds} sekunders timer",
+    "quickNameClock": "{time}-timer"
   }
 }

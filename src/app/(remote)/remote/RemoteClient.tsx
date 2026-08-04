@@ -23,6 +23,7 @@ import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import BottomTabBar from './components/BottomTabBar';
 import ChoresTab from './components/ChoresTab';
+import TimersTab from './components/TimersTab';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
 
@@ -223,11 +224,13 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
             )}
 
             {/* Bottom spacer for fixed tab bar */}
-            {(hasChores || hasMeals || hasPhotos) && <div className="h-20" />}
+            <div className="h-20" />
 
             <AlertSender open={alertOpen} onClose={() => setAlertOpen(false)} />
             <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onBackup={backup.handleBackup} backupBusy={backup.busy} />
           </>
+        ) : activeTab === 'timers' ? (
+          <TimersTab />
         ) : activeTab === 'chores' ? (
           <>
             <div className="px-4 pb-8 pt-4">
@@ -251,9 +254,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           </>
         ) : null}
 
-        {(hasChores || hasMeals || hasPhotos) && (
-          <BottomTabBar activeTab={activeTab} onChange={setActiveTab} hasChores={hasChores} hasMeals={hasMeals} hasPhotos={hasPhotos} />
-        )}
+        <BottomTabBar activeTab={activeTab} onChange={setActiveTab} hasChores={hasChores} hasMeals={hasMeals} hasPhotos={hasPhotos} />
       </div>
     </DisplayTargetContext.Provider>
   );

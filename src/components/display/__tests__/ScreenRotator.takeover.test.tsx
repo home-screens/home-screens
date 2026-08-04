@@ -32,6 +32,7 @@ vi.mock('../SleepOverlay', () => ({
 vi.mock('../BackgroundProviderLayer', () => ({ default: () => null }));
 vi.mock('../PluginServiceLayer', () => ({ default: () => null }));
 vi.mock('../AlertOverlay', () => ({ default: () => null }));
+vi.mock('../TimerOverlay', () => ({ default: () => null }));
 vi.mock('../NetworkIndicator', () => ({ default: () => null }));
 
 // --- Mock the network/data hooks so the component runs offline & deterministic.

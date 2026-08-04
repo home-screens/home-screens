@@ -5,6 +5,7 @@ import { readChoreData, writeChoreData } from '@/lib/chore-data';
 import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
+import { readRoutinesFile, writeRoutinesFile } from '@/lib/timer-data';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { validateDisplays } from '@/lib/display-filter';
@@ -14,12 +15,13 @@ export const dynamic = 'force-dynamic';
 
 // GET — export a full backup bundle
 export const GET = withAuth(async () => {
-  const [config, chores, completions, meals, rewards] = await Promise.all([
+  const [config, chores, completions, meals, rewards, routines] = await Promise.all([
     readConfig(),
     readChoreData(),
     readCompletions(),
     readMealData(),
     readRewardData(),
+    readRoutinesFile(),
   ]);
 
   const bundle = {
@@ -31,6 +33,7 @@ export const GET = withAuth(async () => {
     choreCompletions: completions,
     meals,
     rewards,
+    routines,
   };
 
   // Record backup timestamp (fire-and-forget) — write both fields directly
@@ -69,6 +72,7 @@ interface RestoreBundle {
   choreCompletions?: Parameters<typeof writeCompletions>[0];
   meals?: Parameters<typeof writeMealData>[0];
   rewards?: Parameters<typeof writeRewardData>[0];
+  routines?: Parameters<typeof writeRoutinesFile>[0];
   screens?: unknown;
   settings?: unknown;
 }
@@ -111,6 +115,7 @@ export const POST = withAuth(async (request: NextRequest) => {
       completions: body.choreCompletions ? await readCompletions() : null,
       meals: body.meals ? await readMealData() : null,
       rewards: body.rewards ? await readRewardData() : null,
+      routines: body.routines ? await readRoutinesFile() : null,
     };
 
     // Track which writes actually landed (post-await) so rollback only
@@ -138,6 +143,10 @@ export const POST = withAuth(async (request: NextRequest) => {
         await writeRewardData(body.rewards);
         rollbacks.push(() => writeRewardData(snapshots.rewards!));
       }
+      if (body.routines) {
+        await writeRoutinesFile(body.routines);
+        rollbacks.push(() => writeRoutinesFile(snapshots.routines!));
+      }
     } catch (err) {
       // Best-effort rollback in reverse order. allSettled so one failed
       // revert doesn't block the others — surface the original error either way.
@@ -152,6 +161,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         choreCompletions: !!body.choreCompletions,
         meals: !!body.meals,
         rewards: !!body.rewards,
+        routines: !!body.routines,
       },
     });
   }

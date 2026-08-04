@@ -7,6 +7,7 @@ import BackgroundProviderLayer from './BackgroundProviderLayer';
 import PluginServiceLayer from './PluginServiceLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
+import TimerOverlay from './TimerOverlay';
 import NetworkIndicator from './NetworkIndicator';
 import PaginationDots from './PaginationDots';
 import { useDisplayControl } from './useDisplayControl';
@@ -453,6 +454,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
         screensaver={settings.screensaver}
         timezone={settings.timezone}
       />
+
+      {/* Same z as SleepOverlay but later in DOM, so a running timer shows
+          over a sleeping display (starting one is an explicit wake intent)
+          while urgent alerts (9998) still surface above it. */}
+      <TimerOverlay displayId={displayId} scale={scale} />
     </div>
   );
 }
