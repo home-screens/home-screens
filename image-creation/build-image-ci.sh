@@ -46,7 +46,10 @@ TARBALL_SHA256=""
 SIZE_MB=6144
 KEEP_WORK=false
 SKIP_XZ=false
-OUT_DIR="${SCRIPT_DIR}/.out"
+# Deliberately NOT a dot-directory: actions/upload-artifact and other glob
+# consumers skip hidden paths by default, so a .out/ here silently uploads
+# nothing.
+OUT_DIR="${SCRIPT_DIR}/out"
 CACHE_DIR="${SCRIPT_DIR}/.cache/base"
 WORK_DIR="${SCRIPT_DIR}/.work"
 

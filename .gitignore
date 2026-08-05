@@ -81,4 +81,4 @@ scripts/check-config.cjs
 # Image builder scratch (base image cache, loop mounts, output images)
 image-creation/.cache/
 image-creation/.work/
-image-creation/.out/
+image-creation/out/

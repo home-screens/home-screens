@@ -198,8 +198,8 @@ jobs:
         with:
           name: pi-image
           path: |
-            image-creation/.out/*.img.xz
-            image-creation/.out/*.img.xz.sha256
+            image-creation/out/*.img.xz
+            image-creation/out/*.img.xz.sha256
           if-no-files-found: error
 
       # Adds the image to the release the build job already created. Assets are
@@ -209,7 +209,7 @@ jobs:
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
-            image-creation/.out/*.img.xz
-            image-creation/.out/*.img.xz.sha256
+            image-creation/out/*.img.xz
+            image-creation/out/*.img.xz.sha256
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
