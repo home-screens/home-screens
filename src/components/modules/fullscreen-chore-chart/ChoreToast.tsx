@@ -102,7 +102,7 @@ function ToastEntry({
           border: 'none',
           color: 'var(--fcc-accent)',
           cursor: 'pointer',
-          touchAction: 'manipulation',
+          touchAction: 'pan-y',
           borderRadius: 8,
         }}
         aria-label={t(

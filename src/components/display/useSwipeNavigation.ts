@@ -36,6 +36,16 @@ interface UseSwipeNavigationOptions {
  *   chart keeps scrolling vertically (a vertical scroll fires pointercancel,
  *   which aborts tracking).
  *
+ * Depends on `touch-action: pan-y` across the display subtree (html/body
+ * plus a `body *` sheet, set by ScreenRotator's root-style effect): without
+ * it, real-touch horizontal flicks are claimed by Chromium as pan gestures —
+ * by the viewport or by any vertically-scrollable module region under the
+ * finger — and die in pointercancel before the classifier ever runs. The
+ * sheet's two exceptions (range inputs, [data-swipe-ignore]) are exactly the
+ * surfaces this hook excludes at pointerdown. Mouse input (dev, Playwright
+ * CDP) never goes through the gesture recognizer, so only a physical
+ * touchscreen exposes the dependency.
+ *
  * Flick-vs-tap needs no suppression code on touch: a tap stays inside
  * Chromium's ~15px touch slop (far under the 60px swipe floor), and a real
  * flick that starts on a button has its click cancelled by the browser once

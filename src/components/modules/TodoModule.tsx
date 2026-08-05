@@ -216,7 +216,7 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
                     onClick={() => toggle(item.id)}
                     aria-pressed={item.completed}
                     className="flex items-start gap-2 w-full text-left py-2.5 cursor-pointer select-none active:opacity-60 transition-opacity"
-                    style={{ minHeight: 44, opacity, touchAction: 'manipulation' }}
+                    style={{ minHeight: 44, opacity, touchAction: 'pan-y' }}
                   >
                     <TodoRow item={item} accentColor={accentColor} />
                   </button>

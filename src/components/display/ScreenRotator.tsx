@@ -268,16 +268,46 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // imperatively so only display surfaces opt out (globals.css is shared
   // with the editor and /remote). --overscroll-history-navigation=0 in the
   // kiosk launch flags is the belt-and-suspenders for this.
+  //
+  // touch-action: pan-y is what keeps flick navigation alive on a real
+  // touchscreen: with a permissive touch-action (auto/manipulation), Chromium
+  // claims a horizontal touch pan as a scroll gesture — at the viewport even
+  // though /display has nothing to scroll, and at any vertically-scrollable
+  // module region (chore lists, agendas) even though they never scroll
+  // sideways — and fires pointercancel, so useSwipeNavigation never sees the
+  // pointerup (mouse input skips the gesture recognizer, which is why dev
+  // and E2E never hit this). The effective touch-action is resolved per
+  // touched element, so the root alone is not enough: the subtree rule
+  // covers every module region. The only two surfaces that legitimately own
+  // a horizontal touch drag get their gestures back — the same two
+  // useSwipeNavigation excludes at pointerdown. Inline touchAction styles
+  // would override the sheet, so display modules must not set values looser
+  // than pan-y. Side effect, welcome on a kiosk: pinch-zoom and double-tap
+  // zoom are gone.
   useEffect(() => {
     const html = document.documentElement.style;
     const body = document.body.style;
     const prevHtml = html.overscrollBehavior;
     const prevBody = body.overscrollBehavior;
+    const prevHtmlTouch = html.touchAction;
+    const prevBodyTouch = body.touchAction;
     html.overscrollBehavior = 'none';
     body.overscrollBehavior = 'none';
+    html.touchAction = 'pan-y';
+    body.touchAction = 'pan-y';
+    const sheet = document.createElement('style');
+    sheet.textContent = [
+      'body * { touch-action: pan-y; }',
+      "body input[type='range'] { touch-action: none; }",
+      'body [data-swipe-ignore], body [data-swipe-ignore] * { touch-action: auto; }',
+    ].join('\n');
+    document.head.appendChild(sheet);
     return () => {
       html.overscrollBehavior = prevHtml;
       body.overscrollBehavior = prevBody;
+      html.touchAction = prevHtmlTouch;
+      body.touchAction = prevBodyTouch;
+      sheet.remove();
     };
   }, []);
 

@@ -327,7 +327,7 @@ export default function FullscreenChoreChartModule({
                 {config.showTimeOfDay && (
                   <TimeBandHeader tod={tod} fontSize={fontSize} currentTod={currentTod} style={{ padding: `${fontSize * 0.6}px ${fontSize * 0.8}px`, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }} />
                 )}
-                <div style={{ flex: 1, overflowY: 'auto', padding: `${fontSize * 0.3}px ${fontSize * 0.5}px`, scrollbarWidth: 'none', touchAction: 'manipulation' }}>
+                <div style={{ flex: 1, overflowY: 'auto', padding: `${fontSize * 0.3}px ${fontSize * 0.5}px`, scrollbarWidth: 'none', touchAction: 'pan-y' }}>
                   {rows.map((row, i) => (
                     <ChoreRowItem key={row.choreId} row={row} fontSize={fontSize} dotSize={dotSize} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
                   ))}
@@ -337,7 +337,7 @@ export default function FullscreenChoreChartModule({
           })}
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${pad}px`, scrollbarWidth: 'none', minHeight: 0, touchAction: 'manipulation' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${pad}px`, scrollbarWidth: 'none', minHeight: 0, touchAction: 'pan-y' }}>
           {displayTods.map((tod) => {
             const rows = displayGroups.get(tod) ?? [];
             return (

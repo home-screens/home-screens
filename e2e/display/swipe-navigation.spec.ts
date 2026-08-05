@@ -18,6 +18,13 @@ import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
  * A 5-step drag completes well inside the 500ms flick window; the slow-drag
  * case holds between down() and the move to exceed it.
  *
+ * Mouse input is NOT sufficient coverage on its own: it skips Chromium's
+ * touch gesture recognizer, which claims horizontal touch pans as viewport
+ * scroll gestures and kills the flick with pointercancel unless html/body
+ * carry touch-action: pan-y (ScreenRotator's root-style effect). The
+ * real-touch group at the bottom dispatches genuine touch sequences over CDP
+ * to pin that path.
+ *
  * Timing convention matches rotator-interactions.spec.ts: negative claims use
  * a bounded wait ("did not navigate"), positive claims a generous expect.
  */
@@ -165,6 +172,88 @@ test('a flick while paused navigates and resumes rotation', async ({ page, reque
   await flick(page, { x: 800, y: 1400 }, { x: 300, y: 1400 });
   await expect(page.getByText(B, { exact: true })).toBeVisible();
   await expect(page.getByText('PAUSED')).toHaveCount(0);
+});
+
+/**
+ * Real-touch gestures, dispatched as raw CDP touch sequences so they run
+ * through Chromium's gesture recognizer — the path a physical touchscreen
+ * takes and page.mouse never does. Regression for the spoke-touchscreen bug
+ * where every flick died in pointercancel: with default touch-action the
+ * browser claimed the horizontal pan as a (pointless — nothing scrolls)
+ * viewport scroll gesture. touch-action: pan-y on html/body is the fix.
+ */
+test.describe('real touch input', () => {
+  test.use({ hasTouch: true });
+
+  /** Same shape as flick(), but a genuine touch sequence. */
+  async function touchFlick(page: Page, from: { x: number; y: number }, to: { x: number; y: number }) {
+    const client = await page.context().newCDPSession(page);
+    const step = (to.x - from.x) / 5;
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchStart', touchPoints: [{ x: from.x, y: from.y }],
+    });
+    for (let i = 1; i <= 5; i++) {
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchMove', touchPoints: [{ x: from.x + step * i, y: from.y }],
+      });
+    }
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  }
+
+  /**
+   * The touch-action root style lands in ScreenRotator's mount effect, after
+   * hydration — a touch dispatched before it commits would race the fix.
+   */
+  async function waitForTouchAction(page: Page) {
+    await page.waitForFunction(() => document.body.style.touchAction === 'pan-y');
+  }
+
+  test('a real-touch leftward flick advances to the next screen', async ({ page, request }) => {
+    await renderOnDisplay(page, request, frozenConfig());
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+    await waitForTouchAction(page);
+
+    await touchFlick(page, { x: 800, y: 1400 }, { x: 300, y: 1400 });
+    await expect(page.getByText(B, { exact: true })).toBeVisible();
+  });
+
+  test('a real-touch rightward flick goes to the previous screen', async ({ page, request }) => {
+    await renderOnDisplay(page, request, frozenConfig());
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+    await waitForTouchAction(page);
+
+    await touchFlick(page, { x: 300, y: 1400 }, { x: 800, y: 1400 });
+    await expect(page.getByText(C, { exact: true })).toBeVisible();
+  });
+
+  test('a real-touch flick starting on a chore list scroll region still navigates', async ({ page, request }) => {
+    // Regression: the fullscreen chore chart's vertical scroll containers
+    // carried touch-action: manipulation, which permits horizontal pan
+    // claiming — a flick starting on the list died in pointercancel on real
+    // touchscreens while the rest of the screen navigated fine. The
+    // containers now declare pan-y (vertical scroll keeps working; sideways
+    // flicks stay with the swipe hook).
+    await seedChores(request);
+    const chart: ModuleInstance = {
+      ...buildModuleInstance('fullscreen-chore-chart'),
+      position: { x: 0, y: 0 },
+      size: { w: 1080, h: 1920 },
+    };
+    const screens = threeScreens();
+    screens[0].modules.push(chart);
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens,
+      settings: { rotationIntervalMs: 3_600_000 },
+    }));
+    const chartEl = display.module('fullscreen-chore-chart');
+    await expect(chartEl).toBeVisible();
+    await waitForTouchAction(page);
+
+    // Start the flick dead-center — inside the chore list, the exact spot
+    // that used to cancel.
+    await touchFlick(page, { x: 800, y: 960 }, { x: 300, y: 960 });
+    await expect(page.getByText(B, { exact: true })).toBeVisible();
+  });
 });
 
 test('a flick on a single-screen display is a harmless no-op', async ({ page, request }) => {
