@@ -1684,6 +1684,7 @@
       "formAddDisplay": "Anzeige hinzufügen",
       "formErrorName": "Name ist erforderlich",
       "formErrorId": "Die ID darf nur Kleinbuchstaben, Ziffern und Bindestriche enthalten (z. B. „kitchen“)",
+      "formErrorIdReserved": "„{id}“ hat beim Senden von Befehlen an Displays bereits eine besondere Bedeutung. Bitte wähle eine andere ID, z. B. „kitchen“ oder „bedroom-tv“",
       "formErrorIdTaken": "Eine Anzeige mit der ID „{id}“ existiert bereits",
       "formErrorWidth": "Die Breite muss eine positive Ganzzahl ≤ {max} sein",
       "formErrorHeight": "Die Höhe muss eine positive Ganzzahl ≤ {max} sein"

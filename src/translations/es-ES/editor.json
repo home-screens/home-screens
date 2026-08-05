@@ -1688,6 +1688,7 @@
       "formAddDisplay": "Añadir pantalla",
       "formErrorName": "El nombre es obligatorio",
       "formErrorId": "El ID solo puede contener letras minúsculas, dígitos y guiones (p. ej. «kitchen»)",
+      "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a las pantallas. Elige otro ID, p. ej. «kitchen» o «bedroom-tv»",
       "formErrorIdTaken": "Ya existe una pantalla con el ID «{id}»",
       "formErrorWidth": "El ancho debe ser un entero positivo ≤ {max}",
       "formErrorHeight": "El alto debe ser un entero positivo ≤ {max}"

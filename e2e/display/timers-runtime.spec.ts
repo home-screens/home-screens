@@ -231,7 +231,10 @@ test('pausing from the hub freezes the countdown on the display; resuming restar
   await expect(dial(page).getByText('Paused')).toHaveCount(0, { timeout: 10_000 });
   const resumed = await readCountdownSec(page);
   expect(resumed).toBeLessThanOrEqual(frozen);
-  expect(frozen - resumed).toBeLessThanOrEqual(2);
+  // The countdown restarts at the resume POST, but the display only notices on
+  // its next SESSION_POLL_MS (3s) poll — so up to a full poll cycle ticks away
+  // before the pill clears, plus a second of display rounding.
+  expect(frozen - resumed).toBeLessThanOrEqual(4);
 
   await page.waitForTimeout(2500);
   expect(await readCountdownSec(page)).toBeLessThan(resumed);

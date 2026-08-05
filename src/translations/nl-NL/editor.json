@@ -1684,6 +1684,7 @@
       "formAddDisplay": "Scherm toevoegen",
       "formErrorName": "Naam is verplicht",
       "formErrorId": "ID mag alleen kleine letters, cijfers en koppeltekens bevatten (bijv. \"kitchen\")",
+      "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar schermen. Kies een ander ID, bijv. \"kitchen\" of \"bedroom-tv\"",
       "formErrorIdTaken": "Er bestaat al een scherm met ID \"{id}\"",
       "formErrorWidth": "Breedte moet een positief geheel getal ≤ {max} zijn",
       "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn"

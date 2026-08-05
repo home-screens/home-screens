@@ -1688,6 +1688,7 @@
       "formAddDisplay": "Adicionar display",
       "formErrorName": "O nome é obrigatório",
       "formErrorId": "O ID deve conter apenas letras minúsculas, dígitos e hifens (por ex. \"kitchen\")",
+      "formErrorIdReserved": "\"{id}\" já tem um significado especial ao enviar comandos para as telas. Escolha outro ID, por ex. \"kitchen\" ou \"bedroom-tv\"",
       "formErrorIdTaken": "Já existe um display com ID \"{id}\"",
       "formErrorWidth": "A largura deve ser um inteiro positivo ≤ {max}",
       "formErrorHeight": "A altura deve ser um inteiro positivo ≤ {max}"

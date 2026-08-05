@@ -1688,6 +1688,7 @@
       "formAddDisplay": "Ajouter l’écran",
       "formErrorName": "Le nom est requis",
       "formErrorId": "L’ID ne doit contenir que des lettres minuscules, des chiffres et des tirets (par ex. « kitchen »)",
+      "formErrorIdReserved": "« {id} » a déjà une signification particulière lors de l’envoi de commandes aux écrans. Veuillez choisir un autre ID, par ex. « kitchen » ou « bedroom-tv »",
       "formErrorIdTaken": "Un écran avec l’ID « {id} » existe déjà",
       "formErrorWidth": "La largeur doit être un entier positif ≤ {max}",
       "formErrorHeight": "La hauteur doit être un entier positif ≤ {max}"

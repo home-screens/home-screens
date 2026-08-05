@@ -4,6 +4,7 @@ import path from 'path';
 import os from 'os';
 import type { MealData } from '../meal-data';
 import { readMealData, writeMealData, prunePlan } from '../meal-data';
+import { getLatestSchemaVersion } from '../migrations';
 
 let tmpDir: string;
 let origCwd: () => string;
@@ -180,10 +181,16 @@ describe('legacy meal-settings migration from data/config.json', () => {
    * silently reverting to defaults.
    */
 
+  // Every config write in this block stamps the current schema version.
+  // A version-less config makes readConfig kick off its fire-and-forget
+  // migrate-on-boot persist, and that background write can land AFTER the
+  // next test's writeFile below, resurrecting the previous test's config
+  // (seen as a CI-only flake in the multi-display harvest test).
   async function writeLegacyConfig(modules: { type: string; config: Record<string, unknown> }[]) {
     const dataDir = path.join(tmpDir, 'data');
     await fs.mkdir(dataDir, { recursive: true });
     await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      version: getLatestSchemaVersion(),
       screens: [{
         id: 'screen1',
         name: 'Default',
@@ -255,6 +262,7 @@ describe('legacy meal-settings migration from data/config.json', () => {
     const dataDir = path.join(tmpDir, 'data');
     await fs.mkdir(dataDir, { recursive: true });
     await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      version: getLatestSchemaVersion(),
       screens: [],
       displays: [{
         id: 'kitchen',
@@ -359,6 +367,7 @@ describe('legacy meal-settings migration from data/config.json', () => {
     // Now mutate config.json — if migration ran again it would pick up the new value
     const dataDir = path.join(tmpDir, 'data');
     await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      version: getLatestSchemaVersion(),
       screens: [{
         id: 'screen1',
         modules: [{
@@ -488,6 +497,7 @@ describe('legacy meal-settings migration from data/config.json', () => {
     // these would get pulled in. They must NOT appear on the next read.
     const dataDir = path.join(tmpDir, 'data');
     await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      version: getLatestSchemaVersion(),
       screens: [{
         id: 'screen1',
         modules: [{

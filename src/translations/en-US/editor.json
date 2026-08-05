@@ -1684,6 +1684,7 @@
       "formAddDisplay": "Add display",
       "formErrorName": "Name is required",
       "formErrorId": "ID must be lowercase letters, digits, and hyphens (e.g. \"kitchen\")",
+      "formErrorIdReserved": "\"{id}\" already has a special meaning when sending commands to displays. Please pick a different ID, like \"kitchen\" or \"bedroom-tv\"",
       "formErrorIdTaken": "A display with ID \"{id}\" already exists",
       "formErrorWidth": "Width must be a positive integer ≤ {max}",
       "formErrorHeight": "Height must be a positive integer ≤ {max}"

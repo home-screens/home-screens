@@ -12,6 +12,7 @@ import {
   isValidDisplayId,
   MAX_DISPLAY_DIMENSION,
   orientDimensions,
+  RESERVED_DISPLAY_IDS,
 } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
 import { settingsHref } from '@/lib/settings-route';
@@ -179,6 +180,13 @@ function DisplayForm({ initial, prefilledId, prefilledViewport, onCancel, onSubm
     const trimmedName = name.trim();
     if (!trimmedName) {
       setError(t('settings.displaysIndex.formErrorName'));
+      return;
+    }
+    // Checked ahead of isValidDisplayId, which folds the reserved set into its
+    // boolean: without this, a reserved id gets the format message even though
+    // its format is fine.
+    if (RESERVED_DISPLAY_IDS.has(id)) {
+      setError(t('settings.displaysIndex.formErrorIdReserved', { id }));
       return;
     }
     if (!isValidDisplayId(id)) {

@@ -146,20 +146,21 @@ test.describe('multi-display bootstrap', () => {
  * claimed it would turn every command aimed at one screen into a whole-house
  * broadcast. `__default__` is the legacy single-display queue key. Both are in
  * RESERVED_DISPLAY_IDS (src/lib/display-filter.ts) and are rejected at two
- * separate layers, which say different things:
+ * separate layers:
  *
- *  - The add form calls `isValidDisplayId`, which folds the reserved set into
- *    its boolean, so the form shows its one generic ID message. The friendly
- *    "this id is reserved" explanation in `validateDisplayId` is NOT reachable
- *    from this form — nothing invalid ever gets past the button.
+ *  - The add form checks RESERVED_DISPLAY_IDS ahead of `isValidDisplayId` and
+ *    shows its own friendly explanation (the boolean check alone would report
+ *    the format message for an id whose format is fine).
  *  - `validateDisplays` (PUT /api/config, restore, and the editor store's
- *    pre-save check) is where the reserved explanation is produced, for configs
+ *    pre-save check) produces the API's reserved explanation, for configs
  *    that arrive with a reserved id already in them.
  *
  * Both layers are pinned below so a future refactor can't quietly drop either.
  */
 test.describe('reserved display ids', () => {
-  const GENERIC_ID_ERROR = 'ID must be lowercase letters, digits, and hyphens (e.g. "kitchen")';
+  const formReservedError = (id: string) =>
+    `"${id}" already has a special meaning when sending commands to displays. `
+    + 'Please pick a different ID, like "kitchen" or "bedroom-tv"';
   const reservedError = (id: string) =>
     `Display id "${id}" is reserved: it already has a special meaning when sending commands to displays. `
     + 'Please pick a different id, such as "kitchen" or "bedroom-tv"';
@@ -178,7 +179,7 @@ test.describe('reserved display ids', () => {
     await expect(page.getByPlaceholder('kitchen', { exact: true })).toHaveValue('all');
     await page.getByRole('button', { name: 'Add display' }).click();
 
-    await expect(page.getByText(GENERIC_ID_ERROR)).toBeVisible();
+    await expect(page.getByText(formReservedError('all'))).toBeVisible();
     // The form stays open on the rejected values rather than closing as if saved.
     await expect(page.getByRole('heading', { name: 'Add Display' })).toBeVisible();
 
@@ -200,9 +201,9 @@ test.describe('reserved display ids', () => {
     await page.getByPlaceholder('kitchen', { exact: true }).fill('__default__');
     await page.getByRole('button', { name: 'Add display' }).click();
 
-    // Same generic message — the form has only one ID error, and the reserved
-    // check lives inside `isValidDisplayId`.
-    await expect(page.getByText(GENERIC_ID_ERROR)).toBeVisible();
+    // The reserved check runs before the format check, so even this id (which
+    // the slug rule would also reject) gets the explanation.
+    await expect(page.getByText(formReservedError('__default__'))).toBeVisible();
 
     await page.waitForTimeout(1200);
     expect(await readDisplays(request)).toEqual([]);
