@@ -86,7 +86,9 @@ describe('fetchCalendarEvents', () => {
     const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
 
     expect(events).toHaveLength(1);
-    expect(events[0].id).toBe('evt1');
+    // Calendar-id prefix keeps ids unique when the same event appears on two
+    // selected calendars.
+    expect(events[0].id).toBe('cal1:evt1');
     expect(events[0].title).toBe('Meeting');
     expect(events[0].start).toBe('2026-01-15T10:00:00-05:00');
     expect(events[0].location).toBe('Room 101');

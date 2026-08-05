@@ -50,8 +50,11 @@ export async function fetchCalendarEvents(
       const calColor = calendarColorMap.get(calendarId) ?? '#3b82f6';
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
       const items = response.data.items ?? [];
+      // Calendar-id prefix keeps ids unique when the same event appears on
+      // two selected calendars; the fallback covers the (rare) missing id so
+      // no event ever renders with an empty, untappable identity.
       return items.map((event) => ({
-        id: event.id ?? '',
+        id: `${calendarId}:${event.id ?? `${event.start?.dateTime ?? event.start?.date ?? ''}-${event.summary ?? ''}`}`,
         title: event.summary ?? '(No title)',
         start: event.start?.dateTime ?? event.start?.date ?? '',
         end: event.end?.dateTime ?? event.end?.date ?? '',

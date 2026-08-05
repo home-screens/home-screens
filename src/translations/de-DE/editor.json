@@ -2206,7 +2206,11 @@
       "showTime": "Uhrzeit anzeigen",
       "showLocation": "Ort anzeigen",
       "showWeekNumbers": "Kalenderwochen anzeigen",
-      "accentColor": "Akzentfarbe"
+      "accentColor": "Akzentfarbe",
+      "eventTapDetails": "Termin antippen, um Details zu sehen",
+      "eventTapStyle": "Stil der Detailansicht",
+      "eventTapStyleSheet": "Panel von unten",
+      "eventTapStyleCard": "Karte in der Mitte"
     },
     "chore-chart": {
       "viewBoard": "Board (Spalte je Person)",
@@ -2412,7 +2416,11 @@
       "maxEventsPerCellAuto": "Max. Termine pro Zelle (0 = automatisch)",
       "showLocation": "Ort anzeigen",
       "daysAhead": "Tage in die Zukunft",
-      "hideEmptyDays": "Leere Tage ausblenden"
+      "hideEmptyDays": "Leere Tage ausblenden",
+      "eventTapDetails": "Termin antippen, um Details zu sehen",
+      "eventTapStyle": "Stil der Detailansicht",
+      "eventTapStyleSheet": "Panel von unten",
+      "eventTapStyleCard": "Karte in der Mitte"
     },
     "fullscreen-chore-chart": {
       "view": "Ansicht",

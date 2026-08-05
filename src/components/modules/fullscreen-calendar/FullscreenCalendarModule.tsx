@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
@@ -17,6 +17,16 @@ import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
 import { DayTimelineView } from './DayTimelineView';
 import { AgendaView } from './AgendaView';
+import { EventDetailOverlay } from '../shared/EventDetailOverlay';
+
+// Opening/closing the detail overlay re-renders this module; memo keeps the
+// (potentially hundreds of) event blocks from reconciling on those frames —
+// and on 60s clock ticks for the views whose props didn't change.
+const MemoScheduleView = memo(ScheduleView);
+const MemoWeekListView = memo(WeekListView);
+const MemoMonthGridView = memo(MonthGridView);
+const MemoDayTimelineView = memo(DayTimelineView);
+const MemoAgendaView = memo(AgendaView);
 
 // ─── Types ───
 
@@ -269,7 +279,7 @@ export default function FullscreenCalendarModule({
 
   // Updates every 60s — drives now-line movement and midnight rollover
   const now = useTZClock(timezone);
-  const today = startOfDay(now);
+  const today = useMemo(() => startOfDay(now), [now]);
 
   const events = useMemo(
     () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now),
@@ -315,14 +325,38 @@ export default function FullscreenCalendarModule({
   const viewLabelKey = VIEW_LABEL_KEYS[config.view];
   const viewLabel = viewLabelKey ? t(viewLabelKey) : config.view;
 
-  const viewProps = { events, config, scale, today, now };
+  const viewProps = useMemo(
+    () => ({ events, config, scale, today, now }),
+    [events, config, scale, today, now],
+  );
   const hasEvents = events.length > 0;
   const isLoading = loading && !hasEvents;
+
+  // Tap-to-open detail: one delegated handler on the root instead of a
+  // callback threaded through all five views. Every event element carries
+  // data-event-id, so closest() maps a tap back to its event. State holds the
+  // id, not the event object: the event is re-resolved each render so a data
+  // refresh updates the open overlay (or closes it if the event is gone)
+  // instead of showing a stale snapshot.
+  const tapDetails = config.eventTapDetails === true;
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detailEvent = detailId ? events.find(ev => ev.id === detailId) ?? null : null;
+  // Config is live-pushed without a remount; turning the feature off must
+  // also clear the selection or re-enabling would reopen it unprompted.
+  useEffect(() => {
+    if (!tapDetails) setDetailId(null);
+  }, [tapDetails]);
+  const handleRootClick = (e: React.MouseEvent) => {
+    const id = (e.target as HTMLElement).closest?.('[data-event-id]')?.getAttribute('data-event-id');
+    if (id) setDetailId(id);
+  };
 
   return (
     <div
       ref={containerRef}
       className="fsc-root"
+      data-tap-events={tapDetails ? '' : undefined}
+      onClick={tapDetails ? handleRootClick : undefined}
       style={{
         width: '100%',
         height: '100%',
@@ -398,15 +432,26 @@ export default function FullscreenCalendarModule({
               style={{ height: '100%' }}
               className="fsc-view-motion"
             >
-              {config.view === 'schedule' && <ScheduleView {...viewProps} />}
-              {config.view === 'week-list' && <WeekListView {...viewProps} />}
-              {config.view === 'month-grid' && <MonthGridView {...viewProps} />}
-              {config.view === 'day-timeline' && <DayTimelineView {...viewProps} />}
-              {config.view === 'agenda' && <AgendaView {...viewProps} />}
+              {config.view === 'schedule' && <MemoScheduleView {...viewProps} />}
+              {config.view === 'week-list' && <MemoWeekListView {...viewProps} />}
+              {config.view === 'month-grid' && <MemoMonthGridView {...viewProps} />}
+              {config.view === 'day-timeline' && <MemoDayTimelineView {...viewProps} />}
+              {config.view === 'agenda' && <MemoAgendaView {...viewProps} />}
             </motion.div>
           </AnimatePresence>
         )}
       </div>
+
+      {tapDetails && detailEvent && (
+        <EventDetailOverlay
+          event={detailEvent}
+          variant={config.eventTapStyle ?? 'sheet'}
+          theme={theme}
+          accentColor={eventBorder(detailEvent.calendarColor ?? '#3B82F6', theme.isDark)}
+          now={now}
+          onClose={() => setDetailId(null)}
+        />
+      )}
     </div>
   );
 }
@@ -511,6 +556,11 @@ const cssTokens = `
 .fsc-content {
   position: relative;
   overflow: hidden;
+}
+
+/* Tap-to-open event details enabled */
+.fsc-root[data-tap-events] .fsc-event-block {
+  cursor: pointer;
 }
 
 /* Hide scrollbars — kiosk display, no manual scroll */

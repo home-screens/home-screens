@@ -178,7 +178,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                 {allDayEvs.map(ev => {
                   const color = ev.calendarColor ?? '#3B82F6';
                   return (
-                    <div key={ev.id} className="fsc-event-block" style={{
+                    <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{
                       fontSize: fontSize * 0.55,
                       fontWeight: 600,
                       color: '#fff',
@@ -197,7 +197,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                 {timedEvs.slice(0, maxShow).map(ev => {
                   const color = ev.calendarColor ?? '#3B82F6';
                   return (
-                    <div key={ev.id} className="fsc-event-block" style={{
+                    <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: scale.bu * 0.2,

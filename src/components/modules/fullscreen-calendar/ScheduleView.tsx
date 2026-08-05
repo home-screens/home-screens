@@ -233,6 +233,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                       <div
                         key={ev.id}
                         className="fsc-event-block"
+                        data-event-id={ev.id}
                         role="article"
                         aria-label={evAriaLabel}
                         style={{
@@ -396,6 +397,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, 
                   <div
                     key={ev.id}
                     className="fsc-event-block"
+                    data-event-id={ev.id}
                     aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
                     style={{
                       fontSize: fontSize * 0.65,

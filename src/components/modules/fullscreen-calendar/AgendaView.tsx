@@ -105,6 +105,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
               <div
                 key={ev.id}
                 className="fsc-event-block"
+                data-event-id={ev.id}
                 role="article"
                 aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
                 style={{
@@ -166,6 +167,7 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
             <div
               key={ev.id}
               className="fsc-event-block"
+              data-event-id={ev.id}
               role="article"
               aria-label={ariaLabel}
               style={{

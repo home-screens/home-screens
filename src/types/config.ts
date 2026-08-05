@@ -520,6 +520,7 @@ export type FullscreenTypographySize =
   | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large';
 export type TodayHighlightStyle = 'full' | 'subtle' | 'minimal' | 'off';
 export type EventOverlapMode = 'columns' | 'stacked';
+export type EventTapStyle = 'sheet' | 'card';
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
@@ -535,6 +536,8 @@ export interface FullscreenCalendarConfig {
   todayHighlightStyle?: TodayHighlightStyle;  // default 'full'; 'subtle' = faint bg, 'minimal' = marker only, 'off' = none
   eventOverlap?: EventOverlapMode;            // default 'columns' (side-by-side); 'stacked' = cascading overlap
   wrapEventTitles?: boolean;                  // default false; wrap long titles to 2 lines (schedule + month views)
+  eventTapDetails?: boolean;                  // default false; touch displays: tap an event to open a detail overlay
+  eventTapStyle?: EventTapStyle;              // default 'sheet' (bottom sheet); 'card' = centered card
 
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto
@@ -577,6 +580,8 @@ export interface CalendarConfig {
   // Per-view: render the sanitized event description under the title.
   dailyShowDescription?: boolean;
   agendaShowDescription?: boolean;
+  eventTapDetails?: boolean;      // default false; touch displays: tap an event to open a detail overlay
+  eventTapStyle?: EventTapStyle;  // default 'sheet' (bottom sheet); 'card' = centered card
 }
 
 // Unified weather module config

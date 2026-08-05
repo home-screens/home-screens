@@ -472,6 +472,8 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'affirmations.timeAware': 'not-observable',
   'affirmations.weatherAware': 'not-observable',
   'air-quality.refreshIntervalMs': 'timing-only',
+  'calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
+  'calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'chore-chart.allowDisplayComplete': 'covered-elsewhere',
   'chore-chart.showStreaks': 'not-observable',
   'countdown.holidayCountry': 'not-observable',
@@ -481,6 +483,8 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'display-control.allowRetargeting': 'covered-elsewhere',
   'display-control.defaultTarget': 'covered-elsewhere',
   'fullscreen-calendar.dimPastEvents': 'timing-only',
+  'fullscreen-calendar.eventTapDetails': 'covered-elsewhere', // interactive.spec.ts
+  'fullscreen-calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.weekCollapsePastDays': 'timing-only',
   'fullscreen-chore-chart.allowDisplayComplete': 'covered-elsewhere',
   'fullscreen-chore-chart.density': 'style-only',
@@ -620,6 +624,7 @@ const DISCRIMINATOR_UNION_DECISIONS: Record<string, string> = {
   AffirmationsCategory: 'content-pool selection, not a render mode',
   CalendarDensity: 'spacing scale, not a render mode; field-level row suffices',
   EventOverlapMode: 'two layout strategies; field-level row (columns vs stacked) covers both',
+  EventTapStyle: 'tap overlay style exercised in interactive.spec.ts, not a static render mode',
   FullscreenTypographySize: 'CSS type scale, not render modes; field-level row (2 sizes) suffices',
   GarbageFrequency: 'weekly/biweekly cadence; the biweekly variant row covers the non-default member',
   IconFlip: 'mirror transform of the same glyph, not a distinct render path; field-level row suffices',

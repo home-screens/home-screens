@@ -138,7 +138,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             const color = ev.calendarColor ?? '#3B82F6';
             const description = config.dayShowDescription ? sanitizeEventDescription(ev.description) : '';
             return (
-              <div key={ev.id} className="fsc-event-block" aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
+              <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
                 borderRadius: 6,
                 background: eventBg(color, 0.13, scale.isDark),
@@ -258,6 +258,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
                 <div
                   key={ev.id}
                   className="fsc-event-block"
+                  data-event-id={ev.id}
                   role="article"
                   aria-label={evAriaLabel}
                   style={{

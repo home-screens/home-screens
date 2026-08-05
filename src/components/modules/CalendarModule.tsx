@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth, isToday as isDateToday } from 'date-fns';
 import { createTZDate } from '@/lib/timezone';
+import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -60,7 +63,7 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
+      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
         <div
           className="w-1.5 h-1.5 rounded-full shrink-0"
           style={{ backgroundColor: event.calendarColor ?? accentColor }}
@@ -71,7 +74,7 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
   }
 
   return (
-    <ContentCard className="flex gap-2" style={{ padding: '6px 10px' }}>
+    <ContentCard data-event-id={event.id} className="flex gap-2" style={{ padding: '6px 10px' }}>
       <div
         className="w-0.5 rounded-full shrink-0 self-stretch"
         style={{ backgroundColor: event.calendarColor ?? accentColor }}
@@ -467,9 +470,42 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
 
+  // Tap-to-open detail: same delegated-handler contract as the fullscreen
+  // calendar — every EventCard carries data-event-id, state holds the id and
+  // the event is re-resolved each render so refetches never leave the overlay
+  // showing a stale snapshot. The module renders light-on-dark over a photo
+  // background with no theme system, so the overlay uses the Charcoal tokens.
+  const tapDetails = config.eventTapDetails === true;
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detailEvent = detailId ? allEvents.find((ev) => ev.id === detailId) ?? null : null;
+  useEffect(() => {
+    if (!tapDetails) setDetailId(null);
+  }, [tapDetails]);
+  const handleRootClick = (e: React.MouseEvent) => {
+    const id = (e.target as HTMLElement).closest?.('[data-event-id]')?.getAttribute('data-event-id');
+    if (id) setDetailId(id);
+  };
+
   return (
     <ModuleWrapper style={style}>
-      <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} t={t} tCore={tCore} locale={locale} />
+      <div
+        className="h-full"
+        data-tap-events={tapDetails ? '' : undefined}
+        onClick={tapDetails ? handleRootClick : undefined}
+      >
+        {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
+        <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} t={t} tCore={tCore} locale={locale} />
+      </div>
+      {tapDetails && detailEvent && (
+        <EventDetailOverlay
+          event={detailEvent}
+          variant={config.eventTapStyle ?? 'sheet'}
+          theme={getThemeTokens('charcoal')}
+          accentColor={detailEvent.calendarColor ?? accentColor}
+          now={now}
+          onClose={() => setDetailId(null)}
+        />
+      )}
     </ModuleWrapper>
   );
 }

@@ -2211,7 +2211,11 @@
       "showTime": "Mostrar horário",
       "showLocation": "Mostrar local",
       "showWeekNumbers": "Mostrar números das semanas",
-      "accentColor": "Cor de destaque"
+      "accentColor": "Cor de destaque",
+      "eventTapDetails": "Toque em um evento para ver os detalhes",
+      "eventTapStyle": "Estilo dos detalhes",
+      "eventTapStyleSheet": "Painel deslizante",
+      "eventTapStyleCard": "Cartão centralizado"
     },
     "chore-chart": {
       "viewBoard": "Quadro (coluna por membro)",
@@ -2417,7 +2421,11 @@
       "maxEventsPerCellAuto": "Máx. de eventos por célula (0 = automático)",
       "showLocation": "Mostrar local",
       "daysAhead": "Dias à frente",
-      "hideEmptyDays": "Ocultar dias vazios"
+      "hideEmptyDays": "Ocultar dias vazios",
+      "eventTapDetails": "Toque em um evento para ver os detalhes",
+      "eventTapStyle": "Estilo dos detalhes",
+      "eventTapStyleSheet": "Painel deslizante",
+      "eventTapStyleCard": "Cartão centralizado"
     },
     "fullscreen-chore-chart": {
       "view": "Exibição",

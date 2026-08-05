@@ -28,7 +28,7 @@ import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { useIdleCursor } from '@/hooks/useIdleCursor';
-import { RULE_WAKE_HOLD_MS } from '@/hooks/useSleepManager';
+import { RULE_WAKE_HOLD_MS, WAKE_TAP_GUARD_MS } from '@/hooks/useSleepManager';
 import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
@@ -380,11 +380,36 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // clearPause that hook returns. Waking must never restore a pause set before
   // the display slept.
   const prevDisplayStateRef = useRef(displayState);
+  const wakeGuardUntilRef = useRef(0);
   useEffect(() => {
     const prev = prevDisplayStateRef.current;
     prevDisplayStateRef.current = displayState;
     if (prev === 'asleep' && displayState !== 'asleep') clearPause();
+    // Stamp wake transitions for the tap guard below. The sleep manager wakes
+    // on a passive touchstart, so by the time the same finger's `click` fires
+    // the state often already reads 'active' — the timestamp covers that gap.
+    if (prev !== 'active' && displayState === 'active') {
+      wakeGuardUntilRef.current = Date.now() + WAKE_TAP_GUARD_MS;
+    }
   }, [displayState, clearPause]);
+
+  // A tap on a dimmed or sleeping display should only wake it — the same
+  // touch must not activate whatever tappable module content (event blocks,
+  // chores, todos, recipes) happens to be under the finger. Swipe navigation
+  // already has this gate via its `enabled` flag; this is the click-side
+  // equivalent, applied at capture so it runs before any module handler.
+  const displayStateRef = useRef(displayState);
+  displayStateRef.current = displayState;
+  useEffect(() => {
+    function onClickCapture(e: MouseEvent) {
+      if (displayStateRef.current !== 'active' || Date.now() < wakeGuardUntilRef.current) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    }
+    window.addEventListener('click', onClickCapture, { capture: true });
+    return () => window.removeEventListener('click', onClickCapture, { capture: true });
+  }, []);
 
   // Rotation timer: schedules a single setTimeout per screen using the
   // screen's resolved duration. Sticky screens (0) skip scheduling entirely.

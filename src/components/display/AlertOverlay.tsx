@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { AlertSettings } from '@/types/config';
 import { AlertCircle, AlertTriangle, Info, X } from 'lucide-react';
 
@@ -172,7 +173,7 @@ export default function AlertOverlay({ alertSettings, displayState = 'active', v
           left: 0,
           right: 0,
           [position === 'top' ? 'top' : 'bottom']: 0,
-          zIndex: 9998, // Same as Screensaver, but they're never visible simultaneously (alerts only render when active)
+          zIndex: DISPLAY_LAYERS.alert,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

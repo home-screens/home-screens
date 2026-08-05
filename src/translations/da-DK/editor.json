@@ -2206,7 +2206,11 @@
       "showTime": "Show Time",
       "showLocation": "Show Location",
       "showWeekNumbers": "Show Week Numbers",
-      "accentColor": "Accent Color"
+      "accentColor": "Accent Color",
+      "eventTapDetails": "Tryk på en begivenhed for at se detaljer",
+      "eventTapStyle": "Detaljestil",
+      "eventTapStyleSheet": "Panel nedefra",
+      "eventTapStyleCard": "Kort i midten"
     },
     "chore-chart": {
       "viewBoard": "Board (Column per Member)",
@@ -2412,7 +2416,11 @@
       "maxEventsPerCellAuto": "Max Events per Cell (0 = auto)",
       "showLocation": "Show Location",
       "daysAhead": "Days Ahead",
-      "hideEmptyDays": "Hide Empty Days"
+      "hideEmptyDays": "Hide Empty Days",
+      "eventTapDetails": "Tryk på en begivenhed for at se detaljer",
+      "eventTapStyle": "Detaljestil",
+      "eventTapStyleSheet": "Panel nedefra",
+      "eventTapStyleCard": "Kort i midten"
     },
     "fullscreen-chore-chart": {
       "view": "View",

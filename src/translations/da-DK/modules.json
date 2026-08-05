@@ -689,5 +689,10 @@
     "locationNotConfigured": "Location not configured",
     "pluginNotAvailable": "Plugin not available: {name}",
     "moduleFailed": "Dette element kunne ikke vises."
+  },
+  "event-detail": {
+    "close": "Luk",
+    "happeningNow": "I gang nu",
+    "allDay": "Hele dagen"
   }
 }

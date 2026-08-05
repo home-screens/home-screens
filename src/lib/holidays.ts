@@ -106,8 +106,11 @@ export async function fetchHolidayEvents(
     .map((h) => {
       const endDate = new Date(h.date + 'T00:00:00Z');
       endDate.setUTCDate(endDate.getUTCDate() + 1);
+      // Name is part of the id: Nager returns multiple Public holidays on
+      // the same date (e.g. Brazil 12 Oct), and country+date alone collides.
+      const nameSlug = h.localName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       return {
-        id: `holiday-${h.countryCode}-${h.date}`,
+        id: `holiday-${h.countryCode}-${h.date}-${nameSlug}`,
         title: h.localName,
         start: h.date,
         end: endDate.toISOString().slice(0, 10),

@@ -694,5 +694,10 @@
     "locationNotConfigured": "Local não configurado",
     "pluginNotAvailable": "Plug-in indisponível: {name}",
     "moduleFailed": "Não foi possível mostrar este item."
+  },
+  "event-detail": {
+    "close": "Fechar",
+    "happeningNow": "Acontecendo agora",
+    "allDay": "O dia todo"
   }
 }

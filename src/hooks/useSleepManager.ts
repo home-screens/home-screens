@@ -16,6 +16,15 @@ export type DisplayState = 'active' | 'dimmed' | 'asleep';
 export const RULE_WAKE_HOLD_MS = 5 * 60_000;
 
 /**
+ * Grace window after a dimmed/asleep → active transition during which module
+ * clicks are swallowed: the tap that wakes a kiosk must not also activate
+ * whatever tappable content was under the finger. Long enough to cover the
+ * touchstart(wake) → click gap on a slow Pi, short enough that a deliberate
+ * second tap always lands.
+ */
+export const WAKE_TAP_GUARD_MS = 700;
+
+/**
  * Checks whether the current time falls within a schedule window.
  * Handles overnight windows (e.g., 23:00–06:00) correctly.
  *

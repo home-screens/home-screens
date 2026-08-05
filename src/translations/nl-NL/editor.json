@@ -2206,7 +2206,11 @@
       "showTime": "Tijd tonen",
       "showLocation": "Locatie tonen",
       "showWeekNumbers": "Weeknummers tonen",
-      "accentColor": "Accentkleur"
+      "accentColor": "Accentkleur",
+      "eventTapDetails": "Tik op een afspraak voor details",
+      "eventTapStyle": "Stijl van details",
+      "eventTapStyleSheet": "Paneel van onderen",
+      "eventTapStyleCard": "Kaart in het midden"
     },
     "chore-chart": {
       "viewBoard": "Bord (kolom per lid)",
@@ -2412,7 +2416,11 @@
       "maxEventsPerCellAuto": "Max. evenementen per cel (0 = automatisch)",
       "showLocation": "Locatie tonen",
       "daysAhead": "Dagen vooruit",
-      "hideEmptyDays": "Lege dagen verbergen"
+      "hideEmptyDays": "Lege dagen verbergen",
+      "eventTapDetails": "Tik op een afspraak voor details",
+      "eventTapStyle": "Stijl van details",
+      "eventTapStyleSheet": "Paneel van onderen",
+      "eventTapStyleCard": "Kaart in het midden"
     },
     "fullscreen-chore-chart": {
       "view": "Weergave",

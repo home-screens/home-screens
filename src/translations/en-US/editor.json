@@ -2206,7 +2206,11 @@
       "showTime": "Show Time",
       "showLocation": "Show Location",
       "showWeekNumbers": "Show Week Numbers",
-      "accentColor": "Accent Color"
+      "accentColor": "Accent Color",
+      "eventTapDetails": "Tap an event to see details",
+      "eventTapStyle": "Details style",
+      "eventTapStyleSheet": "Slide-up panel",
+      "eventTapStyleCard": "Centered card"
     },
     "chore-chart": {
       "viewBoard": "Board (Column per Member)",
@@ -2412,7 +2416,11 @@
       "maxEventsPerCellAuto": "Max Events per Cell (0 = auto)",
       "showLocation": "Show Location",
       "daysAhead": "Days Ahead",
-      "hideEmptyDays": "Hide Empty Days"
+      "hideEmptyDays": "Hide Empty Days",
+      "eventTapDetails": "Tap an event to see details",
+      "eventTapStyle": "Details style",
+      "eventTapStyleSheet": "Slide-up panel",
+      "eventTapStyleCard": "Centered card"
     },
     "fullscreen-chore-chart": {
       "view": "View",

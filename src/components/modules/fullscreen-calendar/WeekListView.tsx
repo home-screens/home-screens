@@ -193,6 +193,7 @@ function EventRow({ event, fontSize, scale, isAllDay, showDescription, t, locale
   return (
     <div
       className="fsc-event-block"
+      data-event-id={event.id}
       role="article"
       aria-label={ariaLabel}
       style={{

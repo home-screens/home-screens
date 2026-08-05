@@ -689,5 +689,10 @@
     "locationNotConfigured": "Location not configured",
     "pluginNotAvailable": "Plugin not available: {name}",
     "moduleFailed": "This item could not be shown."
+  },
+  "event-detail": {
+    "close": "Close",
+    "happeningNow": "Happening now",
+    "allDay": "All Day"
   }
 }

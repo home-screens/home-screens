@@ -2,6 +2,7 @@
 
 import type { DisplayState } from '@/hooks/useSleepManager';
 import type { ScreensaverSettings } from '@/types/config';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import Screensaver from './Screensaver';
 
 interface SleepOverlayProps {
@@ -31,7 +32,7 @@ export default function SleepOverlay({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9997,
+        zIndex: DISPLAY_LAYERS.sleep,
         pointerEvents: 'none',
         viewTransitionName: 'sleep-overlay',
       } as React.CSSProperties}

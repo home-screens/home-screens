@@ -115,7 +115,9 @@ describe('fetchHolidayEvents', () => {
     expect(newYear.sourceId).toBe('holidays');
     expect(newYear.sourceName).toBe('Public Holidays');
     expect(newYear.calendarColor).toBe('#10b981');
-    expect(newYear.id).toBe('holiday-US-2026-01-01');
+    // Name slug is part of the id — country+date alone collides when Nager
+    // returns two Public holidays on the same date.
+    expect(newYear.id).toBe('holiday-US-2026-01-01-new-year-s-day');
   });
 
   it('fetches from multiple years when range spans year boundary', async () => {
@@ -154,7 +156,7 @@ describe('fetchHolidayEvents', () => {
     const july4 = events.find((e) => e.title === 'Independence Day')!;
     expect(july4.start).toBe('2026-07-04');
     expect(july4.end).toBe('2026-07-05');
-    expect(july4.id).toBe('holiday-US-2026-07-04');
+    expect(july4.id).toBe('holiday-US-2026-07-04-independence-day');
 
     // Floating holidays (defined by weekday rule, not fixed date) pass through
     const mlk = events.find((e) => e.title === 'Martin Luther King Jr. Day')!;
@@ -183,7 +185,7 @@ describe('fetchHolidayEvents', () => {
     const events = await fetchHolidayEvents('US', '2022-01-01T00:00:00Z', '2022-12-31T00:00:00Z');
     expect(events).toHaveLength(1);
     expect(events[0].start).toBe('2022-01-01');
-    expect(events[0].id).toBe('holiday-US-2022-01-01');
+    expect(events[0].id).toBe('holiday-US-2022-01-01-new-year-s-day');
   });
 
   it('does not pin same-named holidays from other countries', async () => {

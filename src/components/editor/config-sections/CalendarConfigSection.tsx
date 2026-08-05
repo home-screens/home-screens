@@ -8,7 +8,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { ModuleInstance } from '@/types/config';
+import type { EventTapStyle, ModuleInstance } from '@/types/config';
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -23,6 +23,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     accentColor?: string;
     dailyShowDescription?: boolean;
     agendaShowDescription?: boolean;
+    eventTapDetails?: boolean;
+    eventTapStyle?: EventTapStyle;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -99,6 +101,20 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         value={c.accentColor ?? '#3b82f6'}
         onChange={(v) => set({ accentColor: v })}
       />
+
+      {/* Touch: tap an event to open a detail overlay */}
+      <Toggle label={t('configSections.calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
+      {c.eventTapDetails === true && (
+        <LabeledSelect
+          label={t('configSections.calendar.eventTapStyle')}
+          value={c.eventTapStyle ?? 'sheet'}
+          onChange={(v) => set({ eventTapStyle: v })}
+          options={[
+            { value: 'sheet', label: t('configSections.calendar.eventTapStyleSheet') },
+            { value: 'card', label: t('configSections.calendar.eventTapStyleCard') },
+          ]}
+        />
+      )}
     </>
   );
 }

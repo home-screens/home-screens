@@ -2,10 +2,10 @@ import type { APIRequestContext } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
-import { buildModuleInstance } from '../helpers/module-fixtures';
+import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { seedChores, seedMeals } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
-import type { ModuleInstance } from '@/types/config';
+import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
 
 /** Local YYYY-MM-DD for today, matching how the meal planner keys plan entries. */
 function isoToday(): string {
@@ -273,6 +273,294 @@ test.describe('meal-planner recipe tap', () => {
     await expect(dialog).toBeHidden();
     await expect(page.getByText('SECOND SCREEN AFTER HOLD')).toBeVisible({ timeout: 8000 });
   });
+});
+
+/**
+ * Fullscreen-calendar `eventTapDetails`: tapping any event block opens a detail
+ * overlay (bottom sheet by default, centered card via `eventTapStyle`), portaled
+ * to <body> as role="dialog" with the event title as its accessible name. The
+ * scrim or Close button dismisses it; with the toggle off (the default) taps
+ * are inert. Rotation holding while open is covered by the meal-planner recipe
+ * suite — both overlays share `useInteractionHold`.
+ */
+test.describe('fullscreen-calendar event tap', () => {
+  /** Local naive ISO for today at a fixed hour, inside the 6-22 schedule window. */
+  function isoAtHour(hour: number): string {
+    return `${isoToday()}T${String(hour).padStart(2, '0')}:00:00`;
+  }
+
+  const TAP_EVENTS = [{
+    id: 'fce-tap-1',
+    title: 'SOCCER PRACTICE',
+    start: isoAtHour(10),
+    end: isoAtHour(11),
+    allDay: false,
+    location: 'Ryan Park Field 3',
+    description: 'Bring shin guards and a water bottle.',
+    calendarColor: '#10b981',
+    sourceId: 'cal-family',
+    sourceName: 'Family',
+  }];
+
+  function calendarScreen(config: Record<string, unknown>) {
+    return baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', config)])],
+      // A configured calendar source is what makes the display fetch /api/calendar.
+      settings: matrixSettings(),
+    });
+  }
+
+  test('tap opens the detail sheet with event info, Close dismisses', async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarScreen({ eventTapDetails: true }));
+
+    // Non-event chrome must be inert even with the feature on.
+    await display.module('fullscreen-calendar').locator('.fsc-header-title').click();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
+
+    const dialog = page.getByRole('dialog', { name: 'SOCCER PRACTICE' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-detail-style="sheet"]')).toBeVisible();
+    await expect(dialog.getByText('Ryan Park Field 3')).toBeVisible();
+    await expect(dialog.getByText('Bring shin guards and a water bottle.')).toBeVisible();
+    await expect(dialog.getByText('Family')).toBeVisible();
+
+    // Tapping inside the panel must NOT dismiss — the body's stopPropagation
+    // is load-bearing against the scrim's dismiss-on-click.
+    await dialog.getByText('SOCCER PRACTICE').click();
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Reopen and dismiss via the scrim (the sheet leaves the top of the
+    // screen uncovered, so a top-left tap lands on the scrim).
+    await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
+    await expect(dialog).toBeVisible();
+    await dialog.click({ position: { x: 10, y: 10 } });
+    await expect(dialog).toBeHidden();
+  });
+
+  test("'card' style renders the centered card, scrim tap dismisses", async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarScreen({
+      eventTapDetails: true,
+      eventTapStyle: 'card',
+    }));
+
+    await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
+
+    const dialog = page.getByRole('dialog', { name: 'SOCCER PRACTICE' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-detail-style="card"]')).toBeVisible();
+
+    // The card is centered, so the top-left corner is scrim.
+    await dialog.click({ position: { x: 10, y: 10 } });
+    await expect(dialog).toBeHidden();
+  });
+
+  test('with the toggle off (default), tapping an event is inert', async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarScreen({}));
+
+    await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
+
+    // Give a would-be overlay time to mount before asserting it never did.
+    await page.waitForTimeout(500);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  /**
+   * Every view renders its own tappable event elements (nine `data-event-id`
+   * sites across the five views, timed and all-day variants), so tap coverage
+   * in one view proves nothing about the others. This matrix taps a timed AND
+   * an all-day event in each view.
+   *
+   * The timed event spans today 00:01 → tomorrow 23:59 (same trick as
+   * todayCalendarEvents) so it is visible at any test-run wall-clock time:
+   * the agenda view drops events that already ended, and the time-grid views
+   * clamp it to their hour window instead of hiding it.
+   */
+  function localDate(offsetDays: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  const VIEW_TAP_EVENTS = [
+    {
+      id: 'vt-timed',
+      title: 'VIEWTAP TIMED',
+      start: `${localDate(0)}T00:01:00`,
+      end: `${localDate(1)}T23:59:00`,
+      allDay: false,
+      location: 'Ryan Park Field 3',
+      calendarColor: '#10b981',
+      sourceId: 'cal-family',
+      sourceName: 'Family',
+    },
+    {
+      id: 'vt-allday',
+      title: 'VIEWTAP ALLDAY',
+      start: localDate(0),
+      end: localDate(1),
+      allDay: true,
+      calendarColor: '#f59e0b',
+      sourceId: 'cal-family',
+      sourceName: 'Family',
+    },
+  ];
+
+  // Record type so adding a sixth view fails compilation here — a plain
+  // array literal would silently leave the new view without tap coverage.
+  const VIEW_TAP_COVERED: Record<FullscreenCalendarView, true> = {
+    'schedule': true,
+    'week-list': true,
+    'month-grid': true,
+    'day-timeline': true,
+    'agenda': true,
+  };
+  const VIEWS = Object.keys(VIEW_TAP_COVERED) as FullscreenCalendarView[];
+
+  for (const view of VIEWS) {
+    test(`'${view}' view: tapping timed and all-day events opens their details`, async ({ page, request }) => {
+      await stubModuleData(page, { overrides: { calendar: VIEW_TAP_EVENTS } });
+      const display = await renderOnDisplay(page, request, calendarScreen({ eventTapDetails: true, view }));
+
+      for (const title of ['VIEWTAP TIMED', 'VIEWTAP ALLDAY']) {
+        await display.module('fullscreen-calendar').getByText(title).first().click();
+        const dialog = page.getByRole('dialog', { name: title });
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Close' }).click();
+        await expect(dialog).toBeHidden();
+      }
+    });
+  }
+});
+
+/**
+ * Regular calendar module `eventTapDetails`: the same tap-to-open detail
+ * overlay as the fullscreen calendar, shared component, same config shape.
+ * The module has two event render branches (full EventCard in daily/agenda,
+ * compact pill in week/month), so the view matrix taps a timed and an all-day
+ * event in every view mode to cover both.
+ */
+test.describe('calendar module event tap', () => {
+  function localDate(offsetDays: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  // Timed event spans today 00:01 → tomorrow 23:59 so it stays visible at any
+  // test-run wall-clock time (list views drop events that already ended).
+  const CAL_TAP_EVENTS = [
+    {
+      id: 'cvt-timed',
+      title: 'CALTAP TIMED',
+      start: `${localDate(0)}T00:01:00`,
+      end: `${localDate(1)}T23:59:00`,
+      allDay: false,
+      location: 'Ryan Park Field 3',
+      description: 'Bring shin guards and a water bottle.',
+      calendarColor: '#10b981',
+      sourceId: 'cal-family',
+      sourceName: 'Family',
+    },
+    {
+      id: 'cvt-allday',
+      title: 'CALTAP ALLDAY',
+      start: localDate(0),
+      end: localDate(1),
+      allDay: true,
+      calendarColor: '#f59e0b',
+      sourceId: 'cal-family',
+      sourceName: 'Family',
+    },
+  ];
+
+  function calendarModuleScreen(config: Record<string, unknown>) {
+    return baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance('calendar', config)])],
+      settings: matrixSettings(),
+    });
+  }
+
+  test('tap opens the detail sheet with event info, Close dismisses', async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: CAL_TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarModuleScreen({ eventTapDetails: true }));
+
+    await display.module('calendar').getByText('CALTAP TIMED').first().click();
+
+    const dialog = page.getByRole('dialog', { name: 'CALTAP TIMED' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-detail-style="sheet"]')).toBeVisible();
+    await expect(dialog.getByText('Ryan Park Field 3')).toBeVisible();
+    await expect(dialog.getByText('Bring shin guards and a water bottle.')).toBeVisible();
+    await expect(dialog.getByText('Family')).toBeVisible();
+
+    // Tapping inside the panel must not dismiss.
+    await dialog.getByText('CALTAP TIMED').click();
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("'card' style renders the centered card, scrim tap dismisses", async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: CAL_TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarModuleScreen({
+      eventTapDetails: true,
+      eventTapStyle: 'card',
+    }));
+
+    await display.module('calendar').getByText('CALTAP TIMED').first().click();
+
+    const dialog = page.getByRole('dialog', { name: 'CALTAP TIMED' });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-detail-style="card"]')).toBeVisible();
+
+    await dialog.click({ position: { x: 10, y: 10 } });
+    await expect(dialog).toBeHidden();
+  });
+
+  test('with the toggle off (default), tapping an event is inert', async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: CAL_TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarModuleScreen({}));
+
+    await display.module('calendar').getByText('CALTAP TIMED').first().click();
+
+    await page.waitForTimeout(500);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  // Record type so a new view mode fails compilation here instead of
+  // silently missing tap coverage.
+  const CAL_VIEW_TAP_COVERED: Record<CalendarViewMode, true> = {
+    daily: true,
+    agenda: true,
+    week: true,
+    month: true,
+  };
+  const CAL_VIEWS = Object.keys(CAL_VIEW_TAP_COVERED) as CalendarViewMode[];
+
+  for (const viewMode of CAL_VIEWS) {
+    test(`'${viewMode}' view: tapping timed and all-day events opens their details`, async ({ page, request }) => {
+      await stubModuleData(page, { overrides: { calendar: CAL_TAP_EVENTS } });
+      const display = await renderOnDisplay(page, request, calendarModuleScreen({ eventTapDetails: true, viewMode }));
+
+      for (const title of ['CALTAP TIMED', 'CALTAP ALLDAY']) {
+        await display.module('calendar').getByText(title).first().click();
+        const dialog = page.getByRole('dialog', { name: title });
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Close' }).click();
+        await expect(dialog).toBeHidden();
+      }
+    });
+  }
 });
 
 /**

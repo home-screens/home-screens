@@ -689,5 +689,10 @@
     "locationNotConfigured": "Locatie niet ingesteld",
     "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
     "moduleFailed": "Dit onderdeel kon niet worden getoond."
+  },
+  "event-detail": {
+    "close": "Sluiten",
+    "happeningNow": "Nu bezig",
+    "allDay": "Hele dag"
   }
 }

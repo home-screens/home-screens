@@ -8,7 +8,7 @@ import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 const SHOW_DESCRIPTION_KEY = {
@@ -57,6 +57,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   const OVERLAP_OPTIONS: { value: EventOverlapMode; label: string }[] = [
     { value: 'columns', label: t('configSections.fullscreen-calendar.overlapSideBySide') },
     { value: 'stacked', label: t('configSections.fullscreen-calendar.overlapStacked') },
+  ];
+
+  const TAP_STYLE_OPTIONS: { value: EventTapStyle; label: string }[] = [
+    { value: 'sheet', label: t('configSections.fullscreen-calendar.eventTapStyleSheet') },
+    { value: 'card', label: t('configSections.fullscreen-calendar.eventTapStyleCard') },
   ];
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
@@ -112,6 +117,17 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.showWeather')} checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+
+      {/* Touch: tap an event to open a detail overlay */}
+      <Toggle label={t('configSections.fullscreen-calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
+      {c.eventTapDetails === true && (
+        <LabeledSelect
+          label={t('configSections.fullscreen-calendar.eventTapStyle')}
+          value={c.eventTapStyle ?? 'sheet'}
+          onChange={(v) => set({ eventTapStyle: v })}
+          options={TAP_STYLE_OPTIONS}
+        />
+      )}
 
       {(view === 'schedule' || view === 'day-timeline') && (
         <LabeledSelect

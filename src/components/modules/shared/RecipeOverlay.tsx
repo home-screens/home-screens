@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
 
 const QR_AUTO_DISMISS_MS = 30_000;
 const IFRAME_AUTO_CLOSE_MS = 10 * 60_000;
@@ -55,7 +56,8 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        // Below sleep/alert: a sleeping display must black out over a recipe.
+        zIndex: DISPLAY_LAYERS.moduleOverlay,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -98,7 +100,8 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        // Below sleep/alert: a sleeping display must black out over a recipe.
+        zIndex: DISPLAY_LAYERS.moduleOverlay,
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#000',

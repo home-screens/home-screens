@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { ScreensaverMode } from '@/types/config';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { useFormattingLocale } from '@/i18n';
 
 interface ScreensaverProps {
@@ -90,7 +91,7 @@ export default function Screensaver({ mode, timezone }: ScreensaverProps) {
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 9998,
+        zIndex: DISPLAY_LAYERS.screensaver,
         pointerEvents: 'none',
       }}
     >

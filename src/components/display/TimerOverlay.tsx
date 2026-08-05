@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, TimerSession } from '@/types/timers';
 import { NUDGE_FRACTION, TIMER_CANVAS_H, TIMER_CANVAS_W, formatQuickName } from './timer-views/shared';
@@ -146,7 +147,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
       style={{
         position: 'absolute',
         inset: 0,
-        zIndex: 9997,
+        zIndex: DISPLAY_LAYERS.timer,
         overflow: 'hidden',
         // Opt out of the screen-rotation view transition (rotation keeps
         // running underneath): without a named group the timer is captured
