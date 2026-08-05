@@ -952,7 +952,11 @@ exec chromium \
     WIFI_MEM_CONF="/etc/sysctl.d/98-wifi-memory.conf"
     if [ ! -f "${WIFI_MEM_CONF}" ] || ! grep -q "min_free_kbytes" "${WIFI_MEM_CONF}" 2>/dev/null; then
       echo "vm.min_free_kbytes = 16384" | sudo tee "${WIFI_MEM_CONF}" > /dev/null
-      sudo sysctl vm.min_free_kbytes=16384 2>/dev/null || true
+      # In a chroot /proc is the build host's, so applying this would tune the
+      # build machine instead of the image. The .conf above is what ships.
+      if [ "${HS_CHROOT:-0}" != "1" ]; then
+        sudo sysctl vm.min_free_kbytes=16384 2>/dev/null || true
+      fi
       changed="${changed}wifi-memory,"
     fi
 
@@ -982,7 +986,11 @@ ipv6.method=disabled"
     #     On mesh networks (Google/Nest WiFi), AP steering causes brief disconnects.
     #     The NM default of 4 retries burns through instantly, leaving the Pi offline.
     #     bgscan takes the radio off-channel; for a stationary device, scan ~never.
-    WIFI_CONN=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep ':802-11-wireless$' | head -1 | cut -d: -f1)
+    # `|| true` is load-bearing: with `set -o pipefail`, grep finding no wireless
+    # connection exits 1, which propagates out of the pipeline and aborts the
+    # whole script. That happens on any host with no active WiFi — an
+    # ethernet-only Pi as well as the image builder's chroot.
+    WIFI_CONN=$(nmcli -t -f NAME,TYPE connection show --active 2>/dev/null | grep ':802-11-wireless$' | head -1 | cut -d: -f1 || true)
     if [ -n "${WIFI_CONN}" ]; then
       CURRENT_RETRIES=$(nmcli -g connection.autoconnect-retries connection show "${WIFI_CONN}" 2>/dev/null)
       if [ "${CURRENT_RETRIES}" != "0" ]; then
@@ -1230,8 +1238,11 @@ nmcli connection modify "$CONNECTION_UUID" 802-11-wireless.powersave 2 2>/dev/nu
       changed="${changed}sysctl-inotify,"
     fi
 
-    # Apply all sysctl changes
-    sudo sysctl --system > /dev/null 2>&1 || true
+    # Apply all sysctl changes. Skipped in a chroot, where /proc belongs to the
+    # build host — the .conf files take effect when the device boots.
+    if [ "${HS_CHROOT:-0}" != "1" ]; then
+      sudo sysctl --system > /dev/null 2>&1 || true
+    fi
 
     # Remove trailing comma
     changed="${changed%,}"
