@@ -146,9 +146,9 @@ test('an inherited global transform does not flip a display\'s own landscape dim
     { displayWidth: 1366, displayHeight: 768 },
   ), id, { width: 1366, height: 768 });
 
-  const module = page.locator('[data-module-type]').first();
-  await expect(module).toBeVisible();
-  const box = (await module.boundingBox())!;
+  const firstModule = page.locator('[data-module-type]').first();
+  await expect(firstModule).toBeVisible();
+  const box = (await firstModule.boundingBox())!;
   // Canvas 1366×768 on a 1366×768 window → scale 1, no letterbox: the module
   // renders at its authored position.
   expect(box.x).toBeGreaterThanOrEqual(90);

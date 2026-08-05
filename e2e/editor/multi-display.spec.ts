@@ -139,6 +139,89 @@ test.describe('multi-display bootstrap', () => {
   });
 });
 
+/* ─── Reserved display ids ────────────────────────────────────────────────── */
+
+/**
+ * `all` is the broadcast keyword in the command layer, so a display that
+ * claimed it would turn every command aimed at one screen into a whole-house
+ * broadcast. `__default__` is the legacy single-display queue key. Both are in
+ * RESERVED_DISPLAY_IDS (src/lib/display-filter.ts) and are rejected at two
+ * separate layers, which say different things:
+ *
+ *  - The add form calls `isValidDisplayId`, which folds the reserved set into
+ *    its boolean, so the form shows its one generic ID message. The friendly
+ *    "this id is reserved" explanation in `validateDisplayId` is NOT reachable
+ *    from this form — nothing invalid ever gets past the button.
+ *  - `validateDisplays` (PUT /api/config, restore, and the editor store's
+ *    pre-save check) is where the reserved explanation is produced, for configs
+ *    that arrive with a reserved id already in them.
+ *
+ * Both layers are pinned below so a future refactor can't quietly drop either.
+ */
+test.describe('reserved display ids', () => {
+  const GENERIC_ID_ERROR = 'ID must be lowercase letters, digits, and hyphens (e.g. "kitchen")';
+  const reservedError = (id: string) =>
+    `Display id "${id}" is reserved: it already has a special meaning when sending commands to displays. `
+    + 'Please pick a different id, such as "kitchen" or "bedroom-tv"';
+
+  test('the add form refuses a display named "All" and creates nothing', async ({ page, request }) => {
+    await putConfig(request, singleDisplayConfig());
+    await page.goto('/editor/settings?section=displays');
+    await expect(page.getByRole('heading', { name: 'Run Home Screens on multiple displays' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Add display' }).click();
+    // "All" slugifies to the reserved id `all` — the realistic way a user hits
+    // this, since the ID field auto-derives from the name.
+    await page.getByPlaceholder('Kitchen Touchscreen').fill('All');
+    // `exact` matters: the name field's placeholder ("Kitchen Touchscreen")
+    // also contains "kitchen".
+    await expect(page.getByPlaceholder('kitchen', { exact: true })).toHaveValue('all');
+    await page.getByRole('button', { name: 'Add display' }).click();
+
+    await expect(page.getByText(GENERIC_ID_ERROR)).toBeVisible();
+    // The form stays open on the rejected values rather than closing as if saved.
+    await expect(page.getByRole('heading', { name: 'Add Display' })).toBeVisible();
+
+    // Nothing was written. Auto-save fires 800ms after a mutation, so wait past
+    // that window before concluding the registry is still empty.
+    await page.waitForTimeout(1200);
+    expect(await readDisplays(request)).toEqual([]);
+  });
+
+  test('the add form refuses a hand-typed "__default__" id', async ({ page, request }) => {
+    await putConfig(request, singleDisplayConfig());
+    await page.goto('/editor/settings?section=displays');
+    await expect(page.getByRole('heading', { name: 'Run Home Screens on multiple displays' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Add display' }).click();
+    await page.getByPlaceholder('Kitchen Touchscreen').fill('Default');
+    // Typing the id directly is the only way to reach `__default__`: slugify
+    // strips the underscores, so the auto-derived id would be the legal "default".
+    await page.getByPlaceholder('kitchen', { exact: true }).fill('__default__');
+    await page.getByRole('button', { name: 'Add display' }).click();
+
+    // Same generic message — the form has only one ID error, and the reserved
+    // check lives inside `isValidDisplayId`.
+    await expect(page.getByText(GENERIC_ID_ERROR)).toBeVisible();
+
+    await page.waitForTimeout(1200);
+    expect(await readDisplays(request)).toEqual([]);
+  });
+
+  test('a config carrying a reserved display id is rejected with the friendly explanation', async ({ request }) => {
+    for (const id of ['all', '__default__']) {
+      const res = await request.put('/api/config', {
+        data: baseConfig({ displays: [{ id, name: 'Reserved', screens: [] }] }),
+      });
+      expect(res.status()).toBe(400);
+      // The reserved check runs ahead of the slug rule, so even `__default__`
+      // (which the slug rule would also reject) gets the explanation, not
+      // "must be lowercase letters…".
+      expect((await res.json()).error).toBe(reservedError(id));
+    }
+  });
+});
+
 /* ─── Adopting an unadopted Pi heartbeat from the index page ──────────────── */
 
 test.describe('display adoption', () => {

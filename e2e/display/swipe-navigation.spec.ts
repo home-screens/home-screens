@@ -2,6 +2,8 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
+import { buildModuleInstance } from '../helpers/module-fixtures';
+import { seedChores } from '../helpers/api';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 
 /**
@@ -212,4 +214,175 @@ test('a flick resets the rotation timer (the new screen gets a full dwell)', asy
 
   // "Did advance later": the reset granted C a fresh full interval.
   await expect(page.getByText(A, { exact: true })).toBeVisible({ timeout: 4000 });
+});
+
+/**
+ * `[data-swipe-ignore]` opt-out (useSwipeNavigation): surfaces that scroll
+ * sideways own the horizontal drag, so a gesture STARTING on one must never
+ * navigate. Two host surfaces carry the attribute — the chore board's member
+ * columns and the display-control target-picker chips — and each is reachable
+ * on a real display, so both are exercised through the rendered kiosk rather
+ * than a synthetic DOM.
+ *
+ * Every case pairs the negative claim with a positive control flick on the
+ * background afterwards: without it, a broken selector or a mis-seeded config
+ * would let the test pass by rendering nothing swipeable at all.
+ */
+test.describe('data-swipe-ignore surfaces', () => {
+  /**
+   * Screen A with a chore board big enough that its member columns (the
+   * `data-swipe-ignore` container) cover most of the screen's middle band,
+   * leaving y≈1500 clear for the control flick. `allowDisplayComplete: false`
+   * keeps a drag that lands as a click from toggling seeded chore state.
+   */
+  function boardScreens() {
+    const board: ModuleInstance = {
+      ...buildModuleInstance('chore-chart', { view: 'board', allowDisplayComplete: false }),
+      position: { x: 40, y: 300 },
+      size: { w: 1000, h: 900 },
+    };
+    const screens = threeScreens();
+    screens[0].modules.push(board);
+    return screens;
+  }
+
+  test('a drag starting on the chore board columns does not navigate', async ({ page, request }) => {
+    await seedChores(request);
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: boardScreens(),
+      settings: { rotationIntervalMs: 3_600_000 },
+    }));
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+
+    const columns = display.module('chore-chart').locator('[data-swipe-ignore]');
+    await expect(columns).toBeVisible();
+    const box = (await columns.boundingBox())!;
+    const y = box.y + box.height / 2;
+    // A fast, long, leftward drag that begins inside the scroll container —
+    // the gesture a finger makes when scanning the columns sideways.
+    await flick(page, { x: box.x + box.width * 0.8, y }, { x: box.x + box.width * 0.8 - 500, y });
+    await page.waitForTimeout(500);
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+    await expect(page.getByText(B, { exact: true })).toHaveCount(0);
+
+    // Control: the identical flick started off the board still navigates, so
+    // the null result above is the opt-out and not a dead gesture pipeline.
+    await flick(page, { x: 800, y: 1500 }, { x: 300, y: 1500 });
+    await expect(page.getByText(B, { exact: true })).toBeVisible();
+  });
+
+  test('a drag starting on the display-control target chips does not navigate', async ({ page, request }) => {
+    // The chips row only renders in multi-display mode with retargeting on
+    // (PanelLayout: `allowRetargeting && !isLegacyMode`), so this needs a
+    // displays registry and a per-display route.
+    const control: ModuleInstance = {
+      ...buildModuleInstance('display-control', { layout: 'panel', defaultTarget: 'self', allowRetargeting: true }),
+      position: { x: 140, y: 700 },
+      size: { w: 680, h: 380 },
+    };
+    const controller = {
+      id: 'swipectl',
+      name: 'Swipe Ctl',
+      screens: [
+        makeScreen('swipectl-a', 'A', [textModule(A), control]),
+        makeScreen('swipectl-b', 'B', [textModule(B)]),
+      ],
+    };
+    const sibling = {
+      id: 'swipesib',
+      name: 'Swipe Sib',
+      screens: [makeScreen('swipesib-s', 'Sib', [textModule('SWIPE SIBLING')])],
+    };
+    const display = await renderOnDisplay(page, request, baseConfig({
+      displays: [controller, sibling],
+      settings: { rotationIntervalMs: 3_600_000 },
+    }), '/display/swipectl');
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+
+    const chips = display.module('display-control').locator('[data-swipe-ignore]');
+    await expect(chips.getByRole('button', { name: 'Swipe Sib', exact: true })).toBeVisible();
+    const box = (await chips.boundingBox())!;
+    const y = box.y + box.height / 2;
+    await flick(page, { x: box.x + box.width * 0.9, y }, { x: box.x + box.width * 0.9 - 400, y });
+    await page.waitForTimeout(500);
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+    await expect(page.getByText(B, { exact: true })).toHaveCount(0);
+
+    // Control: same display, same flick, started below the widget.
+    await flick(page, { x: 800, y: 1500 }, { x: 300, y: 1500 });
+    await expect(page.getByText(B, { exact: true })).toBeVisible();
+  });
+
+  /**
+   * Regression for the stale-origin half of the fix: a pointerdown the hook
+   * DECLINES must also clear whatever origin is pending, or an abandoned
+   * gesture start (a press whose pointerup never arrived — released outside
+   * the window, or a touch the OS took over) would pair with the next
+   * pointerup and navigate from coordinates the user never swiped between.
+   *
+   * Synthesized in-page rather than driven with page.mouse for two reasons:
+   * Chromium never emits a second pointerdown while a mouse button is held
+   * (chorded presses arrive as pointermove), so a real mouse cannot produce
+   * "down, down, up" at all; and dispatching the whole sequence inside one
+   * evaluate keeps it far inside the 500ms flick window no matter how loaded
+   * the machine is. The hook doesn't inspect isTrusted or pointerType, and the
+   * events go through the real window-level capture listeners on the real
+   * display page — only the input source is synthetic.
+   */
+  async function dispatchPointerSequence(
+    page: Page,
+    steps: Array<{ type: 'pointerdown' | 'pointerup'; x: number; y: number }>,
+  ) {
+    await page.evaluate((seq) => {
+      for (const { type, x, y } of seq) {
+        // elementFromPoint so `e.target.closest('[data-swipe-ignore]')` sees
+        // the same element a finger at those coordinates would hit.
+        const el = document.elementFromPoint(x, y) ?? document.body;
+        el.dispatchEvent(new PointerEvent(type, {
+          bubbles: true,
+          composed: true,
+          clientX: x,
+          clientY: y,
+          pointerId: 1,
+          isPrimary: true,
+          pointerType: 'touch',
+        }));
+      }
+    }, steps);
+  }
+
+  test('a declined pointerdown clears the pending origin instead of leaving it to pair', async ({ page, request }) => {
+    await seedChores(request);
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: boardScreens(),
+      settings: { rotationIntervalMs: 3_600_000 },
+    }));
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+
+    const box = (await display.module('chore-chart').locator('[data-swipe-ignore]').boundingBox())!;
+    const ignored = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+
+    // The guard: an origin at x=900 is pending when the pointerdown on the
+    // ignored surface is declined. Before the fix the decline returned without
+    // clearing, so the x=300 pointerup paired with the stale x=900 origin and
+    // read as a 600px leftward flick.
+    await dispatchPointerSequence(page, [
+      { type: 'pointerdown', x: 900, y: 1500 },
+      { type: 'pointerdown', x: ignored.x, y: ignored.y },
+      { type: 'pointerup', x: 300, y: 1500 },
+    ]);
+    await page.waitForTimeout(500);
+    await expect(page.getByText(A, { exact: true })).toBeVisible();
+    await expect(page.getByText(B, { exact: true })).toHaveCount(0);
+
+    // Harness check LAST: dispatched this way a plain down→up pair really is a
+    // flick, so the null result above is the guard and not a dead pipeline. It
+    // has to come second — it leaves screen A, taking the board (and with it
+    // the ignored surface at those coordinates) off the display.
+    await dispatchPointerSequence(page, [
+      { type: 'pointerdown', x: 900, y: 1500 },
+      { type: 'pointerup', x: 300, y: 1500 },
+    ]);
+    await expect(page.getByText(B, { exact: true })).toBeVisible();
+  });
 });

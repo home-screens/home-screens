@@ -604,6 +604,142 @@ test('admin deletes a reward through the reward form and it round-trips', async 
     .toBe(false);
 });
 
+// ── Failed writes: error surface + optimistic rollback ────────────────
+//
+// `editorFetch` resolves for every status except 401, so a 500 used to read as
+// success: the tap stayed checked, the reward stayed in the list, and both were
+// gone after a reload with nothing on screen to say why. The fix (throwIfNotOk
+// + explicit rollback) is covered here on the two chores-surface shapes:
+//
+//   toggle  → rolls back, no error banner (the row itself is the feedback)
+//   rewards → rolls back AND raises the "Failed to save" banner
+//
+// The meal-planner panels roll back through the same useDebouncedSave/
+// throwIfNotOk pairing, so one surface is enough to pin the behavior.
+
+/** Today as the YYYY-MM-DD key the completion store uses (local time, like todayStr). */
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Own member/chore ids: chore-completions.json persists per worker, so unique
+// ids keep this test's toggling out of the other specs' assertions.
+const ROLLBACK_DATA = {
+  members: [{ id: 'm-rb', name: 'Rowan', emoji: '🦊', color: '#f59e0b' }],
+  chores: [{
+    id: 'c-rb',
+    name: 'Rinse the dishes',
+    emoji: '🧼',
+    points: 1,
+    frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+    timeOfDay: 'anytime',
+    assigneeIds: ['m-rb'],
+    rotation: 'fixed',
+  }],
+};
+
+test('a failed chore toggle rolls the check back and the retry succeeds', async ({ page, request }) => {
+  await seedChores(request, ROLLBACK_DATA);
+  const today = todayISO();
+  // Normalize to "not completed" — a CI retry could start with the completion
+  // already present, and the toggle would then be an un-complete.
+  if (await completionExists(request, 'c-rb', 'm-rb', today)) {
+    await request.post('/api/chores', { data: { choreId: 'c-rb', memberId: 'm-rb', date: today } });
+  }
+
+  // Only the toggle POST fails. The GET must fall through: the rollback is a
+  // re-read of the server's real completions, not a local undo.
+  await page.route('**/api/chores', async (route) => {
+    if (route.request().method() !== 'POST') {
+      await route.fallback();
+      return;
+    }
+    // Hold the response open so the optimistic check is observable.
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"nope"}' });
+  });
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+
+  const markBtn = page.getByRole('button', { name: 'Mark complete: Rinse the dishes' });
+  const doneBtn = page.getByRole('button', { name: 'Completed: Rinse the dishes' });
+  await expect(markBtn).toBeVisible();
+  await markBtn.click();
+
+  // Optimistic: the row reads as done while the write is in flight …
+  await expect(doneBtn).toBeVisible();
+  // … and returns to its pre-tap state once the 500 lands.
+  await expect(markBtn).toBeVisible();
+  expect(await completionExists(request, 'c-rb', 'm-rb', today)).toBe(false);
+
+  // The interception was the only failure — the same tap now sticks.
+  await page.unroute('**/api/chores');
+  await markBtn.click();
+  await expect(doneBtn).toBeVisible();
+  await expect.poll(async () => completionExists(request, 'c-rb', 'm-rb', today)).toBe(true);
+});
+
+test('a failed reward save warns and drops the reward back out of the list', async ({ page, request }) => {
+  await seedChores(request, {
+    members: [{ id: 'm-err', name: 'Wren', emoji: '🐼', color: '#3b82f6' }],
+    chores: [],
+  });
+  // A pre-existing reward gives the rollback something to restore *to*, so the
+  // assertion distinguishes "reverted to the snapshot" from "wiped the list".
+  await request.put('/api/rewards/data', {
+    data: {
+      rewards: [{
+        id: 'rw-snap', name: 'Board Game', emoji: 'lucide:puzzle', cost: 6,
+        description: '', memberIds: [], enabled: true,
+      }],
+    },
+  });
+
+  // PUT is the rewards-list write; POST on the same path is a balance adjust.
+  await page.route('**/api/rewards/data', async (route) => {
+    if (route.request().method() !== 'PUT') {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"nope"}' });
+  });
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
+  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+
+  const addReward = async (name: string, cost: string) => {
+    await page.getByRole('button', { name: 'Add Reward' }).click();
+    await page.getByPlaceholder('e.g. Extra Screen Time').fill(name);
+    await page.getByPlaceholder('10').fill(cost);
+    await page.getByRole('button', { name: 'Save Reward' }).click();
+  };
+  const savedRewardNames = async () => {
+    const rewards = (await (await request.get('/api/rewards')).json()).rewards as Array<{ name: string }>;
+    return rewards.map((r) => r.name);
+  };
+
+  await addReward('Trampoline Park', '7');
+
+  await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+  // Rolled back to the snapshot: the new reward is gone, the old one survives.
+  await expect(page.getByRole('button', { name: /Trampoline Park/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Board Game/ })).toBeVisible();
+  expect(await savedRewardNames()).toEqual(['Board Game']);
+
+  await page.unroute('**/api/rewards/data');
+  await addReward('Trampoline Park', '7');
+
+  await expect(page.getByRole('button', { name: /Trampoline Park/ })).toBeVisible();
+  await expect(page.getByText('Failed to save. Please try again.')).toHaveCount(0);
+  await expect.poll(savedRewardNames).toContain('Trampoline Park');
+});
+
 // ── Member avatar + color pickers (admin) ─────────────────────────────
 
 test('member avatar and color picks persist through the member form', async ({ page, request }) => {
