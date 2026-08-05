@@ -437,8 +437,20 @@ for f in /etc/wpa_supplicant/wpa_supplicant*.conf; do
 done
 
 # ============================================================================
-# Done — shut down for imaging
+# Done
 # ============================================================================
+# Chroot builds have no init to shut down — /proc and /sys are the host's, so
+# `shutdown -h now` here would power off the build machine mid-build. The
+# driver (build-image-ci.sh) unmounts and packages once this returns.
+if [ "${HS_CHROOT:-0}" = "1" ]; then
+    log_info "Image preparation complete (chroot build)"
+    echo ""
+    echo "=============================================="
+    echo "Image ready. The build driver will package it."
+    echo "=============================================="
+    exit 0
+fi
+
 log_info "Image preparation complete — shutting down"
 echo ""
 echo "=============================================="

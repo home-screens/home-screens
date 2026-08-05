@@ -2,7 +2,95 @@
 
 This directory contains scripts for building a custom Raspberry Pi image pre-loaded with Home Screens.
 
-## Quick Start
+## Which build do I want?
+
+Two supported paths. Both run the same stage scripts (`scripts/01-*` through `scripts/99-*`), so there is only one set of build logic to maintain.
+
+| | CI build (chroot) | Manual build (on a Pi) |
+|---|---|---|
+| **Use for** | Releases | Hardware bring-up, debugging a real board |
+| Runs on | Any arm64 Linux host | The Raspberry Pi itself |
+| Entry point | `build-image-ci.sh` | `build-image.sh --img` |
+| Needs hardware | No | Yes, plus an SD card reader |
+| App source | Pre-built tarball (`HS_TARBALL`) | Release download or local build |
+| Produces | `.img.xz` directly | An SD card you `dd` and shrink by hand |
+| Time | ~40 min unattended | ~30 min plus manual imaging steps |
+
+The manual path is not deprecated. It is the only path that boots real hardware, so it is where you confirm the display stack actually comes up. The CI path cannot do that — a chroot has no kernel, no GPU, and no display.
+
+## CI build (chroot)
+
+Produces a flashable image with no Pi and no SD card involved. This is what runs on every release tag (`.github/workflows/release.yml`).
+
+```bash
+# Host deps (Debian/Ubuntu, arm64 only)
+sudo apt-get install -y parted dosfstools e2fsprogs zerofree xz-utils curl
+
+sudo ./image-creation/build-image-ci.sh \
+  --version v1.2.3 \
+  --tarball home-screens-v1.2.3.tar.gz
+```
+
+Output lands in `image-creation/.out/` as `home-screens-<version>-<target>.img.xz` plus a `.sha256` sidecar.
+
+**Requires an arm64 host.** Pi arm64 binaries run natively there, which is why the in-chroot `npm run build` is fast. There is no qemu path; the script fails early on x86 rather than dying with `exec format error`.
+
+### How it works
+
+1. Downloads a pinned Raspberry Pi OS Lite arm64 image and verifies its SHA-256
+2. Grows the copy to 6GiB (`truncate`, `parted resizepart`, `resize2fs`)
+3. Loop-mounts it, binds `/dev`, `/proc`, `/sys`, and a fresh tmpfs on `/run`
+4. Copies in working DNS and a `policy-rc.d` stub so apt doesn't try to start services
+5. Chroots in and runs `build-image.sh --img --target pi5` with `HS_CHROOT=1`
+6. Removes build inputs, restores the image's own resolv.conf
+7. Unmounts, `zerofree`s the free space, compresses
+
+### Options
+
+| Flag | Purpose |
+|------|---------|
+| `--version VER` | Version string for the output filename (required) |
+| `--tarball PATH` | Pre-built release tarball to install |
+| `--tarball-sha256 HEX` | Verify the tarball before installing |
+| `--target NAME` | Platform label: `pi5` (default), `pi4`, `pizero2`, `pi` |
+| `--size-mb N` | Work image size in MiB (default 6144) |
+| `--keep-work` | Leave the work image and mounts for inspection |
+| `--skip-xz` | Produce a raw `.img` without compressing |
+
+### Bumping the base OS
+
+Three values at the top of `build-image-ci.sh` move together. Note the release directory is dated a day *after* the image inside it:
+
+```bash
+BASE_IMAGE_DIR_DATE="2026-06-19"   # the directory under images/
+BASE_IMAGE_DATE="2026-06-18"       # the .img.xz filename
+BASE_IMAGE_SHA256="acff736c..."    # from the .sha256 sidecar next to the image
+```
+
+## The HS_CHROOT contract
+
+`HS_CHROOT=1` tells the stage scripts there is no running init, no real hardware, and that the root filesystem being modified is not the one the process booted from. `/proc`, `/sys` and `/dev` are the **build host's**, so anything reading or writing them is talking to the wrong kernel.
+
+Under `HS_CHROOT=1` a stage must not:
+
+- start, restart, or reload a service (`systemctl enable` is fine, it only writes symlinks)
+- call `hostnamectl` / `timedatectl` / `localectl` (they need D-Bus)
+- apply sysctl settings, or read `/proc/device-tree`, `findmnt`, `lsblk`
+- power off the machine
+
+Work that genuinely needs a kernel belongs in `firstboot.sh`, which runs on the device.
+
+**Stages branch on "is there a kernel I can talk to", never on "am I in CI".** That keeps both paths running identical code except where the environment genuinely differs, which is what stops them drifting apart.
+
+When adding to a stage script, check for new violations:
+
+```bash
+grep -nE 'hostnamectl|timedatectl|localectl|sysctl|udevadm|systemctl (start|restart|daemon-reload)|findmnt|lsblk|growpart|modprobe|/proc/sys' image-creation/scripts/*.sh
+```
+
+---
+
+## Manual build (on a Raspberry Pi)
 
 ### Prerequisites
 
@@ -62,7 +150,10 @@ The build process downloads a pre-built release tarball from GitHub and uses the
 5. **Optimization** — Volatile journal, zram swap, tmpfs mounts, boot speed
 6. **Finalize** — Clear caches, SSH keys, machine-id, first-boot service
 
-## Creating a Distributable Image
+## Creating a Distributable Image (manual path only)
+
+These steps are for the on-Pi build. The CI build produces a compressed image
+directly and needs none of them.
 
 After running `./build-image.sh --img`:
 

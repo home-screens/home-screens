@@ -3,8 +3,13 @@
 # Downloads a release tarball from GitHub (or uses local source) and installs it.
 #
 # Environment variables:
-#   HS_BRANCH  - Git tag/branch for release download (default: latest)
-#   HS_LOCAL   - Set to "true" to use local repo instead of downloading
+#   HS_BRANCH         - Git tag/branch for release download (default: latest)
+#   HS_LOCAL          - Set to "true" to use local repo instead of downloading
+#   HS_TARBALL        - Path to an already-built release tarball. Skips both the
+#                       download and the local build. Used by CI, where the
+#                       release workflow has already built and checksummed the
+#                       exact artifact users will download.
+#   HS_TARBALL_SHA256 - Expected SHA-256 of HS_TARBALL. Verified when set.
 #
 # The script downloads from GitHub by default to ensure a clean build.
 
@@ -18,6 +23,8 @@ INSTALL_BASE="/opt/home-screens"
 APP_DIR="${INSTALL_BASE}/current"
 HS_BRANCH="${HS_BRANCH:-}"
 HS_LOCAL="${HS_LOCAL:-false}"
+HS_TARBALL="${HS_TARBALL:-}"
+HS_TARBALL_SHA256="${HS_TARBALL_SHA256:-}"
 
 # The user created in stage 01
 APP_USER="hs"
@@ -44,7 +51,44 @@ chown "${APP_USER}:${APP_USER}" "${INSTALL_BASE}"
 # ============================================================================
 # Install Home Screens
 # ============================================================================
-if [[ "$HS_LOCAL" == "true" ]]; then
+if [[ -n "$HS_TARBALL" ]]; then
+    # Install from an already-built tarball (CI path).
+    log_info "Installing from tarball: ${HS_TARBALL}"
+
+    if [[ ! -f "$HS_TARBALL" ]]; then
+        log_error "HS_TARBALL does not exist: ${HS_TARBALL}"
+        exit 1
+    fi
+
+    if [[ -n "$HS_TARBALL_SHA256" ]]; then
+        log_info "Verifying checksum..."
+        ACTUAL_HASH=$(sha256sum "$HS_TARBALL" | awk '{print $1}')
+        if [[ "$ACTUAL_HASH" != "$HS_TARBALL_SHA256" ]]; then
+            log_error "Checksum verification FAILED for ${HS_TARBALL}"
+            log_error "  expected: ${HS_TARBALL_SHA256}"
+            log_error "  actual:   ${ACTUAL_HASH}"
+            exit 1
+        fi
+        log_info "Checksum OK"
+    else
+        log_warn "No HS_TARBALL_SHA256 given — skipping verification"
+    fi
+
+    # Extract to staging, then swap into place. The caller owns HS_TARBALL, so
+    # unlike the download path we must not delete it.
+    STAGING_DIR=$(mktemp -d /tmp/home-screens-staging.XXXXXX)
+    trap 'rm -rf "${STAGING_DIR}" 2>/dev/null' EXIT
+
+    log_info "Extracting..."
+    tar -xzf "${HS_TARBALL}" -C "${STAGING_DIR}"
+
+    rm -rf "${APP_DIR}"
+    mv "${STAGING_DIR}" "${APP_DIR}"
+    trap - EXIT
+
+    log_info "Tarball installed to ${APP_DIR}"
+
+elif [[ "$HS_LOCAL" == "true" ]]; then
     # Use local repository (for development testing)
     REPO_DIR="$(cd "$IMAGE_CREATION_DIR/.." && pwd)"
     log_warn "Using LOCAL repository at $REPO_DIR"

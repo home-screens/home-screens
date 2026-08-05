@@ -8,8 +8,34 @@
 #   Or from a clone:
 #     sudo ./build-image.sh [--img]
 #
-# This script must be run ON the Raspberry Pi that will become the image.
-# Start with a fresh Raspberry Pi OS Lite (64-bit) installation.
+# Two supported paths, both running these same stage scripts:
+#
+#   Manual (on-Pi)  Run this script on the Raspberry Pi that will become the
+#                   image, starting from a fresh Raspberry Pi OS Lite (64-bit)
+#                   install. Ends by shutting down so the SD card can be imaged.
+#                   Use for hardware bring-up and debugging a real board.
+#
+#   CI (chroot)     build-image-ci.sh downloads a base image, loop-mounts it,
+#                   and runs this script inside a chroot with HS_CHROOT=1.
+#                   Use for releases.
+#
+# HS_CHROOT contract
+# ------------------
+# HS_CHROOT=1 means: no running init, no real hardware, and the root filesystem
+# being modified is not the one this process booted from. /proc, /sys and /dev
+# are bind-mounted from the BUILD HOST, so anything that reads or writes them
+# is talking to the wrong kernel.
+#
+# Under HS_CHROOT=1 a stage must not:
+#   - start, restart, or reload a service (systemctl enable is fine, it only
+#     writes symlinks)
+#   - call hostnamectl / timedatectl / localectl (they need D-Bus)
+#   - apply sysctl settings, or read /proc/device-tree, findmnt, lsblk
+#   - power off the machine
+# Work that genuinely needs a kernel belongs in firstboot.sh, which runs on the
+# device. Everything that only writes files runs unchanged on both paths.
+#
+# Stages branch on "is there a kernel I can talk to", never on "am I in CI".
 
 set -e
 
@@ -42,7 +68,9 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HS_VERSION="${HS_VERSION:-dev}"
+HS_CHROOT="${HS_CHROOT:-0}"
 BUILD_IMG=false
+PLATFORM_OVERRIDE="${HS_TARGET:-}"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -50,6 +78,16 @@ while [[ $# -gt 0 ]]; do
         --img)
             BUILD_IMG=true
             shift
+            ;;
+        --target)
+            # Skip hardware detection and declare the platform. Required for
+            # chroot builds, where /proc/device-tree is the build host's.
+            if [ -z "${2:-}" ]; then
+                echo "--target requires a platform (pi5, pi4, pizero2, pi)"
+                exit 1
+            fi
+            PLATFORM_OVERRIDE="$2"
+            shift 2
             ;;
         *)
             echo "Unknown option: $1"
@@ -133,11 +171,17 @@ main() {
     echo "╚════════════════════════════════════════════════╝"
     echo ""
 
-    detect_platform
+    if [ -n "$PLATFORM_OVERRIDE" ]; then
+        PLATFORM="$PLATFORM_OVERRIDE"
+        log_info "Platform override: $PLATFORM (detection skipped)"
+    else
+        detect_platform
 
-    if [ "$PLATFORM" == "unknown" ]; then
-        log_error "Unknown platform. This script must run on a Raspberry Pi."
-        exit 1
+        if [ "$PLATFORM" == "unknown" ]; then
+            log_error "Unknown platform. This script must run on a Raspberry Pi."
+            log_error "For chroot builds, pass --target (see build-image-ci.sh)."
+            exit 1
+        fi
     fi
 
     # Ensure base system is fully up to date before building.
@@ -155,6 +199,7 @@ main() {
     # Export variables for stage scripts
     export SCRIPT_DIR
     export BUILD_IMG
+    export HS_CHROOT
 
     # Run build stages in order
     for script in "$SCRIPT_DIR/scripts/"[0-9]*.sh; do

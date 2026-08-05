@@ -45,6 +45,21 @@ PI_VARIANT="desktop"
 [ -f "${APP_DIR}/data/kiosk.conf" ] && source "${APP_DIR}/data/kiosk.conf"
 PI_VARIANT="${PI_VARIANT:-desktop}"
 
+# Reload systemd after writing a unit file.
+#
+# setup-system is also run inside a chroot by the image builder, where there is
+# no init to reload and units are read when the device first boots. Guarding
+# explicitly keeps the on-device path strict — a failing daemon-reload there is
+# a real error and should still abort under `set -e` — without depending on
+# systemctl's own chroot detection, which needs the build host's /proc mounted
+# and returns success only as a side effect.
+hs_daemon_reload() {
+  if [ "${HS_CHROOT:-0}" = "1" ]; then
+    return 0
+  fi
+  sudo systemctl daemon-reload
+}
+
 action="${1:-}"
 shift || true
 
@@ -672,7 +687,7 @@ WantedBy=multi-user.target"
 
     if [ ! -f "${SERVICE_FILE}" ] || [ "$(cat "${SERVICE_FILE}")" != "${DESIRED_SERVICE}" ]; then
       echo "${DESIRED_SERVICE}" | sudo tee "${SERVICE_FILE}" > /dev/null
-      sudo systemctl daemon-reload
+      hs_daemon_reload
       sudo systemctl enable home-screens.service
       changed="${changed}service,"
     fi
@@ -708,7 +723,7 @@ WantedBy=multi-user.target"
         reporter_changed=1
       fi
       if [ "${reporter_changed}" = "1" ]; then
-        sudo systemctl daemon-reload
+        hs_daemon_reload
         # Restart the timer only if it has the config it needs AND the
         # admin has opted in by enabling it. The hub path never falls here
         # because install.sh no longer enables the reporter for hubs.
@@ -751,7 +766,7 @@ ExecStart=-/sbin/agetty --autologin ${USER} --noclear %I \$TERM"
     if [ ! -f "${AUTOLOGIN_CONF}" ] || [ "$(cat "${AUTOLOGIN_CONF}")" != "${DESIRED_AUTOLOGIN}" ]; then
       sudo mkdir -p "${AUTOLOGIN_DIR}"
       echo "${DESIRED_AUTOLOGIN}" | sudo tee "${AUTOLOGIN_CONF}" > /dev/null
-      sudo systemctl daemon-reload
+      hs_daemon_reload
       changed="${changed}autologin,"
     fi
 
@@ -1043,7 +1058,7 @@ OnUnitActiveSec=120
 WantedBy=timers.target"
     if [ ! -f "${WATCHDOG_TIMER}" ] || [ "$(sudo cat "${WATCHDOG_TIMER}")" != "${DESIRED_WD_TIMER}" ]; then
       echo "${DESIRED_WD_TIMER}" | sudo tee "${WATCHDOG_TIMER}" > /dev/null
-      sudo systemctl daemon-reload
+      hs_daemon_reload
       sudo systemctl enable wifi-watchdog.timer 2>/dev/null || true
       sudo systemctl start wifi-watchdog.timer 2>/dev/null || true
       changed="${changed}wifi-watchdog-timer,"

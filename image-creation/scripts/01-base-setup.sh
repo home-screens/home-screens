@@ -9,7 +9,14 @@ log_info() {
 }
 
 log_info "Setting hostname to 'home-screens'"
-hostnamectl set-hostname home-screens
+if [ "${HS_CHROOT:-0}" = "1" ]; then
+    # hostnamectl needs systemd-hostnamed over D-Bus. Write the file it would
+    # write; the transient hostname is meaningless for an image that has not
+    # booted yet.
+    echo "home-screens" > /etc/hostname
+else
+    hostnamectl set-hostname home-screens
+fi
 
 # Update /etc/hosts
 if ! grep -q "home-screens" /etc/hosts; then
@@ -62,7 +69,14 @@ locale-gen
 update-locale LANG=en_US.UTF-8
 
 log_info "Setting timezone to UTC (configurable via web editor)"
-timedatectl set-timezone UTC
+if [ "${HS_CHROOT:-0}" = "1" ]; then
+    # timedatectl needs systemd-timedated over D-Bus. These two writes are what
+    # it does.
+    ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+    echo "UTC" > /etc/timezone
+else
+    timedatectl set-timezone UTC
+fi
 
 log_info "Configuring kernel parameters"
 cat > /etc/sysctl.d/99-home-screens.conf << 'EOF'
@@ -72,6 +86,13 @@ cat > /etc/sysctl.d/99-home-screens.conf << 'EOF'
 fs.inotify.max_user_watches=524288
 EOF
 
-sysctl --system
+# In a chroot, /proc is the BUILD HOST's — `sysctl --system` would apply these
+# settings to the build machine, not the image. The .conf file above is what
+# matters; it takes effect when the device boots.
+if [ "${HS_CHROOT:-0}" = "1" ]; then
+    log_info "Chroot build — sysctl settings apply on first boot"
+else
+    sysctl --system
+fi
 
 log_info "Base setup complete"

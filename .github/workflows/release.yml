@@ -3,6 +3,14 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # Manual runs build the tarball and the Pi image without cutting a tag or
+  # publishing a release. Used to iterate on the image build.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version string for artifact names (e.g. v1.2.3-test)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -11,8 +19,19 @@ jobs:
   build:
     name: Build & Release
     runs-on: ubuntu-24.04-arm
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-node@v4
         with:
@@ -69,7 +88,7 @@ jobs:
             );
           "
 
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${{ steps.version.outputs.version }}"
           tar -czf "home-screens-${TAG}.tar.gz" -C .next/standalone .
 
       # Generate SHA-256 sidecar for artifact integrity verification.
@@ -79,7 +98,7 @@ jobs:
       # account or replaced asset would otherwise go undetected).
       - name: Compute checksum
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${{ steps.version.outputs.version }}"
           sha256sum "home-screens-${TAG}.tar.gz" > "home-screens-${TAG}.tar.gz.sha256"
           cat "home-screens-${TAG}.tar.gz.sha256"
 
@@ -93,6 +112,19 @@ jobs:
             exit 1
           fi
 
+      # Hand the tarball to the image job. It installs this exact artifact
+      # rather than rebuilding, so the image contains the same bytes users
+      # download and the same bytes the checksum above covers.
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-tarball
+          path: |
+            home-screens-*.tar.gz
+            home-screens-*.tar.gz.sha256
+          retention-days: 1
+          if-no-files-found: error
+
       - name: Check for release notes
         id: notes
         run: |
@@ -102,6 +134,7 @@ jobs:
           fi
 
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
@@ -109,5 +142,74 @@ jobs:
             home-screens-*.tar.gz.sha256
           body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: ${{ steps.notes.outputs.path == '' }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  image:
+    name: Build Pi image
+    needs: build
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            parted dosfstools e2fsprogs zerofree xz-utils curl
+
+      # A 6GiB work image plus the extracted base plus the compressed output
+      # does not fit alongside the runner's preinstalled toolchains.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/share/boost /opt/hostedtoolcache
+          df -h /
+
+      - name: Download tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: standalone-tarball
+          path: .
+
+      # The base OS image is ~1.3GB and pinned in the builder. Key on the
+      # builder's hash so bumping the pin invalidates the cache.
+      - name: Cache base image
+        uses: actions/cache@v4
+        with:
+          path: image-creation/.cache/base
+          key: rpios-base-${{ hashFiles('image-creation/build-image-ci.sh') }}
+
+      - name: Build image
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          TARBALL="home-screens-${VERSION}.tar.gz"
+          SHA="$(awk '{print $1}' "${TARBALL}.sha256")"
+          sudo ./image-creation/build-image-ci.sh \
+            --version "${VERSION}" \
+            --target pi5 \
+            --tarball "${TARBALL}" \
+            --tarball-sha256 "${SHA}"
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pi-image
+          path: |
+            image-creation/.out/*.img.xz
+            image-creation/.out/*.img.xz.sha256
+          if-no-files-found: error
+
+      # Adds the image to the release the build job already created. Assets are
+      # added, not replaced, so the tarball published above survives.
+      - name: Attach image to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          files: |
+            image-creation/.out/*.img.xz
+            image-creation/.out/*.img.xz.sha256
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
