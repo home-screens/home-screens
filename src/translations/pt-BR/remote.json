@@ -50,7 +50,7 @@
     "heading": "Perfis"
   },
   "displayPicker": {
-    "targeting": "Destino",
+    "targeting": "Controles para",
     "allLabel": "Todas"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Tentar de novo",
     "onAllDisplays": "Em todas as telas",
     "onDisplay": "Em {name}",
+    "showOn": "Mostrar em",
+    "allDisplays": "Todas as telas",
+    "showOnNext": "Próximo timer em",
+    "onDisplays": "Em {count} telas",
     "replaceTitle": "Começar um novo timer?",
     "replaceBody": "Já tem um timer rodando. Começar um novo vai pará-lo.",
     "soundOn": "Som ligado",

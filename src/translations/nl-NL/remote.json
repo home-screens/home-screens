@@ -50,7 +50,7 @@
     "heading": "Profielen"
   },
   "displayPicker": {
-    "targeting": "Doel",
+    "targeting": "Bediening voor",
     "allLabel": "Alle"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Opnieuw proberen",
     "onAllDisplays": "Op alle schermen",
     "onDisplay": "Op {name}",
+    "showOn": "Tonen op",
+    "allDisplays": "Alle schermen",
+    "showOnNext": "Volgende timer op",
+    "onDisplays": "Op {count} schermen",
     "replaceTitle": "Nieuwe timer starten?",
     "replaceBody": "Er loopt al een timer. Een nieuwe timer stopt de huidige.",
     "soundOn": "Geluid aan",

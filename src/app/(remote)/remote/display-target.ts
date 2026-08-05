@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
+import type { TimerTargets } from '@/types/timers';
 
 /**
  * Selected display target for the remote control.
@@ -19,12 +20,22 @@ export interface DisplayTargetContextType {
   setTarget: (value: DisplayTargetValue) => void;
   /** All displays the hub knows about (registered + heartbeat). Empty in single-display mode. */
   displays: Array<{ id: string; name: string }>;
+  /**
+   * The Timers tab's "Show on" chip selection (empty = All, the default).
+   * Deliberately separate from `target`, and held at the provider so a
+   * selection survives tab switches — RemoteClient unmounts TimersTab
+   * whenever another tab is active.
+   */
+  timerTargetIds: string[];
+  setTimerTargetIds: Dispatch<SetStateAction<string[]>>;
 }
 
 export const DisplayTargetContext = createContext<DisplayTargetContextType>({
   target: undefined,
   setTarget: () => {},
   displays: [],
+  timerTargetIds: [],
+  setTimerTargetIds: () => {},
 });
 
 export function useDisplayTarget(): DisplayTargetContextType {
@@ -40,4 +51,21 @@ export function withDisplayTarget(url: string, target: DisplayTargetValue): stri
   if (!target) return url;
   const sep = url.includes('?') ? '&' : '?';
   return `${url}${sep}display=${encodeURIComponent(target)}`;
+}
+
+/**
+ * Convert the Timers tab's chip selection to session targets. Empty
+ * selection means All, the default. Selecting every chip also collapses to
+ * 'all': `displays` is a page-load snapshot, so the broadcast keyword keeps
+ * displays adopted after load covered, and the running card shows the
+ * translated "On all displays" label instead of an id list. Ids are NOT
+ * checked against the live registry — a display deleted after page load can
+ * still be addressed, in which case the session simply matches no display.
+ */
+export function resolveTimerTargets(
+  targetIds: string[],
+  displays: Array<{ id: string; name: string }>,
+): TimerTargets {
+  if (targetIds.length === 0 || targetIds.length >= displays.length) return 'all';
+  return targetIds;
 }

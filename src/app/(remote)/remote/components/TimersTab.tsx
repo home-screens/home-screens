@@ -22,11 +22,19 @@ export const TIMER_VIEW_LABEL_KEYS: Record<TimerView, string> = {
   path: 'timers.viewPath',
 };
 
+/** Pill-toggle style shared by every chip on the timer surfaces (targets, views, sound, wait-for-tap). */
+export const timerChipClass = (active: boolean) =>
+  `px-3 min-h-[34px] rounded-full text-[12px] font-semibold border ${
+    active
+      ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
+      : 'bg-transparent border-hs-border-strong text-hs-text-faint'
+  }`;
+
 export default function TimersTab() {
   const t = useTranslate('remote');
   const {
     routines, routinesLoaded, routinesError, retryRoutines, live, error, setError,
-    startRoutine, startQuick, control, saveRoutines,
+    startRoutine, startQuick, control, saveRoutines, targetIds, setTargetIds,
   } = useTimersData();
   const { displays } = useDisplayTarget();
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
@@ -56,19 +64,22 @@ export default function TimersTab() {
     else start();
   };
 
+  const toggleTarget = (id: string) =>
+    setTargetIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
   // The session store is global: whatever is running shows here regardless of
-  // the display picker, so name where it's actually showing.
-  const targetLabel = running
-    ? running.targets === 'all'
-      ? displays.length > 0
-        ? t('timers.onAllDisplays')
-        : null
-      : t('timers.onDisplay', {
-          name:
-            displays.find((d) => d.id === (running.targets as string[])[0])?.name ??
-            (running.targets as string[])[0],
-        })
-    : null;
+  // the display picker, so name where it's actually showing. Multi-target
+  // sessions get a count ("On 3 displays") — a joined name list would be the
+  // first thing truncated out of the single-line card meta.
+  const targetLabel = (() => {
+    if (!running) return null;
+    if (running.targets === 'all') return displays.length > 0 ? t('timers.onAllDisplays') : null;
+    const ids = running.targets;
+    if (ids.length > 1) return t('timers.onDisplays', { count: ids.length });
+    return t('timers.onDisplay', { name: displays.find((d) => d.id === ids[0])?.name ?? ids[0] });
+  })();
   const step = running ? running.steps[running.stepIndex] : null;
   const effectiveNow = running?.pausedAt ?? Date.now();
   const remainingMs = running && step && !running.awaitingTap
@@ -175,6 +186,36 @@ export default function TimersTab() {
         </section>
       )}
 
+      {displays.length > 0 && (
+        <section
+          data-testid="timer-target-picker"
+          className="mx-5 mb-4 flex items-center gap-1.5 flex-wrap"
+        >
+          <span className="text-[12px] font-semibold text-hs-text-faint mr-0.5">
+            {/* Chips only scope the NEXT start — they can't move a running
+                session — so say that while one is running. */}
+            {t(running ? 'timers.showOnNext' : 'timers.showOn')}
+          </span>
+          <button
+            onClick={() => setTargetIds([])}
+            aria-pressed={targetIds.length === 0}
+            className={timerChipClass(targetIds.length === 0)}
+          >
+            {t('timers.allDisplays')}
+          </button>
+          {displays.map((d) => (
+            <button
+              key={d.id}
+              onClick={() => toggleTarget(d.id)}
+              aria-pressed={targetIds.includes(d.id)}
+              className={timerChipClass(targetIds.includes(d.id))}
+            >
+              {d.name}
+            </button>
+          ))}
+        </section>
+      )}
+
       <section className="mx-5 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
         <h2 className="text-[15px] font-bold text-hs-text-primary">{t('timers.quickTimer')}</h2>
         <div className="mt-3 grid grid-cols-3 gap-2">
@@ -227,11 +268,7 @@ export default function TimersTab() {
               <button
                 key={view}
                 onClick={() => setQuickView(view)}
-                className={`px-3 min-h-[34px] rounded-full text-[12px] font-semibold border ${
-                  quickView === view
-                    ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-                    : 'bg-transparent border-hs-border-strong text-hs-text-faint'
-                }`}
+                className={timerChipClass(quickView === view)}
               >
                 {t(TIMER_VIEW_LABEL_KEYS[view])}
               </button>
@@ -240,11 +277,7 @@ export default function TimersTab() {
           <button
             onClick={() => setQuickSound((v) => !v)}
             aria-pressed={quickSound}
-            className={`px-3 min-h-[34px] rounded-full text-[12px] font-semibold border shrink-0 ${
-              quickSound
-                ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-                : 'bg-transparent border-hs-border-strong text-hs-text-faint'
-            }`}
+            className={`${timerChipClass(quickSound)} shrink-0`}
           >
             {t('timers.sound')}
           </button>

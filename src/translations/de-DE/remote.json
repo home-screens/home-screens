@@ -50,7 +50,7 @@
     "heading": "Profile"
   },
   "displayPicker": {
-    "targeting": "Ziel",
+    "targeting": "Steuerung gilt für",
     "allLabel": "Alle"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Erneut versuchen",
     "onAllDisplays": "Auf allen Displays",
     "onDisplay": "Auf {name}",
+    "showOn": "Anzeigen auf",
+    "allDisplays": "Alle Displays",
+    "showOnNext": "Nächster Timer auf",
+    "onDisplays": "Auf {count} Displays",
     "replaceTitle": "Neuen Timer starten?",
     "replaceBody": "Es läuft schon ein Timer. Ein neuer Timer beendet ihn.",
     "soundOn": "Ton an",

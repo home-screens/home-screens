@@ -127,3 +127,81 @@ test('shared-state interest is scoped to the polled display, not its siblings', 
   // A different display the editor never polled stays unwatched.
   expect((await drainEnvelope(request, other)).sharedStateWatched).toBe(false);
 });
+
+test.describe('timer display targets', () => {
+  // The timer session store is global for the worker's whole run. A session
+  // leaked by an earlier spec would make requestStart open the replace-confirm
+  // sheet (swallowing the preset tap) and let the broadcast assertions pass
+  // vacuously on the stale session — so clear it before AND after each test.
+  test.beforeEach(async ({ request }) => {
+    await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
+  });
+  test.afterEach(async ({ request }) => {
+    await request.post('/api/timers/session', { data: { action: 'cancel' } }).catch(() => {});
+  });
+
+  async function sessionTargets(request: APIRequestContext) {
+    const res = await request.get('/api/timers/session');
+    return (await res.json()).session?.targets;
+  }
+
+  test('timers broadcast to all displays by default, ignoring the global picker', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/remote');
+    // Park the GLOBAL picker on one display first (from the Control tab, where
+    // its buttons are unambiguous) — timers must not inherit it.
+    await page.getByRole('button', { name: 'Kitchen', exact: true }).click();
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+
+    await expect(
+      page.getByTestId('timer-target-picker').getByRole('button', { name: 'All displays' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    await page.getByRole('button', { name: '30 sec', exact: true }).click();
+    await expect.poll(() => sessionTargets(request), { timeout: 5000 }).toBe('all');
+  });
+
+  test('selecting display chips scopes the session and labels the running card', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/remote');
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+
+    const picker = page.getByTestId('timer-target-picker');
+    await picker.getByRole('button', { name: 'Kitchen' }).click();
+    await expect(picker.getByRole('button', { name: 'All displays' })).toHaveAttribute('aria-pressed', 'false');
+
+    await page.getByRole('button', { name: '30 sec', exact: true }).click();
+    await expect.poll(() => sessionTargets(request), { timeout: 5000 }).toEqual(['kitchen']);
+    await expect(page.getByText('On Kitchen')).toBeVisible();
+  });
+
+  test('a chip selection survives switching tabs', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/remote');
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+
+    const picker = page.getByTestId('timer-target-picker');
+    await picker.getByRole('button', { name: 'Kitchen' }).click();
+    // Switching tabs unmounts TimersTab — the selection must not reset to All.
+    await page.getByRole('button', { name: 'Control', exact: true }).click();
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+    await expect(picker.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(picker.getByRole('button', { name: 'All displays' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('tapping All displays clears a chip selection', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/remote');
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+
+    const picker = page.getByTestId('timer-target-picker');
+    await picker.getByRole('button', { name: 'Kitchen' }).click();
+    await picker.getByRole('button', { name: 'Main' }).click();
+    await picker.getByRole('button', { name: 'All displays' }).click();
+    await expect(picker.getByRole('button', { name: 'Kitchen' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(picker.getByRole('button', { name: 'Main' })).toHaveAttribute('aria-pressed', 'false');
+
+    await page.getByRole('button', { name: '30 sec', exact: true }).click();
+    await expect.poll(() => sessionTargets(request), { timeout: 5000 }).toBe('all');
+  });
+});

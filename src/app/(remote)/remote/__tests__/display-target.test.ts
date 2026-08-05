@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { withDisplayTarget } from '../display-target';
+import { resolveTimerTargets, withDisplayTarget } from '../display-target';
 
 /**
  * `withDisplayTarget` is the helper every /remote fetch goes through to
@@ -90,5 +90,40 @@ describe('withDisplayTarget', () => {
     // A literal `%` in the id must be re-encoded to `%25`, otherwise the
     // query string decodes to something different than what was typed.
     expect(withDisplayTarget('/api/x', 'a%b')).toBe('/api/x?display=a%25b');
+  });
+});
+
+describe('resolveTimerTargets', () => {
+  const displays = [
+    { id: 'main', name: 'Main' },
+    { id: 'kitchen', name: 'Kitchen' },
+  ];
+
+  it('broadcasts to all when nothing is selected', () => {
+    expect(resolveTimerTargets([], displays)).toBe('all');
+  });
+
+  it('returns a partial selection as ids', () => {
+    expect(resolveTimerTargets(['kitchen'], displays)).toEqual(['kitchen']);
+  });
+
+  it('collapses a full selection to all', () => {
+    // 'all' rather than an enumerated list: the displays array is a
+    // page-load snapshot, so the broadcast keyword also covers displays
+    // adopted after the page loaded, and the running card gets the
+    // translated "On all displays" label.
+    expect(resolveTimerTargets(['kitchen', 'main'], displays)).toBe('all');
+  });
+
+  it('passes unknown ids through untouched', () => {
+    // Ids are not validated against the registry (a display deleted while
+    // /remote is open can still be addressed; the session then matches no
+    // display, which is harmless). This pins that the resolver does not
+    // silently rewrite the user's selection.
+    expect(resolveTimerTargets(['gone'], displays)).toEqual(['gone']);
+  });
+
+  it('broadcasts in single-display mode regardless of selection', () => {
+    expect(resolveTimerTargets(['anything'], [])).toBe('all');
   });
 });

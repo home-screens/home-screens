@@ -50,7 +50,7 @@
     "heading": "Perfiles"
   },
   "displayPicker": {
-    "targeting": "Destino",
+    "targeting": "Controles para",
     "allLabel": "Todos"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Reintentar",
     "onAllDisplays": "En todas las pantallas",
     "onDisplay": "En {name}",
+    "showOn": "Mostrar en",
+    "allDisplays": "Todas las pantallas",
+    "showOnNext": "Próximo temporizador en",
+    "onDisplays": "En {count} pantallas",
     "replaceTitle": "¿Empezar un temporizador nuevo?",
     "replaceBody": "Ya hay un temporizador en marcha. Empezar uno nuevo lo parará.",
     "soundOn": "Sonido activado",

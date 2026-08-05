@@ -67,14 +67,20 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const [displayTarget, setDisplayTarget] = useState<DisplayTargetValue>(
     hasMultipleDisplays ? 'all' : undefined,
   );
+  // Timers-tab "Show on" selection (empty = All). Held here, not in
+  // TimersTab, because switching tabs unmounts TimersTab — a deliberate
+  // selection must survive a detour through Chores and back.
+  const [timerTargetIds, setTimerTargetIds] = useState<string[]>([]);
 
   const targetCtx = useMemo(
     () => ({
       target: displayTarget,
       setTarget: setDisplayTarget,
       displays: initialData.displays,
+      timerTargetIds,
+      setTimerTargetIds,
     }),
-    [displayTarget, initialData.displays],
+    [displayTarget, initialData.displays, timerTargetIds],
   );
 
   // Status poll picks up the per-display heartbeat when targeting a specific

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, Routine, TimerSession, TimerTargets, TimerView } from '@/types/timers';
-import { useDisplayTarget } from '../display-target';
+import { resolveTimerTargets, useDisplayTarget } from '../display-target';
 
 const SESSION_POLL_MS = 2_000;
 
@@ -17,7 +17,7 @@ export type TimerControlAction = 'pause' | 'resume' | 'skip' | 'add-minute' | 's
  * are replaced wholesale on save (small list, single form surface).
  */
 export function useTimersData() {
-  const { target } = useDisplayTarget();
+  const { displays, timerTargetIds: targetIds, setTimerTargetIds: setTargetIds } = useDisplayTarget();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [routinesLoaded, setRoutinesLoaded] = useState(false);
   const [serverSession, setServerSession] = useState<TimerSession | null>(null);
@@ -81,10 +81,13 @@ export function useTimersData() {
     return () => clearInterval(id);
   }, [live]);
 
-  /** 'all' broadcast for the All/legacy targets; a single id otherwise. */
+  // Timer targets are chosen explicitly in the tab (empty selection = all
+  // displays, the default) — deliberately independent of the global display
+  // picker so a remote parked on "Kitchen" still broadcasts timers. The
+  // selection lives in DisplayTargetContext so it survives tab switches.
   const targets: TimerTargets = useMemo(
-    () => (target && target !== 'all' ? [target] : 'all'),
-    [target],
+    () => resolveTimerTargets(targetIds, displays),
+    [targetIds, displays],
   );
 
   const post = useCallback(
@@ -161,6 +164,8 @@ export function useTimersData() {
     now,
     error,
     setError,
+    targetIds,
+    setTargetIds,
     startRoutine,
     startQuick,
     control,

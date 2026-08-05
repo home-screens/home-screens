@@ -50,7 +50,7 @@
     "heading": "Profils"
   },
   "displayPicker": {
-    "targeting": "Cible",
+    "targeting": "Commandes pour",
     "allLabel": "Tous"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Réessayer",
     "onAllDisplays": "Sur tous les écrans",
     "onDisplay": "Sur {name}",
+    "showOn": "Afficher sur",
+    "allDisplays": "Tous les écrans",
+    "showOnNext": "Prochain minuteur sur",
+    "onDisplays": "Sur {count} écrans",
     "replaceTitle": "Démarrer un nouveau minuteur ?",
     "replaceBody": "Un minuteur est déjà en cours. En démarrer un nouveau l'arrêtera.",
     "soundOn": "Son activé",

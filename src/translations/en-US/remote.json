@@ -50,7 +50,7 @@
     "heading": "Profiles"
   },
   "displayPicker": {
-    "targeting": "Targeting",
+    "targeting": "Controls go to",
     "allLabel": "All"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Try again",
     "onAllDisplays": "On all displays",
     "onDisplay": "On {name}",
+    "showOn": "Show on",
+    "allDisplays": "All displays",
+    "showOnNext": "Next timer shows on",
+    "onDisplays": "On {count} displays",
     "replaceTitle": "Start a new timer?",
     "replaceBody": "A timer is already running. Starting a new one will stop it.",
     "soundOn": "Sound on",

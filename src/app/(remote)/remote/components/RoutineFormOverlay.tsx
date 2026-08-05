@@ -7,7 +7,7 @@ import { uuid } from '@/lib/uuid';
 import { MAX_STEP_SEC, MIN_STEP_SEC } from '@/lib/timer-logic';
 import type { Routine, RoutineStep, TimerView } from '@/types/timers';
 import FormOverlay from './FormOverlay';
-import { TIMER_VIEW_LABEL_KEYS } from './TimersTab';
+import { TIMER_VIEW_LABEL_KEYS, timerChipClass } from './TimersTab';
 
 const ROUTINE_EMOJI = ['🚀', '🌞', '🌙', '🪥', '👕', '🛏️', '🎒', '📚', '🧹', '🍽️', '🛁', '🧸', '⚽', '🎨', '🐶', '⏱️'];
 
@@ -319,11 +319,7 @@ export default function RoutineFormOverlay({
                   <button
                     onClick={() => updateStep(step.id, { waitForTap: !step.waitForTap })}
                     aria-pressed={!!step.waitForTap}
-                    className={`px-3 min-h-[34px] rounded-full text-[12px] font-semibold border ${
-                      step.waitForTap
-                        ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
-                        : 'bg-transparent border-hs-border-strong text-hs-text-faint'
-                    }`}
+                    className={timerChipClass(!!step.waitForTap)}
                   >
                     {t('timers.waitForTap')}
                   </button>

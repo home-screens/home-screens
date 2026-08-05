@@ -50,7 +50,7 @@
     "heading": "Profiler"
   },
   "displayPicker": {
-    "targeting": "Målretter",
+    "targeting": "Styring gælder for",
     "allLabel": "Alle"
   },
   "mobileColorPicker": {
@@ -552,6 +552,10 @@
     "retry": "Prøv igen",
     "onAllDisplays": "På alle skærme",
     "onDisplay": "På {name}",
+    "showOn": "Vis på",
+    "allDisplays": "Alle skærme",
+    "showOnNext": "Næste timer på",
+    "onDisplays": "På {count} skærme",
     "replaceTitle": "Start en ny timer?",
     "replaceBody": "Der kører allerede en timer. En ny timer stopper den.",
     "soundOn": "Lyd til",
