@@ -37,19 +37,28 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
-# Run lint, tests, and typecheck in parallel — abort if any fail
+# Run lint, tests, typecheck, and the production build in parallel — abort if any fail
 echo "Running pre-release checks..."
 FAIL=false
 npm run lint    2>&1 | sed 's/^/  [lint] /'      &  PID_LINT=$!
 npm test        2>&1 | sed 's/^/  [test] /'      &  PID_TEST=$!
 npx tsc --noEmit 2>&1 | sed 's/^/  [types] /'    &  PID_TYPES=$!
+npm run build   2>&1 | sed 's/^/  [build] /'     &  PID_BUILD=$!
 
 wait $PID_LINT  || FAIL=true
 wait $PID_TEST  || FAIL=true
 wait $PID_TYPES || FAIL=true
+wait $PID_BUILD || FAIL=true
 
 if $FAIL; then
   echo "Pre-release checks failed. Fix the errors above before releasing."
+  exit 1
+fi
+
+# E2E suite runs against the build we just produced
+echo "Running E2E suite..."
+if ! npm run test:e2e 2>&1 | sed 's/^/  [e2e] /'; then
+  echo "E2E tests failed. Fix the failures above before releasing."
   exit 1
 fi
 echo "All checks passed."
