@@ -179,7 +179,7 @@ A fresh install does not ship coordinates: `settings.weather.latitude` and `long
 
 ### API Routes
 
-API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 99 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
+API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 108 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
 
 | Category | Routes | Purpose |
 |---|---|---|

@@ -395,6 +395,7 @@ Real-time stock prices from Yahoo Finance.
 | `refreshIntervalMs` | number | `30000` | Refresh interval (30 sec) |
 | `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
 | `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). The quickest way to make prices readable across a room. Not used by the ticker view |
+| `showSparkline` | boolean | `true` | Draw a small trend line on each card in the cards view |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
 ### Crypto Price
@@ -407,6 +408,7 @@ Cryptocurrency prices from CoinGecko.
 | `refreshIntervalMs` | number | `30000` | Refresh interval (30 sec) |
 | `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
 | `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). Not used by the ticker view |
+| `showSparkline` | boolean | `true` | Draw a small trend line on each card in the cards view |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
 ### Sports Scores

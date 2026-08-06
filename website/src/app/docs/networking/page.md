@@ -276,7 +276,7 @@ curl -X POST http://<ip>:3000/api/display/alert \
   -d '{"type": "info", "title": "Dinner is ready!", "message": "Come to the kitchen", "duration": 30000}'
 ```
 
-Alert types: `info`, `warning`, `urgent`. The `duration` field is in milliseconds. Optional fields: `icon` (a short piece of text or an emoji shown just before the title, for example `"🍕"`) and `dismissible` (boolean).
+Alert types: `info`, `warning`, `urgent`. The `duration` field is in milliseconds; `0` keeps the alert up until someone dismisses it. Optional fields: `icon` (a short piece of text or an emoji shown just before the title, for example `"🍕"`) and `dismissible` (boolean).
 
 The colored symbol beside an alert is chosen by its `type` and cannot be replaced. Setting `icon` to an icon name such as `"AlertTriangle"` prints those letters in front of your title rather than drawing anything.
 

@@ -494,6 +494,44 @@ Positive amounts credit points; negative amounts debit. Amount must be non-zero.
 
 ---
 
+## Timers
+
+Visual timers and routines, managed from the remote's Timers tab. Routines are family data like meals and chores — they live in `data/routines.json`, not in the display config. A running timer is a **session**: a snapshot of the steps plus epoch timestamps, so clients derive the countdown locally and editing a routine mid-run can't corrupt it. There is at most one active session household-wide.
+
+### GET /api/timers/routines
+
+Returns the saved routine list. Display access.
+
+**Response:** `{ "routines": [ { "id": "...", "name": "...", "icon": "...", "view": "ring", "sound": true, "steps": [ { "id": "...", "label": "...", "icon": "...", "durationSec": 120, "waitForTap": true } ] } ] }`
+
+`view` is one of `ring`, `face`, `cascade`, or `path`. A step with `waitForTap: true` holds at 0:00 with a "Done!" tap target instead of auto-advancing.
+
+### PUT /api/timers/routines
+
+Replaces the routine list wholesale (the list is capped at 50 and edited from a single form, so replace-the-list avoids partial-update merge rules). Validation is all-or-nothing: one bad routine rejects the whole write with `400`. An empty list is a legitimate write — it's how the last routine is deleted. Requires a valid session.
+
+**Body:** `{ "routines": [ ... ] }` — same shape as the GET response.
+
+### GET /api/timers/session
+
+Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays poll this every few seconds and compute the live countdown locally from the returned timestamps, so poll latency only delays the start — it never affects countdown accuracy. Display access.
+
+### POST /api/timers/session
+
+Starts a session or controls the running one, selected by `action`:
+
+- `start` — begin a timer. For a routine: `{ "action": "start", "kind": "routine", "routineId": "...", "targets": "all" }`. For a quick timer: `{ "action": "start", "kind": "quick", "durationSec": 300, "targets": "all" }`, with optional `view` and `sound`. `targets` is required and picks which displays the timer takes over: `"all"` or a non-empty array of display IDs. Starting while a session is already running replaces it — one active session at a time is the intended family-display behavior.
+- `pause`, `resume` — pause and resume the countdown
+- `skip` and `step-done` — the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
+- `add-minute` — add a minute to the current step
+- `cancel` — stop the session
+
+Display access on purpose — touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
+
+**Response:** `{ "session": { ... } }` with the updated session.
+
+---
+
 ## Authentication
 
 ### GET /api/auth/status
@@ -2403,7 +2441,7 @@ Shows an alert overlay on the display.
 }
 ```
 
-The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly becomes `info` rather than failing. The `icon`, `duration`, and `dismissible` fields are optional. At least one of `title` or `message` is required; send neither and you get `400 { "error": "title or message required" }`.
+The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly becomes `info` rather than failing. The `icon`, `duration`, and `dismissible` fields are optional. `duration` is in milliseconds; send `0` and the alert stays up until it is dismissed, whatever its type. Omit it and the display's default duration from **Settings > Screen > Alerts** applies; if that isn't set either, the per-type defaults kick in — 10 seconds for `info`, 30 seconds for `warning`, and `urgent` stays up until dismissed. At least one of `title` or `message` is required; send neither and you get `400 { "error": "title or message required" }`.
 
 **Response:** `{ "ok": true, "command": "alert" }`
 

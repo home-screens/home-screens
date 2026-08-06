@@ -35,7 +35,7 @@ npx playwright test --project=editor   # Run one surface's E2E specs
 - `(display)` — fullscreen kiosk view, no chrome. Legacy `/display` and per-display `/display/[displayId]`. When the displays registry is populated, legacy `/display` **renders the main display inline** (not a redirect) — Chromium `--app` mode duplicates its window when following a 307 RSC redirect, so the route resolves the target display server-side and renders `ScreenRotator` directly with the correct `displayId`.
 - `(editor)` — configuration editor at `/editor`, has toolbars/panels
 - `(auth)` — authentication at `/login`
-- `(remote)` — remote control + chores at `/remote`
+- `(remote)` — remote control + family surfaces (chores, meals, timers, photos) at `/remote`
 
 ### Module System
 The codebase uses a **module registry pattern**. There are 42 built-in module types. Each requires:
@@ -68,6 +68,8 @@ The `display-control` module is a touch widget that dispatches hub commands (wak
 ### Data Flow
 - Main config: `data/config.json` (read/written via `src/lib/config.ts`)
 - Meal-planner state + shared settings: `data/meals.json` (atomic writes via `src/lib/meal-data.ts`; settings live here so /remote and all meal-planner module instances stay in sync)
+- Chore data: `data/chores.json` (via `src/lib/chore-data.ts` — members, chores, completions, history; the shared source for /remote, /chores, and the chore-chart modules)
+- Timer routines + running session: `data/routines.json` and `data/timer-session.json` (via `src/lib/timer-data.ts` — routines are authored family data, the session is hot runtime state kept in its own file; displays poll `/api/timers/session` and derive countdowns locally from its timestamps)
 - Interactive todo tap-state: `data/todo-state.json` (via `src/lib/todo-data.ts`, keyed by item UUID — kept out of config.json to avoid editor write-contention; displays poll `/api/todo/state` and flip via `/api/todo/toggle`)
 - API keys: `data/secrets.json`
 - iCloud account credentials: `data/icloud-accounts.json` (via `src/lib/icloud-accounts.ts` — CalDAV app-specific passwords, kept out of config.json; the API never returns passwords, picked calendars persist as `icloudSources` in config)
@@ -78,7 +80,7 @@ The `display-control` module is a touch widget that dispatches hub commands (wak
 - Display reads config server-side and renders modules
 
 ### API Pattern
-All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (99 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), i18n dictionaries, interactive todo state (`/api/todo/state` poll + `/api/todo/toggle` atomic flip), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
+All API routes are server-side proxies for external services (weather, calendar, stocks, etc.) to handle secrets and CORS. Routes live in `src/app/api/*/route.ts` (108 route files) covering config, weather, calendar, sports, plugins, system management, displays, network (WiFi/IP/hostname), i18n dictionaries, interactive todo state (`/api/todo/state` poll + `/api/todo/toggle` atomic flip), and more. `/api/displays` is a read-only registry+heartbeat endpoint with a 1.5s readConfig cache. `/api/display/[action]` handles per-display command enqueueing and status posts; `/api/display/hw-stats` accepts adopted-display-gated hardware telemetry. The upgrade pipeline (`/api/system/upgrade`, rollback, backups) is hardened against tamper.
 
 ### Key Files
 - `src/types/config.ts` — all TypeScript types (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode)

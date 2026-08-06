@@ -10,7 +10,7 @@ nextjs:
 
 Control your display from any phone or tablet on the same network. The remote control is a mobile-friendly page that lets you navigate screens, adjust brightness, switch profiles, send alerts, manage chores, and manage the system -- all from your pocket. {% .lead %}
 
-The remote has up to four tabs depending on your configuration: **Control** (display management), **Chores** (chore tracking and rewards), **Meals** (meal planning), and **Photos** (photo management). A bottom tab bar appears when more than one tab is available.
+The remote has up to five tabs: **Control** (display management) and **Timers** (visual timers and routines) are always there, and **Chores** (chore tracking and rewards), **Meals** (meal planning), and **Photos** (photo management) appear when your configuration uses them. A bottom tab bar switches between them.
 
 ---
 
@@ -102,7 +102,7 @@ The alert section lets you push notifications to the display:
 3. **Pick a duration** -- 10s, 30s, 1 min, 5 min, or Persistent
 4. Tap **Send Alert**
 
-The duration picker starts at 10s whichever type you pick, so set it deliberately. **Persistent only holds for Urgent alerts.** Choosing Persistent for an Info or Warning alert hands the decision back to the display, which uses the default duration set under **Settings > Screen > Alerts**; out of the box that is 10 seconds for Info and 30 seconds for Warning, and only Urgent stays up until it is dismissed.
+The duration picker starts at 10s whichever type you pick, so set it deliberately — the alert runs for exactly the time you choose. **Persistent** keeps the alert on screen until someone dismisses it, for every alert type. (The default durations under **Settings > Screen > Alerts** only apply to alerts sent [through the API](/docs/api#post-api-display-alert) without a duration; the remote always sends the one you picked.)
 
 Alerts appear as overlays on the display. To clear any that are still showing, use the **Clear All Alerts** button in the editor under **Settings > Screen > Alerts**, or open this address:
 
@@ -175,6 +175,23 @@ The open part of the Chores tab is what makes the kid-friendly `/chores` page wo
 After logging in, you'll be brought back to the remote. Your session lasts 30 days by default (or 90 days if you check **Remember Me** on the login page), so you won't need to log in again for a while.
 
 You can also append `?token=TOKEN` to bookmarked command URLs (e.g., wake/sleep) so they work without signing in. Find your display token in **Settings > Security** in the editor. Query tokens only work on `/api/display/` addresses; everywhere else, send it as an `Authorization: Bearer <token>` header instead.
+
+---
+
+## Timers tab
+
+The **Timers** tab starts visual countdown timers that take over the whole display — big, glanceable, and made for kids. It is always available; no module needs to be added to a screen.
+
+There are two ways to start one:
+
+- **Quick timer** — tap a preset (30s up to 15 min) or enter a custom length (up to 4 hours). Pick one of four looks before starting: **Ring** (a shrinking circle), **Face** (a clock face that empties), **Cascade** (falling blocks), or **Path** (a character walking a trail). An optional soft chime plays when time is up.
+- **Routine** — a saved sequence of timed steps, each with its own emoji, label, and length (think "morning routine: get dressed, brush teeth, shoes on"). Steps normally advance on their own; a step can instead be marked **wait for tap**, which holds at 0:00 with a big "Done!" button until someone actually taps it on the display. Routines are created and edited right in the tab and are shared household data, like meals and chores.
+
+While a timer runs, the tab shows live controls: pause and resume, skip to the next step, add a minute, or stop it. Kids can also tap "Done!" on a touch display itself. When the last step finishes, the display shows a short celebration.
+
+Only one timer session runs at a time across the whole household. Starting a new one replaces the running one, so the remote asks you to confirm first.
+
+On a multi-display setup, **Show on** chips pick which displays the timer takes over — one display, several, or all of them.
 
 ---
 

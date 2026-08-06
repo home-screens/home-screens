@@ -283,7 +283,7 @@ To bound the in-memory state on the hub, the following caps apply:
 | Viewport reports per display | 16 most-recent clients |
 | Viewport report TTL | 60 seconds |
 
-Display IDs are validated at both the route layer and the data layer. The reserved word `all` cannot be used as a display ID — it is only valid as a broadcast target on command-enqueue endpoints.
+Display IDs are validated at both the route layer and the data layer. Two words are reserved and refused as display IDs: `all` (only valid as a broadcast target on command-enqueue endpoints) and `__default__` (the internal queue legacy single-display callers land on).
 
 ---
 

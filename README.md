@@ -24,10 +24,12 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Plugin system** — extend with custom modules via runtime-loaded plugins, installable from a URL or uploaded bundle ([template](https://github.com/home-screens/home-screens-plugin-template), [example](https://github.com/home-screens/home-screens-plugin-standings))
 - **Profile system** — named screen groups with schedule-based auto-activation
 - **Remote display control** — wake, sleep, brightness, navigation, and alerts via HTTP
+- **Visual timers & routines** — start a quick timer or a saved routine (get dressed, brush teeth, shoes on) from your phone and it takes over the display with one of 4 kid-friendly countdown views, step-by-step, with an optional chime and a celebration at the end
+- **Touch-friendly display** — swipe left or right to change screens, tap a calendar event for its details, tap chores done, all on the display itself
 - **Per-module scheduling** — show or hide modules by day of week and time window
 - **Conditional module visibility** — show or hide any module based on live values published by plugins (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
 - **Google Calendar, iCloud + iCal** — display events from Google Calendar (OAuth device flow), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed
-- **Background management** — upload images and videos, browse Unsplash or NASA APOD, or pull from an Immich library or iCloud shared album, with auto-rotation
+- **Background management** — upload images and videos, browse Unsplash or NASA APOD, pull from an Immich library or iCloud shared album, or import hand-picked photos from Google Photos, with auto-rotation
 - **Per-module styling** — opacity, blur, colors, fonts, border radius, padding
 - **System management** — upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk** — one-command setup with boot splash, auto-login, and display orientation
@@ -177,6 +179,7 @@ Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
 | `config.json` | Screen layouts, module settings, display configuration |
 | `secrets.json` | API keys (weather, Unsplash, Todoist, TomTom, etc.) |
 | `meals.json` | Saved meals and weekly meal plan |
+| `routines.json` · `timer-session.json` | Saved timer routines and the running timer |
 | `chores.json` | Chore completions, assignments, and history |
 | `rewards.json` | Kid rewards and redemption history |
 | `auth.json` | Editor password hash and session secret |
@@ -239,6 +242,9 @@ Full documentation at **[homescreens.dev/docs](https://homescreens.dev/docs)**
 - [Module Reference](https://homescreens.dev/docs/module-reference) — every setting, default value, and allowed option for each module
 - [Backgrounds](https://homescreens.dev/docs/backgrounds) — uploads, Unsplash, NASA APOD, Immich, iCloud, rotation
 - [Profiles & Scheduling](https://homescreens.dev/docs/profiles) — automation and time-based layouts
+- [Remote Control](https://homescreens.dev/docs/remote-control) — the phone remote: display control, chores, meals, timers, photos
+- [Multi-Display](https://homescreens.dev/docs/multi-display) — hub-and-spoke setup for driving several displays from one Pi
+- [Voice Control](https://homescreens.dev/docs/voice-control) — drive displays, chores, and grocery lists from Home Assistant voice
 - [Raspberry Pi](https://homescreens.dev/docs/raspberry-pi) — kiosk deployment
 - [Networking](https://homescreens.dev/docs/networking) — reverse proxy, remote access, multi-display
 - [Troubleshooting](https://homescreens.dev/docs/troubleshooting) — common issues and fixes
@@ -345,6 +351,7 @@ All API routes are server-side proxies that keep credentials off the client.
 | `/api/system/network/*` | GET, POST | WiFi scan/connect, IP/hostname, network diagnostics (ping + watchdog) |
 | `/api/chores`, `/api/rewards` | GET, POST | Family data (chore completions, reward redemptions) shared between editor and `/remote` |
 | `/api/meals/*` | GET, PUT, POST | Meal-planner shared state (`/data` GET+PUT saved meals/plan/settings; `/grocery` GET+POST checklist) |
+| `/api/timers/*` | GET, PUT, POST | Visual timers (`/routines` saved routine list; `/session` start and control the running timer) |
 | `/api/plugins/*` | GET, POST, PUT, DELETE | Plugin registry, install (from registry **or URL**), proxy, secrets, account connections (`auth/*`) |
 | `/api/i18n/[locale]` | GET | UI translation dictionaries by namespace |
 
