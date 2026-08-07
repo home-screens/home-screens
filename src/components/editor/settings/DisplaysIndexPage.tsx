@@ -599,6 +599,7 @@ export default function DisplaysIndexPage() {
               return (
                 <div
                   key={un.id}
+                  data-testid={`unadopted-display-${un.id}`}
                   className="rounded-md border border-hs-warning/20 bg-hs-warning/[0.03] px-3 py-2.5 flex items-start gap-3"
                 >
                   <div className="flex-1 min-w-0">

@@ -33,6 +33,16 @@ import type { ModuleInstance } from '@/types/config';
  * seeded or installed.
  */
 
+// The worker's sandbox persists across every spec file the worker runs, and
+// other editor specs seed the fixture plugin straight onto disk with a
+// marketplace-style installed.json entry (no `source: 'external'`). The real
+// install pipeline rejects an external install over a marketplace ID with a
+// 409, so start every test here from a plugin-less sandbox. Deleting the dir
+// is safe: getInstalledPlugins treats a missing installed.json as empty.
+test.beforeEach(({ sandboxDir }) => {
+  rmSync(path.join(sandboxDir, 'data', 'plugins'), { recursive: true, force: true });
+});
+
 const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures', 'plugins');
 const MINIMAL_TARBALL = path.join(FIXTURES_DIR, 'e2e-fixture-plugin.tar.gz');
 const RICH_TARBALL = path.join(FIXTURES_DIR, 'e2e-fixture-rich-plugin.tar.gz');

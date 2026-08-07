@@ -239,10 +239,13 @@ test.describe('display adoption', () => {
 
     await page.goto('/editor/settings?section=displays');
 
-    // The unadopted Pi surfaces in the waiting list; adopt it.
-    const adoptButton = page.getByRole('button', { name: 'Adopt', exact: true });
-    await expect(adoptButton).toBeVisible({ timeout: 15_000 });
-    await adoptButton.click();
+    // The unadopted Pi surfaces in the waiting list; adopt it. Scope to the
+    // porch-pi row: the hub's in-memory unadopted tracking spans the worker's
+    // whole server lifetime, so display ids other specs polled under can also
+    // sit in the waiting list (2 minute staleness window).
+    const adoptRow = page.getByTestId(`unadopted-display-${unadoptedId}`);
+    await expect(adoptRow).toBeVisible({ timeout: 15_000 });
+    await adoptRow.getByRole('button', { name: 'Adopt', exact: true }).click();
 
     // The adopt form pre-fills (and locks) the polling Pi's id; only a name is needed.
     // Scope the submit to the form itself — in multi-display mode the sidebar `+`
