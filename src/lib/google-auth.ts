@@ -21,7 +21,7 @@ const store = createGoogleTokenStore({
   tokensPath: path.join(process.cwd(), 'data', 'google-tokens.json'),
   clientIdKey: 'google_client_id',
   clientSecretKey: 'google_client_secret',
-  missingCredentialsMessage: 'Google OAuth Client ID and Secret are not configured. Add them in Settings → Integrations.',
+  missingCredentialsMessage: 'Google Calendar Client ID and Secret are not configured. Add them in Settings → Integrations.',
   logName: 'google-auth',
 });
 
@@ -36,7 +36,7 @@ interface DeviceCodeResponse {
 /** Request a device code + user code from Google. */
 export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   const clientId = (await getSecret('google_client_id'))?.trim();
-  if (!clientId) throw new Error('Google OAuth Client ID is not configured. Add it in Settings → Integrations.');
+  if (!clientId) throw new Error('Google Calendar Client ID is not configured. Add it in Settings → Integrations.');
 
   const res = await fetchWithTimeout(DEVICE_CODE_URL, {
     method: 'POST',

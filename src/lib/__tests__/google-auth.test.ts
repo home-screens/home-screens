@@ -114,7 +114,7 @@ describe('requestDeviceCode', () => {
     mockedGetSecret.mockResolvedValue(null);
 
     await expect(requestDeviceCode()).rejects.toThrow(
-      'Google OAuth Client ID is not configured',
+      'Google Calendar Client ID is not configured',
     );
   });
 
@@ -187,7 +187,7 @@ describe('pollDeviceToken', () => {
     mockedGetSecret.mockResolvedValue(null);
 
     await expect(pollDeviceToken('device-code')).rejects.toThrow(
-      'Google OAuth Client ID and Secret are not configured',
+      'Google Calendar Client ID and Secret are not configured',
     );
   });
 
