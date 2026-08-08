@@ -87,7 +87,6 @@ export function buildTextStyle(params: BuildTextStyleParams): CSSProperties {
     letterSpacing: letterSpacing ? `${letterSpacing}px` : undefined,
     wordSpacing: config.wordSpacing ? `${config.wordSpacing}px` : undefined,
     fontFamily: config.fontFamily ? fontStack : undefined,
-    fontWeight: config.fontWeight,
     fontStyle: config.italic ? 'italic' : undefined,
     lineHeight: config.lineHeight,
     ...writingModeStyles,

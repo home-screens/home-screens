@@ -2022,7 +2022,10 @@
       "background": "Arrière-plan",
       "borderColor": "Couleur de bordure",
       "textColor": "Couleur du texte",
-      "fontSize": "Taille de police"
+      "fontSize": "Taille de police",
+      "fontWeight": "Graisse",
+      "fontWeightDefault": "Par défaut",
+      "fontWeightReset": "Rétablir la valeur par défaut"
     },
     "actions": {
       "delete": "Supprimer le module",
@@ -2877,7 +2880,6 @@
       "alignment": "Alignement",
       "verticalAlign": "Alignement vertical",
       "fontOverride": "Police (remplacer)",
-      "fontWeight": "Graisse",
       "italic": "Italique",
       "lineHeight": "Hauteur de ligne",
       "textTransform": "Transformation du texte",

@@ -2018,7 +2018,10 @@
       "background": "Achtergrond",
       "borderColor": "Randkleur",
       "textColor": "Tekstkleur",
-      "fontSize": "Tekstgrootte"
+      "fontSize": "Tekstgrootte",
+      "fontWeight": "Lettergewicht",
+      "fontWeightDefault": "Standaard",
+      "fontWeightReset": "Terugzetten op standaard"
     },
     "actions": {
       "delete": "Module verwijderen",
@@ -2872,7 +2875,6 @@
       "alignment": "Uitlijning",
       "verticalAlign": "Verticale uitlijning",
       "fontOverride": "Lettertype (overschrijven)",
-      "fontWeight": "Lettergewicht",
       "italic": "Cursief",
       "lineHeight": "Regelhoogte",
       "textTransform": "Teksttransformatie",

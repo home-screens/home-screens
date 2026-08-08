@@ -2018,7 +2018,10 @@
       "background": "Background",
       "borderColor": "Border Color",
       "textColor": "Text Color",
-      "fontSize": "Font Size"
+      "fontSize": "Font Size",
+      "fontWeight": "Font Weight",
+      "fontWeightDefault": "Default",
+      "fontWeightReset": "Reset to default"
     },
     "actions": {
       "delete": "Delete Module",
@@ -2872,7 +2875,6 @@
       "alignment": "Alignment",
       "verticalAlign": "Vertical Align",
       "fontOverride": "Font (override)",
-      "fontWeight": "Font Weight",
       "italic": "Italic",
       "lineHeight": "Line Height",
       "textTransform": "Text Transform",

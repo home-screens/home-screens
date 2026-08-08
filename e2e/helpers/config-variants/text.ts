@@ -35,14 +35,15 @@ export const TEXT_VARIANTS: ConfigVariant[] = [
     expect: child('div[aria-hidden="true"]'),
   },
 
-  // -- typography cluster: letterSpacing + fontWeight + italic + lineHeight + wordSpacing --
+  // -- typography cluster: letterSpacing + italic + lineHeight + wordSpacing --
+  // (font weight moved to ModuleStyle.fontWeight; covered by the PropertyPanel
+  // Style tests in e2e/editor/config-editing.spec.ts)
   {
     type: 'text', name: 'typography', kind: 'network-free',
-    config: { content: 'E2E TYPO', letterSpacing: 4, fontWeight: 800, italic: true, lineHeight: 2, wordSpacing: 8 },
+    config: { content: 'E2E TYPO', letterSpacing: 4, italic: true, lineHeight: 2, wordSpacing: 8 },
     expect: async (mod) => {
       const span = mod.locator('span', { hasText: 'E2E TYPO' }).first();
       await expect(span).toHaveCSS('letter-spacing', '4px');
-      await expect(span).toHaveCSS('font-weight', '800');
       await expect(span).toHaveCSS('font-style', 'italic');
       await expect(span).toHaveCSS('word-spacing', '8px');
       // Unitless line-height resolves to px in computed style, so assert the inline value.

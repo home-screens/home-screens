@@ -686,7 +686,6 @@ Rich text block with multiple display modes, effects, and styling options.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `fontFamily` | string | — | Font registry id overriding the module's Style font (see [Module Styling](#module-styling) for the list). Unset = use the Style font |
-| `fontWeight` | number | `400` | Numeric weight, 100–900 |
 | `italic` | boolean | `false` | Italicize the text |
 | `lineHeight` | number | `1.2` | Line height as a multiple of the font size |
 | `letterSpacing` | number | `0` | Letter spacing in pixels |
@@ -967,6 +966,7 @@ Every module supports these style properties, configurable in the Property Panel
 | `textColor` | string | `"#ffffff"` | Text color |
 | `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
 | `fontSize` | number | `16` | Base font size in pixels |
+| `fontWeight` | number | — | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
 | `borderWidth` | number | `1` | Border width in pixels |
 | `borderColor` | string | `"rgba(255, 255, 255, 0.15)"` | Border color |

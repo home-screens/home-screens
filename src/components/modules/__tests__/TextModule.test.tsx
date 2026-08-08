@@ -148,15 +148,13 @@ describe('TextModule', () => {
   });
 
   describe('typography', () => {
-    it('applies font weight, italic, and line height', () => {
+    it('applies italic and line height', () => {
       const { container } = renderText({
         content: 'Hi',
-        fontWeight: 700,
         italic: true,
         lineHeight: 2,
       });
       const span = container.querySelector('span');
-      expect(span?.style.fontWeight).toBe('700');
       expect(span?.style.fontStyle).toBe('italic');
       expect(span?.style.lineHeight).toBe('2');
     });

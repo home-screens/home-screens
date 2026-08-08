@@ -2018,7 +2018,10 @@
       "background": "Hintergrund",
       "borderColor": "Rahmenfarbe",
       "textColor": "Textfarbe",
-      "fontSize": "Schriftgröße"
+      "fontSize": "Schriftgröße",
+      "fontWeight": "Schriftstärke",
+      "fontWeightDefault": "Standard",
+      "fontWeightReset": "Auf Standard zurücksetzen"
     },
     "actions": {
       "delete": "Modul löschen",
@@ -2872,7 +2875,6 @@
       "alignment": "Ausrichtung",
       "verticalAlign": "Vertikale Ausrichtung",
       "fontOverride": "Schriftart (Überschreibung)",
-      "fontWeight": "Schriftstärke",
       "italic": "Kursiv",
       "lineHeight": "Zeilenhöhe",
       "textTransform": "Textumwandlung",

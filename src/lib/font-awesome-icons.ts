@@ -575,9 +575,11 @@ const STYLE_CLASS_RE = /\b(fa-solid|fa-regular|fa-brands|fa-classic|fas|far|fab)
  *   - Full "fa-solid fa-house"   → "fa fa-solid fa-house"  (passthrough + bare fa)
  *   - Legacy "fas fa-house"      → "fa fas fa-house"       (passthrough)
  *
- * The bare `fa` class is harmless (FA 7's base rule scopes it to elements
- * that are also a style class) and serves as defense if a user pastes
- * something exotic — at minimum the font-family rule still matches.
+ * The bare `fa` class is load-bearing: the `.module-weight-override` rule in
+ * globals.css excludes `.fa` elements so a forced module font weight cannot
+ * swap or blank glyphs (FA selects the glyph variant via font-weight). It
+ * also serves as defense if a user pastes something exotic — at minimum the
+ * font-family rule still matches.
  *
  * Used by both `IconModule` (runtime render) and `IconPicker` (preview
  * + grid) so what the user previews is exactly what renders on the display.

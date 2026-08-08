@@ -126,7 +126,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     config.markdown,
     style.fontSize,
     fontStack,
-    config.fontWeight,
+    style.fontWeight,
     config.italic,
     config.lineHeight,
     config.wordSpacing,

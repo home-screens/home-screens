@@ -132,6 +132,7 @@ Every module (except the full-screen ones) can be styled. The controls are group
 **Text**
 
 - **Font Size** — set the base font size (8–72)
+- **Font Weight** — make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back
 - **Font Family** — choose from available fonts
 
 ## Managing Screens

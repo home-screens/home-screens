@@ -131,6 +131,10 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   const { updateModuleStyle } = useEditorStore();
   const s = mod.style;
   const set = (updates: Partial<typeof s>) => updateModuleStyle(screenId, mod.id, updates);
+  // Plugin components render raw (never inside ModuleWrapper), so the
+  // class-based font weight override cannot reach them — hide the control
+  // rather than show a slider that does nothing.
+  const isPlugin = mod.type.startsWith('plugin:');
 
   return (
     <>
@@ -161,6 +165,32 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
       <PropertyGroup title={t('propertyPanel.sections.text')} accent={4}>
         <div className="space-y-3">
           <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
+          {!isPlugin && (
+            <div
+              // A range input fires no change event when released at its current
+              // position, and the unset thumb parks at 400 — so explicit 400
+              // (flatten to normal) would be unreachable in one gesture without
+              // this pointer-up commit.
+              onPointerUp={(e) => {
+                if (s.fontWeight != null) return;
+                const target = e.target as HTMLElement;
+                if (target instanceof HTMLInputElement && target.type === 'range') {
+                  set({ fontWeight: Number(target.value) });
+                }
+              }}
+            >
+              <Slider label={t('propertyPanel.fields.fontWeight')} value={s.fontWeight ?? 400} min={100} max={900} step={100} displayValue={s.fontWeight != null ? `${s.fontWeight}` : t('propertyPanel.fields.fontWeightDefault')} onChange={(v) => set({ fontWeight: v })} />
+              {s.fontWeight != null && (
+                <button
+                  type="button"
+                  onClick={() => set({ fontWeight: undefined })}
+                  className="mt-1 text-[11px] text-hs-text-muted hover:text-hs-text-body transition-colors"
+                >
+                  {t('propertyPanel.fields.fontWeightReset')}
+                </button>
+              )}
+            </div>
+          )}
           <FontFamilyPicker value={s.fontFamily} onChange={(v) => set({ fontFamily: v })} />
         </div>
       </PropertyGroup>

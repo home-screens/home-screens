@@ -2022,7 +2022,10 @@
       "background": "Fondo",
       "borderColor": "Color del borde",
       "textColor": "Color del texto",
-      "fontSize": "Tamaño de fuente"
+      "fontSize": "Tamaño de fuente",
+      "fontWeight": "Grosor de fuente",
+      "fontWeightDefault": "Predeterminado",
+      "fontWeightReset": "Restablecer al valor predeterminado"
     },
     "actions": {
       "delete": "Eliminar módulo",
@@ -2877,7 +2880,6 @@
       "alignment": "Alineación",
       "verticalAlign": "Alineación vertical",
       "fontOverride": "Fuente (anulación)",
-      "fontWeight": "Grosor de fuente",
       "italic": "Cursiva",
       "lineHeight": "Altura de línea",
       "textTransform": "Transformación de texto",

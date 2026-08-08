@@ -56,6 +56,8 @@ export interface ModuleStyle {
   textColor: string;
   fontFamily: string;
   fontSize: number;
+  /** Numeric weight 100–900. Omitted = normal (400). */
+  fontWeight?: number;
   backdropBlur: number;
   borderWidth: number;
   borderColor: string;
@@ -692,8 +694,6 @@ export interface TextConfig {
   letterSpacing?: number;
   /** Font registry id (or raw CSS stack) overriding the module's global font. */
   fontFamily?: string;
-  /** Numeric weight 100–900. */
-  fontWeight?: number;
   italic?: boolean;
   /** Unitless line-height multiplier. */
   lineHeight?: number;

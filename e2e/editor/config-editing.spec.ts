@@ -1092,6 +1092,72 @@ test.describe('PropertyPanel Style', () => {
     expect((await moduleInstance(request)).style.fontFamily).toBe('poppins');
     await expect(styledWrapper(page)).toHaveAttribute('style', /font-family:[^;]*Poppins/i);
   });
+
+  // Font weight works via a class + CSS variable + !important rule in
+  // globals.css (not an inline style like its siblings), because modules
+  // hard-code their designed weights. So these assert the class attribute
+  // and the COMPUTED weight of module text, not the wrapper's style attribute.
+
+  test('font weight slider persists and forces hard-coded module weights', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // Default position is 400 (Default); End jumps to max (900).
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Font Weight' });
+      await slider.focus();
+      await slider.press('End');
+    });
+
+    expect((await moduleInstance(request)).style.fontWeight).toBe(900);
+    await expect(styledWrapper(page)).toHaveClass(/module-weight-override/);
+    // The greeting text is font-light (300) by design; the override must beat it.
+    await expect(page.locator('[data-module-id="greeting-1"] p').first()).toHaveCSS('font-weight', '900');
+  });
+
+  test('font weight unset applies no override class and keeps designed weights', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    // Blast-radius guard: if this class ever appears without an explicit
+    // weight, every module on the display flattens to one weight.
+    await expect(styledWrapper(page)).not.toHaveClass(/module-weight-override/);
+    expect((await moduleInstance(request)).style.fontWeight).toBeUndefined();
+    await expect(page.locator('[data-module-id="greeting-1"] p').first()).toHaveCSS('font-weight', '300');
+  });
+
+  test('font weight reset removes the key and restores designed weights', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Font Weight' });
+      await slider.focus();
+      await slider.press('End');
+    });
+    await expect(styledWrapper(page)).toHaveClass(/module-weight-override/);
+
+    await autosaved(page, async () => {
+      await page.getByRole('button', { name: 'Reset to default' }).click();
+    });
+
+    expect((await moduleInstance(request)).style.fontWeight).toBeUndefined();
+    await expect(styledWrapper(page)).not.toHaveClass(/module-weight-override/);
+    await expect(page.locator('[data-module-id="greeting-1"] p').first()).toHaveCSS('font-weight', '300');
+  });
+
+  test('style font weight owns text module weight; markdown bold survives', async ({ page, request }) => {
+    // TextConfig.fontWeight was removed in favor of ModuleStyle.fontWeight —
+    // this pins the single-owner behavior on the module most likely to be
+    // hand-styled, and pins the strong/b exclusion for user-typed emphasis.
+    const mod = buildModuleInstance('text', { content: 'plain **bold** end', markdown: true });
+    mod.style = { ...mod.style, fontWeight: 400 };
+    await selectModule(page, request, mod);
+
+    const textMod = page.locator('[data-module-id="text-1"]');
+    await expect(textMod.locator('span', { hasText: 'plain' }).first()).toHaveCSS('font-weight', '400');
+    // strong is excluded from the forced rule, so the UA's `font-weight: bolder`
+    // applies RELATIVE to the forced weight: bolder(400) = 700. (At forced 300
+    // it would compute 400 — emphasis scales with the chosen weight by design.)
+    await expect(textMod.locator('strong', { hasText: 'bold' })).toHaveCSS('font-weight', '700');
+  });
 });
 
 test('Defaults › Display: changing the transition effect persists to the shared config', async ({ page, request }) => {

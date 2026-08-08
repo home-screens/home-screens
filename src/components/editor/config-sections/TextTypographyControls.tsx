@@ -40,16 +40,6 @@ export function TextTypographyControls({ config: c, set }: ConfigControlsProps<T
         allowInherit
       />
 
-      <Slider
-        label={t('configSections.text.fontWeight')}
-        value={c.fontWeight ?? 400}
-        min={100}
-        max={900}
-        step={100}
-        displayValue={`${c.fontWeight ?? 400}`}
-        onChange={(v) => set({ fontWeight: v })}
-      />
-
       <Toggle label={t('configSections.text.italic')} checked={!!c.italic} onChange={(v) => set({ italic: v })} />
 
       <Slider
