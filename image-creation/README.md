@@ -31,7 +31,7 @@ sudo ./image-creation/build-image-ci.sh \
   --tarball home-screens-v1.2.3.tar.gz
 ```
 
-Output lands in `image-creation/out/` as `home-screens-<version>-<target>.img.xz` plus a `.sha256` sidecar.
+Output lands in `image-creation/out/` as `home-screens-<version>.img.xz` plus a `.sha256` sidecar.
 
 **Requires an arm64 host.** Pi arm64 binaries run natively there, which is why the in-chroot `npm run build` is fast. There is no qemu path; the script fails early on x86 rather than dying with `exec format error`.
 

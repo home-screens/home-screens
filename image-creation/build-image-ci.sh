@@ -309,7 +309,7 @@ LOOPDEV=""
 # ---------------------------------------------------------------------------
 # 9. Package
 # ---------------------------------------------------------------------------
-OUT_IMG="${OUT_DIR}/home-screens-${VERSION}-${TARGET}.img"
+OUT_IMG="${OUT_DIR}/home-screens-${VERSION}.img"
 mv "$WORK_IMG" "$OUT_IMG"
 
 if [ "$SKIP_XZ" = "true" ]; then
