@@ -10,21 +10,12 @@ import { createTZDate } from '@/lib/timezone';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
+import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
 
 const log = logger('preview-data');
 
-interface ProviderWeatherData {
-  hourly: unknown[] | null;
-  forecast: unknown[] | null;
-  minutely: unknown[] | null;
-  alerts: unknown[] | null;
-}
-
-export interface PreviewData {
-  weatherByProvider: Record<string, ProviderWeatherData>;
-  calendarEvents: unknown[] | null;
-}
+type ProviderWeatherData = PreviewData['weatherByProvider'][string];
 
 /** Delay applied before refetching weather after a setting change. Long
  *  enough to skip intermediate states while typing coordinates, short enough

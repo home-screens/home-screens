@@ -13,7 +13,7 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
   Unknown: { bg: 'rgba(115, 115, 115, 0.15)', border: 'rgba(115, 115, 115, 0.5)', icon: 'text-neutral-400' },
 };
 
-export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef, timezone }: WeatherViewProps) {
+export default function WeatherAlertsView({ alerts, scaledFontSize, timezone }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   // Filter to non-expired alerts
@@ -21,7 +21,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, containerRef
   const active = (alerts ?? []).filter((a) => a.expires > now);
 
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
         <AlertTriangle size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />

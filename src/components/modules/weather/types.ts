@@ -10,5 +10,4 @@ export interface WeatherViewProps {
   units: 'metric' | 'imperial';
   timezone?: string;
   scaledFontSize: number;
-  containerRef: React.RefObject<HTMLDivElement | null>;
 }

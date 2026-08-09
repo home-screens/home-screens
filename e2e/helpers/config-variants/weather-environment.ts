@@ -80,6 +80,21 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     config: { view: 'hourly', hoursToShow: 2 },
     expect: lacks('72°', '90°'),
   },
+  // showLocation adds a place-name header above the view, sourced from
+  // settings.locationName (matrixSettings has coordinates but no name).
+  {
+    type: 'weather', name: 'show-location', kind: 'networked', stubKey: 'weather',
+    settings: { locationName: 'Prior Lake, MN' },
+    config: { view: 'hourly', showLocation: true },
+    expect: has('Prior Lake, MN'),
+  },
+  // locationLabel overrides the geocoded name in that header.
+  {
+    type: 'weather', name: 'location-label', kind: 'networked', stubKey: 'weather',
+    settings: { locationName: 'Prior Lake, MN' },
+    config: { view: 'hourly', showLocation: true, locationLabel: 'Cabin' },
+    expect: lacks('Cabin', 'Prior Lake'),
+  },
 
   // ================= AIR-QUALITY =================
 

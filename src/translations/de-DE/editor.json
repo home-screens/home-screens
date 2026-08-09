@@ -3053,6 +3053,8 @@
     },
     "weather": {
       "hideWhenNoAlerts": "Ausblenden, wenn keine Warnungen vorliegen",
+      "showLocation": "Standort anzeigen",
+      "locationLabel": "Standortbezeichnung",
       "iconStyle": "Symbolstil",
       "dataProvider": "Datenanbieter",
       "hoursToShow": "Anzuzeigende Stunden",

@@ -3053,6 +3053,8 @@
     },
     "weather": {
       "hideWhenNoAlerts": "Hide When No Alerts",
+      "showLocation": "Show Location",
+      "locationLabel": "Location Label",
       "iconStyle": "Icon Style",
       "dataProvider": "Data Provider",
       "hoursToShow": "Hours to Show",

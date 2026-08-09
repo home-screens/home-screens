@@ -12,27 +12,16 @@ import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { useTranslate } from '@/i18n';
 import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
-import { resolveProvider } from '@/components/display/ScreenRenderer';
+import { buildModuleProps, type ModuleDataSource } from '@/lib/module-props';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
 import { buildModuleShadow } from '@/lib/module-style';
-import type { PreviewData } from './usePreviewData';
-
-export interface PreviewSettings {
-  latitude: number | undefined;
-  longitude: number | undefined;
-  timezone: string | undefined;
-  globalProvider: string;
-  units: 'metric' | 'imperial';
-  fullscreenTheme: string | undefined;
-}
 
 // Memoized: this renders the real module component (animations, canvases,
 // videos), and the canvas re-renders on every shared-state poll and clock
 // tick — none of which may reset module-internal state.
-const ModulePreview = memo(function ModulePreview({ mod, previewData, settings }: { mod: ModuleInstance; previewData: PreviewData; settings: PreviewSettings | null }) {
-  const displays = useEditorStore((s) => s.config?.displays);
+const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: ModuleInstance; source: ModuleDataSource }) {
   // `modules`, not `editor`: the crash fallback is the same string the display
   // shows, and it belongs beside `common.pluginNotAvailable`.
   const tModules = useTranslate('modules');
@@ -50,54 +39,10 @@ const ModulePreview = memo(function ModulePreview({ mod, previewData, settings }
     return null;
   }
 
-  const extraProps: Record<string, unknown> = {};
-
-  // Pass timezone and fullscreen theme to all modules
-  if (settings?.timezone) {
-    extraProps.timezone = settings.timezone;
-  }
-  if (settings?.fullscreenTheme) {
-    extraProps.fullscreenTheme = settings.fullscreenTheme;
-  }
-
-  // Pass global location to location-aware modules (registry-driven)
-  const def = getModuleDefinition(mod.type);
-  if (def?.dataRequirements?.includes('location') && settings) {
-    extraProps.latitude = settings.latitude;
-    extraProps.longitude = settings.longitude;
-  }
-
-  // Resolve provider for weather modules
-  const globalProvider = settings?.globalProvider ?? 'weatherapi';
-  const modProvider = resolveProvider(mod, globalProvider);
-  const wd = previewData.weatherByProvider[modProvider] ?? previewData.weatherByProvider[globalProvider];
-
-  // Inject weather data for weather modules or plugins declaring the requirement
-  const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
-  if (needsWeather) {
-    if (settings?.latitude == null || settings?.longitude == null) {
-      extraProps.locationMissing = true;
-    }
-    if (wd) {
-      extraProps.hourly = wd.hourly ?? [];
-      extraProps.forecast = wd.forecast ?? [];
-      extraProps.minutely = wd.minutely ?? undefined;
-      extraProps.alerts = wd.alerts ?? undefined;
-    }
-    extraProps.units = settings?.units;
-  }
-
-  // Inject calendar data for calendar modules or plugins declaring the requirement
-  const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
-  if (needsCalendar) {
-    extraProps.events = previewData.calendarEvents;
-  }
-
-  // TargetPicker footprint matters for sizing; empty here would hide the picker
-  // behind isLegacyMode even when allowRetargeting is on.
-  if (mod.type === 'display-control') {
-    extraProps.availableDisplays = displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
-  }
+  // Same builder the kiosk display uses, so a prop wired up for one surface can
+  // never go missing on the other. Editor-vs-display differences (where weather
+  // payloads come from, the global-provider fallback) live in `toEditorSource`.
+  const extraProps = buildModuleProps(mod, source);
 
   // A plugin that throws while rendering must not take the editor down with it
   // and discard unsaved config edits.
@@ -114,8 +59,7 @@ export default function DraggableModule({
   isSelected,
   onSelect,
   onResize,
-  previewData,
-  settings,
+  dataSource,
   now,
   verdictStates,
   source,
@@ -125,8 +69,8 @@ export default function DraggableModule({
   isSelected: boolean;
   onSelect: () => void;
   onResize: (size: { w: number; h: number }) => void;
-  previewData: PreviewData;
-  settings: PreviewSettings | null;
+  /** Normalized preview data for the module component (see `toEditorSource`). */
+  dataSource: ModuleDataSource;
   now: Date;
   /** Fresh shared-state snapshot from the selected display, or null when the
    *  display hasn't reported recently — the condition badge stays neutral. */
@@ -292,7 +236,7 @@ export default function DraggableModule({
             pointerEvents: 'none',
           }}
         >
-          <ModulePreview mod={mod} previewData={previewData} settings={settings} />
+          <ModulePreview mod={mod} source={dataSource} />
         </div>
       </div>
       {/* Type label overlay */}

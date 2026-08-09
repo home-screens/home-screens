@@ -10,6 +10,8 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useEditorStore } from '@/stores/editor-store';
+import { getLocation } from '@/lib/location';
+import { formatCoords } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
 
@@ -65,9 +67,18 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     showVisibility?: boolean;
     showDewPoint?: boolean;
     hideWhenNoAlerts?: boolean;
+    showLocation?: boolean;
+    locationLabel?: string;
   }>(mod, screenId);
 
   const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
+  const settings = useEditorStore((s) => s.config?.settings);
+
+  // What the module renders when the custom label is left empty — shown as the
+  // input's placeholder so the box previews its own fallback.
+  const location = getLocation(settings);
+  const automaticLabel = settings?.locationName?.trim()
+    || (location ? formatCoords(location.lat, location.lon) : '');
 
   const { status: secrets, loading: secretsLoading, error: secretsError, hasStatus } = useSecretStatus();
   const configuredProviders = useMemo<string[]>(() => {
@@ -124,6 +135,21 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ view: v })}
         options={availableViews}
       />
+      {/* Outside the showsStats guard on purpose: the alerts and precipitation
+          views want the place name most ("which area is this alert for?"). */}
+      <Toggle
+        label={t('configSections.weather.showLocation')}
+        checked={!!c.showLocation}
+        onChange={(v) => set({ showLocation: v })}
+      />
+      {c.showLocation && (
+        <LabeledInput
+          label={t('configSections.weather.locationLabel')}
+          value={c.locationLabel ?? ''}
+          onChange={(v) => set({ locationLabel: v })}
+          placeholder={automaticLabel}
+        />
+      )}
       {view === 'alerts' && caps.alerts && (
         <Toggle label={t('configSections.weather.hideWhenNoAlerts')} checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
       )}

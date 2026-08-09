@@ -3053,6 +3053,8 @@
     },
     "weather": {
       "hideWhenNoAlerts": "Verbergen zonder waarschuwingen",
+      "showLocation": "Locatie tonen",
+      "locationLabel": "Locatienaam",
       "iconStyle": "Pictogramstijl",
       "dataProvider": "Dataleverancier",
       "hoursToShow": "Aantal uren tonen",

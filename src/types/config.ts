@@ -608,6 +608,12 @@ export interface WeatherConfig {
   showVisibility: boolean;
   showDewPoint: boolean;
   hideWhenNoAlerts: boolean;
+  /** Render a place-name header above the view. Off by default so upgrades
+   *  don't reflow any deployed weather module. */
+  showLocation: boolean;
+  /** Overrides the geocoded name when set — the escape hatch for the long
+   *  strings Nominatim returns and for hand-entered coordinates. */
+  locationLabel?: string;
 }
 
 

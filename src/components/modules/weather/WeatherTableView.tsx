@@ -10,7 +10,7 @@ import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherTableView({ config, forecast, units, scaledFontSize, containerRef }: WeatherViewProps) {
+export default function WeatherTableView({ config, forecast, units, scaledFontSize }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -21,7 +21,7 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
   const showHighLow = config.showHighLow !== false;
 
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
       {days.length === 0 ? (
         <WeatherEmptyState message={t('weather.noForecastData')} />

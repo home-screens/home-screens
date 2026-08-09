@@ -3058,6 +3058,8 @@
     },
     "weather": {
       "hideWhenNoAlerts": "Ocultar cuando no hay alertas",
+      "showLocation": "Mostrar ubicación",
+      "locationLabel": "Nombre de la ubicación",
       "iconStyle": "Estilo de icono",
       "dataProvider": "Proveedor de datos",
       "hoursToShow": "Horas a mostrar",

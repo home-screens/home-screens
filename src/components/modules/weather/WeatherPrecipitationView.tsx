@@ -5,7 +5,7 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherPrecipitationView({ minutely, scaledFontSize, containerRef }: WeatherViewProps) {
+export default function WeatherPrecipitationView({ minutely, scaledFontSize }: WeatherViewProps) {
   const t = useTranslate('modules');
   const data = (minutely ?? []).slice(0, 60);
   const maxIntensity = Math.max(...data.map((m) => m.intensity), 0.5);
@@ -34,7 +34,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize, con
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ flex: '0 0 auto' }}>
         <CloudRain size="1.5em" style={{ opacity: TEXT_OPACITY.secondary }} aria-hidden="true" />

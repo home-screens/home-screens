@@ -16,7 +16,7 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
-import type { PreviewSettings } from './DraggableModule';
+import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
 import CanvasToolbar from './CanvasToolbar';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 
@@ -136,12 +136,29 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     return {
       latitude: previewLocation?.lat,
       longitude: previewLocation?.lon,
+      locationName: settings.locationName,
       timezone: settings.timezone,
       globalProvider: settings.weather.provider,
       units: settings.weather.units,
       fullscreenTheme: settings.fullscreenTheme,
     };
   }, [settings]);
+
+  // One normalized source for every module preview, built with the same
+  // adapter contract the display uses. Memoized because ModulePreview is
+  // memoized: a fresh source object every render would defeat it and reset
+  // module-internal state (video playback, animations) on each clock tick.
+  const displaysForPicker = config?.displays;
+  const previewSource = useMemo(
+    () => toEditorSource(
+      previewSettings,
+      previewData,
+      // TargetPicker footprint matters for sizing; empty here would hide the
+      // picker behind isLegacyMode even when allowRetargeting is on.
+      displaysForPicker?.map((d) => ({ id: d.id, name: d.name })) ?? [],
+    ),
+    [previewSettings, previewData, displaysForPicker],
+  );
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
 
@@ -228,8 +245,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   isSelected={mod.id === selectedModuleId}
                   onSelect={() => selectModule(mod.id)}
                   onResize={(size) => resizeModule(selectedScreenId!, mod.id, size)}
-                  previewData={previewData}
-                  settings={previewSettings}
+                  dataSource={previewSource}
                   now={now}
                   verdictStates={verdictStates}
                   source={liveState.source}

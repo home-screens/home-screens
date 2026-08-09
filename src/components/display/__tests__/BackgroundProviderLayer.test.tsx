@@ -11,7 +11,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import type { SharedDisplayData } from '../ScreenRenderer';
+import type { SharedDisplayData } from '@/lib/module-props';
 import BackgroundProviderLayer from '../BackgroundProviderLayer';
 
 vi.mock('@/lib/module-components', () => ({

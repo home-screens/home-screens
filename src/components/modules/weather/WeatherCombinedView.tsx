@@ -8,9 +8,10 @@ import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
+import { useFitFontSize } from '@/hooks/useFitFontSize';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, scaledFontSize, containerRef }: WeatherViewProps) {
+export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -21,8 +22,22 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
   const windUnit = units === 'metric' ? 'km/h' : 'mph';
   const current = hourly[0];
 
+  // Three fixed bands, so this view never reports a natural height — its rows
+  // just spill past the bottom of the last band. It overflowed at both ends of
+  // the size range: 10px at 600x300 with a location header (the font is pinned
+  // at the base-size floor there and can't shrink on its own) and 18px at 600x900.
+  const { boxRef, contentRef, fontSize } = useFitFontSize(
+    scaledFontSize,
+    [
+      hours.length, days.length, config.showHighLow !== false, config.showFeelsLike !== false,
+      config.showPrecipitation !== false, config.showHumidity, config.showWind,
+      config.showPressure, config.showVisibility, config.showDewPoint,
+    ].join('|'),
+  );
+
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div ref={boxRef} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }}>
+    <div ref={contentRef} className="w-full h-full flex flex-col">
       {/* Current conditions — 25% */}
       {current && (
         <div className="flex items-center gap-4" style={{ flex: '0 0 25%' }}>
@@ -109,6 +124,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
           <WeatherEmptyState />
         </div>
       )}
+    </div>
     </div>
   );
 }

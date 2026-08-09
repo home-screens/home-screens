@@ -451,6 +451,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showHumidity: false,
       showWind: false,
       hideWhenNoAlerts: false,
+      showLocation: false,
     },
     defaultSize: { w: 600, h: 300 },
   },

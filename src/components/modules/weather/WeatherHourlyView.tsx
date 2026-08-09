@@ -9,14 +9,14 @@ import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherHourlyView({ config, hourly, forecast, timezone, scaledFontSize, containerRef }: WeatherViewProps) {
+export default function WeatherHourlyView({ config, hourly, forecast, timezone, scaledFontSize }: WeatherViewProps) {
   const hours = hourly.slice(0, config.hoursToShow);
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   const tWeather = useTranslate('weather');
 
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
       <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.hourlyForecast')}</h2>
       {hours.length === 0 ? (
         <WeatherEmptyState />

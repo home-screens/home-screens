@@ -1,10 +1,10 @@
 'use client';
 
 import { useMemo, useEffect } from 'react';
-import type { Screen, GlobalSettings, ModuleType, ModuleInstance } from '@/types/config';
+import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
 import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys } from '@/lib/schedule';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
@@ -38,19 +38,6 @@ import { useAuthImage } from './useAuthImage';
 import { eventBus } from '@/lib/event-bus';
 import { getLocation } from '@/lib/location';
 
-export interface SharedDisplayData {
-  owmData: unknown;
-  wapiData: unknown;
-  pirateData: unknown;
-  noaaData: unknown;
-  openMeteoData: unknown;
-  yrData: unknown;
-  smhiData: unknown;
-  metofficeData: unknown;
-  envcanadaData: unknown;
-  calendarData: unknown;
-}
-
 interface ScreenRendererProps {
   screen: Screen;
   settings: GlobalSettings;
@@ -67,81 +54,11 @@ interface ScreenRendererProps {
   displayId?: string;
 }
 
-export function resolveProvider(mod: { type: string; config: Record<string, unknown> }, globalProvider: string): string {
-  if (mod.type === 'weather') {
-    const p = mod.config.provider as string | undefined;
-    return (p && p !== 'global') ? p : globalProvider;
-  }
-  return globalProvider;
-}
-
-const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
-  openweathermap: 'owmData',
-  weatherapi: 'wapiData',
-  pirateweather: 'pirateData',
-  noaa: 'noaaData',
-  'open-meteo': 'openMeteoData',
-  yr: 'yrData',
-  smhi: 'smhiData',
-  metoffice: 'metofficeData',
-  envcanada: 'envcanadaData',
-};
-
 function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
   if (hour >= 5 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 17) return 'afternoon';
   if (hour >= 17 && hour < 21) return 'evening';
   return 'night';
-}
-
-/**
- * Assemble the shared/extra props a module component needs (location,
- * calendar events, weather data). Exported for BackgroundProviderLayer so
- * background-provider instances receive exactly the props an on-screen
- * instance would.
- */
-export function buildModuleProps(
-  mod: { type: ModuleType; config: Record<string, unknown> },
-  settings: GlobalSettings,
-  sharedData: SharedDisplayData,
-  locationMissing: boolean,
-): Record<string, unknown> {
-  const props: Record<string, unknown> = {
-    timezone: settings.timezone,
-    fullscreenTheme: settings.fullscreenTheme,
-  };
-
-  const def = getModuleDefinition(mod.type);
-  if (def?.dataRequirements?.includes('location')) {
-    const location = getLocation(settings);
-    if (location) {
-      props.latitude = location.lat;
-      props.longitude = location.lon;
-    }
-  }
-
-  const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
-  if (needsCalendar && sharedData.calendarData) {
-    props.events = Array.isArray(sharedData.calendarData)
-      ? sharedData.calendarData
-      : (sharedData.calendarData as Record<string, unknown>).events ?? [];
-  }
-
-  const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
-  if (needsWeather) {
-    if (locationMissing) props.locationMissing = true;
-    const provider = resolveProvider(mod, settings.weather.provider);
-    const weatherData = sharedData[PROVIDER_KEY[provider]] as Record<string, unknown> | null;
-    if (weatherData) {
-      props.hourly = weatherData.hourly ?? [];
-      props.forecast = weatherData.forecast ?? [];
-      props.minutely = weatherData.minutely;
-      props.alerts = weatherData.alerts;
-    }
-    props.units = settings.weather.units;
-  }
-
-  return props;
 }
 
 export default function ScreenRenderer(props: ScreenRendererProps) {
@@ -196,7 +113,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   // (plain <img> tags don't carry Authorization headers)
   const backgroundImage = useAuthImage(rawBackground || undefined) || '';
 
-  const locationMissing = getLocation(settings) == null;
+  const source = toDisplaySource(settings, getLocation(settings), sharedData, availableDisplays);
 
   return (
     <div
@@ -255,13 +172,13 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
           return null;
         }
 
-        const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
+        const extraProps = buildModuleProps(mod, source);
 
-        // Type-specific extra props: thread availableDisplays + displayId into display-control only.
-        // displayId is the authoritative render-as id; the URL alone is unreliable because
-        // the legacy /display route renders a multi-display main inline without redirecting.
+        // `availableDisplays` rides the shared source; `renderDisplayId` stays a
+        // display-caller concern because the editor has no equivalent. It is the
+        // authoritative render-as id — the URL alone is unreliable because the
+        // legacy /display route renders a multi-display main inline without redirecting.
         if (mod.type === 'display-control') {
-          (extraProps as Record<string, unknown>).availableDisplays = availableDisplays;
           (extraProps as Record<string, unknown>).renderDisplayId = displayId;
         }
 

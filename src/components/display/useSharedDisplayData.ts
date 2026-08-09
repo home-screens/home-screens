@@ -2,8 +2,7 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import type { Screen, GlobalSettings } from '@/types/config';
-import { resolveProvider } from './ScreenRenderer';
-import type { SharedDisplayData } from './ScreenRenderer';
+import { resolveProvider, type SharedDisplayData } from '@/lib/module-props';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useFetchData } from '@/hooks/useFetchData';
 import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';

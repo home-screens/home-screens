@@ -6,7 +6,7 @@ import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
 import { usePluginStore } from '@/stores/plugin-store';
 import { stableStringify } from '@/lib/stable-stringify';
-import { buildModuleProps, type SharedDisplayData } from './ScreenRenderer';
+import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
 
 interface BackgroundProviderLayerProps {
   /** ALL configured screens (pre-profile-filter) — a producer must run even
@@ -66,7 +66,7 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
 
   if (providers.length === 0) return null;
 
-  const locationMissing = getLocation(settings) == null;
+  const source = toDisplaySource(settings, getLocation(settings), sharedData);
 
   return (
     <div
@@ -84,7 +84,7 @@ function BackgroundProviderLayer({ screens, settings, sharedData }: BackgroundPr
         // above re-renders this layer once the bundle registers, at which point
         // getModuleComponent resolves and the provider mounts.
         if (!Component) return null;
-        const extraProps = buildModuleProps(mod, settings, sharedData, locationMissing);
+        const extraProps = buildModuleProps(mod, source);
         return (
           <div key={mod.id} style={{ width: mod.size.w, height: mod.size.h }}>
             <Component config={mod.config} style={mod.style} {...extraProps} />
