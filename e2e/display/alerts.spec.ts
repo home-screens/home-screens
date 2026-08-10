@@ -55,8 +55,29 @@ async function sendAlert(request: APIRequestContext, id: string, body: Record<st
 const item = (page: Page) => page.getByTestId('alert-item').first();
 const dismiss = (page: Page) => page.getByTestId('alert-dismiss').first();
 
+/**
+ * Wait out the 0.3s `alert-slide-in` before measuring.
+ *
+ * While it runs the banner carries a live transform matrix, and
+ * getBoundingClientRect() resolves through that matrix in float32 — so the
+ * 44px dismiss target reads 44 ± 4e-6 depending on the frame. Sampling every
+ * frame of one animation showed 5 of 181 readings just under 44, which is
+ * exactly the rate at which the `>= MIN_TAP` assertion used to fail. These
+ * assertions are about the settled layout, so wait for it rather than papering
+ * over the boundary with a tolerance.
+ */
+async function settled(page: Page) {
+  await page.evaluate(async () => {
+    const banners = Array.from(document.querySelectorAll('[data-testid="alert-item"]'));
+    await Promise.all(
+      banners.flatMap((el) => el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {}))),
+    );
+  });
+}
+
 async function expectBannerGeometry(page: Page, viewportW: number, viewportH: number, knob = 1) {
   await expect(item(page)).toBeVisible({ timeout: 8000 });
+  await settled(page);
   const s = fit(viewportW, viewportH) * knob;
   const box = (await item(page).boundingBox())!;
   // Banner is min(mockup width × s, container inner width) and centered.
@@ -125,6 +146,9 @@ test('bottom-position alerts anchor to the bottom edge and maxVisible caps the s
   await expect(page.getByTestId('alert-item')).toHaveCount(3);
   await expect(page.getByText('STACK 1')).toHaveCount(0);
 
+  // The slide-in translates each banner by up to 12 × s px, which dwarfs the
+  // 2px tolerance below, so measure only once the stack has come to rest.
+  await settled(page);
   const boxes = [];
   for (let i = 0; i < 3; i++) boxes.push((await page.getByTestId('alert-item').nth(i).boundingBox())!);
   const bottom = Math.max(...boxes.map((b) => b.y + b.height));
