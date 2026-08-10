@@ -12,6 +12,7 @@ import PropertyGroup from './PropertyGroup';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import VisibilityConditionsSection from '@/components/editor/VisibilityConditionsSection';
 import { isStateProducerType } from '@/lib/provided-state-keys';
+import { stackExtremes } from '@/lib/module-utils';
 import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -250,14 +251,14 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
 
 export default function PropertyPanel() {
   const t = useTranslate('editor');
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, updateModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, updateModule, reorderModule } = useEditorStore();
   const pluginMap = usePluginStore((s) => s.plugins);
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
   const selectedModule = currentScreen?.modules.find((m) => m.id === selectedModuleId);
 
-  if (!selectedModule || !selectedScreenId) {
+  if (!selectedModule || !selectedScreenId || !currentScreen) {
     return (
       <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
         <div className="flex flex-col items-center gap-2 py-6 text-hs-text-faint mb-5">
@@ -284,6 +285,7 @@ export default function PropertyPanel() {
   const hasSchemaFallback = !BuiltinConfigSection && !pluginConfigSection && isPlugin && pluginDef?.configSchema;
 
   const moduleDef = getModuleDefinition(selectedModule.type);
+  const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
   const moduleLabel = isPlugin
     ? (pluginDef?.label ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1)))
     : t(`registry.types.${selectedModule.type}`);
@@ -490,7 +492,21 @@ export default function PropertyPanel() {
           <VisibilityConditionsSection mod={selectedModule} screenId={selectedScreenId} />
         </AccordionSection>
 
-        <div className="pt-3 border-t border-hs-border-strong">
+        <div className="pt-3 border-t border-hs-border-strong space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              disabled={atFront}
+              onClick={() => reorderModule(selectedScreenId, selectedModule.id, 'front')}
+            >
+              {t('propertyPanel.actions.bringToFront')}
+            </Button>
+            <Button
+              disabled={atBack}
+              onClick={() => reorderModule(selectedScreenId, selectedModule.id, 'back')}
+            >
+              {t('propertyPanel.actions.sendToBack')}
+            </Button>
+          </div>
           <Button
             variant="danger"
             className="w-full"

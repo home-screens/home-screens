@@ -1,6 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { countOffCanvasModules, totalModuleCount, scaleModulesToFit } from '@/lib/module-utils';
-import type { Screen } from '@/types/config';
+import {
+  countOffCanvasModules,
+  totalModuleCount,
+  scaleModulesToFit,
+  reorderModuleZ,
+  stackExtremes,
+  appendOnTop,
+  stackOrder,
+} from '@/lib/module-utils';
+import type { ModuleInstance, Screen } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 
 function makeScreen(modules: { x: number; y: number; w: number; h: number }[]): Screen {
@@ -190,5 +198,144 @@ describe('scaleModulesToFit', () => {
     const mod = result[0].modules[0];
     expect(mod.position.x + mod.size.w).toBeLessThanOrEqual(1920);
     expect(mod.position.y + mod.size.h).toBeLessThanOrEqual(1080);
+  });
+});
+
+// ── z-order helpers ──────────────────────────────────────────────────
+
+function makeModules(zIndexes: number[]): ModuleInstance[] {
+  return zIndexes.map((z, i) => ({
+    id: `mod-${i}`,
+    type: 'text' as const,
+    position: { x: 0, y: 0 },
+    size: { w: 100, h: 100 },
+    zIndex: z,
+    config: {},
+    style: { ...DEFAULT_MODULE_STYLE },
+  }));
+}
+
+const zOrder = (mods: ModuleInstance[]) => mods.map((m) => m.zIndex);
+
+describe('reorderModuleZ', () => {
+  it('brings a module to the front, renormalizing to 1..n', () => {
+    // Legacy config: everything tied at 1, visual order = array order.
+    const mods = makeModules([1, 1, 1]);
+    const result = reorderModuleZ(mods, 'mod-0', 'front');
+    expect(zOrder(result)).toEqual([3, 1, 2]);
+  });
+
+  it('sends a module to the back, renormalizing to 1..n', () => {
+    const mods = makeModules([1, 1, 1]);
+    const result = reorderModuleZ(mods, 'mod-2', 'back');
+    expect(zOrder(result)).toEqual([2, 3, 1]);
+  });
+
+  it('preserves array-order stacking for tied zIndex values', () => {
+    // mod-1 → front; mod-0 and mod-2 keep their relative order (0 under 2).
+    const mods = makeModules([1, 1, 1]);
+    const result = reorderModuleZ(mods, 'mod-1', 'front');
+    expect(zOrder(result)).toEqual([1, 3, 2]);
+  });
+
+  it('renormalizes sparse hand-edited values', () => {
+    const mods = makeModules([7, 3, 42]);
+    const result = reorderModuleZ(mods, 'mod-2', 'back');
+    // Visual order was 3,7,42 → mod-2 to back → mod-2, mod-1, mod-0
+    expect(zOrder(result)).toEqual([3, 2, 1]);
+  });
+
+  it('does not reorder the config array, only zIndex values', () => {
+    const mods = makeModules([1, 1, 1]);
+    const result = reorderModuleZ(mods, 'mod-0', 'front');
+    expect(result.map((m) => m.id)).toEqual(['mod-0', 'mod-1', 'mod-2']);
+  });
+
+  it('keeps object identity for modules whose zIndex is unchanged', () => {
+    const mods = makeModules([1, 2, 3]);
+    const result = reorderModuleZ(mods, 'mod-2', 'front');
+    // Already normalized and mod-2 already on top: nothing changes.
+    expect(result[0]).toBe(mods[0]);
+    expect(result[1]).toBe(mods[1]);
+    expect(result[2]).toBe(mods[2]);
+  });
+
+  it('returns the array untouched for an unknown module id', () => {
+    const mods = makeModules([1, 1]);
+    expect(reorderModuleZ(mods, 'nope', 'front')).toBe(mods);
+  });
+
+  it('handles a single module', () => {
+    const mods = makeModules([5]);
+    expect(zOrder(reorderModuleZ(mods, 'mod-0', 'front'))).toEqual([1]);
+    expect(zOrder(reorderModuleZ(mods, 'mod-0', 'back'))).toEqual([1]);
+  });
+});
+
+describe('stackExtremes', () => {
+  it('detects front and back on tied values via array order', () => {
+    const mods = makeModules([1, 1, 1]);
+    expect(stackExtremes(mods, 'mod-2')).toEqual({ atFront: true, atBack: false });
+    expect(stackExtremes(mods, 'mod-0')).toEqual({ atFront: false, atBack: true });
+    expect(stackExtremes(mods, 'mod-1')).toEqual({ atFront: false, atBack: false });
+  });
+
+  it('follows zIndex over array order when values differ', () => {
+    const mods = makeModules([5, 1, 3]);
+    expect(stackExtremes(mods, 'mod-0')).toEqual({ atFront: true, atBack: false });
+    expect(stackExtremes(mods, 'mod-1')).toEqual({ atFront: false, atBack: true });
+  });
+
+  it('treats a single module as both extremes', () => {
+    expect(stackExtremes(makeModules([1]), 'mod-0')).toEqual({ atFront: true, atBack: true });
+  });
+
+  it('reports both extremes for an unknown module id', () => {
+    expect(stackExtremes(makeModules([1]), 'nope')).toEqual({ atFront: true, atBack: true });
+  });
+});
+
+describe('appendOnTop', () => {
+  const withZ = (mods: ModuleInstance[], id: string, z: number): ModuleInstance[] =>
+    mods.map((m) => (m.id === id ? { ...m, zIndex: z } : m));
+
+  it('appends the new module one above the module count', () => {
+    const mods = makeModules([1, 1]);
+    const added = { ...makeModules([0])[0], id: 'new' };
+    const result = appendOnTop(mods, added);
+    expect(result.map((m) => m.id)).toEqual(['mod-0', 'mod-1', 'new']);
+    expect(zOrder(result)).toEqual([1, 2, 3]);
+  });
+
+  it('renormalizes sparse values so zIndex stays bounded by module count', () => {
+    // Sparse leftovers from add/delete cycles: 3, 7, 42 → 1, 2, 3, new = 4.
+    const mods = makeModules([3, 7, 42]);
+    const added = { ...makeModules([0])[0], id: 'new' };
+    expect(zOrder(appendOnTop(mods, added))).toEqual([1, 2, 3, 4]);
+  });
+
+  it('heals a non-numeric zIndex from a hand-edited or imported config', () => {
+    const mods = withZ(makeModules([1, 1]), 'mod-1', undefined as unknown as number);
+    const added = { ...makeModules([0])[0], id: 'new' };
+    // Missing zIndex coerces to 0, sorting mod-1 to the bottom; all finite after.
+    const result = appendOnTop(mods, added);
+    expect(zOrder(result)).toEqual([2, 1, 3]);
+    expect(result.every((m) => Number.isFinite(m.zIndex))).toBe(true);
+  });
+
+  it('starts at 1 on an empty screen', () => {
+    const added = { ...makeModules([0])[0], id: 'new' };
+    expect(zOrder(appendOnTop([], added))).toEqual([1]);
+  });
+});
+
+describe('stackOrder with invalid zIndex', () => {
+  it('stays deterministic when a zIndex is missing (no NaN comparator cycles)', () => {
+    // A(z=1,i=0), B(z missing,i=1), C(z=0,i=2): with NaN in the comparator this
+    // was a strict cycle and sort output was implementation-defined. Coerced to
+    // 0, the order is well-defined: B(0,i=1), C(0,i=2), A(1).
+    const mods = makeModules([1, 0, 0]);
+    mods[1] = { ...mods[1], zIndex: undefined as unknown as number };
+    expect(stackOrder(mods).map((m) => m.id)).toEqual(['mod-1', 'mod-2', 'mod-0']);
   });
 });

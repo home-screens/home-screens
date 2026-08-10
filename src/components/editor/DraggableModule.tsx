@@ -1,10 +1,8 @@
 'use client';
 
-import { memo, useRef, useCallback } from 'react';
+import { memo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Clock, PowerOff, Eye, EyeOff } from 'lucide-react';
-import { GRID_SIZE, snapToGrid } from '@/lib/constants';
-import { useEditorStore } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
@@ -56,9 +54,7 @@ const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: Module
 export default function DraggableModule({
   mod,
   scale,
-  isSelected,
   onSelect,
-  onResize,
   dataSource,
   now,
   verdictStates,
@@ -66,9 +62,9 @@ export default function DraggableModule({
 }: {
   mod: ModuleInstance;
   scale: number;
-  isSelected: boolean;
-  onSelect: () => void;
-  onResize: (size: { w: number; h: number }) => void;
+  /** `movedSinceDown` is true when the click is the tail of a drag, so the
+   *  canvas selects the dragged module instead of cycling the overlap stack. */
+  onSelect: (e: React.MouseEvent, movedSinceDown: boolean) => void;
   /** Normalized preview data for the module component (see `toEditorSource`). */
   dataSource: ModuleDataSource;
   now: Date;
@@ -85,7 +81,7 @@ export default function DraggableModule({
     data: { source: 'canvas', moduleId: mod.id },
   });
 
-  const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
 
   const isPluginModule = mod.type.startsWith('plugin:');
   const definition = getModuleDefinition(mod.type);
@@ -158,50 +154,20 @@ export default function DraggableModule({
     });
   }
 
-  const handleResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      resizeRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        startW: mod.size.w,
-        startH: mod.size.h,
-      };
-
-      const handleMouseMove = (ev: MouseEvent) => {
-        if (!resizeRef.current) return;
-        const dx = (ev.clientX - resizeRef.current.startX) / scale;
-        const dy = (ev.clientY - resizeRef.current.startY) / scale;
-        const snap = useEditorStore.getState().snapEnabled;
-        const align = snap ? snapToGrid : Math.round;
-        onResize({
-          w: Math.max(GRID_SIZE * 2, align(resizeRef.current.startW + dx)),
-          h: Math.max(GRID_SIZE * 2, align(resizeRef.current.startH + dy)),
-        });
-      };
-
-      const handleMouseUp = () => {
-        resizeRef.current = null;
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-      };
-
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    },
-    [mod.size, scale, onResize],
-  );
-
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       data-module-id={mod.id}
       data-module-type={mod.type}
+      onPointerDownCapture={(e) => {
+        pointerDownPos.current = { x: e.clientX, y: e.clientY };
+      }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect();
+        const down = pointerDownPos.current;
+        const moved = down ? Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4 : false;
+        onSelect(e, moved);
       }}
       className={`absolute ${isDragging ? 'opacity-60' : ''}`}
       style={{
@@ -220,8 +186,8 @@ export default function DraggableModule({
       <div
         {...listeners}
         className={`w-full h-full overflow-hidden transition-shadow cursor-grab ${
-          isSelected ? 'ring-2 ring-hs-accent ring-offset-1 ring-offset-transparent' : ''
-        } ${!isModuleEnabled(mod) ? 'opacity-40 grayscale' : mod.backgroundProvider ? 'opacity-40' : ''}`}
+          !isModuleEnabled(mod) ? 'opacity-40 grayscale' : mod.backgroundProvider ? 'opacity-40' : ''
+        }`}
         style={{
           borderRadius: mod.style.borderRadius * scale,
         }}
@@ -255,13 +221,6 @@ export default function DraggableModule({
           <badge.icon style={{ width: iconSize, height: iconSize }} />
         </div>
       ))}
-      {isSelected && (
-        <div
-          onMouseDown={handleResizeStart}
-          className="absolute bottom-0 right-0 w-3 h-3 bg-hs-accent cursor-se-resize rounded-tl"
-          style={{ zIndex: 999 }}
-        />
-      )}
     </div>
   );
 }

@@ -14,8 +14,10 @@ import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
+import { stackOrder } from '@/lib/module-utils';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
+import SelectionOverlay from './SelectionOverlay';
 import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
 import CanvasToolbar from './CanvasToolbar';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
@@ -203,6 +205,36 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const canvasW = displayWidth * effectiveScale;
   const canvasH = displayHeight * effectiveScale;
 
+  // Click-through selection. DOM hit-testing only ever reaches the topmost
+  // module, which would make anything sent behind a covering module (worst
+  // case: a fillsCanvas module) permanently unselectable. Instead, resolve
+  // the click geometrically: first click selects the topmost module under
+  // the cursor; clicking again in the same spot cycles to the next one
+  // beneath it, wrapping around. A drag's trailing click keeps the dragged
+  // module selected instead of cycling away from it.
+  const handleModuleClick = (clickedId: string, e: React.MouseEvent, movedSinceDown: boolean) => {
+    const canvasEl = innerCanvasRef.current;
+    if (movedSinceDown || !canvasEl || !currentScreen) {
+      selectModule(clickedId);
+      return;
+    }
+    const rect = canvasEl.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / effectiveScale;
+    const y = (e.clientY - rect.top) / effectiveScale;
+    const hits = stackOrder(currentScreen.modules)
+      .filter((m) =>
+        x >= m.position.x && x <= m.position.x + m.size.w &&
+        y >= m.position.y && y <= m.position.y + m.size.h,
+      )
+      .reverse(); // topmost first
+    if (hits.length === 0) {
+      selectModule(clickedId);
+      return;
+    }
+    const idx = hits.findIndex((m) => m.id === selectedModuleId);
+    selectModule(idx === -1 ? hits[0].id : hits[(idx + 1) % hits.length].id);
+  };
+
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden bg-hs-canvas">
       {/* Scrollable canvas area */}
@@ -229,6 +261,9 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               width: canvasW,
               height: canvasH,
               borderRadius: 8,
+              // Contain module zIndexes (incl. the selected-module lift) so
+              // they can't compete with editor chrome outside the canvas.
+              isolation: 'isolate',
             }}
             onClick={() => selectModule(null)}
           >
@@ -242,15 +277,23 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   key={mod.id}
                   mod={mod}
                   scale={effectiveScale}
-                  isSelected={mod.id === selectedModuleId}
-                  onSelect={() => selectModule(mod.id)}
-                  onResize={(size) => resizeModule(selectedScreenId!, mod.id, size)}
+                  onSelect={(e, movedSinceDown) => handleModuleClick(mod.id, e, movedSinceDown)}
                   dataSource={previewSource}
                   now={now}
                   verdictStates={verdictStates}
                   source={liveState.source}
                 />
               ))}
+              {(() => {
+                const sel = currentScreen.modules.find((m) => m.id === selectedModuleId);
+                return sel ? (
+                  <SelectionOverlay
+                    mod={sel}
+                    scale={effectiveScale}
+                    onResize={(size) => resizeModule(selectedScreenId!, sel.id, size)}
+                  />
+                ) : null;
+              })()}
               {dragState && (() => {
                 const mod = currentScreen.modules.find((m) => m.id === dragState.moduleId);
                 return mod ? (

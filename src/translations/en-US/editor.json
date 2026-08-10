@@ -2024,6 +2024,8 @@
       "fontWeightReset": "Reset to default"
     },
     "actions": {
+      "bringToFront": "Bring to Front",
+      "sendToBack": "Send to Back",
       "delete": "Delete Module",
       "confirmDelete": "Delete this module?"
     },

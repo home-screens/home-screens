@@ -2024,6 +2024,8 @@
       "fontWeightReset": "Reset to default"
     },
     "actions": {
+      "bringToFront": "Flyt forrest",
+      "sendToBack": "Flyt bagerst",
       "delete": "Delete Module",
       "confirmDelete": "Delete this module?"
     },

@@ -71,6 +71,8 @@ export interface ModuleActions {
   updateModuleStyle: (screenId: string, moduleId: string, style: Partial<ModuleStyle>) => void;
   moveModule: (screenId: string, moduleId: string, position: ModulePosition) => void;
   resizeModule: (screenId: string, moduleId: string, size: ModuleSize) => void;
+  /** Move a module to the front or back of its screen's stacking order. */
+  reorderModule: (screenId: string, moduleId: string, to: 'front' | 'back') => void;
   scaleAllModules: (oldWidth: number, oldHeight: number, newWidth: number, newHeight: number) => void;
 }
 

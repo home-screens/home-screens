@@ -2024,6 +2024,8 @@
       "fontWeightReset": "Auf Standard zurücksetzen"
     },
     "actions": {
+      "bringToFront": "Nach vorn",
+      "sendToBack": "Nach hinten",
       "delete": "Modul löschen",
       "confirmDelete": "Dieses Modul löschen?"
     },

@@ -2028,6 +2028,8 @@
       "fontWeightReset": "Rétablir la valeur par défaut"
     },
     "actions": {
+      "bringToFront": "Premier plan",
+      "sendToBack": "Arrière-plan",
       "delete": "Supprimer le module",
       "confirmDelete": "Supprimer ce module ?"
     },

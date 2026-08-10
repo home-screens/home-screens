@@ -2,7 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { getConfig, putConfig, seedDisplaySharedState } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { buildModuleInstance } from '../helpers/module-fixtures';
+import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
 import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
@@ -108,6 +108,64 @@ test('shared: the Show-on-display toggle disables a module and dims the preview'
   expect(config.screens[0].modules[0].enabled).toBe(false);
   // Disabled modules render dimmed + grayscaled in the editor (DraggableModule).
   await expect(page.locator('[data-module-id="text-1"] .grayscale')).toBeVisible();
+});
+
+test('shared: Send to Back reorders overlapping modules and persists zIndex', async ({ page, request }) => {
+  // Two overlapping text modules, both at the legacy zIndex 1 — the later
+  // array entry ("above") paints on top via DOM order.
+  const below = { ...buildModuleInstance('text', { content: 'BELOW' }), id: 'text-below' };
+  const above = { ...buildModuleInstance('text', { content: 'ABOVE' }), id: 'text-above', position: { x: 40, y: 40 } };
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('screen-1', 'Screen 1', [below, above])],
+    settings: matrixSettings(),
+  }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator('[data-module-id="text-above"]').click();
+
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Send to Back' }).click();
+  });
+
+  // Persisted: renormalized 1..n with the target at the bottom.
+  const config = await getConfig(request);
+  const zById = Object.fromEntries(config.screens[0].modules.map((m) => [m.id, m.zIndex]));
+  expect(zById['text-above']).toBe(1);
+  expect(zById['text-below']).toBe(2);
+
+  // The editor canvas applies the new stacking immediately — including for
+  // the still-selected module, so Send to Back is visibly instant. Selection
+  // chrome renders in a separate overlay and must not lift the module.
+  await expect(page.locator('[data-module-id="text-above"]')).toHaveCSS('z-index', '1');
+  await expect(page.locator('[data-module-id="text-below"]')).toHaveCSS('z-index', '2');
+
+  // At the back now: Send to Back disables, Bring to Front stays available.
+  await expect(page.getByRole('button', { name: 'Send to Back' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Bring to Front' })).toBeEnabled();
+});
+
+test('shared: clicking an overlap repeatedly cycles selection to buried modules', async ({ page, request }) => {
+  // "above" fully covers "below" where they overlap; a plain DOM click can
+  // only ever reach "above", so the second click must cycle geometrically.
+  const below = { ...buildModuleInstance('text', { content: 'BELOW' }), id: 'text-below' };
+  const above = { ...buildModuleInstance('text', { content: 'ABOVE' }), id: 'text-above', position: { x: 40, y: 40 } };
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('screen-1', 'Screen 1', [below, above])],
+    settings: matrixSettings(),
+  }));
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  // Click inside the overlap region (top-left corner of "above" sits inside
+  // "below"): first click selects the topmost module.
+  const aboveEl = page.locator('[data-module-id="text-above"]');
+  const overlay = page.locator('[data-testid="selection-overlay"]');
+  await aboveEl.click({ position: { x: 5, y: 5 } });
+  await expect(overlay).toHaveAttribute('data-selected-module', 'text-above');
+
+  // Same spot again: selection cycles to the covered module underneath.
+  await aboveEl.click({ position: { x: 5, y: 5 } });
+  await expect(overlay).toHaveAttribute('data-selected-module', 'text-below');
 });
 
 // ── Task 1: Time & Date + Weather & Environment ────────────────────────────

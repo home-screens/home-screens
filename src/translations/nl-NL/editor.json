@@ -2024,6 +2024,8 @@
       "fontWeightReset": "Terugzetten op standaard"
     },
     "actions": {
+      "bringToFront": "Naar voren",
+      "sendToBack": "Naar achteren",
       "delete": "Module verwijderen",
       "confirmDelete": "Deze module verwijderen?"
     },

@@ -2028,6 +2028,8 @@
       "fontWeightReset": "Restablecer al valor predeterminado"
     },
     "actions": {
+      "bringToFront": "Al frente",
+      "sendToBack": "Al fondo",
       "delete": "Eliminar módulo",
       "confirmDelete": "¿Eliminar este módulo?"
     },

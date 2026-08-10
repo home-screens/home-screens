@@ -46,7 +46,9 @@ test.describe('module lifecycle', () => {
     await openEditor(page);
 
     await page.locator('[data-module-id="rz"]').click();
-    const handle = page.locator('[data-module-id="rz"] .cursor-se-resize');
+    // The resize handle lives in the canvas-level selection overlay, not the
+    // module wrapper (it must stay reachable when the module is stacked low).
+    const handle = page.locator('[data-testid="selection-overlay"] .cursor-se-resize');
     await expect(handle).toBeVisible();
     const box = (await handle.boundingBox())!;
 

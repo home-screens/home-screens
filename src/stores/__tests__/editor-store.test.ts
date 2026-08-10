@@ -79,6 +79,77 @@ describe('editor store', () => {
       expect(store.getState().config!.screens[0].modules).toHaveLength(0);
       expect(store.getState().isDirty).toBe(false);
     });
+
+    it('stacks new modules above existing ones, even after reorders', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-2', type: 'text', position: { x: 100, y: 100 }, size: { w: 400, h: 150 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      store.setState({ config, isDirty: false });
+
+      // Spread the zIndex values out (mod-1 → z2, mod-2 → z1)…
+      store.getState().reorderModule('screen-1', 'mod-1', 'front');
+      // …then a newly added module must still land on top.
+      store.getState().addModule('screen-1', 'text');
+
+      const modules = store.getState().config!.screens[0].modules;
+      const maxExisting = Math.max(...modules.slice(0, 2).map((m) => m.zIndex));
+      expect(modules[2].zIndex).toBe(maxExisting + 1);
+    });
+
+    it('renormalizes a legacy tied screen so zIndex stays dense on add', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-2', type: 'text', position: { x: 100, y: 100 }, size: { w: 400, h: 150 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      store.setState({ config, isDirty: false });
+
+      store.getState().addModule('screen-1', 'text');
+
+      const modules = store.getState().config!.screens[0].modules;
+      // Existing ties compact to 1..n in array order; the new module gets n+1.
+      expect(modules.map((m) => m.zIndex)).toEqual([1, 2, 3]);
+    });
+  });
+
+  describe('reorderModule', () => {
+    it('brings a module to the front and renormalizes zIndex', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-2', type: 'text', position: { x: 100, y: 100 }, size: { w: 400, h: 150 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      store.setState({ config, isDirty: false });
+
+      store.getState().reorderModule('screen-1', 'mod-1', 'front');
+
+      const modules = store.getState().config!.screens[0].modules;
+      // Array order untouched; only zIndex values changed.
+      expect(modules.map((m) => m.id)).toEqual(['mod-1', 'mod-2']);
+      expect(modules.map((m) => m.zIndex)).toEqual([2, 1]);
+      expect(store.getState().isDirty).toBe(true);
+    });
+
+    it('is undoable as a single history step', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-2', type: 'text', position: { x: 100, y: 100 }, size: { w: 400, h: 150 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      store.setState({ config, isDirty: false });
+
+      store.getState().reorderModule('screen-1', 'mod-1', 'front');
+      store.getState().undo();
+
+      const modules = store.getState().config!.screens[0].modules;
+      expect(modules.map((m) => m.zIndex)).toEqual([1, 1]);
+    });
   });
 
   describe('removeModule', () => {

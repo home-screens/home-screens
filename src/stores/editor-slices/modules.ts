@@ -8,8 +8,9 @@ import {
   withActiveScreens,
   getActiveDimensions,
   updateModuleInConfig,
+  updateScreenModulesInConfig,
 } from '@/lib/editor-multi-display';
-import { scaleModulesToFit } from '@/lib/module-utils';
+import { scaleModulesToFit, reorderModuleZ, appendOnTop } from '@/lib/module-utils';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import type { EditorGet, ModuleActions, MutateConfig } from './types';
 
@@ -28,24 +29,21 @@ export function createModuleSlice(
       const dims = cfg
         ? getActiveDimensions(cfg, state.selectedDisplayId)
         : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
-      const newModule: ModuleInstance = {
+      // zIndex is assigned by appendOnTop against the target screen's modules
+      // inside the mutation, so it is computed from the same list it lands in.
+      const newModule: Omit<ModuleInstance, 'zIndex'> = {
         id: uuidv4(),
         type,
         position: fillsCanvas ? { x: 0, y: 0 } : (position ?? { x: 100, y: 100 }),
         size: fillsCanvas
           ? { w: dims.width, h: dims.height }
           : { ...def.defaultSize },
-        zIndex: 1,
         config: { ...def.defaultConfig },
         style: { ...defaultStyle, ...def.defaultStyle },
       };
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          get().selectedDisplayId,
-          getActiveScreens(config, get().selectedDisplayId).map((s) =>
-            s.id === screenId ? { ...s, modules: [...s.modules, newModule] } : s,
-          ),
+        config: updateScreenModulesInConfig(config, get().selectedDisplayId, screenId, (modules) =>
+          appendOnTop(modules, newModule),
         ),
         selectedModuleId: newModule.id,
       }));
@@ -54,12 +52,8 @@ export function createModuleSlice(
     removeModule: (screenId, moduleId) => {
       const { selectedModuleId, selectedDisplayId } = get();
       mutateConfig((config) => ({
-        config: withActiveScreens(
-          config,
-          selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === screenId ? { ...s, modules: s.modules.filter((m) => m.id !== moduleId) } : s,
-          ),
+        config: updateScreenModulesInConfig(config, selectedDisplayId, screenId, (modules) =>
+          modules.filter((m) => m.id !== moduleId),
         ),
         selectedModuleId: selectedModuleId === moduleId ? null : selectedModuleId,
       }));
@@ -94,6 +88,15 @@ export function createModuleSlice(
       mutateConfig((config) => ({
         config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, size })),
       }), { coalesce: COALESCE_KEYS.resizeModule(moduleId) });
+    },
+
+    reorderModule: (screenId, moduleId, to) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: updateScreenModulesInConfig(config, selectedDisplayId, screenId, (modules) =>
+          reorderModuleZ(modules, moduleId, to),
+        ),
+      }));
     },
 
     scaleAllModules: (oldWidth, oldHeight, newWidth, newHeight) => {

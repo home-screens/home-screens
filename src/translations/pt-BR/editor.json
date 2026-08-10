@@ -2028,6 +2028,8 @@
       "fontWeightReset": "Redefinir para padrão"
     },
     "actions": {
+      "bringToFront": "Para a frente",
+      "sendToBack": "Para trás",
       "delete": "Excluir módulo",
       "confirmDelete": "Excluir este módulo?"
     },

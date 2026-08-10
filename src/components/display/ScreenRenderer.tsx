@@ -127,6 +127,10 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         // works in Firefox. transform creates an isolated compositing layer
         // that blocks backdrop-filter from sampling pixels behind it (FF Bug 1782876).
         zoom: scale,
+        // zoom establishes no stacking context, so without this the module
+        // zIndexes would compete with sibling display chrome (pagination
+        // dots z-100, network indicator z-99) in ScreenRotator.
+        isolation: 'isolate',
       }}
     >
       {backgroundImage && (

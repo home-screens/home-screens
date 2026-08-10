@@ -235,10 +235,25 @@ export function updateModuleInConfig(
   moduleId: string,
   updater: (mod: ModuleInstance) => ModuleInstance,
 ): ScreenConfiguration {
+  return updateScreenModulesInConfig(config, selectedDisplayId, screenId, (modules) =>
+    modules.map((m) => (m.id === moduleId ? updater(m) : m)),
+  );
+}
+
+/**
+ * Apply a transform to one screen's whole module list and return a new config
+ * with it written back. Whole-list sibling of `updateModuleInConfig` for
+ * actions that add, remove, or restack modules — so the active-display screen
+ * resolution lives in exactly one place.
+ */
+export function updateScreenModulesInConfig(
+  config: ScreenConfiguration,
+  selectedDisplayId: string | null,
+  screenId: string,
+  updater: (modules: ModuleInstance[]) => ModuleInstance[],
+): ScreenConfiguration {
   const screens = getActiveScreens(config, selectedDisplayId).map((s) =>
-    s.id === screenId
-      ? { ...s, modules: s.modules.map((m) => (m.id === moduleId ? updater(m) : m)) }
-      : s,
+    s.id === screenId ? { ...s, modules: updater(s.modules) } : s,
   );
   return withActiveScreens(config, selectedDisplayId, screens);
 }
