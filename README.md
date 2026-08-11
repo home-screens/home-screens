@@ -311,61 +311,11 @@ graph TB
 
 ## API Routes
 
-All API routes are server-side proxies that keep credentials off the client.
-
-| Route | Methods | Description |
-|---|---|---|
-| `/api/config` | GET, PUT | Read/write screen configuration |
-| `/api/calendar` | GET | Google Calendar / iCal event proxy |
-| `/api/calendars` | GET | List available Google Calendars |
-| `/api/weather` | GET | Weather data (9 providers) |
-| `/api/geocode` | GET | Location geocoding |
-| `/api/jokes` | GET | Dad jokes proxy |
-| `/api/quote` | GET | ZenQuotes daily quote |
-| `/api/news` | GET | RSS feed parser |
-| `/api/stocks` | GET | Yahoo Finance stock prices |
-| `/api/crypto` | GET | CoinGecko crypto prices |
-| `/api/history` | GET | This day in history |
-| `/api/backgrounds` | GET, POST, DELETE | Background image management |
-| `/api/backgrounds/directories` | GET, POST, DELETE | Background directory management |
-| `/api/unsplash` | GET, POST | Unsplash photo search and download |
-| `/api/nasa` | GET, POST | NASA APOD and image library |
-| `/api/immich/*` | GET | Immich photo library proxy (validate, albums, people, photos, image serve, video streaming) |
-| `/api/icloud/*` | GET, POST | iCloud shared albums (`/photos` lists an album; `/import` downloads a shared link into the media library) |
-| `/api/traffic` | GET | Traffic/commute times (Google Routes / TomTom) |
-| `/api/sports` | GET | Live sports scores (ESPN) |
-| `/api/standings` | GET | League standings (ESPN, 12 leagues) |
-| `/api/air-quality` | GET | Air quality and UV index |
-| `/api/todoist` | GET | Todoist tasks |
-| `/api/todo/*` | GET, POST | Interactive todo tap-state (`/state` poll; `/toggle` atomic flip) |
-| `/api/rain-map` | GET | RainViewer precipitation tiles |
-| `/api/chores` | GET, POST | Chore chart completions |
-| `/api/holidays` | GET | Public holidays by country |
-| `/api/time` | GET | Server time |
-| `/api/image-proxy` | GET | External image proxy |
-| `/api/secrets` | GET, PUT | API key management |
-| `/api/displays` | GET | Multi-display registry, heartbeat, and unadopted-display list |
-| `/api/display/*` | GET, POST | Remote display control (commands, status, viewport, `hw-stats` reporter) |
-| `/api/auth/*` | GET, POST | Authentication (password + Google OAuth) |
-| `/api/system/*` | GET, POST, DELETE | System management (version, upgrade, rollback, backups, power, stats, diagnostics bundle) |
-| `/api/system/network/*` | GET, POST | WiFi scan/connect, IP/hostname, network diagnostics (ping + watchdog) |
-| `/api/chores`, `/api/rewards` | GET, POST | Family data (chore completions, reward redemptions) shared between editor and `/remote` |
-| `/api/meals/*` | GET, PUT, POST | Meal-planner shared state (`/data` GET+PUT saved meals/plan/settings; `/grocery` GET+POST checklist) |
-| `/api/timers/*` | GET, PUT, POST | Visual timers (`/routines` saved routine list; `/session` start and control the running timer) |
-| `/api/plugins/*` | GET, POST, PUT, DELETE | Plugin registry, install (from registry **or URL**), proxy, secrets, account connections (`auth/*`) |
-| `/api/i18n/[locale]` | GET | UI translation dictionaries by namespace |
+Every API route is a server-side proxy, so credentials never reach the browser. See the [API Reference](https://homescreens.dev/docs/api) for the full endpoint list.
 
 ## Adding a Module
 
-1. Create a component in `src/components/modules/`
-2. Add the type to `ModuleType` in `src/types/config.ts`
-3. Define its config interface in `src/types/config.ts`
-4. Add a default size in `src/lib/constants.ts`
-5. Register it in `src/lib/module-registry.ts`
-6. Add a dynamic import in `src/lib/module-components.ts`
-7. Add an editor config section in `src/components/editor/PropertyPanel.tsx`
-8. (Optional) Create an API route in `src/app/api/` if external data is needed
-9. Add an E2E fixture row in `e2e/helpers/module-fixtures.ts` (plus a data stub under `e2e/fixtures/module-data/` if the module fetches data) — the E2E coverage checks fail without it
+A module is a component, a registry entry, and an E2E fixture. Full walkthrough in the [Development docs](https://homescreens.dev/docs/development).
 
 Or build it as a [plugin](https://homescreens.dev/docs/plugins) — no core changes required.
 
