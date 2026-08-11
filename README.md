@@ -40,9 +40,21 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Quick Start
 
-### Raspberry Pi
+### Raspberry Pi — pre-built image
+
+The fastest path. Flash the latest `.img.xz` from [Releases](https://github.com/home-screens/home-screens/releases) with Raspberry Pi Imager, drop a `wifi.txt` on the boot partition if you are not on Ethernet, and power on. Up in 2 to 3 minutes with no terminal. Step-by-step in [Getting Started](https://homescreens.dev/docs/getting-started).
+
+Images ship for major and minor releases. For a patch release, or an existing Pi OS install, use the script below.
+
+### Raspberry Pi — install script
 
 Built for [Raspberry Pi OS Lite 64-bit (Trixie)](https://www.raspberrypi.com/software/operating-systems/). Desktop also works.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash
+```
+
+Or clone first if you would rather read the script before you run it. From a clone, the options are:
 
 ```bash
 sudo apt install git
@@ -60,8 +72,17 @@ git clone https://github.com/home-screens/home-screens.git
 # Pin a specific release tag instead of the latest
 ~/home-screens/scripts/install.sh --version v1.3.0
 
-# Display-only spoke (no Node, kiosk only — points at a hub Pi)
+# Take the defaults instead of prompting for display settings
+~/home-screens/scripts/install.sh --non-interactive
+
+# Display-only spoke (no Node, kiosk only, points at a hub Pi)
 ~/home-screens/scripts/install.sh --display-only --backend http://home-screens.local:3000
+```
+
+Every flag works with the piped form too, using `bash -s --`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash -s -- --desktop
 ```
 
 The script installs Node.js 22, Chromium, system dependencies, creates the systemd service, and configures the kiosk with display orientation. Reboot to start:
@@ -138,13 +159,6 @@ On the hub, open the editor and go to **Settings > Per display > All displays**.
 
 Each display card has an **Edit screens** shortcut, an online/offline dot driven by live heartbeats, and the spoke's reported viewport — including its source IP — so you can tell which physical Pi is reporting at a glance.
 
-### Targeting from /remote
-
-The `/remote` page gets a segmented **Display Picker** at the top (All / Kitchen / Bedroom / etc.) when more than one display is registered. Brightness, profile switching, alerts, and next/prev/wake/sleep all target the selected display, or broadcast to **All**.
-
-### Stranded-URL recovery
-
-If a kiosk ends up stuck on a deleted display URL, it shows a 60-second countdown and a **Go to default display now** button, then auto-navigates to the current default. No power cycle needed.
 
 ## Managing the Pi
 
@@ -172,31 +186,17 @@ journalctl -u home-screens -f         # view logs
 
 ### Backups
 
-Your data lives in `data/` (`/opt/home-screens/current/data/` on the Pi):
-
-| File | Contents |
-|---|---|
-| `config.json` | Screen layouts, module settings, display configuration |
-| `secrets.json` | API keys (weather, Unsplash, Todoist, TomTom, etc.) |
-| `meals.json` | Saved meals and weekly meal plan |
-| `routines.json` · `timer-session.json` | Saved timer routines and the running timer |
-| `chores.json` | Chore completions, assignments, and history |
-| `rewards.json` | Kid rewards and redemption history |
-| `auth.json` | Editor password hash and session secret |
-| `google-tokens.json` | Google Calendar OAuth tokens |
-| `plugin-tokens/` | Plugin account connections (OAuth and sign-in tokens) |
-| `icloud-accounts.json` | iCloud calendar sign-ins (app-specific passwords) |
-| `todo-state.json` | Checked-off state for interactive todo lists |
-| `telemetry.json` · `audit.log` | Anonymous telemetry state and editor audit trail |
-| `kiosk.conf` · `port.conf` | Display resolution/rotation and server port overrides |
-
-The editor has built-in backups at **Settings > Backups & data**, but for a full backup:
+The editor has built-in backups at **Settings > Backups & data**. For a copy off the Pi:
 
 ```bash
-# Copy off the Pi
-scp hs@home-screens.local:/opt/home-screens/current/data/config.json ./
-scp hs@home-screens.local:/opt/home-screens/current/data/secrets.json ./
+# Settings, screens, keys, chores, meals, timers, plugins
+scp -r hs@home-screens.local:/opt/home-screens/current/data/ ./hs-backup/
+
+# Uploaded photos and videos live outside data/
+scp -r hs@home-screens.local:/opt/home-screens/current/public/backgrounds/ ./hs-backup/
 ```
+
+Copy whole directories rather than picking out files. Some data is split across more files than you would guess: chore definitions and chore completions are separate, so grabbing only `chores.json` leaves every earned point behind. [Configuration](https://homescreens.dev/docs/configuration) lists every file and what writes it.
 
 ### Custom Port
 
@@ -227,10 +227,6 @@ sudo reboot
 rm /opt/home-screens/current/data/auth.json
 sudo systemctl restart home-screens
 ```
-
-### SD Card Longevity
-
-Writes are minimized automatically: journal in RAM, zram swap, tmpfs for temp dirs, config written only on save.
 
 ## Documentation
 
@@ -266,9 +262,11 @@ graph TB
     subgraph "Next.js Server (hub)"
         API["API Routes"]
         ConfigAPI["/api/config"]
-        DisplaysAPI["/api/displays"]
+        DisplaysAPI["/api/displays<br/>(read-only registry)"]
+        DisplayAPI["/api/display/*<br/>(commands + status)"]
         SecretsAPI["/api/secrets"]
         PluginProxy["/api/plugins/proxy"]
+        StatusMap["statusMap<br/>(in memory)"]
     end
 
     subgraph "Local Storage"
@@ -276,6 +274,7 @@ graph TB
         Secrets["data/secrets.json"]
         Meals["data/meals.json"]
         Plugins["data/plugins/"]
+        Tokens["data/plugin-tokens/"]
     end
 
     subgraph "External Services"
@@ -285,15 +284,21 @@ graph TB
         Other["RSS, CoinGecko,<br/>Yahoo Finance, etc."]
     end
 
-    Editor -- "Zustand store<br/>PUT /api/config" --> ConfigAPI
-    Editor -- "adopt + heartbeat" --> DisplaysAPI
+    Editor -- "Zustand store<br/>PUT /api/config<br/>(adoption writes here)" --> ConfigAPI
+    Editor -- "GET registry +<br/>unadopted Pis" --> DisplaysAPI
+    Editor -- "queue commands" --> DisplayAPI
     ConfigAPI -- "read / write" --> Config
-    Display -- "GET /api/config<br/>(per display)" --> ConfigAPI
-    Display -- "heartbeat / viewport" --> DisplaysAPI
-    DisplaysAPI -- "registry" --> Config
+    DisplaysAPI -- "read" --> Config
+    Display -- "GET /api/config<br/>(filtered per display)" --> ConfigAPI
+    Display -- "poll commands<br/>POST status + viewport" --> DisplayAPI
+    DisplayAPI -- "heartbeats stay in RAM,<br/>never touch config.json" --> StatusMap
+    DisplaysAPI -. "merges live status" .-> StatusMap
     API -- "read keys" --> Secrets
+    API -- "read / write" --> Meals
     SecretsAPI -- "read / write" --> Secrets
-    PluginProxy -- "inject secrets" --> Other
+    PluginProxy -- "load manifest" --> Plugins
+    PluginProxy -- "read" --> Tokens
+    PluginProxy -- "inject keys + tokens" --> Other
     API --> Weather
     API --> ESPN
     API --> Google
@@ -306,7 +311,6 @@ graph TB
 - Tailwind CSS v4
 - @dnd-kit (drag-and-drop)
 - Zustand (editor state)
-- Framer Motion (screen transitions)
 - Vitest (testing)
 
 ## API Routes

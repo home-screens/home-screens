@@ -4,19 +4,33 @@ set -euo pipefail
 # Home Screens - Raspberry Pi Install Script
 # Downloads a pre-built release from GitHub and configures the kiosk.
 #
-# Usage:
-#   git clone https://github.com/home-screens/home-screens.git
-#   ~/home-screens/scripts/install.sh                        # Pi OS Lite (default)
-#   ~/home-screens/scripts/install.sh --desktop              # Pi OS with Desktop
-#   ~/home-screens/scripts/install.sh --version v1.2.0       # Install a specific release
-#   ~/home-screens/scripts/install.sh --non-interactive      # Skip display prompts (use defaults)
+# Usage - pipe straight from GitHub, no clone needed (see the self-download
+# guard below, which fetches the companion files this form is missing):
+#   curl -fsSL https://raw.githubusercontent.com/home-screens/home-screens/main/scripts/install.sh | bash
 #
-# Display-only install (no backend, just a kiosk pointed at a hub Pi):
+# Or from a clone, if you would rather read the script before running it:
+#   git clone https://github.com/home-screens/home-screens.git
+#   ~/home-screens/scripts/install.sh
+#
+# Options:
+#   --desktop            Raspberry Pi OS with Desktop (default is Lite)
+#   --version v1.2.0     Install a specific release tag instead of the latest
+#   --port 8080          Serve on a custom port (default is 3000)
+#   --non-interactive    Skip the display prompts and take the defaults
+#   --display-only       Kiosk only, no Node.js and no server (requires --backend)
+#   --backend <url>      Hub URL the kiosk points at
+#   --display-id <id>    Pin a display id instead of deriving one from the hostname
+#
+# Piped runs take the same options after `-s --`:
+#   curl -fsSL <url> | bash -s -- --desktop
+#
+# Display-only spoke pointed at a hub Pi:
 #   ~/home-screens/scripts/install.sh --display-only --backend http://192.168.1.100:3000
 #   ~/home-screens/scripts/install.sh --display-only --backend http://hub:3000 --display-id kitchen
 #
 # After the install reboots, adopt the Pi on the hub:
-#   Settings → Displays → Unadopted → click the Pi's id. No token to paste.
+#   Settings > Per display > All displays, then click the Pi in the unadopted
+#   list at the bottom. No token to paste.
 
 # --- Self-download guard (enables: curl -fsSL <url> | bash) ─────────────
 # When running standalone without companion files (lib/common.sh, boot-splash/),
