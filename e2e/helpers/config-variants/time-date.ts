@@ -271,6 +271,27 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // `scale` is view-independent: the Next view must resolve to the SAME
+    // 42px as the All view row above at scale 1.5. It used to render at
+    // basePx * 1.3, which made scale non-comparable across views (scale 3.4
+    // on Next out-rendered scale 4 on All). Keep the expected value here
+    // identical to the 'scale' row's — that equality IS the assertion.
+    type: 'countdown', name: 'scale-view-independent', kind: 'network-free',
+    config: { view: 'next', scale: 1.5, events: [{ id: 'cd-next-scale', name: 'CD NEXT SCALE', date: '2099-06-01' }] },
+    expect: async (mod) => {
+      await has('CD NEXT SCALE')(mod);
+      const block = mod.locator('.items-start.justify-center').first();
+      await expect(block).toBeAttached();
+      const fs = await block.evaluate((el) => getComputedStyle(el).fontSize);
+      expect(fs).toBe('42px');
+      // The heading tracks scale by the same 14x coefficient the All view
+      // uses, so migrating the stored scale by 1.3 leaves it ~unchanged.
+      const heading = mod.getByText('CD NEXT SCALE');
+      const hs = await heading.evaluate((el) => getComputedStyle(el).fontSize);
+      expect(hs).toBe('21px'); // 14 * 1.5
+    },
+  },
+  {
     // stayUntilEndOfDay keeps a today event that already hit zero visible
     // through the rest of the day (it shows "Today!" instead of being dropped).
     type: 'countdown', name: 'stay-until-end-of-day', kind: 'network-free',

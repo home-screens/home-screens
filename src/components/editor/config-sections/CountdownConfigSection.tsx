@@ -110,11 +110,14 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
         {t('configSections.countdown.stayOnDayHelp')}
       </p>
 
+      {/* Max is 5.2, not 4: the Next view used to render at scale x 1.3, and
+          migration v6 folded that multiplier into the stored value, so an
+          existing countdown can legitimately arrive here at up to 4 x 1.3. */}
       <LabeledField label={t('configSections.countdown.scalePercent', { percent: ((c.scale ?? 1) * 100).toFixed(0) })}>
         <input
           type="range"
           min="0.5"
-          max="4"
+          max="5.2"
           step="0.1"
           value={c.scale ?? 1}
           onChange={(e) => set({ scale: Number(e.target.value) })}

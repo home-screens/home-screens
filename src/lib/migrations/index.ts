@@ -1,5 +1,6 @@
 import type { ScreenConfiguration } from '@/types/config';
 import { v4ToV5 } from './v4-to-v5';
+import { v5ToV6 } from './v5-to-v6';
 
 interface Migration {
   version: number;
@@ -63,6 +64,9 @@ const migrations: Migration[] = [
   // the new optional `locale` and `formattingLocale` fields default to
   // en-US at read time, so existing configs need no on-disk change.
   v4ToV5,
+  // Migration 006: countdown `scale` became view-independent — the Next view's
+  // 1.3x render multiplier is folded into the stored value.
+  v5ToV6,
 ];
 
 /** @internal Get all migrations sorted by version */

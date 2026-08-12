@@ -641,7 +641,7 @@ export interface CountdownConfig {
   events: CountdownEvent[];
   showPastEvents: boolean;
   stayUntilEndOfDay?: boolean; // When true, an event that has hit zero stays visible until the end of the calendar day in the configured timezone.
-  scale: number; // 0.5 – 4, default 1
+  scale: number; // 0.5 – 5.2, default 1. View-independent: the same value renders the same pixel size in every CountdownView.
   view: CountdownView;
   holidayCountry?: string;
   format: CountdownFormat;    // how units render: flip cards (default) or a text style shared with Clock's elapsed view
