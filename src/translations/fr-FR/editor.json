@@ -738,7 +738,7 @@
       },
       "google": {
         "name": "Google",
-        "description": "Calendar, Maps, Photos",
+        "description": "Agenda, Maps, Photos",
         "clientIdLabel": "ID client pour l'agenda",
         "clientIdPlaceholder": "ex. 123456789-abc.apps.googleusercontent.com",
         "clientIdHelp": "Pour Google Agenda. Crée-le sur console.cloud.google.com → APIs & Services → Identifiants. Type : TVs and Limited Input devices.",
@@ -765,7 +765,7 @@
       "unsplash": {
         "name": "Unsplash",
         "description": "Arrière-plans photo HD par catégorie",
-        "accessKeyLabel": "Access Key",
+        "accessKeyLabel": "Clé d’accès",
         "accessKeyPlaceholder": "Colle ta clé Unsplash",
         "accessKeyHelp": "Gratuit sur unsplash.com/developers ; 50 requêtes/heure en niveau gratuit."
       },
@@ -792,7 +792,7 @@
         "name": "GitHub",
         "description": "Limite de débit plus élevée pour les vérifications de version",
         "optionalBadge": "Facultatif",
-        "tokenLabel": "Personal Access Token",
+        "tokenLabel": "Jeton d’accès personnel",
         "tokenPlaceholder": "Colle ton token GitHub",
         "tokenHelp": "Augmente la limite de débit de 60 à 5 000 req/h. Crée-le sur github.com/settings/tokens (aucun scope requis)."
       },
@@ -816,12 +816,12 @@
         "connectButton": "Se connecter à un réseau caché…"
       },
       "hostname": {
-        "heading": "Hostname",
+        "heading": "Nom d’hôte",
         "placeholder": "home-screens",
         "saveButton": "Enregistrer",
         "savingButton": "Enregistrement…",
-        "successMessage": "Hostname mis à jour",
-        "defaultErrorMessage": "Échec de la mise à jour du hostname"
+        "successMessage": "Nom d’hôte mis à jour",
+        "defaultErrorMessage": "Échec de la mise à jour du nom d’hôte"
       },
       "interface": {
         "type": {

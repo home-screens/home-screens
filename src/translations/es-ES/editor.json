@@ -738,7 +738,7 @@
       },
       "google": {
         "name": "Google",
-        "description": "Calendar, Maps, Photos",
+        "description": "Calendario, Maps, Fotos",
         "clientIdLabel": "ID de cliente para el calendario",
         "clientIdPlaceholder": "p. ej. 123456789-abc.apps.googleusercontent.com",
         "clientIdHelp": "Para Google Calendar. Créalo en console.cloud.google.com → APIs & Services → Credentials. Tipo: TVs and Limited Input devices.",
@@ -765,7 +765,7 @@
       "unsplash": {
         "name": "Unsplash",
         "description": "Fondos fotográficos en HD por categoría",
-        "accessKeyLabel": "Access Key",
+        "accessKeyLabel": "Clave de acceso",
         "accessKeyPlaceholder": "Pega tu access key de Unsplash",
         "accessKeyHelp": "Gratis en unsplash.com/developers; 50 peticiones/hora en el plan gratuito."
       },
@@ -792,7 +792,7 @@
         "name": "GitHub",
         "description": "Mayor límite de peticiones para comprobar versiones",
         "optionalBadge": "Opcional",
-        "tokenLabel": "Personal Access Token",
+        "tokenLabel": "Token de acceso personal",
         "tokenPlaceholder": "Pega tu token de GitHub",
         "tokenHelp": "Aumenta el límite de peticiones de 60 a 5.000 por hora. Créalo en github.com/settings/tokens (no hacen falta scopes)."
       },
@@ -816,12 +816,12 @@
         "connectButton": "Conectar a una red oculta..."
       },
       "hostname": {
-        "heading": "Hostname",
+        "heading": "Nombre de host",
         "placeholder": "home-screens",
         "saveButton": "Guardar",
         "savingButton": "Guardando...",
-        "successMessage": "Hostname actualizado",
-        "defaultErrorMessage": "No se pudo actualizar el hostname"
+        "successMessage": "Nombre de host actualizado",
+        "defaultErrorMessage": "No se pudo actualizar el nombre de host"
       },
       "interface": {
         "type": {
@@ -971,7 +971,7 @@
       "loading": "Cargando ajustes de comidas…",
       "intro": {
         "part1": "Ajustes compartidos del planificador de comidas. También aparecen en el cajón de ajustes de ",
-        "remoteLinkLabel": "remote",
+        "remoteLinkLabel": "Mando",
         "part2": ". Los cambios desde cualquiera de los dos lados se sincronizan."
       },
       "status": {
@@ -1050,7 +1050,7 @@
       "history": {
         "heading": "Historial de versiones",
         "currentBadge": "actual",
-        "rollback": "Rollback",
+        "rollback": "Volver atrás",
         "help": "Vuelve a una versión anterior de la aplicación. Para deshacer cambios de ajustes, restaura una instantánea desde la página Copias y datos."
       },
       "upgradeDialog": {
@@ -1059,7 +1059,7 @@
         "confirm": "Actualizar"
       },
       "rollbackDialog": {
-        "title": "Rollback",
+        "title": "Volver atrás",
         "message": "¿Volver a {tag}? El servidor se reiniciará.",
         "confirm": "Volver atrás"
       },

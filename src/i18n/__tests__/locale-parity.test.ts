@@ -19,10 +19,10 @@ import { flatten, loadDict, ALLOWED_PLURAL_BRANCHES } from './helpers/dict';
  *      test time rather than at runtime.
  *
  * What we do NOT assert here:
- *   - Coverage ratios. Some locales (notably `da-DK`) are a work in
- *     progress and intentionally fall back to en-US for many keys. A
- *     separate coverage report is the right tool for that — failing the
- *     suite on coverage would block partial-translation PRs.
+ *   - Whether a value is actually translated. This file compares key sets
+ *     only, so a locale copied verbatim from en-US passes it. That blind
+ *     spot is covered by `translation-coverage.test.ts`, which compares
+ *     values and holds every locale at zero untranslated strings.
  */
 
 describe('locale parity', () => {

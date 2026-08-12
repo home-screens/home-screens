@@ -20,10 +20,8 @@ import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures'
 /**
  * Per-locale translated string: the current-weather icon's aria-label
  * (`weather.conditions.sunny`, via getLocalizedConditionLabel — the stub
- * fixture's icon is 'sun'). Chosen because it is genuinely translated in all
- * seven locales (several modules.json surfaces are still English in da-DK),
- * and every value differs from the en-US "Sunny", so a fallback-to-English
- * bug fails the assertion in every locale.
+ * fixture's icon is 'sun'). Every value differs from the en-US "Sunny", so a
+ * fallback-to-English bug fails the assertion in every locale.
  */
 const LOCALE_CONDITION: Record<string, string> = {
   'en-US': 'Sunny',

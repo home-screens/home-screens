@@ -738,7 +738,7 @@
       },
       "google": {
         "name": "Google",
-        "description": "Calendar, Maps, Photos",
+        "description": "Agenda, Maps, Foto's",
         "clientIdLabel": "Client-ID voor agenda",
         "clientIdPlaceholder": "bijv. 123456789-abc.apps.googleusercontent.com",
         "clientIdHelp": "Voor Google Agenda. Maak aan op console.cloud.google.com → APIs & Services → Credentials. Gebruik type: TVs and Limited Input devices.",
@@ -765,13 +765,13 @@
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-foto-achtergronden per categorie",
-        "accessKeyLabel": "Access Key",
+        "accessKeyLabel": "Toegangssleutel",
         "accessKeyPlaceholder": "Plak je Unsplash access key",
         "accessKeyHelp": "Gratis op unsplash.com/developers; 50 verzoeken/uur op het gratis tier."
       },
       "nasa": {
         "name": "NASA",
-        "description": "Astronomy Picture of the Day",
+        "description": "Astronomische foto van de dag",
         "apiKeyPlaceholder": "Plak je NASA API-sleutel",
         "apiKeyHelp": "Gratis op api.nasa.gov; 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
       },
@@ -792,7 +792,7 @@
         "name": "GitHub",
         "description": "Hogere rate limit voor versiecontroles",
         "optionalBadge": "Optioneel",
-        "tokenLabel": "Personal Access Token",
+        "tokenLabel": "Persoonlijk toegangstoken",
         "tokenPlaceholder": "Plak je GitHub-token",
         "tokenHelp": "Verhoogt de rate limit van 60 naar 5.000 verzoeken/uur. Maak aan op github.com/settings/tokens (geen scopes nodig)."
       },
@@ -816,12 +816,12 @@
         "connectButton": "Verbind met verborgen netwerk…"
       },
       "hostname": {
-        "heading": "Hostname",
+        "heading": "Hostnaam",
         "placeholder": "home-screens",
         "saveButton": "Opslaan",
         "savingButton": "Opslaan…",
-        "successMessage": "Hostname bijgewerkt",
-        "defaultErrorMessage": "Hostname bijwerken mislukt"
+        "successMessage": "Hostnaam bijgewerkt",
+        "defaultErrorMessage": "Hostnaam bijwerken mislukt"
       },
       "interface": {
         "type": {
@@ -971,7 +971,7 @@
       "loading": "Maaltijdinstellingen laden…",
       "intro": {
         "part1": "Gedeelde maaltijdplanner-instellingen. Deze verschijnen ook in het ",
-        "remoteLinkLabel": "remote",
+        "remoteLinkLabel": "Afstandsbediening",
         "part2": "-instellingenpaneel. Bewerkingen vanuit beide kanten blijven gesynchroniseerd."
       },
       "status": {
@@ -1739,7 +1739,7 @@
     "rotateEveryLabel": "Wisselen elke",
     "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
     "sources": {
-      "nasaApod": "NASA Picture of the Day",
+      "nasaApod": "NASA-foto van de dag",
       "icloud": "Gedeeld iCloud-album"
     },
     "tabs": {

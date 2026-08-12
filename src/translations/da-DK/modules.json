@@ -2,8 +2,8 @@
   "clock": {
     "am": "AM",
     "pm": "PM",
-    "weekShort": "Week",
-    "dayShort": "Day",
+    "weekShort": "Uge",
+    "dayShort": "Dag",
     "binaryHoursLabel": "H",
     "binaryMinutesLabel": "M",
     "binarySecondsLabel": "S",
@@ -11,209 +11,209 @@
     "barMinutesLabel": "M",
     "barSecondsLabel": "S",
     "arc": {
-      "morningLabel": "6 AM",
-      "eveningLabel": "6 PM",
-      "beforeDawn": "before dawn",
-      "afterDusk": "after dusk"
+      "morningLabel": "06.00",
+      "eveningLabel": "18.00",
+      "beforeDawn": "før daggry",
+      "afterDusk": "efter mørkets frembrud"
     },
     "elapsed": {
-      "setReferenceTime": "Set a reference time",
-      "since": "since {label}",
-      "until": "until {label}",
-      "notYet": "not yet",
-      "elapsed": "elapsed"
+      "setReferenceTime": "Angiv et referencetidspunkt",
+      "since": "siden {label}",
+      "until": "til {label}",
+      "notYet": "endnu ikke",
+      "elapsed": "forløbet"
     },
     "fuzzy": {
-      "oclock": "{hour} o'clock",
-      "justPast": "just past {hour}",
-      "tenPast": "ten past {hour}",
-      "quarterPast": "quarter past {hour}",
-      "twentyPast": "twenty past {hour}",
-      "twentyFivePast": "twenty-five past {hour}",
-      "halfPast": "half past {hour}",
-      "twentyFiveTo": "twenty-five to {next}",
-      "twentyTo": "twenty to {next}",
-      "quarterTo": "quarter to {next}",
-      "tenTo": "ten to {next}",
-      "almost": "almost {next}"
+      "oclock": "klokken {hour}",
+      "justPast": "lidt over {hour}",
+      "tenPast": "ti minutter over {hour}",
+      "quarterPast": "kvart over {hour}",
+      "twentyPast": "tyve minutter over {hour}",
+      "twentyFivePast": "fem minutter i halv {next}",
+      "halfPast": "halv {next}",
+      "twentyFiveTo": "fem minutter over halv {next}",
+      "twentyTo": "tyve minutter i {next}",
+      "quarterTo": "kvart i {next}",
+      "tenTo": "ti minutter i {next}",
+      "almost": "næsten {next}"
     },
     "word": {
-      "oclock": "It is {hour} o'clock",
-      "atMinute": "It is {hour} {minute}",
+      "oclock": "Klokken er {hour}",
+      "atMinute": "Klokken er {hour} {minute}",
       "hours": {
-        "1": "one",
-        "2": "two",
-        "3": "three",
-        "4": "four",
-        "5": "five",
-        "6": "six",
-        "7": "seven",
-        "8": "eight",
-        "9": "nine",
-        "10": "ten",
-        "11": "eleven",
-        "12": "twelve"
+        "1": "et",
+        "2": "to",
+        "3": "tre",
+        "4": "fire",
+        "5": "fem",
+        "6": "seks",
+        "7": "syv",
+        "8": "otte",
+        "9": "ni",
+        "10": "ti",
+        "11": "elleve",
+        "12": "tolv"
       },
       "onesCompound": {
-        "1": "one",
-        "2": "two",
-        "3": "three",
-        "4": "four",
-        "5": "five",
-        "6": "six",
-        "7": "seven",
-        "8": "eight",
-        "9": "nine"
+        "1": "en",
+        "2": "to",
+        "3": "tre",
+        "4": "fire",
+        "5": "fem",
+        "6": "seks",
+        "7": "syv",
+        "8": "otte",
+        "9": "ni"
       },
       "minutes": {
-        "0": "zero",
-        "10": "ten",
-        "11": "eleven",
-        "12": "twelve",
-        "13": "thirteen",
-        "14": "fourteen",
-        "15": "fifteen",
-        "16": "sixteen",
-        "17": "seventeen",
-        "18": "eighteen",
-        "19": "nineteen",
-        "20": "twenty",
-        "30": "thirty",
-        "40": "forty",
-        "50": "fifty"
+        "0": "nul",
+        "10": "ti",
+        "11": "elleve",
+        "12": "tolv",
+        "13": "tretten",
+        "14": "fjorten",
+        "15": "femten",
+        "16": "seksten",
+        "17": "sytten",
+        "18": "atten",
+        "19": "nitten",
+        "20": "tyve",
+        "30": "tredive",
+        "40": "fyrre",
+        "50": "halvtreds"
       },
-      "minuteJoin": "{tens}-{ones}"
+      "minuteJoin": "{ones}og{tens}"
     }
   },
   "countdown": {
-    "noEvents": "No countdowns set",
-    "noUpcoming": "No upcoming events",
-    "agoSuffix": "(ago)",
-    "unitDays": "days",
-    "unitHours": "hrs",
+    "noEvents": "Ingen nedtællinger oprettet",
+    "noUpcoming": "Ingen kommende begivenheder",
+    "agoSuffix": "(siden)",
+    "unitDays": "dage",
+    "unitHours": "t",
     "unitMinutes": "min",
-    "unitSeconds": "sec",
-    "todayBang": "Today!"
+    "unitSeconds": "sek",
+    "todayBang": "I dag!"
   },
   "date": {
-    "weekShort": "Week",
-    "dayShort": "Day",
-    "weekAbbrev": "WK",
-    "dayAbbrev": "DAY"
+    "weekShort": "Uge",
+    "dayShort": "Dag",
+    "weekAbbrev": "UGE",
+    "dayAbbrev": "DAG"
   },
   "year-progress": {
-    "week": "Week"
+    "week": "Uge"
   },
   "garbage-day": {
-    "header": "Collection Schedule",
-    "nextDay": "Next {day}",
-    "emptyState": "Set collection days in module settings",
+    "header": "Afhentningsplan",
+    "nextDay": "Næste {day}",
+    "emptyState": "Angiv afhentningsdage i modulets indstillinger",
     "labels": {
-      "trash": "Trash",
-      "recycling": "Recycling",
-      "yardWaste": "Yard Waste"
+      "trash": "Skrald",
+      "recycling": "Genbrug",
+      "yardWaste": "Haveaffald"
     },
     "frequency": {
       "weekly": "{day}",
-      "biweekly": "Every other {day}"
+      "biweekly": "Hver anden {day}"
     }
   },
   "calendar": {
-    "allDay": "All day",
-    "noEvents": "No events",
-    "noUpcomingEvents": "No upcoming events",
-    "weekShort": "Wk",
-    "moreCount": "+{count} more"
+    "allDay": "Hele dagen",
+    "noEvents": "Ingen begivenheder",
+    "noUpcomingEvents": "Ingen kommende begivenheder",
+    "weekShort": "Uge",
+    "moreCount": "+{count} mere"
   },
   "fullscreen-calendar": {
-    "allDay": "All Day",
-    "noEvents": "No events",
-    "noEventsThisMonth": "No events this month",
-    "noEventsThisWeek": "No events this week",
-    "noEventsToday": "No events today",
-    "noUpcomingEvents": "No upcoming events",
-    "moreCount": "+{count} more",
+    "allDay": "Hele dagen",
+    "noEvents": "Ingen begivenheder",
+    "noEventsThisMonth": "Ingen begivenheder denne måned",
+    "noEventsThisWeek": "Ingen begivenheder denne uge",
+    "noEventsToday": "Ingen begivenheder i dag",
+    "noUpcomingEvents": "Ingen kommende begivenheder",
+    "moreCount": "+{count} mere",
     "am": "AM",
     "pm": "PM",
-    "headerUpcoming": "Upcoming",
+    "headerUpcoming": "Kommende",
     "viewLabels": {
-      "schedule": "Schedule",
-      "weekList": "Week",
-      "monthGrid": "Month",
-      "dayTimeline": "Day",
+      "schedule": "Tidsplan",
+      "weekList": "Uge",
+      "monthGrid": "Måned",
+      "dayTimeline": "Dag",
       "agenda": "Agenda"
     },
     "zones": {
-      "morning": "Morning",
-      "afternoon": "Afternoon",
-      "evening": "Evening"
+      "morning": "Morgen",
+      "afternoon": "Eftermiddag",
+      "evening": "Aften"
     },
     "ariaLabels": {
-      "currentTemperature": "Current temperature {temp} degrees",
-      "view": "View: {label}",
-      "dayTimeline": "Day timeline",
-      "scheduleTimeGrid": "Schedule time grid",
-      "currentTime": "Current time: {time}",
-      "eventAllDay": "{title}, all day",
-      "eventTimed": "{title}, {start} to {end}",
-      "eventTimedAtLocation": "{title}, {start} to {end}, at {location}",
-      "monthCell": "{date}, {count} events"
+      "currentTemperature": "Aktuel temperatur {temp} grader",
+      "view": "Visning: {label}",
+      "dayTimeline": "Dagens tidslinje",
+      "scheduleTimeGrid": "Tidsplanens gitter",
+      "currentTime": "Aktuelt klokkeslæt: {time}",
+      "eventAllDay": "{title}, hele dagen",
+      "eventTimed": "{title}, {start} til {end}",
+      "eventTimedAtLocation": "{title}, {start} til {end}, ved {location}",
+      "monthCell": "{date}, {count} begivenheder"
     }
   },
   "weather": {
-    "tomorrowShort": "Tmrw",
-    "feelsLike": "Feels like {temp}",
-    "feelsShort": "Feels {temp}",
-    "highLow": "H:{high} L:{low}",
-    "hourlyForecast": "Hourly Forecast",
-    "forecast": "Forecast",
-    "weatherAlerts": "Weather Alerts",
+    "tomorrowShort": "I mrg",
+    "feelsLike": "Føles som {temp}",
+    "feelsShort": "Føles {temp}",
+    "highLow": "Maks:{high} Min:{low}",
+    "hourlyForecast": "Timeprognose",
+    "forecast": "Prognose",
+    "weatherAlerts": "Vejrvarsler",
     "alertCount": "({count})",
-    "noActiveAlerts": "No active alerts",
-    "alertDataRequires": "Alert data requires Pirate Weather or NOAA",
-    "alertSeverityExpires": "{severity} · Expires {expires}",
-    "noWeatherData": "No weather data",
-    "noForecastData": "No forecast data",
-    "locationNotSet": "Location not set",
-    "setLocationInSettings": "Set your location in Settings",
-    "next60Minutes": "Next 60 Minutes",
-    "noPrecipitationExpected": "No precipitation expected",
-    "stoppingInMin": "Stopping in {minutes} min",
-    "precipitationForNextHour": "Precipitation for the next hour",
-    "startingInMin": "Starting in {minutes} min",
-    "minutelyDataRequires": "Minutely data requires Pirate Weather",
+    "noActiveAlerts": "Ingen aktive varsler",
+    "alertDataRequires": "Varseldata kræver Pirate Weather eller NOAA",
+    "alertSeverityExpires": "{severity} · Udløber {expires}",
+    "noWeatherData": "Ingen vejrdata",
+    "noForecastData": "Ingen prognosedata",
+    "locationNotSet": "Placering ikke angivet",
+    "setLocationInSettings": "Angiv din placering under Indstillinger",
+    "next60Minutes": "De næste 60 minutter",
+    "noPrecipitationExpected": "Ingen nedbør forventet",
+    "stoppingInMin": "Stopper om {minutes} min",
+    "precipitationForNextHour": "Nedbør den næste time",
+    "startingInMin": "Begynder om {minutes} min",
+    "minutelyDataRequires": "Minutdata kræver Pirate Weather",
     "tableHeaders": {
-      "day": "Day",
+      "day": "Dag",
       "temp": "Temp",
-      "rain": "Rain",
-      "humidity": "Hum",
-      "wind": "Wind"
+      "rain": "Regn",
+      "humidity": "Fugt",
+      "wind": "Vind"
     },
     "timeline": {
-      "now": "Now",
+      "now": "Nu",
       "minutes15": "15m",
       "minutes30": "30m",
       "minutes45": "45m",
       "minutes60": "60m"
     },
     "severity": {
-      "Extreme": "Extreme",
-      "Severe": "Severe",
-      "Moderate": "Moderate",
-      "Minor": "Minor",
-      "Unknown": "Unknown"
+      "Extreme": "Ekstrem",
+      "Severe": "Alvorlig",
+      "Moderate": "Moderat",
+      "Minor": "Mindre",
+      "Unknown": "Ukendt"
     }
   },
   "air-quality": {
-    "loading": "Loading air quality…",
-    "airQualityIndex": "Air Quality Index",
+    "loading": "Indlæser luftkvalitet…",
+    "airQualityIndex": "Luftkvalitetsindeks",
     "labels": {
-      "good": "Good",
-      "fair": "Fair",
-      "moderate": "Moderate",
-      "poor": "Poor",
-      "veryPoor": "Very Poor",
-      "unknown": "Unknown"
+      "good": "God",
+      "fair": "Rimelig",
+      "moderate": "Moderat",
+      "poor": "Dårlig",
+      "veryPoor": "Meget dårlig",
+      "unknown": "Ukendt"
     },
     "pollutants": {
       "pm25": "PM2.5",
@@ -223,67 +223,67 @@
   },
   "moon-phase": {
     "phases": {
-      "newMoon": "New Moon",
-      "waxingCrescent": "Waxing Crescent",
-      "firstQuarter": "First Quarter",
-      "waxingGibbous": "Waxing Gibbous",
-      "fullMoon": "Full Moon",
-      "waningGibbous": "Waning Gibbous",
-      "lastQuarter": "Last Quarter",
-      "waningCrescent": "Waning Crescent"
+      "newMoon": "Nymåne",
+      "waxingCrescent": "Tiltagende nymåne",
+      "firstQuarter": "Første kvarter",
+      "waxingGibbous": "Tiltagende fuldmåne",
+      "fullMoon": "Fuldmåne",
+      "waningGibbous": "Aftagende fuldmåne",
+      "lastQuarter": "Sidste kvarter",
+      "waningCrescent": "Aftagende nymåne"
     },
-    "illuminated": "{percent}% illuminated",
-    "rise": "Rise",
-    "set": "Set"
+    "illuminated": "{percent} % oplyst",
+    "rise": "Opgang",
+    "set": "Nedgang"
   },
   "sunrise-sunset": {
-    "sunrise": "Sunrise",
-    "sunset": "Sunset",
-    "dayLength": "Day length: {length}",
-    "goldenHour": "Golden hour: {time}",
-    "midnightSun": "Midnight sun",
-    "sunDoesNotSet": "Sun does not set",
-    "noSunriseToday": "No sunrise today",
-    "noSunsetToday": "No sunset today",
-    "noon": "noon",
-    "riseShort": "↑ rise",
-    "setShort": "set ↓"
+    "sunrise": "Solopgang",
+    "sunset": "Solnedgang",
+    "dayLength": "Dagens længde: {length}",
+    "goldenHour": "Den gyldne time: {time}",
+    "midnightSun": "Midnatssol",
+    "sunDoesNotSet": "Solen går ikke ned",
+    "noSunriseToday": "Ingen solopgang i dag",
+    "noSunsetToday": "Ingen solnedgang i dag",
+    "noon": "middag",
+    "riseShort": "↑ op",
+    "setShort": "ned ↓"
   },
   "rain-map": {
-    "loading": "Loading rain map…",
-    "noRadarData": "No radar data available",
-    "now": "Now",
-    "minutesAgo": "{minutes}m ago",
+    "loading": "Indlæser regnkort…",
+    "noRadarData": "Ingen radardata tilgængelige",
+    "now": "Nu",
+    "minutesAgo": "for {minutes} m siden",
     "minutesAhead": "+{minutes}m"
   },
   "meal-planner": {
-    "noMealsPlannedYet": "No meals planned yet",
-    "addMealsInEditor": "Add meals in the editor",
-    "noMealsPlanned": "No meals planned",
-    "noMealPlanned": "No meal planned",
-    "nothingPlanned": "Nothing planned",
-    "todaysMeals": "Today's Meals",
-    "now": "now",
-    "servingAt": "serving at {time}",
+    "noMealsPlannedYet": "Ingen måltider planlagt endnu",
+    "addMealsInEditor": "Tilføj måltider i editoren",
+    "noMealsPlanned": "Ingen måltider planlagt",
+    "noMealPlanned": "Intet måltid planlagt",
+    "nothingPlanned": "Intet planlagt",
+    "todaysMeals": "Dagens måltider",
+    "now": "nu",
+    "servingAt": "serveres kl. {time}",
     "prepTimeMin": "{minutes} min",
     "prepTimeMinShort": "{minutes}m",
     "slotShort": {
-      "breakfast": "B",
-      "lunch": "L",
-      "dinner": "D",
-      "snack": "S"
+      "breakfast": "M",
+      "lunch": "F",
+      "dinner": "A",
+      "snack": "Ml"
     },
     "slots": {
-      "breakfast": "Breakfast",
-      "lunch": "Lunch",
-      "dinner": "Dinner",
-      "snack": "Snack"
+      "breakfast": "Morgenmad",
+      "lunch": "Frokost",
+      "dinner": "Aftensmad",
+      "snack": "Mellemmåltid"
     },
     "nextMealLabels": {
-      "now": "Now",
-      "comingUp": "Coming Up",
-      "tomorrow": "Tomorrow",
-      "next": "Next"
+      "now": "Nu",
+      "comingUp": "Snart",
+      "tomorrow": "I morgen",
+      "next": "Næste"
     },
     "scanToOpenRecipe": "Scan for at åbne opskriften",
     "tapToDismiss": "Tryk hvor som helst for at lukke",
@@ -292,61 +292,61 @@
     "closeRecipe": "Luk"
   },
   "fullscreen-meal-planner": {
-    "thisWeeksMeals": "This Week's Meals",
-    "todaysMeals": "Today's Meals",
-    "todaysMenu": "Today's Menu",
-    "alsoToday": "Also Today",
-    "noMealPlanned": "No meal planned",
-    "notPlanned": "Not planned",
-    "noMealsPlannedToday": "No meals planned for today",
-    "noUpcomingMeals": "No upcoming meals planned",
-    "mealsPlannedCount": "{filled} of {total} meals planned",
+    "thisWeeksMeals": "Ugens måltider",
+    "todaysMeals": "Dagens måltider",
+    "todaysMenu": "Dagens menu",
+    "alsoToday": "Også i dag",
+    "noMealPlanned": "Intet måltid planlagt",
+    "notPlanned": "Ikke planlagt",
+    "noMealsPlannedToday": "Ingen måltider planlagt til i dag",
+    "noUpcomingMeals": "Ingen kommende måltider planlagt",
+    "mealsPlannedCount": "{filled} af {total} måltider planlagt",
     "prepTimeMin": "{minutes} min",
     "prepTimeMinShort": "{minutes}m",
     "heroLabels": {
-      "now": "Now",
-      "upNext": "Up Next",
-      "tonight": "Tonight"
+      "now": "Nu",
+      "upNext": "Næste",
+      "tonight": "I aften"
     },
     "nextMealLabels": {
-      "now": "Now",
-      "comingUp": "Coming Up",
-      "tomorrow": "Tomorrow"
+      "now": "Nu",
+      "comingUp": "Snart",
+      "tomorrow": "I morgen"
     }
   },
   "chore-chart": {
-    "familyChores": "Family Chores",
-    "familyProgress": "Family Progress",
-    "starChart": "Star Chart",
-    "chores": "Chores",
-    "thisWeek": "This Week",
-    "addMembersToStart": "Add family members to get started",
-    "openEditorToSetUp": "Open the editor to set up your chore chart",
-    "noChoresConfigured": "No chores configured",
-    "addChoresInEditor": "Add some chores in the editor",
-    "dayOff": "Day off!",
-    "allDone": "All done!",
-    "doneLabel": "Done:",
-    "progressLabel": "Progress:",
-    "doneFraction": "{done}/{total} done",
-    "streakDays": "{count} days",
-    "totalTickets": "Total tickets",
-    "bestStreak": "Best streak",
-    "bestStreakValue": "{name} ({count} days)",
-    "todaysCompletion": "Today's completion",
-    "rewardBalances": "Reward balances",
-    "ticketsCount": "{count} tickets",
+    "familyChores": "Familiens pligter",
+    "familyProgress": "Familiens fremgang",
+    "starChart": "Stjerneskema",
+    "chores": "Pligter",
+    "thisWeek": "Denne uge",
+    "addMembersToStart": "Start med at tilføje familiemedlemmer",
+    "openEditorToSetUp": "Åbn editoren for at sætte dit pligtskema op",
+    "noChoresConfigured": "Der er ikke tilføjet pligter",
+    "addChoresInEditor": "Tilføj pligter i editoren",
+    "dayOff": "Fridag!",
+    "allDone": "Alle pligter er klaret!",
+    "doneLabel": "Klaret:",
+    "progressLabel": "Fremgang:",
+    "doneFraction": "{done}/{total} klaret",
+    "streakDays": "{count} dage",
+    "totalTickets": "Billetter i alt",
+    "bestStreak": "Længste stime",
+    "bestStreakValue": "{name} ({count} dage)",
+    "todaysCompletion": "Klaret i dag",
+    "rewardBalances": "Billetsaldi",
+    "ticketsCount": "{count} billetter",
     "timeOfDay": {
-      "morning": "Morning",
-      "afternoon": "Afternoon",
-      "evening": "Evening",
-      "anytime": "Anytime"
+      "morning": "Morgen",
+      "afternoon": "Eftermiddag",
+      "evening": "Aften",
+      "anytime": "Når som helst"
     },
     "iconPicker": {
-      "filter": "Filter icons...",
-      "noMatch": "No matching icons",
-      "none": "None",
-      "clear": "Clear"
+      "filter": "Filtrér ikoner …",
+      "noMatch": "Ingen ikoner passer",
+      "none": "Ingen",
+      "clear": "Ryd"
     },
     "iconLabels": {
       "user": "Person",
@@ -387,7 +387,7 @@
       "mail": "Post",
       "mailbox": "Postkasse",
       "shopping-cart": "Indkøb",
-      "shopping-bag": "Shopping",
+      "shopping-bag": "Indkøb",
       "book-open": "Læs",
       "notebook": "Lektier",
       "music": "Musik",
@@ -432,7 +432,7 @@
       "rocket": "Raket",
       "gem": "Ædelsten",
       "trophy": "Pokal",
-      "gamepad-2": "Gaming",
+      "gamepad-2": "Spil",
       "headphones": "Musik",
       "candy": "Slik",
       "cookie": "Småkage",
@@ -453,103 +453,103 @@
     }
   },
   "fullscreen-chore-chart": {
-    "rewardsButton": "Rewards",
-    "complete": "Complete",
-    "noChoresToday": "No chores today",
-    "weeklyTickets": "Weekly tickets:",
+    "rewardsButton": "Belønninger",
+    "complete": "Klaret",
+    "noChoresToday": "Ingen pligter i dag",
+    "weeklyTickets": "Ugens billetter:",
     "weeklyTicketsValue": "{earned} / {total}",
-    "bestStreakLabel": "Best streak:",
-    "bestStreakValue": "{name} — {count} days",
-    "bestStreakNone": "None",
-    "thisWeek": "This Week",
-    "tickets": "tickets",
-    "ticketCount": "{count} ticket",
-    "ticketsCount": "{count} tickets",
+    "bestStreakLabel": "Længste stime:",
+    "bestStreakValue": "{name} — {count} dage",
+    "bestStreakNone": "Ingen",
+    "thisWeek": "Denne uge",
+    "tickets": "billetter",
+    "ticketCount": "{count} billet",
+    "ticketsCount": "{count} billetter",
     "verbs": {
-      "completed": "completed",
-      "uncompleted": "uncompleted",
-      "redeemed": "redeemed"
+      "completed": "klarede",
+      "uncompleted": "fortrød",
+      "redeemed": "indløste"
     },
     "ariaLabels": {
-      "completeChore": "Complete {chore} for {member}",
-      "undoChore": "Undo {chore} for {member}",
-      "undoCompleting": "Undo completing {chore}",
-      "undoUncompleting": "Undo uncompleting {chore}"
+      "completeChore": "Markér {chore} som klaret for {member}",
+      "undoChore": "Fortryd {chore} for {member}",
+      "undoCompleting": "Fortryd, at {chore} blev klaret",
+      "undoUncompleting": "Fortryd, at {chore} blev sat tilbage"
     },
     "timeOfDay": {
-      "morning": "Morning",
-      "afternoon": "Afternoon",
-      "evening": "Evening",
-      "anytime": "Anytime"
+      "morning": "Morgen",
+      "afternoon": "Eftermiddag",
+      "evening": "Aften",
+      "anytime": "Når som helst"
     },
     "rewardsStore": {
-      "title": "Rewards",
-      "subtitle": "Pick something great",
-      "backToChores": "← Chores",
-      "noneAvailable": "No rewards available yet",
-      "recentRedemptions": "Recent Redemptions",
-      "redemptionCost": "−{cost} tickets",
-      "memberTickets": "{member}'s Tickets",
-      "balanceCount": "{count} tickets",
-      "rewardCost": "{count} tickets",
-      "redeem": "Redeem",
-      "confirmTitle": "Spend your tickets?",
-      "confirmBody": "Spend {member}'s tickets on {reward}? ({count} tickets)",
-      "confirmCancel": "Cancel",
-      "confirmYes": "Yes!",
-      "errorGeneric": "Something went wrong",
-      "errorOffline": "Could not connect"
+      "title": "Belønninger",
+      "subtitle": "Vælg noget godt",
+      "backToChores": "← Pligter",
+      "noneAvailable": "Der er ingen belønninger endnu",
+      "recentRedemptions": "Seneste indløsninger",
+      "redemptionCost": "−{cost} billetter",
+      "memberTickets": "{member}s billetter",
+      "balanceCount": "{count} billetter",
+      "rewardCost": "{count} billetter",
+      "redeem": "Indløs",
+      "confirmTitle": "Vil du bruge dine billetter?",
+      "confirmBody": "Bruge {member}s billetter på {reward}? ({count} billetter)",
+      "confirmCancel": "Annullér",
+      "confirmYes": "Ja!",
+      "errorGeneric": "Noget gik galt",
+      "errorOffline": "Kunne ikke forbinde"
     }
   },
   "sports": {
-    "loading": "Loading scores…",
-    "noGames": "No games found"
+    "loading": "Indlæser resultater…",
+    "noGames": "Ingen kampe fundet"
   },
   "stock-ticker": {
-    "loading": "Loading…",
-    "empty": "No stock data",
+    "loading": "Indlæser…",
+    "empty": "Ingen aktiedata",
     "headers": {
       "symbol": "Symbol",
-      "price": "Price",
-      "change": "Change",
-      "percent": "% Chg"
+      "price": "Kurs",
+      "change": "Ændring",
+      "percent": "% ændr."
     }
   },
   "standings": {
-    "loading": "Loading standings…",
-    "noStandings": "No standings available"
+    "loading": "Indlæser stillingen…",
+    "noStandings": "Ingen stilling tilgængelig"
   },
   "todo": {
-    "defaultTitle": "To Do",
-    "noTasksYet": "No tasks yet"
+    "defaultTitle": "Huskeliste",
+    "noTasksYet": "Ingen opgaver endnu"
   },
   "traffic": {
-    "sectionTitle": "Traffic",
-    "noRoutes": "No routes configured",
-    "loading": "Loading traffic…",
+    "sectionTitle": "Trafik",
+    "noRoutes": "Ingen ruter oprettet",
+    "loading": "Indlæser trafik…",
     "unitMin": "min",
-    "mockNotice": "Sample data — add a traffic API key in Settings"
+    "mockNotice": "Eksempeldata — tilføj en trafik-API-nøgle under Indstillinger"
   },
   "fullscreen-photo": {
-    "noPhotoSelected": "No photo selected",
-    "noPhotoSelectedHint": "Choose a photo in the editor panel.",
-    "noPhotosYet": "No photos yet",
-    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.",
+    "noPhotoSelected": "Intet billede valgt",
+    "noPhotoSelectedHint": "Vælg et billede i editorpanelet.",
+    "noPhotosYet": "Ingen billeder endnu",
+    "noPhotosYetHint": "Upload billeder fra din telefon under fanen Billeder på /remote, eller vælg en mappe i editoren.",
     "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet."
   },
   "dad-joke": {
-    "loading": "Loading joke…"
+    "loading": "Indlæser vittighed…"
   },
   "quote": {
-    "loading": "Loading quote…"
+    "loading": "Indlæser citat…"
   },
   "history": {
-    "loading": "Loading history…",
-    "header": "On This Day",
-    "noEvents": "No events found",
+    "loading": "Indlæser historie…",
+    "header": "Dagen i dag",
+    "noEvents": "Ingen begivenheder fundet",
     "yearsAgo": {
-      "one": "{count} year ago",
-      "other": "{count} years ago"
+      "one": "for {count} år siden",
+      "other": "for {count} år siden"
     }
   },
   "word-of-day": {
@@ -561,88 +561,88 @@
     }
   },
   "news": {
-    "loading": "Loading news…",
-    "empty": "No headlines",
-    "header": "News",
+    "loading": "Indlæser nyheder…",
+    "empty": "Ingen overskrifter",
+    "header": "Nyheder",
     "timeAgo": {
-      "justNow": "just now",
-      "minutes": "{count}m ago",
-      "hours": "{count}h ago",
-      "days": "{count}d ago"
+      "justNow": "lige nu",
+      "minutes": "for {count} m siden",
+      "hours": "for {count} t siden",
+      "days": "for {count} d siden"
     }
   },
   "greeting": {
-    "morning": "Good morning",
-    "afternoon": "Good afternoon",
-    "evening": "Good evening",
-    "night": "Good night",
-    "defaultName": "Friend",
+    "morning": "Godmorgen",
+    "afternoon": "God eftermiddag",
+    "evening": "Godaften",
+    "night": "Godnat",
+    "defaultName": "Ven",
     "weather": {
-      "rain": "Rainy day ahead",
-      "snow": "Bundle up today",
-      "thunderstorm": "Storms expected",
-      "clear": "Beautiful day ahead"
+      "rain": "Regnvejr forude",
+      "snow": "Pak dig godt ind i dag",
+      "thunderstorm": "Torden forventes",
+      "clear": "En dejlig dag forude"
     }
   },
   "affirmations": {
-    "noEntries": "No affirmations configured",
+    "noEntries": "Der er ikke tilføjet bekræftelser",
     "categories": {
-      "affirmations": "Affirmation",
-      "compliments": "Compliment",
+      "affirmations": "Bekræftelse",
+      "compliments": "Kompliment",
       "motivational": "Motivation",
-      "gratitude": "Gratitude",
-      "mindfulness": "Mindfulness"
+      "gratitude": "Taknemmelighed",
+      "mindfulness": "Nærvær"
     }
   },
   "crypto": {
-    "loading": "Loading…",
-    "empty": "No crypto data",
+    "loading": "Indlæser…",
+    "empty": "Ingen kryptodata",
     "headers": {
-      "coin": "Coin",
-      "price": "Price",
+      "coin": "Mønt",
+      "price": "Kurs",
       "percent": "24h %"
     }
   },
   "todoist": {
-    "loading": "Loading tasks…",
-    "empty": "No tasks to show",
+    "loading": "Indlæser opgaver…",
+    "empty": "Ingen opgaver at vise",
     "taskCount": {
       "one": "{count} opgave",
       "other": "{count} opgaver"
     },
-    "recurringTooltip": "Recurring",
-    "completeAriaLabel": "Complete: {content}",
+    "recurringTooltip": "Gentages",
+    "completeAriaLabel": "Markér som klaret: {content}",
     "priority": {
-      "urgent": "Urgent",
-      "high": "High",
-      "medium": "Medium",
+      "urgent": "Haster",
+      "high": "Høj",
+      "medium": "Mellem",
       "normal": "Normal"
     },
     "groups": {
-      "overdue": "Overdue",
-      "today": "Today",
-      "tomorrow": "Tomorrow",
-      "thisWeek": "This Week",
-      "upcoming": "Upcoming",
-      "noDate": "No Date",
-      "noLabel": "No Label"
+      "overdue": "Forfaldne",
+      "today": "I dag",
+      "tomorrow": "I morgen",
+      "thisWeek": "Denne uge",
+      "upcoming": "Kommende",
+      "noDate": "Uden dato",
+      "noLabel": "Uden label"
     },
     "dueDate": {
-      "yesterday": "Yesterday",
-      "today": "Today",
-      "todayAtTime": "Today {time}",
-      "tomorrow": "Tomorrow",
+      "yesterday": "I går",
+      "today": "I dag",
+      "todayAtTime": "I dag {time}",
+      "tomorrow": "I morgen",
       "daysOverdue": {
-        "one": "{count}d overdue",
-        "other": "{count}d overdue"
+        "one": "{count} d forsinket",
+        "other": "{count} d forsinket"
       }
     },
     "focus": {
-      "allClear": "All clear for today!",
-      "allCaughtUp": "You're all caught up!",
+      "allClear": "Alt er klaret i dag!",
+      "allCaughtUp": "Du er helt ajour!",
       "taskRemaining": {
-        "one": "task remaining",
-        "other": "tasks remaining"
+        "one": "opgave tilbage",
+        "other": "opgaver tilbage"
       }
     },
     "taskCountAtLeast": {
@@ -651,8 +651,8 @@
     }
   },
   "photo-slideshow": {
-    "loading": "Loading photos…",
-    "empty": "No photos found",
+    "loading": "Indlæser billeder…",
+    "empty": "Ingen billeder fundet",
     "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til."
   },
   "video": {
@@ -661,33 +661,33 @@
     "unavailable": "Denne video er ikke længere tilgængelig"
   },
   "icon": {
-    "empty": "No icon selected"
+    "empty": "Intet ikon valgt"
   },
   "sticky-note": {
-    "empty": "No note content"
+    "empty": "Noten er tom"
   },
   "iframe": {
-    "noUrl": "No URL set",
-    "embeddedTitle": "Embedded content"
+    "noUrl": "Ingen URL angivet",
+    "embeddedTitle": "Indlejret indhold"
   },
   "qr-code": {
-    "scanToConnect": "Scan to connect",
-    "configureWifi": "Configure WiFi network",
-    "configureData": "Configure QR data"
+    "scanToConnect": "Scan for at forbinde",
+    "configureWifi": "Konfigurér WiFi-netværk",
+    "configureData": "Konfigurér QR-data"
   },
   "display-control": {
-    "prev": "Prev",
-    "next": "Next",
-    "sleep": "Sleep",
-    "sleepHoldHint": "Sleep (hold to confirm)",
-    "brightness": "Brightness",
-    "closeBrightness": "Close brightness",
-    "ariaPrev": "Previous screen",
-    "ariaNext": "Next screen"
+    "prev": "Forrige",
+    "next": "Næste",
+    "sleep": "Slumre",
+    "sleepHoldHint": "Slumre (hold inde for at bekræfte)",
+    "brightness": "Lysstyrke",
+    "closeBrightness": "Luk lysstyrke",
+    "ariaPrev": "Forrige skærm",
+    "ariaNext": "Næste skærm"
   },
   "common": {
-    "locationNotConfigured": "Location not configured",
-    "pluginNotAvailable": "Plugin not available: {name}",
+    "locationNotConfigured": "Placering ikke angivet",
+    "pluginNotAvailable": "Plugin ikke tilgængeligt: {name}",
     "moduleFailed": "Dette element kunne ikke vises."
   },
   "event-detail": {

@@ -738,7 +738,7 @@
       },
       "google": {
         "name": "Google",
-        "description": "Calendar, Maps, Photos",
+        "description": "Kalender, Maps, Fotos",
         "clientIdLabel": "Client-ID für Kalender",
         "clientIdPlaceholder": "z. B. 123456789-abc.apps.googleusercontent.com",
         "clientIdHelp": "Für Google Kalender. Erstelle unter console.cloud.google.com → APIs & Services → Credentials. Verwende den Typ: TVs and Limited Input devices.",
@@ -765,13 +765,13 @@
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-Fotohintergründe nach Kategorie",
-        "accessKeyLabel": "Access Key",
+        "accessKeyLabel": "Zugriffsschlüssel",
         "accessKeyPlaceholder": "Füge deinen Unsplash Access Key ein",
         "accessKeyHelp": "Kostenlos unter unsplash.com/developers; 50 Anfragen/Stunde im kostenlosen Tarif."
       },
       "nasa": {
         "name": "NASA",
-        "description": "Astronomy Picture of the Day",
+        "description": "Astronomiebild des Tages",
         "apiKeyPlaceholder": "Füge deinen NASA-API-Schlüssel ein",
         "apiKeyHelp": "Kostenlos unter api.nasa.gov; 1.000 Anfragen/Stunde. Die Suche in der Image Library funktioniert ohne Schlüssel."
       },
@@ -792,7 +792,7 @@
         "name": "GitHub",
         "description": "Höheres Anfragelimit für Versionsprüfungen",
         "optionalBadge": "Optional",
-        "tokenLabel": "Personal Access Token",
+        "tokenLabel": "Persönlicher Zugriffstoken",
         "tokenPlaceholder": "Füge deinen GitHub-Token ein",
         "tokenHelp": "Erhöht das Anfragelimit von 60 auf 5.000 Anfragen/Stunde. Erstelle unter github.com/settings/tokens (keine Scopes nötig)."
       },
@@ -2163,8 +2163,8 @@
     "inheritLabel": "Vom Modul erben"
   },
   "iconPicker": {
-    "styleSolid": "Solid",
-    "styleRegular": "Regular",
+    "styleSolid": "Gefüllt",
+    "styleRegular": "Kontur",
     "styleBrands": "Marken",
     "chooseTitle": "Symbol auswählen",
     "searchPlaceholder": "Über 1.900 Symbole nach Name oder Stichwort suchen…",

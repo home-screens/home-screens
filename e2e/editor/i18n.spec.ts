@@ -34,11 +34,13 @@ import { renderOnDisplay } from '../helpers/display';
 /**
  * One distinctive, translated chrome string per locale — the Location page's
  * `<h1>` (`settings.locationAndLanguagePage.title`), rendered by
- * `src/app/(editor)/editor/settings/page.tsx`. Chosen over the Language card
- * heading (`languageAndRegion.title`) because that card is only partially
- * translated for some locales (e.g. da-DK still shows the English "Language &
- * region"), whereas the page title is translated in all seven — so a
- * fallback-to-English bug is caught for every locale.
+ * `src/app/(editor)/editor/settings/page.tsx`. Every locale translates it, so
+ * a silent fallback to English fails the assertion for all seven.
+ *
+ * (Historically this note explained that the Language card heading was a worse
+ * anchor because some locales — da-DK especially — still rendered it in
+ * English. That gap is closed: `translation-coverage.test.ts` now holds every
+ * locale at zero untranslated values, so either string would work.)
  *
  * Each value below is verified to (a) exist in that locale's
  * `src/translations/<locale>/editor.json` and (b) differ from the en-US string
