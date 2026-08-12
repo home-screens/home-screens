@@ -6,6 +6,7 @@ import {
   resolveChannel,
   isBetaHiddenEntry,
   isBetaOnlyForNonOptedUser,
+  sortVersionsDesc,
 } from '@/lib/plugin-versions';
 import type { RegistryPluginVersion } from '@/types/plugins';
 
@@ -224,5 +225,23 @@ describe('isBetaOnlyForNonOptedUser', () => {
   it('does not treat a minAppVersion-incompatible entry as beta-only (stays visible, disabled)', () => {
     const plugin = { versions: [entry('1.0.0', '99.0.0')] };
     expect(isBetaOnlyForNonOptedUser(plugin, '1.7.1', false)).toBe(false);
+  });
+});
+
+describe('sortVersionsDesc', () => {
+  it('sorts newest first regardless of registry array order', () => {
+    const sorted = sortVersionsDesc([entry('1.1.0'), entry('2.0.0'), entry('1.0.0')]);
+    expect(sorted.map((v) => v.version)).toEqual(['2.0.0', '1.1.0', '1.0.0']);
+  });
+
+  it('ranks a prerelease below its release', () => {
+    const sorted = sortVersionsDesc([entry('2.0.0-beta.1'), entry('2.0.0')]);
+    expect(sorted.map((v) => v.version)).toEqual(['2.0.0', '2.0.0-beta.1']);
+  });
+
+  it('does not mutate the input array', () => {
+    const input = [entry('1.0.0'), entry('2.0.0')];
+    sortVersionsDesc(input);
+    expect(input.map((v) => v.version)).toEqual(['1.0.0', '2.0.0']);
   });
 });

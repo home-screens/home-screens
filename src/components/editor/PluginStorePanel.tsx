@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
+import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, ExternalLink, FileText, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import PluginInstallPreview from '@/components/editor/PluginInstallPreview';
+import PluginInstallPreview, { resolveRepoUrl } from '@/components/editor/PluginInstallPreview';
+import PluginReleaseNotesModal from '@/components/editor/PluginReleaseNotesModal';
+import BetaBadge from '@/components/editor/PluginBetaBadge';
 import PluginSettingsSection from '@/components/editor/PluginSettingsSection';
 import PluginSecretsSection from '@/components/editor/PluginSecretsSection';
 import InstallFromUrlModal from '@/components/editor/InstallFromUrlModal';
@@ -33,15 +35,6 @@ type Tab = 'browse' | 'installed' | 'updates' | 'developer';
 
 const SHOW_BETA_KEY = 'hs-plugin-show-beta';
 
-// Small "Beta" pill, kept visually identical across Browse / Installed / InstallConfirm.
-function BetaBadge({ label }: { label: string }) {
-  return (
-    <span className="px-1.5 py-0.5 text-[10px] font-medium bg-hs-accent/20 text-hs-accent-hover rounded">
-      {label}
-    </span>
-  );
-}
-
 function tabLabel(tab: Tab, t: TranslateFn): string {
   switch (tab) {
     case 'browse': return t('settings.pluginStorePanel.tabs.browse');
@@ -64,6 +57,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   const [confirmPlugin, setConfirmPlugin] = useState<RegistryPlugin | null>(null);
   const [installFromUrlOpen, setInstallFromUrlOpen] = useState(false);
   const [updatingExternal, setUpdatingExternal] = useState<InstalledPlugin | null>(null);
+  const [releaseNotesPlugin, setReleaseNotesPlugin] = useState<RegistryPlugin | null>(null);
   const [showBeta, setShowBeta] = useState(() => localStorage.getItem(SHOW_BETA_KEY) === 'true');
   const pluginErrors = usePluginStore((s) => s.errors);
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
@@ -255,6 +249,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onSearchChange={setSearch}
               onInstall={handleInstallRequest}
               onInstallFromUrl={() => setInstallFromUrlOpen(true)}
+              onShowReleaseNotes={setReleaseNotesPlugin}
               actionInProgress={actionInProgress}
               showBeta={showBeta}
               onShowBetaChange={setShowBeta}
@@ -268,6 +263,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               onToggle={handleToggle}
               actionInProgress={actionInProgress}
               onUpdateExternal={(plugin) => setUpdatingExternal(plugin)}
+              onShowReleaseNotes={setReleaseNotesPlugin}
             />
           ) : tab === 'updates' ? (
             <UpdatesTab
@@ -276,6 +272,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
               betaUpgradable={betaUpgradable}
               betaDowngradable={betaDowngradable}
               onInstall={(id, version) => runAction(id, 'POST', { pluginId: id, version })}
+              onShowReleaseNotes={setReleaseNotesPlugin}
               actionInProgress={actionInProgress}
             />
           ) : tab === 'developer' && advancedMode ? (
@@ -317,6 +314,15 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           }}
         />
       )}
+
+      {/* Release notes modal */}
+      {releaseNotesPlugin && (
+        <PluginReleaseNotesModal
+          plugin={releaseNotesPlugin}
+          installedVersion={installedVersions.get(releaseNotesPlugin.id)}
+          onClose={() => setReleaseNotesPlugin(null)}
+        />
+      )}
     </div>
   );
 }
@@ -332,6 +338,7 @@ function BrowseTab({
   onSearchChange,
   onInstall,
   onInstallFromUrl,
+  onShowReleaseNotes,
   actionInProgress,
   showBeta,
   onShowBetaChange,
@@ -342,6 +349,7 @@ function BrowseTab({
   onSearchChange: (s: string) => void;
   onInstall: (plugin: RegistryPlugin) => void;
   onInstallFromUrl: () => void;
+  onShowReleaseNotes: (plugin: RegistryPlugin) => void;
   actionInProgress: string | null;
   showBeta: boolean;
   onShowBetaChange: (v: boolean) => void;
@@ -383,6 +391,7 @@ function BrowseTab({
         plugins.map((plugin) => {
           const latest = latestVersion(plugin, APP_VERSION, { includeBeta: showBeta });
           const isBeta = resolveChannel(plugin, latest) === 'beta';
+          const repoUrl = resolveRepoUrl(plugin.repo);
           const installedVersion = installedVersions.get(plugin.id);
           const isInstalled = installedVersion !== undefined;
           // The beta toggle can change which version `latest` resolves to
@@ -408,6 +417,27 @@ function BrowseTab({
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="text-[10px] text-hs-text-muted">{plugin.author}</span>
                   <span className="text-[10px] text-hs-text-faint">{plugin.category}</span>
+                  {repoUrl && (
+                    <a
+                      href={repoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={t('settings.pluginStorePanel.repoLink.title')}
+                      aria-label={t('settings.pluginStorePanel.repoLink.ariaLabel', { name: plugin.name })}
+                      className="text-hs-text-muted hover:text-hs-accent-hover"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onShowReleaseNotes(plugin)}
+                    title={t('settings.pluginStorePanel.releaseNotes.buttonTitle')}
+                    aria-label={t('settings.pluginStorePanel.releaseNotes.buttonAriaLabel', { name: plugin.name })}
+                    className="text-hs-text-muted hover:text-hs-accent-hover"
+                  >
+                    <FileText className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
               <div className="shrink-0">
@@ -450,6 +480,7 @@ function InstalledTab({
   onToggle,
   actionInProgress,
   onUpdateExternal,
+  onShowReleaseNotes,
 }: {
   installed: InstalledPlugin[];
   registry: RegistryPlugin[];
@@ -458,6 +489,7 @@ function InstalledTab({
   onToggle: (id: string, enabled: boolean) => void;
   actionInProgress: string | null;
   onUpdateExternal: (plugin: InstalledPlugin) => void;
+  onShowReleaseNotes: (plugin: RegistryPlugin) => void;
 }) {
   const t = useTranslate('editor');
   const loadedPlugins = usePluginStore((s) => s.plugins);
@@ -487,6 +519,7 @@ function InstalledTab({
         // that doesn't set it (e.g. a record written before the beta channel
         // existed): fall back to resolving the matching registry entry/version.
         const matchingRegistryEntry = registry.find((r) => r.id === plugin.id);
+        const repoUrl = resolveRepoUrl(matchingRegistryEntry?.repo);
         const matchingVersion = matchingRegistryEntry?.versions.find((v) => v.version === plugin.version);
         const isBeta = plugin.channel === 'beta'
           || (!!matchingRegistryEntry && resolveChannel(matchingRegistryEntry, matchingVersion) === 'beta');
@@ -513,6 +546,29 @@ function InstalledTab({
                 </div>
               )}
             </div>
+            {repoUrl && (
+              <a
+                href={repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={t('settings.pluginStorePanel.repoLink.title')}
+                aria-label={t('settings.pluginStorePanel.repoLink.ariaLabel', { name: plugin.id })}
+                className="p-1 text-hs-text-muted hover:text-hs-accent-hover"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            {matchingRegistryEntry && (
+              <button
+                type="button"
+                onClick={() => onShowReleaseNotes(matchingRegistryEntry)}
+                title={t('settings.pluginStorePanel.releaseNotes.buttonTitle')}
+                aria-label={t('settings.pluginStorePanel.releaseNotes.buttonAriaLabel', { name: plugin.id })}
+                className="p-1 text-hs-text-muted hover:text-hs-accent-hover"
+              >
+                <FileText className="w-4 h-4" />
+              </button>
+            )}
             {hasSettings && (
               <button
                 type="button"
@@ -587,12 +643,38 @@ function InstalledTab({
 // Updates Tab
 // ---------------------------------------------------------------------------
 
+/**
+ * Text trigger for the release-notes modal, used by every Updates row. The
+ * three row kinds render it side by side, so the accessible name carries the
+ * plugin name — "Release notes" alone would name them all identically.
+ */
+function ReleaseNotesButton({
+  plugin,
+  onShow,
+}: {
+  plugin: RegistryPlugin;
+  onShow: (plugin: RegistryPlugin) => void;
+}) {
+  const t = useTranslate('editor');
+  return (
+    <button
+      type="button"
+      onClick={() => onShow(plugin)}
+      aria-label={t('settings.pluginStorePanel.releaseNotes.buttonAriaLabel', { name: plugin.name })}
+      className="block text-[11px] text-hs-accent-hover hover:underline mt-0.5"
+    >
+      {t('settings.pluginStorePanel.releaseNotes.buttonTitle')}
+    </button>
+  );
+}
+
 function UpdatesTab({
   registry,
   updatable,
   betaUpgradable,
   betaDowngradable,
   onInstall,
+  onShowReleaseNotes,
   actionInProgress,
 }: {
   registry: RegistryPlugin[];
@@ -600,6 +682,7 @@ function UpdatesTab({
   betaUpgradable: InstalledPlugin[];
   betaDowngradable: InstalledPlugin[];
   onInstall: (id: string, version: string) => void;
+  onShowReleaseNotes: (plugin: RegistryPlugin) => void;
   actionInProgress: string | null;
 }) {
   const t = useTranslate('editor');
@@ -626,6 +709,7 @@ function UpdatesTab({
               {latest?.changelog && (
                 <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
               )}
+              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
             </div>
             <Button
               variant="secondary"
@@ -656,6 +740,7 @@ function UpdatesTab({
               {latest?.changelog && (
                 <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
               )}
+              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
             </div>
             <Button
               variant="secondary"
@@ -686,6 +771,7 @@ function UpdatesTab({
               <p className="text-xs text-hs-text-muted mt-0.5">
                 {t('settings.pluginStorePanel.updates.backToStableHint')}
               </p>
+              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
             </div>
             <Button
               variant="secondary"
@@ -902,6 +988,7 @@ function InstallConfirmModal({
           author={plugin.author}
           version={latest?.version ?? '?'}
           license={plugin.license}
+          repo={plugin.repo}
           verified={plugin.verified}
           permissions={manifestPermissions}
           secrets={manifestSecrets}

@@ -1485,6 +1485,18 @@
         "badge": "Beta",
         "installWarning": "Beta versions are still being tested and may have problems."
       },
+      "repoLink": {
+        "title": "Open project page",
+        "ariaLabel": "Open the project page for {name}"
+      },
+      "releaseNotes": {
+        "buttonTitle": "Release notes",
+        "buttonAriaLabel": "Release notes for {name}",
+        "heading": "Release notes",
+        "installedBadge": "Installed",
+        "noNotes": "No notes for this version.",
+        "needsNewerApp": "Needs a newer version of Home Screens"
+      },
       "developer": {
         "loadFromUrlLabel": "Load from URL",
         "loadFromUrlHelp": "Enter your dev server URL (e.g. http://localhost:5173). The plugin will auto-reload on changes.",

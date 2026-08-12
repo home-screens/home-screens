@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, CheckCircle, Shield } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ExternalLink, Shield } from 'lucide-react';
 import type { PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
@@ -21,12 +21,26 @@ function permissionLabel(perm: PluginPermission, t: TranslateFn): string {
   return key ? t(key) : perm;
 }
 
+/**
+ * Registry `repo` fields ship either a full web URL or GitHub `owner/name`
+ * shorthand (the production registry uses shorthand). Resolve to a safe
+ * absolute URL, or null for anything else (javascript:, data:, //host, ...).
+ */
+export function resolveRepoUrl(repo: string | undefined): string | null {
+  if (!repo) return null;
+  if (/^https?:\/\//i.test(repo)) return repo;
+  if (/^[\w.-]+\/[\w.-]+$/.test(repo)) return `https://github.com/${repo}`;
+  return null;
+}
+
 export interface PluginInstallPreviewProps {
   name: string;
   description: string;
   author: string;
   version: string;
   license?: string;
+  /** Registry repo, full URL or `owner/name`; rendered as an external link when it resolves. */
+  repo?: string;
   verified?: boolean;
   permissions?: PluginPermission[];
   secrets?: PluginSecretDeclaration[];
@@ -45,6 +59,7 @@ export default function PluginInstallPreview({
   author,
   version,
   license,
+  repo,
   verified,
   permissions,
   secrets,
@@ -53,6 +68,7 @@ export default function PluginInstallPreview({
   sha256,
 }: PluginInstallPreviewProps) {
   const t = useTranslate('editor');
+  const repoUrl = resolveRepoUrl(repo);
   return (
     <div className="space-y-3">
       <div className="p-3 rounded-lg bg-hs-hover border border-hs-border-strong">
@@ -72,6 +88,17 @@ export default function PluginInstallPreview({
             {version}
           </span>
           {license && <span>{license}</span>}
+          {repoUrl && (
+            <a
+              href={repoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-hs-accent-hover hover:underline"
+            >
+              <ExternalLink className="w-3 h-3" />
+              {t('settings.pluginStorePanel.repoLink.title')}
+            </a>
+          )}
         </div>
       </div>
 

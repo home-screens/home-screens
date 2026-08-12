@@ -1485,6 +1485,18 @@
         "badge": "Beta",
         "installWarning": "Las versiones beta aún se están probando y pueden tener problemas."
       },
+      "repoLink": {
+        "title": "Abrir la página del proyecto",
+        "ariaLabel": "Abrir la página del proyecto de {name}"
+      },
+      "releaseNotes": {
+        "buttonTitle": "Notas de la versión",
+        "buttonAriaLabel": "Notas de la versión de {name}",
+        "heading": "Notas de la versión",
+        "installedBadge": "Instalada",
+        "noNotes": "No hay notas para esta versión.",
+        "needsNewerApp": "Necesita una versión más reciente de Home Screens"
+      },
       "developer": {
         "loadFromUrlLabel": "Cargar desde URL",
         "loadFromUrlHelp": "Introduce la URL de tu servidor de desarrollo (p. ej. http://localhost:5173). El plugin se recargará automáticamente con los cambios.",

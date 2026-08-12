@@ -901,3 +901,137 @@ test('editing a plugin config field via the schema renderer persists into the mo
   const persisted = config.screens[0].modules.find((m) => m.id === 'cfg-mod')!.config as Record<string, unknown>;
   expect(persisted.label).toBe('EDITED HEADLINE');
 });
+
+// ---------------------------------------------------------------------------
+// Repo links + release notes modal
+// ---------------------------------------------------------------------------
+//
+// The repo anchors point at real external hosts (example.com, github.com), so
+// every assertion below is attribute-only — clicking would navigate away from
+// the app and make a live upstream request, which this suite guarantees never
+// happens.
+
+test('browse cards link to the plugin repo and open release notes newest-first', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  const entry = registryEntry({
+    id: 'notes-plugin',
+    name: 'Notes Plugin',
+    description: 'has history',
+    author: 'e2e',
+    version: '2.0.0',
+  });
+  // Two releases, listed ASCENDING to prove the modal sorts by semver rather
+  // than trusting the registry's array order.
+  entry.versions = [
+    {
+      version: '1.0.0',
+      minAppVersion: '1.0.0',
+      releaseDate: '2026-01-01',
+      downloadUrl: 'https://plugin.invalid/notes-plugin/1.0.0.tar.gz',
+      sha256: '0'.repeat(64),
+      changelog: 'First release',
+    },
+    {
+      version: '2.0.0',
+      minAppVersion: '1.0.0',
+      releaseDate: '2026-02-01',
+      downloadUrl: 'https://plugin.invalid/notes-plugin/2.0.0.tar.gz',
+      sha256: '0'.repeat(64),
+      changelog: 'Second release',
+    },
+  ];
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+
+  // Browse rows label the repo link with the registry `name`.
+  const repoLink = dialog.getByRole('link', { name: 'Open the project page for Notes Plugin' });
+  await expect(repoLink).toHaveAttribute('href', 'https://example.com/notes-plugin');
+  await expect(repoLink).toHaveAttribute('target', '_blank');
+  await expect(repoLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+  await dialog.getByRole('button', { name: 'Release notes for Notes Plugin' }).click();
+  const modal = page.getByRole('dialog', { name: 'Release notes' });
+  await expect(modal).toBeVisible();
+
+  const rows = modal.getByTestId('release-notes-version');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText('v2.0.0');
+  await expect(rows.nth(0)).toContainText('Second release');
+  await expect(rows.nth(1)).toContainText('v1.0.0');
+  await expect(rows.nth(1)).toContainText('First release');
+});
+
+test('the updates tab opens release notes marking the installed version', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir); // installed at v1.0.0
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'newer available',
+    author: 'e2e',
+    version: '2.0.0',
+    changelog: 'Big update',
+  });
+  entry.versions.push({
+    version: '1.0.0',
+    minAppVersion: '1.0.0',
+    releaseDate: '2026-01-01',
+    downloadUrl: `https://plugin.invalid/${FIXTURE_PLUGIN_ID}/1.0.0.tar.gz`,
+    sha256: '0'.repeat(64),
+    changelog: 'First release',
+  });
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: /Updates/ }).click();
+
+  // The Updates row's trigger is a text button while the Browse/Installed
+  // triggers are icon buttons, but all three share the "Release notes for
+  // {name}" accessible name. Only the open tab's rows are mounted, so the name
+  // resolves to the Updates row here.
+  await dialog.getByRole('button', { name: 'Release notes for E2E Fixture Plugin' }).click();
+
+  const modal = page.getByRole('dialog', { name: 'Release notes' });
+  const rows = modal.getByTestId('release-notes-version');
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText('Big update');
+  await expect(rows.nth(1)).toContainText('v1.0.0');
+  // The on-disk version is badged so the list can't be misread as "all new".
+  await expect(rows.nth(1)).toContainText('Installed');
+});
+
+test('installed plugins link to their registry repo', async ({ page, request, sandboxDir }) => {
+  seedFixturePlugin(sandboxDir);
+  await putConfig(request, baseConfig());
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  const entry = registryEntry({
+    id: FIXTURE_PLUGIN_ID,
+    name: 'E2E Fixture Plugin',
+    description: 'installed',
+    author: 'e2e',
+    version: '1.0.0',
+  });
+  // The production registry publishes `repo` as GitHub owner/name shorthand,
+  // not a full URL, so pin that shape here.
+  entry.repo = 'home-screens/e2e-fixture';
+  await stubRegistry(page, [entry]);
+
+  const dialog = await openPanel(page);
+  await dialog.getByRole('button', { name: 'Installed', exact: true }).click();
+
+  // Installed rows have no registry `name` to show, so they label the link with
+  // the plugin id — and the URL comes from the matching registry entry, since
+  // an installed manifest carries no repo field.
+  const link = dialog.getByRole('link', { name: `Open the project page for ${FIXTURE_PLUGIN_ID}` });
+  await expect(link).toHaveAttribute('href', 'https://github.com/home-screens/e2e-fixture');
+  await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+});

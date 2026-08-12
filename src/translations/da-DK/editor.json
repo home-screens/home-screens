@@ -1485,6 +1485,18 @@
         "badge": "Beta",
         "installWarning": "Betaversioner er stadig under test og kan have fejl."
       },
+      "repoLink": {
+        "title": "Åbn projektsiden",
+        "ariaLabel": "Åbn projektsiden for {name}"
+      },
+      "releaseNotes": {
+        "buttonTitle": "Versionsnoter",
+        "buttonAriaLabel": "Versionsnoter for {name}",
+        "heading": "Versionsnoter",
+        "installedBadge": "Installeret",
+        "noNotes": "Ingen noter til denne version.",
+        "needsNewerApp": "Kræver en nyere version af Home Screens"
+      },
       "developer": {
         "loadFromUrlLabel": "Load from URL",
         "loadFromUrlHelp": "Enter your dev server URL (e.g. http://localhost:5173). The plugin will auto-reload on changes.",

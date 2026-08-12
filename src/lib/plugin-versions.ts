@@ -44,6 +44,15 @@ export function latestVersion(
   return best;
 }
 
+/**
+ * Versions sorted newest-first by semver, ignoring registry array order
+ * (registries have shipped with the newest entry appended, not prepended).
+ * Returns a copy; the input array is not mutated.
+ */
+export function sortVersionsDesc(versions: RegistryPluginVersion[]): RegistryPluginVersion[] {
+  return [...versions].sort((a, b) => compareSemver(b.version, a.version));
+}
+
 /** True when the registry offers a compatible version newer than installedVersion. */
 export function hasUpdate(
   plugin: Pick<RegistryPlugin, 'versions'>,
