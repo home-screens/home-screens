@@ -291,15 +291,17 @@ If your kiosk runs a custom Chromium setup, adding the `--overscroll-history-nav
 
 ## Sleep schedule
 
-The sleep system controls when the display dims or turns off entirely. It is configured in **Settings > Screen > Sleep & dimming**.
+The sleep system controls when the display dims or turns off entirely. It is configured in **Settings > Screen > Sleep & dimming**. The form groups the controls into three sections -- what happens when nobody's using the display, what happens every day at set times, and how the dimmed state looks -- with a 24-hour preview bar showing the resulting day at a glance.
 
 ### Idle-based sleep
 
-When **Enable display sleep** is checked, the display progresses through three states based on inactivity:
+When **Enable display sleep** is on and **Dim after a few quiet minutes** is toggled on, the display progresses through three states based on inactivity:
 
 1. **Active** -- full brightness, normal operation
 2. **Dimmed** -- brightness reduced (configurable from 5% to 80%) after a set idle period (1--60 minutes)
-3. **Asleep** -- screen fully black after an additional idle period (0--120 minutes after dimming; set to 0 to stay dimmed indefinitely)
+3. **Asleep** -- screen fully black after an additional idle period (0--120 minutes after dimming; set to Never to stay dimmed indefinitely)
+
+Turn **Dim after a few quiet minutes** off and the display never reacts to inactivity -- it stays at full brightness until a schedule below dims it or turns it off. That's the setup for "full brightness all day, off overnight."
 
 Any mouse, touch, or keyboard input immediately wakes the display to full brightness.
 
@@ -309,22 +311,22 @@ During the dimmed state, a screensaver can be shown:
 
 - **Drifting clock** -- a minimal clock that moves around the screen to prevent burn-in
 - **Blank** -- just the dim overlay, no clock
-- **Off** -- skip dimming entirely and go straight to sleep
+- **Off** -- no screensaver; the display still dims, it just shows nothing extra
 
 ### Scheduled dimming
 
-Toggle **Dim on a schedule** to force the display to dim during a fixed window (e.g. 23:00 to 06:00). The display brightens automatically when the window ends. Supports overnight spans.
+Toggle **Dim in the evening** to force the display to dim during a fixed window (e.g. 23:00 to 06:00). The display brightens automatically when the window ends. Supports overnight spans.
 
 ### Scheduled sleep
 
-Toggle **Sleep on a schedule** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). This overrides everything -- the display ignores user activity during the sleep window and wakes automatically when it ends. Supports overnight spans.
+Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). This overrides everything -- the display ignores user activity during the sleep window and wakes automatically when it ends. Supports overnight spans.
 
 ### Sleep priority
 
 ```
 Sleep schedule (highest)  -->  forces display off, ignores activity
-Dim schedule              -->  forces dimmed, suppresses idle sleep
-Idle-based dim/sleep      -->  based on inactivity timer
+Dim schedule              -->  forces dimmed while its window is active
+Idle-based dim/sleep      -->  inactivity timer; runs only while its toggle is on
 User activity (wake)      -->  any input restores full brightness
 ```
 

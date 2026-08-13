@@ -1,6 +1,7 @@
 import type { ScreenConfiguration } from '@/types/config';
 import { v4ToV5 } from './v4-to-v5';
 import { v5ToV6 } from './v5-to-v6';
+import { v6ToV7 } from './v6-to-v7';
 
 interface Migration {
   version: number;
@@ -67,6 +68,9 @@ const migrations: Migration[] = [
   // Migration 006: countdown `scale` became view-independent — the Next view's
   // 1.3x render multiplier is folded into the stored value.
   v5ToV6,
+  // Migration 007: idle dimming became an explicit toggle; configs whose dim
+  // schedule implicitly suppressed idle behavior get idleDimEnabled: false.
+  v6ToV7,
 ];
 
 /** @internal Get all migrations sorted by version */

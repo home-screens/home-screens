@@ -257,8 +257,9 @@ Multi-display features (the sidebar split, the All displays page, the Display Sw
 
 Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most controls are self-explanatory sliders and dropdowns; these are the ones that aren't:
 
-- **Dim and Sleep schedules** support overnight spans — `23:00–06:00` works and wraps past midnight as you'd expect.
-- **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (skip straight to sleep).
+- **Sleep & dimming** is grouped into three sections — inactivity dimming ("Dim after a few quiet minutes"), the daily schedules ("Dim in the evening" and "Turn off overnight"), and the dimmed appearance — with a 24-hour preview bar showing when the display will be bright, dimmed, or off. Turn the inactivity toggle off to keep full brightness all day while a schedule handles the night.
+- **Dim and sleep schedules** support overnight spans — `23:00–06:00` works and wraps past midnight as you'd expect.
+- **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (no clock — the display still dims).
 - **Touchscreen Pause** (on by default) — double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
 - **Swipe to change screens** (on by default) — flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.
 - **Theme** sets the color scheme used by the full-screen modules, not the editor.

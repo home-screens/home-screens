@@ -242,6 +242,12 @@ export interface CalendarSettings {
 
 export interface SleepSettings {
   enabled: boolean;
+  /**
+   * Gates the idle-inactivity dim/sleep machinery only; schedules below run
+   * regardless. Absent means true — every config saved before this field
+   * existed had idle dimming on, so absence must keep behaving that way.
+   */
+  idleDimEnabled?: boolean;
   dimAfterMinutes: number;
   sleepAfterMinutes: number;
   dimBrightness: number;

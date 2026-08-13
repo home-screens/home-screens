@@ -112,6 +112,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
 
   sleep?: {
     enabled: boolean
+    idleDimEnabled?: boolean    // Dim/sleep on inactivity (absent = true)
     dimAfterMinutes: number     // Auto-dim after inactivity
     sleepAfterMinutes: number   // Auto-sleep after inactivity
     dimBrightness: number       // Dim level (0-100)

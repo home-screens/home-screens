@@ -34,10 +34,48 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   // Sleep must be enabled before the dim / schedule / screensaver fields mount.
   await page.locator('label', { hasText: 'Enable display sleep' }).getByRole('switch').click();
 
+  // The 24-hour preview bar appears with the rest of the form.
+  await expect(page.getByTestId('sleep-timeline-preview')).toBeVisible();
+
+  // Out-of-the-box state: idle dimming defaults ON, so the idle sliders and
+  // the dimmed-appearance brightness slider are all live.
+  await expect(page.locator('label', { hasText: 'Dim after (minutes)' })).toBeVisible();
+  await expect(page.locator('label', { hasText: 'Brightness while dimmed (%)' })).toBeVisible();
+
+  // Idle dimming is a separate switch: turning it off hides the idle-only
+  // sliders and persists idleDimEnabled: false — the schedule-only
+  // configuration from issue #26.
+  const idleDimSwitch = page.locator('label', { hasText: 'Dim after a few quiet minutes' }).getByRole('switch');
+  await idleDimSwitch.click();
+  await expect(page.locator('label', { hasText: 'Dim after (minutes)' })).toBeHidden();
+  await expect
+    .poll(async () => (await getConfig(request)).settings.sleep?.idleDimEnabled)
+    .toBe(false);
+
+  // With idle dimming off and no dim schedule, nothing here can dim the
+  // display: the brightness slider collapses, but the screensaver select
+  // stays reachable (remote dimming still shows the screensaver).
+  await expect(page.locator('label', { hasText: 'Brightness while dimmed (%)' })).toBeHidden();
+  await expect(page.locator('label', { hasText: 'Screensaver' }).locator('select')).toBeVisible();
+
+  // Toggling back on restores the sliders and persists true.
+  await idleDimSwitch.click();
+  await expect(page.locator('label', { hasText: 'Dim after (minutes)' })).toBeVisible();
+  await expect
+    .poll(async () => (await getConfig(request)).settings.sleep?.idleDimEnabled)
+    .toBe(true);
+
+  // Back to the issue-#26 shape for the rest of the flow.
+  await idleDimSwitch.click();
+  await expect(page.locator('label', { hasText: 'Dim after (minutes)' })).toBeHidden();
+
+  // Enabling the dim schedule brings the dimmed-appearance controls back.
+  await page.locator('label', { hasText: 'Dim in the evening' }).getByRole('switch').click();
+
   // Dim level: the brightness slider (min 5, max 80, step 5). End → 80, a value
   // distinct from the default 20.
   const brightness = page
-    .locator('label', { hasText: 'Dim brightness (%)' })
+    .locator('label', { hasText: 'Brightness while dimmed (%)' })
     .locator('input[type="range"]');
   await expect(brightness).toBeVisible();
   await brightness.focus();
@@ -46,8 +84,7 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   // Screensaver mode select.
   await page.locator('label', { hasText: 'Screensaver' }).locator('select').selectOption('blank');
 
-  // Dim schedule times: enable the schedule, then set the "Dim at" time.
-  await page.locator('label', { hasText: 'Dim on a schedule' }).getByRole('switch').click();
+  // Dim schedule times: set the "Dim at" time.
   await page.locator('label', { hasText: 'Dim at' }).locator('input[type="time"]').fill('22:30');
 
   // All edits collapse into the debounced /api/config PUT — poll the persisted
@@ -70,7 +107,7 @@ test.describe('per-display sleep override', () => {
   function multiDisplayConfig() {
     return baseConfig({
       settings: {
-        sleep: { enabled: true, dimAfterMinutes: 10, sleepAfterMinutes: 0, dimBrightness: 20 },
+        sleep: { enabled: true, idleDimEnabled: false, dimAfterMinutes: 10, sleepAfterMinutes: 0, dimBrightness: 20 },
         screensaver: { mode: 'clock' },
       },
       displays: [
@@ -92,10 +129,16 @@ test.describe('per-display sleep override', () => {
     await expect(forkButton).toBeVisible();
     await forkButton.click();
 
-    // Forking seeds both sleep + screensaver on the node from the defaults.
+    // Forking seeds both sleep + screensaver on the node from the defaults —
+    // including idleDimEnabled: false, which the shared transform must carry
+    // (the field is optional, so a fork that dropped it would silently
+    // re-enable idle dimming on this display).
     await expect
       .poll(async () => (await displaySettings(request, 'kitchen')).sleep?.enabled)
       .toBe(true);
+    await expect
+      .poll(async () => (await displaySettings(request, 'kitchen')).sleep?.idleDimEnabled)
+      .toBe(false);
 
     // The Defaults › Sleep backlink banner now lists the kitchen display.
     await page.goto('/editor/settings?section=defaults&page=screen');

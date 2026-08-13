@@ -1,16 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import type {
-  DisplayNode,
-  GlobalSettings,
-  ScreensaverSettings,
-  ScreenConfiguration,
-  SleepSettings,
-} from '@/types/config';
+import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
+import { sleepConfigToForm, sleepFormToConfig } from '@/lib/settings-form';
 import SleepFormFields, {
   type SleepFormValues,
 } from './SleepFormFields';
@@ -103,46 +98,7 @@ export default function SleepSubtab({ config, display }: SleepSubtabProps) {
   );
 }
 
-/* ─── Form ↔ config transforms (mirror settings/page.tsx) ─────── */
-
-function sleepConfigToForm(
-  sleep: SleepSettings | undefined,
-  screensaver: ScreensaverSettings | undefined,
-): SleepFormValues {
-  return {
-    sleepEnabled: sleep?.enabled ?? false,
-    dimAfterMinutes: sleep?.dimAfterMinutes ?? 10,
-    sleepAfterMinutes: sleep?.sleepAfterMinutes ?? 0,
-    dimBrightness: sleep?.dimBrightness ?? 20,
-    dimScheduleEnabled: !!sleep?.dimSchedule,
-    dimStartTime: sleep?.dimSchedule?.startTime ?? '23:00',
-    dimEndTime: sleep?.dimSchedule?.endTime ?? '06:00',
-    sleepScheduleEnabled: !!sleep?.schedule,
-    sleepStartTime: sleep?.schedule?.startTime ?? '23:00',
-    sleepEndTime: sleep?.schedule?.endTime ?? '06:00',
-    screensaverMode: screensaver?.mode ?? 'clock',
-  };
-}
-
-function sleepFormToConfig(form: SleepFormValues): {
-  sleep: NonNullable<GlobalSettings['sleep']>;
-  screensaver: NonNullable<GlobalSettings['screensaver']>;
-} {
-  return {
-    sleep: {
-      enabled: form.sleepEnabled,
-      dimAfterMinutes: form.dimAfterMinutes,
-      sleepAfterMinutes: form.sleepAfterMinutes,
-      dimBrightness: form.dimBrightness,
-      ...(form.dimScheduleEnabled
-        ? { dimSchedule: { startTime: form.dimStartTime, endTime: form.dimEndTime } }
-        : {}),
-      ...(form.sleepScheduleEnabled
-        ? { schedule: { startTime: form.sleepStartTime, endTime: form.sleepEndTime } }
-        : {}),
-    },
-    screensaver: {
-      mode: form.screensaverMode as 'clock' | 'blank' | 'off',
-    },
-  };
-}
+// Form ↔ config transforms are shared with the Defaults page via
+// `sleepConfigToForm` / `sleepFormToConfig` in `@/lib/settings-form` — one
+// implementation so a new SleepSettings field can't be silently dropped by
+// one surface's copy.

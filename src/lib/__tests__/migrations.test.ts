@@ -63,8 +63,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 6', () => {
-    expect(getLatestSchemaVersion()).toBe(6);
+  it('getLatestSchemaVersion returns 7', () => {
+    expect(getLatestSchemaVersion()).toBe(7);
   });
 });
 
@@ -299,13 +299,14 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(6);
-    // v2, v3, v4, v5, v6 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(5);
+    expect(result.version).toBe(7);
+    // v2 through v7 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(6);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
-    // modules alone, v3/v4/v5 are pure version bumps, and v6 only touches
-    // next-view countdowns (this fixture has no modules at all). No display
-    // registry is injected — single-display mode stays single-display.
+    // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
+    // next-view countdowns (this fixture has no modules at all), and v7 only
+    // touches sleep blocks with a dim schedule (this fixture has none). No
+    // display registry is injected — single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
@@ -322,9 +323,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(6);
-    // Only v4, v5 and v6 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(3);
+    expect(result.version).toBe(7);
+    // Only v4, v5, v6 and v7 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(4);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -358,5 +359,72 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     expect(migrationsRun).toHaveLength(0);
     expect(result).toEqual(before);
     expect(result.displays).toEqual(before.displays);
+  });
+});
+
+describe('migration v7: idle dimming becomes an explicit toggle', () => {
+  const SLEEP_WITH_DIM_SCHEDULE = {
+    enabled: true,
+    dimAfterMinutes: 10,
+    sleepAfterMinutes: 0,
+    dimBrightness: 20,
+    dimSchedule: { startTime: '23:00', endTime: '06:00' },
+  };
+
+  it('seeds idleDimEnabled: false where a dim schedule implied suppression', () => {
+    const config = makeConfig(6);
+    config.settings.sleep = { ...SLEEP_WITH_DIM_SCHEDULE };
+
+    const { config: result } = migrateUp(config, 7);
+
+    expect(result.version).toBe(7);
+    expect(result.settings.sleep?.idleDimEnabled).toBe(false);
+  });
+
+  it('leaves the field absent when there is no dim schedule (absent means true)', () => {
+    const config = makeConfig(6);
+    config.settings.sleep = { enabled: true, dimAfterMinutes: 10, sleepAfterMinutes: 0, dimBrightness: 20 };
+
+    const { config: result } = migrateUp(config, 7);
+
+    expect(result.settings.sleep).not.toHaveProperty('idleDimEnabled');
+  });
+
+  it('preserves an explicit value of either polarity', () => {
+    const config = makeConfig(6);
+    config.settings.sleep = { ...SLEEP_WITH_DIM_SCHEDULE, idleDimEnabled: true };
+
+    const { config: result } = migrateUp(config, 7);
+
+    expect(result.settings.sleep?.idleDimEnabled).toBe(true);
+  });
+
+  it('seeds per-display sleep overrides too', () => {
+    const config = makeConfig(6);
+    config.displays = [
+      {
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { sleep: { ...SLEEP_WITH_DIM_SCHEDULE } },
+      },
+    ];
+
+    const { config: result } = migrateUp(config, 7);
+
+    expect(result.displays![0].settings?.sleep?.idleDimEnabled).toBe(false);
+  });
+
+  it('passes display nodes without settings or sleep through untouched', () => {
+    const config = makeConfig(6);
+    config.displays = [
+      { id: 'main', name: 'Main', screens: [] },
+      { id: 'hall', name: 'Hall', screens: [], settings: {} },
+    ];
+    const before = structuredClone(config.displays);
+
+    const { config: result } = migrateUp(config, 7);
+
+    expect(result.displays).toEqual(before);
   });
 });

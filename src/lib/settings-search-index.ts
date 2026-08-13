@@ -107,7 +107,15 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'display.cursorHideSeconds', labelKey: 'settings.defaultDisplayPage.fields.cursorHideLabel', panel: 'appearance' },
   { pageId: 'screen', fieldId: 'display.fullscreenTheme', labelKey: 'settings.defaultDisplayPage.fields.fullscreenThemeLabel', panel: 'appearance' },
 
+  // The sleep rows deliberately carry no `visibleWhen`: every gate that can
+  // hide one of these fields (`sleepEnabled`, `idleDimEnabled`,
+  // `somethingDims`) is a toggle the user can flip right there on the
+  // destination page, and the mechanism is scoped to fields with nothing the
+  // user can do on the page to make them appear (see the design comment
+  // above). Search may land on a field that's currently collapsed; the
+  // control that reveals it is adjacent.
   { pageId: 'screen', fieldId: 'sleep.sleepEnabled', labelKey: 'settings.sleepFormFields.enableLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.idleDimEnabled', labelKey: 'settings.sleepFormFields.idleDimLabel', panel: 'sleep' },
   { pageId: 'screen', fieldId: 'sleep.dimAfterMinutes', labelKey: 'settings.sleepFormFields.dimAfterLabel', panel: 'sleep' },
   { pageId: 'screen', fieldId: 'sleep.sleepAfterMinutes', labelKey: 'settings.sleepFormFields.sleepAfterLabel', panel: 'sleep' },
   { pageId: 'screen', fieldId: 'sleep.dimBrightness', labelKey: 'settings.sleepFormFields.dimBrightnessLabel', panel: 'sleep' },

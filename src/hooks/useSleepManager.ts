@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SleepSettings } from '@/types/config';
 import { createTZDate } from '@/lib/timezone';
+import { isMinuteInScheduleWindow } from '@/lib/sleep-timeline';
 
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
@@ -28,26 +29,17 @@ export const WAKE_TAP_GUARD_MS = 700;
  * Checks whether the current time falls within a schedule window.
  * Handles overnight windows (e.g., 23:00–06:00) correctly.
  *
+ * Thin wall-clock wrapper over `isMinuteInScheduleWindow` — the same predicate
+ * the settings timeline preview renders from, so the preview and the runtime
+ * agree on window edges by construction.
+ *
  * Accepts an optional `now` parameter for testing; defaults to `new Date()`.
  */
 export function isInScheduleWindow(
   schedule: { startTime: string; endTime: string },
   now: Date = new Date(),
 ): boolean {
-  const [startH, startM] = schedule.startTime.split(':').map(Number);
-  const [endH, endM] = schedule.endTime.split(':').map(Number);
-
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const startMinutes = startH * 60 + startM;
-  const endMinutes = endH * 60 + endM;
-
-  if (startMinutes <= endMinutes) {
-    // Same-day window (e.g., 09:00–17:00)
-    return nowMinutes >= startMinutes && nowMinutes < endMinutes;
-  } else {
-    // Overnight window (e.g., 23:00–06:00)
-    return nowMinutes >= startMinutes || nowMinutes < endMinutes;
-  }
+  return isMinuteInScheduleWindow(schedule, now.getHours() * 60 + now.getMinutes());
 }
 
 interface UseSleepManagerResult {
@@ -85,6 +77,9 @@ export function useSleepManager(
   // schedule, dim schedule, idle. 0 means no hold (the default path).
   const wakeHoldUntilRef = useRef(0);
   const enabled = sleep?.enabled ?? false;
+  // Absent means true: every config saved before this field existed had idle
+  // dimming on, so absence must keep behaving that way.
+  const idleDimEnabled = sleep?.idleDimEnabled ?? true;
 
   const wake = useCallback((options?: { holdMs?: number }) => {
     lastActivityRef.current = Date.now();
@@ -149,20 +144,28 @@ export function useSleepManager(
     };
   }, []);
 
-  // Turning sleep OFF must brighten a display that is already asleep.
+  // Turning sleep OFF — or idle dimming OFF — must brighten a display that is
+  // already asleep/dimmed.
   //
   // `settings.sleep` is live-pushed by useLiveConfig, so this is a prop change
-  // with no remount: the timer effect below just stops running and would leave
-  // `displayState` stuck at 'asleep'/'dimmed' forever. The old `!enabled`
-  // short-circuit in dimOpacity used to mask that, but it also broke every
-  // explicit sleep, so the recovery belongs here — on the transition — rather
-  // than as a blanket guard on the opacity. An explicit forceSleep() while
-  // already disabled does not re-run this, so that path stays fixed.
+  // with no remount: the timer effect below just stops running (or skips its
+  // idle branch) and would leave `displayState` stuck at 'asleep'/'dimmed'
+  // forever — on a wall-mounted kiosk nothing else ever touches it. The old
+  // `!enabled` short-circuit in dimOpacity used to mask the `enabled` half,
+  // but it also broke every explicit sleep, so the recovery belongs here — on
+  // the transition — rather than as a blanket guard on the opacity. An
+  // explicit forceSleep() while already disabled does not re-run this, so that
+  // path stays fixed. Keying on the primitives (not the sleep object) means
+  // unrelated settings edits can't retrigger it.
+  //
+  // Known wrinkle: flipping idle dimming off during an active schedule window
+  // briefly brightens until the next 10s tick re-asserts the window — the same
+  // behavior as a touch-wake during a window, which is intended.
   useEffect(() => {
-    if (enabled) return;
+    if (enabled && idleDimEnabled) return;
     setBrightnessOverride(null);
     setDisplayState('active');
-  }, [enabled]);
+  }, [enabled, idleDimEnabled]);
 
   // Timer that checks idle time, dim schedule, and sleep schedule
   useEffect(() => {
@@ -227,9 +230,14 @@ export function useSleepManager(
         return;
       }
 
-      // Idle-based transitions (only when no dim schedule is configured)
-      // If the user set a dim schedule, dimming is controlled by the schedule alone.
-      if (!sleep.dimSchedule) {
+      // Idle-based transitions run whenever the idle toggle is on — the
+      // toggle alone governs them. (A dim schedule used to suppress idle
+      // behavior implicitly; that rule was an ersatz for this toggle and was
+      // removed when the toggle shipped — the v7 migration seeds
+      // idleDimEnabled: false into configs that relied on it.) While a
+      // schedule window is active the early returns above win, so schedules
+      // still take priority over idle transitions.
+      if (idleDimEnabled) {
         const idle = Date.now() - lastActivityRef.current;
 
         if (sleepMs > 0 && idle >= dimMs + sleepMs) {
@@ -244,7 +252,7 @@ export function useSleepManager(
     }, 10_000); // check every 10 seconds
 
     return () => clearInterval(interval);
-  }, [enabled, sleep, timezone]);
+  }, [enabled, idleDimEnabled, sleep, timezone]);
 
   // Calculate dim opacity — remote brightness override takes precedence
   const dimOpacity = (() => {

@@ -1,4 +1,4 @@
-import type { GlobalSettings, ICalSource, ICloudSource } from '@/types/config';
+import type { GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 
 /**
  * Form state ↔ GlobalSettings transforms for the Defaults settings page.
@@ -48,6 +48,7 @@ export interface CalendarState {
 
 export interface SleepState {
   sleepEnabled: boolean;
+  idleDimEnabled: boolean;
   dimAfterMinutes: number;
   sleepAfterMinutes: number;
   dimBrightness: number;
@@ -96,6 +97,7 @@ export const FORM_DEFAULTS: SettingsState = {
   calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '' },
   sleep: {
     sleepEnabled: false,
+    idleDimEnabled: true,
     dimAfterMinutes: 10,
     sleepAfterMinutes: 0,
     dimBrightness: 20,
@@ -109,6 +111,54 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   alerts: { alertsEnabled: true, alertsPosition: 'top', alertsMaxVisible: 3, alertsDefaultDuration: 0, alertsScale: 1 },
 };
+
+/**
+ * Sleep + screensaver halves of the form transforms, exported separately
+ * because `SleepSubtab` (the per-display whole-block override) needs exactly
+ * this pair without the rest of `SettingsState`. Keeping one implementation
+ * matters beyond tidiness: `idleDimEnabled` is optional on `SleepSettings`,
+ * so a forked copy that forgot the field would typecheck and silently reset
+ * the user's choice to true on every per-display save.
+ */
+export function sleepConfigToForm(
+  sleep: SleepSettings | undefined,
+  screensaver: ScreensaverSettings | undefined,
+): SleepState {
+  return {
+    sleepEnabled: sleep?.enabled ?? false,
+    idleDimEnabled: sleep?.idleDimEnabled ?? true,
+    dimAfterMinutes: sleep?.dimAfterMinutes ?? FORM_DEFAULTS.sleep.dimAfterMinutes,
+    sleepAfterMinutes: sleep?.sleepAfterMinutes ?? FORM_DEFAULTS.sleep.sleepAfterMinutes,
+    dimBrightness: sleep?.dimBrightness ?? FORM_DEFAULTS.sleep.dimBrightness,
+    dimScheduleEnabled: !!sleep?.dimSchedule,
+    dimStartTime: sleep?.dimSchedule?.startTime ?? FORM_DEFAULTS.sleep.dimStartTime,
+    dimEndTime: sleep?.dimSchedule?.endTime ?? FORM_DEFAULTS.sleep.dimEndTime,
+    sleepScheduleEnabled: !!sleep?.schedule,
+    sleepStartTime: sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
+    sleepEndTime: sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
+    screensaverMode: screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
+  };
+}
+
+export function sleepFormToConfig(sleep: SleepState): {
+  sleep: SleepSettings;
+  screensaver: ScreensaverSettings;
+} {
+  return {
+    sleep: {
+      enabled: sleep.sleepEnabled,
+      idleDimEnabled: sleep.idleDimEnabled,
+      dimAfterMinutes: sleep.dimAfterMinutes,
+      sleepAfterMinutes: sleep.sleepAfterMinutes,
+      dimBrightness: sleep.dimBrightness,
+      ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
+      ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
+    },
+    screensaver: {
+      mode: sleep.screensaverMode as ScreensaverSettings['mode'],
+    },
+  };
+}
 
 export function toFormState(s: GlobalSettings | undefined): SettingsState {
   if (!s) return FORM_DEFAULTS;
@@ -144,19 +194,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
     },
-    sleep: {
-      sleepEnabled: s.sleep?.enabled ?? false,
-      dimAfterMinutes: s.sleep?.dimAfterMinutes ?? FORM_DEFAULTS.sleep.dimAfterMinutes,
-      sleepAfterMinutes: s.sleep?.sleepAfterMinutes ?? FORM_DEFAULTS.sleep.sleepAfterMinutes,
-      dimBrightness: s.sleep?.dimBrightness ?? FORM_DEFAULTS.sleep.dimBrightness,
-      dimScheduleEnabled: !!s.sleep?.dimSchedule,
-      dimStartTime: s.sleep?.dimSchedule?.startTime ?? FORM_DEFAULTS.sleep.dimStartTime,
-      dimEndTime: s.sleep?.dimSchedule?.endTime ?? FORM_DEFAULTS.sleep.dimEndTime,
-      sleepScheduleEnabled: !!s.sleep?.schedule,
-      sleepStartTime: s.sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
-      sleepEndTime: s.sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
-      screensaverMode: s.screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
-    },
+    sleep: sleepConfigToForm(s.sleep, s.screensaver),
     alerts: {
       alertsEnabled: s.alerts?.enabled ?? FORM_DEFAULTS.alerts.alertsEnabled,
       alertsPosition: s.alerts?.position ?? FORM_DEFAULTS.alerts.alertsPosition,
@@ -203,17 +241,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
     },
-    sleep: {
-      enabled: sleep.sleepEnabled,
-      dimAfterMinutes: sleep.dimAfterMinutes,
-      sleepAfterMinutes: sleep.sleepAfterMinutes,
-      dimBrightness: sleep.dimBrightness,
-      ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
-      ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
-    },
-    screensaver: {
-      mode: sleep.screensaverMode as 'clock' | 'blank' | 'off',
-    },
+    ...sleepFormToConfig(sleep),
     alerts: {
       enabled: alerts.alertsEnabled,
       position: alerts.alertsPosition as 'top' | 'bottom',

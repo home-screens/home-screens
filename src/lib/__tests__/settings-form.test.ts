@@ -26,6 +26,21 @@ describe('settings-form transforms', () => {
     });
   });
 
+  it('reads a legacy sleep block without idleDimEnabled as toggle ON', () => {
+    // The upgrade path for every install that saved sleep settings before the
+    // idle toggle existed: absent must hydrate as true, or the first debounced
+    // autosave would persist `false` and silently disable idle dimming for a
+    // user who never touched the new control.
+    const legacy = toConfigSettings(FORM_DEFAULTS) as GlobalSettings;
+    legacy.sleep = { enabled: true, dimAfterMinutes: 15, sleepAfterMinutes: 30, dimBrightness: 40 };
+
+    const form = toFormState(legacy);
+
+    expect(form.sleep.idleDimEnabled).toBe(true);
+    // And a save round-trip pins it as explicit true, not false.
+    expect((toConfigSettings(form) as GlobalSettings).sleep?.idleDimEnabled).toBe(true);
+  });
+
   it('round-trips a non-default form state', () => {
     const custom: SettingsState = {
       display: {
@@ -53,6 +68,7 @@ describe('settings-form transforms', () => {
       },
       sleep: {
         sleepEnabled: true,
+        idleDimEnabled: false,
         dimAfterMinutes: 5,
         sleepAfterMinutes: 30,
         dimBrightness: 40,
