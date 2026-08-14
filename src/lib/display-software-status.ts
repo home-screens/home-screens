@@ -41,3 +41,26 @@ export function resolveDisplaySoftwareState(
 export function buildDisplaySoftwareSetupCommand(origin: string, displayId: string): string {
   return `curl -fsS "${origin.replace(/\/$/, '')}/api/display/kiosk-bootstrap?display=${displayId}" | bash`;
 }
+
+/**
+ * The account Home Screens' own Pi images are built with, and the one the
+ * docs tell people to connect as. Only a default — someone who flashed their
+ * own OS may use another, which is why the setup step below still reads as a
+ * suggestion rather than the only way in.
+ */
+export const DEFAULT_PI_SSH_USER = 'hs';
+
+/**
+ * `ssh hs@<address>` for the Pi driving this display, or null when we don't
+ * know where it is.
+ *
+ * The address is the source IP of the display's own browser heartbeat, so it
+ * is the machine actually rendering the screen — not something the user has
+ * to go find in a router. Null when the display has never checked in (a
+ * powered-off Pi), in which case the UI asks the user to connect rather than
+ * offering a command with a placeholder that would break if copied.
+ */
+export function buildDisplaySshCommand(address: string | null | undefined): string | null {
+  if (!address) return null;
+  return `ssh ${DEFAULT_PI_SSH_USER}@${address}`;
+}

@@ -686,9 +686,13 @@
         "pendingHint": "Cet écran copiera le logiciel du serveur lors de sa prochaine vérification.",
         "unreported": "Aucune information",
         "unreportedHint": "Cet écran n'a pas encore indiqué au serveur quel logiciel il utilise.",
-        "needsSetupBody": "Cet écran a été installé avant l'arrivée des mises à jour automatiques : il faut donc y lancer cette commande une seule fois. Ensuite, il se met à jour tout seul.",
+        "needsSetupBody": "Cet écran a été installé avant l'arrivée des mises à jour automatiques. Lance ceci dessus une seule fois : ensuite, il se met à jour tout seul.",
         "copy": "Copier",
-        "copied": "Copié"
+        "copied": "Copié",
+        "needsSetupTitle": "Activer les mises à jour automatiques",
+        "connectLabel": "Connecte-toi dessus",
+        "runLabel": "Puis lance ceci",
+        "connectUnknown": "Connecte-toi à cet écran en SSH (le nom d'utilisateur est {user}), puis lance :"
       }
     },
     "alertFormFields": {

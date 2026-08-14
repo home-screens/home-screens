@@ -364,10 +364,22 @@ test.describe('display software status', () => {
 
     await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
 
+    // The heading states the task rather than naming the panel — this is the
+    // only state in the feature that asks the user to do something.
+    await expect(page.getByText('Turn on automatic updates')).toBeVisible();
+
     const command = page.getByTestId('display-software-command');
     await expect(command).toBeVisible();
     await expect(command).toContainText('/api/display/kiosk-bootstrap?display=kitchen');
     await expect(command).toContainText('| bash');
+
+    // Whoever runs that command has to get onto the Pi first, so the card
+    // hands them the connect step too — built from the address the display's
+    // own browser checked in from.
+    const ssh = page.getByTestId('display-software-ssh');
+    if (await ssh.count()) {
+      await expect(ssh).toContainText('ssh hs@');
+    }
   });
 
   test('a Pi running the hub version reads as up to date, with no command', async ({ page, request }) => {

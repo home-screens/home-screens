@@ -686,9 +686,13 @@
         "pendingHint": "This display copies the hub's software the next time it checks in.",
         "unreported": "Not reported",
         "unreportedHint": "This display has not told the hub what software it is running.",
-        "needsSetupBody": "This display was set up before automatic updates existed, so it needs one command run on it once. After that it keeps itself up to date on its own.",
+        "needsSetupBody": "This display was set up before automatic updates existed. Run this on it once, and it keeps itself up to date from then on.",
         "copy": "Copy",
-        "copied": "Copied"
+        "copied": "Copied",
+        "needsSetupTitle": "Turn on automatic updates",
+        "connectLabel": "Connect to it",
+        "runLabel": "Then run this",
+        "connectUnknown": "Connect to this display over SSH (the username is {user}), then run:"
       }
     },
     "alertFormFields": {

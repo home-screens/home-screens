@@ -686,9 +686,13 @@
         "pendingHint": "Dieses Display übernimmt die Software der Zentrale bei der nächsten Rückmeldung.",
         "unreported": "Keine Rückmeldung",
         "unreportedHint": "Dieses Display hat der Zentrale noch nicht mitgeteilt, welche Software es nutzt.",
-        "needsSetupBody": "Dieses Display wurde eingerichtet, bevor es automatische Updates gab. Führe deshalb einmalig diesen Befehl darauf aus. Danach hält es sich selbst aktuell.",
+        "needsSetupBody": "Dieses Display wurde eingerichtet, bevor es automatische Updates gab. Führe das einmalig darauf aus, danach hält es sich selbst aktuell.",
         "copy": "Kopieren",
-        "copied": "Kopiert"
+        "copied": "Kopiert",
+        "needsSetupTitle": "Automatische Updates einschalten",
+        "connectLabel": "Verbinde dich damit",
+        "runLabel": "Dann führe das aus",
+        "connectUnknown": "Verbinde dich per SSH mit diesem Display (der Benutzername ist {user}) und führe dann aus:"
       }
     },
     "alertFormFields": {

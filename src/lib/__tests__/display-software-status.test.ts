@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildDisplaySoftwareSetupCommand,
+  buildDisplaySshCommand,
   resolveDisplaySoftwareState,
 } from '@/lib/display-software-status';
 
@@ -60,5 +61,22 @@ describe('buildDisplaySoftwareSetupCommand', () => {
     expect(buildDisplaySoftwareSetupCommand('http://hub:3000/', 'den')).toContain(
       'http://hub:3000/api/display/kiosk-bootstrap?display=den',
     );
+  });
+});
+
+describe('buildDisplaySshCommand', () => {
+  it('builds the connect command from the heartbeat address', () => {
+    // The address is where the display's own browser checked in from, so the
+    // user is handed the machine actually rendering the screen rather than
+    // being sent to hunt through a router.
+    expect(buildDisplaySshCommand('192.168.86.175')).toBe('ssh hs@192.168.86.175');
+  });
+
+  it('returns null when the display has never checked in', () => {
+    // A command containing a placeholder is worse than none: it copies
+    // cleanly and then fails in the user's terminal.
+    expect(buildDisplaySshCommand(null)).toBeNull();
+    expect(buildDisplaySshCommand(undefined)).toBeNull();
+    expect(buildDisplaySshCommand('')).toBeNull();
   });
 });

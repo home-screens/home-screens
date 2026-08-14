@@ -24,6 +24,8 @@ interface OverviewSubtabProps {
   heartbeat: Pick<DisplayApiEntry, 'id' | 'status' | 'displaySoftware'> | null;
   /** The hub's own version, from the same /api/displays poll. */
   hubVersion?: string;
+  /** Source IP of this display's browser heartbeat, for the SSH hint. */
+  reporterIp?: string | null;
 }
 
 /**
@@ -51,6 +53,7 @@ export default function OverviewSubtab({
   display,
   heartbeat,
   hubVersion,
+  reporterIp,
 }: OverviewSubtabProps) {
   const t = useTranslate('editor');
   const dims = display.displayWidth && display.displayHeight
@@ -145,6 +148,7 @@ export default function OverviewSubtab({
           displayId={display.id}
           displaySoftware={heartbeat?.displaySoftware}
           hubVersion={hubVersion}
+          reporterIp={reporterIp}
         />
       </div>
 

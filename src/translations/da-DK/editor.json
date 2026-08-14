@@ -686,9 +686,13 @@
         "pendingHint": "Skærmen kopierer hubbens software næste gang den melder sig.",
         "unreported": "Ikke oplyst",
         "unreportedHint": "Skærmen har endnu ikke fortalt hubben, hvilken software den kører.",
-        "needsSetupBody": "Skærmen blev sat op, før automatiske opdateringer fandtes, så du skal køre denne kommando på den én gang. Derefter holder den sig selv opdateret.",
+        "needsSetupBody": "Skærmen blev sat op, før automatiske opdateringer fandtes. Kør dette på den én gang, så holder den sig selv opdateret fremover.",
         "copy": "Kopiér",
-        "copied": "Kopieret"
+        "copied": "Kopieret",
+        "needsSetupTitle": "Slå automatiske opdateringer til",
+        "connectLabel": "Forbind til den",
+        "runLabel": "Kør så dette",
+        "connectUnknown": "Forbind til skærmen over SSH (brugernavnet er {user}), og kør så:"
       }
     },
     "alertFormFields": {

@@ -686,9 +686,13 @@
         "pendingHint": "Esta tela vai copiar o software do servidor na próxima verificação.",
         "unreported": "Sem informação",
         "unreportedHint": "Esta tela ainda não informou ao servidor qual software está usando.",
-        "needsSetupBody": "Esta tela foi configurada antes das atualizações automáticas existirem, então é preciso rodar este comando nela uma vez. Depois disso ela se mantém atualizada sozinha.",
+        "needsSetupBody": "Esta tela foi configurada antes das atualizações automáticas existirem. Rode isto nela uma vez e, a partir daí, ela se mantém atualizada sozinha.",
         "copy": "Copiar",
-        "copied": "Copiado"
+        "copied": "Copiado",
+        "needsSetupTitle": "Ativar atualizações automáticas",
+        "connectLabel": "Conecte-se a ela",
+        "runLabel": "Depois rode isto",
+        "connectUnknown": "Conecte-se a esta tela por SSH (o usuário é {user}) e depois rode:"
       }
     },
     "alertFormFields": {

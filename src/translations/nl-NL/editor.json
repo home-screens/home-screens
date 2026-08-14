@@ -686,9 +686,13 @@
         "pendingHint": "Dit scherm neemt de software van de hub over bij de volgende controle.",
         "unreported": "Niet doorgegeven",
         "unreportedHint": "Dit scherm heeft de hub nog niet laten weten welke software het gebruikt.",
-        "needsSetupBody": "Dit scherm is ingesteld voordat automatische updates bestonden, dus je moet er één keer deze opdracht op uitvoeren. Daarna houdt het zichzelf bij.",
+        "needsSetupBody": "Dit scherm is ingesteld voordat automatische updates bestonden. Voer dit er één keer op uit, daarna houdt het zichzelf bij.",
         "copy": "Kopiëren",
-        "copied": "Gekopieerd"
+        "copied": "Gekopieerd",
+        "needsSetupTitle": "Automatische updates inschakelen",
+        "connectLabel": "Maak er verbinding mee",
+        "runLabel": "Voer dit dan uit",
+        "connectUnknown": "Maak via SSH verbinding met dit scherm (de gebruikersnaam is {user}) en voer dan uit:"
       }
     },
     "alertFormFields": {
