@@ -96,7 +96,10 @@ describe('GET /api/displays (full list)', () => {
     });
     const res = await GET(makeRequest());
     const json = await res.json();
-    expect(json).toEqual({ displays: [], unadopted: [] });
+    // hubVersion always rides along so the editor can tell whether a
+    // display's locally-installed software is in step with this hub without
+    // a second request (and without consulting GitHub).
+    expect(json).toEqual({ displays: [], unadopted: [], hubVersion: expect.any(String) });
   });
 
   it('merges per-display heartbeat into the registered display list', async () => {

@@ -301,3 +301,41 @@ describe('getVersionInfo', () => {
     expect(info.updateAvailable).toBe(false);
   });
 });
+
+describe('getPackageVersion', () => {
+  it('reads the version from package.json in the current working directory', async () => {
+    await fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify({ version: '2.5.1' }));
+    const { getPackageVersion } = await loadModule();
+    expect(await getPackageVersion()).toBe('2.5.1');
+  });
+
+  it('reads package.json once and serves later calls from memory', async () => {
+    const pkgPath = path.join(tmpDir, 'package.json');
+    await fs.writeFile(pkgPath, JSON.stringify({ version: '2.5.1' }));
+    const { getPackageVersion } = await loadModule();
+
+    expect(await getPackageVersion()).toBe('2.5.1');
+
+    // This is now on the /api/displays path, which the editor polls every 5s
+    // from several surfaces at once. Deleting the file mid-process proves the
+    // second call never touched the disk — the version cannot change under a
+    // running server anyway, since an upgrade restarts the process.
+    await fs.rm(pkgPath);
+    expect(await getPackageVersion()).toBe('2.5.1');
+  });
+
+  it('falls back to 0.0.0 when package.json carries no version', async () => {
+    await fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify({ name: 'x' }));
+    const { getPackageVersion } = await loadModule();
+    expect(await getPackageVersion()).toBe('0.0.0');
+  });
+
+  it('does not memoize a failure, so a later call can still succeed', async () => {
+    const { getPackageVersion } = await loadModule();
+    // No package.json in the sandboxed cwd yet.
+    await expect(getPackageVersion()).rejects.toThrow();
+
+    await fs.writeFile(path.join(tmpDir, 'package.json'), JSON.stringify({ version: '3.0.0' }));
+    expect(await getPackageVersion()).toBe('3.0.0');
+  });
+});

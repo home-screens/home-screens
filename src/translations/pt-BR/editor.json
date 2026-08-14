@@ -676,6 +676,19 @@
         "overrideForButton": "Substituir para {name}",
         "usingDefaultPart1": "Usando o padrão de ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Software da tela",
+        "upToDate": "Atualizado ({version})",
+        "updateWaiting": "Atualização pendente ({version})",
+        "updateWaitingHint": "Esta tela vai instalar a {version} durante a noite ou na próxima reinicialização.",
+        "pending": "Preparando",
+        "pendingHint": "Esta tela vai copiar o software do servidor na próxima verificação.",
+        "unreported": "Sem informação",
+        "unreportedHint": "Esta tela ainda não informou ao servidor qual software está usando.",
+        "needsSetupBody": "Esta tela foi configurada antes das atualizações automáticas existirem, então é preciso rodar este comando nela uma vez. Depois disso ela se mantém atualizada sozinha.",
+        "copy": "Copiar",
+        "copied": "Copiado"
       }
     },
     "alertFormFields": {
@@ -1714,7 +1727,9 @@
       "formErrorIdReserved": "\"{id}\" já tem um significado especial ao enviar comandos para as telas. Escolha outro ID, por ex. \"kitchen\" ou \"bedroom-tv\"",
       "formErrorIdTaken": "Já existe um display com ID \"{id}\"",
       "formErrorWidth": "A largura deve ser um inteiro positivo ≤ {max}",
-      "formErrorHeight": "A altura deve ser um inteiro positivo ≤ {max}"
+      "formErrorHeight": "A altura deve ser um inteiro positivo ≤ {max}",
+      "softwareUpdateWaiting": "Atualização pendente",
+      "softwareNeedsSetup": "Precisa de ajuste"
     },
     "header": {
       "backToEditor": "Editor",

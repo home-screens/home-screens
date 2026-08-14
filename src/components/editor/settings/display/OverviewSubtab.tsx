@@ -15,12 +15,15 @@ import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
 import ProfileSubtab from './ProfileSubtab';
 import IdentitySubtab from './IdentitySubtab';
+import DisplaySoftwareCard from './DisplaySoftwareCard';
 
 interface OverviewSubtabProps {
   config: ScreenConfiguration;
   display: DisplayNode;
   /** Narrowed to the fields this subtab actually reads from the poll entry. */
-  heartbeat: Pick<DisplayApiEntry, 'id' | 'status'> | null;
+  heartbeat: Pick<DisplayApiEntry, 'id' | 'status' | 'displaySoftware'> | null;
+  /** The hub's own version, from the same /api/displays poll. */
+  hubVersion?: string;
 }
 
 /**
@@ -43,7 +46,12 @@ interface OverviewSubtabProps {
  * tells the user not just *which* fields they overrode, but how far
  * each one drifts from the shared default.
  */
-export default function OverviewSubtab({ config, display, heartbeat }: OverviewSubtabProps) {
+export default function OverviewSubtab({
+  config,
+  display,
+  heartbeat,
+  hubVersion,
+}: OverviewSubtabProps) {
   const t = useTranslate('editor');
   const dims = display.displayWidth && display.displayHeight
     ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
@@ -130,6 +138,14 @@ export default function OverviewSubtab({ config, display, heartbeat }: OverviewS
             {t('settings.perDisplayPage.overview.noOverridesPart2')}
           </div>
         )}
+      </div>
+
+      <div className="mt-5">
+        <DisplaySoftwareCard
+          displayId={display.id}
+          displaySoftware={heartbeat?.displaySoftware}
+          hubVersion={hubVersion}
+        />
       </div>
 
       <div className="mt-5">

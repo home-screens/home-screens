@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:shell": "bash scripts/__tests__/reporter.test.sh && bash scripts/__tests__/kiosk-update.test.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "config:check": "node scripts/check-config.mjs",

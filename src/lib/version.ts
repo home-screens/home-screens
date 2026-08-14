@@ -61,12 +61,29 @@ function exec(cmd: string, args: string[], cwd?: string): Promise<string> {
   });
 }
 
-/** Read version from package.json */
+let cachedPackageVersion: string | null = null;
+
+/**
+ * Read version from package.json.
+ *
+ * Memoized for the process lifetime: the file cannot change under a running
+ * server (an upgrade restarts the process), and this is now on the
+ * `/api/displays` path, which the editor polls every 5s from several surfaces
+ * at once. Without the cache each poll costs a `readFile` + `JSON.parse` on a
+ * route deliberately built around a shared 1.5s config cache.
+ */
 export async function getPackageVersion(): Promise<string> {
+  if (cachedPackageVersion !== null) return cachedPackageVersion;
   const pkgPath = path.join(process.cwd(), 'package.json');
   const data = await fs.readFile(pkgPath, 'utf-8');
   const pkg = JSON.parse(data);
-  return pkg.version ?? '0.0.0';
+  cachedPackageVersion = pkg.version ?? '0.0.0';
+  return cachedPackageVersion as string;
+}
+
+/** Test seam — drops the memoized version. */
+export function __resetPackageVersionCacheForTests(): void {
+  cachedPackageVersion = null;
 }
 
 /** Check if running in a git repository */

@@ -21,6 +21,8 @@ describe('validateHardwareStats', () => {
       memoryFree: 2_000_000_000,
       diskTotal: 32_000_000_000,
       diskFree: 20_000_000_000,
+      kioskUpdater: false,
+      kioskVersion: null,
       reportedAt: '2026-04-17T12:00:00.000Z',
     };
     expect(validateHardwareStats(payload)).toEqual(payload);
@@ -48,7 +50,53 @@ describe('validateHardwareStats', () => {
       diskFree: 100_000_000_000,
       reportedAt: new Date().toISOString(),
     };
+    // A reporter predating the self-update fields omits them entirely. That
+    // payload must still validate — rejecting it would blank the Stats page
+    // for exactly the Pis that need the migration prompt.
+    expect(validateHardwareStats(payload)).toEqual({
+      ...payload,
+      kioskUpdater: false,
+      kioskVersion: null,
+    });
+  });
+
+  it('accepts the self-update fields from a current reporter', () => {
+    const payload = {
+      piModel: null, cpuModel: null, cpuCores: 4,
+      cpuTempC: null, load1: 0, load5: 0, load15: 0, throttled: null,
+      memoryTotal: 0, memoryFree: 0, diskTotal: 0, diskFree: 0,
+      kioskUpdater: true,
+      kioskVersion: '1.9.0',
+      reportedAt: new Date().toISOString(),
+    };
     expect(validateHardwareStats(payload)).toEqual(payload);
+  });
+
+  it('does not let a junk kioskVersion through as a string', () => {
+    const validated = validateHardwareStats({
+      piModel: null, cpuModel: null, cpuCores: 4,
+      cpuTempC: null, load1: 0, load5: 0, load15: 0, throttled: null,
+      memoryTotal: 0, memoryFree: 0, diskTotal: 0, diskFree: 0,
+      kioskUpdater: 'yes',
+      kioskVersion: { nope: true },
+      reportedAt: new Date().toISOString(),
+    });
+    expect(validated?.kioskVersion).toBeNull();
+    // Truthy non-boolean coerces rather than failing the whole payload —
+    // one malformed optional field must not cost the hardware snapshot.
+    expect(validated?.kioskUpdater).toBe(true);
+  });
+
+  it('caps an absurdly long kioskVersion instead of storing it whole', () => {
+    const validated = validateHardwareStats({
+      piModel: null, cpuModel: null, cpuCores: 4,
+      cpuTempC: null, load1: 0, load5: 0, load15: 0, throttled: null,
+      memoryTotal: 0, memoryFree: 0, diskTotal: 0, diskFree: 0,
+      kioskUpdater: true,
+      kioskVersion: 'v'.repeat(500),
+      reportedAt: new Date().toISOString(),
+    });
+    expect(validated?.kioskVersion).toHaveLength(64);
   });
 
   it('rejects payloads with non-finite numbers (NaN/Infinity from broken sensors)', () => {

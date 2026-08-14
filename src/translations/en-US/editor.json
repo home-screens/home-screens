@@ -676,6 +676,19 @@
         "overrideForButton": "Override for {name}",
         "usingDefaultPart1": "Using the default from ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Display software",
+        "upToDate": "Up to date ({version})",
+        "updateWaiting": "Update waiting ({version})",
+        "updateWaitingHint": "This display picks up {version} overnight, or the next time it restarts.",
+        "pending": "Getting ready",
+        "pendingHint": "This display copies the hub's software the next time it checks in.",
+        "unreported": "Not reported",
+        "unreportedHint": "This display has not told the hub what software it is running.",
+        "needsSetupBody": "This display was set up before automatic updates existed, so it needs one command run on it once. After that it keeps itself up to date on its own.",
+        "copy": "Copy",
+        "copied": "Copied"
       }
     },
     "alertFormFields": {
@@ -1710,7 +1723,9 @@
       "formErrorIdReserved": "\"{id}\" already has a special meaning when sending commands to displays. Please pick a different ID, like \"kitchen\" or \"bedroom-tv\"",
       "formErrorIdTaken": "A display with ID \"{id}\" already exists",
       "formErrorWidth": "Width must be a positive integer ≤ {max}",
-      "formErrorHeight": "Height must be a positive integer ≤ {max}"
+      "formErrorHeight": "Height must be a positive integer ≤ {max}",
+      "softwareUpdateWaiting": "Update waiting",
+      "softwareNeedsSetup": "Needs setup"
     },
     "header": {
       "backToEditor": "Editor",

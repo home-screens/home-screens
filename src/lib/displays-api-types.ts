@@ -36,6 +36,24 @@ export interface DisplayApiEntry {
   reportedViewport?: ReportedViewport;
   viewportReports: ViewportReport[];
   status: Pick<DisplayStatus, 'currentScreen' | 'displayState' | 'activeProfile'> | null;
+  /**
+   * The state of this Pi's local shell layer (kiosk launcher, splash,
+   * reporter, systemd units), lifted out of `hwStats` so the poll payload
+   * doesn't have to carry the whole hardware snapshot.
+   *
+   * Absent when the Pi has never run the hardware reporter at all — a hub Pi
+   * rendering its own display, or a spoke that has not reported yet. That is
+   * a distinct state from `{ updater: false }`, which means a reporter DID
+   * run and found no self-updater installed.
+   */
+  displaySoftware?: DisplaySoftwareInfo;
+}
+
+export interface DisplaySoftwareInfo {
+  /** Whether this Pi updates its shell layer from the hub automatically. */
+  updater: boolean;
+  /** Applied bundle version, or null before the first update lands. */
+  version: string | null;
 }
 
 /** A display that has polled the hub but is not yet in the registry. */
@@ -49,4 +67,12 @@ export interface UnadoptedDisplay {
 export interface DisplaysApiResponse {
   displays: DisplayApiEntry[];
   unadopted: UnadoptedDisplay[];
+  /**
+   * The hub's own app version. Included here so the editor can say whether a
+   * display's software is current without a second round trip — and, more
+   * importantly, without going through `/api/system/version`, which consults
+   * GitHub. "Is this display in step with this hub?" is a purely local
+   * question and must keep answering correctly with no internet.
+   */
+  hubVersion: string;
 }

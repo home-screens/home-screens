@@ -4,6 +4,7 @@ import { execFileSync } from 'child_process';
 import path from 'path';
 import os from 'os';
 import crypto from 'crypto';
+import { __resetPackageVersionCacheForTests } from '@/lib/version';
 
 // Bypass session auth but PRESERVE the withAuth try/catch → 500 behaviour, so a
 // throw from the real installPlugin (SHA mismatch, path traversal) surfaces as
@@ -186,6 +187,10 @@ beforeEach(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-install-route-'));
   origCwd = process.cwd;
   process.cwd = () => tmpDir;
+  // getPackageVersion memoizes for the process lifetime — correct under a
+  // running server, but these cases swap cwd per test, so a version cached
+  // from an earlier temp dir would leak into the fail-open assertions.
+  __resetPackageVersionCacheForTests();
   mockFetch.mockReset();
   mockRegistry.mockReset();
 });

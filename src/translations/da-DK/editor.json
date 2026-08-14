@@ -676,6 +676,19 @@
         "overrideForButton": "Tilsidesæt for {name}",
         "usingDefaultPart1": "Bruger standarden fra ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Skærmsoftware",
+        "upToDate": "Opdateret ({version})",
+        "updateWaiting": "Opdatering venter ({version})",
+        "updateWaitingHint": "Skærmen henter {version} i nat eller næste gang den genstarter.",
+        "pending": "Gør klar",
+        "pendingHint": "Skærmen kopierer hubbens software næste gang den melder sig.",
+        "unreported": "Ikke oplyst",
+        "unreportedHint": "Skærmen har endnu ikke fortalt hubben, hvilken software den kører.",
+        "needsSetupBody": "Skærmen blev sat op, før automatiske opdateringer fandtes, så du skal køre denne kommando på den én gang. Derefter holder den sig selv opdateret.",
+        "copy": "Kopiér",
+        "copied": "Kopieret"
       }
     },
     "alertFormFields": {
@@ -1710,7 +1723,9 @@
       "formErrorIdReserved": "\"{id}\" har allerede en særlig betydning, når der sendes kommandoer til skærme. Vælg et andet ID, f.eks. \"kitchen\" eller \"bedroom-tv\"",
       "formErrorIdTaken": "Der findes allerede et display med id'et \"{id}\"",
       "formErrorWidth": "Bredden skal være et positivt heltal ≤ {max}",
-      "formErrorHeight": "Højden skal være et positivt heltal ≤ {max}"
+      "formErrorHeight": "Højden skal være et positivt heltal ≤ {max}",
+      "softwareUpdateWaiting": "Opdatering venter",
+      "softwareNeedsSetup": "Skal sættes op"
     },
     "header": {
       "backToEditor": "Editor",

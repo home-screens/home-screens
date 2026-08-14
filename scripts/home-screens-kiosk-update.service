@@ -1,0 +1,15 @@
+[Unit]
+Description=Home Screens display software update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Exit 10 means "an update was applied" — a success, not a failure.
+SuccessExitStatus=10
+ExecStart=/opt/home-screens/current/scripts/kiosk-update.sh --restart-if-advised --timeout 30
+# Runs as the kiosk user (set by a User= drop-in written at install time,
+# since the account name is chosen when the Pi is set up). Deliberately NOT
+# sandboxed with NoNewPrivileges/ProtectSystem: the updater writes into
+# /opt/home-screens/current and calls sudo for the two root-owned
+# destinations, and both of those are exactly what those options forbid.

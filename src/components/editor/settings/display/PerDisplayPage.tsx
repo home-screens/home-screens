@@ -257,7 +257,14 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
       </div>
 
       {/* Active sub-tab body */}
-      {subtab === 'overview' && <OverviewSubtab config={config} display={display} heartbeat={heartbeat ?? null} />}
+      {subtab === 'overview' && (
+        <OverviewSubtab
+          config={config}
+          display={display}
+          heartbeat={heartbeat ?? null}
+          hubVersion={apiData?.hubVersion}
+        />
+      )}
       {subtab === 'overrides' && <OverridesSubtab config={config} display={display} />}
     </div>
   );

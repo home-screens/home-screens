@@ -6,6 +6,7 @@ import {
   getViewportReports,
 } from '@/lib/display-commands';
 import { withDisplayAuth } from '@/lib/api-utils';
+import { getPackageVersion } from '@/lib/version';
 import type { DisplaysApiResponse } from '@/lib/displays-api-types';
 
 export const dynamic = 'force-dynamic';
@@ -84,6 +85,11 @@ export const GET = withDisplayAuth(async (request) => {
               activeProfile: status.activeProfile,
             }
           : null,
+        // Two fields lifted out of hwStats rather than the whole snapshot —
+        // this payload is polled every 5s and hwStats is ~15 fields wide.
+        displaySoftware: status?.hwStats
+          ? { updater: status.hwStats.kioskUpdater, version: status.hwStats.kioskVersion }
+          : undefined,
       };
     }),
     unadopted: unadopted.map((unadoptedId) => {
@@ -98,6 +104,11 @@ export const GET = withDisplayAuth(async (request) => {
         viewportReports,
       };
     }),
+    // Degrade rather than fail: this field only decides whether the editor
+    // renders "up to date" or "update waiting" next to a display. An
+    // unreadable package.json must not take down heartbeats, adoption and
+    // viewport reporting along with it.
+    hubVersion: await getPackageVersion().catch(() => ''),
   };
   return NextResponse.json(payload);
 }, 'Failed to read displays');

@@ -108,6 +108,8 @@ beforeEach(() => {
     memoryFree: 2_000_000_000,
     diskTotal: 32_000_000_000,
     diskFree: 16_000_000_000,
+    kioskUpdater: false,
+    kioskVersion: null,
     reportedAt: '2026-04-17T00:00:00.000Z',
   });
 });

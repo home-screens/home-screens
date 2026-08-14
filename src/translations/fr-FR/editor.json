@@ -676,6 +676,19 @@
         "overrideForButton": "Remplacer pour {name}",
         "usingDefaultPart1": "Utilise la valeur par défaut de ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Logiciel de l'écran",
+        "upToDate": "À jour ({version})",
+        "updateWaiting": "Mise à jour en attente ({version})",
+        "updateWaitingHint": "Cet écran installera {version} cette nuit, ou au prochain redémarrage.",
+        "pending": "Préparation en cours",
+        "pendingHint": "Cet écran copiera le logiciel du serveur lors de sa prochaine vérification.",
+        "unreported": "Aucune information",
+        "unreportedHint": "Cet écran n'a pas encore indiqué au serveur quel logiciel il utilise.",
+        "needsSetupBody": "Cet écran a été installé avant l'arrivée des mises à jour automatiques : il faut donc y lancer cette commande une seule fois. Ensuite, il se met à jour tout seul.",
+        "copy": "Copier",
+        "copied": "Copié"
       }
     },
     "alertFormFields": {
@@ -1714,7 +1727,9 @@
       "formErrorIdReserved": "« {id} » a déjà une signification particulière lors de l’envoi de commandes aux écrans. Veuillez choisir un autre ID, par ex. « kitchen » ou « bedroom-tv »",
       "formErrorIdTaken": "Un écran avec l’ID « {id} » existe déjà",
       "formErrorWidth": "La largeur doit être un entier positif ≤ {max}",
-      "formErrorHeight": "La hauteur doit être un entier positif ≤ {max}"
+      "formErrorHeight": "La hauteur doit être un entier positif ≤ {max}",
+      "softwareUpdateWaiting": "Mise à jour en attente",
+      "softwareNeedsSetup": "Configuration requise"
     },
     "header": {
       "backToEditor": "Éditeur",

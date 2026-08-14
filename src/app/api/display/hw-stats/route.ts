@@ -22,30 +22,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { setDisplayStatus } from '@/lib/display-commands';
-import { isValidDisplayId, MAIN_DISPLAY_ID } from '@/lib/display-filter';
-import { getAdoptedDisplayIds } from '@/lib/adopted-display-cache';
+import { isValidDisplayId } from '@/lib/display-filter';
+import { requireAdoptedDisplay } from '@/lib/adopted-display-gate';
 import { validateHardwareStats } from '@/lib/hardware-stats';
 
 export const dynamic = 'force-dynamic';
-
-async function requireAdoptedDisplay(displayId: string): Promise<NextResponse | null> {
-  const adopted = await getAdoptedDisplayIds();
-  if (!adopted) {
-    // Legacy single-display mode (no displays array OR empty): only the main display.
-    if (displayId === MAIN_DISPLAY_ID) return null;
-    return NextResponse.json(
-      { error: `Display '${displayId}' is not adopted. Adopt it from the hub first.` },
-      { status: 403 },
-    );
-  }
-  if (!adopted.includes(displayId)) {
-    return NextResponse.json(
-      { error: `Display '${displayId}' is not adopted. Adopt it from the hub first.` },
-      { status: 403 },
-    );
-  }
-  return null;
-}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = await request.json().catch(() => null) as {

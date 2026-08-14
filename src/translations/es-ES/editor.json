@@ -676,6 +676,19 @@
         "overrideForButton": "Anular para {name}",
         "usingDefaultPart1": "Usando el valor predeterminado de ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Software de la pantalla",
+        "upToDate": "Actualizado ({version})",
+        "updateWaiting": "Actualización pendiente ({version})",
+        "updateWaitingHint": "Esta pantalla instalará {version} durante la noche o al reiniciarse.",
+        "pending": "Preparándose",
+        "pendingHint": "Esta pantalla copiará el software del servidor en su próxima comprobación.",
+        "unreported": "Sin datos",
+        "unreportedHint": "Esta pantalla todavía no ha indicado al servidor qué software utiliza.",
+        "needsSetupBody": "Esta pantalla se configuró antes de que existieran las actualizaciones automáticas, así que hay que ejecutar este comando en ella una vez. Después se mantiene actualizada sola.",
+        "copy": "Copiar",
+        "copied": "Copiado"
       }
     },
     "alertFormFields": {
@@ -1714,7 +1727,9 @@
       "formErrorIdReserved": "«{id}» ya tiene un significado especial al enviar comandos a las pantallas. Elige otro ID, p. ej. «kitchen» o «bedroom-tv»",
       "formErrorIdTaken": "Ya existe una pantalla con el ID «{id}»",
       "formErrorWidth": "El ancho debe ser un entero positivo ≤ {max}",
-      "formErrorHeight": "El alto debe ser un entero positivo ≤ {max}"
+      "formErrorHeight": "El alto debe ser un entero positivo ≤ {max}",
+      "softwareUpdateWaiting": "Actualización pendiente",
+      "softwareNeedsSetup": "Requiere configuración"
     },
     "header": {
       "backToEditor": "Editor",

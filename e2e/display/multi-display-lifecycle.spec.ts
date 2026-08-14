@@ -395,3 +395,185 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     await expect(page.getByText('NOOK', { exact: true })).toHaveCount(0);
   });
 });
+
+/* ─── Display self-update (kiosk bundle + bootstrap) ─────────────────────
+ *
+ * A display-only Pi renders the hub's web app, so the app updates itself for
+ * free — but the shell layer it runs locally (kiosk launcher, splash,
+ * reporter, systemd units) used to freeze the day the Pi was flashed. These
+ * specs drive the two endpoints that unfroze it, through the same
+ * adoption-as-authorization gate hw-stats uses.
+ */
+
+interface KioskManifest {
+  version: string;
+  sha256: string;
+  restartAdvised: boolean;
+  files: Array<{ path: string; sha256: string }>;
+}
+
+test('the kiosk bundle manifest is served to an adopted display', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  // The adopted-display registry is cached for 1.5s; poll until the config lands.
+  await expect
+    .poll(async () => {
+      const res = await request.get('/api/display/kiosk-bundle?display=kitchen&manifest=1');
+      return res.status();
+    }, { timeout: 5000 })
+    .toBe(200);
+
+  const res = await request.get('/api/display/kiosk-bundle?display=kitchen&manifest=1');
+  const manifest = (await res.json()) as KioskManifest;
+
+  expect(manifest.version).toMatch(/^\d+\.\d+\.\d+/);
+  expect(manifest.sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(typeof manifest.restartAdvised).toBe('boolean');
+  // The four files the whole mechanism stands on.
+  const paths = manifest.files.map((f) => f.path);
+  expect(paths).toContain('kiosk-launcher-display.sh');
+  expect(paths).toContain('kiosk-update.sh');
+  expect(paths).toContain('kiosk-update-install.sh');
+  expect(paths).toContain('system/kiosk-update-privileged.sh');
+});
+
+test('the kiosk tarball matches the digest the manifest advertises', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  await expect
+    .poll(async () => (await request.get('/api/display/kiosk-bundle?display=kitchen&manifest=1')).status(), {
+      timeout: 5000,
+    })
+    .toBe(200);
+
+  const manifest = (await (
+    await request.get('/api/display/kiosk-bundle?display=kitchen&manifest=1')
+  ).json()) as KioskManifest;
+
+  const tarRes = await request.get('/api/display/kiosk-bundle?display=kitchen');
+  expect(tarRes.status()).toBe(200);
+  expect(tarRes.headers()['content-type']).toContain('application/gzip');
+
+  const body = await tarRes.body();
+  const { createHash } = await import('crypto');
+  const digest = createHash('sha256').update(body).digest('hex');
+  // The spoke refuses to install anything whose digest doesn't match, so a
+  // drift between these two responses would silently stop every update.
+  expect(digest).toBe(manifest.sha256);
+  // gzip magic — the spoke pipes this straight into `tar -xzf`.
+  expect(body[0]).toBe(0x1f);
+  expect(body[1]).toBe(0x8b);
+});
+
+test('the kiosk bundle is refused for a display that was never adopted', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  const manifestRes = await request.get(
+    '/api/display/kiosk-bundle?display=never-adopted-bundle&manifest=1',
+  );
+  expect(manifestRes.status()).toBe(403);
+
+  const tarRes = await request.get('/api/display/kiosk-bundle?display=never-adopted-bundle');
+  expect(tarRes.status()).toBe(403);
+});
+
+test('the kiosk bundle rejects a malformed display id', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+  const res = await request.get('/api/display/kiosk-bundle?display=Not%20A%20Slug&manifest=1');
+  expect(res.status()).toBe(400);
+});
+
+test('the bootstrap endpoint returns a runnable script for an adopted display', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  await expect
+    .poll(async () => (await request.get('/api/display/kiosk-bootstrap?display=kitchen')).status(), {
+      timeout: 5000,
+    })
+    .toBe(200);
+
+  const res = await request.get('/api/display/kiosk-bootstrap?display=kitchen');
+  expect(res.headers()['content-type']).toContain('text/plain');
+  const script = await res.text();
+
+  expect(script).toContain('#!/usr/bin/env bash');
+  expect(script).toContain('DISPLAY_ID="kitchen"');
+  // It must verify what it downloads before running any of it.
+  expect(script).toMatch(/EXPECTED_SHA="[0-9a-f]{64}"/);
+  expect(script).toContain('sha256sum');
+  // And hand off to the bundle's own installer, so the migration path and the
+  // fresh-install path run identical code.
+  expect(script).toContain('kiosk-update-install.sh');
+
+  // It must then run a real update check. The installer lays down the
+  // machinery but not the hardware reporter, which only kiosk-update.sh
+  // installs (via the privileged helper) — so a bootstrap that stopped at the
+  // installer would report success while the Pi kept running its old reporter
+  // and kept showing as "Needs setup" in the editor forever.
+  expect(script).toContain('scripts/kiosk-update.sh');
+
+  // And it must NOT seed a version stamp: every later update check
+  // short-circuits on that stamp, so writing one here would mark the display
+  // as current on a version whose reporter was never actually installed.
+  expect(script).not.toContain('--version');
+});
+
+test('the bootstrap endpoint answers an unadopted display in bash, not JSON', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+  const res = await request.get('/api/display/kiosk-bootstrap?display=never-adopted-boot');
+  expect(res.status()).toBe(403);
+  // The response is piped into bash, so a JSON error body would print as noise.
+  const body = await res.text();
+  expect(body).toContain('not adopted');
+  expect(body).toContain('exit 1');
+});
+
+test('a reporter posting its display-software version surfaces on /api/displays', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  await expect
+    .poll(async () => {
+      const res = await request.post('/api/display/hw-stats', {
+        data: {
+          displayId: 'kitchen',
+          hwStats: { ...validHwStats(), kioskUpdater: true, kioskVersion: '1.2.3' },
+        },
+      });
+      return res.status();
+    }, { timeout: 5000 })
+    .toBe(200);
+
+  const registry = await request.get('/api/displays');
+  const payload = (await registry.json()) as {
+    hubVersion: string;
+    displays: Array<{ id: string; displaySoftware?: { updater: boolean; version: string | null } }>;
+  };
+  const kitchen = payload.displays.find((d) => d.id === 'kitchen');
+  expect(kitchen?.displaySoftware).toEqual({ updater: true, version: '1.2.3' });
+  // The hub's own version rides along so the editor can compare the two
+  // without a second round trip (and without consulting GitHub).
+  expect(payload.hubVersion).toMatch(/^\d+\.\d+\.\d+/);
+});
+
+test('an old reporter that omits the version fields still posts successfully', async ({ request }) => {
+  await putConfig(request, lifecycleConfig());
+
+  await expect
+    .poll(async () => {
+      const res = await request.post('/api/display/hw-stats', {
+        data: { displayId: 'main', hwStats: validHwStats() },
+      });
+      return res.status();
+    }, { timeout: 5000 })
+    .toBe(200);
+
+  const payload = (await (await request.get('/api/displays')).json()) as {
+    displays: Array<{ id: string; displaySoftware?: { updater: boolean; version: string | null } }>;
+  };
+  // Reads as "no automatic updates installed", which is what drives the
+  // editor's one-time setup prompt.
+  expect(payload.displays.find((d) => d.id === 'main')?.displaySoftware).toEqual({
+    updater: false,
+    version: null,
+  });
+});

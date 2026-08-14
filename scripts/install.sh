@@ -42,7 +42,7 @@ if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/lib/common.sh" ]; then
   _BRANCH="main"
   _BASE="https://raw.githubusercontent.com/${_REPO}/${_BRANCH}/scripts"
   printf '\n  Downloading installer files...\n\n'
-  mkdir -p "${_TMP}/lib" "${_TMP}/boot-splash"
+  mkdir -p "${_TMP}/lib" "${_TMP}/boot-splash" "${_TMP}/share"
   curl -fsSL "${_BASE}/install.sh" -o "${_TMP}/install.sh"
   curl -fsSL "${_BASE}/lib/common.sh" -o "${_TMP}/lib/common.sh"
   for _f in home-screens.plymouth home-screens.script logo.png dot.png; do
@@ -52,9 +52,19 @@ if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/lib/common.sh" ]; then
   # can install the hardware reporter. Without these the install_reporter()
   # call below falls through to its "Reporter script not found" warning and
   # the Pi silently skips hw-stats posting, contradicting the adoption UI.
-  for _f in reporter.sh home-screens-reporter.service home-screens-reporter.timer; do
+  #
+  # The kiosk-* files are the spoke shell layer and its self-updater. They
+  # used to be heredocs inside this script, which is exactly why Pis in the
+  # field froze at flash time — a launcher that only exists as a string
+  # literal can never be re-shipped. They are real files now, and the same
+  # set is what the hub serves back through /api/display/kiosk-bundle.
+  for _f in reporter.sh home-screens-reporter.service home-screens-reporter.timer \
+            kiosk-launcher-display.sh kiosk-update.sh kiosk-update-install.sh \
+            kiosk-update-privileged.sh rotate-display.sh \
+            home-screens-kiosk-update.service home-screens-kiosk-update.timer; do
     curl -fsSL "${_BASE}/${_f}" -o "${_TMP}/${_f}"
   done
+  curl -fsSL "${_BASE}/share/connecting.html" -o "${_TMP}/share/connecting.html"
   _HS_BOOTSTRAP_TMP="${_TMP}" exec bash "${_TMP}/install.sh" "$@"
 fi
 
@@ -285,131 +295,23 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
   [ -n "${WLR_TRANSFORM}" ] && echo "DISPLAY_TRANSFORM=\"${WLR_TRANSFORM}\"" >> "${KIOSK_CONF}"
   echo "PI_VARIANT=\"${PI_VARIANT}\"" >> "${KIOSK_CONF}"
 
-  # 6. Local "Connecting…" splash served via file:// while the hub boots.
-  SPLASH_HTML="${APP_DIR}/share/connecting.html"
-  cat > "${SPLASH_HTML}" <<'SPLASH_EOF'
-<!doctype html>
-<html><head><meta charset="utf-8"><title>Home Screens</title>
-<style>
-  html,body{margin:0;height:100%;background:#0a0a0a;color:#e5e5e5;
-    font-family:Inter,system-ui,sans-serif;display:flex;align-items:center;
-    justify-content:center;text-align:center;}
-  .wrap{padding:32px;max-width:520px}
-  h1{font-size:32px;font-weight:600;margin:0 0 12px;color:#fafafa}
-  p{font-size:16px;color:#a3a3a3;line-height:1.5;margin:0 0 24px}
-  .pill{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;
-    border-radius:999px;background:#171717;border:1px solid #262626;
-    font-size:13px;color:#737373}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;
-    background:#22c55e;animation:pulse 1.6s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
-</style></head><body><div class="wrap">
-  <h1>Home Screens</h1>
-  <p>Waiting for the hub to come online…</p>
-  <span class="pill"><span class="dot"></span>Connecting</span>
-</div></body></html>
-SPLASH_EOF
+  # 6+7. Spoke shell layer + self-updater.
+  #
+  # The launcher and the "Connecting…" splash used to be heredocs right here,
+  # which is precisely why every Pi in the field froze at flash time: a file
+  # that only exists as a string literal inside an installer can never be
+  # diffed, tested, or re-shipped. They are real repo files now, and this same
+  # set is what the hub serves back to spokes through
+  # /api/display/kiosk-bundle — so from here on a spoke follows the hub with
+  # no SSH and no user action.
+  #
+  # No --version is passed: the version stamp stays empty so the very first
+  # update check adopts the hub's exact bundle, whatever version the hub is
+  # on. That matters because this installer's files come from a release tag
+  # that need not match the hub's.
+  info "Installing kiosk launcher and automatic updates..."
+  bash "${SCRIPT_DIR}/kiosk-update-install.sh" --app-dir "${APP_DIR}" --user "${USER}"
 
-  # 7. Kiosk launcher — health-checks the hub before launching Chromium so
-  #    a display-only Pi sharing a power strip with the hub doesn't try to
-  #    load a URL that isn't ready yet.
-  LAUNCHER="${APP_DIR}/scripts/kiosk-launcher.sh"
-  cat > "${LAUNCHER}" <<'LAUNCHER_EOF'
-#!/usr/bin/env bash
-# Display-only kiosk launcher. Reads DISPLAY_URL/BACKEND_URL from kiosk.conf,
-# waits for the hub to respond, then launches Chromium pointed at the hub.
-#
-# Boot-time strategy:
-#   1. Try the hub immediately. If reachable, launch chromium with DISPLAY_URL.
-#   2. Otherwise launch chromium with a local "Connecting…" splash and start a
-#      background watcher. The watcher polls the hub; the moment it answers it
-#      sends SIGTERM to chromium. labwc's autologin cycle then restarts the
-#      whole stack and we re-enter this script — this time the immediate health
-#      check succeeds and we open DISPLAY_URL directly.
-#
-# This pattern relies on the existing labwc-restart-on-exit cycle from the
-# full install, so there is no DevTools fragility and no "exec foo &" confusion.
-APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
-
-DISPLAY_URL=""
-BACKEND_URL=""
-DISPLAY_TRANSFORM=""
-DISPLAY_MODE=""
-[ -f "${KIOSK_CONF}" ] && source "${KIOSK_CONF}"
-
-if [ -z "${DISPLAY_URL}" ]; then
-  echo "[kiosk-launcher] DISPLAY_URL not set in ${KIOSK_CONF}" >&2
-  exit 1
-fi
-
-# Apply rotation/resolution in the background. Same flow as the full install.
-if [ -n "${DISPLAY_TRANSFORM}" ] || [ -n "${DISPLAY_MODE}" ]; then
-  OUTPUT=$(wlr-randr 2>/dev/null | head -1 | awk '{print $1}' || echo 'HDMI-A-1')
-  [ -n "${DISPLAY_TRANSFORM}" ] && (sleep 1 && wlr-randr --output "${OUTPUT}" --transform "${DISPLAY_TRANSFORM}") &
-  [ -n "${DISPLAY_MODE}" ] && \
-    (sleep 2 && wlr-randr --output "${OUTPUT}" --mode "${DISPLAY_MODE}" 2>/dev/null \
-      || wlr-randr --output "${OUTPUT}" --custom-mode "${DISPLAY_MODE}" 2>/dev/null \
-      || true) &
-fi
-
-(sleep 2 && wtype -M logo -k h -m logo) &
-
-CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
-if [ -f "${CHROME_PREFS}" ]; then
-  sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${CHROME_PREFS}"
-fi
-
-# Purge session restore data so Chromium does not re-open the previous
-# session's app window alongside the new --app window.  Without this, every
-# reboot produces a duplicate tab that silently drains the command queue.
-rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
-
-HEALTH_URL="${BACKEND_URL:-${DISPLAY_URL%/display/*}}/api/system/build-id"
-SPLASH_URL="file://${APP_DIR}/share/connecting.html"
-
-# Single immediate health check. We don't loop here because labwc's
-# autologin-on-exit cycle re-runs this script every few seconds anyway,
-# and we want the splash to render in the meantime.
-if curl -fsS --max-time 5 "${HEALTH_URL}" >/dev/null 2>&1; then
-  TARGET_URL="${DISPLAY_URL}"
-else
-  TARGET_URL="${SPLASH_URL}"
-  # Background watcher: when the hub comes online, kill chromium so labwc
-  # exits and the bash_profile auto-launch picks the real URL on the next
-  # cycle. Loop terminates with chromium so we don't leak the watcher.
-  (
-    while sleep 5; do
-      if curl -fsS --max-time 3 "${HEALTH_URL}" >/dev/null 2>&1; then
-        pkill -TERM chromium 2>/dev/null || true
-        break
-      fi
-    done
-  ) &
-fi
-
-# Flag list must stay in step with the hub launcher in upgrade.sh and with
-# start-display.sh. --remote-debugging-port is what lets a deploy reload the
-# page over CDP instead of killing and relaunching the browser.
-exec chromium \
-  --app="${TARGET_URL}" \
-  --noerrdialogs \
-  --disable-infobars \
-  --no-first-run \
-  --disable-session-crashed-bubble \
-  --disable-translate \
-  --autoplay-policy=no-user-gesture-required \
-  --overscroll-history-navigation=0 \
-  --check-for-update-interval=31536000 \
-  --password-store=basic \
-  --ozone-platform=wayland \
-  --remote-debugging-port=9222 \
-  --ignore-gpu-blocklist \
-  --enable-zero-copy \
-  --num-raster-threads=2 \
-  --force-gpu-mem-available-mb=256
-LAUNCHER_EOF
-  chmod +x "${LAUNCHER}"
 
   # 8. labwc rc.xml (same window rules and cursor hide as full install)
   LABWC_DIR="${HOME}/.config/labwc"

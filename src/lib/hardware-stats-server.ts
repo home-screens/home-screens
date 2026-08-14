@@ -149,6 +149,11 @@ export async function getLocalHardwareStats(): Promise<HardwareStats> {
         memoryFree,
         diskTotal: disk.total,
         diskFree: disk.free,
+        // These describe a display-only Pi's locally-installed shell layer.
+        // This collector runs on the hub itself, which has no such layer to
+        // update — the hub updates through the normal Updates page.
+        kioskUpdater: false,
+        kioskVersion: null,
         reportedAt: new Date().toISOString(),
       };
 

@@ -322,3 +322,77 @@ test.describe('orientation change scaling', () => {
     expect(scaled.position.x + scaled.size.w).toBeLessThanOrEqual(1920);
   });
 });
+
+/* ─── Display software (self-update status) ──────────────────────────────── */
+
+test.describe('display software status', () => {
+  /** Post a hardware snapshot the way a spoke's reporter does. */
+  async function postReporterStats(
+    request: Parameters<typeof putConfig>[0],
+    displayId: string,
+    software: { kioskUpdater: boolean; kioskVersion: string | null },
+  ) {
+    await expect
+      .poll(async () => {
+        const res = await request.post('/api/display/hw-stats', {
+          data: {
+            displayId,
+            hwStats: {
+              piModel: 'Raspberry Pi 4 Model B',
+              cpuModel: 'Cortex-A72',
+              cpuCores: 4,
+              cpuTempC: 45,
+              load1: 0.1, load5: 0.1, load15: 0.1,
+              throttled: null,
+              memoryTotal: 4_000_000, memoryFree: 2_000_000,
+              diskTotal: 32_000_000, diskFree: 20_000_000,
+              reportedAt: new Date().toISOString(),
+              ...software,
+            },
+          },
+        });
+        return res.status();
+      }, { timeout: 5000 })
+      .toBe(200);
+  }
+
+  test('a Pi with no automatic updates gets the one-time setup command', async ({ page, request }) => {
+    await putConfig(request, twoDisplayConfig());
+    // A reporter that found no updater installed — i.e. a Pi flashed before
+    // display self-update existed. This is the only actionable state.
+    await postReporterStats(request, 'kitchen', { kioskUpdater: false, kioskVersion: null });
+
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
+
+    const command = page.getByTestId('display-software-command');
+    await expect(command).toBeVisible();
+    await expect(command).toContainText('/api/display/kiosk-bootstrap?display=kitchen');
+    await expect(command).toContainText('| bash');
+  });
+
+  test('a Pi running the hub version reads as up to date, with no command', async ({ page, request }) => {
+    await putConfig(request, twoDisplayConfig());
+
+    const hubVersion = (await (await request.get('/api/displays')).json()).hubVersion as string;
+    await postReporterStats(request, 'kitchen', { kioskUpdater: true, kioskVersion: hubVersion });
+
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
+
+    await expect(page.getByText(`Up to date (${hubVersion})`)).toBeVisible();
+    await expect(page.getByTestId('display-software-command')).toHaveCount(0);
+  });
+
+  test('a Pi behind the hub shows an update waiting, on the card and the index', async ({ page, request }) => {
+    await putConfig(request, twoDisplayConfig());
+    await postReporterStats(request, 'kitchen', { kioskUpdater: true, kioskVersion: '0.0.1' });
+
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
+    await expect(page.getByText('Update waiting (0.0.1)')).toBeVisible();
+    // Status only — displays follow the hub on their own, so there is
+    // deliberately no "update now" control anywhere in this UI.
+    await expect(page.getByRole('button', { name: /update now/i })).toHaveCount(0);
+
+    await page.goto('/editor/settings?section=displays');
+    await expect(page.getByTestId('display-software-chip').first()).toContainText('Update waiting');
+  });
+});

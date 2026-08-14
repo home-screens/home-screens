@@ -32,6 +32,20 @@ export interface HardwareStats {
   memoryFree: number;
   diskTotal: number;
   diskFree: number;
+  /**
+   * Whether this Pi is on the self-updating path for its shell layer (kiosk
+   * launcher, splash, reporter, systemd units). False both for a Pi flashed
+   * before self-update existed and for a reporter old enough not to send the
+   * field at all — either way the editor's answer is the same: offer the
+   * one-line bootstrap command.
+   */
+  kioskUpdater: boolean;
+  /**
+   * The applied display-software bundle version, or null when the updater is
+   * installed but has not yet applied one (normal for a Pi installed minutes
+   * ago, and for any Pi not yet adopted on the hub).
+   */
+  kioskVersion: string | null;
   /** ISO 8601 timestamp at which the reporter collected this snapshot. */
   reportedAt: string;
 }
@@ -125,6 +139,12 @@ export function validateHardwareStats(input: unknown): HardwareStats | null {
     load1, load5, load15,
     throttled: validateThrottled(o.throttled),
     memoryTotal, memoryFree, diskTotal, diskFree,
+    // Both are lenient by design: a reporter predating self-update omits
+    // them, and that payload must still be accepted — rejecting it would
+    // knock the Stats page offline for exactly the Pis that most need the
+    // migration prompt.
+    kioskUpdater: Boolean(o.kioskUpdater),
+    kioskVersion: asOptionalString(o.kioskVersion, 64),
     reportedAt,
   };
 }

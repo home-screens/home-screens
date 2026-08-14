@@ -113,6 +113,34 @@ fi
 DISK_TOTAL=${DISK_TOTAL:-0}
 DISK_FREE=${DISK_FREE:-0}
 
+# --- Display software (spoke shell layer) -----------------------------------
+# Two separate facts, because they answer two different questions in the
+# editor. `kioskUpdater` says whether this Pi is on the self-updating path at
+# all — a Pi flashed before self-update existed reports false (as does an old
+# reporter, which simply omits both fields) and the editor offers the
+# one-line bootstrap command. `kioskVersion` is the applied bundle version,
+# null until the first update lands, which is the normal state for a Pi
+# installed minutes ago.
+# The probe needs BOTH the updater script and a hub in kiosk.conf. The updater
+# alone is not enough: the release tarball ships the whole scripts/ tree, so a
+# full (hub) install has that file too, and reporting "updates installed" there
+# would leave the editor waiting forever for a check that no timer will run.
+# BACKEND_URL is the same marker kiosk-update.sh uses as its own hub guard, so
+# the two can't disagree about what counts as a managed display.
+#
+# grep, not source: this runs as root under systemd and kiosk.conf is writable
+# by the kiosk user, so sourcing it would execute user-writable content as root.
+APP_DIR="${HOME_SCREENS_APP_DIR:-/opt/home-screens/current}"
+KIOSK_UPDATER="false"
+KIOSK_VERSION=""
+if [ -x "${APP_DIR}/scripts/kiosk-update.sh" ] \
+   && grep -q '^BACKEND_URL=' "${APP_DIR}/data/kiosk.conf" 2>/dev/null; then
+  KIOSK_UPDATER="true"
+  if [ -r "${APP_DIR}/data/kiosk-bundle.version" ]; then
+    KIOSK_VERSION=$(head -c 128 "${APP_DIR}/data/kiosk-bundle.version" | tr -d '[:space:]')
+  fi
+fi
+
 # --- Assemble payload -------------------------------------------------------
 NOW_ISO=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -125,6 +153,8 @@ HW_JSON=$(jq -n \
   --argjson throttled "${THROTTLED_JSON}" \
   --argjson memoryTotal "${MEM_TOTAL}" --argjson memoryFree "${MEM_FREE}" \
   --argjson diskTotal "${DISK_TOTAL}" --argjson diskFree "${DISK_FREE}" \
+  --arg kioskVersion "${KIOSK_VERSION}" \
+  --argjson kioskUpdater "${KIOSK_UPDATER}" \
   --arg reportedAt "${NOW_ISO}" \
   '{
      piModel:    (if $piModel  == "" then null else $piModel  end),
@@ -135,6 +165,8 @@ HW_JSON=$(jq -n \
      throttled: $throttled,
      memoryTotal: $memoryTotal, memoryFree: $memoryFree,
      diskTotal: $diskTotal, diskFree: $diskFree,
+     kioskUpdater: $kioskUpdater,
+     kioskVersion: (if $kioskVersion == "" then null else $kioskVersion end),
      reportedAt: $reportedAt
    }')
 

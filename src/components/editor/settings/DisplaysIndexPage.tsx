@@ -24,6 +24,7 @@ import type {
   ViewportReport,
 } from '@/lib/displays-api-types';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
+import { resolveDisplaySoftwareState } from '@/lib/display-software-status';
 
 /**
  * Humanize the raw client address that `getClientIP` returned from the
@@ -506,6 +507,7 @@ export default function DisplaysIndexPage() {
               key={display.id}
               display={display}
               heartbeat={heartbeats.get(display.id) ?? null}
+              hubVersion={apiData?.hubVersion}
               onOpen={() => openDisplay(display.id)}
             />
           ))}
@@ -699,14 +701,21 @@ export default function DisplaysIndexPage() {
 function DisplayCard({
   display,
   heartbeat,
+  hubVersion,
   onOpen,
 }: {
   display: DisplayNode;
   heartbeat: DisplayApiEntry | null;
+  hubVersion?: string;
   onOpen: () => void;
 }) {
   const t = useTranslate('editor');
   const lastSeen = heartbeat?.lastSeen ?? null;
+  // Only the two states the user can or should act on get a chip here. A
+  // display that is up to date, still settling in, or simply not running the
+  // reporter has nothing worth spending a line of the card on — the detail
+  // page carries the full story.
+  const software = resolveDisplaySoftwareState(heartbeat?.displaySoftware, hubVersion);
   const oriented = display.displayWidth && display.displayHeight
     ? declaredCanvasDimensions(display.displayWidth, display.displayHeight, display.displayTransform)
     : null;
@@ -785,6 +794,17 @@ function DisplayCard({
           <span className="font-mono text-hs-text-faint">{reporterIp}</span>
         ) : (
           <span className="font-mono text-hs-text-faint">—</span>
+        )}
+        {(software.kind === 'outdated' || software.kind === 'needs-setup') && (
+          <span
+            data-testid="display-software-chip"
+            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-hs-warning/30 bg-hs-warning/[0.07] text-hs-warning"
+          >
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning" />
+            {software.kind === 'outdated'
+              ? t('settings.displaysIndex.softwareUpdateWaiting')
+              : t('settings.displaysIndex.softwareNeedsSetup')}
+          </span>
         )}
       </div>
       {multipleReporters && (

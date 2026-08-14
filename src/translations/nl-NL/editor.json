@@ -676,6 +676,19 @@
         "overrideForButton": "Overschrijven voor {name}",
         "usingDefaultPart1": "Gebruikt de standaard van ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Schermsoftware",
+        "upToDate": "Up-to-date ({version})",
+        "updateWaiting": "Update staat klaar ({version})",
+        "updateWaitingHint": "Dit scherm haalt {version} vannacht op, of bij de volgende herstart.",
+        "pending": "Wordt klaargemaakt",
+        "pendingHint": "Dit scherm neemt de software van de hub over bij de volgende controle.",
+        "unreported": "Niet doorgegeven",
+        "unreportedHint": "Dit scherm heeft de hub nog niet laten weten welke software het gebruikt.",
+        "needsSetupBody": "Dit scherm is ingesteld voordat automatische updates bestonden, dus je moet er één keer deze opdracht op uitvoeren. Daarna houdt het zichzelf bij.",
+        "copy": "Kopiëren",
+        "copied": "Gekopieerd"
       }
     },
     "alertFormFields": {
@@ -1710,7 +1723,9 @@
       "formErrorIdReserved": "\"{id}\" heeft al een speciale betekenis bij het sturen van opdrachten naar schermen. Kies een ander ID, bijv. \"kitchen\" of \"bedroom-tv\"",
       "formErrorIdTaken": "Er bestaat al een scherm met ID \"{id}\"",
       "formErrorWidth": "Breedte moet een positief geheel getal ≤ {max} zijn",
-      "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn"
+      "formErrorHeight": "Hoogte moet een positief geheel getal ≤ {max} zijn",
+      "softwareUpdateWaiting": "Update staat klaar",
+      "softwareNeedsSetup": "Instellen nodig"
     },
     "header": {
       "backToEditor": "Editor",

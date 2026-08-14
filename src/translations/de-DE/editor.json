@@ -676,6 +676,19 @@
         "overrideForButton": "Für {name} überschreiben",
         "usingDefaultPart1": "Verwendet den Standard von ",
         "usingDefaultPart2": "."
+      },
+      "displaySoftware": {
+        "heading": "Display-Software",
+        "upToDate": "Aktuell ({version})",
+        "updateWaiting": "Update steht an ({version})",
+        "updateWaitingHint": "Dieses Display holt sich {version} über Nacht oder beim nächsten Neustart.",
+        "pending": "Wird vorbereitet",
+        "pendingHint": "Dieses Display übernimmt die Software der Zentrale bei der nächsten Rückmeldung.",
+        "unreported": "Keine Rückmeldung",
+        "unreportedHint": "Dieses Display hat der Zentrale noch nicht mitgeteilt, welche Software es nutzt.",
+        "needsSetupBody": "Dieses Display wurde eingerichtet, bevor es automatische Updates gab. Führe deshalb einmalig diesen Befehl darauf aus. Danach hält es sich selbst aktuell.",
+        "copy": "Kopieren",
+        "copied": "Kopiert"
       }
     },
     "alertFormFields": {
@@ -1710,7 +1723,9 @@
       "formErrorIdReserved": "„{id}“ hat beim Senden von Befehlen an Displays bereits eine besondere Bedeutung. Bitte wähle eine andere ID, z. B. „kitchen“ oder „bedroom-tv“",
       "formErrorIdTaken": "Eine Anzeige mit der ID „{id}“ existiert bereits",
       "formErrorWidth": "Die Breite muss eine positive Ganzzahl ≤ {max} sein",
-      "formErrorHeight": "Die Höhe muss eine positive Ganzzahl ≤ {max} sein"
+      "formErrorHeight": "Die Höhe muss eine positive Ganzzahl ≤ {max} sein",
+      "softwareUpdateWaiting": "Update steht an",
+      "softwareNeedsSetup": "Einrichtung nötig"
     },
     "header": {
       "backToEditor": "Editor",

@@ -6,6 +6,7 @@ import { execFileSync } from 'child_process';
 import { afterEach, beforeEach } from 'vitest';
 import crypto from 'crypto';
 import { sanitizePluginId } from '@/lib/plugin-utils';
+import { __resetPackageVersionCacheForTests } from '@/lib/version';
 import {
   validateManifest,
   installExternalPlugin,
@@ -293,6 +294,11 @@ describe('installExternalPlugin', () => {
     tmpCwd = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-ext-cwd-'));
     await fs.mkdir(path.join(tmpCwd, 'data', 'plugins'), { recursive: true });
     process.chdir(tmpCwd);
+    // getPackageVersion memoizes for the process lifetime, which is correct
+    // under a running server (cwd is fixed, and an upgrade restarts the
+    // process) but wrong across tests that swap cwd per case — a version
+    // cached from one temp dir would leak into the next one's assertions.
+    __resetPackageVersionCacheForTests();
   });
 
   afterEach(async () => {
