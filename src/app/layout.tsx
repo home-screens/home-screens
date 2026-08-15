@@ -1,16 +1,15 @@
 import type { Metadata } from 'next';
-import {
-  Inter,
-  Roboto,
-  Poppins,
-  Playfair_Display,
-  Lora,
-  DM_Serif_Display,
-  JetBrains_Mono,
-  Bebas_Neue,
-  Caveat,
-  Pacifico,
-} from 'next/font/google';
+// Self-hosted from src/app/fonts, NOT next/font/google.
+//
+// next/font/google downloads every family from fonts.gstatic.com during the
+// build. CI builds once per E2E shard, so that was dozens of requests to
+// Google per run, and one 404 from their CDN failed the whole build with
+// errors that read like a code defect (2026-08-14). The bytes served to the
+// browser are identical — next/font/google was already self-hosting these in
+// the build output — so this only changes where the files come from.
+//
+// Run `node scripts/fetch-fonts.mjs` to refresh or add a family.
+import localFont from 'next/font/local';
 import ThemeListener from '@/components/ThemeListener';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -21,62 +20,70 @@ import './globals.css';
 // copy step for the CSS/fonts (the slim search manifest still needs the postinstall).
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-const inter = Inter({
-  subsets: ['latin'],
+// Variable families: one file spans the whole weight axis, so the range
+// below must cover every weight the app actually uses.
+const inter = localFont({
+  src: './fonts/inter-variable.woff2',
+  weight: '100 900',
   variable: '--font-inter',
   display: 'swap',
 });
-const roboto = Roboto({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
+const roboto = localFont({
+  src: './fonts/roboto-variable.woff2',
+  weight: '100 900',
   variable: '--font-roboto',
   display: 'swap',
 });
-const poppins = Poppins({
-  weight: ['400', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
-  display: 'swap',
-});
-const playfair = Playfair_Display({
-  weight: ['400', '700', '900'],
-  subsets: ['latin'],
+const playfair = localFont({
+  src: './fonts/playfair-display-variable.woff2',
+  weight: '400 900',
   variable: '--font-playfair',
   display: 'swap',
 });
-const lora = Lora({
-  weight: ['400', '700'],
-  subsets: ['latin'],
+const lora = localFont({
+  src: './fonts/lora-variable.woff2',
+  weight: '400 700',
   variable: '--font-lora',
   display: 'swap',
 });
-const dmSerif = DM_Serif_Display({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-dm-serif',
-  display: 'swap',
-});
-const jetbrains = JetBrains_Mono({
-  weight: ['400', '700'],
-  subsets: ['latin'],
+const jetbrains = localFont({
+  src: './fonts/jetbrains-mono-variable.woff2',
+  weight: '100 800',
   variable: '--font-jetbrains',
   display: 'swap',
 });
-const bebas = Bebas_Neue({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-bebas',
-  display: 'swap',
-});
-const caveat = Caveat({
-  weight: ['400', '700'],
-  subsets: ['latin'],
+const caveat = localFont({
+  src: './fonts/caveat-variable.woff2',
+  weight: '400 700',
   variable: '--font-caveat',
   display: 'swap',
 });
-const pacifico = Pacifico({
+
+// Static families: a distinct file per weight.
+const poppins = localFont({
+  src: [
+    { path: './fonts/poppins-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/poppins-600.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/poppins-700.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-poppins',
+  display: 'swap',
+});
+const dmSerif = localFont({
+  src: './fonts/dm-serif-display-400.woff2',
   weight: '400',
-  subsets: ['latin'],
+  variable: '--font-dm-serif',
+  display: 'swap',
+});
+const bebas = localFont({
+  src: './fonts/bebas-neue-400.woff2',
+  weight: '400',
+  variable: '--font-bebas',
+  display: 'swap',
+});
+const pacifico = localFont({
+  src: './fonts/pacifico-400.woff2',
+  weight: '400',
   variable: '--font-pacifico',
   display: 'swap',
 });

@@ -3,13 +3,14 @@
  *
  * Each entry pairs an ID (stored in config) with the CSS stack used at render
  * time. Stacks reference CSS variables registered in src/app/layout.tsx via
- * next/font/google so fonts are self-hosted at build time (no runtime fetch).
+ * next/font/local, pointing at the woff2 files vendored in src/app/fonts —
+ * no runtime fetch, and no build-time fetch either.
  *
  * Backward compatible: legacy configs that stored raw CSS stacks still work —
  * resolveFontStack() recognizes well-known legacy stacks (e.g. the original
  * "Inter, system-ui, sans-serif" default) and upgrades them to the registry's
  * var(--font-*) stack so existing data/config.json values benefit from
- * next/font self-hosting without a schema migration.
+ * self-hosted fonts without a schema migration.
  */
 
 export type FontCategory = 'sans' | 'serif' | 'mono' | 'display' | 'handwriting';

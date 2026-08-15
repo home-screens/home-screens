@@ -1,0 +1,126 @@
+{
+  "fetchedFrom": "fonts.googleapis.com/css2",
+  "subset": "latin",
+  "files": [
+    {
+      "family": "Inter",
+      "file": "inter-variable.woff2",
+      "weight": "100 900",
+      "bytes": 48432,
+      "source": "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/inter-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/inter/OFL.txt"
+    },
+    {
+      "family": "Roboto",
+      "file": "roboto-variable.woff2",
+      "weight": "100 900",
+      "bytes": 37520,
+      "source": "https://fonts.gstatic.com/s/roboto/v51/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBHMdazQ.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/roboto-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/roboto/OFL.txt"
+    },
+    {
+      "family": "Playfair Display",
+      "file": "playfair-display-variable.woff2",
+      "weight": "400 900",
+      "bytes": 38460,
+      "source": "https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/playfair-display-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/OFL.txt"
+    },
+    {
+      "family": "Lora",
+      "file": "lora-variable.woff2",
+      "weight": "400 700",
+      "bytes": 37792,
+      "source": "https://fonts.gstatic.com/s/lora/v37/0QIvMX1D_JOuMwr7I_FMl_E.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/lora-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/OFL.txt"
+    },
+    {
+      "family": "JetBrains Mono",
+      "file": "jetbrains-mono-variable.woff2",
+      "weight": "100 800",
+      "bytes": 40480,
+      "source": "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwGtT0rU.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/jetbrains-mono-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/jetbrainsmono/OFL.txt"
+    },
+    {
+      "family": "Caveat",
+      "file": "caveat-variable.woff2",
+      "weight": "400 700",
+      "bytes": 74572,
+      "source": "https://fonts.gstatic.com/s/caveat/v23/Wnz6HAc5bAfYB2Q7ZjYYiAzcPA.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/caveat-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/OFL.txt"
+    },
+    {
+      "family": "Poppins",
+      "file": "poppins-400.woff2",
+      "weight": "400",
+      "bytes": 7900,
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/poppins-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/OFL.txt"
+    },
+    {
+      "family": "Poppins",
+      "file": "poppins-600.woff2",
+      "weight": "600",
+      "bytes": 7992,
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/poppins-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/OFL.txt"
+    },
+    {
+      "family": "Poppins",
+      "file": "poppins-700.woff2",
+      "weight": "700",
+      "bytes": 7848,
+      "source": "https://fonts.gstatic.com/s/poppins/v24/pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/poppins-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/OFL.txt"
+    },
+    {
+      "family": "DM Serif Display",
+      "file": "dm-serif-display-400.woff2",
+      "weight": "400",
+      "bytes": 17844,
+      "source": "https://fonts.gstatic.com/s/dmserifdisplay/v17/-nFnOHM81r4j6k0gjAW3mujVU2B2G_Bx0vrx52g.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/dm-serif-display-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmserifdisplay/OFL.txt"
+    },
+    {
+      "family": "Bebas Neue",
+      "file": "bebas-neue-400.woff2",
+      "weight": "400",
+      "bytes": 8596,
+      "source": "https://fonts.gstatic.com/s/bebasneue/v16/JTUSjIg69CK48gW7PXoo9WlhyyTh89Y.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/bebas-neue-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/bebasneue/OFL.txt"
+    },
+    {
+      "family": "Pacifico",
+      "file": "pacifico-400.woff2",
+      "weight": "400",
+      "bytes": 22296,
+      "source": "https://fonts.gstatic.com/s/pacifico/v23/FwZY7-Qmy14u9lezJ-6H6MmBp0u-.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/pacifico-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/pacifico/OFL.txt"
+    }
+  ]
+}
