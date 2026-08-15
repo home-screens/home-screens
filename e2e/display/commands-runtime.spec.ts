@@ -189,6 +189,9 @@ test('sleep-override holds the display awake against an active sleep schedule; a
     request,
     // An always-active sleep window: the schedule re-asserts sleep on every
     // 10s tick, so anything still visible 12s after a wake proves a hold.
+    // wakeHoldMinutes: 0 disables the explicit-wake hold so the plain-wake
+    // control case below actually re-sleeps; the default hold has its own
+    // test after this one.
     displayConfig(id, [makeScreen('s', 'S', [textModule('OVERRIDE SCREEN')])], {
       sleep: {
         enabled: true,
@@ -196,6 +199,7 @@ test('sleep-override holds the display awake against an active sleep schedule; a
         sleepAfterMinutes: 600,
         dimBrightness: 20,
         schedule: { startTime: '00:00', endTime: '23:59' },
+        wakeHoldMinutes: 0,
       },
     }),
     id,
@@ -219,6 +223,58 @@ test('sleep-override holds the display awake against an active sleep schedule; a
   // An explicit sleep cancels the hold and sticks (forceSleep clears it).
   await sendCommand(request, id, 'sleep');
   await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+});
+
+test('the default wake hold keeps a plain wake alive through the sleep window, and navigation wakes a sleeping display', async ({ page, request }) => {
+  // Same soak-across-real-ticks structure as the sleep-override test above.
+  test.setTimeout(90_000);
+  const id = 'cmd-wake-hold';
+  await openDisplay(
+    page,
+    request,
+    // No wakeHoldMinutes → the DEFAULT_WAKE_HOLD_MINUTES hold applies to
+    // explicit wakes during the always-active sleep window (issue #26).
+    displayConfig(
+      id,
+      [
+        makeScreen('a', 'A', [textModule('HOLD SCREEN ALPHA')]),
+        makeScreen('b', 'B', [textModule('HOLD SCREEN BRAVO')]),
+      ],
+      {
+        sleep: {
+          enabled: true,
+          dimAfterMinutes: 600,
+          sleepAfterMinutes: 600,
+          dimBrightness: 20,
+          schedule: { startTime: '00:00', endTime: '23:59' },
+        },
+      },
+    ),
+    id,
+  );
+
+  // The schedule blacks the display out within the first tick.
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+
+  // A plain wake now holds: 12s straddles at least one full 10s tick, so the
+  // schedule demonstrably tried and failed to re-assert during the hold.
+  await sendCommand(request, id, 'wake');
+  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  await page.waitForTimeout(12_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
+
+  // An explicit sleep cancels the hold and sticks.
+  await sendCommand(request, id, 'sleep');
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+
+  // next-screen on the sleeping display wakes it onto the other screen
+  // (previously it navigated invisibly under the opaque overlay), and the
+  // wake carries the same hold.
+  const onAlpha = await page.getByText('HOLD SCREEN ALPHA', { exact: true }).isVisible();
+  await sendCommand(request, id, 'next-screen');
+  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  const nextText = onAlpha ? 'HOLD SCREEN BRAVO' : 'HOLD SCREEN ALPHA';
+  await expect(page.getByText(nextText, { exact: true })).toBeVisible({ timeout: 8000 });
 });
 
 test('brightness dims the display, and brightness 100 restores it', async ({ page, request }) => {

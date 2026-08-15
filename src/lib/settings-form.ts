@@ -1,4 +1,5 @@
 import type { GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
+import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
 
 /**
  * Form state ↔ GlobalSettings transforms for the Defaults settings page.
@@ -58,6 +59,7 @@ export interface SleepState {
   sleepScheduleEnabled: boolean;
   sleepStartTime: string;
   sleepEndTime: string;
+  wakeHoldMinutes: number;
   screensaverMode: string;
 }
 
@@ -107,6 +109,7 @@ export const FORM_DEFAULTS: SettingsState = {
     sleepScheduleEnabled: false,
     sleepStartTime: '23:00',
     sleepEndTime: '06:00',
+    wakeHoldMinutes: DEFAULT_WAKE_HOLD_MINUTES,
     screensaverMode: 'clock',
   },
   alerts: { alertsEnabled: true, alertsPosition: 'top', alertsMaxVisible: 3, alertsDefaultDuration: 0, alertsScale: 1 },
@@ -136,6 +139,7 @@ export function sleepConfigToForm(
     sleepScheduleEnabled: !!sleep?.schedule,
     sleepStartTime: sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
     sleepEndTime: sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
+    wakeHoldMinutes: sleep?.wakeHoldMinutes ?? DEFAULT_WAKE_HOLD_MINUTES,
     screensaverMode: screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
   };
 }
@@ -153,6 +157,7 @@ export function sleepFormToConfig(sleep: SleepState): {
       dimBrightness: sleep.dimBrightness,
       ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
       ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
+      wakeHoldMinutes: sleep.wakeHoldMinutes,
     },
     screensaver: {
       mode: sleep.screensaverMode as ScreensaverSettings['mode'],

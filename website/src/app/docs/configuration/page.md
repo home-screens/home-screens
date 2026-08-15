@@ -124,6 +124,8 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
       startTime: string         // "HH:mm" format
       endTime: string           // "HH:mm" format
     }
+    wakeHoldMinutes?: number    // How long a wake during a schedule window
+                                // keeps the display on (absent = 5, 0 = none)
   }
 
   screensaver?: {

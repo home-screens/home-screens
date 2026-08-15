@@ -260,7 +260,7 @@ curl -X POST http://<ip>:3000/api/display/goto-screen \
   -d '{"screen": "calendar"}'
 ```
 
-**Keep the display on** — wake and hold off the sleep schedule, dim schedule, and idle behavior for a number of minutes (up to 24 hours). A plain `wake` can be re-slept by the schedule seconds later; this can't. An explicit `sleep` cancels the hold:
+**Keep the display on** — wake and hold off the sleep schedule, dim schedule, and idle behavior for a number of minutes (up to 24 hours). A plain `wake` during a scheduled window holds the display awake for its "After a wake-up" setting (5 minutes by default); use this when you want a specific, longer duration. An explicit `sleep` cancels the hold:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/sleep-override \

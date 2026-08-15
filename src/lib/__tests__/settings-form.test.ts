@@ -78,6 +78,7 @@ describe('settings-form transforms', () => {
         sleepScheduleEnabled: true,
         sleepStartTime: '23:30',
         sleepEndTime: '06:30',
+        wakeHoldMinutes: 15,
         screensaverMode: 'blank',
       },
       alerts: {

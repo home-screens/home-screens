@@ -110,8 +110,14 @@ describe('useSleepManager with idle dimming disabled', () => {
     expect(result.current.displayState).toBe('dimmed');
   });
 
-  it('a touch during the scheduled sleep still wakes, and the next tick re-sleeps', async () => {
-    const { result } = renderHook(() => useSleepManager(SCHEDULE_ONLY, undefined));
+  it('a touch during the scheduled sleep still wakes, and the schedule re-asserts after the hold', async () => {
+    // wakeHoldMinutes: 0 pins the pre-hold behavior this test is about: the
+    // touch-wake path must exist with idle dimming off, and with no hold the
+    // schedule re-asserts on the next 10s tick. The wake-hold itself is
+    // covered in sleep-manager-wake-hold.test.tsx.
+    const { result } = renderHook(() =>
+      useSleepManager({ ...SCHEDULE_ONLY, wakeHoldMinutes: 0 }, undefined),
+    );
 
     await act(async () => { await vi.advanceTimersByTimeAsync(11.5 * 60 * 60_000); });
     expect(result.current.displayState).toBe('asleep');

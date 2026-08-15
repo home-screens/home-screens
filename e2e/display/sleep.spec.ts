@@ -123,9 +123,14 @@ test('a flick on a dimmed display wakes it without changing screens', async ({ p
       makeScreen('b', 'B', [textModule('DIM SWIPE B')]),
     ],
     // Frozen rotation so any screen change could only come from the flick.
+    // wakeHoldMinutes: 0 — the cursor-parking mousemove below counts as
+    // activity, and with the default wake hold it would keep the display
+    // bright for minutes, so the scheduled dim this test waits for would
+    // never arrive. The hold has its own coverage; this test is about the
+    // swipe gate.
     settings: {
       rotationIntervalMs: 3_600_000,
-      sleep: sleepSettings({ dimSchedule: windowAround(-120, 120) }),
+      sleep: sleepSettings({ dimSchedule: windowAround(-120, 120), wakeHoldMinutes: 0 }),
     },
   }));
   await page.goto('/display');

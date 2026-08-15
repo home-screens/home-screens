@@ -11,6 +11,15 @@
  * drawn on a clock — the preview component notes it in the legend instead.
  */
 
+/**
+ * Default for `SleepSettings.wakeHoldMinutes`: how long an explicit wake
+ * (touch, remote wake, remote navigation, remote brightness) holds off a
+ * sleep/dim schedule window before it re-asserts. Lives here rather than in
+ * `useSleepManager` so the settings-form transforms (plain lib) don't have
+ * to import a 'use client' hook module for one constant.
+ */
+export const DEFAULT_WAKE_HOLD_MINUTES = 5;
+
 export type TimelineState = 'bright' | 'dim' | 'off';
 
 export interface TimelineSegment {

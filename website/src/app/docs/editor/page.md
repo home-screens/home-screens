@@ -259,6 +259,7 @@ Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most
 
 - **Sleep & dimming** is grouped into three sections — inactivity dimming ("Dim after a few quiet minutes"), the daily schedules ("Dim in the evening" and "Turn off overnight"), and the dimmed appearance — with a 24-hour preview bar showing when the display will be bright, dimmed, or off. Turn the inactivity toggle off to keep full brightness all day while a schedule handles the night.
 - **Dim and sleep schedules** support overnight spans — `23:00–06:00` works and wraps past midnight as you'd expect.
+- **After a wake-up, stay on for** (shown when a schedule is on) — how long the display stays awake when someone touches it or wakes it from the remote during a scheduled dim or sleep window, before the schedule takes over again. Defaults to 5 minutes; set it to the minimum for the old behavior of going right back to sleep.
 - **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (no clock — the display still dims).
 - **Touchscreen Pause** (on by default) — double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
 - **Swipe to change screens** (on by default) — flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.

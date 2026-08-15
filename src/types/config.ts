@@ -259,6 +259,16 @@ export interface SleepSettings {
     startTime: string; // "23:00"
     endTime: string;   // "06:00"
   };
+  /**
+   * How long an explicit wake (touch, remote wake button, remote navigation,
+   * a remote brightness command) keeps the display awake when it lands
+   * inside an active sleep/dim schedule window, before the schedule
+   * re-asserts. Absent means DEFAULT_WAKE_HOLD_MINUTES; 0 means no hold (the
+   * schedule re-asserts on the next 10s tick). The hold is only ever armed
+   * inside a schedule window, so idle dimming timing stays governed by
+   * dimAfterMinutes alone.
+   */
+  wakeHoldMinutes?: number;
 }
 
 export type ScreensaverMode = 'clock' | 'blank' | 'off';

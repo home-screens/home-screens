@@ -319,12 +319,12 @@ Toggle **Dim in the evening** to force the display to dim during a fixed window 
 
 ### Scheduled sleep
 
-Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). This overrides everything -- the display ignores user activity during the sleep window and wakes automatically when it ends. Supports overnight spans.
+Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). Touching the display (or waking it from the remote) during the window brings it back for the **After a wake-up, stay on for** setting (5 minutes by default), then the schedule takes over again. It wakes automatically when the window ends. Supports overnight spans.
 
 ### Sleep priority
 
 ```
-Sleep schedule (highest)  -->  forces display off, ignores activity
+Sleep schedule (highest)  -->  forces display off; a wake pauses it for the wake-up hold
 Dim schedule              -->  forces dimmed while its window is active
 Idle-based dim/sleep      -->  inactivity timer; runs only while its toggle is on
 User activity (wake)      -->  any input restores full brightness

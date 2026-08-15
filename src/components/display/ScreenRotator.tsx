@@ -318,7 +318,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   //
   // A rule-fired wake holds the display awake through a scheduled sleep window
   // for RULE_WAKE_HOLD_MS, so an alert isn't blacked out ~10s later. Touch and
-  // remote wakes call `wake` with no hold and stay re-slept by the schedule.
+  // remote wakes get their own hold (SleepSettings.wakeHoldMinutes), armed
+  // inside useSleepManager only when the wake lands in a schedule window.
   const prevWakeRequestRef = useRef(wakeRequest);
   useEffect(() => {
     if (wakeRequest === prevWakeRequestRef.current) return;

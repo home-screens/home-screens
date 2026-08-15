@@ -126,6 +126,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'sleep.sleepScheduleEnabled', labelKey: 'settings.sleepFormFields.sleepScheduleLabel', panel: 'sleep' },
   { pageId: 'screen', fieldId: 'sleep.sleepStartTime', labelKey: 'settings.sleepFormFields.sleepAtLabel', panel: 'sleep' },
   { pageId: 'screen', fieldId: 'sleep.sleepEndTime', labelKey: 'settings.sleepFormFields.wakeAtLabel', panel: 'sleep' },
+  { pageId: 'screen', fieldId: 'sleep.wakeHoldMinutes', labelKey: 'settings.sleepFormFields.wakeHoldLabel', panel: 'sleep' },
 
   { pageId: 'screen', fieldId: 'alerts.enabled', labelKey: 'settings.alertFormFields.enableLabel', panel: 'alerts' },
   { pageId: 'screen', fieldId: 'alerts.position', labelKey: 'settings.alertFormFields.positionLabel', panel: 'alerts' },

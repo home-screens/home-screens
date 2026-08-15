@@ -69,8 +69,21 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   await idleDimSwitch.click();
   await expect(page.locator('label', { hasText: 'Dim after (minutes)' })).toBeHidden();
 
+  // The wake-hold slider only exists alongside a schedule — with neither
+  // schedule enabled there is no window for a wake to hold off.
+  await expect(page.locator('[data-field-id="sleep.wakeHoldMinutes"]')).toBeHidden();
+
   // Enabling the dim schedule brings the dimmed-appearance controls back.
   await page.locator('label', { hasText: 'Dim in the evening' }).getByRole('switch').click();
+
+  // ...and the wake-hold slider with them. Home → 0 ("Just a moment"), a
+  // value distinct from the default 5, proving the field persists.
+  const wakeHold = page
+    .locator('[data-field-id="sleep.wakeHoldMinutes"]')
+    .locator('input[type="range"]');
+  await expect(wakeHold).toBeVisible();
+  await wakeHold.focus();
+  await wakeHold.press('Home');
 
   // Dim level: the brightness slider (min 5, max 80, step 5). End → 80, a value
   // distinct from the default 20.
@@ -98,6 +111,9 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   await expect
     .poll(async () => (await getConfig(request)).settings.sleep?.dimSchedule?.startTime)
     .toBe('22:30');
+  await expect
+    .poll(async () => (await getConfig(request)).settings.sleep?.wakeHoldMinutes)
+    .toBe(0);
 });
 
 test.describe('per-display sleep override', () => {

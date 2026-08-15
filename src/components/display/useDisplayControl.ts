@@ -17,7 +17,8 @@ interface UseDisplayControlParams {
   nextScreen: () => void;
   prevScreen: () => void;
   /** Jump to a screen by id or name. The rotator's resolver already clears
-   *  pause and releases takeovers, so no remote wrapper is needed here. */
+   *  pause and releases takeovers; the wrapper below only adds the
+   *  wake-if-hidden intent shared by all remote navigation. */
   gotoScreen: (target: string) => void;
   resetRotation: () => void;
   clearPause?: () => void;
@@ -40,19 +41,37 @@ export function useDisplayControl({
   clearPause,
   displayId,
 }: UseDisplayControlParams) {
-  const { displayState, dimOpacity, wake, forceSleep, setRemoteBrightness } = useSleepManager(sleep, timezone);
+  const { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness } =
+    useSleepManager(sleep, timezone);
 
+  // Remote navigation implies wake when the content is hidden (issue #26):
+  // changing screens on a sleeping display otherwise "works" invisibly under
+  // the opaque overlay, and a schedule-dimmed display is nearly as dark. Same
+  // precedent as rule takeovers and remote timer starts — an explicit remote
+  // action on a hidden display is a wake intent. The plain wake() arms the
+  // configured schedule-window hold, so the navigated-to screen stays visible
+  // for wakeHoldMinutes instead of one 10s tick. wakeIfHidden lives in
+  // useSleepManager (backed by synchronous refs) because the command drain
+  // runs a whole batch — e.g. `sleep` then `goto-screen` — before React
+  // re-renders, and it leaves a remote-set partial brightness untouched.
   const remoteNext = useCallback(() => {
+    wakeIfHidden();
     nextScreen();
     resetRotation();
     clearPause?.();
-  }, [nextScreen, resetRotation, clearPause]);
+  }, [wakeIfHidden, nextScreen, resetRotation, clearPause]);
 
   const remotePrev = useCallback(() => {
+    wakeIfHidden();
     prevScreen();
     resetRotation();
     clearPause?.();
-  }, [prevScreen, resetRotation, clearPause]);
+  }, [wakeIfHidden, prevScreen, resetRotation, clearPause]);
+
+  const remoteGoto = useCallback((target: string) => {
+    wakeIfHidden();
+    gotoScreen(target);
+  }, [wakeIfHidden, gotoScreen]);
 
   const reload = useCallback(() => {
     window.location.reload();
@@ -70,7 +89,7 @@ export function useDisplayControl({
       sleep: forceSleep,
       nextScreen: remoteNext,
       prevScreen: remotePrev,
-      gotoScreen,
+      gotoScreen: remoteGoto,
       sleepOverride,
       setBrightness: setRemoteBrightness,
       reload,
@@ -90,7 +109,8 @@ export function useDisplayControl({
 
   // `wake`/`forceSleep` are exposed for display rules with the `wake`/`sleep`
   // actions — the same handlers the remote command path uses, so a rule sleeps
-  // or wakes the display identically to the remote button (a scheduled sleep
-  // window re-asserts itself within 10s either way).
+  // or wakes the display identically to the remote button (both hold off a
+  // scheduled sleep window: rules via RULE_WAKE_HOLD_MS, plain wakes via the
+  // configured wakeHoldMinutes).
   return { displayState, dimOpacity, wake, forceSleep };
 }

@@ -2409,7 +2409,7 @@ Jumps the display straight to a specific screen — the command behind "show the
 
 ### POST /api/display/sleep-override
 
-Wakes the display and holds off the automatic sleep machinery — the sleep schedule, the dim schedule, and idle transitions — for a number of minutes. This is "keep the display on tonight": unlike a plain `wake`, which the sleep schedule can undo seconds later, the hold keeps the display awake until it expires. An explicit `sleep` command (or brightness `0`) cancels the hold early. Broadcast with `?display=all` is allowed.
+Wakes the display and holds off the automatic sleep machinery — the sleep schedule, the dim schedule, and idle transitions — for a number of minutes. This is "keep the display on tonight": use it when you need a specific, longer duration. A plain `wake` during a scheduled sleep or dim window also holds the display awake, but only for the display's "After a wake-up, stay on for" setting (5 minutes by default). Holds only ever extend — a shorter wake never cuts an existing longer hold short. An explicit `sleep` command (or brightness `0`) cancels the hold early. Broadcast with `?display=all` is allowed.
 
 **Body:** `{ "minutes": 480 }` (1 to 1440 — anything longer than 24 hours is rejected with `400`)
 

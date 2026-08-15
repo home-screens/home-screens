@@ -17,6 +17,7 @@ export interface SleepFormValues {
   sleepScheduleEnabled: boolean;
   sleepStartTime: string;
   sleepEndTime: string;
+  wakeHoldMinutes: number;
   screensaverMode: string;
 }
 
@@ -65,6 +66,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
     sleepScheduleEnabled,
     sleepStartTime,
     sleepEndTime,
+    wakeHoldMinutes,
     screensaverMode,
   } = values;
 
@@ -207,6 +209,29 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                 </label>
                 <p className="col-span-2 text-xs text-hs-text-faint">
                   {t('settings.sleepFormFields.sleepScheduleHelp')}
+                </p>
+              </div>
+            )}
+
+            {/* The wake-hold applies to both schedule windows, so it shows
+                whenever either schedule is on — waking a dimmed-by-schedule
+                display has the same "re-asserts in seconds" problem as a
+                sleeping one. */}
+            {(dimScheduleEnabled || sleepScheduleEnabled) && (
+              <div className="border-t border-hs-border-subtle pt-3 space-y-2">
+                <div data-field-id="sleep.wakeHoldMinutes">
+                  <Slider
+                    label={t('settings.sleepFormFields.wakeHoldLabel')}
+                    value={wakeHoldMinutes}
+                    min={0}
+                    max={60}
+                    displayValue={wakeHoldMinutes === 0 ? t('settings.sleepFormFields.wakeHoldOff') : String(wakeHoldMinutes)}
+                    onChange={(v) => onChange({ wakeHoldMinutes: v })}
+                    disabled={disabled}
+                  />
+                </div>
+                <p className="text-xs text-hs-text-faint">
+                  {t('settings.sleepFormFields.wakeHoldHelp')}
                 </p>
               </div>
             )}
