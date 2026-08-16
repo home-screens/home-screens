@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData, prunePlan, type MealData } from '@/lib/meal-data';
+import { readConfig } from '@/lib/config';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
-/** GET /api/meals/data — return saved meals + plan + grocery checked state + shared settings */
+/**
+ * GET /api/meals/data — return saved meals + plan + grocery checked state + shared settings.
+ * `globalTimeFormat` mirrors GlobalSettings.timeFormat so meal surfaces can
+ * resolve "absent override → follow global" without a second config fetch.
+ *
+ * A corrupt config.json deliberately fails closed here (readConfig throws →
+ * 500): a corrupt hub config is a hub-wide emergency, and meals shouldn't
+ * silently limp along on a default while everything else is broken.
+ *
+ * The internal `timeFormatLegacyStripped` migration marker never goes on the
+ * wire — client state must not grow a dependency on migration machinery.
+ */
 export const GET = withDisplayAuth(async () => {
   const data = await readMealData();
-  return NextResponse.json(data);
+  const config = await readConfig();
+  const { timeFormatLegacyStripped: _marker, ...rest } = data;
+  void _marker;
+  return NextResponse.json({
+    ...rest,
+    globalTimeFormat: config.settings?.timeFormat ?? DEFAULT_TIME_FORMAT,
+  });
 }, 'Failed to read meal data');
 
 /**
@@ -99,5 +118,8 @@ export const PUT = withAuth(async (req: NextRequest) => {
     };
   });
 
-  return NextResponse.json(data);
+  // Keep the internal migration marker off the wire (see GET).
+  const { timeFormatLegacyStripped: _marker, ...rest } = data;
+  void _marker;
+  return NextResponse.json(rest);
 }, 'Failed to update meal data');

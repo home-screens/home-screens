@@ -1174,14 +1174,12 @@ export interface MealSettings {
    */
   defaultSlotTimes: Partial<Record<MealSlotType, string>>;
   /**
-   * Time display format for meal serving times across all surfaces.
-   * A household preference — having one module show "6:30 PM" and another
-   * show "18:30" on the same screen would be confusing, so this lives in
-   * the shared settings block rather than per-module config.
-   *
-   * Always present at runtime (`normalizeMealSettings` defaults to '12h').
+   * Time display format override for meal serving times. Absent (the
+   * default) follows the household `GlobalSettings.timeFormat`; an explicit
+   * '12h' / '24h' wins everywhere meals are shown. Kept in the shared
+   * settings block so /remote and all meal-planner module instances agree.
    */
-  timeFormat: '12h' | '24h';
+  timeFormat?: '12h' | '24h';
 }
 
 /**

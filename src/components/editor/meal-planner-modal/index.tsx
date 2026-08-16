@@ -365,7 +365,7 @@ export default function MealPlannerModal({
           savedMeals={savedMeals}
           slots={slots}
           accentColor={accentColor}
-          timeFormat={settings.timeFormat}
+          timeFormat={settings.timeFormat ?? '12h'}
           selectedMealId={selectedMealId}
           weekDates={viewedWeekDates}
           isCurrentWeek={isCurrentWeek}

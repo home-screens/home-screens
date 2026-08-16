@@ -21,6 +21,7 @@ import {
   SLOT_TIME_PRESETS,
   normalizeMealSettings,
   DEFAULT_MEAL_SETTINGS,
+  resolveMealTimeFormat,
   alignToWeekStart,
   SLOT_ORDER,
   SLOT_WINDOWS,
@@ -662,7 +663,7 @@ describe('normalizeMealSettings', () => {
     const fromNull = normalizeMealSettings(null);
     expect(fromNull.enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
     expect(fromNull.weekStartDay).toBe(DEFAULT_MEAL_SETTINGS.weekStartDay);
-    expect(fromNull.timeFormat).toBe('12h');
+    expect(fromNull.timeFormat).toBeUndefined();
 
     expect(normalizeMealSettings(undefined).enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
     expect(normalizeMealSettings('a string').enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
@@ -717,9 +718,9 @@ describe('normalizeMealSettings', () => {
     expect(result.defaultSlotTimes).toEqual({ dinner: '18:00' });
   });
 
-  it('falls back to 12h when timeFormat is invalid', () => {
-    expect(normalizeMealSettings({ timeFormat: '36h' }).timeFormat).toBe('12h');
-    expect(normalizeMealSettings({ timeFormat: 42 }).timeFormat).toBe('12h');
+  it('drops an invalid timeFormat entirely', () => {
+    expect(normalizeMealSettings({ timeFormat: '36h' }).timeFormat).toBeUndefined();
+    expect(normalizeMealSettings({ timeFormat: 42 }).timeFormat).toBeUndefined();
   });
 
   it('accepts 12h and 24h for timeFormat', () => {
@@ -739,5 +740,35 @@ describe('normalizeMealSettings', () => {
     expect(result.weekStartDay).toBe('monday');
     expect(result.defaultSlotTimes.dinner).toBe('18:30');
     expect(result.timeFormat).toBe('24h');
+  });
+});
+
+// ── resolveMealTimeFormat ──
+
+describe('resolveMealTimeFormat', () => {
+  it('prefers an explicit meal override', () => {
+    expect(resolveMealTimeFormat({ timeFormat: '24h' }, '12h')).toBe('24h');
+    expect(resolveMealTimeFormat({ timeFormat: '12h' }, '24h')).toBe('12h');
+  });
+
+  it('falls back to the global, then 12h', () => {
+    expect(resolveMealTimeFormat({}, '24h')).toBe('24h');
+    expect(resolveMealTimeFormat(undefined, undefined)).toBe('12h');
+    expect(resolveMealTimeFormat({}, undefined)).toBe('12h');
+  });
+});
+
+// ── normalizeMealSettings timeFormat optionality ──
+
+describe('normalizeMealSettings timeFormat', () => {
+  it('keeps explicit values and drops invalid ones entirely', () => {
+    expect(normalizeMealSettings({ timeFormat: '24h' }).timeFormat).toBe('24h');
+    expect(normalizeMealSettings({ timeFormat: '12h' }).timeFormat).toBe('12h');
+    expect(normalizeMealSettings({ timeFormat: 'junk' }).timeFormat).toBeUndefined();
+    expect(normalizeMealSettings({}).timeFormat).toBeUndefined();
+  });
+
+  it('no longer defaults the field', () => {
+    expect(DEFAULT_MEAL_SETTINGS.timeFormat).toBeUndefined();
   });
 });

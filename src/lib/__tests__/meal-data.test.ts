@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
 import type { MealData } from '../meal-data';
-import { readMealData, writeMealData, prunePlan } from '../meal-data';
+import { readMealData, writeMealData, updateMealData, prunePlan } from '../meal-data';
 import { getLatestSchemaVersion } from '../migrations';
 
 let tmpDir: string;
@@ -511,6 +511,88 @@ describe('legacy meal-settings migration from data/config.json', () => {
 
     const second = await readMealData();
     expect(second.savedMeals.map((m) => m.id)).toEqual(['m1']); // only the originally migrated one
+  });
+});
+
+/** Raw on-disk meals.json contents, for asserting what a migration persisted. */
+async function readMealFileRaw(): Promise<Record<string, unknown>> {
+  const raw = await fs.readFile(path.join(tmpDir, 'data', 'meals.json'), 'utf-8');
+  return JSON.parse(raw);
+}
+
+describe('legacy timeFormat strip migration', () => {
+  it('strips a stored 12h and persists the marker', async () => {
+    const mealsDir = path.join(tmpDir, 'data');
+    await fs.mkdir(mealsDir, { recursive: true });
+    await fs.writeFile(path.join(mealsDir, 'meals.json'), JSON.stringify({
+      savedMeals: [], plan: [], groceryChecked: [], settings: { timeFormat: '12h' },
+    }));
+
+    const data = await readMealData();
+    expect(data.settings.timeFormat).toBeUndefined();
+    // The write-through is fire-and-forget; give it a moment to land before
+    // reading the raw file (same pattern as the migration tests above).
+    await new Promise((r) => setTimeout(r, 200));
+    const onDisk = await readMealFileRaw();
+    expect((onDisk.settings as Record<string, unknown>).timeFormat).toBeUndefined();
+    expect(onDisk.timeFormatLegacyStripped).toBe(true);
+  });
+
+  it('keeps a stored 24h as an explicit override', async () => {
+    const mealsDir = path.join(tmpDir, 'data');
+    await fs.mkdir(mealsDir, { recursive: true });
+    await fs.writeFile(path.join(mealsDir, 'meals.json'), JSON.stringify({
+      savedMeals: [], plan: [], groceryChecked: [], settings: { timeFormat: '24h' },
+    }));
+
+    const data = await readMealData();
+    expect(data.settings.timeFormat).toBe('24h');
+    await new Promise((r) => setTimeout(r, 200));
+    expect((await readMealFileRaw()).timeFormatLegacyStripped).toBe(true);
+  });
+
+  it('never strips a fresh explicit 12h once the marker is set', async () => {
+    const mealsDir = path.join(tmpDir, 'data');
+    await fs.mkdir(mealsDir, { recursive: true });
+    await fs.writeFile(path.join(mealsDir, 'meals.json'), JSON.stringify({
+      savedMeals: [], plan: [], groceryChecked: [], settings: { timeFormat: '12h' },
+      timeFormatLegacyStripped: true,
+    }));
+
+    const data = await readMealData();
+    expect(data.settings.timeFormat).toBe('12h');
+  });
+
+  it('re-stamps the marker on a fresh-literal write, so a deliberate 12h survives the next read', async () => {
+    // Regression guard for updateMealData's marker stamp: mutators that build
+    // a fresh object (the PUT route's field-level literal shape) don't carry
+    // timeFormatLegacyStripped. Without the stamp the file would land
+    // marker-less, and the NEXT read would treat this explicit '12h' as the
+    // legacy default and strip it.
+    const mealsDir = path.join(tmpDir, 'data');
+    await fs.mkdir(mealsDir, { recursive: true });
+    await fs.writeFile(path.join(mealsDir, 'meals.json'), JSON.stringify({
+      savedMeals: [], plan: [], groceryChecked: [], settings: { timeFormat: '12h' },
+      timeFormatLegacyStripped: true,
+    }));
+
+    await updateMealData(() => ({
+      savedMeals: [],
+      plan: [],
+      groceryChecked: [],
+      settings: {
+        enabledSlots: ['breakfast', 'lunch', 'dinner'],
+        weekStartDay: 'sunday',
+        defaultSlotTimes: {},
+        timeFormat: '12h',
+      },
+    }));
+
+    // updateMealData resolves only after its write lands, so the follow-up
+    // read (and the raw-file check) are deterministic — no settle wait needed.
+    const data = await readMealData();
+    expect(data.settings.timeFormat).toBe('12h');
+    expect((await readMealFileRaw()).timeFormatLegacyStripped).toBe(true);
   });
 });
 

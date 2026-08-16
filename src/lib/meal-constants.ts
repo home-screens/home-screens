@@ -318,7 +318,6 @@ export const DEFAULT_MEAL_SETTINGS: MealSettings = {
   enabledSlots: [...DEFAULT_SLOTS],
   weekStartDay: 'sunday',
   defaultSlotTimes: {},
-  timeFormat: '12h',
 };
 
 // ── Settings normalization (shared by server reads and client fetches) ──
@@ -373,12 +372,10 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
     }
   }
 
-  const timeFormat: '12h' | '24h' =
-    r.timeFormat === '24h' || r.timeFormat === '12h'
-      ? r.timeFormat
-      : DEFAULT_MEAL_SETTINGS.timeFormat;
+  const timeFormat: '12h' | '24h' | undefined =
+    r.timeFormat === '24h' || r.timeFormat === '12h' ? r.timeFormat : undefined;
 
-  return { enabledSlots, weekStartDay, defaultSlotTimes, timeFormat };
+  return { enabledSlots, weekStartDay, defaultSlotTimes, ...(timeFormat ? { timeFormat } : {}) };
 }
 
 // ── Time formatting & resolution ────────────────────────────────────
@@ -425,6 +422,18 @@ export function formatMealTime(
   const period = h >= 12 ? 'PM' : 'AM';
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Effective meal time format: an explicit meal override wins, otherwise the
+ * household global, otherwise 12h. Every formatMealTime call site resolves
+ * through this so "follow global" stays consistent across surfaces.
+ */
+export function resolveMealTimeFormat(
+  meal: { timeFormat?: '12h' | '24h' } | undefined | null,
+  global: '12h' | '24h' | undefined,
+): '12h' | '24h' {
+  return meal?.timeFormat ?? global ?? '12h';
 }
 
 /**
