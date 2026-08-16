@@ -189,12 +189,15 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `viewMode` | string | `"daily"` | View mode: `daily`, `agenda`, `week`, or `month` |
+| `viewMode` | string | `"daily"` | View mode: `daily`, `agenda`, `week`, `multi-week`, or `month` |
 | `daysToShow` | number | `3` | Number of days ahead to display |
 | `showTime` | boolean | `true` | Show event times |
 | `showLocation` | boolean | `false` | Show event locations |
 | `maxEvents` | number | `20` | Maximum number of events to display |
-| `showWeekNumbers` | boolean | `false` | Show week numbers in week/month views |
+| `showWeekNumbers` | boolean | `false` | Show week numbers in week/multi-week/month views |
+| `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (4–12), starting with the current week |
+| `multiWeekMaxEventsPerCell` | number | `4` | Multi-week view: event pills per day cell before "+N more" (2–10) |
+| `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |

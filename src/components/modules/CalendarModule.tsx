@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth, isToday as isDateToday } from 'date-fns';
+import { useEffect, useMemo, useState } from 'react';
+import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth } from 'date-fns';
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
@@ -56,11 +56,8 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
   t: TranslateFn;
   locale: string;
 }) {
-  const start = parseEventDate(event.start);
-  const end = parseEventDate(event.end);
-  const isAllDay = event.allDay || (!event.start.includes('T'));
-  const description = showDescription ? sanitizeEventDescription(event.description) : '';
-
+  // Compact pills render only the dot and title — return before parsing dates,
+  // since grid views mount hundreds of these per render.
   if (compact) {
     return (
       <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
@@ -72,6 +69,11 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
       </div>
     );
   }
+
+  const start = parseEventDate(event.start);
+  const end = parseEventDate(event.end);
+  const isAllDay = event.allDay || (!event.start.includes('T'));
+  const description = showDescription ? sanitizeEventDescription(event.description) : '';
 
   return (
     <ContentCard data-event-id={event.id} className="flex gap-2" style={{ padding: '6px 10px' }}>
@@ -235,8 +237,76 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
   );
 }
 
-function weekStartsOnFor(config: CalendarConfig): 0 | 1 {
-  return config.startDay === 'monday' ? 1 : 0;
+/** Accent color at a given alpha. ColorPicker's text input accepts any CSS
+ * color, so plain hex-suffix concatenation ("red" + "cc") would produce
+ * invalid CSS; only append when the value really is a 6-digit hex. */
+function withAlpha(color: string, alphaHex: string): string {
+  if (/^#[0-9a-fA-F]{6}$/.test(color)) return `${color}${alphaHex}`;
+  const pct = Math.round((parseInt(alphaHex, 16) / 255) * 100);
+  return `color-mix(in srgb, ${color} ${pct}%, transparent)`;
+}
+
+// ─── Shared grid pieces (week / month / multi-week) ───
+
+function gridTemplateFor(showWeekNumbers: boolean): string {
+  return showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)';
+}
+
+function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em' }: {
+  date: Date;
+  config: CalendarConfig;
+  className?: string;
+  fontSize?: string;
+}) {
+  return (
+    <div className={`flex items-start justify-center px-1 ${className}`}>
+      <span style={{ fontSize, opacity: TEXT_OPACITY.tertiary }}>
+        {getWeek(date, weekNumberOptions(config.startDay))}
+      </span>
+    </div>
+  );
+}
+
+function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale }: {
+  dates: Date[];
+  showWeekNumbers: boolean;
+  locale: string;
+}) {
+  return (
+    <div className="grid gap-px" style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
+      {showWeekNumbers && <div />}
+      {dates.map((d) => (
+        <div key={d.toISOString()} className="text-center py-0.5">
+          <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
+            {formatDateSync(d, 'EEE', { locale })}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DayCellEvents({ events, maxPerCell, textColor, accentColor, t, locale, gapClass = 'gap-px' }: {
+  events: CalendarEvent[];
+  maxPerCell: number;
+  textColor: string;
+  accentColor: string;
+  t: TranslateFn;
+  locale: string;
+  gapClass?: string;
+}) {
+  return (
+    <div className={`flex flex-col ${gapClass} overflow-hidden`}>
+      {events.slice(0, maxPerCell).map((ev) => (
+        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
+      ))}
+      {events.length > maxPerCell && (
+        <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
+          {t('calendar.moreCount', { count: events.length - maxPerCell })}
+        </span>
+      )}
+    </div>
+  );
 }
 
 // ─── Week Grid View ───
@@ -252,15 +322,14 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
   locale: string;
 }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
-  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config) });
+  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
   const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const gridTemplate = gridTemplateFor(showWeekNumbers);
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="grid gap-px mb-1" style={{
-        gridTemplateColumns: showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)',
-      }}>
+      <div className="grid gap-px mb-1" style={{ gridTemplateColumns: gridTemplate }}>
         {showWeekNumbers && (
           <div className="flex items-center justify-center px-1">
             <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.weekShort')}</span>
@@ -280,7 +349,7 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
                   height: '1.8em',
                   fontSize: '0.85em',
                   fontWeight: isToday ? 700 : 500,
-                  backgroundColor: isToday ? `${accentColor}cc` : 'transparent',
+                  backgroundColor: isToday ? withAlpha(accentColor, 'cc') : 'transparent',
                   opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                 }}
               >
@@ -292,30 +361,19 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
       </div>
 
       {/* Event grid */}
-      <div className="grid gap-px flex-1 overflow-hidden" style={{
-        gridTemplateColumns: showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)',
-      }}>
+      <div className="grid gap-px flex-1 overflow-hidden" style={{ gridTemplateColumns: gridTemplate }}>
         {showWeekNumbers && (
-          <div className="flex items-start justify-center pt-1 px-1">
-            <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(weekStart)}</span>
-          </div>
+          <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize="0.6em" />
         )}
         {daysInWeek.map((date) => {
           const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
           return (
             <div
               key={date.toISOString()}
-              className="flex flex-col gap-0.5 p-0.5 overflow-hidden rounded"
+              className="flex flex-col p-0.5 overflow-hidden rounded"
               style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
             >
-              {dayEvents.slice(0, 5).map((ev) => (
-                <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
-              ))}
-              {dayEvents.length > 5 && (
-                <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-                  {t('calendar.moreCount', { count: dayEvents.length - 5 })}
-                </span>
-              )}
+              <DayCellEvents events={dayEvents} maxPerCell={5} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
             </div>
           );
         })}
@@ -339,8 +397,10 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const monthStart = startOfMonth(today);
   const monthEnd = endOfMonth(today);
-  const calStart = startOfWeek(monthStart, { weekStartsOn: weekStartsOnFor(config) });
-  const calEnd = endOfWeek(monthEnd, { weekStartsOn: weekStartsOnFor(config) });
+  const weekStartsOn = weekStartsOnFor(config.startDay);
+  const calStart = startOfWeek(monthStart, { weekStartsOn });
+  const calEnd = endOfWeek(monthEnd, { weekStartsOn });
+  const gridTemplate = gridTemplateFor(showWeekNumbers);
 
   // Build grid of days
   const weeks: Date[][] = [];
@@ -366,33 +426,17 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
         </p>
       </div>
 
-      {/* Day-of-week header */}
-      <div className="grid gap-px" style={{
-        gridTemplateColumns: showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)',
-      }}>
-        {showWeekNumbers && <div />}
-        {dayHeaderDates.map((d) => (
-          <div key={d.toISOString()} className="text-center py-0.5">
-            <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
-              {formatDateSync(d, 'EEE', { locale })}
-            </span>
-          </div>
-        ))}
-      </div>
+      <DayOfWeekHeaderRow dates={dayHeaderDates} showWeekNumbers={showWeekNumbers} locale={locale} />
 
       {/* Weeks */}
       <div className="flex flex-col gap-px flex-1">
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid gap-px flex-1" style={{
-            gridTemplateColumns: showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)',
-          }}>
-            {showWeekNumbers && (
-              <div className="flex items-start justify-center pt-0.5 px-1">
-                <span style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(week[0])}</span>
-              </div>
-            )}
+          <div key={wi} className="grid gap-px flex-1" style={{ gridTemplateColumns: gridTemplate }}>
+            {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
             {week.map((date) => {
-              const isToday = isDateToday(date);
+              // `today` is the timezone-shifted date, so the highlight follows
+              // the configured display timezone, not the Pi's OS clock
+              const isToday = isSameDay(date, today);
               const inMonth = isSameMonth(date, today);
               const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
 
@@ -401,7 +445,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
                   style={{
-                    backgroundColor: isToday ? `${accentColor}1f` : 'rgba(255,255,255,0.02)',
+                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
                     opacity: inMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary,
                   }}
                 >
@@ -415,16 +459,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
                   >
                     {formatDateSync(date, 'd', { locale })}
                   </span>
-                  <div className="flex flex-col gap-px overflow-hidden">
-                    {dayEvents.slice(0, 3).map((ev) => (
-                      <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-                        {t('calendar.moreCount', { count: dayEvents.length - 3 })}
-                      </span>
-                    )}
-                  </div>
+                  <DayCellEvents events={dayEvents} maxPerCell={3} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
               );
             })}
@@ -450,50 +485,51 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale }:
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const weekCount = clampWeeksToShow(config.weeksToShow);
   const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
-  const gridStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config) });
-  const gridTemplate = showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)';
+  const startDay = config.startDay;
+  const gridTemplate = gridTemplateFor(showWeekNumbers);
 
-  const weeks: Date[][] = Array.from({ length: weekCount }, (_, w) =>
-    Array.from({ length: 7 }, (_, d) => addDays(gridStart, w * 7 + d)));
-  const dayHeaderDates = weeks[0];
+  // The parent re-renders every minute (timezone clock tick) with a fresh
+  // `today` object of the same value, so key the grid and the per-day event
+  // buckets on the day itself — up to 84 cells x N events re-filters daily
+  // and on refetch, not per tick.
+  const todayMs = today.getTime();
+  const weeks: Date[][] = useMemo(() => {
+    const gridStart = startOfWeek(new Date(todayMs), { weekStartsOn: weekStartsOnFor(startDay) });
+    return Array.from({ length: weekCount }, (_, w) =>
+      Array.from({ length: 7 }, (_, d) => addDays(gridStart, w * 7 + d)));
+  }, [todayMs, weekCount, startDay]);
+  const eventsByDay = useMemo(() => {
+    const map = new Map<number, CalendarEvent[]>();
+    for (const week of weeks) {
+      for (const date of week) {
+        map.set(date.getTime(), events.filter((ev) => isEventOnDay(ev, date)));
+      }
+    }
+    return map;
+  }, [weeks, events]);
 
   return (
     <div className="flex flex-col h-full gap-px">
-      {/* Day-of-week header */}
-      <div className="grid gap-px" style={{ gridTemplateColumns: gridTemplate }}>
-        {showWeekNumbers && <div />}
-        {dayHeaderDates.map((d) => (
-          <div key={d.toISOString()} className="text-center py-0.5">
-            <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
-              {formatDateSync(d, 'EEE', { locale })}
-            </span>
-          </div>
-        ))}
-      </div>
+      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} />
 
       {/* Weeks */}
       <div className="flex flex-col gap-px flex-1">
         {weeks.map((week, wi) => (
           <div key={wi} className="grid gap-px flex-1" style={{ gridTemplateColumns: gridTemplate }}>
-            {showWeekNumbers && (
-              <div className="flex items-start justify-center pt-0.5 px-1">
-                <span style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(week[0])}</span>
-              </div>
-            )}
+            {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
             {week.map((date) => {
               const isToday = isSameDay(date, today);
               const isPast = date < today && !isToday;
               const isFirstOfMonth = date.getDate() === 1;
-              const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
-              const overflow = dayEvents.length > maxPerCell ? dayEvents.length - maxPerCell : 0;
+              const dayEvents = eventsByDay.get(date.getTime()) ?? [];
 
               return (
                 <div
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
                   style={{
-                    backgroundColor: isToday ? `${accentColor}1f` : 'rgba(255,255,255,0.02)',
-                    ...(isFirstOfMonth ? { backgroundImage: `linear-gradient(to right, ${accentColor}33, transparent)` } : {}),
+                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
+                    ...(isFirstOfMonth ? { backgroundImage: `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent)` } : {}),
                     opacity: isPast ? TEXT_OPACITY.tertiary : 1,
                   }}
                 >
@@ -506,7 +542,7 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale }:
                     {isToday ? (
                       <span className="inline-flex items-center justify-center rounded-full" style={{
                         width: '1.8em', height: '1.8em', fontSize: '0.75em', fontWeight: 700,
-                        backgroundColor: `${accentColor}cc`, color: '#fff',
+                        backgroundColor: withAlpha(accentColor, 'cc'), color: '#fff',
                       }}>
                         {formatDateSync(date, 'd', { locale })}
                       </span>
@@ -516,16 +552,7 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale }:
                       </span>
                     )}
                   </span>
-                  <div className="flex flex-col gap-px overflow-hidden">
-                    {dayEvents.slice(0, maxPerCell).map((ev) => (
-                      <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
-                    ))}
-                    {overflow > 0 && (
-                      <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-                        {t('calendar.moreCount', { count: overflow })}
-                      </span>
-                    )}
-                  </div>
+                  <DayCellEvents events={dayEvents} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
               );
             })}
@@ -570,7 +597,7 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
   // window was widened for a grid view elsewhere on the display.
-  const allEvents = (viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week')
+  const allEvents = isGridView(viewMode)
     ? sourcedEvents
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
   const ViewComponent = VIEW_COMPONENTS[viewMode];

@@ -213,14 +213,35 @@ describe('CalendarModule multi-week view', () => {
     expect(queryByText('+1 more')).not.toBeNull();
   });
 
+  // Week rows are the only grids with flex-1 in this view (the day-of-week
+  // header grid doesn't stretch), so counting them counts rendered weeks.
+  const countWeekRows = (container: HTMLElement) =>
+    container.querySelectorAll('div.grid.flex-1').length;
+
   it('clamps out-of-range weeksToShow values', () => {
-    const { container } = render(
+    const over = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 99 })} style={style} events={events} /></Wrapper>,
     );
-    // 99 clamps to 12 weeks: Jul 12 + 84 days = Oct 4. Oct 1 is a month-first day.
-    expect(container.textContent).toContain('Oct 1');
-    // 12 weeks is the cap: Oct 5 would only exist at 13+ weeks.
-    expect(container.textContent).not.toContain('Oct 5');
+    expect(countWeekRows(over.container)).toBe(12);
+    // 12 weeks from Sun Jul 12 ends Sat Oct 3, so Oct 1 is the last month-first
+    // marker; an uncapped 99-week grid would go on to render "Nov 1".
+    expect(over.container.textContent).toContain('Oct 1');
+    expect(over.container.textContent).not.toContain('Nov');
+    cleanup();
+
+    const under = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 1 })} style={style} events={events} /></Wrapper>,
+    );
+    expect(countWeekRows(under.container)).toBe(4);
+  });
+
+  it('falls back to 6 weeks when a hand-edited weeksToShow is not a number', () => {
+    // PUT /api/config doesn't type-check module config fields, so a
+    // hand-edited string must degrade to the default, not NaN out the grid.
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 'six' as unknown as number })} style={style} events={events} /></Wrapper>,
+    );
+    expect(countWeekRows(container)).toBe(6);
   });
 
   describe('startDay', () => {
@@ -256,6 +277,21 @@ describe('CalendarModule multi-week view', () => {
         <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={events} /></Wrapper>,
       );
       expect(queryByText('12')).not.toBeNull();
+    });
+
+    it('numbers Monday-start weeks with the ISO convention', () => {
+      // Wed Dec 30 2026: the Monday-start week runs Dec 28 – Jan 3 and is ISO
+      // week 53. getWeek's US default (Sunday start, firstWeekContainsDate 1)
+      // would label the same row "1" — mismatching its own cells.
+      vi.setSystemTime(new Date(2026, 11, 30, 12, 0, 0));
+      try {
+        const { queryByText } = render(
+          <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week', startDay: 'monday', showWeekNumbers: true })} style={style} events={[]} /></Wrapper>,
+        );
+        expect(queryByText('53')).not.toBeNull();
+      } finally {
+        vi.setSystemTime(NOW);
+      }
     });
   });
 });

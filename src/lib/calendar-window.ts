@@ -1,5 +1,5 @@
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { clampWeeksToShow } from '@/lib/calendar-utils';
+import { clampWeeksToShow, weekStartsOnFor } from '@/lib/calendar-utils';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
   CalendarConfig,
@@ -52,7 +52,8 @@ function monthGridWindow(now: Date, weekStartsOn: 0 | 1 = 0): ModuleWindow {
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
-    const weekStartsOn = (mod.config as Partial<CalendarConfig>).startDay === 'monday' ? 1 : 0;
+    // Shared with the views (calendar-utils) so the window always covers the grid.
+    const weekStartsOn = weekStartsOnFor((mod.config as Partial<CalendarConfig>).startDay);
     if (view === 'month') return monthGridWindow(now, weekStartsOn);
     if (view === 'week') {
       // WeekView honors startDay; the window follows the same convention so
