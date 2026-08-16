@@ -6,7 +6,11 @@
     "moreOptions": "Más opciones",
     "formattingLocaleLabel": "Configuración regional para formato",
     "formattingLocaleHelp": "Solo sobrescribe el formato de fecha y números. Mantiene el idioma de la interfaz sin cambios.",
-    "formattingLocaleSameAsLanguage": "Igual que el idioma"
+    "formattingLocaleSameAsLanguage": "Igual que el idioma",
+    "timeFormatLabel": "Formato de hora",
+    "timeFormat12h": "12 horas · 8:00 AM",
+    "timeFormat24h": "24 horas · 20:00",
+    "timeFormatHelp": "Cómo se muestran las horas en tus pantallas."
   },
   "common": {
     "saved": "Guardado",

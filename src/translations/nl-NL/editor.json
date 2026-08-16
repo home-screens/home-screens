@@ -6,7 +6,11 @@
     "moreOptions": "Meer opties",
     "formattingLocaleLabel": "Opmaaklocale",
     "formattingLocaleHelp": "Overschrijf alleen de datum- en getalopmaak. De interfacetaal blijft hetzelfde.",
-    "formattingLocaleSameAsLanguage": "Zelfde als taal"
+    "formattingLocaleSameAsLanguage": "Zelfde als taal",
+    "timeFormatLabel": "Tijdnotatie",
+    "timeFormat12h": "12-uurs · 8:00 AM",
+    "timeFormat24h": "24-uurs · 20:00",
+    "timeFormatHelp": "Hoe tijden op je schermen worden weergegeven."
   },
   "common": {
     "saved": "Opgeslagen",

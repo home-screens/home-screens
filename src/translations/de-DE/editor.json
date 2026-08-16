@@ -6,7 +6,11 @@
     "moreOptions": "Weitere Optionen",
     "formattingLocaleLabel": "Formatierungs-Gebietsschema",
     "formattingLocaleHelp": "Nur die Datums- und Zahlenformatierung überschreiben. Die Sprache der Oberfläche bleibt unverändert.",
-    "formattingLocaleSameAsLanguage": "Wie Sprache"
+    "formattingLocaleSameAsLanguage": "Wie Sprache",
+    "timeFormatLabel": "Zeitformat",
+    "timeFormat12h": "12-Stunden · 8:00 AM",
+    "timeFormat24h": "24-Stunden · 20:00",
+    "timeFormatHelp": "So werden Uhrzeiten auf den Bildschirmen angezeigt."
   },
   "common": {
     "saved": "Gespeichert",
