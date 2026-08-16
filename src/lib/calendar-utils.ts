@@ -1,5 +1,6 @@
 import { addDays } from 'date-fns';
 import type { WeekStartDay } from '@/types/config';
+import { formatDateSync } from '@/i18n/formatters';
 
 /** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
@@ -57,6 +58,62 @@ export function compareEventStarts(aStart: string, bStart: string): number {
   return parseEventDate(aStart).getTime() - parseEventDate(bStart).getTime();
 }
 
+/** Whether an event renders as all-day: the flag, or a date-only start. */
+export function isAllDayEvent(ev: { start: string; allDay?: boolean }): boolean {
+  return ev.allDay === true || !ev.start.includes('T');
+}
+
+/**
+ * Events for one grid day cell, in display order: all-day events first
+ * (multi-day all-days repeat on each covered day via `isEventOnDay`),
+ * then timed events by start time.
+ */
+export function eventsForDay<T extends { start: string; end: string; allDay?: boolean }>(
+  events: T[],
+  date: Date,
+): T[] {
+  return events
+    .filter((ev) => isEventOnDay(ev, date))
+    .sort((a, b) => {
+      const aAllDay = isAllDayEvent(a);
+      const bAllDay = isAllDayEvent(b);
+      if (aAllDay !== bAllDay) return aAllDay ? -1 : 1;
+      return compareEventStarts(a.start, b.start);
+    });
+}
+
+/**
+ * Constant-width event start time: 12h zero-pads the hour ("08:05 AM") so
+ * every prefix renders at the same width; 24h is naturally fixed ("20:05").
+ * `trim()` drops the trailing space for locales whose day-period token
+ * renders empty (e.g. locales without AM/PM); no shipped locale renders an
+ * empty day period today, so it is defensive only.
+ */
+export function formatEventTime(date: Date, timeFormat: '12h' | '24h', locale: string): string {
+  return formatDateSync(date, timeFormat === '24h' ? 'HH:mm' : 'hh:mm a', { locale }).trim();
+}
+
+const PILL_DARK_TEXT = '#1b1b1f';
+
+/**
+ * Auto-contrast text color for a solid pill background: light calendar
+ * colors (yellows, limes) get near-black text, dark ones white. YIQ
+ * luminance `((299R + 587G + 114B) / 1000) >= 160` picks dark; anything
+ * unparseable (named colors, junk) falls back to white like the mockup's
+ * "always white" policy.
+ */
+export function pickPillTextColor(hex: string | undefined): string {
+  if (!hex) return '#fff';
+  let h = hex.startsWith('#') ? hex.slice(1) : hex;
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (h.length === 8) h = h.slice(0, 6);
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return '#fff';
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
+}
+
 /**
  * Check whether a calendar event falls on a given day.
  *
@@ -69,7 +126,7 @@ export function isEventOnDay(
   date: Date,
 ): boolean {
   const evStart = parseEventDate(ev.start);
-  if (ev.allDay || !ev.start.includes('T')) {
+  if (isAllDayEvent(ev)) {
     const evEnd = parseEventDate(ev.end);
     return evStart < addDays(date, 1) && evEnd > date;
   }

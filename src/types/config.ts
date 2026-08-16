@@ -601,6 +601,13 @@ export interface CalendarConfig {
   multiWeekMaxEventsPerCell?: number;
   // Grid views (week / month / multi-week): first column day. Default sunday.
   startDay?: WeekStartDay;
+  // Grid views (week / month / multi-week): event rendering style.
+  // 'classic' (default) = colored dot + faint light pill + default text.
+  // 'colored' = timed events render time + title in the calendar's color
+  // with no background; all-day events render a solid calendar-color pill.
+  gridEventStyle?: 'classic' | 'colored';
+  // Colored style only: faint light pill background behind timed events.
+  gridEventPillBackground?: boolean;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
   // Per-view: render the sanitized event description under the title.

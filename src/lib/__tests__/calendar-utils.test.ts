@@ -1,5 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { parseEventDate, compareEventStarts, isEventOnDay, isEventUpcoming, sanitizeEventDescription, clampWeeksToShow, weekNumberOptions } from '@/lib/calendar-utils';
+import {
+  parseEventDate,
+  compareEventStarts,
+  isEventOnDay,
+  isEventUpcoming,
+  sanitizeEventDescription,
+  clampWeeksToShow,
+  weekNumberOptions,
+  eventsForDay,
+  formatEventTime,
+  isAllDayEvent,
+  pickPillTextColor,
+} from '@/lib/calendar-utils';
 
 describe('clampWeeksToShow', () => {
   it('defaults to 6 when unset', () => {
@@ -256,5 +268,73 @@ describe('isEventUpcoming', () => {
 
   it('excludes a single-day all-day event from yesterday', () => {
     expect(isEventUpcoming({ end: '2026-06-15' }, now)).toBe(false);
+  });
+});
+
+describe('isAllDayEvent', () => {
+  // Bound to consts (not inline literals) so the extra `end` field satisfies
+  // excess-property checking against the helper's { start, allDay? } param.
+  it('flags allDay events and date-only starts', () => {
+    const flagged = { start: '2026-08-16', end: '2026-08-17', allDay: true };
+    const dateOnly = { start: '2026-08-16', end: '2026-08-17', allDay: false };
+    expect(isAllDayEvent(flagged)).toBe(true);
+    expect(isAllDayEvent(dateOnly)).toBe(true);
+  });
+  it('passes timed events through', () => {
+    const timed = { start: '2026-08-16T08:00:00', end: '2026-08-16T09:00:00', allDay: false };
+    expect(isAllDayEvent(timed)).toBe(false);
+  });
+});
+
+describe('eventsForDay', () => {
+  const events = [
+    { id: 'a', title: 'Late', start: '2026-08-16T14:00:00', end: '2026-08-16T15:00:00', allDay: false },
+    { id: 'b', title: 'Offsite', start: '2026-08-16', end: '2026-08-18', allDay: true },
+    { id: 'c', title: 'Early', start: '2026-08-16T08:00:00', end: '2026-08-16T09:00:00', allDay: false },
+    { id: 'd', title: 'OtherDay', start: '2026-08-17T08:00:00', end: '2026-08-17T09:00:00', allDay: false },
+  ];
+  it('places all-day events first, then timed by start', () => {
+    const ids = eventsForDay(events, new Date(2026, 7, 16)).map((e) => e.id);
+    expect(ids).toEqual(['b', 'c', 'a']);
+  });
+  it('returns an empty array for empty days and does not mutate the input', () => {
+    expect(eventsForDay(events, new Date(2026, 7, 20))).toEqual([]);
+    expect(events.map((e) => e.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+});
+
+describe('formatEventTime', () => {
+  const d = new Date(2026, 7, 16, 8, 5);
+  it('renders zero-padded 12h with day period', () => {
+    expect(formatEventTime(d, '12h', 'en-US')).toBe('08:05 AM');
+  });
+  it('renders constant-width 24h', () => {
+    expect(formatEventTime(d, '24h', 'en-US')).toBe('08:05');
+    expect(formatEventTime(new Date(2026, 7, 16, 20, 5), '24h', 'en-US')).toBe('20:05');
+  });
+  it('never leaves a trailing space after the time prefix', () => {
+    expect(formatEventTime(d, '12h', 'de-DE')).toMatch(/^08:05/);
+    expect(formatEventTime(d, '12h', 'de-DE').endsWith(' ')).toBe(false);
+  });
+});
+
+describe('pickPillTextColor', () => {
+  it('returns dark text for light colors and white for dark ones', () => {
+    expect(pickPillTextColor('#eab308')).toBe('#1b1b1f'); // yellow, YIQ ≈ 176
+    expect(pickPillTextColor('#84cc16')).toBe('#1b1b1f'); // lime, YIQ ≈ 162
+    expect(pickPillTextColor('#10b981')).toBe('#fff');    // emerald, YIQ ≈ 128
+    expect(pickPillTextColor('#3b82f6')).toBe('#fff');    // blue, YIQ ≈ 122
+  });
+  it('treats the threshold as inclusive', () => {
+    expect(pickPillTextColor('#a0a0a0')).toBe('#1b1b1f'); // YIQ exactly 160
+    expect(pickPillTextColor('#9f9f9f')).toBe('#fff');    // YIQ 159
+  });
+  it('accepts 3-digit and 8-digit hex', () => {
+    expect(pickPillTextColor('#ff0')).toBe('#1b1b1f');
+    expect(pickPillTextColor('#3b82f6cc')).toBe('#fff');
+  });
+  it('falls back to white for unparseable or missing values', () => {
+    expect(pickPillTextColor('red')).toBe('#fff');
+    expect(pickPillTextColor(undefined)).toBe('#fff');
   });
 });
