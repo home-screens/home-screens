@@ -5,7 +5,7 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
+import { parseEventDate, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
@@ -20,6 +20,7 @@ interface CalendarModuleProps {
   style: ModuleStyle;
   events?: CalendarEvent[];
   timezone?: string;
+  timeFormat?: '12h' | '24h';
 }
 
 function formatDuration(start: Date, end: Date): string {
@@ -45,7 +46,7 @@ function formatRelativeDay(
 
 // ─── Event Card (shared across views) ───
 
-function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, t, locale }: {
+function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, timeFormat, gridStyle, pillBackground, t, locale }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
@@ -53,12 +54,40 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
   showDescription?: boolean;
   compact?: boolean;
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   t: TranslateFn;
   locale: string;
 }) {
-  // Compact pills render only the dot and title — return before parsing dates,
-  // since grid views mount hundreds of these per render.
+  const isAllDay = isAllDayEvent(event);
+  // Classic compact pills render only the dot and title — return before
+  // parsing dates, since grid views mount hundreds of these per render.
+  // (Colored timed pills parse the start below for their time prefix.)
   if (compact) {
+    const eventColor = event.calendarColor ?? accentColor;
+    if (gridStyle === 'colored') {
+      if (isAllDay) {
+        return (
+          <div data-event-id={event.id} className="flex items-center rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor) }}>
+            <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
+          </div>
+        );
+      }
+      const start = parseEventDate(event.start);
+      return (
+        <div
+          data-event-id={event.id}
+          className="flex items-baseline gap-1 px-1 py-0.5 rounded"
+          style={pillBackground ? { backgroundColor: 'rgba(255,255,255,0.10)' } : undefined}
+        >
+          <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
+            {formatEventTime(start, timeFormat, locale)}
+          </span>
+          <span className="truncate" style={{ fontSize: '0.7em', color: eventColor }}>{event.title}</span>
+        </div>
+      );
+    }
     return (
       <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
         <div
@@ -72,7 +101,6 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
 
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
-  const isAllDay = event.allDay || (!event.start.includes('T'));
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
 
   return (
@@ -86,7 +114,7 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
           <MetadataText size="sm">
             {isAllDay ? t('calendar.allDay') : (
               <>
-                {formatDateSync(start, 'h:mm a', { locale })} · {formatDuration(start, end)}
+                {formatEventTime(start, timeFormat, locale)} · {formatDuration(start, end)}
               </>
             )}
           </MetadataText>
@@ -112,9 +140,12 @@ function EventCard({ event, textColor: _textColor, showTime, showLocation, showD
 
 // ─── Daily View (original) ───
 
-function DailyView({ events, config, style, today, accentColor, t, tCore, locale }: {
+function DailyView({ events, config, style, today, accentColor, t, tCore, locale, timeFormat, gridStyle, pillBackground }: {
   events: CalendarEvent[];
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -129,7 +160,7 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(today, i);
-    const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
+    const dayEvents = eventsForDay(events, date);
     return { date, events: dayEvents };
   });
 
@@ -163,7 +194,7 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
                 </div>
               ) : (
                 dayEvents.map((ev) => (
-                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} t={t} locale={locale} />
+                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} t={t} locale={locale} />
                 ))
               )}
             </div>
@@ -176,9 +207,12 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
 
 // ─── Agenda View ───
 
-function AgendaView({ events, config, style, today, accentColor, t, tCore, locale }: {
+function AgendaView({ events, config, style, today, accentColor, t, tCore, locale, timeFormat, gridStyle, pillBackground }: {
   events: CalendarEvent[];
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -228,7 +262,7 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
           </div>
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => (
-              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} t={t} locale={locale} />
+              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} t={t} locale={locale} />
             ))}
           </div>
         </div>
@@ -286,11 +320,14 @@ function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale }: {
   );
 }
 
-function DayCellEvents({ events, maxPerCell, textColor, accentColor, t, locale, gapClass = 'gap-px' }: {
+function DayCellEvents({ events, maxPerCell, textColor, accentColor, timeFormat, gridStyle, pillBackground, t, locale, gapClass = 'gap-px' }: {
   events: CalendarEvent[];
   maxPerCell: number;
   textColor: string;
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   t: TranslateFn;
   locale: string;
   gapClass?: string;
@@ -298,7 +335,7 @@ function DayCellEvents({ events, maxPerCell, textColor, accentColor, t, locale, 
   return (
     <div className={`flex flex-col ${gapClass} overflow-hidden`}>
       {events.slice(0, maxPerCell).map((ev) => (
-        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
+        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={false} showLocation={false} compact accentColor={accentColor} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} t={t} locale={locale} />
       ))}
       {events.length > maxPerCell && (
         <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
@@ -311,9 +348,12 @@ function DayCellEvents({ events, maxPerCell, textColor, accentColor, t, locale, 
 
 // ─── Week Grid View ───
 
-function WeekView({ events, config, style, today, accentColor, t, locale }: {
+function WeekView({ events, config, style, today, accentColor, t, locale, timeFormat, gridStyle, pillBackground }: {
   events: CalendarEvent[];
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -366,14 +406,14 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
           <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize="0.6em" />
         )}
         {daysInWeek.map((date) => {
-          const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
+          const dayEvents = eventsForDay(events, date);
           return (
             <div
               key={date.toISOString()}
               className="flex flex-col p-0.5 overflow-hidden rounded"
               style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
             >
-              <DayCellEvents events={dayEvents} maxPerCell={5} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
+              <DayCellEvents events={dayEvents} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} maxPerCell={5} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
             </div>
           );
         })}
@@ -384,9 +424,12 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
 
 // ─── Month Grid View ───
 
-function MonthView({ events, config, style, today, accentColor, t, locale }: {
+function MonthView({ events, config, style, today, accentColor, t, locale, timeFormat, gridStyle, pillBackground }: {
   events: CalendarEvent[];
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -438,7 +481,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
               // the configured display timezone, not the Pi's OS clock
               const isToday = isSameDay(date, today);
               const inMonth = isSameMonth(date, today);
-              const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
+              const dayEvents = eventsForDay(events, date);
 
               return (
                 <div
@@ -459,7 +502,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
                   >
                     {formatDateSync(date, 'd', { locale })}
                   </span>
-                  <DayCellEvents events={dayEvents} maxPerCell={3} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
+                  <DayCellEvents events={dayEvents} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} maxPerCell={3} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
               );
             })}
@@ -472,9 +515,12 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
 
 // ─── Multi-Week Grid View ───
 
-function MultiWeekView({ events, config, style, today, accentColor, t, locale }: {
+function MultiWeekView({ events, config, style, today, accentColor, t, locale, timeFormat, gridStyle, pillBackground }: {
   events: CalendarEvent[];
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
@@ -502,7 +548,7 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale }:
     const map = new Map<number, CalendarEvent[]>();
     for (const week of weeks) {
       for (const date of week) {
-        map.set(date.getTime(), events.filter((ev) => isEventOnDay(ev, date)));
+        map.set(date.getTime(), eventsForDay(events, date));
       }
     }
     return map;
@@ -552,7 +598,7 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale }:
                       </span>
                     )}
                   </span>
-                  <DayCellEvents events={dayEvents} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
+                  <DayCellEvents events={dayEvents} timeFormat={timeFormat} gridStyle={gridStyle} pillBackground={pillBackground} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
               );
             })}
@@ -571,6 +617,9 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   style: ModuleStyle;
   today: Date;
   accentColor: string;
+  timeFormat: '12h' | '24h';
+  gridStyle: 'classic' | 'colored';
+  pillBackground: boolean;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -582,7 +631,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   month: MonthView,
 };
 
-export default function CalendarModule({ config, style, events, timezone }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -602,6 +651,9 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
+  const resolvedTimeFormat = timeFormat ?? '12h';
+  const gridStyle = config.gridEventStyle === 'colored' ? 'colored' : 'classic';
+  const pillBackground = gridStyle === 'colored' && config.gridEventPillBackground === true;
 
   // Tap-to-open detail: same delegated-handler contract as the fullscreen
   // calendar — every EventCard carries data-event-id, state holds the id and
@@ -627,7 +679,7 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
         onClick={tapDetails ? handleRootClick : undefined}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
-        <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} t={t} tCore={tCore} locale={locale} />
+        <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} timeFormat={resolvedTimeFormat} gridStyle={gridStyle} pillBackground={pillBackground} t={t} tCore={tCore} locale={locale} />
       </div>
       {tapDetails && detailEvent && (
         <EventDetailOverlay
