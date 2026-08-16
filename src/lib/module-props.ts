@@ -1,4 +1,4 @@
-import type { ModuleType } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type ModuleType } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 
 /**
@@ -49,6 +49,7 @@ export interface PreviewSettings {
   globalProvider: string;
   units: 'metric' | 'imperial';
   fullscreenTheme: string | undefined;
+  timeFormat: '12h' | '24h' | undefined;
 }
 
 interface ProviderWeatherData {
@@ -76,6 +77,8 @@ export interface PreviewData {
 export interface ModuleDataSource {
   timezone?: string;
   fullscreenTheme?: string;
+  /** Household 12/24-hour preference (GlobalSettings.timeFormat). */
+  timeFormat?: '12h' | '24h';
   /** null = no usable coordinates; drives `locationMissing`. */
   location: { lat: number; lon: number } | null;
   /** Human-readable place name for the configured coordinates, when known. */
@@ -129,6 +132,10 @@ export function buildModuleProps(
     props.events = source.calendarEvents;
   }
 
+  if (mod.type === 'calendar') {
+    props.timeFormat = source.timeFormat ?? DEFAULT_TIME_FORMAT;
+  }
+
   const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
   if (needsWeather) {
     if (!source.location) props.locationMissing = true;
@@ -163,6 +170,7 @@ export function toDisplaySource(
   settings: {
     timezone?: string;
     fullscreenTheme?: string;
+    timeFormat?: '12h' | '24h';
     locationName?: string;
     weather: { provider: string; units: 'metric' | 'imperial' };
   },
@@ -174,6 +182,7 @@ export function toDisplaySource(
   return {
     timezone: settings.timezone,
     fullscreenTheme: settings.fullscreenTheme,
+    timeFormat: settings.timeFormat,
     location,
     locationName: settings.locationName,
     weather: {
@@ -203,6 +212,7 @@ export function toEditorSource(
   return {
     timezone: settings?.timezone,
     fullscreenTheme: settings?.fullscreenTheme,
+    timeFormat: settings?.timeFormat,
     location: settings && settings.latitude != null && settings.longitude != null
       ? { lat: settings.latitude, lon: settings.longitude }
       : null,

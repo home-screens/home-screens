@@ -143,6 +143,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       globalProvider: settings.weather.provider,
       units: settings.weather.units,
       fullscreenTheme: settings.fullscreenTheme,
+      timeFormat: settings.timeFormat,
     };
   }, [settings]);
 

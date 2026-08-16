@@ -56,6 +56,7 @@ const previewSettings: PreviewSettings = {
   globalProvider: 'weatherapi',
   units: 'imperial',
   fullscreenTheme: 'midnight',
+  timeFormat: undefined,
 };
 
 const previewData: PreviewData = {
@@ -176,6 +177,31 @@ describe('toEditorSource', () => {
     expect(source.location).toBeNull();
     expect(source.weather.units).toBe('imperial');
     expect(source.weather.globalProvider).toBe('weatherapi');
+  });
+});
+
+describe('timeFormat threading', () => {
+  it('buildModuleProps passes a resolved timeFormat to calendar modules only', () => {
+    const source = toDisplaySource({ ...displaySettings, timeFormat: '24h' }, LOCATION, emptyShared());
+    const cal = buildModuleProps(instance('calendar'), source);
+    expect(cal.timeFormat).toBe('24h');
+    const other = buildModuleProps(instance('clock'), source);
+    expect(other.timeFormat).toBeUndefined();
+  });
+
+  it('defaults to 12h when no adapter supplies a value', () => {
+    const cal = buildModuleProps(instance('calendar'), toDisplaySource(displaySettings, LOCATION, emptyShared()));
+    expect(cal.timeFormat).toBe('12h');
+  });
+
+  it('toDisplaySource reads settings.timeFormat', () => {
+    const source = toDisplaySource({ ...displaySettings, timeFormat: '24h' }, null, emptyShared());
+    expect(source.timeFormat).toBe('24h');
+  });
+
+  it('toEditorSource reads the preview settings snapshot', () => {
+    const source = toEditorSource({ ...previewSettings, timeFormat: '24h' }, { weatherByProvider: {}, calendarEvents: null });
+    expect(source.timeFormat).toBe('24h');
   });
 });
 

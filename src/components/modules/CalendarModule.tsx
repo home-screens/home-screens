@@ -8,7 +8,7 @@ import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { parseEventDate, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
@@ -651,7 +651,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
-  const resolvedTimeFormat = timeFormat ?? '12h';
+  const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   const gridStyle = config.gridEventStyle === 'colored' ? 'colored' : 'classic';
   const pillBackground = gridStyle === 'colored' && config.gridEventPillBackground === true;
 

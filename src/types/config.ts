@@ -332,7 +332,15 @@ export interface GlobalSettings {
   locale?: string;
   /** Optional override for date/number formatting only. Falls back to `locale`. */
   formattingLocale?: string;
+  /** Household 12/24-hour preference. Calendar module time lines and grid
+   *  pills resolve against this; the meal planner follows it unless its own
+   *  timeFormat override is set. Absent = 12h. Global-only like `locale`. */
+  timeFormat?: '12h' | '24h';
 }
+
+/** Absent-value default for `GlobalSettings.timeFormat`; the prop builder and
+ *  the calendar module both resolve against this single constant. */
+export const DEFAULT_TIME_FORMAT = '12h' as const;
 
 export interface Profile {
   id: string;
