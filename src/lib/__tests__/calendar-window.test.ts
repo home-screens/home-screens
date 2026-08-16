@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { addDays, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
 import { getCalendarFetchWindow, buildCalendarUrl } from '@/lib/calendar-window';
 import type { ModuleInstance, ModuleType, Screen } from '@/types/config';
 
@@ -66,6 +66,22 @@ describe('getCalendarFetchWindow', () => {
     expect(win!.timeMax).toBeNull();
   });
 
+  it('widens to weeksToShow weeks for the multi-week view, always sending timeMax', () => {
+    const screens = [makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 4 })])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    const weekStart = startOfWeek(NOW, { weekStartsOn: 0 });
+    expect(win!.timeMin).toBe(addDays(weekStart, -1).toISOString());
+    // 4 weeks (28 days) always exceeds the 7-day server default, so timeMax is sent
+    expect(win!.timeMax).toBe(addDays(addWeeks(weekStart, 4), 1).toISOString());
+  });
+
+  it('defaults the multi-week window to 6 weeks when weeksToShow is unset', () => {
+    const screens = [makeScreen([makeModule('calendar', { viewMode: 'multi-week' })])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    const weekStart = startOfWeek(NOW, { weekStartsOn: 0 });
+    expect(win!.timeMax).toBe(addDays(addWeeks(weekStart, 6), 1).toISOString());
+  });
+
   it('uses a Monday-start week for fullscreen week-list view', () => {
     const screens = [makeScreen([makeModule('fullscreen-calendar', { view: 'week-list' })])];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
@@ -104,6 +120,48 @@ describe('getCalendarFetchWindow', () => {
     const screens = [makeScreen([makeModule('calendar', { viewMode: 'month' })])];
     const win = getCalendarFetchWindow(screens, NOW, 60);
     expect(win!.timeMax).toBeNull();
+  });
+
+  it('clamps out-of-range weeksToShow to the 4-12 bounds', () => {
+    const weekStart = startOfWeek(NOW, { weekStartsOn: 0 });
+    const hi = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 99 })])], NOW, DAYS_AHEAD);
+    expect(hi!.timeMax).toBe(addDays(addWeeks(weekStart, 12), 1).toISOString());
+    expect(hi!.timeMin).toBe(addDays(weekStart, -1).toISOString());
+    const lo = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 2 })])], NOW, DAYS_AHEAD);
+    expect(lo!.timeMax).toBe(addDays(addWeeks(weekStart, 4), 1).toISOString());
+  });
+
+  it('starts a Monday-start multi-week window at the Monday, not the Sunday', () => {
+    // Sunday Aug 16 2026: the Monday-start week containing it begins Aug 10,
+    // six days before the Sunday-convention start (Aug 16).
+    const sunday = new Date(2026, 7, 16, 10, 30, 0);
+    const win = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 4, startDay: 'monday' })])],
+      sunday, DAYS_AHEAD,
+    );
+    const monday = new Date(2026, 7, 10);
+    expect(win!.timeMin).toBe(addDays(monday, -1).toISOString());
+    expect(win!.timeMax).toBe(addDays(addWeeks(monday, 4), 1).toISOString());
+  });
+
+  it('honors startDay for the week view window too', () => {
+    const sunday = new Date(2026, 7, 16, 10, 30, 0);
+    const win = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'week', startDay: 'monday' })])],
+      sunday, DAYS_AHEAD,
+    );
+    expect(win!.timeMin).toBe(addDays(new Date(2026, 7, 10), -1).toISOString());
+  });
+
+  it('honors startDay for the month view window when the month starts on a Sunday', () => {
+    // February 2026 begins on a Sunday: the Monday-start month grid leads
+    // with Mon Jan 26, six days before the Sunday-convention start (Feb 1).
+    const feb = new Date(2026, 1, 11, 10, 30, 0);
+    const win = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'month', startDay: 'monday' })])],
+      feb, DAYS_AHEAD,
+    );
+    expect(win!.timeMin).toBe(addDays(new Date(2026, 0, 26), -1).toISOString());
   });
 });
 
