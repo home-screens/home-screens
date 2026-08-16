@@ -604,6 +604,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'shape', key: 'gridPattern', union: 'ShapeGridPattern' },
   { type: 'shape', key: 'fillMode', union: 'ShapeFillMode' },
   { type: 'shape', key: 'frameStyle', union: 'ShapeFrameStyle' },
+  { type: 'calendar', key: 'startDay', union: 'WeekStartDay' },
 ];
 
 /**

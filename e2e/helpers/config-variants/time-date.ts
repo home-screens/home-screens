@@ -448,4 +448,41 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     config: { viewMode: 'agenda', agendaShowDescription: true },
     expect: has('CAL AGENDA DESC'),
   },
+  {
+    // weeksToShow caps the multi-week grid at N rows; the day+31 event has no
+    // row at 4 weeks but WOULD render at the 6-week default, so its absence
+    // proves the cap took effect. The timed-today event stays in row 1.
+    type: 'calendar', name: 'weeks-to-show', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cwts-1', 'CAL NEAR'), dayEvent('cwts-2', 'CAL FARWEEK', 31)],
+    config: { viewMode: 'multi-week', weeksToShow: 4 },
+    expect: lacks('CAL NEAR', 'CAL FARWEEK'),
+  },
+  {
+    // multiWeekMaxEventsPerCell caps pills per day cell; three timed events on
+    // day+1 (timed events land on their start day only, so no spanning), cap 2
+    // shows the first two, hides the third, and "+1 more" reports it.
+    type: 'calendar', name: 'events-per-cell', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      { id: 'cwec-1', title: 'CAL CAP ONE', start: calIso(1, 8), end: calIso(1, 9), allDay: false },
+      { id: 'cwec-2', title: 'CAL CAP TWO', start: calIso(1, 10), end: calIso(1, 11), allDay: false },
+      { id: 'cwec-3', title: 'CAL CAP THREE', start: calIso(1, 12), end: calIso(1, 13), allDay: false },
+    ],
+    config: { viewMode: 'multi-week', multiWeekMaxEventsPerCell: 2 },
+    expect: async (mod) => {
+      await expect(mod).toContainText('CAL CAP ONE');
+      await expect(mod).toContainText('CAL CAP TWO');
+      await expect(mod).not.toContainText('CAL CAP THREE');
+      await expect(mod).toContainText('+1 more');
+    },
+  },
+  {
+    // startDay monday shifts the grid so the first day-of-week header reads Mon.
+    type: 'calendar', name: 'start-day', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cwsd-1', 'CAL STARTDAY')],
+    config: { viewMode: 'multi-week', startDay: 'monday' },
+    expect: async (mod) => {
+      await expect(mod.locator('.grid').first().locator('div.text-center'))
+        .toHaveText(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    },
+  },
 ];
