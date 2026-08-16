@@ -1,4 +1,5 @@
-import { addDays, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { clampWeeksToShow } from '@/lib/calendar-utils';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
   CalendarConfig,
@@ -37,12 +38,12 @@ interface ModuleWindow {
   end: Date | null;
 }
 
-function monthGridWindow(now: Date): ModuleWindow {
+function monthGridWindow(now: Date, weekStartsOn: 0 | 1 = 0): ModuleWindow {
   // Month grids render leading/trailing days of adjacent months, so the
   // window covers the full visible grid, not just the calendar month.
   return {
-    start: startOfWeek(startOfMonth(now), { weekStartsOn: 0 }),
-    end: endOfWeek(endOfMonth(now), { weekStartsOn: 0 }),
+    start: startOfWeek(startOfMonth(now), { weekStartsOn }),
+    end: endOfWeek(endOfMonth(now), { weekStartsOn }),
   };
 }
 
@@ -51,9 +52,21 @@ function monthGridWindow(now: Date): ModuleWindow {
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
-    if (view === 'month') return monthGridWindow(now);
+    const weekStartsOn = (mod.config as Partial<CalendarConfig>).startDay === 'monday' ? 1 : 0;
+    if (view === 'month') return monthGridWindow(now, weekStartsOn);
     if (view === 'week') {
-      return { start: startOfWeek(now, { weekStartsOn: 0 }), end: endOfWeek(now, { weekStartsOn: 0 }) };
+      // WeekView honors startDay; the window follows the same convention so
+      // past days of the displayed week are always inside the fetch.
+      return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
+    }
+    if (view === 'multi-week') {
+      // Multi-week grid renders N weeks from the current week start. startDay
+      // is honored directly so a Monday-start week containing a Sunday (whose
+      // Monday lies six days back) is fully covered; the clamp mirrors the
+      // view's so hand-edited configs can't starve the clamped rows.
+      const weeks = clampWeeksToShow((mod.config as Partial<CalendarConfig>).weeksToShow);
+      const start = startOfWeek(now, { weekStartsOn });
+      return { start, end: addWeeks(start, weeks) };
     }
     return null; // daily / agenda: upcoming only
   }
@@ -105,9 +118,8 @@ export function getCalendarFetchWindow(
 
   if (!earliest) return null;
 
-  // The ±1-day padding is also what makes the hardcoded weekStartsOn values
-  // above safe: if a view's week-start convention ever drifts by a day from
-  // this module, the padded window still covers the visible grid.
+  // The ±1-day padding covers the fullscreen calendar's convention-fixed grids and
+  // timezone drift — the small module's month/week/multi-week grids are startDay-aware.
   const timeMin = addDays(earliest, -1).toISOString();
 
   // Only send timeMax when the grid extends beyond the daysAhead default —
