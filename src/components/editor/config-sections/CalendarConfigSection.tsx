@@ -4,6 +4,7 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
@@ -12,6 +13,7 @@ import type { EventTapStyle, ModuleInstance } from '@/types/config';
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<{
     viewMode?: string;
     daysToShow?: number;
@@ -25,6 +27,9 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     agendaShowDescription?: boolean;
     eventTapDetails?: boolean;
     eventTapStyle?: EventTapStyle;
+    weeksToShow?: number;
+    multiWeekMaxEventsPerCell?: number;
+    startDay?: string;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -33,7 +38,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'daily', label: t('configSections.calendar.viewDaily') },
     { value: 'agenda', label: t('configSections.calendar.viewAgenda') },
     { value: 'week', label: t('configSections.calendar.viewWeek') },
+    { value: 'multi-week', label: t('configSections.calendar.viewMultiWeek') },
     { value: 'month', label: t('configSections.calendar.viewMonth') },
+  ] as const;
+
+  const START_DAY_OPTIONS = [
+    { value: 'sunday', label: tCore('days.sunday') },
+    { value: 'monday', label: tCore('days.monday') },
   ] as const;
 
   const { availableSources, googleAuthError } = useCalendarSources('configSections.calendar');
@@ -81,6 +92,26 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           onChange={(v) => set({ maxEvents: Number(v) })}
         />
       )}
+      {viewMode === 'multi-week' && (
+        <>
+          <Slider
+            label={t('configSections.calendar.weeksToShow')}
+            value={c.weeksToShow ?? 6}
+            min={4}
+            max={12}
+            step={1}
+            onChange={(v) => set({ weeksToShow: v })}
+          />
+          <Slider
+            label={t('configSections.calendar.eventsPerCell')}
+            value={c.multiWeekMaxEventsPerCell ?? 4}
+            min={2}
+            max={10}
+            step={1}
+            onChange={(v) => set({ multiWeekMaxEventsPerCell: v })}
+          />
+        </>
+      )}
       {(viewMode === 'daily' || viewMode === 'agenda') && (
         <>
           <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
@@ -93,8 +124,16 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       {viewMode === 'agenda' && (
         <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
-      {(viewMode === 'week' || viewMode === 'month') && (
+      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
         <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
+      )}
+      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
+        <LabeledSelect
+          label={t('configSections.calendar.weekStartsOn')}
+          value={c.startDay ?? 'sunday'}
+          onChange={(v) => set({ startDay: v })}
+          options={START_DAY_OPTIONS}
+        />
       )}
       <ColorPicker
         label={t('configSections.calendar.accentColor')}
