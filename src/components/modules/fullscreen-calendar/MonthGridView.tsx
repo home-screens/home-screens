@@ -5,7 +5,7 @@ import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, isSameDay, isSameMonth, getWeek,
 } from 'date-fns';
-import { isEventOnDay } from '@/lib/calendar-utils';
+import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { clampStyle } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
@@ -29,12 +29,14 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
   const showTodayMarker = highlightStyle !== 'off';
   const wrapTitles = config.wrapEventTitles === true;
 
+  const weekStartsOn = weekStartsOnFor(config.startDay);
+
   // Build calendar grid cells
   const { cells, weekCount } = useMemo(() => {
     const monthStart = startOfMonth(today);
     const monthEnd = endOfMonth(today);
-    const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    const gridStart = startOfWeek(monthStart, { weekStartsOn });
+    const gridEnd = endOfWeek(monthEnd, { weekStartsOn });
 
     const result: Date[] = [];
     let cursor = gridStart;
@@ -44,7 +46,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
     }
     return { cells: result, weekCount: Math.ceil(result.length / 7) };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-  }, [today.toDateString()]);
+  }, [today.toDateString(), weekStartsOn]);
 
   // Localized day-of-week labels derived from the active formatting locale
   const dowDates = useMemo(
@@ -90,7 +92,9 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
           const isToday = isSameDay(day, today);
           const isCurrentMonth = isSameMonth(day, today);
           const isPastDay = isCurrentMonth && day < today;
-          const isWeekend = dow === 0 || dow === 6;
+          // Sat/Sun columns: the last two when the week starts Monday,
+          // the outer two when it starts Sunday
+          const isWeekend = weekStartsOn === 1 ? dow >= 5 : (dow === 0 || dow === 6);
 
           // Week number column
           const showWeekNum = showWeekNumbers && dow === 0;
@@ -123,7 +127,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
                   borderBottom: '1px solid var(--cal-border-subtle)',
                   gridRow: `span 1`,
                 }}>
-                  {getWeek(day)}
+                  {getWeek(day, weekNumberOptions(config.startDay))}
                 </div>
               )}
               <div

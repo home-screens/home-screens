@@ -237,6 +237,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       wrapEventTitles: false,
       eventTapDetails: false,
       eventTapStyle: 'sheet',
+      startDay: 'sunday',
       darkMode: false,
       scheduleDaysToShow: 0,
       scheduleHourStart: 6,

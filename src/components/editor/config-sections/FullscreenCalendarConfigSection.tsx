@@ -20,6 +20,7 @@ const SHOW_DESCRIPTION_KEY = {
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
   const sourceFilter = c.sourceFilter ?? [];
@@ -63,6 +64,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'sheet', label: t('configSections.fullscreen-calendar.eventTapStyleSheet') },
     { value: 'card', label: t('configSections.fullscreen-calendar.eventTapStyleCard') },
   ];
+
+  const START_DAY_OPTIONS = [
+    { value: 'sunday', label: tCore('days.sunday') },
+    { value: 'monday', label: tCore('days.monday') },
+  ] as const;
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
 
@@ -143,6 +149,15 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           label={t('configSections.fullscreen-calendar.wrapEventTitles')}
           checked={!!c.wrapEventTitles}
           onChange={(v) => set({ wrapEventTitles: v })}
+        />
+      )}
+
+      {(view === 'week-list' || view === 'month-grid') && (
+        <LabeledSelect
+          label={t('configSections.calendar.weekStartsOn')}
+          value={c.startDay ?? 'sunday'}
+          onChange={(v) => set({ startDay: v })}
+          options={START_DAY_OPTIONS}
         />
       )}
 

@@ -82,11 +82,27 @@ describe('getCalendarFetchWindow', () => {
     expect(win!.timeMax).toBe(addDays(addWeeks(weekStart, 6), 1).toISOString());
   });
 
-  it('uses a Monday-start week for fullscreen week-list view', () => {
+  it('uses a Sunday-start week for fullscreen week-list view by default', () => {
     const screens = [makeScreen([makeModule('fullscreen-calendar', { view: 'week-list' })])];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
-    const weekStart = startOfWeek(NOW, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(NOW, { weekStartsOn: 0 });
     expect(win!.timeMin).toBe(addDays(weekStart, -1).toISOString());
+  });
+
+  it('honors startDay monday for the fullscreen week-list and month-grid views', () => {
+    const weekWin = getCalendarFetchWindow(
+      [makeScreen([makeModule('fullscreen-calendar', { view: 'week-list', startDay: 'monday' })])], NOW, DAYS_AHEAD,
+    );
+    const weekStart = startOfWeek(NOW, { weekStartsOn: 1 });
+    expect(weekWin!.timeMin).toBe(addDays(weekStart, -1).toISOString());
+
+    const monthWin = getCalendarFetchWindow(
+      [makeScreen([makeModule('fullscreen-calendar', { view: 'month-grid', startDay: 'monday' })])], NOW, DAYS_AHEAD,
+    );
+    const gridStart = startOfWeek(startOfMonth(NOW), { weekStartsOn: 1 });
+    const gridEnd = endOfWeek(endOfMonth(NOW), { weekStartsOn: 1 });
+    expect(monthWin!.timeMin).toBe(addDays(gridStart, -1).toISOString());
+    expect(monthWin!.timeMax).toBe(addDays(gridEnd, 1).toISOString());
   });
 
   it('widens to start of today for schedule and day-timeline, keeping default timeMax', () => {

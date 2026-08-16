@@ -38,7 +38,7 @@ interface ModuleWindow {
   end: Date | null;
 }
 
-function monthGridWindow(now: Date, weekStartsOn: 0 | 1 = 0): ModuleWindow {
+function monthGridWindow(now: Date, weekStartsOn: 0 | 1): ModuleWindow {
   // Month grids render leading/trailing days of adjacent months, so the
   // window covers the full visible grid, not just the calendar month.
   return {
@@ -73,10 +73,12 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;
-    if (view === 'month-grid') return monthGridWindow(now);
+    // Both fullscreen grids honor startDay; the window follows the same
+    // convention so their leading days are always inside the fetch.
+    const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
+    if (view === 'month-grid') return monthGridWindow(now, weekStartsOn);
     if (view === 'week-list') {
-      // WeekListView renders a Monday-start week
-      return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
+      return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
     }
     if (view === 'schedule' || view === 'day-timeline') {
       // Both render all of today; earlier events show dimmed via dimPastEvents
@@ -119,8 +121,8 @@ export function getCalendarFetchWindow(
 
   if (!earliest) return null;
 
-  // The ±1-day padding covers the fullscreen calendar's convention-fixed grids and
-  // timezone drift — the small module's month/week/multi-week grids are startDay-aware.
+  // Every grid view is startDay-aware, so the ±1-day padding only needs to
+  // absorb timezone drift between the OS clock and the configured zone.
   const timeMin = addDays(earliest, -1).toISOString();
 
   // Only send timeMax when the grid extends beyond the daysAhead default —

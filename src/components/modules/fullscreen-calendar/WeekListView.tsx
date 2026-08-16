@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
@@ -25,14 +25,14 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   const showDescription = config.weekShowDescription === true;
   const showTodayMarker = (config.todayHighlightStyle ?? 'full') !== 'off';
 
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- weekStart is a new Date object each render; toDateString() gives a stable string key that only changes when the day changes
     [weekStart.toDateString()],
   );
 
-  // Landscape: split Mon-Thu and Fri-Sun
+  // Landscape: split the first four and last three days
   const leftDays = isLandscape ? days.slice(0, 4) : days;
   const rightDays = isLandscape ? days.slice(4) : [];
 

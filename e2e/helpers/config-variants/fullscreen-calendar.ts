@@ -254,6 +254,15 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'month-grid', monthMaxEventsPerCell: 1 },
     expect: has('+2 more'),
   },
+  {
+    // startDay monday shifts the grid so the first day-of-week header reads
+    // Mon instead of the Sunday default.
+    type: 'fullscreen-calendar', name: 'month-start-day', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'month-grid', startDay: 'monday' },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="columnheader"]').first()).toHaveText('Mon');
+    },
+  },
 
   // ================= DAY-TIMELINE VIEW =================
 

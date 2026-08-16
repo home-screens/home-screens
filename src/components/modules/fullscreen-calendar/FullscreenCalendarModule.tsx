@@ -6,11 +6,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { isEventUpcoming } from '@/lib/calendar-utils';
+import { isEventUpcoming, weekStartsOnFor } from '@/lib/calendar-utils';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent } from '@/types/config';
+import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent, WeekStartDay } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
@@ -156,6 +156,7 @@ function getHeaderTitle(
   t: TranslateFn,
   locale: string,
   scheduleDays?: number,
+  startDay?: WeekStartDay,
 ): string {
   switch (view) {
     case 'schedule': {
@@ -166,8 +167,9 @@ function getHeaderTitle(
       return `${formatDateSync(today, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
     }
     case 'week-list': {
-      const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+      const weekStartsOn = weekStartsOnFor(startDay);
+      const weekStart = startOfWeek(today, { weekStartsOn });
+      const weekEnd = endOfWeek(today, { weekStartsOn });
       return `${formatDateSync(weekStart, 'MMMM d', { locale })} \u2013 ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
     }
     case 'month-grid':
@@ -311,7 +313,7 @@ export default function FullscreenCalendarModule({
   const scheduleDays = config.view === 'schedule'
     ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
     : undefined;
-  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays);
+  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays, config.startDay);
 
   // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;

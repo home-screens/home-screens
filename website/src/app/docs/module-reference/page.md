@@ -46,6 +46,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `wrapEventTitles` | boolean | `false` | Wrap long event titles onto a second line in schedule and month views instead of truncating |
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |
+| `startDay` | string | `"sunday"` | First day of the week in the week list and month grid views: `sunday` or `monday` |
 | `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
 | `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
 | `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |

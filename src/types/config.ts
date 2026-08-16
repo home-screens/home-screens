@@ -557,6 +557,7 @@ export interface FullscreenCalendarConfig {
   wrapEventTitles?: boolean;                  // default false; wrap long titles to 2 lines (schedule + month views)
   eventTapDetails?: boolean;                  // default false; touch displays: tap an event to open a detail overlay
   eventTapStyle?: EventTapStyle;              // default 'sheet' (bottom sheet); 'card' = centered card
+  startDay?: WeekStartDay;                    // grid views (week-list / month-grid): first day of the week. Default sunday
 
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto
