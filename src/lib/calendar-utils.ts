@@ -1,5 +1,11 @@
 import { addDays } from 'date-fns';
 
+/** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
+ * fetch window share these bounds; 6 is the default when unset. */
+export function clampWeeksToShow(value: number | undefined): number {
+  return Math.min(12, Math.max(4, value ?? 6));
+}
+
 /**
  * Parse an event date string, treating date-only strings ("2026-03-22") as
  * local midnight instead of UTC midnight (the JS default for date-only strings).
