@@ -585,7 +585,7 @@ export interface FullscreenCalendarConfig {
 }
 
 // Calendar module config
-export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'month';
+export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month';
 
 export interface CalendarConfig {
   viewMode: CalendarViewMode;

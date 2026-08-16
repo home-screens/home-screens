@@ -5,7 +5,7 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarViewMode, ModuleStyle } from '@/types/config';
@@ -235,6 +235,10 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
   );
 }
 
+function weekStartsOnFor(config: CalendarConfig): 0 | 1 {
+  return config.startDay === 'monday' ? 1 : 0;
+}
+
 // ─── Week Grid View ───
 
 function WeekView({ events, config, style, today, accentColor, t, locale }: {
@@ -248,7 +252,7 @@ function WeekView({ events, config, style, today, accentColor, t, locale }: {
   locale: string;
 }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
-  const weekStart = startOfWeek(today, { weekStartsOn: 0 });
+  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config) });
   const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   return (
@@ -335,8 +339,8 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const monthStart = startOfMonth(today);
   const monthEnd = endOfMonth(today);
-  const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const calStart = startOfWeek(monthStart, { weekStartsOn: weekStartsOnFor(config) });
+  const calEnd = endOfWeek(monthEnd, { weekStartsOn: weekStartsOnFor(config) });
 
   // Build grid of days
   const weeks: Date[][] = [];
@@ -431,6 +435,107 @@ function MonthView({ events, config, style, today, accentColor, t, locale }: {
   );
 }
 
+// ─── Multi-Week Grid View ───
+
+function MultiWeekView({ events, config, style, today, accentColor, t, locale }: {
+  events: CalendarEvent[];
+  accentColor: string;
+  config: CalendarConfig;
+  style: ModuleStyle;
+  today: Date;
+  t: TranslateFn;
+  tCore: TranslateFn;
+  locale: string;
+}) {
+  const showWeekNumbers = config.showWeekNumbers ?? false;
+  const weekCount = clampWeeksToShow(config.weeksToShow);
+  const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
+  const gridStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config) });
+  const gridTemplate = showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)';
+
+  const weeks: Date[][] = Array.from({ length: weekCount }, (_, w) =>
+    Array.from({ length: 7 }, (_, d) => addDays(gridStart, w * 7 + d)));
+  const dayHeaderDates = weeks[0];
+
+  return (
+    <div className="flex flex-col h-full gap-px">
+      {/* Day-of-week header */}
+      <div className="grid gap-px" style={{ gridTemplateColumns: gridTemplate }}>
+        {showWeekNumbers && <div />}
+        {dayHeaderDates.map((d) => (
+          <div key={d.toISOString()} className="text-center py-0.5">
+            <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
+              {formatDateSync(d, 'EEE', { locale })}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Weeks */}
+      <div className="flex flex-col gap-px flex-1">
+        {weeks.map((week, wi) => (
+          <div key={wi} className="grid gap-px flex-1" style={{ gridTemplateColumns: gridTemplate }}>
+            {showWeekNumbers && (
+              <div className="flex items-start justify-center pt-0.5 px-1">
+                <span style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>{getWeek(week[0])}</span>
+              </div>
+            )}
+            {week.map((date) => {
+              const isToday = isSameDay(date, today);
+              const isPast = date < today && !isToday;
+              const isFirstOfMonth = date.getDate() === 1;
+              const dayEvents = events.filter((ev) => isEventOnDay(ev, date));
+              const overflow = dayEvents.length > maxPerCell ? dayEvents.length - maxPerCell : 0;
+
+              return (
+                <div
+                  key={date.toISOString()}
+                  className="flex flex-col p-0.5 overflow-hidden rounded"
+                  style={{
+                    backgroundColor: isToday ? `${accentColor}1f` : 'rgba(255,255,255,0.02)',
+                    ...(isFirstOfMonth ? { backgroundImage: `linear-gradient(to right, ${accentColor}33, transparent)` } : {}),
+                    opacity: isPast ? TEXT_OPACITY.tertiary : 1,
+                  }}
+                >
+                  <span className="text-center leading-none mb-0.5 block" style={{ fontSize: '0.65em' }}>
+                    {isFirstOfMonth && (
+                      <span style={{ color: accentColor, fontWeight: 600 }}>
+                        {formatDateSync(date, 'MMM', { locale })}{' '}
+                      </span>
+                    )}
+                    {isToday ? (
+                      <span className="inline-flex items-center justify-center rounded-full" style={{
+                        width: '1.8em', height: '1.8em', fontSize: '0.75em', fontWeight: 700,
+                        backgroundColor: `${accentColor}cc`, color: '#fff',
+                      }}>
+                        {formatDateSync(date, 'd', { locale })}
+                      </span>
+                    ) : (
+                      <span style={{ fontWeight: 400, color: style.textColor }}>
+                        {formatDateSync(date, 'd', { locale })}
+                      </span>
+                    )}
+                  </span>
+                  <div className="flex flex-col gap-px overflow-hidden">
+                    {dayEvents.slice(0, maxPerCell).map((ev) => (
+                      <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={false} showLocation={false} compact accentColor={accentColor} t={t} locale={locale} />
+                    ))}
+                    {overflow > 0 && (
+                      <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
+                        {t('calendar.moreCount', { count: overflow })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───
 
 const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
@@ -446,6 +551,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   daily: DailyView,
   agenda: AgendaView,
   week: WeekView,
+  'multi-week': MultiWeekView,
   month: MonthView,
 };
 
@@ -461,10 +567,10 @@ export default function CalendarModule({ config, style, events, timezone }: Cale
   const now = createTZDate(timezone);
   const today = startOfDay(now);
   const viewMode = config.viewMode ?? 'daily';
-  // Grid views (week/month) show their full visible range, past days
+  // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
   // window was widened for a grid view elsewhere on the display.
-  const allEvents = (viewMode === 'week' || viewMode === 'month')
+  const allEvents = (viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week')
     ? sourcedEvents
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
   const ViewComponent = VIEW_COMPONENTS[viewMode];
