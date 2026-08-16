@@ -1018,7 +1018,7 @@ type MultiMonthView = 'vertical' | 'horizontal';
 export interface MultiMonthConfig {
   view: MultiMonthView;
   monthCount: number;
-  startDay: 'sunday' | 'monday';
+  startDay: WeekStartDay;
   showWeekNumbers: boolean;
   highlightWeekends: boolean;
   showAdjacentDays: boolean;
@@ -1146,7 +1146,7 @@ export interface MealSettings {
   /** Which meal slots are enabled across all meal-planner modules */
   enabledSlots: MealSlotType[];
   /** First day of the planning week */
-  weekStartDay: 'sunday' | 'monday';
+  weekStartDay: WeekStartDay;
   /**
    * Default serving time per slot in 24-hour "HH:MM" format. Used as a fallback
    * when a `PlannedMeal` does not have its own `time` set. Always present (may
@@ -1418,7 +1418,7 @@ export interface ChoreToggleResponse {
  */
 export interface ChoreChartConfig {
   view: ChoreChartView;
-  weekStartDay: 'sunday' | 'monday';
+  weekStartDay: WeekStartDay;
   showPoints: boolean;
   showStreaks: boolean;
   showTimeOfDay: boolean;
@@ -1431,7 +1431,7 @@ export type FullscreenChoreChartView = 'chores' | 'rewards-store';
 export interface FullscreenChoreChartConfig {
   view: FullscreenChoreChartView;
   showRewardsButton: boolean;
-  weekStartDay: 'sunday' | 'monday';
+  weekStartDay: WeekStartDay;
   showPoints: boolean;
   showStreaks: boolean;
   showTimeOfDay: boolean;

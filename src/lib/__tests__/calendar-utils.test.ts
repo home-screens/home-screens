@@ -1,5 +1,36 @@
 import { describe, it, expect } from 'vitest';
-import { parseEventDate, compareEventStarts, isEventOnDay, isEventUpcoming, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, compareEventStarts, isEventOnDay, isEventUpcoming, sanitizeEventDescription, clampWeeksToShow, weekNumberOptions } from '@/lib/calendar-utils';
+
+describe('clampWeeksToShow', () => {
+  it('defaults to 6 when unset', () => {
+    expect(clampWeeksToShow(undefined)).toBe(6);
+  });
+
+  it('clamps to the 4-12 range', () => {
+    expect(clampWeeksToShow(1)).toBe(4);
+    expect(clampWeeksToShow(8)).toBe(8);
+    expect(clampWeeksToShow(99)).toBe(12);
+  });
+
+  it('falls back to 6 for hand-edited non-numeric values', () => {
+    // config.json is hand-editable and PUT /api/config doesn't type-check
+    // module config fields; NaN must not leak into Array.from lengths.
+    expect(clampWeeksToShow('six' as unknown as number)).toBe(6);
+    expect(clampWeeksToShow(NaN)).toBe(6);
+    expect(clampWeeksToShow(null as unknown as number)).toBe(6);
+  });
+});
+
+describe('weekNumberOptions', () => {
+  it('uses the ISO convention for Monday-start grids', () => {
+    expect(weekNumberOptions('monday')).toEqual({ weekStartsOn: 1, firstWeekContainsDate: 4 });
+  });
+
+  it('uses the US convention for Sunday-start grids', () => {
+    expect(weekNumberOptions('sunday')).toEqual({ weekStartsOn: 0, firstWeekContainsDate: 1 });
+    expect(weekNumberOptions(undefined)).toEqual({ weekStartsOn: 0, firstWeekContainsDate: 1 });
+  });
+});
 
 describe('parseEventDate', () => {
   it('parses date-only strings as local midnight (not UTC)', () => {

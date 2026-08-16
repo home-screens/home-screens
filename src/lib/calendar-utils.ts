@@ -1,9 +1,37 @@
 import { addDays } from 'date-fns';
+import type { WeekStartDay } from '@/types/config';
 
 /** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
- * fetch window share these bounds; 6 is the default when unset. */
+ * fetch window share these bounds; 6 is the default when unset or not a
+ * number (config.json is hand-editable and the API doesn't type-check it). */
 export function clampWeeksToShow(value: number | undefined): number {
-  return Math.min(12, Math.max(4, value ?? 6));
+  if (!Number.isFinite(value)) return 6;
+  return Math.min(12, Math.max(4, value as number));
+}
+
+/** Grid views render their full visible range (wall-calendar semantics);
+ * list views stay upcoming-only. */
+export function isGridView(viewMode: string | undefined): boolean {
+  return viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week';
+}
+
+/** date-fns weekStartsOn for a config startDay. The views and the fetch
+ * window must share this mapping so the window always covers the grid. */
+export function weekStartsOnFor(startDay: WeekStartDay | undefined): 0 | 1 {
+  return startDay === 'monday' ? 1 : 0;
+}
+
+/** getWeek options matching a grid's startDay: ISO 8601 numbering for
+ * Monday-start grids, the US Sunday convention otherwise. Without these,
+ * getWeek defaults to the US system and Monday-start rows get labeled with
+ * week numbers that disagree with their own cells around year boundaries. */
+export function weekNumberOptions(startDay: WeekStartDay | undefined): {
+  weekStartsOn: 0 | 1;
+  firstWeekContainsDate: 1 | 4;
+} {
+  return startDay === 'monday'
+    ? { weekStartsOn: 1, firstWeekContainsDate: 4 }
+    : { weekStartsOn: 0, firstWeekContainsDate: 1 };
 }
 
 /**

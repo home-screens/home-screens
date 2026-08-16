@@ -7,6 +7,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
+import { isGridView } from '@/lib/calendar-utils';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import type { EventTapStyle, ModuleInstance } from '@/types/config';
@@ -124,16 +125,16 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       {viewMode === 'agenda' && (
         <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
-      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
-        <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
-      )}
-      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
-        <LabeledSelect
-          label={t('configSections.calendar.weekStartsOn')}
-          value={c.startDay ?? 'sunday'}
-          onChange={(v) => set({ startDay: v })}
-          options={START_DAY_OPTIONS}
-        />
+      {isGridView(viewMode) && (
+        <>
+          <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
+          <LabeledSelect
+            label={t('configSections.calendar.weekStartsOn')}
+            value={c.startDay ?? 'sunday'}
+            onChange={(v) => set({ startDay: v })}
+            options={START_DAY_OPTIONS}
+          />
+        </>
       )}
       <ColorPicker
         label={t('configSections.calendar.accentColor')}

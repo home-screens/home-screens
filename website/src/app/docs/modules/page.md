@@ -61,7 +61,7 @@ All four share one set of six color themes: Linen, Paper, and Mist for light roo
 ### Time & Date
 
 - **Clock** — {% $stats.clockViewCount %} different visual styles (analog, digital, flip, word, etc.)
-- **Calendar** — 4 views (daily, agenda, week, month) of events from Google, iCloud, or iCal feeds
+- **Calendar** — 5 views (daily, agenda, week, multi-week, month) of events from Google, iCloud, or iCal feeds
 - **Countdown** — 2 views; days until a birthday, trip, or deadline
 - **Date** — 5 layouts
 - **Year Progress** — how much of the year is left as a bar

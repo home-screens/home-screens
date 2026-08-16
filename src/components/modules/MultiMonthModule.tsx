@@ -3,7 +3,8 @@
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import type { MultiMonthConfig, ModuleStyle } from '@/types/config';
+import { weekStartsOnFor } from '@/lib/calendar-utils';
+import type { MultiMonthConfig, ModuleStyle, WeekStartDay } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
 interface MultiMonthModuleProps {
@@ -16,9 +17,9 @@ interface MultiMonthModuleProps {
 // We derive the localized short day names ('EEE') from this seed week so the
 // headers honour the user's formatting locale instead of being hardcoded English.
 const DAY_HEADER_SEED_SUNDAY = new Date(2024, 0, 7);
-function getDayHeaders(startDay: 'sunday' | 'monday', locale: string) {
+function getDayHeaders(startDay: WeekStartDay, locale: string) {
   const headers: string[] = [];
-  const offset = startDay === 'monday' ? 1 : 0;
+  const offset = weekStartsOnFor(startDay);
   for (let i = 0; i < 7; i++) {
     const d = new Date(DAY_HEADER_SEED_SUNDAY);
     d.setDate(DAY_HEADER_SEED_SUNDAY.getDate() + i + offset);
@@ -27,7 +28,7 @@ function getDayHeaders(startDay: 'sunday' | 'monday', locale: string) {
   return headers;
 }
 
-function getMonthGrid(year: number, month: number, startDay: 'sunday' | 'monday') {
+function getMonthGrid(year: number, month: number, startDay: WeekStartDay) {
   const firstOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -76,7 +77,7 @@ function MonthGrid({
   year: number;
   month: number;
   today: { year: number; month: number; day: number };
-  startDay: 'sunday' | 'monday';
+  startDay: WeekStartDay;
   showWeekNumbers: boolean;
   highlightWeekends: boolean;
   showAdjacentDays: boolean;
