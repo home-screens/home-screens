@@ -2269,7 +2269,11 @@
       "eventTapDetails": "Termin antippen, um Details zu sehen",
       "eventTapStyle": "Stil der Detailansicht",
       "eventTapStyleSheet": "Panel von unten",
-      "eventTapStyleCard": "Karte in der Mitte"
+      "eventTapStyleCard": "Karte in der Mitte",
+      "gridEventStyle": "Ereignisstil",
+      "gridEventStyleClassic": "Klassisch",
+      "gridEventStyleColored": "Farbig",
+      "gridEventPill": "Hintergrund hinter Terminen"
     },
     "chore-chart": {
       "viewBoard": "Board (Spalte je Person)",

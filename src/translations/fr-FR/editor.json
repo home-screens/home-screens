@@ -2274,7 +2274,11 @@
       "eventTapDetails": "Toucher un événement pour voir les détails",
       "eventTapStyle": "Style des détails",
       "eventTapStyleSheet": "Panneau coulissant",
-      "eventTapStyleCard": "Carte centrée"
+      "eventTapStyleCard": "Carte centrée",
+      "gridEventStyle": "Style des événements",
+      "gridEventStyleClassic": "Classique",
+      "gridEventStyleColored": "Coloré",
+      "gridEventPill": "Fond derrière les événements"
     },
     "chore-chart": {
       "viewBoard": "Tableau (une colonne par membre)",

@@ -2269,7 +2269,11 @@
       "eventTapDetails": "Tik op een afspraak voor details",
       "eventTapStyle": "Stijl van details",
       "eventTapStyleSheet": "Paneel van onderen",
-      "eventTapStyleCard": "Kaart in het midden"
+      "eventTapStyleCard": "Kaart in het midden",
+      "gridEventStyle": "Evenementstijl",
+      "gridEventStyleClassic": "Klassiek",
+      "gridEventStyleColored": "Gekleurd",
+      "gridEventPill": "Achtergrond achter afspraken"
     },
     "chore-chart": {
       "viewBoard": "Bord (kolom per lid)",

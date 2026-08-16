@@ -2269,7 +2269,11 @@
       "eventTapDetails": "Tryk på en begivenhed for at se detaljer",
       "eventTapStyle": "Detaljestil",
       "eventTapStyleSheet": "Panel nedefra",
-      "eventTapStyleCard": "Kort i midten"
+      "eventTapStyleCard": "Kort i midten",
+      "gridEventStyle": "Begivenhedsstil",
+      "gridEventStyleClassic": "Klassisk",
+      "gridEventStyleColored": "Farvet",
+      "gridEventPill": "Baggrund bag begivenheder"
     },
     "chore-chart": {
       "viewBoard": "Tavle (kolonne pr. medlem)",

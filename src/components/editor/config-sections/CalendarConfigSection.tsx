@@ -31,6 +31,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     weeksToShow?: number;
     multiWeekMaxEventsPerCell?: number;
     startDay?: string;
+    gridEventStyle?: string;
+    gridEventPillBackground?: boolean;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -46,6 +48,11 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   const START_DAY_OPTIONS = [
     { value: 'sunday', label: tCore('days.sunday') },
     { value: 'monday', label: tCore('days.monday') },
+  ] as const;
+
+  const GRID_EVENT_STYLE_OPTIONS = [
+    { value: 'classic', label: t('configSections.calendar.gridEventStyleClassic') },
+    { value: 'colored', label: t('configSections.calendar.gridEventStyleColored') },
   ] as const;
 
   const { availableSources, googleAuthError } = useCalendarSources('configSections.calendar');
@@ -135,6 +142,21 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             options={START_DAY_OPTIONS}
           />
         </>
+      )}
+      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
+        <LabeledSelect
+          label={t('configSections.calendar.gridEventStyle')}
+          value={c.gridEventStyle ?? 'classic'}
+          onChange={(v) => set({ gridEventStyle: v })}
+          options={GRID_EVENT_STYLE_OPTIONS}
+        />
+      )}
+      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (c.gridEventStyle ?? 'classic') === 'colored' && (
+        <Toggle
+          label={t('configSections.calendar.gridEventPill')}
+          checked={!!c.gridEventPillBackground}
+          onChange={(v) => set({ gridEventPillBackground: v })}
+        />
       )}
       <ColorPicker
         label={t('configSections.calendar.accentColor')}
