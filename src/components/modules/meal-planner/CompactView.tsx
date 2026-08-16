@@ -10,13 +10,15 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface CompactViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: '12h' | '24h';
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   recipeTapMode: RecipeTapMode;
 }
 
-export function CompactView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: CompactViewProps) {
+export function CompactView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode }: CompactViewProps) {
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -90,7 +92,7 @@ export function CompactView({ config, settings, plan, savedMeals, todayISO, reci
                             fontVariantNumeric: 'tabular-nums',
                           }}
                         >
-                          {formatMealTime(time, settings.timeFormat)}
+                          {formatMealTime(time, timeFormat)}
                         </span>
                       )}
                     </div>

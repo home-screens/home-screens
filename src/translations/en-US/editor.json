@@ -1027,7 +1027,8 @@
         "heading": "Time Format",
         "description": "Applies to every meal display across the kiosk and the remote.",
         "twelveHourLabel": "12-hour",
-        "twentyFourHourLabel": "24-hour"
+        "twentyFourHourLabel": "24-hour",
+        "followLabel": "Follow global setting"
       },
       "defaultTimes": {
         "heading": "Default Serving Times",

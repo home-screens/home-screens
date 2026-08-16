@@ -8,7 +8,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate } from '@/lib/meal-constants';
+import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import WeekView from './WeekView';
@@ -21,6 +21,8 @@ interface MealDataResponse {
   plan: PlannedMeal[];
   groceryChecked: string[];
   settings?: MealSettings;
+  /** Household GlobalSettings.timeFormat, reported alongside the settings */
+  globalTimeFormat?: '12h' | '24h';
 }
 
 interface FullscreenMealPlannerModuleProps {
@@ -46,6 +48,10 @@ export default function FullscreenMealPlannerModule({
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings now come from the shared meals.json (edited via /remote), not per-module config
   const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
+  // Effective serving-time format: an explicit meal override wins, else the
+  // household global. Resolved once here so every view renders consistently.
+  const globalTimeFormat = mealData?.globalTimeFormat === '24h' ? '24h' : '12h';
+  const timeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
 
   // ── Scale system ──
   const { containerRef, dims } = useFullscreenDims();
@@ -92,7 +98,7 @@ export default function FullscreenMealPlannerModule({
 
   // ── View props ──
   const viewProps: MealPlannerViewProps = {
-    config, settings, savedMeals, plan, now, slots, activeSlot,
+    config, settings, timeFormat, savedMeals, plan, now, slots, activeSlot,
     bu, s, pad,
     showEmoji: config.showEmoji ?? true,
     showPrepTime: config.showPrepTime ?? true,

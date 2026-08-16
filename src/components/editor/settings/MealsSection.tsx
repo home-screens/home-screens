@@ -11,8 +11,10 @@ import {
   getMealSlotLabelKey,
   getSlotTimePresets,
   normalizeMealSettings,
+  resolveMealTimeFormat,
 } from '@/lib/meal-constants';
 import { displayCache } from '@/lib/display-cache';
+import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import type { MealSettings, MealSlotType } from '@/types/config';
 
@@ -45,6 +47,10 @@ export default function MealsSection() {
   // the dictionary that already ships those keys (Step 4 / task 6.1).
   const tModules = useTranslate('modules');
   const tCore = useTranslate('core');
+  // Household GlobalSettings.timeFormat from config.json — what "follow global"
+  // resolves to. Read from the editor store so the page reflects the unsaved
+  // draft while the user edits it.
+  const globalTf = useEditorStore((s) => s.config?.settings?.timeFormat);
 
   const [settings, setSettings] = useState<MealSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -189,8 +195,11 @@ export default function MealsSection() {
     persist(updated, settings);
   }, [settings, persist]);
 
-  const setTimeFormat = useCallback((fmt: '12h' | '24h') => {
+  const setTimeFormat = useCallback((fmt: '12h' | '24h' | undefined) => {
     if (!settings) return;
+    // undefined = follow global — the explicit undefined overwrites any stored
+    // override here, then serializes out of the PUT body so the key is gone
+    // server-side too (spreading an empty object would have kept the old key).
     const updated: MealSettings = { ...settings, timeFormat: fmt };
     setSettings(updated);
     persist(updated, settings);
@@ -225,7 +234,8 @@ export default function MealsSection() {
     );
   }
 
-  const tf = settings.timeFormat;
+  // Effective format: explicit meal override, else the household global, else 12h
+  const tf = resolveMealTimeFormat(settings, globalTf);
 
   return (
     <div className="space-y-6">
@@ -331,9 +341,25 @@ export default function MealsSection() {
         <p className="text-xs text-hs-text-faint mb-3">
           {t('settings.mealsPage.timeFormat.description')}
         </p>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={() => setTimeFormat(undefined)}
+            disabled={saving}
+            className={`flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-md border transition ${
+              settings.timeFormat === undefined
+                ? 'bg-hs-accent-soft border-hs-accent/40 text-hs-accent-hover'
+                : 'bg-hs-panel border-hs-border-strong text-hs-text-muted hover:border-hs-text-faint hover:text-hs-text-body'
+            }`}
+            aria-pressed={settings.timeFormat === undefined}
+          >
+            <span className="text-sm font-semibold">
+              {t('settings.mealsPage.timeFormat.followLabel')}
+            </span>
+            <span className="text-[11px] tabular-nums opacity-80">{formatMealTime('18:30', globalTf)}</span>
+          </button>
           {(['12h', '24h'] as const).map((fmt) => {
-            const isSelected = tf === fmt;
+            const isSelected = settings.timeFormat === fmt;
             const sample = fmt === '12h' ? '6:30 PM' : '18:30';
             return (
               <button

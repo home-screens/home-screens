@@ -316,7 +316,8 @@
       "heading": "Formato de hora",
       "description": "Aplica-se a toda exibição de refeições no kiosk e neste controle remoto.",
       "twelveHourLabel": "12 horas",
-      "twentyFourHourLabel": "24 horas"
+      "twentyFourHourLabel": "24 horas",
+      "followLabel": "Seguir a configuração global"
     },
     "defaultTimes": {
       "heading": "Horários padrão de refeição",

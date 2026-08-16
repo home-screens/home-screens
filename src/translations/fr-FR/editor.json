@@ -1027,7 +1027,8 @@
         "heading": "Format de l'heure",
         "description": "S'applique à tous les affichages de repas sur le kiosk et la télécommande.",
         "twelveHourLabel": "12 h",
-        "twentyFourHourLabel": "24 h"
+        "twentyFourHourLabel": "24 h",
+        "followLabel": "Suivre le réglage global"
       },
       "defaultTimes": {
         "heading": "Heures de service par défaut",

@@ -6,7 +6,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleSty
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
+import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS, resolveMealTimeFormat } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
@@ -20,6 +20,8 @@ interface MealDataResponse {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   settings?: MealSettings;
+  /** Household GlobalSettings.timeFormat, reported alongside the settings */
+  globalTimeFormat?: '12h' | '24h';
 }
 
 interface MealPlannerModuleProps {
@@ -44,6 +46,10 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings now come from the shared meals.json (edited via /remote), not per-module config
   const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
+  // Effective serving-time format: an explicit meal override wins, else the
+  // household global. Resolved once here so every view renders consistently.
+  const globalTimeFormat = mealData?.globalTimeFormat === '24h' ? '24h' : '12h';
+  const timeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
 
   // Filter plan to current week
   const { start: weekStart, end: weekEnd } = useMemo(
@@ -75,11 +81,11 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'week' && <WeekView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
-      {view === 'today' && <TodayView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
-      {view === 'next-meal' && <NextMealView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
-      {view === 'compact' && <CompactView config={config} settings={settings} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
-      {view === 'list' && <ListView config={config} settings={settings} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
+      {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
+      {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'list' && <ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
     </ModuleWrapper>
   );
 }

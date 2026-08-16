@@ -10,13 +10,15 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface ListViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: '12h' | '24h';
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   recipeTapMode: RecipeTapMode;
 }
 
-export function ListView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: ListViewProps) {
+export function ListView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode }: ListViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
@@ -107,7 +109,7 @@ export function ListView({ config, settings, plan, savedMeals, todayISO, recipeT
                               fontVariantNumeric: 'tabular-nums',
                             }}
                           >
-                            {formatMealTime(time, settings.timeFormat)}
+                            {formatMealTime(time, timeFormat)}
                           </span>
                         )}
                         {showPrepTime && meal.prepTime && (

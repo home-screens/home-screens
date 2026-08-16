@@ -10,6 +10,10 @@ export function useMealsData() {
   const [plan, setPlan] = useState<PlannedMeal[]>([]);
   const [groceryChecked, setGroceryChecked] = useState<string[]>([]);
   const [settings, setSettings] = useState<MealSettings>({ ...DEFAULT_MEAL_SETTINGS });
+  // Household GlobalSettings.timeFormat, reported alongside the meal settings
+  // (always present in the GET response). Meal surfaces resolve their effective
+  // format against this when the shared settings carry no override.
+  const [globalTimeFormat, setGlobalTimeFormat] = useState<'12h' | '24h'>('12h');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -26,6 +30,7 @@ export function useMealsData() {
       // responses (e.g. an old server returning only some fields, or a proxy
       // dropping the settings block) that would otherwise crash subsequent renders.
       setSettings(normalizeMealSettings(data.settings));
+      setGlobalTimeFormat(data.globalTimeFormat === '24h' ? '24h' : '12h');
     } catch {
       /* silent */
     } finally {
@@ -119,6 +124,7 @@ export function useMealsData() {
     setGroceryChecked,
     settings,
     setSettings,
+    globalTimeFormat,
     loading,
     saving,
     setSaving,

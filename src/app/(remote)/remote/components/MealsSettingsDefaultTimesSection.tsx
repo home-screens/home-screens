@@ -8,7 +8,8 @@ import { SECTION_HEADING_STYLE } from './meals-shared';
 interface MealsSettingsDefaultTimesSectionProps {
   enabledSlots: MealSlotType[];
   defaultSlotTimes: MealSettings['defaultSlotTimes'];
-  timeFormat: MealSettings['timeFormat'];
+  /** Effective (already-resolved) format — callers pass resolveMealTimeFormat() output */
+  timeFormat: '12h' | '24h';
   onSetTime: (slot: MealSlotType, time: string | undefined) => void;
 }
 

@@ -10,13 +10,15 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface WeekViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: '12h' | '24h';
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   recipeTapMode: RecipeTapMode;
 }
 
-export function WeekView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: WeekViewProps) {
+export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode }: WeekViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -109,7 +111,7 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO, recipeT
                               fontVariantNumeric: 'tabular-nums',
                             }}
                           >
-                            {formatMealTime(time, settings.timeFormat)}
+                            {formatMealTime(time, timeFormat)}
                           </span>
                         )}
                       </>

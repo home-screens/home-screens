@@ -6,6 +6,8 @@ export interface MealPlannerViewProps {
   config: FullscreenMealPlannerConfig;
   /** Shared planning settings from data/meals.json — single source of truth for slots/weekStart/defaultSlotTimes */
   settings: MealSettings;
+  /** Effective serving-time format (explicit override, else the household global) */
+  timeFormat: '12h' | '24h';
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   now: Date;
