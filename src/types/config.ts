@@ -539,6 +539,7 @@ export type FullscreenTypographySize =
 export type TodayHighlightStyle = 'full' | 'subtle' | 'minimal' | 'off';
 export type EventOverlapMode = 'columns' | 'stacked';
 export type EventTapStyle = 'sheet' | 'card';
+export type WeekStartDay = 'sunday' | 'monday';
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
@@ -593,6 +594,12 @@ export interface CalendarConfig {
   showLocation: boolean;
   maxEvents: number;
   showWeekNumbers: boolean;
+  // Multi-week grid view: total weeks rendered, 4-12 (row 1 = current week)
+  weeksToShow?: number;
+  // Multi-week grid view: event pills per day cell, 2-10
+  multiWeekMaxEventsPerCell?: number;
+  // Grid views (week / month / multi-week): first column day. Default sunday.
+  startDay?: WeekStartDay;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
   // Per-view: render the sanitized event description under the title.
