@@ -543,6 +543,7 @@ test.describe('calendar module event tap', () => {
     daily: true,
     agenda: true,
     week: true,
+    'multi-week': true,
     month: true,
   };
   const CAL_VIEWS = Object.keys(CAL_VIEW_TAP_COVERED) as CalendarViewMode[];
