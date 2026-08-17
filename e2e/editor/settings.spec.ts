@@ -63,6 +63,21 @@ test.describe('Defaults › Location', () => {
       .poll(async () => (await getConfig(request)).settings.longitude)
       .toBeCloseTo(-0.1278, 3);
   });
+
+  test('time format persists', async ({ page, request }) => {
+    // baseConfig has no settings.timeFormat (absent = 12h), so the select
+    // starts on 12h; picking 24h stores the explicit global override.
+    await putConfig(request, baseConfig());
+    await page.goto('/editor/settings?section=defaults&page=location');
+
+    // TimeFormatFields persists immediately on change (direct saveConfig, not
+    // the debounced autosave), so poll the config rather than await a response.
+    await page.locator('#hs-timeformat-select').selectOption('24h');
+
+    await expect
+      .poll(async () => (await getConfig(request)).settings.timeFormat)
+      .toBe('24h');
+  });
 });
 
 test('Defaults › Screen: a custom resolution pick survives a tab switch', async ({ page, request }) => {
@@ -128,6 +143,28 @@ test('Defaults › Meals: changing week start persists to data/meals.json', asyn
   const res = await request.get('/api/meals/data');
   const body = await res.json();
   expect(body.settings.weekStartDay).toBe('monday');
+});
+
+test('Defaults › Meals: follow global clears a stored time format override', async ({ page, request }) => {
+  // Seed: no household global (absent = 12h), meals override 24h.
+  await putConfig(request, baseConfig());
+  const seeded = await request.put('/api/meals/data', { data: { settings: { timeFormat: '24h' } } });
+  expect(seeded.ok()).toBe(true);
+
+  await page.goto('/editor/settings?section=defaults&page=meals');
+
+  // The stored override drives the UI first: 24-hour is selected, not follow.
+  const follow = page.getByRole('button', { name: 'Follow global setting' });
+  await expect(follow).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('button', { name: '24-hour' })).toHaveAttribute('aria-pressed', 'true');
+
+  // MealsSection persists per click (settings-only PUT), and the follow pick
+  // serializes the key out entirely — so the override is gone server-side.
+  await follow.click();
+
+  await expect
+    .poll(async () => (await (await request.get('/api/meals/data')).json()).settings.timeFormat)
+    .toBeUndefined();
 });
 
 test.describe('per-display overrides', () => {
