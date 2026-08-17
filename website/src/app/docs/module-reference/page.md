@@ -333,9 +333,12 @@ Today's sunrise and sunset times with visual arc.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"default"` | Display style: `default` or `arc` |
+| `view` | string | `"default"` | Display style: `default`, `arc`, or `circle` |
 | `showDayLength` | boolean | `true` | Show total daylight hours |
 | `showGoldenHour` | boolean | `false` | Show golden hour times |
+| `showAstroDark` | boolean | `false` | Show when full darkness starts and ends, and how long it lasts |
+
+Uses the `suncalc` library based on your configured latitude/longitude. With `showAstroDark` on, the dark times always describe tonight: darkness starting this evening paired with its end tomorrow morning. On summer nights when the sky never gets fully dark, the dark rows are simply hidden. The `circle` view draws a 24-hour ring with noon at the top and midnight at the bottom, shading daylight, twilight, and full darkness to scale.
 
 ### Air Quality
 

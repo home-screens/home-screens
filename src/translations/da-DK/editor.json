@@ -2912,10 +2912,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Standard (tekst)",
-        "arc": "Solbue (grafisk)"
+        "arc": "Solbue (grafisk)",
+        "circle": "24t-cirkel (visuel)"
       },
       "showDayLength": "Vis dagens længde",
       "showGoldenHour": "Vis den gyldne time",
+      "showAstroDark": "Vis mørket",
       "locationHint": "Bruger placeringen fra de globale indstillinger."
     },
     "text": {

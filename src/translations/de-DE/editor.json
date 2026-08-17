@@ -2912,10 +2912,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Standard (Text)",
-        "arc": "Sonnenbogen (visuell)"
+        "arc": "Sonnenbogen (visuell)",
+        "circle": "24h-Kreis (visuell)"
       },
       "showDayLength": "Tageslänge anzeigen",
       "showGoldenHour": "Goldene Stunde anzeigen",
+      "showAstroDark": "Dunkelheit anzeigen",
       "locationHint": "Verwendet den Standort aus den globalen Einstellungen."
     },
     "text": {

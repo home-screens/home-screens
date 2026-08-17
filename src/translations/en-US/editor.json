@@ -2912,10 +2912,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Default (Text)",
-        "arc": "Sun Arc (Visual)"
+        "arc": "Sun Arc (Visual)",
+        "circle": "24h Circle (Visual)"
       },
       "showDayLength": "Show Day Length",
       "showGoldenHour": "Show Golden Hour",
+      "showAstroDark": "Show Astro Dark",
       "locationHint": "Uses location from global settings."
     },
     "text": {

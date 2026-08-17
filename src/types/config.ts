@@ -884,12 +884,13 @@ export interface MoonPhaseConfig {
 }
 
 // Sunrise / Sunset module config
-export type SunriseSunsetView = 'default' | 'arc';
+export type SunriseSunsetView = 'default' | 'arc' | 'circle';
 
 export interface SunriseSunsetConfig {
   view: SunriseSunsetView;
   showDayLength: boolean;
   showGoldenHour: boolean;
+  showAstroDark?: boolean;
 }
 
 // Photo slideshow module config

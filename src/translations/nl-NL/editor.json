@@ -2912,10 +2912,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Standaard (tekst)",
-        "arc": "Zonneboog (visueel)"
+        "arc": "Zonneboog (visueel)",
+        "circle": "24h-cirkel (visueel)"
       },
       "showDayLength": "Daglengte tonen",
       "showGoldenHour": "Gouden uur tonen",
+      "showAstroDark": "Donker tonen",
       "locationHint": "Gebruikt de locatie uit de algemene instellingen."
     },
     "text": {

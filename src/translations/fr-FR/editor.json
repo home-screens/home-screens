@@ -2917,10 +2917,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Par défaut (texte)",
-        "arc": "Arc solaire (visuel)"
+        "arc": "Arc solaire (visuel)",
+        "circle": "Cercle 24h (visuel)"
       },
       "showDayLength": "Afficher la durée du jour",
       "showGoldenHour": "Afficher l'heure dorée",
+      "showAstroDark": "Afficher l'obscurité",
       "locationHint": "Utilise la position des paramètres globaux."
     },
     "text": {
