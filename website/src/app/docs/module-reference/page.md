@@ -222,7 +222,7 @@ Counts down to one or more future events with visual progress rings.
 | `events` | array | `[]` | List of events, each with `id`, `name`, `date`, optional `recurring` (`"yearly"`), optional `source` (`"custom"` or `"holiday"`), and optional `backgroundImage` |
 | `showPastEvents` | boolean | `false` | Continue showing events after they pass |
 | `stayUntilEndOfDay` | boolean | `false` | Keep an event that has reached zero on screen until the end of that day, so a birthday or anniversary stays up all day instead of vanishing at midnight |
-| `scale` | number | `1` | Visual scale factor (0.5–4) |
+| `scale` | number | `1` | Visual scale factor (0.5–5.2). View-independent: the same value renders the same size in every view |
 | `holidayCountry` | string | — | ISO country code to auto-populate holiday countdowns (e.g. `"US"`) |
 | `format` | string | `"flip"` | How the numbers render: `flip` (animated flip cards), or one of the Clock elapsed text styles: `units`, `unitsUpper`, `unitsShort`, `colon`, `words`, `wordsTitle` |
 | `precision` | string | `"auto"` | Which units are shown: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. `auto` shows days only when there is at least one, and always shows hours, minutes, and seconds. |
@@ -308,6 +308,8 @@ Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), 
 | `showVisibility` | boolean | `false` | Show visibility distance |
 | `showDewPoint` | boolean | `false` | Show dew point temperature |
 | `hideWhenNoAlerts` | boolean | `false` | Hide the alerts view when there are no active alerts |
+| `showLocation` | boolean | `false` | Show a place-name header above the view |
+| `locationLabel` | string | — | Custom text for the location header. Empty falls back to the geocoded place name, then to the formatted coordinates |
 
 **View details:**
 

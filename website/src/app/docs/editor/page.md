@@ -81,6 +81,8 @@ Categories in the palette are collapsible. Click a category header to expand or 
 - **Delete** by selecting the module and clicking **Delete Module** at the bottom of the Property Panel. You'll be asked to confirm first. The Delete key does nothing on the canvas
 - Position and size can also be set precisely using the X, Y, W, H fields in the Property Panel
 
+When modules overlap, **click the same spot again** to cycle through the modules stacked under it, so a covered module is always reachable. To change which module draws on top, select it and use the **Bring to Front** and **Send to Back** buttons near the bottom of the Property Panel — each button is disabled once the module is already at that end of the stack.
+
 ## Configuring Modules
 
 Select a module to open its settings in the **Property Panel** on the right. Related fields are grouped into labeled blocks sharing a visual container, so the panel stays scannable even on dense modules like the clock or chore chart. Each block is a collapsible section, so the panel shows only what you're actively editing.
