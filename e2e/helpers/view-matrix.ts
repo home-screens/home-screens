@@ -32,7 +32,7 @@ export const VIEW_MATRIX: ViewSpec[] = [
     views: ['all', 'next'] },
   { type: 'multi-month', key: 'view', kind: 'network-free', views: ['vertical', 'horizontal'] },
   { type: 'affirmations', key: 'view', kind: 'network-free', views: ['elegant', 'card', 'minimal', 'typewriter'] },
-  { type: 'sunrise-sunset', key: 'view', kind: 'network-free', views: ['default', 'arc'] },
+  { type: 'sunrise-sunset', key: 'view', kind: 'network-free', views: ['default', 'arc', 'circle'] },
   { type: 'shape', key: 'view', kind: 'network-free', views: [
     'divider', 'double-line', 'wave', 'zigzag', 'dotted-row', 'rectangle', 'circle', 'triangle',
     'polygon', 'star', 'arrow', 'glow', 'gradient', 'grid', 'frame'] },
