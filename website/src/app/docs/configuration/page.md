@@ -173,6 +173,10 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   formattingLocale?: string       // Optional BCP-47 override that affects ONLY date/number
                                   // formatting — leaves the active dictionary unchanged.
                                   // Falls back to `locale` when omitted.
+  timeFormat?: '12h' | '24h'      // Household 12/24-hour preference. Calendar module times
+                                  // resolve against it and the meal planner follows it
+                                  // unless its own timeFormat override is set.
+                                  // Absent = 12h. Global-only like `locale`.
 }
 ```
 
@@ -559,9 +563,11 @@ The meal library, weekly plan, grocery check-offs, and household-wide planning s
   enabledSlots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
   weekStartDay: 'sunday' | 'monday'
   defaultSlotTimes: { breakfast?: string; lunch?: string; dinner?: string; snack?: string }  // "HH:MM" 24h
-  timeFormat: '12h' | '24h'
+  timeFormat?: '12h' | '24h'   // Absent = follow GlobalSettings.timeFormat
 }
 ```
+
+`timeFormat` is optional: when omitted (the default), meal times follow the household `GlobalSettings.timeFormat`; an explicit `'12h'`/`'24h'` wins everywhere meals are shown. Versions before this setting existed wrote `'12h'` into every file whether or not the user had touched the picker, so on first read after upgrading, a stored `'12h'` is treated as never-configured and removed once (a `timeFormatLegacyStripped` marker in the file keeps a later deliberate `'12h'` pick from being stripped again). A stored `'24h'` was always deliberate and survives as an explicit override.
 
 Each `PlannedMeal` uses an ISO date string to support multi-week planning:
 

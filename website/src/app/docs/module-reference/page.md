@@ -118,7 +118,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
 
 **View details:**
 
@@ -199,6 +199,8 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (4–12), starting with the current week |
 | `multiWeekMaxEventsPerCell` | number | `4` | Multi-week view: event pills per day cell before "+N more" (2–10) |
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
+| `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
+| `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
@@ -207,6 +209,8 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |
 
 Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/getting-started#calendar-setup). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
+
+**Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color — the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time — in both styles.
 
 ### Countdown
 
@@ -618,7 +622,7 @@ A meal planning module for organizing daily meals across configurable slots (bre
 
 **Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding — the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings — every meal-planner module across every display picks them up from `data/meals.json` automatically. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings — every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
 **View details:**
 

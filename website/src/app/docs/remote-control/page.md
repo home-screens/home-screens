@@ -258,7 +258,7 @@ Tickets are earned automatically when chores are marked complete (based on each 
 
 The **Meals** tab provides a mobile interface for meal planning. It appears when any meal planner module exists in your configuration. The tab has four sub-views: **This Week**, **Plan**, **Library**, and **Grocery**.
 
-A gear button in the tab header opens **meal settings**: which meal slots you use (breakfast, lunch, dinner, snack), which day your week starts on, 12- or 24-hour times, and the default time for each slot. These are shared for the whole household, so changing them here also changes every meal planner module on your displays.
+A gear button in the tab header opens **meal settings**: which meal slots you use (breakfast, lunch, dinner, snack), which day your week starts on, the time format, and the default time for each slot. The time format offers **Follow global setting** (the default — meal times use the household Time format setting under Settings → Defaults → Location & language) alongside explicit 12- and 24-hour overrides. These are shared for the whole household, so changing them here also changes every meal planner module on your displays.
 
 ### This Week
 
