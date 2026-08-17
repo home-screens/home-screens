@@ -206,7 +206,10 @@ export default function DraggableModule({
         </div>
       </div>
       {/* Type label overlay */}
-      <div className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white" style={{ fontSize: Math.max(7, 9 * scale) }}>
+      <div
+        className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white"
+        style={{ fontSize: Math.max(7, 9 * scale), borderTopLeftRadius: mod.style.borderRadius * scale }}
+      >
         {labelText}
       </div>
       {/* Status badges (disabled / schedule / condition / background provider) */}
@@ -215,7 +218,11 @@ export default function DraggableModule({
           key={badge.key}
           {...badge.data}
           className={`absolute top-0 p-0.5 rounded-bl ${badge.className}`}
-          style={{ right: i * badgeStep }}
+          style={{
+            right: i * badgeStep,
+            // The badge in the corner slot hugs the module's rounded corner.
+            borderTopRightRadius: i === 0 ? mod.style.borderRadius * scale : undefined,
+          }}
           title={badge.title}
         >
           <badge.icon style={{ width: iconSize, height: iconSize }} />
