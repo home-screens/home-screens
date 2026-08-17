@@ -70,7 +70,7 @@ All four share one set of six color themes: Linen, Paper, and Mist for light roo
 ### Weather & Environment
 
 - **Weather** — {% $stats.weatherViewCount %} views (current, hourly, daily, combined, compact, table, precipitation, alerts) across {% $stats.weatherProviderCount %} providers (OpenWeatherMap, WeatherAPI, Pirate Weather, NOAA, Open-Meteo, Yr.no, SMHI, Met Office, Environment Canada)
-- **Moon Phase** · **Sunrise / Sunset** (2 views) · **Air Quality** · **Rain Map**
+- **Moon Phase** · **Sunrise / Sunset** (3 views) · **Air Quality** · **Rain Map**
 
 ### News & Finance
 
