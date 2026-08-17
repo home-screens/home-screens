@@ -360,11 +360,12 @@ Returns saved meals, weekly plan, grocery checked state, and shared meal-planner
     "weekStartDay": "monday",
     "defaultSlotTimes": { "breakfast": "07:30", "lunch": "12:00", "dinner": "18:00" },
     "timeFormat": "12h"
-  }
+  },
+  "globalTimeFormat": "12h"
 }
 ```
 
-The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week support. Entries older than 12 weeks are pruned on write.
+`settings.timeFormat` is optional — when absent, meal times follow the household `GlobalSettings.timeFormat`, which the top-level `globalTimeFormat` field mirrors so clients can resolve "follow global" without a second config fetch. The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week support. Entries older than 12 weeks are pruned on write.
 
 ### PUT /api/meals/data
 
@@ -382,6 +383,8 @@ The entire read-modify-write cycle runs inside the meal-data store queue, so cro
   "force": false
 }
 ```
+
+When `settings` is present it replaces the stored settings object: include `"timeFormat": "12h"` or `"24h"` for an explicit override, or omit the key to follow the household `GlobalSettings.timeFormat`.
 
 When present, `savedMeals`, `plan`, and `groceryChecked` must be arrays. An empty-overwrite guard fires when every `savedMeals` / `plan` field present in the body is `[]` and the existing data is not empty; the write is refused with `409` and you can resend with `force: true` to override. If the body sends both fields and only one of them is empty, that is a normal write and the guard stays out of the way. Settings-only and grocery-only writes skip the guard entirely.
 

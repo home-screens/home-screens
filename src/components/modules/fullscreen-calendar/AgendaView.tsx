@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin } from './FullscreenCalendarModule';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import type { FullscreenCalendarConfig } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 
 interface AgendaViewProps {
   events: CalendarEvent[];
@@ -14,9 +14,10 @@ interface AgendaViewProps {
   scale: CalendarScale;
   today: Date;
   now: Date;
+  timeFormat?: TimeFormat;
 }
 
-export function AgendaView({ events, config, scale, today, now }: AgendaViewProps) {
+export function AgendaView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: AgendaViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -148,8 +149,8 @@ export function AgendaView({ events, config, scale, today, now }: AgendaViewProp
             );
           }
 
-          const startLabel = formatDateSync(start, 'h:mm a', { locale });
-          const endLabel = formatDateSync(end, 'h:mm a', { locale });
+          const startLabel = formatEventTime(start, timeFormat, locale);
+          const endLabel = formatEventTime(end, timeFormat, locale);
           const ariaLabel = ev.location
             ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                 title: ev.title,

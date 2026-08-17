@@ -6,7 +6,11 @@
     "moreOptions": "Flere valgmuligheder",
     "formattingLocaleLabel": "Format for dato og tal",
     "formattingLocaleHelp": "Tilsidesæt kun formatet for dato og tal. Sproget i brugerfladen ændres ikke.",
-    "formattingLocaleSameAsLanguage": "Samme som sproget"
+    "formattingLocaleSameAsLanguage": "Samme som sproget",
+    "timeFormatLabel": "Tidsformat",
+    "timeFormat12h": "12-timers · 8:00 AM",
+    "timeFormat24h": "24-timers · 20:00",
+    "timeFormatHelp": "Sådan vises klokkeslæt på dine skærme."
   },
   "common": {
     "saved": "Gemt",
@@ -1023,7 +1027,8 @@
         "heading": "Tidsformat",
         "description": "Gælder for alle måltidsvisninger på skærmen og på fjernbetjeningen.",
         "twelveHourLabel": "12-timers",
-        "twentyFourHourLabel": "24-timers"
+        "twentyFourHourLabel": "24-timers",
+        "followLabel": "Følg den globale indstilling"
       },
       "defaultTimes": {
         "heading": "Standard serveringstider",
@@ -2264,7 +2269,11 @@
       "eventTapDetails": "Tryk på en begivenhed for at se detaljer",
       "eventTapStyle": "Detaljestil",
       "eventTapStyleSheet": "Panel nedefra",
-      "eventTapStyleCard": "Kort i midten"
+      "eventTapStyleCard": "Kort i midten",
+      "gridEventStyle": "Begivenhedsstil",
+      "gridEventStyleClassic": "Klassisk",
+      "gridEventStyleColored": "Farvet",
+      "gridEventPill": "Baggrund bag begivenheder"
     },
     "chore-chart": {
       "viewBoard": "Tavle (kolonne pr. medlem)",
@@ -2912,10 +2921,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Standard (tekst)",
-        "arc": "Solbue (grafisk)"
+        "arc": "Solbue (grafisk)",
+        "circle": "24t-cirkel (visuel)"
       },
       "showDayLength": "Vis dagens længde",
       "showGoldenHour": "Vis den gyldne time",
+      "showAstroDark": "Vis mørket",
       "locationHint": "Bruger placeringen fra de globale indstillinger."
     },
     "text": {

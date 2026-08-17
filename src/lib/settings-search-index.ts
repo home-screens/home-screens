@@ -139,6 +139,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'location', fieldId: 'location.longitude', labelKey: 'settings.locationPage.longitudeLabel' },
   { pageId: 'location', fieldId: 'location.language', labelKey: 'languageAndRegion.languageLabel' },
   { pageId: 'location', fieldId: 'location.formattingLocale', labelKey: 'languageAndRegion.formattingLocaleLabel' },
+  { pageId: 'location', fieldId: 'location.timeFormat', labelKey: 'languageAndRegion.timeFormatLabel' },
 
   { pageId: 'weather', fieldId: 'weather.units', labelKey: 'settings.weatherPage.unitsLabel' },
   { pageId: 'weather', fieldId: 'weather.provider.open-meteo', label: 'Open-Meteo' },

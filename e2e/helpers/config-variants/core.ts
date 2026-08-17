@@ -273,6 +273,21 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     config: { view: 'default', showGoldenHour: true },
     expect: has('Golden hour'),
   },
+  {
+    type: 'sunrise-sunset', name: 'astro-dark', kind: 'network-free',
+    config: { view: 'default', showAstroDark: true },
+    expect: has('Dark begins'),
+  },
+  {
+    type: 'sunrise-sunset', name: 'circle-astro-dark', kind: 'network-free',
+    config: { view: 'circle', showAstroDark: true },
+    expect: has('Dark begins'),
+  },
+  {
+    type: 'sunrise-sunset', name: 'arc-astro-dark', kind: 'network-free',
+    config: { view: 'arc', showAstroDark: true },
+    expect: has('Dark begins'),
+  },
 
   // -- garbage-day --
   {

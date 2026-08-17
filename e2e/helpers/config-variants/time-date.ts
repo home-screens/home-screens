@@ -22,6 +22,13 @@ function todayStr(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** A YYYY-MM-DD `dayOffset` days from today (all-day event bounds). */
+function dateStr(dayOffset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 /**
  * A timed calendar event that spans all of today (00:01 → tomorrow 23:59), so
  * it is always "upcoming" during the test and lands in today's daily/agenda
@@ -483,6 +490,37 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => {
       await expect(mod.locator('.grid').first().locator('div.text-center'))
         .toHaveText(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    },
+  },
+  {
+    // Colored style: the all-day event renders a solid calendar-color pill with
+    // auto-contrast text (yellow is bright, so near-black #1b1b1f text), while
+    // the timed event carries no background of its own and paints its calendar
+    // color on the time + title spans instead.
+    type: 'calendar', name: 'grid-event-style-colored', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      // All-day bounds are date-only with an exclusive end (next day).
+      todayEvent('cges-a', 'CAL SOLID', { allDay: true, start: dateStr(0), end: dateStr(1), calendarColor: '#eab308' }),
+      todayEvent('cges-b', 'CAL TIMED', { calendarColor: '#3b82f6' }),
+    ],
+    config: { viewMode: 'multi-week', gridEventStyle: 'colored' },
+    expect: async (mod) => {
+      const solid = mod.locator('[data-event-id="cges-a"]');
+      await expect(solid).toHaveCSS('background-color', 'rgb(234, 179, 8)');
+      await expect(solid).toHaveCSS('color', 'rgb(27, 27, 31)');
+      const timed = mod.locator('[data-event-id="cges-b"]');
+      await expect(timed).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(timed.locator('span').first()).toHaveCSS('color', 'rgb(59, 130, 246)');
+    },
+  },
+  {
+    // The timed-pill toggle adds the faint background in colored mode (without
+    // it the colored timed row above asserts the bare no-background render).
+    type: 'calendar', name: 'grid-event-pill-background', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
+    config: { viewMode: 'multi-week', gridEventStyle: 'colored', gridEventPillBackground: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-event-id="cgp-a"]')).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     },
   },
 ];

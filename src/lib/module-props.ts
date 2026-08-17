@@ -1,4 +1,4 @@
-import type { ModuleType } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 
 /**
@@ -49,6 +49,7 @@ export interface PreviewSettings {
   globalProvider: string;
   units: 'metric' | 'imperial';
   fullscreenTheme: string | undefined;
+  timeFormat: TimeFormat | undefined;
 }
 
 interface ProviderWeatherData {
@@ -76,6 +77,8 @@ export interface PreviewData {
 export interface ModuleDataSource {
   timezone?: string;
   fullscreenTheme?: string;
+  /** Household 12/24-hour preference (GlobalSettings.timeFormat). */
+  timeFormat?: TimeFormat;
   /** null = no usable coordinates; drives `locationMissing`. */
   location: { lat: number; lon: number } | null;
   /** Human-readable place name for the configured coordinates, when known. */
@@ -116,6 +119,9 @@ export function buildModuleProps(
   const props: Record<string, unknown> = {
     timezone: source.timezone,
     fullscreenTheme: source.fullscreenTheme,
+    // Ambient like timezone: every module (calendar, fullscreen-calendar,
+    // future plugins) reads the same household clock preference.
+    timeFormat: source.timeFormat ?? DEFAULT_TIME_FORMAT,
   };
 
   const def = getModuleDefinition(mod.type);
@@ -163,6 +169,7 @@ export function toDisplaySource(
   settings: {
     timezone?: string;
     fullscreenTheme?: string;
+    timeFormat?: TimeFormat;
     locationName?: string;
     weather: { provider: string; units: 'metric' | 'imperial' };
   },
@@ -174,6 +181,7 @@ export function toDisplaySource(
   return {
     timezone: settings.timezone,
     fullscreenTheme: settings.fullscreenTheme,
+    timeFormat: settings.timeFormat,
     location,
     locationName: settings.locationName,
     weather: {
@@ -203,6 +211,7 @@ export function toEditorSource(
   return {
     timezone: settings?.timezone,
     fullscreenTheme: settings?.fullscreenTheme,
+    timeFormat: settings?.timeFormat,
     location: settings && settings.latitude != null && settings.longitude != null
       ? { lat: settings.latitude, lon: settings.longitude }
       : null,

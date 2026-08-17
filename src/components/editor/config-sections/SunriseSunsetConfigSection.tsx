@@ -10,6 +10,7 @@ type SunriseSunsetConfigType = {
   view?: SunriseSunsetView;
   showDayLength?: boolean;
   showGoldenHour?: boolean;
+  showAstroDark?: boolean;
 };
 
 export function SunriseSunsetConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -19,6 +20,7 @@ export function SunriseSunsetConfigSection({ mod, screenId }: { mod: ModuleInsta
   const VIEWS: { value: SunriseSunsetView; label: string }[] = [
     { value: 'default', label: t('configSections.sunrise-sunset.views.default') },
     { value: 'arc', label: t('configSections.sunrise-sunset.views.arc') },
+    { value: 'circle', label: t('configSections.sunrise-sunset.views.circle') },
   ];
 
   return (
@@ -30,6 +32,7 @@ export function SunriseSunsetConfigSection({ mod, screenId }: { mod: ModuleInsta
       />
       <Toggle label={t('configSections.sunrise-sunset.showDayLength')} checked={c.showDayLength !== false} onChange={(v) => set({ showDayLength: v })} />
       <Toggle label={t('configSections.sunrise-sunset.showGoldenHour')} checked={!!c.showGoldenHour} onChange={(v) => set({ showGoldenHour: v })} />
+      <Toggle label={t('configSections.sunrise-sunset.showAstroDark')} checked={!!c.showAstroDark} onChange={(v) => set({ showAstroDark: v })} />
       <p className="text-xs text-hs-text-faint">{t('configSections.sunrise-sunset.locationHint')}</p>
     </>
   );

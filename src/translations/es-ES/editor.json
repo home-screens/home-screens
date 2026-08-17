@@ -6,7 +6,11 @@
     "moreOptions": "Más opciones",
     "formattingLocaleLabel": "Configuración regional para formato",
     "formattingLocaleHelp": "Solo sobrescribe el formato de fecha y números. Mantiene el idioma de la interfaz sin cambios.",
-    "formattingLocaleSameAsLanguage": "Igual que el idioma"
+    "formattingLocaleSameAsLanguage": "Igual que el idioma",
+    "timeFormatLabel": "Formato de hora",
+    "timeFormat12h": "12 horas · 8:00 AM",
+    "timeFormat24h": "24 horas · 20:00",
+    "timeFormatHelp": "Cómo se muestran las horas en tus pantallas."
   },
   "common": {
     "saved": "Guardado",
@@ -1023,7 +1027,8 @@
         "heading": "Formato de hora",
         "description": "Se aplica a todas las comidas mostradas en el kiosk y en el mando.",
         "twelveHourLabel": "12 horas",
-        "twentyFourHourLabel": "24 horas"
+        "twentyFourHourLabel": "24 horas",
+        "followLabel": "Seguir el ajuste global"
       },
       "defaultTimes": {
         "heading": "Horas por defecto para servir",
@@ -2269,7 +2274,11 @@
       "eventTapDetails": "Toca un evento para ver los detalles",
       "eventTapStyle": "Estilo de los detalles",
       "eventTapStyleSheet": "Panel deslizante",
-      "eventTapStyleCard": "Tarjeta centrada"
+      "eventTapStyleCard": "Tarjeta centrada",
+      "gridEventStyle": "Estilo de eventos",
+      "gridEventStyleClassic": "Clásico",
+      "gridEventStyleColored": "Con color",
+      "gridEventPill": "Fondo detrás de los eventos"
     },
     "chore-chart": {
       "viewBoard": "Tablero (columna por miembro)",
@@ -2917,10 +2926,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Predeterminada (texto)",
-        "arc": "Arco solar (visual)"
+        "arc": "Arco solar (visual)",
+        "circle": "Círculo de 24h (visual)"
       },
       "showDayLength": "Mostrar duración del día",
       "showGoldenHour": "Mostrar hora dorada",
+      "showAstroDark": "Mostrar la oscuridad",
       "locationHint": "Usa la ubicación de los ajustes globales."
     },
     "text": {

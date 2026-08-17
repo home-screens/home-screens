@@ -77,25 +77,46 @@ export const COMMON_TIMEZONES: readonly TimezoneOption[] = [
  * If no timezone is provided, returns `new Date()` (system default).
  */
 export function createTZDate(timezone?: string): Date {
-  if (!timezone) return new Date();
+  return toTZWallTime(new Date(), timezone);
+}
+
+// Formatter construction dominates Intl cost and this runs per event in
+// calendar grids, so cache one formatter per timezone (a handful at most).
+const wallTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Shift an absolute instant into a "wall time" Date for the given IANA
+ * timezone: the returned Date's local-time methods (getHours, getDate, …)
+ * report the instant's clock reading in that timezone, regardless of the
+ * OS timezone. This is the same shifted-Date convention as `createTZDate`
+ * (which is just this applied to `new Date()`), so shifted values compare
+ * correctly against it. Without a timezone (or with an invalid one, or an
+ * Invalid Date) the input is returned unchanged.
+ */
+export function toTZWallTime(date: Date, timezone?: string): Date {
+  if (!timezone || isNaN(date.getTime())) return date;
 
   try {
-    const now = new Date();
     // 'en-US' is intentional: `formatToParts` is consumed as integers
     // (parseInt below), so we need a locale that emits ASCII digits
     // — Arabic/Indic locales would emit non-Latin numerals that break
     // parseInt. This is locale-INDEPENDENT machine extraction, not
     // user-facing formatting.
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-      hour12: false,
-    }).formatToParts(now);
+    let formatter = wallTimeFormatters.get(timezone);
+    if (!formatter) {
+      formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false,
+      });
+      wallTimeFormatters.set(timezone, formatter);
+    }
+    const parts = formatter.formatToParts(date);
 
     const get = (type: Intl.DateTimeFormatPartTypes) =>
       parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
@@ -103,8 +124,8 @@ export function createTZDate(timezone?: string): Date {
     const hour = get('hour') === 24 ? 0 : get('hour');
     return new Date(get('year'), get('month') - 1, get('day'), hour, get('minute'), get('second'));
   } catch {
-    // Invalid timezone string — fall back to system default
-    return new Date();
+    // Invalid timezone string — fall back to the input unchanged
+    return date;
   }
 }
 

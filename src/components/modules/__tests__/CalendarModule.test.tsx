@@ -313,3 +313,107 @@ describe('CalendarModule multi-week view', () => {
     });
   });
 });
+
+describe('grid event styling', () => {
+  const allDayYellow = {
+    id: 'g1', title: 'Market day',
+    start: format(now, 'yyyy-MM-dd'), end: format(addDays(now, 1), 'yyyy-MM-dd'),
+    allDay: true, calendarColor: '#eab308',
+  } as CalendarEvent;
+  const timedBlue = {
+    id: 'g2', title: 'Haircut',
+    start: format(new Date(2026, 6, 15, 8, 5), LOCAL), end: format(new Date(2026, 6, 15, 9, 5), LOCAL),
+    allDay: false, calendarColor: '#3b82f6',
+  } as CalendarEvent;
+  const timedLate = {
+    id: 'g3', title: 'Soccer',
+    start: format(new Date(2026, 6, 15, 14, 0), LOCAL), end: format(new Date(2026, 6, 15, 15, 0), LOCAL),
+    allDay: false, calendarColor: '#10b981',
+  } as CalendarEvent;
+  const multiWeek = (overrides: Partial<CalendarConfig> = {}) =>
+    makeConfig({ viewMode: 'multi-week', ...overrides });
+
+  // jsdom normalizes inline colors through its CSSOM (hex becomes rgb()), so
+  // style assertions read element.style directly rather than a matcher lib.
+  it('colored style renders a solid all-day pill with auto-contrast text', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored' })} style={style} events={[timedBlue, allDayYellow]} /></Wrapper>,
+    );
+    const pill = (getByText('Market day') as HTMLElement).closest('div') as HTMLElement | null;
+    expect(pill?.style.backgroundColor).toBe('rgb(234, 179, 8)'); // #eab308
+    expect(pill?.style.color).toBe('rgb(27, 27, 31)');           // #1b1b1f, auto-contrast
+  });
+
+  it('colored style renders timed events as colored text with a time prefix and no background', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored' })} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    const time = getByText('08:05 AM') as HTMLElement;
+    expect(time.style.color).toBe('rgb(59, 130, 246)'); // #3b82f6
+    expect((time.parentElement as HTMLElement).style.backgroundColor).toBe(''); // no pill by default
+    expect((getByText('Haircut') as HTMLElement).style.color).toBe('rgb(59, 130, 246)');
+  });
+
+  it('honors a 24h timeFormat prop', () => {
+    const { getByText, queryByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored' })} style={style} events={[timedBlue]} timeFormat="24h" /></Wrapper>,
+    );
+    expect(getByText('08:05')).toBeTruthy();
+    expect(queryByText('08:05 AM')).toBeNull();
+  });
+
+  it('gridEventPillBackground adds the faint pill behind timed events', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored', gridEventPillBackground: true })} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    expect(((getByText('Haircut') as HTMLElement).parentElement as HTMLElement).style.backgroundColor).toBe('rgba(255, 255, 255, 0.1)');
+  });
+
+  it('orders all-day events before timed events within a day cell', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored' })} style={style} events={[timedLate, timedBlue, allDayYellow]} /></Wrapper>,
+    );
+    const cell = ((getByText('Market day') as HTMLElement).closest('div') as HTMLElement | null)?.parentElement ?? null;
+    const text = cell?.textContent ?? '';
+    expect(text.indexOf('Market day')).toBeLessThan(text.indexOf('08:05 AM'));
+    expect(text.indexOf('08:05 AM')).toBeLessThan(text.indexOf('Soccer'));
+  });
+
+  it('colored style reaches the week view with the solid all-day pill', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week', gridEventStyle: 'colored' })} style={style} events={[allDayYellow]} /></Wrapper>,
+    );
+    const pill = (getByText('Market day') as HTMLElement).closest('div') as HTMLElement | null;
+    expect(pill?.style.backgroundColor).toBe('rgb(234, 179, 8)'); // #eab308
+    expect(pill?.style.color).toBe('rgb(27, 27, 31)');           // #1b1b1f, auto-contrast
+  });
+
+  it('reports per-cell overflow under the colored style', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored', multiWeekMaxEventsPerCell: 2 })} style={style} events={[timedLate, timedBlue, allDayYellow]} /></Wrapper>,
+    );
+    expect(queryByText('+1 more')).not.toBeNull();
+  });
+
+  it('classic style keeps the dot + faint pill markup and no time prefix', () => {
+    const { container, queryByText } = render(
+      <Wrapper><CalendarModule config={multiWeek({})} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    expect(container.querySelector('.w-1\\.5')).toBeTruthy();
+    expect(queryByText('08:05 AM')).toBeNull();
+  });
+
+  it('daily view time line honors the 24h timeFormat prop', () => {
+    // The daily view is upcoming-only and the clock is pinned to noon, so the
+    // timed fixture must sit after NOW to appear at all: tomorrow 08:05-09:05.
+    const tomorrowTimed = {
+      id: 'g7', title: 'Haircut',
+      start: format(new Date(2026, 6, 16, 8, 5), LOCAL), end: format(new Date(2026, 6, 16, 9, 5), LOCAL),
+      allDay: false, calendarColor: '#3b82f6',
+    } as CalendarEvent;
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ showTime: true })} style={style} events={[tomorrowTimed]} timeFormat="24h" /></Wrapper>,
+    );
+    expect(getByText(/08:05 · 1h/)).toBeTruthy();
+  });
+});

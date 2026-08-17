@@ -5,7 +5,7 @@ import { getDifficultyColor } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function TodayView({
-  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const currentHour = now.getHours();
@@ -82,7 +82,7 @@ export default function TodayView({
               fontVariantNumeric: 'tabular-nums',
               opacity: 0.85,
             }}>
-              · {formatMealTime(heroTime, settings.timeFormat)}
+              · {formatMealTime(heroTime, timeFormat)}
             </span>
           )}
         </span>
@@ -212,7 +212,7 @@ export default function TodayView({
                             letterSpacing: 0,
                             fontVariantNumeric: 'tabular-nums',
                           }}>
-                            {formatMealTime(slotTime, settings.timeFormat)}
+                            {formatMealTime(slotTime, timeFormat)}
                           </span>
                         )}
                       </div>

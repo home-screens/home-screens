@@ -332,7 +332,18 @@ export interface GlobalSettings {
   locale?: string;
   /** Optional override for date/number formatting only. Falls back to `locale`. */
   formattingLocale?: string;
+  /** Household 12/24-hour preference. Calendar module time lines and grid
+   *  pills resolve against this; the meal planner follows it unless its own
+   *  timeFormat override is set. Absent = 12h. Global-only like `locale`. */
+  timeFormat?: TimeFormat;
 }
+
+/** Household 12/24-hour clock preference (`GlobalSettings.timeFormat`). */
+export type TimeFormat = '12h' | '24h';
+
+/** Absent-value default for `GlobalSettings.timeFormat`; the prop builder and
+ *  the calendar module both resolve against this single constant. */
+export const DEFAULT_TIME_FORMAT = '12h' as const;
 
 export interface Profile {
   id: string;
@@ -601,6 +612,13 @@ export interface CalendarConfig {
   multiWeekMaxEventsPerCell?: number;
   // Grid views (week / month / multi-week): first column day. Default sunday.
   startDay?: WeekStartDay;
+  // Grid views (week / month / multi-week): event rendering style.
+  // 'classic' (default) = colored dot + faint light pill + default text.
+  // 'colored' = timed events render time + title in the calendar's color
+  // with no background; all-day events render a solid calendar-color pill.
+  gridEventStyle?: 'classic' | 'colored';
+  // Colored style only: faint light pill background behind timed events.
+  gridEventPillBackground?: boolean;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
   // Per-view: render the sanitized event description under the title.
@@ -884,12 +902,13 @@ export interface MoonPhaseConfig {
 }
 
 // Sunrise / Sunset module config
-export type SunriseSunsetView = 'default' | 'arc';
+export type SunriseSunsetView = 'default' | 'arc' | 'circle';
 
 export interface SunriseSunsetConfig {
   view: SunriseSunsetView;
   showDayLength: boolean;
   showGoldenHour: boolean;
+  showAstroDark?: boolean;
 }
 
 // Photo slideshow module config
@@ -1159,14 +1178,12 @@ export interface MealSettings {
    */
   defaultSlotTimes: Partial<Record<MealSlotType, string>>;
   /**
-   * Time display format for meal serving times across all surfaces.
-   * A household preference — having one module show "6:30 PM" and another
-   * show "18:30" on the same screen would be confusing, so this lives in
-   * the shared settings block rather than per-module config.
-   *
-   * Always present at runtime (`normalizeMealSettings` defaults to '12h').
+   * Time display format override for meal serving times. Absent (the
+   * default) follows the household `GlobalSettings.timeFormat`; an explicit
+   * '12h' / '24h' wins everywhere meals are shown. Kept in the shared
+   * settings block so /remote and all meal-planner module instances agree.
    */
-  timeFormat: '12h' | '24h';
+  timeFormat?: TimeFormat;
 }
 
 /**

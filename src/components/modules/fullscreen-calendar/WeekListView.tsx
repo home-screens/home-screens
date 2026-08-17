@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import type { FullscreenCalendarConfig } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 
 interface WeekListViewProps {
   events: CalendarEvent[];
@@ -14,9 +14,10 @@ interface WeekListViewProps {
   scale: CalendarScale;
   today: Date;
   now: Date;
+  timeFormat?: TimeFormat;
 }
 
-export function WeekListView({ events, config, scale, today, now: _now }: WeekListViewProps) {
+export function WeekListView({ events, config, scale, today, now: _now, timeFormat = DEFAULT_TIME_FORMAT }: WeekListViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -92,12 +93,12 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
         {!shouldCollapse && (<>
           {/* All-day events */}
           {allDayEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(ev => (
-            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} showDescription={showDescription} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
           ))}
 
           {/* Empty day */}
@@ -154,12 +155,13 @@ export function WeekListView({ events, config, scale, today, now: _now }: WeekLi
   );
 }
 
-function EventRow({ event, fontSize, scale, isAllDay, showDescription, t, locale }: {
+function EventRow({ event, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale }: {
   event: CalendarEvent;
   fontSize: number;
   scale: CalendarScale;
   isAllDay?: boolean;
   showDescription?: boolean;
+  timeFormat: TimeFormat;
   t: TranslateFn;
   locale: string;
 }) {
@@ -167,8 +169,8 @@ function EventRow({ event, fontSize, scale, isAllDay, showDescription, t, locale
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
-  const startLabel = formatDateSync(start, 'h:mm a', { locale });
-  const endLabel = formatDateSync(end, 'h:mm a', { locale });
+  const startLabel = formatEventTime(start, timeFormat, locale);
+  const endLabel = formatEventTime(end, timeFormat, locale);
 
   let ariaLabel: string;
   if (isAllDay) {

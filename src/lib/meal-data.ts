@@ -21,6 +21,12 @@ export interface MealData {
    * that /remote and all meal-planner module instances stay in sync.
    */
   settings: MealSettings;
+  /**
+   * One-time migration marker: the legacy-default '12h' has been stripped
+   * from `settings.timeFormat`. Guards against re-stripping a fresh explicit
+   * '12h' picked after the migration — see parseAndMigrate.
+   */
+  timeFormatLegacyStripped?: boolean;
 }
 
 const EMPTY: MealData = {
@@ -248,9 +254,28 @@ async function parseAndMigrate(
     data.plan = migrateLegacyPlan(data.plan as unknown as unknown[]);
   }
 
+  // Legacy timeFormat strip: normalizeMealSettings used to write an explicit
+  // '12h' into every install whether or not the user ever touched the picker,
+  // so a stored '12h' is indistinguishable from "never configured". Treat it
+  // as never-configured (absent = follow GlobalSettings.timeFormat) exactly
+  // once, marked on disk so a later deliberate '12h' pick survives. The
+  // marker is always re-set on `data` (which is built fresh above) so an
+  // already-migrated file keeps it through every read-modify-write.
+  data.timeFormatLegacyStripped = true;
+  if (
+    raw.timeFormatLegacyStripped !== true
+    && raw.settings && typeof raw.settings === 'object'
+    && (raw.settings as Record<string, unknown>).timeFormat === '12h'
+  ) {
+    const { timeFormat: _legacy, ...rest } = data.settings;
+    void _legacy;
+    data.settings = rest;
+  }
+
   return {
     data,
-    migrated: needsMigration || needsPreviousPlanRemoval || needsSettingsBackfill || backfilled,
+    migrated: needsMigration || needsPreviousPlanRemoval || needsSettingsBackfill || backfilled
+      || raw.timeFormatLegacyStripped !== true,
   };
 }
 
@@ -319,7 +344,11 @@ export function updateMealData(
     if (result === data && !migrated) {
       return current;
     }
-    return result;
+    // Mutators that build a fresh object (e.g. the PUT route's field-level
+    // literal) don't carry the strip marker — stamp it so a deliberate
+    // '12h' pick made after the migration is never re-stripped on a later
+    // read. Bare `writeMealData` callers bypass this and keep their bytes.
+    return { ...result, timeFormatLegacyStripped: true };
   });
 }
 

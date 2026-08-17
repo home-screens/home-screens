@@ -6,7 +6,7 @@ import { getDifficultyColor } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function MenuBoardView({
-  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -83,7 +83,7 @@ export default function MenuBoardView({
                   fontSize: s * 0.6, fontWeight: 600, color: 'var(--fmp-text-3)',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
-                  {formatMealTime(course.time, settings.timeFormat)}
+                  {formatMealTime(course.time, timeFormat)}
                 </span>
               )}
             </div>

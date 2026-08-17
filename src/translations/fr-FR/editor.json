@@ -6,7 +6,11 @@
     "moreOptions": "Plus d'options",
     "formattingLocaleLabel": "Locale de formatage",
     "formattingLocaleHelp": "Remplace uniquement le formatage des dates et des nombres. La langue de l'interface reste inchangée.",
-    "formattingLocaleSameAsLanguage": "Identique à la langue"
+    "formattingLocaleSameAsLanguage": "Identique à la langue",
+    "timeFormatLabel": "Format de l'heure",
+    "timeFormat12h": "12 heures · 8:00 AM",
+    "timeFormat24h": "24 heures · 20:00",
+    "timeFormatHelp": "Comment les heures sont affichées sur vos écrans."
   },
   "common": {
     "saved": "Enregistré",
@@ -1023,7 +1027,8 @@
         "heading": "Format de l'heure",
         "description": "S'applique à tous les affichages de repas sur le kiosk et la télécommande.",
         "twelveHourLabel": "12 h",
-        "twentyFourHourLabel": "24 h"
+        "twentyFourHourLabel": "24 h",
+        "followLabel": "Suivre le réglage global"
       },
       "defaultTimes": {
         "heading": "Heures de service par défaut",
@@ -2269,7 +2274,11 @@
       "eventTapDetails": "Toucher un événement pour voir les détails",
       "eventTapStyle": "Style des détails",
       "eventTapStyleSheet": "Panneau coulissant",
-      "eventTapStyleCard": "Carte centrée"
+      "eventTapStyleCard": "Carte centrée",
+      "gridEventStyle": "Style des événements",
+      "gridEventStyleClassic": "Classique",
+      "gridEventStyleColored": "Coloré",
+      "gridEventPill": "Fond derrière les événements"
     },
     "chore-chart": {
       "viewBoard": "Tableau (une colonne par membre)",
@@ -2917,10 +2926,12 @@
     "sunrise-sunset": {
       "views": {
         "default": "Par défaut (texte)",
-        "arc": "Arc solaire (visuel)"
+        "arc": "Arc solaire (visuel)",
+        "circle": "Cercle 24h (visuel)"
       },
       "showDayLength": "Afficher la durée du jour",
       "showGoldenHour": "Afficher l'heure dorée",
+      "showAstroDark": "Afficher l'obscurité",
       "locationHint": "Utilise la position des paramètres globaux."
     },
     "text": {

@@ -11,7 +11,9 @@ import {
   filterPlanToWeek,
   replaceWeekInPlan,
   copyWeekEntries,
+  resolveMealTimeFormat,
 } from '@/lib/meal-constants';
+import { useEditorStore } from '@/stores/editor-store';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
@@ -46,6 +48,9 @@ export default function MealPlannerModal({
   onClose,
 }: MealPlannerModalProps) {
   const t = useTranslate('editor');
+  // Household GlobalSettings.timeFormat — resolves the effective format when
+  // the shared meal settings carry no explicit override.
+  const globalTf = useEditorStore((s) => s.config?.settings?.timeFormat);
   const tabLabelMap = useMemo<Record<SidebarTab, string>>(
     () => ({
       library: t('mealPlannerModal.tabs.library'),
@@ -365,7 +370,7 @@ export default function MealPlannerModal({
           savedMeals={savedMeals}
           slots={slots}
           accentColor={accentColor}
-          timeFormat={settings.timeFormat}
+          timeFormat={resolveMealTimeFormat(settings, globalTf)}
           selectedMealId={selectedMealId}
           weekDates={viewedWeekDates}
           isCurrentWeek={isCurrentWeek}
