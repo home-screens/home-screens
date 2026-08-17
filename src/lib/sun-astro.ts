@@ -24,8 +24,20 @@ export function astroDarkWindow(times: Times, nextDayTimes: Times): AstroDarkWin
   return { begins, ends, lengthMs };
 }
 
-/** Circle-view constants (viewBox 250×250). */
-const CIRCLE = { cx: 125, cy: 125 } as const;
+/**
+ * Distinguish polar day from polar night when the sun never crosses the horizon.
+ * SunCalc returns Invalid Date for BOTH sunrise and sunset in either case; the
+ * sun's altitude at solar noon (always a valid instant) tells them apart.
+ */
+export function polarKind(times: Times, latitude: number, longitude: number): 'day' | 'night' | null {
+  if (isDate(times.sunrise) || isDate(times.sunset)) return null;
+  return SunCalc.getPosition(times.solarNoon, latitude, longitude).altitude > 0 ? 'day' : 'night';
+}
+
+/** Circle-view geometry. Every literal the view draws with derives from these. */
+export const CIRCLE = { cx: 125, cy: 125, size: 250 } as const;
+export const CIRCLE_R = 82; // dial ring radius
+export const CIRCLE_LABEL_R = 96; // outside-label radius
 
 /** Angle in degrees, clockwise from top (noon). 12h → 0°, 18h → 90°, 0h/24h → 180°, 6h → 270°. */
 export function circleAngle(hoursSinceLocalMidnight: number): number {
@@ -39,6 +51,22 @@ export function circlePoint(angleDeg: number, r: number): [number, number] {
     Math.round((CIRCLE.cx + r * Math.sin(rad)) * 10) / 10,
     Math.round((CIRCLE.cy - r * Math.cos(rad)) * 10) / 10,
   ];
+}
+
+/** Outside-label placement at CIRCLE_LABEL_R, side-anchored; near 3/9-o'clock slide toward the corners. */
+export function circleLabelPos(angleDeg: number): { x: number; y: number; anchor: 'start' | 'middle' | 'end' } {
+  const rad = (angleDeg * Math.PI) / 180;
+  const s = Math.sin(rad);
+  const c = Math.cos(rad);
+  let [x, y] = circlePoint(angleDeg, CIRCLE_LABEL_R);
+  const anchor = Math.abs(s) < 0.35 ? 'middle' : s > 0 ? 'start' : 'end';
+  if (anchor !== 'middle' && Math.abs(c) < 0.17) {
+    // within ~10° of the horizontal: labels would clip; slide away from the equator into the corners
+    y = y + (c > 0 ? -12 : 12);
+    x = anchor === 'end' ? CIRCLE.cx - 89 : CIRCLE.cx + 89;
+  }
+  if (anchor === 'middle' && y > CIRCLE.cy + 65) y = CIRCLE.cy + 97; // bottom labels clear the ring
+  return { x, y, anchor };
 }
 
 /** SVG arc path along the circle from local hour h1 to h2 (clockwise), radius r. */

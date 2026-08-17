@@ -244,6 +244,8 @@
     "goldenHourLabel": "heure dorée",
     "midnightSun": "Soleil de minuit",
     "sunDoesNotSet": "Le soleil ne se couche pas",
+    "polarNight": "Nuit polaire",
+    "sunDoesNotRise": "Le soleil ne se lève pas",
     "noSunriseToday": "Pas de lever de soleil aujourd'hui",
     "noSunsetToday": "Pas de coucher de soleil aujourd'hui",
     "noon": "midi",

@@ -5,8 +5,9 @@ import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
 import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { astroDarkWindow, circleAngle, circleArcPath, circlePoint, hoursInTZ, type AstroDarkWindow } from '@/lib/sun-astro';
-import { useTranslate } from '@/i18n';
+import { CIRCLE, CIRCLE_R, astroDarkWindow, circleAngle, circleArcPath, circleLabelPos, circlePoint, hoursInTZ, polarKind, type AstroDarkWindow } from '@/lib/sun-astro';
+import { decompose, formatDuration } from '@/lib/duration-format';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { SunriseSunsetConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -20,16 +21,24 @@ interface SunriseSunsetModuleProps {
   timezone?: string;
 }
 
-function formatDurationMs(ms: number): string {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours}h ${minutes}m`;
+function formatDurationMs(ms: number, locale: string): string {
+  const { days, hours, minutes } = decompose(ms);
+  return formatDuration(
+    [
+      { unit: 'hours', value: days * 24 + hours },
+      { unit: 'minutes', value: minutes },
+    ],
+    'units',
+    locale,
+  );
 }
 
-function getDayLength(sunrise: Date, sunset: Date): string {
+function getDayLength(sunrise: Date, sunset: Date, locale: string): string {
   if (isNaN(sunrise.getTime()) || isNaN(sunset.getTime())) return '—';
-  return formatDurationMs(sunset.getTime() - sunrise.getTime());
+  return formatDurationMs(sunset.getTime() - sunrise.getTime(), locale);
 }
+
+type PolarKind = ReturnType<typeof polarKind>;
 
 /** Map a time to a 0–1 progress fraction between sunrise and sunset. <0 = before sunrise, >1 = after sunset. */
 function sunProgress(now: Date, sunrise: Date, sunset: Date): number {
@@ -57,6 +66,8 @@ function SunArcView({
   showGoldenHour,
   t,
   dark,
+  polar,
+  locale,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
@@ -65,6 +76,8 @@ function SunArcView({
   showGoldenHour: boolean;
   t: TranslateFn;
   dark: AstroDarkWindow | null;
+  polar: PolarKind;
+  locale: string;
 }) {
   const uid = useId();
   const sunGlowId = `sun-glow-${uid}`;
@@ -72,12 +85,25 @@ function SunArcView({
 
   // Polar day/night: SunCalc returns Invalid Date when there's no sunrise or sunset
   if (isNaN(sunrise.getTime()) || isNaN(sunset.getTime())) {
-    const isPolarDay = isNaN(sunrise.getTime()) && isNaN(sunset.getTime());
     return (
       <div className="flex flex-col items-center justify-center h-full" style={{ fontSize: '0.85em', gap: '0.3em', opacity: TEXT_OPACITY.dim }}>
-        <span>{isPolarDay ? t('sunrise-sunset.midnightSun') : isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
-        <span>{isPolarDay ? t('sunrise-sunset.sunDoesNotSet') : isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
-        {showDayLength && <span>{getDayLength(sunrise, sunset)}</span>}
+        {polar ? (
+          <>
+            <span>{t(polar === 'day' ? 'sunrise-sunset.midnightSun' : 'sunrise-sunset.polarNight')}</span>
+            <span>{t(polar === 'day' ? 'sunrise-sunset.sunDoesNotSet' : 'sunrise-sunset.sunDoesNotRise')}</span>
+          </>
+        ) : (
+          <>
+            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
+            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
+          </>
+        )}
+        {dark && (
+          <span>
+            {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, timezone)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, timezone)}
+          </span>
+        )}
+        {showDayLength && !polar && <span>{getDayLength(sunrise, sunset, locale)}</span>}
       </div>
     );
   }
@@ -87,7 +113,7 @@ function SunArcView({
 
   // SVG dimensions
   const w = 280;
-  const h = 164;
+  const h = 160;
   const cx = w / 2;
   const horizonY = h - 30; // horizon line Y
   const rx = 120; // arc horizontal radius
@@ -257,41 +283,24 @@ function SunArcView({
           {t('sunrise-sunset.setShort')}
         </text>
 
-        {/* Astrodark horizon ticks (fixed positions: evening right, morning left) */}
-        {dark && (() => {
-          const evX = 215;
-          const moX = 65;
-          return (
-            <g>
-              <circle cx={evX} cy={horizonY} r="2.5" fill="#818cf8" />
-              <line x1={evX} y1={horizonY - 4} x2={evX} y2={horizonY + 4} stroke="#818cf8" strokeOpacity="0.8" strokeWidth="1.5" />
-              <text x={evX} y={horizonY + 17} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: '7.5px' }}>
-                {formatTimeInTZ(dark.begins, timezone)}
-              </text>
-              <text x={evX} y={horizonY + 26} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: '6.5px' }}>
-                {t('sunrise-sunset.darkBegins')}
-              </text>
-              <circle cx={moX} cy={horizonY} r="2.5" fill="#818cf8" />
-              <line x1={moX} y1={horizonY - 4} x2={moX} y2={horizonY + 4} stroke="#818cf8" strokeOpacity="0.8" strokeWidth="1.5" />
-              <text x={moX} y={horizonY + 17} textAnchor="start" fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: '7.5px' }}>
-                {formatTimeInTZ(dark.ends, timezone)}
-              </text>
-              <text x={moX} y={horizonY + 26} textAnchor="start" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: '6.5px' }}>
-                {t('sunrise-sunset.darkEnds')}
-              </text>
-            </g>
-          );
-        })()}
       </svg>
+
+      {/* Dark window times below the SVG. The arc's horizontal axis maps sunrise→sunset,
+          so the dark events (which fall outside that span) have no honest position on it. */}
+      {dark && (
+        <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
+          {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, timezone)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, timezone)}
+        </span>
+      )}
 
       {/* Day length / dark window duration below the SVG */}
       {(showDayLength || dark) && (
         <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
           {showDayLength && dark
-            ? t('sunrise-sunset.arcDurations', { day: getDayLength(sunrise, sunset), dark: formatDurationMs(dark.lengthMs) })
+            ? t('sunrise-sunset.arcDurations', { day: getDayLength(sunrise, sunset, locale), dark: formatDurationMs(dark.lengthMs, locale) })
             : dark
-              ? t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs) })
-              : getDayLength(sunrise, sunset)}
+              ? t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs, locale) })
+              : getDayLength(sunrise, sunset, locale)}
         </span>
       )}
     </div>
@@ -305,6 +314,7 @@ function DefaultView({
   showGoldenHour,
   t,
   dark,
+  locale,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   timezone?: string;
@@ -312,6 +322,7 @@ function DefaultView({
   showGoldenHour: boolean;
   t: TranslateFn;
   dark: AstroDarkWindow | null;
+  locale: string;
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ gap: '0.6em' }}>
@@ -360,44 +371,37 @@ function DefaultView({
         </div>
       )}
 
-      {showDayLength && (
-        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-          {t('sunrise-sunset.dayLength', { length: getDayLength(times.sunrise, times.sunset) })}
-        </span>
-      )}
+      {/* With the dark row above, the footer collapses to one wrapping line so the
+          full stack still fits the registry defaultSize (400×200). Without astrodark
+          the layout is unchanged from what existing dashboards render. */}
+      {dark ? (
+        <div className="flex flex-wrap items-center justify-center" style={{ gap: '0.25em 1em', fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
+          <span>
+            {showDayLength
+              ? t('sunrise-sunset.arcDurations', { day: getDayLength(times.sunrise, times.sunset, locale), dark: formatDurationMs(dark.lengthMs, locale) })
+              : t('sunrise-sunset.darkLength', { length: formatDurationMs(dark.lengthMs, locale) })}
+          </span>
+          {showGoldenHour && (
+            <span>{t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}</span>
+          )}
+        </div>
+      ) : (
+        <>
+          {showDayLength && (
+            <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
+              {t('sunrise-sunset.dayLength', { length: getDayLength(times.sunrise, times.sunset, locale) })}
+            </span>
+          )}
 
-      {dark && (
-        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-          {t('sunrise-sunset.darkLength', { length: formatDurationMs(dark.lengthMs) })}
-        </span>
-      )}
-
-      {showGoldenHour && (
-        <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-          {t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}
-        </span>
+          {showGoldenHour && (
+            <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
+              {t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}
+            </span>
+          )}
+        </>
       )}
     </div>
   );
-}
-
-const CIRCLE_R = 82;
-const CIRCLE_LABEL_R = 96;
-
-/** Outside-label placement: radial at r=96, side-anchored; near 3/9-o'clock slide toward the corners. */
-function circleLabelPos(angleDeg: number): { x: number; y: number; anchor: 'start' | 'middle' | 'end' } {
-  const rad = (angleDeg * Math.PI) / 180;
-  const s = Math.sin(rad);
-  const c = Math.cos(rad);
-  let [x, y] = circlePoint(angleDeg, CIRCLE_LABEL_R);
-  const anchor = Math.abs(s) < 0.35 ? 'middle' : s > 0 ? 'start' : 'end';
-  if (anchor !== 'middle' && Math.abs(c) < 0.17) {
-    // within ~10° of the horizontal: labels would clip; slide away from the equator into the corners
-    y = y + (c > 0 ? -12 : 12);
-    x = anchor === 'end' ? 36 : 214;
-  }
-  if (anchor === 'middle' && y > 190) y = 222; // bottom labels clear the ring
-  return { x, y, anchor };
 }
 
 function CircleView({
@@ -408,6 +412,8 @@ function CircleView({
   showGoldenHour,
   t,
   dark,
+  polar,
+  locale,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
@@ -416,48 +422,71 @@ function CircleView({
   showGoldenHour: boolean;
   t: TranslateFn;
   dark: AstroDarkWindow | null;
+  polar: PolarKind;
+  locale: string;
 }) {
   const uid = useId();
   const glowId = `circle-sun-glow-${uid}`;
   const { sunrise, sunset, goldenHour } = times;
 
-  if (isNaN(sunrise.getTime()) || isNaN(sunset.getTime())) {
-    // polar day/night: same messaging as the arc view
-    const isPolarDay = isNaN(sunrise.getTime()) && isNaN(sunset.getTime());
+  const sunInvalid = isNaN(sunrise.getTime()) || isNaN(sunset.getTime());
+  const db = dark ? hoursInTZ(dark.begins, timezone) : null;
+  const de = dark ? hoursInTZ(dark.ends, timezone) : null;
+  const hasDark = dark != null && db != null && de != null;
+
+  // No sun events and no dark window: nothing to draw on the dial (polar day, or
+  // polar night too deep for a distinct astrodark window / toggle off).
+  if (sunInvalid && !hasDark) {
     return (
       <div className="flex flex-col items-center justify-center h-full" style={{ fontSize: '0.85em', gap: '0.3em', opacity: TEXT_OPACITY.dim }}>
-        <span>{isPolarDay ? t('sunrise-sunset.midnightSun') : isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
-        <span>{isPolarDay ? t('sunrise-sunset.sunDoesNotSet') : isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
+        {polar ? (
+          <>
+            <span>{t(polar === 'day' ? 'sunrise-sunset.midnightSun' : 'sunrise-sunset.polarNight')}</span>
+            <span>{t(polar === 'day' ? 'sunrise-sunset.sunDoesNotSet' : 'sunrise-sunset.sunDoesNotRise')}</span>
+          </>
+        ) : (
+          <>
+            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
+            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
+          </>
+        )}
       </div>
     );
   }
 
-  const sr = hoursInTZ(sunrise, timezone);
-  const ss = hoursInTZ(sunset, timezone);
-  const db = dark ? hoursInTZ(dark.begins, timezone) : null;
-  const de = dark ? hoursInTZ(dark.ends, timezone) : null;
+  const sr = sunInvalid ? null : hoursInTZ(sunrise, timezone);
+  const ss = sunInvalid ? null : hoursInTZ(sunset, timezone);
 
   const nowPt = circlePoint(circleAngle(hoursInTZ(now, timezone)), CIRCLE_R);
 
-  const marks: { angle: number; time: Date; wordKey: string }[] = [
-    { angle: circleAngle(sr), time: sunrise, wordKey: 'sunrise-sunset.sunrise' },
-    { angle: circleAngle(ss), time: sunset, wordKey: 'sunrise-sunset.sunset' },
-  ];
+  const marks: { angle: number; time: Date; wordKey: string }[] = [];
+  if (sr != null && ss != null) {
+    marks.push({ angle: circleAngle(sr), time: sunrise, wordKey: 'sunrise-sunset.sunrise' });
+    marks.push({ angle: circleAngle(ss), time: sunset, wordKey: 'sunrise-sunset.sunset' });
+  }
   if (dark && db != null && de != null) {
     marks.push({ angle: circleAngle(db), time: dark.begins, wordKey: 'sunrise-sunset.darkBegins' });
     marks.push({ angle: circleAngle(de), time: dark.ends, wordKey: 'sunrise-sunset.darkEnds' });
   }
 
-  const goldenPt = showGoldenHour ? circlePoint(circleAngle(hoursInTZ(goldenHour, timezone)), CIRCLE_R) : null;
+  // Golden hour is Invalid Date near the polar circles even on days with a valid
+  // sunrise/sunset (sun never reaches 6° up) — an unguarded NaN here would emit
+  // NaN SVG coordinates.
+  const goldenPt = showGoldenHour && !sunInvalid && !isNaN(goldenHour.getTime())
+    ? circlePoint(circleAngle(hoursInTZ(goldenHour, timezone)), CIRCLE_R)
+    : null;
 
   const dayTimeColor = '#fbbf24';
   const dawnDuskColor = '#aa670e';
   const goldenHourColor = '#ffa200';
-  const astroDarkColor = '#0b0c63';
+  // Structural strokes follow the module's currentColor convention so the dial reads
+  // on any background; the astrodark segment uses an indigo that stays visible on both
+  // light and dark themes (near-black hexes vanish on dark kiosk wallpapers).
+  const astroDarkColor = '#6366f1';
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <svg viewBox="0 0 250 250" style={{ width: '100%', height: '100%' }}>
+      <svg viewBox={`0 0 ${CIRCLE.size} ${CIRCLE.size}`} style={{ width: '100%', height: '100%' }}>
         <defs>
           <radialGradient id={glowId}>
             <stop offset="0%" stopColor={dayTimeColor} stopOpacity="0.6" />
@@ -466,29 +495,41 @@ function CircleView({
         </defs>
 
         {/* base ring keeps the dial shape where no segment covers it */}
-        <circle cx="125" cy="125" r={CIRCLE_R} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="8" />
+        <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="8" />
 
         {/* daylight through noon */}
-        <path d={circleArcPath(sr, ss, CIRCLE_R)} fill="none" stroke={dayTimeColor} strokeWidth="8" />
+        {sr != null && ss != null && (
+          <path d={circleArcPath(sr, ss, CIRCLE_R)} fill="none" stroke={dayTimeColor} strokeWidth="8" />
+        )}
 
-        {/* night: twilight(s) + astrodark */}
-        {dark && db != null && de != null ? (
-          <>
-            <path d={circleArcPath(ss, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-            <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
-            <path d={circleArcPath(de, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-          </>
+        {/* night: twilight(s) + astrodark. In polar night (no sunrise/sunset) the
+            whole dial is night: twilight everywhere the dark window isn't. */}
+        {hasDark ? (
+          sr != null && ss != null ? (
+            <>
+              <path d={circleArcPath(ss, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+              <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
+              <path d={circleArcPath(de, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+            </>
+          ) : (
+            <>
+              <path d={circleArcPath(de, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+              <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
+            </>
+          )
         ) : (
-          <path d={circleArcPath(ss, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+          sr != null && ss != null && (
+            <path d={circleArcPath(ss, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+          )
         )}
 
         {/* noon / midnight notches + inside words */}
-        <line x1="125" y1="37" x2="125" y2="49" stroke="#0f172a" strokeWidth="2" />
-        <text x="125" y="60" textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '6.5px' }}>
+        <line x1={CIRCLE.cx} y1={CIRCLE.cy - CIRCLE_R - 6} x2={CIRCLE.cx} y2={CIRCLE.cy - CIRCLE_R + 6} stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" />
+        <text x={CIRCLE.cx} y={CIRCLE.cy - CIRCLE_R + 17} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '6.5px' }}>
           {t('sunrise-sunset.noon')}
         </text>
-        <line x1="125" y1="201" x2="125" y2="213" stroke="#0f172a" strokeWidth="2" />
-        <text x="125" y="196" textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '6.5px' }}>
+        <line x1={CIRCLE.cx} y1={CIRCLE.cy + CIRCLE_R - 6} x2={CIRCLE.cx} y2={CIRCLE.cy + CIRCLE_R + 6} stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" />
+        <text x={CIRCLE.cx} y={CIRCLE.cy + CIRCLE_R - 11} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '6.5px' }}>
           {t('sunrise-sunset.midnight')}
         </text>
 
@@ -498,7 +539,7 @@ function CircleView({
           const lp = circleLabelPos(m.angle);
           return (
             <g key={m.wordKey}>
-              <circle cx={pt[0]} cy={pt[1]} r="3" fill="#e2e8f0" stroke="#0f172a" strokeWidth="1.5" />
+              <circle cx={pt[0]} cy={pt[1]} r="3" fill="#e2e8f0" stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
               <text x={lp.x} y={lp.y} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: '7.5px' }}>
                 {formatTimeInTZ(m.time, timezone)}
               </text>
@@ -512,7 +553,7 @@ function CircleView({
         {/* golden hour: amber dot on the day arc, label tucked inside the ring */}
         {goldenPt && (
           <g>
-            <circle cx={goldenPt[0]} cy={goldenPt[1]} r="3.5" fill={goldenHourColor} stroke="#0f172a" strokeWidth="1.5" />
+            <circle cx={goldenPt[0]} cy={goldenPt[1]} r="3.5" fill={goldenHourColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
             <text x={goldenPt[0] - 11} y={goldenPt[1] - 2.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: '6px' }}>
               {t('sunrise-sunset.goldenHourLabel')}
             </text>
@@ -524,22 +565,30 @@ function CircleView({
 
         {/* now: same radial glow as the arc view */}
         <circle cx={nowPt[0]} cy={nowPt[1]} r="32" fill={`url(#${glowId})`} />
-        <circle cx={nowPt[0]} cy={nowPt[1]} r="4.5" fill={dayTimeColor} stroke="#0f172a" strokeWidth="1.5" />
+        <circle cx={nowPt[0]} cy={nowPt[1]} r="4.5" fill={dayTimeColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
 
-        {/* centered durations */}
-        {showDayLength && (
-          <text x="125" y="122" textAnchor="middle" fill="currentColor" style={{ fontSize: '15px', fontWeight: 300 }}>
-            {getDayLength(sunrise, sunset)}
+        {/* centered durations (polar night gets its caption in place of day length) */}
+        {sunInvalid ? (
+          <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '10px' }}>
+            {t('sunrise-sunset.polarNight')}
           </text>
+        ) : (
+          showDayLength && (
+            <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" style={{ fontSize: '15px', fontWeight: 300 }}>
+              {getDayLength(sunrise, sunset, locale)}
+            </text>
+          )
         )}
-        {dark && showDayLength && (
-          <text x="125" y="140" textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '10px' }}>
-            {t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs) })}
-          </text>
-        )}
-        {dark && !showDayLength && (
-          <text x="125" y="131" textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '10px' }}>
-            {t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs) })}
+        {dark && (
+          <text
+            x={CIRCLE.cx}
+            y={sunInvalid || showDayLength ? CIRCLE.cy + 15 : CIRCLE.cy + 6}
+            textAnchor="middle"
+            fill="currentColor"
+            fillOpacity={TEXT_OPACITY.dim}
+            style={{ fontSize: '10px' }}
+          >
+            {t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs, locale) })}
           </text>
         )}
       </svg>
@@ -553,6 +602,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
   // must use a true epoch too. `timezone` is only for formatting the labels.
   const now = useRealClock();
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} />;
@@ -563,6 +613,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
     ? SunCalc.getTimes(new Date(now.getTime() + 24 * 3600 * 1000), latitude, longitude)
     : null;
   const dark = nextTimes ? astroDarkWindow(times, nextTimes) : null;
+  const polar = polarKind(times, latitude, longitude);
   const view = config.view ?? 'default';
 
   return (
@@ -576,6 +627,8 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           showGoldenHour={!!config.showGoldenHour}
           t={t}
           dark={dark}
+          polar={polar}
+          locale={locale}
         />
       ) : view === 'circle' ? (
         <CircleView
@@ -586,6 +639,8 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           showGoldenHour={!!config.showGoldenHour}
           t={t}
           dark={dark}
+          polar={polar}
+          locale={locale}
         />
       ) : (
         <DefaultView
@@ -595,6 +650,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           showGoldenHour={!!config.showGoldenHour}
           t={t}
           dark={dark}
+          locale={locale}
         />
       )}
     </ModuleWrapper>

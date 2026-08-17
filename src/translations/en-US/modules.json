@@ -244,6 +244,8 @@
     "goldenHourLabel": "golden hour",
     "midnightSun": "Midnight sun",
     "sunDoesNotSet": "Sun does not set",
+    "polarNight": "Polar night",
+    "sunDoesNotRise": "Sun does not rise",
     "noSunriseToday": "No sunrise today",
     "noSunsetToday": "No sunset today",
     "noon": "noon",
