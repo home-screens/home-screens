@@ -480,6 +480,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'default',
       showDayLength: true,
       showGoldenHour: false,
+      showAstroDark: false,
     },
     defaultSize: { w: 400, h: 200 },
     dataRequirements: ['location'],
