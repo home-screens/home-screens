@@ -163,14 +163,32 @@ describe('CalendarModule multi-week view', () => {
     expect((todayCell as HTMLElement).style.opacity).not.toBe('0.35');
   });
 
-  it('renders the today number as an accent pill', () => {
+  it('renders every day number in a shaded rectangle, today accented', () => {
     const { queryByText } = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={events} /></Wrapper>,
     );
-    const pill = queryByText('15') as HTMLElement;
-    expect(pill).not.toBeNull();
-    expect(pill.className).toContain('rounded-full');
-    expect(pill.style.backgroundColor).toContain('rgba(59, 130, 246'); // #3b82f6cc
+    const today = queryByText('15') as HTMLElement;
+    expect(today).not.toBeNull();
+    expect(today.className).toContain('rounded');
+    expect(today.className).not.toContain('rounded-full');
+    expect(today.style.backgroundColor).toContain('rgba(59, 130, 246'); // #3b82f6cc
+    // A plain day gets the same rectangle shape tinted with the accent color
+    const plain = queryByText('16') as HTMLElement;
+    expect(plain).not.toBeNull();
+    expect(plain.className).toContain('rounded');
+    expect(plain.style.backgroundColor).toBe('rgba(59, 130, 246, 0.25)'); // #3b82f640
+  });
+
+  it('keeps the month abbreviation inside the month-first rectangle', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={events} /></Wrapper>,
+    );
+    // Aug 1 is the only gradient cell in the window; its date badge must wrap
+    // the month abbreviation and the number as one shaded unit.
+    const cell = container.querySelector('[style*="linear-gradient"]') as HTMLElement;
+    const badge = cell.querySelector('span.rounded') as HTMLElement;
+    expect(badge).not.toBeNull();
+    expect(badge.textContent.trim()).toBe('Aug 1');
   });
 
   it('shows past-week events in row 1 (wall-calendar semantics)', () => {

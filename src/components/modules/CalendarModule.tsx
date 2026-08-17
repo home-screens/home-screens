@@ -313,13 +313,16 @@ function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em
   );
 }
 
-function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale }: {
+function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, gapClass = 'gap-px' }: {
   dates: Date[];
   showWeekNumbers: boolean;
   locale: string;
+  /** Multi-week doubles its day-cell gutters; the header must match or its
+   *  weekday labels drift off the columns below. Month view keeps the 1px default. */
+  gapClass?: string;
 }) {
   return (
-    <div className="grid gap-px" style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
+    <div className={`grid ${gapClass}`} style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
       {showWeekNumbers && <div />}
       {dates.map((d) => (
         <div key={d.toISOString()} className="text-center py-0.5">
@@ -560,13 +563,14 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
   }, [weeks, events, timezone]);
 
   return (
-    <div className="flex flex-col h-full gap-px">
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} />
+    <div className="flex flex-col h-full gap-0.5">
+      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} gapClass="gap-0.5" />
 
-      {/* Weeks */}
-      <div className="flex flex-col gap-px flex-1">
+      {/* Weeks — gutters are 2px (double the month/week grids' 1px): the
+          multi-week cells are shorter, so they need more air to separate. */}
+      <div className="flex flex-col gap-0.5 flex-1">
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid gap-px flex-1" style={{ gridTemplateColumns: gridTemplate }}>
+          <div key={wi} className="grid gap-0.5 flex-1" style={{ gridTemplateColumns: gridTemplate }}>
             {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
             {week.map((date) => {
               const isToday = isSameDay(date, today);
@@ -585,23 +589,19 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
                   }}
                 >
                   <span className="text-center leading-none mb-0.5 block" style={{ fontSize: '0.65em' }}>
-                    {isFirstOfMonth && (
-                      <span style={{ color: accentColor, fontWeight: 600 }}>
-                        {formatDateSync(date, 'MMM', { locale })}{' '}
-                      </span>
-                    )}
-                    {isToday ? (
-                      <span className="inline-flex items-center justify-center rounded-full" style={{
-                        width: '1.8em', height: '1.8em', fontSize: '0.75em', fontWeight: 700,
-                        backgroundColor: withAlpha(accentColor, 'cc'), color: '#fff',
-                      }}>
-                        {formatDateSync(date, 'd', { locale })}
-                      </span>
-                    ) : (
-                      <span style={{ fontWeight: 400, color: style.textColor }}>
-                        {formatDateSync(date, 'd', { locale })}
-                      </span>
-                    )}
+                    <span className="flex items-center justify-center rounded" style={{
+                      height: '1.8em', fontSize: '0.75em',
+                      fontWeight: isToday ? 700 : 400,
+                      backgroundColor: isToday ? withAlpha(accentColor, 'cc') : withAlpha(accentColor, '40'),
+                      color: isToday ? '#fff' : style.textColor,
+                    }}>
+                      {isFirstOfMonth && (
+                        <span style={{ color: isToday ? '#fff' : accentColor, fontWeight: 600 }}>
+                          {formatDateSync(date, 'MMM', { locale })}{' '}
+                        </span>
+                      )}
+                      {formatDateSync(date, 'd', { locale })}
+                    </span>
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
