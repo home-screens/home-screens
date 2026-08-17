@@ -316,7 +316,8 @@
       "heading": "Formato de hora",
       "description": "Se aplica a todas las comidas mostradas en el kiosk y en este mando.",
       "twelveHourLabel": "12 horas",
-      "twentyFourHourLabel": "24 horas"
+      "twentyFourHourLabel": "24 horas",
+      "followLabel": "Seguir el ajuste global"
     },
     "defaultTimes": {
       "heading": "Horas por defecto para servir",

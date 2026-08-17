@@ -6,7 +6,11 @@
     "moreOptions": "Mais opções",
     "formattingLocaleLabel": "Localidade de formatação",
     "formattingLocaleHelp": "Substitui apenas a formatação de datas e números. Mantém o idioma da interface inalterado.",
-    "formattingLocaleSameAsLanguage": "Mesma do idioma"
+    "formattingLocaleSameAsLanguage": "Mesma do idioma",
+    "timeFormatLabel": "Formato da hora",
+    "timeFormat12h": "12 horas · 8:00 AM",
+    "timeFormat24h": "24 horas · 20:00",
+    "timeFormatHelp": "Como as horas são exibidas nas suas telas."
   },
   "common": {
     "saved": "Salvo",
@@ -1023,7 +1027,8 @@
         "heading": "Formato de hora",
         "description": "Aplica-se a toda exibição de refeições no kiosk e no controle remoto.",
         "twelveHourLabel": "12 horas",
-        "twentyFourHourLabel": "24 horas"
+        "twentyFourHourLabel": "24 horas",
+        "followLabel": "Seguir a configuração global"
       },
       "defaultTimes": {
         "heading": "Horários padrão de refeição",
@@ -2269,7 +2274,11 @@
       "eventTapDetails": "Toque em um evento para ver os detalhes",
       "eventTapStyle": "Estilo dos detalhes",
       "eventTapStyleSheet": "Painel deslizante",
-      "eventTapStyleCard": "Cartão centralizado"
+      "eventTapStyleCard": "Cartão centralizado",
+      "gridEventStyle": "Estilo dos eventos",
+      "gridEventStyleClassic": "Clássico",
+      "gridEventStyleColored": "Colorido",
+      "gridEventPill": "Fundo atrás dos eventos"
     },
     "chore-chart": {
       "viewBoard": "Quadro (coluna por membro)",

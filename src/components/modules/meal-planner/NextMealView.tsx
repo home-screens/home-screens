@@ -1,6 +1,6 @@
 'use client';
 
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
@@ -10,6 +10,8 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface NextMealViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -17,7 +19,7 @@ interface NextMealViewProps {
   recipeTapMode: RecipeTapMode;
 }
 
-export function NextMealView({ config, settings, plan, savedMeals, todayISO, currentHour, recipeTapMode }: NextMealViewProps) {
+export function NextMealView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: NextMealViewProps) {
   const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
@@ -79,7 +81,7 @@ export function NextMealView({ config, settings, plan, savedMeals, todayISO, cur
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                {t('meal-planner.servingAt', { time: formatMealTime(time, settings.timeFormat) })}
+                {t('meal-planner.servingAt', { time: formatMealTime(time, timeFormat) })}
               </p>
             )}
 

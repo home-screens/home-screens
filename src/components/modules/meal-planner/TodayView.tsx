@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
@@ -10,6 +10,8 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface TodayViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -21,6 +23,7 @@ function SlotCard({
   slot,
   config,
   settings,
+  timeFormat,
   plan,
   savedMeals,
   todayISO,
@@ -30,6 +33,8 @@ function SlotCard({
   slot: MealSlotType;
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -67,7 +72,7 @@ function SlotCard({
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {formatMealTime(time, settings.timeFormat)}
+            {formatMealTime(time, timeFormat)}
           </span>
         )}
         {isActive && (
@@ -121,7 +126,7 @@ function SlotCard({
   );
 }
 
-export function TodayView({ config, settings, plan, savedMeals, todayISO, currentHour, recipeTapMode }: TodayViewProps) {
+export function TodayView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: TodayViewProps) {
   const t = useTranslate('modules');
   const slots = settings.enabledSlots;
   const activeSlot = getActiveSlot(currentHour, slots);
@@ -154,6 +159,7 @@ export function TodayView({ config, settings, plan, savedMeals, todayISO, curren
             slot={slot}
             config={config}
             settings={settings}
+            timeFormat={timeFormat}
             plan={plan}
             savedMeals={savedMeals}
             todayISO={todayISO}

@@ -74,6 +74,34 @@ test('switching the meal time format persists to meals.json and drives the UI on
   await expect(page.getByRole('button', { name: '24-hour' })).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('time format follows the global setting until overridden', async ({ page, request }) => {
+  // Household global = 24h. Clear any override a prior test stored in this
+  // worker's meals.json (a settings-only PUT normalizes to defaults, dropping
+  // the timeFormat key), then assert the follow-global contract end to end.
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('meal-planner')])],
+    settings: { timeFormat: '24h' },
+  }));
+  const reset = await request.put('/api/meals/data', { data: { settings: {} } });
+  expect(reset.ok()).toBe(true);
+
+  // Absent meal override: the API reports the global and no stored override.
+  const data = await (await request.get('/api/meals/data')).json();
+  expect(data.globalTimeFormat).toBe('24h');
+  expect(data.settings.timeFormat).toBeUndefined();
+
+  // The Follow global option is the selected one.
+  await openMealsSettings(page);
+  await expect(page.getByRole('button', { name: /Follow global/ })).toHaveAttribute('aria-pressed', 'true');
+
+  // Picking 12-hour stores an explicit override that wins over the global.
+  await page.getByRole('button', { name: '12-hour' }).click();
+  await page.getByRole('button', { name: 'Save Settings' }).click();
+  await expect.poll(async () =>
+    (await (await request.get('/api/meals/data')).json()).settings.timeFormat,
+  ).toBe('12h');
+});
+
 test('toggling a meal slot on persists to meals.json', async ({ page, request }) => {
   await openMealsSettings(page);
 

@@ -316,7 +316,8 @@
       "heading": "Tidsformat",
       "description": "Gælder for alle måltidsvisninger på skærmen og her på fjernbetjeningen.",
       "twelveHourLabel": "12-timer",
-      "twentyFourHourLabel": "24-timer"
+      "twentyFourHourLabel": "24-timer",
+      "followLabel": "Følg den globale indstilling"
     },
     "defaultTimes": {
       "heading": "Standard serveringstider",

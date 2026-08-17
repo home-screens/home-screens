@@ -7,10 +7,11 @@ import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText }
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { isEventUpcoming, weekStartsOnFor } from '@/lib/calendar-utils';
+import { parseHexToRgb } from '@/lib/hex-color';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent, WeekStartDay } from '@/types/config';
+import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent, TimeFormat, WeekStartDay } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
@@ -92,15 +93,8 @@ export function selectVisibleEvents(
 
 // ─── Color helpers (safe alpha + dark-mode adjustment) ───
 
-function parseHexToRgb(color: string): [number, number, number] {
-  const hex = color.replace('#', '');
-  if (/^[0-9a-f]{6,8}$/i.test(hex)) {
-    return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
-  }
-  if (/^[0-9a-f]{3}$/i.test(hex)) {
-    return [parseInt(hex[0] + hex[0], 16), parseInt(hex[1] + hex[1], 16), parseInt(hex[2] + hex[2], 16)];
-  }
-  return [59, 130, 246]; // fallback blue-500
+function parseHexToRgbOrBlue(color: string): [number, number, number] {
+  return parseHexToRgb(color) ?? [59, 130, 246]; // fallback blue-500
 }
 
 function darkAdjustRgb(r: number, g: number, b: number): [number, number, number] {
@@ -115,7 +109,7 @@ function darkAdjustRgb(r: number, g: number, b: number): [number, number, number
 
 /** Safely compose a source color + alpha, with optional dark-mode desaturation. */
 export function eventBg(color: string, alpha: number, isDark: boolean): string {
-  let [r, g, b] = parseHexToRgb(color);
+  let [r, g, b] = parseHexToRgbOrBlue(color);
   if (isDark) [r, g, b] = darkAdjustRgb(r, g, b);
   return `rgba(${r},${g},${b},${alpha})`;
 }
@@ -123,7 +117,7 @@ export function eventBg(color: string, alpha: number, isDark: boolean): string {
 /** Return a solid source color, adjusted for dark mode. */
 export function eventBorder(color: string, isDark: boolean): string {
   if (!isDark) return color;
-  const [r, g, b] = darkAdjustRgb(...parseHexToRgb(color));
+  const [r, g, b] = darkAdjustRgb(...parseHexToRgbOrBlue(color));
   return `rgb(${r},${g},${b})`;
 }
 
@@ -146,7 +140,7 @@ export function clampStyle(wrap: boolean): React.CSSProperties {
 }
 
 function brightenForDark(color: string): string {
-  const [r, g, b] = parseHexToRgb(color);
+  const [r, g, b] = parseHexToRgbOrBlue(color);
   return `rgb(${Math.min(255, Math.round(r * 1.15))},${Math.min(255, Math.round(g * 1.15))},${Math.min(255, Math.round(b * 1.15))})`;
 }
 
@@ -258,6 +252,7 @@ interface FullscreenCalendarModuleProps {
   style: ModuleStyle;
   events?: CalendarEvent[];
   timezone?: string;
+  timeFormat?: TimeFormat;
   hourly?: Array<{ temp: number; icon?: string; description?: string }>;
   units?: string;
   loading?: boolean;
@@ -269,6 +264,7 @@ export default function FullscreenCalendarModule({
   style: _style,
   events: rawEventsRaw,
   timezone,
+  timeFormat,
   hourly,
   units,
   loading,
@@ -328,8 +324,8 @@ export default function FullscreenCalendarModule({
   const viewLabel = viewLabelKey ? t(viewLabelKey) : config.view;
 
   const viewProps = useMemo(
-    () => ({ events, config, scale, today, now }),
-    [events, config, scale, today, now],
+    () => ({ events, config, scale, today, now, timeFormat }),
+    [events, config, scale, today, now, timeFormat],
   );
   const hasEvents = events.length > 0;
   const isLoading = loading && !hasEvents;
@@ -450,6 +446,7 @@ export default function FullscreenCalendarModule({
           variant={config.eventTapStyle ?? 'sheet'}
           theme={theme}
           accentColor={eventBorder(detailEvent.calendarColor ?? '#3B82F6', theme.isDark)}
+          timeFormat={timeFormat}
           now={now}
           onClose={() => setDetailId(null)}
         />

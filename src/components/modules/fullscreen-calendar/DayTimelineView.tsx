@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
 import { computeTimedEventLayout } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import type { FullscreenCalendarConfig } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
 interface DayTimelineViewProps {
@@ -16,6 +16,7 @@ interface DayTimelineViewProps {
   scale: CalendarScale;
   today: Date;
   now: Date;
+  timeFormat?: TimeFormat;
 }
 
 // Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
@@ -78,7 +79,7 @@ function ZoneBand({
   );
 }
 
-export function DayTimelineView({ events, config, scale, today, now }: DayTimelineViewProps) {
+export function DayTimelineView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: DayTimelineViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -196,7 +197,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
             })}
             {/* Now badge */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timeFormat="h:mm a" locale={locale} />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timePattern={timeFormat === '24h' ? 'HH:mm' : 'h:mm a'} locale={locale} />
             )}
           </div>
 
@@ -239,8 +240,8 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
               const color = ev.calendarColor ?? '#3B82F6';
               const isPast = isToday && evEnd <= nowHour;
 
-              const evStartLabel = formatDateSync(parseEventDate(ev.start), 'h:mm a', { locale });
-              const evEndLabel = formatDateSync(parseEventDate(ev.end), 'h:mm a', { locale });
+              const evStartLabel = formatEventTime(parseEventDate(ev.start), timeFormat, locale);
+              const evEndLabel = formatEventTime(parseEventDate(ev.end), timeFormat, locale);
               const evAriaLabel = ev.location
                 ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                     title: ev.title,
@@ -356,7 +357,7 @@ export function DayTimelineView({ events, config, scale, today, now }: DayTimeli
               <NowLine
                 nowY={nowY}
                 now={now}
-                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatDateSync(now, 'h:mm a', { locale }) })}
+                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatEventTime(now, timeFormat, locale) })}
               />
             )}
           </div>

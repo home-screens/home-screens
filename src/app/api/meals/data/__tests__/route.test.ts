@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { promises as fs } from 'fs';
+import path from 'path';
+import { getLatestSchemaVersion } from '@/lib/migrations';
 
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
@@ -54,6 +57,7 @@ vi.mock('@/lib/meal-data', () => {
 
 import { GET, PUT } from '@/app/api/meals/data/route';
 import { readMealData, writeMealData } from '@/lib/meal-data';
+import { __resetConfigReadCacheForTests } from '@/lib/config-cache';
 
 const defaultSettings = {
   enabledSlots: ['breakfast', 'lunch', 'dinner'],
@@ -73,6 +77,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(readMealData).mockResolvedValue(emptyData as never);
   vi.mocked(writeMealData).mockResolvedValue(undefined);
+  // The GET reads config through the shared 1.5s read cache; without a reset,
+  // a config.json seeded mid-suite would be shadowed by a prior test's read.
+  __resetConfigReadCacheForTests();
 });
 
 // ------- GET tests -------
@@ -88,6 +95,34 @@ describe('GET /api/meals/data', () => {
     expect(res.status).toBe(200);
     expect(json.savedMeals).toHaveLength(1);
     expect(json.plan).toHaveLength(1);
+    // The vitest sandbox's data/ has no config.json, so the global falls
+    // through to the default rather than a configured preference.
+    expect(json.globalTimeFormat).toBe('12h');
+  });
+
+  it('reports the household global timeFormat from config.json', async () => {
+    vi.mocked(readMealData).mockResolvedValue(populatedData as never);
+    // The cached config read runs for real against the sandbox cwd; seed it
+    // with a versioned config (a version-less one kicks off readConfig's
+    // fire-and-forget migrate-on-boot persist, which can outlive the test).
+    const dataDir = path.join(process.cwd(), 'data');
+    await fs.mkdir(dataDir, { recursive: true });
+    await fs.writeFile(path.join(dataDir, 'config.json'), JSON.stringify({
+      version: getLatestSchemaVersion(),
+      settings: { timeFormat: '24h' },
+    }));
+
+    try {
+      const req = new NextRequest('http://localhost/api/meals/data');
+      const res = await GET(req);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.globalTimeFormat).toBe('24h');
+    } finally {
+      // Leave the sandbox config-less for any test that runs after this one.
+      await fs.rm(path.join(dataDir, 'config.json'), { force: true });
+    }
   });
 
   it('returns 500 when readMealData throws', async () => {
@@ -339,7 +374,7 @@ describe('PUT /api/meals/data', () => {
           enabledSlots: ['breakfast', 'brunch', 42, 'dinner'], // brunch + 42 should be filtered
           weekStartDay: 'tuesday', // invalid → falls back to sunday
           defaultSlotTimes: { dinner: '25:99', lunch: '12:30' }, // bad time dropped
-          timeFormat: '36h', // invalid → falls back to 12h
+          timeFormat: '36h', // invalid → dropped entirely (follows the global)
         },
       }));
       const json = await res.json();
@@ -348,7 +383,7 @@ describe('PUT /api/meals/data', () => {
       expect(json.settings.enabledSlots).toEqual(['breakfast', 'dinner']);
       expect(json.settings.weekStartDay).toBe('sunday');
       expect(json.settings.defaultSlotTimes).toEqual({ lunch: '12:30' });
-      expect(json.settings.timeFormat).toBe('12h');
+      expect(json.settings.timeFormat).toBeUndefined();
     });
   });
 

@@ -6,6 +6,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import ScreenSection from '@/components/editor/settings/ScreenSection';
 import LocationSection from '@/components/editor/settings/LocationSection';
 import LanguageFields from '@/components/editor/settings/LanguageFields';
+import TimeFormatFields from '@/components/editor/settings/TimeFormatFields';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
@@ -94,6 +95,9 @@ export default function DefaultsPageContent({
           </p>
         </div>
         <LanguageFields />
+        <div className="mt-6">
+          <TimeFormatFields />
+        </div>
         <div className="mt-6">
           <LocationSection
             values={state.location}

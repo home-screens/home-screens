@@ -316,7 +316,8 @@
       "heading": "Tijdformaat",
       "description": "Geldt voor elke maaltijdweergave op de kiosk en deze afstandsbediening.",
       "twelveHourLabel": "12-uurs",
-      "twentyFourHourLabel": "24-uurs"
+      "twentyFourHourLabel": "24-uurs",
+      "followLabel": "Algemene instelling volgen"
     },
     "defaultTimes": {
       "heading": "Standaard servertijden",

@@ -1,4 +1,4 @@
-import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize, TimeFormat } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
@@ -318,7 +318,6 @@ export const DEFAULT_MEAL_SETTINGS: MealSettings = {
   enabledSlots: [...DEFAULT_SLOTS],
   weekStartDay: 'sunday',
   defaultSlotTimes: {},
-  timeFormat: '12h',
 };
 
 // ── Settings normalization (shared by server reads and client fetches) ──
@@ -373,12 +372,10 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
     }
   }
 
-  const timeFormat: '12h' | '24h' =
-    r.timeFormat === '24h' || r.timeFormat === '12h'
-      ? r.timeFormat
-      : DEFAULT_MEAL_SETTINGS.timeFormat;
+  const timeFormat: TimeFormat | undefined =
+    r.timeFormat === '24h' || r.timeFormat === '12h' ? r.timeFormat : undefined;
 
-  return { enabledSlots, weekStartDay, defaultSlotTimes, timeFormat };
+  return { enabledSlots, weekStartDay, defaultSlotTimes, ...(timeFormat ? { timeFormat } : {}) };
 }
 
 // ── Time formatting & resolution ────────────────────────────────────
@@ -410,7 +407,7 @@ export function resolvePlannedMealTime(
  */
 export function formatMealTime(
   time: string | undefined,
-  format: '12h' | '24h' = '12h',
+  format: TimeFormat = '12h',
 ): string {
   if (!time) return '';
   const match = /^(\d{1,2}):(\d{2})$/.exec(time);
@@ -425,6 +422,18 @@ export function formatMealTime(
   const period = h >= 12 ? 'PM' : 'AM';
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Effective meal time format: an explicit meal override wins, otherwise the
+ * household global, otherwise 12h. Every formatMealTime call site resolves
+ * through this so "follow global" stays consistent across surfaces.
+ */
+export function resolveMealTimeFormat(
+  meal: { timeFormat?: TimeFormat } | undefined | null,
+  global: TimeFormat | undefined,
+): TimeFormat {
+  return meal?.timeFormat ?? global ?? '12h';
 }
 
 /**

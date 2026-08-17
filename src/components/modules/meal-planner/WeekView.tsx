@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -10,13 +10,15 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 interface WeekViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
+  /** Effective (already-resolved) serving-time format */
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
   recipeTapMode: RecipeTapMode;
 }
 
-export function WeekView({ config, settings, plan, savedMeals, todayISO, recipeTapMode }: WeekViewProps) {
+export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode }: WeekViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -109,7 +111,7 @@ export function WeekView({ config, settings, plan, savedMeals, todayISO, recipeT
                               fontVariantNumeric: 'tabular-nums',
                             }}
                           >
-                            {formatMealTime(time, settings.timeFormat)}
+                            {formatMealTime(time, timeFormat)}
                           </span>
                         )}
                       </>

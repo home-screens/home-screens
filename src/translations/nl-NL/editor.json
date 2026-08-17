@@ -6,7 +6,11 @@
     "moreOptions": "Meer opties",
     "formattingLocaleLabel": "Opmaaklocale",
     "formattingLocaleHelp": "Overschrijf alleen de datum- en getalopmaak. De interfacetaal blijft hetzelfde.",
-    "formattingLocaleSameAsLanguage": "Zelfde als taal"
+    "formattingLocaleSameAsLanguage": "Zelfde als taal",
+    "timeFormatLabel": "Tijdnotatie",
+    "timeFormat12h": "12-uurs · 8:00 AM",
+    "timeFormat24h": "24-uurs · 20:00",
+    "timeFormatHelp": "Hoe tijden op je schermen worden weergegeven."
   },
   "common": {
     "saved": "Opgeslagen",
@@ -1023,7 +1027,8 @@
         "heading": "Tijdformaat",
         "description": "Geldt voor elke maaltijdweergave op de kiosk en de remote.",
         "twelveHourLabel": "12-uurs",
-        "twentyFourHourLabel": "24-uurs"
+        "twentyFourHourLabel": "24-uurs",
+        "followLabel": "Algemene instelling volgen"
       },
       "defaultTimes": {
         "heading": "Standaard servertijden",
@@ -2264,7 +2269,11 @@
       "eventTapDetails": "Tik op een afspraak voor details",
       "eventTapStyle": "Stijl van details",
       "eventTapStyleSheet": "Paneel van onderen",
-      "eventTapStyleCard": "Kaart in het midden"
+      "eventTapStyleCard": "Kaart in het midden",
+      "gridEventStyle": "Evenementstijl",
+      "gridEventStyleClassic": "Klassiek",
+      "gridEventStyleColored": "Gekleurd",
+      "gridEventPill": "Achtergrond achter afspraken"
     },
     "chore-chart": {
       "viewBoard": "Bord (kolom per lid)",

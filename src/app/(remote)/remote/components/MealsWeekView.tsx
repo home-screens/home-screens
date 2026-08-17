@@ -1,13 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealSlotType } from '@/types/config';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
   SLOT_ORDER,
   SLOT_WINDOWS,
   formatMealTime,
   resolvePlannedMealTime,
+  resolveMealTimeFormat,
   getLocalizedDayNames,
   getMealSlotLabelKey,
 } from '@/lib/meal-constants';
@@ -15,6 +16,9 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealsViewProps } from './meals-shared';
 
 interface MealsWeekViewProps extends MealsViewProps {
+  /** Household GlobalSettings.timeFormat — resolves the effective format when
+   *  the shared meal settings carry no explicit override */
+  globalTimeFormat: TimeFormat;
   setSubView: (v: 'plan') => void;
 }
 
@@ -26,6 +30,7 @@ export default function MealsWeekView({
   currentHour,
   getMealForSlot,
   settings,
+  globalTimeFormat,
   setSubView,
 }: MealsWeekViewProps) {
   const t = useTranslate('remote');
@@ -36,6 +41,7 @@ export default function MealsWeekView({
     [formattingLocale],
   );
   const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
+  const effectiveTimeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
 
   return (
     <div style={{ paddingBottom: 80 }}>
@@ -134,7 +140,7 @@ export default function MealsWeekView({
                           color: SLOT_META[slot].color,
                           fontVariantNumeric: 'tabular-nums',
                         }}>
-                          {formatMealTime(time, settings.timeFormat)}
+                          {formatMealTime(time, effectiveTimeFormat)}
                         </span>
                       )}
                     </div>

@@ -81,6 +81,26 @@ test('calendar: switching View Mode persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'calendar')).viewMode).toBe('month');
 });
 
+test('calendar: switching Event Style persists', async ({ page, request }) => {
+  // The Event style select only renders in the grid views.
+  await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'multi-week' }));
+
+  // gridEventStyle defaults 'classic'; switch to 'colored'.
+  await autosaved(page, async () => {
+    await page.getByLabel('Event style').selectOption('colored');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).gridEventStyle).toBe('colored');
+  // The timed-event background toggle only appears in Colored mode; one click flips it on.
+  const pill = page.getByRole('switch', { name: 'Background behind timed events' });
+  await expect(pill).toBeVisible();
+  await autosaved(page, async () => {
+    await pill.click();
+  });
+
+  expect((await moduleConfig(request, 'calendar')).gridEventPillBackground).toBe(true);
+});
+
 test('weather: toggling Feels Like persists', async ({ page, request }) => {
   // Registry default has showFeelsLike: true — one click flips it off.
   await selectModule(page, request, buildModuleInstance('weather'));

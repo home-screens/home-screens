@@ -5,7 +5,7 @@ import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function NextMealView({
-  settings, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const next = getNextMeal(now, plan, savedMeals, slots);
@@ -67,7 +67,7 @@ export default function NextMealView({
             fontSize: s * 0.8, fontWeight: 700, color: 'var(--fmp-accent)',
             fontVariantNumeric: 'tabular-nums',
           }}>
-            {formatMealTime(time, settings.timeFormat)}
+            {formatMealTime(time, timeFormat)}
           </span>
         )}
       </div>

@@ -6,7 +6,11 @@
     "moreOptions": "More options",
     "formattingLocaleLabel": "Formatting locale",
     "formattingLocaleHelp": "Override only the date and number formatting. Keeps the interface language unchanged.",
-    "formattingLocaleSameAsLanguage": "Same as language"
+    "formattingLocaleSameAsLanguage": "Same as language",
+    "timeFormatLabel": "Time format",
+    "timeFormat12h": "12-hour · 8:00 AM",
+    "timeFormat24h": "24-hour · 20:00",
+    "timeFormatHelp": "How times are shown across your screens."
   },
   "common": {
     "saved": "Saved",
@@ -1023,7 +1027,8 @@
         "heading": "Time Format",
         "description": "Applies to every meal display across the kiosk and the remote.",
         "twelveHourLabel": "12-hour",
-        "twentyFourHourLabel": "24-hour"
+        "twentyFourHourLabel": "24-hour",
+        "followLabel": "Follow global setting"
       },
       "defaultTimes": {
         "heading": "Default Serving Times",
@@ -2264,7 +2269,11 @@
       "eventTapDetails": "Tap an event to see details",
       "eventTapStyle": "Details style",
       "eventTapStyleSheet": "Slide-up panel",
-      "eventTapStyleCard": "Centered card"
+      "eventTapStyleCard": "Centered card",
+      "gridEventStyle": "Event style",
+      "gridEventStyleClassic": "Classic",
+      "gridEventStyleColored": "Colored",
+      "gridEventPill": "Background behind timed events"
     },
     "chore-chart": {
       "viewBoard": "Board (Column per Member)",

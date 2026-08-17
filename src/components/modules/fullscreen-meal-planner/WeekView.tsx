@@ -6,7 +6,7 @@ import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function WeekView({
-  settings, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -175,7 +175,7 @@ export default function WeekView({
                           color: 'var(--fmp-accent)',
                           fontVariantNumeric: 'tabular-nums',
                         }}>
-                          {formatMealTime(time, settings.timeFormat)}
+                          {formatMealTime(time, timeFormat)}
                         </span>
                       )}
                       {showPrepTime && meal.prepTime && (

@@ -316,7 +316,8 @@
       "heading": "Zeitformat",
       "description": "Gilt für jede Mahlzeitenanzeige im Kiosk und in dieser Fernsteuerung.",
       "twelveHourLabel": "12-Stunden",
-      "twentyFourHourLabel": "24-Stunden"
+      "twentyFourHourLabel": "24-Stunden",
+      "followLabel": "Globale Einstellung folgen"
     },
     "defaultTimes": {
       "heading": "Standard-Essenszeiten",

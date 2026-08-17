@@ -21,6 +21,7 @@ export default function MealsTab() {
     savedMeals,
     weekPlan,
     settings,
+    globalTimeFormat,
     loading,
     saving,
     saveError,
@@ -104,6 +105,7 @@ export default function MealsTab() {
           currentHour={currentHour}
           getMealForSlot={getMealForSlot}
           settings={settings}
+          globalTimeFormat={globalTimeFormat}
           setSubView={setSubView}
         />
       )}
@@ -117,6 +119,7 @@ export default function MealsTab() {
           activeSlot={activeSlotType}
           currentHour={currentHour}
           getMealForSlot={getMealForSlot}
+          globalTimeFormat={globalTimeFormat}
           assignMealToSlot={assignMealToSlot}
           clearSlot={clearSlot}
           setSlotTime={setSlotTime}
@@ -173,6 +176,7 @@ export default function MealsTab() {
       {showSettings && (
         <MealsSettingsSheet
           settings={settings}
+          globalTimeFormat={globalTimeFormat}
           onSave={saveSettings}
           onClose={() => setShowSettings(false)}
         />

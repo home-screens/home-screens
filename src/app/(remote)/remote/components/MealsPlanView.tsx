@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealSlotType } from '@/types/config';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
   SLOT_ORDER,
   DEFAULT_MEAL_EMOJI,
   resolvePlannedMealTime,
+  resolveMealTimeFormat,
   getLocalizedDayNames,
   getMealSlotLabelKey,
 } from '@/lib/meal-constants';
@@ -15,6 +16,9 @@ import type { MealsViewProps } from './meals-shared';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 
 interface MealsPlanViewProps extends MealsViewProps {
+  /** Household GlobalSettings.timeFormat — resolves the effective format when
+   *  the shared meal settings carry no explicit override */
+  globalTimeFormat: TimeFormat;
   assignMealToSlot: (date: string, slot: MealSlotType, mealId: string) => Promise<void>;
   clearSlot: (date: string, slot: MealSlotType) => Promise<void>;
   setSlotTime: (date: string, slot: MealSlotType, time: string | undefined) => Promise<void>;
@@ -33,6 +37,7 @@ export default function MealsPlanView({
   weekDates,
   todayISO,
   getMealForSlot,
+  globalTimeFormat,
   assignMealToSlot,
   clearSlot,
   setSlotTime,
@@ -243,7 +248,7 @@ export default function MealsPlanView({
                             slot={slot}
                             variant="darker"
                             align="right"
-                            timeFormat={settings.timeFormat}
+                            timeFormat={resolveMealTimeFormat(settings, globalTimeFormat)}
                           />
                         </span>
                       </>

@@ -9,7 +9,8 @@
  * stay in the editor; this sheet is purely about meal management.
  */
 
-import type { MealSettings } from '@/types/config';
+import type { MealSettings, TimeFormat } from '@/types/config';
+import { resolveMealTimeFormat } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { useMealsSettingsDraft } from '../hooks/useMealsSettingsDraft';
 import MealsSettingsSlotsSection from './MealsSettingsSlotsSection';
@@ -19,13 +20,15 @@ import MealsSettingsDefaultTimesSection from './MealsSettingsDefaultTimesSection
 
 interface MealsSettingsSheetProps {
   settings: MealSettings;
+  /** Household GlobalSettings.timeFormat — previews what "follow" resolves to */
+  globalTimeFormat: TimeFormat;
   /** Returns true on success, false on failure. Caller is responsible for
    *  reverting state on failure; the sheet stays open so the user can retry. */
   onSave: (next: MealSettings) => Promise<boolean>;
   onClose: () => void;
 }
 
-export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsSettingsSheetProps) {
+export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave, onClose }: MealsSettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
 
@@ -120,13 +123,14 @@ export default function MealsSettingsSheet({ settings, onSave, onClose }: MealsS
 
           <MealsSettingsTimeFormatSection
             timeFormat={draft.timeFormat}
+            globalTimeFormat={globalTimeFormat}
             onChange={(fmt) => setDraft({ ...draft, timeFormat: fmt })}
           />
 
           <MealsSettingsDefaultTimesSection
             enabledSlots={draft.enabledSlots}
             defaultSlotTimes={draft.defaultSlotTimes}
-            timeFormat={draft.timeFormat}
+            timeFormat={resolveMealTimeFormat(draft, globalTimeFormat)}
             onSetTime={setDefaultTime}
           />
         </div>

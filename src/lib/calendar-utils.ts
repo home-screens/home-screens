@@ -1,5 +1,8 @@
 import { addDays } from 'date-fns';
-import type { WeekStartDay } from '@/types/config';
+import type { TimeFormat, WeekStartDay } from '@/types/config';
+import { formatDateSync } from '@/i18n/formatters';
+import { parseHexToRgb } from '@/lib/hex-color';
+import { toTZWallTime } from '@/lib/timezone';
 
 /** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
@@ -49,6 +52,25 @@ export function parseEventDate(dateStr: string): Date {
   return new Date(dateStr);
 }
 
+// Explicit zone designator: trailing Z or ±HH:MM / ±HHMM offset.
+const HAS_ZONE_INFO = /Z|[+-]\d{2}:?\d{2}$/;
+
+/**
+ * Parse an event date string into the display's wall time. Timed strings
+ * with an explicit zone (all shipped producers emit RFC3339 offsets or UTC
+ * ISO strings) are absolute instants, so their clock reading must come from
+ * the configured display timezone, not the Pi's OS timezone — this returns
+ * them shifted via `toTZWallTime` so `getHours()` etc. read display-local.
+ * Date-only strings and zone-less timed strings are already wall times and
+ * pass through `parseEventDate` unchanged, as does everything when no
+ * timezone is configured.
+ */
+export function parseEventWallTime(dateStr: string, timezone?: string): Date {
+  const parsed = parseEventDate(dateStr);
+  if (!timezone || !dateStr.includes('T') || !HAS_ZONE_INFO.test(dateStr.trim())) return parsed;
+  return toTZWallTime(parsed, timezone);
+}
+
 /**
  * Compare two CalendarEvent start dates for sorting.
  * Uses parseEventDate to avoid the UTC-midnight bug on date-only strings.
@@ -57,22 +79,88 @@ export function compareEventStarts(aStart: string, bStart: string): number {
   return parseEventDate(aStart).getTime() - parseEventDate(bStart).getTime();
 }
 
+/** Whether an event renders as all-day: the flag, or a date-only start. */
+export function isAllDayEvent(ev: { start: string; allDay?: boolean }): boolean {
+  return ev.allDay === true || !ev.start.includes('T');
+}
+
+/**
+ * Events for one grid day cell, in display order: all-day events first
+ * (multi-day all-days repeat on each covered day via `isEventOnDay`),
+ * then timed events by start time. Sort keys are computed once per event
+ * (decorate-sort-undecorate) — a comparator that re-parses both dates runs
+ * O(n log n) parses per cell, and grids call this for up to 84 cells.
+ * `timezone` buckets timed events by their display-timezone day.
+ */
+export function eventsForDay<T extends { start: string; end: string; allDay?: boolean }>(
+  events: T[],
+  date: Date,
+  timezone?: string,
+): T[] {
+  return events
+    .filter((ev) => isEventOnDay(ev, date, timezone))
+    .map((ev) => ({ ev, allDay: isAllDayEvent(ev), startMs: parseEventDate(ev.start).getTime() }))
+    .sort((a, b) => {
+      if (a.allDay !== b.allDay) return a.allDay ? -1 : 1;
+      return a.startMs - b.startMs;
+    })
+    .map((d) => d.ev);
+}
+
+/**
+ * Event start time in the household clock preference. 24h is naturally
+ * constant-width ("20:05"); 12h defaults to the unpadded "8:05 AM" that
+ * list surfaces have always shown, with `pad` opting stacked grid pills
+ * into zero-padded "08:05 AM" so every prefix renders at the same width.
+ * `trim()` drops the trailing space for locales whose day-period token
+ * renders empty (e.g. locales without AM/PM); no shipped locale renders an
+ * empty day period today, so it is defensive only.
+ */
+export function formatEventTime(date: Date, timeFormat: TimeFormat, locale: string, pad = false): string {
+  const pattern = timeFormat === '24h' ? 'HH:mm' : pad ? 'hh:mm a' : 'h:mm a';
+  return formatDateSync(date, pattern, { locale }).trim();
+}
+
+const PILL_DARK_TEXT = '#1b1b1f';
+
+/**
+ * Auto-contrast text color for a solid pill background: light calendar
+ * colors (yellows, limes) get near-black text, dark ones white. YIQ
+ * luminance `((299R + 587G + 114B) / 1000) >= 160` picks dark; anything
+ * unparseable (named colors, junk) falls back to white like the mockup's
+ * "always white" policy.
+ */
+export function pickPillTextColor(hex: string | undefined): string {
+  const rgb = hex ? parseHexToRgb(hex) : null;
+  if (!rgb) return '#fff';
+  const [r, g, b] = rgb;
+  return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
+}
+
 /**
  * Check whether a calendar event falls on a given day.
  *
  * All-day events use half-open interval overlap: [evStart, evEnd) ∩ [date, date+1).
  * Google Calendar and iCal both use exclusive end dates for all-day events
  * (a single-day event on March 15 has end = March 16).
+ *
+ * `timezone` puts timed events in their display-timezone day: `date` is a
+ * wall-time day from `createTZDate`, so an OS-parsed start would bucket a
+ * late-evening event into the wrong cell whenever the Pi's OS timezone
+ * differs from the configured one. All-day starts are wall dates already
+ * and never shift.
  */
 export function isEventOnDay(
   ev: { start: string; end: string; allDay?: boolean },
   date: Date,
+  timezone?: string,
 ): boolean {
-  const evStart = parseEventDate(ev.start);
-  if (ev.allDay || !ev.start.includes('T')) {
+  if (isAllDayEvent(ev)) {
+    const evStart = parseEventDate(ev.start);
     const evEnd = parseEventDate(ev.end);
     return evStart < addDays(date, 1) && evEnd > date;
   }
+  const evStart = parseEventWallTime(ev.start, timezone);
   // Timed events: compare calendar day using date parts (avoids cross-timezone issues)
   return (
     evStart.getFullYear() === date.getFullYear() &&

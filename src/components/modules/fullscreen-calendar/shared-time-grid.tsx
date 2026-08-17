@@ -133,13 +133,14 @@ interface NowBadgeProps {
   scale: { bu: number };
   fontSize: number;
   position: 'left' | 'right';
-  timeFormat?: string;
+  /** date-fns pattern for the badge label, derived from the household time format. */
+  timePattern?: string;
   /** Active formatting locale tag (e.g. "en-US") — used for the time label. */
   locale: string;
 }
 
 /** Small pill badge showing the current time, positioned in the time gutter. */
-export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat = 'h:mm', locale }: NowBadgeProps) {
+export function NowBadge({ nowY, now, scale, fontSize, position, timePattern = 'h:mm', locale }: NowBadgeProps) {
   const posStyle = position === 'right'
     ? { right: scale.bu * 0.3 }
     : { left: scale.bu * 0.5 };
@@ -159,7 +160,7 @@ export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat = 'h
       zIndex: 11,
       lineHeight: 1.3,
     }}>
-      {formatDateSync(now, timeFormat, { locale })}
+      {formatDateSync(now, timePattern, { locale })}
     </div>
   );
 }
