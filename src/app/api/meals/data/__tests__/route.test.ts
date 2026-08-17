@@ -57,6 +57,7 @@ vi.mock('@/lib/meal-data', () => {
 
 import { GET, PUT } from '@/app/api/meals/data/route';
 import { readMealData, writeMealData } from '@/lib/meal-data';
+import { __resetConfigReadCacheForTests } from '@/lib/config-cache';
 
 const defaultSettings = {
   enabledSlots: ['breakfast', 'lunch', 'dinner'],
@@ -76,6 +77,9 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(readMealData).mockResolvedValue(emptyData as never);
   vi.mocked(writeMealData).mockResolvedValue(undefined);
+  // The GET reads config through the shared 1.5s read cache; without a reset,
+  // a config.json seeded mid-suite would be shadowed by a prior test's read.
+  __resetConfigReadCacheForTests();
 });
 
 // ------- GET tests -------
@@ -98,8 +102,8 @@ describe('GET /api/meals/data', () => {
 
   it('reports the household global timeFormat from config.json', async () => {
     vi.mocked(readMealData).mockResolvedValue(populatedData as never);
-    // readConfig runs for real against the sandbox cwd; seed it with a
-    // versioned config (a version-less one kicks off readConfig's
+    // The cached config read runs for real against the sandbox cwd; seed it
+    // with a versioned config (a version-less one kicks off readConfig's
     // fire-and-forget migrate-on-boot persist, which can outlive the test).
     const dataDir = path.join(process.cwd(), 'data');
     await fs.mkdir(dataDir, { recursive: true });

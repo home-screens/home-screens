@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
@@ -11,7 +11,7 @@ interface TodayViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -34,7 +34,7 @@ function SlotCard({
   config: MealPlannerConfig;
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;

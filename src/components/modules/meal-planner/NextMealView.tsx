@@ -1,6 +1,6 @@
 'use client';
 
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
@@ -11,7 +11,7 @@ interface NextMealViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;

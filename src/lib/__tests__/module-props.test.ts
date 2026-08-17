@@ -181,12 +181,12 @@ describe('toEditorSource', () => {
 });
 
 describe('timeFormat threading', () => {
-  it('buildModuleProps passes a resolved timeFormat to calendar modules only', () => {
+  it('buildModuleProps passes a resolved timeFormat to every module (ambient, like timezone)', () => {
     const source = toDisplaySource({ ...displaySettings, timeFormat: '24h' }, LOCATION, emptyShared());
     const cal = buildModuleProps(instance('calendar'), source);
     expect(cal.timeFormat).toBe('24h');
     const other = buildModuleProps(instance('clock'), source);
-    expect(other.timeFormat).toBeUndefined();
+    expect(other.timeFormat).toBe('24h');
   });
 
   it('defaults to 12h when no adapter supplies a value', () => {

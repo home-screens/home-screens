@@ -143,7 +143,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           />
         </>
       )}
-      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (
+      {isGridView(viewMode) && (
         <LabeledSelect
           label={t('configSections.calendar.gridEventStyle')}
           value={c.gridEventStyle ?? 'classic'}
@@ -151,7 +151,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           options={GRID_EVENT_STYLE_OPTIONS}
         />
       )}
-      {(viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week') && (c.gridEventStyle ?? 'classic') === 'colored' && (
+      {isGridView(viewMode) && (c.gridEventStyle ?? 'classic') === 'colored' && (
         <Toggle
           label={t('configSections.calendar.gridEventPill')}
           checked={!!c.gridEventPillBackground}

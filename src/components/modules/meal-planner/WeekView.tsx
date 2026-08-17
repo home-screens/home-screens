@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -11,7 +11,7 @@ interface WeekViewProps {
   config: MealPlannerConfig;
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;

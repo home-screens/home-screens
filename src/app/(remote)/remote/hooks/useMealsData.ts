@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import type { SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSettings, TimeFormat } from '@/types/config';
 import { DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from '@/lib/meal-constants';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 
@@ -13,7 +13,7 @@ export function useMealsData() {
   // Household GlobalSettings.timeFormat, reported alongside the meal settings
   // (always present in the GET response). Meal surfaces resolve their effective
   // format against this when the shared settings carry no override.
-  const [globalTimeFormat, setGlobalTimeFormat] = useState<'12h' | '24h'>('12h');
+  const [globalTimeFormat, setGlobalTimeFormat] = useState<TimeFormat>('12h');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

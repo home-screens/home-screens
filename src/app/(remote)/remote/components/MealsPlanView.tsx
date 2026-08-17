@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealSlotType } from '@/types/config';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
   SLOT_ORDER,
@@ -18,7 +18,7 @@ import MealTimeChip from '@/components/meals/MealTimeChip';
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
    *  the shared meal settings carry no explicit override */
-  globalTimeFormat: '12h' | '24h';
+  globalTimeFormat: TimeFormat;
   assignMealToSlot: (date: string, slot: MealSlotType, mealId: string) => Promise<void>;
   clearSlot: (date: string, slot: MealSlotType) => Promise<void>;
   setSlotTime: (date: string, slot: MealSlotType, time: string | undefined) => Promise<void>;

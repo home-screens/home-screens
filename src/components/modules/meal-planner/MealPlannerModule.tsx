@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
-import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleStyle } from '@/types/config';
+import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleStyle, TimeFormat } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -21,7 +21,7 @@ interface MealDataResponse {
   plan: PlannedMeal[];
   settings?: MealSettings;
   /** Household GlobalSettings.timeFormat, reported alongside the settings */
-  globalTimeFormat?: '12h' | '24h';
+  globalTimeFormat?: TimeFormat;
 }
 
 interface MealPlannerModuleProps {

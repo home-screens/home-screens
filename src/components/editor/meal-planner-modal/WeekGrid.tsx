@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
@@ -13,7 +13,7 @@ interface WeekGridProps {
   slots: MealSlotType[];
   accentColor: string;
   /** Time display format for the chip face — comes from shared MealSettings */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   selectedMealId: string | null;
   weekDates: string[];
   isCurrentWeek: boolean;

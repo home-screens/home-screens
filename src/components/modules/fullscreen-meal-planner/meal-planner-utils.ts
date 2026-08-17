@@ -1,4 +1,4 @@
-import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS, toISODate } from '@/lib/meal-constants';
 import type { RecipeTapMode } from '../shared/MealTapTarget';
 
@@ -7,7 +7,7 @@ export interface MealPlannerViewProps {
   /** Shared planning settings from data/meals.json — single source of truth for slots/weekStart/defaultSlotTimes */
   settings: MealSettings;
   /** Effective serving-time format (explicit override, else the household global) */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   now: Date;

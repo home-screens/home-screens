@@ -305,15 +305,19 @@ describe('eventsForDay', () => {
 
 describe('formatEventTime', () => {
   const d = new Date(2026, 7, 16, 8, 5);
-  it('renders zero-padded 12h with day period', () => {
-    expect(formatEventTime(d, '12h', 'en-US')).toBe('08:05 AM');
+  it('renders unpadded 12h with day period by default (list surfaces)', () => {
+    expect(formatEventTime(d, '12h', 'en-US')).toBe('8:05 AM');
   });
-  it('renders constant-width 24h', () => {
+  it('zero-pads 12h when pad is set (constant-width grid pills)', () => {
+    expect(formatEventTime(d, '12h', 'en-US', true)).toBe('08:05 AM');
+  });
+  it('renders constant-width 24h regardless of pad', () => {
     expect(formatEventTime(d, '24h', 'en-US')).toBe('08:05');
     expect(formatEventTime(new Date(2026, 7, 16, 20, 5), '24h', 'en-US')).toBe('20:05');
   });
   it('never leaves a trailing space after the time prefix', () => {
-    expect(formatEventTime(d, '12h', 'de-DE')).toMatch(/^08:05/);
+    expect(formatEventTime(d, '12h', 'de-DE', true)).toMatch(/^08:05/);
+    expect(formatEventTime(d, '12h', 'de-DE', true).endsWith(' ')).toBe(false);
     expect(formatEventTime(d, '12h', 'de-DE').endsWith(' ')).toBe(false);
   });
 });

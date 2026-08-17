@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslate } from '@/i18n';
-import type { MealSlotType } from '@/types/config';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
 
 /**
@@ -33,7 +33,7 @@ export interface MealTimeChipProps {
   /** Slot context — drives the quick presets */
   slot: MealSlotType;
   /** Display format for the chip face (24h or 12h) */
-  timeFormat?: '12h' | '24h';
+  timeFormat?: TimeFormat;
   /** Visual variant — "dark" for editor (dark background), "darker" for /remote */
   variant?: 'dark' | 'darker';
   /** Additional accent color for highlights (defaults to amber) */

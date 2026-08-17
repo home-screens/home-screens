@@ -335,8 +335,11 @@ export interface GlobalSettings {
   /** Household 12/24-hour preference. Calendar module time lines and grid
    *  pills resolve against this; the meal planner follows it unless its own
    *  timeFormat override is set. Absent = 12h. Global-only like `locale`. */
-  timeFormat?: '12h' | '24h';
+  timeFormat?: TimeFormat;
 }
+
+/** Household 12/24-hour clock preference (`GlobalSettings.timeFormat`). */
+export type TimeFormat = '12h' | '24h';
 
 /** Absent-value default for `GlobalSettings.timeFormat`; the prop builder and
  *  the calendar module both resolve against this single constant. */
@@ -1179,7 +1182,7 @@ export interface MealSettings {
    * '12h' / '24h' wins everywhere meals are shown. Kept in the shared
    * settings block so /remote and all meal-planner module instances agree.
    */
-  timeFormat?: '12h' | '24h';
+  timeFormat?: TimeFormat;
 }
 
 /**

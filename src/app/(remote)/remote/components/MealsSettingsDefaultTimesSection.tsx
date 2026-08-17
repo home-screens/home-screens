@@ -1,6 +1,6 @@
 'use client';
 
-import type { MealSettings, MealSlotType } from '@/types/config';
+import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
@@ -9,7 +9,7 @@ interface MealsSettingsDefaultTimesSectionProps {
   enabledSlots: MealSlotType[];
   defaultSlotTimes: MealSettings['defaultSlotTimes'];
   /** Effective (already-resolved) format — callers pass resolveMealTimeFormat() output */
-  timeFormat: '12h' | '24h';
+  timeFormat: TimeFormat;
   onSetTime: (slot: MealSlotType, time: string | undefined) => void;
 }
 

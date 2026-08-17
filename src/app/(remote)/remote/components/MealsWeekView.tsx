@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { MealSlotType } from '@/types/config';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
   SLOT_ORDER,
@@ -18,7 +18,7 @@ import type { MealsViewProps } from './meals-shared';
 interface MealsWeekViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
    *  the shared meal settings carry no explicit override */
-  globalTimeFormat: '12h' | '24h';
+  globalTimeFormat: TimeFormat;
   setSubView: (v: 'plan') => void;
 }
 

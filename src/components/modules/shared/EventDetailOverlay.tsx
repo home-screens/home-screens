@@ -4,12 +4,12 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, formatEventTime, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync, formatRelativeTime } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
-import type { CalendarEvent, EventTapStyle } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarEvent, type EventTapStyle, type TimeFormat } from '@/types/config';
 
 // A kiosk nobody is standing at must not show an event detail forever.
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
@@ -31,6 +31,7 @@ export function describeEventTime(
   now: Date,
   locale: string,
   labels: { allDay: string; today: string; happeningNow: string },
+  timeFormat: TimeFormat = DEFAULT_TIME_FORMAT,
 ): EventTimeText {
   const start = parseEventDate(event.start);
   const end = parseEventDate(event.end);
@@ -52,7 +53,7 @@ export function describeEventTime(
     return { main, sub: '' };
   }
 
-  const main = `${formatDateSync(start, 'h:mm a', { locale })} – ${formatDateSync(end, 'h:mm a', { locale })}`;
+  const main = `${formatEventTime(start, timeFormat, locale)} – ${formatEventTime(end, timeFormat, locale)}`;
   if (now >= start && now < end) return { main, sub: labels.happeningNow };
   if (start > now) return { main, sub: formatRelativeTime(now, start, { locale }) };
   return { main, sub: '' };
@@ -64,6 +65,8 @@ interface EventDetailOverlayProps {
   theme: FullscreenThemeTokens;
   /** Resolved event accent (calendar color, already dark-adjusted by the caller). */
   accentColor: string;
+  /** Household clock preference; the time range line follows it. */
+  timeFormat?: TimeFormat;
   now: Date;
   onClose: () => void;
 }
@@ -82,7 +85,7 @@ interface EventDetailOverlayProps {
  * the attribute's stylesheet side effect would re-enable pinch/double-tap
  * zoom over the overlay on a real touchscreen.
  */
-export function EventDetailOverlay({ event, variant, theme, accentColor, now, onClose }: EventDetailOverlayProps) {
+export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, now, onClose }: EventDetailOverlayProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -108,7 +111,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, now, on
     allDay: t('event-detail.allDay'),
     today: tCore('today'),
     happeningNow: t('event-detail.happeningNow'),
-  });
+  }, timeFormat);
 
   const iconStyle: React.CSSProperties = {
     color: theme.textMuted,

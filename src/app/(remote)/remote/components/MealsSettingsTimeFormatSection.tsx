@@ -1,6 +1,6 @@
 'use client';
 
-import type { MealSettings } from '@/types/config';
+import type { MealSettings, TimeFormat } from '@/types/config';
 import { formatMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
@@ -8,7 +8,7 @@ import { SECTION_HEADING_STYLE } from './meals-shared';
 interface MealsSettingsTimeFormatSectionProps {
   timeFormat: MealSettings['timeFormat'];
   /** Household GlobalSettings.timeFormat — previews what "follow" resolves to */
-  globalTimeFormat: '12h' | '24h';
+  globalTimeFormat: TimeFormat;
   onChange: (fmt: MealSettings['timeFormat']) => void;
 }
 

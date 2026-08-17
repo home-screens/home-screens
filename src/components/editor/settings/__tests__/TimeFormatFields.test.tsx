@@ -38,7 +38,7 @@ const mocks = vi.hoisted(() => ({
   // satisfy what the component destructures.
   storeState: {
     config: { settings: { timeFormat: '24h' } },
-  } as { config: { settings: { timeFormat?: '12h' | '24h' } } },
+  } as { config: { settings: { timeFormat?: TimeFormat } } },
 }));
 
 vi.mock('@/stores/editor-store', () => ({
@@ -61,6 +61,7 @@ vi.mock('next/navigation', () => ({
 import TimeFormatFields from '../TimeFormatFields';
 import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';
+import type { TimeFormat } from '@/types/config';
 
 function renderField() {
   return render(

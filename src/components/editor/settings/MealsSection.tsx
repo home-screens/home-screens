@@ -16,7 +16,7 @@ import {
 import { displayCache } from '@/lib/display-cache';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
-import type { MealSettings, MealSlotType } from '@/types/config';
+import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 
 /**
  * Editor settings page section for meal-planner shared settings.
@@ -195,7 +195,7 @@ export default function MealsSection() {
     persist(updated, settings);
   }, [settings, persist]);
 
-  const setTimeFormat = useCallback((fmt: '12h' | '24h' | undefined) => {
+  const setTimeFormat = useCallback((fmt: TimeFormat | undefined) => {
     if (!settings) return;
     // undefined = follow global — the explicit undefined overwrites any stored
     // override here, then serializes out of the PUT body so the key is gone

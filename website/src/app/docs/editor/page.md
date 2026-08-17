@@ -272,7 +272,7 @@ Sleep and dimming draw a black layer over the page rather than powering the pane
 - **Location Lookup** searches by zip code or city name; **Detect** uses browser geolocation with an IP-based fallback. Weather modules show nothing until a location is set, whichever provider you use.
 - **Timezone** overrides the server's OS timezone for time-based modules. The **Time Comparison** readout shows browser time and server time side by side so you can confirm it took.
 - **Formatting Locale** (optional) overrides date and number formatting *only*, without changing the interface language. Useful when you want English text but European date order. Leave it blank to follow **Language**.
-- **Time format** picks 12-hour or 24-hour times for the calendar module's grids and time lines, and serves as the default the meal planner follows (meal settings can still override it). The clock module keeps its own per-module setting.
+- **Time format** picks 12-hour or 24-hour times for calendar events everywhere they appear — the calendar module, the fullscreen calendar, and event detail popups — and serves as the default the meal planner follows (meal settings can still override it). The clock module keeps its own per-module setting.
 
 ### Weather
 

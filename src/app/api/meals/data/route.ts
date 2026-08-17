@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData, prunePlan, type MealData } from '@/lib/meal-data';
-import { readConfig } from '@/lib/config';
+import { readConfigCached } from '@/lib/config-cache';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
@@ -13,16 +13,18 @@ export const dynamic = 'force-dynamic';
  * `globalTimeFormat` mirrors GlobalSettings.timeFormat so meal surfaces can
  * resolve "absent override → follow global" without a second config fetch.
  *
- * A corrupt config.json deliberately fails closed here (readConfig throws →
+ * A corrupt config.json deliberately fails closed here (the read throws →
  * 500): a corrupt hub config is a hub-wide emergency, and meals shouldn't
- * silently limp along on a default while everything else is broken.
+ * silently limp along on a default while everything else is broken. The
+ * cached read preserves that: config-cache never caches errors, and
+ * in-process writes invalidate it, so displays polling every 60s share one
+ * config parse without serving stale or defaulted settings.
  *
  * The internal `timeFormatLegacyStripped` migration marker never goes on the
  * wire — client state must not grow a dependency on migration machinery.
  */
 export const GET = withDisplayAuth(async () => {
-  const data = await readMealData();
-  const config = await readConfig();
+  const [data, config] = await Promise.all([readMealData(), readConfigCached()]);
   const { timeFormatLegacyStripped: _marker, ...rest } = data;
   void _marker;
   return NextResponse.json({

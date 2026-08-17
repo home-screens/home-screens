@@ -1,4 +1,4 @@
-import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize, TimeFormat } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
@@ -372,7 +372,7 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
     }
   }
 
-  const timeFormat: '12h' | '24h' | undefined =
+  const timeFormat: TimeFormat | undefined =
     r.timeFormat === '24h' || r.timeFormat === '12h' ? r.timeFormat : undefined;
 
   return { enabledSlots, weekStartDay, defaultSlotTimes, ...(timeFormat ? { timeFormat } : {}) };
@@ -407,7 +407,7 @@ export function resolvePlannedMealTime(
  */
 export function formatMealTime(
   time: string | undefined,
-  format: '12h' | '24h' = '12h',
+  format: TimeFormat = '12h',
 ): string {
   if (!time) return '';
   const match = /^(\d{1,2}):(\d{2})$/.exec(time);
@@ -430,9 +430,9 @@ export function formatMealTime(
  * through this so "follow global" stays consistent across surfaces.
  */
 export function resolveMealTimeFormat(
-  meal: { timeFormat?: '12h' | '24h' } | undefined | null,
-  global: '12h' | '24h' | undefined,
-): '12h' | '24h' {
+  meal: { timeFormat?: TimeFormat } | undefined | null,
+  global: TimeFormat | undefined,
+): TimeFormat {
   return meal?.timeFormat ?? global ?? '12h';
 }
 

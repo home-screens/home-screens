@@ -2,13 +2,13 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
 import { computeTimedEventLayout } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import type { FullscreenCalendarConfig } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
 interface ScheduleViewProps {
@@ -17,9 +17,10 @@ interface ScheduleViewProps {
   scale: CalendarScale;
   today: Date;
   now: Date;
+  timeFormat?: TimeFormat;
 }
 
-export function ScheduleView({ events, config, scale, today, now }: ScheduleViewProps) {
+export function ScheduleView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: ScheduleViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -162,7 +163,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
             })}
             {/* Now badge in gutter */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" locale={locale} />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" timePattern={timeFormat === '24h' ? 'HH:mm' : 'h:mm'} locale={locale} />
             )}
           </div>
 
@@ -214,8 +215,8 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
                     const color = ev.calendarColor ?? '#3B82F6';
                     const isPastEvent = isToday && evEnd <= nowHour;
 
-                    const evStartLabel = formatDateSync(parseEventDate(ev.start), 'h:mm a', { locale });
-                    const evEndLabel = formatDateSync(parseEventDate(ev.end), 'h:mm a', { locale });
+                    const evStartLabel = formatEventTime(parseEventDate(ev.start), timeFormat, locale);
+                    const evEndLabel = formatEventTime(parseEventDate(ev.end), timeFormat, locale);
                     const evAriaLabel = ev.location
                       ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                           title: ev.title,
@@ -326,7 +327,7 @@ export function ScheduleView({ events, config, scale, today, now }: ScheduleView
               <NowLine
                 nowY={nowY}
                 now={now}
-                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatDateSync(now, 'h:mm a', { locale }) })}
+                ariaLabel={t('fullscreen-calendar.ariaLabels.currentTime', { time: formatEventTime(now, timeFormat, locale) })}
               />
             )}
           </div>

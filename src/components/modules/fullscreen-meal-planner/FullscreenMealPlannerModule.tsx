@@ -6,7 +6,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal } from '@/types/config';
+import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
 import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
@@ -22,7 +22,7 @@ interface MealDataResponse {
   groceryChecked: string[];
   settings?: MealSettings;
   /** Household GlobalSettings.timeFormat, reported alongside the settings */
-  globalTimeFormat?: '12h' | '24h';
+  globalTimeFormat?: TimeFormat;
 }
 
 interface FullscreenMealPlannerModuleProps {
