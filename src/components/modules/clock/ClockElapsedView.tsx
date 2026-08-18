@@ -1,17 +1,28 @@
 'use client';
 
+import { useMemo } from 'react';
 import { parseDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { formatElapsed } from './elapsed-format';
 import type { ClockViewProps } from './types';
 
-export default function ClockElapsedView({ config, now, scaledFontSize, containerRef, timezone }: ClockViewProps) {
+export default function ClockElapsedView({ config, scaledFontSize, containerRef, timezone }: ClockViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
+  // Elapsed math runs on REAL instants only. The `now` prop the other views
+  // use is a timezone-shifted wall clock (epoch offset by module tz − OS tz),
+  // while parseDateInTZ returns a true epoch — mixing them skews the count by
+  // exactly that offset whenever the module zone differs from the Pi's OS
+  // zone. The naive referenceTime parses in the module's effective zone.
+  const realNow = useRealClock(1000);
   const accentColor = config.accentColor || '#ffffff';
 
-  const refDate = config.referenceTime ? parseDateInTZ(config.referenceTime, timezone) : null;
+  const refDate = useMemo(
+    () => (config.referenceTime ? parseDateInTZ(config.referenceTime, timezone) : null),
+    [config.referenceTime, timezone],
+  );
   const isValid = refDate && !isNaN(refDate.getTime());
 
   if (!isValid) {
@@ -29,7 +40,7 @@ export default function ClockElapsedView({ config, now, scaledFontSize, containe
       </div>
     );
   }
-  const diffMs = now.getTime() - refDate!.getTime();
+  const diffMs = realNow.getTime() - refDate!.getTime();
   const countUp = config.countUp ?? true;
 
   // Determine display logic

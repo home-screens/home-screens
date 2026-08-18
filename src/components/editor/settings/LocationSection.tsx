@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import { COMMON_TIMEZONES } from '@/lib/timezone';
+import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 
@@ -186,34 +186,22 @@ export default function LocationSection({ values, onChange }: Props) {
           </div>
         </div>
 
-        <label className="block" data-field-id="location.timezone">
+        <div className="block" data-field-id="location.timezone">
           <span className="text-xs text-hs-text-muted">{t('settings.locationPage.timezoneLabel')}</span>
-          <select
-            value={timezone}
-            onChange={(e) => onChange({ timezone: e.target.value })}
-            className="mt-1 block w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
-          >
-            <option value="">
-              {t('settings.locationPage.timezoneSystemDefault', {
+          <div className="mt-1">
+            <TimezoneSelect
+              value={timezone}
+              onChange={(v) => onChange({ timezone: v })}
+              defaultOptionLabel={t('settings.locationPage.timezoneSystemDefault', {
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               })}
-            </option>
-            {(() => {
-              try {
-                return Intl.supportedValuesOf('timeZone').map((tz: string) => (
-                  <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
-                ));
-              } catch {
-                return COMMON_TIMEZONES.map((tz) => (
-                  <option key={tz.value} value={tz.value}>{tz.value.replace(/_/g, ' ')}</option>
-                ));
-              }
-            })()}
-          </select>
+              ariaLabel={t('settings.locationPage.timezoneLabel')}
+            />
+          </div>
           <p className="text-xs text-hs-text-faint mt-1">
             {t('settings.locationPage.timezoneHelp')}
           </p>
-        </label>
+        </div>
 
         <div className="space-y-2">
           <div className="flex gap-2">
