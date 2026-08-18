@@ -244,10 +244,15 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
         className="flex-1"
         style={{ overflow: isDragging && userZoom <= 1 ? 'hidden' : 'auto', scrollbarGutter: 'stable' }}
       >
-        {/* Spacer: centers canvas when it fits, expands when zoomed in */}
+        {/* Spacer: centers canvas when it fits, expands when zoomed in.
+            width: max-content is what makes the expansion symmetric: a block's
+            width never grows to fit content (its height does), so an oversized
+            canvas used to overflow the spacer leftward under justify-center —
+            negative-direction overflow the scroll container can't reach,
+            hiding the canvas's left edge at scrollLeft 0. */}
         <div
           className="flex items-center justify-center"
-          style={{ minWidth: '100%', minHeight: '100%', padding: 16 }}
+          style={{ width: 'max-content', minWidth: '100%', minHeight: '100%', padding: 16 }}
         >
           {/* Frame uses hardcoded dark colors to mimic the actual display appearance */}
           <div

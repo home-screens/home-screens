@@ -2,6 +2,7 @@
 
 import { Undo2, Redo2, ZoomIn, ZoomOut, Maximize, Grid3x3 } from 'lucide-react';
 import type { TranslateFn } from '@/i18n';
+import { MIN_ZOOM, MAX_ZOOM } from '@/hooks/useCanvasZoom';
 
 interface CanvasToolbarProps {
   t: TranslateFn;
@@ -75,7 +76,7 @@ export default function CanvasToolbar({
       {/* Zoom controls */}
       <button
         onClick={onZoomOut}
-        disabled={userZoom <= 0.25}
+        disabled={userZoom <= MIN_ZOOM}
         className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
         title={t('canvas.zoomOutTitle')}
         aria-label={t('canvas.zoomOutAriaLabel')}
@@ -87,7 +88,7 @@ export default function CanvasToolbar({
       </span>
       <button
         onClick={onZoomIn}
-        disabled={userZoom >= 3.0}
+        disabled={userZoom >= MAX_ZOOM}
         className="rounded p-1.5 text-hs-text-muted transition-colors hover:bg-hs-card hover:text-hs-text-body disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-hs-text-muted"
         title={t('canvas.zoomInTitle')}
         aria-label={t('canvas.zoomInAriaLabel')}

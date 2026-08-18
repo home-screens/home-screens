@@ -2,12 +2,34 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 
-const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 3.0;
-const ZOOM_STEP = 1.2;
+// Fixed zoom ladder for the buttons / keyboard (the wheel stays continuous
+// between these bounds). Round percentages users can predict, not a 1.2x
+// geometric run (100 → 120 → 144 → 173 …).
+export const ZOOM_STOPS = [0.2, 0.25, 0.3, 0.4, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0] as const;
 
-function clampZoom(z: number) {
-  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
+export const MIN_ZOOM = ZOOM_STOPS[0];
+export const MAX_ZOOM = ZOOM_STOPS[ZOOM_STOPS.length - 1];
+
+// Wheel events step the zoom by SIGN alone, rate-limited to one stop per
+// interval. Delta magnitudes are unusable as a gate: notched mice report
+// ~100 pixels per click on Windows, ±3 LINES on Firefox, and some setups
+// (Linux/WSL wheels) send ±3 in pixel mode — a magnitude threshold that
+// suits one wheel goes dead or hair-trigger on another. The time throttle
+// is what keeps trackpad pinches sane: they stream events every ~16ms, so a
+// full gesture advances several stops at a bounded rate instead of one per
+// event.
+const WHEEL_STEP_INTERVAL_MS = 100;
+
+// Index of the next stop in the given direction. Zoom set by the wheel can
+// sit between stops: "in" rounds up to the stop above, "out" down to the
+// stop below; sitting exactly on a stop moves off it in that direction.
+function stepStopIndex(z: number, dir: 1 | -1): number {
+  const eps = 1e-6;
+  const i = ZOOM_STOPS.findIndex((s) => s >= z - eps);
+  if (i === -1) return ZOOM_STOPS.length - 1;
+  const onStop = Math.abs(ZOOM_STOPS[i] - z) <= eps;
+  if (dir === 1) return Math.min(i + (onStop ? 1 : 0), ZOOM_STOPS.length - 1);
+  return Math.max(i - 1, 0);
 }
 
 interface PendingScroll {
@@ -36,12 +58,15 @@ export function useCanvasZoom(
   // Pending scroll correction — applied after React commits the new canvas size
   const pendingScrollRef = useRef<PendingScroll | null>(null);
 
+  // Timestamp of the last wheel-initiated step, for the rate limit.
+  const lastStepAtRef = useRef(0);
+
   const zoomIn = useCallback(() => {
-    setUserZoom((z) => clampZoom(z * ZOOM_STEP));
+    setUserZoom((z) => ZOOM_STOPS[stepStopIndex(z, 1)]);
   }, []);
 
   const zoomOut = useCallback(() => {
-    setUserZoom((z) => clampZoom(z / ZOOM_STEP));
+    setUserZoom((z) => ZOOM_STOPS[stepStopIndex(z, -1)]);
   }, []);
 
   const resetZoom = useCallback(() => {
@@ -83,12 +108,19 @@ export function useCanvasZoom(
       const canvasEl = canvasRef.current;
       if (!canvasEl) return;
 
+      // Stepped zoom: one ladder stop per wheel event, throttled to
+      // WHEEL_STEP_INTERVAL_MS (see constant for why magnitude is ignored).
+      if (e.deltaY === 0) return;
+      const now = performance.now();
+      if (now - lastStepAtRef.current < WHEEL_STEP_INTERVAL_MS) return;
+      lastStepAtRef.current = now;
+      const dir = e.deltaY < 0 ? 1 : -1;
+
       const oldZoom = zoomRef.current;
       const oldEffective = baseScaleRef.current * oldZoom;
 
       // deltaY < 0 = zoom in, > 0 = zoom out
-      const factor = Math.exp(-e.deltaY * 0.01);
-      const newZoom = clampZoom(oldZoom * factor);
+      const newZoom = ZOOM_STOPS[stepStopIndex(oldZoom, dir)];
       if (newZoom === oldZoom) return;
 
       const newEffective = baseScaleRef.current * newZoom;
