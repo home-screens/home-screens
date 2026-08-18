@@ -93,6 +93,10 @@ To adopt:
 
 The display ID is locked at adoption time — it cannot be renamed later because the spoke continues using its original ID and would silently lose its connection. The friendly **name** can be changed freely.
 
+### Spokes update themselves
+
+An adopted spoke keeps its software current without any SSH: it asks the hub for updates every night and each time the display starts, verifies each download before applying it, and holds on to the previous version so a bad update can roll back. Updates never restart a display that's awake and in use. Each display's software version shows up in the editor as a **Display software** card; a spoke installed before self-update existed shows a one-line command there to switch it onto the automatic path.
+
 Within a few seconds the spoke's polling picks up the adoption, navigates to `/display/<id>`, and starts rendering screens. New displays start with an empty screen list — design them by clicking the display to open its own page, then clicking **Edit screens** in the page header, which drops the editor canvas onto that display.
 
 ### Watching reporters

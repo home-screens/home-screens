@@ -115,8 +115,7 @@ describe('readMealData', () => {
     }));
 
     await readMealData();
-    // Give the fire-and-forget write a moment to complete
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForMigrationWriteThrough();
 
     const raw = JSON.parse(await fs.readFile(path.join(mealsDir, 'meals.json'), 'utf-8'));
     expect(raw.plan[0].date).toBeDefined();
@@ -361,8 +360,7 @@ describe('legacy meal-settings migration from data/config.json', () => {
     // First read — backfill happens
     const first = await readMealData();
     expect(first.settings.weekStartDay).toBe('monday');
-    // Give the fire-and-forget write a moment to complete
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForMigrationWriteThrough();
 
     // Now mutate config.json — if migration ran again it would pick up the new value
     const dataDir = path.join(tmpDir, 'data');
@@ -490,8 +488,7 @@ describe('legacy meal-settings migration from data/config.json', () => {
     // First read triggers harvest + write-through
     const first = await readMealData();
     expect(first.savedMeals).toHaveLength(1);
-    // Give the fire-and-forget migration write a moment to land
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForMigrationWriteThrough();
 
     // Now bolt new embedded meals onto config.json — if migration re-ran,
     // these would get pulled in. They must NOT appear on the next read.
@@ -520,6 +517,25 @@ async function readMealFileRaw(): Promise<Record<string, unknown>> {
   return JSON.parse(raw);
 }
 
+/**
+ * Wait for readMealData's fire-and-forget migration write-through to land on
+ * disk. Every write-through stamps `timeFormatLegacyStripped: true`, so the
+ * marker doubles as a completion signal. Polls with a deadline instead of
+ * sleeping a fixed duration, which flaked on slow CI runners; on timeout the
+ * caller's own assertions report the failure.
+ */
+async function waitForMigrationWriteThrough(): Promise<void> {
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    try {
+      if ((await readMealFileRaw()).timeFormatLegacyStripped === true) return;
+    } catch {
+      // File not written yet — keep polling.
+    }
+    await new Promise((r) => setTimeout(r, 25));
+  }
+}
+
 describe('legacy timeFormat strip migration', () => {
   it('strips a stored 12h and persists the marker', async () => {
     const mealsDir = path.join(tmpDir, 'data');
@@ -530,9 +546,7 @@ describe('legacy timeFormat strip migration', () => {
 
     const data = await readMealData();
     expect(data.settings.timeFormat).toBeUndefined();
-    // The write-through is fire-and-forget; give it a moment to land before
-    // reading the raw file (same pattern as the migration tests above).
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForMigrationWriteThrough();
     const onDisk = await readMealFileRaw();
     expect((onDisk.settings as Record<string, unknown>).timeFormat).toBeUndefined();
     expect(onDisk.timeFormatLegacyStripped).toBe(true);
@@ -547,7 +561,7 @@ describe('legacy timeFormat strip migration', () => {
 
     const data = await readMealData();
     expect(data.settings.timeFormat).toBe('24h');
-    await new Promise((r) => setTimeout(r, 200));
+    await waitForMigrationWriteThrough();
     expect((await readMealFileRaw()).timeFormatLegacyStripped).toBe(true);
   });
 

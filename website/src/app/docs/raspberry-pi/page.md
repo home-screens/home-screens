@@ -122,6 +122,8 @@ To set up a Pi as a display-only spoke pointing at an existing hub:
 
 After install and reboot, the spoke contacts the hub and appears in the editor's **Settings > Per display > All displays** page under **Unadopted Displays**, ready to be adopted. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
 
+Once adopted, a spoke keeps its own software up to date automatically: it checks the hub nightly and at every start, downloads updates only when the hub has a newer version, verifies the download before applying it, and keeps the previous version for rollback. A spoke that's awake and in use is never restarted to finish an update. Pis installed before this existed show a one-line setup command in the editor next to their display.
+
 ### What the installer does
 
 1. **Node.js** — installs the runtime needed to run the server (full install only; display-only spokes skip this)

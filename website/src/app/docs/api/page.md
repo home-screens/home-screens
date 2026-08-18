@@ -2513,6 +2513,27 @@ Entries are capped at 500 per request and messages at 2 000 characters each (lon
 
 **Response:** `{ "ok": true, "stored": 42 }`
 
+### GET /api/display/kiosk-bundle
+
+**Client protocol.** Serves a display-only Pi its shell layer (kiosk launcher, splash page, reporter, systemd units) so spokes keep themselves up to date with the hub. The spoke's `kiosk-update.sh` polls this endpoint nightly and on every Chromium start, verifies the checksum, and swaps files in place with a rollback copy. Uses the same adoption gate as `/api/display/hw-stats`: the `display` ID must appear in `config.displays`, and an unadopted spoke gets a `403` that its updater treats as "no update".
+
+| Parameter | Type | Description |
+|---|---|---|
+| `display` | string | The spoke's display ID. Required. |
+| `manifest` | string | Set to `1` to get the JSON manifest instead of the tarball |
+
+**Response:** with `manifest=1`, `{ "version", "sha256", "restartAdvised", "files": [...] }` — `restartAdvised` is computed on the hub from the display's sleep state, so a display someone is looking at is never told to restart itself mid-evening. Without it, the deterministic `application/gzip` tarball itself. Returns `503` when the hub can't compose a bundle, which the spoke reads as "try again later".
+
+### GET /api/display/kiosk-bootstrap
+
+**Client protocol.** Returns a one-shot shell script that puts a Pi installed *before* self-update existed onto the self-updating path. The editor surfaces the copy-paste line next to any display that has never reported its display-software version:
+
+```bash
+curl -fsS "http://<hub>:3000/api/display/kiosk-bootstrap?display=<id>" | bash
+```
+
+After it runs once, that Pi updates itself from `/api/display/kiosk-bundle` from then on. Same adoption gate as the bundle endpoint; because the response is piped into bash, errors come back as shell `echo`/`exit` lines rather than JSON.
+
 ---
 
 ## Geocoding

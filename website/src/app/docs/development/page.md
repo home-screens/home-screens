@@ -179,7 +179,7 @@ A fresh install does not ship coordinates: `settings.weather.latitude` and `long
 
 ### API Routes
 
-API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 108 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
+API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 110 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
 
 | Category | Routes | Purpose |
 |---|---|---|
@@ -190,7 +190,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Calendar** | `calendar`, `calendars`, `icloud/accounts`, `icloud/calendars`, `holidays` | Google Calendar events, iCloud CalDAV accounts and calendars, holiday feeds |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `standings`, `todoist`, `air-quality`, `traffic`, `nasa` | External data proxies |
 | **Family data** | `chores`, `rewards`, `meals`, `todo/state`, `todo/toggle` | Local chore, reward, meal-plan, and interactive-todo state |
-| **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log` | Display registry and heartbeats, remote control, hardware telemetry, log capture |
+| **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only spokes |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
 | **i18n** | `i18n/[locale]` | Serves locale dictionaries by namespace |
 | **Utility** | `backgrounds`, `geocode`, `image-proxy`, `time`, `unsplash`, `immich` | Background images, geocoding, image proxying, server time, Unsplash and Immich photos |
