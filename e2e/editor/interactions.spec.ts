@@ -211,11 +211,11 @@ test.describe('canvas toolbar', () => {
     await expect(page.getByText('100%', { exact: true })).toBeVisible();
     const startWidth = (await page.getByTestId('editor-canvas').boundingBox())!.width;
 
-    // Each step multiplies by 1.2: 100 → 120 → 144.
+    // Steps walk the fixed zoom ladder: 100 → 125 → 150.
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('120%', { exact: true })).toBeVisible();
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('144%', { exact: true })).toBeVisible();
+    await expect(page.getByText('150%', { exact: true })).toBeVisible();
 
     // The canvas actually grew with the zoom, not just the label.
     await expect
@@ -226,9 +226,9 @@ test.describe('canvas toolbar', () => {
     await page.getByRole('button', { name: 'Fit to screen' }).click();
     await expect(page.getByText('100%', { exact: true })).toBeVisible();
 
-    // Zoom out divides by 1.2: 100 → 83.
+    // Zoom out steps down the ladder: 100 → 75.
     await page.getByRole('button', { name: 'Zoom out' }).click();
-    await expect(page.getByText('83%', { exact: true })).toBeVisible();
+    await expect(page.getByText('75%', { exact: true })).toBeVisible();
   });
 });
 
