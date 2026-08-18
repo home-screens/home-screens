@@ -1,6 +1,6 @@
 {
   "name": "home-screens",
-  "version": "1.10.0-rc.2",
+  "version": "1.10.0",
   "private": true,
   "engines": {
     "node": ">=22",
