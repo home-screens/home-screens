@@ -171,9 +171,12 @@ body {
    bare .fa that buildIconClass always prepends, plus fa-* prefixed classes
    as defense); strong/b are excluded because markdown emphasis is user
    content, not module chrome — the UA's `font-weight: bolder` then keeps
-   them one step above the forced weight (bolder(400) = 700). */
+   them one step above the forced weight (bolder(400) = 700); the module
+   title strip ([data-module-title]) is excluded because titles render at
+   normal weight by design (ModuleWrapper also sets an inline 400 to beat
+   inheritance from this class on the wrapper itself). */
 .module-weight-override,
-.module-weight-override *:not(.fa):not([class^="fa-"]):not([class*=" fa-"]):not(strong):not(b) {
+.module-weight-override *:not(.fa):not([class^="fa-"]):not([class*=" fa-"]):not(strong):not(b):not([data-module-title]) {
   font-weight: var(--module-font-weight) !important;
 }
 

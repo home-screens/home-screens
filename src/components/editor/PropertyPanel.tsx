@@ -165,6 +165,32 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
 
       <PropertyGroup title={t('propertyPanel.sections.text')} accent={4}>
         <div className="space-y-3">
+          {/* Like the font weight control, the title fields stay hidden for
+              plugins: they render raw, outside ModuleWrapper, so the strip
+              (and a stored titleFontSize) could never reach them. */}
+          {!isPlugin && (
+            <>
+              <label className="flex flex-col gap-0.5">
+                <span className="text-xs text-hs-text-muted">{t('propertyPanel.fields.title')}</span>
+                <input
+                  type="text"
+                  value={s.title ?? ''}
+                  onChange={(e) => set({ title: e.target.value || undefined })}
+                  onBlur={(e) => {
+                    // Trim on blur, not per keystroke: trimming as the user
+                    // types would eat the space between two words mid-entry.
+                    // Keeps whitespace-only titles from persisting forever.
+                    const trimmed = e.target.value.trim();
+                    if (trimmed !== e.target.value) set({ title: trimmed || undefined });
+                  }}
+                  className={INPUT_CLASS}
+                />
+              </label>
+              {/* Rests at the module's font size (the fallback) so the slider's
+                  starting position is the rendered truth. */}
+              <Slider label={t('propertyPanel.fields.titleFontSize')} value={s.titleFontSize ?? s.fontSize} min={8} max={72} onChange={(v) => set({ titleFontSize: v })} />
+            </>
+          )}
           <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
           {!isPlugin && (
             <div

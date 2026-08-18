@@ -58,6 +58,14 @@ export interface ModuleStyle {
   fontSize: number;
   /** Numeric weight 100–900. Omitted = normal (400). */
   fontWeight?: number;
+  /**
+   * Optional centered header strip rendered at the top of the module card,
+   * above the content. Empty/omitted = no strip and no reserved space
+   * (layout identical to a title-less module).
+   */
+  title?: string;
+  /** Title strip font size in px. Omitted = falls back to `fontSize`. */
+  titleFontSize?: number;
   backdropBlur: number;
   borderWidth: number;
   borderColor: string;

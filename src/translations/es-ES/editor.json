@@ -2075,7 +2075,9 @@
       "fontSize": "Tamaño de fuente",
       "fontWeight": "Grosor de fuente",
       "fontWeightDefault": "Predeterminado",
-      "fontWeightReset": "Restablecer al valor predeterminado"
+      "fontWeightReset": "Restablecer al valor predeterminado",
+      "title": "Título de la tarjeta",
+      "titleFontSize": "Tamaño del título"
     },
     "actions": {
       "bringToFront": "Al frente",

@@ -2071,7 +2071,9 @@
       "fontSize": "Tekstgrootte",
       "fontWeight": "Lettergewicht",
       "fontWeightDefault": "Standaard",
-      "fontWeightReset": "Terugzetten op standaard"
+      "fontWeightReset": "Terugzetten op standaard",
+      "title": "Kaarttitel",
+      "titleFontSize": "Titelgrootte"
     },
     "actions": {
       "bringToFront": "Naar voren",

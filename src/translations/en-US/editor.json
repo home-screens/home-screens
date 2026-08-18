@@ -2071,7 +2071,9 @@
       "fontSize": "Font Size",
       "fontWeight": "Font Weight",
       "fontWeightDefault": "Default",
-      "fontWeightReset": "Reset to default"
+      "fontWeightReset": "Reset to default",
+      "title": "Card Title",
+      "titleFontSize": "Title Size"
     },
     "actions": {
       "bringToFront": "Bring to Front",

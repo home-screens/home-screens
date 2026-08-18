@@ -2071,7 +2071,9 @@
       "fontSize": "Skriftstørrelse",
       "fontWeight": "Skrifttykkelse",
       "fontWeightDefault": "Standard",
-      "fontWeightReset": "Nulstil til standard"
+      "fontWeightReset": "Nulstil til standard",
+      "title": "Korttitel",
+      "titleFontSize": "Titelstørrelse"
     },
     "actions": {
       "bringToFront": "Flyt forrest",

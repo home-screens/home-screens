@@ -525,6 +525,9 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   textColor: string             // CSS color (e.g. "#ffffff")
   fontFamily: string            // Font registry id (default "inter"); see the list below
   fontSize: number              // Base font size in pixels
+  fontWeight?: number           // Numeric weight 100–900; omitted = normal (400)
+  title?: string                // Centered title strip above the module content; omitted or empty = no strip
+  titleFontSize?: number        // Title font size in pixels; omitted = same as fontSize
   backdropBlur: number          // Backdrop blur in pixels
   borderWidth: number           // Border width in pixels
   borderColor: string           // CSS color for border

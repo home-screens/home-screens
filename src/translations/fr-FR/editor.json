@@ -2075,7 +2075,9 @@
       "fontSize": "Taille de police",
       "fontWeight": "Graisse",
       "fontWeightDefault": "Par défaut",
-      "fontWeightReset": "Rétablir la valeur par défaut"
+      "fontWeightReset": "Rétablir la valeur par défaut",
+      "title": "Titre de la carte",
+      "titleFontSize": "Taille du titre"
     },
     "actions": {
       "bringToFront": "Premier plan",

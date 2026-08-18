@@ -2075,7 +2075,9 @@
       "fontSize": "Tamanho da fonte",
       "fontWeight": "Peso da fonte",
       "fontWeightDefault": "Padrão",
-      "fontWeightReset": "Redefinir para padrão"
+      "fontWeightReset": "Redefinir para padrão",
+      "title": "Título do cartão",
+      "titleFontSize": "Tamanho do título"
     },
     "actions": {
       "bringToFront": "Para a frente",

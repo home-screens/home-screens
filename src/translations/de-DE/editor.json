@@ -2071,7 +2071,9 @@
       "fontSize": "Schriftgröße",
       "fontWeight": "Schriftstärke",
       "fontWeightDefault": "Standard",
-      "fontWeightReset": "Auf Standard zurücksetzen"
+      "fontWeightReset": "Auf Standard zurücksetzen",
+      "title": "Kartentitel",
+      "titleFontSize": "Titelgröße"
     },
     "actions": {
       "bringToFront": "Nach vorn",
