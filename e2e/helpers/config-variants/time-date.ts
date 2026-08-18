@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, lacks, matches, notMatches, child, count, redBackground, redStyle } from './shared';
+import { parseDateInTZ } from '@/lib/timezone';
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 
@@ -153,6 +154,56 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     config: { view: 'elapsed', referenceTime: '2020-01-01T00:00', referenceLabel: 'E2E ALL UNITS', elapsedPrecision: 'daysHoursMinutesSeconds' },
     expect: matches(/\d+d \d+h \d+m \d+s/),
   },
+  {
+    // Per-module timezone: display pinned to UTC, module to Pacific/Kiritimati
+    // (UTC+14). A 14h offset is never 0 mod 24h, so the 24h HH:MM render can't
+    // coincide with a no-override render. Tolerates a minute rollover between
+    // render and check (the clock re-renders every 60s, so toPass retries hit
+    // the next minute).
+    type: 'clock', name: 'timezone', kind: 'network-free',
+    settings: { timezone: 'UTC' },
+    config: { view: 'classic', format24h: true, showSeconds: false, showDate: false, timezone: 'Pacific/Kiritimati' },
+    expect: async (mod) => {
+      await expect(async () => {
+        const text = (await mod.innerText()) ?? '';
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Pacific/Kiritimati',
+        });
+        const now = new Date();
+        const candidates = [
+          fmt.format(now),
+          fmt.format(new Date(now.getTime() - 60_000)),
+          fmt.format(new Date(now.getTime() + 60_000)),
+        ];
+        if (!candidates.some((c) => text.includes(c))) {
+          throw new Error(`expected Kiritimati time [${candidates.join(' / ')}] in "${text}"`);
+        }
+      }).toPass({ timeout: 15_000 });
+    },
+  },
+  {
+    // Module timezone must NOT skew elapsed math: the reference parses in the
+    // module's zone (Asia/Tokyo) while the display sits on Europe/Berlin —
+    // the count must equal real time since 2000-01-01T12:00 Tokyo. Guards the
+    // useRealClock fix; the pre-fix shifted-clock math would be off by the
+    // module-tz − OS-tz offset (7h on the UTC CI runner, 0 only on a UTC+9 OS — the guard's blind spot).
+    type: 'clock', name: 'elapsed-timezone-invariance', kind: 'network-free',
+    settings: { timezone: 'Europe/Berlin' },
+    config: { view: 'elapsed', referenceTime: '2000-01-01T12:00', countUp: true, elapsedFormat: 'colon', elapsedPrecision: 'auto', timezone: 'Asia/Tokyo' },
+    expect: async (mod) => {
+      await expect(async () => {
+        const text = (await mod.innerText()) ?? '';
+        const m = text.match(/(\d+):(\d{2}):(\d{2}):(\d{2})/);
+        if (!m) throw new Error(`no DD:HH:MM:SS colon render in "${text}"`);
+        const shownMinutes = Number(m[1]) * 1440 + Number(m[2]) * 60 + Number(m[3]);
+        const ref = parseDateInTZ('2000-01-01T12:00', 'Asia/Tokyo');
+        const expectedMinutes = (Date.now() - ref.getTime()) / 60_000;
+        if (Math.abs(shownMinutes - expectedMinutes) > 2) {
+          throw new Error(`elapsed skew: shown ${shownMinutes}m vs expected ${expectedMinutes.toFixed(1)}m`);
+        }
+      }).toPass({ timeout: 15_000 });
+    },
+  },
 
   // ================= DATE (network-free) =================
 
@@ -178,6 +229,26 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'date', name: 'accent-color', kind: 'network-free',
     config: { view: 'full', accentColor: '#ff0000' },
     expect: redStyle('.leading-none', 'color'),
+  },
+  {
+    // 25-hour gap (UTC+14 display vs UTC-11 module) means the module's
+    // calendar date is ALWAYS exactly one day behind the display's — there is
+    // no wall-clock window where a no-override render could pass by coincidence.
+    // Yesterday tolerance covers a midnight flip between render and check.
+    type: 'date', name: 'timezone', kind: 'network-free',
+    settings: { timezone: 'Pacific/Kiritimati' },
+    config: { view: 'minimal', dateFormat: 'yyyy-MM-dd', timezone: 'Pacific/Niue' },
+    expect: async (mod) => {
+      const text = (await mod.innerText()) ?? '';
+      const fmt = new Intl.DateTimeFormat('en-CA', {
+        year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Pacific/Niue',
+      });
+      const now = new Date();
+      const candidates = [fmt.format(now), fmt.format(new Date(now.getTime() - 86_400_000))];
+      if (!candidates.some((c) => text.includes(c))) {
+        throw new Error(`expected Niue date [${candidates.join(' / ')}] in "${text}"`);
+      }
+    },
   },
 
   // ================= YEAR-PROGRESS (network-free) =================

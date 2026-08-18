@@ -8,7 +8,9 @@ import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
+import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useEditorStore } from '@/stores/editor-store';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { formatElapsed } from '@/components/modules/clock/elapsed-format';
@@ -48,6 +50,7 @@ const VIEW_FIELDS: Record<ClockView, Set<string>> = {
 
 type ClockConfigType = {
   view?: ClockView;
+  timezone?: string;
   format24h?: boolean;
   showSeconds?: boolean;
   showDate?: boolean;
@@ -69,6 +72,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<ClockConfigType>(mod, screenId);
+  const globalTimezone = useEditorStore((s) => s.config?.settings?.timezone);
 
   const VIEWS: { value: ClockView; label: string }[] = [
     { value: 'classic', label: t('configSections.clock.viewClassic') },
@@ -166,6 +170,18 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
         onChange={(v) => set({ view: v })}
         options={VIEWS}
       />
+
+      {/* Timezone — applies to every view */}
+      <LabeledField as="div" label={t('configSections.clock.timezone')}>
+        <TimezoneSelect
+          value={c.timezone ?? ''}
+          onChange={(v) => set({ timezone: v })}
+          defaultOptionLabel={globalTimezone
+            ? t('configSections.timezoneUseDisplay', { timezone: globalTimezone })
+            : t('configSections.timezoneUseDisplayNoZone')}
+          ariaLabel={t('configSections.clock.timezone')}
+        />
+      </LabeledField>
 
       {/* Format */}
       {has('format24h') && (
@@ -284,6 +300,11 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             value={c.referenceTime ?? ''}
             onChange={(v) => set({ referenceTime: v })}
           />
+          {c.timezone && (
+            <span className="text-xs text-hs-text-faint">
+              {t('configSections.clock.referenceTimezoneHint', { timezone: c.timezone })}
+            </span>
+          )}
           <LabeledInput
             label={t('configSections.clock.referenceLabel')}
             value={c.referenceLabel ?? ''}

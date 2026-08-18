@@ -336,6 +336,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showSeconds: true,
       showDate: true,
       dateFormat: 'EEEE, MMMM d',
+      timezone: '',
       showWeekNumber: false,
       showDayOfYear: false,
       showNumerals: false,
@@ -396,6 +397,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       view: 'full',
       dateFormat: 'MMMM d',
+      timezone: '',
       showDayName: true,
       showYear: false,
       showWeekNumber: false,

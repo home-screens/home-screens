@@ -14,6 +14,7 @@
   },
   "common": {
     "saved": "Enregistré",
+    "noMatches": "Aucun résultat",
     "refreshMinutes": "Actualisation (minutes)",
     "refreshSeconds": "Actualisation (secondes)",
     "refresh": "Actualiser",
@@ -2297,6 +2298,8 @@
       "editChoreChart": "Modifier le tableau des tâches",
       "mobileHintPrefix": "Les membres de la famille peuvent cocher leurs tâches depuis leur téléphone via l'onglet Tâches sur"
     },
+    "timezoneUseDisplay": "Utiliser le réglage de l'affichage ({timezone})",
+    "timezoneUseDisplayNoZone": "Utiliser le réglage de l'affichage",
     "clock": {
       "viewClassic": "Classique (centré)",
       "viewDigital": "Numérique (LED 7 segments)",
@@ -2339,6 +2342,7 @@
       "timeZonesCount": "Fuseaux horaires ({count}/{max})",
       "addTimezone": "Ajouter un fuseau horaire…",
       "referenceTime": "Heure de référence",
+      "referenceTimezoneHint": "Lu comme heure de {timezone}",
       "referenceLabel": "Libellé",
       "referenceLabelPlaceholder": "ex. ouverture du marché",
       "countUp": "Compte à rebours inversé (temps écoulé)",
@@ -2354,7 +2358,8 @@
       "precisionDays": "Jours uniquement",
       "precisionDaysHours": "Jours + heures",
       "precisionDaysHoursMinutes": "Jours + heures + minutes",
-      "precisionDaysHoursMinutesSeconds": "Jours + heures + minutes + secondes"
+      "precisionDaysHoursMinutesSeconds": "Jours + heures + minutes + secondes",
+      "timezone": "Fuseau horaire"
     },
     "countdown": {
       "viewAll": "Tous les événements (empilés)",
@@ -2397,6 +2402,7 @@
       "viewStacked": "Empilé (vertical)",
       "viewEditorial": "Éditorial (magazine)",
       "viewBanner": "Bannière (horizontal)",
+      "timezone": "Fuseau horaire",
       "datePresetMonthDay": "5 janvier",
       "datePresetWeekdayMonthDay": "lundi 5 janvier",
       "datePresetShortWeekday": "lun. 5 janv.",

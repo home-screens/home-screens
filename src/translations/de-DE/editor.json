@@ -14,6 +14,7 @@
   },
   "common": {
     "saved": "Gespeichert",
+    "noMatches": "Keine Treffer",
     "refreshMinutes": "Aktualisierung (Minuten)",
     "refreshSeconds": "Aktualisierung (Sekunden)",
     "refresh": "Aktualisieren",
@@ -2292,6 +2293,8 @@
       "editChoreChart": "Aufgabenplan bearbeiten",
       "mobileHintPrefix": "Familienmitglieder können Aufgaben vom Handy abhaken – über den Aufgaben-Tab unter"
     },
+    "timezoneUseDisplay": "Display-Einstellung verwenden ({timezone})",
+    "timezoneUseDisplayNoZone": "Display-Einstellung verwenden",
     "clock": {
       "viewClassic": "Klassisch (zentriert)",
       "viewDigital": "Digital (7-Segment-LED)",
@@ -2334,6 +2337,7 @@
       "timeZonesCount": "Zeitzonen ({count}/{max})",
       "addTimezone": "Zeitzone hinzufügen …",
       "referenceTime": "Referenzzeit",
+      "referenceTimezoneHint": "Wird als {timezone}-Zeit gelesen",
       "referenceLabel": "Beschriftung",
       "referenceLabelPlaceholder": "z. B. Börsenstart",
       "countUp": "Vorwärts zählen (verstrichen)",
@@ -2349,7 +2353,8 @@
       "precisionDays": "Nur Tage",
       "precisionDaysHours": "Tage + Stunden",
       "precisionDaysHoursMinutes": "Tage + Stunden + Minuten",
-      "precisionDaysHoursMinutesSeconds": "Tage + Stunden + Minuten + Sekunden"
+      "precisionDaysHoursMinutesSeconds": "Tage + Stunden + Minuten + Sekunden",
+      "timezone": "Zeitzone"
     },
     "countdown": {
       "viewAll": "Alle Ereignisse (gestapelt)",
@@ -2392,6 +2397,7 @@
       "viewStacked": "Gestapelt (vertikal)",
       "viewEditorial": "Editorial (Magazin)",
       "viewBanner": "Banner (horizontal)",
+      "timezone": "Zeitzone",
       "datePresetMonthDay": "5. Januar",
       "datePresetWeekdayMonthDay": "Montag, 5. Januar",
       "datePresetShortWeekday": "Mo., 5. Jan.",

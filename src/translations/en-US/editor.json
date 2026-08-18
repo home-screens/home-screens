@@ -14,6 +14,7 @@
   },
   "common": {
     "saved": "Saved",
+    "noMatches": "No matches",
     "refreshMinutes": "Refresh (minutes)",
     "refreshSeconds": "Refresh (seconds)",
     "refresh": "Refresh",
@@ -2292,6 +2293,8 @@
       "editChoreChart": "Edit Chore Chart",
       "mobileHintPrefix": "Family members can check off chores from their phone via the Chores tab at"
     },
+    "timezoneUseDisplay": "Use display setting ({timezone})",
+    "timezoneUseDisplayNoZone": "Use display setting",
     "clock": {
       "viewClassic": "Classic (Centered)",
       "viewDigital": "Digital (7-Segment LED)",
@@ -2334,6 +2337,7 @@
       "timeZonesCount": "Time Zones ({count}/{max})",
       "addTimezone": "Add a timezone...",
       "referenceTime": "Reference Time",
+      "referenceTimezoneHint": "Read as {timezone} time",
       "referenceLabel": "Label",
       "referenceLabelPlaceholder": "e.g. market open",
       "countUp": "Count Up (elapsed)",
@@ -2349,7 +2353,8 @@
       "precisionDays": "Days only",
       "precisionDaysHours": "Days + Hours",
       "precisionDaysHoursMinutes": "Days + Hours + Minutes",
-      "precisionDaysHoursMinutesSeconds": "Days + Hours + Minutes + Seconds"
+      "precisionDaysHoursMinutesSeconds": "Days + Hours + Minutes + Seconds",
+      "timezone": "Timezone"
     },
     "countdown": {
       "viewAll": "All Events (Stacked)",
@@ -2392,6 +2397,7 @@
       "viewStacked": "Stacked (Vertical)",
       "viewEditorial": "Editorial (Magazine)",
       "viewBanner": "Banner (Horizontal)",
+      "timezone": "Timezone",
       "datePresetMonthDay": "January 5",
       "datePresetWeekdayMonthDay": "Monday, January 5",
       "datePresetShortWeekday": "Mon, Jan 5",

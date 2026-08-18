@@ -19,7 +19,7 @@ export function useTZClock(timezone: string | undefined, intervalMs = 60_000): D
  * Use this instead of `useTZClock` whenever the value is compared against or
  * fed into real Date instants — SunCalc times, epoch math, progress
  * fractions. `useTZClock` returns a *shifted* Date whose epoch is offset by
- * (OS timezone − configured timezone); mixing it with real instants makes
+ * (configured timezone − OS timezone); mixing it with real instants makes
  * comparisons wrong by that offset on a Pi whose OS timezone differs from
  * the display timezone. Wall-clock rendering (getHours etc.) is the only
  * thing the shifted clock is for.

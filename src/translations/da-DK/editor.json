@@ -14,6 +14,7 @@
   },
   "common": {
     "saved": "Gemt",
+    "noMatches": "Ingen resultater",
     "refreshMinutes": "Opdatér (minutter)",
     "refreshSeconds": "Opdatér (sekunder)",
     "refresh": "Opdatér",
@@ -2292,6 +2293,8 @@
       "editChoreChart": "Redigér pligtskema",
       "mobileHintPrefix": "Familien kan sætte flueben ved pligter fra telefonen under fanen Pligter på"
     },
+    "timezoneUseDisplay": "Brug display-indstillingen ({timezone})",
+    "timezoneUseDisplayNoZone": "Brug display-indstillingen",
     "clock": {
       "viewClassic": "Klassisk (centreret)",
       "viewDigital": "Digital (7-segment-LED)",
@@ -2334,6 +2337,7 @@
       "timeZonesCount": "Tidszoner ({count}/{max})",
       "addTimezone": "Tilføj en tidszone…",
       "referenceTime": "Referencetidspunkt",
+      "referenceTimezoneHint": "Læses som {timezone}-tid",
       "referenceLabel": "Etiket",
       "referenceLabelPlaceholder": "fx børsåbning",
       "countUp": "Tæl op (forløbet)",
@@ -2349,7 +2353,8 @@
       "precisionDays": "Kun dage",
       "precisionDaysHours": "Dage + timer",
       "precisionDaysHoursMinutes": "Dage + timer + minutter",
-      "precisionDaysHoursMinutesSeconds": "Dage + timer + minutter + sekunder"
+      "precisionDaysHoursMinutesSeconds": "Dage + timer + minutter + sekunder",
+      "timezone": "Tidszone"
     },
     "countdown": {
       "viewAll": "Alle begivenheder (stablet)",
@@ -2392,6 +2397,7 @@
       "viewStacked": "Stablet (lodret)",
       "viewEditorial": "Redaktionel (magasin)",
       "viewBanner": "Banner (vandret)",
+      "timezone": "Tidszone",
       "datePresetMonthDay": "5. januar",
       "datePresetWeekdayMonthDay": "mandag den 5. januar",
       "datePresetShortWeekday": "man. 5. jan.",
