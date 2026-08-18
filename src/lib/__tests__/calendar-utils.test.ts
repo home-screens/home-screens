@@ -155,14 +155,49 @@ describe('isEventOnDay', () => {
       expect(isEventOnDay(event, localDay(2026, 3, 23))).toBe(false);
     });
 
-    it('shows overnight event only on its start day, not the end day', () => {
+    it('shows a midnight-crossing event on both its start and end days', () => {
       const overnight = {
         start: '2026-03-22T23:00:00',
         end: '2026-03-23T01:00:00',
         allDay: false,
       };
+      expect(isEventOnDay(overnight, localDay(2026, 3, 21))).toBe(false);
       expect(isEventOnDay(overnight, localDay(2026, 3, 22))).toBe(true);
-      expect(isEventOnDay(overnight, localDay(2026, 3, 23))).toBe(false);
+      expect(isEventOnDay(overnight, localDay(2026, 3, 23))).toBe(true);
+      expect(isEventOnDay(overnight, localDay(2026, 3, 24))).toBe(false);
+    });
+
+    it('shows a multi-day timed event on every covered day', () => {
+      const long = {
+        start: '2026-03-22T19:00:00',
+        end: '2026-03-25T06:00:00',
+        allDay: false,
+      };
+      expect(isEventOnDay(long, localDay(2026, 3, 22))).toBe(true);
+      expect(isEventOnDay(long, localDay(2026, 3, 23))).toBe(true);
+      expect(isEventOnDay(long, localDay(2026, 3, 24))).toBe(true);
+      expect(isEventOnDay(long, localDay(2026, 3, 25))).toBe(true);
+      expect(isEventOnDay(long, localDay(2026, 3, 26))).toBe(false);
+    });
+
+    it('does not carry an event ending exactly at midnight into the next day', () => {
+      const untilMidnight = {
+        start: '2026-03-22T20:00:00',
+        end: '2026-03-23T00:00:00',
+        allDay: false,
+      };
+      expect(isEventOnDay(untilMidnight, localDay(2026, 3, 22))).toBe(true);
+      expect(isEventOnDay(untilMidnight, localDay(2026, 3, 23))).toBe(false);
+    });
+
+    it('keeps an end-before-start event on its start day only', () => {
+      const glitched = {
+        start: '2026-03-22T14:00:00',
+        end: '2026-03-22T13:00:00',
+        allDay: false,
+      };
+      expect(isEventOnDay(glitched, localDay(2026, 3, 22))).toBe(true);
+      expect(isEventOnDay(glitched, localDay(2026, 3, 23))).toBe(false);
     });
 
     it('matches a timed event starting at exactly midnight', () => {

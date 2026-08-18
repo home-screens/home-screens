@@ -5,10 +5,6 @@ import { formatDateSync } from '@/i18n';
 
 // ─── Utilities ───
 
-// Re-exported from the pure (React-free) layout module so existing callers can
-// keep importing it from here alongside the grid components below.
-export { parseTimeToHours } from './event-layout';
-
 /**
  * Format an hour number (0-23) as a 12-hour label using localized AM/PM
  * tokens (e.g. 0 → "12 AM", 13 → "1 PM"). Pass the resolved AM/PM strings

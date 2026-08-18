@@ -144,6 +144,11 @@ export function pickPillTextColor(hex: string | undefined): string {
  * Google Calendar and iCal both use exclusive end dates for all-day events
  * (a single-day event on March 15 has end = March 16).
  *
+ * Timed events match their start day by date parts (so zero-length or
+ * end-before-start feed glitches still render somewhere), then any later day
+ * the event is still running into — a 7 PM–6 AM event appears on both days.
+ * The end is exclusive: ending exactly at midnight does not reach the next day.
+ *
  * `timezone` puts timed events in their display-timezone day: `date` is a
  * wall-time day from `createTZDate`, so an OS-parsed start would bucket a
  * late-evening event into the wrong cell whenever the Pi's OS timezone
@@ -162,11 +167,16 @@ export function isEventOnDay(
   }
   const evStart = parseEventWallTime(ev.start, timezone);
   // Timed events: compare calendar day using date parts (avoids cross-timezone issues)
-  return (
+  if (
     evStart.getFullYear() === date.getFullYear() &&
     evStart.getMonth() === date.getMonth() &&
     evStart.getDate() === date.getDate()
-  );
+  ) {
+    return true;
+  }
+  // Continuation days: started before this day's midnight and still running past it.
+  const evEnd = parseEventWallTime(ev.end, timezone);
+  return evStart < date && evEnd > date;
 }
 
 /**

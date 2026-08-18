@@ -465,9 +465,9 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: lacks('CAL NEAR', 'CAL FARWEEK'),
   },
   {
-    // multiWeekMaxEventsPerCell caps pills per day cell; three timed events on
-    // day+1 (timed events land on their start day only, so no spanning), cap 2
-    // shows the first two, hides the third, and "+1 more" reports it.
+    // multiWeekMaxEventsPerCell caps pills per day cell; three single-day
+    // timed events on day+1, cap 2 shows the first two, hides the third, and
+    // "+1 more" reports it.
     type: 'calendar', name: 'events-per-cell', kind: 'networked', stubKey: 'calendar',
     stubBody: [
       { id: 'cwec-1', title: 'CAL CAP ONE', start: calIso(1, 8), end: calIso(1, 9), allDay: false },
@@ -508,7 +508,9 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       const solid = mod.locator('[data-event-id="cges-a"]');
       await expect(solid).toHaveCSS('background-color', 'rgb(234, 179, 8)');
       await expect(solid).toHaveCSS('color', 'rgb(27, 27, 31)');
-      const timed = mod.locator('[data-event-id="cges-b"]');
+      // todayEvent crosses midnight, so it renders in two grid cells; both
+      // pills are identical, so asserting the first suffices.
+      const timed = mod.locator('[data-event-id="cges-b"]').first();
       await expect(timed).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       await expect(timed.locator('span').first()).toHaveCSS('color', 'rgb(59, 130, 246)');
     },
@@ -520,7 +522,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
     config: { viewMode: 'multi-week', gridEventStyle: 'colored', gridEventPillBackground: true },
     expect: async (mod) => {
-      await expect(mod.locator('[data-event-id="cgp-a"]')).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+      await expect(mod.locator('[data-event-id="cgp-a"]').first()).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     },
   },
 ];

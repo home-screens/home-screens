@@ -153,6 +153,50 @@ const RESILIENCE_NO_CRASH = [
   { type: 'fullscreen-photo', stubKey: 'backgrounds', empty: [] },
 ] as const;
 
+/**
+ * A timed event crossing midnight renders on BOTH days it covers (issue #30):
+ * the start day gets the evening segment and the next day gets the
+ * early-morning remainder, each clamped to the visible hour window. The end
+ * lands at 06:30 because the schedule grid opens at 06:00 by default — an
+ * event ending at or before the grid's opening hour has no visible span on
+ * its continuation day.
+ */
+test('fullscreen-calendar schedule view renders a midnight-crossing event on both days', async ({ page, request }) => {
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`;
+  const start = new Date();
+  start.setHours(19, 0, 0, 0);
+  const end = new Date();
+  end.setDate(end.getDate() + 1);
+  end.setHours(6, 30, 0, 0);
+
+  await stubModuleData(page, {
+    overrides: {
+      calendar: [{
+        id: 'evt-overnight',
+        title: 'Overnight Shift',
+        start: iso(start),
+        end: iso(end),
+        allDay: false,
+        calendarColor: '#4073ff',
+        sourceId: 'cal-primary',
+        sourceName: 'Personal',
+      }],
+    },
+  });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', {
+      view: 'schedule',
+      scheduleDaysToShow: 2,
+    })])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('fullscreen-calendar');
+  await expect(mod).toContainText('Overnight Shift');
+  await expect(mod.locator('[data-event-id="evt-overnight"]')).toHaveCount(2);
+});
+
 for (const r of RESILIENCE_NO_CRASH) {
   const fx = MODULE_FIXTURES[r.type];
 

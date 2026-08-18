@@ -5,10 +5,10 @@ import { isSameDay } from 'date-fns';
 import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
-import { computeTimedEventLayout } from './event-layout';
+import { computeTimedEventLayout, eventHoursOnDay } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
-import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
+import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
 interface DayTimelineViewProps {
   events: CalendarEvent[];
@@ -110,7 +110,7 @@ export function DayTimelineView({ events, config, scale, today, now, timeFormat 
     const dayEvents = events.filter(ev => isEventOnDay(ev, today));
     const allDay = dayEvents.filter(ev => ev.allDay);
     const timed = dayEvents.filter(ev => !ev.allDay);
-    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(timed, hourStart, hourEnd, overlapMode);
+    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode);
     return { allDayEvs: allDay, timedEvs: timed, overlapLayout, hiddenStarts };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [events, today.toDateString(), hourStart, hourEnd, overlapMode]);
@@ -226,11 +226,10 @@ export function DayTimelineView({ events, config, scale, today, now, timeFormat 
 
             {/* Events with overlap layout */}
             {timedEvs.map(ev => {
-              const rawStart = parseTimeToHours(ev.start);
-              const rawEnd = parseTimeToHours(ev.end);
-              const evStart = Math.max(rawStart, hourStart);
-              const evEnd = rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd);
-              if (evStart >= hourEnd || evEnd <= hourStart) return null;
+              const { startHour, endHour } = eventHoursOnDay(ev, today);
+              const evStart = Math.max(startHour, hourStart);
+              const evEnd = Math.min(endHour, hourEnd);
+              if (evStart >= hourEnd || evEnd <= evStart) return null;
 
               const layout = overlapLayout.get(ev.id);
               if (!layout || layout.width === 0) return null;

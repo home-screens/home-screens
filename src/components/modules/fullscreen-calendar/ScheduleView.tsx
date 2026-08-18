@@ -6,10 +6,10 @@ import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
-import { computeTimedEventLayout } from './event-layout';
+import { computeTimedEventLayout, eventHoursOnDay } from './event-layout';
 import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
-import { parseTimeToHours, formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
+import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
 interface ScheduleViewProps {
   events: CalendarEvent[];
@@ -70,7 +70,7 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
   // overlap column.
   const dayLayouts = useMemo(() => days.map(day => {
     const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day));
-    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(dayEvents, hourStart, hourEnd, overlapMode);
+    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(dayEvents, day, hourStart, hourEnd, overlapMode);
     return { dayEvents, overlapLayout, hiddenStarts };
   }), [days, events, hourStart, hourEnd, overlapMode]);
 
@@ -201,11 +201,10 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
 
                   {/* Events with overlap layout */}
                   {dayEvents.map((ev) => {
-                    const rawStart = parseTimeToHours(ev.start);
-                    const rawEnd = parseTimeToHours(ev.end);
-                    const evStart = Math.max(rawStart, hourStart);
-                    const evEnd = rawEnd <= rawStart ? hourEnd : Math.min(rawEnd, hourEnd);
-                    if (evStart >= hourEnd || evEnd <= hourStart) return null;
+                    const { startHour, endHour } = eventHoursOnDay(ev, day);
+                    const evStart = Math.max(startHour, hourStart);
+                    const evEnd = Math.min(endHour, hourEnd);
+                    if (evStart >= hourEnd || evEnd <= evStart) return null;
 
                     const layout = overlapLayout.get(ev.id);
                     if (!layout || layout.width === 0) return null; // overflow hidden
