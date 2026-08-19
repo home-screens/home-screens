@@ -189,40 +189,51 @@ body {
 /* ============================================================================
    Themed scrollbars. Without color-scheme (declared on :root /
    [data-theme="light"] above) Chromium paints the UA's light scrollbar and
-   light native controls inside a dark editor. color-scheme fixes the UA
-   rendering; these rules restyle the bar itself: slim rounded thumb, floating
-   over the content via the transparent-border + background-clip padding-box
-   trick (the inset shows whatever sits behind, so the same rule works on
-   panels, cards, and modals). Firefox gets the coarse equivalent via
-   scrollbar-width/color. Surfaces that opt out (.scrollbar-none, the
-   fullscreen kiosk modules) still win: a display:none scrollbar ignores
-   width/background, and class specificity beats the * selector.
-   The webkit rules must stay nested inside the * block (the &::-webkit-
-   form): written flat at top level, the Tailwind v4/Lightning pipeline
-   silently drops them from the compiled CSS.
+   light native controls inside a dark editor; color-scheme fixes the UA
+   rendering, and the rules below tint the bars to the theme. The two blocks
+   are mutually exclusive paths, split by @supports:
+   - Engines with the standard properties (Chromium ≥121, Firefox, future
+     Safari) get scrollbar-width/scrollbar-color. Once these are non-auto,
+     those engines ignore ::-webkit-scrollbar-* styling entirely, so webkit
+     rules would be dead weight in this branch.
+   - Safari (no working scrollbar-color as of 26.x) gets the webkit rules:
+     slim rounded thumb floating over the content via the transparent-border
+     + background-clip padding-box trick (the inset shows whatever sits
+     behind, so the same rule works on panels, cards, and modals). The guard
+     self-retires in any Safari that ships working scrollbar-color.
+   Surfaces that opt out (.scrollbar-none, the fullscreen kiosk modules)
+   still win: a display:none scrollbar ignores width/background, and class
+   specificity beats the * selector.
    ============================================================================ */
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--hs-border-strong) transparent;
-  &::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+@supports (scrollbar-color: auto) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hs-border-strong) transparent;
   }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--hs-border-strong);
-    border-radius: 9999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-  }
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in srgb, var(--hs-border-strong) 70%, var(--hs-text-body));
-  }
-  &::-webkit-scrollbar-corner {
-    background: transparent;
+}
+
+@supports not (scrollbar-color: auto) {
+  * {
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--hs-border-strong);
+      border-radius: 9999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: color-mix(in srgb, var(--hs-border-strong) 70%, var(--hs-text-body));
+    }
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
 }
 

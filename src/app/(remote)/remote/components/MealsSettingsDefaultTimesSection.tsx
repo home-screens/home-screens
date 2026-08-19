@@ -89,7 +89,6 @@ export default function MealsSettingsDefaultTimesSection({
                   color: 'var(--hs-text-primary)',
                   fontSize: 15,
                   fontFamily: 'inherit',
-                  colorScheme: 'dark',
                   marginBottom: 8,
                 }}
                 aria-label={t('mealsSettings.defaultTimes.timeInputAriaLabel', { name: slotLabel })}

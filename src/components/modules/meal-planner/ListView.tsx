@@ -32,7 +32,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
   const showTags = config.showTags ?? true;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+    <div className="flex flex-col h-full overflow-y-auto pr-1">
       {weekDates.map((date) => {
         const isToday = date === todayISO;
         const dayIdx = dateToDayIndex(date);
