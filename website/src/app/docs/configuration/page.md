@@ -535,6 +535,8 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
 }
 ```
 
+`title` and `titleFontSize` only apply to modules that render the standard card frame. Plugin modules and Display Control draw their content without the card, so a title strip can never appear on them — the editor hides the Card Title fields for those modules, and both keys are dropped from a plugin manifest's `defaultStyle` when a module is placed.
+
 `fontFamily` stores a font registry **id**, not a raw CSS stack. The available ids are `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, and `pacifico`. The fonts themselves are bundled at build time, so only these ids are guaranteed to load. A raw CSS stack is still accepted for backward compatibility, but anything the registry does not recognize is passed to the browser verbatim and will fall back to a system font.
 
 ## Module Configs

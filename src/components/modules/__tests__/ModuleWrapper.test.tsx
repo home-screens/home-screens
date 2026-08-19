@@ -69,23 +69,47 @@ describe('ModuleWrapper title strip', () => {
     expect((neg.querySelector('[data-module-title]') as HTMLElement).style.fontSize).toBe('22px');
   });
 
-  it('pads 0 above and 8 below the strip text', () => {
+  it('pads 0 above and 8 below the strip text on a padded card', () => {
     const { container } = renderWrapper({ title: 'Weather' });
     const strip = container.querySelector('[data-module-title]') as HTMLElement;
-    expect(strip.style.paddingTop).toBe('');
+    expect(strip.style.paddingTop).toBe('0px');
+    expect(strip.style.paddingLeft).toBe('0px');
     expect(strip.style.paddingBottom).toBe('8px');
   });
 
-  it('keeps the strip at normal weight even under a forced module weight', () => {
+  it('carries the default card inset itself when the card padding is 0', () => {
+    // Media modules (image, video, slideshow, iframe) force padding: 0 so
+    // content runs edge to edge — the strip must not sit flush against the
+    // card corners, so it brings the default inset (16px) along.
+    const { container } = renderWrapper({ title: 'Weather', padding: 0 });
+    const strip = container.querySelector('[data-module-title]') as HTMLElement;
+    expect(strip.style.paddingTop).toBe('16px');
+    expect(strip.style.paddingLeft).toBe('16px');
+    expect(strip.style.paddingRight).toBe('16px');
+    expect(strip.style.paddingBottom).toBe('8px');
+  });
+
+  it('keeps the strip outside the forced-weight subtree when titled', () => {
     // The forced weight travels via the .module-weight-override class + CSS
-    // variable (not inline), and the rule in globals.css spares
-    // [data-module-title]. jsdom does not apply stylesheet rules, so what is
-    // testable here is the inline 400 that beats the class's INHERITANCE
-    // from the wrapper element itself.
+    // variable. On titled cards the class sits on the CONTENT BOX, not the
+    // wrapper, so the strip is a sibling the override rule can never reach —
+    // no inline 400 or per-element CSS carve-out needed.
     const { container } = renderWrapper({ title: 'Weather', fontWeight: 900 });
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).toContain('module-weight-override');
+    expect(wrapper.className).not.toContain('module-weight-override');
     const strip = container.querySelector('[data-module-title]') as HTMLElement;
-    expect(strip.style.fontWeight).toBe('400');
+    expect(strip.style.fontWeight).toBe('');
+    const contentBox = strip.nextElementSibling as HTMLElement;
+    expect(contentBox.className).toContain('module-weight-override');
+    expect(contentBox.querySelector('[data-testid="content"]')).not.toBeNull();
+  });
+
+  it('keeps the forced-weight class on the wrapper itself when untitled', () => {
+    // Untitled modules preserve the original single-element structure, so the
+    // class stays where it always was.
+    const { container } = renderWrapper({ fontWeight: 900 });
+    const wrapper = container.firstElementChild as HTMLElement;
+    expect(wrapper.className).toContain('module-weight-override');
+    expect(wrapper.childElementCount).toBe(1);
   });
 });

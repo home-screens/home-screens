@@ -2073,7 +2073,8 @@
       "fontWeightDefault": "Default",
       "fontWeightReset": "Reset to default",
       "title": "Card Title",
-      "titleFontSize": "Title Size"
+      "titleFontSize": "Title Size",
+      "titleOwnTitleHint": "This widget also shows its own title from its settings, so you may see two titles."
     },
     "actions": {
       "bringToFront": "Bring to Front",

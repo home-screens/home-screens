@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Slider from '@/components/ui/Slider';
@@ -24,6 +26,8 @@ import PluginAuthSection from './PluginAuthSection';
 import { MousePointerClick } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
+import LabeledField from '@/components/ui/LabeledField';
+import { resolveTitleFontSize } from '@/lib/module-style';
 
 import {
   ClockConfigSection,
@@ -128,6 +132,32 @@ function PositionSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: 
   );
 }
 
+/**
+ * Card Title input. Commits the TRIMMED value on every keystroke — so a tab
+ * closed mid-edit can never persist padding or a whitespace-only title, and
+ * no blur-time write lands outside the undo coalesce window — while a local
+ * draft keeps the raw text in the input, so typing the space between two
+ * words isn't eaten mid-entry. Rendered with key={mod.id} so the draft resets
+ * when the selection changes.
+ */
+function CardTitleField({ label, value, onCommit }: { label: string; value: string; onCommit: (title: string | undefined) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <LabeledField label={label}>
+      <input
+        type="text"
+        value={draft ?? value}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          onCommit(e.target.value.trim() || undefined);
+        }}
+        onBlur={() => setDraft(null)}
+        className={INPUT_CLASS}
+      />
+    </LabeledField>
+  );
+}
+
 function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: string; t: TranslateFn }) {
   const { updateModuleStyle } = useEditorStore();
   const s = mod.style;
@@ -165,30 +195,43 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
 
       <PropertyGroup title={t('propertyPanel.sections.text')} accent={4}>
         <div className="space-y-3">
-          {/* Like the font weight control, the title fields stay hidden for
-              plugins: they render raw, outside ModuleWrapper, so the strip
-              (and a stored titleFontSize) could never reach them. */}
-          {!isPlugin && (
+          {/* Like the font weight control, the title fields stay hidden where
+              the strip could never render: plugins and cardless builtins
+              (display-control) mount no ModuleWrapper. */}
+          {!isPlugin && !getModuleDefinition(mod.type)?.cardless && (
             <>
-              <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">{t('propertyPanel.fields.title')}</span>
-                <input
-                  type="text"
-                  value={s.title ?? ''}
-                  onChange={(e) => set({ title: e.target.value || undefined })}
-                  onBlur={(e) => {
-                    // Trim on blur, not per keystroke: trimming as the user
-                    // types would eat the space between two words mid-entry.
-                    // Keeps whitespace-only titles from persisting forever.
-                    const trimmed = e.target.value.trim();
-                    if (trimmed !== e.target.value) set({ title: trimmed || undefined });
-                  }}
-                  className={INPUT_CLASS}
-                />
-              </label>
-              {/* Rests at the module's font size (the fallback) so the slider's
-                  starting position is the rendered truth. */}
-              <Slider label={t('propertyPanel.fields.titleFontSize')} value={s.titleFontSize ?? s.fontSize} min={8} max={72} onChange={(v) => set({ titleFontSize: v })} />
+              <CardTitleField
+                key={mod.id}
+                label={t('propertyPanel.fields.title')}
+                value={s.title ?? ''}
+                onCommit={(title) =>
+                  // Clearing the title also drops its size: the strip is gone,
+                  // so a stale titleFontSize must not outlive it and surprise
+                  // a title added later.
+                  set(title === undefined ? { title: undefined, titleFontSize: undefined } : { title })
+                }
+              />
+              {getModuleDefinition(mod.type)?.hasOwnTitle && (
+                <p className="text-[11px] text-hs-text-muted">{t('propertyPanel.fields.titleOwnTitleHint')}</p>
+              )}
+              {!!s.title?.trim() && (
+                <div>
+                  {/* Rests at the module's font size (the fallback) so the
+                      slider's starting position is the rendered truth — the
+                      shared guard keeps that true even for a hand-edited
+                      invalid titleFontSize. */}
+                  <Slider label={t('propertyPanel.fields.titleFontSize')} value={resolveTitleFontSize(s)} min={8} max={72} onChange={(v) => set({ titleFontSize: v })} />
+                  {s.titleFontSize != null && (
+                    <button
+                      type="button"
+                      onClick={() => set({ titleFontSize: undefined })}
+                      className="mt-1 text-[11px] text-hs-text-muted hover:text-hs-text-body transition-colors"
+                    >
+                      {t('propertyPanel.fields.fontWeightReset')}
+                    </button>
+                  )}
+                </div>
+              )}
             </>
           )}
           <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />

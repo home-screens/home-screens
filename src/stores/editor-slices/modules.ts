@@ -29,6 +29,15 @@ export function createModuleSlice(
       const dims = cfg
         ? getActiveDimensions(cfg, state.selectedDisplayId)
         : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
+      // Title fields only render inside ModuleWrapper's card, which plugins
+      // and cardless builtins never mount — drop them from a manifest/registry
+      // defaultStyle so placed instances never carry an invisible title the
+      // editor offers no way to see or clear.
+      const moduleDefaultStyle = { ...def.defaultStyle };
+      if (type.startsWith('plugin:') || def.cardless) {
+        delete moduleDefaultStyle.title;
+        delete moduleDefaultStyle.titleFontSize;
+      }
       // zIndex is assigned by appendOnTop against the target screen's modules
       // inside the mutation, so it is computed from the same list it lands in.
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
@@ -39,7 +48,7 @@ export function createModuleSlice(
           ? { w: dims.width, h: dims.height }
           : { ...def.defaultSize },
         config: { ...def.defaultConfig },
-        style: { ...defaultStyle, ...def.defaultStyle },
+        style: { ...defaultStyle, ...moduleDefaultStyle },
       };
       mutateConfig((config) => ({
         config: updateScreenModulesInConfig(config, get().selectedDisplayId, screenId, (modules) =>

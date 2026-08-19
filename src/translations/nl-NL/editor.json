@@ -2073,7 +2073,8 @@
       "fontWeightDefault": "Standaard",
       "fontWeightReset": "Terugzetten op standaard",
       "title": "Kaarttitel",
-      "titleFontSize": "Titelgrootte"
+      "titleFontSize": "Titelgrootte",
+      "titleOwnTitleHint": "Deze widget toont ook een eigen titel uit de instellingen, dus er kunnen twee titels verschijnen."
     },
     "actions": {
       "bringToFront": "Naar voren",

@@ -1,8 +1,8 @@
 'use client';
 
-import type { ModuleStyle } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 import type { CSSProperties, ReactNode } from 'react';
-import { buildModuleShadow, colorWithAlpha } from '@/lib/module-style';
+import { buildModuleShadow, colorWithAlpha, resolveTitleFontSize } from '@/lib/module-style';
 import { resolveFontStack } from '@/lib/font-registry';
 
 interface ModuleWrapperProps {
@@ -23,11 +23,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   // Whitespace-only titles render nothing — a strip of spaces must not
   // reserve height.
   const title = style.title?.trim() || '';
-  // Range-guarded like fontWeight above: a hand-edited config with 0 or a
-  // negative titleFontSize would render an invisible strip that still
-  // reserves its padding, so invalid values fall back to the module size.
-  const tfs = style.titleFontSize;
-  const titleFontSize = typeof tfs === 'number' && Number.isFinite(tfs) && tfs > 0 ? tfs : style.fontSize;
+  const titleFontSize = resolveTitleFontSize(style);
 
   // IMPORTANT: When backdrop blur is active, bake opacity into the background
   // color's alpha channel. An opaque background completely covers the blurred
@@ -52,41 +48,37 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   };
   if (hasWeight) wrapperStyle['--module-font-weight'] = fw;
 
-  // Title-less modules render the exact original structure (no flex column,
-  // no extra divs) so every existing screen stays pixel-identical.
-  if (!title) {
-    return (
-      <div
-        className={`w-full h-full overflow-hidden${hasWeight ? ' module-weight-override' : ''}`}
-        style={wrapperStyle}
-      >
-        {children}
-      </div>
-    );
-  }
-
+  // Untitled modules keep the exact original structure (no flex column, no
+  // content box) so every existing screen stays pixel-identical — and the
+  // forced-weight class sits on the wrapper itself as it always has. When a
+  // title is present, the class moves to the content box instead: the strip
+  // is then a sibling outside the override subtree, so titles (and anything
+  // ever rendered inside them) keep their normal weight without per-element
+  // carve-outs. The --module-font-weight var inherits down from the wrapper.
+  const weightClass = hasWeight ? ' module-weight-override' : '';
+  const inset = DEFAULT_MODULE_STYLE.padding;
   return (
     <div
-      className={`w-full h-full overflow-hidden flex flex-col${hasWeight ? ' module-weight-override' : ''}`}
+      className={`w-full h-full overflow-hidden${title ? ' flex flex-col' : weightClass}`}
       style={wrapperStyle}
     >
-      {/* Title strip: centered single line, truncated with an ellipsis so the
-          reserved height never varies with text length. No top padding — the
-          card's own padding provides the gap; 8px below separates title from
-          content. Explicit 400 beats the forced-weight class's inheritance
-          (the rule itself spares [data-module-title], like it spares strong). */}
-      <div
-        data-module-title
-        className="w-full min-w-0 text-center truncate"
-        style={{
-          paddingBottom: 8,
-          fontSize: `${titleFontSize}px`,
-          fontWeight: 400,
-        }}
-      >
-        {title}
-      </div>
-      <div className="flex-1 min-h-0">{children}</div>
+      {title && (
+        <div
+          data-module-title
+          className="w-full min-w-0 text-center truncate"
+          style={{
+            // Padded cards give the strip its top/side gap, so it only adds
+            // the 8px below. Media modules (image, video, slideshow, iframe)
+            // force the card padding to 0 so content runs edge to edge — the
+            // strip must not, so it carries the default card inset itself.
+            padding: style.padding > 0 ? '0 0 8px' : `${inset}px ${inset}px 8px`,
+            fontSize: `${titleFontSize}px`,
+          }}
+        >
+          {title}
+        </div>
+      )}
+      {title ? <div className={`flex-1 min-h-0${weightClass}`}>{children}</div> : children}
     </div>
   );
 }

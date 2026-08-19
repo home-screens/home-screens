@@ -2077,7 +2077,8 @@
       "fontWeightDefault": "Predeterminado",
       "fontWeightReset": "Restablecer al valor predeterminado",
       "title": "Título de la tarjeta",
-      "titleFontSize": "Tamaño del título"
+      "titleFontSize": "Tamaño del título",
+      "titleOwnTitleHint": "Este widget también muestra su propio título desde sus ajustes, así que pueden verse dos títulos."
     },
     "actions": {
       "bringToFront": "Al frente",

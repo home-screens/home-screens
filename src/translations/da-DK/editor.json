@@ -2073,7 +2073,8 @@
       "fontWeightDefault": "Standard",
       "fontWeightReset": "Nulstil til standard",
       "title": "Korttitel",
-      "titleFontSize": "Titelstørrelse"
+      "titleFontSize": "Titelstørrelse",
+      "titleOwnTitleHint": "Denne widget viser også sin egen titel fra indstillingerne, så der kan ses to titler."
     },
     "actions": {
       "bringToFront": "Flyt forrest",

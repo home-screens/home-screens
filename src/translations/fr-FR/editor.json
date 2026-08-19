@@ -2077,7 +2077,8 @@
       "fontWeightDefault": "Par défaut",
       "fontWeightReset": "Rétablir la valeur par défaut",
       "title": "Titre de la carte",
-      "titleFontSize": "Taille du titre"
+      "titleFontSize": "Taille du titre",
+      "titleOwnTitleHint": "Ce widget affiche aussi son propre titre depuis ses réglages, deux titres peuvent donc apparaître."
     },
     "actions": {
       "bringToFront": "Premier plan",

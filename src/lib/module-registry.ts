@@ -74,6 +74,19 @@ export interface ModuleDefinition {
   /** When true, the module snaps to full canvas size (position 0,0) on add. */
   fillsCanvas?: boolean;
   /**
+   * True for modules that render bare, without ModuleWrapper's card chrome
+   * (currently only display-control among builtins; plugins are always bare).
+   * Card-only style fields — the title strip — are hidden in the editor and
+   * dropped from defaultStyle at placement, since nothing could render them.
+   */
+  cardless?: boolean;
+  /**
+   * True for modules that render a title of their own from config (todo,
+   * todoist). The editor shows a hint under Card Title so users know the two
+   * are independent and would stack.
+   */
+  hasOwnTitle?: boolean;
+  /**
    * Shared-state keys this module type publishes (see shared-state-store.ts).
    * Declaring either field marks the type as a state producer: the editor
    * offers the "run in background" toggle and lists these keys in the
@@ -652,6 +665,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'To-Do List',
     icon: ListTodo,
     category: 'Personal',
+    hasOwnTitle: true,
     defaultConfig: {
       title: 'To Do',
       items: [],
@@ -687,6 +701,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Todoist',
     icon: ListChecks,
     category: 'Personal',
+    hasOwnTitle: true,
     defaultConfig: {
       viewMode: 'list',
       groupBy: 'date',
@@ -958,6 +973,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Display Control',
     icon: LayoutGrid,
     category: 'Media & Display',
+    cardless: true,
     defaultConfig: {
       layout: 'panel',
       defaultTarget: 'self',
