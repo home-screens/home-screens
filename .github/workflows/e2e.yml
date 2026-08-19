@@ -1,0 +1,93 @@
+name: E2E
+
+on:
+  # The suite is too heavy for every push to main (8 shards, full
+  # production build per shard), so it runs on PRs, nightly against main,
+  # and at release time instead of on direct pushes.
+  schedule:
+    - cron: '0 9 * * *' # 09:00 UTC = 3-4am Central
+  # Runs alongside the Release workflow when a version tag is pushed.
+  push:
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  # Manual runs for pre-merge confidence on demand.
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: E2E (shard ${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 8 shards keep per-shard wall time in the pre-expansion envelope: the
+        # suite grew from ~390 to ~950 tests when the coverage ratchets landed,
+        # and past 1100 as module coverage kept expanding.
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      # Node 22 bundles npm 10; raise it to the engines floor in package.json.
+      - run: |
+          npm install -g "npm@$(node -p 'require("./package.json").engines.npm' | tr -d '>=^~ ')"
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run build
+
+      # Each shard runs its slice and emits a blob report; the merge job below
+      # stitches them into one HTML report. Chromium-only, data/ isolation is
+      # unchanged (each worker still boots its own sandboxed server).
+      - run: npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }} --reporter=blob
+
+      - uses: actions/upload-artifact@v4
+        if: '!cancelled()'
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 7
+
+  e2e-report:
+    name: E2E report
+    if: '!cancelled()'
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      # Node 22 bundles npm 10; raise it to the engines floor in package.json.
+      - run: |
+          npm install -g "npm@$(node -p 'require("./package.json").engines.npm' | tr -d '>=^~ ')"
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
