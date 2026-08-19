@@ -5,7 +5,7 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
@@ -294,8 +294,16 @@ function withAlpha(color: string, alphaHex: string): string {
 
 // ─── Shared grid pieces (week / month / multi-week) ───
 
+/** Multi-week doubles the month/week grids' 1px gutters; both values must
+ *  reach every grid of a view (header row included) or columns drift. */
+const MULTI_WEEK_GAP = 'gap-0.5';
+
 function gridTemplateFor(showWeekNumbers: boolean): string {
-  return showWeekNumbers ? 'auto repeat(7, 1fr)' : 'repeat(7, 1fr)';
+  // The week-number column is a fixed width, not `auto`: the header and the
+  // body rows are separate grids, so an `auto` column resolves per grid
+  // (empty header cell ≈ 0px vs two week-number digits) and shifts every
+  // weekday label off the day column below it.
+  return showWeekNumbers ? '1.6em repeat(7, 1fr)' : 'repeat(7, 1fr)';
 }
 
 function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em' }: {
@@ -313,13 +321,16 @@ function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em
   );
 }
 
-function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale }: {
+function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, gapClass = 'gap-px' }: {
   dates: Date[];
   showWeekNumbers: boolean;
   locale: string;
+  /** Multi-week doubles its day-cell gutters; the header must match or its
+   *  weekday labels drift off the columns below. Month view keeps the 1px default. */
+  gapClass?: string;
 }) {
   return (
-    <div className="grid gap-px" style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
+    <div className={`grid ${gapClass}`} style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
       {showWeekNumbers && <div />}
       {dates.map((d) => (
         <div key={d.toISOString()} className="text-center py-0.5">
@@ -538,6 +549,14 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
   const startDay = config.startDay;
   const gridTemplate = gridTemplateFor(showWeekNumbers);
 
+  // Badge colors are loop-invariant; computed once, not per cell (up to 84
+  // cells re-render on every minute tick).
+  const todayBadgeBg = withAlpha(accentColor, 'cc');
+  const dayBadgeBg = withAlpha(accentColor, '40');
+  const todayText = pickPillTextColor(accentColor);
+  const dayText = pickTintedTextColor(style.textColor, accentColor, style.backgroundColor);
+  const monthText = pickTintedTextColor(accentColor, accentColor, style.backgroundColor);
+
   // The parent re-renders every minute (timezone clock tick) with a fresh
   // `today` object of the same value, so key the grid and the per-day event
   // buckets on the day itself — up to 84 cells x N events re-filters daily
@@ -560,13 +579,14 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
   }, [weeks, events, timezone]);
 
   return (
-    <div className="flex flex-col h-full gap-px">
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} />
+    <div className={`flex flex-col h-full ${MULTI_WEEK_GAP}`}>
+      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} gapClass={MULTI_WEEK_GAP} />
 
-      {/* Weeks */}
-      <div className="flex flex-col gap-px flex-1">
+      {/* Weeks — gutters are 2px (double the month/week grids' 1px): the
+          multi-week cells are shorter, so they need more air to separate. */}
+      <div className={`flex flex-col ${MULTI_WEEK_GAP} flex-1`}>
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid gap-px flex-1" style={{ gridTemplateColumns: gridTemplate }}>
+          <div key={wi} className={`grid ${MULTI_WEEK_GAP} flex-1`} style={{ gridTemplateColumns: gridTemplate }}>
             {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
             {week.map((date) => {
               const isToday = isSameDay(date, today);
@@ -584,24 +604,23 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
                     opacity: isPast ? TEXT_OPACITY.tertiary : 1,
                   }}
                 >
-                  <span className="text-center leading-none mb-0.5 block" style={{ fontSize: '0.65em' }}>
+                  {/* Digits at 0.65em to match the month/week grids; height
+                      1.35em keeps the previous badge's pixel height. Flex
+                      splits month + day into separate items, so the spacing
+                      between them must come from `gap` — a literal space
+                      would be collapsed away. */}
+                  <span className="flex items-center justify-center rounded leading-none mb-0.5" style={{
+                    height: '1.35em', fontSize: '0.65em', gap: '0.25em',
+                    fontWeight: isToday ? 700 : 400,
+                    backgroundColor: isToday ? todayBadgeBg : dayBadgeBg,
+                    color: isToday ? todayText : dayText,
+                  }}>
                     {isFirstOfMonth && (
-                      <span style={{ color: accentColor, fontWeight: 600 }}>
-                        {formatDateSync(date, 'MMM', { locale })}{' '}
+                      <span style={{ color: isToday ? todayText : monthText, fontWeight: isToday ? 700 : 600 }}>
+                        {formatDateSync(date, 'MMM', { locale })}
                       </span>
                     )}
-                    {isToday ? (
-                      <span className="inline-flex items-center justify-center rounded-full" style={{
-                        width: '1.8em', height: '1.8em', fontSize: '0.75em', fontWeight: 700,
-                        backgroundColor: withAlpha(accentColor, 'cc'), color: '#fff',
-                      }}>
-                        {formatDateSync(date, 'd', { locale })}
-                      </span>
-                    ) : (
-                      <span style={{ fontWeight: 400, color: style.textColor }}>
-                        {formatDateSync(date, 'd', { locale })}
-                      </span>
-                    )}
+                    {formatDateSync(date, 'd', { locale })}
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
