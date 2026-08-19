@@ -18,6 +18,15 @@ export function colorWithAlpha(color: string, alpha: number): string {
   return color;
 }
 
+/** The title strip's rendered size: titleFontSize when it is a usable number,
+ *  else the module font size. Shared by ModuleWrapper and the editor's Title
+ *  Size slider so the panel readout always matches what actually renders
+ *  (a hand-edited 0 or negative value must not display as-is). */
+export function resolveTitleFontSize(style: { titleFontSize?: number; fontSize: number }): number {
+  const tfs = style.titleFontSize;
+  return typeof tfs === 'number' && Number.isFinite(tfs) && tfs > 0 ? tfs : style.fontSize;
+}
+
 /** Build the box-shadow CSS value for a module card. */
 export function buildModuleShadow(shadowSize: number, scale = 1): string {
   if (shadowSize <= 0) return 'none';

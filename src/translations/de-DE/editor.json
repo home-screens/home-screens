@@ -2071,7 +2071,10 @@
       "fontSize": "Schriftgröße",
       "fontWeight": "Schriftstärke",
       "fontWeightDefault": "Standard",
-      "fontWeightReset": "Auf Standard zurücksetzen"
+      "fontWeightReset": "Auf Standard zurücksetzen",
+      "title": "Kartentitel",
+      "titleFontSize": "Titelgröße",
+      "titleOwnTitleHint": "Dieses Widget zeigt zusätzlich einen eigenen Titel aus seinen Einstellungen, es können also zwei Titel erscheinen."
     },
     "actions": {
       "bringToFront": "Nach vorn",

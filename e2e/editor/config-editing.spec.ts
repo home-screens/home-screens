@@ -1236,6 +1236,199 @@ test.describe('PropertyPanel Style', () => {
     // it would compute 400 — emphasis scales with the chosen weight by design.)
     await expect(textMod.locator('strong', { hasText: 'bold' })).toHaveCSS('font-weight', '700');
   });
+
+  // ── Title strip (Style › Text) ────────────────────────────────────────────
+  // The strip renders inside ModuleWrapper (data-module-title), so these assert
+  // the inner wrapper's inline style attribute for sizes (the exact pre-zoom
+  // source, per the suite note above) and computed CSS for non-length props.
+
+  test('title input persists and renders a centered strip on the card', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+    });
+
+    const inst = await moduleInstance(request);
+    expect(inst.style.title).toBe('Kitchen');
+
+    const strip = page.locator('[data-module-id="greeting-1"] [data-module-title]');
+    await expect(strip).toHaveText('Kitchen');
+    await expect(strip).toHaveCSS('text-align', 'center');
+    // Single line with ellipsis, never a widening or wrapping strip.
+    await expect(strip).toHaveCSS('white-space', 'nowrap');
+    await expect(strip).toHaveCSS('text-overflow', 'ellipsis');
+
+    // No explicit title size: the strip falls back to the module's font size
+    // (DEFAULT_MODULE_STYLE 16 for a greeting with no registry defaultStyle).
+    expect(inst.style.fontSize).toBe(16);
+    await expect(strip).toHaveAttribute('style', /font-size:\s*16px/);
+  });
+
+  test('title size slider overrides the strip size and persists', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+    });
+
+    // End jumps the slider to its max (72) deterministically.
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Title Size' });
+      await slider.focus();
+      await slider.press('End');
+    });
+
+    expect((await moduleInstance(request)).style.titleFontSize).toBe(72);
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]'))
+      .toHaveAttribute('style', /font-size:\s*72px/);
+  });
+
+  test('a long title stays on one line without changing the module footprint', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+    const before = (await page.locator('[data-module-id="greeting-1"]').boundingBox())!;
+
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('The Extremely Long Kitchen Information Title');
+    });
+
+    const strip = page.locator('[data-module-id="greeting-1"] [data-module-title]');
+    await expect(strip).toHaveText('The Extremely Long Kitchen Information Title');
+    await expect(strip).toHaveCSS('white-space', 'nowrap');
+    // Reserved geometry is constant: the module box never grows for text.
+    const after = (await page.locator('[data-module-id="greeting-1"]').boundingBox())!;
+    expect(after.width).toBe(before.width);
+    expect(after.height).toBe(before.height);
+  });
+
+  test('forced module weight does not reach the title strip', async ({ page, request }) => {
+    // Real-CSS companion to the ModuleWrapper unit test: the override rule in
+    // globals.css spares [data-module-title] (and the inline 400 beats
+    // inheritance from the wrapper element itself), so a module forced to 900
+    // keeps a normal-weight title while its body text goes bold.
+    const mod = buildModuleInstance('greeting', { name: 'STYLE' });
+    mod.style = { ...mod.style, title: 'Kitchen', fontWeight: 900, backdropBlur: 0 };
+    await selectModule(page, request, mod);
+
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]')).toHaveText('Kitchen');
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]')).toHaveCSS('font-weight', '400');
+    await expect(page.locator('[data-module-id="greeting-1"] p').first()).toHaveCSS('font-weight', '900');
+  });
+
+  test('clearing the title removes the strip, the stored key, and the stored size', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+    });
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]')).toHaveText('Kitchen');
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Title Size' });
+      await slider.focus();
+      await slider.press('End');
+    });
+    expect((await moduleInstance(request)).style.titleFontSize).toBe(72);
+
+    // Empty input omits the key entirely so configs stay clean — and takes
+    // titleFontSize with it, so a title added later starts at the default.
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('');
+    });
+    const style = (await moduleInstance(request)).style;
+    expect(style.title).toBeUndefined();
+    expect(style.titleFontSize).toBeUndefined();
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]')).toHaveCount(0);
+  });
+
+  test('titles persist trimmed on every keystroke; whitespace-only never persists', async ({ page, request }) => {
+    // The trim happens in onChange (not onBlur), so a tab closed mid-edit can
+    // never leave padding or a whitespace-only title behind in the config.
+    await selectStyledGreeting(page, request);
+    const input = page.getByLabel('Card Title', { exact: true });
+
+    await autosaved(page, async () => {
+      await input.fill('Kitchen   ');
+    });
+    // The input keeps the raw draft (so mid-word spaces aren't eaten)...
+    await expect(input).toHaveValue('Kitchen   ');
+    // ...while the stored value is already trimmed, without any blur.
+    expect((await moduleInstance(request)).style.title).toBe('Kitchen');
+
+    await autosaved(page, async () => {
+      await input.fill('   ');
+    });
+    expect((await moduleInstance(request)).style.title).toBeUndefined();
+  });
+
+  test('the Title Size slider appears only with a title and resets to the fallback', async ({ page, request }) => {
+    await selectStyledGreeting(page, request);
+    // No title yet: no size slider, so titleFontSize can never be written
+    // before a title exists.
+    await expect(page.getByRole('slider', { name: 'Title Size' })).toHaveCount(0);
+
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+    });
+    await autosaved(page, async () => {
+      const slider = page.getByRole('slider', { name: 'Title Size' });
+      await slider.focus();
+      await slider.press('End');
+    });
+    expect((await moduleInstance(request)).style.titleFontSize).toBe(72);
+
+    // Reset to default drops the key: the strip returns to the module size.
+    await autosaved(page, async () => {
+      await page.getByRole('button', { name: 'Reset to default' }).last().click();
+    });
+    expect((await moduleInstance(request)).style.titleFontSize).toBeUndefined();
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]'))
+      .toHaveAttribute('style', /font-size:\s*16px/);
+  });
+
+  test('title controls are hidden for display-control (renders without a card)', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('display-control'));
+    await page.getByRole('button', { name: 'Style', exact: true }).click();
+
+    // The strip could never render (no ModuleWrapper), so the fields are gone —
+    // while ordinary text styling stays available.
+    await expect(page.getByRole('slider', { name: 'Font Size' })).toBeVisible();
+    await expect(page.getByLabel('Card Title', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('slider', { name: 'Title Size' })).toHaveCount(0);
+  });
+
+  test('modules with their own title show a hint under Card Title', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('todo'));
+    await page.getByRole('button', { name: 'Style', exact: true }).click();
+    await expect(page.getByText('also shows its own title')).toBeVisible();
+
+    // Modules without a built-in title get no hint.
+    await selectStyledGreeting(page, request);
+    await expect(page.getByText('also shows its own title')).toHaveCount(0);
+  });
+
+  test('the strip carries its own inset on padding-0 media modules', async ({ page, request }) => {
+    // Image forces the card padding to 0 so the picture runs edge to edge;
+    // the strip must not sit flush against the rounded corners.
+    const mod = buildModuleInstance('image', {
+      src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
+      alt: 'e2e',
+    });
+    await selectModule(page, request, mod);
+    await page.getByRole('button', { name: 'Style', exact: true }).click();
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Photo Frame');
+    });
+
+    const strip = page.locator('[data-module-id="image-1"] [data-module-title]');
+    await expect(strip).toHaveText('Photo Frame');
+    await expect(strip).toHaveAttribute('style', /padding:\s*16px 16px 8px/);
+
+    // A padded card contributes its own gap, so its strip only pads below.
+    await selectStyledGreeting(page, request);
+    await autosaved(page, async () => {
+      await page.getByLabel('Card Title', { exact: true }).fill('Padded');
+    });
+    await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]'))
+      .toHaveAttribute('style', /padding:\s*0(px)? 0(px)? 8px/);
+  });
 });
 
 test('Defaults › Display: changing the transition effect persists to the shared config', async ({ page, request }) => {

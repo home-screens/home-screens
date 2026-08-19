@@ -133,8 +133,10 @@ Every module (except the full-screen ones) can be styled. The controls are group
 
 **Text**
 
+- **Card Title** — show a centered title at the top of the module. The title sits on the module card, above its content, and is cut off with an ellipsis when it is too long to fit. Leave it empty for no title. Some widgets (like the to-do list) also show a title of their own from their settings — setting both means you will see both
+- **Title Size** — set the title's font size (8–72). It appears once a title is set and starts at the module's font size, so leaving the slider alone keeps them matched; use Reset to default to match the font size again. Clearing the title clears this too
 - **Font Size** — set the base font size (8–72)
-- **Font Weight** — make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back
+- **Font Weight** — make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back. The title always stays at its normal weight
 - **Font Family** — choose from available fonts
 
 ## Managing Screens
