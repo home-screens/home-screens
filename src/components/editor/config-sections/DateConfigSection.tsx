@@ -7,7 +7,9 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
+import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, DateView } from '@/types/config';
 
@@ -22,6 +24,7 @@ const VIEW_FIELDS: Record<DateView, Set<string>> = {
 
 type DateConfigType = {
   view?: DateView;
+  timezone?: string;
   dateFormat?: string;
   showDayName?: boolean;
   showYear?: boolean;
@@ -33,6 +36,7 @@ type DateConfigType = {
 export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<DateConfigType>(mod, screenId);
+  const globalTimezone = useEditorStore((s) => s.config?.settings?.timezone);
 
   const VIEWS: { value: DateView; label: string }[] = [
     { value: 'full', label: t('configSections.date.viewFull') },
@@ -77,6 +81,18 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ view: v })}
         options={VIEWS}
       />
+
+      {/* Timezone — applies to every view */}
+      <LabeledField as="div" label={t('configSections.date.timezone')}>
+        <TimezoneSelect
+          value={c.timezone ?? ''}
+          onChange={(v) => set({ timezone: v })}
+          defaultOptionLabel={globalTimezone
+            ? t('configSections.timezoneUseDisplay', { timezone: globalTimezone })
+            : t('configSections.timezoneUseDisplayNoZone')}
+          ariaLabel={t('configSections.date.timezone')}
+        />
+      </LabeledField>
 
       {/* Date Format (only for minimal view) */}
       {has('dateFormat') && (

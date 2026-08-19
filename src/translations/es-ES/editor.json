@@ -14,6 +14,7 @@
   },
   "common": {
     "saved": "Guardado",
+    "noMatches": "Sin coincidencias",
     "refreshMinutes": "Actualizar (minutos)",
     "refreshSeconds": "Actualizar (segundos)",
     "refresh": "Actualizar",
@@ -2300,6 +2301,8 @@
       "editChoreChart": "Editar tareas",
       "mobileHintPrefix": "Los miembros de la familia pueden marcar sus tareas desde el móvil en la pestaña Tareas en"
     },
+    "timezoneUseDisplay": "Usar el ajuste del display ({timezone})",
+    "timezoneUseDisplayNoZone": "Usar el ajuste del display",
     "clock": {
       "viewClassic": "Clásico (centrado)",
       "viewDigital": "Digital (LED de 7 segmentos)",
@@ -2342,6 +2345,7 @@
       "timeZonesCount": "Zonas horarias ({count}/{max})",
       "addTimezone": "Añadir una zona horaria…",
       "referenceTime": "Hora de referencia",
+      "referenceTimezoneHint": "Se lee como hora de {timezone}",
       "referenceLabel": "Etiqueta",
       "referenceLabelPlaceholder": "p. ej. apertura de mercado",
       "countUp": "Contar hacia adelante (transcurrido)",
@@ -2357,7 +2361,8 @@
       "precisionDays": "Solo días",
       "precisionDaysHours": "Días + horas",
       "precisionDaysHoursMinutes": "Días + horas + minutos",
-      "precisionDaysHoursMinutesSeconds": "Días + horas + minutos + segundos"
+      "precisionDaysHoursMinutesSeconds": "Días + horas + minutos + segundos",
+      "timezone": "Zona horaria"
     },
     "countdown": {
       "viewAll": "Todos los eventos (apilados)",
@@ -2400,6 +2405,7 @@
       "viewStacked": "Apilada (vertical)",
       "viewEditorial": "Editorial (revista)",
       "viewBanner": "Banner (horizontal)",
+      "timezone": "Zona horaria",
       "datePresetMonthDay": "5 de enero",
       "datePresetWeekdayMonthDay": "lunes, 5 de enero",
       "datePresetShortWeekday": "lun, 5 ene",

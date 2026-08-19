@@ -538,6 +538,8 @@ export interface ClockConfig {
   dateFormat: string;
   showWeekNumber: boolean;
   showDayOfYear: boolean;
+  /** IANA zone id (e.g. "Asia/Tokyo"); empty/absent = follow the display setting. */
+  timezone?: string;
   // View-specific
   showNumerals: boolean;        // analog: hour numbers on face
   animateFlip: boolean;         // flip: show flip animation on digit change
@@ -1354,6 +1356,8 @@ export type DateView = 'full' | 'minimal' | 'stacked' | 'editorial' | 'banner';
 export interface DateConfig {
   view: DateView;
   dateFormat: string;
+  /** IANA zone id; empty/absent = follow the display setting. */
+  timezone?: string;
   showDayName: boolean;
   showYear: boolean;
   showWeekNumber: boolean;

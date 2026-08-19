@@ -180,6 +180,23 @@ describe('toEditorSource', () => {
   });
 });
 
+describe('per-module timezone override', () => {
+  it('a config timezone wins over the display setting on both surfaces', () => {
+    const mod = instance('clock', { timezone: 'Asia/Tokyo' });
+    expect(buildModuleProps(mod, displaySource()).timezone).toBe('Asia/Tokyo');
+    expect(buildModuleProps(mod, editorSource()).timezone).toBe('Asia/Tokyo');
+  });
+
+  it("an empty-string override ('use display setting') falls back to the display timezone", () => {
+    const mod = instance('date', { timezone: '' });
+    expect(buildModuleProps(mod, displaySource()).timezone).toBe('America/Chicago');
+  });
+
+  it('no override passes the display timezone through unchanged', () => {
+    expect(buildModuleProps(instance('clock'), displaySource()).timezone).toBe('America/Chicago');
+  });
+});
+
 describe('timeFormat threading', () => {
   it('buildModuleProps passes a resolved timeFormat to every module (ambient, like timezone)', () => {
     const source = toDisplaySource({ ...displaySettings, timeFormat: '24h' }, LOCATION, emptyShared());

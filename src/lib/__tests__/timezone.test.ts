@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createTZDate, formatTimeInTZ, formatDateInTZ, parseDateInTZ } from '@/lib/timezone';
+import { createTZDate, formatTimeInTZ, formatDateInTZ, parseDateInTZ, listTimezoneValues, COMMON_TIMEZONES } from '@/lib/timezone';
 
 describe('createTZDate', () => {
   it('returns a Date close to now when no timezone is provided', () => {
@@ -360,5 +360,19 @@ describe('parseDateInTZ', () => {
     });
     expect(nyDate).toMatch(/12\/31\/2024/);
     expect(nyDate).toMatch(/23:30/);
+  });
+});
+
+describe('listTimezoneValues', () => {
+  it('always contains every curated zone and UTC, without duplicates', () => {
+    // The Intl list is runtime-dependent (some ICUs canonicalize to legacy
+    // aliases like Asia/Calcutta), so the union with COMMON_TIMEZONES is the
+    // guarantee — whatever the runtime serves, these zones must be pickable.
+    const zones = listTimezoneValues();
+    for (const tz of COMMON_TIMEZONES) {
+      expect(zones).toContain(tz.value);
+    }
+    expect(zones).toContain('UTC');
+    expect(new Set(zones).size).toBe(zones.length);
   });
 });

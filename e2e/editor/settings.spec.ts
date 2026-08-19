@@ -78,6 +78,38 @@ test.describe('Defaults › Location', () => {
       .poll(async () => (await getConfig(request)).settings.timeFormat)
       .toBe('24h');
   });
+
+  test('timezone picker persists a zone and resets to system default', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    await page.goto('/editor/settings?section=defaults&page=location');
+
+    // The timezone combobox opens on click and filters as you type; the
+    // pinned "System default" row sits at highlight 0, the filtered matches
+    // below it. Saving rides the debounced settings autosave, so poll.
+    // (The combobox's aria-label also lands on its listbox, so address the
+    // input by role to stay strict-mode-clean.)
+    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    await tz.click();
+    await tz.fill('kiri');
+    await tz.press('ArrowDown'); // highlight 0: the pinned default row
+    await tz.press('ArrowDown'); // highlight 1: Pacific/Kiritimati
+    await tz.press('Enter');
+
+    await expect
+      .poll(async () => (await getConfig(request)).settings.timezone)
+      .toBe('Pacific/Kiritimati');
+
+    // Reopening resets the filter, so the pinned row is highlight 0 again;
+    // picking "System default" serializes the key out of the settings object
+    // entirely (empty string = follow the OS zone → stored as absent).
+    await tz.click();
+    await tz.press('ArrowDown'); // highlight 0: "System default"
+    await tz.press('Enter');
+
+    await expect
+      .poll(async () => (await getConfig(request)).settings.timezone)
+      .toBeUndefined();
+  });
 });
 
 test('Defaults › Screen: a custom resolution pick survives a tab switch', async ({ page, request }) => {

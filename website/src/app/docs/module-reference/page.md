@@ -168,6 +168,7 @@ Displays the current time with optional date information. Supports {% $stats.clo
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"classic"` | Display style: `classic`, `digital`, `analog`, `minimal`, `flip`, `word`, `binary`, `vertical`, `split`, `progress`, `fuzzy`, `world`, `dot-matrix`, `radial`, `arc`, `neon`, `bar`, or `elapsed` |
+| `timezone` | string | `""` | IANA timezone to show (e.g. `"Asia/Tokyo"`); empty = follow the display setting |
 | `format24h` | boolean | `false` | Use 24-hour time format |
 | `showSeconds` | boolean | `true` | Display seconds |
 | `showDate` | boolean | `true` | Show date below time |
@@ -260,6 +261,7 @@ A dedicated date display module with multiple visual layouts and optional metada
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"full"` | Display style: `full`, `minimal`, `stacked`, `editorial`, or `banner` |
+| `timezone` | string | `""` | IANA timezone to show (e.g. `"Asia/Tokyo"`); empty = follow the display setting |
 | `dateFormat` | string | `"MMMM d"` | Date format string (date-fns format, used in minimal view) |
 | `showDayName` | boolean | `true` | Show day of week name |
 | `showYear` | boolean | `false` | Show year |

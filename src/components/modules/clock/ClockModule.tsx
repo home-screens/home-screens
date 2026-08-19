@@ -68,11 +68,7 @@ const SCALE_FACTORS: Record<ClockView, number> = {
 /** Views that never need second-level precision */
 const MINUTE_ONLY_VIEWS = new Set<ClockView>(['word', 'fuzzy', 'minimal']);
 
-/** Views that always need second-level precision regardless of showSeconds */
-const ALWAYS_TICK_VIEWS = new Set<ClockView>(['elapsed']);
-
 function getTickInterval(view: ClockView, showSeconds: boolean): number {
-  if (ALWAYS_TICK_VIEWS.has(view)) return 1000;
   if (MINUTE_ONLY_VIEWS.has(view)) return 60_000;
   return showSeconds ? 1000 : 60_000;
 }
@@ -80,12 +76,15 @@ function getTickInterval(view: ClockView, showSeconds: boolean): number {
 interface ClockModuleProps {
   config: ClockConfig;
   style: ModuleStyle;
+  /** Effective zone — buildModuleProps merges the per-module override with the display setting. */
   timezone?: string;
 }
 
 export default function ClockModule({ config, style, timezone }: ClockModuleProps) {
   const view = config.view ?? 'classic';
-  const interval = getTickInterval(view, config.showSeconds ?? true);
+  // The elapsed view ticks its own real clock (useRealClock in the view), so
+  // the module-level shifted clock only needs a coarse keepalive there.
+  const interval = view === 'elapsed' ? 600_000 : getTickInterval(view, config.showSeconds ?? true);
   const now = useTZClock(timezone, interval);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);

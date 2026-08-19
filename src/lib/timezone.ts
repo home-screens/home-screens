@@ -70,6 +70,30 @@ export const COMMON_TIMEZONES: readonly TimezoneOption[] = [
 ];
 
 /**
+ * Full IANA zone list for pickers: `Intl.supportedValuesOf('timeZone')` when
+ * the runtime supports it, COMMON_TIMEZONES otherwise — the fallback contract
+ * the settings Location page established.
+ *
+ * The Intl list is unioned with COMMON_TIMEZONES and 'UTC' (which the Intl
+ * list omits): a runtime's ICU may canonicalize to legacy aliases — Chromium
+ * has served "Asia/Calcutta" with no "Asia/Kolkata" — and a user typing the
+ * modern id must still find the zone. Both ids of an alias pair are valid
+ * IANA names, so on such runtimes both simply appear and both work.
+ */
+export function listTimezoneValues(): string[] {
+  let zones: string[];
+  try {
+    zones = Intl.supportedValuesOf('timeZone');
+  } catch {
+    return COMMON_TIMEZONES.map((tz) => tz.value);
+  }
+  const all = new Set(zones);
+  for (const tz of COMMON_TIMEZONES) all.add(tz.value);
+  all.add('UTC');
+  return [...all];
+}
+
+/**
  * Create a Date whose local-time methods (getHours, getMonth, etc.) reflect
  * the given IANA timezone. Works by extracting date parts via Intl and
  * reconstructing a local Date from them.

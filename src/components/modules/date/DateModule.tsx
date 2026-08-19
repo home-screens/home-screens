@@ -29,6 +29,7 @@ const SCALE_FACTORS: Record<DateView, number> = {
 interface DateModuleProps {
   config: DateConfig;
   style: ModuleStyle;
+  /** Effective zone — buildModuleProps merges the per-module override with the display setting. */
   timezone?: string;
 }
 
