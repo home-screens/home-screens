@@ -18,7 +18,10 @@ export interface ComboboxOption {
  * Filter options by a space-separated query: EVERY term must appear
  * (case-insensitive substring) in the option's label + value + description.
  * Terms are AND-combined — "new y" matches "New York", "new london" does not.
- * Pinned options always survive.
+ * Pinned options ride along while anything real matches (or when they match
+ * themselves), but a zero-match query returns [] so the combobox can show its
+ * no-match state — otherwise a typo followed by Enter would silently commit
+ * the pinned default.
  */
 export function filterComboboxOptions(
   options: readonly ComboboxOption[],
@@ -26,9 +29,10 @@ export function filterComboboxOptions(
 ): ComboboxOption[] {
   const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return [...options];
-  return options.filter((o) => {
-    if (o.pinned) return true;
+  const matches = (o: ComboboxOption) => {
     const haystack = `${o.label} ${o.value} ${o.description ?? ''}`.toLowerCase();
     return terms.every((term) => haystack.includes(term));
-  });
+  };
+  const anyRealMatch = options.some((o) => !o.pinned && matches(o));
+  return options.filter((o) => (o.pinned ? anyRealMatch || matches(o) : matches(o)));
 }

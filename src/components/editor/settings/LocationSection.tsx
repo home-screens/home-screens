@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
@@ -32,6 +32,8 @@ export default function LocationSection({ values, onChange }: Props) {
   const { lat, lon, locationName, timezone } = values;
   const locale = useFormattingLocale();
   const t = useTranslate('editor');
+  const tzFieldId = useId();
+  const tzHelpId = useId();
 
   const [locationQuery, setLocationQuery] = useState('');
   const [locationStatus, setLocationStatus] = useState<LocationStatus | null>(null);
@@ -187,7 +189,9 @@ export default function LocationSection({ values, onChange }: Props) {
         </div>
 
         <div className="block" data-field-id="location.timezone">
-          <span className="text-xs text-hs-text-muted">{t('settings.locationPage.timezoneLabel')}</span>
+          <label htmlFor={tzFieldId} className="text-xs text-hs-text-muted">
+            {t('settings.locationPage.timezoneLabel')}
+          </label>
           <div className="mt-1">
             <TimezoneSelect
               value={timezone}
@@ -196,9 +200,12 @@ export default function LocationSection({ values, onChange }: Props) {
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               })}
               ariaLabel={t('settings.locationPage.timezoneLabel')}
+              id={tzFieldId}
+              ariaDescribedBy={tzHelpId}
+              inputClassName="w-full rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
             />
           </div>
-          <p className="text-xs text-hs-text-faint mt-1">
+          <p id={tzHelpId} className="text-xs text-hs-text-faint mt-1">
             {t('settings.locationPage.timezoneHelp')}
           </p>
         </div>

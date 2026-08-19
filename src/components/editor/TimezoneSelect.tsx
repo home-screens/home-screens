@@ -16,6 +16,10 @@ interface TimezoneSelectProps {
    */
   defaultOptionLabel: string;
   ariaLabel: string;
+  /** Forwarded to the Combobox input (label association, help text, styling tier). */
+  id?: string;
+  ariaDescribedBy?: string;
+  inputClassName?: string;
 }
 
 const CURATED_LABELS = new Map(COMMON_TIMEZONES.map((tz) => [tz.value, tz.label]));
@@ -25,7 +29,9 @@ const CURATED_LABELS = new Map(COMMON_TIMEZONES.map((tz) => [tz.value, tz.label]
  * zones (COMMON_TIMEZONES), city segment otherwise; the IANA id rides as the
  * description so search matches "kolkata" as well as "mumbai".
  */
-export default function TimezoneSelect({ value, onChange, defaultOptionLabel, ariaLabel }: TimezoneSelectProps) {
+export default function TimezoneSelect({
+  value, onChange, defaultOptionLabel, ariaLabel, id, ariaDescribedBy, inputClassName,
+}: TimezoneSelectProps) {
   const t = useTranslate('editor');
   const options = useMemo<ComboboxOption[]>(
     () => [
@@ -46,6 +52,9 @@ export default function TimezoneSelect({ value, onChange, defaultOptionLabel, ar
       onChange={onChange}
       options={options}
       ariaLabel={ariaLabel}
+      id={id}
+      ariaDescribedBy={ariaDescribedBy}
+      inputClassName={inputClassName}
       noMatchText={t('common.noMatches')}
     />
   );

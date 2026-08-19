@@ -143,6 +143,37 @@ test('clock: typing an exact zone and pressing Enter persists', async ({ page, r
   expect((await moduleConfig(request, 'clock')).timezone).toBe('Asia/Kolkata');
 });
 
+test('clock: Tab commits an arrow-highlighted timezone before focus moves on', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('clock'));
+
+  await autosaved(page, async () => {
+    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    await tz.click();
+    await tz.fill('kiri');
+    await tz.press('ArrowDown');    // highlight 0: the pinned default row
+    await tz.press('ArrowDown');    // highlight 1: Pacific/Kiritimati
+    await tz.press('Tab');          // must commit the highlighted row, not discard it
+  });
+
+  expect((await moduleConfig(request, 'clock')).timezone).toBe('Pacific/Kiritimati');
+});
+
+test('clock: a zero-match timezone query shows the empty state and commits nothing', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('clock', { timezone: 'Asia/Tokyo' }));
+
+  const tz = page.getByRole('combobox', { name: 'Timezone' });
+  await tz.click();
+  await tz.fill('tokoy'); // typo — matches nothing, and the pinned row must NOT survive alone
+  const list = page.getByRole('listbox', { name: 'Timezone' });
+  await expect(list).toContainText('No matches');
+  await expect(list.getByRole('option')).toHaveCount(0);
+  await tz.press('ArrowDown');
+  await tz.press('Enter'); // nothing to pick — must not silently clear the override
+  await tz.press('Escape');
+
+  expect((await moduleConfig(request, 'clock')).timezone).toBe('Asia/Tokyo');
+});
+
 test('calendar: switching View Mode persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar'));
 

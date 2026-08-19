@@ -239,15 +239,17 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     settings: { timezone: 'Pacific/Kiritimati' },
     config: { view: 'minimal', dateFormat: 'yyyy-MM-dd', timezone: 'Pacific/Niue' },
     expect: async (mod) => {
-      const text = (await mod.innerText()) ?? '';
-      const fmt = new Intl.DateTimeFormat('en-CA', {
-        year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Pacific/Niue',
-      });
-      const now = new Date();
-      const candidates = [fmt.format(now), fmt.format(new Date(now.getTime() - 86_400_000))];
-      if (!candidates.some((c) => text.includes(c))) {
-        throw new Error(`expected Niue date [${candidates.join(' / ')}] in "${text}"`);
-      }
+      await expect(async () => {
+        const text = (await mod.innerText()) ?? '';
+        const fmt = new Intl.DateTimeFormat('en-CA', {
+          year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Pacific/Niue',
+        });
+        const now = new Date();
+        const candidates = [fmt.format(now), fmt.format(new Date(now.getTime() - 86_400_000))];
+        if (!candidates.some((c) => text.includes(c))) {
+          throw new Error(`expected Niue date [${candidates.join(' / ')}] in "${text}"`);
+        }
+      }).toPass({ timeout: 15_000 });
     },
   },
 

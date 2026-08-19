@@ -24,8 +24,9 @@ describe('filterComboboxOptions', () => {
 
   it('AND-combines space-separated terms — every term must hit', () => {
     expect(filterComboboxOptions(OPTIONS, 'new y').map((o) => o.value)).toEqual(['', 'America/New_York']);
-    // "new" hits New York, "london" hits nothing — only the pinned row survives
-    expect(filterComboboxOptions(OPTIONS, 'new london').map((o) => o.value)).toEqual(['']);
+    // "new" hits New York, "london" hits nothing — no real match, so even the
+    // pinned row drops and the combobox shows its no-match state
+    expect(filterComboboxOptions(OPTIONS, 'new london')).toEqual([]);
   });
 
   it('is case-insensitive in both directions', () => {
@@ -33,7 +34,15 @@ describe('filterComboboxOptions', () => {
     expect(filterComboboxOptions(OPTIONS, 'EUROPE BERLIN').map((o) => o.value)).toEqual(['', 'Europe/Berlin']);
   });
 
-  it('always keeps pinned options regardless of the query', () => {
-    expect(filterComboboxOptions(OPTIONS, 'zzz').map((o) => o.pinned)).toEqual([true]);
+  it('keeps pinned options while at least one real option matches', () => {
+    expect(filterComboboxOptions(OPTIONS, 'berlin').map((o) => o.value)).toEqual(['', 'Europe/Berlin']);
+  });
+
+  it('drops pinned options on a zero-match query so the empty state renders', () => {
+    expect(filterComboboxOptions(OPTIONS, 'zzz')).toEqual([]);
+  });
+
+  it('keeps a pinned option that matches the query itself', () => {
+    expect(filterComboboxOptions(OPTIONS, 'display setting').map((o) => o.value)).toEqual(['']);
   });
 });

@@ -117,7 +117,9 @@ export function buildModuleProps(
   source: ModuleDataSource,
 ): Record<string, unknown> {
   const props: Record<string, unknown> = {
-    timezone: source.timezone,
+    // Per-module override: any module may carry a top-level `timezone` config
+    // key (clock and date today); '' or absent follows the display setting.
+    timezone: (mod.config.timezone as string | undefined) || source.timezone,
     fullscreenTheme: source.fullscreenTheme,
     // Ambient like timezone: every module (calendar, fullscreen-calendar,
     // future plugins) reads the same household clock preference.

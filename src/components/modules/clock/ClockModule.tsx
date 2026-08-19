@@ -76,18 +76,16 @@ function getTickInterval(view: ClockView, showSeconds: boolean): number {
 interface ClockModuleProps {
   config: ClockConfig;
   style: ModuleStyle;
+  /** Effective zone — buildModuleProps merges the per-module override with the display setting. */
   timezone?: string;
 }
 
 export default function ClockModule({ config, style, timezone }: ClockModuleProps) {
   const view = config.view ?? 'classic';
-  // Per-module timezone override; unset falls back to the display's setting
-  // (already threaded in as the `timezone` prop by buildModuleProps).
-  const tz = config.timezone || timezone;
   // The elapsed view ticks its own real clock (useRealClock in the view), so
   // the module-level shifted clock only needs a coarse keepalive there.
   const interval = view === 'elapsed' ? 600_000 : getTickInterval(view, config.showSeconds ?? true);
-  const now = useTZClock(tz, interval);
+  const now = useTZClock(timezone, interval);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
 
@@ -100,7 +98,7 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
         now={now}
         scaledFontSize={scaledFontSize}
         containerRef={containerRef}
-        timezone={tz}
+        timezone={timezone}
       />
     </ModuleWrapper>
   );

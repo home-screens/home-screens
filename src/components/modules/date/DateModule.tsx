@@ -29,15 +29,14 @@ const SCALE_FACTORS: Record<DateView, number> = {
 interface DateModuleProps {
   config: DateConfig;
   style: ModuleStyle;
+  /** Effective zone — buildModuleProps merges the per-module override with the display setting. */
   timezone?: string;
 }
 
 export default function DateModule({ config, style, timezone }: DateModuleProps) {
   const view = config.view ?? 'full';
-  // Per-module timezone override; unset falls back to the display's setting.
-  const tz = config.timezone || timezone;
   // Date only changes once per day, but update every minute for midnight rollover
-  const now = useTZClock(tz, 60_000);
+  const now = useTZClock(timezone, 60_000);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.08;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
 
