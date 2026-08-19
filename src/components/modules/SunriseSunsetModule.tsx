@@ -40,11 +40,24 @@ function getDayLength(sunrise: Date, sunset: Date, locale: string): string {
 
 type PolarKind = ReturnType<typeof polarKind>;
 
+/** Night styling for the "now" sun marker, shared by the arc and circle views
+    and asserted by the unit tests — change it here, not inline. */
+export const NIGHT_SUN_COLOR = '#64748b';
+export const NIGHT_SUN_OPACITY = 0.4;
+
 /** Map a time to a 0–1 progress fraction between sunrise and sunset. <0 = before sunrise, >1 = after sunset. */
 function sunProgress(now: Date, sunrise: Date, sunset: Date): number {
   const total = sunset.getTime() - sunrise.getTime();
   if (total <= 0) return 0;
   return (now.getTime() - sunrise.getTime()) / total;
+}
+
+/** True-epoch daylight check shared by both views: strictly between sunrise
+    and sunset. Polar day/night (Invalid Date) resolves to NaN progress, so
+    every comparison is false and the answer is night. */
+function isSunUp(now: Date, sunrise: Date, sunset: Date): boolean {
+  const progress = sunProgress(now, sunrise, sunset);
+  return progress >= 0 && progress <= 1;
 }
 
 /** Get (x, y) on the arc for a progress value 0–1. Arc spans from left to right as a semicircle above the horizon. */
@@ -109,7 +122,7 @@ function SunArcView({
   }
 
   const progress = sunProgress(now, sunrise, sunset);
-  const isDaytime = progress >= 0 && progress <= 1;
+  const isDaytime = isSunUp(now, sunrise, sunset);
 
   // SVG dimensions
   const w = 280;
@@ -235,8 +248,8 @@ function SunArcView({
           cx={isDaytime ? sunPos.x : cx}
           cy={isDaytime ? sunPos.y : horizonY + 14}
           r={sunRadius}
-          fill={isDaytime ? '#fbbf24' : '#64748b'}
-          fillOpacity={isDaytime ? 1 : 0.4}
+          fill={isDaytime ? '#fbbf24' : NIGHT_SUN_COLOR}
+          fillOpacity={isDaytime ? 1 : NIGHT_SUN_OPACITY}
         />
 
         {/* Sunrise label (left) */}
@@ -457,11 +470,10 @@ function CircleView({
   const sr = sunInvalid ? null : hoursInTZ(sunrise, timezone);
   const ss = sunInvalid ? null : hoursInTZ(sunset, timezone);
 
-  // True-epoch daylight check, same rule as the arc view's gate: the glow and
-  // the sun-colored marker only appear between sunrise and sunset. Polar night
-  // (invalid sunrise/sunset) resolves to NaN progress, so the glow stays off.
-  const progress = sunProgress(now, sunrise, sunset);
-  const isDaytime = progress >= 0 && progress <= 1;
+  // Shared daylight gate with the arc view: the glow and the sun-colored
+  // marker only appear between sunrise and sunset. Polar night (invalid
+  // sunrise/sunset) resolves to NaN progress, so the glow stays off.
+  const isDaytime = isSunUp(now, sunrise, sunset);
 
   const nowPt = circlePoint(circleAngle(hoursInTZ(now, timezone)), CIRCLE_R);
 
@@ -578,8 +590,8 @@ function CircleView({
           cx={nowPt[0]}
           cy={nowPt[1]}
           r="4.5"
-          fill={isDaytime ? dayTimeColor : '#64748b'}
-          fillOpacity={isDaytime ? 1 : 0.4}
+          fill={isDaytime ? dayTimeColor : NIGHT_SUN_COLOR}
+          fillOpacity={isDaytime ? 1 : NIGHT_SUN_OPACITY}
           stroke="currentColor"
           strokeOpacity="0.6"
           strokeWidth="1.5"
