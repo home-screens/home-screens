@@ -145,12 +145,14 @@ describe('CalendarModule multi-week view', () => {
     const { container } = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={events} /></Wrapper>,
     );
-    // Aug 1 is the only month-first day inside Jul 12 – Aug 8.
-    expect(container.textContent).toContain('Aug 1');
-    expect(container.textContent).not.toContain('Sep 1');
+    // Aug 1 is the only month-first day inside Jul 12 – Aug 8. The badge's
+    // flex layout separates month and day with `gap`, so textContent holds
+    // the two flex items back to back with no literal space.
+    expect(container.textContent).toContain('Aug1');
+    expect(container.textContent).not.toContain('Sep1');
     const gradientCells = container.querySelectorAll('[style*="linear-gradient"]');
     expect(gradientCells).toHaveLength(1);
-    expect(gradientCells[0].textContent).toContain('Aug 1');
+    expect(gradientCells[0].textContent).toContain('Aug1');
   });
 
   it('dims first-row past days but not today', () => {
@@ -171,12 +173,17 @@ describe('CalendarModule multi-week view', () => {
     expect(today).not.toBeNull();
     expect(today.className).toContain('rounded');
     expect(today.className).not.toContain('rounded-full');
-    expect(today.style.backgroundColor).toContain('rgba(59, 130, 246'); // #3b82f6cc
+    // Exact accent alpha and weight: a plain-day badge is 0.25-tinted and
+    // 400-weight, so anything looser would pass with the isToday ternaries
+    // broken.
+    expect(today.style.backgroundColor).toBe('rgba(59, 130, 246, 0.8)'); // #3b82f6cc
+    expect(today.style.fontWeight).toBe('700');
     // A plain day gets the same rectangle shape tinted with the accent color
     const plain = queryByText('16') as HTMLElement;
     expect(plain).not.toBeNull();
     expect(plain.className).toContain('rounded');
     expect(plain.style.backgroundColor).toBe('rgba(59, 130, 246, 0.25)'); // #3b82f640
+    expect(plain.style.fontWeight).toBe('400');
   });
 
   it('keeps the month abbreviation inside the month-first rectangle', () => {
@@ -184,11 +191,14 @@ describe('CalendarModule multi-week view', () => {
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={events} /></Wrapper>,
     );
     // Aug 1 is the only gradient cell in the window; its date badge must wrap
-    // the month abbreviation and the number as one shaded unit.
+    // the month abbreviation and the number as one shaded unit, spaced by the
+    // badge's flex gap (a literal space would be collapsed by the flex
+    // layout, rendering "Aug1").
     const cell = container.querySelector('[style*="linear-gradient"]') as HTMLElement;
     const badge = cell.querySelector('span.rounded') as HTMLElement;
     expect(badge).not.toBeNull();
-    expect(badge.textContent.trim()).toBe('Aug 1');
+    expect(badge.textContent.trim()).toBe('Aug1');
+    expect(badge.style.gap).toBe('0.25em');
   });
 
   it('shows past-week events in row 1 (wall-calendar semantics)', () => {
@@ -207,7 +217,7 @@ describe('CalendarModule multi-week view', () => {
       );
       const cell = container.querySelector('[style*="linear-gradient"]') as HTMLElement;
       expect(cell).not.toBeNull();
-      expect(cell.textContent).toContain('Aug 1');
+      expect(cell.textContent).toContain('Aug1');
       expect(cell.style.backgroundColor).toBe('rgba(59, 130, 246, 0.12)'); // today wash layered under the gradient
     } finally {
       vi.setSystemTime(NOW);
@@ -243,7 +253,7 @@ describe('CalendarModule multi-week view', () => {
     expect(countWeekRows(over.container)).toBe(12);
     // 12 weeks from Sun Jul 12 ends Sat Oct 3, so Oct 1 is the last month-first
     // marker; an uncapped 99-week grid would go on to render "Nov 1".
-    expect(over.container.textContent).toContain('Oct 1');
+    expect(over.container.textContent).toContain('Oct1');
     expect(over.container.textContent).not.toContain('Nov');
     cleanup();
 

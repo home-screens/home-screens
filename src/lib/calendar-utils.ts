@@ -138,6 +138,55 @@ export function pickPillTextColor(hex: string | undefined): string {
 }
 
 /**
+ * Hex plus rgb()/rgba() functional notation, which is what ModuleStyle
+ * backgrounds are stored as. Anything else (named colors, gradients,
+ * color-mix) returns null — callers keep their fallback.
+ */
+function parseCssColorToRgb(color: string | undefined): [number, number, number] | null {
+  if (!color) return null;
+  const fn = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (fn) return [Number(fn[1]), Number(fn[2]), Number(fn[3])];
+  return parseHexToRgb(color);
+}
+
+function wcagLuminance([r, g, b]: [number, number, number]): number {
+  const lin = (c: number) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+function contrastRatio(a: [number, number, number], b: [number, number, number]): number {
+  const la = wcagLuminance(a);
+  const lb = wcagLuminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * Text color for content sitting on a translucent accent tint. The tint
+ * hue, the text color, and the surface under both are all independently
+ * user-configurable, so no static pairing is safe: estimate the tint's
+ * effective surface (accent at `tintAlpha` over the module background),
+ * keep `preferred` while it clears 3:1 against that estimate, and fall
+ * back to the same YIQ black/white pick as pickPillTextColor when it
+ * doesn't. A translucent module background is treated as its own RGB (the
+ * wallpaper behind it is unknowable); unparseable inputs keep `preferred`.
+ */
+export function pickTintedTextColor(preferred: string, accentColor: string, moduleBackground: string | undefined, tintAlpha = 0.25): string {
+  const accent = parseHexToRgb(accentColor);
+  const ground = parseCssColorToRgb(moduleBackground);
+  const text = parseCssColorToRgb(preferred);
+  if (!accent || !ground || !text) return preferred;
+  const surface = [0, 1, 2].map(
+    (i) => Math.round(accent[i] * tintAlpha + ground[i] * (1 - tintAlpha)),
+  ) as [number, number, number];
+  if (contrastRatio(text, surface) >= 3) return preferred;
+  const [r, g, b] = surface;
+  return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
+}
+
+/**
  * Check whether a calendar event falls on a given day.
  *
  * All-day events use half-open interval overlap: [evStart, evEnd) ∩ [date, date+1).

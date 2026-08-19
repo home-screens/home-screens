@@ -11,6 +11,7 @@ import {
   formatEventTime,
   isAllDayEvent,
   pickPillTextColor,
+  pickTintedTextColor,
 } from '@/lib/calendar-utils';
 
 describe('clampWeeksToShow', () => {
@@ -375,5 +376,30 @@ describe('pickPillTextColor', () => {
   it('falls back to white for unparseable or missing values', () => {
     expect(pickPillTextColor('red')).toBe('#fff');
     expect(pickPillTextColor(undefined)).toBe('#fff');
+  });
+});
+
+describe('pickTintedTextColor', () => {
+  it('keeps the preferred color when it clears 3:1 on the estimated tint surface', () => {
+    // Default-ish config: white text, blue accent tinted over a dark module.
+    expect(pickTintedTextColor('#ffffff', '#3b82f6', 'rgba(0, 0, 0, 0.4)')).toBe('#ffffff');
+    // Accent-colored month text stays accented on a light module: navy on
+    // a periwinkle tint still reads.
+    expect(pickTintedTextColor('#1e3a8a', '#1e3a8a', '#f9fafb')).toBe('#1e3a8a');
+  });
+
+  it('falls back to the YIQ pick when the pairing fails contrast', () => {
+    // Gray text + dark accent tint over a light module drops under 3:1;
+    // the light estimated surface flips the text dark.
+    expect(pickTintedTextColor('#6b7280', '#1e3a8a', '#f9fafb')).toBe('#1b1b1f');
+    // Dark gray text + light accent over a dark module: dark surface, white text.
+    expect(pickTintedTextColor('#374151', '#facc15', 'rgba(17, 24, 39, 1)')).toBe('#fff');
+  });
+
+  it('keeps the preferred color when any input is unparseable', () => {
+    expect(pickTintedTextColor('white', '#1e3a8a', '#f9fafb')).toBe('white');
+    expect(pickTintedTextColor('#6b7280', 'blue', '#f9fafb')).toBe('#6b7280');
+    expect(pickTintedTextColor('#6b7280', '#1e3a8a', undefined)).toBe('#6b7280');
+    expect(pickTintedTextColor('#6b7280', '#1e3a8a', 'color-mix(in srgb, red 10%, transparent)')).toBe('#6b7280');
   });
 });
