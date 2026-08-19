@@ -428,7 +428,6 @@ export default function MealsSection() {
                     onChange={(e) => setDefaultTime(slot, e.target.value || undefined)}
                     disabled={saving}
                     className="flex-1 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
-                    style={{ colorScheme: 'dark' }}
                     aria-label={t('settings.mealsPage.defaultTimes.timeInputAriaLabel', { name: slotLabel })}
                   />
                   <div className="flex gap-1">

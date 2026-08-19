@@ -294,7 +294,6 @@ export default function MealTimeChip({
                 color: colors.inputText,
                 fontSize: 13,
                 fontFamily: 'inherit',
-                colorScheme: 'dark',
               }}
               aria-label={t('mealTimeChip.servingTime')}
             />

@@ -582,7 +582,7 @@ function MemberColumn({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
         {members.length === 0 && !showAddMember && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
             <p className="text-xs text-hs-text-faint">{t('choreChartModal.members.empty')}</p>
@@ -725,7 +725,7 @@ function ChoreColumn({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
         {chores.length === 0 && !showAddChore && (
           <div className="flex flex-col items-center justify-center py-6 gap-2">
             <p className="text-xs text-hs-text-faint">{t('choreChartModal.chores.empty')}</p>
@@ -848,7 +848,7 @@ function PreviewColumn({
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3" style={{ scrollbarWidth: 'thin' }}>
+      <div className="flex-1 overflow-y-auto p-3">
         {showAddChore ? (
           <ChoreForm
             members={members}

@@ -75,6 +75,11 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
           display: 'block',
           borderRadius: `${style.borderRadius}px`,
           overflow: 'hidden',
+          // Don't inherit the app's color-scheme: a dark scheme on the iframe
+          // element makes Chromium paint an opaque canvas behind light embeds
+          // and flips prefers-color-scheme-aware embeds to dark. User embeds
+          // must render the same regardless of the app's own theme.
+          colorScheme: 'normal',
         }}
         scrolling={config.scrollable ? 'yes' : 'no'}
         loading="eager"

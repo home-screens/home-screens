@@ -38,6 +38,25 @@ async function canvasScale(page: Page): Promise<number> {
   return box.width / 1080;
 }
 
+/**
+ * Dispatch `count` discrete ctrl+wheel notches on the canvas. The 35ms pause
+ * between notches keeps each one above the hook's stream-gap window (25ms), so
+ * every notch is a distinct click that must step the ladder — never throttled.
+ * setTimeout can only overshoot, so the gap cannot collapse on slow CI.
+ * Fine-grained stream timing (throttle, momentum decay) is unit-tested in
+ * src/hooks/__tests__/useCanvasZoom.test.ts where the clock is fake.
+ */
+async function wheelNotch(page: Page, deltaY: number, count = 1): Promise<void> {
+  for (let i = 0; i < count; i++) {
+    await page.evaluate((d) => {
+      document.querySelector('[data-testid="editor-canvas"]')!.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: d, ctrlKey: true, bubbles: true, cancelable: true }),
+      );
+    }, deltaY);
+    await page.waitForTimeout(35);
+  }
+}
+
 test.describe('module lifecycle', () => {
   test('resize handle enlarges the module and autosaves', async ({ page, request }) => {
     await putConfig(request, baseConfig({
@@ -211,11 +230,11 @@ test.describe('canvas toolbar', () => {
     await expect(page.getByText('100%', { exact: true })).toBeVisible();
     const startWidth = (await page.getByTestId('editor-canvas').boundingBox())!.width;
 
-    // Each step multiplies by 1.2: 100 → 120 → 144.
+    // Steps walk the fixed zoom ladder: 100 → 125 → 150.
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('120%', { exact: true })).toBeVisible();
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('144%', { exact: true })).toBeVisible();
+    await expect(page.getByText('150%', { exact: true })).toBeVisible();
 
     // The canvas actually grew with the zoom, not just the label.
     await expect
@@ -226,9 +245,70 @@ test.describe('canvas toolbar', () => {
     await page.getByRole('button', { name: 'Fit to screen' }).click();
     await expect(page.getByText('100%', { exact: true })).toBeVisible();
 
-    // Zoom out divides by 1.2: 100 → 83.
+    // Zoom out steps down the ladder: 100 → 75.
     await page.getByRole('button', { name: 'Zoom out' }).click();
-    await expect(page.getByText('83%', { exact: true })).toBeVisible();
+    await expect(page.getByText('75%', { exact: true })).toBeVisible();
+  });
+
+  test('ctrl+wheel steps the zoom ladder by sign', async ({ page }) => {
+    await openEditor(page);
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+
+    // Wheel away from you (negative deltaY) zooms in one stop per notch.
+    await wheelNotch(page, -100);
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await wheelNotch(page, -100);
+    await expect(page.getByText('150%', { exact: true })).toBeVisible();
+
+    // Positive deltaY zooms back out.
+    await wheelNotch(page, 120);
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+
+    // deltaY of exactly 0 (some devices emit these with ctrl held) is ignored.
+    await wheelNotch(page, 0);
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+
+    // A wheel without ctrl scrolls; it must not step the zoom.
+    await page.evaluate(() => {
+      document.querySelector('[data-testid="editor-canvas"]')!.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }),
+      );
+    });
+    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+  });
+
+  test('a fast flick of wheel notches advances one stop per notch', async ({ page }) => {
+    await openEditor(page);
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+
+    // Three quick notches — spaced above the stream window but far faster
+    // than the stream throttle. Every notch must land: 100 → 125 → 150 → 200.
+    await wheelNotch(page, -100, 3);
+    await expect(page.getByText('200%', { exact: true })).toBeVisible();
+  });
+
+  test('wheel zoom clamps at both ladder ends and disables the matching button', async ({ page }) => {
+    await openEditor(page);
+    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+
+    // Walk to the bottom of the ladder (100 → 20 is 6 stops) with extra
+    // notches beyond it — the clamp must hold at 20%.
+    await wheelNotch(page, 100, 8);
+    await expect(page.getByText('20%', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Zoom out' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
+
+    // Reversing direction after no-op notches at the clamp steps immediately.
+    // (The stream-throttle variant of this — suppressed steps must not arm
+    // the throttle — is unit-tested with a fake clock.)
+    await wheelNotch(page, -100);
+    await expect(page.getByText('25%', { exact: true })).toBeVisible();
+
+    // Walk to the top (25 → 400 is 10 stops) with extra notches beyond it.
+    await wheelNotch(page, -100, 12);
+    await expect(page.getByText('400%', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Zoom out' })).toBeEnabled();
   });
 });
 

@@ -34,9 +34,9 @@ The editor canvas includes a floating toolbar with controls for zoom, undo/redo,
 
 ### Zoom & Pan
 
-The canvas supports zooming from 25% to 300%:
+The canvas supports zooming from 20% to 400% in fixed steps (20, 25, 30, 40, 50, 75, 100, 125, 150, 200, 300, 400):
 
-- **Trackpad pinch** or **Ctrl+Scroll** — zoom in/out centered on the cursor
+- **Trackpad pinch** or **Ctrl+Scroll** — zoom in/out centered on the cursor, stepping through the same fixed increments
 - **Zoom buttons** — use the **+** and **−** buttons in the floating toolbar
 - **Keyboard** — `Cmd+=` / `Ctrl+=` to zoom in, `Cmd+-` / `Ctrl+-` to zoom out, `Cmd+0` / `Ctrl+0` to fit
 - **Fit to screen** — click the fit button to reset zoom so the entire canvas is visible. The button only appears while you are zoomed in or out; at 100% there is nothing to fit

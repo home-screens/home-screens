@@ -119,7 +119,7 @@ export default function SidebarLibrary({
       </div>
 
       {/* Meal list */}
-      <div className="flex-1 overflow-y-auto p-2 scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-2">
         {filteredMeals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-hs-text-faint gap-2 py-8">
             <svg
