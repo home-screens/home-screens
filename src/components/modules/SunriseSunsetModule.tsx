@@ -457,6 +457,12 @@ function CircleView({
   const sr = sunInvalid ? null : hoursInTZ(sunrise, timezone);
   const ss = sunInvalid ? null : hoursInTZ(sunset, timezone);
 
+  // True-epoch daylight check, same rule as the arc view's gate: the glow and
+  // the sun-colored marker only appear between sunrise and sunset. Polar night
+  // (invalid sunrise/sunset) resolves to NaN progress, so the glow stays off.
+  const progress = sunProgress(now, sunrise, sunset);
+  const isDaytime = progress >= 0 && progress <= 1;
+
   const nowPt = circlePoint(circleAngle(hoursInTZ(now, timezone)), CIRCLE_R);
 
   const marks: { angle: number; time: Date; wordKey: string }[] = [];
@@ -563,9 +569,21 @@ function CircleView({
           </g>
         )}
 
-        {/* now: same radial glow as the arc view */}
-        <circle cx={nowPt[0]} cy={nowPt[1]} r="32" fill={`url(#${glowId})`} />
-        <circle cx={nowPt[0]} cy={nowPt[1]} r="4.5" fill={dayTimeColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
+        {/* now: same radial glow as the arc view — daylight only, off between
+            sunset and sunrise so the night segments read cleanly */}
+        {isDaytime && (
+          <circle cx={nowPt[0]} cy={nowPt[1]} r="32" fill={`url(#${glowId})`} />
+        )}
+        <circle
+          cx={nowPt[0]}
+          cy={nowPt[1]}
+          r="4.5"
+          fill={isDaytime ? dayTimeColor : '#64748b'}
+          fillOpacity={isDaytime ? 1 : 0.4}
+          stroke="currentColor"
+          strokeOpacity="0.6"
+          strokeWidth="1.5"
+        />
 
         {/* centered durations (polar night gets its caption in place of day length) */}
         {sunInvalid ? (
