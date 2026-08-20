@@ -5,7 +5,8 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { CalendarLegend } from './shared/CalendarLegend';
+import { parseEventWallTime, isEventUpcoming, legendSources, eventsInWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus } from '@/types/config';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -975,6 +976,32 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now, timezone));
+  // Legend rows come from the events the current view actually draws — the
+  // shared fetch window is wider than any single view, so scope to the view's
+  // day range before collecting sources (agenda has no day bound beyond the
+  // upcoming filter). The holidays pseudo-source carries a hardcoded English
+  // sourceName from the route; swap in the translated label.
+  const legendPlacement = config.showLegend ?? 'off';
+  let legend: LegendSource[] = [];
+  if (legendPlacement !== 'off') {
+    const weekStartsOn = weekStartsOnFor(config.startDay);
+    let windowed = allEvents;
+    if (viewMode === 'daily') {
+      windowed = eventsInWindow(allEvents, today, addDays(today, Math.max(1, config.daysToShow ?? 3)), timezone);
+    } else if (viewMode === 'week') {
+      const start = startOfWeek(today, { weekStartsOn });
+      windowed = eventsInWindow(allEvents, start, addDays(start, 7), timezone);
+    } else if (viewMode === 'month') {
+      const start = startOfWeek(startOfMonth(today), { weekStartsOn });
+      windowed = eventsInWindow(allEvents, start, addDays(endOfWeek(endOfMonth(today), { weekStartsOn }), 1), timezone);
+    } else if (viewMode === 'multi-week') {
+      const start = startOfWeek(today, { weekStartsOn });
+      windowed = eventsInWindow(allEvents, start, addDays(start, clampWeeksToShow(config.weeksToShow) * 7), timezone);
+    }
+    legend = legendSources(windowed).map((s) =>
+      s.sourceId === 'holidays' ? { ...s, sourceName: t('calendar.publicHolidays') } : s,
+    );
+  }
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
@@ -1048,9 +1075,27 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
             </span>
           </div>
         )}
+        {legendPlacement === 'header' && (
+          <CalendarLegend
+            sources={legend}
+            label={t('calendar.legendLabel')}
+            // maxHeight ≈ two wrapped rows: in a small module an unbounded
+            // legend (8+ sources) could starve the flex-1 view area to zero.
+            style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
+          />
+        )}
         <div className="flex-1 min-h-0">
           <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} t={t} tCore={tCore} locale={locale} />
         </div>
+        {legendPlacement === 'footer' && (
+          <CalendarLegend
+            sources={legend}
+            label={t('calendar.legendLabel')}
+            // maxHeight ≈ two wrapped rows: in a small module an unbounded
+            // legend (8+ sources) could starve the flex-1 view area to zero.
+            style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', maxHeight: '3.4em', overflow: 'hidden' }}
+          />
+        )}
       </div>
       {tapDetails && detailEvent && (
         <EventDetailOverlay

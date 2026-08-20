@@ -2291,7 +2291,11 @@
       "separators": "Uge- og månedsmarkeringer",
       "separatorsNone": "Ingen",
       "separatorsWeeks": "Uger",
-      "separatorsWeeksMonths": "Uger og måneder"
+      "separatorsWeeksMonths": "Uger og måneder",
+      "showLegend": "Kildeforklaring",
+      "legendOff": "Fra",
+      "legendHeader": "Øverst i kalenderen",
+      "legendFooter": "Nederst i kalenderen"
     },
     "chore-chart": {
       "viewBoard": "Tavle (kolonne pr. medlem)",
@@ -2524,7 +2528,11 @@
       "separators": "Uge- og månedsmarkeringer",
       "separatorsNone": "Ingen",
       "separatorsWeeks": "Uger",
-      "separatorsWeeksMonths": "Uger og måneder"
+      "separatorsWeeksMonths": "Uger og måneder",
+      "showLegend": "Kildeforklaring",
+      "legendOff": "Fra",
+      "legendHeader": "Øverst i kalenderen",
+      "legendFooter": "Nederst i kalenderen"
     },
     "fullscreen-chore-chart": {
       "view": "Visning",

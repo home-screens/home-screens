@@ -9,7 +9,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { effectiveWeatherPlacement } from '@/lib/calendar-utils';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 const SHOW_DESCRIPTION_KEY = {
@@ -89,6 +89,12 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'today', label: t('configSections.fullscreen-calendar.anchorToday') },
     { value: 'start-of-week', label: t('configSections.fullscreen-calendar.anchorStartOfWeek') },
     { value: 'next-weekend', label: t('configSections.fullscreen-calendar.anchorWeekend') },
+  ];
+
+  const LEGEND_OPTIONS: { value: CalendarLegendPlacement; label: string }[] = [
+    { value: 'off', label: t('configSections.fullscreen-calendar.legendOff') },
+    { value: 'header', label: t('configSections.fullscreen-calendar.legendHeader') },
+    { value: 'footer', label: t('configSections.fullscreen-calendar.legendFooter') },
   ];
 
   const isListView = view === 'agenda' || view === 'week-list';
@@ -237,6 +243,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         availableSources={availableSources}
         sourceFilter={sourceFilter}
         onChange={(next) => set({ sourceFilter: next })}
+      />
+
+      {/* Source legend */}
+      <LabeledSelect
+        label={t('configSections.fullscreen-calendar.showLegend')}
+        value={c.showLegend ?? 'off'}
+        onChange={(v) => set({ showLegend: v })}
+        options={LEGEND_OPTIONS}
       />
 
       {/* View-specific settings */}

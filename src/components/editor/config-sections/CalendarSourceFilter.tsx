@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
+import type { ICalSource, ICloudSource } from '@/types/config';
+
+// Stable fallbacks for the store selectors below. A literal `?? []` inside a
+// zustand selector mints a new array per snapshot when the key is absent,
+// which useSyncExternalStore reads as endless store changes (React #185,
+// infinite re-render, tab crash). Same convention as EMPTY_DISPLAYS in
+// DisplayControlConfigSection.
+const EMPTY_IDS: string[] = [];
+const EMPTY_ICAL: ICalSource[] = [];
+const EMPTY_ICLOUD: ICloudSource[] = [];
 
 interface GoogleCalendar {
   id: string;
@@ -30,9 +40,9 @@ export function useCalendarSources(keyPrefix: string): {
   googleAuthError: boolean;
 } {
   const t = useTranslate('editor');
-  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
-  const icalSources = useEditorStore((s) => s.config?.settings?.calendar?.icalSources ?? []);
-  const icloudSources = useEditorStore((s) => s.config?.settings?.calendar?.icloudSources ?? []);
+  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? EMPTY_IDS);
+  const icalSources = useEditorStore((s) => s.config?.settings?.calendar?.icalSources ?? EMPTY_ICAL);
+  const icloudSources = useEditorStore((s) => s.config?.settings?.calendar?.icloudSources ?? EMPTY_ICLOUD);
   const holidayCountry = useEditorStore((s) => s.config?.settings?.calendar?.holidayCountry);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleAuthError, setGoogleAuthError] = useState(false);

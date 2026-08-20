@@ -447,4 +447,22 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'agenda', agendaSeparators: 'weeks-and-months' },
     expect: has('Week of'),
   },
+  {
+    // Assert on the legend's own list element, not bare source-name text —
+    // AgendaView (and any future view) may render sourceName in event rows,
+    // which would make a text-only assertion pass with the legend deleted.
+    type: 'fullscreen-calendar', name: 'legend-header', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', showLegend: 'header' },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
+    },
+  },
+  {
+    // Footer placement of the same legend, on a list view.
+    type: 'fullscreen-calendar', name: 'legend-footer', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', showLegend: 'footer' },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
+    },
+  },
 ];

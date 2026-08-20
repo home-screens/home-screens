@@ -129,7 +129,9 @@
     "savedFrom": "Saved from {time}",
     "savedEvents": "Showing saved events",
     "cantLoadEvents": "Can't load events right now",
-    "weekOf": "Week of {date}"
+    "weekOf": "Week of {date}",
+    "legendLabel": "Calendar sources",
+    "publicHolidays": "Public Holidays"
   },
   "fullscreen-calendar": {
     "allDay": "All Day",
@@ -163,7 +165,8 @@
       "eventAllDay": "{title}, all day",
       "eventTimed": "{title}, {start} to {end}",
       "eventTimedAtLocation": "{title}, {start} to {end}, at {location}",
-      "monthCell": "{date}, {count} events"
+      "monthCell": "{date}, {count} events",
+      "legend": "Calendar sources"
     },
     "fromTime": "From {time}",
     "untilTime": "Until {time}",

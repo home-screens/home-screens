@@ -569,6 +569,59 @@ export function isEventUpcoming(ev: { end: string }, now: Date, timezone?: strin
   return parseEventWallTime(ev.end, timezone) > now;
 }
 
+/**
+ * Events overlapping the half-open [start, end) window on the display wall
+ * clock. Used to scope the legend to the days a view actually draws, since
+ * the shared fetch window is usually wider than any single view.
+ */
+export function eventsInWindow<T extends { start: string; end: string }>(
+  events: T[],
+  start: Date,
+  end: Date,
+  timezone?: string,
+): T[] {
+  return events.filter(
+    (ev) => parseEventWallTime(ev.start, timezone) < end && parseEventWallTime(ev.end, timezone) > start,
+  );
+}
+
+/** One legend row: a source that has at least one rendered event. */
+export interface LegendSource {
+  sourceId: string;
+  sourceName: string;
+  calendarColor: string;
+}
+
+/**
+ * The sources to show in a calendar legend: unique per sourceId, in
+ * first-seen event order. Callers pass the events they actually render (after
+ * their own source filtering), so a configured source with nothing in the
+ * window never appears. The dot takes each source's most common event color,
+ * not the first seen — Google applies per-event colorId overrides, and a lone
+ * recolored event must not repaint the whole source's dot.
+ */
+export function legendSources(
+  events: { sourceId?: string; sourceName?: string; calendarColor?: string }[],
+): LegendSource[] {
+  const seen = new Map<string, { sourceName: string; colorCounts: Map<string, number> }>();
+  for (const ev of events) {
+    if (!ev.sourceId || !ev.sourceName) continue;
+    const entry = seen.get(ev.sourceId) ?? { sourceName: ev.sourceName, colorCounts: new Map<string, number>() };
+    const color = ev.calendarColor ?? '#3B82F6';
+    entry.colorCounts.set(color, (entry.colorCounts.get(color) ?? 0) + 1);
+    seen.set(ev.sourceId, entry);
+  }
+  return [...seen.entries()].map(([sourceId, { sourceName, colorCounts }]) => {
+    let best = '#3B82F6';
+    let bestCount = 0;
+    for (const [color, count] of colorCounts) {
+      // Strict > keeps first-seen order as the tiebreak.
+      if (count > bestCount) { best = color; bestCount = count; }
+    }
+    return { sourceId, sourceName, calendarColor: best };
+  });
+}
+
 const ENTITY_MAP: Record<string, string> = {
   amp: '&',
   lt: '<',

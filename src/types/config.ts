@@ -564,6 +564,9 @@ export type WeekStartDay = 'sunday' | 'monday';
 // Where forecast data renders: module header pill, day headers (daily
 // forecast), event rows (hourly at the event's start time), or both.
 export type WeatherPlacement = 'off' | 'header' | 'days' | 'events' | 'days-and-events';
+// Source legend (one dot + name per source with an event in the rendered
+// window): hidden, a row in the module header, or a footer strip.
+export type CalendarLegendPlacement = 'off' | 'header' | 'footer';
 
 /**
  * Health of the shared calendar fetch, passed to calendar modules only while
@@ -637,6 +640,8 @@ export interface FullscreenCalendarConfig {
   agendaHideEmptyDays: boolean;
   agendaShowDescription?: boolean;
   agendaSeparators?: AgendaSeparators;  // default 'none'
+  // Sources present in the rendered window, as dot + name. Default 'off'.
+  showLegend?: CalendarLegendPlacement;
 }
 
 // Calendar module config
@@ -687,6 +692,8 @@ export interface CalendarConfig {
   emptyDayText?: string;
   // Agenda view: week/month boundary separators (month beats week).
   agendaSeparators?: AgendaSeparators;  // default 'none'
+  // Sources present in the rendered window, as dot + name. Default 'off'.
+  showLegend?: CalendarLegendPlacement;
 }
 
 // Unified weather module config

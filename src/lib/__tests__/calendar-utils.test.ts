@@ -4,6 +4,8 @@ import {
   compareEventStarts,
   isEventOnDay,
   isEventUpcoming,
+  legendSources,
+  eventsInWindow,
   sanitizeEventDescription,
   clampWeeksToShow,
   weekNumberOptions,
@@ -326,6 +328,59 @@ describe('isEventUpcoming', () => {
     // neither, depending on the OS offset.
     expect(isEventUpcoming({ end: '2026-06-15T01:00:00Z' }, now, 'Pacific/Auckland')).toBe(false);
     expect(isEventUpcoming({ end: '2026-06-15T03:00:00Z' }, now, 'Pacific/Auckland')).toBe(true);
+  });
+});
+
+describe('legendSources', () => {
+  const evs = [
+    { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+    { sourceId: 'ava', sourceName: 'Ava', calendarColor: '#EC4899' },
+    { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+    { sourceId: 'school', sourceName: 'School' },
+    { sourceName: 'Orphan color, no id' },
+  ];
+
+  it('dedupes by sourceId in first-seen order and defaults the color', () => {
+    expect(legendSources(evs)).toEqual([
+      { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+      { sourceId: 'ava', sourceName: 'Ava', calendarColor: '#EC4899' },
+      { sourceId: 'school', sourceName: 'School', calendarColor: '#3B82F6' },
+    ]);
+  });
+
+  it('uses the majority event color, so a lone colorId override cannot repaint the dot', () => {
+    const overridden = [
+      { sourceId: 'family', sourceName: 'Family', calendarColor: '#D50000' }, // per-event override, first seen
+      { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+      { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+    ];
+    expect(legendSources(overridden)).toEqual([
+      { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
+    ]);
+  });
+
+  it('omits a configured source with no rendered events (input is the rendered set)', () => {
+    expect(legendSources([])).toEqual([]);
+  });
+});
+
+describe('eventsInWindow', () => {
+  const win = { start: new Date(2026, 7, 20), end: new Date(2026, 7, 23) };
+
+  it('keeps overlapping events and drops ones outside the window', () => {
+    const inside = { start: '2026-08-21T10:00:00', end: '2026-08-21T11:00:00' };
+    const spanning = { start: '2026-08-19T22:00:00', end: '2026-08-20T02:00:00' };
+    const after = { start: '2026-08-25T10:00:00', end: '2026-08-25T11:00:00' };
+    const before = { start: '2026-08-19T08:00:00', end: '2026-08-19T09:00:00' };
+    expect(eventsInWindow([inside, spanning, after, before], win.start, win.end)).toEqual([inside, spanning]);
+  });
+
+  it('reads zoned events on the display wall clock', () => {
+    // 14:00Z Aug 19 is 02:00 Aug 20 in Auckland — inside an Aug 20 window
+    // there, outside it for a UTC-or-west OS clock.
+    const ev = { start: '2026-08-19T14:00:00Z', end: '2026-08-19T15:00:00Z' };
+    expect(eventsInWindow([ev], win.start, win.end, 'Pacific/Auckland')).toEqual([ev]);
+    expect(eventsInWindow([ev], win.start, win.end)).toEqual([]);
   });
 });
 

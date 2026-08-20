@@ -129,7 +129,9 @@
     "savedFrom": "Opgeslagen om {time}",
     "savedEvents": "Opgeslagen afspraken worden getoond",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
-    "weekOf": "Week van {date}"
+    "weekOf": "Week van {date}",
+    "legendLabel": "Kalenderbronnen",
+    "publicHolidays": "Officiële feestdagen"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dag",
@@ -163,7 +165,8 @@
       "eventAllDay": "{title}, hele dag",
       "eventTimed": "{title}, {start} tot {end}",
       "eventTimedAtLocation": "{title}, {start} tot {end}, bij {location}",
-      "monthCell": "{date}, {count} afspraken"
+      "monthCell": "{date}, {count} afspraken",
+      "legend": "Kalenderbronnen"
     },
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",

@@ -11,11 +11,15 @@ import { isGridView } from '@/lib/calendar-utils';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { AgendaSeparators, EventTapStyle, ModuleInstance } from '@/types/config';
+import type { AgendaSeparators, CalendarLegendPlacement, EventTapStyle, ModuleInstance } from '@/types/config';
 
 // Sourced from the registry so the reset button can't drift from the accent
 // a freshly added calendar module actually starts with.
 const DEFAULT_CALENDAR_ACCENT = getModuleDefinition('calendar')!.defaultConfig.accentColor as string;
+
+// Stable selector fallback — a literal `?? []` inside a zustand selector
+// re-renders forever when the key is absent (React #185, tab crash).
+const EMPTY_IDS: string[] = [];
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -43,6 +47,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     showProgressBar?: boolean;
     emptyDayText?: string;
     agendaSeparators?: AgendaSeparators;
+    showLegend?: CalendarLegendPlacement;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -77,8 +82,14 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'vivid', label: t('configSections.calendar.themeVivid') },
   ] as const;
 
+  const LEGEND_OPTIONS = [
+    { value: 'off', label: t('configSections.calendar.legendOff') },
+    { value: 'header', label: t('configSections.calendar.legendHeader') },
+    { value: 'footer', label: t('configSections.calendar.legendFooter') },
+  ] as const;
+
   const { availableSources, googleAuthError } = useCalendarSources('configSections.calendar');
-  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
+  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? EMPTY_IDS);
 
   return (
     <>
@@ -100,6 +111,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         availableSources={availableSources}
         sourceFilter={sourceFilter}
         onChange={(next) => set({ sourceFilter: next })}
+      />
+
+      <LabeledSelect
+        label={t('configSections.calendar.showLegend')}
+        value={c.showLegend ?? 'off'}
+        onChange={(v) => set({ showLegend: v })}
+        options={LEGEND_OPTIONS}
       />
 
       {viewMode === 'daily' && (

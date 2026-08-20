@@ -129,7 +129,9 @@
     "savedFrom": "Gespeichert um {time}",
     "savedEvents": "Gespeicherte Termine werden angezeigt",
     "cantLoadEvents": "Termine können gerade nicht geladen werden",
-    "weekOf": "Woche vom {date}"
+    "weekOf": "Woche vom {date}",
+    "legendLabel": "Kalenderquellen",
+    "publicHolidays": "Feiertage"
   },
   "fullscreen-calendar": {
     "allDay": "Ganztägig",
@@ -163,7 +165,8 @@
       "eventAllDay": "{title}, ganztägig",
       "eventTimed": "{title}, {start} bis {end}",
       "eventTimedAtLocation": "{title}, {start} bis {end}, bei {location}",
-      "monthCell": "{date}, {count} Termine"
+      "monthCell": "{date}, {count} Termine",
+      "legend": "Kalenderquellen"
     },
     "fromTime": "Ab {time}",
     "untilTime": "Bis {time}",

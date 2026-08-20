@@ -9,6 +9,7 @@ import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { clampStyle } from './FullscreenCalendarModule';
 import type { CalendarViewProps } from './FullscreenCalendarModule';
+import { useContainerHeight } from './shared-time-grid';
 
 export function MonthGridView({ events, timezone, config, scale, today, now: _now }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -21,6 +22,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
   const wrapTitles = config.wrapEventTitles === true;
 
   const weekStartsOn = weekStartsOnFor(config.startDay);
+  const { scrollRef, containerH } = useContainerHeight();
 
   // Build calendar grid cells
   const { cells, weekCount } = useMemo(() => {
@@ -71,7 +73,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
       </div>
 
       {/* Month grid */}
-      <div style={{
+      <div ref={scrollRef} style={{
         display: 'grid',
         gridTemplateColumns: showWeekNumbers ? `${scale.bu * 3}px repeat(7, 1fr)` : 'repeat(7, 1fr)',
         gridTemplateRows: `repeat(${weekCount}, 1fr)`,
@@ -94,9 +96,12 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
           const allDayEvs = dayEvents.filter(ev => ev.allDay);
           const timedEvs = dayEvents.filter(ev => !ev.allDay);
 
-          // Auto-calculate max visible events from approximate cell height;
-          // wrapped titles can take two lines, so budget double the pill height
-          const approxCellHeight = (scale.height - scale.bu * 7) / weekCount;
+          // Auto-calculate max visible events from the measured grid height
+          // (header, legend, and weekday row already excluded); the estimate
+          // from full module height minus a fixed chrome allowance is only
+          // the pre-measurement fallback. Wrapped titles can take two lines,
+          // so budget double the pill height.
+          const approxCellHeight = (containerH > 0 ? containerH : scale.height - scale.bu * 7) / weekCount;
           const pillHeight = fontSize * (wrapTitles ? 2.0 : 1.0);
           const autoMax = config.monthMaxEventsPerCell > 0
             ? config.monthMaxEventsPerCell

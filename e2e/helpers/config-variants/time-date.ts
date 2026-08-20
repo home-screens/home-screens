@@ -687,4 +687,21 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       await expect(pill).toHaveCSS('color', 'rgb(27, 27, 31)');
     },
   },
+  {
+    // Assert on the legend's own list element, not bare source-name text, so
+    // a view that happens to render sourceName can't satisfy the row.
+    type: 'calendar', name: 'legend-header', kind: 'networked', stubKey: 'calendar',
+    config: { viewMode: 'daily', showLegend: 'header' },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
+    },
+  },
+  {
+    // Footer placement of the same legend, under a grid view.
+    type: 'calendar', name: 'legend-footer', kind: 'networked', stubKey: 'calendar',
+    config: { viewMode: 'month', showLegend: 'footer' },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
+    },
+  },
 ];

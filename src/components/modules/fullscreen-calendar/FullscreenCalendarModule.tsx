@@ -1,12 +1,12 @@
 'use client';
 
 import { memo, useEffect, useMemo, useState } from 'react';
-import { startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { effectiveWeatherPlacement, formatEventTime, isEventUpcoming, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { effectiveWeatherPlacement, eventsInWindow, formatEventTime, isEventUpcoming, legendSources, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildHourlyIndex, type HourlyIndex } from './event-weather';
 import { toTZWallTime } from '@/lib/timezone';
 import { parseHexToRgb } from '@/lib/hex-color';
@@ -22,6 +22,7 @@ import { MonthGridView } from './MonthGridView';
 import { DayTimelineView } from './DayTimelineView';
 import { AgendaView } from './AgendaView';
 import { EventDetailOverlay } from '../shared/EventDetailOverlay';
+import { CalendarLegend } from '../shared/CalendarLegend';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
 // (potentially hundreds of) event blocks from reconciling on those frames —
@@ -78,6 +79,19 @@ export interface CalendarViewProps {
 }
 
 // ─── Helpers ───
+
+/** Shared chrome for the header/footer legend strips; the caller adds the one differing border. */
+function legendStripStyle(scale: CalendarScale): React.CSSProperties {
+  return {
+    flexShrink: 0,
+    fontSize: `${scale.bu * 1.1 * scale.typoMul}px`,
+    color: 'var(--cal-text-secondary)',
+    background: 'var(--cal-header-bg)',
+    padding: `${scale.bu * 0.6}px 1.5%`,
+    position: 'relative',
+    zIndex: 20,
+  };
+}
 
 function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
   const ratio = w / h;
@@ -356,6 +370,48 @@ export default function FullscreenCalendarModule({
     : undefined;
   const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays, config.startDay, scheduleStart);
 
+  // Legend rows come from the events the current view actually draws — the
+  // shared fetch window is wider than any single view, so scope to the view's
+  // day range before collecting sources. The holidays pseudo-source carries a
+  // hardcoded English sourceName from the route; swap in the translated label.
+  const legendPlacement = config.showLegend ?? 'off';
+  const legend = useMemo(() => {
+    if (legendPlacement === 'off') return [];
+    const weekStartsOn = weekStartsOnFor(config.startDay);
+    let start = today;
+    let end: Date;
+    switch (config.view) {
+      case 'schedule': {
+        start = resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn);
+        const days = config.scheduleDaysToShow > 0
+          ? config.scheduleDaysToShow
+          : autoScheduleDays(scale.width, config.density);
+        end = addDays(start, days);
+        break;
+      }
+      case 'week-list':
+        start = startOfWeek(today, { weekStartsOn });
+        end = addDays(start, 7);
+        break;
+      case 'month-grid':
+        start = startOfWeek(startOfMonth(today), { weekStartsOn });
+        end = addDays(endOfWeek(endOfMonth(today), { weekStartsOn }), 1);
+        break;
+      case 'day-timeline':
+        end = addDays(today, 1);
+        break;
+      default: // agenda
+        end = addDays(today, config.agendaDaysAhead > 0 ? config.agendaDaysAhead : 14);
+    }
+    return legendSources(eventsInWindow(events, start, end, timezone)).map((s) =>
+      s.sourceId === 'holidays' ? { ...s, sourceName: t('calendar.publicHolidays') } : s,
+    );
+  }, [
+    legendPlacement, events, timezone, today, t,
+    config.view, config.startDay, config.scheduleStartAnchor, config.scheduleDaysToShow,
+    config.density, config.agendaDaysAhead, scale.width,
+  ]);
+
   // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;
   const weatherIconId = hourly?.[0]?.icon;
@@ -427,6 +483,8 @@ export default function FullscreenCalendarModule({
       style={{
         width: '100%',
         height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
         fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
         overflow: 'hidden',
         position: 'relative',
@@ -454,7 +512,7 @@ export default function FullscreenCalendarModule({
       <style>{cssTokens}</style>
 
       {/* Header bar */}
-      <header className="fsc-header" style={{ height: `${scale.bu * 5}px` }} role="banner">
+      <header className="fsc-header" style={{ height: `${scale.bu * 5}px`, flexShrink: 0 }} role="banner">
         <h1
           className="fsc-header-title"
           style={{ fontSize: `${scale.bu * 3.5 * scale.typoMul}px`, margin: 0 }}
@@ -498,8 +556,16 @@ export default function FullscreenCalendarModule({
         </span>
       </header>
 
+      {legendPlacement === 'header' && (
+        <CalendarLegend
+          sources={legend}
+          label={t('fullscreen-calendar.ariaLabels.legend')}
+          style={{ ...legendStripStyle(scale), borderBottom: '1px solid var(--cal-border-subtle)' }}
+        />
+      )}
+
       {/* View area */}
-      <div className="fsc-content" style={{ height: `calc(100% - ${scale.bu * 5}px)` }}>
+      <div className="fsc-content" style={{ flex: 1, minHeight: 0 }}>
         {isLoading ? (
           <SkeletonLoading scale={scale} />
         ) : !hasEvents ? (
@@ -524,6 +590,14 @@ export default function FullscreenCalendarModule({
           </AnimatePresence>
         )}
       </div>
+
+      {legendPlacement === 'footer' && (
+        <CalendarLegend
+          sources={legend}
+          label={t('fullscreen-calendar.ariaLabels.legend')}
+          style={{ ...legendStripStyle(scale), borderTop: '1px solid var(--cal-border-subtle)' }}
+        />
+      )}
 
       {tapDetails && detailEvent && (
         <EventDetailOverlay

@@ -2291,7 +2291,11 @@
       "separators": "Week- en maandmarkeringen",
       "separatorsNone": "Geen",
       "separatorsWeeks": "Weken",
-      "separatorsWeeksMonths": "Weken en maanden"
+      "separatorsWeeksMonths": "Weken en maanden",
+      "showLegend": "Bronlegenda",
+      "legendOff": "Uit",
+      "legendHeader": "Boven in de kalender",
+      "legendFooter": "Onder in de kalender"
     },
     "chore-chart": {
       "viewBoard": "Bord (kolom per lid)",
@@ -2524,7 +2528,11 @@
       "separators": "Week- en maandmarkeringen",
       "separatorsNone": "Geen",
       "separatorsWeeks": "Weken",
-      "separatorsWeeksMonths": "Weken en maanden"
+      "separatorsWeeksMonths": "Weken en maanden",
+      "showLegend": "Bronlegenda",
+      "legendOff": "Uit",
+      "legendHeader": "Boven in de kalender",
+      "legendFooter": "Onder in de kalender"
     },
     "fullscreen-chore-chart": {
       "view": "Weergave",

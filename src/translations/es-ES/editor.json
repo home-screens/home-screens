@@ -2296,7 +2296,11 @@
       "separators": "Marcadores de semana y mes",
       "separatorsNone": "Ninguno",
       "separatorsWeeks": "Semanas",
-      "separatorsWeeksMonths": "Semanas y meses"
+      "separatorsWeeksMonths": "Semanas y meses",
+      "showLegend": "Leyenda de fuentes",
+      "legendOff": "Desactivada",
+      "legendHeader": "Arriba del calendario",
+      "legendFooter": "Abajo del calendario"
     },
     "chore-chart": {
       "viewBoard": "Tablero (columna por miembro)",
@@ -2529,7 +2533,11 @@
       "separators": "Marcadores de semana y mes",
       "separatorsNone": "Ninguno",
       "separatorsWeeks": "Semanas",
-      "separatorsWeeksMonths": "Semanas y meses"
+      "separatorsWeeksMonths": "Semanas y meses",
+      "showLegend": "Leyenda de fuentes",
+      "legendOff": "Desactivada",
+      "legendHeader": "Arriba del calendario",
+      "legendFooter": "Abajo del calendario"
     },
     "fullscreen-chore-chart": {
       "view": "Vista",

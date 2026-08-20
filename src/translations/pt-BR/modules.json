@@ -129,7 +129,9 @@
     "savedFrom": "Salvo às {time}",
     "savedEvents": "Mostrando eventos salvos",
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
-    "weekOf": "Semana de {date}"
+    "weekOf": "Semana de {date}",
+    "legendLabel": "Fontes do calendário",
+    "publicHolidays": "Feriados nacionais"
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",
@@ -163,7 +165,8 @@
       "eventAllDay": "{title}, dia inteiro",
       "eventTimed": "{title}, das {start} às {end}",
       "eventTimedAtLocation": "{title}, das {start} às {end}, em {location}",
-      "monthCell": "{date}, {count} eventos"
+      "monthCell": "{date}, {count} eventos",
+      "legend": "Fontes do calendário"
     },
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",

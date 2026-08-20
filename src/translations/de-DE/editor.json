@@ -2291,7 +2291,11 @@
       "separators": "Wochen- und Monatsmarkierungen",
       "separatorsNone": "Keine",
       "separatorsWeeks": "Wochen",
-      "separatorsWeeksMonths": "Wochen und Monate"
+      "separatorsWeeksMonths": "Wochen und Monate",
+      "showLegend": "Quellen-Legende",
+      "legendOff": "Aus",
+      "legendHeader": "Oben im Kalender",
+      "legendFooter": "Unten im Kalender"
     },
     "chore-chart": {
       "viewBoard": "Board (Spalte je Person)",
@@ -2524,7 +2528,11 @@
       "separators": "Wochen- und Monatsmarkierungen",
       "separatorsNone": "Keine",
       "separatorsWeeks": "Wochen",
-      "separatorsWeeksMonths": "Wochen und Monate"
+      "separatorsWeeksMonths": "Wochen und Monate",
+      "showLegend": "Quellen-Legende",
+      "legendOff": "Aus",
+      "legendHeader": "Oben im Kalender",
+      "legendFooter": "Unten im Kalender"
     },
     "fullscreen-chore-chart": {
       "view": "Ansicht",

@@ -129,7 +129,9 @@
     "savedFrom": "Gemt kl. {time}",
     "savedEvents": "Viser gemte begivenheder",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
-    "weekOf": "Ugen fra {date}"
+    "weekOf": "Ugen fra {date}",
+    "legendLabel": "Kalenderkilder",
+    "publicHolidays": "Helligdage"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",
@@ -163,7 +165,8 @@
       "eventAllDay": "{title}, hele dagen",
       "eventTimed": "{title}, {start} til {end}",
       "eventTimedAtLocation": "{title}, {start} til {end}, ved {location}",
-      "monthCell": "{date}, {count} begivenheder"
+      "monthCell": "{date}, {count} begivenheder",
+      "legend": "Kalenderkilder"
     },
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
