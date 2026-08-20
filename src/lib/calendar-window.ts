@@ -3,6 +3,7 @@ import { clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/c
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
   CalendarConfig,
+  CalendarSettings,
   FullscreenCalendarConfig,
   ModuleInstance,
   Screen,
@@ -158,6 +159,23 @@ export function getCalendarFetchWindow(
 }
 
 /**
+ * True when settings carry at least one non-Google calendar source the server
+ * resolves on its own: an enabled iCal URL, an enabled iCloud calendar or
+ * birthday feed, or a public-holiday country. Single source of truth for the
+ * "is there anything to fetch?" question, so a new source type only needs to be
+ * added here.
+ */
+export function hasCalendarFeedSources(
+  calendar: Partial<Pick<CalendarSettings, 'icalSources' | 'icloudSources' | 'holidayCountry'>>,
+): boolean {
+  return Boolean(
+    calendar.icalSources?.some(s => s.enabled)
+    || calendar.icloudSources?.some(s => s.enabled)
+    || calendar.holidayCountry,
+  );
+}
+
+/**
  * Build the `/api/calendar` URL for the shared display fetch. Kept pure and
  * separate from the hook so the URL-stability contract is unit-testable: the
  * URL must be byte-stable across renders within a day (a per-render or
@@ -165,15 +183,18 @@ export function getCalendarFetchWindow(
  * is emitted whenever a fetch window exists; `timeMax` only when the window
  * carries one (grids extending past the daysAhead default). Returns `''` when
  * no calendar source is configured, which `useFetchData` treats as "skip".
+ * `hasFeedSources` covers every server-resolved source that is not a Google
+ * calendar id (iCal URLs, iCloud calendars and birthdays, public holidays); the
+ * route reads those from settings itself, so the URL only needs to know that
+ * at least one exists.
  */
 export function buildCalendarUrl(
   calendarIdList: string[],
-  hasIcalSources: boolean,
-  hasHolidays: boolean,
+  hasFeedSources: boolean,
   fetchWindow: CalendarFetchWindow | null,
   refreshEpoch: number,
 ): string {
-  if (!calendarIdList.length && !hasIcalSources && !hasHolidays) return '';
+  if (!calendarIdList.length && !hasFeedSources) return '';
   const params = [
     calendarIdList.length ? `calendarIds=${encodeURIComponent(calendarIdList.join(','))}` : '',
     fetchWindow ? `timeMin=${encodeURIComponent(fetchWindow.timeMin)}` : '',

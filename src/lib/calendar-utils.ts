@@ -64,11 +64,26 @@ const HAS_ZONE_INFO = /Z|[+-]\d{2}:?\d{2}$/;
  * Date-only strings and zone-less timed strings are already wall times and
  * pass through `parseEventDate` unchanged, as does everything when no
  * timezone is configured.
+ *
+ * The shift is memoized on (string, timezone): grid views call this for every
+ * (day cell, event) pair on every render, and `toTZWallTime` costs an ICU
+ * `formatToParts` extraction per call — thousands per render on a Pi for a
+ * busy month grid. Only the epoch is cached; each call returns a fresh Date
+ * so callers can never alias through the cache.
  */
+const WALL_TIME_CACHE = new Map<string, number>();
+const WALL_TIME_CACHE_MAX = 4096;
+
 export function parseEventWallTime(dateStr: string, timezone?: string): Date {
   const parsed = parseEventDate(dateStr);
   if (!timezone || !dateStr.includes('T') || !HAS_ZONE_INFO.test(dateStr.trim())) return parsed;
-  return toTZWallTime(parsed, timezone);
+  const key = `${dateStr}|${timezone}`;
+  const cached = WALL_TIME_CACHE.get(key);
+  if (cached !== undefined) return new Date(cached);
+  const wall = toTZWallTime(parsed, timezone);
+  if (WALL_TIME_CACHE.size >= WALL_TIME_CACHE_MAX) WALL_TIME_CACHE.clear();
+  WALL_TIME_CACHE.set(key, wall.getTime());
+  return wall;
 }
 
 /**
@@ -545,9 +560,13 @@ export function boundaryBetween(
  * whether or not the shared fetch window was widened for a co-present
  * month/week grid view. All-day events use exclusive end dates (a single-day
  * event on March 15 has end = March 16), so they stay "upcoming" all day.
+ *
+ * `now` comes from the display's wall clock (`useTZClock`/`createTZDate`), so
+ * the event end must be read on the same wall clock — comparing a true epoch
+ * instant against the shifted `now` drifts by the OS↔display offset.
  */
-export function isEventUpcoming(ev: { end: string }, now: Date): boolean {
-  return parseEventDate(ev.end) > now;
+export function isEventUpcoming(ev: { end: string }, now: Date, timezone?: string): boolean {
+  return parseEventWallTime(ev.end, timezone) > now;
 }
 
 const ENTITY_MAP: Record<string, string> = {

@@ -11,7 +11,7 @@ import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import { getLocation } from '@/lib/location';
 import { isModuleEnabled } from '@/lib/schedule';
-import { getCalendarFetchWindow, buildCalendarUrl } from '@/lib/calendar-window';
+import { getCalendarFetchWindow, buildCalendarUrl, hasCalendarFeedSources } from '@/lib/calendar-window';
 import { createTZDate } from '@/lib/timezone';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
@@ -114,8 +114,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const calendarIdList = settings.calendar.googleCalendarIds?.length
     ? settings.calendar.googleCalendarIds
     : settings.calendar.googleCalendarId ? [settings.calendar.googleCalendarId] : [];
-  const hasIcalSources = settings.calendar.icalSources?.some(s => s.enabled);
-  const hasHolidays = !!settings.calendar.holidayCountry;
+  const hasFeedSources = hasCalendarFeedSources(settings.calendar);
   // Widen the fetch window when a month/week grid view is on some screen;
   // day-boundary based, so the URL stays stable across renders.
   const fetchWindow = getCalendarFetchWindow(
@@ -123,9 +122,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     createTZDate(settings.timezone),
     settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
   );
-  const calendarUrl = buildCalendarUrl(
-    calendarIdList, !!hasIcalSources, hasHolidays, fetchWindow, refreshEpoch,
-  );
+  const calendarUrl = buildCalendarUrl(calendarIdList, hasFeedSources, fetchWindow, refreshEpoch);
   const [calendarData, calendarError, calendarUpdatedAt] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
 
   // Failure ≠ empty: the calendar modules must distinguish "the fetch is

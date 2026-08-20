@@ -1,5 +1,5 @@
 import { addDays } from 'date-fns';
-import { parseEventDate } from '@/lib/calendar-utils';
+import { parseEventDate, parseEventWallTime } from '@/lib/calendar-utils';
 import { computeOverlapLayout, type OverlapLayout } from '@/lib/fullscreen-overlap';
 import type { EventOverlapMode } from '@/types/config';
 
@@ -9,19 +9,30 @@ import type { EventOverlapMode } from '@/types/config';
  * running past midnight ends at 24. So a 7 PM–6 AM event is [19, 24] on its
  * start day and [0, 6] on the next. An end at or before the start (zero-length
  * or glitched feed data) keeps the legacy "runs to the end of the day"
- * fallback rather than vanishing.
+ * fallback rather than vanishing. `timezone` reads the clock in the display's
+ * timezone, matching the `day` wall date the caller derived from `useTZClock`.
  */
 export function eventHoursOnDay(
   ev: { start: string; end: string },
   day: Date,
+  timezone?: string,
 ): { startHour: number; endHour: number } {
-  const start = parseEventDate(ev.start);
-  const end = parseEventDate(ev.end);
+  const start = parseEventWallTime(ev.start, timezone);
+  const end = parseEventWallTime(ev.end, timezone);
   const startHour = start < day ? 0 : start.getHours() + start.getMinutes() / 60;
-  const endHour =
-    end.getTime() <= start.getTime() || end >= addDays(day, 1)
-      ? 24
-      : end.getHours() + end.getMinutes() / 60;
+  // Degenerate data is judged on true instants: across the DST fall-back hour
+  // a real event's wall times can collapse to end <= start, which must not
+  // trigger the runs-to-end-of-day fallback. When only the wall span
+  // collapsed, draw the event at its true duration from the wall start.
+  const trueDurationMs = parseEventDate(ev.end).getTime() - parseEventDate(ev.start).getTime();
+  let endHour: number;
+  if (trueDurationMs <= 0 || end >= addDays(day, 1)) {
+    endHour = 24;
+  } else if (end.getTime() <= start.getTime()) {
+    endHour = Math.min(24, startHour + trueDurationMs / 3_600_000);
+  } else {
+    endHour = end.getHours() + end.getMinutes() / 60;
+  }
   return { startHour, endHour };
 }
 
@@ -37,6 +48,13 @@ export interface TimedEventLayout {
   overlapLayout: Map<string, OverlapLayout>;
   /** Count of columns-mode overflow events hidden at each start hour, for "+N" badges. */
   hiddenStarts: Map<number, number>;
+  /**
+   * Each event's window-clamped span, keyed by id — the same numbers the
+   * overlap layout was computed from. Views must draw pill geometry from this
+   * map rather than re-deriving it, so the drawn rectangle can never disagree
+   * with the assigned overlap column.
+   */
+  hourSpans: Map<string, { startHour: number; endHour: number }>;
 }
 
 /**
@@ -59,10 +77,11 @@ export function computeTimedEventLayout(
   hourStart: number,
   hourEnd: number,
   overlapMode: EventOverlapMode,
+  timezone?: string,
 ): TimedEventLayout {
   const layoutInput = events
     .map((ev) => {
-      const { startHour, endHour } = eventHoursOnDay(ev, day);
+      const { startHour, endHour } = eventHoursOnDay(ev, day, timezone);
       return {
         id: ev.id,
         startHour: Math.max(startHour, hourStart),
@@ -79,5 +98,6 @@ export function computeTimedEventLayout(
       hiddenStarts.set(input.startHour, (hiddenStarts.get(input.startHour) ?? 0) + 1);
     }
   }
-  return { overlapLayout, hiddenStarts };
+  const hourSpans = new Map(layoutInput.map((e) => [e.id, { startHour: e.startHour, endHour: e.endHour }]));
+  return { overlapLayout, hiddenStarts, hourSpans };
 }

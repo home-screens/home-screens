@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
-import { parseEventDate, isEventOnDay, formatEventTime, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, sanitizeEventDescription } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync, formatRelativeTime } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
@@ -32,9 +32,13 @@ export function describeEventTime(
   locale: string,
   labels: { allDay: string; today: string; happeningNow: string },
   timeFormat: TimeFormat = DEFAULT_TIME_FORMAT,
+  timezone?: string,
 ): EventTimeText {
-  const start = parseEventDate(event.start);
-  const end = parseEventDate(event.end);
+  // Both callers pass a display-timezone `now` (useTZClock / createTZDate),
+  // so the event bounds are read on the same wall clock — mixing a true epoch
+  // instant with the shifted `now` drifts by the OS↔display offset.
+  const start = parseEventWallTime(event.start, timezone);
+  const end = parseEventWallTime(event.end, timezone);
 
   if (event.allDay) {
     let main = labels.allDay;
@@ -46,7 +50,7 @@ export function describeEventTime(
     // isEventOnDay's all-day branch does half-open interval overlap against
     // [date, date+1day) — it needs a midnight, not a mid-day timestamp, or
     // tomorrow's event would read as "today" from this afternoon.
-    if (isEventOnDay(event, startOfDay(now))) return { main, sub: labels.today };
+    if (isEventOnDay(event, startOfDay(now), timezone)) return { main, sub: labels.today };
     // Compare midnights, not elapsed time: a Friday event on a Wednesday is
     // "in 2 days", never "tomorrow" because only ~34 hours remain.
     if (start > now) return { main, sub: formatRelativeTime(startOfDay(now), start, { locale }) };
@@ -67,6 +71,8 @@ interface EventDetailOverlayProps {
   accentColor: string;
   /** Household clock preference; the time range line follows it. */
   timeFormat?: TimeFormat;
+  /** Display timezone; event times are read on the same wall clock as `now`. */
+  timezone?: string;
   now: Date;
   onClose: () => void;
 }
@@ -85,7 +91,7 @@ interface EventDetailOverlayProps {
  * the attribute's stylesheet side effect would re-enable pinch/double-tap
  * zoom over the overlay on a real touchscreen.
  */
-export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, now, onClose }: EventDetailOverlayProps) {
+export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, timezone, now, onClose }: EventDetailOverlayProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -106,12 +112,12 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
   if (typeof document === 'undefined') return null;
 
   const description = sanitizeEventDescription(event.description);
-  const start = parseEventDate(event.start);
+  const start = parseEventWallTime(event.start, timezone);
   const time = describeEventTime(event, now, locale, {
     allDay: t('event-detail.allDay'),
     today: tCore('today'),
     happeningNow: t('event-detail.happeningNow'),
-  }, timeFormat);
+  }, timeFormat, timezone);
 
   const iconStyle: React.CSSProperties = {
     color: theme.textMuted,

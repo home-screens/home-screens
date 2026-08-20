@@ -974,7 +974,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // window was widened for a grid view elsewhere on the display.
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
-    : sourcedEvents.filter((ev) => isEventUpcoming(ev, now));
+    : sourcedEvents.filter((ev) => isEventUpcoming(ev, now, timezone));
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
@@ -1059,6 +1059,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           theme={getThemeTokens('charcoal')}
           accentColor={detailEvent.calendarColor ?? accentColor}
           timeFormat={resolvedTimeFormat}
+          timezone={timezone}
           now={now}
           onClose={() => setDetailId(null)}
         />

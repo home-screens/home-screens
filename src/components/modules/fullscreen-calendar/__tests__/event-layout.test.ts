@@ -158,3 +158,39 @@ describe('computeTimedEventLayout', () => {
     expect(hiddenStarts.size).toBe(0);
   });
 });
+
+describe('eventHoursOnDay with a display timezone', () => {
+  it('reads the clock span in the display timezone, not the OS timezone', () => {
+    // 14:00 UTC on Aug 24 is 02:00 on Aug 25 in Auckland (UTC+12). On the
+    // Auckland wall date of the 25th the event spans [2, 3], and on the 24th
+    // it is not present at all (starts after that day's midnight).
+    const ev = { id: 'nz', start: '2026-08-24T14:00:00Z', end: '2026-08-24T15:00:00Z' };
+    const tz = 'Pacific/Auckland';
+    expect(eventHoursOnDay(ev, new Date(2026, 7, 25), tz)).toEqual({ startHour: 2, endHour: 3 });
+  });
+
+  it('passes the timezone through computeTimedEventLayout', () => {
+    const ev = { id: 'nz', start: '2026-08-24T14:00:00Z', end: '2026-08-24T15:00:00Z' };
+    // Window 0-6: the Auckland reading (02:00-03:00) is inside it; every
+    // plausible OS-timezone reading (14:00Z-ish) is outside. Dropping the
+    // timezone from the internal eventHoursOnDay call empties the layout,
+    // so this fails rather than passing vacuously over a 0-24 window.
+    const { overlapLayout, hourSpans } = computeTimedEventLayout([ev], new Date(2026, 7, 25), 0, 6, 'columns', 'Pacific/Auckland');
+    expect(overlapLayout.has('nz')).toBe(true);
+    expect(hourSpans.get('nz')).toEqual({ startHour: 2, endHour: 3 });
+  });
+
+  it('does not treat a DST fall-back wall-time collapse as degenerate data', () => {
+    // America/Chicago falls back 2026-11-01: 06:30Z is 01:30 CDT and 07:30Z
+    // is 01:30 CST — a real one-hour event whose wall times collide. It must
+    // render at its true duration, not balloon to the end of the day.
+    const ev = { id: 'dst', start: '2026-11-01T06:30:00Z', end: '2026-11-01T07:30:00Z' };
+    expect(eventHoursOnDay(ev, new Date(2026, 10, 1), 'America/Chicago')).toEqual({ startHour: 1.5, endHour: 2.5 });
+  });
+
+  it('keeps the end-of-day fallback for truly degenerate zero-length events', () => {
+    const ev = { id: 'zero', start: '2026-08-24T14:00:00Z', end: '2026-08-24T14:00:00Z' };
+    const { endHour } = eventHoursOnDay(ev, new Date(2026, 7, 25), 'Pacific/Auckland');
+    expect(endHour).toBe(24);
+  });
+});

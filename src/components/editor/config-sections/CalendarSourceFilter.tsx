@@ -19,7 +19,7 @@ export interface CalendarSource {
 }
 
 /**
- * Builds the unified calendar source list (Google + enabled iCal + holidays) from
+ * Builds the unified calendar source list (Google + enabled iCal + enabled iCloud + holidays) from
  * global settings and the Google Calendar API. `googleAuthError` is set on a 403 so
  * callers that have a re-auth banner can surface it; callers without one ignore it.
  * `keyPrefix` is the `editor` namespace path to the caller's translations (e.g.
@@ -32,6 +32,7 @@ export function useCalendarSources(keyPrefix: string): {
   const t = useTranslate('editor');
   const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? []);
   const icalSources = useEditorStore((s) => s.config?.settings?.calendar?.icalSources ?? []);
+  const icloudSources = useEditorStore((s) => s.config?.settings?.calendar?.icloudSources ?? []);
   const holidayCountry = useEditorStore((s) => s.config?.settings?.calendar?.holidayCountry);
   const [googleCalendars, setGoogleCalendars] = useState<GoogleCalendar[]>([]);
   const [googleAuthError, setGoogleAuthError] = useState(false);
@@ -71,6 +72,9 @@ export function useCalendarSources(keyPrefix: string): {
     availableSources.push({ id: gid, name, color: cal?.backgroundColor ?? '#3b82f6' });
   }
   for (const src of icalSources) {
+    if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
+  }
+  for (const src of icloudSources) {
     if (src.enabled) availableSources.push({ id: src.id, name: src.name, color: src.color });
   }
   if (holidayCountry) {

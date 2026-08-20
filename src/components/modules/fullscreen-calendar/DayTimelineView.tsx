@@ -2,22 +2,14 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
-import { computeTimedEventLayout, eventHoursOnDay } from './event-layout';
-import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
+import { computeTimedEventLayout } from './event-layout';
+import type { CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
-interface DayTimelineViewProps {
-  events: CalendarEvent[];
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-  timeFormat?: TimeFormat;
-}
 
 // Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
 // is clamped to the visible [hourStart, hourEnd] window; it renders only when the
@@ -79,7 +71,7 @@ function ZoneBand({
   );
 }
 
-export function DayTimelineView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: DayTimelineViewProps) {
+export function DayTimelineView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -106,14 +98,14 @@ export function DayTimelineView({ events, config, scale, today, now, timeFormat 
   // memoize them instead of recomputing on every re-render. Events entirely
   // outside the hour range are excluded up front — clamping alone would leave
   // them as degenerate inputs that still occupy an overlap column.
-  const { allDayEvs, timedEvs, overlapLayout, hiddenStarts } = useMemo(() => {
-    const dayEvents = events.filter(ev => isEventOnDay(ev, today));
+  const { allDayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
+    const dayEvents = events.filter(ev => isEventOnDay(ev, today, timezone));
     const allDay = dayEvents.filter(ev => ev.allDay);
     const timed = dayEvents.filter(ev => !ev.allDay);
-    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode);
-    return { allDayEvs: allDay, timedEvs: timed, overlapLayout, hiddenStarts };
+    const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode, timezone);
+    return { allDayEvs: allDay, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-  }, [events, today.toDateString(), hourStart, hourEnd, overlapMode]);
+  }, [events, today.toDateString(), hourStart, hourEnd, overlapMode, timezone]);
 
 
   return (
@@ -226,10 +218,11 @@ export function DayTimelineView({ events, config, scale, today, now, timeFormat 
 
             {/* Events with overlap layout */}
             {timedEvs.map(ev => {
-              const { startHour, endHour } = eventHoursOnDay(ev, today);
-              const evStart = Math.max(startHour, hourStart);
-              const evEnd = Math.min(endHour, hourEnd);
-              if (evStart >= hourEnd || evEnd <= evStart) return null;
+              // Absent span = outside the visible hour window (dropped by
+              // computeTimedEventLayout's clamp-and-filter).
+              const span = hourSpans.get(ev.id);
+              if (!span) return null;
+              const { startHour: evStart, endHour: evEnd } = span;
 
               const layout = overlapLayout.get(ev.id);
               if (!layout || layout.width === 0) return null;
@@ -239,8 +232,8 @@ export function DayTimelineView({ events, config, scale, today, now, timeFormat 
               const color = ev.calendarColor ?? '#3B82F6';
               const isPast = isToday && evEnd <= nowHour;
 
-              const evStartLabel = formatEventTime(parseEventDate(ev.start), timeFormat, locale);
-              const evEndLabel = formatEventTime(parseEventDate(ev.end), timeFormat, locale);
+              const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
+              const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
               const evAriaLabel = ev.location
                 ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                     title: ev.title,

@@ -2,27 +2,17 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
-import { computeTimedEventLayout, eventHoursOnDay } from './event-layout';
+import { computeTimedEventLayout } from './event-layout';
 import { DayWeatherBadge } from './WeatherInline';
-import type { CalendarEvent, CalendarScale, CalendarWeather } from './FullscreenCalendarModule';
-import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
+import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/config';
 import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
-interface ScheduleViewProps {
-  events: CalendarEvent[];
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-  timeFormat?: TimeFormat;
-  weather?: CalendarWeather;
-}
-
-export function ScheduleView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: ScheduleViewProps) {
+export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -79,10 +69,10 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
   // clamping alone would leave them as degenerate inputs that still occupy an
   // overlap column.
   const dayLayouts = useMemo(() => days.map(day => {
-    const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day));
-    const { overlapLayout, hiddenStarts } = computeTimedEventLayout(dayEvents, day, hourStart, hourEnd, overlapMode);
-    return { dayEvents, overlapLayout, hiddenStarts };
-  }), [days, events, hourStart, hourEnd, overlapMode]);
+    const dayEvents = events.filter(ev => !ev.allDay && isEventOnDay(ev, day, timezone));
+    const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(dayEvents, day, hourStart, hourEnd, overlapMode, timezone);
+    return { dayEvents, overlapLayout, hiddenStarts, hourSpans };
+  }), [days, events, hourStart, hourEnd, overlapMode, timezone]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -142,7 +132,7 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
       </div>
 
       {/* All-day events row */}
-      <AllDayRow events={events} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} t={t} />
+      <AllDayRow events={events} timezone={timezone} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} t={t} />
 
       {/* Time grid */}
       <div ref={scrollRef} role="grid" aria-label={t('fullscreen-calendar.ariaLabels.scheduleTimeGrid')} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -189,7 +179,7 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
               const isToday = isSameDay(day, today);
               const isWeekend = day.getDay() === 0 || day.getDay() === 6;
               const isPast = day < today && !isToday;
-              const { dayEvents, overlapLayout, hiddenStarts } = dayLayouts[dayIdx];
+              const { dayEvents, overlapLayout, hiddenStarts, hourSpans } = dayLayouts[dayIdx];
 
               return (
                 <div
@@ -212,10 +202,11 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
 
                   {/* Events with overlap layout */}
                   {dayEvents.map((ev) => {
-                    const { startHour, endHour } = eventHoursOnDay(ev, day);
-                    const evStart = Math.max(startHour, hourStart);
-                    const evEnd = Math.min(endHour, hourEnd);
-                    if (evStart >= hourEnd || evEnd <= evStart) return null;
+                    // Absent span = outside the visible hour window (dropped
+                    // by computeTimedEventLayout's clamp-and-filter).
+                    const span = hourSpans.get(ev.id);
+                    if (!span) return null;
+                    const { startHour: evStart, endHour: evEnd } = span;
 
                     const layout = overlapLayout.get(ev.id);
                     if (!layout || layout.width === 0) return null; // overflow hidden
@@ -225,8 +216,8 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
                     const color = ev.calendarColor ?? '#3B82F6';
                     const isPastEvent = isToday && evEnd <= nowHour;
 
-                    const evStartLabel = formatEventTime(parseEventDate(ev.start), timeFormat, locale);
-                    const evEndLabel = formatEventTime(parseEventDate(ev.end), timeFormat, locale);
+                    const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
+                    const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
                     const evAriaLabel = ev.location
                       ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                           title: ev.title,
@@ -349,8 +340,9 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
 
 // ─── All-Day Events Row ───
 
-function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, t }: {
+function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSize, today, t }: {
   events: CalendarEvent[];
+  timezone?: string;
   days: Date[];
   config: FullscreenCalendarConfig;
   scale: CalendarScale;
@@ -359,7 +351,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, 
   today: Date;
   t: TranslateFn;
 }) {
-  const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day)));
+  const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day, timezone)));
   if (!hasAllDay) return null;
 
   const wrapTitles = config.wrapEventTitles === true;
@@ -391,7 +383,7 @@ function AllDayRow({ events, days, config, scale, gutterWidth, fontSize, today, 
         gridTemplateColumns: `repeat(${days.length}, 1fr)`,
       }}>
         {days.map((day) => {
-          const dayAllDay = events.filter(ev => ev.allDay && isEventOnDay(ev, day));
+          const dayAllDay = events.filter(ev => ev.allDay && isEventOnDay(ev, day, timezone));
           const isPast = day < today && !isSameDay(day, today);
           return (
             <div

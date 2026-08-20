@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { getCalendarFetchWindow, buildCalendarUrl } from '@/lib/calendar-window';
+import { getCalendarFetchWindow, buildCalendarUrl, hasCalendarFeedSources } from '@/lib/calendar-window';
 import type { ModuleInstance, ModuleType, Screen } from '@/types/config';
 
 function makeModule(type: ModuleType, config: Record<string, unknown>, enabled?: boolean): ModuleInstance {
@@ -186,38 +186,38 @@ describe('buildCalendarUrl', () => {
   const windowNoMax = { timeMin: '2026-07-13T00:00:00.000Z', timeMax: null };
 
   it('returns empty string when no calendar source is configured', () => {
-    expect(buildCalendarUrl([], false, false, windowWithMax, 0)).toBe('');
+    expect(buildCalendarUrl([], false, windowWithMax, 0)).toBe('');
   });
 
   it('builds a google-only URL with no window (non-grid display)', () => {
-    expect(buildCalendarUrl(['cal-a'], false, false, null, 0))
+    expect(buildCalendarUrl(['cal-a'], false, null, 0))
       .toBe('/api/calendar?calendarIds=cal-a');
   });
 
   it('emits timeMin but not timeMax when the window has no max', () => {
-    const url = buildCalendarUrl(['cal-a'], false, false, windowNoMax, 0);
+    const url = buildCalendarUrl(['cal-a'], false, windowNoMax, 0);
     expect(url).toContain(`timeMin=${encodeURIComponent(windowNoMax.timeMin)}`);
     expect(url).not.toContain('timeMax');
   });
 
   it('emits both bounds when the window has a max (grid extends past default)', () => {
-    const url = buildCalendarUrl(['cal-a'], false, false, windowWithMax, 0);
+    const url = buildCalendarUrl(['cal-a'], false, windowWithMax, 0);
     expect(url).toContain(`timeMin=${encodeURIComponent(windowWithMax.timeMin)}`);
     expect(url).toContain(`timeMax=${encodeURIComponent(windowWithMax.timeMax)}`);
   });
 
   it('serves ical/holiday-only displays (no calendarIds param) with a window', () => {
-    const url = buildCalendarUrl([], true, false, windowNoMax, 0);
+    const url = buildCalendarUrl([], true, windowNoMax, 0);
     expect(url).toBe(`/api/calendar?timeMin=${encodeURIComponent(windowNoMax.timeMin)}`);
-    expect(buildCalendarUrl([], false, true, null, 0)).toBe('/api/calendar');
+    expect(buildCalendarUrl([], true, null, 0)).toBe('/api/calendar');
   });
 
   it('appends the cache-bust epoch only when > 0, and is otherwise byte-stable', () => {
-    const base = buildCalendarUrl(['cal-a'], false, false, windowWithMax, 0);
+    const base = buildCalendarUrl(['cal-a'], false, windowWithMax, 0);
     // Same inputs → identical string (URL stability contract).
-    expect(buildCalendarUrl(['cal-a'], false, false, windowWithMax, 0)).toBe(base);
+    expect(buildCalendarUrl(['cal-a'], false, windowWithMax, 0)).toBe(base);
     expect(base).not.toContain('_r=');
-    expect(buildCalendarUrl(['cal-a'], false, false, windowWithMax, 3)).toContain('_r=3');
+    expect(buildCalendarUrl(['cal-a'], false, windowWithMax, 3)).toContain('_r=3');
   });
 });
 
@@ -255,5 +255,30 @@ describe('getCalendarFetchWindow · schedule start anchors', () => {
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
     expect(win!.timeMax).toBeNull();
+  });
+});
+
+describe('hasCalendarFeedSources', () => {
+  const icloud = { id: 'ic1', accountId: 'a', kind: 'calendar' as const, url: 'https://caldav.icloud.com/x', name: 'Home', color: '#fff', enabled: true };
+  const ical = { id: 'i1', type: 'ical' as const, name: 'School', url: 'https://example.com/a.ics', color: '#000', enabled: true };
+
+  it('is false with no sources', () => {
+    expect(hasCalendarFeedSources({})).toBe(false);
+    expect(hasCalendarFeedSources({ icalSources: [], icloudSources: [], holidayCountry: '' })).toBe(false);
+  });
+
+  it('ignores disabled sources', () => {
+    expect(hasCalendarFeedSources({ icalSources: [{ ...ical, enabled: false }] })).toBe(false);
+    expect(hasCalendarFeedSources({ icloudSources: [{ ...icloud, enabled: false }] })).toBe(false);
+  });
+
+  it('is true for an iCloud-only setup', () => {
+    expect(hasCalendarFeedSources({ icloudSources: [icloud] })).toBe(true);
+    expect(hasCalendarFeedSources({ icloudSources: [{ ...icloud, kind: 'birthdays', url: '' }] })).toBe(true);
+  });
+
+  it('is true for ical-only and holiday-only setups', () => {
+    expect(hasCalendarFeedSources({ icalSources: [ical] })).toBe(true);
+    expect(hasCalendarFeedSources({ holidayCountry: 'US' })).toBe(true);
   });
 });

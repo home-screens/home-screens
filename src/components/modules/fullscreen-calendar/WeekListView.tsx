@@ -3,28 +3,18 @@
 import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import {
-  parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
+  parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
   classifyEventOnDay, eventStatusSlot,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarEvent, CalendarScale, CalendarWeather } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps } from './FullscreenCalendarModule';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 
-interface WeekListViewProps {
-  events: CalendarEvent[];
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-  timeFormat?: TimeFormat;
-  weather?: CalendarWeather;
-}
-
-export function WeekListView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: WeekListViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -49,8 +39,8 @@ export function WeekListView({ events, config, scale, today, now, timeFormat = D
     const isToday = isSameDay(day, today);
     const isPast = day < today && !isToday;
     const dayEvents = events
-      .filter(ev => isEventOnDay(ev, day))
-      .map(ev => ({ ev, segment: classifyEventOnDay(ev, day) }));
+      .filter(ev => isEventOnDay(ev, day, timezone))
+      .map(ev => ({ ev, segment: classifyEventOnDay(ev, day, timezone) }));
     // Middle days of split multi-day events promote to the all-day group.
     const allDayEvs = dayEvents.filter(({ ev, segment }) => ev.allDay || segment === 'middle');
     const timedEvs = dayEvents
@@ -105,12 +95,12 @@ export function WeekListView({ events, config, scale, today, now, timeFormat = D
         {!shouldCollapse && (<>
           {/* All-day events (plus promoted middle days) */}
           {allDayEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
           ))}
 
           {/* Empty day */}
@@ -167,8 +157,9 @@ export function WeekListView({ events, config, scale, today, now, timeFormat = D
   );
 }
 
-function EventRow({ event, segment, rowDate, now, config, weather, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale }: {
+function EventRow({ event, timezone, segment, rowDate, now, config, weather, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale }: {
   event: CalendarEvent;
+  timezone?: string;
   segment: EventDaySegment;
   rowDate: Date;
   now: Date;
@@ -183,8 +174,8 @@ function EventRow({ event, segment, rowDate, now, config, weather, fontSize, sca
   locale: string;
 }) {
   const color = event.calendarColor ?? '#3B82F6';
-  const start = parseEventDate(event.start);
-  const end = parseEventDate(event.end);
+  const start = parseEventWallTime(event.start, timezone);
+  const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
   const startLabel = formatEventTime(start, timeFormat, locale);
   const endLabel = formatEventTime(end, timeFormat, locale);
@@ -283,7 +274,9 @@ function EventRow({ event, segment, rowDate, now, config, weather, fontSize, sca
           </div>
         )}
         {!isAllDay && weather && (
-          <EventWeatherLine weather={weather} start={start} fontSize={fontSize} marginTop={2} />
+          // True instant, not the wall-time `start`: the hourly weather
+          // index keys on epoch ms, so a shifted Date misses its bucket.
+          <EventWeatherLine weather={weather} start={parseEventDate(event.start)} fontSize={fontSize} marginTop={2} />
         )}
         {description && (
           <div style={{

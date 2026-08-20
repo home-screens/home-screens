@@ -8,18 +8,9 @@ import {
 import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { clampStyle } from './FullscreenCalendarModule';
-import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
-import type { FullscreenCalendarConfig } from '@/types/config';
+import type { CalendarViewProps } from './FullscreenCalendarModule';
 
-interface MonthGridViewProps {
-  events: CalendarEvent[];
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-}
-
-export function MonthGridView({ events, config, scale, today, now: _now }: MonthGridViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, now: _now }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -99,7 +90,7 @@ export function MonthGridView({ events, config, scale, today, now: _now }: Month
           // Week number column
           const showWeekNum = showWeekNumbers && dow === 0;
 
-          const dayEvents = events.filter(ev => isEventOnDay(ev, day));
+          const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
           const allDayEvs = dayEvents.filter(ev => ev.allDay);
           const timedEvs = dayEvents.filter(ev => !ev.allDay);
 

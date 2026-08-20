@@ -317,6 +317,16 @@ describe('isEventUpcoming', () => {
   it('excludes a single-day all-day event from yesterday', () => {
     expect(isEventUpcoming({ end: '2026-06-15' }, now)).toBe(false);
   });
+
+  it('reads a zoned end on the display wall clock, matching a shifted now', () => {
+    // Auckland wall clock 14:00 on June 15 is 02:00Z. An event ending 01:00Z
+    // (Auckland 13:00) is over; one ending 03:00Z (Auckland 15:00) is not.
+    // Without the timezone, a UTC-or-west OS reads both as June 15 mornings
+    // ahead of `now` — i.e. both would wrongly count as upcoming... or
+    // neither, depending on the OS offset.
+    expect(isEventUpcoming({ end: '2026-06-15T01:00:00Z' }, now, 'Pacific/Auckland')).toBe(false);
+    expect(isEventUpcoming({ end: '2026-06-15T03:00:00Z' }, now, 'Pacific/Auckland')).toBe(true);
+  });
 });
 
 describe('isAllDayEvent', () => {

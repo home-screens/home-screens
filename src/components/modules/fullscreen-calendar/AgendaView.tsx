@@ -3,33 +3,23 @@
 import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
-  parseEventDate, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
+  parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
   classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin } from './FullscreenCalendarModule';
-import type { CalendarEvent, CalendarScale, CalendarWeather } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarViewProps } from './FullscreenCalendarModule';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
-
-interface AgendaViewProps {
-  events: CalendarEvent[];
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-  timeFormat?: TimeFormat;
-  weather?: CalendarWeather;
-}
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 interface DayGroupEvent {
   ev: CalendarEvent;
   segment: EventDaySegment;
 }
 
-export function AgendaView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: AgendaViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -46,8 +36,8 @@ export function AgendaView({ events, config, scale, today, now, timeFormat = DEF
     for (let i = 0; i < daysAhead; i++) {
       const date = addDays(today, i);
       const dayEvents = events
-        .filter(ev => isEventOnDay(ev, date))
-        .map(ev => ({ ev, segment: classifyEventOnDay(ev, date) }))
+        .filter(ev => isEventOnDay(ev, date, timezone))
+        .map(ev => ({ ev, segment: classifyEventOnDay(ev, date, timezone) }))
         .sort((a, b) => {
           // All-day rows first — including middle days of split multi-day
           // events, which promote to all-day rendering.
@@ -67,7 +57,7 @@ export function AgendaView({ events, config, scale, today, now, timeFormat = DEF
       groups.push({ date, events: dayEvents, boundary });
     }
     return groups;
-  }, [events, today, daysAhead, config.agendaHideEmptyDays, config.agendaSeparators, weekStartsOn]);
+  }, [events, today, daysAhead, config.agendaHideEmptyDays, config.agendaSeparators, weekStartsOn, timezone]);
 
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
@@ -125,8 +115,8 @@ export function AgendaView({ events, config, scale, today, now, timeFormat = DEF
 
         {dayEvents.map(({ ev, segment }) => {
           const color = ev.calendarColor ?? '#3B82F6';
-          const start = parseEventDate(ev.start);
-          const end = parseEventDate(ev.end);
+          const start = parseEventWallTime(ev.start, timezone);
+          const end = parseEventWallTime(ev.end, timezone);
           const nowHour = now.getHours() + now.getMinutes() / 60;
           const isPast = isGroupToday && !ev.allDay && segment !== 'middle' &&
             (end.getHours() + end.getMinutes() / 60) <= nowHour && end <= addDays(date, 1);
@@ -262,7 +252,9 @@ export function AgendaView({ events, config, scale, today, now, timeFormat = DEF
                 </div>
               )}
               {weather && (
-                <EventWeatherLine weather={weather} start={start} fontSize={fontSize} marginTop={scale.bu * 0.25} />
+                // True instant, not the wall-time `start`: the hourly weather
+                // index keys on epoch ms, so a shifted Date misses its bucket.
+                <EventWeatherLine weather={weather} start={parseEventDate(ev.start)} fontSize={fontSize} marginTop={scale.bu * 0.25} />
               )}
               {description && (
                 <div style={{

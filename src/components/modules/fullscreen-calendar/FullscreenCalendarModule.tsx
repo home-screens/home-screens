@@ -59,6 +59,24 @@ export interface CalendarWeather {
   placement: WeatherPlacement;
 }
 
+/**
+ * The one props contract every fullscreen view accepts. `viewProps` below is
+ * annotated with it and each view's signature uses it, so adding a field here
+ * reaches all five views — a per-view interface would let a JSX spread pass
+ * a prop the view silently ignores (spreads skip excess-property checks).
+ */
+export interface CalendarViewProps {
+  events: CalendarEvent[];
+  /** Display timezone; event times are bucketed and labeled in it, like `today`/`now`. */
+  timezone?: string;
+  config: FullscreenCalendarConfig;
+  scale: CalendarScale;
+  today: Date;
+  now: Date;
+  timeFormat?: TimeFormat;
+  weather?: CalendarWeather;
+}
+
 // ─── Helpers ───
 
 function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
@@ -96,10 +114,11 @@ export function selectVisibleEvents(
   view: FullscreenCalendarConfig['view'],
   sourceFilter: string[] | undefined,
   now: Date,
+  timezone?: string,
 ): CalendarEvent[] {
   const filtered = filterEvents(events, sourceFilter);
   return view === 'agenda'
-    ? filtered.filter(ev => isEventUpcoming(ev, now))
+    ? filtered.filter(ev => isEventUpcoming(ev, now, timezone))
     : filtered;
 }
 
@@ -303,8 +322,8 @@ export default function FullscreenCalendarModule({
   const today = useMemo(() => startOfDay(now), [now]);
 
   const events = useMemo(
-    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now),
-    [rawEvents, config.view, config.sourceFilter, now],
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, timezone),
+    [rawEvents, config.view, config.sourceFilter, now, timezone],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
@@ -355,9 +374,9 @@ export default function FullscreenCalendarModule({
     [hourly, forecast, weatherPlacement],
   );
 
-  const viewProps = useMemo(
-    () => ({ events, config, scale, today, now, timeFormat, weather }),
-    [events, config, scale, today, now, timeFormat, weather],
+  const viewProps = useMemo<CalendarViewProps>(
+    () => ({ events, config, scale, today, now, timeFormat, weather, timezone }),
+    [events, config, scale, today, now, timeFormat, weather, timezone],
   );
   const hasEvents = events.length > 0;
   const isLoading = loading && !hasEvents;
@@ -513,6 +532,7 @@ export default function FullscreenCalendarModule({
           theme={theme}
           accentColor={eventBorder(detailEvent.calendarColor ?? '#3B82F6', theme.isDark)}
           timeFormat={timeFormat}
+          timezone={timezone}
           now={now}
           onClose={() => setDetailId(null)}
         />
