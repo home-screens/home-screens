@@ -431,6 +431,11 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     config: { viewMode: 'daily', sourceFilter: ['nonexistent-source'] },
     expect: async (mod) => { await expect(mod).not.toContainText('Dentist Appointment'); },
   },
+  {
+    type: 'calendar', name: 'title-filter-excludes', kind: 'networked', stubKey: 'calendar',
+    config: { viewMode: 'daily', titleFilter: { mode: 'exclude', terms: ['Dentist'] } },
+    expect: async (mod) => { await expect(mod).not.toContainText('Dentist Appointment'); },
+  },
 
   // -- fullscreen-calendar --
   {

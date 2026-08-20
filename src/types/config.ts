@@ -246,6 +246,7 @@ export interface CalendarSettings {
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')
+  hideDeclined?: boolean; // Google only: skip events the signed-in account declined
 }
 
 export interface SleepSettings {
@@ -568,6 +569,12 @@ export type WeatherPlacement = 'off' | 'header' | 'days' | 'events' | 'days-and-
 // window): hidden, a row in the module header, or a footer strip.
 export type CalendarLegendPlacement = 'off' | 'header' | 'footer';
 
+// Case-insensitive substring match against the event title. Empty terms = no filter.
+export interface CalendarTitleFilter {
+  mode: 'include' | 'exclude';
+  terms: string[];
+}
+
 /**
  * Health of the shared calendar fetch, passed to calendar modules only while
  * the latest attempt failed (the events alongside it are kept last-good
@@ -610,6 +617,7 @@ export interface FullscreenCalendarConfig {
   weatherPlacement?: WeatherPlacement;  // default 'header' (new), legacy showWeather honored when unset
   showNowLine: boolean;
   sourceFilter?: string[];
+  titleFilter?: CalendarTitleFilter;
   darkMode: boolean;
   theme?: string;
   todayHighlightStyle?: TodayHighlightStyle;  // default 'full'; 'subtle' = faint bg, 'minimal' = marker only, 'off' = none
@@ -692,6 +700,7 @@ export interface CalendarConfig {
   // and gridEventPillBackground for this view.
   multiWeekTheme?: MultiWeekTheme;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
+  titleFilter?: CalendarTitleFilter;
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
   // Per-view: render the sanitized event description under the title.
   dailyShowDescription?: boolean;

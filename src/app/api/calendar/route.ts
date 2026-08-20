@@ -63,6 +63,7 @@ interface CalendarParams {
   icalSources: ICalSource[];
   icloudSources: ICloudSource[];
   holidayCountry: string | undefined;
+  hideDeclined: boolean;
   timeMin: string;
   timeMax: string;
   maxEvents: number;
@@ -101,6 +102,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const icalSources = (config.settings.calendar.icalSources ?? []).filter(s => s.enabled);
     const icloudSources = (config.settings.calendar.icloudSources ?? []).filter(s => s.enabled);
     const holidayCountry = config.settings.calendar.holidayCountry;
+    const hideDeclined = config.settings.calendar.hideDeclined ?? false;
     const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
 
     // Round to nearest minute so cache keys are reusable
@@ -134,11 +136,11 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
     const icloudKey = icloudSources.map(s => `${s.id}:${s.color}:${s.kind}:${s.url}`).join(',');
 
-    return { calendarIds, icalSources, icloudSources, holidayCountry, timeMin, timeMax, maxEvents, icalKey, icloudKey };
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, icalKey, icloudKey };
   },
-  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, timeMin, timeMax, maxEvents }) =>
-    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};${timeMin}:${timeMax}:${maxEvents}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, timeMin, timeMax, maxEvents }) => {
+  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents }) =>
+    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax}:${maxEvents}`,
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -161,7 +163,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const googleFamily = async (): Promise<FamilyOutcome> => {
       if (!calendarIds.length) return NO_FAMILY;
       try {
-        const google = await fetchCalendarEvents(calendarIds, timeMin, timeMax);
+        const google = await fetchCalendarEvents(calendarIds, timeMin, timeMax, hideDeclined);
         return { events: withSavedEvents(google.events, google.results, windowStart, windowEnd), results: google.results, ok: someOk(google.results) };
       } catch (error) {
         // Family-level failure (auth, network to Google): every id fails.

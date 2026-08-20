@@ -11,6 +11,7 @@ export async function fetchCalendarEvents(
   calendarIds: string[],
   timeMin: string,
   timeMax: string,
+  hideDeclined = false,
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const auth = await getAuthenticatedClient();
   if (!auth) {
@@ -54,7 +55,9 @@ export async function fetchCalendarEvents(
 
       const calColor = calendarColorMap.get(calendarId) ?? '#3b82f6';
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
-      const items = response.data.items ?? [];
+      const items = hideDeclined
+        ? (response.data.items ?? []).filter((event) => event.attendees?.find((a) => a.self)?.responseStatus !== 'declined')
+        : (response.data.items ?? []);
       // Calendar-id prefix keeps ids unique when the same event appears on
       // two selected calendars; the fallback covers the (rare) missing id so
       // no event ever renders with an empty, untappable identity.

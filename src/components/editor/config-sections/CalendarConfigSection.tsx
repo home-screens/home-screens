@@ -11,7 +11,8 @@ import { isGridView } from '@/lib/calendar-utils';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { AgendaSeparators, CalendarLegendPlacement, EventTapStyle, ModuleInstance } from '@/types/config';
+import { CalendarTitleFilterControl } from './CalendarTitleFilter';
+import type { AgendaSeparators, CalendarLegendPlacement, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
 
 // Sourced from the registry so the reset button can't drift from the accent
 // a freshly added calendar module actually starts with.
@@ -32,6 +33,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     maxEvents?: number;
     showWeekNumbers?: boolean;
     sourceFilter?: string[];
+    titleFilter?: CalendarTitleFilter;
     accentColor?: string;
     dailyShowDescription?: boolean;
     agendaShowDescription?: boolean;
@@ -111,6 +113,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         availableSources={availableSources}
         sourceFilter={sourceFilter}
         onChange={(next) => set({ sourceFilter: next })}
+      />
+
+      <CalendarTitleFilterControl
+        keyPrefix="configSections.calendar"
+        titleFilter={c.titleFilter}
+        onChange={(next) => set({ titleFilter: next })}
       />
 
       <LabeledSelect

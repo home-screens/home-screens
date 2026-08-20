@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
 import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
@@ -25,6 +26,7 @@ interface CalendarSettings {
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string;
+  hideDeclined: boolean;
 }
 
 interface Props {
@@ -33,7 +35,7 @@ interface Props {
 }
 
 export default function CalendarSection({ values, onChange }: Props) {
-  const { selectedCalendarIds, icalSources, icloudSources, maxEvents, daysAhead, holidayCountry } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, maxEvents, daysAhead, holidayCountry, hideDeclined } = values;
   const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
@@ -176,6 +178,14 @@ export default function CalendarSection({ values, onChange }: Props) {
               ) : (
                 <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.google.noCalendars')}</p>
               )}
+
+              <div data-field-id="calendar.hideDeclined">
+                <Toggle
+                  label={t('settings.calendarPage.google.hideDeclinedLabel')}
+                  checked={hideDeclined}
+                  onChange={(v) => onChange({ hideDeclined: v })}
+                />
+              </div>
 
               {combinedError && (
                 <p className="text-xs text-hs-warning">{combinedError}</p>

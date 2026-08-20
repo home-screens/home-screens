@@ -224,4 +224,53 @@ describe('fetchCalendarEvents', () => {
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events).toEqual([]);
   });
+
+  it('keeps declined events when hideDeclined is not set', async () => {
+    setupAuth();
+    setupCalendarList([{ id: 'cal1' }]);
+    setupColors({});
+    setupEvents('cal1', [
+      {
+        id: 'evt7',
+        summary: 'Skippable',
+        start: { dateTime: '2026-01-20T12:00:00Z' },
+        end: { dateTime: '2026-01-20T13:00:00Z' },
+        attendees: [{ self: true, responseStatus: 'declined' }],
+      },
+    ]);
+
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    expect(events).toHaveLength(1);
+  });
+
+  it('drops events the self attendee declined when hideDeclined is true', async () => {
+    setupAuth();
+    setupCalendarList([{ id: 'cal1' }]);
+    setupColors({});
+    setupEvents('cal1', [
+      {
+        id: 'evt8',
+        summary: 'Declined',
+        start: { dateTime: '2026-01-20T12:00:00Z' },
+        end: { dateTime: '2026-01-20T13:00:00Z' },
+        attendees: [{ self: true, responseStatus: 'declined' }],
+      },
+      {
+        id: 'evt9',
+        summary: 'Accepted',
+        start: { dateTime: '2026-01-20T14:00:00Z' },
+        end: { dateTime: '2026-01-20T15:00:00Z' },
+        attendees: [{ self: true, responseStatus: 'accepted' }],
+      },
+      {
+        id: 'evt10',
+        summary: 'No attendees',
+        start: { dateTime: '2026-01-20T16:00:00Z' },
+        end: { dateTime: '2026-01-20T17:00:00Z' },
+      },
+    ]);
+
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31', true);
+    expect(events.map((e) => e.title)).toEqual(['Accepted', 'No attendees']);
+  });
 });

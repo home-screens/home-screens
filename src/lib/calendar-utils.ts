@@ -1,5 +1,5 @@
 import { addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import type { AgendaSeparators, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
+import type { AgendaSeparators, CalendarTitleFilter, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { parseHexToRgb } from '@/lib/hex-color';
 import { toTZWallTime } from '@/lib/timezone';
@@ -588,6 +588,30 @@ export function eventsInWindow<T extends { start: string; end: string }>(
   return events.filter(
     (ev) => parseEventWallTime(ev.start, timezone) < end && parseEventWallTime(ev.end, timezone) > start,
   );
+}
+
+/**
+ * Case-insensitive substring match against event titles. No terms (or an
+ * undefined filter) passes everything through. 'include' keeps only events
+ * matching at least one term; 'exclude' drops any event that matches one.
+ */
+export function applyTitleFilter<T extends { title: string }>(
+  events: T[],
+  titleFilter: CalendarTitleFilter | undefined,
+): T[] {
+  const terms = (titleFilter?.terms ?? [])
+    .map((term) => term.trim().toLowerCase())
+    .filter(Boolean);
+  if (terms.length === 0) return events;
+
+  const matches = (title: string) => {
+    const lower = title.toLowerCase();
+    return terms.some((term) => lower.includes(term));
+  };
+
+  return titleFilter?.mode === 'exclude'
+    ? events.filter((ev) => !matches(ev.title))
+    : events.filter((ev) => matches(ev.title));
 }
 
 /**

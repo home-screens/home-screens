@@ -124,6 +124,7 @@ describe('calendar ID resolution', () => {
       ['cal-a', 'cal-b'],
       expect.any(String),
       expect.any(String),
+      false,
     );
     expect(json).toHaveLength(1);
   });
@@ -141,6 +142,7 @@ describe('calendar ID resolution', () => {
       ['primary', 'work'],
       expect.any(String),
       expect.any(String),
+      false,
     );
   });
 
@@ -157,6 +159,7 @@ describe('calendar ID resolution', () => {
       ['my-single-cal'],
       expect.any(String),
       expect.any(String),
+      false,
     );
   });
 
@@ -198,6 +201,22 @@ describe('calendar ID resolution', () => {
       ['cal-a', 'cal-b'],
       expect.any(String),
       expect.any(String),
+      false,
+    );
+  });
+
+  it('threads settings.calendar.hideDeclined through to fetchCalendarEvents', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], hideDeclined: true }));
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+    const req = makeRequest();
+    await GET(req);
+
+    expect(mockFetchGoogle).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.any(String),
+      expect.any(String),
+      true,
     );
   });
 });
@@ -750,6 +769,7 @@ describe('time parameters', () => {
       ['primary'],
       '2026-06-01T00:00:00.000Z',
       '2026-06-08T00:00:00.000Z',
+      false,
     );
   });
 

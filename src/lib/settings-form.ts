@@ -45,6 +45,7 @@ export interface CalendarState {
   maxEvents: number;
   daysAhead: number;
   holidayCountry: string;
+  hideDeclined: boolean;
 }
 
 export interface SleepState {
@@ -96,7 +97,7 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
-  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '' },
+  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '', hideDeclined: false },
   sleep: {
     sleepEnabled: false,
     idleDimEnabled: true,
@@ -198,6 +199,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       maxEvents: s.calendar.maxEvents ?? FORM_DEFAULTS.calendar.maxEvents,
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
+      hideDeclined: s.calendar.hideDeclined ?? false,
     },
     sleep: sleepConfigToForm(s.sleep, s.screensaver),
     alerts: {
@@ -245,6 +247,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       maxEvents: calendar.maxEvents,
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
+      hideDeclined: calendar.hideDeclined,
     },
     ...sleepFormToConfig(sleep),
     alerts: {

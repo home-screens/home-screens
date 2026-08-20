@@ -9,6 +9,7 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { effectiveWeatherPlacement } from '@/lib/calendar-utils';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
+import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
@@ -243,6 +244,13 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         availableSources={availableSources}
         sourceFilter={sourceFilter}
         onChange={(next) => set({ sourceFilter: next })}
+      />
+
+      {/* Title keyword filter */}
+      <CalendarTitleFilterControl
+        keyPrefix="configSections.fullscreen-calendar"
+        titleFilter={c.titleFilter}
+        onChange={(next) => set({ titleFilter: next })}
       />
 
       {/* Source legend */}

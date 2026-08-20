@@ -6,7 +6,7 @@ import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
 import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
@@ -973,9 +973,12 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const locale = useFormattingLocale();
   const rawEvents = events ?? [];
   const sourceFilter = config.sourceFilter;
-  const sourcedEvents = (sourceFilter && sourceFilter.length > 0)
-    ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
-    : rawEvents;
+  const sourcedEvents = applyTitleFilter(
+    (sourceFilter && sourceFilter.length > 0)
+      ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
+      : rawEvents,
+    config.titleFilter,
+  );
   const now = createTZDate(timezone);
   const today = startOfDay(now);
   const viewMode = config.viewMode ?? 'daily';

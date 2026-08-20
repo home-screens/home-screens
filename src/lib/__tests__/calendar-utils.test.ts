@@ -6,6 +6,7 @@ import {
   isEventUpcoming,
   legendSources,
   eventsInWindow,
+  applyTitleFilter,
   sanitizeEventDescription,
   clampWeeksToShow,
   weekNumberOptions,
@@ -805,5 +806,53 @@ describe('pickGridTimeColor', () => {
     // On a white module background the estimated pill surface is white;
     // mixing toward white can never clear 3:1, so the YIQ pick must win.
     expect(pickGridTimeColor('#eab308', '#ffffff')).toBe('#1b1b1f');
+  });
+});
+
+describe('applyTitleFilter', () => {
+  const events = [{ title: 'Lunch with Sam' }, { title: 'Soccer practice' }, { title: 'Focus time' }];
+
+  it('passes everything through when the filter is undefined', () => {
+    expect(applyTitleFilter(events, undefined)).toEqual(events);
+  });
+
+  it('passes everything through when terms is empty', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: [] })).toEqual(events);
+  });
+
+  it('passes everything through when terms are only whitespace', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: ['   ', ''] })).toEqual(events);
+  });
+
+  it('include mode keeps only events matching a term', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: ['soccer'] })).toEqual([
+      { title: 'Soccer practice' },
+    ]);
+  });
+
+  it('exclude mode drops events matching a term', () => {
+    expect(applyTitleFilter(events, { mode: 'exclude', terms: ['lunch'] })).toEqual([
+      { title: 'Soccer practice' },
+      { title: 'Focus time' },
+    ]);
+  });
+
+  it('matches case-insensitively', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: ['SOCCER'] })).toEqual([
+      { title: 'Soccer practice' },
+    ]);
+  });
+
+  it('trims whitespace around terms', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: ['  soccer  '] })).toEqual([
+      { title: 'Soccer practice' },
+    ]);
+  });
+
+  it('matches any of multiple terms', () => {
+    expect(applyTitleFilter(events, { mode: 'include', terms: ['soccer', 'focus'] })).toEqual([
+      { title: 'Soccer practice' },
+      { title: 'Focus time' },
+    ]);
   });
 });

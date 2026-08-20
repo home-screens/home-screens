@@ -65,6 +65,7 @@ describe('settings-form transforms', () => {
         maxEvents: 25,
         daysAhead: 14,
         holidayCountry: 'US',
+        hideDeclined: true,
       },
       sleep: {
         sleepEnabled: true,

@@ -6,14 +6,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
+import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildHourlyIndex, type HourlyIndex } from './event-weather';
 import { toTZWallTime } from '@/lib/timezone';
 import { parseHexToRgb } from '@/lib/hex-color';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarTitleFilter, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
@@ -119,12 +119,12 @@ function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): Calenda
 }
 
 /**
- * Events a fullscreen-calendar view should render: source-filtered, then —
- * for the agenda view only — narrowed to upcoming events. The other views
- * (schedule, week-list, month-grid, day-timeline) render fixed day/week/month
- * ranges and intentionally show past events (dimmed via `dimPastEvents`), so
- * they take the shared feed as-is. Exported for unit testing this branch
- * without rendering the whole component.
+ * Events a fullscreen-calendar view should render: source-filtered, then
+ * title-filtered, then — for the agenda view only — narrowed to upcoming
+ * events. The other views (schedule, week-list, month-grid, day-timeline)
+ * render fixed day/week/month ranges and intentionally show past events
+ * (dimmed via `dimPastEvents`), so they take the shared feed as-is. Exported
+ * for unit testing this branch without rendering the whole component.
  */
 export function selectVisibleEvents(
   events: CalendarEvent[],
@@ -132,8 +132,9 @@ export function selectVisibleEvents(
   sourceFilter: string[] | undefined,
   now: Date,
   timezone?: string,
+  titleFilter?: CalendarTitleFilter,
 ): CalendarEvent[] {
-  const filtered = filterEvents(events, sourceFilter);
+  const filtered = applyTitleFilter(filterEvents(events, sourceFilter), titleFilter);
   return view === 'agenda'
     ? filtered.filter(ev => isEventUpcoming(ev, now, timezone))
     : filtered;
@@ -348,8 +349,8 @@ export default function FullscreenCalendarModule({
   });
 
   const events = useMemo(
-    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, timezone),
-    [rawEvents, config.view, config.sourceFilter, now, timezone],
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter),
+    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);

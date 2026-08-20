@@ -289,6 +289,11 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'schedule', scheduleDaysToShow: 1, sourceFilter: ['keep-src'] },
     expect: async (mod) => { await has('KEEP EVENT')(mod); await expect(mod).not.toContainText('DROP EVENT'); },
   },
+  {
+    type: 'fullscreen-calendar', name: 'title-filter', kind: 'networked', stubKey: 'calendar', stubBody: SOURCE_FILTER,
+    config: { view: 'schedule', scheduleDaysToShow: 1, titleFilter: { mode: 'exclude', terms: ['DROP'] } },
+    expect: async (mod) => { await has('KEEP EVENT')(mod); await expect(mod).not.toContainText('DROP EVENT'); },
+  },
 
   // ================= SCHEDULE VIEW =================
 

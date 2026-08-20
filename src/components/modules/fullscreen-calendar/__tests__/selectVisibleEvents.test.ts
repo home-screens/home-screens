@@ -52,4 +52,14 @@ describe('selectVisibleEvents', () => {
     const mixed = [ev('unsourced', 3, 4), ev('sourced', 3, 4, { sourceId: 'x' })];
     expect(selectVisibleEvents(mixed, 'month-grid', ['y'], NOW).map(e => e.id)).toEqual(['unsourced']);
   });
+
+  it('applies the title filter alongside the source filter', () => {
+    const titled = [
+      { ...ev('lunch', -4, -2), title: 'Lunch' },
+      { ...ev('soccer', 3, 4), title: 'Soccer practice' },
+    ];
+    expect(
+      selectVisibleEvents(titled, 'month-grid', undefined, NOW, undefined, { mode: 'exclude', terms: ['lunch'] }).map(e => e.id),
+    ).toEqual(['soccer']);
+  });
 });

@@ -206,6 +206,42 @@ test('calendar: switching Event Style persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'calendar')).gridEventPillBackground).toBe(true);
 });
 
+test('calendar: adding a title filter term persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar'));
+
+  const termInput = page.getByPlaceholder('Type a word, press Enter');
+  await autosaved(page, async () => {
+    await termInput.fill('Lunch');
+    await termInput.press('Enter');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).titleFilter).toEqual({ mode: 'exclude', terms: ['Lunch'] });
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Show events').selectOption('include');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).titleFilter).toEqual({ mode: 'include', terms: ['Lunch'] });
+});
+
+test('calendar: picking a title filter mode before any term survives adding the first term', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar'));
+
+  // Picking 'include' with zero terms must not silently revert to the
+  // 'exclude' default — it has to stick until (and through) the first term.
+  await autosaved(page, async () => {
+    await page.getByLabel('Show events').selectOption('include');
+  });
+
+  const termInput = page.getByPlaceholder('Type a word, press Enter');
+  await autosaved(page, async () => {
+    await termInput.fill('Soccer');
+    await termInput.press('Enter');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).titleFilter).toEqual({ mode: 'include', terms: ['Soccer'] });
+});
+
 test('weather: toggling Feels Like persists', async ({ page, request }) => {
   // Registry default has showFeelsLike: true — one click flips it off.
   await selectModule(page, request, buildModuleInstance('weather'));

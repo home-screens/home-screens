@@ -155,6 +155,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
   { pageId: 'calendar', fieldId: 'calendar.maxEvents', labelKey: 'settings.calendarPage.shared.maxEventsLabel' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
+  { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },
 
   { pageId: 'meals', fieldId: 'meals.enabledSlots', labelKey: 'settings.mealsPage.slots.heading' },
   { pageId: 'meals', fieldId: 'meals.weekStartDay', labelKey: 'settings.mealsPage.weekStart.heading' },
