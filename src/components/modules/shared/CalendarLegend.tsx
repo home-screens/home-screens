@@ -9,11 +9,13 @@ import type { LegendSource } from '@/lib/calendar-utils';
  * fullscreen header row and the small module's strips. Wraps to further
  * lines rather than truncating names.
  */
-export function CalendarLegend({ sources, style, label }: {
+export function CalendarLegend({ sources, style, label, failingIds }: {
   sources: LegendSource[];
   style?: React.CSSProperties;
   /** Accessible name for the list ("Calendar sources"). */
   label: string;
+  /** Sources whose feed is currently failing — dot gets a calm amber ring. */
+  failingIds?: ReadonlySet<string>;
 }) {
   if (sources.length === 0) return null;
   return (
@@ -29,25 +31,36 @@ export function CalendarLegend({ sources, style, label }: {
         ...style,
       }}
     >
-      {sources.map((s) => (
-        <span
-          role="listitem"
-          key={s.sourceId}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45em', whiteSpace: 'nowrap' }}
-        >
+      {sources.map((s) => {
+        const failing = failingIds?.has(s.sourceId) === true;
+        return (
           <span
-            aria-hidden="true"
+            role="listitem"
+            key={s.sourceId}
+            data-source-failing={failing ? '' : undefined}
             style={{
-              width: '0.7em',
-              height: '0.7em',
-              borderRadius: '50%',
-              background: s.calendarColor,
-              flexShrink: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45em',
+              whiteSpace: 'nowrap',
+              color: failing ? '#d9a441' : undefined,
             }}
-          />
-          {s.sourceName}
-        </span>
-      ))}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: '0.7em',
+                height: '0.7em',
+                borderRadius: '50%',
+                background: s.calendarColor,
+                flexShrink: 0,
+                boxShadow: failing ? '0 0 0 2px rgba(217,164,65,0.75)' : undefined,
+              }}
+            />
+            {s.sourceName}
+          </span>
+        );
+      })}
     </div>
   );
 }

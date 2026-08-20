@@ -9,6 +9,7 @@ import { useGoogleDeviceFlow } from '@/hooks/useGoogleDeviceFlow';
 import { useGoogleCalendars } from '@/hooks/useGoogleCalendars';
 import ICalFeedManager from './ICalFeedManager';
 import ICloudCalendarManager from './ICloudCalendarManager';
+import CalendarSourceHealth from './CalendarSourceHealth';
 import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 
@@ -312,6 +313,9 @@ export default function CalendarSection({ values, onChange }: Props) {
           </p>
         </div>
       </section>
+
+      {/* Per-source health */}
+      <CalendarSourceHealth />
 
       {/* Shared settings */}
       <section>

@@ -131,7 +131,10 @@
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "weekOf": "Ugen fra {date}",
     "legendLabel": "Kalenderkilder",
-    "publicHolidays": "Helligdage"
+    "publicHolidays": "Helligdage",
+    "sourceNotUpdating": "{name} er ikke opdateret siden {time}",
+    "sourceNotUpdatingNoTime": "{name} opdateres ikke",
+    "savedShort": "gemt"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",

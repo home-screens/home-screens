@@ -6,9 +6,10 @@ import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, legendSources, eventsInWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
-import type { CalendarFetchStatus } from '@/types/config';
+import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type MultiWeekTheme, type TimeFormat } from '@/types/config';
@@ -25,6 +26,8 @@ interface CalendarModuleProps {
   timezone?: string;
   timeFormat?: TimeFormat;
   calendarStatus?: CalendarFetchStatus;
+  /** Attached only while at least one source is failing (see buildModuleProps). */
+  sourceStatus?: CalendarSourceStatus[];
 }
 
 /**
@@ -39,6 +42,8 @@ interface EventDisplayStyle {
   gridStyle: 'classic' | 'colored';
   pillBackground: boolean;
   timezone?: string;
+  /** Sources whose feed is failing; list rows add a "saved" time suffix. */
+  failingSourceIds?: ReadonlySet<string>;
 }
 
 function formatDuration(start: Date, end: Date): string {
@@ -128,11 +133,15 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
   // Split multi-day rows: middle days promote to an all-day label, first and
-  // last days show only their true partial time.
-  const timeContent = isAllDay || segment === 'middle' ? t('calendar.allDay')
+  // last days show only their true partial time. Rows from a source that
+  // stopped updating carry a "saved" suffix.
+  const baseTimeContent = isAllDay || segment === 'middle' ? t('calendar.allDay')
     : segment === 'first' ? t('calendar.fromTime', { time: formatEventTime(start, timeFormat, locale) })
     : segment === 'last' ? t('calendar.untilTime', { time: formatEventTime(end, timeFormat, locale) })
     : `${formatEventTime(start, timeFormat, locale)} · ${formatDuration(start, end)}`;
+  const timeContent = event.sourceId && eventStyle.failingSourceIds?.has(event.sourceId)
+    ? `${baseTimeContent} · ${t('calendar.savedShort')}`
+    : baseTimeContent;
 
   return (
     <ContentCard data-event-id={event.id} className="flex gap-2" style={{ padding: '6px 10px' }}>
@@ -958,7 +967,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   month: MonthView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -976,35 +985,31 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
     : sourcedEvents.filter((ev) => isEventUpcoming(ev, now, timezone));
+  const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
+  // Legend ring, named stale banner, and per-row "saved" suffixes all key
+  // off this shared derivation (see useFailingSources).
+  const { failingSources, failingSourceIds, soloFailingName, soloFailingSince } = useFailingSources({
+    sourceStatus, sourceFilter, timezone, timeFormat: resolvedTimeFormat, locale, today, t,
+  });
   // Legend rows come from the events the current view actually draws — the
-  // shared fetch window is wider than any single view, so scope to the view's
-  // day range before collecting sources (agenda has no day bound beyond the
-  // upcoming filter). The holidays pseudo-source carries a hardcoded English
-  // sourceName from the route; swap in the translated label.
+  // shared fetch window is wider than any single view, so scope to the
+  // view's day range first (agenda has no day bound beyond the upcoming
+  // filter). Only the view→window mapping lives here; the date math and the
+  // holidays-label remap are shared (calendar-utils).
   const legendPlacement = config.showLegend ?? 'off';
   let legend: LegendSource[] = [];
   if (legendPlacement !== 'off') {
     const weekStartsOn = weekStartsOnFor(config.startDay);
-    let windowed = allEvents;
-    if (viewMode === 'daily') {
-      windowed = eventsInWindow(allEvents, today, addDays(today, Math.max(1, config.daysToShow ?? 3)), timezone);
-    } else if (viewMode === 'week') {
-      const start = startOfWeek(today, { weekStartsOn });
-      windowed = eventsInWindow(allEvents, start, addDays(start, 7), timezone);
-    } else if (viewMode === 'month') {
-      const start = startOfWeek(startOfMonth(today), { weekStartsOn });
-      windowed = eventsInWindow(allEvents, start, addDays(endOfWeek(endOfMonth(today), { weekStartsOn }), 1), timezone);
-    } else if (viewMode === 'multi-week') {
-      const start = startOfWeek(today, { weekStartsOn });
-      windowed = eventsInWindow(allEvents, start, addDays(start, clampWeeksToShow(config.weeksToShow) * 7), timezone);
-    }
-    legend = legendSources(windowed).map((s) =>
-      s.sourceId === 'holidays' ? { ...s, sourceName: t('calendar.publicHolidays') } : s,
-    );
+    const window =
+      viewMode === 'daily' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.daysToShow ?? 3 })
+      : viewMode === 'week' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
+      : viewMode === 'month' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
+      : viewMode === 'multi-week' ? viewDayWindow({ kind: 'weeks', today, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) })
+      : null; // agenda
+    legend = buildLegend(allEvents, window, timezone, t('calendar.publicHolidays'));
   }
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
-  const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   const gridEventStyle = config.gridEventStyle;
   const gridEventPillBackground = config.gridEventPillBackground;
   // Stable identity across clock ticks so the memoized EventCard's shallow
@@ -1016,8 +1021,9 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       gridStyle,
       pillBackground: gridStyle === 'colored' && gridEventPillBackground === true,
       timezone,
+      failingSourceIds,
     };
-  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone]);
+  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone, failingSourceIds]);
 
   // Tap-to-open detail: same delegated-handler contract as the fullscreen
   // calendar — every EventCard carries data-event-id, state holds the id and
@@ -1049,6 +1055,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     ? formatEventTime(savedWall, resolvedTimeFormat, locale)
     : null;
 
+
   if (neverLoaded) {
     return (
       <ModuleWrapper style={style}>
@@ -1067,11 +1074,24 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
         onClick={tapDetails ? handleRootClick : undefined}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
-        {fetchFailed && (
+        {fetchFailed ? (
           <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
             <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
             <span style={{ color: '#d9a441', fontWeight: 600 }}>
               {staleSince ? t('calendar.savedFrom', { time: staleSince }) : t('calendar.savedEvents')}
+            </span>
+          </div>
+        ) : failingSources.length > 0 && (
+          // Per-source outage while the shared fetch itself is fine: name the
+          // one failing source; several at once fall back to generic wording.
+          <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
+            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
+            <span style={{ color: '#d9a441', fontWeight: 600 }}>
+              {soloFailingName
+                ? (soloFailingSince
+                  ? t('calendar.sourceNotUpdating', { name: soloFailingName, time: soloFailingSince })
+                  : t('calendar.sourceNotUpdatingNoTime', { name: soloFailingName }))
+                : t('calendar.savedEvents')}
             </span>
           </div>
         )}
@@ -1079,6 +1099,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           <CalendarLegend
             sources={legend}
             label={t('calendar.legendLabel')}
+            failingIds={failingSourceIds}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
             style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
@@ -1091,6 +1112,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           <CalendarLegend
             sources={legend}
             label={t('calendar.legendLabel')}
+            failingIds={failingSourceIds}
             // maxHeight ≈ two wrapped rows: in a small module an unbounded
             // legend (8+ sources) could starve the flex-1 view area to zero.
             style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(128,128,128,0.35)', maxHeight: '3.4em', overflow: 'hidden' }}

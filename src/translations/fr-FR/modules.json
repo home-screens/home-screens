@@ -131,7 +131,10 @@
     "cantLoadEvents": "Impossible de charger les événements pour le moment",
     "weekOf": "Semaine du {date}",
     "legendLabel": "Sources du calendrier",
-    "publicHolidays": "Jours fériés"
+    "publicHolidays": "Jours fériés",
+    "sourceNotUpdating": "{name} ne se met plus à jour depuis {time}",
+    "sourceNotUpdatingNoTime": "{name} ne se met plus à jour",
+    "savedShort": "enregistré"
   },
   "fullscreen-calendar": {
     "allDay": "Toute la journée",

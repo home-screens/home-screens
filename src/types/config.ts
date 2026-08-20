@@ -574,6 +574,21 @@ export type CalendarLegendPlacement = 'off' | 'header' | 'footer';
  * data). `updatedAt` is when that data was last successfully fetched; null
  * means no fetch has ever succeeded this session.
  */
+/**
+ * Health of one calendar source in the shared `/api/calendar` payload. `id`
+ * matches the event `sourceId` (Google calendar id, iCal/iCloud source id, or
+ * 'holidays'). `name` is best-effort — a source that has never succeeded may
+ * not have one. `fetchedAt` is when this source last delivered events; null
+ * means never this session. `error` is plain family-friendly wording.
+ */
+export interface CalendarSourceStatus {
+  id: string;
+  name?: string;
+  ok: boolean;
+  error?: string;
+  fetchedAt: number | null;
+}
+
 export interface CalendarFetchStatus {
   error: string | null;
   updatedAt: number | null;

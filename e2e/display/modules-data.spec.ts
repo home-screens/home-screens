@@ -61,10 +61,11 @@ const RESILIENCE = [
   // An empty {} yields aqi undefined -> the "Unknown" label, and a 500 gates to
   // the error state, so the happy-path "Fair" category is absent in both.
   { type: 'air-quality', stubKey: 'air-quality', empty: {}, happy: 'Fair' },
-  // The calendar route returns a bare array of events, not a wrapped object.
-  { type: 'calendar', empty: [], happy: 'Dentist Appointment' },
+  // The calendar route returns { events, sourceStatus }; the display also
+  // still tolerates a bare array (covered by the shared array fixture).
+  { type: 'calendar', empty: { events: [], sourceStatus: [] }, happy: 'Dentist Appointment' },
   {
-    type: 'fullscreen-calendar', stubKey: 'calendar', empty: [], happy: 'Dentist Appointment',
+    type: 'fullscreen-calendar', stubKey: 'calendar', empty: { events: [], sourceStatus: [] }, happy: 'Dentist Appointment',
     config: { view: 'agenda' },
   },
   // traffic gates rendering on config.routes.length, so it needs its routes
@@ -249,3 +250,67 @@ for (const r of RESILIENCE_NO_CRASH) {
     });
   }
 }
+
+/**
+ * Per-source status: one healthy source next to one failing source in the
+ * same payload (the E2E stand-in for a dead ICS URL beside a live feed).
+ * The failing source gets an amber-ringed legend entry, a named header pill,
+ * and a "saved" suffix on its rows; healthy rows are untouched.
+ */
+function sourceStatusBody() {
+  // Same today-spanning shape as todayCalendarEvents(): always on today's
+  // date and always "upcoming", whatever wall-clock time the suite runs at.
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const iso = (d: Date, h: number, m: number) =>
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad(m)}:00`;
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const sinceMs = new Date().setHours(7, 10, 0, 0);
+  return {
+    events: [
+      { id: 'ok-1', title: 'Healthy Event', start: iso(today, 0, 1), end: iso(tomorrow, 23, 59), allDay: false, calendarColor: '#3B82F6', sourceId: 'family', sourceName: 'Family' },
+      { id: 'bad-1', title: 'Saved Event', start: iso(today, 0, 2), end: iso(tomorrow, 23, 59), allDay: false, calendarColor: '#6366F1', sourceId: 'school', sourceName: 'School' },
+    ],
+    sourceStatus: [
+      { id: 'family', name: 'Family', ok: true, fetchedAt: Date.now() },
+      { id: 'school', name: 'School', ok: false, error: 'Could not reach the link (HTTP 404)', fetchedAt: sinceMs },
+    ],
+  };
+}
+
+test('fullscreen-calendar marks a failing source: legend ring, named pill, saved rows', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { calendar: sourceStatusBody() } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', { view: 'agenda', showLegend: 'header' })])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('fullscreen-calendar');
+
+  // Named pill takes the header slot; wording is calm, no error language.
+  await expect(mod).toContainText('School not updating since 7:10');
+  // Legend: the failing source is ringed, the healthy one is not.
+  await expect(mod.locator('[data-source-failing]')).toContainText('School');
+  await expect(mod.locator('[data-source-failing]')).toHaveCount(1);
+  // Rows: only the failing source's event carries the saved suffix.
+  await expect(mod).toContainText('· saved');
+  // Multi-day events render one row per visible segment; check the first.
+  await expect(mod.locator('[data-event-id="bad-1"]').first()).toContainText('saved');
+  await expect(mod.locator('[data-event-id="ok-1"]').first()).not.toContainText('saved');
+});
+
+test('calendar module marks a failing source: banner and saved row suffix', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { calendar: sourceStatusBody() } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('calendar', { viewMode: 'daily', showLegend: 'header' })])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('calendar');
+
+  await expect(mod).toContainText('School not updating since 7:10');
+  await expect(mod.locator('[data-source-failing]')).toContainText('School');
+  await expect(mod.locator('[data-event-id="bad-1"]').first()).toContainText('saved');
+  await expect(mod.locator('[data-event-id="ok-1"]').first()).not.toContainText('saved');
+});

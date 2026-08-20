@@ -210,7 +210,7 @@ describe('fetchICloudEvents', () => {
     });
     installClients(caldav);
 
-    const events = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
 
     expect(caldav.fetchCalendarObjects).toHaveBeenCalledWith(expect.objectContaining({
       calendar: expect.objectContaining({ url: 'https://caldav.icloud.com/123/calendars/home/' }),
@@ -234,7 +234,7 @@ describe('fetchICloudEvents', () => {
       ]),
     }));
 
-    const events = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events } = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
     expect(events).toEqual([]);
   });
 
@@ -248,7 +248,7 @@ describe('fetchICloudEvents', () => {
       }),
     }));
 
-    const events = await fetchICloudEvents([good, bad], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events } = await fetchICloudEvents([good, bad], [ACCOUNT], TIME_MIN, TIME_MAX);
     expect(events.map((e) => e.title)).toEqual(['Dentist']);
   });
 
@@ -256,7 +256,7 @@ describe('fetchICloudEvents', () => {
     const caldav = mockClient();
     installClients(caldav);
 
-    const events = await fetchICloudEvents(
+    const { events } = await fetchICloudEvents(
       [
         calendarSource({ id: 'src-evil', url: 'https://evil.example.com/steal-credentials/' }),
         calendarSource({ id: 'src-http', url: 'http://caldav.icloud.com/123/calendars/home/' }),
@@ -273,7 +273,7 @@ describe('fetchICloudEvents', () => {
 
   it('skips sources whose account is gone', async () => {
     installClients(mockClient());
-    const events = await fetchICloudEvents(
+    const { events } = await fetchICloudEvents(
       [calendarSource({ accountId: 'gone' })],
       [ACCOUNT],
       TIME_MIN,
@@ -294,7 +294,7 @@ describe('fetchICloudEvents', () => {
       ]),
     }));
 
-    const events = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events } = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
 
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({
@@ -318,8 +318,8 @@ describe('fetchICloudEvents', () => {
     });
     installClients(mockClient(), carddav);
 
-    const first = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
-    const second = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events: first } = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events: second } = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
 
     expect(first).toHaveLength(1);
     expect(second).toEqual(first);
@@ -340,10 +340,10 @@ describe('fetchICloudEvents', () => {
     });
     installClients(mockClient(), carddav);
 
-    const first = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events: first } = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
     expect(first).toEqual([]); // failed fetch degrades to no events
 
-    const second = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const { events: second } = await fetchICloudEvents([source], [ACCOUNT], TIME_MIN, TIME_MAX);
     expect(second).toHaveLength(1); // retried, not served from a cached failure
   });
 
@@ -356,7 +356,7 @@ describe('fetchICloudEvents', () => {
       ]),
     }));
 
-    const events = await fetchICloudEvents(
+    const { events } = await fetchICloudEvents(
       [source], [ACCOUNT],
       new Date(2026, 5, 1).toISOString(),
       new Date(2028, 5, 1).toISOString(),
@@ -374,7 +374,7 @@ describe('fetchICloudEvents', () => {
       ]),
     }));
 
-    const events = await fetchICloudEvents(
+    const { events } = await fetchICloudEvents(
       [source], [ACCOUNT],
       new Date(2027, 1, 1).toISOString(),
       new Date(2027, 3, 1).toISOString(),
@@ -394,7 +394,7 @@ describe('fetchICloudEvents', () => {
 
     // Window starting mid-way through the birthday's local day still shows it
     installClients(mockClient(), carddav());
-    const overlapping = await fetchICloudEvents(
+    const { events: overlapping } = await fetchICloudEvents(
       [source], [ACCOUNT],
       new Date(2026, 6, 20, 12, 0).toISOString(),
       new Date(2026, 6, 25).toISOString(),
@@ -404,7 +404,7 @@ describe('fetchICloudEvents', () => {
     // Window ending exactly at the birthday's local midnight excludes it
     clearBirthdayCache();
     installClients(mockClient(), carddav());
-    const excluded = await fetchICloudEvents(
+    const { events: excluded } = await fetchICloudEvents(
       [source], [ACCOUNT],
       new Date(2026, 6, 15).toISOString(),
       new Date(2026, 6, 20).toISOString(),
@@ -427,7 +427,7 @@ describe('fetchICloudEvents', () => {
       }),
     );
 
-    const events = await fetchICloudEvents(
+    const { events } = await fetchICloudEvents(
       [calendarSource(), calendarSource({ id: 'src-b', kind: 'birthdays', url: '', name: 'Birthdays' })],
       [ACCOUNT],
       TIME_MIN,

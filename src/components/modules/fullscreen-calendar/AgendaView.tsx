@@ -19,7 +19,7 @@ interface DayGroupEvent {
   segment: EventDaySegment;
 }
 
-export function AgendaView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -186,12 +186,16 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           const startLabel = formatEventTime(start, timeFormat, locale);
           const endLabel = formatEventTime(end, timeFormat, locale);
           // Split multi-day rows show only the true partial time on their
-          // first and last days ("From 10:00 AM" / "Until 3:00 PM").
-          const timeLabel = segment === 'first'
+          // first and last days ("From 10:00 AM" / "Until 3:00 PM"). Rows
+          // from a source that stopped updating carry a "saved" suffix.
+          const baseTimeLabel = segment === 'first'
             ? t('fullscreen-calendar.fromTime', { time: startLabel })
             : segment === 'last'
               ? t('fullscreen-calendar.untilTime', { time: endLabel })
               : `${startLabel} – ${endLabel}`;
+          const timeLabel = ev.sourceId && failingSourceIds?.has(ev.sourceId)
+            ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
+            : baseTimeLabel;
           const ariaLabel = ev.location
             ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
                 title: ev.title,

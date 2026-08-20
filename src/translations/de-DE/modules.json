@@ -131,7 +131,10 @@
     "cantLoadEvents": "Termine können gerade nicht geladen werden",
     "weekOf": "Woche vom {date}",
     "legendLabel": "Kalenderquellen",
-    "publicHolidays": "Feiertage"
+    "publicHolidays": "Feiertage",
+    "sourceNotUpdating": "{name} wird seit {time} nicht aktualisiert",
+    "sourceNotUpdatingNoTime": "{name} wird nicht aktualisiert",
+    "savedShort": "gespeichert"
   },
   "fullscreen-calendar": {
     "allDay": "Ganztägig",

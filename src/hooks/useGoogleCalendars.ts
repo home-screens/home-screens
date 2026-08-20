@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { ICalSource, ICloudSource } from '@/types/config';
-import { hasCalendarFeedSources } from '@/lib/calendar-window';
 import { logger } from '@/lib/logger';
 
 const log = logger('useGoogleCalendars');
@@ -55,13 +54,16 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
       if (res.ok) {
         const cals: GoogleCalendar[] = await res.json();
         setGoogleCalendars(cals);
-        // Auto-select primary calendar only on first-ever connection (no
-        // calendars and no other source — ICS, iCloud, or holidays — yet).
-        // Skipped otherwise so connecting Google never merges an unrequested
-        // calendar into an already-configured setup. Read current values from
-        // ref to avoid stale closures and unnecessary refetches.
+        // Auto-select primary calendar only on first-ever connection: no
+        // calendars picked and no other source — ICS, iCloud, or holidays —
+        // configured at all. Disabled sources count as configured: they are
+        // deliberate setup, and connecting Google must never silently merge
+        // an unrequested calendar into it. Read current values from ref to
+        // avoid stale closures and unnecessary refetches.
         const v = valuesRef.current;
-        if (autoSelectPrimary && v.selectedCalendarIds.length === 0 && !hasCalendarFeedSources(v) && cals.length > 0) {
+        const hasAnyConfiguredSource =
+          (v.icalSources?.length ?? 0) > 0 || (v.icloudSources?.length ?? 0) > 0 || !!v.holidayCountry;
+        if (autoSelectPrimary && v.selectedCalendarIds.length === 0 && !hasAnyConfiguredSource && cals.length > 0) {
           const primary = cals.find((c) => c.primary);
           if (primary) onChange({ selectedCalendarIds: [primary.id] });
         }

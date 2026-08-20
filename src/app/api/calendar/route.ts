@@ -5,10 +5,56 @@ import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
 import { compareEventStarts, isEventUpcoming } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
-import type { CalendarEvent, ICalSource, ICloudSource } from '@/types/config';
+import { mergeSourceStatus, recordSourceStatus, type SourceFetchResult } from '@/lib/calendar-source-status';
+import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
 import { logger } from '@/lib/logger';
 
 const log = logger('calendar');
+
+/** The `/api/calendar` payload: merged events plus per-source health. */
+export interface CalendarPayload {
+  events: CalendarEvent[];
+  sourceStatus: CalendarSourceStatus[];
+}
+
+// Last successful fetch time per source id, for "not updating since" wording.
+// Per-process, like the display statusMap — resets on server restart, which
+// simply means a source's first failure after boot has no since-time yet.
+const lastGoodFetch = new Map<string, number>();
+
+// Last successful events per source id. A failing source keeps serving its
+// saved events (badged "saved" on the display) instead of silently vanishing.
+// Best-effort: saved events come from that source's last successful window,
+// which may not fully cover a different requested window. Bounded by
+// sources × window size; resets with the process like lastGoodFetch.
+const lastGoodEvents = new Map<string, CalendarEvent[]>();
+
+/**
+ * Record per-source last-good events, or substitute them for a failing
+ * source. Substituted events are re-filtered to the requested window — the
+ * saved set may come from a different window, and out-of-window strays would
+ * eat the maxEvents budget of healthy sources. Known limitation: entries are
+ * keyed by source id alone, so if a source's URL is repointed while the new
+ * target is failing, the old target's events serve (badged "saved") until
+ * the new one first succeeds.
+ */
+function withSavedEvents(
+  events: CalendarEvent[],
+  results: SourceFetchResult[],
+  windowStart: Date,
+  windowEnd: Date,
+): CalendarEvent[] {
+  const out = [...events];
+  for (const r of results) {
+    if (r.ok) {
+      lastGoodEvents.set(r.id, events.filter((ev) => ev.sourceId === r.id));
+    } else {
+      const saved = lastGoodEvents.get(r.id) ?? [];
+      out.push(...saved.filter((ev) => new Date(ev.end) > windowStart && new Date(ev.start) < windowEnd));
+    }
+  }
+  return out;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +77,7 @@ interface CalendarParams {
 // hand-crafted LAN request.
 const MAX_WINDOW_MS = 400 * 86400000;
 
-const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
+const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
   auth: 'display',
   ttlMs: 2 * 60 * 1000,
   prepare: async (request) => {
@@ -100,67 +146,105 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
       );
     }
 
-    // Fetch all sources independently — track success so we
-    // don't cache an empty result when all sources failed transiently.
-    let googleEvents: CalendarEvent[] = [];
-    let googleOk = false;
-    if (calendarIds.length) {
-      try {
-        googleEvents = await fetchCalendarEvents(calendarIds, timeMin, timeMax);
-        googleOk = true;
-      } catch (error) {
-        log.error('Google Calendar fetch failed', error);
-      }
-    }
+    // Fetch the four source families concurrently — each already isolates
+    // its own sources internally, so one slow ICS feed must not stall the
+    // Google/iCloud round trips. A family is "ok" only when at least one of
+    // its sources actually succeeded (the fetchers isolate per-source
+    // failures and resolve regardless), so the all-failed guard below still
+    // fires when every configured source is down.
+    const windowStart = new Date(timeMin);
+    const windowEnd = new Date(timeMax);
+    interface FamilyOutcome { events: CalendarEvent[]; results: SourceFetchResult[]; ok: boolean }
+    const NO_FAMILY: FamilyOutcome = { events: [], results: [], ok: false };
+    const someOk = (results: SourceFetchResult[]) => results.some((r) => r.ok);
 
-    let icalEvents: CalendarEvent[] = [];
-    let icalOk = false;
-    if (icalSources.length) {
+    const googleFamily = async (): Promise<FamilyOutcome> => {
+      if (!calendarIds.length) return NO_FAMILY;
+      try {
+        const google = await fetchCalendarEvents(calendarIds, timeMin, timeMax);
+        return { events: withSavedEvents(google.events, google.results, windowStart, windowEnd), results: google.results, ok: someOk(google.results) };
+      } catch (error) {
+        // Family-level failure (auth, network to Google): every id fails.
+        // The email local part stands in for the calendar name the API would
+        // have supplied, matching the editor's own fallback.
+        log.error('Google Calendar fetch failed', error);
+        const failed = calendarIds.map((id): SourceFetchResult =>
+          ({ id, name: id.includes('@') ? id.split('@')[0] : undefined, ok: false, error: "Couldn't reach Google Calendar" }));
+        return { events: withSavedEvents([], failed, windowStart, windowEnd), results: failed, ok: false };
+      }
+    };
+
+    const icalFamily = async (): Promise<FamilyOutcome> => {
+      if (!icalSources.length) return NO_FAMILY;
       try {
         // Lazy-import so the route still works when node-ical isn't installed
         const { fetchICalEvents } = await import('@/lib/ical-calendar');
-        icalEvents = await fetchICalEvents(icalSources, timeMin, timeMax);
-        icalOk = true;
+        const ical = await fetchICalEvents(icalSources, timeMin, timeMax);
+        return { events: withSavedEvents(ical.events, ical.results, windowStart, windowEnd), results: ical.results, ok: someOk(ical.results) };
       } catch (error) {
         log.error('ICS calendar fetch failed', error);
+        const failed = icalSources.map((s): SourceFetchResult =>
+          ({ id: s.id, name: s.name, ok: false, error: 'Could not reach the link' }));
+        return { events: withSavedEvents([], failed, windowStart, windowEnd), results: failed, ok: false };
       }
-    }
+    };
 
-    let icloudEvents: CalendarEvent[] = [];
-    let icloudOk = false;
-    if (icloudSources.length) {
+    const icloudFamily = async (): Promise<FamilyOutcome> => {
+      if (!icloudSources.length) return NO_FAMILY;
       try {
         // Lazy-import so the route still works when tsdav isn't installed
         const { fetchICloudEvents } = await import('@/lib/caldav-calendar');
         const { listICloudAccounts } = await import('@/lib/icloud-accounts');
         const accounts = await listICloudAccounts();
-        icloudEvents = await fetchICloudEvents(icloudSources, accounts, timeMin, timeMax);
-        icloudOk = true;
+        const icloud = await fetchICloudEvents(icloudSources, accounts, timeMin, timeMax);
+        return { events: withSavedEvents(icloud.events, icloud.results, windowStart, windowEnd), results: icloud.results, ok: someOk(icloud.results) };
       } catch (error) {
         log.error('iCloud calendar fetch failed', error);
+        const failed = icloudSources.map((s): SourceFetchResult =>
+          ({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud" }));
+        return { events: withSavedEvents([], failed, windowStart, windowEnd), results: failed, ok: false };
       }
-    }
+    };
 
-    // Fetch public holidays if a country is configured
-    let holidayEvents: CalendarEvent[] = [];
-    let holidayOk = false;
-    if (holidayCountry) {
+    const holidayFamily = async (): Promise<FamilyOutcome> => {
+      if (!holidayCountry) return NO_FAMILY;
       try {
-        holidayEvents = await fetchHolidayEvents(holidayCountry, timeMin, timeMax);
-        holidayOk = true;
+        const fetched = await fetchHolidayEvents(holidayCountry, timeMin, timeMax);
+        const result: SourceFetchResult = { id: 'holidays', name: 'Public Holidays', ok: true };
+        return { events: withSavedEvents(fetched, [result], windowStart, windowEnd), results: [result], ok: true };
       } catch (error) {
         log.error('Holiday fetch failed', error);
+        const result: SourceFetchResult = { id: 'holidays', name: 'Public Holidays', ok: false, error: "Couldn't load the holiday list" };
+        return { events: withSavedEvents([], [result], windowStart, windowEnd), results: [result], ok: false };
+      }
+    };
+
+    const [google, ical, icloud, holidays] = await Promise.all([
+      googleFamily(), icalFamily(), icloudFamily(), holidayFamily(),
+    ]);
+    const sourceResults: SourceFetchResult[] = [
+      ...google.results, ...ical.results, ...icloud.results, ...holidays.results,
+    ];
+
+    // If every attempted source failed AND nothing could be substituted from
+    // the saved events, return an error instead of caching empty —
+    // useFetchData keeps the last-good body on a failed response. When saved
+    // events exist, the 200 payload is the richer answer: accurate per-source
+    // statuses plus the kept rows the display badges as "saved".
+    if (!google.ok && !ical.ok && !icloud.ok && !holidays.ok) {
+      const anySaved =
+        google.events.length || ical.events.length || icloud.events.length || holidays.events.length;
+      if (!anySaved) {
+        return errorResponse(null, 'Failed to fetch calendar events') as NextResponse;
       }
     }
 
-    // If every attempted source failed, return an error instead of caching empty
-    if (!googleOk && !icalOk && !icloudOk && !holidayOk) {
-      return errorResponse(null, 'Failed to fetch calendar events') as NextResponse;
-    }
+    const sourceStatus = mergeSourceStatus(sourceResults, lastGoodFetch, Date.now());
+    recordSourceStatus(sourceStatus);
 
-    const merged = [...googleEvents, ...icalEvents, ...icloudEvents, ...holidayEvents]
+    const merged = [...google.events, ...ical.events, ...icloud.events, ...holidays.events]
       .sort((a, b) => compareEventStarts(a.start, b.start));
-    if (merged.length <= maxEvents) return merged;
+    if (merged.length <= maxEvents) return { events: merged, sourceStatus };
 
     // Upcoming-first budgeting, applied only when even the window-scaled cap
     // is exceeded (a pathologically dense window). A plain ascending slice
@@ -177,7 +261,10 @@ const { GET, cache } = cachedProxyRoute<CalendarEvent[], CalendarParams>({
     const past = merged.filter(ev => !isEventUpcoming(ev, now));
     const keptUpcoming = upcoming.slice(0, maxEvents);
     const keptPast = past.slice(Math.max(0, past.length - (maxEvents - keptUpcoming.length)));
-    return [...keptPast, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start));
+    return {
+      events: [...keptPast, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start)),
+      sourceStatus,
+    };
   },
   errorMessage: 'Failed to fetch calendar events',
 });

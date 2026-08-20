@@ -1,4 +1,4 @@
-import { addDays } from 'date-fns';
+import { addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import type { AgendaSeparators, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { parseHexToRgb } from '@/lib/hex-color';
@@ -75,12 +75,17 @@ const WALL_TIME_CACHE = new Map<string, number>();
 const WALL_TIME_CACHE_MAX = 4096;
 
 export function parseEventWallTime(dateStr: string, timezone?: string): Date {
+  // Cache lookup first — a hit must skip the parse and zone-regex work the
+  // cache exists to amortize. Only shifted results are stored, so a
+  // zone-less string simply misses and takes the passthrough below.
+  const key = timezone ? `${dateStr}|${timezone}` : null;
+  if (key) {
+    const cached = WALL_TIME_CACHE.get(key);
+    if (cached !== undefined) return new Date(cached);
+  }
   const parsed = parseEventDate(dateStr);
-  if (!timezone || !dateStr.includes('T') || !HAS_ZONE_INFO.test(dateStr.trim())) return parsed;
-  const key = `${dateStr}|${timezone}`;
-  const cached = WALL_TIME_CACHE.get(key);
-  if (cached !== undefined) return new Date(cached);
-  const wall = toTZWallTime(parsed, timezone);
+  if (!key || !dateStr.includes('T') || !HAS_ZONE_INFO.test(dateStr.trim())) return parsed;
+  const wall = toTZWallTime(parsed, timezone!);
   if (WALL_TIME_CACHE.size >= WALL_TIME_CACHE_MAX) WALL_TIME_CACHE.clear();
   WALL_TIME_CACHE.set(key, wall.getTime());
   return wall;
@@ -582,6 +587,61 @@ export function eventsInWindow<T extends { start: string; end: string }>(
 ): T[] {
   return events.filter(
     (ev) => parseEventWallTime(ev.start, timezone) < end && parseEventWallTime(ev.end, timezone) > start,
+  );
+}
+
+/**
+ * Half-open [start, end) day range a calendar view draws, for legend
+ * scoping. One authority for the date math; each module maps its own view
+ * union onto a kind (the mapping is inherently per-module, the math is not).
+ * - 'days': `count` days starting at `start` (defaults to today)
+ * - 'week': the week containing today
+ * - 'weeks': `count` weeks starting at today's week
+ * - 'month-grid': the padded month grid around today
+ */
+export function viewDayWindow(opts: {
+  kind: 'days' | 'week' | 'weeks' | 'month-grid';
+  today: Date;
+  weekStartsOn: 0 | 1;
+  start?: Date;
+  count?: number;
+}): { start: Date; end: Date } {
+  const { kind, today, weekStartsOn } = opts;
+  switch (kind) {
+    case 'days': {
+      const start = opts.start ?? today;
+      return { start, end: addDays(start, Math.max(1, opts.count ?? 1)) };
+    }
+    case 'week': {
+      const start = startOfWeek(today, { weekStartsOn });
+      return { start, end: addDays(start, 7) };
+    }
+    case 'weeks': {
+      const start = startOfWeek(today, { weekStartsOn });
+      return { start, end: addDays(start, Math.max(1, opts.count ?? 1) * 7) };
+    }
+    case 'month-grid': {
+      const start = startOfWeek(startOfMonth(today), { weekStartsOn });
+      return { start, end: addDays(endOfWeek(endOfMonth(today), { weekStartsOn }), 1) };
+    }
+  }
+}
+
+/**
+ * Legend rows for a view: scope events to the window it draws (null = the
+ * caller's set is already exactly what renders), collect unique sources, and
+ * swap the holidays pseudo-source's baked-in English name for the localized
+ * label. The one composition both calendar modules share.
+ */
+export function buildLegend(
+  events: { start: string; end: string; sourceId?: string; sourceName?: string; calendarColor?: string }[],
+  window: { start: Date; end: Date } | null,
+  timezone: string | undefined,
+  holidaysLabel: string,
+): LegendSource[] {
+  const scoped = window ? eventsInWindow(events, window.start, window.end, timezone) : events;
+  return legendSources(scoped).map((s) =>
+    s.sourceId === 'holidays' ? { ...s, sourceName: holidaysLabel } : s,
   );
 }
 

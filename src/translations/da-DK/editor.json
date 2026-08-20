@@ -361,6 +361,14 @@
       "shared": {
         "maxEventsLabel": "Maks. antal begivenheder",
         "daysAheadLabel": "Dage frem"
+      },
+      "health": {
+        "heading": "Kildestatus",
+        "holidays": "Helligdage",
+        "updated": "Opdateret {time}",
+        "updatedNow": "Lige opdateret",
+        "notUpdating": "Opdateres ikke",
+        "errorSince": "{error} · virkede sidst {time}"
       }
     },
     "dataPage": {

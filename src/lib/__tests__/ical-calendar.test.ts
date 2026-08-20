@@ -120,7 +120,7 @@ describe('fetchICalEvents', () => {
   it('parses a simple ICS with 2 events', async () => {
     mockFetchResponse(SIMPLE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -139,7 +139,7 @@ describe('fetchICalEvents', () => {
   it('detects all-day events with date-only format (no T)', async () => {
     mockFetchResponse(ALL_DAY_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -154,7 +154,7 @@ describe('fetchICalEvents', () => {
   it('handles missing DTEND — all-day defaults to +1 day', async () => {
     mockFetchResponse(NO_DTEND_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -170,7 +170,7 @@ describe('fetchICalEvents', () => {
     mockFetchResponse(RECURRING_ICS);
 
     // Only look at a 5-day window starting March 10
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-10T00:00:00Z',
       '2025-03-15T00:00:00Z',
@@ -184,7 +184,7 @@ describe('fetchICalEvents', () => {
   it('excludes EXDATE instances from recurring events', async () => {
     mockFetchResponse(RECURRING_WITH_EXDATE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-10T00:00:00Z',
       '2025-03-15T00:00:00Z',
@@ -200,7 +200,7 @@ describe('fetchICalEvents', () => {
   it('applies color from source config', async () => {
     mockFetchResponse(SIMPLE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource({ color: '#a855f7' })],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -212,7 +212,7 @@ describe('fetchICalEvents', () => {
   it('prefixes event IDs with source ID', async () => {
     mockFetchResponse(SIMPLE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource({ id: 'my-source' })],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -225,7 +225,7 @@ describe('fetchICalEvents', () => {
     mockFetchResponse(SIMPLE_ICS);
 
     // Window that only includes March 15 (evt-1) but not March 16 (evt-2)
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-15T00:00:00Z',
       '2025-03-16T00:00:00Z',
@@ -238,7 +238,7 @@ describe('fetchICalEvents', () => {
   it('handles empty ICS data gracefully', async () => {
     mockFetchResponse(EMPTY_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -250,7 +250,7 @@ describe('fetchICalEvents', () => {
   it('handles invalid ICS data gracefully', async () => {
     mockFetchResponse('not valid ics data');
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -263,7 +263,7 @@ describe('fetchICalEvents', () => {
     mockFetch.mockClear();
     mockFetchResponse(SIMPLE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource({ url: 'webcal://example.com/calendar.ics' })],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -278,7 +278,7 @@ describe('fetchICalEvents', () => {
 
   it('rejects non-HTTP URL schemes', async () => {
     mockFetch.mockClear();
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource({ url: 'file:///etc/passwd' })],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -290,7 +290,7 @@ describe('fetchICalEvents', () => {
 
   it('rejects invalid URLs', async () => {
     mockFetch.mockClear();
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource({ url: 'not-a-url' })],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -306,7 +306,7 @@ describe('fetchICalEvents', () => {
     // Second source succeeds
     mockFetchResponse(SIMPLE_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [
         makeSource({ id: 'failing', url: 'https://fail.example.com/cal.ics' }),
         makeSource({ id: 'working', url: 'https://ok.example.com/cal.ics' }),
@@ -323,7 +323,7 @@ describe('fetchICalEvents', () => {
   it('handles HTTP error responses gracefully', async () => {
     mockFetch.mockResolvedValueOnce(new Response('Not Found', { status: 404 }));
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',
@@ -364,7 +364,7 @@ END:VCALENDAR`;
     mockFetchResponse(SIMPLE_ICS);
     mockFetchResponse(EARLY_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [
         makeSource({ id: 'src-a' }),
         makeSource({ id: 'src-b', url: 'https://other.example.com/cal.ics' }),
@@ -380,7 +380,7 @@ END:VCALENDAR`;
   it('handles parameterized summary values', async () => {
     mockFetchResponse(PARAMETERIZED_SUMMARY_ICS);
 
-    const events = await fetchICalEvents(
+    const { events } = await fetchICalEvents(
       [makeSource()],
       '2025-03-01T00:00:00Z',
       '2025-03-31T00:00:00Z',

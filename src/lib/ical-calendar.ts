@@ -4,6 +4,7 @@ import type { ICalSource } from '@/types/config';
 import type { CalendarEvent } from '@/types/config';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
+import type { SourceFetchResult } from '@/lib/calendar-source-status';
 import { logger } from '@/lib/logger';
 
 const log = logger('ical');
@@ -84,20 +85,26 @@ export function parseICSEvents(
 
 /**
  * Fetch and parse ICS/iCal feeds, returning events in the same CalendarEvent
- * format as Google Calendar. Handles recurring events, all-day events,
- * and partial failures across multiple sources.
+ * format as Google Calendar plus a per-source outcome. Handles recurring
+ * events, all-day events, and partial failures across multiple sources —
+ * a broken feed becomes a `results` entry with plain-language wording, never
+ * a rejection that takes the other feeds down.
  */
 export async function fetchICalEvents(
   sources: ICalSource[],
   timeMin: string,
   timeMax: string,
-): Promise<CalendarEvent[]> {
+): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const from = new Date(timeMin);
   const to = new Date(timeMax);
   const allEvents: CalendarEvent[] = [];
+  const sourceResults: SourceFetchResult[] = [];
 
   const results = await Promise.allSettled(
-    sources.map(async (source) => {
+    sources.map(async (source): Promise<{ events: CalendarEvent[]; result: SourceFetchResult }> => {
+      const fail = (error: string): { events: CalendarEvent[]; result: SourceFetchResult } =>
+        ({ events: [], result: { id: source.id, name: source.name, ok: false, error } });
+
       // Validate URL scheme — normalize webcal:// to https://
       let fetchUrl = source.url;
       let parsed: URL;
@@ -105,7 +112,7 @@ export async function fetchICalEvents(
         parsed = new URL(fetchUrl);
       } catch {
         log.warn(`Invalid URL for source "${source.name}" (${source.id})`);
-        return [];
+        return fail("The link isn't a valid web address");
       }
       if (parsed.protocol === 'webcal:') {
         fetchUrl = fetchUrl.replace(/^webcal:/i, 'https:');
@@ -113,40 +120,44 @@ export async function fetchICalEvents(
       }
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
         log.warn(`Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
-        return [];
+        return fail("The link isn't a valid web address");
       }
 
       // Fetch the ICS data
       const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
       if (!res.ok) {
         log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
-        return [];
+        return fail(`Could not reach the link (HTTP ${res.status})`);
       }
       const icsText = await res.text();
 
       // Parse and process ICS — wrapped in try/catch so a malformed feed
-      // is logged and treated as an empty source
+      // is logged and treated as a failing source
       try {
-        return parseICSEvents(icsText, source, from, to);
+        const events = parseICSEvents(icsText, source, from, to);
+        return { events, result: { id: source.id, name: source.name, ok: true } };
       } catch (err) {
         log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
-        return [];
+        return fail("The link didn't return a readable calendar");
       }
     }),
   );
 
-  for (const result of results) {
+  results.forEach((result, i) => {
     if (result.status === 'fulfilled') {
-      allEvents.push(...result.value);
+      allEvents.push(...result.value.events);
+      sourceResults.push(result.value.result);
     } else {
-      // Log unexpected rejections (e.g. fetchWithTimeout network errors)
+      // Unexpected rejections (e.g. fetchWithTimeout network errors)
       log.warn('Source fetch rejected', result.reason);
+      const source = sources[i];
+      sourceResults.push({ id: source.id, name: source.name, ok: false, error: 'Could not reach the link' });
     }
-  }
+  });
 
   // Sort by start time
   allEvents.sort((a, b) => compareEventStarts(a.start, b.start));
-  return allEvents;
+  return { events: allEvents, results: sourceResults };
 }
 
 /** Compute a fallback end date when DTEND is missing. */

@@ -14,7 +14,7 @@ import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -95,12 +95,12 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
         {!shouldCollapse && (<>
           {/* All-day events (plus promoted middle days) */}
           {allDayEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} failingSourceIds={failingSourceIds} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} />
+            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} failingSourceIds={failingSourceIds} />
           ))}
 
           {/* Empty day */}
@@ -157,9 +157,10 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   );
 }
 
-function EventRow({ event, timezone, segment, rowDate, now, config, weather, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale }: {
+function EventRow({ event, timezone, segment, rowDate, now, config, weather, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale, failingSourceIds }: {
   event: CalendarEvent;
   timezone?: string;
+  failingSourceIds?: ReadonlySet<string>;
   segment: EventDaySegment;
   rowDate: Date;
   now: Date;
@@ -186,12 +187,16 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
     countdownAllDay: config.countdownAllDay === true,
   });
   // Split multi-day rows show only the true partial time on their first and
-  // last days; middle days arrive here with isAllDay set.
-  const timeLabel = segment === 'first'
+  // last days; middle days arrive here with isAllDay set. Rows from a source
+  // that stopped updating carry a "saved" suffix.
+  const baseTimeLabel = segment === 'first'
     ? t('fullscreen-calendar.fromTime', { time: startLabel })
     : segment === 'last'
       ? t('fullscreen-calendar.untilTime', { time: endLabel })
       : `${startLabel} – ${endLabel}`;
+  const timeLabel = event.sourceId && failingSourceIds?.has(event.sourceId)
+    ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
+    : baseTimeLabel;
 
   let ariaLabel: string;
   if (isAllDay) {

@@ -361,6 +361,14 @@
       "shared": {
         "maxEventsLabel": "Max. Termine",
         "daysAheadLabel": "Tage im Voraus"
+      },
+      "health": {
+        "heading": "Quellenstatus",
+        "holidays": "Feiertage",
+        "updated": "Aktualisiert {time}",
+        "updatedNow": "Gerade aktualisiert",
+        "notUpdating": "Wird nicht aktualisiert",
+        "errorSince": "{error} · zuletzt erfolgreich {time}"
       }
     },
     "dataPage": {

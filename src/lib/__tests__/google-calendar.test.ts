@@ -83,7 +83,7 @@ describe('fetchCalendarEvents', () => {
       },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
 
     expect(events).toHaveLength(1);
     // Calendar-id prefix keeps ids unique when the same event appears on two
@@ -111,7 +111,7 @@ describe('fetchCalendarEvents', () => {
       },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-03-01', '2026-03-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-03-01', '2026-03-31');
 
     expect(events[0].allDay).toBe(true);
     expect(events[0].start).toBe('2026-03-10');
@@ -132,7 +132,7 @@ describe('fetchCalendarEvents', () => {
       },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#dc2626');
   });
 
@@ -150,7 +150,7 @@ describe('fetchCalendarEvents', () => {
       },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#4285f4');
   });
 
@@ -176,7 +176,7 @@ describe('fetchCalendarEvents', () => {
       return { data: { items: [] } };
     });
 
-    const events = await fetchCalendarEvents(['work', 'personal'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['work', 'personal'], '2026-01-01', '2026-01-31');
 
     expect(events).toHaveLength(2);
     // Sorted by start time — Standup (9am) before Dentist (2pm)
@@ -199,7 +199,7 @@ describe('fetchCalendarEvents', () => {
       },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].title).toBe('(No title)');
   });
 
@@ -211,7 +211,7 @@ describe('fetchCalendarEvents', () => {
       { id: 'evt6', summary: 'Test', start: { dateTime: '2026-01-20T12:00:00Z' }, end: { dateTime: '2026-01-20T13:00:00Z' } },
     ]);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#3b82f6');
   });
 
@@ -221,7 +221,7 @@ describe('fetchCalendarEvents', () => {
     setupColors({});
     setupEvents('cal1', []);
 
-    const events = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events).toEqual([]);
   });
 });

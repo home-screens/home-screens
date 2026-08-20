@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type ModuleType, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 
 /**
@@ -92,6 +92,8 @@ export interface ModuleDataSource {
   calendarEvents: unknown[] | null;
   /** null = surface has no fetch-health signal (editor preview). */
   calendarStatus: CalendarFetchStatus | null;
+  /** Per-source health from the calendar payload; null when absent. */
+  calendarSourceStatus: CalendarSourceStatus[] | null;
   availableDisplays: Array<{ id: string; name: string }>;
 }
 
@@ -145,6 +147,12 @@ export function buildModuleProps(
   // modules read the prop's mere presence as the failure signal.
   if (needsCalendar && source.calendarStatus?.error != null) {
     props.calendarStatus = source.calendarStatus;
+  }
+  // Same presence semantic per source: attached only while at least one
+  // source is failing, so healthy displays and the editor build identical
+  // props and never re-render over an all-ok status array.
+  if (needsCalendar && source.calendarSourceStatus?.some((s) => !s.ok)) {
+    props.sourceStatus = source.calendarSourceStatus;
   }
 
   const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
@@ -208,6 +216,12 @@ export function toDisplaySource(
         : ((calendarData as Record<string, unknown>).events as unknown[] | undefined) ?? [])
       : null,
     calendarStatus: sharedData.calendarStatus,
+    // Rides the kept-last-good payload: while the whole fetch is failing the
+    // display keeps serving the previous body, so the per-source statuses in
+    // it persist too ("keeps the last status per source").
+    calendarSourceStatus: calendarData && !Array.isArray(calendarData)
+      ? ((calendarData as Record<string, unknown>).sourceStatus as CalendarSourceStatus[] | undefined) ?? null
+      : null,
     availableDisplays,
   };
 }
@@ -239,6 +253,7 @@ export function toEditorSource(
     // The editor preview has no display fetch loop to report on; modules
     // treat null as "healthy" and never render the saved-events pill.
     calendarStatus: null,
+    calendarSourceStatus: null,
     availableDisplays: displays,
   };
 }

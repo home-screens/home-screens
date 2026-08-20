@@ -113,11 +113,11 @@ beforeEach(() => {
 describe('calendar ID resolution', () => {
   it('uses calendarIds query param when provided (comma-separated)', async () => {
     mockReadConfig.mockResolvedValue(makeConfig());
-    mockFetchGoogle.mockResolvedValue([makeEvent('1', '2026-03-13T10:00:00Z')]);
+    mockFetchGoogle.mockResolvedValue({ events: [makeEvent('1', '2026-03-13T10:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ calendarIds: 'cal-a,cal-b' });
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(mockFetchGoogle).toHaveBeenCalledWith(
@@ -132,7 +132,7 @@ describe('calendar ID resolution', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary', 'work'] }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -148,7 +148,7 @@ describe('calendar ID resolution', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarId: 'my-single-cal', googleCalendarIds: [] }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -165,7 +165,7 @@ describe('calendar ID resolution', () => {
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(400);
     expect(json.error).toMatch(/No calendars configured/);
@@ -179,7 +179,7 @@ describe('calendar ID resolution', () => {
         ],
       }),
     );
-    mockFetchICal.mockResolvedValue([makeEvent('ics-ev1', '2026-03-13T09:00:00Z')]);
+    mockFetchICal.mockResolvedValue({ events: [makeEvent('ics-ev1', '2026-03-13T09:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     const res = await GET(req);
@@ -189,7 +189,7 @@ describe('calendar ID resolution', () => {
 
   it('filters out empty strings from calendarIds query param', async () => {
     mockReadConfig.mockResolvedValue(makeConfig());
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ calendarIds: 'cal-a,,cal-b,' });
     await GET(req);
@@ -224,12 +224,12 @@ describe('ICS + Google Calendar merging', () => {
       makeEvent('i1', '2026-03-13T08:00:00Z', 'ICal Morning'),
       makeEvent('i2', '2026-03-13T14:00:00Z', 'ICal Early Afternoon'),
     ];
-    mockFetchGoogle.mockResolvedValue(googleEvents);
-    mockFetchICal.mockResolvedValue(icalEvents);
+    mockFetchGoogle.mockResolvedValue({ events: googleEvents, results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchICal.mockResolvedValue({ events: icalEvents, results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json).toHaveLength(4);
@@ -254,17 +254,17 @@ describe('ICS + Google Calendar merging', () => {
     // Events relative to real "now" so they stay upcoming regardless of when
     // the suite runs (the route reads the live clock, not a fake timer).
     const inHours = (h: number) => new Date(Date.now() + h * 3600000).toISOString();
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', inHours(2), 'Google Soon'),
       makeEvent('g2', inHours(6), 'Google Later'),
-    ]);
-    mockFetchICal.mockResolvedValue([
+    ], results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchICal.mockResolvedValue({ events: [
       makeEvent('i1', inHours(1), 'ICal First'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     // Nearest two upcoming survive, sorted ascending; the +6h one is dropped.
     expect(json).toHaveLength(2);
@@ -286,11 +286,11 @@ describe('ICS + Google Calendar merging', () => {
     const events = Array.from({ length: 24 }, (_, i) =>
       makeEvent(`e${i}`, at((i - 12) * 24), `Event ${i}`),
     );
-    mockFetchGoogle.mockResolvedValue(events);
+    mockFetchGoogle.mockResolvedValue({ events: events, results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ timeMin: at(-14 * 24), timeMax: at(14 * 24) });
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     // 28-day window / 7-day default → 4x → cap 20; all 24 don't fit but far
     // more than the raw 5 survive (the whole point of issue #21).
@@ -306,17 +306,17 @@ describe('ICS + Google Calendar merging', () => {
     // the default span (timeMax = timeMin + 7d) so no scaling applies.
     mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 3, daysAhead: 7 }));
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('p1', at(-96), 'Past A'),
       makeEvent('p2', at(-72), 'Past B'),
       makeEvent('p3', at(-48), 'Past C'),
       makeEvent('p4', at(-24), 'Past D'),
       makeEvent('u1', at(24), 'Upcoming'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ timeMin: at(-120), timeMax: at(48) });
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     const titles = json.map((e: CalendarEvent) => e.title);
     expect(json).toHaveLength(3);
@@ -339,13 +339,13 @@ describe('ICS + Google Calendar merging', () => {
     );
 
     mockFetchGoogle.mockRejectedValue(new Error('Google auth expired'));
-    mockFetchICal.mockResolvedValue([
+    mockFetchICal.mockResolvedValue({ events: [
       makeEvent('i1', '2026-03-13T09:00:00Z', 'ICS Only Event'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json).toHaveLength(1);
@@ -362,9 +362,9 @@ describe('ICS + Google Calendar merging', () => {
       }),
     );
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'Google Event'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
     // Simulate node-ical not installed — the dynamic import() itself throws
     mockFetchICal.mockImplementation(() => {
       throw new Error('Cannot find module node-ical');
@@ -372,7 +372,7 @@ describe('ICS + Google Calendar merging', () => {
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json).toHaveLength(1);
@@ -389,14 +389,14 @@ describe('ICS + Google Calendar merging', () => {
       }),
     );
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'Google Only Event'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
     mockFetchICal.mockRejectedValue(new Error('ICS feed down'));
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json).toHaveLength(1);
@@ -418,7 +418,7 @@ describe('ICS + Google Calendar merging', () => {
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(500);
     expect(json.error).toBeTruthy();
@@ -441,11 +441,11 @@ describe('ICS + Google Calendar merging', () => {
     await GET(req);
 
     // Second call — sources now succeed. If the error was cached, we'd get the error response.
-    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T10:00:00Z', 'Success')]);
-    mockFetchICal.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [makeEvent('g1', '2026-03-13T10:00:00Z', 'Success')], results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchICal.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const res2 = await GET(req);
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     expect(res2.status).toBe(200);
     expect(json2).toHaveLength(1);
@@ -460,7 +460,7 @@ describe('ICS + Google Calendar merging', () => {
         ],
       }),
     );
-    mockFetchICal.mockResolvedValue([makeEvent('i1', '2026-03-13T09:00:00Z')]);
+    mockFetchICal.mockResolvedValue({ events: [makeEvent('i1', '2026-03-13T09:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -472,7 +472,7 @@ describe('ICS + Google Calendar merging', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T09:00:00Z')]);
+    mockFetchGoogle.mockResolvedValue({ events: [makeEvent('g1', '2026-03-13T09:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -489,7 +489,7 @@ describe('ICS + Google Calendar merging', () => {
         ],
       }),
     );
-    mockFetchICal.mockResolvedValue([makeEvent('i1', '2026-03-13T09:00:00Z')]);
+    mockFetchICal.mockResolvedValue({ events: [makeEvent('i1', '2026-03-13T09:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -524,11 +524,11 @@ describe('iCloud merging', () => {
       makeConfig({ googleCalendarIds: ['primary'], icloudSources: [icloudSource()] }),
     );
     mockListICloudAccounts.mockResolvedValue([account]);
-    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T12:00:00Z', 'Google Noon')]);
-    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z', 'iCloud Morning')]);
+    mockFetchGoogle.mockResolvedValue({ events: [makeEvent('g1', '2026-03-13T12:00:00Z', 'Google Noon')], results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchICloud.mockResolvedValue({ events: [makeEvent('ic1', '2026-03-13T08:00:00Z', 'iCloud Morning')], results: [{ id: 'mock-ok', ok: true }] });
 
     const res = await GET(makeRequest());
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json.map((e: CalendarEvent) => e.title)).toEqual(['iCloud Morning', 'Google Noon']);
@@ -541,7 +541,7 @@ describe('iCloud merging', () => {
       }),
     );
     mockListICloudAccounts.mockResolvedValue([account]);
-    mockFetchICloud.mockResolvedValue([]);
+    mockFetchICloud.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const res = await GET(makeRequest());
 
@@ -557,7 +557,7 @@ describe('iCloud merging', () => {
   it('counts iCloud sources toward the "no calendars configured" check', async () => {
     mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource()] }));
     mockListICloudAccounts.mockResolvedValue([account]);
-    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z')]);
+    mockFetchICloud.mockResolvedValue({ events: [makeEvent('ic1', '2026-03-13T08:00:00Z')], results: [{ id: 'mock-ok', ok: true }] });
 
     const res = await GET(makeRequest());
 
@@ -571,11 +571,11 @@ describe('iCloud merging', () => {
       makeConfig({ googleCalendarIds: ['primary'], icloudSources: [icloudSource()] }),
     );
     mockListICloudAccounts.mockResolvedValue([account]);
-    mockFetchGoogle.mockResolvedValue([makeEvent('g1', '2026-03-13T10:00:00Z', 'Google Only')]);
+    mockFetchGoogle.mockResolvedValue({ events: [makeEvent('g1', '2026-03-13T10:00:00Z', 'Google Only')], results: [{ id: 'mock-ok', ok: true }] });
     mockFetchICloud.mockRejectedValue(new Error('iCloud down'));
 
     const res = await GET(makeRequest());
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(200);
     expect(json.map((e: CalendarEvent) => e.title)).toEqual(['Google Only']);
@@ -587,7 +587,7 @@ describe('iCloud merging', () => {
     mockFetchICloud.mockRejectedValue(new Error('iCloud down'));
 
     const res = await GET(makeRequest());
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(500);
     expect(json.error).toBeTruthy();
@@ -597,15 +597,15 @@ describe('iCloud merging', () => {
     const params = { timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-20T00:00:00Z' };
     mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource()] }));
     mockListICloudAccounts.mockResolvedValue([account]);
-    mockFetchICloud.mockResolvedValue([makeEvent('ic1', '2026-03-13T08:00:00Z', 'Home Cal')]);
+    mockFetchICloud.mockResolvedValue({ events: [makeEvent('ic1', '2026-03-13T08:00:00Z', 'Home Cal')], results: [{ id: 'mock-ok', ok: true }] });
 
     await GET(makeRequest(params));
 
     mockReadConfig.mockResolvedValue(makeConfig({ icloudSources: [icloudSource({ id: 'ic-9' })] }));
-    mockFetchICloud.mockResolvedValue([makeEvent('ic2', '2026-03-13T09:00:00Z', 'Other Cal')]);
+    mockFetchICloud.mockResolvedValue({ events: [makeEvent('ic2', '2026-03-13T09:00:00Z', 'Other Cal')], results: [{ id: 'mock-ok', ok: true }] });
 
     const res2 = await GET(makeRequest(params));
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     expect(json2[0].title).toBe('Other Cal');
     expect(mockFetchICloud).toHaveBeenCalledTimes(2);
@@ -620,22 +620,22 @@ describe('cache behavior', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'First Fetch'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-20T00:00:00Z' });
     const res1 = await GET(req);
-    const json1 = await res1.json();
+    const body1 = await res1.json(); const json1 = body1.events ?? body1;
     expect(json1).toHaveLength(1);
 
     // Second request with same params — Google mock changed, but cache should be used
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g2', '2026-03-13T11:00:00Z', 'Second Fetch'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const res2 = await GET(req);
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     expect(json2).toHaveLength(1);
     expect(json2[0].title).toBe('First Fetch');
@@ -647,9 +647,9 @@ describe('cache behavior', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'Primary Cal'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req1 = makeRequest({
       calendarIds: 'cal-a',
@@ -658,9 +658,9 @@ describe('cache behavior', () => {
     });
     await GET(req1);
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g2', '2026-03-13T11:00:00Z', 'Different Cal'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req2 = makeRequest({
       calendarIds: 'cal-b',
@@ -668,7 +668,7 @@ describe('cache behavior', () => {
       timeMax: '2026-03-20T00:00:00Z',
     });
     const res2 = await GET(req2);
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     // Should be a fresh fetch, not cached
     expect(json2[0].title).toBe('Different Cal');
@@ -679,9 +679,9 @@ describe('cache behavior', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'Week 1'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req1 = makeRequest({
       timeMin: '2026-03-13T00:00:00Z',
@@ -689,16 +689,16 @@ describe('cache behavior', () => {
     });
     await GET(req1);
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g2', '2026-03-20T10:00:00Z', 'Week 2'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req2 = makeRequest({
       timeMin: '2026-03-20T00:00:00Z',
       timeMax: '2026-03-27T00:00:00Z',
     });
     const res2 = await GET(req2);
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     expect(json2[0].title).toBe('Week 2');
     expect(mockFetchGoogle).toHaveBeenCalledTimes(2);
@@ -708,21 +708,21 @@ describe('cache behavior', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g1', '2026-03-13T10:00:00Z', 'Before Clear'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-20T00:00:00Z' });
     await GET(req);
 
     cache.clear();
 
-    mockFetchGoogle.mockResolvedValue([
+    mockFetchGoogle.mockResolvedValue({ events: [
       makeEvent('g2', '2026-03-13T10:00:00Z', 'After Clear'),
-    ]);
+    ], results: [{ id: 'mock-ok', ok: true }] });
 
     const res2 = await GET(req);
-    const json2 = await res2.json();
+    const body2 = await res2.json(); const json2 = body2.events ?? body2;
 
     expect(json2[0].title).toBe('After Clear');
     expect(mockFetchGoogle).toHaveBeenCalledTimes(2);
@@ -737,7 +737,7 @@ describe('time parameters', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({
       timeMin: '2026-06-01T00:00:00Z',
@@ -758,7 +758,7 @@ describe('time parameters', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'], daysAhead }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const before = Date.now();
     const req = makeRequest({ timeMin: 'not-a-date', timeMax: 'also-junk' });
@@ -774,7 +774,7 @@ describe('time parameters', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({
       timeMin: '2026-06-08T00:00:00Z',
@@ -792,7 +792,7 @@ describe('time parameters', () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'], daysAhead }),
     );
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const before = Date.now();
     const req = makeRequest();
@@ -818,7 +818,7 @@ describe('time parameters', () => {
     // Remove daysAhead to trigger the ?? 7 fallback
     delete (config.settings.calendar as unknown as Record<string, unknown>).daysAhead;
     mockReadConfig.mockResolvedValue(config);
-    mockFetchGoogle.mockResolvedValue([]);
+    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest();
     await GET(req);
@@ -845,12 +845,12 @@ describe('time parameters', () => {
     const icalEvents = Array.from({ length: 60 }, (_, i) =>
       makeEvent(`i${i}`, `2026-03-14T${String(i).padStart(2, '0')}:00:00Z`),
     );
-    mockFetchGoogle.mockResolvedValue(googleEvents);
-    mockFetchICal.mockResolvedValue(icalEvents);
+    mockFetchGoogle.mockResolvedValue({ events: googleEvents, results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchICal.mockResolvedValue({ events: icalEvents, results: [{ id: 'mock-ok', ok: true }] });
 
     const req = makeRequest({ timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-20T00:00:00Z' });
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(json).toHaveLength(100);
   });
@@ -865,9 +865,65 @@ describe('config read failure', () => {
 
     const req = makeRequest();
     const res = await GET(req);
-    const json = await res.json();
+    const body = await res.json(); const json = body.events ?? body;
 
     expect(res.status).toBe(500);
     expect(json.error).toBeTruthy();
+  });
+});
+
+describe('per-source status', () => {
+  it('reports a failing source next to a healthy one, with last-good fetchedAt', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
+      icalSources: [
+        { id: 'good', type: 'ical', name: 'Family', url: 'https://a.example/f.ics', color: '#3B82F6', enabled: true },
+        { id: 'bad', type: 'ical', name: 'School', url: 'https://a.example/s.ics', color: '#6366F1', enabled: true },
+      ],
+    }));
+    mockFetchICal.mockResolvedValue({
+      events: [makeEvent('e1', '2026-03-13T10:00:00Z')],
+      results: [
+        { id: 'good', name: 'Family', ok: true },
+        { id: 'bad', name: 'School', ok: false, error: 'Could not reach the link (HTTP 404)' },
+      ],
+    });
+
+    const res = await GET(makeRequest({ timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-14T00:00:00Z' }));
+    const body = await res.json();
+
+    expect(body.events).toHaveLength(1);
+    const byId = Object.fromEntries(body.sourceStatus.map((s: { id: string }) => [s.id, s]));
+    expect(byId.good).toMatchObject({ ok: true, name: 'Family' });
+    expect(byId.good.fetchedAt).toBeGreaterThan(0);
+    expect(byId.bad).toMatchObject({ ok: false, name: 'School', error: 'Could not reach the link (HTTP 404)' });
+    // 'bad' has never succeeded this process, so no since-time yet.
+    expect(byId.bad.fetchedAt).toBeNull();
+  });
+
+  it("keeps serving a failing source's last-good events", async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
+      icalSources: [
+        { id: 'school', type: 'ical', name: 'School', url: 'https://a.example/s.ics', color: '#6366F1', enabled: true },
+      ],
+    }));
+    const schoolEvent = { ...makeEvent('s1', '2026-03-13T10:00:00Z', 'School Play'), sourceId: 'school', sourceName: 'School' };
+    mockFetchICal.mockResolvedValue({
+      events: [schoolEvent],
+      results: [{ id: 'school', name: 'School', ok: true }],
+    });
+    const req = makeRequest({ timeMin: '2026-03-13T00:00:00Z', timeMax: '2026-03-14T00:00:00Z' });
+    const first = await (await GET(req)).json();
+    expect(first.events).toHaveLength(1);
+
+    // The feed dies; the route substitutes the saved events and reports !ok.
+    cache.clear();
+    mockFetchICal.mockResolvedValue({
+      events: [],
+      results: [{ id: 'school', name: 'School', ok: false, error: 'Could not reach the link (HTTP 404)' }],
+    });
+    const second = await (await GET(req)).json();
+    expect(second.events.map((e: CalendarEvent) => e.title)).toEqual(['School Play']);
+    expect(second.sourceStatus[0]).toMatchObject({ id: 'school', ok: false });
+    expect(second.sourceStatus[0].fetchedAt).toBeGreaterThan(0);
   });
 });

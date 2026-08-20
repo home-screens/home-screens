@@ -361,6 +361,14 @@
       "shared": {
         "maxEventsLabel": "Max. afspraken",
         "daysAheadLabel": "Dagen vooruit"
+      },
+      "health": {
+        "heading": "Bronstatus",
+        "holidays": "Officiële feestdagen",
+        "updated": "Bijgewerkt {time}",
+        "updatedNow": "Zojuist bijgewerkt",
+        "notUpdating": "Wordt niet bijgewerkt",
+        "errorSince": "{error} · laatst gelukt {time}"
       }
     },
     "dataPage": {

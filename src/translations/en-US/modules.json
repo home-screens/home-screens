@@ -131,7 +131,10 @@
     "cantLoadEvents": "Can't load events right now",
     "weekOf": "Week of {date}",
     "legendLabel": "Calendar sources",
-    "publicHolidays": "Public Holidays"
+    "publicHolidays": "Public Holidays",
+    "sourceNotUpdating": "{name} not updating since {time}",
+    "sourceNotUpdatingNoTime": "{name} not updating",
+    "savedShort": "saved"
   },
   "fullscreen-calendar": {
     "allDay": "All Day",

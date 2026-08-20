@@ -131,7 +131,10 @@
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "weekOf": "Week van {date}",
     "legendLabel": "Kalenderbronnen",
-    "publicHolidays": "Officiële feestdagen"
+    "publicHolidays": "Officiële feestdagen",
+    "sourceNotUpdating": "{name} wordt sinds {time} niet bijgewerkt",
+    "sourceNotUpdatingNoTime": "{name} wordt niet bijgewerkt",
+    "savedShort": "opgeslagen"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dag",

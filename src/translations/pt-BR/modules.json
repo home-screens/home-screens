@@ -131,7 +131,10 @@
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
     "weekOf": "Semana de {date}",
     "legendLabel": "Fontes do calendário",
-    "publicHolidays": "Feriados nacionais"
+    "publicHolidays": "Feriados nacionais",
+    "sourceNotUpdating": "{name} sem atualizar desde {time}",
+    "sourceNotUpdatingNoTime": "{name} sem atualizar",
+    "savedShort": "salvo"
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",

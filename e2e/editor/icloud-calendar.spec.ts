@@ -138,3 +138,35 @@ test('Defaults › Calendar: disconnecting an iCloud account strips its sources'
     .toBe(0);
   await expect(page.getByRole('button', { name: 'Add iCloud account' })).toBeVisible();
 });
+
+test('Defaults › Calendar: source status lists a failing feed with plain wording', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+
+  // The health section reads /api/calendar/status (the latest status any
+  // display fetch computed); stub it at the browser boundary the same way
+  // the display specs stub /api/calendar.
+  await page.route('**/api/calendar/status*', (route) =>
+    route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify({
+        sourceStatus: [
+          { id: 'family', name: 'Family', ok: true, fetchedAt: Date.now() - 2 * 60_000 },
+          { id: 'school', name: 'School', ok: false, error: 'Could not reach the link (HTTP 404)', fetchedAt: Date.now() - 3 * 3_600_000 },
+        ],
+      }),
+    }),
+  );
+
+  await page.goto('/editor/settings?section=defaults&page=calendar');
+  const health = page.getByTestId('calendar-source-health');
+  await expect(health).toContainText('Source status');
+
+  const okRow = health.locator('[data-source-health="ok"]');
+  await expect(okRow).toContainText('Family');
+  await expect(okRow).toContainText('Updated');
+
+  const badRow = health.locator('[data-source-health="failing"]');
+  await expect(badRow).toContainText('School');
+  await expect(badRow).toContainText('Not updating');
+  await expect(badRow).toContainText('Could not reach the link (HTTP 404)');
+});
