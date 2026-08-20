@@ -20,6 +20,10 @@ import {
   boundaryBetween,
   resolveWeatherPlacement,
   effectiveWeatherPlacement,
+  formatEventTimeCompact,
+  allDaySpanSegment,
+  formatMonthRangeLabel,
+  pickGridTimeColor,
 } from '@/lib/calendar-utils';
 
 describe('clampWeeksToShow', () => {
@@ -662,5 +666,79 @@ describe('effectiveWeatherPlacement', () => {
   it('applies the legacy showWeather fallback before degrading', () => {
     expect(effectiveWeatherPlacement('month-grid', { showWeather: false })).toBe('off');
     expect(effectiveWeatherPlacement('month-grid', { showWeather: true })).toBe('header');
+  });
+});
+
+describe('formatEventTimeCompact', () => {
+  it('drops minutes on the hour and uses the narrow day period (12h)', () => {
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 16, 0), '12h', 'en-US')).toBe('4p');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 0), '12h', 'en-US')).toBe('8a');
+  });
+
+  it('keeps minutes off the hour with no leading zero (12h)', () => {
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 17, 30), '12h', 'en-US')).toBe('5:30p');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 5), '12h', 'en-US')).toBe('8:05a');
+  });
+
+  it('renders 24h times as HH:mm', () => {
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 17, 30), '24h', 'en-US')).toBe('17:30');
+    expect(formatEventTimeCompact(new Date(2026, 6, 15, 8, 0), '24h', 'en-US')).toBe('08:00');
+  });
+});
+
+describe('allDaySpanSegment', () => {
+  const day = (d: number) => new Date(2026, 8, d); // Sep 2026, local midnight
+  // Fri Sep 4 – Sun Sep 6; all-day ends are exclusive so end = Sep 7
+  const trip = { start: '2026-09-04', end: '2026-09-07', allDay: true };
+
+  it('classifies first / middle / last days of a multi-day all-day span', () => {
+    expect(allDaySpanSegment(trip, day(4))).toBe('first');
+    expect(allDaySpanSegment(trip, day(5))).toBe('middle');
+    expect(allDaySpanSegment(trip, day(6))).toBe('last');
+  });
+
+  it('classifies single-day all-day events as single', () => {
+    expect(allDaySpanSegment({ start: '2026-09-07', end: '2026-09-08', allDay: true }, day(7))).toBe('single');
+  });
+
+  it('classifies timed events as single, midnight-crossers included', () => {
+    expect(allDaySpanSegment({ start: '2026-09-04T19:00:00', end: '2026-09-05T06:00:00' }, day(4))).toBe('single');
+  });
+});
+
+describe('formatMonthRangeLabel', () => {
+  it('renders a single month', () => {
+    expect(formatMonthRangeLabel(new Date(2026, 6, 1), new Date(2026, 6, 28), 'en-US')).toBe('July 2026');
+  });
+
+  it('renders a same-year range with one year', () => {
+    expect(formatMonthRangeLabel(new Date(2026, 6, 12), new Date(2026, 7, 8), 'en-US')).toBe('July – August 2026');
+  });
+
+  it('renders a year-crossing range with both years', () => {
+    expect(formatMonthRangeLabel(new Date(2026, 11, 20), new Date(2027, 0, 16), 'en-US')).toBe('December 2026 – January 2027');
+  });
+});
+
+describe('pickGridTimeColor', () => {
+  it('keeps a color that already clears 3:1 on the estimated pill surface', () => {
+    expect(pickGridTimeColor('#eab308', 'rgba(0, 0, 0, 0.4)')).toBe('rgb(234, 179, 8)');
+  });
+
+  it('lightens a dark color toward white until it clears 3:1', () => {
+    const out = pickGridTimeColor('#1d4ed8', 'rgba(0, 0, 0, 0.4)');
+    expect(out).not.toBe('rgb(29, 78, 216)');
+    const [, , b] = out.match(/\d+/g)!.map(Number);
+    expect(b).toBeGreaterThan(216); // moved toward white
+  });
+
+  it('falls back to white for unparseable calendar colors', () => {
+    expect(pickGridTimeColor('tomato', undefined)).toBe('#fff');
+  });
+
+  it('falls back to the YIQ pick when lightening cannot reach 3:1 (light background)', () => {
+    // On a white module background the estimated pill surface is white;
+    // mixing toward white can never clear 3:1, so the YIQ pick must win.
+    expect(pickGridTimeColor('#eab308', '#ffffff')).toBe('#1b1b1f');
   });
 });

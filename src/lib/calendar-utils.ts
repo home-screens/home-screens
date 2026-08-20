@@ -187,6 +187,88 @@ export function pickTintedTextColor(preferred: string, accentColor: string, modu
 }
 
 /**
+ * Compact grid-pill time: "8a", "5:30p" (12h) or "17:30" (24h). The modern
+ * multi-week themes use this so the title, not the timestamp, owns the pill
+ * width. 'aaaaa' is date-fns' narrow day period ("a"/"p" in en-US); locales
+ * without a short day period keep whatever their narrow form is.
+ */
+export function formatEventTimeCompact(date: Date, timeFormat: TimeFormat, locale: string): string {
+  if (timeFormat === '24h') return formatDateSync(date, 'HH:mm', { locale });
+  const pattern = date.getMinutes() === 0 ? 'haaaaa' : 'h:mmaaaaa';
+  return formatDateSync(date, pattern, { locale }).trim();
+}
+
+/**
+ * Which stretch of a multi-day ALL-DAY event a grid day sees, so the modern
+ * multi-week themes can stitch per-day pills into one visual bar (solid
+ * first day, hollow squared continuations). All-day ends are exclusive
+ * (a single-day event on Sep 7 has end Sep 8). Timed events — including
+ * midnight-crossers, which have their own list-view classifier
+ * (`classifyEventOnDay`) — always return 'single' here: only all-day pills
+ * get continuation styling in the grids.
+ */
+export function allDaySpanSegment(
+  ev: { start: string; end: string; allDay?: boolean },
+  date: Date,
+): EventDaySegment {
+  if (!isAllDayEvent(ev)) return 'single';
+  const evStart = parseEventDate(ev.start);
+  const evEnd = parseEventDate(ev.end); // exclusive
+  const dayEnd = addDays(date, 1);
+  const startsToday = evStart >= date && evStart < dayEnd;
+  const endsToday = evEnd <= dayEnd;
+  if (startsToday) return endsToday ? 'single' : 'first';
+  return endsToday ? 'last' : 'middle';
+}
+
+/**
+ * Localized month-range title for the multi-week grid ("July 2026",
+ * "July – August 2026", "December 2026 – January 2027"), derived from the
+ * first and last rendered cells. The separator is an en dash — the
+ * no-em-dash rule is about prose, and MonthView's title precedent is a
+ * bare "MMMM yyyy" this must extend, not replace.
+ */
+export function formatMonthRangeLabel(start: Date, end: Date, locale: string): string {
+  const sameYear = start.getFullYear() === end.getFullYear();
+  if (sameYear && start.getMonth() === end.getMonth()) {
+    return formatDateSync(start, 'MMMM yyyy', { locale });
+  }
+  if (sameYear) {
+    return `${formatDateSync(start, 'MMMM', { locale })} – ${formatDateSync(end, 'MMMM yyyy', { locale })}`;
+  }
+  return `${formatDateSync(start, 'MMMM yyyy', { locale })} – ${formatDateSync(end, 'MMMM yyyy', { locale })}`;
+}
+
+/**
+ * Calendar-color time text for the clean multi-week pills. The pill surface
+ * is white at 10% over the module background, and raw mid-saturation
+ * calendar colors often land under 3:1 on it — mix toward white in 25%
+ * steps until the color clears 3:1 (6 steps bounded, ~82% of the way to
+ * white). Lightening only buys contrast on a dark surface: the module
+ * background is free-form, so on a light one every step moves the color
+ * closer to the surface instead of away from it. When the loop exhausts
+ * without clearing 3:1, fall back to the same YIQ black/white pick as
+ * pickPillTextColor rather than returning the worst candidate.
+ * Unparseable calendar colors fall back to white; unparseable module
+ * backgrounds estimate against the default charcoal.
+ */
+export function pickGridTimeColor(calendarColor: string, moduleBackground: string | undefined): string {
+  const rgb = parseHexToRgb(calendarColor);
+  if (!rgb) return '#fff';
+  const ground = parseCssColorToRgb(moduleBackground) ?? [38, 40, 46];
+  const surface = [0, 1, 2].map((i) => Math.round(255 * 0.1 + ground[i] * 0.9)) as [number, number, number];
+  let c: [number, number, number] = rgb;
+  for (let i = 0; i < 6 && contrastRatio(c, surface) < 3; i++) {
+    c = c.map((v) => Math.round(v + (255 - v) * 0.25)) as [number, number, number];
+  }
+  if (contrastRatio(c, surface) < 3) {
+    const [r, g, b] = surface;
+    return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
+  }
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
+
+/**
  * Check whether a calendar event falls on a given day.
  *
  * All-day events use half-open interval overlap: [evStart, evEnd) ∩ [date, date+1).

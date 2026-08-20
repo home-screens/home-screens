@@ -8,9 +8,14 @@ import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { isGridView } from '@/lib/calendar-utils';
+import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import type { AgendaSeparators, EventTapStyle, ModuleInstance } from '@/types/config';
+
+// Sourced from the registry so the reset button can't drift from the accent
+// a freshly added calendar module actually starts with.
+const DEFAULT_CALENDAR_ACCENT = getModuleDefinition('calendar')!.defaultConfig.accentColor as string;
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -33,6 +38,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     startDay?: string;
     gridEventStyle?: string;
     gridEventPillBackground?: boolean;
+    multiWeekTheme?: string;
     showCountdown?: boolean;
     showProgressBar?: boolean;
     emptyDayText?: string;
@@ -40,6 +46,11 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
+  const multiWeekTheme = c.multiWeekTheme ?? 'banner';
+  // The modern themes carry their own pill styling; gridEventStyle and the
+  // pill toggle only apply to multi-week under the banner theme (and to the
+  // week/month grids always).
+  const themeControlsPills = viewMode === 'multi-week' && multiWeekTheme !== 'banner';
 
   const VIEW_MODES = [
     { value: 'daily', label: t('configSections.calendar.viewDaily') },
@@ -57,6 +68,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   const GRID_EVENT_STYLE_OPTIONS = [
     { value: 'classic', label: t('configSections.calendar.gridEventStyleClassic') },
     { value: 'colored', label: t('configSections.calendar.gridEventStyleColored') },
+  ] as const;
+
+  const MULTI_WEEK_THEME_OPTIONS = [
+    { value: 'banner', label: t('configSections.calendar.themeBanner') },
+    { value: 'clean', label: t('configSections.calendar.themeClean') },
+    { value: 'minimal', label: t('configSections.calendar.themeMinimal') },
+    { value: 'vivid', label: t('configSections.calendar.themeVivid') },
   ] as const;
 
   const { availableSources, googleAuthError } = useCalendarSources('configSections.calendar');
@@ -106,6 +124,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {viewMode === 'multi-week' && (
         <>
+          <LabeledSelect
+            label={t('configSections.calendar.multiWeekTheme')}
+            value={multiWeekTheme}
+            onChange={(v) => set({ multiWeekTheme: v })}
+            options={MULTI_WEEK_THEME_OPTIONS}
+          />
           <Slider
             label={t('configSections.calendar.weeksToShow')}
             value={c.weeksToShow ?? 6}
@@ -172,7 +196,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           options={START_DAY_OPTIONS}
         />
       )}
-      {isGridView(viewMode) && (
+      {isGridView(viewMode) && !themeControlsPills && (
         <LabeledSelect
           label={t('configSections.calendar.gridEventStyle')}
           value={c.gridEventStyle ?? 'classic'}
@@ -180,7 +204,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           options={GRID_EVENT_STYLE_OPTIONS}
         />
       )}
-      {isGridView(viewMode) && (c.gridEventStyle ?? 'classic') === 'colored' && (
+      {isGridView(viewMode) && !themeControlsPills && (c.gridEventStyle ?? 'classic') === 'colored' && (
         <Toggle
           label={t('configSections.calendar.gridEventPill')}
           checked={!!c.gridEventPillBackground}
@@ -191,6 +215,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         label={t('configSections.calendar.accentColor')}
         value={c.accentColor ?? '#3b82f6'}
         onChange={(v) => set({ accentColor: v })}
+        defaultValue={DEFAULT_CALENDAR_ACCENT}
+        resetLabel={t('common.resetToDefault')}
       />
 
       {/* Touch: tap an event to open a detail overlay */}

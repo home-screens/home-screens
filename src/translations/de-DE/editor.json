@@ -45,7 +45,8 @@
     "mediaTypesPhotos": "Nur Fotos",
     "mediaTypesVideos": "Nur Videos",
     "mediaTypesBoth": "Fotos + Videos",
-    "maxVideoDurationSeconds": "Maximale Abspielzeit pro Video (Sekunden)"
+    "maxVideoDurationSeconds": "Maximale Abspielzeit pro Video (Sekunden)",
+    "resetToDefault": "Auf Standard zurücksetzen"
   },
   "fields": {
     "rotation": "Rotation",
@@ -2278,6 +2279,11 @@
       "gridEventStyleClassic": "Klassisch",
       "gridEventStyleColored": "Farbig",
       "gridEventPill": "Hintergrund hinter Terminen",
+      "multiWeekTheme": "Design",
+      "themeBanner": "Banner (Original)",
+      "themeClean": "Klar",
+      "themeMinimal": "Minimalistisch",
+      "themeVivid": "Kräftig",
       "showCountdown": "Countdown bis zum Termin anzeigen",
       "showProgressBar": "Fortschritt bei laufenden Terminen anzeigen",
       "emptyDayText": "Text für freie Tage",

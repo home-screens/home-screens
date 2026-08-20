@@ -606,14 +606,15 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // Colored style: the all-day event renders a solid calendar-color pill with
     // auto-contrast text (yellow is bright, so near-black #1b1b1f text), while
     // the timed event carries no background of its own and paints its calendar
-    // color on the time + title spans instead.
+    // color on the time + title spans instead. gridEventStyle applies to the
+    // banner skeleton only, so the theme is pinned against the registry default.
     type: 'calendar', name: 'grid-event-style-colored', kind: 'networked', stubKey: 'calendar',
     stubBody: [
       // All-day bounds are date-only with an exclusive end (next day).
       todayEvent('cges-a', 'CAL SOLID', { allDay: true, start: dateStr(0), end: dateStr(1), calendarColor: '#eab308' }),
       todayEvent('cges-b', 'CAL TIMED', { calendarColor: '#3b82f6' }),
     ],
-    config: { viewMode: 'multi-week', gridEventStyle: 'colored' },
+    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored' },
     expect: async (mod) => {
       const solid = mod.locator('[data-event-id="cges-a"]');
       await expect(solid).toHaveCSS('background-color', 'rgb(234, 179, 8)');
@@ -628,11 +629,62 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
   {
     // The timed-pill toggle adds the faint background in colored mode (without
     // it the colored timed row above asserts the bare no-background render).
+    // Banner-only field, so the theme is pinned against the registry default.
     type: 'calendar', name: 'grid-event-pill-background', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
-    config: { viewMode: 'multi-week', gridEventStyle: 'colored', gridEventPillBackground: true },
+    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored', gridEventPillBackground: true },
     expect: async (mod) => {
       await expect(mod.locator('[data-event-id="cgp-a"]').first()).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+    },
+  },
+  {
+    // Banner keeps the original look: no data-mw-theme marker and the padded
+    // time prefix on timed pills. That prefix only exists under the colored
+    // grid style (classic renders dot + title with no time), so pin
+    // gridEventStyle here.
+    type: 'calendar', name: 'multi-week-theme-banner', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cmt-b', title: 'CAL THEME BANNER', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored' },
+    expect: async (mod) => {
+      await expect(mod).toContainText('CAL THEME BANNER');
+      await expect(mod).toContainText('08:05 AM');
+      await expect(mod.locator('[data-mw-theme]')).toHaveCount(0);
+    },
+  },
+  {
+    // Clean renders the modern skeleton: month-range header (always carries a
+    // year) and a compact unpadded time, with the padded banner format gone.
+    type: 'calendar', name: 'multi-week-theme-clean', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cmt-c', title: 'CAL THEME CLEAN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    config: { viewMode: 'multi-week', multiWeekTheme: 'clean' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-mw-theme="clean"]')).toBeVisible();
+      await expect(mod).toContainText(/20\d\d/);
+      await expect(mod).toContainText('8:05a');
+      await expect(mod).not.toContainText('08:05 AM');
+    },
+  },
+  {
+    // Minimal drops the time prefix entirely; the title still renders.
+    type: 'calendar', name: 'multi-week-theme-minimal', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cmt-m', title: 'CAL THEME MIN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    config: { viewMode: 'multi-week', multiWeekTheme: 'minimal' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-mw-theme="minimal"]')).toBeVisible();
+      await expect(mod).toContainText('CAL THEME MIN');
+      await expect(mod).not.toContainText('8:05a');
+    },
+  },
+  {
+    // Vivid paints timed pills solid in the calendar color with the same
+    // auto-contrast text rule the all-day pills use (yellow -> near-black).
+    type: 'calendar', name: 'multi-week-theme-vivid', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cmt-v', title: 'CAL THEME VIVID', start: calIso(1, 8), end: calIso(1, 9), allDay: false, calendarColor: '#eab308' }],
+    config: { viewMode: 'multi-week', multiWeekTheme: 'vivid' },
+    expect: async (mod) => {
+      const pill = mod.locator('[data-event-id="cmt-v"]');
+      await expect(pill).toHaveCSS('background-color', 'rgb(234, 179, 8)');
+      await expect(pill).toHaveCSS('color', 'rgb(27, 27, 31)');
     },
   },
 ];

@@ -642,6 +642,8 @@ export interface FullscreenCalendarConfig {
 // Calendar module config
 export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month';
 
+export type MultiWeekTheme = 'banner' | 'clean' | 'minimal' | 'vivid';
+
 export interface CalendarConfig {
   viewMode: CalendarViewMode;
   daysToShow: number;
@@ -662,6 +664,13 @@ export interface CalendarConfig {
   gridEventStyle?: 'classic' | 'colored';
   // Colored style only: faint light pill background behind timed events.
   gridEventPillBackground?: boolean;
+  // Multi-week view visual theme. 'banner' (default when unset) is the
+  // original look: tinted day-number strips, padded times, pills driven by
+  // gridEventStyle. 'clean' / 'minimal' / 'vivid' share the modern skeleton
+  // (month-range header, corner day numbers, today ring, stitched multi-day
+  // pills) and differ only in pill treatment — they supersede gridEventStyle
+  // and gridEventPillBackground for this view.
+  multiWeekTheme?: MultiWeekTheme;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'
   // Per-view: render the sanitized event description under the title.

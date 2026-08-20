@@ -45,7 +45,8 @@
     "mediaTypesPhotos": "Alleen foto's",
     "mediaTypesVideos": "Alleen video's",
     "mediaTypesBoth": "Foto's + video's",
-    "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)"
+    "maxVideoDurationSeconds": "Maximale afspeeltijd per video (seconden)",
+    "resetToDefault": "Terugzetten op standaard"
   },
   "fields": {
     "rotation": "Rotatie",
@@ -2278,6 +2279,11 @@
       "gridEventStyleClassic": "Klassiek",
       "gridEventStyleColored": "Gekleurd",
       "gridEventPill": "Achtergrond achter afspraken",
+      "multiWeekTheme": "Thema",
+      "themeBanner": "Banner (origineel)",
+      "themeClean": "Strak",
+      "themeMinimal": "Minimaal",
+      "themeVivid": "Fel",
       "showCountdown": "Aftellen naar afspraken tonen",
       "showProgressBar": "Voortgang van lopende afspraken tonen",
       "emptyDayText": "Tekst voor vrije dagen",

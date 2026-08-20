@@ -605,6 +605,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'shape', key: 'fillMode', union: 'ShapeFillMode' },
   { type: 'shape', key: 'frameStyle', union: 'ShapeFrameStyle' },
   { type: 'calendar', key: 'startDay', union: 'WeekStartDay' },
+  { type: 'calendar', key: 'multiWeekTheme', union: 'MultiWeekTheme' },
   { type: 'fullscreen-calendar', key: 'startDay', union: 'WeekStartDay' },
   { type: 'fullscreen-calendar', key: 'scheduleStartAnchor', union: 'ScheduleStartAnchor' },
   { type: 'multi-month', key: 'startDay', union: 'WeekStartDay' },

@@ -427,3 +427,193 @@ describe('grid event styling', () => {
     expect(getByText(/08:05 · 1h/)).toBeTruthy();
   });
 });
+
+describe('multi-week modern themes', () => {
+  const mw = (overrides: Partial<CalendarConfig> = {}) =>
+    makeConfig({ viewMode: 'multi-week', weeksToShow: 4, ...overrides });
+  const timedBlue = {
+    id: 'mt1', title: 'Haircut',
+    start: format(new Date(2026, 6, 15, 8, 5), LOCAL), end: format(new Date(2026, 6, 15, 9, 5), LOCAL),
+    allDay: false, calendarColor: '#3b82f6',
+  } as CalendarEvent;
+  const onHour = {
+    id: 'mt2', title: 'Piano',
+    start: format(new Date(2026, 6, 16, 16, 0), LOCAL), end: format(new Date(2026, 6, 16, 17, 0), LOCAL),
+    allDay: false, calendarColor: '#8e24aa',
+  } as CalendarEvent;
+  // Fri Jul 17 – Sun Jul 19 (exclusive all-day end), crossing the week-row boundary
+  const trip = {
+    id: 'mt3', title: 'Cabin weekend',
+    start: '2026-07-17', end: '2026-07-20',
+    allDay: true, calendarColor: '#4073ff',
+  } as CalendarEvent;
+
+  it('defaults to the banner theme when multiWeekTheme is unset', () => {
+    const { container, queryByText } = render(
+      <Wrapper><CalendarModule config={mw()} style={style} events={[]} /></Wrapper>,
+    );
+    expect(container.querySelector('[data-mw-theme]')).toBeNull();
+    expect(queryByText('July – August 2026')).toBeNull();
+    // The banner strip is still on plain day numbers (default accent #3b82f6 at 0.25)
+    expect((queryByText('16') as HTMLElement).style.backgroundColor).toBe('rgba(59, 130, 246, 0.25)');
+  });
+
+  it('clean: renders the month-range header, quiet day numbers, and a solid today badge', () => {
+    const { container, queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(container.querySelector('[data-mw-theme="clean"]')).not.toBeNull();
+    expect(queryByText('July – August 2026')).not.toBeNull();
+    const plain = queryByText('16') as HTMLElement;
+    expect(plain.style.backgroundColor).toBe(''); // no strip
+    const today = queryByText('15') as HTMLElement;
+    expect(today.className).toContain('rounded-full');
+    expect(today.style.backgroundColor).toBe('rgb(59, 130, 246)');
+  });
+
+  it('clean: rings the today cell and shades weekend cells', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    const todayCell = (queryByText('15') as HTMLElement).parentElement!.parentElement as HTMLElement;
+    expect(todayCell.style.boxShadow).toContain('inset 0 0 0 1.5px');
+    expect(todayCell.style.backgroundColor).toContain('rgba(59, 130, 246');
+    const saturday = (queryByText('18') as HTMLElement).parentElement!.parentElement as HTMLElement;
+    expect(saturday.style.backgroundColor).toBe('rgba(255, 255, 255, 0.065)');
+    const thursday = (queryByText('16') as HTMLElement).parentElement!.parentElement as HTMLElement;
+    expect(thursday.style.backgroundColor).toBe('rgba(255, 255, 255, 0.045)');
+  });
+
+  it('clean: bolds the first of the month with the month name and an accent hairline', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    const aug1 = queryByText('Aug 1') as HTMLElement; // real space — no banner flex-gap collapse
+    expect(aug1).not.toBeNull();
+    expect(aug1.style.fontWeight).toBe('700');
+    const cell = aug1.parentElement!.parentElement as HTMLElement;
+    expect(cell.style.boxShadow).toContain('inset 0 2px 0');
+  });
+
+  it('clean: pills lead with a compact colored time and a semibold title', () => {
+    const { getByText, queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[timedBlue, onHour]} /></Wrapper>,
+    );
+    expect(queryByText('08:05 AM')).toBeNull(); // padded banner format gone
+    expect(getByText('8:05a')).toBeTruthy();    // off the hour keeps minutes
+    expect(getByText('4p')).toBeTruthy();       // on the hour drops them
+    const title = getByText('Haircut') as HTMLElement;
+    expect(title.className).toContain('font-semibold');
+    expect((title.parentElement as HTMLElement).style.backgroundColor).toBe('rgba(255, 255, 255, 0.1)');
+  });
+
+  it('clean: supersedes gridEventStyle for this view', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', gridEventStyle: 'colored' })} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    // colored style would paint the title span in the calendar color; the
+    // clean pill colors the wrapper via style.textColor and leaves the span alone
+    expect((getByText('Haircut') as HTMLElement).style.color).toBe('');
+  });
+
+  it('minimal: drops times and marks pills with a calendar-color bar', () => {
+    const { getByText, queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'minimal' })} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    expect(queryByText('8:05a')).toBeNull();
+    const pill = (getByText('Haircut') as HTMLElement).parentElement as HTMLElement;
+    expect(pill.style.boxShadow).toContain('#3b82f6');
+  });
+
+  it('vivid: timed pills go solid in the calendar color with auto-contrast text', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'vivid' })} style={style} events={[timedBlue]} /></Wrapper>,
+    );
+    const pill = (getByText('Haircut') as HTMLElement).parentElement as HTMLElement;
+    expect(pill.style.backgroundColor).toBe('rgb(59, 130, 246)');
+    expect(pill.style.color).toBe('rgb(255, 255, 255)');
+    expect(getByText('8:05a')).toBeTruthy(); // vivid keeps the compact time
+  });
+
+  it('stitches a multi-day all-day event: solid first day, hollow squared continuations', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[trip]} /></Wrapper>,
+    );
+    const pills = Array.from(container.querySelectorAll('[data-event-id="mt3"]')) as HTMLElement[];
+    expect(pills).toHaveLength(3); // Jul 17, 18, 19 — 19 is in the next week row
+    const [first, middle, last] = pills;
+    expect(first.className).toContain('rounded-l');
+    expect(first.style.backgroundColor).toBe('rgb(64, 115, 255)'); // #4073ff solid
+    expect(middle.className).toContain('rounded-none');
+    expect(middle.style.backgroundColor).toBe('');
+    expect(middle.style.boxShadow).toContain('#4073ff');
+    expect(last.className).toContain('rounded-r');
+    expect(last.style.boxShadow).toContain('#4073ff');
+  });
+
+  it('dims past-day events but keeps the day number readable', () => {
+    const pastEvent = {
+      id: 'mt4', title: 'Monday Thing',
+      start: format(new Date(2026, 6, 13, 10, 0), LOCAL), end: format(new Date(2026, 6, 13, 11, 0), LOCAL),
+      allDay: false,
+    } as CalendarEvent;
+    const { getByText, queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[pastEvent]} /></Wrapper>,
+    );
+    const eventsWrap = (getByText('Monday Thing') as HTMLElement).closest('div')!.parentElement as HTMLElement;
+    expect(eventsWrap.style.opacity).toBe('0.45');
+    // whole-cell dimming (banner behavior) must NOT apply
+    const cell = (queryByText('13') as HTMLElement).parentElement!.parentElement as HTMLElement;
+    expect(cell.style.opacity).toBe('');
+  });
+
+  it('clean: bolds and accents the weekday header over today’s column', () => {
+    const { getByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    // The clock is pinned to a Wednesday, so only that column's header lights up.
+    const wed = getByText('Wed') as HTMLElement;
+    expect(wed.className).toContain('font-bold');
+    expect(wed.style.color).toBe('rgb(59, 130, 246)'); // default accent
+    const thu = getByText('Thu') as HTMLElement;
+    expect(thu.className).not.toContain('font-bold');
+    expect(thu.style.color).toBe('');
+  });
+
+  it('month view leaves its weekday headers unhighlighted', () => {
+    // The header row is shared with the modern multi-week skeleton; the
+    // today-column highlight is opt-in and must not leak into MonthView.
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month' })} style={style} events={[]} /></Wrapper>,
+    );
+    const headers = Array.from(container.querySelectorAll('[class*="tracking-wider"]')) as HTMLElement[];
+    expect(headers).toHaveLength(7);
+    expect(headers.some((h) => h.style.color !== '' || h.className.includes('font-bold'))).toBe(false);
+  });
+
+  it('clean: keeps the week-number column and a Monday start', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', showWeekNumbers: true, startDay: 'monday' })} style={style} events={[]} /></Wrapper>,
+    );
+    const headers = Array.from(container.querySelectorAll('[class*="tracking-wider"]')) as HTMLElement[];
+    expect(headers[0].textContent).toBe('Mon');
+    // One week-number cell per row, and Mon Jul 13 2026 opens ISO week 29.
+    const weekNumbers = Array.from(container.querySelectorAll('div.items-start.justify-center')) as HTMLElement[];
+    expect(weekNumbers).toHaveLength(4);
+    expect(weekNumbers[0].textContent).toBe('29');
+  });
+
+  it('reports per-cell overflow with the chip', () => {
+    const busy = [1, 2, 3].map((n) => ({
+      id: `mo${n}`, title: `Busy ${n}`,
+      start: format(new Date(2026, 6, 21, 8 + n, 0), LOCAL), end: format(new Date(2026, 6, 21, 9 + n, 0), LOCAL),
+      allDay: false,
+    })) as CalendarEvent[];
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', multiWeekMaxEventsPerCell: 2 })} style={style} events={busy} /></Wrapper>,
+    );
+    expect(queryByText('Busy 2')).not.toBeNull();
+    expect(queryByText('Busy 3')).toBeNull();
+    expect(queryByText('+1 more')).not.toBeNull();
+  });
+});

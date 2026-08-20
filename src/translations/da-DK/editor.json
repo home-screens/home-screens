@@ -45,7 +45,8 @@
     "mediaTypesPhotos": "Kun fotos",
     "mediaTypesVideos": "Kun videoer",
     "mediaTypesBoth": "Fotos + videoer",
-    "maxVideoDurationSeconds": "Maksimal afspilningstid pr. video (sekunder)"
+    "maxVideoDurationSeconds": "Maksimal afspilningstid pr. video (sekunder)",
+    "resetToDefault": "Nulstil til standard"
   },
   "fields": {
     "rotation": "Rotation",
@@ -2278,6 +2279,11 @@
       "gridEventStyleClassic": "Klassisk",
       "gridEventStyleColored": "Farvet",
       "gridEventPill": "Baggrund bag begivenheder",
+      "multiWeekTheme": "Tema",
+      "themeBanner": "Banner (oprindelig)",
+      "themeClean": "Enkel",
+      "themeMinimal": "Minimalistisk",
+      "themeVivid": "Farverig",
       "showCountdown": "Vis nedtælling til begivenheder",
       "showProgressBar": "Vis fremdrift for igangværende begivenheder",
       "emptyDayText": "Tekst til frie dage",

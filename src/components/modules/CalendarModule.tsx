@@ -5,12 +5,12 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus } from '@/types/config';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type MultiWeekTheme, type TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
@@ -407,24 +407,33 @@ function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em
   );
 }
 
-function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, gapClass = 'gap-px' }: {
+function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, gapClass = 'gap-px', today, accentColor }: {
   dates: Date[];
   showWeekNumbers: boolean;
   locale: string;
   /** Multi-week doubles its day-cell gutters; the header must match or its
    *  weekday labels drift off the columns below. Month view keeps the 1px default. */
   gapClass?: string;
+  /** Modern multi-week themes: bold + accent the column containing `today`. */
+  today?: Date;
+  accentColor?: string;
 }) {
   return (
     <div className={`grid ${gapClass}`} style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
       {showWeekNumbers && <div />}
-      {dates.map((d) => (
-        <div key={d.toISOString()} className="text-center py-0.5">
-          <span className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
-            {formatDateSync(d, 'EEE', { locale })}
-          </span>
-        </div>
-      ))}
+      {dates.map((d) => {
+        const highlight = today != null && accentColor != null && d.getDay() === today.getDay();
+        return (
+          <div key={d.toISOString()} className="text-center py-0.5">
+            <span
+              className={`uppercase tracking-wider${highlight ? ' font-bold' : ''}`}
+              style={{ fontSize: '0.6em', ...(highlight ? { color: accentColor } : { opacity: TEXT_OPACITY.tertiary }) }}
+            >
+              {formatDateSync(d, 'EEE', { locale })}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -618,7 +627,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale, event
 
 // ─── Multi-Week Grid View ───
 
-function MultiWeekView({ events, config, style, today, accentColor, t, locale, eventStyle }: {
+interface MultiWeekViewProps {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -628,7 +637,17 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
-}) {
+}
+
+/** `multiWeekTheme` picks the skeleton: the original banner grid, or the
+ *  modern shared skeleton with a per-theme pill treatment. */
+function MultiWeekView(props: MultiWeekViewProps) {
+  const theme = props.config.multiWeekTheme ?? 'banner';
+  if (theme === 'banner') return <MultiWeekBannerView {...props} />;
+  return <MultiWeekModernView {...props} theme={theme} />;
+}
+
+function MultiWeekBannerView({ events, config, style, today, accentColor, t, locale, eventStyle }: MultiWeekViewProps) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const weekCount = clampWeeksToShow(config.weeksToShow);
   const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
@@ -709,6 +728,204 @@ function MultiWeekView({ events, config, style, today, accentColor, t, locale, e
                     {formatDateSync(date, 'd', { locale })}
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** One event pill in the modern multi-week themes. Clean = neutral pill,
+ * compact contrast-guarded time in the calendar color, module-text semibold
+ * title. Minimal = title only behind a 3px calendar-color bar. Vivid =
+ * solid calendar-color pill with auto-contrast text. Multi-day all-day
+ * pills stitch across their span: solid rounded-left first day, hollow
+ * squared continuations — the 2px grid gutters read as one interrupted bar. */
+const MultiWeekPill = memo(function MultiWeekPill({ event, date, theme, textColor, moduleBackground, accentColor, eventStyle, locale }: {
+  event: CalendarEvent;
+  date: Date;
+  theme: Exclude<MultiWeekTheme, 'banner'>;
+  // Primitives, not the ModuleStyle object, so the memo's shallow compare
+  // survives a parent re-render that rebuilds the style object (same
+  // rationale as EventCard's props).
+  textColor: string;
+  moduleBackground: string | undefined;
+  accentColor: string;
+  eventStyle: EventDisplayStyle;
+  locale: string;
+}) {
+  const color = event.calendarColor ?? accentColor;
+
+  if (isAllDayEvent(event)) {
+    const segment = allDaySpanSegment(event, date);
+    if (segment === 'middle' || segment === 'last') {
+      return (
+        <div
+          data-event-id={event.id}
+          className={`px-1 py-0.5 truncate ${segment === 'middle' ? 'rounded-none' : 'rounded-r'}`}
+          style={{ boxShadow: `inset 0 0 0 1.5px ${color}`, color: textColor, opacity: TEXT_OPACITY.heading }}
+        >
+          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{event.title}</span>
+        </div>
+      );
+    }
+    return (
+      <div
+        data-event-id={event.id}
+        className={`px-1 py-0.5 truncate ${segment === 'first' ? 'rounded-l' : 'rounded'}`}
+        style={{ backgroundColor: color, color: pickPillTextColor(color) }}
+      >
+        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
+      </div>
+    );
+  }
+
+  const title = <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>;
+
+  if (theme === 'minimal') {
+    return (
+      <div
+        data-event-id={event.id}
+        className="flex items-baseline rounded truncate"
+        style={{ padding: '2px 4px 2px 7px', backgroundColor: 'rgba(255,255,255,0.09)', boxShadow: `inset 3px 0 0 ${color}`, color: textColor }}
+      >
+        {title}
+      </div>
+    );
+  }
+
+  const start = parseEventWallTime(event.start, eventStyle.timezone);
+  const time = formatEventTimeCompact(start, eventStyle.timeFormat, locale);
+
+  if (theme === 'vivid') {
+    return (
+      <div
+        data-event-id={event.id}
+        className="flex items-baseline gap-1 px-1 py-0.5 rounded"
+        style={{ backgroundColor: color, color: pickPillTextColor(color) }}
+      >
+        <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', opacity: 0.8 }}>{time}</span>
+        {title}
+      </div>
+    );
+  }
+
+  // clean
+  return (
+    <div
+      data-event-id={event.id}
+      className="flex items-baseline gap-1 px-1 py-0.5 rounded"
+      style={{ backgroundColor: 'rgba(255,255,255,0.10)', color: textColor }}
+    >
+      <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>
+      {title}
+    </div>
+  );
+});
+
+/** Shared skeleton for the modern themes ('clean' | 'minimal' | 'vivid'):
+ * month-range header, quiet corner day numbers with a solid badge on today
+ * only, an accent ring on the today cell, weekend shading, bold "MMM d"
+ * first-of-month labels under an accent hairline, stitched multi-day pills,
+ * and a chip-styled overflow row. The theme only swaps the pill treatment
+ * (MultiWeekPill); gridEventStyle / gridEventPillBackground do not apply
+ * here. data-mw-theme carries the active theme for tests. */
+function MultiWeekModernView({ events, config, style, today, accentColor, t, locale, eventStyle, theme }: MultiWeekViewProps & { theme: Exclude<MultiWeekTheme, 'banner'> }) {
+  const showWeekNumbers = config.showWeekNumbers ?? false;
+  const weekCount = clampWeeksToShow(config.weeksToShow);
+  const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
+  const startDay = config.startDay;
+  const gridTemplate = gridTemplateFor(showWeekNumbers);
+  const { textColor, backgroundColor: moduleBackground } = style;
+
+  // Loop-invariant colors, hoisted like the banner view's (up to 84 cells
+  // re-render on every minute tick).
+  const todayBadgeText = pickPillTextColor(accentColor);
+  const todayCellTint = withAlpha(accentColor, '24');
+  const todayRing = `inset 0 0 0 1.5px ${accentColor}`;
+  const monthRule = `inset 0 2px 0 ${withAlpha(accentColor, 'bf')}`;
+
+  const todayMs = today.getTime();
+  const weeks: Date[][] = useMemo(() => {
+    const gridStart = startOfWeek(new Date(todayMs), { weekStartsOn: weekStartsOnFor(startDay) });
+    return Array.from({ length: weekCount }, (_, w) =>
+      Array.from({ length: 7 }, (_, d) => addDays(gridStart, w * 7 + d)));
+  }, [todayMs, weekCount, startDay]);
+  const timezone = eventStyle.timezone;
+  const eventsByDay = useMemo(() => {
+    const map = new Map<number, CalendarEvent[]>();
+    for (const week of weeks) {
+      for (const date of week) {
+        map.set(date.getTime(), eventsForDay(events, date, timezone));
+      }
+    }
+    return map;
+  }, [weeks, events, timezone]);
+
+  const rangeLabel = formatMonthRangeLabel(weeks[0][0], weeks[weekCount - 1][6], locale);
+
+  return (
+    <div data-mw-theme={theme} className={`flex flex-col h-full ${MULTI_WEEK_GAP}`}>
+      <p className="text-center font-semibold" style={{ fontSize: '0.85em' }}>{rangeLabel}</p>
+      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} gapClass={MULTI_WEEK_GAP} today={today} accentColor={accentColor} />
+      <div className={`flex flex-col ${MULTI_WEEK_GAP} flex-1`}>
+        {weeks.map((week, wi) => (
+          <div key={wi} className={`grid ${MULTI_WEEK_GAP} flex-1`} style={{ gridTemplateColumns: gridTemplate }}>
+            {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
+            {week.map((date) => {
+              const isToday = isSameDay(date, today);
+              const isPast = date < today && !isToday;
+              const isFirstOfMonth = date.getDate() === 1;
+              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+              const dayEvents = eventsByDay.get(date.getTime()) ?? [];
+              const shown = dayEvents.slice(0, maxPerCell);
+              const overflow = dayEvents.length - shown.length;
+              const cellShadow = [isToday ? todayRing : null, isFirstOfMonth ? monthRule : null]
+                .filter(Boolean).join(', ');
+
+              return (
+                <div
+                  key={date.toISOString()}
+                  className="flex flex-col p-0.5 overflow-hidden rounded"
+                  style={{
+                    backgroundColor: isToday ? todayCellTint : `rgba(255, 255, 255, ${isWeekend ? 0.065 : 0.045})`,
+                    ...(cellShadow ? { boxShadow: cellShadow } : {}),
+                  }}
+                >
+                  <div className="flex items-center shrink-0" style={{ height: '1.4em', padding: '0 0.15em', marginBottom: '0.1em' }}>
+                    {isToday ? (
+                      <span
+                        className="inline-flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
+                        style={{ minWidth: '1.4em', height: '1.4em', padding: '0 0.3em', fontSize: '0.65em', backgroundColor: accentColor, color: todayBadgeText }}
+                      >
+                        {formatDateSync(date, 'd', { locale })}
+                      </span>
+                    ) : (
+                      <span
+                        className="leading-none tabular-nums"
+                        style={{
+                          fontSize: '0.65em',
+                          fontWeight: isFirstOfMonth ? 700 : 400,
+                          opacity: isFirstOfMonth ? TEXT_OPACITY.primary : isPast ? TEXT_OPACITY.dim : TEXT_OPACITY.secondary,
+                        }}
+                      >
+                        {formatDateSync(date, isFirstOfMonth ? 'MMM d' : 'd', { locale })}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-px overflow-hidden" style={isPast ? { opacity: TEXT_OPACITY.dim } : undefined}>
+                    {shown.map((ev) => (
+                      <MultiWeekPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />
+                    ))}
+                    {overflow > 0 && (
+                      <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                        {t('calendar.moreCount', { count: overflow })}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}

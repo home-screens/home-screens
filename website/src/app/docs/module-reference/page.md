@@ -209,6 +209,7 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
 | `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
 | `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
+| `multiWeekTheme` | string | `"banner"` | Multi-week view look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
@@ -223,6 +224,8 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/getting-started#calendar-setup). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
 
 **Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color — the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time — in both styles.
+
+**Multi-week themes:** `banner` keeps the view exactly as it has always looked. The three newer themes share a cleaner grid — a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar — and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. New calendar modules start on `clean`; existing ones stay on `banner` until you switch.
 
 ### Countdown
 

@@ -185,8 +185,10 @@ test('calendar: switching View Mode persists', async ({ page, request }) => {
 });
 
 test('calendar: switching Event Style persists', async ({ page, request }) => {
-  // The Event style select only renders in the grid views.
-  await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'multi-week' }));
+  // The Event style select only renders in the grid views, and multi-week
+  // shows it only under the banner theme (the registry default is 'clean',
+  // where the theme owns the pill styling).
+  await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'multi-week', multiWeekTheme: 'banner' }));
 
   // gridEventStyle defaults 'classic'; switch to 'colored'.
   await autosaved(page, async () => {

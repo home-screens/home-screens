@@ -45,7 +45,8 @@
     "mediaTypesPhotos": "Solo fotos",
     "mediaTypesVideos": "Solo vídeos",
     "mediaTypesBoth": "Fotos + vídeos",
-    "maxVideoDurationSeconds": "Duración máxima por vídeo (segundos)"
+    "maxVideoDurationSeconds": "Duración máxima por vídeo (segundos)",
+    "resetToDefault": "Restablecer al valor predeterminado"
   },
   "fields": {
     "rotation": "Rotación",
@@ -2283,6 +2284,11 @@
       "gridEventStyleClassic": "Clásico",
       "gridEventStyleColored": "Con color",
       "gridEventPill": "Fondo detrás de los eventos",
+      "multiWeekTheme": "Tema",
+      "themeBanner": "Franja (original)",
+      "themeClean": "Limpio",
+      "themeMinimal": "Mínimo",
+      "themeVivid": "Vivo",
       "showCountdown": "Mostrar cuenta regresiva",
       "showProgressBar": "Mostrar progreso en eventos en curso",
       "emptyDayText": "Texto para días libres",

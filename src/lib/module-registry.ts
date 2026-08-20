@@ -384,6 +384,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       weeksToShow: 6,
       multiWeekMaxEventsPerCell: 4,
       startDay: 'sunday',
+      multiWeekTheme: 'clean',
       accentColor: '#3b82f6',
       dailyShowDescription: false,
       agendaShowDescription: false,
