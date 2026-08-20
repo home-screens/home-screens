@@ -102,6 +102,15 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         options={VIEW_MODES}
       />
 
+      {viewMode === 'multi-week' && (
+        <LabeledSelect
+          label={t('configSections.calendar.multiWeekTheme')}
+          value={multiWeekTheme}
+          onChange={(v) => set({ multiWeekTheme: v })}
+          options={MULTI_WEEK_THEME_OPTIONS}
+        />
+      )}
+
       {googleAuthError && googleCalendarIds.length > 0 && (
         <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
           {t('configSections.calendar.googleAuthExpired')}
@@ -150,12 +159,6 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {viewMode === 'multi-week' && (
         <>
-          <LabeledSelect
-            label={t('configSections.calendar.multiWeekTheme')}
-            value={multiWeekTheme}
-            onChange={(v) => set({ multiWeekTheme: v })}
-            options={MULTI_WEEK_THEME_OPTIONS}
-          />
           <Slider
             label={t('configSections.calendar.weeksToShow')}
             value={c.weeksToShow ?? 6}
