@@ -70,6 +70,10 @@ export class WeatherAPIProvider implements WeatherProvider {
     const hours = allHours.filter((h) => h.time_epoch >= nowEpoch);
     return hours.map((h) => ({
       time: h.time,
+      // `time` is location-local with no zone designator — safe to format,
+      // unsafe to parse for arithmetic. Consumers doing time math (calendar
+      // per-event weather) key off this instant instead.
+      timeEpoch: h.time_epoch,
       temp: isCelsius ? h.temp_c : h.temp_f,
       feelsLike: isCelsius ? h.feelslike_c : h.feelslike_f,
       humidity: h.humidity,

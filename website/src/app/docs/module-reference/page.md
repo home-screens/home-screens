@@ -36,8 +36,13 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
 | `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
 | `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
-| `showWeather` | boolean | `true` | Show weather data alongside calendar events |
+| `weatherPlacement` | string | `"header"` | Where weather appears: `off`, `header` (temperature pill at the top), `days` (daily forecast on day headers), `events` (forecast for each event's start time), or `days-and-events`. Day placement renders in the schedule, week list, and agenda views; event placement in week list and agenda. Views without that surface fall back to the header pill, so weather never disappears when switching views |
+| `showWeather` | boolean | — | Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header` |
 | `showNowLine` | boolean | `true` | Show a line indicating the current time |
+| `showCountdown` | boolean | `false` | Week list and agenda views: show a "in 2 hours" style countdown next to upcoming events |
+| `countdownAllDay` | boolean | `false` | Also show day countdowns on all-day events (off by default so "in 0 days" noise never appears) |
+| `showProgressBar` | boolean | `false` | Week list and agenda views: show a progress bar on events happening right now |
+| `emptyDayText` | string | — | Custom wording for days with no events (for example "Free day!"); empty = the standard message |
 | `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
 | `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `false` | Superseded by `theme` (see above). Kept so older configurations still render |
@@ -51,6 +56,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
 | `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
 | `scheduleShowDescription` | boolean | `false` | Show the event description under the title in schedule view |
+| `scheduleStartAnchor` | string | `"today"` | First column of the schedule view: `today` (slides forward each day), `start-of-week` (days keep their place all week), or `next-weekend` (Saturday and Sunday planning board) |
 | `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
 | `weekShowDescription` | boolean | `false` | Show the event description under the title in week list view |
 | `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
@@ -62,6 +68,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
 | `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title in agenda view |
+| `agendaSeparators` | string | `"none"` | Boundary markers in agenda view: `none`, `weeks` (a "Week of" rule at each week start), or `weeks-and-months` (plus a month divider; the month marker wins when both land on the same day) |
 
 In the schedule and day timeline views, descriptions only draw when the event block is tall enough to fit them, so short events show the title alone even with the toggle on.
 
@@ -205,6 +212,10 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
+| `showCountdown` | boolean | `false` | Daily and agenda views: show a "in 2 hours" style countdown next to upcoming events |
+| `showProgressBar` | boolean | `false` | Daily and agenda views: show a progress bar on events happening right now |
+| `emptyDayText` | string | — | Daily view: custom wording for days with no events (for example "Free day!") |
+| `agendaSeparators` | string | `"none"` | Agenda view boundary markers: `none`, `weeks`, or `weeks-and-months` |
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |

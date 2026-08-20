@@ -39,6 +39,7 @@ const emptyShared = (): SharedDisplayData => ({
   metofficeData: null,
   envcanadaData: null,
   calendarData: null,
+  calendarStatus: { error: null, updatedAt: null },
 });
 
 const displaySettings = {

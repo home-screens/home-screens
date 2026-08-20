@@ -561,6 +561,25 @@ export type TodayHighlightStyle = 'full' | 'subtle' | 'minimal' | 'off';
 export type EventOverlapMode = 'columns' | 'stacked';
 export type EventTapStyle = 'sheet' | 'card';
 export type WeekStartDay = 'sunday' | 'monday';
+// Where forecast data renders: module header pill, day headers (daily
+// forecast), event rows (hourly at the event's start time), or both.
+export type WeatherPlacement = 'off' | 'header' | 'days' | 'events' | 'days-and-events';
+
+/**
+ * Health of the shared calendar fetch, passed to calendar modules only while
+ * the latest attempt failed (the events alongside it are kept last-good
+ * data). `updatedAt` is when that data was last successfully fetched; null
+ * means no fetch has ever succeeded this session.
+ */
+export interface CalendarFetchStatus {
+  error: string | null;
+  updatedAt: number | null;
+}
+// Agenda boundary separators; month beats week when boundaries coincide.
+export type AgendaSeparators = 'none' | 'weeks' | 'weeks-and-months';
+// Schedule view first column: sliding today, calendar-stable week start,
+// or the upcoming weekend (Saturday, held through Sunday).
+export type ScheduleStartAnchor = 'today' | 'start-of-week' | 'next-weekend';
 export interface FullscreenCalendarConfig {
   view: FullscreenCalendarView;
   density: CalendarDensity;
@@ -568,7 +587,9 @@ export interface FullscreenCalendarConfig {
   accentColor: string;
   dimPastEvents: boolean;
   shadeWeekends: boolean;
-  showWeather: boolean;
+  /** Deprecated: pre-weatherPlacement boolean; true resolves to 'header'. */
+  showWeather?: boolean;
+  weatherPlacement?: WeatherPlacement;  // default 'header' (new), legacy showWeather honored when unset
   showNowLine: boolean;
   sourceFilter?: string[];
   darkMode: boolean;
@@ -580,11 +601,22 @@ export interface FullscreenCalendarConfig {
   eventTapStyle?: EventTapStyle;              // default 'sheet' (bottom sheet); 'card' = centered card
   startDay?: WeekStartDay;                    // grid views (week-list / month-grid): first day of the week. Default sunday
 
+  // List views (agenda + week-list): one shared status slot per event row —
+  // a countdown pill before the event starts, replaced by a progress bar
+  // while it runs. All-day rows opt into countdowns separately ("in 0 days"
+  // noise on all-day events is the known failure mode).
+  showCountdown?: boolean;          // default false
+  showProgressBar?: boolean;        // default false
+  countdownAllDay?: boolean;        // default false; only meaningful with showCountdown
+  // Custom wording for empty days ("Free day!", "Leftovers"); '' = default.
+  emptyDayText?: string;
+
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto
   scheduleHourStart: number;        // 0-23
   scheduleHourEnd: number;          // 1-24
   scheduleShowDescription?: boolean;
+  scheduleStartAnchor?: ScheduleStartAnchor;  // default 'today'
 
   // Week list view
   weekCollapsePastDays: boolean;
@@ -604,6 +636,7 @@ export interface FullscreenCalendarConfig {
   agendaDaysAhead: number;          // 7-30
   agendaHideEmptyDays: boolean;
   agendaShowDescription?: boolean;
+  agendaSeparators?: AgendaSeparators;  // default 'none'
 }
 
 // Calendar module config
@@ -636,6 +669,15 @@ export interface CalendarConfig {
   agendaShowDescription?: boolean;
   eventTapDetails?: boolean;      // default false; touch displays: tap an event to open a detail overlay
   eventTapStyle?: EventTapStyle;  // default 'sheet' (bottom sheet); 'card' = centered card
+  // List views (daily + agenda): shared status slot, same semantics as the
+  // fullscreen calendar's — countdown pill before start, progress bar while
+  // running. Timed events only; compact grid pills are untouched.
+  showCountdown?: boolean;        // default false
+  showProgressBar?: boolean;      // default false
+  // Daily view: custom wording for empty day cells; '' = default.
+  emptyDayText?: string;
+  // Agenda view: week/month boundary separators (month beats week).
+  agendaSeparators?: AgendaSeparators;  // default 'none'
 }
 
 // Unified weather module config

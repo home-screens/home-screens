@@ -24,7 +24,7 @@ async function renderVariant(page: Page, request: APIRequestContext, variant: Co
   const pageErrors: string[] = [];
   page.on('pageerror', (e) => pageErrors.push(String(e)));
 
-  const overrides: Record<string, unknown> = {};
+  const overrides: Record<string, unknown> = { ...(variant.extraStubs ?? {}) };
   if (variant.stubKey) {
     if (variant.stubBody !== undefined) {
       overrides[variant.stubKey] = variant.stubBody;

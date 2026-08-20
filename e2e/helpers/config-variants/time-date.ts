@@ -529,6 +529,43 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: has('CAL AGENDA DESC'),
   },
   {
+    // Countdown pill on an upcoming event: +2 days at noon is always beyond
+    // 24h, so the whole-calendar-day diff reads "in 2 days" at any run time.
+    type: 'calendar', name: 'show-countdown', kind: 'networked', stubKey: 'calendar',
+    stubBody: [dayEvent('cc-1', 'CAL SOON', 2)],
+    config: { viewMode: 'daily', daysToShow: 3, showCountdown: true },
+    expect: async (mod) => { await has('CAL SOON')(mod); await has('in 2 days')(mod); },
+  },
+  {
+    // The all-of-today event is running at any run time, so the progress-bar
+    // face of the status slot renders.
+    type: 'calendar', name: 'show-progress-bar', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cp-1', 'CAL RUNNING')],
+    config: { viewMode: 'daily', showProgressBar: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="progressbar"]').first()).toBeVisible();
+    },
+  },
+  {
+    // Custom wording replaces "No events" in empty daily columns; with one
+    // event today and two columns, tomorrow's column is always empty.
+    type: 'calendar', name: 'empty-day-text', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('ced-1', 'CAL TODAY ONLY', { end: calIso(0, 23, 59) })],
+    config: { viewMode: 'daily', daysToShow: 2, emptyDayText: 'CAL FREE DAY' },
+    expect: async (mod) => { await has('CAL FREE DAY')(mod); await expect(mod).not.toContainText('No events'); },
+  },
+  {
+    // Two events seven days apart always straddle a week start, so the
+    // "Week of" separator renders between their agenda groups. 'weeks' mode
+    // (not 'weeks-and-months') keeps the assertion date-proof: a month
+    // divider would take precedence over the week rule whenever the +7d
+    // event happens to land in a new month.
+    type: 'calendar', name: 'agenda-separators', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cs-1', 'CAL SEP NEAR'), dayEvent('cs-2', 'CAL SEP FAR', 7)],
+    config: { viewMode: 'agenda', agendaSeparators: 'weeks' },
+    expect: async (mod) => { await has('CAL SEP FAR')(mod); await has('Week of')(mod); },
+  },
+  {
     // weeksToShow caps the multi-week grid at N rows; the day+31 event has no
     // row at 4 weeks but WOULD render at the 6-week default, so its absence
     // proves the cap took effect. The timed-today event stays in row 1.

@@ -12,6 +12,14 @@ import {
   isAllDayEvent,
   pickPillTextColor,
   pickTintedTextColor,
+  classifyEventOnDay,
+  resolveScheduleStart,
+  formatCountdown,
+  eventProgress,
+  eventStatusSlot,
+  boundaryBetween,
+  resolveWeatherPlacement,
+  effectiveWeatherPlacement,
 } from '@/lib/calendar-utils';
 
 describe('clampWeeksToShow', () => {
@@ -401,5 +409,258 @@ describe('pickTintedTextColor', () => {
     expect(pickTintedTextColor('#6b7280', 'blue', '#f9fafb')).toBe('#6b7280');
     expect(pickTintedTextColor('#6b7280', '#1e3a8a', undefined)).toBe('#6b7280');
     expect(pickTintedTextColor('#6b7280', '#1e3a8a', 'color-mix(in srgb, red 10%, transparent)')).toBe('#6b7280');
+  });
+});
+
+describe('classifyEventOnDay', () => {
+  // Tue Aug 25 10:00 AM -> Fri Aug 28 3:00 PM
+  const multiDay = { start: '2026-08-25T10:00:00', end: '2026-08-28T15:00:00' };
+
+  it('classifies each covered day of a timed multi-day event', () => {
+    expect(classifyEventOnDay(multiDay, new Date(2026, 7, 25))).toBe('first');
+    expect(classifyEventOnDay(multiDay, new Date(2026, 7, 26))).toBe('middle');
+    expect(classifyEventOnDay(multiDay, new Date(2026, 7, 27))).toBe('middle');
+    expect(classifyEventOnDay(multiDay, new Date(2026, 7, 28))).toBe('last');
+  });
+
+  it('classifies single-day timed events as single', () => {
+    const ev = { start: '2026-08-25T10:00:00', end: '2026-08-25T15:00:00' };
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 25))).toBe('single');
+  });
+
+  it('treats an exact-midnight end as not reaching the next day', () => {
+    // Mirrors isEventOnDay's exclusive end: 7 PM - midnight is one day.
+    const ev = { start: '2026-08-25T19:00:00', end: '2026-08-26T00:00:00' };
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 25))).toBe('single');
+  });
+
+  it('classifies an overnight event as first then last', () => {
+    const ev = { start: '2026-08-25T19:00:00', end: '2026-08-26T06:00:00' };
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 25))).toBe('first');
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 26))).toBe('last');
+  });
+
+  it('classifies all-day events as single (they keep all-day rendering)', () => {
+    const ev = { start: '2026-08-25', end: '2026-08-28', allDay: true };
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 26))).toBe('single');
+  });
+});
+
+describe('resolveScheduleStart', () => {
+  // Wed Aug 19 2026
+  const wed = new Date(2026, 7, 19);
+
+  it('defaults to today', () => {
+    expect(resolveScheduleStart(wed, undefined, 0).getDate()).toBe(19);
+    expect(resolveScheduleStart(wed, 'today', 0).getDate()).toBe(19);
+  });
+
+  it('anchors to the configured week start', () => {
+    expect(resolveScheduleStart(wed, 'start-of-week', 0).getDate()).toBe(16); // Sunday
+    expect(resolveScheduleStart(wed, 'start-of-week', 1).getDate()).toBe(17); // Monday
+    // Already on the week start day
+    expect(resolveScheduleStart(new Date(2026, 7, 16), 'start-of-week', 0).getDate()).toBe(16);
+  });
+
+  it('anchors next-weekend to the coming Saturday', () => {
+    expect(resolveScheduleStart(wed, 'next-weekend', 0).getDate()).toBe(22);
+    // Saturday anchors to itself
+    expect(resolveScheduleStart(new Date(2026, 7, 22), 'next-weekend', 0).getDate()).toBe(22);
+  });
+
+  it('keeps the running weekend on screen through Sunday', () => {
+    // Sun Aug 23 -> Sat Aug 22, not six days ahead
+    expect(resolveScheduleStart(new Date(2026, 7, 23), 'next-weekend', 0).getDate()).toBe(22);
+  });
+});
+
+describe('formatCountdown', () => {
+  const now = new Date(2026, 7, 19, 15, 55); // Wed 3:55 PM
+
+  it('uses minutes inside an hour', () => {
+    expect(formatCountdown(new Date(2026, 7, 19, 16, 25), now, 'en-US')).toBe('in 30 minutes');
+  });
+
+  it('uses hours inside a day', () => {
+    expect(formatCountdown(new Date(2026, 7, 19, 17, 55), now, 'en-US')).toBe('in 2 hours');
+  });
+
+  it('uses whole calendar days beyond 24 hours', () => {
+    expect(formatCountdown(new Date(2026, 7, 23, 9, 0), now, 'en-US')).toBe('in 4 days');
+  });
+
+  it('returns empty for started events', () => {
+    expect(formatCountdown(new Date(2026, 7, 19, 15, 0), now, 'en-US')).toBe('');
+  });
+
+  it('counts whole days for all-day rows and suppresses day-zero noise', () => {
+    // "in 0 days" on an all-day event happening today was Card Pro's
+    // most-reported annoyance; wholeDays returns '' for the current day.
+    expect(formatCountdown(new Date(2026, 7, 19, 23, 0), now, 'en-US', true)).toBe('');
+    expect(formatCountdown(new Date(2026, 7, 21, 0, 0), now, 'en-US', true)).toBe('in 2 days');
+  });
+
+  it('localizes via Intl.RelativeTimeFormat', () => {
+    expect(formatCountdown(new Date(2026, 7, 19, 17, 55), now, 'de-DE')).toBe('in 2 Stunden');
+  });
+});
+
+describe('eventProgress', () => {
+  const start = new Date(2026, 7, 19, 15, 30);
+  const end = new Date(2026, 7, 19, 16, 15);
+
+  it('returns the elapsed fraction while running', () => {
+    const p = eventProgress(start, end, new Date(2026, 7, 19, 15, 55));
+    expect(p).toBeCloseTo(25 / 45, 5);
+  });
+
+  it('returns null before start, after end, and for degenerate ranges', () => {
+    expect(eventProgress(start, end, new Date(2026, 7, 19, 15, 0))).toBeNull();
+    expect(eventProgress(start, end, new Date(2026, 7, 19, 16, 15))).toBeNull();
+    expect(eventProgress(end, start, new Date(2026, 7, 19, 15, 55))).toBeNull();
+  });
+});
+
+describe('eventStatusSlot', () => {
+  const now = new Date(2026, 7, 19, 15, 55);
+  const base = {
+    now, locale: 'en-US',
+    showCountdown: true, showProgressBar: true, countdownAllDay: false,
+  };
+
+  it('shows progress, not a countdown, while the event runs', () => {
+    const slot = eventStatusSlot({
+      ...base, isAllDayRow: false, rowDate: new Date(2026, 7, 19),
+      start: new Date(2026, 7, 19, 15, 30), end: new Date(2026, 7, 19, 16, 15),
+    });
+    expect(slot.progress).toBeCloseTo(25 / 45, 5);
+    expect(slot.countdown).toBeNull();
+  });
+
+  it('shows a countdown, not progress, before the event starts', () => {
+    const slot = eventStatusSlot({
+      ...base, isAllDayRow: false, rowDate: new Date(2026, 7, 19),
+      start: new Date(2026, 7, 19, 17, 55), end: new Date(2026, 7, 19, 19, 0),
+    });
+    expect(slot.countdown).toBe('in 2 hours');
+    expect(slot.progress).toBeNull();
+  });
+
+  it('suppresses all-day countdowns unless countdownAllDay opts in', () => {
+    const allDay = {
+      ...base, isAllDayRow: true, rowDate: new Date(2026, 7, 22),
+      start: new Date(2026, 7, 22), end: new Date(2026, 7, 23),
+    };
+    expect(eventStatusSlot(allDay)).toEqual({ countdown: null, progress: null });
+    expect(eventStatusSlot({ ...allDay, countdownAllDay: true }).countdown).toBe('in 3 days');
+  });
+
+  it('respects the individual feature toggles', () => {
+    const running = {
+      ...base, isAllDayRow: false, rowDate: new Date(2026, 7, 19),
+      start: new Date(2026, 7, 19, 15, 30), end: new Date(2026, 7, 19, 16, 15),
+    };
+    expect(eventStatusSlot({ ...running, showProgressBar: false })).toEqual({ countdown: null, progress: null });
+    const upcoming = { ...running, start: new Date(2026, 7, 19, 17, 0), end: new Date(2026, 7, 19, 18, 0) };
+    expect(eventStatusSlot({ ...upcoming, showCountdown: false })).toEqual({ countdown: null, progress: null });
+  });
+
+  it('counts whole days to the row date on last-day rows of split events', () => {
+    // Fri row of a Wed->Fri event that starts in 2 days: the row's own date
+    // (4 days out) drives the countdown, so consecutive split rows read
+    // "in 2 days" ... "in 4 days" instead of repeating the start countdown.
+    const slot = eventStatusSlot({
+      ...base, isAllDayRow: false, segment: 'last', rowDate: new Date(2026, 7, 23),
+      start: new Date(2026, 7, 21, 10, 0), end: new Date(2026, 7, 23, 15, 0),
+    });
+    expect(slot.countdown).toBe('in 4 days');
+  });
+});
+
+describe('boundaryBetween', () => {
+  const sun = 0 as const;
+
+  it('returns null when separators are off or days share a week', () => {
+    expect(boundaryBetween(new Date(2026, 7, 17), new Date(2026, 7, 25), 'none', sun)).toBeNull();
+    expect(boundaryBetween(new Date(2026, 7, 17), new Date(2026, 7, 25), undefined, sun)).toBeNull();
+    // Mon Aug 17 -> Wed Aug 19: same Sunday-start week
+    expect(boundaryBetween(new Date(2026, 7, 17), new Date(2026, 7, 19), 'weeks-and-months', sun)).toBeNull();
+  });
+
+  it('detects week boundaries, honoring the week start day', () => {
+    // Sat Aug 22 -> Sun Aug 23 is a Sunday-start boundary but not a Monday-start one
+    expect(boundaryBetween(new Date(2026, 7, 22), new Date(2026, 7, 23), 'weeks', 0)).toBe('week');
+    expect(boundaryBetween(new Date(2026, 7, 22), new Date(2026, 7, 23), 'weeks', 1)).toBeNull();
+  });
+
+  it('lets the month divider beat the week rule when both coincide', () => {
+    // Sat Oct 31 -> Sun Nov 1 2026: simultaneously a Sunday week start and a month start
+    expect(boundaryBetween(new Date(2026, 9, 31), new Date(2026, 10, 1), 'weeks-and-months', sun)).toBe('month');
+  });
+
+  it('reports a mid-week month change as month only in weeks-and-months mode', () => {
+    // Mon Aug 31 -> Tue Sep 1 2026: month changes inside one week
+    expect(boundaryBetween(new Date(2026, 7, 31), new Date(2026, 8, 1), 'weeks-and-months', sun)).toBe('month');
+    expect(boundaryBetween(new Date(2026, 7, 31), new Date(2026, 8, 1), 'weeks', sun)).toBeNull();
+  });
+
+  it('treats a year rollover as a month boundary', () => {
+    expect(boundaryBetween(new Date(2026, 11, 31), new Date(2027, 0, 1), 'weeks-and-months', sun)).toBe('month');
+  });
+});
+
+describe('resolveWeatherPlacement', () => {
+  it('prefers the explicit placement over the legacy boolean', () => {
+    expect(resolveWeatherPlacement({ weatherPlacement: 'days', showWeather: false })).toBe('days');
+    expect(resolveWeatherPlacement({ weatherPlacement: 'off', showWeather: true })).toBe('off');
+  });
+
+  it('maps the legacy boolean when no placement is saved', () => {
+    expect(resolveWeatherPlacement({ showWeather: false })).toBe('off');
+    expect(resolveWeatherPlacement({ showWeather: true })).toBe('header');
+    expect(resolveWeatherPlacement({})).toBe('header');
+  });
+});
+
+describe('classifyEventOnDay with a display timezone', () => {
+  it('classifies against the display-timezone day, not the OS day', () => {
+    // 02:00 UTC on Aug 25 is 21:00 Aug 24 in Chicago: with the timezone set,
+    // the event belongs to the 24th and is an overnight 'first' there.
+    const ev = { start: '2026-08-25T02:00:00Z', end: '2026-08-25T09:00:00Z' };
+    const tz = 'America/Chicago';
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 24), tz)).toBe('first');
+    expect(classifyEventOnDay(ev, new Date(2026, 7, 25), tz)).toBe('last');
+  });
+});
+
+describe('effectiveWeatherPlacement', () => {
+  it('passes off and header through on every view', () => {
+    for (const view of ['schedule', 'week-list', 'month-grid', 'day-timeline', 'agenda'] as const) {
+      expect(effectiveWeatherPlacement(view, { weatherPlacement: 'off' })).toBe('off');
+      expect(effectiveWeatherPlacement(view, { weatherPlacement: 'header' })).toBe('header');
+    }
+  });
+
+  it('keeps rich placements on the views that render them', () => {
+    expect(effectiveWeatherPlacement('agenda', { weatherPlacement: 'days-and-events' })).toBe('days-and-events');
+    expect(effectiveWeatherPlacement('week-list', { weatherPlacement: 'events' })).toBe('events');
+    expect(effectiveWeatherPlacement('schedule', { weatherPlacement: 'days' })).toBe('days');
+  });
+
+  it('degrades a carried placement to the header pill, never to nothing', () => {
+    // A placement chosen in the agenda view must keep SHOWING weather after
+    // switching the module to a view without that surface.
+    expect(effectiveWeatherPlacement('month-grid', { weatherPlacement: 'days' })).toBe('header');
+    expect(effectiveWeatherPlacement('day-timeline', { weatherPlacement: 'days-and-events' })).toBe('header');
+    expect(effectiveWeatherPlacement('schedule', { weatherPlacement: 'events' })).toBe('header');
+  });
+
+  it('narrows days-and-events to the part the view supports', () => {
+    expect(effectiveWeatherPlacement('schedule', { weatherPlacement: 'days-and-events' })).toBe('days');
+  });
+
+  it('applies the legacy showWeather fallback before degrading', () => {
+    expect(effectiveWeatherPlacement('month-grid', { showWeather: false })).toBe('off');
+    expect(effectiveWeatherPlacement('month-grid', { showWeather: true })).toBe('header');
   });
 });

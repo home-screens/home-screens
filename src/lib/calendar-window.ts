@@ -1,5 +1,5 @@
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { clampWeeksToShow, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
   CalendarConfig,
@@ -80,8 +80,18 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
     if (view === 'week-list') {
       return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
     }
-    if (view === 'schedule' || view === 'day-timeline') {
-      // Both render all of today; earlier events show dimmed via dimPastEvents
+    if (view === 'schedule') {
+      // The anchor decides the first column; both non-default anchors can
+      // start away from today (past week days, a future Saturday), so the
+      // window follows the anchor and covers the full 7-column maximum.
+      const anchor = (mod.config as Partial<FullscreenCalendarConfig>).scheduleStartAnchor;
+      const start = resolveScheduleStart(startOfDay(now), anchor, weekStartsOn);
+      return anchor && anchor !== 'today'
+        ? { start, end: addDays(start, 7) }
+        : { start, end: null };
+    }
+    if (view === 'day-timeline') {
+      // Renders all of today; earlier events show dimmed via dimPastEvents
       return { start: startOfDay(now), end: null };
     }
     return null; // agenda: upcoming only
@@ -120,6 +130,13 @@ export function getCalendarFetchWindow(
   }
 
   if (!earliest) return null;
+
+  // A window may START in the future (a next-weekend schedule anchor), but
+  // timeMin must never move PAST the server's "now" default: modules whose
+  // views return null above rely on that default, so a future timeMin would
+  // starve every co-present agenda/daily module of today's events.
+  const todayStart = startOfDay(now);
+  if (earliest > todayStart) earliest = todayStart;
 
   // Every grid view is startDay-aware, so the ±1-day padding only needs to
   // absorb timezone drift between the OS clock and the configured zone.

@@ -1,5 +1,5 @@
 import { addDays } from 'date-fns';
-import type { TimeFormat, WeekStartDay } from '@/types/config';
+import type { AgendaSeparators, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { parseHexToRgb } from '@/lib/hex-color';
 import { toTZWallTime } from '@/lib/timezone';
@@ -226,6 +226,233 @@ export function isEventOnDay(
   // Continuation days: started before this day's midnight and still running past it.
   const evEnd = parseEventWallTime(ev.end, timezone);
   return evStart < date && evEnd > date;
+}
+
+/**
+ * Which part of an event a given day sees. Timed multi-day events render
+ * day-appropriate labels in list views: the first day shows only the true
+ * start ("From 10:00 AM"), middle days promote to an all-day row, and the
+ * last day shows only the true end ("Until 3:00 PM"). Single-day events
+ * (and all-day events, which keep their existing repeat-per-day rendering)
+ * classify as 'single'.
+ *
+ * The end is exclusive at midnight: an event ending exactly at 00:00 never
+ * reaches the next day, matching `isEventOnDay`.
+ */
+export type EventDaySegment = 'single' | 'first' | 'middle' | 'last';
+
+export function classifyEventOnDay(
+  ev: { start: string; end: string; allDay?: boolean },
+  date: Date,
+  timezone?: string,
+): EventDaySegment {
+  if (isAllDayEvent(ev)) return 'single';
+  return classifyTimedSpan(parseEventWallTime(ev.start, timezone), parseEventWallTime(ev.end, timezone), date);
+}
+
+/** classifyEventOnDay's core for callers that already parsed the dates —
+ *  list views parse start/end for their labels anyway, and grids mount
+ *  hundreds of rows, so re-parsing inside the classifier would double the
+ *  ICU work per row. Timed events only. */
+export function classifyTimedSpan(evStart: Date, evEnd: Date, date: Date): EventDaySegment {
+  const dayEnd = addDays(date, 1);
+  const startsToday =
+    evStart.getFullYear() === date.getFullYear() &&
+    evStart.getMonth() === date.getMonth() &&
+    evStart.getDate() === date.getDate();
+  if (startsToday) {
+    return evEnd > dayEnd ? 'first' : 'single';
+  }
+  // Continuation day (isEventOnDay already established the overlap): the
+  // event runs past this day's midnight → middle; otherwise it ends today.
+  return evEnd > dayEnd ? 'middle' : 'last';
+}
+
+/**
+ * Resolve the first column of the schedule view for a start anchor.
+ * 'start-of-week' honors the configured startDay. 'next-weekend' is the
+ * Saturday of the current week — or yesterday's Saturday on a Sunday, so
+ * the current weekend stays on screen through Sunday night.
+ */
+export function resolveScheduleStart(
+  today: Date,
+  anchor: ScheduleStartAnchor | undefined,
+  weekStartsOn: 0 | 1,
+): Date {
+  if (anchor === 'start-of-week') {
+    const day = today.getDay();
+    const diff = (day - weekStartsOn + 7) % 7;
+    return addDays(today, -diff);
+  }
+  if (anchor === 'next-weekend') {
+    const day = today.getDay();
+    if (day === 0) return addDays(today, -1); // Sunday: keep the running weekend
+    return addDays(today, 6 - day);           // Saturday itself on a Saturday
+  }
+  return today;
+}
+
+// One formatter per locale for the lifetime of the tab: list views call
+// formatCountdown per event row on every 60s clock tick, and constructing
+// Intl.RelativeTimeFormat is ~13× the cost of formatting with it (same
+// rationale as the formatter caches in src/lib/timezone.ts).
+const rtfCache = new Map<string, Intl.RelativeTimeFormat>();
+
+function relativeFormatter(locale: string): Intl.RelativeTimeFormat {
+  let rtf = rtfCache.get(locale);
+  if (!rtf) {
+    rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    rtfCache.set(locale, rtf);
+  }
+  return rtf;
+}
+
+/**
+ * Natural-language countdown to an event start ("in 5 minutes", "in 2
+ * hours", "tomorrow", "in 4 days") via Intl.RelativeTimeFormat, so it is
+ * correct in every locale without new dictionary strings. Timed events use
+ * minute/hour granularity inside 24h; beyond that (and for all-day events,
+ * pass `wholeDays`) the count is whole calendar days to the row's date so
+ * consecutive split rows read "in 4 days", "in 5 days". Returns '' for
+ * anything already started.
+ */
+export function formatCountdown(
+  start: Date,
+  now: Date,
+  locale: string,
+  wholeDays = false,
+): string {
+  const diffMs = start.getTime() - now.getTime();
+  if (diffMs <= 0) return '';
+  if (!wholeDays) {
+    const mins = Math.round(diffMs / 60_000);
+    if (mins < 60) return relativeFormatter(locale).format(Math.max(1, mins), 'minute');
+    if (mins < 24 * 60) return relativeFormatter(locale).format(Math.round(mins / 60), 'hour');
+  }
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((startDay.getTime() - nowDay.getTime()) / msPerDay);
+  // days <= 0 with !wholeDays is reachable only across a DST fall-back day
+  // (>24h of minutes inside one calendar day); "tomorrow"-style day phrasing
+  // is the honest rendering there, never an hour count.
+  if (days <= 0) return wholeDays ? '' : relativeFormatter(locale).format(1, 'day');
+  return relativeFormatter(locale).format(days, 'day');
+}
+
+/**
+ * Fraction of a running event that has elapsed, or null when the event is
+ * not currently in progress. Degenerate ranges (end ≤ start) return null —
+ * a progress bar over a zero-length event is meaningless.
+ */
+export function eventProgress(start: Date, end: Date, now: Date): number | null {
+  const total = end.getTime() - start.getTime();
+  if (total <= 0) return null;
+  const elapsed = now.getTime() - start.getTime();
+  if (elapsed < 0 || elapsed >= total) return null;
+  return elapsed / total;
+}
+
+/**
+ * The one shared status slot on a list-view event row: a countdown before
+ * the event starts, a progress fraction while it runs — never both, so the
+ * slot can swap contents without layout jitter. All-day rows (and middle
+ * days of split multi-day events) count whole calendar days to the row's
+ * own date, and only when `countdownAllDay` opts them in.
+ */
+export function eventStatusSlot(opts: {
+  start: Date;
+  end: Date;
+  isAllDayRow: boolean;
+  rowDate: Date;
+  now: Date;
+  locale: string;
+  showCountdown: boolean;
+  showProgressBar: boolean;
+  countdownAllDay: boolean;
+  /** Day-relative part for split multi-day rows; default 'single'. */
+  segment?: EventDaySegment;
+}): { countdown: string | null; progress: number | null } {
+  const { start, end, isAllDayRow, rowDate, now, locale } = opts;
+  if (isAllDayRow) {
+    const countdown = opts.showCountdown && opts.countdownAllDay
+      ? formatCountdown(rowDate, now, locale, true)
+      : '';
+    return { countdown: countdown || null, progress: null };
+  }
+  const progress = opts.showProgressBar ? eventProgress(start, end, now) : null;
+  if (progress != null) return { countdown: null, progress };
+  // The last-day row of a split timed event counts whole days to ITS OWN
+  // date, so consecutive split rows read "in 4 days", "in 5 days" instead of
+  // repeating the countdown to the event's overall start.
+  const countdown = opts.showCountdown
+    ? formatCountdown(opts.segment === 'last' ? rowDate : start, now, locale, opts.segment === 'last')
+    : '';
+  return { countdown: countdown || null, progress: null };
+}
+
+/** Agenda boundary separators; month beats week when boundaries coincide. */
+export type AgendaBoundary = 'month' | 'week' | null;
+
+/**
+ * Resolve the fullscreen calendar's weather placement, honoring the legacy
+ * `showWeather` boolean from configs saved before the placement enum existed
+ * (true → 'header'). Lives here (not in the module component) so the editor
+ * config section shares one resolver instead of inlining a copy.
+ */
+export function resolveWeatherPlacement(
+  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
+): WeatherPlacement {
+  if (config.weatherPlacement) return config.weatherPlacement;
+  return config.showWeather === false ? 'off' : 'header';
+}
+
+/** Which views can render day-header weather / per-event weather. */
+const WEATHER_DAYS_VIEWS = new Set(['agenda', 'week-list', 'schedule']);
+const WEATHER_EVENTS_VIEWS = new Set(['agenda', 'week-list']);
+
+/**
+ * The placement a given view actually renders. Placements carry across view
+ * switches (the module keeps one config), so a value the current view has no
+ * surface for must degrade to the header pill — never to nothing: "I picked
+ * a weather option and weather vanished" is the failure mode this prevents.
+ * The stored config is untouched; switching back restores the richer
+ * placement.
+ */
+export function effectiveWeatherPlacement(
+  view: FullscreenCalendarConfig['view'],
+  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
+): WeatherPlacement {
+  const resolved = resolveWeatherPlacement(config);
+  if (resolved === 'off' || resolved === 'header') return resolved;
+  const days = WEATHER_DAYS_VIEWS.has(view);
+  const events = WEATHER_EVENTS_VIEWS.has(view);
+  if (resolved === 'days') return days ? 'days' : 'header';
+  if (resolved === 'events') return events ? 'events' : 'header';
+  // days-and-events
+  if (days && events) return 'days-and-events';
+  if (days) return 'days';
+  return 'header';
+}
+
+/**
+ * The separator to render between two consecutive agenda day groups.
+ * Precedence: a month boundary renders as the month divider (never both
+ * lines); a week boundary that isn't a month boundary renders as the week
+ * rule. Hidden empty days don't matter — the comparison is calendar
+ * position, not adjacency.
+ */
+export function boundaryBetween(
+  prev: Date,
+  next: Date,
+  separators: AgendaSeparators | undefined,
+  weekStartsOn: 0 | 1,
+): AgendaBoundary {
+  if (!separators || separators === 'none') return null;
+  const monthChanged = prev.getMonth() !== next.getMonth() || prev.getFullYear() !== next.getFullYear();
+  if (monthChanged && separators === 'weeks-and-months') return 'month';
+  const weekOf = (d: Date) => addDays(d, -((d.getDay() - weekStartsOn + 7) % 7)).toDateString();
+  return weekOf(prev) !== weekOf(next) ? 'week' : null;
 }
 
 /**

@@ -123,7 +123,13 @@
     "noEvents": "Ingen begivenheder",
     "noUpcomingEvents": "Ingen kommende begivenheder",
     "weekShort": "Uge",
-    "moreCount": "+{count} mere"
+    "moreCount": "+{count} mere",
+    "fromTime": "Fra {time}",
+    "untilTime": "Indtil {time}",
+    "savedFrom": "Gemt kl. {time}",
+    "savedEvents": "Viser gemte begivenheder",
+    "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
+    "weekOf": "Ugen fra {date}"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",
@@ -158,7 +164,13 @@
       "eventTimed": "{title}, {start} til {end}",
       "eventTimedAtLocation": "{title}, {start} til {end}, ved {location}",
       "monthCell": "{date}, {count} begivenheder"
-    }
+    },
+    "fromTime": "Fra {time}",
+    "untilTime": "Indtil {time}",
+    "savedFrom": "Gemt kl. {time}",
+    "savedEvents": "Viser gemte begivenheder",
+    "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
+    "weekOf": "Ugen fra {date}"
   },
   "weather": {
     "tomorrowShort": "I mrg",

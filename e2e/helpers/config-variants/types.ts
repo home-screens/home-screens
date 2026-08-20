@@ -25,6 +25,13 @@ export interface ConfigVariant {
   stubKey?: string;
   /** Replace the stubKey's response body for this variant (else the shared fixture is used). */
   stubBody?: unknown;
+  /**
+   * Additional stub-key overrides beyond the row's own stubKey — for rows
+   * whose assertion depends on a SECOND data feed the shared fixture can't
+   * satisfy (e.g. calendar weather placement needs forecast entries dated
+   * today, but the shared weather fixture uses fixed 2099 dates).
+   */
+  extraStubs?: Record<string, unknown>;
   /** Which local API to seed before rendering — local-data rows only. */
   seed?: 'chores' | 'meals';
   /**

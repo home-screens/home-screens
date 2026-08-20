@@ -45,10 +45,10 @@ class DisplayDataCache {
   private _evictions = 0;
 
   /**
-   * Returns cached data + staleness flag.
+   * Returns cached data + staleness flag + when it was fetched.
    * Returns null ONLY if URL has never been fetched (cold start).
    */
-  get<T>(url: string): { data: T; stale: boolean } | null {
+  get<T>(url: string): { data: T; stale: boolean; fetchedAt: number } | null {
     const entry = this.cache.get(url);
     if (!entry) {
       this._misses++;
@@ -57,7 +57,7 @@ class DisplayDataCache {
     this._hits++;
     entry.lastAccessed = Date.now();
     const stale = Date.now() - entry.fetchedAt > entry.ttlMs;
-    return { data: entry.data as T, stale };
+    return { data: entry.data as T, stale, fetchedAt: entry.fetchedAt };
   }
 
   /** Store data with TTL. Evicts LRU entry if at capacity. */

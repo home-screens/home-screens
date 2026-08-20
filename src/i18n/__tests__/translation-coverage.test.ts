@@ -48,6 +48,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.countdown.precisionAuto',
   'editor|configSections.display-control.layout',
   'editor|configSections.display-control.layoutPanel',
+  'editor|configSections.fullscreen-calendar.anchorWeekend',
   'editor|configSections.fullscreen-calendar.googleCalendar',
   'editor|configSections.fullscreen-calendar.googleCalendarNumbered',
   'editor|configSections.fullscreen-calendar.viewAgenda',

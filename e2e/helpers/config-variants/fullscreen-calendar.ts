@@ -93,6 +93,34 @@ const AGENDA_DESC = [
   { id: 'ag1', title: 'AGENDA DESC EVENT', start: isoDate(0), end: isoDate(1), allDay: true, description: 'AGENDADESC E2E', calendarColor: BLUE },
 ];
 
+/** A one-hour timed event two days out at noon — its countdown reads "in 2 days" at any run time (whole-calendar-day diff). */
+const COUNTDOWN_EVENT = [
+  { id: 'cd1', title: 'COUNTDOWN EVENT', start: isoTimed(2, 12, 0), end: isoTimed(2, 13, 0), allDay: false, calendarColor: BLUE },
+];
+
+/** An all-day event three days out (all-day countdown opt-in). */
+const ALLDAY_FUTURE = [
+  { id: 'af1', title: 'ALLDAY FUTURE', start: isoDate(3), end: isoDate(4), allDay: true, calendarColor: BLUE },
+];
+
+/**
+ * Weather payload with forecast entries dated today/tomorrow. The shared
+ * weather fixture pins fixed 2099 dates, which can never match a rendered
+ * day, so weather-placement rows bring their own. Hourly is left empty to
+ * pin the deterministic daily-fallback path (hourly matching is unit-tested
+ * in event-weather.test.ts).
+ */
+const LIVE_WEATHER = {
+  hourly: [],
+  forecast: [
+    { date: isoDate(0), high: 87, low: 61, icon: 'sun', description: 'Sunshowers' },
+    { date: isoDate(1), high: 80, low: 55, icon: 'sun', description: 'Cloudy' },
+  ],
+};
+
+/** Today's short weekday label, matching the schedule column-header format. */
+const TODAY_EEE = dayAt(0).toLocaleDateString('en-US', { weekday: 'short' });
+
 // --- The matrix ------------------------------------------------------------
 
 export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
@@ -146,13 +174,65 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Weather pill renders only when showWeather is on AND a current temp is
-    // available (the weather stub provides one), so flipping it off removes it.
+    // Legacy pre-placement boolean: showWeather false must still resolve to
+    // 'off' and remove the header pill. weatherPlacement is explicitly
+    // undefined because a legacy config predates the key entirely, while the
+    // registry defaultConfig this row merges over now carries 'header'
+    // (JSON.stringify drops the undefined on PUT, so the saved module config
+    // genuinely lacks the key, exactly like a real pre-placement config).
     type: 'fullscreen-calendar', name: 'show-weather-off', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'schedule', showWeather: false },
+    config: { view: 'schedule', showWeather: false, weatherPlacement: undefined },
     expect: async (mod) => {
       await expect(mod.locator('.fsc-header-title')).toBeVisible();
       await expect(mod.locator('.fsc-weather-pill')).toHaveCount(0);
+    },
+  },
+  {
+    // The placement enum's off member removes the pill exactly like the
+    // legacy boolean did.
+    type: 'fullscreen-calendar', name: 'weather-placement-off', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', weatherPlacement: 'off' },
+    expect: async (mod) => {
+      await expect(mod.locator('.fsc-header-title')).toBeVisible();
+      await expect(mod.locator('.fsc-weather-pill')).toHaveCount(0);
+    },
+  },
+  {
+    // 'days' placement puts the daily forecast (high / low) on agenda day
+    // headers; the row's own forecast is dated today so it must match.
+    type: 'fullscreen-calendar', name: 'weather-placement-days', kind: 'networked', stubKey: 'calendar',
+    extraStubs: { weather: LIVE_WEATHER },
+    config: { view: 'agenda', weatherPlacement: 'days' },
+    expect: async (mod) => { await has('87°')(mod); await has('61°')(mod); },
+  },
+  {
+    // 'events' placement adds a forecast line to each timed event row. With
+    // hourly empty, the daily fallback must supply it (high + condition).
+    type: 'fullscreen-calendar', name: 'weather-placement-events', kind: 'networked', stubKey: 'calendar',
+    extraStubs: { weather: LIVE_WEATHER },
+    config: { view: 'agenda', weatherPlacement: 'events' },
+    expect: has('Sunshowers'),
+  },
+  {
+    // Schedule columns carry the compact day badge (high only) under the day
+    // number; the header pill is header-placement-only, so 87° can only come
+    // from the column badge.
+    type: 'fullscreen-calendar', name: 'weather-placement-days-schedule', kind: 'networked', stubKey: 'calendar',
+    extraStubs: { weather: LIVE_WEATHER },
+    config: { view: 'schedule', weatherPlacement: 'days', scheduleDaysToShow: 2 },
+    expect: async (mod) => {
+      await has('87°')(mod);
+      await expect(mod.locator('.fsc-weather-pill')).toHaveCount(0);
+    },
+  },
+  {
+    // A placement carried from another view degrades to the header pill on a
+    // view without that surface — weather must never vanish on view switch.
+    // The shared weather fixture supplies the pill's current temp (72°).
+    type: 'fullscreen-calendar', name: 'weather-placement-carried-fallback', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'day-timeline', weatherPlacement: 'days' },
+    expect: async (mod) => {
+      await expect(mod.locator('.fsc-weather-pill')).toBeVisible();
     },
   },
   {
@@ -230,6 +310,33 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'schedule', scheduleDaysToShow: 1, scheduleShowDescription: true },
     expect: has('SCHED DESC E2E'),
   },
+  {
+    // Default anchor: the first column is today at any run time.
+    type: 'fullscreen-calendar', name: 'schedule-anchor-today', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', scheduleStartAnchor: 'today', scheduleDaysToShow: 3 },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="columnheader"]').first()).toContainText(TODAY_EEE);
+    },
+  },
+  {
+    // Calendar-stable anchor: the first column is the configured week start
+    // (Sunday here) no matter which weekday the test runs on.
+    type: 'fullscreen-calendar', name: 'schedule-anchor-start-of-week', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', scheduleStartAnchor: 'start-of-week', startDay: 'sunday', scheduleDaysToShow: 7 },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="columnheader"]').first()).toContainText('Sun');
+    },
+  },
+  {
+    // Weekend anchor with two columns renders a Sat + Sun planning board —
+    // including on a Sunday, when the running weekend is kept on screen.
+    type: 'fullscreen-calendar', name: 'schedule-anchor-weekend', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', scheduleStartAnchor: 'next-weekend', scheduleDaysToShow: 2 },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="columnheader"]').first()).toContainText('Sat');
+      await expect(mod.locator('[role="columnheader"]').nth(1)).toContainText('Sun');
+    },
+  },
 
   // ================= WEEK-LIST VIEW =================
 
@@ -304,5 +411,40 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-calendar', name: 'agenda-show-description', kind: 'networked', stubKey: 'calendar', stubBody: AGENDA_DESC,
     config: { view: 'agenda', agendaShowDescription: true },
     expect: has('AGENDADESC E2E'),
+  },
+  {
+    // Countdown pill on an upcoming timed event; +2 days at noon reads
+    // "in 2 days" at any run time (whole-calendar-day diff beyond 24h).
+    type: 'fullscreen-calendar', name: 'agenda-show-countdown', kind: 'networked', stubKey: 'calendar', stubBody: COUNTDOWN_EVENT,
+    config: { view: 'agenda', showCountdown: true },
+    expect: async (mod) => { await has('COUNTDOWN EVENT')(mod); await has('in 2 days')(mod); },
+  },
+  {
+    // All-day rows are countdown-opt-in (whole days to the row's own date).
+    type: 'fullscreen-calendar', name: 'agenda-countdown-all-day', kind: 'networked', stubKey: 'calendar', stubBody: ALLDAY_FUTURE,
+    config: { view: 'agenda', showCountdown: true, countdownAllDay: true },
+    expect: async (mod) => { await has('ALLDAY FUTURE')(mod); await has('in 3 days')(mod); },
+  },
+  {
+    // The default fixture event spans all of today, so it is running at any
+    // run time and the progress bar face of the status slot renders.
+    type: 'fullscreen-calendar', name: 'week-show-progress-bar', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'week-list', showProgressBar: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="progressbar"]').first()).toBeVisible();
+    },
+  },
+  {
+    // Custom wording replaces "No events" on every empty day of the window.
+    type: 'fullscreen-calendar', name: 'agenda-empty-day-text', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', emptyDayText: 'FREE DAY E2E' },
+    expect: async (mod) => { await has('FREE DAY E2E')(mod); await expect(mod).not.toContainText('No events'); },
+  },
+  {
+    // A 14-day agenda window always crosses at least one week start, so the
+    // "Week of" rule renders; month beats week when boundaries coincide.
+    type: 'fullscreen-calendar', name: 'agenda-separators', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', agendaSeparators: 'weeks-and-months' },
+    expect: has('Week of'),
   },
 ];

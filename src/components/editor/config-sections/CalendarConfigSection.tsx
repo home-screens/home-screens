@@ -10,7 +10,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { isGridView } from '@/lib/calendar-utils';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { EventTapStyle, ModuleInstance } from '@/types/config';
+import type { AgendaSeparators, EventTapStyle, ModuleInstance } from '@/types/config';
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -33,6 +33,10 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     startDay?: string;
     gridEventStyle?: string;
     gridEventPillBackground?: boolean;
+    showCountdown?: boolean;
+    showProgressBar?: boolean;
+    emptyDayText?: string;
+    agendaSeparators?: AgendaSeparators;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -124,7 +128,30 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         <>
           <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
           <Toggle label={t('configSections.calendar.showLocation')} checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
+          <Toggle label={t('configSections.calendar.showCountdown')} checked={c.showCountdown === true} onChange={(v) => set({ showCountdown: v })} />
+          <Toggle label={t('configSections.calendar.showProgressBar')} checked={c.showProgressBar === true} onChange={(v) => set({ showProgressBar: v })} />
         </>
+      )}
+      {viewMode === 'daily' && (
+        <LabeledInput
+          label={t('configSections.calendar.emptyDayText')}
+          type="text"
+          value={c.emptyDayText ?? ''}
+          placeholder={t('configSections.calendar.emptyDayTextPlaceholder')}
+          onChange={(v) => set({ emptyDayText: v })}
+        />
+      )}
+      {viewMode === 'agenda' && (
+        <LabeledSelect
+          label={t('configSections.calendar.separators')}
+          value={c.agendaSeparators ?? 'none'}
+          onChange={(v) => set({ agendaSeparators: v })}
+          options={[
+            { value: 'none', label: t('configSections.calendar.separatorsNone') },
+            { value: 'weeks', label: t('configSections.calendar.separatorsWeeks') },
+            { value: 'weeks-and-months', label: t('configSections.calendar.separatorsWeeksMonths') },
+          ]}
+        />
       )}
       {viewMode === 'daily' && (
         <Toggle label={t('common.showDescription')} checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
@@ -133,15 +160,17 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
       )}
       {isGridView(viewMode) && (
-        <>
-          <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
-          <LabeledSelect
-            label={t('configSections.calendar.weekStartsOn')}
-            value={c.startDay ?? 'sunday'}
-            onChange={(v) => set({ startDay: v })}
-            options={START_DAY_OPTIONS}
-          />
-        </>
+        <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
+      )}
+      {/* Agenda week separators label their week start with the same startDay
+          the grids use, so the select follows the separators option there. */}
+      {(isGridView(viewMode) || (viewMode === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
+        <LabeledSelect
+          label={t('configSections.calendar.weekStartsOn')}
+          value={c.startDay ?? 'sunday'}
+          onChange={(v) => set({ startDay: v })}
+          options={START_DAY_OPTIONS}
+        />
       )}
       {isGridView(viewMode) && (
         <LabeledSelect

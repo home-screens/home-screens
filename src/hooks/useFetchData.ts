@@ -5,13 +5,23 @@ import { useTranslate } from '@/i18n';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 
-export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null] {
+/**
+ * Fetch + poll a display data URL. Returns [data, error, updatedAt].
+ *
+ * `data` keeps the last successful payload across failed refreshes (a Wi-Fi
+ * blip must never blank a module); `error` is set while the latest attempt
+ * failed, so consumers can mark the kept data as stale; `updatedAt` is when
+ * the kept data was last successfully fetched (cache restores carry the
+ * cache's original fetch time).
+ */
+export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null, number | null] {
   const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!url) { setData(null); setError(null); return; }
+    if (!url) { setData(null); setError(null); setUpdatedAt(null); return; }
     const controller = new AbortController();
 
     async function fetchAndCache() {
@@ -22,6 +32,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
           const json = await res.json();
           setData(json);
           setError(null);
+          setUpdatedAt(Date.now());
           displayCache.set(url, json, refreshMs);
         } else {
           let msg = `API error ${res.status}`;
@@ -52,6 +63,7 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
     if (cached) {
       setData(cached.data);
       setError(null);
+      setUpdatedAt(cached.fetchedAt);
       if (!cached.stale) {
         // Fresh cache — skip initial fetch, just set up polling
         const interval = setInterval(fetchAndCache, refreshMs);
@@ -66,5 +78,5 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
     return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
   }, [url, refreshMs, t]);
 
-  return [data, error];
+  return [data, error, updatedAt];
 }

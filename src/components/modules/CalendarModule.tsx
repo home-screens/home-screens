@@ -5,7 +5,9 @@ import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOf
 import { createTZDate } from '@/lib/timezone';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
-import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, type EventDaySegment } from '@/lib/calendar-utils';
+import { toTZWallTime } from '@/lib/timezone';
+import type { CalendarFetchStatus } from '@/types/config';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
@@ -21,6 +23,7 @@ interface CalendarModuleProps {
   events?: CalendarEvent[];
   timezone?: string;
   timeFormat?: TimeFormat;
+  calendarStatus?: CalendarFetchStatus;
 }
 
 /**
@@ -63,7 +66,7 @@ function formatRelativeDay(
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
 // so the shallow compare skips re-parsing/re-formatting every pill per tick.
-const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale }: {
+const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale, segment, countdown, progress }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
@@ -74,6 +77,11 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   eventStyle: EventDisplayStyle;
   t: TranslateFn;
   locale: string;
+  /** Day-relative part of a multi-day event (list views pass the row's day). */
+  segment?: EventDaySegment;
+  /** Status slot: countdown text before start / progress fraction while running. */
+  countdown?: string | null;
+  progress?: number | null;
 }) {
   const { timeFormat, gridStyle, pillBackground, timezone } = eventStyle;
   const isAllDay = isAllDayEvent(event);
@@ -118,6 +126,12 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   const start = parseEventWallTime(event.start, timezone);
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
+  // Split multi-day rows: middle days promote to an all-day label, first and
+  // last days show only their true partial time.
+  const timeContent = isAllDay || segment === 'middle' ? t('calendar.allDay')
+    : segment === 'first' ? t('calendar.fromTime', { time: formatEventTime(start, timeFormat, locale) })
+    : segment === 'last' ? t('calendar.untilTime', { time: formatEventTime(end, timeFormat, locale) })
+    : `${formatEventTime(start, timeFormat, locale)} · ${formatDuration(start, end)}`;
 
   return (
     <ContentCard data-event-id={event.id} className="flex gap-2" style={{ padding: '6px 10px' }}>
@@ -127,15 +141,36 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
       />
       <div className="min-w-0 flex-1">
         {showTime && (
-          <MetadataText size="sm">
-            {isAllDay ? t('calendar.allDay') : (
-              <>
-                {formatEventTime(start, timeFormat, locale)} · {formatDuration(start, end)}
-              </>
+          <div className="flex items-center gap-1.5">
+            <MetadataText size="sm">{timeContent}</MetadataText>
+            {countdown && (
+              <span
+                className="shrink-0 rounded-full font-semibold whitespace-nowrap"
+                style={{
+                  fontSize: '0.6em',
+                  color: accentColor,
+                  backgroundColor: 'rgba(255,255,255,0.10)',
+                  padding: '1px 7px',
+                }}
+              >
+                {countdown}
+              </span>
             )}
-          </MetadataText>
+          </div>
         )}
         <p className="font-medium leading-tight line-clamp-2" style={{ fontSize: '0.85em' }}>{event.title}</p>
+        {progress != null && (
+          <div
+            role="progressbar"
+            aria-valuenow={Math.round(progress * 100)}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            className="rounded-full overflow-hidden"
+            style={{ height: 3, marginTop: 4, backgroundColor: 'rgba(255,255,255,0.15)' }}
+          >
+            <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, backgroundColor: accentColor }} />
+          </div>
+        )}
         {showLocation && event.location && (
           <MetadataText size="xs" className="leading-tight">
             {event.location}
@@ -156,13 +191,14 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
 
 // ─── Daily View (original) ───
 
-function DailyView({ events, config, style, today, accentColor, t, tCore, locale, eventStyle }: {
+function DailyView({ events, config, style, today, now, accentColor, t, tCore, locale, eventStyle }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -171,6 +207,7 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
   const showDescription = config.dailyShowDescription === true;
+  const emptyDayText = config.emptyDayText?.trim();
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(today, i);
@@ -204,12 +241,25 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
                   className="flex items-center justify-center rounded-lg px-2.5 py-3"
                   style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
                 >
-                  <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.noEvents')}</p>
+                  <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
                 </div>
               ) : (
-                dayEvents.map((ev) => (
-                  <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
-                ))
+                dayEvents.map((ev) => {
+                  const start = parseEventWallTime(ev.start, eventStyle.timezone);
+                  const end = parseEventWallTime(ev.end, eventStyle.timezone);
+                  const segment = isAllDayEvent(ev) ? 'single' : classifyTimedSpan(start, end, date);
+                  const status = eventStatusSlot({
+                    start, end,
+                    isAllDayRow: isAllDayEvent(ev) || segment === 'middle',
+                    rowDate: date, now, locale, segment,
+                    showCountdown: config.showCountdown === true,
+                    showProgressBar: config.showProgressBar === true,
+                    countdownAllDay: false,
+                  });
+                  return (
+                    <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
+                  );
+                })
               )}
             </div>
           </div>
@@ -221,13 +271,14 @@ function DailyView({ events, config, style, today, accentColor, t, tCore, locale
 
 // ─── Agenda View ───
 
-function AgendaView({ events, config, style, today, accentColor, t, tCore, locale, eventStyle }: {
+function AgendaView({ events, config, style, today, now, accentColor, t, tCore, locale, eventStyle }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -236,6 +287,7 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
   const showLocation = config.showLocation !== false;
   const showDescription = config.agendaShowDescription === true;
   const maxEvents = config.maxEvents ?? 20;
+  const weekStartsOn = weekStartsOnFor(config.startDay);
 
   // Sort events chronologically and limit
   const sorted = [...events]
@@ -264,8 +316,29 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
 
   return (
     <div className="flex flex-col gap-3 overflow-hidden h-full">
-      {groups.map(({ date, events: dayEvents }) => (
+      {groups.map(({ date, events: dayEvents }, gi) => {
+        const boundary = gi > 0
+          ? boundaryBetween(groups[gi - 1].date, date, config.agendaSeparators, weekStartsOn)
+          : null;
+        return (
         <div key={date.toISOString()}>
+          {boundary === 'month' && (
+            <div className="mb-2">
+              <p className="font-semibold" style={{ fontSize: '0.9em', color: accentColor }}>
+                {formatDateSync(date, 'MMMM', { locale })}
+              </p>
+              <div className="rounded-full" style={{ height: 2, backgroundColor: accentColor, opacity: 0.55, marginTop: 2 }} />
+            </div>
+          )}
+          {boundary === 'week' && (
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+              <span className="shrink-0 uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary, fontWeight: 600 }}>
+                {t('calendar.weekOf', { date: formatDateSync(addDays(date, -((date.getDay() - weekStartsOn + 7) % 7)), 'MMM d', { locale }) })}
+              </span>
+              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-1.5">
             <SectionHeader className="shrink-0" active={isSameDay(date, today)}>
               {formatRelativeDay(date, today, tCore, locale)}
@@ -273,12 +346,25 @@ function AgendaView({ events, config, style, today, accentColor, t, tCore, local
             <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
           </div>
           <div className="flex flex-col gap-1.5">
-            {dayEvents.map((ev) => (
-              <EventCard key={ev.id} event={ev} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
-            ))}
+            {dayEvents.map((ev) => {
+              const start = parseEventWallTime(ev.start, eventStyle.timezone);
+              const end = parseEventWallTime(ev.end, eventStyle.timezone);
+              const status = eventStatusSlot({
+                start, end,
+                isAllDayRow: isAllDayEvent(ev),
+                rowDate: date, now, locale,
+                showCountdown: config.showCountdown === true,
+                showProgressBar: config.showProgressBar === true,
+                countdownAllDay: false,
+              });
+              return (
+                <EventCard key={ev.id} event={ev} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
+              );
+            })}
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -640,6 +726,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   accentColor: string;
   eventStyle: EventDisplayStyle;
   t: TranslateFn;
@@ -653,7 +740,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   month: MonthView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -704,15 +791,49 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     if (id) setDetailId(id);
   };
 
+  // Failure ≠ empty: while the shared calendar fetch is failing, kept
+  // events get a quiet "saved" line. Only a failure with NO successful fetch
+  // ever (updatedAt null) renders the "can't load" message — last-good data
+  // whose upcoming window happens to be empty is a normal quiet day. The
+  // saved-from time is day-scoped and display-timezone-formatted.
+  const fetchFailed = calendarStatus?.error != null;
+  const neverLoaded = fetchFailed && calendarStatus?.updatedAt == null;
+  const savedWall = fetchFailed && calendarStatus?.updatedAt != null
+    ? (timezone ? toTZWallTime(new Date(calendarStatus.updatedAt), timezone) : new Date(calendarStatus.updatedAt))
+    : null;
+  const staleSince = savedWall && isSameDay(savedWall, today)
+    ? formatEventTime(savedWall, resolvedTimeFormat, locale)
+    : null;
+
+  if (neverLoaded) {
+    return (
+      <ModuleWrapper style={style}>
+        <div className="flex items-center justify-center h-full">
+          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.cantLoadEvents')}</p>
+        </div>
+      </ModuleWrapper>
+    );
+  }
+
   return (
     <ModuleWrapper style={style}>
       <div
-        className="h-full"
+        className="h-full flex flex-col"
         data-tap-events={tapDetails ? '' : undefined}
         onClick={tapDetails ? handleRootClick : undefined}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
-        <ViewComponent events={allEvents} config={config} style={style} today={today} accentColor={accentColor} eventStyle={eventStyle} t={t} tCore={tCore} locale={locale} />
+        {fetchFailed && (
+          <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
+            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
+            <span style={{ color: '#d9a441', fontWeight: 600 }}>
+              {staleSince ? t('calendar.savedFrom', { time: staleSince }) : t('calendar.savedEvents')}
+            </span>
+          </div>
+        )}
+        <div className="flex-1 min-h-0">
+          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} t={t} tCore={tCore} locale={locale} />
+        </div>
       </div>
       {tapDetails && detailEvent && (
         <EventDetailOverlay

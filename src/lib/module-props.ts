@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_FORMAT, type ModuleType, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 
 /**
@@ -18,6 +18,7 @@ export interface SharedDisplayData {
   metofficeData: unknown;
   envcanadaData: unknown;
   calendarData: unknown;
+  calendarStatus: CalendarFetchStatus;
 }
 
 const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
@@ -89,6 +90,8 @@ export interface ModuleDataSource {
     payloadFor(provider: string): WeatherPayload | null;
   };
   calendarEvents: unknown[] | null;
+  /** null = surface has no fetch-health signal (editor preview). */
+  calendarStatus: CalendarFetchStatus | null;
   availableDisplays: Array<{ id: string; name: string }>;
 }
 
@@ -135,6 +138,13 @@ export function buildModuleProps(
   const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
   if (needsCalendar && source.calendarEvents) {
     props.events = source.calendarEvents;
+  }
+  // Attached only while the fetch is actually failing — that IS the
+  // semantic: a healthy display and the editor preview (which has no fetch
+  // loop) both mean "nothing to report", so they build identical props and
+  // modules read the prop's mere presence as the failure signal.
+  if (needsCalendar && source.calendarStatus?.error != null) {
+    props.calendarStatus = source.calendarStatus;
   }
 
   const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
@@ -197,6 +207,7 @@ export function toDisplaySource(
         ? calendarData
         : ((calendarData as Record<string, unknown>).events as unknown[] | undefined) ?? [])
       : null,
+    calendarStatus: sharedData.calendarStatus,
     availableDisplays,
   };
 }
@@ -225,6 +236,9 @@ export function toEditorSource(
         previewData.weatherByProvider[provider] ?? previewData.weatherByProvider[globalProvider] ?? null,
     },
     calendarEvents: previewData.calendarEvents,
+    // The editor preview has no display fetch loop to report on; modules
+    // treat null as "healthy" and never render the saved-events pill.
+    calendarStatus: null,
     availableDisplays: displays,
   };
 }

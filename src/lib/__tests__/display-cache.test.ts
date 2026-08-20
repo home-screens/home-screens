@@ -28,7 +28,7 @@ describe('displayCache', () => {
       vi.advanceTimersByTime(4999);
 
       const result = displayCache.get('/api/stocks');
-      expect(result).toEqual({ data: { stocks: [] }, stale: false });
+      expect(result).toEqual({ data: { stocks: [] }, stale: false, fetchedAt: expect.any(Number) });
     });
 
     it('returns stale data after TTL expires', () => {
@@ -36,7 +36,7 @@ describe('displayCache', () => {
       vi.advanceTimersByTime(5001);
 
       const result = displayCache.get('/api/stocks');
-      expect(result).toEqual({ data: { stocks: [] }, stale: true });
+      expect(result).toEqual({ data: { stocks: [] }, stale: true, fetchedAt: expect.any(Number) });
     });
 
     it('returns fresh at exact TTL boundary', () => {

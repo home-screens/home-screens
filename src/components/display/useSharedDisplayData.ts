@@ -126,12 +126,20 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const calendarUrl = buildCalendarUrl(
     calendarIdList, !!hasIcalSources, hasHolidays, fetchWindow, refreshEpoch,
   );
-  const [calendarData] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
+  const [calendarData, calendarError, calendarUpdatedAt] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
+
+  // Failure ≠ empty: the calendar modules must distinguish "the fetch is
+  // failing" (keep last-good events, badge them as saved) from "the calendar
+  // is genuinely empty", so the fetch status rides along with the payload.
+  const calendarStatus = useMemo(
+    () => ({ error: calendarError, updatedAt: calendarUpdatedAt }),
+    [calendarError, calendarUpdatedAt],
+  );
 
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.
   return useMemo(
-    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData }),
-    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData],
+    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData, calendarStatus }),
+    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData, calendarStatus],
   );
 }

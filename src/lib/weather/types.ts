@@ -2,6 +2,12 @@
 
 export interface HourlyWeather {
   time: string;
+  /**
+   * Unix seconds for this entry, when the provider supplies one. WeatherAPI's
+   * `time` is a zone-less location-local wall time — fine to format, unsafe
+   * to parse for arithmetic — so consumers doing time math must prefer this.
+   */
+  timeEpoch?: number;
   temp: number;
   feelsLike?: number;
   humidity?: number;

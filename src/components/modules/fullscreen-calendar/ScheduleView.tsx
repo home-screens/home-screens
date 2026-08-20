@@ -2,12 +2,13 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
+import { parseEventDate, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
 import { computeTimedEventLayout, eventHoursOnDay } from './event-layout';
-import type { CalendarEvent, CalendarScale } from './FullscreenCalendarModule';
+import { DayWeatherBadge } from './WeatherInline';
+import type { CalendarEvent, CalendarScale, CalendarWeather } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
 
@@ -18,9 +19,10 @@ interface ScheduleViewProps {
   today: Date;
   now: Date;
   timeFormat?: TimeFormat;
+  weather?: CalendarWeather;
 }
 
-export function ScheduleView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT }: ScheduleViewProps) {
+export function ScheduleView({ events, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: ScheduleViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -44,11 +46,15 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
     ? config.scheduleDaysToShow
     : autoScheduleDays(scale.width, config.density);
 
-  // Start from today so the display always shows upcoming events
+  // First column follows the start anchor: sliding today (default), the
+  // calendar-stable week start, or the upcoming weekend. Anchored modes can
+  // put whole days in the past; they dim via dimPastEvents below so elapsed
+  // days read as intentionally finished rather than broken.
+  const scheduleStart = resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOnFor(config.startDay));
   const days = useMemo(
-    () => Array.from({ length: daysToShow }, (_, i) => addDays(today, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-    [today.toDateString(), daysToShow],
+    () => Array.from({ length: daysToShow }, (_, i) => addDays(scheduleStart, i)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scheduleStart is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
+    [scheduleStart.toDateString(), daysToShow],
   );
 
   // Fit grid exactly to container — no scrolling on kiosk display
@@ -58,9 +64,13 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
   const gridHeight = totalHours * hourHeight;
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
 
-  // Current time position (timezone-aware, updates every 60s via parent)
+  // Current time position (timezone-aware, updates every 60s via parent).
+  // The now-line only makes sense when today is actually one of the visible
+  // columns — a next-weekend anchor can render an all-future board, where a
+  // live "current time" line would cut across days it doesn't belong to.
   const nowHour = now.getHours() + now.getMinutes() / 60;
-  const nowInRange = nowHour >= hourStart && nowHour <= hourEnd;
+  const todayVisible = days.some(day => isSameDay(day, today));
+  const nowInRange = todayVisible && nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
 
   // Per-day event filtering and overlap layout don't depend on the 60s clock
@@ -124,6 +134,7 @@ export function ScheduleView({ events, config, scale, today, now, timeFormat = D
                     </span>
                   ) : formatDateSync(day, 'd', { locale })}
                 </div>
+                {weather && <DayWeatherBadge weather={weather} day={day} fontSize={fontSize} align="center" />}
               </div>
             );
           })}

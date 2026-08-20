@@ -220,3 +220,40 @@ describe('buildCalendarUrl', () => {
     expect(buildCalendarUrl(['cal-a'], false, false, windowWithMax, 3)).toContain('_r=3');
   });
 });
+
+describe('getCalendarFetchWindow · schedule start anchors', () => {
+  it('widens back to the week start for a start-of-week schedule', () => {
+    const screens = [makeScreen([
+      makeModule('fullscreen-calendar', { view: 'schedule', scheduleStartAnchor: 'start-of-week', startDay: 'sunday' }),
+    ])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    const weekStart = startOfWeek(startOfDay(NOW), { weekStartsOn: 0 });
+    expect(win!.timeMin).toBe(addDays(weekStart, -1).toISOString());
+    // Week start + 7 days + padding stays inside now + daysAhead here, so
+    // the server default is retained (timeMax omitted).
+    expect(win!.timeMax).toBeNull();
+  });
+
+  it('never pushes timeMin into the future for a next-weekend schedule', () => {
+    // NOW is a Wednesday; the anchor start (Saturday) is 3 days out. A
+    // future timeMin would starve every co-present agenda/daily module of
+    // today's events — the window must clamp back to today.
+    const screens = [makeScreen([
+      makeModule('fullscreen-calendar', { view: 'schedule', scheduleStartAnchor: 'next-weekend' }),
+      makeModule('fullscreen-calendar', { view: 'agenda' }),
+    ])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    expect(win).not.toBeNull();
+    expect(new Date(win!.timeMin).getTime()).toBeLessThanOrEqual(NOW.getTime());
+    // The weekend window's end (Saturday + 7 days + padding) still widens timeMax.
+    const saturday = addDays(startOfDay(NOW), 3);
+    expect(win!.timeMax).toBe(addDays(addDays(saturday, 7), 1).toISOString());
+  });
+
+  it('keeps the default anchor behavior unchanged', () => {
+    const screens = [makeScreen([makeModule('fullscreen-calendar', { view: 'schedule' })])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
+    expect(win!.timeMax).toBeNull();
+  });
+});

@@ -6,9 +6,10 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { effectiveWeatherPlacement } from '@/lib/calendar-utils';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 const SHOW_DESCRIPTION_KEY = {
@@ -70,6 +71,28 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'monday', label: tCore('days.monday') },
   ] as const;
 
+  const WEATHER_PLACEMENT_OPTIONS: { value: WeatherPlacement; label: string }[] = [
+    { value: 'off', label: t('configSections.fullscreen-calendar.weatherOff') },
+    { value: 'header', label: t('configSections.fullscreen-calendar.weatherHeader') },
+    { value: 'days', label: t('configSections.fullscreen-calendar.weatherDays') },
+    { value: 'events', label: t('configSections.fullscreen-calendar.weatherEvents') },
+    { value: 'days-and-events', label: t('configSections.fullscreen-calendar.weatherDaysAndEvents') },
+  ];
+
+  const SEPARATOR_OPTIONS: { value: AgendaSeparators; label: string }[] = [
+    { value: 'none', label: t('configSections.fullscreen-calendar.separatorsNone') },
+    { value: 'weeks', label: t('configSections.fullscreen-calendar.separatorsWeeks') },
+    { value: 'weeks-and-months', label: t('configSections.fullscreen-calendar.separatorsWeeksMonths') },
+  ];
+
+  const START_ANCHOR_OPTIONS: { value: ScheduleStartAnchor; label: string }[] = [
+    { value: 'today', label: t('configSections.fullscreen-calendar.anchorToday') },
+    { value: 'start-of-week', label: t('configSections.fullscreen-calendar.anchorStartOfWeek') },
+    { value: 'next-weekend', label: t('configSections.fullscreen-calendar.anchorWeekend') },
+  ];
+
+  const isListView = view === 'agenda' || view === 'week-list';
+
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
 
   return (
@@ -121,8 +144,44 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* Toggles */}
       <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
       <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
-      <Toggle label={t('configSections.fullscreen-calendar.showWeather')} checked={c.showWeather !== false} onChange={(v) => set({ showWeather: v })} />
+      <LabeledSelect
+        label={t('configSections.fullscreen-calendar.weatherPlacement')}
+        // The EFFECTIVE placement for the current view: a richer placement
+        // chosen in another view degrades to the header pill at render time,
+        // and the select shows that same truth instead of an option this
+        // view can't express.
+        value={effectiveWeatherPlacement(view, c)}
+        onChange={(v) => set({ weatherPlacement: v })}
+        options={
+          // Each view offers only the placements it can render: list views
+          // take all five, schedule adds day-column weather, month-grid and
+          // day-timeline have no per-day/per-event surface.
+          WEATHER_PLACEMENT_OPTIONS.filter((o) => {
+            if (o.value === 'off' || o.value === 'header') return true;
+            if (isListView) return true;
+            return view === 'schedule' && o.value === 'days';
+          })
+        }
+      />
       <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+
+      {/* List views: status slot + custom empty-day wording */}
+      {isListView && (
+        <>
+          <Toggle label={t('configSections.fullscreen-calendar.showCountdown')} checked={c.showCountdown === true} onChange={(v) => set({ showCountdown: v })} />
+          {c.showCountdown === true && (
+            <Toggle label={t('configSections.fullscreen-calendar.countdownAllDay')} checked={c.countdownAllDay === true} onChange={(v) => set({ countdownAllDay: v })} />
+          )}
+          <Toggle label={t('configSections.fullscreen-calendar.showProgressBar')} checked={c.showProgressBar === true} onChange={(v) => set({ showProgressBar: v })} />
+          <LabeledInput
+            label={t('configSections.fullscreen-calendar.emptyDayText')}
+            type="text"
+            value={c.emptyDayText ?? ''}
+            placeholder={t('configSections.fullscreen-calendar.emptyDayTextPlaceholder')}
+            onChange={(v) => set({ emptyDayText: v })}
+          />
+        </>
+      )}
 
       {/* Touch: tap an event to open a detail overlay */}
       <Toggle label={t('configSections.fullscreen-calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
@@ -152,7 +211,9 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         />
       )}
 
-      {(view === 'week-list' || view === 'month-grid') && (
+      {/* Agenda needs it too once week separators are on — their week label
+          follows the same startDay the grids use. */}
+      {(view === 'week-list' || view === 'month-grid' || (view === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
         <LabeledSelect
           label={t('configSections.calendar.weekStartsOn')}
           value={c.startDay ?? 'sunday'}
@@ -201,14 +262,30 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       )}
 
       {view === 'schedule' && (
-        <LabeledInput
-          label={t('configSections.fullscreen-calendar.daysToShowAuto')}
-          type="number"
-          min={0}
-          max={7}
-          value={c.scheduleDaysToShow ?? 0}
-          onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
-        />
+        <>
+          <LabeledInput
+            label={t('configSections.fullscreen-calendar.daysToShowAuto')}
+            type="number"
+            min={0}
+            max={7}
+            value={c.scheduleDaysToShow ?? 0}
+            onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
+          />
+          <LabeledSelect
+            label={t('configSections.fullscreen-calendar.startAnchor')}
+            value={c.scheduleStartAnchor ?? 'today'}
+            onChange={(v) => set({ scheduleStartAnchor: v })}
+            options={START_ANCHOR_OPTIONS}
+          />
+          {c.scheduleStartAnchor === 'start-of-week' && (
+            <LabeledSelect
+              label={t('configSections.calendar.weekStartsOn')}
+              value={c.startDay ?? 'sunday'}
+              onChange={(v) => set({ startDay: v })}
+              options={START_DAY_OPTIONS}
+            />
+          )}
+        </>
       )}
 
       {view === 'week-list' && (
@@ -244,6 +321,12 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
           <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
+          <LabeledSelect
+            label={t('configSections.fullscreen-calendar.separators')}
+            value={c.agendaSeparators ?? 'none'}
+            onChange={(v) => set({ agendaSeparators: v })}
+            options={SEPARATOR_OPTIONS}
+          />
         </>
       )}
     </>

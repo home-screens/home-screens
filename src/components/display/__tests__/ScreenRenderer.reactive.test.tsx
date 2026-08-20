@@ -51,6 +51,7 @@ const sharedData: SharedDisplayData = {
   owmData: null, wapiData: null, pirateData: null, noaaData: null,
   openMeteoData: null, yrData: null, smhiData: null, metofficeData: null,
   envcanadaData: null, calendarData: null,
+  calendarStatus: { error: null, updatedAt: null },
 };
 
 function renderScreen(screen: Screen) {

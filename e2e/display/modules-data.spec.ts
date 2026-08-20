@@ -197,6 +197,37 @@ test('fullscreen-calendar schedule view renders a midnight-crossing event on bot
   await expect(mod.locator('[data-event-id="evt-overnight"]')).toHaveCount(2);
 });
 
+/**
+ * Failure ≠ empty: a calendar fetch that FAILS with nothing ever loaded must
+ * render the "can't load" state — never the same wording as a genuinely
+ * empty calendar, which is an answer families act on. Conversely a
+ * SUCCESSFUL fetch returning zero events is an ordinary quiet week and must
+ * never claim an outage. The two tests pin the discriminator's direction.
+ */
+test('fullscreen-calendar renders the cant-load state when the fetch fails with nothing loaded', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { calendar: { status: 500 } } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', {})])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('fullscreen-calendar');
+  await expect(mod).toContainText("Can't load events right now");
+  await expect(mod).not.toContainText('No events this week');
+});
+
+test('fullscreen-calendar renders the ordinary empty state on a successful empty fetch', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { calendar: [] } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('fullscreen-calendar', {})])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('fullscreen-calendar');
+  await expect(mod).toContainText('No events this week');
+  await expect(mod).not.toContainText("Can't load events");
+});
+
 for (const r of RESILIENCE_NO_CRASH) {
   const fx = MODULE_FIXTURES[r.type];
 

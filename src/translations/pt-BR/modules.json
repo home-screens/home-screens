@@ -123,7 +123,13 @@
     "noEvents": "Sem eventos",
     "noUpcomingEvents": "Sem eventos próximos",
     "weekShort": "Sem",
-    "moreCount": "+{count} mais"
+    "moreCount": "+{count} mais",
+    "fromTime": "A partir de {time}",
+    "untilTime": "Até {time}",
+    "savedFrom": "Salvo às {time}",
+    "savedEvents": "Mostrando eventos salvos",
+    "cantLoadEvents": "Não foi possível carregar os eventos agora",
+    "weekOf": "Semana de {date}"
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",
@@ -158,7 +164,13 @@
       "eventTimed": "{title}, das {start} às {end}",
       "eventTimedAtLocation": "{title}, das {start} às {end}, em {location}",
       "monthCell": "{date}, {count} eventos"
-    }
+    },
+    "fromTime": "A partir de {time}",
+    "untilTime": "Até {time}",
+    "savedFrom": "Salvo às {time}",
+    "savedEvents": "Mostrando eventos salvos",
+    "cantLoadEvents": "Não foi possível carregar os eventos agora",
+    "weekOf": "Semana de {date}"
   },
   "weather": {
     "tomorrowShort": "Amanhã",

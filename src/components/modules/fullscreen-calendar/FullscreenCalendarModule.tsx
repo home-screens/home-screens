@@ -6,12 +6,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { isEventUpcoming, weekStartsOnFor } from '@/lib/calendar-utils';
+import { effectiveWeatherPlacement, formatEventTime, isEventUpcoming, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { buildHourlyIndex, type HourlyIndex } from './event-weather';
+import { toTZWallTime } from '@/lib/timezone';
 import { parseHexToRgb } from '@/lib/hex-color';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { FullscreenCalendarConfig, ModuleStyle, CalendarEvent, TimeFormat, WeekStartDay } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
+import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
@@ -46,6 +49,15 @@ export interface CalendarScale {
 
 // Re-export MapPin for use in subviews
 export { MapPin };
+
+/** Weather data + placement bundle threaded to the list views. The hourly
+ *  index is pre-built here (once per fetch) so per-row lookups on every
+ *  60s tick are O(1) instead of a scan over the full hourly horizon. */
+export interface CalendarWeather {
+  hourlyIndex: HourlyIndex;
+  forecast?: ForecastDay[];
+  placement: WeatherPlacement;
+}
 
 // ─── Helpers ───
 
@@ -151,14 +163,18 @@ function getHeaderTitle(
   locale: string,
   scheduleDays?: number,
   startDay?: WeekStartDay,
+  scheduleStart?: Date,
 ): string {
   switch (view) {
     case 'schedule': {
-      const endDay = addDays(today, (scheduleDays ?? 7) - 1);
-      if (today.getMonth() === endDay.getMonth()) {
-        return `${formatDateSync(today, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
+      // The range starts at the anchor-resolved first column, which is only
+      // `today` for the default anchor.
+      const first = scheduleStart ?? today;
+      const endDay = addDays(first, (scheduleDays ?? 7) - 1);
+      if (first.getMonth() === endDay.getMonth()) {
+        return `${formatDateSync(first, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
       }
-      return `${formatDateSync(today, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
+      return `${formatDateSync(first, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
     }
     case 'week-list': {
       const weekStartsOn = weekStartsOnFor(startDay);
@@ -218,8 +234,11 @@ function SkeletonLoading({ scale }: { scale: CalendarScale }) {
 
 // ─── Empty state ───
 
-function EmptyState({ scale, view, t }: { scale: CalendarScale; view: string; t: TranslateFn }) {
-  const label = view === 'month-grid' ? t('fullscreen-calendar.noEventsThisMonth')
+function EmptyState({ scale, view, t, fetchFailed }: { scale: CalendarScale; view: string; t: TranslateFn; fetchFailed?: boolean }) {
+  // A failed fetch with nothing kept is an outage, not a free day — it must
+  // never render the same wording as a genuinely empty calendar.
+  const label = fetchFailed ? t('fullscreen-calendar.cantLoadEvents')
+    : view === 'month-grid' ? t('fullscreen-calendar.noEventsThisMonth')
     : view === 'agenda' ? t('fullscreen-calendar.noUpcomingEvents')
     : view === 'day-timeline' ? t('fullscreen-calendar.noEventsToday')
     : t('fullscreen-calendar.noEventsThisWeek');
@@ -253,10 +272,12 @@ interface FullscreenCalendarModuleProps {
   events?: CalendarEvent[];
   timezone?: string;
   timeFormat?: TimeFormat;
-  hourly?: Array<{ temp: number; icon?: string; description?: string }>;
+  hourly?: HourlyWeather[];
+  forecast?: ForecastDay[];
   units?: string;
   loading?: boolean;
   fullscreenTheme?: string;
+  calendarStatus?: CalendarFetchStatus;
 }
 
 export default function FullscreenCalendarModule({
@@ -266,9 +287,11 @@ export default function FullscreenCalendarModule({
   timezone,
   timeFormat,
   hourly,
+  forecast,
   units,
   loading,
   fullscreenTheme,
+  calendarStatus,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -309,7 +332,10 @@ export default function FullscreenCalendarModule({
   const scheduleDays = config.view === 'schedule'
     ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
     : undefined;
-  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays, config.startDay);
+  const scheduleStart = config.view === 'schedule'
+    ? resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOnFor(config.startDay))
+    : undefined;
+  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays, config.startDay, scheduleStart);
 
   // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;
@@ -323,12 +349,36 @@ export default function FullscreenCalendarModule({
   const viewLabelKey = VIEW_LABEL_KEYS[config.view];
   const viewLabel = viewLabelKey ? t(viewLabelKey) : config.view;
 
+  const weatherPlacement = effectiveWeatherPlacement(config.view, config);
+  const weather = useMemo<CalendarWeather>(
+    () => ({ hourlyIndex: buildHourlyIndex(hourly), forecast, placement: weatherPlacement }),
+    [hourly, forecast, weatherPlacement],
+  );
+
   const viewProps = useMemo(
-    () => ({ events, config, scale, today, now, timeFormat }),
-    [events, config, scale, today, now, timeFormat],
+    () => ({ events, config, scale, today, now, timeFormat, weather }),
+    [events, config, scale, today, now, timeFormat, weather],
   );
   const hasEvents = events.length > 0;
   const isLoading = loading && !hasEvents;
+
+  // Failure \u2260 empty: while the shared calendar fetch is failing, the events
+  // on screen are the kept last-good payload \u2014 badge them as saved rather
+  // than live. Only a failure with NO successful fetch ever (updatedAt null)
+  // renders the "can't load" state: last-good data whose visible window
+  // happens to be empty (an agenda after the day's last event) is a normal
+  // empty day, not an outage.
+  const fetchFailed = calendarStatus?.error != null;
+  const neverLoaded = fetchFailed && calendarStatus?.updatedAt == null;
+  // The saved-from time is only meaningful on the day it happened; a
+  // multi-day outage falls back to the generic wording. Formatted in the
+  // display timezone like every other time in the module.
+  const savedWall = fetchFailed && calendarStatus?.updatedAt != null
+    ? (timezone ? toTZWallTime(new Date(calendarStatus.updatedAt), timezone) : new Date(calendarStatus.updatedAt))
+    : null;
+  const staleSince = savedWall && startOfDay(savedWall).getTime() === today.getTime()
+    ? formatEventTime(savedWall, timeFormat ?? DEFAULT_TIME_FORMAT, locale)
+    : null;
 
   // Tap-to-open detail: one delegated handler on the root instead of a
   // callback threaded through all five views. Every event element carries
@@ -393,7 +443,23 @@ export default function FullscreenCalendarModule({
           {headerTitle}
         </h1>
         <div style={{ flex: 1 }} />
-        {config.showWeather && currentTemp != null && (
+        {fetchFailed && !neverLoaded ? (
+          // The saved-events pill takes the weather pill's slot so the header
+          // element count never changes; calm amber, no "error" language.
+          <span
+            className="fsc-stale-pill"
+            style={{
+              fontSize: `${scale.bu * 1.1 * scale.typoMul}px`,
+              color: scale.isDark ? '#d9a441' : '#92642c',
+            }}
+            role="status"
+          >
+            <span className="fsc-stale-dot" aria-hidden="true" />
+            {staleSince
+              ? t('fullscreen-calendar.savedFrom', { time: staleSince })
+              : t('fullscreen-calendar.savedEvents')}
+          </span>
+        ) : weatherPlacement === 'header' && currentTemp != null && (
           <span
             className="fsc-weather-pill"
             style={{ fontSize: `${scale.bu * 1.3 * scale.typoMul}px` }}
@@ -418,7 +484,7 @@ export default function FullscreenCalendarModule({
         {isLoading ? (
           <SkeletonLoading scale={scale} />
         ) : !hasEvents ? (
-          <EmptyState scale={scale} view={config.view} t={t} />
+          <EmptyState scale={scale} view={config.view} t={t} fetchFailed={neverLoaded} />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -538,6 +604,24 @@ const cssTokens = `
   padding: 2px 12px;
   font-weight: 500;
   white-space: nowrap;
+}
+.fsc-stale-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(217,164,65,0.16);
+  border: 1px solid rgba(217,164,65,0.35);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.fsc-stale-dot {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: #d9a441;
+  flex-shrink: 0;
 }
 .fsc-view-badge {
   display: flex;
