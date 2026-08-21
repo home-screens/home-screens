@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/Container';
-import { DisplayFrame } from '@/components/DisplayFrame';
+import { DashboardShowcase } from '@/components/DashboardShowcase';
 import { Github } from 'lucide-react';
 import { useLatestVersion } from '@/hooks/useLatestVersion';
 import { MODULE_COUNT } from '@/lib/stats';
@@ -29,10 +29,10 @@ export function Hero() {
       <div className="absolute top-1/2 right-0 -z-10 h-[600px] w-[600px] -translate-y-1/2 translate-x-1/4 rounded-full bg-cyan-500/[0.04] blur-3xl" />
 
       <Container>
-        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-12">
           {/* Left column: text */}
           <motion.div
-            className="lg:col-span-7"
+            className="lg:col-span-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -83,24 +83,14 @@ export function Hero() {
             </div>
           </motion.div>
 
-          {/* Right column: display mockup */}
+          {/* Right column: dashboard showcase */}
           <motion.div
-            className="lg:col-span-5"
-            initial={{ opacity: 0, scale: 0.95 }}
+            className="lg:col-span-7"
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.15 }}
           >
-            <DisplayFrame
-              screens={[
-                { src: '/images/display-1.jpg', alt: 'Family dashboard with clock, calendar, weather, and garbage schedule' },
-                { src: '/images/display-2.jpg', alt: 'Easter countdown with forecast and affirmations' },
-                { src: '/images/display-3.jpg', alt: 'Finance display with stocks, NHL standings, and word of the day' },
-                { src: '/images/display-4.jpg', alt: 'Fullscreen chore chart with family members, time-of-day bands, and star chart' },
-                { src: '/images/display-5.jpg', alt: 'Fullscreen meal planner showing weekly meal schedule' },
-                { src: '/images/display-6.jpg', alt: 'Fullscreen calendar with weekly schedule view and color-coded events' },
-              ]}
-              interval={6000}
-            />
+            <DashboardShowcase />
           </motion.div>
         </div>
       </Container>

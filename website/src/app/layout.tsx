@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Bricolage_Grotesque, IBM_Plex_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 import Script from 'next/script'
 import clsx from 'clsx'
@@ -7,12 +7,27 @@ import clsx from 'clsx'
 import { Providers } from '@/app/providers'
 import { JsonLd } from '@/components/JsonLd'
 import { MODULE_COUNT } from '@/lib/stats'
+import { DASHBOARDS } from '@/lib/dashboards'
 import './globals.css'
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin'],
+  weight: ['700'],
+  display: 'swap',
+  variable: '--font-bricolage',
+})
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-plex-mono',
 })
 
 const lexend = localFont({
@@ -59,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={clsx('h-full antialiased', inter.variable, lexend.variable)}
+      className={clsx('h-full antialiased', inter.variable, lexend.variable, bricolage.variable, plexMono.variable)}
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-white dark:bg-slate-900">
@@ -83,14 +98,9 @@ export default function RootLayout({
             downloadUrl:
               'https://github.com/home-screens/home-screens/releases',
             softwareRequirements: 'Raspberry Pi 4 or 5, 2 GB+ RAM',
-            screenshot: [
-              'https://homescreens.dev/images/display-1.jpg',
-              'https://homescreens.dev/images/display-2.jpg',
-              'https://homescreens.dev/images/display-3.jpg',
-              'https://homescreens.dev/images/display-4.jpg',
-              'https://homescreens.dev/images/display-5.jpg',
-              'https://homescreens.dev/images/display-6.jpg',
-            ],
+            screenshot: DASHBOARDS.map(
+              (d) => `https://homescreens.dev/images/dashboards/${d.image}.jpg`,
+            ),
             offers: {
               '@type': 'Offer',
               price: '0',

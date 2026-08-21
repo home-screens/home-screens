@@ -50,11 +50,19 @@
   --font-display: var(--font-lexend);
   --font-display--font-feature-settings: 'ss01';
   --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, monospace;
+  --font-showcase: var(--font-bricolage), var(--font-inter), system-ui, sans-serif;
+  --font-plex-mono: var(--font-plex-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+  --animate-showcase-fill: showcase-fill 6s linear forwards;
 
   /* Container */
   --container-8xl: 88rem;
 
-  @keyframes fade-in {
+  @keyframes showcase-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
