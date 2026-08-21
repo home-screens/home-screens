@@ -356,11 +356,12 @@ Today's sunrise and sunset times with visual arc.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"default"` | Display style: `default`, `arc`, or `circle` |
+| `theme` | string | `"simple"` | Circle-view ring coloring: `simple` (flat daylight/twilight/darkness segments) or `sky` (a gradient through the day's sun colors, with stars in the full-darkness window). The `sky` theme always shows the astro-dark times. |
 | `showDayLength` | boolean | `true` | Show total daylight hours |
 | `showGoldenHour` | boolean | `false` | Show golden hour times |
-| `showAstroDark` | boolean | `false` | Show when full darkness starts and ends, and how long it lasts |
+| `showAstroDark` | boolean | `false` | Show when full darkness starts and ends, and how long it lasts (always on with the `sky` theme) |
 
-Uses the `suncalc` library based on your configured latitude/longitude. With `showAstroDark` on, the dark times always describe tonight: darkness starting this evening paired with its end tomorrow morning. On summer nights when the sky never gets fully dark, the dark rows are simply hidden. The `circle` view draws a 24-hour ring with noon at the top and midnight at the bottom, shading daylight, twilight, and full darkness to scale.
+Uses the `suncalc` library based on your configured latitude/longitude. With `showAstroDark` on, the dark times always describe tonight: darkness starting this evening paired with its end tomorrow morning. On summer nights when the sky never gets fully dark, the dark rows are simply hidden. The `circle` view draws a 24-hour ring with noon at the top and midnight at the bottom, shading daylight, twilight, and full darkness to scale. In the `circle` view, the `sky` theme replaces those flat segments with a smooth gradient from sunrise through noon and sunset into the night, dotted with stars while full darkness lasts. Under the midnight sun the ring holds its daylight color with the sun always up; through a polar night the `sky` theme turns the whole ring dark with stars all around, while `simple` keeps its twilight shading (flat twilight when the sky never gets fully dark).
 
 ### Air Quality
 

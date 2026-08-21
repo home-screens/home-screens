@@ -3004,7 +3004,10 @@
       "showDayLength": "Mostrar duração do dia",
       "showGoldenHour": "Mostrar hora dourada",
       "showAstroDark": "Mostrar a escuridão",
-      "locationHint": "Usa a localização das configurações globais."
+      "locationHint": "Usa a localização das configurações globais.",
+      "theme": "Tema",
+      "themeSimple": "Cores simples",
+      "themeSky": "Cores do céu"
     },
     "text": {
       "content": "Conteúdo",

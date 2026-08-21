@@ -2999,7 +2999,10 @@
       "showDayLength": "Daglengte tonen",
       "showGoldenHour": "Gouden uur tonen",
       "showAstroDark": "Donker tonen",
-      "locationHint": "Gebruikt de locatie uit de algemene instellingen."
+      "locationHint": "Gebruikt de locatie uit de algemene instellingen.",
+      "theme": "Thema",
+      "themeSimple": "Eenvoudige kleuren",
+      "themeSky": "Luchtkleuren"
     },
     "text": {
       "content": "Inhoud",

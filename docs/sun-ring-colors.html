@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sun ring color playground</title>
+<!-- Geometry, labels and defaults ported from src/components/modules/SunriseSunsetModule.tsx
+     (CircleView) and src/lib/sun-astro.ts so this renders exactly what the module would.
+     Ring colors here are a gradient between five anchors: sunrise, noon, sunset, dark
+     begin, dark end (the module itself paints flat segments). Stars: white single-pixel
+     dots scattered in the astrodark window. -->
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: #0b0f16; color: #e6edf3; }
+  header { padding: 14px 20px 6px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: .02em; }
+  header p { margin: 0; font-size: 12px; color: #8b98a9; }
+  main { display: grid; grid-template-columns: minmax(340px, 560px) 350px; gap: 20px; padding: 10px 20px 28px; align-items: start; }
+  @media (max-width: 940px) { main { grid-template-columns: 1fr; } }
+  .stage { border-radius: 14px; padding: 18px; transition: background .25s; display: flex; justify-content: center; }
+  .stage.dark { background: #10151f; color: #f8fafc; }
+  .stage.light { background: #e9eef4; color: #0f172a; }
+  .stage svg { width: 100%; max-width: 520px; }
+  aside { display: flex; flex-direction: column; gap: 12px; }
+  fieldset { border: 1px solid #232c3a; border-radius: 10px; padding: 8px 12px 10px; margin: 0; }
+  legend { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8b98a9; padding: 0 6px; }
+  .row { display: flex; align-items: center; gap: 8px; margin: 5px 0; font-size: 13px; }
+  .row > label:first-child { flex: 0 0 106px; color: #c3cddb; }
+  .row .hex { font-family: ui-monospace, "Cascadia Mono", monospace; font-size: 12px; color: #8b98a9; min-width: 66px; }
+  input[type="color"] { width: 36px; height: 24px; border: 1px solid #2c3849; border-radius: 6px; background: none; padding: 1px; cursor: pointer; }
+  input[type="time"] { background: #141b26; color: #e6edf3; border: 1px solid #2c3849; border-radius: 6px; padding: 2px 6px; font: inherit; width: 104px; }
+  input[type="text"] { background: #141b26; color: #e6edf3; border: 1px solid #2c3849; border-radius: 6px; padding: 2px 6px; font: inherit; width: 132px; }
+  input[type="range"] { flex: 1; accent-color: #fbbf24; }
+  input[type="number"] { width: 60px; background: #141b26; color: #e6edf3; border: 1px solid #2c3849; border-radius: 6px; padding: 2px 6px; font: inherit; }
+  button { background: #1b2432; color: #e6edf3; border: 1px solid #2c3849; border-radius: 7px; padding: 4px 10px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  button:hover { background: #232e40; }
+  button.on { border-color: #fbbf24; color: #fbbf24; }
+  .toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mono { font-family: ui-monospace, "Cascadia Mono", monospace; font-size: 12px; color: #8b98a9; }
+  .note { font-size: 11.5px; color: #7d8a9b; margin: 6px 0 0; }
+  label.chk { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #c3cddb; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sun ring color playground</h1>
+  <p>24h circle view · gradient between sunrise, sunrise +90m, noon, sunset −90m, golden hour, sunset, dark begin, dark end · stars in the dark window</p>
+</header>
+<main>
+  <section id="stage" class="stage dark"></section>
+  <aside>
+    <fieldset>
+      <legend>Location &amp; date</legend>
+      <div class="row"><label for="locLat">latitude</label><input type="number" id="locLat" min="-90" max="90" step="0.01" value="50.11"><span class="mono" id="latOut"></span></div>
+      <div class="row"><label for="locLon">longitude</label><input type="number" id="locLon" min="-180" max="180" step="0.01" value="8.68"><span class="mono" id="lonOut"></span></div>
+      <div class="row"><label for="locDoy">day of year</label><input type="number" id="locDoy" min="1" max="366" step="1" value="227"><span class="mono" id="doyOut"></span></div>
+      <div class="row"><label for="locTz">timezone</label><input type="text" id="locTz" value="Europe/Berlin"><span class="mono" id="tzOut"></span></div>
+      <p class="note">Sun times for that day of the year (the date is shown next to it), computed locally by the same math as the module (a port of suncalc), shown in the timezone above (any IANA name; unknown names fall back to this computer's zone). Changing these refills the event times below — try 69.65° around day 166 for midnight sun, or 53.55° for a night that never gets fully dark.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Colors</legend>
+      <div class="row"><label for="color-sunrise">sunrise</label><input type="color" id="color-sunrise"><span class="hex" id="hex-sunrise"></span></div>
+      <div class="row"><label for="color-morning">sunrise +90m</label><input type="color" id="color-morning"><span class="hex" id="hex-morning"></span></div>
+      <div class="row"><label for="color-noon">noon</label><input type="color" id="color-noon"><span class="hex" id="hex-noon"></span></div>
+      <div class="row"><label for="color-evening">sunset −90m</label><input type="color" id="color-evening"><span class="hex" id="hex-evening"></span></div>
+      <div class="row"><label for="color-goldenHour">golden hour</label><input type="color" id="color-goldenHour"><span class="hex" id="hex-goldenHour"></span></div>
+      <div class="row"><label for="color-sunset">sunset</label><input type="color" id="color-sunset"><span class="hex" id="hex-sunset"></span></div>
+      <div class="row"><label for="color-darkBegins">dark begin</label><input type="color" id="color-darkBegins"><span class="hex" id="hex-darkBegins"></span></div>
+      <div class="row"><label for="color-darkEnds">dark end</label><input type="color" id="color-darkEnds"><span class="hex" id="hex-darkEnds"></span></div>
+      <div class="row"><label for="color-sunDisc">sun disc + glow</label><input type="color" id="color-sunDisc"><span class="hex" id="hex-sunDisc"></span></div>
+      <div class="row"><button id="resetColors">Reset to defaults</button></div>
+      <p class="note">The +90m / −90m stops move with the sunrise and sunset time inputs; the golden-hour stop moves with the golden-hour time input and stays in the gradient even when its dot is hidden. When the night never gets fully dark, its halfway point takes the dark-begin color. The now marker's disc and daylight glow use the sun color.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Event times</legend>
+      <div class="row"><label for="time-sunrise">sunrise</label><input type="time" id="time-sunrise"></div>
+      <div class="row"><label for="time-noon">solar noon</label><input type="time" id="time-noon"></div>
+      <div class="row"><label for="time-sunset">sunset</label><input type="time" id="time-sunset"></div>
+      <div class="row"><label for="time-darkBegins">dark begins</label><input type="time" id="time-darkBegins"></div>
+      <div class="row"><label for="time-darkEnds">dark ends</label><input type="time" id="time-darkEnds"></div>
+      <div class="row"><label for="time-goldenHour">golden hour</label><input type="time" id="time-goldenHour"></div>
+      <p class="note">Auto-filled from the location and month above; edit any single time to tweak it. A cleared time means the event does not happen that day.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Now</legend>
+      <div class="row"><input type="range" id="nowRange" min="0" max="1439" step="1"><input type="time" id="nowTime"></div>
+      <div class="row"><button id="playBtn">▶ Play (12 s per day)</button></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stars in the dark window</legend>
+      <div class="row"><label for="starCount">count</label><input type="number" id="starCount" min="0" max="30" step="1" value="30"><button id="reshuffle">Reshuffle</button></div>
+      <p class="note">White single-pixel dots along the dark arc, each at its own brightness (25–80%). The scatter is seeded from a constant, so every load renders the same stars; Reshuffle cycles to the next seeded layout.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Preview</legend>
+      <div class="toggles">
+        <button id="bgDark" class="on">Dark wallpaper</button>
+        <button id="bgLight">Light wallpaper</button>
+      </div>
+      <div class="row" style="margin-top: 8px"><label class="chk"><input type="checkbox" id="showGoldenHour" checked> golden hour dot</label></div>
+    </fieldset>
+  </aside>
+</main>
+
+<script>
+'use strict';
+
+// --- ported geometry (src/lib/sun-astro.ts) ---
+const CIRCLE = { cx: 125, cy: 125, size: 250 };
+const CIRCLE_R = 82;
+const CIRCLE_LABEL_R = 96;
+
+function circleAngle(hoursSinceLocalMidnight) {
+  return (((hoursSinceLocalMidnight - 12) * 15) % 360 + 360) % 360;
+}
+function circlePoint(angleDeg, r) {
+  const rad = (angleDeg * Math.PI) / 180;
+  return [
+    Math.round((CIRCLE.cx + r * Math.sin(rad)) * 10) / 10,
+    Math.round((CIRCLE.cy - r * Math.cos(rad)) * 10) / 10,
+  ];
+}
+function circleLabelPos(angleDeg) {
+  const rad = (angleDeg * Math.PI) / 180;
+  const s = Math.sin(rad);
+  const c = Math.cos(rad);
+  let [x, y] = circlePoint(angleDeg, CIRCLE_LABEL_R);
+  const anchor = Math.abs(s) < 0.35 ? 'middle' : s > 0 ? 'start' : 'end';
+  if (anchor !== 'middle' && Math.abs(c) < 0.17) {
+    y = y + (c > 0 ? -12 : 12);
+    x = anchor === 'end' ? CIRCLE.cx - 89 : CIRCLE.cx + 89;
+  }
+  if (anchor === 'middle' && y > CIRCLE.cy + 65) y = CIRCLE.cy + 97;
+  return { x, y, anchor };
+}
+function circleArcPath(h1, h2, r) {
+  const a1 = circleAngle(h1);
+  const a2 = circleAngle(h2);
+  const span = (((a2 - a1) % 360) + 360) % 360;
+  const large = span > 180 ? 1 : 0;
+  const [x1, y1] = circlePoint(a1, r);
+  const [x2, y2] = circlePoint(a2, r);
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
+}
+
+// --- module constants ---
+const OPACITY = { secondary: 0.6, dim: 0.45, tertiary: 0.35 };
+const NIGHT_SUN_COLOR = '#64748b';
+const NIGHT_SUN_OPACITY = 0.4;
+
+// Starting palette (user-picked 2026-08-20). Previous module palette, for reference:
+// sunrise/morning/noon/evening #fbbf24, sunset #aa670e, darkBegins #6366f1, darkEnds #aa670e, sunDisc #fbbf24
+const DEFAULT_COLORS = {
+  sunrise: '#ffc229',
+  morning: '#9f8dfc', // 90 min after sunrise
+  noon: '#868efe',
+  evening: '#6c7dfe', // 90 min before sunset
+  goldenHour: '#ff7b00',
+  sunset: '#ff2e2e',
+  darkBegins: '#0a0b3d',
+  darkEnds: '#0a0a3c',
+  sunDisc: '#fbbf24', // now-marker disc + daylight glow
+};
+// --- solar event math, ported from suncalc (BSD) and verified against it ---
+const RAD = Math.PI / 180;
+const DAY_MS = 86400000;
+const J1970 = 2440588;
+const J2000 = 2451545;
+const OBLIQUITY = RAD * 23.4397;
+
+const toDays = (date) => date.valueOf() / DAY_MS - 0.5 + J1970 - J2000;
+const fromJulian = (j) => new Date((j + 0.5 - J1970) * DAY_MS);
+const solarMeanAnomaly = (d) => RAD * (357.5291 + 0.98560028 * d);
+function eclipticLongitude(M) {
+  const C = RAD * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+  return M + C + RAD * 102.9372 + Math.PI;
+}
+const declination = (l) => Math.asin(Math.sin(OBLIQUITY) * Math.sin(l));
+const julianCycle = (d, lw) => Math.round(d - 0.0009 - lw / (2 * Math.PI));
+const approxTransit = (Ht, lw, n) => 0.0009 + (Ht + lw) / (2 * Math.PI) + n;
+const solarTransitJ = (ds, M, L) => J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+function hourAngle(h, phi, dec) {
+  const cosH = (Math.sin(h) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+  return Math.abs(cosH) > 1 ? NaN : Math.acos(cosH);
+}
+
+/** Sun events for a date/place. Missing events (sun never reaches the angle) are Invalid Dates. */
+function sunEventTimes(date, lat, lng) {
+  const lw = -lng * RAD;
+  const phi = lat * RAD;
+  const d = toDays(date);
+  const n = julianCycle(d, lw);
+  const ds = approxTransit(0, lw, n);
+  const M = solarMeanAnomaly(ds);
+  const L = eclipticLongitude(M);
+  const dec = declination(L);
+  const Jnoon = solarTransitJ(ds, M, L);
+  const at = (angleDeg, rising) => {
+    const w = hourAngle(angleDeg * RAD, phi, dec);
+    if (isNaN(w)) return new Date(NaN);
+    const Jset = solarTransitJ(approxTransit(w, lw, n), M, L);
+    return fromJulian(rising ? Jnoon - (Jset - Jnoon) : Jset);
+  };
+  return {
+    solarNoon: fromJulian(Jnoon),
+    sunrise: at(-0.833, true),
+    sunset: at(-0.833, false),
+    goldenHour: at(6, false),   // evening golden hour (sun at +6° and falling)
+    night: at(-18, false),      // astro dark begins
+    nightEnd: at(-18, true),    // astro dark ends
+    noonAltitudeDeg: 90 - Math.abs(lat - dec / RAD),
+  };
+}
+
+const LOC_DEFAULT = { lat: 50.11, lon: 8.68, doy: 227, tz: 'Europe/Berlin' }; // Frankfurt, Aug 15
+const TIME_KEYS = ['sunrise', 'noon', 'sunset', 'darkBegins', 'darkEnds', 'goldenHour'];
+
+/** Decimal hours since midnight in the given IANA timezone (browser-local fallback). */
+function hoursInTZ(date, timezone) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone, hourCycle: 'h23', hour: 'numeric', minute: 'numeric', second: 'numeric',
+    }).formatToParts(date);
+    const get = (type) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+    return get('hour') + get('minute') / 60 + get('second') / 3600;
+  } catch {
+    return date.getHours() + date.getMinutes() / 60 + date.getSeconds() / 3600;
+  }
+}
+
+/** Days in the given year (leap years included). */
+function yearLength(year) {
+  return (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / DAY_MS;
+}
+
+/** UTC noon of the day of the year — a machine-independent anchor for that solar day. */
+function anchorDate(loc) {
+  const year = new Date().getFullYear();
+  return new Date(Date.UTC(year, 0, Math.max(1, Math.min(yearLength(year), loc.doy)), 12, 0, 0));
+}
+
+/** Event hours in the display timezone, null when the event does not happen.
+    Mirrors the module: the dark window pairs today's night with next day's nightEnd
+    (both or neither), and golden hour hides with the sun events. */
+function computeEventHours(loc) {
+  const date = anchorDate(loc);
+  const t = sunEventTimes(date, loc.lat, loc.lon);
+  const next = sunEventTimes(new Date(date.getTime() + DAY_MS), loc.lat, loc.lon);
+  const h = (d) => (isNaN(d.getTime()) ? null : hoursInTZ(d, loc.tz));
+  const begins = h(t.night);
+  const ends = h(next.nightEnd);
+  const hasDark = begins != null && ends != null;
+  const sunInvalid = isNaN(t.sunrise.getTime()) || isNaN(t.sunset.getTime());
+  return {
+    sunrise: h(t.sunrise),
+    noon: h(t.solarNoon),
+    sunset: h(t.sunset),
+    goldenHour: !sunInvalid ? h(t.goldenHour) : null,
+    darkBegins: hasDark ? begins : null,
+    darkEnds: hasDark ? ends : null,
+  };
+}
+
+/** 'day' / 'night' when the sun never crosses the horizon (module's polarKind), else null. */
+function polarKindOf(loc) {
+  const t = sunEventTimes(anchorDate(loc), loc.lat, loc.lon);
+  if (!isNaN(t.sunrise.getTime()) || !isNaN(t.sunset.getTime())) return null;
+  return t.noonAltitudeDeg > 0 ? 'day' : 'night';
+}
+
+// Deterministic PRNG (mulberry32) so the default star scatter is identical on every load.
+const STAR_SEED = 20260820;
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeFracs(seed = STAR_SEED) {
+  const rnd = mulberry32(seed);
+  return Array.from({ length: 30 }, () => ({
+    f: rnd(),
+    rOff: rnd() * 6.4 - 3.2,
+    o: 0.25 + rnd() * 0.55, // per-star opacity, 0.25–0.8
+  }));
+}
+
+const state = {
+  colors: { ...DEFAULT_COLORS },
+  loc: { ...LOC_DEFAULT },
+  times: computeEventHours(LOC_DEFAULT),
+  nowMin: 13 * 60 + 50,
+  playing: false,
+  showGoldenHour: true,
+  starCount: 30,
+  starFracs: makeFracs(),
+  starSeedOffset: 0,
+};
+
+// --- helpers ---
+const byId = (id) => document.getElementById(id);
+function parseTime(str) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(str || '');
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  if (h > 24 || min > 59) return null;
+  return h + min / 60;
+}
+function fmt(h) {
+  let hh = Math.floor(h);
+  let mm = Math.round((h - hh) * 60);
+  if (mm === 60) { hh += 1; mm = 0; }
+  return `${String(hh % 24).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+function fmtDur(h) {
+  const m = Math.round(h * 60);
+  return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`;
+}
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function lerpHex(a, b, t) {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const c = ca.map((v, i) => Math.round(v + (cb[i] - v) * t));
+  return `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+// Gradient: anchors sorted by hour, linear RGB blend between neighbors (wrap at 24h).
+// morning/evening are derived: 90 min after sunrise / 90 min before sunset. Events
+// that don't happen that day contribute no anchor, so the ring degrades gracefully.
+function colorAtHour(h) {
+  const t = state.times;
+  const anchors = [
+    t.sunrise != null && { h: t.sunrise, c: state.colors.sunrise },
+    t.sunrise != null && { h: (t.sunrise + 1.5) % 24, c: state.colors.morning },
+    t.noon != null && { h: t.noon, c: state.colors.noon },
+    t.sunset != null && { h: (t.sunset - 1.5 + 24) % 24, c: state.colors.evening },
+    t.goldenHour != null && { h: t.goldenHour, c: state.colors.goldenHour },
+    t.sunset != null && { h: t.sunset, c: state.colors.sunset },
+    t.darkBegins != null && { h: t.darkBegins, c: state.colors.darkBegins },
+    t.darkEnds != null && { h: t.darkEnds, c: state.colors.darkEnds },
+    // No astrodark but a real night: the night's halfway point takes the dark-begin
+    // color, so high-summer rings still dip dark around solar midnight. The night
+    // spans sunset → sunrise CLOCKWISE (it may straddle midnight, and near the polar
+    // circles sunset itself lands just after 00:00 — so the span is measured mod 24,
+    // never as sunrise+24−sunset, which would point at the middle of the day).
+    t.darkBegins == null && t.sunrise != null && t.sunset != null
+      && (((t.sunrise - t.sunset) % 24) + 24) % 24 !== 0
+      && { h: (t.sunset + ((((t.sunrise - t.sunset) % 24) + 24) % 24) / 2) % 24, c: state.colors.darkBegins },
+  ].filter(Boolean).sort((a, b) => a.h - b.h);
+  const n = anchors.length;
+  let hh = h;
+  if (hh < anchors[0].h) hh += 24;
+  for (let i = 0; i < n; i++) {
+    const h1 = anchors[i].h;
+    const h2 = i + 1 < n ? anchors[i + 1].h : anchors[0].h + 24;
+    if (h2 <= h1) continue;
+    if (hh >= h1 && hh < h2) return lerpHex(anchors[i].c, anchors[i + 1 < n ? i + 1 : 0].c, (hh - h1) / (h2 - h1));
+  }
+  return anchors[0].c;
+}
+
+// --- render ---
+const SEG_MINUTES = 5; // one ring slice per 5 minutes → 288 gradient steps
+function render() {
+  const t = state.times;
+  const nowH = state.nowMin / 60;
+  const sunInvalid = t.sunrise == null || t.sunset == null;
+  const hasDark = t.darkBegins != null && t.darkEnds != null;
+  // Polar cases keep the dial: midnight sun (no sun events, no dark window) is one
+  // noon-colored ring with the sun up around the clock; polar night is one dark-begin
+  // ring with stars — the night lasts all day, whether or not a distinct astrodark
+  // window exists inside it.
+  const polar = polarKindOf(state.loc);
+  const midnightSun = polar === 'day';
+  const polarNight = polar === 'night';
+  // The day runs sunrise → sunset in true time. When sunset falls after midnight
+  // (polar-adjacent summer), its display hour is numerically SMALLER than sunrise's,
+  // so the day window must compare against sunset + 24 — a raw sunrise..sunset test
+  // would be false around the clock and the glow would never come on.
+  const sunsetH = !sunInvalid && t.sunset < t.sunrise ? t.sunset + 24 : t.sunset;
+  const isDay = midnightSun || (!sunInvalid && nowH >= t.sunrise && nowH <= sunsetH);
+  const dayLen = sunInvalid ? null : ((t.sunset - t.sunrise) + 24) % 24;
+  const darkLen = hasDark ? ((t.darkEnds - t.darkBegins) + 24) % 24 : null;
+  const nowPt = circlePoint(circleAngle(nowH), CIRCLE_R);
+
+  const updateReadouts = () => {
+    for (const k of Object.keys(state.colors)) byId('hex-' + k).textContent = state.colors[k];
+    byId('nowTime').value = fmt(nowH);
+    byId('nowRange').value = Math.round(state.nowMin % 1440);
+  };
+
+  // Safety guard only — both polar cases render dials above; this catches any
+  // sun-event-less day the polar check somehow can't classify.
+  if (sunInvalid && !hasDark && !midnightSun && !polarNight) {
+    const lines = [t.sunrise == null ? 'No sunrise today' : fmt(t.sunrise), t.sunset == null ? 'No sunset today' : fmt(t.sunset)];
+    byId('stage').innerHTML =
+      `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;align-self:center;width:400px;height:400px;font-size:15px;opacity:0.45;gap:0.4em">` +
+      lines.map((l) => `<span>${l}</span>`).join('') +
+      `</div>`;
+    updateReadouts();
+    return;
+  }
+
+  let s = `<svg viewBox="0 0 ${CIRCLE.size} ${CIRCLE.size}" xmlns="http://www.w3.org/2000/svg">`;
+  s += `<defs><radialGradient id="nowGlow">
+      <stop offset="0%" stop-color="${state.colors.sunDisc}" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="${state.colors.sunDisc}" stop-opacity="0"/>
+    </radialGradient></defs>`;
+
+  // base ring keeps the dial shape where no segment covers it
+  s += `<circle cx="${CIRCLE.cx}" cy="${CIRCLE.cy}" r="${CIRCLE_R}" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-width="8"/>`;
+
+  // the ring: one arc per slice, colored at its midpoint — except polar night,
+  // which is a single flat circle in the dark-begin color
+  if (polarNight) {
+    s += `<circle cx="${CIRCLE.cx}" cy="${CIRCLE.cy}" r="${CIRCLE_R}" fill="none" stroke="${state.colors.darkBegins}" stroke-width="8"/>`;
+  } else {
+    const step = SEG_MINUTES / 60;
+    for (let k = 0; k < 24 / step; k++) {
+      const h1 = k * step;
+      s += `<path d="${circleArcPath(h1, h1 + step, CIRCLE_R)}" fill="none" stroke="${colorAtHour(h1 + step / 2)}" stroke-width="8"/>`;
+    }
+  }
+
+  // stars: across the whole dial in polar night, otherwise through the astrodark window
+  for (let i = 0; i < state.starCount && i < state.starFracs.length; i++) {
+    const star = state.starFracs[i];
+    const hour = polarNight ? star.f * 24 : darkLen != null ? (t.darkBegins + star.f * darkLen) % 24 : null;
+    if (hour == null) continue;
+    const [x, y] = circlePoint(circleAngle(hour), CIRCLE_R + star.rOff);
+    s += `<circle cx="${x}" cy="${y}" r="0.5" fill="#ffffff" fill-opacity="${star.o.toFixed(3)}"/>`;
+  }
+
+  // noon / midnight notches + inside words
+  s += `<line x1="${CIRCLE.cx}" y1="${CIRCLE.cy - CIRCLE_R - 6}" x2="${CIRCLE.cx}" y2="${CIRCLE.cy - CIRCLE_R + 6}" stroke="currentColor" stroke-opacity="0.4" stroke-width="2"/>`;
+  s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy - CIRCLE_R + 17}" text-anchor="middle" fill="currentColor" fill-opacity="${OPACITY.dim}" font-size="6.5">noon</text>`;
+  s += `<line x1="${CIRCLE.cx}" y1="${CIRCLE.cy + CIRCLE_R - 6}" x2="${CIRCLE.cx}" y2="${CIRCLE.cy + CIRCLE_R + 6}" stroke="currentColor" stroke-opacity="0.4" stroke-width="2"/>`;
+  s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy + CIRCLE_R - 11}" text-anchor="middle" fill="currentColor" fill-opacity="${OPACITY.dim}" font-size="6.5">midnight</text>`;
+
+  // event markers + outside labels (only for events that happen today)
+  const marks = [
+    t.sunrise != null && { h: t.sunrise, word: 'Sunrise' },
+    t.sunset != null && { h: t.sunset, word: 'Sunset' },
+    t.darkBegins != null && { h: t.darkBegins, word: 'Dark begins' },
+    t.darkEnds != null && { h: t.darkEnds, word: 'Dark ends' },
+  ].filter(Boolean);
+  for (const m of marks) {
+    const pt = circlePoint(circleAngle(m.h), CIRCLE_R);
+    const lp = circleLabelPos(circleAngle(m.h));
+    s += `<circle cx="${pt[0]}" cy="${pt[1]}" r="3" fill="#e2e8f0" stroke="currentColor" stroke-opacity="0.6" stroke-width="1.5"/>`;
+    s += `<text x="${lp.x}" y="${lp.y}" text-anchor="${lp.anchor}" fill="currentColor" fill-opacity="${OPACITY.secondary}" font-size="7.5">${fmt(m.h)}</text>`;
+    s += `<text x="${lp.x}" y="${lp.y + 9}" text-anchor="${lp.anchor}" fill="currentColor" fill-opacity="${OPACITY.tertiary}" font-size="6">${m.word}</text>`;
+  }
+
+  // golden hour: amber dot on the day arc, label tucked inside the ring
+  if (state.showGoldenHour && t.goldenHour != null) {
+    const pt = circlePoint(circleAngle(t.goldenHour), CIRCLE_R);
+    s += `<circle cx="${pt[0]}" cy="${pt[1]}" r="3.5" fill="${state.colors.goldenHour}" stroke="currentColor" stroke-opacity="0.6" stroke-width="1.5"/>`;
+    s += `<text x="${pt[0] - 11}" y="${pt[1] - 2.5}" text-anchor="end" fill="currentColor" fill-opacity="${OPACITY.tertiary}" font-size="6">golden hour</text>`;
+    s += `<text x="${pt[0] - 11}" y="${pt[1] + 6.5}" text-anchor="end" fill="currentColor" fill-opacity="${OPACITY.secondary}" font-size="7.5">${fmt(t.goldenHour)}</text>`;
+  }
+
+  // now: daylight-only radial glow, then the marker
+  if (isDay) s += `<circle cx="${nowPt[0]}" cy="${nowPt[1]}" r="32" fill="url(#nowGlow)"/>`;
+  s += `<circle cx="${nowPt[0]}" cy="${nowPt[1]}" r="4.5" fill="${isDay ? state.colors.sunDisc : NIGHT_SUN_COLOR}" fill-opacity="${isDay ? 1 : NIGHT_SUN_OPACITY}" stroke="currentColor" stroke-opacity="0.6" stroke-width="1.5"/>`;
+
+  // centered durations: polar cases get a caption in place of the day length
+  if (midnightSun) {
+    s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy - 3}" text-anchor="middle" fill="currentColor" fill-opacity="${OPACITY.dim}" font-size="10">Midnight sun</text>`;
+  } else if (sunInvalid) {
+    s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy - 3}" text-anchor="middle" fill="currentColor" fill-opacity="${OPACITY.dim}" font-size="10">Polar night</text>`;
+  } else {
+    s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy - 3}" text-anchor="middle" fill="currentColor" font-size="15" font-weight="300">${fmtDur(dayLen)}</text>`;
+  }
+  if (darkLen != null) {
+    s += `<text x="${CIRCLE.cx}" y="${CIRCLE.cy + 15}" text-anchor="middle" fill="currentColor" fill-opacity="${OPACITY.dim}" font-size="10">dark ${fmtDur(darkLen)}</text>`;
+  }
+
+  s += '</svg>';
+  byId('stage').innerHTML = s;
+  updateReadouts();
+}
+
+// --- wiring ---
+for (const k of Object.keys(DEFAULT_COLORS)) {
+  const el = byId('color-' + k);
+  el.value = state.colors[k];
+  el.addEventListener('input', () => { state.colors[k] = el.value; render(); });
+}
+byId('resetColors').addEventListener('click', () => {
+  state.colors = { ...DEFAULT_COLORS };
+  for (const k of Object.keys(DEFAULT_COLORS)) byId('color-' + k).value = state.colors[k];
+  render();
+});
+for (const k of TIME_KEYS) {
+  const el = byId('time-' + k);
+  el.addEventListener('input', () => {
+    state.times[k] = parseTime(el.value); // empty or half-typed → event does not happen
+    render();
+  });
+}
+
+function applyLocation() {
+  state.loc.tz = byId('locTz').value.trim() || 'Europe/Berlin';
+  const year = new Date().getFullYear();
+  state.loc.doy = Math.max(1, Math.min(yearLength(year), Math.round(Number(byId('locDoy').value) || 1)));
+  byId('locDoy').value = state.loc.doy;
+  state.times = computeEventHours(state.loc);
+  for (const k of TIME_KEYS) byId('time-' + k).value = state.times[k] == null ? '' : fmt(state.times[k]);
+  const date = anchorDate(state.loc);
+  byId('doyOut').textContent = `${new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }).format(date)} · ${date.getUTCFullYear()}`;
+  byId('latOut').textContent = `${Math.abs(state.loc.lat).toFixed(2)}°${state.loc.lat >= 0 ? 'N' : 'S'}`;
+  byId('lonOut').textContent = `${Math.abs(state.loc.lon).toFixed(2)}°${state.loc.lon >= 0 ? 'E' : 'W'}`;
+  byId('tzOut').textContent = state.loc.tz;
+  render();
+}
+byId('locTz').addEventListener('change', applyLocation);
+byId('locDoy').addEventListener('input', applyLocation);
+byId('locLat').addEventListener('input', () => {
+  const v = Number(byId('locLat').value);
+  if (Number.isFinite(v)) { state.loc.lat = Math.max(-90, Math.min(90, v)); applyLocation(); }
+});
+byId('locLon').addEventListener('input', () => {
+  const v = Number(byId('locLon').value);
+  if (Number.isFinite(v)) { state.loc.lon = Math.max(-180, Math.min(180, v)); applyLocation(); }
+});
+byId('nowRange').addEventListener('input', () => {
+  state.nowMin = Number(byId('nowRange').value);
+  render();
+});
+byId('nowTime').addEventListener('input', () => {
+  const v = parseTime(byId('nowTime').value);
+  if (v != null) { state.nowMin = v * 60; render(); }
+});
+
+let lastTs = null;
+function tick(ts) {
+  if (!state.playing) { lastTs = null; return; }
+  if (lastTs != null) {
+    state.nowMin = (state.nowMin + ((ts - lastTs) * 1440) / 12000) % 1440;
+    render();
+  }
+  lastTs = ts;
+  requestAnimationFrame(tick);
+}
+byId('playBtn').addEventListener('click', () => {
+  state.playing = !state.playing;
+  byId('playBtn').textContent = state.playing ? '⏸ Pause' : '▶ Play (12 s per day)';
+  byId('playBtn').classList.toggle('on', state.playing);
+  if (state.playing) requestAnimationFrame(tick);
+});
+
+byId('starCount').addEventListener('input', () => {
+  state.starCount = Math.max(0, Math.min(30, Number(byId('starCount').value) || 0));
+  render();
+});
+byId('reshuffle').addEventListener('click', () => {
+  state.starSeedOffset += 1;
+  state.starFracs = makeFracs(STAR_SEED + state.starSeedOffset);
+  render();
+});
+
+byId('bgDark').addEventListener('click', () => setBackground(true));
+byId('bgLight').addEventListener('click', () => setBackground(false));
+function setBackground(dark) {
+  const stage = byId('stage');
+  stage.classList.toggle('dark', dark);
+  stage.classList.toggle('light', !dark);
+  byId('bgDark').classList.toggle('on', dark);
+  byId('bgLight').classList.toggle('on', !dark);
+}
+byId('showGoldenHour').addEventListener('change', () => {
+  state.showGoldenHour = byId('showGoldenHour').checked;
+  render();
+});
+
+applyLocation();
+</script>
+</body>
+</html>

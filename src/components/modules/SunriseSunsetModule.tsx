@@ -1,15 +1,15 @@
 'use client';
 
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import SunCalc from 'suncalc';
 import { formatTimeInTZ } from '@/lib/timezone';
 import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { CIRCLE, CIRCLE_R, astroDarkWindow, circleAngle, circleArcPath, circleLabelPos, circlePoint, hoursInTZ, polarKind, type AstroDarkWindow } from '@/lib/sun-astro';
+import { CIRCLE, CIRCLE_R, astroDarkWindow, circleAngle, circleArcPath, circleLabelPos, circlePoint, hoursInTZ, polarKind, SKY_THEME_COLORS, skyStarPoint, skyStarScatter, skyThemeAnchors, skyThemeColorAt, type AstroDarkWindow } from '@/lib/sun-astro';
 import { decompose, formatDuration } from '@/lib/duration-format';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { SunriseSunsetConfig, ModuleStyle } from '@/types/config';
+import type { SunriseSunsetConfig, SunriseSunsetTheme, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
 
@@ -417,6 +417,14 @@ function DefaultView({
   );
 }
 
+/** One gradient slice per 5 minutes → 288 ring paths in the sky theme. */
+const SKY_RING_STEP_MINUTES = 5;
+/** Each slice's arc is drawn a hair past its nominal end (≈0.3 viewBox units): two
+ *  abutting antialiased strokes leave a background hairline at the shared boundary
+ *  (visible as faint radial seams), and since the NEXT slice paints over the overlap,
+ *  its leading edge blends against the previous slice's near-identical color. */
+export const SKY_SEAM_OVERLAP_HOURS = 0.02;
+
 function CircleView({
   times,
   now,
@@ -427,6 +435,7 @@ function CircleView({
   dark,
   polar,
   locale,
+  theme,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
@@ -437,19 +446,87 @@ function CircleView({
   dark: AstroDarkWindow | null;
   polar: PolarKind;
   locale: string;
+  theme?: SunriseSunsetTheme;
 }) {
   const uid = useId();
   const glowId = `circle-sun-glow-${uid}`;
-  const { sunrise, sunset, goldenHour } = times;
+  const { sunrise, sunset, goldenHour, solarNoon } = times;
 
   const sunInvalid = isNaN(sunrise.getTime()) || isNaN(sunset.getTime());
   const db = dark ? hoursInTZ(dark.begins, timezone) : null;
   const de = dark ? hoursInTZ(dark.ends, timezone) : null;
   const hasDark = dark != null && db != null && de != null;
 
-  // No sun events and no dark window: nothing to draw on the dial (polar day, or
-  // polar night too deep for a distinct astrodark window / toggle off).
-  if (sunInvalid && !hasDark) {
+  const sr = sunInvalid ? null : hoursInTZ(sunrise, timezone);
+  const ss = sunInvalid ? null : hoursInTZ(sunset, timezone);
+  // Golden hour is Invalid Date near the polar circles even on days with a valid
+  // sunrise/sunset (sun never reaches 6° up); solar noon is valid even in polar day.
+  const noonH = isNaN(solarNoon.getTime()) ? null : hoursInTZ(solarNoon, timezone);
+  const goldenH = !sunInvalid && !isNaN(goldenHour.getTime()) ? hoursInTZ(goldenHour, timezone) : null;
+
+  const skyTheme = theme === 'sky';
+  // Polar dials (designed in docs/sun-ring-colors.html): under the midnight sun the
+  // ring holds its daylight color with the sun up around the clock.
+  // Through a polar night the sky theme turns the whole ring dark-begin with stars
+  // all around; the simple theme keeps its twilight + dark-window segments when a
+  // window exists, and falls back to a flat twilight ring when it doesn't. The
+  // plain text view remains only as a guard for unclassifiable days.
+  const midnightSun = polar === 'day';
+  const polarNight = polar === 'night';
+
+  // The gradient ring and star scatter depend on the event hours, not on `now` —
+  // memoized so the 60s clock ticks that move the now-marker don't rebuild ~300 paths.
+  const skyRing = useMemo(() => {
+    if (!skyTheme) return null;
+    if (midnightSun) {
+      return <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke={SKY_THEME_COLORS.noon} strokeWidth="8" />;
+    }
+    if (polarNight) {
+      return <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke={SKY_THEME_COLORS.darkBegins} strokeWidth="8" />;
+    }
+    const anchors = skyThemeAnchors({
+      sunrise: sr,
+      solarNoon: noonH,
+      goldenHour: goldenH,
+      sunset: ss,
+      darkBegins: db,
+      darkEnds: de,
+    });
+    if (anchors.length < 2) return null; // degenerate day — fall through to the flat segments
+    const step = SKY_RING_STEP_MINUTES / 60;
+    return Array.from({ length: 24 / step }, (_, k) => {
+      const h1 = k * step;
+      return (
+        <path
+          key={k}
+          d={circleArcPath(h1, h1 + step + SKY_SEAM_OVERLAP_HOURS, CIRCLE_R)}
+          fill="none"
+          stroke={skyThemeColorAt(h1 + step / 2, anchors)}
+          strokeWidth="8"
+        />
+      );
+    });
+  }, [skyTheme, midnightSun, polarNight, sr, ss, noonH, goldenH, db, de]);
+
+  const skyStars = useMemo(() => {
+    if (!skyTheme) return null;
+    // Polar night: the night lasts all day — stars around the whole dial.
+    if (polarNight) {
+      return skyStarScatter().map((star, i) => {
+        const [x, y] = circlePoint(circleAngle(star.f * 24), CIRCLE_R + star.rOff);
+        return <circle key={i} cx={x} cy={y} r="0.5" fill="#ffffff" fillOpacity={star.o.toFixed(3)} />;
+      });
+    }
+    if (!hasDark || db == null || de == null) return null;
+    return skyStarScatter().map((star, i) => {
+      const [x, y] = skyStarPoint(star, db, de);
+      return <circle key={i} cx={x} cy={y} r="0.5" fill="#ffffff" fillOpacity={star.o.toFixed(3)} />;
+    });
+  }, [skyTheme, polarNight, hasDark, db, de]);
+
+  // Polar day / night render dials in both themes; the text view remains only as
+  // a guard for a sun-event-less day the polar check cannot classify.
+  if (sunInvalid && !hasDark && !midnightSun && !polarNight) {
     return (
       <div className="flex flex-col items-center justify-center h-full" style={{ fontSize: '0.85em', gap: '0.3em', opacity: TEXT_OPACITY.dim }}>
         {polar ? (
@@ -467,13 +544,11 @@ function CircleView({
     );
   }
 
-  const sr = sunInvalid ? null : hoursInTZ(sunrise, timezone);
-  const ss = sunInvalid ? null : hoursInTZ(sunset, timezone);
-
   // Shared daylight gate with the arc view: the glow and the sun-colored
   // marker only appear between sunrise and sunset. Polar night (invalid
-  // sunrise/sunset) resolves to NaN progress, so the glow stays off.
-  const isDaytime = isSunUp(now, sunrise, sunset);
+  // sunrise/sunset) resolves to NaN progress, so the glow stays off — except
+  // under the midnight sun, where the sun is up around the clock.
+  const isDaytime = midnightSun || isSunUp(now, sunrise, sunset);
 
   const nowPt = circlePoint(circleAngle(hoursInTZ(now, timezone)), CIRCLE_R);
 
@@ -487,11 +562,10 @@ function CircleView({
     marks.push({ angle: circleAngle(de), time: dark.ends, wordKey: 'sunrise-sunset.darkEnds' });
   }
 
-  // Golden hour is Invalid Date near the polar circles even on days with a valid
-  // sunrise/sunset (sun never reaches 6° up) — an unguarded NaN here would emit
-  // NaN SVG coordinates.
-  const goldenPt = showGoldenHour && !sunInvalid && !isNaN(goldenHour.getTime())
-    ? circlePoint(circleAngle(hoursInTZ(goldenHour, timezone)), CIRCLE_R)
+  // goldenH guards the polar-circle Invalid Date case (see its comment above) — an
+  // unguarded NaN here would emit NaN SVG coordinates.
+  const goldenPt = showGoldenHour && goldenH != null
+    ? circlePoint(circleAngle(goldenH), CIRCLE_R)
     : null;
 
   const dayTimeColor = '#fbbf24';
@@ -501,45 +575,66 @@ function CircleView({
   // on any background; the astrodark segment uses an indigo that stays visible on both
   // light and dark themes (near-black hexes vanish on dark kiosk wallpapers).
   const astroDarkColor = '#6366f1';
+  // Sky theme swaps the flat segment palette for its own disc/glow and golden-hour colors.
+  const sunDiscColor = skyTheme ? SKY_THEME_COLORS.sunDisc : dayTimeColor;
+  const goldenDotColor = skyTheme ? SKY_THEME_COLORS.goldenHour : goldenHourColor;
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <svg viewBox={`0 0 ${CIRCLE.size} ${CIRCLE.size}`} style={{ width: '100%', height: '100%' }}>
         <defs>
           <radialGradient id={glowId}>
-            <stop offset="0%" stopColor={dayTimeColor} stopOpacity="0.6" />
-            <stop offset="100%" stopColor={dayTimeColor} stopOpacity="0" />
+            <stop offset="0%" stopColor={sunDiscColor} stopOpacity="0.6" />
+            <stop offset="100%" stopColor={sunDiscColor} stopOpacity="0" />
           </radialGradient>
         </defs>
 
         {/* base ring keeps the dial shape where no segment covers it */}
         <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="8" />
 
-        {/* daylight through noon */}
-        {sr != null && ss != null && (
-          <path d={circleArcPath(sr, ss, CIRCLE_R)} fill="none" stroke={dayTimeColor} strokeWidth="8" />
+        {skyRing ?? (
+          <>
+            {/* simple theme, polar day: one flat daylight ring */}
+            {midnightSun && (
+              <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke={dayTimeColor} strokeWidth="8" />
+            )}
+
+            {/* simple theme, polar night without a dark window: the sun never
+                rises but never reaches full darkness either — the whole day is twilight */}
+            {polarNight && !hasDark && (
+              <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+            )}
+
+            {/* daylight through noon */}
+            {sr != null && ss != null && (
+              <path d={circleArcPath(sr, ss, CIRCLE_R)} fill="none" stroke={dayTimeColor} strokeWidth="8" />
+            )}
+
+            {/* night: twilight(s) + astrodark. In polar night (no sunrise/sunset) the
+                whole dial is night: twilight everywhere the dark window isn't. */}
+            {hasDark ? (
+              sr != null && ss != null ? (
+                <>
+                  <path d={circleArcPath(ss, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+                  <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
+                  <path d={circleArcPath(de, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+                </>
+              ) : (
+                <>
+                  <path d={circleArcPath(de, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+                  <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
+                </>
+              )
+            ) : (
+              sr != null && ss != null && (
+                <path d={circleArcPath(ss, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
+              )
+            )}
+          </>
         )}
 
-        {/* night: twilight(s) + astrodark. In polar night (no sunrise/sunset) the
-            whole dial is night: twilight everywhere the dark window isn't. */}
-        {hasDark ? (
-          sr != null && ss != null ? (
-            <>
-              <path d={circleArcPath(ss, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-              <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
-              <path d={circleArcPath(de, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-            </>
-          ) : (
-            <>
-              <path d={circleArcPath(de, db, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-              <path d={circleArcPath(db, de, CIRCLE_R)} fill="none" stroke={astroDarkColor} strokeWidth="8" />
-            </>
-          )
-        ) : (
-          sr != null && ss != null && (
-            <path d={circleArcPath(ss, sr + 24, CIRCLE_R)} fill="none" stroke={dawnDuskColor} strokeWidth="8" />
-          )
-        )}
+        {/* sky theme: white star pixels scattered through the astrodark window */}
+        {skyStars}
 
         {/* noon / midnight notches + inside words */}
         <line x1={CIRCLE.cx} y1={CIRCLE.cy - CIRCLE_R - 6} x2={CIRCLE.cx} y2={CIRCLE.cy - CIRCLE_R + 6} stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" />
@@ -571,7 +666,7 @@ function CircleView({
         {/* golden hour: amber dot on the day arc, label tucked inside the ring */}
         {goldenPt && (
           <g>
-            <circle cx={goldenPt[0]} cy={goldenPt[1]} r="3.5" fill={goldenHourColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
+            <circle cx={goldenPt[0]} cy={goldenPt[1]} r="3.5" fill={goldenDotColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
             <text x={goldenPt[0] - 11} y={goldenPt[1] - 2.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: '6px' }}>
               {t('sunrise-sunset.goldenHourLabel')}
             </text>
@@ -590,17 +685,17 @@ function CircleView({
           cx={nowPt[0]}
           cy={nowPt[1]}
           r="4.5"
-          fill={isDaytime ? dayTimeColor : NIGHT_SUN_COLOR}
+          fill={isDaytime ? sunDiscColor : NIGHT_SUN_COLOR}
           fillOpacity={isDaytime ? 1 : NIGHT_SUN_OPACITY}
           stroke="currentColor"
           strokeOpacity="0.6"
           strokeWidth="1.5"
         />
 
-        {/* centered durations (polar night gets its caption in place of day length) */}
+        {/* centered durations (polar dials get a caption in place of day length) */}
         {sunInvalid ? (
           <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: '10px' }}>
-            {t('sunrise-sunset.polarNight')}
+            {midnightSun ? t('sunrise-sunset.midnightSun') : t('sunrise-sunset.polarNight')}
           </text>
         ) : (
           showDayLength && (
@@ -639,12 +734,15 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
   }
 
   const times = SunCalc.getTimes(now, latitude, longitude);
-  const nextTimes = config.showAstroDark
+  const view = config.view ?? 'default';
+  // The sky theme needs the dark window (dark gradient stops + stars), so it implies
+  // Astro Dark on the circle view — where the toggle is hidden while sky is selected.
+  const showAstroDark = config.showAstroDark || (config.theme === 'sky' && view === 'circle');
+  const nextTimes = showAstroDark
     ? SunCalc.getTimes(new Date(now.getTime() + 24 * 3600 * 1000), latitude, longitude)
     : null;
   const dark = nextTimes ? astroDarkWindow(times, nextTimes) : null;
   const polar = polarKind(times, latitude, longitude);
-  const view = config.view ?? 'default';
 
   return (
     <ModuleWrapper style={style}>
@@ -671,6 +769,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           dark={dark}
           polar={polar}
           locale={locale}
+          theme={config.theme}
         />
       ) : (
         <DefaultView

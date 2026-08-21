@@ -2999,7 +2999,10 @@
       "showDayLength": "Vis dagens længde",
       "showGoldenHour": "Vis den gyldne time",
       "showAstroDark": "Vis mørket",
-      "locationHint": "Bruger placeringen fra de globale indstillinger."
+      "locationHint": "Bruger placeringen fra de globale indstillinger.",
+      "theme": "Tema",
+      "themeSimple": "Enkle farver",
+      "themeSky": "Himmelfarver"
     },
     "text": {
       "content": "Indhold",
