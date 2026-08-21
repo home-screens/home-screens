@@ -465,8 +465,8 @@ function CircleView({
   const goldenH = !sunInvalid && !isNaN(goldenHour.getTime()) ? hoursInTZ(goldenHour, timezone) : null;
 
   const skyTheme = theme === 'sky';
-  // Polar dials (designed in .claude/mockups/sun-ring-colors.html): under the
-  // midnight sun the ring holds its daylight color with the sun up around the clock.
+  // Polar dials (designed in docs/sun-ring-colors.html): under the midnight sun the
+  // ring holds its daylight color with the sun up around the clock.
   // Through a polar night the sky theme turns the whole ring dark-begin with stars
   // all around; the simple theme keeps its twilight + dark-window segments when a
   // window exists, and falls back to a flat twilight ring when it doesn't. The

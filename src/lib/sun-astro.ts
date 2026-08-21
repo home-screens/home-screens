@@ -99,8 +99,8 @@ export function hoursInTZ(date: Date, timezone?: string): number {
   }
 }
 
-/** Sky-theme ring palette (tuned in the .claude/mockups/sun-ring-colors.html playground,
- *  2026-08-20): one anchor color per sun event. morning/evening are the derived stops
+/** Sky-theme ring palette (tuned in the docs/sun-ring-colors.html playground): one
+ *  anchor color per sun event. morning/evening are the derived stops
  *  90 min after sunrise / 90 min before sunset; sunDisc drives the now-marker disc and
  *  its daylight glow rather than the ring. */
 export const SKY_THEME_COLORS = {
