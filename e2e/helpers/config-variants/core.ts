@@ -495,6 +495,34 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('[data-event-id="ar-allday"]')).not.toHaveCSS('box-shadow', /inset/);
     },
   },
+  {
+    // Birthdays and holidays render kind-aware chrome instead of the generic
+    // "All day" label: a glyph in the dot slot, "Birthday · turns N" /
+    // "Holiday" in the time slot. Birth year computed relative to "now" so
+    // the asserted age never drifts as the test suite ages.
+    type: 'calendar', name: 'birthday-kind', kind: 'networked', stubKey: 'calendar',
+    stubBody: (() => {
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const ymd = (offsetDays: number) => {
+        const dd = new Date(d);
+        dd.setDate(dd.getDate() + offsetDays);
+        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
+      };
+      return [
+        {
+          id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: d.getFullYear() - 9,
+          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
+        },
+        {
+          id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
+          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
+        },
+      ];
+    })(),
+    config: { viewMode: 'daily' },
+    expect: async (mod) => { await has('Birthday · turns 9')(mod); await has('Holiday')(mod); },
+  },
 
   // -- fullscreen-calendar --
   {
@@ -509,6 +537,34 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('.fsc-root')).toBeVisible();
       await expect(mod.locator('.fsc-today-pulse')).toHaveCount(0);
     },
+  },
+  {
+    // Month grid pulls birthdays out of the normal all-day bar row entirely:
+    // bold name-first text ("Ava turns 9") plus a cake glyph by the day
+    // number, no colored bar/dot. Holidays keep the normal solid bar. Birth
+    // year computed relative to "now" so the asserted age never drifts.
+    type: 'fullscreen-calendar', name: 'birthday-kind', kind: 'networked', stubKey: 'calendar',
+    stubBody: (() => {
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const ymd = (offsetDays: number) => {
+        const dd = new Date(d);
+        dd.setDate(dd.getDate() + offsetDays);
+        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
+      };
+      return [
+        {
+          id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: d.getFullYear() - 9,
+          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
+        },
+        {
+          id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
+          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
+        },
+      ];
+    })(),
+    config: { view: 'month-grid' },
+    expect: async (mod) => { await has('Ava turns 9')(mod); await has('Labor Day')(mod); },
   },
 
   // -- news --

@@ -7,6 +7,9 @@ import { logger } from '@/lib/logger';
 
 const log = logger('google-calendar');
 
+/** Google's built-in read-only calendar of contact birthdays — a fixed, well-known id. */
+const GOOGLE_BIRTHDAYS_CALENDAR_ID = 'addressbook#contacts@group.v.calendar.google.com';
+
 export async function fetchCalendarEvents(
   calendarIds: string[],
   timeMin: string,
@@ -74,6 +77,7 @@ export async function fetchCalendarEvents(
           : calColor,
         sourceId: calendarId,
         sourceName: calName,
+        ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
       }));
     }),
   );

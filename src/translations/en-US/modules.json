@@ -134,7 +134,10 @@
     "publicHolidays": "Public Holidays",
     "sourceNotUpdating": "{name} not updating since {time}",
     "sourceNotUpdatingNoTime": "{name} not updating",
-    "savedShort": "saved"
+    "savedShort": "saved",
+    "holiday": "Holiday",
+    "birthday": "Birthday",
+    "birthdayWithAge": "Birthday · turns {age}"
   },
   "fullscreen-calendar": {
     "allDay": "All Day",
@@ -176,7 +179,12 @@
     "savedFrom": "Saved from {time}",
     "savedEvents": "Showing saved events",
     "cantLoadEvents": "Can't load events right now",
-    "weekOf": "Week of {date}"
+    "weekOf": "Week of {date}",
+    "holiday": "Holiday",
+    "birthday": "Birthday",
+    "birthdayWithAge": "Birthday · turns {age}",
+    "birthdayShort": "Birthday",
+    "birthdayAgeShort": "turns {age}"
   },
   "weather": {
     "tomorrowShort": "Tmrw",
@@ -720,6 +728,9 @@
   "event-detail": {
     "close": "Close",
     "happeningNow": "Happening now",
-    "allDay": "All Day"
+    "allDay": "All Day",
+    "holiday": "Holiday",
+    "birthday": "Birthday",
+    "birthdayWithAge": "Birthday · turns {age}"
   }
 }

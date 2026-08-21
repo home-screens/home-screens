@@ -214,6 +214,10 @@ export interface CalendarEvent {
   calendarColor?: string;
   sourceId?: string;
   sourceName?: string;
+  /** Set by the birthday/holiday sources; absent means a plain event. */
+  kind?: 'birthday' | 'holiday' | 'event';
+  /** Birthday only — the person's birth year, when the source can determine it. */
+  birthYear?: number;
 }
 
 export interface ICalSource {

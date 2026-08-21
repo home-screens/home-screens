@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
@@ -353,6 +353,8 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
 }) {
   const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day, timezone)));
   if (!hasAllDay) return null;
+  // ev.allDay covers birthdays too, so hasAllDay already accounts for a
+  // birthday-only day — no separate check needed to keep the row visible.
 
   const wrapTitles = config.wrapEventTitles === true;
 
@@ -383,7 +385,8 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
         gridTemplateColumns: `repeat(${days.length}, 1fr)`,
       }}>
         {days.map((day) => {
-          const dayAllDay = events.filter(ev => ev.allDay && isEventOnDay(ev, day, timezone));
+          const dayAllDay = events.filter(ev => ev.allDay && ev.kind !== 'birthday' && isEventOnDay(ev, day, timezone));
+          const dayBirthdays = events.filter(ev => ev.kind === 'birthday' && isEventOnDay(ev, day, timezone));
           const isPast = day < today && !isSameDay(day, today);
           return (
             <div
@@ -416,6 +419,33 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                     }}
                   >
                     {ev.title}
+                  </div>
+                );
+              })}
+              {dayBirthdays.map(ev => {
+                const age = birthdayAge(ev.birthYear, day.getFullYear());
+                const label = age != null
+                  ? t('fullscreen-calendar.birthdayAgeShort', { age })
+                  : t('fullscreen-calendar.birthdayShort');
+                return (
+                  <div
+                    key={ev.id}
+                    className="fsc-event-block flex items-center"
+                    data-event-id={ev.id}
+                    aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
+                    style={{
+                      gap: scale.bu * 0.2,
+                      fontSize: fontSize * 0.65,
+                      fontWeight: 700,
+                      padding: `${scale.bu * 0.1}px ${scale.bu * 0.3}px`,
+                      color: ev.calendarColor ?? '#EC4899',
+                      ...clampStyle(wrapTitles),
+                      lineHeight: 1.4,
+                      marginBottom: 1,
+                    }}
+                  >
+                    <span aria-hidden="true">🎂</span>
+                    <span>{ev.title} {label}</span>
                   </div>
                 );
               })}

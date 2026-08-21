@@ -262,6 +262,7 @@ interface AccountBirthday {
   name: string;
   month: number;
   day: number;
+  year?: number;
 }
 
 // Parsed birthdays only change when contacts are edited, so refetching and
@@ -315,13 +316,15 @@ async function fetchBirthdayEvents(
       end.setDate(end.getDate() + 1);
       events.push({
         id: `${source.id}:${birthday.url}:${start.getFullYear()}`,
-        title: `🎂 ${birthday.name}`,
+        title: birthday.name,
         start: toDateOnly(start),
         end: toDateOnly(end),
         allDay: true,
         calendarColor: source.color,
         sourceId: source.id,
         sourceName: source.name,
+        kind: 'birthday',
+        birthYear: birthday.year,
       });
     }
   }
@@ -333,32 +336,38 @@ interface VCardBirthday {
   name: string;
   month: number; // 1-12
   day: number;   // 1-31
+  /** Absent for Apple's X-APPLE-OMIT-YEAR contacts (no real year on file). */
+  year?: number;
 }
 
 /**
  * Minimal vCard scan for FN + BDAY. Handles folded lines, property params,
  * and the BDAY shapes Apple emits: 1985-04-01, 19850401, --04-01, --0401,
- * and 1604-04-01 with X-APPLE-OMIT-YEAR (Apple's "no year" convention).
+ * and 1604-04-01 with X-APPLE-OMIT-YEAR (Apple's "no year" convention — the
+ * dummy 1604 year is discarded, not treated as a real birth year).
  */
 export function parseVCardBirthday(vcard: string): VCardBirthday | null {
   const unfolded = vcard.replace(/\r?\n[ \t]/g, '');
   const fnMatch = unfolded.match(/^FN(?:;[^:\r\n]*)?:(.+)$/m);
-  const bdayMatch = unfolded.match(/^BDAY(?:;[^:\r\n]*)?:(.+)$/m);
+  const bdayMatch = unfolded.match(/^BDAY(?:;([^:\r\n]*))?:(.+)$/m);
   if (!fnMatch || !bdayMatch) return null;
 
   const name = fnMatch[1].trim();
-  const value = bdayMatch[1].trim();
+  const value = bdayMatch[2].trim();
   if (!name) return null;
 
-  const dashed = value.match(/^(?:\d{4}|-{2})-?(\d{2})-(\d{2})/);
-  const compact = value.match(/^(?:\d{4}|-{2})(\d{2})(\d{2})$/);
+  const omitYear = /X-APPLE-OMIT-YEAR/i.test(bdayMatch[1] ?? '');
+  const dashed = value.match(/^(\d{4}|--)-?(\d{2})-(\d{2})/);
+  const compact = value.match(/^(\d{4}|--)(\d{2})(\d{2})$/);
   const match = dashed ?? compact;
   if (!match) return null;
 
-  const month = parseInt(match[1], 10);
-  const day = parseInt(match[2], 10);
+  const [, yearToken, monthStr, dayStr] = match;
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
   if (month < 1 || month > 12 || day < 1 || day > 31) return null;
-  return { name, month, day };
+  const year = omitYear || yearToken === '--' ? undefined : parseInt(yearToken, 10);
+  return { name, month, day, year };
 }
 
 /**

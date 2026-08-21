@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { TranslateFn } from '@/i18n';
 import {
   parseEventDate,
   compareEventStarts,
@@ -20,6 +21,9 @@ import {
   formatCountdown,
   eventProgress,
   isPastInDailyColumn,
+  eventKindGlyph,
+  birthdayAge,
+  eventKindLabel,
   eventStatusSlot,
   boundaryBetween,
   resolveWeatherPlacement,
@@ -621,6 +625,60 @@ describe('isPastInDailyColumn', () => {
 
   it('is false outside today\'s column even if the instant is behind now', () => {
     expect(isPastInDailyColumn(new Date(2026, 7, 19, 15, 0), now, false, false, 'single')).toBe(false);
+  });
+});
+
+describe('eventKindGlyph', () => {
+  it('returns the cake glyph for a birthday', () => {
+    expect(eventKindGlyph('birthday')).toBe('🎂');
+  });
+
+  it('returns the celebration glyph for a holiday', () => {
+    expect(eventKindGlyph('holiday')).toBe('🎉');
+  });
+
+  it('returns null for a plain event or an undefined kind', () => {
+    expect(eventKindGlyph('event')).toBeNull();
+    expect(eventKindGlyph(undefined)).toBeNull();
+  });
+});
+
+describe('birthdayAge', () => {
+  it('computes the age from a known birth year', () => {
+    expect(birthdayAge(2017, 2026)).toBe(9);
+  });
+
+  it('returns 0 for a birthday occurrence in the birth year itself', () => {
+    expect(birthdayAge(2026, 2026)).toBe(0);
+  });
+
+  it('returns null when there is no birth year on file', () => {
+    expect(birthdayAge(undefined, 2026)).toBeNull();
+  });
+});
+
+describe('eventKindLabel', () => {
+  // Echo translator: key plus interpolations, so assertions see both without
+  // depending on any real translation dictionary.
+  const t: TranslateFn = ((key: string, params?: Record<string, unknown>) =>
+    params ? `${key}(${Object.values(params).join(',')})` : key) as TranslateFn;
+
+  it('returns the namespaced holiday key for a holiday', () => {
+    expect(eventKindLabel({ kind: 'holiday' }, 2026, t, 'calendar')).toBe('calendar.holiday');
+  });
+
+  it('returns the namespaced age key for a birthday with a known year', () => {
+    expect(eventKindLabel({ kind: 'birthday', birthYear: 2017 }, 2026, t, 'fullscreen-calendar'))
+      .toBe('fullscreen-calendar.birthdayWithAge(9)');
+  });
+
+  it('returns the namespaced plain-birthday key when there is no birth year', () => {
+    expect(eventKindLabel({ kind: 'birthday' }, 2026, t, 'event-detail')).toBe('event-detail.birthday');
+  });
+
+  it('returns null for a plain event or an undefined kind', () => {
+    expect(eventKindLabel({ kind: 'event' }, 2026, t, 'calendar')).toBeNull();
+    expect(eventKindLabel({}, 2026, t, 'calendar')).toBeNull();
   });
 });
 

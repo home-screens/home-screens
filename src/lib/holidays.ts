@@ -118,6 +118,7 @@ export async function fetchHolidayEvents(
         sourceId: 'holidays',
         sourceName: 'Public Holidays',
         calendarColor: HOLIDAY_COLOR,
+        kind: 'holiday',
       };
     });
 }

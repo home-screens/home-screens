@@ -107,10 +107,10 @@ describe('describeEventTime', () => {
 
 const theme = getThemeTokens('linen');
 
-function overlayElement(onClose: () => void) {
+function overlayElement(onClose: () => void, event: CalendarEvent = timedEvent()) {
   return (
     <EventDetailOverlay
-      event={timedEvent()}
+      event={event}
       variant="sheet"
       theme={theme}
       accentColor="#10b981"
@@ -134,6 +134,28 @@ describe('EventDetailOverlay', () => {
     expect(dialog.textContent).toContain('Bring shin guards.');
     expect(dialog.textContent).toContain('Family');
     expect(dialog.textContent).toContain('Close');
+  });
+
+  it('renders kind-aware chrome for a birthday instead of the generic all-day text', () => {
+    const birthday: CalendarEvent = {
+      id: 'bday-1', title: 'Ava', start: '2026-08-05', end: '2026-08-06', allDay: true,
+      calendarColor: '#EC4899', kind: 'birthday', birthYear: 2017,
+    };
+    render(overlayElement(() => {}, birthday), { wrapper: Wrapper });
+    const dialog = screen.getByRole('dialog', { name: 'Ava' });
+    expect(dialog.textContent).toContain('Birthday · turns 9');
+    expect(dialog.textContent).not.toContain('All Day');
+  });
+
+  it('renders kind-aware chrome for a holiday instead of the generic all-day text', () => {
+    const holiday: CalendarEvent = {
+      id: 'holiday-1', title: 'Labor Day', start: '2026-09-07', end: '2026-09-08', allDay: true,
+      calendarColor: '#10b981', kind: 'holiday',
+    };
+    render(overlayElement(() => {}, holiday), { wrapper: Wrapper });
+    const dialog = screen.getByRole('dialog', { name: 'Labor Day' });
+    expect(dialog.textContent).toContain('Holiday');
+    expect(dialog.textContent).not.toContain('All Day');
   });
 
   it('scrim tap closes; taps inside the panel do not', () => {

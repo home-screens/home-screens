@@ -134,7 +134,10 @@
     "publicHolidays": "Feriados nacionais",
     "sourceNotUpdating": "{name} sem atualizar desde {time}",
     "sourceNotUpdatingNoTime": "{name} sem atualizar",
-    "savedShort": "salvo"
+    "savedShort": "salvo",
+    "holiday": "Feriado",
+    "birthday": "Aniversário",
+    "birthdayWithAge": "Aniversário · faz {age} anos"
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",
@@ -176,7 +179,12 @@
     "savedFrom": "Salvo às {time}",
     "savedEvents": "Mostrando eventos salvos",
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
-    "weekOf": "Semana de {date}"
+    "weekOf": "Semana de {date}",
+    "holiday": "Feriado",
+    "birthday": "Aniversário",
+    "birthdayWithAge": "Aniversário · faz {age} anos",
+    "birthdayShort": "Aniversário",
+    "birthdayAgeShort": "faz {age} anos"
   },
   "weather": {
     "tomorrowShort": "Amanhã",
@@ -725,6 +733,9 @@
   "event-detail": {
     "close": "Fechar",
     "happeningNow": "Acontecendo agora",
-    "allDay": "O dia todo"
+    "allDay": "O dia todo",
+    "holiday": "Feriado",
+    "birthday": "Aniversário",
+    "birthdayWithAge": "Aniversário · faz {age} anos"
   }
 }

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor,
+  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindGlyph, eventKindLabel,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -128,6 +128,8 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
             showProgressBar: config.showProgressBar === true,
             countdownAllDay: config.countdownAllDay === true,
           });
+          const glyph = eventKindGlyph(ev.kind);
+          const kindLabel = eventKindLabel(ev, start.getFullYear(), t, 'fullscreen-calendar');
 
           if (isAllDayRow) {
             return (
@@ -154,13 +156,14 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                   letterSpacing: '0.06em',
                   color: 'var(--cal-text-tertiary)',
                 }}>
-                  {t('fullscreen-calendar.allDay')}
+                  {kindLabel ?? t('fullscreen-calendar.allDay')}
                 </div>
-                <div style={{
+                <div className="flex items-center gap-1.5" style={{
                   fontSize: fontSize * 1.2,
                   fontWeight: 600,
                   color: 'var(--cal-text-primary)',
                 }}>
+                  {glyph && <span aria-hidden="true">{glyph}</span>}
                   {ev.title}
                 </div>
                 {description && (

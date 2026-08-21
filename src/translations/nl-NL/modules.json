@@ -134,7 +134,10 @@
     "publicHolidays": "Officiële feestdagen",
     "sourceNotUpdating": "{name} wordt sinds {time} niet bijgewerkt",
     "sourceNotUpdatingNoTime": "{name} wordt niet bijgewerkt",
-    "savedShort": "opgeslagen"
+    "savedShort": "opgeslagen",
+    "holiday": "Feestdag",
+    "birthday": "Verjaardag",
+    "birthdayWithAge": "Verjaardag · wordt {age}"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dag",
@@ -176,7 +179,12 @@
     "savedFrom": "Opgeslagen om {time}",
     "savedEvents": "Opgeslagen afspraken worden getoond",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
-    "weekOf": "Week van {date}"
+    "weekOf": "Week van {date}",
+    "holiday": "Feestdag",
+    "birthday": "Verjaardag",
+    "birthdayWithAge": "Verjaardag · wordt {age}",
+    "birthdayShort": "jarig",
+    "birthdayAgeShort": "wordt {age}"
   },
   "weather": {
     "tomorrowShort": "Morg",
@@ -720,6 +728,9 @@
   "event-detail": {
     "close": "Sluiten",
     "happeningNow": "Nu bezig",
-    "allDay": "Hele dag"
+    "allDay": "Hele dag",
+    "holiday": "Feestdag",
+    "birthday": "Verjaardag",
+    "birthdayWithAge": "Verjaardag · wordt {age}"
   }
 }

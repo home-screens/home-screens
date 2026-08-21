@@ -134,7 +134,10 @@
     "publicHolidays": "Helligdage",
     "sourceNotUpdating": "{name} er ikke opdateret siden {time}",
     "sourceNotUpdatingNoTime": "{name} opdateres ikke",
-    "savedShort": "gemt"
+    "savedShort": "gemt",
+    "holiday": "Helligdag",
+    "birthday": "Fødselsdag",
+    "birthdayWithAge": "Fødselsdag · fylder {age}"
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",
@@ -176,7 +179,12 @@
     "savedFrom": "Gemt kl. {time}",
     "savedEvents": "Viser gemte begivenheder",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
-    "weekOf": "Ugen fra {date}"
+    "weekOf": "Ugen fra {date}",
+    "holiday": "Helligdag",
+    "birthday": "Fødselsdag",
+    "birthdayWithAge": "Fødselsdag · fylder {age}",
+    "birthdayShort": "Fødselsdag",
+    "birthdayAgeShort": "fylder {age}"
   },
   "weather": {
     "tomorrowShort": "I mrg",
@@ -720,6 +728,9 @@
   "event-detail": {
     "close": "Luk",
     "happeningNow": "I gang nu",
-    "allDay": "Hele dagen"
+    "allDay": "Hele dagen",
+    "holiday": "Helligdag",
+    "birthday": "Fødselsdag",
+    "birthdayWithAge": "Fødselsdag · fylder {age}"
   }
 }

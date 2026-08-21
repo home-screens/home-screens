@@ -6,7 +6,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindGlyph, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
 import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
@@ -100,10 +100,12 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   // (Colored timed pills parse the start below for their time prefix.)
   if (compact) {
     const eventColor = event.calendarColor ?? accentColor;
+    const glyph = eventKindGlyph(event.kind);
     if (gridStyle === 'colored') {
       if (isAllDay) {
         return (
-          <div data-event-id={event.id} className="flex items-center rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor) }}>
+          <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor) }}>
+            {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}>{glyph}</span>}
             <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
           </div>
         );
@@ -124,10 +126,14 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
     }
     return (
       <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
-        <div
-          className="w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ backgroundColor: event.calendarColor ?? accentColor }}
-        />
+        {glyph ? (
+          <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}>{glyph}</span>
+        ) : (
+          <div
+            className="w-1.5 h-1.5 rounded-full shrink-0"
+            style={{ backgroundColor: event.calendarColor ?? accentColor }}
+          />
+        )}
         <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>
       </div>
     );
@@ -136,13 +142,15 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   const start = parseEventWallTime(event.start, timezone);
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
+  const glyph = eventKindGlyph(event.kind);
+  const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'calendar');
   // Split multi-day rows: middle days promote to an all-day label, first and
   // last days show only their true partial time. Rows from a source that
   // stopped updating carry a "saved" suffix.
-  const baseTimeContent = isAllDay || segment === 'middle' ? t('calendar.allDay')
+  const baseTimeContent = kindLabel ?? (isAllDay || segment === 'middle' ? t('calendar.allDay')
     : segment === 'first' ? t('calendar.fromTime', { time: formatEventTime(start, timeFormat, locale) })
     : segment === 'last' ? t('calendar.untilTime', { time: formatEventTime(end, timeFormat, locale) })
-    : `${formatEventTime(start, timeFormat, locale)} · ${formatDuration(start, end)}`;
+    : `${formatEventTime(start, timeFormat, locale)} · ${formatDuration(start, end)}`);
   const timeContent = event.sourceId && eventStyle.failingSourceIds?.has(event.sourceId)
     ? `${baseTimeContent} · ${t('calendar.savedShort')}`
     : baseTimeContent;
@@ -157,10 +165,14 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
         boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
       }}
     >
-      <div
-        className="w-0.5 rounded-full shrink-0 self-stretch"
-        style={{ backgroundColor: event.calendarColor ?? accentColor }}
-      />
+      {glyph ? (
+        <span aria-hidden="true" className="shrink-0 text-center" style={{ width: 9, fontSize: '0.8em', lineHeight: 1, marginTop: 3 }}>{glyph}</span>
+      ) : (
+        <div
+          className="w-0.5 rounded-full shrink-0 self-stretch"
+          style={{ backgroundColor: event.calendarColor ?? accentColor }}
+        />
+      )}
       <div className="min-w-0 flex-1">
         {showTime && (
           <div className="flex items-center gap-1.5">
@@ -663,6 +675,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale, event
               const isToday = isSameDay(date, today);
               const inMonth = isSameMonth(date, today);
               const dayEvents = eventsForDay(events, date, eventStyle.timezone);
+              const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
 
               return (
                 <div
@@ -673,15 +686,17 @@ function MonthView({ events, config, style, today, accentColor, t, locale, event
                     opacity: inMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary,
                   }}
                 >
-                  <span
-                    className="text-center leading-none mb-0.5"
-                    style={{
-                      fontSize: '0.65em',
-                      fontWeight: isToday ? 700 : 400,
-                      color: isToday ? accentColor : style.textColor,
-                    }}
-                  >
-                    {formatDateSync(date, 'd', { locale })}
+                  <span className="flex items-center justify-center gap-0.5 leading-none mb-0.5">
+                    <span
+                      style={{
+                        fontSize: '0.65em',
+                        fontWeight: isToday ? 700 : 400,
+                        color: isToday ? accentColor : style.textColor,
+                      }}
+                    >
+                      {formatDateSync(date, 'd', { locale })}
+                    </span>
+                    {hasBirthday && <span aria-hidden="true" style={{ fontSize: '0.6em' }}>🎂</span>}
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={3} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
@@ -767,6 +782,7 @@ function MultiWeekBannerView({ events, config, style, today, accentColor, t, loc
               const isPast = date < today && !isToday;
               const isFirstOfMonth = date.getDate() === 1;
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
+              const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
 
               return (
                 <div
@@ -795,6 +811,7 @@ function MultiWeekBannerView({ events, config, style, today, accentColor, t, loc
                       </span>
                     )}
                     {formatDateSync(date, 'd', { locale })}
+                    {hasBirthday && <span aria-hidden="true">🎂</span>}
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
@@ -952,6 +969,7 @@ function MultiWeekModernView({ events, config, style, today, accentColor, t, loc
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
               const shown = dayEvents.slice(0, maxPerCell);
               const overflow = dayEvents.length - shown.length;
+              const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
               const cellShadow = [isToday ? todayRing : null, isFirstOfMonth ? monthRule : null]
                 .filter(Boolean).join(', ');
 
@@ -984,6 +1002,7 @@ function MultiWeekModernView({ events, config, style, today, accentColor, t, loc
                         {formatDateSync(date, isFirstOfMonth ? 'MMM d' : 'd', { locale })}
                       </span>
                     )}
+                    {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.6em', marginLeft: '0.2em' }}>🎂</span>}
                   </div>
                   <div className="flex flex-col gap-px overflow-hidden" style={isPast ? { opacity: TEXT_OPACITY.dim } : undefined}>
                     {shown.map((ev) => (

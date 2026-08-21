@@ -134,7 +134,10 @@
     "publicHolidays": "Días festivos",
     "sourceNotUpdating": "{name} sin actualizar desde las {time}",
     "sourceNotUpdatingNoTime": "{name} sin actualizar",
-    "savedShort": "guardado"
+    "savedShort": "guardado",
+    "holiday": "Festivo",
+    "birthday": "Cumpleaños",
+    "birthdayWithAge": "Cumpleaños · cumple {age}"
   },
   "fullscreen-calendar": {
     "allDay": "Todo el día",
@@ -176,7 +179,12 @@
     "savedFrom": "Guardado a las {time}",
     "savedEvents": "Mostrando eventos guardados",
     "cantLoadEvents": "No se pueden cargar los eventos ahora mismo",
-    "weekOf": "Semana del {date}"
+    "weekOf": "Semana del {date}",
+    "holiday": "Festivo",
+    "birthday": "Cumpleaños",
+    "birthdayWithAge": "Cumpleaños · cumple {age}",
+    "birthdayShort": "cumple años",
+    "birthdayAgeShort": "cumple {age}"
   },
   "weather": {
     "tomorrowShort": "Mñn",
@@ -725,6 +733,9 @@
   "event-detail": {
     "close": "Cerrar",
     "happeningNow": "Ahora mismo",
-    "allDay": "Todo el día"
+    "allDay": "Todo el día",
+    "holiday": "Festivo",
+    "birthday": "Cumpleaños",
+    "birthdayWithAge": "Cumpleaños · cumple {age}"
   }
 }

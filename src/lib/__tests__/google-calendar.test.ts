@@ -154,6 +154,29 @@ describe('fetchCalendarEvents', () => {
     expect(events[0].calendarColor).toBe('#4285f4');
   });
 
+  it("tags events from Google's built-in Birthdays calendar with kind: 'birthday'", async () => {
+    const birthdaysId = 'addressbook#contacts@group.v.calendar.google.com';
+    setupAuth();
+    setupCalendarList([
+      { id: 'cal1', summary: 'Work' },
+      { id: birthdaysId, summary: 'Birthdays' },
+    ]);
+    setupColors({});
+    mockEventsList.mockImplementation(async (params: { calendarId: string }) => {
+      if (params.calendarId === birthdaysId) {
+        return { data: { items: [{ id: 'ava', summary: "Ava's Birthday", start: { date: '2026-09-07' }, end: { date: '2026-09-08' } }] } };
+      }
+      return { data: { items: [{ id: 'evt1', summary: 'Meeting', start: { dateTime: '2026-01-15T10:00:00-05:00' }, end: { dateTime: '2026-01-15T11:00:00-05:00' } }] } };
+    });
+
+    const { events } = await fetchCalendarEvents(['cal1', birthdaysId], '2026-01-01', '2026-12-31');
+
+    const birthday = events.find((e) => e.sourceId === birthdaysId);
+    const meeting = events.find((e) => e.sourceId === 'cal1');
+    expect(birthday?.kind).toBe('birthday');
+    expect(meeting?.kind).toBeUndefined();
+  });
+
   it('fetches from multiple calendars in parallel', async () => {
     setupAuth();
     setupCalendarList([

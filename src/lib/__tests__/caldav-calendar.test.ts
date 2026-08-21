@@ -101,31 +101,31 @@ describe('parseVCardBirthday', () => {
   const card = (lines: string[]) =>
     ['BEGIN:VCARD', 'VERSION:3.0', ...lines, 'END:VCARD'].join('\r\n');
 
-  it('parses a full date', () => {
+  it('parses a full date, capturing the year', () => {
     expect(parseVCardBirthday(card(['FN:Alice', 'BDAY:1985-07-20'])))
-      .toEqual({ name: 'Alice', month: 7, day: 20 });
+      .toEqual({ name: 'Alice', month: 7, day: 20, year: 1985 });
   });
 
-  it('parses the compact format', () => {
+  it('parses the compact format, capturing the year', () => {
     expect(parseVCardBirthday(card(['FN:Bob', 'BDAY:19850720'])))
-      .toEqual({ name: 'Bob', month: 7, day: 20 });
+      .toEqual({ name: 'Bob', month: 7, day: 20, year: 1985 });
   });
 
-  it('parses year-omitted forms', () => {
+  it('parses year-omitted forms with no year', () => {
     expect(parseVCardBirthday(card(['FN:Cara', 'BDAY:--07-20'])))
       .toEqual({ name: 'Cara', month: 7, day: 20 });
     expect(parseVCardBirthday(card(['FN:Dan', 'BDAY:--0720'])))
       .toEqual({ name: 'Dan', month: 7, day: 20 });
   });
 
-  it("parses Apple's 1604 omit-year convention with params", () => {
+  it("discards Apple's 1604 omit-year convention as a real year", () => {
     expect(parseVCardBirthday(card(['FN:Eve', 'BDAY;X-APPLE-OMIT-YEAR=1604:1604-07-20'])))
       .toEqual({ name: 'Eve', month: 7, day: 20 });
   });
 
   it('unfolds wrapped lines', () => {
     const folded = 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Somebody With A Very\r\n  Long Name\r\nBDAY:2000-01-02\r\nEND:VCARD';
-    expect(parseVCardBirthday(folded)).toEqual({ name: 'Somebody With A Very Long Name', month: 1, day: 2 });
+    expect(parseVCardBirthday(folded)).toEqual({ name: 'Somebody With A Very Long Name', month: 1, day: 2, year: 2000 });
   });
 
   it('returns null without FN or BDAY, or with an invalid date', () => {
@@ -298,13 +298,15 @@ describe('fetchICloudEvents', () => {
 
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({
-      title: '🎂 Alice',
+      title: 'Alice',
       allDay: true,
       start: '2026-07-20',
       end: '2026-07-21',
       calendarColor: '#a855f7',
       sourceId: 'src-b',
       sourceName: 'Birthdays',
+      kind: 'birthday',
+      birthYear: 1985,
     });
   });
 
@@ -435,6 +437,6 @@ describe('fetchICloudEvents', () => {
     );
 
     // Sorted by start: birthday (Jul 10) before dentist (Jul 15)
-    expect(events.map((e) => e.title)).toEqual(['🎂 Alice', 'Dentist']);
+    expect(events.map((e) => e.title)).toEqual(['Alice', 'Dentist']);
   });
 });

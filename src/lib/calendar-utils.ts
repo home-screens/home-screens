@@ -1,6 +1,7 @@
 import { addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import type { AgendaSeparators, CalendarTitleFilter, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
+import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
+import type { TranslateFn } from '@/i18n';
 import { parseHexToRgb } from '@/lib/hex-color';
 import { toTZWallTime } from '@/lib/timezone';
 
@@ -470,6 +471,43 @@ export function isPastInDailyColumn(
   segment: EventDaySegment,
 ): boolean {
   return isToday && !isAllDay && segment !== 'middle' && end <= now;
+}
+
+/** UI glyph for a kind-aware row/cell; null for a plain event (no chrome change). */
+export function eventKindGlyph(kind: CalendarEvent['kind']): string | null {
+  if (kind === 'birthday') return '🎂';
+  if (kind === 'holiday') return '🎉';
+  return null;
+}
+
+/**
+ * Age in the birthday's occurrence year, or null when the source has no birth
+ * year on file (Apple's X-APPLE-OMIT-YEAR contacts, and every Google-sourced
+ * birthday).
+ */
+export function birthdayAge(birthYear: number | undefined, occurrenceYear: number): number | null {
+  return birthYear == null ? null : occurrenceYear - birthYear;
+}
+
+/**
+ * Kind-aware replacement for a row's generic "all day" text — "Holiday" or
+ * "Birthday · turns N" — or null for a plain event, so the caller falls
+ * through to its normal time text. `ns` picks the translation namespace
+ * (`t('<ns>.holiday')` etc.) since each surface owns its own copy of these
+ * keys in `modules.json`.
+ */
+export function eventKindLabel(
+  event: Pick<CalendarEvent, 'kind' | 'birthYear'>,
+  occurrenceYear: number,
+  t: TranslateFn,
+  ns: 'calendar' | 'fullscreen-calendar' | 'event-detail',
+): string | null {
+  if (event.kind === 'holiday') return t(`${ns}.holiday`);
+  if (event.kind === 'birthday') {
+    const age = birthdayAge(event.birthYear, occurrenceYear);
+    return age != null ? t(`${ns}.birthdayWithAge`, { age }) : t(`${ns}.birthday`);
+  }
+  return null;
 }
 
 /**

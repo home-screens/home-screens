@@ -5,9 +5,9 @@ import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, isSameDay, isSameMonth, getWeek,
 } from 'date-fns';
-import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
+import { isEventOnDay, weekStartsOnFor, weekNumberOptions, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { clampStyle } from './FullscreenCalendarModule';
+import { clampStyle, eventBg } from './FullscreenCalendarModule';
 import type { CalendarViewProps } from './FullscreenCalendarModule';
 import { useContainerHeight } from './shared-time-grid';
 
@@ -93,8 +93,10 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
           const showWeekNum = showWeekNumbers && dow === 0;
 
           const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
-          const allDayEvs = dayEvents.filter(ev => ev.allDay);
+          const allDayEvs = dayEvents.filter(ev => ev.allDay && ev.kind !== 'birthday');
+          const birthdayEvs = dayEvents.filter(ev => ev.kind === 'birthday');
           const timedEvs = dayEvents.filter(ev => !ev.allDay);
+          const hasBirthday = birthdayEvs.length > 0;
 
           // Auto-calculate max visible events from the measured grid height
           // (header, legend, and weekday row already excluded); the estimate
@@ -106,7 +108,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
           const autoMax = config.monthMaxEventsPerCell > 0
             ? config.monthMaxEventsPerCell
             : Math.max(2, Math.floor((approxCellHeight - fontSize * 2) / pillHeight));
-          const maxShow = Math.max(1, autoMax - allDayEvs.length);
+          const maxShow = Math.max(1, autoMax - allDayEvs.length - birthdayEvs.length);
           const overflow = timedEvs.length > maxShow ? timedEvs.length - maxShow : 0;
 
           return (
@@ -143,11 +145,17 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                     ? 'var(--cal-today-fill)'
                     : isWeekend && config.shadeWeekends
                       ? 'var(--cal-weekend-shade)'
-                      : undefined,
+                      : hasBirthday
+                        // Cell-level "a birthday is here" signal, not any one
+                        // kid's color — a fixed tint avoids picking one
+                        // source's color arbitrarily when several birthdays
+                        // land on the same day.
+                        ? eventBg('#EC4899', scale.isDark ? 0.16 : 0.10, scale.isDark)
+                        : undefined,
                 }}
               >
                 {/* Day number */}
-                <div style={{ marginBottom: scale.bu * 0.15 }}>
+                <div className="flex items-center" style={{ gap: scale.bu * 0.15, marginBottom: scale.bu * 0.15 }}>
                   {isToday && showTodayMarker ? (
                     <span className="fsc-today-pulse" style={{
                       display: 'inline-flex',
@@ -172,6 +180,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                       {formatDateSync(day, 'd', { locale })}
                     </span>
                   )}
+                  {hasBirthday && <span aria-hidden="true" style={{ fontSize: fontSize * 0.7 }}>🎂</span>}
                 </div>
 
                 {/* All-day span bars */}
@@ -189,6 +198,35 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                       ...clampStyle(wrapTitles),
                     }}>
                       {ev.title}
+                    </div>
+                  );
+                })}
+
+                {/* Birthdays — bold name-first text, no bar/dot */}
+                {birthdayEvs.map(ev => {
+                  const color = ev.calendarColor ?? '#EC4899';
+                  const age = birthdayAge(ev.birthYear, day.getFullYear());
+                  const label = age != null
+                    ? t('fullscreen-calendar.birthdayAgeShort', { age })
+                    : t('fullscreen-calendar.birthdayShort');
+                  return (
+                    <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: scale.bu * 0.2,
+                      padding: `${scale.bu * 0.05}px ${scale.bu * 0.2}px`,
+                      marginBottom: 1,
+                      overflow: 'hidden',
+                    }}>
+                      <span aria-hidden="true" style={{ fontSize: fontSize * 0.55, flexShrink: 0 }}>🎂</span>
+                      <span style={{
+                        fontSize: fontSize * 0.55,
+                        fontWeight: 700,
+                        color,
+                        ...clampStyle(wrapTitles),
+                      }}>
+                        {ev.title} {label}
+                      </span>
                     </div>
                   );
                 })}

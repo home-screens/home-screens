@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
-  classifyEventOnDay, eventStatusSlot,
+  classifyEventOnDay, eventStatusSlot, eventKindGlyph, eventKindLabel,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -197,6 +197,8 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
   const timeLabel = event.sourceId && failingSourceIds?.has(event.sourceId)
     ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
     : baseTimeLabel;
+  const glyph = eventKindGlyph(event.kind);
+  const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'fullscreen-calendar');
 
   let ariaLabel: string;
   if (isAllDay) {
@@ -231,14 +233,18 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
         padding: `${scale.bu * 0.7}px 0`,
       }}
     >
-      <div style={{
-        width: fontSize * 0.6,
-        height: fontSize * 0.6,
-        borderRadius: '50%',
-        background: color,
-        flexShrink: 0,
-        marginTop: fontSize * 0.35,
-      }} />
+      {glyph ? (
+        <span aria-hidden="true" style={{ width: fontSize * 0.6, textAlign: 'center', flexShrink: 0, marginTop: fontSize * 0.3, fontSize: fontSize * 0.7 }}>{glyph}</span>
+      ) : (
+        <div style={{
+          width: fontSize * 0.6,
+          height: fontSize * 0.6,
+          borderRadius: '50%',
+          background: color,
+          flexShrink: 0,
+          marginTop: fontSize * 0.35,
+        }} />
+      )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           fontSize: fontSize * 0.8,
@@ -255,7 +261,7 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
               letterSpacing: '0.04em',
               fontSize: fontSize * 0.7,
             }}>
-              {t('fullscreen-calendar.allDay')}
+              {kindLabel ?? t('fullscreen-calendar.allDay')}
             </span>
           ) : (
             timeLabel

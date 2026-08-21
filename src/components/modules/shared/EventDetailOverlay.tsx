@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
-import { parseEventWallTime, isEventOnDay, formatEventTime, sanitizeEventDescription } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, sanitizeEventDescription, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync, formatRelativeTime } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
@@ -118,6 +118,8 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
     today: tCore('today'),
     happeningNow: t('event-detail.happeningNow'),
   }, timeFormat, timezone);
+  const glyph = eventKindGlyph(event.kind);
+  const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'event-detail');
 
   const iconStyle: React.CSSProperties = {
     color: theme.textMuted,
@@ -167,10 +169,11 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
         marginBottom: 'clamp(20px, 3.3vmin, 36px)',
         wordBreak: 'break-word',
       }}>
+        {glyph && <span aria-hidden="true" style={{ marginRight: 'clamp(6px, 1vmin, 12px)' }}>{glyph}</span>}
         {event.title}
       </div>
 
-      {infoRow(<Clock strokeWidth={2.2} style={iconStyle} aria-hidden="true" />, time.main, time.sub)}
+      {infoRow(<Clock strokeWidth={2.2} style={iconStyle} aria-hidden="true" />, kindLabel ?? time.main, time.sub)}
 
       {event.location && infoRow(
         <MapPin strokeWidth={2.2} style={iconStyle} aria-hidden="true" />,

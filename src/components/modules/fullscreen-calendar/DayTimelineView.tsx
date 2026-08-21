@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
 import { computeTimedEventLayout } from './event-layout';
@@ -98,12 +98,13 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   // memoize them instead of recomputing on every re-render. Events entirely
   // outside the hour range are excluded up front — clamping alone would leave
   // them as degenerate inputs that still occupy an overlap column.
-  const { allDayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
+  const { allDayEvs, birthdayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
     const dayEvents = events.filter(ev => isEventOnDay(ev, today, timezone));
-    const allDay = dayEvents.filter(ev => ev.allDay);
+    const allDay = dayEvents.filter(ev => ev.allDay && ev.kind !== 'birthday');
+    const birthdays = dayEvents.filter(ev => ev.kind === 'birthday');
     const timed = dayEvents.filter(ev => !ev.allDay);
     const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode, timezone);
-    return { allDayEvs: allDay, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
+    return { allDayEvs: allDay, birthdayEvs: birthdays, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [events, today.toDateString(), hourStart, hourEnd, overlapMode, timezone]);
 
@@ -111,7 +112,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* All-day strip */}
-      {allDayEvs.length > 0 && (
+      {(allDayEvs.length > 0 || birthdayEvs.length > 0) && (
         <div style={{
           padding: `${scale.bu * 0.8}px ${scale.bu * 1.5}px`,
           borderBottom: '1px solid var(--cal-border)',
@@ -157,6 +158,23 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     {description}
                   </div>
                 )}
+              </div>
+            );
+          })}
+          {birthdayEvs.map(ev => {
+            const age = birthdayAge(ev.birthYear, today.getFullYear());
+            const label = age != null ? t('fullscreen-calendar.birthdayWithAge', { age }) : t('fullscreen-calendar.birthday');
+            return (
+              <div key={ev.id} className="fsc-event-block flex items-center" data-event-id={ev.id} aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
+                gap: scale.bu * 0.4,
+                padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
+                fontSize: fontSize * 0.95,
+                fontWeight: 700,
+                color: ev.calendarColor ?? '#EC4899',
+                marginBottom: scale.bu * 0.2,
+              }}>
+                <span aria-hidden="true">🎂</span>
+                <span>{ev.title} · {label}</span>
               </div>
             );
           })}
