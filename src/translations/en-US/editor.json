@@ -2999,7 +2999,10 @@
       "showDayLength": "Show Day Length",
       "showGoldenHour": "Show Golden Hour",
       "showAstroDark": "Show Astro Dark",
-      "locationHint": "Uses location from global settings."
+      "locationHint": "Uses location from global settings.",
+      "theme": "Theme",
+      "themeSimple": "Simple Colors",
+      "themeSky": "Sky Colors"
     },
     "text": {
       "content": "Content",

@@ -509,6 +509,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDayLength: true,
       showGoldenHour: false,
       showAstroDark: false,
+      theme: 'simple',
     },
     defaultSize: { w: 400, h: 200 },
     dataRequirements: ['location'],

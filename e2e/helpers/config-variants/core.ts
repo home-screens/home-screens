@@ -288,6 +288,32 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     config: { view: 'arc', showAstroDark: true },
     expect: has('Dark begins'),
   },
+  {
+    // Sky theme: the flat three-segment ring becomes a ~300-slice gradient, and the
+    // dark window is forced on — the 30 seeded stars render without showAstroDark.
+    // (Matrix location 44.7°N has astronomical darkness year-round, so stars are
+    // safe to assert in any season.)
+    type: 'sunrise-sunset', name: 'circle-theme-sky', kind: 'network-free',
+    config: { view: 'circle', theme: 'sky' },
+    expect: async (mod) => {
+      const distinct = await mod.locator('svg path').evaluateAll(
+        (paths) => new Set(paths.map((p) => (p as SVGPathElement).getAttribute('stroke'))).size,
+      );
+      await expect(distinct).toBeGreaterThan(10);
+      await expect(mod.locator('svg circle[r="0.5"]')).toHaveCount(30);
+    },
+  },
+  {
+    type: 'sunrise-sunset', name: 'circle-theme-simple', kind: 'network-free',
+    config: { view: 'circle', theme: 'simple' },
+    expect: async (mod) => {
+      const distinct = await mod.locator('svg path').evaluateAll(
+        (paths) => new Set(paths.map((p) => (p as SVGPathElement).getAttribute('stroke'))).size,
+      );
+      await expect(distinct).toBeLessThanOrEqual(3);
+      await expect(mod.locator('svg circle[r="0.5"]')).toHaveCount(0);
+    },
+  },
 
   // -- garbage-day --
   {

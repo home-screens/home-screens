@@ -1004,11 +1004,17 @@ export interface MoonPhaseConfig {
 // Sunrise / Sunset module config
 export type SunriseSunsetView = 'default' | 'arc' | 'circle';
 
+/** Circle-view ring coloring. 'simple' (default when unset) paints the flat
+    day/twilight/dark segments; 'sky' paints a gradient through event-anchored
+    stops with stars in the astrodark window. */
+export type SunriseSunsetTheme = 'simple' | 'sky';
+
 export interface SunriseSunsetConfig {
   view: SunriseSunsetView;
   showDayLength: boolean;
   showGoldenHour: boolean;
   showAstroDark?: boolean;
+  theme?: SunriseSunsetTheme;
 }
 
 // Photo slideshow module config
