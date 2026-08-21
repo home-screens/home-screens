@@ -419,6 +419,11 @@ function DefaultView({
 
 /** One gradient slice per 5 minutes → 288 ring paths in the sky theme. */
 const SKY_RING_STEP_MINUTES = 5;
+/** Each slice's arc is drawn a hair past its nominal end (≈0.3 viewBox units): two
+ *  abutting antialiased strokes leave a background hairline at the shared boundary
+ *  (visible as faint radial seams), and since the NEXT slice paints over the overlap,
+ *  its leading edge blends against the previous slice's near-identical color. */
+export const SKY_SEAM_OVERLAP_HOURS = 0.02;
 
 function CircleView({
   times,
@@ -494,7 +499,7 @@ function CircleView({
       return (
         <path
           key={k}
-          d={circleArcPath(h1, h1 + step, CIRCLE_R)}
+          d={circleArcPath(h1, h1 + step + SKY_SEAM_OVERLAP_HOURS, CIRCLE_R)}
           fill="none"
           stroke={skyThemeColorAt(h1 + step / 2, anchors)}
           strokeWidth="8"

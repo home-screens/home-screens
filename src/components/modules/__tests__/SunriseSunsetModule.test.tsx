@@ -3,12 +3,12 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import SunCalc from 'suncalc';
 import { render, cleanup } from '@testing-library/react';
-import { astroDarkWindow, circleAngle, hoursInTZ, SKY_THEME_COLORS } from '@/lib/sun-astro';
+import { astroDarkWindow, circleAngle, circlePoint, hoursInTZ, SKY_THEME_COLORS } from '@/lib/sun-astro';
 import type { ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 import { DEFAULT_MODULE_STYLE, type SunriseSunsetConfig, type ModuleStyle } from '@/types/config';
-import SunriseSunsetModule, { NIGHT_SUN_COLOR, NIGHT_SUN_OPACITY } from '../SunriseSunsetModule';
+import SunriseSunsetModule, { NIGHT_SUN_COLOR, NIGHT_SUN_OPACITY, SKY_SEAM_OVERLAP_HOURS } from '../SunriseSunsetModule';
 
 // The module reads the current instant through useRealClock (60s ticks) —
 // pin it per-test so the day/night split is deterministic. Only useRealClock
@@ -140,6 +140,21 @@ describe('SunriseSunsetModule circle view — sky theme', () => {
     const dot = nowDot(container);
     expect(dot!.getAttribute('fill')).toBe('#fbbf24');
     expect(glowEl(container)).not.toBeNull();
+  });
+
+  it('extends each gradient slice past its nominal end to hide antialiasing seams', () => {
+    // Abutting antialiased arcs leave a background hairline at every shared boundary
+    // (faint radial lines); each slice must overlap the next by SKY_SEAM_OVERLAP_HOURS.
+    const { container } = renderModule(new Date('2026-08-18T12:00:00+02:00'), { theme: 'sky' });
+    const paths = [...container.querySelectorAll('svg path')];
+    expect(paths).toHaveLength(288);
+    for (const k of [0, 100, 287]) {
+      const nums = paths[k].getAttribute('d')!.match(/-?[\d.]+/g)!.map(Number);
+      const [ex, ey] = [nums[nums.length - 2], nums[nums.length - 1]];
+      const [px, py] = circlePoint(circleAngle(((k + 1) * 5) / 60 + SKY_SEAM_OVERLAP_HOURS), 82);
+      expect(Math.abs(ex - px)).toBeLessThanOrEqual(0.1);
+      expect(Math.abs(ey - py)).toBeLessThanOrEqual(0.1);
+    }
   });
 
   it('scatters the seeded stars through the dark window only when astrodark is on', () => {
