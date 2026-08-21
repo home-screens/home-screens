@@ -2308,6 +2308,8 @@
       "showProgressBar": "Mostrar progresso em eventos em andamento",
       "emptyDayText": "Texto para dias livres",
       "emptyDayTextPlaceholder": "Dia livre!",
+      "dimPastEvents": "Esmaecer eventos passados",
+      "showNowRule": "Mostrar marcador de \"agora\"",
       "separators": "Marcadores de semana e mês",
       "separatorsNone": "Nenhum",
       "separatorsWeeks": "Semanas",

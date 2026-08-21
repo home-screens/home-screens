@@ -2303,6 +2303,8 @@
       "showProgressBar": "Fortschritt bei laufenden Terminen anzeigen",
       "emptyDayText": "Text für freie Tage",
       "emptyDayTextPlaceholder": "Freier Tag!",
+      "dimPastEvents": "Vergangene Termine abdunkeln",
+      "showNowRule": "Jetzt-Trennstrich anzeigen",
       "separators": "Wochen- und Monatsmarkierungen",
       "separatorsNone": "Keine",
       "separatorsWeeks": "Wochen",

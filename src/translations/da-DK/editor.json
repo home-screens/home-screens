@@ -2303,6 +2303,8 @@
       "showProgressBar": "Vis fremdrift for igangværende begivenheder",
       "emptyDayText": "Tekst til frie dage",
       "emptyDayTextPlaceholder": "Fridag!",
+      "dimPastEvents": "Dæmp tidligere begivenheder",
+      "showNowRule": "Vis nu-streg",
       "separators": "Uge- og månedsmarkeringer",
       "separatorsNone": "Ingen",
       "separatorsWeeks": "Uger",

@@ -50,6 +50,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     emptyDayText?: string;
     agendaSeparators?: AgendaSeparators;
     showLegend?: CalendarLegendPlacement;
+    dimPastEvents?: boolean;
+    showNowRule?: boolean;
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -193,6 +195,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           placeholder={t('configSections.calendar.emptyDayTextPlaceholder')}
           onChange={(v) => set({ emptyDayText: v })}
         />
+      )}
+      {viewMode === 'daily' && (
+        <>
+          <Toggle label={t('configSections.calendar.dimPastEvents')} checked={c.dimPastEvents === true} onChange={(v) => set({ dimPastEvents: v })} />
+          <Toggle label={t('configSections.calendar.showNowRule')} checked={c.showNowRule === true} onChange={(v) => set({ showNowRule: v })} />
+        </>
       )}
       {viewMode === 'agenda' && (
         <LabeledSelect

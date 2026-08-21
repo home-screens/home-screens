@@ -2303,6 +2303,8 @@
       "showProgressBar": "Voortgang van lopende afspraken tonen",
       "emptyDayText": "Tekst voor vrije dagen",
       "emptyDayTextPlaceholder": "Vrije dag!",
+      "dimPastEvents": "Eerdere evenementen dimmen",
+      "showNowRule": "Nu-streep tonen",
       "separators": "Week- en maandmarkeringen",
       "separatorsNone": "Geen",
       "separatorsWeeks": "Weken",

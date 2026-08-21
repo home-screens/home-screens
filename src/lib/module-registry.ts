@@ -396,6 +396,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       emptyDayText: '',
       agendaSeparators: 'none',
       showLegend: 'off',
+      dimPastEvents: false,
+      showNowRule: false,
     },
     defaultSize: { w: 500, h: 600 },
   },

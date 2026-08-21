@@ -436,6 +436,65 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     config: { viewMode: 'daily', titleFilter: { mode: 'exclude', terms: ['Dentist'] } },
     expect: async (mod) => { await expect(mod).not.toContainText('Dentist Appointment'); },
   },
+  {
+    // A single-minute event just after midnight today is always in the past
+    // by the time the page renders (any run except literally 00:00-00:01
+    // local), so dimming is assertable at any wall-clock time without a
+    // fake clock. Deliberately not the shared todayCalendarEvents() fixture
+    // — that event is built to always be currently running, never past.
+    type: 'calendar', name: 'dim-past-events', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{
+      id: 'past-1', title: 'Ended Event', ...(() => {
+        const d = new Date();
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const at = (h: number, m: number) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad(m)}:00`;
+        return { start: at(0, 1), end: at(0, 2) };
+      })(),
+      allDay: false, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal',
+    }],
+    config: { viewMode: 'daily', dimPastEvents: true },
+    expect: async (mod) => { await expect(mod.locator('[data-event-id="past-1"]')).toHaveCSS('opacity', '0.4'); },
+  },
+  {
+    // The shared todayCalendarEvents() fixture always spans "currently
+    // running" (00:01 today → 23:59 tomorrow), so the now-rule always has
+    // an upcoming/running boundary to sit before, at any wall-clock time.
+    type: 'calendar', name: 'now-rule', kind: 'networked', stubKey: 'calendar',
+    config: { viewMode: 'daily', showNowRule: true },
+    expect: child('[data-now-rule]'),
+  },
+  {
+    // Regression: eventsForDay always sorts all-day events first, and they
+    // carry no past/future meaning, so the rule-placement scan must skip
+    // over them rather than stopping at the first one. Same past-event
+    // construction as dim-past-events above.
+    type: 'calendar', name: 'now-rule-skips-all-day', kind: 'networked', stubKey: 'calendar',
+    stubBody: (() => {
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const ymd = (offsetDays: number) => {
+        const dd = new Date(d);
+        dd.setDate(dd.getDate() + offsetDays);
+        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
+      };
+      const at = (h: number, m: number) => `${ymd(0)}T${pad(h)}:${pad(m)}:00`;
+      return [
+        { id: 'ar-allday', title: 'Vacation', start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
+        { id: 'ar-past', title: 'Ended Event', start: at(0, 1), end: at(0, 2), allDay: false, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
+      ];
+    })(),
+    config: { viewMode: 'daily', daysToShow: 1, dimPastEvents: true, showNowRule: true },
+    expect: async (mod) => {
+      // evaluateAll grabs a single DOM snapshot with no auto-wait (unlike
+      // expect(locator).x()), so poll it until the render settles instead
+      // of racing the fetch.
+      await expect.poll(() =>
+        mod.locator('[data-now-rule], [data-event-id]').evaluateAll((els) =>
+          els.map((el) => (el.hasAttribute('data-now-rule') ? 'rule' : el.getAttribute('data-event-id')))),
+      ).toEqual(['ar-allday', 'ar-past', 'rule']);
+      await expect(mod.locator('[data-event-id="ar-allday"]')).not.toHaveCSS('box-shadow', /inset/);
+    },
+  },
 
   // -- fullscreen-calendar --
   {

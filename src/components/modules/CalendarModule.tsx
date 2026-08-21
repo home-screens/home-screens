@@ -1,12 +1,12 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { isSameDay, startOfDay, addDays, differenceInMinutes, startOfWeek, endOfWeek, startOfMonth, endOfMonth, getWeek, isSameMonth } from 'date-fns';
-import { createTZDate } from '@/lib/timezone';
+import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
 import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
@@ -72,7 +72,7 @@ function formatRelativeDay(
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
 // so the shallow compare skips re-parsing/re-formatting every pill per tick.
-const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale, segment, countdown, progress }: {
+const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
@@ -88,6 +88,10 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   /** Status slot: countdown text before start / progress fraction while running. */
   countdown?: string | null;
   progress?: number | null;
+  /** Daily view only: already-ended today, faded via dimPastEvents. */
+  dimmed?: boolean;
+  /** Daily view only: currently running, ringed via showNowRule. */
+  live?: boolean;
 }) {
   const { timeFormat, gridStyle, pillBackground, timezone } = eventStyle;
   const isAllDay = isAllDayEvent(event);
@@ -144,7 +148,15 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
     : baseTimeContent;
 
   return (
-    <ContentCard data-event-id={event.id} className="flex gap-2" style={{ padding: '6px 10px' }}>
+    <ContentCard
+      data-event-id={event.id}
+      className="flex gap-2"
+      style={{
+        padding: '6px 10px',
+        opacity: dimmed ? 0.4 : 1,
+        boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
+      }}
+    >
       <div
         className="w-0.5 rounded-full shrink-0 self-stretch"
         style={{ backgroundColor: event.calendarColor ?? accentColor }}
@@ -201,6 +213,26 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
 
 // ─── Daily View (original) ───
 
+/** Thin accent rule marking "now" in today's column, between already-ended
+ *  and upcoming/running events. Purely a visual echo of what each row's own
+ *  time already says, so it carries no accessible name of its own. */
+function NowRule({ now, accentColor, timeFormat, locale }: {
+  now: Date;
+  accentColor: string;
+  timeFormat: TimeFormat;
+  locale: string;
+}) {
+  return (
+    <div data-now-rule className="flex items-center gap-1.5" style={{ margin: '2px 0 4px' }} aria-hidden="true">
+      <span className="rounded-full shrink-0" style={{ width: 6, height: 6, backgroundColor: accentColor }} />
+      <span style={{ fontSize: '0.55em', fontWeight: 700, color: accentColor, whiteSpace: 'nowrap' }}>
+        {formatEventTime(now, timeFormat, locale)}
+      </span>
+      <span className="flex-1" style={{ height: 1, backgroundColor: accentColor, opacity: 0.6 }} />
+    </div>
+  );
+}
+
 function DailyView({ events, config, style, today, now, accentColor, t, tCore, locale, eventStyle }: {
   events: CalendarEvent[];
   accentColor: string;
@@ -218,6 +250,8 @@ function DailyView({ events, config, style, today, now, accentColor, t, tCore, l
   const showLocation = config.showLocation !== false;
   const showDescription = config.dailyShowDescription === true;
   const emptyDayText = config.emptyDayText?.trim();
+  const dimPastEvents = config.dimPastEvents === true;
+  const showNowRule = config.showNowRule === true;
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(today, i);
@@ -254,22 +288,47 @@ function DailyView({ events, config, style, today, now, accentColor, t, tCore, l
                   <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
                 </div>
               ) : (
-                dayEvents.map((ev) => {
-                  const start = parseEventWallTime(ev.start, eventStyle.timezone);
-                  const end = parseEventWallTime(ev.end, eventStyle.timezone);
-                  const segment = isAllDayEvent(ev) ? 'single' : classifyTimedSpan(start, end, date);
-                  const status = eventStatusSlot({
-                    start, end,
-                    isAllDayRow: isAllDayEvent(ev) || segment === 'middle',
-                    rowDate: date, now, locale, segment,
-                    showCountdown: config.showCountdown === true,
-                    showProgressBar: config.showProgressBar === true,
-                    countdownAllDay: false,
-                  });
-                  return (
-                    <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
-                  );
-                })
+                (() => {
+                  // The now rule sits right after the last already-ended
+                  // event, so a currently-running one stays above it with
+                  // its live ring/progress bar intact.
+                  const rows: ReactNode[] = [];
+                  let ruleInserted = false;
+                  for (const ev of dayEvents) {
+                    const start = parseEventWallTime(ev.start, eventStyle.timezone);
+                    const end = parseEventWallTime(ev.end, eventStyle.timezone);
+                    const isAllDay = isAllDayEvent(ev);
+                    const segment = isAllDay ? 'single' : classifyTimedSpan(start, end, date);
+                    const isPast = isPastInDailyColumn(end, now, isToday, isAllDay, segment);
+                    const isLive = !isAllDay && !isPast && eventProgress(start, end, now) != null;
+                    // All-day rows and 'middle' segments (a multi-day timed
+                    // event just passing through today) carry no past/future
+                    // meaning for today's column — eventsForDay sorts by the
+                    // event's original start, which for a 'middle' segment
+                    // can be days ago, so it can't be allowed to trigger
+                    // (or block) the now-rule boundary the way a real
+                    // today-relative event does.
+                    if (showNowRule && isToday && !ruleInserted && !isAllDay && segment !== 'middle' && !isPast) {
+                      rows.push(<NowRule key="now-rule" now={now} accentColor={accentColor} timeFormat={eventStyle.timeFormat} locale={locale} />);
+                      ruleInserted = true;
+                    }
+                    const status = eventStatusSlot({
+                      start, end,
+                      isAllDayRow: isAllDay || segment === 'middle',
+                      rowDate: date, now, locale, segment,
+                      showCountdown: config.showCountdown === true,
+                      showProgressBar: config.showProgressBar === true,
+                      countdownAllDay: false,
+                    });
+                    rows.push(
+                      <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={dimPastEvents && isPast} live={showNowRule && isLive} />
+                    );
+                  }
+                  if (showNowRule && isToday && !ruleInserted) {
+                    rows.push(<NowRule key="now-rule" now={now} accentColor={accentColor} timeFormat={eventStyle.timeFormat} locale={locale} />);
+                  }
+                  return rows;
+                })()
               )}
             </div>
           </div>
@@ -979,15 +1038,27 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       : rawEvents,
     config.titleFilter,
   );
-  const now = createTZDate(timezone);
+  // Sub-minute ticking only while a slot actually needs it: a stalled
+  // countdown ("in 1 minute") or progress bar is visible within a render
+  // cycle, but the now-rule/dimming below tolerate the default cadence just
+  // fine (matches the fullscreen calendar's own NowLine).
+  const wantsFastTick = config.showCountdown === true || config.showProgressBar === true;
+  const now = useTZClock(timezone, wantsFastTick ? 30_000 : 60_000);
   const today = startOfDay(now);
   const viewMode = config.viewMode ?? 'daily';
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
-  // window was widened for a grid view elsewhere on the display.
+  // window was widened for a grid view elsewhere on the display. Daily view
+  // is the exception when dimPastEvents/showNowRule are on: today's already-
+  // ended events must survive so they can be dimmed and the rule positioned
+  // after them — gated on the toggles so default rendering (both off) is
+  // unchanged from before this existed.
+  const keepPastToday = viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true);
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
-    : sourcedEvents.filter((ev) => isEventUpcoming(ev, now, timezone));
+    : sourcedEvents.filter((ev) =>
+        isEventUpcoming(ev, now, timezone) ||
+        (keepPastToday && isSameDay(parseEventWallTime(ev.end, timezone), today)));
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   // Legend ring, named stale banner, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).

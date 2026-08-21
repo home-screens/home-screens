@@ -2303,6 +2303,8 @@
       "showProgressBar": "Show progress on running events",
       "emptyDayText": "Empty day text",
       "emptyDayTextPlaceholder": "Free day!",
+      "dimPastEvents": "Dim Past Events",
+      "showNowRule": "Show Now Rule",
       "separators": "Week and month markers",
       "separatorsNone": "None",
       "separatorsWeeks": "Weeks",

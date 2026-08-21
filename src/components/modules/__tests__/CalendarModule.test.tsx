@@ -130,6 +130,75 @@ describe('CalendarModule past-event visibility per view', () => {
   });
 });
 
+describe('CalendarModule daily view: dimPastEvents / showNowRule', () => {
+  // One event that already ended today, one currently running.
+  const dailyEvents: CalendarEvent[] = [
+    {
+      id: 'ended-today',
+      title: 'Ended Today Standup',
+      start: format(addHours(now, -3), LOCAL),
+      end: format(addHours(now, -2), LOCAL),
+    },
+    {
+      id: 'running-now',
+      title: 'Running Now',
+      start: format(addHours(now, -1), LOCAL),
+      end: format(addHours(now, 1), LOCAL),
+    },
+  ] as CalendarEvent[];
+
+  it('showNowRule alone (dimPastEvents off) keeps the ended event visible and undimmed', () => {
+    const { container, queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'daily', daysToShow: 1, showNowRule: true })} style={style} events={dailyEvents} /></Wrapper>,
+    );
+    expect(queryByText('Ended Today Standup')).not.toBeNull();
+    expect(container.querySelector('[data-now-rule]')).not.toBeNull();
+    const card = container.querySelector('[data-event-id="ended-today"]') as HTMLElement;
+    expect(card.style.opacity).toBe('1');
+  });
+
+  it('dimPastEvents alone (showNowRule off) dims the ended event and renders no now rule', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'daily', daysToShow: 1, dimPastEvents: true })} style={style} events={dailyEvents} /></Wrapper>,
+    );
+    expect(container.querySelector('[data-now-rule]')).toBeNull();
+    const card = container.querySelector('[data-event-id="ended-today"]') as HTMLElement;
+    expect(card.style.opacity).toBe('0.4');
+  });
+
+  it('showNowRule rings the currently-running event but not an ended one', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'daily', daysToShow: 1, showNowRule: true })} style={style} events={dailyEvents} /></Wrapper>,
+    );
+    const running = container.querySelector('[data-event-id="running-now"]') as HTMLElement;
+    const ended = container.querySelector('[data-event-id="ended-today"]') as HTMLElement;
+    expect(running.style.boxShadow).not.toBe('');
+    expect(ended.style.boxShadow).toBe('');
+  });
+
+  it('places the now rule after already-ended events even when a multi-day timed event spans today', () => {
+    // A trip logged with real times (not all-day): started two days ago,
+    // continues two days from now. Its 'middle' segment for today must not
+    // let it masquerade as "not past" and pull the now rule above events
+    // that genuinely already ended today.
+    const multiDayEvents: CalendarEvent[] = [
+      {
+        id: 'trip',
+        title: 'Business Trip',
+        start: format(addHours(addDays(now, -2), -1), LOCAL),
+        end: format(addHours(addDays(now, 2), 1), LOCAL),
+      },
+      ...dailyEvents,
+    ] as CalendarEvent[];
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'daily', daysToShow: 1, showNowRule: true })} style={style} events={multiDayEvents} /></Wrapper>,
+    );
+    const order = Array.from(container.querySelectorAll('[data-event-id], [data-now-rule]'))
+      .map((el) => el.getAttribute('data-event-id') ?? 'now-rule');
+    expect(order.indexOf('now-rule')).toBeGreaterThan(order.indexOf('ended-today'));
+  });
+});
+
 describe('CalendarModule multi-week view', () => {
   it('renders exactly weeksToShow rows starting at the current week', () => {
     // Pinned clock: Wed Jul 15 2026. Sunday-start grid of 4 weeks = Jul 12 – Aug 8.

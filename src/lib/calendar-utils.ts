@@ -456,6 +456,23 @@ export function eventProgress(start: Date, end: Date, now: Date): number | null 
 }
 
 /**
+ * Whether a (non-all-day, non-middle-segment) event in today's daily-view
+ * column has already ended. Unlike the fullscreen views' equivalent check,
+ * this never needs hour-decomposed comparison: the daily view has at most
+ * one "today" column per render, so `end` and `now` are always on the same
+ * calendar day when `isToday` is true and a direct instant comparison holds.
+ */
+export function isPastInDailyColumn(
+  end: Date,
+  now: Date,
+  isToday: boolean,
+  isAllDay: boolean,
+  segment: EventDaySegment,
+): boolean {
+  return isToday && !isAllDay && segment !== 'middle' && end <= now;
+}
+
+/**
  * The one shared status slot on a list-view event row: a countdown before
  * the event starts, a progress fraction while it runs — never both, so the
  * slot can swap contents without layout jitter. All-day rows (and middle

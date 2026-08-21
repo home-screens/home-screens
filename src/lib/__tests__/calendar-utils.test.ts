@@ -19,6 +19,7 @@ import {
   resolveScheduleStart,
   formatCountdown,
   eventProgress,
+  isPastInDailyColumn,
   eventStatusSlot,
   boundaryBetween,
   resolveWeatherPlacement,
@@ -588,6 +589,38 @@ describe('eventProgress', () => {
     expect(eventProgress(start, end, new Date(2026, 7, 19, 15, 0))).toBeNull();
     expect(eventProgress(start, end, new Date(2026, 7, 19, 16, 15))).toBeNull();
     expect(eventProgress(end, start, new Date(2026, 7, 19, 15, 55))).toBeNull();
+  });
+});
+
+describe('isPastInDailyColumn', () => {
+  const now = new Date(2026, 7, 19, 15, 55);
+
+  it('is true once an ended today event is behind now', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 19, 15, 0), now, true, false, 'single')).toBe(true);
+  });
+
+  it('is true at the exact boundary (end === now), matching eventProgress exclusivity', () => {
+    expect(isPastInDailyColumn(now, now, true, false, 'single')).toBe(true);
+  });
+
+  it('is false while the event is still running', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 19, 16, 15), now, true, false, 'single')).toBe(false);
+  });
+
+  it('is false for a future event', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 19, 18, 0), now, true, false, 'single')).toBe(false);
+  });
+
+  it('is false for all-day events regardless of time', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 19, 0, 0), now, true, true, 'single')).toBe(false);
+  });
+
+  it('is false for the middle segment of a multi-day event', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 20, 0, 0), now, true, false, 'middle')).toBe(false);
+  });
+
+  it('is false outside today\'s column even if the instant is behind now', () => {
+    expect(isPastInDailyColumn(new Date(2026, 7, 19, 15, 0), now, false, false, 'single')).toBe(false);
   });
 });
 

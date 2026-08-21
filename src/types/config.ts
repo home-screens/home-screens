@@ -718,6 +718,10 @@ export interface CalendarConfig {
   agendaSeparators?: AgendaSeparators;  // default 'none'
   // Sources present in the rendered window, as dot + name. Default 'off'.
   showLegend?: CalendarLegendPlacement;
+  // Daily view: dim events in today's column that have already ended.
+  dimPastEvents?: boolean;   // default false
+  // Daily view: thin accent rule between today's ended and upcoming events.
+  showNowRule?: boolean;     // default false
 }
 
 // Unified weather module config
