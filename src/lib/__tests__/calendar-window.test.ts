@@ -39,6 +39,17 @@ describe('getCalendarFetchWindow', () => {
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
   });
 
+  it('widens to padded start-of-today for agenda with agendaShowFinishedToday', () => {
+    // Same fromStartOfToday window as the fullscreen day-timeline branch.
+    const screens = [makeScreen([
+      makeModule('calendar', { viewMode: 'agenda', agendaShowFinishedToday: true }),
+    ])];
+    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    expect(win).not.toBeNull();
+    expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
+    expect(win!.timeMax).toBeNull();
+  });
+
   it('widens to the padded month grid for a calendar module in month view', () => {
     const screens = [makeScreen([makeModule('calendar', { viewMode: 'month' })])];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);

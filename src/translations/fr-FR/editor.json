@@ -2284,6 +2284,7 @@
       "titleFilterRemoveTerm": "Supprimer {term}",
       "daysToShow": "Jours à afficher",
       "maxEvents": "Événements max.",
+      "showFinishedToday": "Afficher les événements terminés du jour",
       "weeksToShow": "Semaines affichées",
       "eventsPerCell": "Événements max. par jour",
       "weekStartsOn": "La semaine commence le",

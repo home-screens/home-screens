@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { startOfDay } from 'date-fns';
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
-import { compareEventStarts, isEventUpcoming } from '@/lib/calendar-utils';
+import { compareEventStarts, parseEventWallTime } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { mergeSourceStatus, recordSourceStatus, type SourceFetchResult } from '@/lib/calendar-source-status';
@@ -67,6 +68,7 @@ interface CalendarParams {
   timeMin: string;
   timeMax: string;
   maxEvents: number;
+  timezone: string | undefined;
   icalKey: string;
   icloudKey: string;
 }
@@ -136,11 +138,13 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
     const icloudKey = icloudSources.map(s => `${s.id}:${s.color}:${s.kind}:${s.url}`).join(',');
 
-    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, icalKey, icloudKey };
+    const timezone = config.settings.timezone;
+
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone, icalKey, icloudKey };
   },
-  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents }) =>
-    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax}:${maxEvents}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents }) => {
+  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone }) =>
+    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax}:${maxEvents};tz:${timezone ?? ''}`,
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -253,18 +257,34 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     // would spend the whole budget on the earliest events — with a widened
     // timeMin, that's the past — starving upcoming events and emptying later
     // grid weeks and any co-present agenda/daily view sharing this payload.
-    // Keep the nearest maxEvents upcoming events (the pre-widening guarantee),
-    // then backfill leftover budget with the most recent past events (the ones
-    // nearest today, most likely visible in a grid). With the default
-    // timeMin = now, everything is upcoming and this degenerates to the
-    // original ascending slice.
-    const now = new Date();
-    const upcoming = merged.filter(ev => isEventUpcoming(ev, now));
-    const past = merged.filter(ev => !isEventUpcoming(ev, now));
+    // Keep the nearest maxEvents upcoming events (the pre-widening guarantee).
+    // Events that already ended today ride alongside that budget rather than
+    // inside it: the agenda's agendaShowFinishedToday and the daily /
+    // day-timeline dimming exist to show them, nothing client-side could
+    // recover them if dropped here, and a single day bounds their count
+    // (capped at maxEvents anyway, most recent first, so the payload stays
+    // within 2x the budget). Leftover budget backfills the most recent
+    // earlier events (nearest today, most likely visible in a grid). "Today"
+    // is the display's day, not the server's. With the default timeMin =
+    // now, everything is upcoming and this degenerates to the original slice.
+    const nowWall = parseEventWallTime(new Date().toISOString(), timezone);
+    const todayStart = startOfDay(nowWall);
+    // Partitioned by else-chain so an unparseable end (NaN compares false)
+    // lands in `earlier`, the same "not upcoming" bucket it always had.
+    const upcoming: CalendarEvent[] = [];
+    const endedToday: CalendarEvent[] = [];
+    const earlier: CalendarEvent[] = [];
+    for (const ev of merged) {
+      const end = parseEventWallTime(ev.end, timezone);
+      if (end > nowWall) upcoming.push(ev);
+      else if (end > todayStart) endedToday.push(ev);
+      else earlier.push(ev);
+    }
     const keptUpcoming = upcoming.slice(0, maxEvents);
-    const keptPast = past.slice(Math.max(0, past.length - (maxEvents - keptUpcoming.length)));
+    const keptEndedToday = endedToday.slice(Math.max(0, endedToday.length - maxEvents));
+    const keptEarlier = earlier.slice(Math.max(0, earlier.length - (maxEvents - keptUpcoming.length)));
     return {
-      events: [...keptPast, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start)),
+      events: [...keptEarlier, ...keptEndedToday, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start)),
       sourceStatus,
     };
   },

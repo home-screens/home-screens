@@ -720,6 +720,10 @@ export interface CalendarConfig {
   emptyDayText?: string;
   // Agenda view: week/month boundary separators (month beats week).
   agendaSeparators?: AgendaSeparators;  // default 'none'
+  // Agenda view: keep events that already ended today on the list (dimmed)
+  // until midnight instead of dropping them the moment they end, and group
+  // an ongoing multi-day event under Today rather than the day it started.
+  agendaShowFinishedToday?: boolean;   // default false
   // Sources present in the rendered window, as dot + name. Default 'off'.
   showLegend?: CalendarLegendPlacement;
   // Daily view: dim events in today's column that have already ended.

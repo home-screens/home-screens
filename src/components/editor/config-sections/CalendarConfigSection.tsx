@@ -37,6 +37,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     accentColor?: string;
     dailyShowDescription?: boolean;
     agendaShowDescription?: boolean;
+    agendaShowFinishedToday?: boolean;
     eventTapDetails?: boolean;
     eventTapStyle?: EventTapStyle;
     weeksToShow?: number;
@@ -216,6 +217,9 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
       {viewMode === 'daily' && (
         <Toggle label={t('common.showDescription')} checked={!!c.dailyShowDescription} onChange={(v) => set({ dailyShowDescription: v })} />
+      )}
+      {viewMode === 'agenda' && (
+        <Toggle label={t('configSections.calendar.showFinishedToday')} checked={c.agendaShowFinishedToday === true} onChange={(v) => set({ agendaShowFinishedToday: v })} />
       )}
       {viewMode === 'agenda' && (
         <Toggle label={t('common.showDescription')} checked={!!c.agendaShowDescription} onChange={(v) => set({ agendaShowDescription: v })} />
