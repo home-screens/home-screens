@@ -2279,7 +2279,7 @@
       "titleFilterRemoveTerm": "Fjern {term}",
       "daysToShow": "Dage der vises",
       "maxEvents": "Maks. antal begivenheder",
-      "hidePastEvents": "Skjul tidligere begivenheder",
+      "showFinishedToday": "Vis dagens afsluttede begivenheder",
       "weeksToShow": "Uger der vises",
       "eventsPerCell": "Maks. begivenheder pr. dag",
       "weekStartsOn": "Ugen starter",

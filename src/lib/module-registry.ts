@@ -389,7 +389,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '#3b82f6',
       dailyShowDescription: false,
       agendaShowDescription: false,
-      agendaHidePastEvents: false,
+      agendaShowFinishedToday: false,
       eventTapDetails: false,
       eventTapStyle: 'sheet',
       showCountdown: false,

@@ -2279,7 +2279,7 @@
       "titleFilterRemoveTerm": "Remove {term}",
       "daysToShow": "Days to Show",
       "maxEvents": "Max Events",
-      "hidePastEvents": "Don't show past events",
+      "showFinishedToday": "Show Today's Finished Events",
       "weeksToShow": "Weeks to Show",
       "eventsPerCell": "Max Events per Day",
       "weekStartsOn": "Week Starts On",

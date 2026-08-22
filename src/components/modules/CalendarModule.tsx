@@ -367,23 +367,30 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
   const showDescription = config.agendaShowDescription === true;
-  const hidePast = config.agendaHidePastEvents === true;
+  const showFinishedToday = config.agendaShowFinishedToday === true;
   const maxEvents = config.maxEvents ?? 20;
   const weekStartsOn = weekStartsOnFor(config.startDay);
 
-  // Sort events chronologically and limit
-  const sorted = [...events]
-    .sort((a, b) => compareEventStarts(a.start, b.start))
-    .slice(0, maxEvents);
+  // maxEvents is an upcoming-first budget. A plain ascending slice would let
+  // events that already ended today (the earliest starts, present only with
+  // agendaShowFinishedToday) crowd out every upcoming row; keep the nearest
+  // upcoming events and backfill leftover budget with the most recent
+  // finished ones. Without finished rows this is the original slice.
+  const isFinished = (ev: CalendarEvent) => parseEventWallTime(ev.end, eventStyle.timezone) <= now;
+  const chronological = [...events].sort((a, b) => compareEventStarts(a.start, b.start));
+  const upcoming = chronological.filter((ev) => !isFinished(ev)).slice(0, maxEvents);
+  const finished = chronological.filter(isFinished);
+  const sorted = [...finished.slice(Math.max(0, finished.length - (maxEvents - upcoming.length))), ...upcoming]
+    .sort((a, b) => compareEventStarts(a.start, b.start));
 
   // Group by day
   const groups: { date: Date; events: CalendarEvent[] }[] = [];
   for (const ev of sorted) {
     const evDate = startOfDay(parseEventWallTime(ev.start, eventStyle.timezone));
-    // With hidePast the list starts at today, so an ongoing multi-day event
-    // that started earlier re-homes under Today instead of anchoring a
-    // past-day group above everything else.
-    const groupDate = hidePast && evDate < today ? today : evDate;
+    // With showFinishedToday the list starts at today, so an ongoing
+    // multi-day event that started earlier re-homes under Today instead of
+    // anchoring a past-day group above everything else.
+    const groupDate = showFinishedToday && evDate < today ? today : evDate;
     const existing = groups.find((g) => isSameDay(g.date, groupDate));
     if (existing) {
       existing.events.push(ev);
@@ -435,16 +442,24 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
             {dayEvents.map((ev) => {
               const start = parseEventWallTime(ev.start, eventStyle.timezone);
               const end = parseEventWallTime(ev.end, eventStyle.timezone);
+              const isAllDay = isAllDayEvent(ev);
+              // A timed event re-homed under Today (started on an earlier
+              // day) must not read as "starts today at <its original
+              // time>": classify it day-relative like the daily view does,
+              // so it renders "All day" mid-span or "Until 6:00 PM" on its
+              // last day. Rows grouped under their own start day keep the
+              // plain time + duration.
+              const segment = !isAllDay && !isSameDay(start, date) ? classifyTimedSpan(start, end, date) : undefined;
               const status = eventStatusSlot({
                 start, end,
-                isAllDayRow: isAllDayEvent(ev),
-                rowDate: date, now, locale,
+                isAllDayRow: isAllDay || segment === 'middle',
+                rowDate: date, now, locale, segment,
                 showCountdown: config.showCountdown === true,
                 showProgressBar: config.showProgressBar === true,
                 countdownAllDay: false,
               });
               return (
-                <EventCard key={ev.id} event={ev} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
+                <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={isFinished(ev)} />
               );
             })}
           </div>
@@ -1072,23 +1087,20 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const viewMode = config.viewMode ?? 'daily';
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
-  // window was widened for a grid view elsewhere on the display. Daily view
-  // is the exception when dimPastEvents/showNowRule are on: today's already-
-  // ended events must survive so they can be dimmed and the rule positioned
-  // after them — gated on the toggles so default rendering (both off) is
-  // unchanged from before this existed.
-  const keepPastToday = viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true);
-  // agendaHidePastEvents moves the cutoff from "now" to start of today:
-  // events that ended earlier today stay visible, and ongoing multi-day
-  // events survive to be re-homed under Today by the agenda grouping.
-  const agendaFromToday = viewMode === 'agenda' && config.agendaHidePastEvents === true;
+  // window was widened for a grid view elsewhere on the display, unless the
+  // view opts into keeping events that already ended today: daily's
+  // dimPastEvents/showNowRule (dimmed rows, rule positioned after them) and
+  // agenda's agendaShowFinishedToday (dimmed rows, ongoing multi-day events
+  // re-homed under Today). Gated on the toggles so default rendering is
+  // unchanged from before any of them existed.
+  const keepFinishedToday =
+    (viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true)) ||
+    (viewMode === 'agenda' && config.agendaShowFinishedToday === true);
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
     : sourcedEvents.filter((ev) =>
-        agendaFromToday
-          ? parseEventWallTime(ev.end, timezone) > today
-          : isEventUpcoming(ev, now, timezone) ||
-            (keepPastToday && isSameDay(parseEventWallTime(ev.end, timezone), today)));
+        isEventUpcoming(ev, now, timezone) ||
+        (keepFinishedToday && parseEventWallTime(ev.end, timezone) > today));
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   // Legend ring, named stale banner, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).

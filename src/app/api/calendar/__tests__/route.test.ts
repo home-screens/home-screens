@@ -312,9 +312,11 @@ describe('ICS + Google Calendar merging', () => {
     const body = await res.json(); const json = body.events ?? body;
 
     // 28-day window / 7-day default → 4x → cap 20; all 24 don't fit but far
-    // more than the raw 5 survive (the whole point of issue #21).
+    // more than the raw 5 survive (the whole point of issue #21). The at(0)
+    // event has already ended (end = start = "now") and so rides alongside
+    // the budget rather than inside it: 20 + 1.
     expect(json.length).toBeGreaterThan(5);
-    expect(json.length).toBe(20);
+    expect(json.length).toBe(21);
   });
 
   it('does not let past events starve upcoming ones when the budget is exceeded', async () => {
@@ -345,6 +347,32 @@ describe('ICS + Google Calendar merging', () => {
     expect(titles).toContain('Past D');
     expect(titles).toContain('Past C');
     expect(titles).not.toContain('Past A');
+  });
+
+  it('keeps events that ended earlier today ahead of later upcoming ones', async () => {
+    // The agenda's agendaShowFinishedToday widens timeMin to start of today
+    // so today's finished events reach the display. They must neither be
+    // backfilled from leftover budget (a dense week would silently drop the
+    // rows the flag exists to show) nor eat the upcoming budget (a small cap
+    // would drop every upcoming row instead); they ride alongside it. Window
+    // pinned to the default span so no scaling applies.
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 2, daysAhead: 7 }));
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const endedToday = new Date(todayStart.getTime() + 60_000).toISOString();
+
+    mockFetchGoogle.mockResolvedValue({ events: [
+      makeEvent('y1', at(-48), 'Yesterday'),
+      makeEvent('e1', endedToday, 'Ended today'),
+      makeEvent('u1', at(24), 'Upcoming A'),
+      makeEvent('u2', at(48), 'Upcoming B'),
+    ], results: [{ id: 'mock-ok', ok: true }] });
+
+    const req = makeRequest({ timeMin: at(-72), timeMax: at(96) });
+    const res = await GET(req);
+    const body = await res.json(); const json = body.events ?? body;
+
+    const titles = json.map((e: CalendarEvent) => e.title);
+    expect(titles).toEqual(['Ended today', 'Upcoming A', 'Upcoming B']);
   });
 
   it('returns ICS events when Google fails (partial success)', async () => {

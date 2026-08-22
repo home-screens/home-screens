@@ -39,13 +39,10 @@ describe('getCalendarFetchWindow', () => {
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
   });
 
-  it('widens to padded start-of-today for agenda with agendaHidePastEvents', () => {
-    // The flag keeps events that ended earlier today visible, so the feed
-    // must reach back to midnight — the server's "now" default would starve
-    // the module of exactly those rows. Same shape as the fullscreen
-    // day-timeline branch (start of today, no explicit end).
+  it('widens to padded start-of-today for agenda with agendaShowFinishedToday', () => {
+    // Same fromStartOfToday window as the fullscreen day-timeline branch.
     const screens = [makeScreen([
-      makeModule('calendar', { viewMode: 'agenda', agendaHidePastEvents: true }),
+      makeModule('calendar', { viewMode: 'agenda', agendaShowFinishedToday: true }),
     ])];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     expect(win).not.toBeNull();
