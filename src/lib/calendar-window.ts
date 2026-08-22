@@ -70,6 +70,13 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
       const start = startOfWeek(now, { weekStartsOn });
       return { start, end: addWeeks(start, weeks) };
     }
+    if (view === 'agenda' && (mod.config as Partial<CalendarConfig>).agendaHidePastEvents === true) {
+      // The flag keeps events that ended earlier today visible, so the feed
+      // must reach back to midnight — the server's "now" default would
+      // starve the module of exactly those rows. Same shape as the
+      // fullscreen day-timeline branch (start of today, no explicit end).
+      return { start: startOfDay(now), end: null };
+    }
     return null; // daily / agenda: upcoming only
   }
   if (mod.type === 'fullscreen-calendar') {

@@ -2279,6 +2279,7 @@
       "titleFilterRemoveTerm": "{term} entfernen",
       "daysToShow": "Anzuzeigende Tage",
       "maxEvents": "Max. Termine",
+      "hidePastEvents": "Vergangene Termine ausblenden",
       "weeksToShow": "Angezeigte Wochen",
       "eventsPerCell": "Max. Termine pro Tag",
       "weekStartsOn": "Woche beginnt am",

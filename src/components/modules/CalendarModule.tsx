@@ -367,6 +367,7 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
   const showDescription = config.agendaShowDescription === true;
+  const hidePast = config.agendaHidePastEvents === true;
   const maxEvents = config.maxEvents ?? 20;
   const weekStartsOn = weekStartsOnFor(config.startDay);
 
@@ -379,11 +380,15 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
   const groups: { date: Date; events: CalendarEvent[] }[] = [];
   for (const ev of sorted) {
     const evDate = startOfDay(parseEventWallTime(ev.start, eventStyle.timezone));
-    const existing = groups.find((g) => isSameDay(g.date, evDate));
+    // With hidePast the list starts at today, so an ongoing multi-day event
+    // that started earlier re-homes under Today instead of anchoring a
+    // past-day group above everything else.
+    const groupDate = hidePast && evDate < today ? today : evDate;
+    const existing = groups.find((g) => isSameDay(g.date, groupDate));
     if (existing) {
       existing.events.push(ev);
     } else {
-      groups.push({ date: evDate, events: [ev] });
+      groups.push({ date: groupDate, events: [ev] });
     }
   }
 
@@ -1073,11 +1078,17 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // after them — gated on the toggles so default rendering (both off) is
   // unchanged from before this existed.
   const keepPastToday = viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true);
+  // agendaHidePastEvents moves the cutoff from "now" to start of today:
+  // events that ended earlier today stay visible, and ongoing multi-day
+  // events survive to be re-homed under Today by the agenda grouping.
+  const agendaFromToday = viewMode === 'agenda' && config.agendaHidePastEvents === true;
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
     : sourcedEvents.filter((ev) =>
-        isEventUpcoming(ev, now, timezone) ||
-        (keepPastToday && isSameDay(parseEventWallTime(ev.end, timezone), today)));
+        agendaFromToday
+          ? parseEventWallTime(ev.end, timezone) > today
+          : isEventUpcoming(ev, now, timezone) ||
+            (keepPastToday && isSameDay(parseEventWallTime(ev.end, timezone), today)));
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   // Legend ring, named stale banner, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).

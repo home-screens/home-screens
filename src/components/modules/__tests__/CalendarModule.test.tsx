@@ -130,6 +130,88 @@ describe('CalendarModule past-event visibility per view', () => {
   });
 });
 
+describe('CalendarModule agenda view: agendaHidePastEvents', () => {
+  // The race-weekend shape from the live display: subscribed motorsport
+  // feeds model a weekend as one long timed event (started days ago, still
+  // running) or a multi-day all-day block. Everything else is a plain
+  // single-day row around them.
+  const agendaEvents: CalendarEvent[] = [
+    {
+      id: 'ongoing-multiday',
+      title: 'Race Weekend',
+      start: format(new Date(2026, 6, 13, 8, 0), LOCAL),   // Monday 08:00
+      end: format(new Date(2026, 6, 16, 18, 0), LOCAL),    // Thursday 18:00
+    },
+    {
+      id: 'allday-yesterday',
+      title: 'Support Series',
+      start: '2026-07-14',
+      end: '2026-07-15',
+      allDay: true,
+    },
+    {
+      id: 'allday-today',
+      title: 'Festival Today',
+      start: '2026-07-15',
+      end: '2026-07-16',
+      allDay: true,
+    },
+    {
+      id: 'ended-today',
+      title: 'Morning Standup',
+      start: format(new Date(2026, 6, 15, 9, 0), LOCAL),
+      end: format(new Date(2026, 6, 15, 10, 0), LOCAL),
+    },
+    {
+      id: 'ended-yesterday',
+      title: 'Tuesday Retro',
+      start: format(new Date(2026, 6, 14, 15, 0), LOCAL),
+      end: format(new Date(2026, 6, 14, 16, 0), LOCAL),
+    },
+    {
+      id: 'tomorrow',
+      title: 'Thursday Race',
+      start: format(new Date(2026, 6, 16, 7, 0), LOCAL),
+      end: format(new Date(2026, 6, 16, 8, 0), LOCAL),
+    },
+  ] as CalendarEvent[];
+
+  it('default (flag off): an ongoing multi-day event groups under its start day', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda' })} style={style} events={agendaEvents} /></Wrapper>,
+    );
+    expect(queryByText('Race Weekend')).not.toBeNull();
+    // Grouped under the Monday it started, not under Today.
+    expect(queryByText('Monday, Jul 13')).not.toBeNull();
+  });
+
+  it('flag on: shows events that ended earlier today', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda', agendaHidePastEvents: true })} style={style} events={agendaEvents} /></Wrapper>,
+    );
+    expect(queryByText('Morning Standup')).not.toBeNull();
+  });
+
+  it('flag on: re-homes an ongoing multi-day event under Today', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda', agendaHidePastEvents: true })} style={style} events={agendaEvents} /></Wrapper>,
+    );
+    expect(queryByText('Race Weekend')).not.toBeNull();
+    expect(queryByText('Monday, Jul 13')).toBeNull();
+    expect(queryByText('Today')).not.toBeNull();
+  });
+
+  it('flag on: hides fully past events, keeps today\'s all-day event', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda', agendaHidePastEvents: true })} style={style} events={agendaEvents} /></Wrapper>,
+    );
+    expect(queryByText('Tuesday Retro')).toBeNull();
+    expect(queryByText('Support Series')).toBeNull();
+    expect(queryByText('Festival Today')).not.toBeNull();
+    expect(queryByText('Thursday Race')).not.toBeNull();
+  });
+});
+
 describe('CalendarModule daily view: dimPastEvents / showNowRule', () => {
   // One event that already ended today, one currently running.
   const dailyEvents: CalendarEvent[] = [

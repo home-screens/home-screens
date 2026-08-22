@@ -566,6 +566,27 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('CAL SEP FAR')(mod); await has('Week of')(mod); },
   },
   {
+    // agendaHidePastEvents: an event that ended at 00:01 today (ended
+    // earlier today at any run time past the first minute of the day) stays
+    // visible, and an ongoing multi-day event started two days ago re-homes
+    // under Today instead of anchoring a weekday-named past-day group.
+    // Without the flag the ended row is filtered out and the weekend sits
+    // under its start day, so both assertions are flag-dependent.
+    type: 'calendar', name: 'agenda-hide-past-events', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      { id: 'chp-1', title: 'CAL RACE WEEKEND', start: calIso(-2, 8), end: calIso(1, 18), allDay: false },
+      { id: 'chp-2', title: 'CAL ENDED TODAY', start: calIso(0, 0, 0), end: calIso(0, 0, 1), allDay: false },
+    ],
+    config: { viewMode: 'agenda', agendaHidePastEvents: true },
+    expect: async (mod) => {
+      await has('CAL RACE WEEKEND')(mod);
+      await has('CAL ENDED TODAY')(mod);
+      // Today renders as "Today" and tomorrow as "Tomorrow", so any
+      // weekday-comma header is a past-day group that should be gone.
+      await expect(mod).not.toContainText(/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), /m);
+    },
+  },
+  {
     // weeksToShow caps the multi-week grid at N rows; the day+31 event has no
     // row at 4 weeks but WOULD render at the 6-week default, so its absence
     // proves the cap took effect. The timed-today event stays in row 1.

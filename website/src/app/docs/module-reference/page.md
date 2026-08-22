@@ -217,6 +217,7 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `showProgressBar` | boolean | `false` | Daily and agenda views: show a progress bar on events happening right now |
 | `emptyDayText` | string | — | Daily view: custom wording for days with no events (for example "Free day!") |
 | `agendaSeparators` | string | `"none"` | Agenda view boundary markers: `none`, `weeks`, or `weeks-and-months` |
+| `agendaHidePastEvents` | boolean | `false` | Agenda view starts the list at today: events that ended earlier today stay visible for the rest of the day, and an event that spans several days (a trip, a race weekend) groups under today while it's still running instead of under the day it started |
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |

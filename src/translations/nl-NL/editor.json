@@ -2279,6 +2279,7 @@
       "titleFilterRemoveTerm": "{term} verwijderen",
       "daysToShow": "Aantal dagen tonen",
       "maxEvents": "Max. evenementen",
+      "hidePastEvents": "Afgelopen gebeurtenissen verbergen",
       "weeksToShow": "Weken tonen",
       "eventsPerCell": "Max. evenementen per dag",
       "weekStartsOn": "Week begint op",
