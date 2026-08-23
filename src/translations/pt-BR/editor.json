@@ -3311,6 +3311,16 @@
       "badgeFilled": "Selo colorido",
       "matchesEveryEvent": "No momento esta regra vale para todos os eventos. Acrescente acima uma palavra, um calendário ou outro detalhe para restringi-la.",
       "matchesEveryDay": "No momento esta regra vale para todos os dias. Acrescente acima algum detalhe para restringi-la."
+    },
+    "calendarGroups": {
+      "whatShows": "O que aparece",
+      "eventRows": "Linhas de evento",
+      "look": "Aparência",
+      "touch": "Toque",
+      "advancedLooks": "Aparência avançada",
+      "ruleCountNone": "nenhuma",
+      "ruleCountOne": "1 regra",
+      "ruleCountOther": "{count} regras"
     }
   },
   "imageBrowsers": {

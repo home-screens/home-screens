@@ -3311,6 +3311,16 @@
       "badgeFilled": "Insignia de color",
       "matchesEveryEvent": "Ahora mismo esta regla afecta a todos los eventos. Añade arriba una palabra, un calendario u otro detalle para acotarla.",
       "matchesEveryDay": "Ahora mismo esta regla afecta a todos los días. Añade arriba algún detalle para acotarla."
+    },
+    "calendarGroups": {
+      "whatShows": "Qué se muestra",
+      "eventRows": "Filas de eventos",
+      "look": "Aspecto",
+      "touch": "Toque",
+      "advancedLooks": "Aspecto avanzado",
+      "ruleCountNone": "ninguna",
+      "ruleCountOne": "1 regla",
+      "ruleCountOther": "{count} reglas"
     }
   },
   "imageBrowsers": {

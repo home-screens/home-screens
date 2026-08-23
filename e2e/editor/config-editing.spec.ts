@@ -245,6 +245,9 @@ test('calendar: picking a title filter mode before any term survives adding the 
 test('calendar: adding an event rule and a day rule persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar'));
 
+  // The rule lists live behind the collapsed "Advanced looks" group.
+  await page.getByRole('button', { name: /Advanced looks/i }).click();
+
   await autosaved(page, async () => {
     await page.getByRole('button', { name: 'Add an event rule' }).click();
   });
@@ -286,6 +289,8 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
 
 test('fullscreen-calendar: adding an event rule persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-calendar'));
+
+  await page.getByRole('button', { name: /Advanced looks/i }).click();
 
   await autosaved(page, async () => {
     await page.getByRole('button', { name: 'Add an event rule' }).click();

@@ -3306,6 +3306,16 @@
       "badgeFilled": "Farbiges Abzeichen",
       "matchesEveryEvent": "Diese Regel gilt aktuell für jeden Termin. Ergänze oben ein Wort, einen Kalender oder ein anderes Detail, um sie einzugrenzen.",
       "matchesEveryDay": "Diese Regel gilt aktuell für jeden Tag. Ergänze oben ein Detail, um sie einzugrenzen."
+    },
+    "calendarGroups": {
+      "whatShows": "Was angezeigt wird",
+      "eventRows": "Terminzeilen",
+      "look": "Aussehen",
+      "touch": "Tippen",
+      "advancedLooks": "Erweitertes Aussehen",
+      "ruleCountNone": "keine",
+      "ruleCountOne": "1 Regel",
+      "ruleCountOther": "{count} Regeln"
     }
   },
   "imageBrowsers": {

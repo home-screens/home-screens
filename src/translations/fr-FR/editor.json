@@ -3311,6 +3311,16 @@
       "badgeFilled": "Badge coloré",
       "matchesEveryEvent": "Pour l'instant, cette règle vise tous les événements. Ajoutez un mot, un calendrier ou un autre détail ci-dessus pour la préciser.",
       "matchesEveryDay": "Pour l'instant, cette règle vise tous les jours. Ajoutez un détail ci-dessus pour la préciser."
+    },
+    "calendarGroups": {
+      "whatShows": "Ce qui s'affiche",
+      "eventRows": "Lignes d'événement",
+      "look": "Apparence",
+      "touch": "Toucher",
+      "advancedLooks": "Apparence avancée",
+      "ruleCountNone": "aucune",
+      "ruleCountOne": "1 règle",
+      "ruleCountOther": "{count} règles"
     }
   },
   "imageBrowsers": {

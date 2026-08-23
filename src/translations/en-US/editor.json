@@ -3306,6 +3306,16 @@
       "badgeFilled": "Colored badge",
       "matchesEveryEvent": "Right now this rule covers every event. Add a word, calendar, or other detail above to narrow it down.",
       "matchesEveryDay": "Right now this rule covers every day. Add a detail above to narrow it down."
+    },
+    "calendarGroups": {
+      "whatShows": "What shows",
+      "eventRows": "Event rows",
+      "look": "Look",
+      "touch": "Touch",
+      "advancedLooks": "Advanced looks",
+      "ruleCountNone": "none",
+      "ruleCountOne": "1 rule",
+      "ruleCountOther": "{count} rules"
     }
   },
   "imageBrowsers": {

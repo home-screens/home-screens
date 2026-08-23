@@ -3306,6 +3306,16 @@
       "badgeFilled": "Farvet mærke",
       "matchesEveryEvent": "Lige nu gælder denne regel alle begivenheder. Tilføj et ord, en kalender eller en anden detalje ovenfor for at indsnævre den.",
       "matchesEveryDay": "Lige nu gælder denne regel alle dage. Tilføj en detalje ovenfor for at indsnævre den."
+    },
+    "calendarGroups": {
+      "whatShows": "Hvad der vises",
+      "eventRows": "Begivenhedsrækker",
+      "look": "Udseende",
+      "touch": "Tryk",
+      "advancedLooks": "Avanceret udseende",
+      "ruleCountNone": "ingen",
+      "ruleCountOne": "1 regel",
+      "ruleCountOther": "{count} regler"
     }
   },
   "imageBrowsers": {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 
-export default function AccordionSection({ title, defaultOpen = true, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+export default function AccordionSection({ title, defaultOpen = true, badge, children }: { title: string; defaultOpen?: boolean; /** Optional right-aligned summary, so a collapsed section can't hide state. */ badge?: React.ReactNode; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div>
@@ -19,6 +19,9 @@ export default function AccordionSection({ title, defaultOpen = true, children }
           }`}
         />
         <span className="text-xs font-semibold text-hs-text-faint uppercase">{title}</span>
+        {badge != null && (
+          <span className="ml-auto rounded-full bg-hs-card px-2 py-0.5 text-[10px] text-hs-text-faint">{badge}</span>
+        )}
       </button>
       <AnimatePresence initial={false}>
         {open && (

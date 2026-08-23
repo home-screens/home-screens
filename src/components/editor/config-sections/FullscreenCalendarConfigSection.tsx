@@ -11,6 +11,7 @@ import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
+import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement } from '@/types/config';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
@@ -102,26 +103,27 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   const isListView = view === 'agenda' || view === 'week-list';
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
+  const groups = useCalendarGroupLabels();
+
+  // The "this view" heading names the view itself, so the block that swaps
+  // when the picker changes is labelled with what it belongs to.
+  const viewLabel = VIEW_OPTIONS.find((v) => v.value === view)?.label ?? '';
+  const isTimeGrid = view === 'schedule' || view === 'day-timeline';
 
   return (
     <>
-      {/* View Mode */}
       <LabeledSelect
         label={t('configSections.fullscreen-calendar.view')}
         value={view}
         onChange={(v) => set({ view: v })}
         options={VIEW_OPTIONS}
       />
-
-      {/* Density */}
       <LabeledSelect
         label={t('common.density')}
         value={c.density ?? 'cozy'}
         onChange={(v) => set({ density: v })}
         options={DENSITY_OPTIONS}
       />
-
-      {/* Typography Size */}
       <LabeledSelect
         label={t('configSections.fullscreen-calendar.typographySize')}
         value={c.typographySize ?? 'medium'}
@@ -129,58 +131,130 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         options={TYPOGRAPHY_OPTIONS}
       />
 
-      {/* Theme Override */}
-      <FullscreenThemeSelect
-        value={c.theme}
-        onChange={(theme) => set({ theme })}
-        defaultOptionKey="configSections.fullscreen-calendar.themeDefault"
-      />
-
-      {/* Accent Color */}
-      <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
-
-      {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
-      {view !== 'day-timeline' && (
-        <LabeledSelect
-          label={t('configSections.fullscreen-calendar.todayHighlight')}
-          value={c.todayHighlightStyle ?? 'full'}
-          onChange={(v) => set({ todayHighlightStyle: v })}
-          options={TODAY_HIGHLIGHT_OPTIONS}
+      {/* ── What shows: the data coming in, before any styling ── */}
+      <CalendarGroup label={groups.whatShows}>
+        <CalendarSourceFilter
+          keyPrefix="configSections.fullscreen-calendar"
+          availableSources={availableSources}
+          sourceFilter={sourceFilter}
+          onChange={(next) => set({ sourceFilter: next })}
         />
-      )}
+        <CalendarTitleFilterControl
+          keyPrefix="configSections.fullscreen-calendar"
+          titleFilter={c.titleFilter}
+          onChange={(next) => set({ titleFilter: next })}
+        />
+        <LabeledSelect
+          label={t('configSections.fullscreen-calendar.showLegend')}
+          value={c.showLegend ?? 'off'}
+          onChange={(v) => set({ showLegend: v })}
+          options={LEGEND_OPTIONS}
+        />
+      </CalendarGroup>
 
-      {/* Toggles */}
-      <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
-      <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
-      <LabeledSelect
-        label={t('configSections.fullscreen-calendar.weatherPlacement')}
-        // The EFFECTIVE placement for the current view: a richer placement
-        // chosen in another view degrades to the header pill at render time,
-        // and the select shows that same truth instead of an option this
-        // view can't express.
-        value={effectiveWeatherPlacement(view, c)}
-        onChange={(v) => set({ weatherPlacement: v })}
-        options={
-          // Each view offers only the placements it can render: list views
-          // take all five, schedule adds day-column weather, month-grid and
-          // day-timeline have no per-day/per-event surface.
-          WEATHER_PLACEMENT_OPTIONS.filter((o) => {
-            if (o.value === 'off' || o.value === 'header') return true;
-            if (isListView) return true;
-            return view === 'schedule' && o.value === 'days';
-          })
-        }
-      />
-      <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
-
-      {/* List views: status slot + custom empty-day wording */}
-      {isListView && (
-        <>
-          <Toggle label={t('configSections.fullscreen-calendar.showCountdown')} checked={c.showCountdown === true} onChange={(v) => set({ showCountdown: v })} />
-          {c.showCountdown === true && (
-            <Toggle label={t('configSections.fullscreen-calendar.countdownAllDay')} checked={c.countdownAllDay === true} onChange={(v) => set({ countdownAllDay: v })} />
-          )}
-          <Toggle label={t('configSections.fullscreen-calendar.showProgressBar')} checked={c.showProgressBar === true} onChange={(v) => set({ showProgressBar: v })} />
+      {/* ── This view: every view-gated field, pooled ── */}
+      <CalendarGroup label={viewLabel} when={viewLabel !== ''}>
+        {isTimeGrid && (
+          <>
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.startHour')}
+              type="number"
+              min={0}
+              max={23}
+              value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
+              onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
+            />
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.endHour')}
+              type="number"
+              min={1}
+              max={24}
+              value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
+              onChange={(v) => set(view === 'schedule' ? { scheduleHourEnd: Number(v) } : { dayHourEnd: Number(v) })}
+            />
+          </>
+        )}
+        {view === 'schedule' && (
+          <>
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.daysToShowAuto')}
+              type="number"
+              min={0}
+              max={7}
+              value={c.scheduleDaysToShow ?? 0}
+              onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
+            />
+            <LabeledSelect
+              label={t('configSections.fullscreen-calendar.startAnchor')}
+              value={c.scheduleStartAnchor ?? 'today'}
+              onChange={(v) => set({ scheduleStartAnchor: v })}
+              options={START_ANCHOR_OPTIONS}
+            />
+            {c.scheduleStartAnchor === 'start-of-week' && (
+              <LabeledSelect
+                label={t('configSections.calendar.weekStartsOn')}
+                value={c.startDay ?? 'sunday'}
+                onChange={(v) => set({ startDay: v })}
+                options={START_DAY_OPTIONS}
+              />
+            )}
+          </>
+        )}
+        {view === 'week-list' && (
+          <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+        )}
+        {view === 'month-grid' && (
+          <>
+            <Toggle label={t('configSections.fullscreen-calendar.showWeekNumbers')} checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.maxEventsPerCellAuto')}
+              type="number"
+              min={0}
+              max={8}
+              value={c.monthMaxEventsPerCell ?? 0}
+              onChange={(v) => set({ monthMaxEventsPerCell: Number(v) })}
+            />
+          </>
+        )}
+        {view === 'agenda' && (
+          <>
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.daysAhead')}
+              type="number"
+              min={7}
+              max={30}
+              value={c.agendaDaysAhead ?? 14}
+              onChange={(v) => set({ agendaDaysAhead: Number(v) })}
+            />
+            <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
+            <Toggle label={t('configSections.fullscreen-calendar.showFinishedToday')} checked={c.agendaShowFinishedToday === true} onChange={(v) => set({ agendaShowFinishedToday: v })} />
+            <LabeledSelect
+              label={t('configSections.fullscreen-calendar.separators')}
+              value={c.agendaSeparators ?? 'none'}
+              onChange={(v) => set({ agendaSeparators: v })}
+              options={SEPARATOR_OPTIONS}
+            />
+          </>
+        )}
+        {/* Agenda week separators label their week start with the same startDay
+            the grids use, so the select follows the separators option there. */}
+        {(view === 'week-list' || view === 'month-grid' || (view === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
+          <LabeledSelect
+            label={t('configSections.calendar.weekStartsOn')}
+            value={c.startDay ?? 'sunday'}
+            onChange={(v) => set({ startDay: v })}
+            options={START_DAY_OPTIONS}
+          />
+        )}
+        {isTimeGrid && (
+          <LabeledSelect
+            label={t('configSections.fullscreen-calendar.overlappingEvents')}
+            value={c.eventOverlap ?? 'columns'}
+            onChange={(v) => set({ eventOverlap: v })}
+            options={OVERLAP_OPTIONS}
+          />
+        )}
+        {isListView && (
           <LabeledInput
             label={t('configSections.fullscreen-calendar.emptyDayText')}
             type="text"
@@ -188,178 +262,106 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             placeholder={t('configSections.fullscreen-calendar.emptyDayTextPlaceholder')}
             onChange={(v) => set({ emptyDayText: v })}
           />
-        </>
-      )}
+        )}
+      </CalendarGroup>
 
-      {/* Touch: tap an event to open a detail overlay */}
-      <Toggle label={t('configSections.fullscreen-calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
-      {c.eventTapDetails === true && (
-        <LabeledSelect
-          label={t('configSections.fullscreen-calendar.eventTapStyle')}
-          value={c.eventTapStyle ?? 'sheet'}
-          onChange={(v) => set({ eventTapStyle: v })}
-          options={TAP_STYLE_OPTIONS}
-        />
-      )}
-
-      {(view === 'schedule' || view === 'day-timeline') && (
-        <LabeledSelect
-          label={t('configSections.fullscreen-calendar.overlappingEvents')}
-          value={c.eventOverlap ?? 'columns'}
-          onChange={(v) => set({ eventOverlap: v })}
-          options={OVERLAP_OPTIONS}
-        />
-      )}
-
-      {(view === 'schedule' || view === 'month-grid') && (
-        <Toggle
-          label={t('configSections.fullscreen-calendar.wrapEventTitles')}
-          checked={!!c.wrapEventTitles}
-          onChange={(v) => set({ wrapEventTitles: v })}
-        />
-      )}
-
-      {/* Agenda needs it too once week separators are on — their week label
-          follows the same startDay the grids use. */}
-      {(view === 'week-list' || view === 'month-grid' || (view === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
-        <LabeledSelect
-          label={t('configSections.calendar.weekStartsOn')}
-          value={c.startDay ?? 'sunday'}
-          onChange={(v) => set({ startDay: v })}
-          options={START_DAY_OPTIONS}
-        />
-      )}
-
-      {/* Show description — each view stores it under its own config key */}
-      {view !== 'month-grid' && (
-        <Toggle
-          label={t('common.showDescription')}
-          checked={!!c[SHOW_DESCRIPTION_KEY[view]]}
-          onChange={(v) => set({ [SHOW_DESCRIPTION_KEY[view]]: v })}
-        />
-      )}
-
-      {/* Source filter */}
-      <CalendarSourceFilter
-        keyPrefix="configSections.fullscreen-calendar"
-        availableSources={availableSources}
-        sourceFilter={sourceFilter}
-        onChange={(next) => set({ sourceFilter: next })}
-      />
-
-      {/* Title keyword filter */}
-      <CalendarTitleFilterControl
-        keyPrefix="configSections.fullscreen-calendar"
-        titleFilter={c.titleFilter}
-        onChange={(next) => set({ titleFilter: next })}
-      />
-
-      <CalendarRulesEditor
-        eventRules={c.eventRules}
-        dayRules={c.dayRules}
-        availableSources={availableSources}
-        onChange={(patch) => set(patch)}
-      />
-
-      {/* Source legend */}
-      <LabeledSelect
-        label={t('configSections.fullscreen-calendar.showLegend')}
-        value={c.showLegend ?? 'off'}
-        onChange={(v) => set({ showLegend: v })}
-        options={LEGEND_OPTIONS}
-      />
-
-      {/* View-specific settings */}
-      {(view === 'schedule' || view === 'day-timeline') && (
-        <>
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.startHour')}
-            type="number"
-            min={0}
-            max={23}
-            value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
-            onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
+      {/* ── Event rows: how one event reads ── */}
+      {/* No `when` guard because Dim Past Events below is unconditional, which
+          is the only thing keeping this group non-empty for month-grid (its
+          other row is wrapEventTitles). View-gate that toggle and this needs a
+          guard like the compact module's. */}
+      <CalendarGroup label={groups.eventRows}>
+        {view !== 'month-grid' && (
+          <Toggle
+            label={t('common.showDescription')}
+            checked={!!c[SHOW_DESCRIPTION_KEY[view]]}
+            onChange={(v) => set({ [SHOW_DESCRIPTION_KEY[view]]: v })}
           />
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.endHour')}
-            type="number"
-            min={1}
-            max={24}
-            value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
-            onChange={(v) => set(view === 'schedule' ? { scheduleHourEnd: Number(v) } : { dayHourEnd: Number(v) })}
+        )}
+        {view === 'day-timeline' && (
+          <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
+        )}
+        {(view === 'schedule' || view === 'month-grid') && (
+          <Toggle
+            label={t('configSections.fullscreen-calendar.wrapEventTitles')}
+            checked={c.wrapEventTitles === true}
+            onChange={(v) => set({ wrapEventTitles: v })}
           />
-        </>
-      )}
+        )}
+        {isListView && (
+          <>
+            <Toggle label={t('configSections.fullscreen-calendar.showCountdown')} checked={c.showCountdown === true} onChange={(v) => set({ showCountdown: v })} />
+            {c.showCountdown === true && (
+              <Toggle label={t('configSections.fullscreen-calendar.countdownAllDay')} checked={c.countdownAllDay === true} onChange={(v) => set({ countdownAllDay: v })} />
+            )}
+            <Toggle label={t('configSections.fullscreen-calendar.showProgressBar')} checked={c.showProgressBar === true} onChange={(v) => set({ showProgressBar: v })} />
+          </>
+        )}
+        <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
+      </CalendarGroup>
 
-      {view === 'schedule' && (
-        <>
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.daysToShowAuto')}
-            type="number"
-            min={0}
-            max={7}
-            value={c.scheduleDaysToShow ?? 0}
-            onChange={(v) => set({ scheduleDaysToShow: Number(v) })}
-          />
+      {/* ── Look: whole-module styling ── */}
+      <CalendarGroup label={groups.look}>
+        <FullscreenThemeSelect
+          value={c.theme}
+          onChange={(theme) => set({ theme })}
+          defaultOptionKey="configSections.fullscreen-calendar.themeDefault"
+        />
+        <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
+        {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
+        {view !== 'day-timeline' && (
           <LabeledSelect
-            label={t('configSections.fullscreen-calendar.startAnchor')}
-            value={c.scheduleStartAnchor ?? 'today'}
-            onChange={(v) => set({ scheduleStartAnchor: v })}
-            options={START_ANCHOR_OPTIONS}
+            label={t('configSections.fullscreen-calendar.todayHighlight')}
+            value={c.todayHighlightStyle ?? 'full'}
+            onChange={(v) => set({ todayHighlightStyle: v })}
+            options={TODAY_HIGHLIGHT_OPTIONS}
           />
-          {c.scheduleStartAnchor === 'start-of-week' && (
-            <LabeledSelect
-              label={t('configSections.calendar.weekStartsOn')}
-              value={c.startDay ?? 'sunday'}
-              onChange={(v) => set({ startDay: v })}
-              options={START_DAY_OPTIONS}
-            />
-          )}
-        </>
-      )}
+        )}
+        <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
+        <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+        <LabeledSelect
+          label={t('configSections.fullscreen-calendar.weatherPlacement')}
+          // The EFFECTIVE placement for the current view: a richer placement
+          // chosen in another view degrades to the header pill at render time,
+          // and the select shows that same truth instead of an option this
+          // view can't express.
+          value={effectiveWeatherPlacement(view, c)}
+          onChange={(v) => set({ weatherPlacement: v })}
+          options={
+            // Each view offers only the placements it can render: list views
+            // take all five, schedule adds day-column weather, month-grid and
+            // day-timeline have no per-day/per-event surface.
+            WEATHER_PLACEMENT_OPTIONS.filter((o) => {
+              if (o.value === 'off' || o.value === 'header') return true;
+              if (isListView) return true;
+              return view === 'schedule' && o.value === 'days';
+            })
+          }
+        />
+      </CalendarGroup>
 
-      {view === 'week-list' && (
-        <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
-      )}
+      {/* ── Advanced looks: the rule engines, collapsed ── */}
+      <CalendarRulesGroup eventRules={c.eventRules} dayRules={c.dayRules}>
+        <CalendarRulesEditor
+          eventRules={c.eventRules}
+          dayRules={c.dayRules}
+          availableSources={availableSources}
+          onChange={(patch) => set(patch)}
+        />
+      </CalendarRulesGroup>
 
-      {view === 'month-grid' && (
-        <>
-          <Toggle label={t('configSections.fullscreen-calendar.showWeekNumbers')} checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.maxEventsPerCellAuto')}
-            type="number"
-            min={0}
-            max={8}
-            value={c.monthMaxEventsPerCell ?? 0}
-            onChange={(v) => set({ monthMaxEventsPerCell: Number(v) })}
-          />
-        </>
-      )}
-
-      {view === 'day-timeline' && (
-        <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
-      )}
-
-      {view === 'agenda' && (
-        <>
-          <LabeledInput
-            label={t('configSections.fullscreen-calendar.daysAhead')}
-            type="number"
-            min={7}
-            max={30}
-            value={c.agendaDaysAhead ?? 14}
-            onChange={(v) => set({ agendaDaysAhead: Number(v) })}
-          />
-          <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
-          <Toggle label={t('configSections.fullscreen-calendar.showFinishedToday')} checked={c.agendaShowFinishedToday === true} onChange={(v) => set({ agendaShowFinishedToday: v })} />
+      {/* ── Touch: interaction, not appearance ── */}
+      <CalendarGroup label={groups.touch}>
+        <Toggle label={t('configSections.fullscreen-calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
+        {c.eventTapDetails === true && (
           <LabeledSelect
-            label={t('configSections.fullscreen-calendar.separators')}
-            value={c.agendaSeparators ?? 'none'}
-            onChange={(v) => set({ agendaSeparators: v })}
-            options={SEPARATOR_OPTIONS}
+            label={t('configSections.fullscreen-calendar.eventTapStyle')}
+            value={c.eventTapStyle ?? 'sheet'}
+            onChange={(v) => set({ eventTapStyle: v })}
+            options={TAP_STYLE_OPTIONS}
           />
-        </>
-      )}
+        )}
+      </CalendarGroup>
     </>
   );
 }

@@ -3306,6 +3306,16 @@
       "badgeFilled": "Gekleurde badge",
       "matchesEveryEvent": "Deze regel geldt nu voor elke afspraak. Voeg hierboven een woord, agenda of ander detail toe om hem te beperken.",
       "matchesEveryDay": "Deze regel geldt nu voor elke dag. Voeg hierboven een detail toe om hem te beperken."
+    },
+    "calendarGroups": {
+      "whatShows": "Wat er te zien is",
+      "eventRows": "Afspraakregels",
+      "look": "Uiterlijk",
+      "touch": "Tikken",
+      "advancedLooks": "Geavanceerd uiterlijk",
+      "ruleCountNone": "geen",
+      "ruleCountOne": "1 regel",
+      "ruleCountOther": "{count} regels"
     }
   },
   "imageBrowsers": {
