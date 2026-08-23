@@ -13,7 +13,8 @@ import { Menu, ChevronUp, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
 import { Logo } from '@/components/Logo';
-import { siteNavLinks } from '@/lib/site-navigation';
+import { DiscordIcon } from '@/components/DiscordIcon';
+import { DISCORD_INVITE_URL, siteNavLinks } from '@/lib/site-navigation';
 
 function MobileNavLink({
   href,
@@ -62,6 +63,15 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link
+              href={DISCORD_INVITE_URL}
+              className="hidden text-neutral-400 transition-colors hover:text-white lg:block"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Join us on Discord"
+            >
+              <DiscordIcon className="h-5 w-5" />
+            </Link>
             <Link
               href="https://github.com/home-screens/home-screens"
               className="hidden text-neutral-400 transition-colors hover:text-white lg:block"
@@ -129,6 +139,10 @@ export function Header() {
                             >
                               <Github className="h-4 w-4" />
                               GitHub
+                            </Button>
+                            <Button href={DISCORD_INVITE_URL} variant="outline">
+                              <DiscordIcon className="h-4 w-4" />
+                              Discord
                             </Button>
                             <Button href="/docs/getting-started">
                               Get Started

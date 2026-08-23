@@ -2,6 +2,10 @@
   <img src="docs/images/home-screens-logo.svg" alt="Home Screens" width="282">
 </p>
 
+<p align="center">
+  <a href="https://discord.gg/KafmFuSNU"><img src="https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white" alt="Join us on Discord"></a>
+</p>
+
 # Home Screens
 
 An open-source smart display system built with Next.js. Runs on a Raspberry Pi in Chromium kiosk mode — a fully self-hosted, web-based replacement for Dakboard and MagicMirror.

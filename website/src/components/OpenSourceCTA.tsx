@@ -6,6 +6,8 @@ import { Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/Container';
+import { DiscordIcon } from '@/components/DiscordIcon';
+import { DISCORD_INVITE_URL } from '@/lib/site-navigation';
 import { useLatestVersion } from '@/hooks/useLatestVersion';
 
 export function OpenSourceCTA() {
@@ -43,6 +45,10 @@ export function OpenSourceCTA() {
             <Button href="https://github.com/home-screens/home-screens">
               <Github className="h-4 w-4" />
               View on GitHub
+            </Button>
+            <Button href={DISCORD_INVITE_URL} variant="outline">
+              <DiscordIcon className="h-4 w-4" />
+              Join us on Discord
             </Button>
             <Button
               href="https://github.com/home-screens/home-screens#quick-start"

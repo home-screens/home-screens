@@ -11,7 +11,8 @@ import { MobileNavigation } from '@/components/docs/MobileNavigation'
 import { Navigation } from '@/components/docs/Navigation'
 import { Search } from '@/components/docs/Search'
 import { ThemeSelector } from '@/components/docs/ThemeSelector'
-import { siteNavLinks } from '@/lib/site-navigation'
+import { DiscordIcon } from '@/components/DiscordIcon'
+import { DISCORD_INVITE_URL, siteNavLinks } from '@/lib/site-navigation'
 
 function GitHubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -68,6 +69,15 @@ function Header() {
         <div className="flex items-center gap-6 sm:gap-8">
           <Search />
           <ThemeSelector className="relative z-10" />
+          <Link
+            href={DISCORD_INVITE_URL}
+            className="group"
+            aria-label="Join us on Discord"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <DiscordIcon className="h-6 w-6 text-slate-400 group-hover:text-slate-500 dark:group-hover:text-slate-300" />
+          </Link>
           <Link
             href="https://github.com/home-screens/home-screens"
             className="group"

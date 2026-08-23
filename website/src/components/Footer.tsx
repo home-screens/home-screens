@@ -1,6 +1,6 @@
 import { Container } from '@/components/Container';
 import { Logo } from '@/components/Logo';
-import { siteNavLinks } from '@/lib/site-navigation';
+import { DISCORD_INVITE_URL, siteNavLinks } from '@/lib/site-navigation';
 
 // The footer renders on every marketing surface, not just the homepage, so the
 // homepage section links have to come from siteNavLinks (which uses absolute
@@ -30,6 +30,7 @@ const columns = [
     title: 'Project',
     links: [
       { label: 'GitHub', href: 'https://github.com/home-screens/home-screens' },
+      { label: 'Discord', href: DISCORD_INVITE_URL },
       { label: 'Issues', href: 'https://github.com/home-screens/home-screens/issues' },
       { label: 'License', href: 'https://github.com/home-screens/home-screens/blob/main/LICENSE' },
     ],
