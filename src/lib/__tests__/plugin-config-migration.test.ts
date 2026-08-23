@@ -220,7 +220,7 @@ describe('applyMigrationToModule', () => {
     }
   });
 
-  // The exact example published in website/src/app/docs/plugins/page.md.
+  // The exact example published in website/content/docs/plugins.md.
   it('matches the documented 1.0.0 to 1.2.0 example', () => {
     const manifest = stubManifest({
       version: '1.2.0',

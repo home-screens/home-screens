@@ -455,9 +455,10 @@ npm run dev     # next dev --webpack
 npm run build   # next build --webpack
 ```
 
-The `--webpack` flag is **required**, not optional: docs pages are authored in Markdoc, which is not Turbopack-compatible, so a bare `next build` fails. Both scripts in `website/package.json` already carry it, so use them rather than calling `next` directly.
+The `--webpack` flag is **required**, not optional: the docs search index is built by a webpack loader (`website/src/markdoc/search.mjs`), which Turbopack cannot run, so a bare `next build` fails. Both scripts in `website/package.json` already carry it, so use them rather than calling `next` directly.
 
-- Docs pages are Markdoc files at `website/src/app/docs/<slug>/page.md`
+- Docs pages are Markdoc files at `website/content/docs/<slug>.md`, rendered by the `/docs/[slug]` route
+- Blog posts live alongside them at `website/content/blog/<slug>.md`
 - The sidebar order lives in `website/src/lib/docs-navigation.ts`
 - Product counts (module count, category count, weather-provider count, locale count) come from `website/src/lib/stats.ts` and are written into pages as Markdoc variables, for example `$stats.moduleCount` in a Markdoc interpolation. Never hard-code these numbers in prose; a Vitest test in the main repo asserts the values against the live module registry, so a stale literal fails `npm test`.
 

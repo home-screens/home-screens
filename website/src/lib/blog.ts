@@ -22,7 +22,7 @@ interface BlogFrontmatter {
   image?: string
 }
 
-const BLOG_DIR = path.join(process.cwd(), 'src', 'app', '(marketing)', 'blog')
+const BLOG_DIR = path.join(process.cwd(), 'content', 'blog')
 
 function extractFrontmatter(md: string): BlogFrontmatter {
   const match = md.match(/^---\n([\s\S]*?)\n---/)
@@ -37,9 +37,9 @@ export function getAllPosts(): BlogPost[] {
   const posts: BlogPost[] = []
 
   for (const entry of entries) {
-    if (!entry.isDirectory()) continue
-    const pagePath = path.join(BLOG_DIR, entry.name, 'page.md')
-    if (!fs.existsSync(pagePath)) continue
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+    const slug = entry.name.replace(/\.md$/, '')
+    const pagePath = path.join(BLOG_DIR, entry.name)
 
     const md = fs.readFileSync(pagePath, 'utf8')
     const fm = extractFrontmatter(md)
@@ -47,14 +47,14 @@ export function getAllPosts(): BlogPost[] {
     if (!fm.title || !fm.date) continue
 
     posts.push({
-      slug: entry.name,
+      slug,
       title: fm.title,
       description: fm.description ?? '',
       date: fm.date,
       category: fm.category ?? 'Updates',
       author: fm.author ?? 'Bryan',
       image: fm.image,
-      href: `/blog/${entry.name}`,
+      href: `/blog/${slug}`,
     })
   }
 

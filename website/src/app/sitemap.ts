@@ -9,6 +9,7 @@ import { getChangelog, RECENT_ENTRY_LIMIT } from '@/lib/changelog'
 export const dynamic = 'force-static'
 
 const APP_DIR = path.join(process.cwd(), 'src', 'app')
+const CONTENT_DIR = path.join(process.cwd(), 'content')
 
 function getFileLastModified(filePath: string): Date {
   try {
@@ -26,8 +27,8 @@ function getFileLastModified(filePath: string): Date {
 }
 
 function docPageLastModified(href: string): Date {
-  const rel = href === '/docs' ? '' : href.replace('/docs/', '')
-  return getFileLastModified(path.join(APP_DIR, 'docs', rel, 'page.md'))
+  const slug = href === '/docs' ? 'index' : href.replace('/docs/', '')
+  return getFileLastModified(path.join(CONTENT_DIR, 'docs', `${slug}.md`))
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -111,7 +112,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...getAllPosts().map((post) => ({
       url: `${baseUrl}${post.href}`,
       lastModified: getFileLastModified(
-        path.join(APP_DIR, '(marketing)', 'blog', post.slug, 'page.md'),
+        path.join(CONTENT_DIR, 'blog', `${post.slug}.md`),
       ),
       changeFrequency: 'monthly' as const,
       priority: 0.7,

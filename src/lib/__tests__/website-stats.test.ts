@@ -64,7 +64,7 @@ function countStandingsLeagues(): number {
   return (match[1].match(/{ value: '[a-z_0-9]+', label:/g) ?? []).length;
 }
 
-const WEBSITE_DOCS = path.join(REPO_ROOT, 'website/src/app/docs');
+const WEBSITE_DOCS = path.join(REPO_ROOT, 'website/content/docs');
 
 /**
  * Read a website doc page and assert the substring exists. Used for the few
@@ -128,7 +128,7 @@ describe('website stats stay in sync with the codebase', () => {
   // assertions make sure those literals match stats.ts.
   it('module-reference frontmatter description carries MODULE_COUNT', () => {
     assertContains(
-      path.join(WEBSITE_DOCS, 'module-reference/page.md'),
+      path.join(WEBSITE_DOCS, 'module-reference.md'),
       `all ${MODULE_COUNT} built-in Home Screens modules`,
       'module-reference frontmatter',
     );
@@ -136,7 +136,7 @@ describe('website stats stay in sync with the codebase', () => {
 
   it('modules guide frontmatter description carries MODULE_CATEGORY_COUNT', () => {
     assertContains(
-      path.join(WEBSITE_DOCS, 'modules/page.md'),
+      path.join(WEBSITE_DOCS, 'modules.md'),
       `the ${MODULE_CATEGORY_COUNT} categories of built-in modules`,
       'modules-guide frontmatter',
     );
@@ -144,7 +144,7 @@ describe('website stats stay in sync with the codebase', () => {
 
   it('development guide file-tree code block carries MODULE_COUNT', () => {
     assertContains(
-      path.join(WEBSITE_DOCS, 'development/page.md'),
+      path.join(WEBSITE_DOCS, 'development.md'),
       `All ${MODULE_COUNT} module components`,
       'development file-tree code block',
     );

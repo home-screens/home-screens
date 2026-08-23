@@ -50,14 +50,14 @@ export default function withSearch(nextConfig = {}) {
         test: __filename,
         use: [
           createLoader(function () {
-            let pagesDir = path.resolve('./src/app')
-            this.addContextDependency(pagesDir)
+            let contentDir = path.resolve('./content')
+            this.addContextDependency(contentDir)
 
-            let files = glob.sync('**/page.md', { cwd: pagesDir })
+            let files = glob.sync('**/*.md', { cwd: contentDir })
             let data = files.map((file) => {
-              let url =
-                file === 'page.md' ? '/' : `/${file.replace(/\/page\.md$/, '')}`
-              let md = fs.readFileSync(path.join(pagesDir, file), 'utf8')
+              // content/docs/index.md -> /docs, content/docs/api.md -> /docs/api
+              let url = `/${file.replace(/\.md$/, '').replace(/\/index$/, '')}`
+              let md = fs.readFileSync(path.join(contentDir, file), 'utf8')
 
               let sections
 
