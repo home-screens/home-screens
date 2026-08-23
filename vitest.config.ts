@@ -14,7 +14,15 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     // `**/e2e/**` catches both the source e2e/ dir and the copy that `next build`
     // places under .next/standalone/; `.next/**` keeps all build output out.
-    exclude: ['.worktrees/**', '**/node_modules/**', '**/e2e/**', '.next/**'],
+    // `.claude/**` is a local scratch directory that can hold Playwright specs
+    // vitest must not try to run.
+    exclude: [
+      '.worktrees/**',
+      '**/node_modules/**',
+      '**/e2e/**',
+      '.next/**',
+      '.claude/**',
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
