@@ -33,6 +33,14 @@ export const WEATHER_REFRESH_MS = 5 * 60 * 1000;
 // Calendar refresh interval (5 minutes)
 export const CALENDAR_REFRESH_MS = 5 * 60 * 1000;
 
+// How often the display recomputes the calendar shared-state keys
+// (calendar-state.ts) between fetches. "In 12 minutes" and "busy now" go
+// stale on the clock, not on new data, so this is a wall-clock tick rather
+// than a refetch. One minute matches the granularity the values are
+// published at; the store coalesces identical re-publishes, so a quiet
+// calendar costs nothing downstream.
+export const CALENDAR_STATE_REPUBLISH_MS = 60 * 1000;
+
 // Fallback for settings.calendar.daysAhead. The calendar API route and the
 // client-side fetch-window computation (getCalendarFetchWindow callers) must
 // agree on this value: clients omit timeMax from the URL whenever the default

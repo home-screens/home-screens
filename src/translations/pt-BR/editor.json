@@ -3548,5 +3548,16 @@
       "hint": "Deixe os dois horários vazios para o dia todo. Se o fim for antes do início, ele cruza a meia-noite (como das 22:00 às 6:00)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Nome do próximo evento",
+      "nextEventStart": "Data e hora do próximo evento",
+      "nextEventTime": "Horário do próximo evento",
+      "nextEventInMinutes": "Minutos até o próximo evento",
+      "eventsToday": "Eventos de hoje",
+      "busyNow": "Há um evento acontecendo agora",
+      "allDayToday": "Hoje há um evento de dia inteiro"
+    }
   }
 }

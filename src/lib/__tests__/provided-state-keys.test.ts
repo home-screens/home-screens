@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import type { ModuleInstance, ModuleType, Screen } from '@/types/config';
+import type { CalendarSettings, ModuleInstance, ModuleType, Screen } from '@/types/config';
 import { collectProvidedStateKeys, isStateProducerType } from '../provided-state-keys';
+import { CALENDAR_STATE_KEYS } from '../calendar-state';
 
 // Definitions are controlled per-test; malformed shapes must be testable
 // here even though registerPluginModule filters them on the real path
@@ -138,6 +139,68 @@ describe('collectProvidedStateKeys', () => {
       { key: 'plugin:strava:current_streak', label: 'Current streak' },
       { key: 'plugin:ha:door', label: 'Door' },
     ]);
+  });
+});
+
+describe('collectProvidedStateKeys host keys', () => {
+  beforeEach(() => {
+    defs.clear();
+  });
+
+  const t = (key: string) => `t:${key}`;
+  const calendar = (over: Partial<CalendarSettings> = {}): CalendarSettings => ({
+    googleCalendarId: '',
+    googleCalendarIds: [],
+    icalSources: [],
+    maxEvents: 10,
+    daysAhead: 30,
+    ...over,
+  });
+
+  it('offers the calendar keys when a calendar source is configured', () => {
+    const keys = collectProvidedStateKeys([], {
+      t,
+      calendar: calendar({ googleCalendarIds: ['family@example.com'] }),
+    });
+    expect(keys.map((k) => k.key)).toEqual(Object.values(CALENDAR_STATE_KEYS));
+  });
+
+  it('recognizes every source type, not just Google', () => {
+    const feeds: Partial<CalendarSettings>[] = [
+      { googleCalendarId: 'legacy@example.com' },
+      { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://x/y.ics', color: '#fff', enabled: true }] },
+      { icloudSources: [{ id: 'c1', accountId: 'a1', kind: 'birthdays', url: '', name: 'Birthdays', color: '#fff', enabled: true }] },
+      { holidayCountry: 'US' },
+    ];
+    for (const over of feeds) {
+      expect(collectProvidedStateKeys([], { t, calendar: calendar(over) })).not.toEqual([]);
+    }
+  });
+
+  it('withholds them when nothing would ever be fetched', () => {
+    expect(collectProvidedStateKeys([], { t, calendar: calendar() })).toEqual([]);
+    expect(collectProvidedStateKeys([], { t })).toEqual([]);
+    // A disabled feed is not a source.
+    expect(collectProvidedStateKeys([], {
+      t,
+      calendar: calendar({ icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://x/y.ics', color: '#fff', enabled: false }] }),
+    })).toEqual([]);
+  });
+
+  it('omits them entirely when no host context is passed', () => {
+    defs.set('plugin:ha', { providesState: [{ key: 'plugin:ha:door', label: 'Door' }] });
+    const keys = collectProvidedStateKeys(screensWith(makeModule({ type: 'plugin:ha' })));
+    expect(keys).toEqual([{ key: 'plugin:ha:door', label: 'Door' }]);
+  });
+
+  it('lists host keys ahead of plugin keys', () => {
+    defs.set('plugin:ha', { providesState: [{ key: 'plugin:ha:door', label: 'Door' }] });
+    const keys = collectProvidedStateKeys(screensWith(makeModule({ type: 'plugin:ha' })), {
+      t,
+      calendar: calendar({ holidayCountry: 'US' }),
+    });
+    expect(keys[0].key).toBe(CALENDAR_STATE_KEYS.nextEventTitle);
+    expect(keys.at(-1)).toEqual({ key: 'plugin:ha:door', label: 'Door' });
   });
 });
 

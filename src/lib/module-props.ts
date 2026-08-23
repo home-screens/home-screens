@@ -183,6 +183,21 @@ export function buildModuleProps(
   return props;
 }
 
+/**
+ * Events out of the raw `/api/calendar` payload, tolerating both shapes the
+ * route has emitted: a bare array, and the `{ events, sourceStatus }` object
+ * it returns today. `null` means "nothing fetched yet", which callers must
+ * keep distinct from an empty feed.
+ *
+ * Shared with the shared-state publisher in `useSharedDisplayData`, so the
+ * bus and the modules can never disagree about what the feed contained.
+ */
+export function extractCalendarEvents(calendarData: unknown): unknown[] | null {
+  if (!calendarData) return null;
+  if (Array.isArray(calendarData)) return calendarData;
+  return ((calendarData as Record<string, unknown>).events as unknown[] | undefined) ?? [];
+}
+
 /** Adapter: kiosk display. Coordinates come from settings, payloads from the
  *  once-per-display shared fetch. */
 export function toDisplaySource(
@@ -210,11 +225,7 @@ export function toDisplaySource(
       payloadFor: (provider) =>
         (sharedData[PROVIDER_KEY[provider]] as WeatherPayload | null | undefined) ?? null,
     },
-    calendarEvents: calendarData
-      ? (Array.isArray(calendarData)
-        ? calendarData
-        : ((calendarData as Record<string, unknown>).events as unknown[] | undefined) ?? [])
-      : null,
+    calendarEvents: extractCalendarEvents(calendarData),
     calendarStatus: sharedData.calendarStatus,
     // Rides the kept-last-good payload: while the whole fetch is failing the
     // display keeps serving the previous body, so the per-source statuses in

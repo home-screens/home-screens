@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { getCalendarFetchWindow, buildCalendarUrl, hasCalendarFeedSources } from '@/lib/calendar-window';
-import type { ModuleInstance, ModuleType, Screen } from '@/types/config';
+import { getCalendarFetchWindow, buildCalendarUrl, googleCalendarIdList, hasAnyCalendarSource, hasCalendarFeedSources } from '@/lib/calendar-window';
+import type { CalendarSettings, ModuleInstance, ModuleType, Screen } from '@/types/config';
 
 function makeModule(type: ModuleType, config: Record<string, unknown>, enabled?: boolean): ModuleInstance {
   return {
@@ -301,5 +301,44 @@ describe('hasCalendarFeedSources', () => {
   it('is true for ical-only and holiday-only setups', () => {
     expect(hasCalendarFeedSources({ icalSources: [ical] })).toBe(true);
     expect(hasCalendarFeedSources({ holidayCountry: 'US' })).toBe(true);
+  });
+});
+
+describe('googleCalendarIdList', () => {
+  it('prefers the multi-calendar list and falls back to the legacy single field', () => {
+    expect(googleCalendarIdList({ googleCalendarIds: ['a', 'b'], googleCalendarId: 'legacy' })).toEqual(['a', 'b']);
+    expect(googleCalendarIdList({ googleCalendarIds: [], googleCalendarId: 'legacy' })).toEqual(['legacy']);
+    expect(googleCalendarIdList({ googleCalendarIds: [], googleCalendarId: '' })).toEqual([]);
+    expect(googleCalendarIdList({})).toEqual([]);
+  });
+});
+
+describe('hasAnyCalendarSource', () => {
+  const base: CalendarSettings = {
+    googleCalendarId: '',
+    googleCalendarIds: [],
+    icalSources: [],
+    maxEvents: 10,
+    daysAhead: 30,
+  };
+
+  it('agrees with buildCalendarUrl on whether anything is fetched', () => {
+    const cases: Partial<CalendarSettings>[] = [
+      {},
+      { googleCalendarIds: ['family@example.com'] },
+      { googleCalendarId: 'legacy@example.com' },
+      { holidayCountry: 'US' },
+      { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://example.com/a.ics', color: '#000', enabled: true }] },
+      { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://example.com/a.ics', color: '#000', enabled: false }] },
+    ];
+    for (const over of cases) {
+      const calendar = { ...base, ...over };
+      const url = buildCalendarUrl(googleCalendarIdList(calendar), hasCalendarFeedSources(calendar), null, 0);
+      expect(hasAnyCalendarSource(calendar)).toBe(url !== '');
+    }
+  });
+
+  it('is false without settings', () => {
+    expect(hasAnyCalendarSource(undefined)).toBe(false);
   });
 });

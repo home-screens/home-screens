@@ -114,7 +114,10 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
     () => (config ? getActiveScreens(config, selectedDisplayId) : []),
     [config, selectedDisplayId],
   );
-  const providedKeys = useMemo(() => collectProvidedStateKeys(screens), [screens]);
+  const providedKeys = useMemo(
+    () => collectProvidedStateKeys(screens, { t, calendar: config?.settings.calendar }),
+    [screens, config, t],
+  );
 
   // Mirrors exactly what the config write gate will reject, so nothing
   // unsaveable goes unexplained (same posture as VisibilityConditionsSection).

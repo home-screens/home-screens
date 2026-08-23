@@ -289,9 +289,11 @@ function AvailableTab({ selectedDisplayId }: { selectedDisplayId: string | null 
   const [expandedRuns, setExpandedRuns] = useState<Set<string>>(new Set());
 
   const options = useMemo(
-    () => (config ? collectProvidedStateKeys(getActiveScreens(config, selectedDisplayId)) : []),
+    () => (config
+      ? collectProvidedStateKeys(getActiveScreens(config, selectedDisplayId), { t, calendar: config.settings.calendar })
+      : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- plugins triggers the recompute; collectProvidedStateKeys reads the registry, not the map.
-    [config, selectedDisplayId, plugins],
+    [config, selectedDisplayId, plugins, t],
   );
 
   // Search is gated on this tab being mounted (it only renders while active),

@@ -3548,5 +3548,16 @@
       "hint": "Laissez les deux heures vides pour toute la journée. Une fin plus tôt que le début passe après minuit (par exemple 22 h 00 à 6 h 00)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Nom du prochain événement",
+      "nextEventStart": "Date et heure du prochain événement",
+      "nextEventTime": "Heure du prochain événement",
+      "nextEventInMinutes": "Minutes avant le prochain événement",
+      "eventsToday": "Événements aujourd'hui",
+      "busyNow": "Un événement est en cours",
+      "allDayToday": "Un événement sur toute la journée a lieu aujourd'hui"
+    }
   }
 }

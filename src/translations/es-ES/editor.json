@@ -3548,5 +3548,16 @@
       "hint": "Deja ambas horas vacías para todo el día. Si el final es antes que el inicio, cruza la medianoche (como de 22:00 a 6:00)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Nombre del próximo evento",
+      "nextEventStart": "Fecha y hora del próximo evento",
+      "nextEventTime": "Hora del próximo evento",
+      "nextEventInMinutes": "Minutos hasta el próximo evento",
+      "eventsToday": "Eventos de hoy",
+      "busyNow": "Hay un evento en curso",
+      "allDayToday": "Hoy hay un evento de todo el día"
+    }
   }
 }

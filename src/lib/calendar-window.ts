@@ -195,6 +195,30 @@ export function hasCalendarFeedSources(
 }
 
 /**
+ * The Google calendar ids the shared fetch asks for: the multi-calendar list
+ * when it has entries, else the single legacy field. One reader so the fetch
+ * hook and `hasAnyCalendarSource` can never disagree about whether a Google
+ * calendar is configured.
+ */
+export function googleCalendarIdList(
+  calendar: Partial<Pick<CalendarSettings, 'googleCalendarIds' | 'googleCalendarId'>>,
+): string[] {
+  if (calendar.googleCalendarIds?.length) return calendar.googleCalendarIds;
+  return calendar.googleCalendarId ? [calendar.googleCalendarId] : [];
+}
+
+/**
+ * True when anything at all would be fetched — a Google calendar id or any
+ * server-resolved feed. Exactly the condition under which `buildCalendarUrl`
+ * returns a non-empty URL, so it also answers "will this display ever publish
+ * calendar shared state?" for the editor's key picker.
+ */
+export function hasAnyCalendarSource(calendar: CalendarSettings | undefined): boolean {
+  if (!calendar) return false;
+  return googleCalendarIdList(calendar).length > 0 || hasCalendarFeedSources(calendar);
+}
+
+/**
  * Build the `/api/calendar` URL for the shared display fetch. Kept pure and
  * separate from the hook so the URL-stability contract is unit-testable: the
  * URL must be byte-stable across renders within a day (a per-render or

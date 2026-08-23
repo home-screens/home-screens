@@ -3542,5 +3542,16 @@
       "hint": "Beide Zeiten leer lassen für den ganzen Tag. Ist das Ende früher als der Anfang, geht es über Mitternacht (z. B. 22:00 bis 06:00 Uhr)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Name des nächsten Termins",
+      "nextEventStart": "Datum und Uhrzeit des nächsten Termins",
+      "nextEventTime": "Uhrzeit des nächsten Termins",
+      "nextEventInMinutes": "Minuten bis zum nächsten Termin",
+      "eventsToday": "Termine heute",
+      "busyNow": "Gerade läuft ein Termin",
+      "allDayToday": "Heute steht ein ganztägiger Termin an"
+    }
   }
 }

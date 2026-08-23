@@ -3542,5 +3542,16 @@
       "hint": "Lad begge tider stå tomme for hele dagen. Er sluttidspunktet tidligere end starten, går det over midnat (fx 22:00 til 06:00)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Navn på næste begivenhed",
+      "nextEventStart": "Dato og klokkeslæt for næste begivenhed",
+      "nextEventTime": "Klokkeslæt for næste begivenhed",
+      "nextEventInMinutes": "Minutter til næste begivenhed",
+      "eventsToday": "Begivenheder i dag",
+      "busyNow": "Der er en begivenhed i gang nu",
+      "allDayToday": "Der er en heldagsbegivenhed i dag"
+    }
   }
 }

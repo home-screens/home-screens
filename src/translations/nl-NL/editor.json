@@ -3542,5 +3542,16 @@
       "hint": "Laat beide tijden leeg voor de hele dag. Als het einde vóór de start ligt, loopt het door na middernacht (zoals 22:00 tot 06:00)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Naam van de volgende afspraak",
+      "nextEventStart": "Datum en tijd van de volgende afspraak",
+      "nextEventTime": "Tijdstip van de volgende afspraak",
+      "nextEventInMinutes": "Minuten tot de volgende afspraak",
+      "eventsToday": "Afspraken vandaag",
+      "busyNow": "Er is nu een afspraak bezig",
+      "allDayToday": "Vandaag is er een afspraak van de hele dag"
+    }
   }
 }

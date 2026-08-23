@@ -310,7 +310,7 @@ Controls when a module (or profile) is active based on day of week and time wind
 
 ### ModuleVisibility
 
-Shows or hides a module based on values published to the shared state bus. Only plugins publish, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, none of which publish anything. Conditions follow Home Assistant-style semantics.
+Shows or hides a module based on values published to the shared state bus. Most values come from plugins, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, which do not publish anything of their own. Home Screens itself publishes a small set of built-in `calendar.*` values from the display's shared calendar fetch (next event, how many events today, whether something is on right now) whenever a calendar source is configured — those need no module on screen and survive rotation. Conditions follow Home Assistant-style semantics.
 
 ```typescript
 {
@@ -342,7 +342,7 @@ type VisibilityCondition =
   | { kind: 'not';     conditions: VisibilityCondition[] }
 ```
 
-`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`). Conditions are edited visually in the editor's module Visibility panel; the key picker is sourced from the keys plugins declare in their manifest's `providesState` field, or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
+`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`, built-in ones are not). Conditions are edited visually in the editor's module Visibility panel; the key picker lists the built-in values first, under **Built-in**, followed by the keys plugins declare in their manifest's `providesState` field or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
 
 Save-time limits: at most 32 conditions per module (leaves and groups combined) and 5 levels of `and` / `or` / `not` nesting, and a group condition must have at least one child. Exceeding any of these makes `PUT /api/config` fail with a 400 rather than saving.
 

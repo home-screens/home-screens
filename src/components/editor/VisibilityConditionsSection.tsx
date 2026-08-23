@@ -143,9 +143,11 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
   const plugins = usePluginStore((s) => s.plugins);
 
   const providedKeys = useMemo(
-    () => collectProvidedStateKeys(config ? getActiveScreens(config, selectedDisplayId) : []),
+    () => (config
+      ? collectProvidedStateKeys(getActiveScreens(config, selectedDisplayId), { t, calendar: config.settings.calendar })
+      : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- plugins triggers the recompute; collectProvidedStateKeys reads the registry, not the map. Matches SharedStateSection.
-    [config, selectedDisplayId, plugins],
+    [config, selectedDisplayId, plugins, t],
   );
 
   const searchAvailable = useMemo(

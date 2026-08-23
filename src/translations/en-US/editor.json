@@ -3542,5 +3542,16 @@
       "hint": "Leave both times empty for all day. An end earlier than the start crosses midnight (like 10:00 PM to 6:00 AM)."
     },
     "providerHealthNote": "{plugin}: {message}"
+  },
+  "stateKeys": {
+    "calendar": {
+      "nextEventTitle": "Next event name",
+      "nextEventStart": "Next event date and time",
+      "nextEventTime": "Next event start time",
+      "nextEventInMinutes": "Minutes until the next event",
+      "eventsToday": "Events today",
+      "busyNow": "An event is happening now",
+      "allDayToday": "An all-day event is on today"
+    }
   }
 }

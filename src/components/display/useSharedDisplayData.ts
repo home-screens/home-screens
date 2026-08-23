@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import type { Screen, GlobalSettings } from '@/types/config';
-import { resolveProvider, type SharedDisplayData } from '@/lib/module-props';
+import { extractCalendarEvents, resolveProvider, type SharedDisplayData } from '@/lib/module-props';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useFetchData } from '@/hooks/useFetchData';
 import { WEATHER_REFRESH_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
@@ -11,8 +11,13 @@ import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import { getLocation } from '@/lib/location';
 import { isModuleEnabled } from '@/lib/schedule';
-import { getCalendarFetchWindow, buildCalendarUrl, hasCalendarFeedSources } from '@/lib/calendar-window';
+import { getCalendarFetchWindow, buildCalendarUrl, googleCalendarIdList, hasCalendarFeedSources } from '@/lib/calendar-window';
+import { CALENDAR_STATE_KEY_LIST, deriveCalendarState } from '@/lib/calendar-state';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { CALENDAR_STATE_REPUBLISH_MS } from '@/lib/constants';
 import { createTZDate } from '@/lib/timezone';
+import { useFormattingLocale } from '@/i18n';
+import { DEFAULT_TIME_FORMAT, type CalendarEvent } from '@/types/config';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
@@ -111,9 +116,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
   }, [globalWeatherData, settings.weather.units]);
 
-  const calendarIdList = settings.calendar.googleCalendarIds?.length
-    ? settings.calendar.googleCalendarIds
-    : settings.calendar.googleCalendarId ? [settings.calendar.googleCalendarId] : [];
+  const calendarIdList = googleCalendarIdList(settings.calendar);
   const hasFeedSources = hasCalendarFeedSources(settings.calendar);
   // Widen the fetch window when a month/week grid view is on some screen;
   // day-boundary based, so the URL stays stable across renders.
@@ -132,6 +135,39 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     () => ({ error: calendarError, updatedAt: calendarUpdatedAt }),
     [calendarError, calendarUpdatedAt],
   );
+
+  // Publish calendar facts to the shared-state bus (see calendar-state.ts).
+  // Deliberately here rather than in a calendar module: these values must
+  // survive screen rotation and exist on displays that show no calendar.
+  //
+  // The interval recomputes without touching React state — "in 12 minutes"
+  // and "busy now" go stale on the clock, not on new data, and a ticking
+  // `useState` in this hook would re-render the whole rotator every minute
+  // on a Pi. Only modules subscribed to these exact keys re-render.
+  const timezone = settings.timezone;
+  const timeFormat = settings.timeFormat ?? DEFAULT_TIME_FORMAT;
+  const locale = useFormattingLocale();
+  useEffect(() => {
+    const events = extractCalendarEvents(calendarData) as CalendarEvent[] | null;
+    // No payload means nothing is being fetched: either no calendar source is
+    // configured, or the first fetch hasn't landed. The producer genuinely has
+    // no values, so release the keys instead of leaving the last ones frozen
+    // on the bus — `useFetchData` nulls its data the moment the URL empties,
+    // and config is live-polled, so deleting the last calendar reaches a
+    // running display within seconds. A failing fetch keeps its last-good
+    // payload, so an upstream outage never takes this path.
+    if (!events) {
+      for (const key of CALENDAR_STATE_KEY_LIST) sharedStateStore.clearKey(key);
+      return;
+    }
+    const tick = () => {
+      const values = deriveCalendarState(events, createTZDate(timezone), { timezone, timeFormat, locale });
+      for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
+    };
+    tick();
+    const timer = setInterval(tick, CALENDAR_STATE_REPUBLISH_MS);
+    return () => clearInterval(timer);
+  }, [calendarData, timezone, timeFormat, locale]);
 
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.
