@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
+import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, listViewCutoff, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildHourlyIndex, type HourlyIndex } from './event-weather';
 import { toTZWallTime } from '@/lib/timezone';
 import { parseHexToRgb } from '@/lib/hex-color';
@@ -121,23 +121,24 @@ function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): Calenda
 /**
  * Events a fullscreen-calendar view should render: source-filtered, then
  * title-filtered, then — for the agenda view only — narrowed to upcoming
- * events. The other views (schedule, week-list, month-grid, day-timeline)
- * render fixed day/week/month ranges and intentionally show past events
- * (dimmed via `dimPastEvents`), so they take the shared feed as-is. Exported
- * for unit testing this branch without rendering the whole component.
+ * events, or to events ending today or later when `showFinishedToday` is
+ * on (the agenda iterates days from today, so finished rows land under
+ * today and dim via `dimPastEvents`). The other views (schedule, week-list,
+ * month-grid, day-timeline) render fixed day/week/month ranges and
+ * intentionally show past events, so they take the shared feed as-is.
+ * Exported for unit testing this branch without rendering the component.
  */
 export function selectVisibleEvents(
   events: CalendarEvent[],
   view: FullscreenCalendarConfig['view'],
   sourceFilter: string[] | undefined,
   now: Date,
-  timezone?: string,
-  titleFilter?: CalendarTitleFilter,
+  opts: { timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean } = {},
 ): CalendarEvent[] {
-  const filtered = applyTitleFilter(filterEvents(events, sourceFilter), titleFilter);
-  return view === 'agenda'
-    ? filtered.filter(ev => isEventUpcoming(ev, now, timezone))
-    : filtered;
+  const filtered = applyTitleFilter(filterEvents(events, sourceFilter), opts.titleFilter);
+  if (view !== 'agenda') return filtered;
+  const cutoff = listViewCutoff(now, opts.showFinishedToday === true);
+  return filtered.filter(ev => isEventUpcoming(ev, cutoff, opts.timezone));
 }
 
 // ─── Color helpers (safe alpha + dark-mode adjustment) ───
@@ -349,8 +350,10 @@ export default function FullscreenCalendarModule({
   });
 
   const events = useMemo(
-    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter),
-    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter],
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, {
+      timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
+    }),
+    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter, config.agendaShowFinishedToday],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);

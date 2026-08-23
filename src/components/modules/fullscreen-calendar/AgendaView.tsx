@@ -19,6 +19,11 @@ interface DayGroupEvent {
   segment: EventDaySegment;
 }
 
+// With agendaShowFinishedToday, finished rows sort first under Today and the
+// view has no row cap or scrolling, so a busy day could push every upcoming
+// row below the fold. Keep only the most recent few finished rows.
+const FINISHED_TODAY_MAX = 3;
+
 export function AgendaView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -35,7 +40,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
     const groups: { date: Date; events: DayGroupEvent[]; boundary: ReturnType<typeof boundaryBetween> }[] = [];
     for (let i = 0; i < daysAhead; i++) {
       const date = addDays(today, i);
-      const dayEvents = events
+      let dayEvents = events
         .filter(ev => isEventOnDay(ev, date, timezone))
         .map(ev => ({ ev, segment: classifyEventOnDay(ev, date, timezone) }))
         .sort((a, b) => {
@@ -46,6 +51,12 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           if (aAll !== bAll) return aAll ? -1 : 1;
           return compareEventStarts(a.ev.start, b.ev.start);
         });
+      if (i === 0 && config.agendaShowFinishedToday === true) {
+        const finished = dayEvents.filter(({ ev, segment }) =>
+          ev.allDay !== true && segment !== 'middle' && parseEventWallTime(ev.end, timezone) <= now);
+        const dropped = new Set(finished.slice(0, Math.max(0, finished.length - FINISHED_TODAY_MAX)).map(d => d.ev.id));
+        if (dropped.size > 0) dayEvents = dayEvents.filter(d => !dropped.has(d.ev.id));
+      }
 
       if (config.agendaHideEmptyDays && dayEvents.length === 0) continue;
       // Boundary vs the previous RENDERED group, computed here on the full
@@ -57,7 +68,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
       groups.push({ date, events: dayEvents, boundary });
     }
     return groups;
-  }, [events, today, daysAhead, config.agendaHideEmptyDays, config.agendaSeparators, weekStartsOn, timezone]);
+  }, [events, today, now, daysAhead, config.agendaHideEmptyDays, config.agendaShowFinishedToday, config.agendaSeparators, weekStartsOn, timezone]);
 
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);

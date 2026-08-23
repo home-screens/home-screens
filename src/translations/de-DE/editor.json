@@ -2530,6 +2530,7 @@
       "showLocation": "Ort anzeigen",
       "daysAhead": "Tage in die Zukunft",
       "hideEmptyDays": "Leere Tage ausblenden",
+      "showFinishedToday": "Heutige beendete Termine anzeigen",
       "eventTapDetails": "Termin antippen, um Details zu sehen",
       "eventTapStyle": "Stil der Detailansicht",
       "eventTapStyleSheet": "Panel von unten",

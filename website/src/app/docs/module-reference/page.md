@@ -67,6 +67,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `dayShowDescription` | boolean | `false` | Show the event description under the title in day timeline view |
 | `agendaDaysAhead` | number | `14` | Days ahead to show in agenda view (7–30) |
 | `agendaHideEmptyDays` | boolean | `false` | Hide days with no events in agenda view |
+| `agendaShowFinishedToday` | boolean | `false` | Agenda view keeps events that already ended today on the list (dimmed) until midnight instead of dropping them as they end |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title in agenda view |
 | `agendaSeparators` | string | `"none"` | Boundary markers in agenda view: `none`, `weeks` (a "Week of" rule at each week start), or `weeks-and-months` (plus a month divider; the month marker wins when both land on the same day) |
 

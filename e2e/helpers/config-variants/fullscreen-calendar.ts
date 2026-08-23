@@ -413,6 +413,21 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('AGENDA ONLY')(mod); await expect(mod).not.toContainText('No events'); },
   },
   {
+    // agendaShowFinishedToday: an event that ended at 00:01 today is present
+    // with the flag and gone from the flag-off companion (same feed), so the
+    // row fails if the agenda ever stops filtering finished events.
+    type: 'fullscreen-calendar', name: 'agenda-show-finished-today', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'aft1', title: 'AGENDA ENDED TODAY', start: isoTimed(0, 0, 0), end: isoTimed(0, 0, 1), allDay: false, calendarColor: BLUE }],
+    companions: [{ type: 'fullscreen-calendar', config: { view: 'agenda', agendaShowFinishedToday: false } }],
+    config: { view: 'agenda', agendaShowFinishedToday: true },
+    expect: async (mod, page) => {
+      await has('AGENDA ENDED TODAY')(mod);
+      const off = page.locator('[data-module-id="companion-0"]');
+      await expect(off).toBeVisible();
+      await expect(off).not.toContainText('AGENDA ENDED TODAY');
+    },
+  },
+  {
     type: 'fullscreen-calendar', name: 'agenda-show-description', kind: 'networked', stubKey: 'calendar', stubBody: AGENDA_DESC,
     config: { view: 'agenda', agendaShowDescription: true },
     expect: has('AGENDADESC E2E'),

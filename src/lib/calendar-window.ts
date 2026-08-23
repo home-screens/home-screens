@@ -22,11 +22,12 @@ import type {
  * for grids that extend past the `daysAhead` default, the latest
  * `timeMax`) that any enabled calendar module needs.
  *
- * List views filter client-side (CalendarModule's `keepFinishedToday` gate
- * over `isEventUpcoming`), so widening the shared fetch never leaks past
- * events into them; the views that keep today's finished events (agenda
- * `agendaShowFinishedToday`, fullscreen day-timeline) widen to start of
- * today here via `fromStartOfToday`.
+ * List views filter client-side (`isEventUpcoming` against
+ * `listViewCutoff`, in CalendarModule's `allEvents` gate and
+ * FullscreenCalendarModule's `selectVisibleEvents`), so widening the shared
+ * fetch never leaks past events into them; the views that keep today's
+ * finished events (both agendas' `agendaShowFinishedToday`, fullscreen
+ * day-timeline) widen to start of today here via `fromStartOfToday`.
  */
 export interface CalendarFetchWindow {
   /** ISO instant to fetch from — earlier than the server's "now" default. */
@@ -61,6 +62,11 @@ function fromStartOfToday(now: Date): ModuleWindow {
   return { start: startOfDay(now), end: null };
 }
 
+/** Both agenda views: upcoming-only (server default) unless the flag keeps today's finished events. */
+function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date): ModuleWindow | null {
+  return config.agendaShowFinishedToday === true ? fromStartOfToday(now) : null;
+}
+
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
@@ -81,10 +87,8 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
       const start = startOfWeek(now, { weekStartsOn });
       return { start, end: addWeeks(start, weeks) };
     }
-    if (view === 'agenda' && (mod.config as Partial<CalendarConfig>).agendaShowFinishedToday === true) {
-      return fromStartOfToday(now);
-    }
-    return null; // daily / agenda without the flag: upcoming only
+    if (view === 'agenda') return agendaWindow(mod.config as Partial<CalendarConfig>, now);
+    return null; // daily: upcoming only
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;
@@ -109,7 +113,8 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
       // Renders all of today; earlier events show dimmed via dimPastEvents
       return fromStartOfToday(now);
     }
-    return null; // agenda: upcoming only
+    if (view === 'agenda') return agendaWindow(mod.config as Partial<FullscreenCalendarConfig>, now);
+    return null;
   }
   return null;
 }

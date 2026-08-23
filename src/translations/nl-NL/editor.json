@@ -2530,6 +2530,7 @@
       "showLocation": "Locatie tonen",
       "daysAhead": "Dagen vooruit",
       "hideEmptyDays": "Lege dagen verbergen",
+      "showFinishedToday": "Afgelopen gebeurtenissen van vandaag tonen",
       "eventTapDetails": "Tik op een afspraak voor details",
       "eventTapStyle": "Stijl van details",
       "eventTapStyleSheet": "Paneel van onderen",

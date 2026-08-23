@@ -2530,6 +2530,7 @@
       "showLocation": "Vis sted",
       "daysAhead": "Dage frem",
       "hideEmptyDays": "Skjul tomme dage",
+      "showFinishedToday": "Vis dagens afsluttede begivenheder",
       "eventTapDetails": "Tryk på en begivenhed for at se detaljer",
       "eventTapStyle": "Detaljestil",
       "eventTapStyleSheet": "Panel nedefra",

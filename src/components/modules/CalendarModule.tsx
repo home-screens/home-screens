@@ -6,7 +6,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindGlyph, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventUpcoming, listViewCutoff, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindGlyph, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
 import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
@@ -1096,11 +1096,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const keepFinishedToday =
     (viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true)) ||
     (viewMode === 'agenda' && config.agendaShowFinishedToday === true);
+  const cutoff = listViewCutoff(now, keepFinishedToday);
   const allEvents = isGridView(viewMode)
     ? sourcedEvents
-    : sourcedEvents.filter((ev) =>
-        isEventUpcoming(ev, now, timezone) ||
-        (keepFinishedToday && parseEventWallTime(ev.end, timezone) > today));
+    : sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   // Legend ring, named stale banner, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).

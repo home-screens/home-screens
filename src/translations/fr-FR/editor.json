@@ -2535,6 +2535,7 @@
       "showLocation": "Afficher le lieu",
       "daysAhead": "Jours à venir",
       "hideEmptyDays": "Masquer les jours vides",
+      "showFinishedToday": "Afficher les événements terminés du jour",
       "eventTapDetails": "Toucher un événement pour voir les détails",
       "eventTapStyle": "Style des détails",
       "eventTapStyleSheet": "Panneau coulissant",

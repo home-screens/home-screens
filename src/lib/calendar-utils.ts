@@ -1,4 +1,4 @@
-import { addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { addDays, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
@@ -627,6 +627,18 @@ export function boundaryBetween(
  */
 export function isEventUpcoming(ev: { end: string }, now: Date, timezone?: string): boolean {
   return parseEventWallTime(ev.end, timezone) > now;
+}
+
+/**
+ * Cutoff for a list view's "still worth showing" filter, for use as the
+ * `now` argument of `isEventUpcoming`: the current instant by default, or
+ * start of today when the view keeps events that already ended today (the
+ * compact daily view's dimPastEvents/showNowRule, both agendas'
+ * agendaShowFinishedToday). One threshold compare rather than
+ * "upcoming OR ended after midnight", since start of today <= now.
+ */
+export function listViewCutoff(now: Date, keepFinishedToday: boolean): Date {
+  return keepFinishedToday ? startOfDay(now) : now;
 }
 
 /**

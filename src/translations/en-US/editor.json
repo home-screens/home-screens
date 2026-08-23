@@ -2530,6 +2530,7 @@
       "showLocation": "Show Location",
       "daysAhead": "Days Ahead",
       "hideEmptyDays": "Hide Empty Days",
+      "showFinishedToday": "Show Today's Finished Events",
       "eventTapDetails": "Tap an event to see details",
       "eventTapStyle": "Details style",
       "eventTapStyleSheet": "Slide-up panel",

@@ -2535,6 +2535,7 @@
       "showLocation": "Mostrar ubicación",
       "daysAhead": "Días por delante",
       "hideEmptyDays": "Ocultar días vacíos",
+      "showFinishedToday": "Mostrar los eventos de hoy ya terminados",
       "eventTapDetails": "Toca un evento para ver los detalles",
       "eventTapStyle": "Estilo de los detalles",
       "eventTapStyleSheet": "Panel deslizante",

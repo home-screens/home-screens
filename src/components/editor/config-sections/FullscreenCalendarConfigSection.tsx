@@ -343,6 +343,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ agendaDaysAhead: Number(v) })}
           />
           <Toggle label={t('configSections.fullscreen-calendar.hideEmptyDays')} checked={!!c.agendaHideEmptyDays} onChange={(v) => set({ agendaHideEmptyDays: v })} />
+          <Toggle label={t('configSections.fullscreen-calendar.showFinishedToday')} checked={c.agendaShowFinishedToday === true} onChange={(v) => set({ agendaShowFinishedToday: v })} />
           <LabeledSelect
             label={t('configSections.fullscreen-calendar.separators')}
             value={c.agendaSeparators ?? 'none'}

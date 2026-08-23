@@ -271,6 +271,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       dayShowDescription: false,
       agendaDaysAhead: 14,
       agendaHideEmptyDays: false,
+      agendaShowFinishedToday: false,
       agendaShowDescription: false,
       agendaSeparators: 'none',
       showLegend: 'off',

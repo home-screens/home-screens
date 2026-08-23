@@ -29,6 +29,23 @@ describe('selectVisibleEvents', () => {
     expect(result.map(e => e.id)).toEqual(['ongoing', 'future']);
   });
 
+  it('agenda view keeps events that ended earlier today when showFinishedToday is on', () => {
+    // `past` ran 08:00 to 10:00 today; yesterday's event is still dropped.
+    const yesterday = ev('yesterday', -30, -28);
+    const result = selectVisibleEvents([yesterday, ...all], 'agenda', undefined, NOW, { showFinishedToday: true });
+    expect(result.map(e => e.id)).toEqual(['past', 'ongoing', 'future']);
+  });
+
+  it('showFinishedToday keeps an overnight event that ended just after midnight', () => {
+    // 22:00 yesterday to 00:30 today ended today, so it counts as "finished
+    // today" and stays (the agenda renders it as a dimmed "Until 12:30 AM"
+    // last-day row). Pinned on purpose: this is what the option means.
+    const overnight = ev('overnight', -14, -11.5);
+    const result = selectVisibleEvents([overnight, ...all], 'agenda', undefined, NOW, { showFinishedToday: true });
+    expect(result.map(e => e.id)).toEqual(['overnight', 'past', 'ongoing', 'future']);
+    expect(selectVisibleEvents([overnight, ...all], 'agenda', undefined, NOW).map(e => e.id)).toEqual(['ongoing', 'future']);
+  });
+
   it.each(GRID_VIEWS)('%s view keeps past events (wall-calendar / dimmed-past semantics)', (view) => {
     const result = selectVisibleEvents(all, view, undefined, NOW);
     expect(result.map(e => e.id)).toEqual(['past', 'ongoing', 'future']);
@@ -59,7 +76,7 @@ describe('selectVisibleEvents', () => {
       { ...ev('soccer', 3, 4), title: 'Soccer practice' },
     ];
     expect(
-      selectVisibleEvents(titled, 'month-grid', undefined, NOW, undefined, { mode: 'exclude', terms: ['lunch'] }).map(e => e.id),
+      selectVisibleEvents(titled, 'month-grid', undefined, NOW, { titleFilter: { mode: 'exclude', terms: ['lunch'] } }).map(e => e.id),
     ).toEqual(['soccer']);
   });
 });

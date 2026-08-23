@@ -665,6 +665,10 @@ export interface FullscreenCalendarConfig {
   // Agenda view
   agendaDaysAhead: number;          // 7-30
   agendaHideEmptyDays: boolean;
+  // Keep events that already ended today on the list (dimmed via
+  // dimPastEvents) until midnight instead of dropping them as they end.
+  // Mirrors CalendarConfig.agendaShowFinishedToday.
+  agendaShowFinishedToday?: boolean;  // default false
   agendaShowDescription?: boolean;
   agendaSeparators?: AgendaSeparators;  // default 'none'
   // Sources present in the rendered window, as dot + name. Default 'off'.
