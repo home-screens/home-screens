@@ -4,11 +4,13 @@ import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindGlyph, eventKindLabel,
+  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { MapPin } from './FullscreenCalendarModule';
+import { MapPin, dayDecorFor } from './FullscreenCalendarModule';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
+import { DayBadges } from '../shared/DayBadges';
 import type { CalendarEvent, CalendarViewProps } from './FullscreenCalendarModule';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator } from './list-view-bits';
@@ -72,9 +74,10 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
 
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
+    const decor = dayDecorFor(config, date, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
 
     return (
-      <div key={date.toISOString()}>
+      <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.borderColor ? scale.bu * 0.5 : undefined }, decor)}>
         {boundary === 'month' && (
           <MonthSeparator monthStart={date} scale={scale} fontSize={fontSize} locale={locale} />
         )}
@@ -109,6 +112,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
               &middot; {tCore('today')}
             </span>
           )}
+          <DayBadges badges={decor.badges} style={{ fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", fontSize: fontSize * 0.9 }} />
           {weather && <DayWeatherBadge weather={weather} day={date} fontSize={fontSize} />}
         </div>
 
@@ -139,7 +143,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
             showProgressBar: config.showProgressBar === true,
             countdownAllDay: config.countdownAllDay === true,
           });
-          const glyph = eventKindGlyph(ev.kind);
+          const glyph = eventGlyph(ev);
           const kindLabel = eventKindLabel(ev, start.getFullYear(), t, 'fullscreen-calendar');
 
           if (isAllDayRow) {
@@ -158,6 +162,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                   marginBottom: scale.bu * 0.6,
                   boxShadow: 'var(--cal-card-shadow)',
                   position: 'relative',
+                  opacity: ev.opacity,
                 }}
               >
                 <div style={{
@@ -237,7 +242,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 padding: `${scale.bu * 0.7}px ${scale.bu * 1.0}px`,
                 marginBottom: scale.bu * 0.6,
                 boxShadow: 'var(--cal-card-shadow)',
-                opacity: isPast && config.dimPastEvents ? 0.4 : 1,
+                opacity: eventOpacity(ev, isPast && config.dimPastEvents ? 0.4 : 1),
                 position: 'relative',
               }}
             >
@@ -249,11 +254,12 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
               }}>
                 {timeLabel}
               </div>
-              <div style={{
+              <div className="flex items-center gap-1.5" style={{
                 fontSize: fontSize * 1.4,
                 fontWeight: 600,
                 color: 'var(--cal-text-primary)',
               }}>
+                {glyph && <span aria-hidden="true" style={{ fontSize: '0.8em' }}>{glyph}</span>}
                 {ev.title}
               </div>
               {ev.location && (

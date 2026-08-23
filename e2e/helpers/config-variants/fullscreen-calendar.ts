@@ -294,6 +294,31 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'schedule', scheduleDaysToShow: 1, titleFilter: { mode: 'exclude', terms: ['DROP'] } },
     expect: async (mod) => { await has('KEEP EVENT')(mod); await expect(mod).not.toContainText('DROP EVENT'); },
   },
+  {
+    // Event rule: hide by source, rename by title — both lists run in one pass.
+    type: 'fullscreen-calendar', name: 'event-rules', kind: 'networked', stubKey: 'calendar', stubBody: SOURCE_FILTER,
+    config: {
+      view: 'schedule', scheduleDaysToShow: 1,
+      eventRules: [
+        { id: 'r1', match: { sourceIds: ['drop-src'] }, hide: true },
+        { id: 'r2', match: { text: 'keep' }, title: 'RULE RENAMED', icon: '⭐' },
+      ],
+    },
+    expect: async (mod) => {
+      await has('⭐ RULE RENAMED')(mod);
+      await expect(mod).not.toContainText('KEEP EVENT');
+      await expect(mod).not.toContainText('DROP EVENT');
+    },
+  },
+  {
+    // Day rule with a nested event match stamps a badge on today's column header.
+    type: 'fullscreen-calendar', name: 'day-rules', kind: 'networked', stubKey: 'calendar', stubBody: SOURCE_FILTER,
+    config: {
+      view: 'schedule', scheduleDaysToShow: 1,
+      dayRules: [{ id: 'd1', match: { withEvents: 'matching', eventMatch: { text: 'keep' } }, badgeText: 'RULE BADGE', badgeColor: '#f97316', background: 'auto' }],
+    },
+    expect: async (mod) => { await expect(mod.locator('[data-day-badge]')).toHaveText('RULE BADGE'); },
+  },
 
   // ================= SCHEDULE VIEW =================
 

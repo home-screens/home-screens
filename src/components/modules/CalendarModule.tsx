@@ -6,7 +6,9 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { parseEventWallTime, isEventUpcoming, listViewCutoff, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindGlyph, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
+import { DayBadges } from './shared/DayBadges';
+import { applyEventRules, eventGlyph, eventOpacity, mergeCellDecor, resolveDayDecor, rulesNeedNow, type DayDecor } from '@/lib/calendar-rules';
+import { parseEventWallTime, isEventUpcoming, listViewCutoff, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
 import { useFailingSources } from './shared/useFailingSources';
 import { toTZWallTime } from '@/lib/timezone';
 import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
@@ -100,11 +102,11 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   // (Colored timed pills parse the start below for their time prefix.)
   if (compact) {
     const eventColor = event.calendarColor ?? accentColor;
-    const glyph = eventKindGlyph(event.kind);
+    const glyph = eventGlyph(event);
     if (gridStyle === 'colored') {
       if (isAllDay) {
         return (
-          <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor) }}>
+          <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor), opacity: event.opacity }}>
             {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}>{glyph}</span>}
             <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
           </div>
@@ -115,7 +117,7 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
         <div
           data-event-id={event.id}
           className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-          style={pillBackground ? { backgroundColor: 'rgba(255,255,255,0.10)' } : undefined}
+          style={{ backgroundColor: pillBackground ? 'rgba(255,255,255,0.10)' : undefined, opacity: event.opacity }}
         >
           <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
             {formatEventTime(start, timeFormat, locale, true)}
@@ -125,7 +127,7 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
       );
     }
     return (
-      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }}>
+      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)', opacity: event.opacity }}>
         {glyph ? (
           <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}>{glyph}</span>
         ) : (
@@ -142,7 +144,7 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
   const start = parseEventWallTime(event.start, timezone);
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
-  const glyph = eventKindGlyph(event.kind);
+  const glyph = eventGlyph(event);
   const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'calendar');
   // Split multi-day rows: middle days promote to an all-day label, first and
   // last days show only their true partial time. Rows from a source that
@@ -161,7 +163,7 @@ const EventCard = memo(function EventCard({ event, textColor: _textColor, showTi
       className="flex gap-2"
       style={{
         padding: '6px 10px',
-        opacity: dimmed ? 0.4 : 1,
+        opacity: eventOpacity(event, dimmed ? 0.4 : 1),
         boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
       }}
     >
@@ -275,8 +277,9 @@ function DailyView({ events, config, style, today, now, accentColor, t, tCore, l
     <div className="flex h-full gap-3">
       {days.map(({ date, events: dayEvents }) => {
         const isToday = isSameDay(date, today);
+        const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
         return (
-          <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0">
+          <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0 rounded" style={mergeCellDecor({}, decor)}>
             <div className="text-center mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <SectionHeader active={isToday}>
                 {isToday ? tCore('today') : formatDateSync(date, 'EEE', { locale })}
@@ -287,6 +290,7 @@ function DailyView({ events, config, style, today, now, accentColor, t, tCore, l
               >
                 {formatDateSync(date, 'd', { locale })}
               </p>
+              <DayBadges badges={decor.badges} style={{ justifyContent: 'center', fontSize: '0.8em' }} />
               <p style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
                 {formatDateSync(date, 'MMM', { locale })}
               </p>
@@ -413,8 +417,9 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
         const boundary = gi > 0
           ? boundaryBetween(groups[gi - 1].date, date, config.agendaSeparators, weekStartsOn)
           : null;
+        const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
         return (
-        <div key={date.toISOString()}>
+        <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.borderColor ? 6 : undefined }, decor)}>
           {boundary === 'month' && (
             <div className="mb-2">
               <p className="font-semibold" style={{ fontSize: '0.9em', color: accentColor }}>
@@ -436,6 +441,7 @@ function AgendaView({ events, config, style, today, now, accentColor, t, tCore, 
             <SectionHeader className="shrink-0" active={isSameDay(date, today)}>
               {formatRelativeDay(date, today, tCore, locale)}
             </SectionHeader>
+            <DayBadges badges={decor.badges} style={{ fontSize: '0.75em' }} />
             <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -477,6 +483,10 @@ function withAlpha(color: string, alphaHex: string): string {
   if (/^#[0-9a-fA-F]{6}$/.test(color)) return `${color}${alphaHex}`;
   const pct = Math.round((parseInt(alphaHex, 16) / 255) * 100);
   return `color-mix(in srgb, ${color} ${pct}%, transparent)`;
+}
+
+function dayDecorFor(config: CalendarConfig, date: Date, dayEvents: CalendarEvent[], today: Date, now: Date, timezone: string | undefined): DayDecor {
+  return resolveDayDecor(date, dayEvents, config.dayRules, { today, now, timezone }, { autoTintAlpha: 0.22 });
 }
 
 // ─── Shared grid pieces (week / month / multi-week) ───
@@ -565,13 +575,14 @@ function DayCellEvents({ events, maxPerCell, textColor, accentColor, eventStyle,
 
 // ─── Week Grid View ───
 
-function WeekView({ events, config, style, today, accentColor, t, locale, eventStyle }: {
+function WeekView({ events, config, style, today, now, accentColor, t, locale, eventStyle }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -580,6 +591,10 @@ function WeekView({ events, config, style, today, accentColor, t, locale, eventS
   const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
   const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const gridTemplate = gridTemplateFor(showWeekNumbers);
+  const dayRows = daysInWeek.map((date) => {
+    const dayEvents = eventsForDay(events, date, eventStyle.timezone);
+    return { date, dayEvents, decor: dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone) };
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -590,7 +605,7 @@ function WeekView({ events, config, style, today, accentColor, t, locale, eventS
             <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.weekShort')}</span>
           </div>
         )}
-        {daysInWeek.map((date) => {
+        {dayRows.map(({ date, decor }) => {
           const isToday = isSameDay(date, today);
           return (
             <div key={date.toISOString()} className="text-center py-1">
@@ -610,6 +625,7 @@ function WeekView({ events, config, style, today, accentColor, t, locale, eventS
               >
                 {formatDateSync(date, 'd', { locale })}
               </div>
+              <DayBadges badges={decor.badges} style={{ justifyContent: 'center', display: 'flex', fontSize: '0.75em' }} />
             </div>
           );
         })}
@@ -620,13 +636,12 @@ function WeekView({ events, config, style, today, accentColor, t, locale, eventS
         {showWeekNumbers && (
           <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize="0.6em" />
         )}
-        {daysInWeek.map((date) => {
-          const dayEvents = eventsForDay(events, date, eventStyle.timezone);
+        {dayRows.map(({ date, dayEvents, decor }) => {
           return (
             <div
               key={date.toISOString()}
               className="flex flex-col p-0.5 overflow-hidden rounded"
-              style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+              style={mergeCellDecor({ backgroundColor: 'rgba(255,255,255,0.03)' }, decor)}
             >
               <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={5} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
             </div>
@@ -639,13 +654,14 @@ function WeekView({ events, config, style, today, accentColor, t, locale, eventS
 
 // ─── Month Grid View ───
 
-function MonthView({ events, config, style, today, accentColor, t, locale, eventStyle }: {
+function MonthView({ events, config, style, today, now, accentColor, t, locale, eventStyle }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -696,15 +712,16 @@ function MonthView({ events, config, style, today, accentColor, t, locale, event
               const inMonth = isSameMonth(date, today);
               const dayEvents = eventsForDay(events, date, eventStyle.timezone);
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
+              const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
 
               return (
                 <div
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
-                  style={{
+                  style={mergeCellDecor({
                     backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
                     opacity: inMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary,
-                  }}
+                  }, decor)}
                 >
                   <span className="flex items-center justify-center gap-0.5 leading-none mb-0.5">
                     <span
@@ -717,6 +734,7 @@ function MonthView({ events, config, style, today, accentColor, t, locale, event
                       {formatDateSync(date, 'd', { locale })}
                     </span>
                     {hasBirthday && <span aria-hidden="true" style={{ fontSize: '0.6em' }}>🎂</span>}
+                    <DayBadges badges={decor.badges} style={{ fontSize: '0.65em' }} />
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={3} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
@@ -738,6 +756,7 @@ interface MultiWeekViewProps {
   config: CalendarConfig;
   style: ModuleStyle;
   today: Date;
+  now: Date;
   t: TranslateFn;
   tCore: TranslateFn;
   locale: string;
@@ -751,7 +770,7 @@ function MultiWeekView(props: MultiWeekViewProps) {
   return <MultiWeekModernView {...props} theme={theme} />;
 }
 
-function MultiWeekBannerView({ events, config, style, today, accentColor, t, locale, eventStyle }: MultiWeekViewProps) {
+function MultiWeekBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle }: MultiWeekViewProps) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const weekCount = clampWeeksToShow(config.weeksToShow);
   const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
@@ -803,16 +822,17 @@ function MultiWeekBannerView({ events, config, style, today, accentColor, t, loc
               const isFirstOfMonth = date.getDate() === 1;
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
+              const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
 
               return (
                 <div
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
-                  style={{
+                  style={mergeCellDecor({
                     backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
                     ...(isFirstOfMonth ? { backgroundImage: `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent)` } : {}),
                     opacity: isPast ? TEXT_OPACITY.tertiary : 1,
-                  }}
+                  }, decor)}
                 >
                   {/* Digits at 0.65em to match the month/week grids; height
                       1.35em keeps the previous badge's pixel height. Flex
@@ -832,6 +852,7 @@ function MultiWeekBannerView({ events, config, style, today, accentColor, t, loc
                     )}
                     {formatDateSync(date, 'd', { locale })}
                     {hasBirthday && <span aria-hidden="true">🎂</span>}
+                    <DayBadges badges={decor.badges} />
                   </span>
                   <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
                 </div>
@@ -939,7 +960,7 @@ const MultiWeekPill = memo(function MultiWeekPill({ event, date, theme, textColo
  * and a chip-styled overflow row. The theme only swaps the pill treatment
  * (MultiWeekPill); gridEventStyle / gridEventPillBackground do not apply
  * here. data-mw-theme carries the active theme for tests. */
-function MultiWeekModernView({ events, config, style, today, accentColor, t, locale, eventStyle, theme }: MultiWeekViewProps & { theme: Exclude<MultiWeekTheme, 'banner'> }) {
+function MultiWeekModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme }: MultiWeekViewProps & { theme: Exclude<MultiWeekTheme, 'banner'> }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const weekCount = clampWeeksToShow(config.weeksToShow);
   const maxPerCell = Math.min(10, Math.max(2, config.multiWeekMaxEventsPerCell ?? 4));
@@ -993,14 +1014,16 @@ function MultiWeekModernView({ events, config, style, today, accentColor, t, loc
               const cellShadow = [isToday ? todayRing : null, isFirstOfMonth ? monthRule : null]
                 .filter(Boolean).join(', ');
 
+              const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
+
               return (
                 <div
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
-                  style={{
+                  style={mergeCellDecor({
                     backgroundColor: isToday ? todayCellTint : `rgba(255, 255, 255, ${isWeekend ? 0.065 : 0.045})`,
                     ...(cellShadow ? { boxShadow: cellShadow } : {}),
-                  }}
+                  }, decor)}
                 >
                   <div className="flex items-center shrink-0" style={{ height: '1.4em', padding: '0 0.15em', marginBottom: '0.1em' }}>
                     {isToday ? (
@@ -1023,11 +1046,13 @@ function MultiWeekModernView({ events, config, style, today, accentColor, t, loc
                       </span>
                     )}
                     {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.6em', marginLeft: '0.2em' }}>🎂</span>}
+                    <DayBadges badges={decor.badges} style={{ fontSize: '0.65em', marginLeft: '0.25em' }} />
                   </div>
                   <div className="flex flex-col gap-px overflow-hidden" style={isPast ? { opacity: TEXT_OPACITY.dim } : undefined}>
-                    {shown.map((ev) => (
-                      <MultiWeekPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />
-                    ))}
+                    {shown.map((ev) => {
+                      const pill = <MultiWeekPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />;
+                      return ev.opacity == null ? pill : <div key={ev.id} style={{ opacity: ev.opacity }}>{pill}</div>;
+                    })}
                     {overflow > 0 && (
                       <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: 'rgba(255,255,255,0.08)' }}>
                         {t('calendar.moreCount', { count: overflow })}
@@ -1045,6 +1070,10 @@ function MultiWeekModernView({ events, config, style, today, accentColor, t, loc
 }
 
 // ─── Main Component ───
+
+// Stable fallback so the memoized pipeline below doesn't see a fresh array
+// (and re-run) on every render while the shared feed is still loading.
+const EMPTY_EVENTS: CalendarEvent[] = [];
 
 const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   events: CalendarEvent[];
@@ -1069,14 +1098,8 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
-  const rawEvents = events ?? [];
+  const rawEvents = events ?? EMPTY_EVENTS;
   const sourceFilter = config.sourceFilter;
-  const sourcedEvents = applyTitleFilter(
-    (sourceFilter && sourceFilter.length > 0)
-      ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
-      : rawEvents,
-    config.titleFilter,
-  );
   // Sub-minute ticking only while a slot actually needs it: a stalled
   // countdown ("in 1 minute") or progress bar is visible within a render
   // cycle, but the now-rule/dimming below tolerate the default cadence just
@@ -1084,6 +1107,20 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const wantsFastTick = config.showCountdown === true || config.showProgressBar === true;
   const now = useTZClock(timezone, wantsFastTick ? 30_000 : 60_000);
   const today = startOfDay(now);
+  // Source filter -> keyword filter -> event rules. Memoized so the rule
+  // pass (which mints new event objects) only re-runs on a real input
+  // change; the clock joins the key only when a rule actually reads it.
+  const eventRules = config.eventRules;
+  const rulesNow = rulesNeedNow(eventRules) ? now : null;
+  const sourcedEvents = useMemo(() => {
+    const filtered = applyTitleFilter(
+      (sourceFilter && sourceFilter.length > 0)
+        ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
+        : rawEvents,
+      config.titleFilter,
+    );
+    return applyEventRules(filtered, eventRules, { now: rulesNow ?? new Date(0), timezone });
+  }, [rawEvents, sourceFilter, config.titleFilter, eventRules, rulesNow, timezone]);
   const viewMode = config.viewMode ?? 'daily';
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch

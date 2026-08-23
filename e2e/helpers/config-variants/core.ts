@@ -463,6 +463,32 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod).not.toContainText('Dentist Appointment'); },
   },
   {
+    type: 'calendar', name: 'event-rules', kind: 'networked', stubKey: 'calendar',
+    config: {
+      viewMode: 'daily',
+      eventRules: [{ id: 'r1', match: { text: 'dentist' }, title: 'RULE RENAMED' }],
+    },
+    expect: async (mod) => { await expect(mod).toContainText('RULE RENAMED'); await expect(mod).not.toContainText('Dentist Appointment'); },
+  },
+  {
+    type: 'calendar', name: 'day-rules', kind: 'networked', stubKey: 'calendar',
+    config: {
+      viewMode: 'daily',
+      dayRules: [{ id: 'd1', match: { when: 'today' }, badgeText: 'RULE BADGE', badgeColor: '#f97316' }],
+    },
+    expect: async (mod) => { await expect(mod.locator('[data-day-badge]')).toHaveText('RULE BADGE'); },
+  },
+  {
+    // Agenda groups get day decor too — this view rendered no badges at all
+    // until the rules review caught it.
+    type: 'calendar', name: 'day-rules-agenda', kind: 'networked', stubKey: 'calendar',
+    config: {
+      viewMode: 'agenda',
+      dayRules: [{ id: 'd1', match: { withEvents: 'any' }, badgeText: 'AGENDA BADGE', badgeColor: '#f97316' }],
+    },
+    expect: async (mod) => { await expect(mod.locator('[data-day-badge]').first()).toHaveText('AGENDA BADGE'); },
+  },
+  {
     // A single-minute event just after midnight today is always in the past
     // by the time the page renders (any run except literally 00:00-00:01
     // local), so dimming is assertable at any wall-clock time without a

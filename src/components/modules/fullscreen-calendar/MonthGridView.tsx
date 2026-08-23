@@ -7,11 +7,13 @@ import {
 } from 'date-fns';
 import { isEventOnDay, weekStartsOnFor, weekNumberOptions, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { clampStyle, eventBg } from './FullscreenCalendarModule';
+import { clampStyle, dayDecorFor, eventBg } from './FullscreenCalendarModule';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
+import { DayBadges } from '../shared/DayBadges';
 import type { CalendarViewProps } from './FullscreenCalendarModule';
 import { useContainerHeight } from './shared-time-grid';
 
-export function MonthGridView({ events, timezone, config, scale, today, now: _now }: CalendarViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, now }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -97,6 +99,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
           const birthdayEvs = dayEvents.filter(ev => ev.kind === 'birthday');
           const timedEvs = dayEvents.filter(ev => !ev.allDay);
           const hasBirthday = birthdayEvs.length > 0;
+          const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
 
           // Auto-calculate max visible events from the measured grid height
           // (header, legend, and weekday row already excluded); the estimate
@@ -131,7 +134,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
               <div
                 role="gridcell"
                 aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, 'MMMM d', { locale }), count: dayEvents.length })}
-                style={{
+                style={mergeCellDecor({
                   borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                   borderBottom: '1px solid var(--cal-border-subtle)',
                   borderLeft: isToday && showTodayMarker ? '2px solid var(--cal-accent)' : undefined,
@@ -152,7 +155,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                         // land on the same day.
                         ? eventBg('#EC4899', scale.isDark ? 0.16 : 0.10, scale.isDark)
                         : undefined,
-                }}
+                }, decor)}
               >
                 {/* Day number */}
                 <div className="flex items-center" style={{ gap: scale.bu * 0.15, marginBottom: scale.bu * 0.15 }}>
@@ -181,6 +184,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                     </span>
                   )}
                   {hasBirthday && <span aria-hidden="true" style={{ fontSize: fontSize * 0.7 }}>🎂</span>}
+                  <DayBadges badges={decor.badges} style={{ fontSize: fontSize * 0.8 }} />
                 </div>
 
                 {/* All-day span bars */}
@@ -195,9 +199,10 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                       borderRadius: 2,
                       background: color,
                       marginBottom: 1,
+                      opacity: ev.opacity,
                       ...clampStyle(wrapTitles),
                     }}>
-                      {ev.title}
+                      {ev.icon ? `${ev.icon} ` : ''}{ev.title}
                     </div>
                   );
                 })}
@@ -217,8 +222,9 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                       padding: `${scale.bu * 0.05}px ${scale.bu * 0.2}px`,
                       marginBottom: 1,
                       overflow: 'hidden',
+                      opacity: eventOpacity(ev, 1),
                     }}>
-                      <span aria-hidden="true" style={{ fontSize: fontSize * 0.55, flexShrink: 0 }}>🎂</span>
+                      <span aria-hidden="true" style={{ fontSize: fontSize * 0.55, flexShrink: 0 }}>{eventGlyph(ev)}</span>
                       <span style={{
                         fontSize: fontSize * 0.55,
                         fontWeight: 700,
@@ -234,6 +240,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                 {/* Event pills */}
                 {timedEvs.slice(0, maxShow).map(ev => {
                   const color = ev.calendarColor ?? '#3B82F6';
+                  const glyph = eventGlyph(ev);
                   return (
                     <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{
                       display: 'flex',
@@ -242,14 +249,19 @@ export function MonthGridView({ events, timezone, config, scale, today, now: _no
                       padding: `${scale.bu * 0.05}px ${scale.bu * 0.2}px`,
                       marginBottom: 1,
                       overflow: 'hidden',
+                      opacity: eventOpacity(ev, 1),
                     }}>
-                      <div style={{
-                        width: fontSize * 0.35,
-                        height: fontSize * 0.35,
-                        borderRadius: '50%',
-                        background: color,
-                        flexShrink: 0,
-                      }} />
+                      {glyph ? (
+                        <span aria-hidden="true" style={{ fontSize: fontSize * 0.5, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+                      ) : (
+                        <div style={{
+                          width: fontSize * 0.35,
+                          height: fontSize * 0.35,
+                          borderRadius: '50%',
+                          background: color,
+                          flexShrink: 0,
+                        }} />
+                      )}
                       <span style={{
                         fontSize: fontSize * 0.55,
                         fontWeight: 500,

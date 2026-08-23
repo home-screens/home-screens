@@ -12,7 +12,8 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
-import type { AgendaSeparators, CalendarLegendPlacement, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
+import { CalendarRulesEditor } from './CalendarRulesEditor';
+import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarLegendPlacement, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
 
 // Sourced from the registry so the reset button can't drift from the accent
 // a freshly added calendar module actually starts with.
@@ -53,6 +54,8 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     showLegend?: CalendarLegendPlacement;
     dimPastEvents?: boolean;
     showNowRule?: boolean;
+    eventRules?: CalendarEventRule[];
+    dayRules?: CalendarDayRule[];
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
@@ -131,6 +134,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         keyPrefix="configSections.calendar"
         titleFilter={c.titleFilter}
         onChange={(next) => set({ titleFilter: next })}
+      />
+
+      <CalendarRulesEditor
+        eventRules={c.eventRules}
+        dayRules={c.dayRules}
+        availableSources={availableSources}
+        onChange={(patch) => set(patch)}
       />
 
       <LabeledSelect

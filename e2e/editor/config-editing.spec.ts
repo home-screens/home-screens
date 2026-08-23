@@ -242,6 +242,64 @@ test('calendar: picking a title filter mode before any term survives adding the 
   expect((await moduleConfig(request, 'calendar')).titleFilter).toEqual({ mode: 'include', terms: ['Soccer'] });
 });
 
+test('calendar: adding an event rule and a day rule persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Add an event rule' }).click();
+  });
+  const eventCard = page.locator('[data-rules-list="events"] [data-rule-card]').first();
+  await autosaved(page, async () => {
+    await eventCard.getByLabel('Words').fill('Lunch');
+  });
+  await autosaved(page, async () => {
+    await eventCard.getByLabel('Hide it').click();
+  });
+
+  const eventRules = (await moduleConfig(request, 'calendar')).eventRules as Array<Record<string, unknown>>;
+  expect(eventRules).toHaveLength(1);
+  expect(eventRules[0].match).toEqual({ text: 'Lunch' });
+  expect(eventRules[0].hide).toBe(true);
+
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Add a day rule' }).click();
+  });
+  const dayCard = page.locator('[data-rules-list="days"] [data-rule-card]').first();
+  await autosaved(page, async () => {
+    await dayCard.getByLabel('Which days').selectOption('today');
+  });
+  await autosaved(page, async () => {
+    await dayCard.getByLabel('Add a badge').click();
+  });
+
+  const dayRules = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
+  expect(dayRules).toHaveLength(1);
+  expect(dayRules[0].match).toEqual({ when: 'today' });
+  expect(dayRules[0].badgeIcon).toBe('⭐');
+
+  // Removing the only rule clears the list back to undefined, not [].
+  await autosaved(page, async () => {
+    await dayCard.getByRole('button', { name: 'Remove rule' }).click();
+  });
+  expect((await moduleConfig(request, 'calendar')).dayRules).toBeUndefined();
+});
+
+test('fullscreen-calendar: adding an event rule persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-calendar'));
+
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Add an event rule' }).click();
+  });
+  const eventCard = page.locator('[data-rules-list="events"] [data-rule-card]').first();
+  await autosaved(page, async () => {
+    await eventCard.getByLabel('Icon').fill('⚽');
+  });
+
+  const eventRules = (await moduleConfig(request, 'fullscreen-calendar')).eventRules as Array<Record<string, unknown>>;
+  expect(eventRules).toHaveLength(1);
+  expect(eventRules[0].icon).toBe('⚽');
+});
+
 test('weather: toggling Feels Like persists', async ({ page, request }) => {
   // Registry default has showFeelsLike: true — one click flips it off.
   await selectModule(page, request, buildModuleInstance('weather'));

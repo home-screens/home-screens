@@ -4,7 +4,9 @@ import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import { MapPin, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { MapPin, dayDecorFor, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
+import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout } from './event-layout';
 import type { CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
@@ -98,19 +100,28 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   // memoize them instead of recomputing on every re-render. Events entirely
   // outside the hour range are excluded up front — clamping alone would leave
   // them as degenerate inputs that still occupy an overlap column.
-  const { allDayEvs, birthdayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
+  const { dayEvents, allDayEvs, birthdayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
     const dayEvents = events.filter(ev => isEventOnDay(ev, today, timezone));
     const allDay = dayEvents.filter(ev => ev.allDay && ev.kind !== 'birthday');
     const birthdays = dayEvents.filter(ev => ev.kind === 'birthday');
     const timed = dayEvents.filter(ev => !ev.allDay);
     const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode, timezone);
-    return { allDayEvs: allDay, birthdayEvs: birthdays, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
+    return { dayEvents, allDayEvs: allDay, birthdayEvs: birthdays, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
   }, [events, today.toDateString(), hourStart, hourEnd, overlapMode, timezone]);
 
+  // The view has no day header of its own (the module header names the
+  // day), so day-rule badges get a strip above the all-day row and the
+  // look applies to the whole view.
+  const decor = dayDecorFor(config, today, dayEvents, { today, now, timezone, isDark: scale.isDark });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={mergeCellDecor({ display: 'flex', flexDirection: 'column', height: '100%' }, decor)}>
+      {decor.badges.length > 0 && (
+        <div style={{ padding: `${scale.bu * 0.6}px ${scale.bu * 1.5}px 0`, fontSize, flexShrink: 0 }}>
+          <DayBadges badges={decor.badges} />
+        </div>
+      )}
       {/* All-day strip */}
       {(allDayEvs.length > 0 || birthdayEvs.length > 0) && (
         <div style={{
@@ -141,8 +152,9 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                 fontSize: fontSize * 0.95,
                 fontWeight: 600,
                 marginBottom: scale.bu * 0.2,
+                opacity: ev.opacity,
               }}>
-                {ev.title}
+                {ev.icon ? `${ev.icon} ` : ''}{ev.title}
                 {description && (
                   <div style={{
                     fontSize: fontSize * 0.75,
@@ -170,10 +182,11 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
                 fontSize: fontSize * 0.95,
                 fontWeight: 700,
+                opacity: eventOpacity(ev, 1),
                 color: ev.calendarColor ?? '#EC4899',
                 marginBottom: scale.bu * 0.2,
               }}>
-                <span aria-hidden="true">🎂</span>
+                <span aria-hidden="true">{eventGlyph(ev)}</span>
                 <span>{ev.title} · {label}</span>
               </div>
             );
@@ -287,7 +300,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     overflow: 'hidden',
                     zIndex: layout.zIndex,
                     boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
-                    opacity: isPast && config.dimPastEvents ? 0.4 : 1,
+                    opacity: eventOpacity(ev, isPast && config.dimPastEvents ? 0.4 : 1),
                   }}
                 >
                   <div style={{
@@ -295,7 +308,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     fontWeight: 600,
                     color: 'var(--cal-text-primary)',
                   }}>
-                    {ev.title}
+                    {ev.icon ? `${ev.icon} ` : ''}{ev.title}
                   </div>
                   <div style={{
                     fontSize: fontSize * 0.8,

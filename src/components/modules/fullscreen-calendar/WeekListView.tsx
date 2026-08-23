@@ -4,13 +4,16 @@ import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, eventKindGlyph, eventKindLabel,
+  classifyEventOnDay, eventStatusSlot, eventKindLabel,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps } from './FullscreenCalendarModule';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
+import { dayDecorFor } from './FullscreenCalendarModule';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
+import { DayBadges } from '../shared/DayBadges';
 import { CountdownPill, EventProgressBar } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
 
@@ -48,18 +51,20 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
       .sort((a, b) => compareEventStarts(a.ev.start, b.ev.start));
 
     const shouldCollapse = isPast && config.weekCollapsePastDays;
+    const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
 
     return (
       <div
         key={day.toISOString()}
 
-        style={{
+        style={mergeCellDecor({
           marginBottom: scale.bu * 0.4,
           opacity: isPast && config.dimPastEvents ? 0.5 : 1,
           borderLeft: isToday && showTodayMarker ? `3px solid var(--cal-accent)` : undefined,
           paddingLeft: isToday && showTodayMarker ? scale.bu * 1.2 : undefined,
           marginLeft: isToday && showTodayMarker ? -scale.bu * 1.5 : undefined,
-        }}
+          borderRadius: decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
+        }, decor)}
       >
         {/* Day header */}
         <div style={{
@@ -89,6 +94,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
               {tCore('today')}
             </span>
           )}
+          <DayBadges badges={decor.badges} style={{ fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif", fontSize: fontSize * 0.9 }} />
           {weather && <DayWeatherBadge weather={weather} day={day} fontSize={fontSize} />}
         </div>
 
@@ -197,7 +203,7 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
   const timeLabel = event.sourceId && failingSourceIds?.has(event.sourceId)
     ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
     : baseTimeLabel;
-  const glyph = eventKindGlyph(event.kind);
+  const glyph = eventGlyph(event);
   const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'fullscreen-calendar');
 
   let ariaLabel: string;
@@ -231,6 +237,7 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
         alignItems: 'flex-start',
         gap: scale.bu * 0.8,
         padding: `${scale.bu * 0.7}px 0`,
+        opacity: eventOpacity(event, 1),
       }}
     >
       {glyph ? (

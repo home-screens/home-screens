@@ -5,7 +5,9 @@ import { addDays, isSameDay } from 'date-fns';
 import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { autoScheduleDays, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
+import { autoScheduleDays, dayDecorFor, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
+import { NO_DECOR, eventGlyph, eventOpacity, mergeCellDecor, rulesNeedNow } from '@/lib/calendar-rules';
+import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout } from './event-layout';
 import { DayWeatherBadge } from './WeatherInline';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
@@ -74,13 +76,31 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
     return { dayEvents, overlapLayout, hiddenStarts, hourSpans };
   }), [days, events, hourStart, hourEnd, overlapMode, timezone]);
 
+  // Day-rule decor per column (header badges + column look), computed once
+  // per render rather than once per header and once per column. Bails before
+  // the per-day filter when no rules exist (the default), and keys on the
+  // day string rather than the Date so the 60s clock tick doesn't rebuild it
+  // — same reasoning as dayLayouts above. `dayLayouts` can't supply the
+  // events here: it drops all-day rows, which a day match must still see.
+  const dayRules = config.dayRules;
+  // The clock only joins the key when a rule actually reads `past`; otherwise
+  // the 60s tick would rebuild this for nothing.
+  const rulesNow = rulesNeedNow(undefined, dayRules) ? now : null;
+  const decorByDay = useMemo(
+    () => (!dayRules || dayRules.length === 0
+      ? days.map(() => NO_DECOR)
+      : days.map((day) => dayDecorFor(config, day, events.filter((ev) => isEventOnDay(ev, day, timezone)), { today, now, timezone, isDark: scale.isDark }))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- today/now are new Date objects each render; toDateString() is the stable day key, and rulesNow re-keys on the clock only for rules that read it
+    [days, events, dayRules, config, today.toDateString(), rulesNow, timezone, scale.isDark],
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Column headers */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--cal-border)', flexShrink: 0 }} role="row">
         <div style={{ width: gutterWidth, flexShrink: 0 }} />
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${daysToShow}, 1fr)` }}>
-          {days.map((day) => {
+          {days.map((day, dayIdx) => {
             const isToday = isSameDay(day, today);
             const isWeekend = day.getDay() === 0 || day.getDay() === 6;
             return (
@@ -124,6 +144,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                     </span>
                   ) : formatDateSync(day, 'd', { locale })}
                 </div>
+                <DayBadges badges={decorByDay[dayIdx].badges} style={{ justifyContent: 'center', display: 'flex', fontSize: fontSize * 0.8, marginTop: scale.bu * 0.2 }} />
                 {weather && <DayWeatherBadge weather={weather} day={day} fontSize={fontSize} align="center" />}
               </div>
             );
@@ -186,7 +207,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                   key={day.toISOString()}
                   role="gridcell"
                   aria-label={formatDateSync(day, 'EEEE, MMMM d', { locale })}
-                  style={{
+                  style={mergeCellDecor({
                     position: 'relative',
                     borderLeft: '1px solid var(--cal-border-subtle)',
                     background: isToday && showTodayBg
@@ -195,7 +216,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                         ? 'var(--cal-weekend-shade)'
                         : undefined,
                     opacity: isPast && config.dimPastEvents ? 'var(--cal-past-opacity)' : 1,
-                  } as React.CSSProperties}
+                  } as React.CSSProperties, decorByDay[dayIdx])}
                 >
                   {/* Hour lines */}
                   <HourLines totalHours={totalHours} hourHeight={hourHeight} hourStart={hourStart} dimOffHours={{ businessStart, businessEnd }} />
@@ -253,7 +274,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                           overflow: 'hidden',
                           zIndex: layout.zIndex,
                           boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
-                          opacity: isPastEvent && config.dimPastEvents ? 0.4 : 1,
+                          opacity: eventOpacity(ev, isPastEvent && config.dimPastEvents ? 0.4 : 1),
                         }}
                       >
                         <div style={{
@@ -263,7 +284,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                           lineHeight: 1.3,
                           ...clampStyle(wrapTitles),
                         }}>
-                          {ev.title}
+                          {ev.icon ? `${ev.icon} ` : ''}{ev.title}
                         </div>
                         {height >= fontSize * 2 && (
                           <div style={{
@@ -416,9 +437,10 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       ...clampStyle(wrapTitles),
                       lineHeight: 1.4,
                       marginBottom: 1,
+                      opacity: ev.opacity,
                     }}
                   >
-                    {ev.title}
+                    {ev.icon ? `${ev.icon} ` : ''}{ev.title}
                   </div>
                 );
               })}
@@ -438,13 +460,14 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       fontSize: fontSize * 0.65,
                       fontWeight: 700,
                       padding: `${scale.bu * 0.1}px ${scale.bu * 0.3}px`,
+                      opacity: eventOpacity(ev, 1),
                       color: ev.calendarColor ?? '#EC4899',
                       ...clampStyle(wrapTitles),
                       lineHeight: 1.4,
                       marginBottom: 1,
                     }}
                   >
-                    <span aria-hidden="true">🎂</span>
+                    <span aria-hidden="true">{eventGlyph(ev)}</span>
                     <span>{ev.title} {label}</span>
                   </div>
                 );

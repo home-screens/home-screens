@@ -218,6 +218,13 @@ export interface CalendarEvent {
   kind?: 'birthday' | 'holiday' | 'event';
   /** Birthday only — the person's birth year, when the source can determine it. */
   birthYear?: number;
+  /**
+   * Render-time decorations stamped by a module's event rules
+   * (`applyEventRules`); never set by a source. `icon` replaces the color
+   * dot / kind glyph, `opacity` multiplies whatever fade the view applies.
+   */
+  icon?: string;
+  opacity?: number;
 }
 
 export interface ICalSource {
@@ -579,6 +586,61 @@ export interface CalendarTitleFilter {
   terms: string[];
 }
 
+// ─── Rules engines (event looks / day looks) ───
+// Every set field in a match must hold (AND); an empty match matches
+// everything. Rules run top to bottom and the first rule that sets a
+// property wins for that property, so list order is the priority.
+
+export type CalendarRuleTextMatch = 'contains' | 'exact' | 'regex';
+
+export interface CalendarEventMatch {
+  /** Matched against the event title per `textMatch` (case-insensitive). */
+  text?: string;
+  textMatch?: CalendarRuleTextMatch;   // default 'contains'
+  /** Any of these source ids (Google id, iCal/iCloud id, 'holidays'). */
+  sourceIds?: string[];
+  /** Case-insensitive substring of the location. */
+  location?: string;
+  allDay?: boolean;
+  /** true = already ended, false = still upcoming or running. */
+  past?: boolean;
+  kind?: 'birthday' | 'holiday' | 'event';
+}
+
+export interface CalendarEventRule {
+  id: string;
+  match: CalendarEventMatch;
+  hide?: boolean;
+  color?: string;       // replaces the source color
+  opacity?: number;     // 0.1-1, multiplies the view's own fade
+  icon?: string;        // emoji / short text in place of the dot or kind glyph
+  title?: string;       // display title override
+}
+
+export type CalendarDayWhen = 'today' | 'past' | 'future';
+export type CalendarDayEvents = 'any' | 'none' | 'matching';
+
+export interface CalendarDayMatch {
+  when?: CalendarDayWhen;
+  /** 0 = Sunday. Empty or unset = every day. */
+  daysOfWeek?: number[];
+  /** 'any' = has at least one event, 'none' = empty day, 'matching' = has an event matching `eventMatch`. */
+  withEvents?: CalendarDayEvents;
+  eventMatch?: CalendarEventMatch;
+}
+
+export interface CalendarDayRule {
+  id: string;
+  match: CalendarDayMatch;
+  /** CSS color, or 'auto' = tinted from that day's event colors. */
+  background?: string;
+  opacity?: number;
+  borderColor?: string;
+  badgeIcon?: string;
+  badgeText?: string;
+  badgeColor?: string;
+}
+
 /**
  * Health of the shared calendar fetch, passed to calendar modules only while
  * the latest attempt failed (the events alongside it are kept last-good
@@ -673,6 +735,9 @@ export interface FullscreenCalendarConfig {
   agendaSeparators?: AgendaSeparators;  // default 'none'
   // Sources present in the rendered window, as dot + name. Default 'off'.
   showLegend?: CalendarLegendPlacement;
+  // Rules engines: per-event looks and per-day looks / badges. Unset = off.
+  eventRules?: CalendarEventRule[];
+  dayRules?: CalendarDayRule[];
 }
 
 // Calendar module config
@@ -734,6 +799,9 @@ export interface CalendarConfig {
   dimPastEvents?: boolean;   // default false
   // Daily view: thin accent rule between today's ended and upcoming events.
   showNowRule?: boolean;     // default false
+  // Rules engines: per-event looks and per-day looks / badges. Unset = off.
+  eventRules?: CalendarEventRule[];
+  dayRules?: CalendarDayRule[];
 }
 
 // Unified weather module config

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
+import { applyEventRules, resolveDayDecor, type DayDecor } from '@/lib/calendar-rules';
 import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, listViewCutoff, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildHourlyIndex, type HourlyIndex } from './event-weather';
 import { toTZWallTime } from '@/lib/timezone';
@@ -13,7 +14,7 @@ import { parseHexToRgb } from '@/lib/hex-color';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarTitleFilter, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarTitleFilter, type CalendarEventRule, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { ScheduleView } from './ScheduleView';
@@ -133,9 +134,13 @@ export function selectVisibleEvents(
   view: FullscreenCalendarConfig['view'],
   sourceFilter: string[] | undefined,
   now: Date,
-  opts: { timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean } = {},
+  opts: { timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean; eventRules?: CalendarEventRule[] } = {},
 ): CalendarEvent[] {
-  const filtered = applyTitleFilter(filterEvents(events, sourceFilter), opts.titleFilter);
+  const filtered = applyEventRules(
+    applyTitleFilter(filterEvents(events, sourceFilter), opts.titleFilter),
+    opts.eventRules,
+    { now, timezone: opts.timezone },
+  );
   if (view !== 'agenda') return filtered;
   const cutoff = listViewCutoff(now, opts.showFinishedToday === true);
   return filtered.filter(ev => isEventUpcoming(ev, cutoff, opts.timezone));
@@ -155,6 +160,17 @@ function darkAdjustRgb(r: number, g: number, b: number): [number, number, number
     Math.min(255, Math.round((lum + 0.85 * (g - lum)) * 1.1)),
     Math.min(255, Math.round((lum + 0.85 * (b - lum)) * 1.1)),
   ];
+}
+
+/** Day-rule decor for one day cell / header in a fullscreen view. The auto
+ *  tint is stronger on dark themes, where a light wash reads as nothing. */
+export function dayDecorFor(
+  config: FullscreenCalendarConfig,
+  day: Date,
+  dayEvents: CalendarEvent[],
+  ctx: { today: Date; now: Date; timezone?: string; isDark: boolean },
+): DayDecor {
+  return resolveDayDecor(day, dayEvents, config.dayRules, ctx, { autoTintAlpha: ctx.isDark ? 0.22 : 0.14 });
 }
 
 /** Safely compose a source color + alpha, with optional dark-mode desaturation. */
@@ -352,8 +368,9 @@ export default function FullscreenCalendarModule({
   const events = useMemo(
     () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, {
       timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
+      eventRules: config.eventRules,
     }),
-    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter, config.agendaShowFinishedToday],
+    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter, config.agendaShowFinishedToday, config.eventRules],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
