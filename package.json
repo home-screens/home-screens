@@ -32,7 +32,7 @@
     "framer-motion": "^12.35.1",
     "googleapis": "^171.4.0",
     "lucide-react": "^1.14.0",
-    "next": "^16.2.3",
+    "next": "^16.2.11",
     "node-ical": "^0.25.5",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.5",
