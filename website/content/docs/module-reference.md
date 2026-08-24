@@ -159,13 +159,14 @@ The temperature curve draws however many hours your source returns, and its head
 | `animateConditions` | boolean | `true` | Falling rain and snow. Turn off if the display stutters on older hardware |
 | `showNowcast` | boolean | `true` | Next-hour rain strip (Panorama, Pirate Weather only) |
 | `showAlerts` | boolean | `true` | Severe-weather banner |
+| `showTime` | boolean | `true` | Clock in the header. Follows your 12/24-hour setting and the display's time zone |
 | `showRibbon` | boolean | `true` | Temperature curve (Panorama) |
 | `showStatRail` | boolean | `true` | Bottom stats row (Panorama) |
 | `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama) |
 | `locationLabel` | string | — | Overrides the place name shown in the header |
 | `accentColor` | string | — | Overrides the conditions-derived accent |
-| `density` | string | `"snug"` | `cozy` or `snug` |
-| `typographySize` | string | `"medium"` | Text scale |
+| `density` | string | `"snug"` | `cozy` or `snug`. Controls padding, gaps, and chart heights |
+| `typographySize` | string | `"medium"` | Text size. Scales type only, so the layout keeps its proportions |
 
 ### Full-Screen Photo Viewer
 

@@ -3344,7 +3344,8 @@
       "showNowcastHint": "A chuva minuto a minuto só existe no Pirate Weather. Com qualquer outra fonte, esta faixa fica oculta.",
       "daysToShow": "Dias na lista",
       "locationLabel": "Nome do lugar",
-      "accentColor": "Cor de destaque"
+      "accentColor": "Cor de destaque",
+      "showTime": "Mostrar a hora"
     }
   },
   "imageBrowsers": {

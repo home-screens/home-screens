@@ -16,33 +16,50 @@ export function Label({ children, s }: { children: React.ReactNode; s: number })
   );
 }
 
-export function Card({ children, s, style }: { children: React.ReactNode; s: number; style?: React.CSSProperties }) {
+/** `u` (structure), not `s` (type): a card's padding and radius should follow
+ *  density, not how large the household set the text. */
+export function Card({ children, u, style }: { children: React.ReactNode; u: number; style?: React.CSSProperties }) {
   return (
     <div style={{
       background: 'var(--fsw-surface)',
       border: '1px solid var(--fsw-border)',
-      borderRadius: s * 2.1,
+      borderRadius: u * 2.1,
       boxShadow: 'var(--fsw-card-shadow)',
-      padding: `${s * 2.1}px ${s * 2.3}px`,
+      padding: `${u * 2.1}px ${u * 2.3}px`,
       ...style,
     }}>{children}</div>
   );
 }
 
 export function TopBar({ p }: { p: WeatherViewProps }) {
-  const s = p.scale.bu * p.scale.typoMul;
+  const { s, u } = p.scale;
+  const showTime = p.config.showTime !== false;
+  const time = showTime
+    ? new Intl.DateTimeFormat(p.locale, {
+        hour: 'numeric', minute: '2-digit',
+        hour12: p.timeFormat !== '24h',
+        timeZone: p.timezone,
+      }).format(p.now)
+    : null;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flex: 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: s, fontSize: s * 2.6, fontWeight: 600, letterSpacing: '-.01em' }}>
-        <MapPin style={{ width: s * 2.3, height: s * 2.3, color: 'var(--fsw-text-3)' }} strokeWidth={1.6} />
-        {p.locationLabel}
+    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: u * 2, flex: 'none' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: u, fontSize: s * 2.6, fontWeight: 600, letterSpacing: '-.01em', minWidth: 0 }}>
+        <MapPin style={{ width: s * 2.3, height: s * 2.3, color: 'var(--fsw-text-3)', flex: 'none' }} strokeWidth={1.6} />
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.locationLabel}</span>
       </div>
+      {time && (
+        <div data-testid="fsw-clock" style={{
+          flex: 'none', fontSize: s * 2.6, fontWeight: 600,
+          letterSpacing: '-.01em', color: 'var(--fsw-text-2)',
+        }}>{time}</div>
+      )}
     </div>
   );
 }
 
 export function AlertBand({ p }: { p: WeatherViewProps }) {
-  const s = p.scale.bu * p.scale.typoMul;
+  const { s, u } = p.scale;
   const alert = p.alerts[0];
   if (!p.config.showAlerts || !alert) return null;
   const { fg, isSevere } = alertTone(alert.severity);
@@ -51,8 +68,8 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
     <div
       data-testid="fsw-alert"
       style={{
-        flex: 'none', display: 'flex', alignItems: 'center', gap: s * 1.7,
-        padding: `${s * 1.7}px ${s * 2.3}px`, borderRadius: s * 1.9,
+        flex: 'none', display: 'flex', alignItems: 'center', gap: u * 1.7,
+        padding: `${u * 1.7}px ${u * 2.3}px`, borderRadius: u * 1.9,
         color: fg, border: `1px solid ${fg}55`, background: `${fg}14`,
       }}
     >
@@ -61,7 +78,7 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
         <div style={{ fontSize: s * 2, fontWeight: 600, letterSpacing: '-.01em' }}>{alert.title}</div>
         {alert.description && (
           <div style={{
-            fontSize: s * 1.5, opacity: .85, marginTop: s * .3,
+            fontSize: s * 1.5, opacity: .85, marginTop: u * .3,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{alert.description}</div>
         )}
@@ -69,7 +86,7 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
       <div style={{
         marginLeft: 'auto', flex: 'none', fontSize: s * 1.1, fontWeight: 700,
         letterSpacing: '.12em', textTransform: 'uppercase',
-        padding: `${s * .55}px ${s * 1.15}px`, borderRadius: 999, border: '1px solid currentColor',
+        padding: `${u * .55}px ${u * 1.15}px`, borderRadius: 999, border: '1px solid currentColor',
       }}>{isSevere ? p.t('fullscreen-weather.alerts.severe') : p.t('fullscreen-weather.alerts.advisory')}</div>
     </div>
   );
@@ -77,7 +94,7 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
 
 /** The 7-day list: each day's low..high drawn against the whole week's range. */
 export function DayRangeBars({ p }: { p: WeatherViewProps }) {
-  const s = p.scale.bu * p.scale.typoMul;
+  const { s, u } = p.scale;
   const count = Math.max(3, Math.min(7, p.config.daysToShow ?? 7));
   const days = p.forecast.slice(0, count);
   if (days.length === 0) return null;
@@ -92,16 +109,16 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
   const listMin = rowMin * days.length;
 
   return (
-    <Card s={s} style={{
+    <Card u={u} style={{
       flex: 1, display: 'flex', flexDirection: 'column',
       // header + rows + the card's own vertical padding
-      minHeight: listMin + s * 6.1,
+      minHeight: listMin + u * 6.1,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Label s={s}>{p.t('fullscreen-weather.sections.outlook', { days: days.length })}</Label>
         <Label s={s}>{`${Math.round(weekMin)}° – ${Math.round(weekMax)}°`}</Label>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: s * .4, minHeight: listMin }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: u * .4, minHeight: listMin }}>
         {days.map((d, i) => {
           const Icon = getWeatherIcon(d.icon, 'outline');
           const left = ((d.low - weekMin) / span) * 100;
@@ -109,7 +126,7 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
           const nowPct = i === 0 && nowTemp != null ? ((nowTemp - weekMin) / span) * 100 : null;
           return (
             <div key={d.date} style={{
-              flex: 1, display: 'flex', alignItems: 'center', gap: s * 1.5, minHeight: rowMin,
+              flex: 1, display: 'flex', alignItems: 'center', gap: u * 1.5, minHeight: rowMin,
               borderBottom: i === days.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
             }}>
               <div style={{
@@ -130,8 +147,8 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
               </div>
               <div style={{ width: s * 5.4, flex: 'none', textAlign: 'right', fontSize: s * 2.2, color: 'var(--fsw-text-3)' }}>{Math.round(d.low)}°</div>
               <div style={{
-                flex: 1, height: s * .85, borderRadius: 999, position: 'relative',
-                background: 'var(--fsw-surface-alt)', margin: `0 ${s * 1.5}px`,
+                flex: 1, height: u * .85, borderRadius: 999, position: 'relative',
+                background: 'var(--fsw-surface-alt)', margin: `0 ${u * 1.5}px`,
               }}>
                 <div style={{
                   position: 'absolute', top: 0, bottom: 0, borderRadius: 999,
@@ -141,9 +158,9 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
                 {nowPct !== null && (
                   <div style={{
                     position: 'absolute', top: '50%', left: `${Math.max(0, Math.min(100, nowPct))}%`,
-                    width: s * 1.25, height: s * 1.25, borderRadius: '50%',
+                    width: u * 1.25, height: u * 1.25, borderRadius: '50%',
                     transform: 'translate(-50%,-50%)',
-                    background: 'var(--fsw-surface)', border: `${Math.max(2, s * .28)}px solid var(--fsw-text)`,
+                    background: 'var(--fsw-surface)', border: `${Math.max(2, u * .28)}px solid var(--fsw-text)`,
                   }} />
                 )}
               </div>

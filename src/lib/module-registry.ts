@@ -337,6 +337,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       animateConditions: true,
       showNowcast: true,
       showAlerts: true,
+      showTime: true,
       showRibbon: true,
       showStatRail: true,
       daysToShow: 7,

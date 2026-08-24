@@ -6,7 +6,7 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
-import type { FullscreenWeatherConfig, ModuleStyle } from '@/types/config';
+import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
@@ -31,6 +31,8 @@ interface FullscreenWeatherModuleProps {
   latitude?: number;
   longitude?: number;
   fullscreenTheme?: string;
+  /** Household 12/24-hour preference, threaded by buildModuleProps. */
+  timeFormat?: TimeFormat;
 }
 
 /** Particle colours differ by theme group: pale blue drops vanish on Linen. */
@@ -50,6 +52,7 @@ export default function FullscreenWeatherModule({
   latitude,
   longitude,
   fullscreenTheme,
+  timeFormat,
 }: FullscreenWeatherModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -79,17 +82,29 @@ export default function FullscreenWeatherModule({
   const fit = useFitScale(stackRef, [
     config.view, config.typographySize, config.density, config.daysToShow,
     config.showNowcast, config.showAlerts, config.showRibbon, config.showStatRail,
+    config.showTime,
     dims.w, dims.h, hourlyCount, forecastCount, minutelyCount, alertCount,
   ]);
 
-  const scale: WeatherScale = useMemo(() => ({
-    bu: Math.min(dims.w, dims.h) / 100,
-    width: dims.w,
-    height: dims.h,
-    typoMul: requestedTypoMul * fit,
-    densityMul: getDensityMultiplier(config.density ?? 'snug'),
-    isDark: theme.isDark,
-  }), [dims, requestedTypoMul, fit, config.density, theme.isDark]);
+  const scale: WeatherScale = useMemo(() => {
+    const bu = Math.min(dims.w, dims.h) / 100;
+    const typoMul = requestedTypoMul * fit;
+    const densityMul = getDensityMultiplier(config.density ?? 'snug');
+    return {
+      bu,
+      // Type and structure scale independently — see WeatherScale. When the
+      // fit correction bites, structure gives way faster than type (exponents
+      // 1.6 vs 0.6), so a larger typographySize still buys visibly larger text
+      // instead of being cancelled out by padding growing alongside it.
+      s: bu * typoMul * Math.pow(fit, 0.5),
+      u: bu * densityMul * Math.pow(fit, 1.5),
+      width: dims.w,
+      height: dims.h,
+      typoMul,
+      densityMul,
+      isDark: theme.isDark,
+    };
+  }, [dims, requestedTypoMul, fit, config.density, theme.isDark]);
 
   // Sun times drive the sky layer, the ribbon's night shading, and the Almanac
   // sun arc. Without coordinates there is no daylight model, so the module
@@ -132,6 +147,7 @@ export default function FullscreenWeatherModule({
 
   const viewProps: WeatherViewProps = {
     config, scale, hourly, forecast, minutely, alerts, units, now, timezone,
+    timeFormat: timeFormat === '24h' ? '24h' : '12h',
     locationLabel, sky: skyCondition, accent, sun, t, locale,
   };
 
@@ -150,7 +166,7 @@ export default function FullscreenWeatherModule({
     ['--fsw-flake-ring' as string]: theme.isDark ? 'transparent' : 'rgba(100,116,139,.40)',
   };
 
-  const s = scale.bu * scale.typoMul;
+  const { s, u } = scale;
   const hasData = hourly.length > 0 || forecast.length > 0;
 
   return (
@@ -176,8 +192,8 @@ export default function FullscreenWeatherModule({
       <div ref={stackRef} style={{
         position: 'relative', zIndex: 2, height: '100%',
         display: 'flex', flexDirection: 'column',
-        padding: `${s * 4}px ${s * 4.4}px`,
-        gap: s * 2 * scale.densityMul,
+        padding: `${u * 4}px ${u * 4.4}px`,
+        gap: u * 2,
         // The fit loop reads scrollHeight against this box, so the box must be
         // the canvas and the content must be allowed to exceed it while measuring.
         overflow: 'hidden',

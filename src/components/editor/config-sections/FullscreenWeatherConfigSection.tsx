@@ -80,6 +80,12 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
       </p>
 
       <Toggle
+        label={t('configSections.fullscreen-weather.showTime')}
+        checked={c.showTime !== false}
+        onChange={(v) => set({ showTime: v })}
+      />
+
+      <Toggle
         label={t('configSections.fullscreen-weather.showAlerts')}
         checked={c.showAlerts !== false}
         onChange={(v) => set({ showAlerts: v })}

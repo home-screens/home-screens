@@ -102,6 +102,17 @@ export const FULLSCREEN_WEATHER_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // showTime gates the header clock in every view.
+    type: 'fullscreen-weather', name: 'hide-time', kind: 'networked', stubKey: 'weather',
+    config: { showTime: false },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="fsw-clock"]')).toHaveCount(0); },
+  },
+  {
+    type: 'fullscreen-weather', name: 'show-time', kind: 'networked', stubKey: 'weather',
+    config: { showTime: true },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="fsw-clock"]')).toHaveCount(1); },
+  },
+  {
     type: 'fullscreen-weather', name: 'location-label', kind: 'networked', stubKey: 'weather',
     config: { locationLabel: 'E2E Weather Town' },
     expect: async (mod) => { await expect(mod).toContainText('E2E Weather Town'); },

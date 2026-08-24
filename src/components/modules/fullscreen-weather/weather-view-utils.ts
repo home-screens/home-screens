@@ -2,10 +2,31 @@ import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@
 import type { FullscreenWeatherConfig } from '@/types/config';
 import type { SkyCondition } from './sky-layer';
 
-/** Scale system shared by every view, mirroring the fullscreen-calendar pattern. */
+/**
+ * Scale system shared by every view.
+ *
+ * Two units, deliberately separate:
+ *
+ * `s` sizes **type** — font sizes and the icons sitting beside them.
+ * `u` sizes **structure** — padding, gaps, chart heights, corner radii.
+ *
+ * Collapsing them into one unit (the first cut of this module) made
+ * `typographySize` inflate the whole layout rather than just the text: at
+ * 2x-large and beyond the stack outgrew the canvas, `useFitScale` shrank
+ * everything back, and the rendered hero came out *smaller* than at `large`.
+ * Measured 184 / 216 / 248 / 246 / 240px across small..4x-large — the control
+ * did nothing above `large`.
+ *
+ * Keeping them apart also gives `density` real work: it now drives every gap,
+ * pad, and chart height instead of a single row-gap nobody could see.
+ */
 export interface WeatherScale {
   /** Base unit: 1% of the shorter viewport edge. */
   bu: number;
+  /** Type unit: `bu * typographySize multiplier`. Fonts and inline icons. */
+  s: number;
+  /** Structure unit: `bu * density multiplier`. Padding, gaps, chart heights. */
+  u: number;
   width: number;
   height: number;
   typoMul: number;
@@ -15,6 +36,7 @@ export interface WeatherScale {
 
 export interface WeatherViewProps {
   config: FullscreenWeatherConfig;
+  timeFormat: '12h' | '24h';
   scale: WeatherScale;
   hourly: HourlyWeather[];
   forecast: ForecastDay[];

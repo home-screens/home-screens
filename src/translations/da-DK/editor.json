@@ -3339,7 +3339,8 @@
       "showNowcastHint": "Regn minut for minut findes kun hos Pirate Weather. Med enhver anden vejrkilde forbliver denne stribe skjult.",
       "daysToShow": "Dage i listen",
       "locationLabel": "Stednavn",
-      "accentColor": "Accentfarve"
+      "accentColor": "Accentfarve",
+      "showTime": "Vis klokkeslæt"
     }
   },
   "imageBrowsers": {

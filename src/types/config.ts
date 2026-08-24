@@ -1685,6 +1685,8 @@ export interface FullscreenWeatherConfig {
   showNowcast: boolean;
   /** Panorama + Almanac: severe-weather banner. */
   showAlerts: boolean;
+  /** Clock in the header. Applies to every view. Default true. */
+  showTime: boolean;
   /** Panorama: the 48h temperature ribbon. */
   showRibbon: boolean;
   /** Panorama: the bottom wind/humidity/UV/pressure/sunset rail. */

@@ -3344,7 +3344,8 @@
       "showNowcastHint": "La pluie minute par minute n'est disponible qu'avec Pirate Weather. Avec toute autre source, ce bandeau reste masqué.",
       "daysToShow": "Jours dans la liste",
       "locationLabel": "Nom du lieu",
-      "accentColor": "Couleur d'accent"
+      "accentColor": "Couleur d'accent",
+      "showTime": "Afficher l'heure"
     }
   },
   "imageBrowsers": {

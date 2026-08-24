@@ -3339,7 +3339,8 @@
       "showNowcastHint": "Regen per minuut is alleen beschikbaar via Pirate Weather. Bij elke andere weerbron blijft deze balk verborgen.",
       "daysToShow": "Dagen in de lijst",
       "locationLabel": "Plaatsnaam",
-      "accentColor": "Accentkleur"
+      "accentColor": "Accentkleur",
+      "showTime": "Tijd tonen"
     }
   },
   "imageBrowsers": {
