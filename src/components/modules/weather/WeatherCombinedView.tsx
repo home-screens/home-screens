@@ -1,6 +1,7 @@
 'use client';
 
 import { CloudRain, Droplets, Wind, Gauge, Eye, Thermometer } from 'lucide-react';
+import { windUnitLabel } from '@/lib/weather/units';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -19,7 +20,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
   const hours = hourly.slice(0, config.hoursToShow);
   const days = forecast.slice(0, config.daysToShow);
-  const windUnit = units === 'metric' ? 'km/h' : 'mph';
+  const windUnit = windUnitLabel(units);
   const current = hourly[0];
 
   // Three fixed bands, so this view never reports a natural height — its rows

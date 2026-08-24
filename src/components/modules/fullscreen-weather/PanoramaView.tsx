@@ -4,9 +4,13 @@ import { useId } from 'react';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
-import { hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, isNightHour, LANDSCAPE_LEFT_FRACTION } from './weather-view-utils';
+import { windUnitLabel } from '@/lib/weather/units';
+import {
+  hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, isNightHour, spanHours,
+  LANDSCAPE_LEFT_FRACTION, CANVAS_PAD_X_U, CARD_PAD_X_U, HOURLY_RAIN_SHOWN_PCT,
+} from './weather-view-utils';
 import { tempColor } from './temp-ramp';
-import { Card, Label, TopBar, AlertBand, DayRangeBars } from './weather-parts';
+import { Card, Label, TopBar, AlertBand, DayRangeBars, PrecipLegendHeader } from './weather-parts';
 
 /**
  * The flagship view, in two arrangements of the same parts.
@@ -204,14 +208,14 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
 
   // The rendered box and the viewBox are given the same aspect, so
   // `preserveAspectRatio="none"` scales x and y equally and text is not
-  // stretched. That means reconstructing the card's own width: the stack pads
-  // u*4.4 a side and the card u*2.3 a side, and in landscape the card sits in
-  // the right-hand column rather than spanning the canvas.
-  const contentW = p.scale.width - u * 8.8;
+  // stretched. That means reconstructing the card's own width from the
+  // canvas and card padding, and in landscape the card sits in the
+  // right-hand column rather than spanning the canvas.
+  const contentW = p.scale.width - u * CANVAS_PAD_X_U * 2;
   const cardOuterW = landscape
     ? (contentW - u * 2) * (1 - LANDSCAPE_LEFT_FRACTION)
     : contentW;
-  const renderedW = Math.max(120, cardOuterW - u * 4.6);
+  const renderedW = Math.max(120, cardOuterW - u * CARD_PAD_X_U * 2);
   const renderedH = Math.max(60, u * (landscape ? 30 : 27));
   const VH = Math.round((W * renderedH) / renderedW);
 
@@ -264,17 +268,10 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
     );
   };
 
-  const spanHours = Math.round((hourlyInstant(hrs[N - 1]).getTime() - hourlyInstant(hrs[0]).getTime()) / 3600000);
 
   return (
     <Card u={u} testId="fsw-ribbon" style={{ flex: 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: u * .6 }}>
-        <Label s={s}>{p.t('fullscreen-weather.sections.nextHours', { hours: spanHours })}</Label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: u * .6, fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.13em', textTransform: 'uppercase', color: 'var(--fsw-text-3)' }}>
-          <span style={{ width: s, height: s, borderRadius: 3, background: '#38bdf8', display: 'inline-block' }} />
-          {p.t('fullscreen-weather.sections.chanceOfPrecip')}
-        </div>
-      </div>
+      <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .6 }} />
       <svg viewBox={`0 0 ${W} ${VH}`} preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: renderedH }}>
         <defs>
           <linearGradient id={tempGradId} x1="0" x2="1">{stops}</linearGradient>
@@ -305,7 +302,7 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
 
         {hrs.map((h, i) => {
           const pop = (h.precipProbability ?? 0) / 100;
-          if (pop < 0.05) return null;
+          if (pop * 100 < HOURLY_RAIN_SHOWN_PCT) return null;
           const bw = step * 0.62;
           return <rect key={`p${i}`} x={x(i) - bw / 2} y={baseline + 4} width={bw} height={Math.max(2, pop * (PB - 8))} rx={2.5} fill="#38bdf8" opacity={0.35 + pop * 0.6} />;
         })}
@@ -347,7 +344,7 @@ function statCells(p: WeatherViewProps): StatCell[] {
   const now = p.hourly[0];
   if (!now) return [];
 
-  const windUnit = p.units === 'metric' ? 'km/h' : 'mph';
+  const windUnit = windUnitLabel(p.units);
   const cells: StatCell[] = [];
   if (now.windSpeed != null) cells.push({ icon: Wind, key: p.t('fullscreen-weather.stats.wind'), value: `${Math.round(now.windSpeed)} ${windUnit}` });
   if (now.humidity != null) cells.push({ icon: Droplets, key: p.t('fullscreen-weather.stats.humidity'), value: `${Math.round(now.humidity)}%` });

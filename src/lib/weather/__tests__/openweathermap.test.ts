@@ -56,7 +56,7 @@ describe('OpenWeatherMapProvider', () => {
       humidity: 60,
       icon: 'sun', // 01d
       description: 'clear sky',
-      windSpeed: 3.5,
+      windSpeed: 12.6, // 3.5 m/s -> km/h under metric
       precipProbability: 0, // current is always 0
     });
     // Forecast (index 1) — pop scaled to a percentage
@@ -100,7 +100,7 @@ describe('OpenWeatherMapProvider', () => {
       description: 'light rain',
       precipProbability: 60, // max(10, 60)
       humidity: 60, // avg(70, 50)
-      windSpeed: 4, // round(avg(3.5, 3.5))
+      windSpeed: 13, // round(avg(3.5, 3.5) m/s * 3.6)
       precipAmount: 12.7, // metric mm summed
     });
   });

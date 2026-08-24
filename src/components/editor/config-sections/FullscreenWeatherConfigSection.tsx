@@ -9,6 +9,7 @@ import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenWeatherConfig } from '@/types/config';
+import { clampDaysToShow } from '@/components/modules/fullscreen-weather/weather-view-utils';
 
 type Config = Partial<FullscreenWeatherConfig>;
 
@@ -22,6 +23,8 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
     { value: 'panorama', label: t('configSections.fullscreen-weather.viewPanorama') },
     { value: 'almanac', label: t('configSections.fullscreen-weather.viewAlmanac') },
     { value: 'ambient', label: t('configSections.fullscreen-weather.viewAmbient') },
+    { value: 'week', label: t('configSections.fullscreen-weather.viewWeek') },
+    { value: 'hourly', label: t('configSections.fullscreen-weather.viewHourly') },
   ] as const;
 
   const DENSITY_OPTIONS = [
@@ -114,13 +117,16 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
           <p className="text-[11px] text-hs-text-faint leading-relaxed">
             {t('configSections.fullscreen-weather.showNowcastHint')}
           </p>
-          <LabeledInput
-            label={t('configSections.fullscreen-weather.daysToShow')}
-            type="number"
-            value={c.daysToShow ?? 7}
-            onChange={(v) => set({ daysToShow: Math.max(3, Math.min(7, Number(v) || 7)) })}
-          />
         </>
+      )}
+
+      {(view === 'panorama' || view === 'week') && (
+        <LabeledInput
+          label={t('configSections.fullscreen-weather.daysToShow')}
+          type="number"
+          value={c.daysToShow ?? 7}
+          onChange={(v) => set({ daysToShow: clampDaysToShow(Number(v) || undefined) })}
+        />
       )}
 
       <LabeledInput

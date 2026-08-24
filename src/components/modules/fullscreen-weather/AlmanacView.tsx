@@ -4,9 +4,10 @@ import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
-import { hourLabel, smoothPath, tzHour, hourlyInstant, hoursWithin } from './weather-view-utils';
+import { windUnitLabel } from '@/lib/weather/units';
+import { hourLabel, smoothPath, tzHour, hourlyInstant, hoursWithin, HOURLY_RAIN_SHOWN_PCT } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
-import { Card, Label, TopBar, AlertBand } from './weather-parts';
+import { Card, Label, TopBar, AlertBand, MiniHero } from './weather-parts';
 
 /** Every bento card takes its placement from the caller, not from itself. */
 interface CardProps {
@@ -115,40 +116,6 @@ export default function AlmanacView(p: WeatherViewProps) {
         <Next12Card p={p} place={{ gridColumn: 'span 6' }} />
       </div>
     </>
-  );
-}
-
-function MiniHero({ p }: { p: WeatherViewProps }) {
-  const { s, u } = p.scale;
-  const landscape = p.scale.orientation === 'landscape';
-  const now = p.hourly[0];
-  const today = p.forecast[0];
-  const Icon = getWeatherIcon(now?.icon ?? 'thermometer', 'outline');
-  // Landscape trades hero size for bento height: the canvas is 1080 tall
-  // rather than 1920, and the bento is what has to fit into what is left.
-  const tempSize = landscape ? s * 8 : s * 10;
-  const iconSize = landscape ? s * 6 : s * 7.5;
-  return (
-    <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: u * 2.5 }}>
-      <Icon style={{ width: iconSize, height: iconSize, color: p.accent }} strokeWidth={1} />
-      <div style={{ fontSize: tempSize, fontWeight: 200, letterSpacing: '-.05em', lineHeight: .9 }}>
-        {now ? Math.round(now.temp) : '--'}
-        <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
-      </div>
-      <div>
-        <div style={{ fontSize: s * 2.5, fontWeight: 500, letterSpacing: '-.01em' }}>{now?.description ?? ''}</div>
-        {now?.feelsLike != null && (
-          <div style={{ fontSize: s * 1.8, color: 'var(--fsw-text-2)', marginTop: u * .5 }}>
-            {p.t('fullscreen-weather.feelsLike', { temp: Math.round(now.feelsLike) })}
-          </div>
-        )}
-      </div>
-      {today && (
-        <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-          <div style={{ fontSize: s * 1.85, fontWeight: 600 }}>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</div>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -302,7 +269,7 @@ function phaseNameKey(phase: number): string {
 function WindCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const now = p.hourly[0];
-  const unit = p.units === 'metric' ? 'km/h' : 'mph';
+  const unit = windUnitLabel(p.units);
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.wind')}</Label>
@@ -425,7 +392,7 @@ function Next12Card({ p, place }: CardProps) {
               </div>
               <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? '#38bdf8' : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
               <div style={{ fontSize: s * 2.3, fontWeight: 600, letterSpacing: '-.02em', color: tempColor(h.temp, p.units) }}>{Math.round(h.temp)}°</div>
-              <div style={{ fontSize: s * 1.25, fontWeight: 600, color: '#38bdf8', minHeight: u * 1.6 }}>{pop >= 8 ? `${Math.round(pop)}%` : ''}</div>
+              <div style={{ fontSize: s * 1.25, fontWeight: 600, color: '#38bdf8', minHeight: u * 1.6 }}>{pop >= HOURLY_RAIN_SHOWN_PCT ? `${Math.round(pop)}%` : ''}</div>
             </div>
           );
         })}

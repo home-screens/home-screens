@@ -3323,6 +3323,8 @@
       "viewPanorama": "Panorama",
       "viewAlmanac": "Almanak",
       "viewAmbient": "Stemning",
+      "viewWeek": "Ugen frem",
+      "viewHourly": "Time for time",
       "themeDefault": "Standard (fra Indstillinger)",
       "typographySize": "Tekststørrelse",
       "densityCozy": "Luftig",

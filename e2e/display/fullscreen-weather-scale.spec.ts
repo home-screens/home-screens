@@ -5,7 +5,9 @@ import { putConfig } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { richWeather } from '../helpers/weather-payload';
-import type { FullscreenTypographySize } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenWeatherView } from '@/types/config';
+
+const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week', 'hourly'];
 
 /**
  * Scale coverage for fullscreen-weather.
@@ -44,16 +46,16 @@ async function render(
   await expect(root.locator('[data-fit-settled="true"]')).toHaveCount(1);
 
   return root.evaluate((el) => {
-    const stack = el.querySelector(':scope > div:last-child') as HTMLElement;
+    const stack = el.querySelector('[data-testid="fsw-stack"]') as HTMLElement;
     const hero = el.querySelector('[data-testid="fsw-hero-temp"]');
     const clock = el.querySelector('[data-testid="fsw-clock"]');
     return {
       overY: stack.scrollHeight - stack.clientHeight,
       overX: stack.scrollWidth - stack.clientWidth,
       heroPx: hero ? parseFloat(getComputedStyle(hero).fontSize) : 0,
-      // Present in every view, so it works as the type-size probe for all three.
+      // Present in every view, so it works as the type-size probe for all of them.
       clockPx: clock ? parseFloat(getComputedStyle(clock).fontSize) : 0,
-      padPx: parseFloat(getComputedStyle(stack).paddingTop),
+      padPx: parseFloat(getComputedStyle(stack.parentElement!).paddingTop),
       errors: [] as string[],
     };
   }).then((r) => ({ ...r, errors }));
@@ -63,7 +65,7 @@ const SIZES: FullscreenTypographySize[] = [
   'small', 'medium', 'large', 'extra-large', '2x-large', '3x-large', '4x-large',
 ];
 
-for (const view of ['panorama', 'almanac', 'ambient'] as const) {
+for (const view of VIEWS) {
   for (const typographySize of SIZES) {
     test(`${view} fits the canvas at ${typographySize}`, async ({ page, request }) => {
       const r = await render(page, request, { view, typographySize, theme: 'linen' });
@@ -112,7 +114,7 @@ test('panorama grows its type when sections are switched off', async ({ page, re
  * itself a source of non-monotonicity).
  */
 test.describe('the scale controls have an effect', () => {
-  for (const view of ['panorama', 'almanac', 'ambient'] as const) {
+  for (const view of VIEWS) {
     test(`${view}: type grows with every step up the typography scale`, async ({ page, request }) => {
       const sizes: FullscreenTypographySize[] = ['small', 'medium', 'large', '2x-large', '4x-large'];
       const measured: Array<{ size: string; px: number }> = [];
@@ -142,7 +144,7 @@ test.describe('the scale controls have an effect', () => {
 
 /** The header clock is opt-out and applies to every view. */
 test.describe('showTime', () => {
-  for (const view of ['panorama', 'almanac', 'ambient'] as const) {
+  for (const view of VIEWS) {
     test(`${view}: the clock renders by default and hides when switched off`, async ({ page, request }) => {
       await render(page, request, { view, theme: 'linen' });
       await expect(page.locator('[data-testid="fsw-clock"]')).toHaveCount(1);

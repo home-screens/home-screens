@@ -3328,6 +3328,8 @@
       "viewPanorama": "Panorama",
       "viewAlmanac": "Almanach",
       "viewAmbient": "Ambiance",
+      "viewWeek": "Semaine à venir",
+      "viewHourly": "Heure par heure",
       "themeDefault": "Par défaut (Réglages)",
       "typographySize": "Taille du texte",
       "densityCozy": "Aéré",

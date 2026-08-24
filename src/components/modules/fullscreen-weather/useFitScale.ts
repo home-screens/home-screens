@@ -25,10 +25,19 @@ export const FIT_FACTOR_ATTR = 'data-fit-factor';
  */
 export const FIT_SETTLED_ATTR = 'data-fit-settled';
 
-/** How many frames to wait for React to commit a probe before giving up and
- *  measuring anyway. Bounded so a caller that forgets to stamp the attribute
- *  degrades to the old behaviour instead of spinning at 60fps forever. */
-const MAX_COMMIT_WAIT_FRAMES = 20;
+/**
+ * How many frames to wait for React to commit a probe before giving up.
+ *
+ * A caller that never stamps the attribute is measured immediately (see
+ * `isCommitted`), so this only governs a caller that *does* stamp and whose
+ * commit is slow. It was 20, after which the loop measured the stale layout
+ * anyway — which is the section-11 corruption reappearing whenever the
+ * machine is busy for a third of a second: a cold server start, a burst of
+ * parallel work, a Pi under load. Five seconds is far past any real commit,
+ * and on expiry the loop settles (see the expiry branch in `measure`) instead
+ * of measuring something it knows is stale.
+ */
+const MAX_COMMIT_WAIT_FRAMES = 300;
 
 export interface FitScale {
   /** The scale factor to render at right now (1 while the first probe runs). */
@@ -77,13 +86,15 @@ export interface FitScale {
  */
 export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[]): FitScale {
   const [fit, setFit] = useState<FitScale>({ factor: 1, settled: false });
-  const stateRef = useRef({ lo: MIN_FACTOR, hi: 1, step: 0, probe: 1 });
+  const stateRef = useRef({ lo: MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false });
 
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
-    stateRef.current = { lo: MIN_FACTOR, hi: 1, step: 0, probe: 1 };
+    // `proven` is whether any probe has been measured to fit; until it is,
+    // `lo` is the unmeasured MIN_FACTOR floor and must not be settled on.
+    stateRef.current = { lo: MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false };
     setFit({ factor: 1, settled: false });
 
     let cancelled = false;
@@ -104,6 +115,17 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
     const fits = (node: HTMLElement) =>
       node.scrollHeight - node.clientHeight <= 1 && node.scrollWidth - node.clientWidth <= 1;
 
+    /**
+     * Whether a web font is still on its way. The measured text is laid out
+     * in the fallback face until the woff2 lands (`font-display: swap`), and
+     * the swap changes every line's height after the bisection has settled,
+     * with nothing to re-run it: the first fit after a cold build came out at
+     * 0.83 where a warm one gave 0.75. Reading layout is what starts the
+     * load, so this is checked *after* the measurement that triggered it.
+     */
+    const fontsLoading = () =>
+      typeof document !== 'undefined' && document.fonts?.status === 'loading';
+
     const measure = () => {
       if (cancelled) return;
       const node = ref.current;
@@ -112,17 +134,44 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
 
       // Measuring a layout that belongs to the previous probe corrupts the
       // bisection permanently, so wait for the commit instead of guessing.
-      if (!isCommitted(node, st.probe) && waited < MAX_COMMIT_WAIT_FRAMES) {
-        waited += 1;
-        raf = requestAnimationFrame(measure);
+      if (!isCommitted(node, st.probe)) {
+        if (waited < MAX_COMMIT_WAIT_FRAMES) {
+          waited += 1;
+          raf = requestAnimationFrame(measure);
+          return;
+        }
+        // The commit never arrived. A stale measurement is never right — it
+        // is exactly the corruption the stamp exists to prevent — so this
+        // probe is not judged. Settle on the largest factor measured to fit
+        // if there is one; otherwise on the layout actually on screen, which
+        // is the only factor known to have committed (the MIN_FACTOR floor
+        // has been measured by nobody, and is the tiny type this loop exists
+        // to avoid). Loud, so the next field occurrence can be diagnosed.
+        const onScreen = Number(node.getAttribute(FIT_FACTOR_ATTR));
+        const fallback = st.proven ? st.lo : (Number.isFinite(onScreen) ? onScreen : 1);
+        console.warn(
+          `[useFitScale] probe ${st.probe.toFixed(3)} never committed after ${MAX_COMMIT_WAIT_FRAMES} frames `
+          + `(step ${st.step}, on screen ${onScreen}); settling on ${fallback.toFixed(3)}`,
+        );
+        st.probe = fallback;
+        setFit({ factor: fallback, settled: true });
         return;
       }
       waited = 0;
 
-      if (fits(node)) {
+      const fitted = fits(node);
+      if (fontsLoading()) {
+        // That measurement was taken in the fallback face. Throw it away and
+        // take it again once the real one is in.
+        document.fonts.ready.then(() => { if (!cancelled) raf = requestAnimationFrame(measure); });
+        return;
+      }
+
+      if (fitted) {
         // The current probe fits. It is the best known lower bound; if we are
         // still searching, try larger, otherwise settle here.
         st.lo = st.probe;
+        st.proven = true;
       } else {
         st.hi = st.probe;
       }

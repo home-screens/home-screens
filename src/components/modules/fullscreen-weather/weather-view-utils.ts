@@ -60,6 +60,32 @@ export function getOrientation(width: number, height: number): Orientation {
  */
 export const LANDSCAPE_LEFT_FRACTION = 0.34;
 
+/**
+ * Canvas and card padding, in `u`.
+ *
+ * Single-sourced because two consumers have to reconstruct a rendered width
+ * *without measuring* (measuring inside the fit loop would re-render it): the
+ * Panorama ribbon's viewBox aspect and the Hourly meteogram's label stride.
+ * Both used to carry the literal `u * 8.8` / `u * 4.6` and a comment naming
+ * the padding they were copied from, which is exactly the kind of note that
+ * goes stale the first time the padding changes.
+ */
+export const CANVAS_PAD_X_U = 4.4;
+export const CANVAS_PAD_Y_U = 4;
+export const CARD_PAD_X_U = 2.3;
+export const CARD_PAD_Y_U = 2.1;
+
+/** Rain chance below which a forecast day shows no percentage, so a dry week is not a column of "0%". */
+export const DAILY_RAIN_SHOWN_PCT = 8;
+/** Rain chance below which an hourly entry draws no bar. */
+export const HOURLY_RAIN_SHOWN_PCT = 5;
+
+/** `daysToShow` is 3..7; anything else (unset, NaN, out of range) is 7. */
+export function clampDaysToShow(value: number | undefined): number {
+  if (value == null || !Number.isFinite(value)) return 7;
+  return Math.max(3, Math.min(7, value));
+}
+
 export interface WeatherViewProps {
   config: FullscreenWeatherConfig;
   timeFormat: '12h' | '24h';
@@ -151,12 +177,34 @@ export function smoothPath(pts: Array<[number, number]>): string {
  */
 export function tzHour(date: Date, timezone?: string): number {
   if (!timezone) return date.getHours() + date.getMinutes() / 60;
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false,
-  }).formatToParts(date);
+  const parts = cachedFormat('en-US', { timeZone: timezone, hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts(date);
   const h = Number(parts.find((p) => p.type === 'hour')?.value ?? '0');
   const m = Number(parts.find((p) => p.type === 'minute')?.value ?? '0');
   return (h % 24) + m / 60;
+}
+
+/**
+ * `Intl.DateTimeFormat` construction is the expensive half of formatting
+ * (about 25us each in Node, far more on a Pi). The Hourly view formats every
+ * entry on every fit-loop probe and every clock tick, so the formatters are
+ * cached by their options rather than rebuilt per call. `useMemo` in the
+ * views would not help: `scale` changes on every probe.
+ */
+const formatterCache = new Map<string, Intl.DateTimeFormat>();
+export function cachedFormat(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = `${locale}|${JSON.stringify(options)}`;
+  let f = formatterCache.get(key);
+  if (!f) {
+    f = new Intl.DateTimeFormat(locale, options);
+    formatterCache.set(key, f);
+  }
+  return f;
+}
+
+/** The local calendar day an instant falls on, as a sortable `YYYY-MM-DD`-like key. */
+export function tzDayKey(date: Date, timezone?: string): string {
+  if (!timezone) return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  return cachedFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 }
 
 /**
@@ -188,6 +236,145 @@ export function hoursWithin(hourly: HourlyWeather[], hours: number): HourlyWeath
     out.push(h);
   }
   return out;
+}
+
+/**
+ * The entries the Hour-by-hour view draws.
+ *
+ * The next 24 hours, widened to 48 when the provider steps every 3 hours
+ * (OpenWeatherMap): eight rows on a 1920px-tall canvas is a list swimming in
+ * slack, sixteen is a list. A source that simply runs out inside 24 hours is
+ * left alone — there is nothing further out to widen into.
+ */
+export function timelineHours(hourly: HourlyWeather[]): HourlyWeather[] {
+  const day = hoursWithin(hourly, 24);
+  if (day.length >= 12 || day.length === hourly.length) return day;
+  return hoursWithin(hourly, 48);
+}
+
+/**
+ * Hours a run of entries covers, counting the last entry's own step: 24
+ * hourly readings are "Next 24 hours", not 23, and 16 three-hourly ones are
+ * 48. Last-minus-first alone is one step short.
+ *
+ * Measured on the provider's grid. OpenWeatherMap's first entry is the live
+ * observation, which sits anywhere from a minute to three hours before the
+ * first slot, so a span that counted that partial step wobbled between "45"
+ * and "51" as the clock ticked. The step is taken from the last two entries
+ * (always on the grid) and the span is rounded *down* to whole steps, so the
+ * observation's fraction of a step never counts.
+ */
+export function spanHours(hrs: HourlyWeather[]): number {
+  if (hrs.length < 2) return hrs.length;
+  const first = hourlyInstant(hrs[0]).getTime();
+  const last = hourlyInstant(hrs[hrs.length - 1]).getTime();
+  const step = last - hourlyInstant(hrs[hrs.length - 2]).getTime();
+  if (step <= 0) return hrs.length;
+  const steps = Math.floor((last - first) / step + 1 + 1e-9);
+  return Math.round((steps * step) / 3600_000);
+}
+
+export interface TimelineMark {
+  /** Wall-clock hour (fractional) in the display timezone. */
+  hour: number;
+  /** First entry of a new local calendar day (never the first entry, which is "Now"). */
+  midnight: boolean;
+}
+
+/**
+ * Where each entry sits on the local clock, and which entries open a new day.
+ *
+ * A day boundary is a *change of local calendar day* between neighbours, not
+ * "this entry's hour is 0". OpenWeatherMap's slots sit on the UTC grid
+ * (00/03/06Z...), so a local 00:xx entry only exists where the UTC offset is
+ * a multiple of three hours: US Central in summer and all of continental
+ * Europe had no midnight row at all, and the list ran 48 hours with no day
+ * label anywhere. Comparing day keys finds the boundary wherever it falls.
+ */
+export function timelineMarks(hrs: HourlyWeather[], timezone?: string): TimelineMark[] {
+  let prevDay: string | null = null;
+  return hrs.map((h, i) => {
+    const at = hourlyInstant(h);
+    const day = tzDayKey(at, timezone);
+    const midnight = i > 0 && prevDay !== null && day !== prevDay;
+    prevDay = day;
+    return { hour: tzHour(at, timezone), midnight };
+  });
+}
+
+/**
+ * A shared temperature axis: `k(t)` is the 0-1 position of a temperature
+ * between the run's coldest and warmest. A flat run (every value equal) puts
+ * everything at 0 rather than dividing by zero.
+ */
+export function temperatureAxis(temps: number[]): { min: number; max: number; k: (t: number) => number } {
+  const min = temps.length ? Math.min(...temps) : 0;
+  const max = temps.length ? Math.max(...temps) : 1;
+  const range = max - min || 1;
+  return { min, max, k: (t) => (t - min) / range };
+}
+
+export interface WeekRange {
+  days: ForecastDay[];
+  weekMin: number;
+  weekMax: number;
+  /** 0-100 position of a temperature on the week's shared scale, clamped. */
+  pct: (t: number) => number;
+  /** Today's live temperature, for the "now" ring. */
+  nowTemp: number | undefined;
+}
+
+/**
+ * The days a forecast list shows and the shared scale their range bars sit
+ * on. One implementation for Panorama's 7-day strip and the Week view, which
+ * used to carry line-for-line copies of each other's arithmetic.
+ */
+export function weekRange(p: { forecast: ForecastDay[]; hourly: HourlyWeather[]; config: { daysToShow?: number } }): WeekRange {
+  const days = p.forecast.slice(0, clampDaysToShow(p.config.daysToShow));
+  const weekMin = days.length ? Math.min(...days.map((d) => d.low)) : 0;
+  const weekMax = days.length ? Math.max(...days.map((d) => d.high)) : 1;
+  const span = weekMax - weekMin || 1;
+  const pct = (t: number) => Math.max(0, Math.min(100, ((t - weekMin) / span) * 100));
+  return { days, weekMin, weekMax, pct, nowTemp: p.hourly[0]?.temp };
+}
+
+/** Minimum share of the track a range bar occupies, so a flat day still draws a bar. */
+export const MIN_BAR_PCT = 3;
+
+/**
+ * How many columns apart labels must sit to avoid touching, given the column
+ * pitch and the widest label. 1 means every column is labelled. Used by the
+ * landscape meteogram, whose 24 columns are ~72px wide on a 1920 canvas —
+ * fine at medium type, but a 4x-large "84°" is wider than that.
+ */
+export function labelStride(columnPx: number, labelPx: number): number {
+  if (columnPx <= 0) return 1;
+  return Math.max(1, Math.ceil((labelPx * 1.15) / columnPx));
+}
+
+/**
+ * Pixel pitch of one meteogram column, from the canvas width: the canvas and
+ * card padding come off, then the gutter, and the rest is shared by `n`
+ * columns. Computed rather than measured so the fit loop is not re-entered.
+ */
+export function meteogramColumnPx(canvasWidth: number, u: number, gutterPx: number, n: number): number {
+  if (n <= 0) return 0;
+  return (canvasWidth - u * CANVAS_PAD_X_U * 2 - u * CARD_PAD_X_U * 2 - gutterPx) / n;
+}
+
+/** Whether column `i` carries a value label (temperature, rain, wind) at this stride. */
+export function valueLabelled(i: number, stride: number): boolean {
+  return i % stride === 0;
+}
+
+/**
+ * Whether column `i` carries an hour label. "Now" and a day name always show;
+ * when columns are thinned, the neighbours of a forced label step aside for it.
+ */
+export function hourLabelled(i: number, stride: number, midnight: boolean[]): boolean {
+  if (i === 0 || midnight[i]) return true;
+  if (!valueLabelled(i, stride)) return false;
+  return stride === 1 || !(midnight[i - 1] || midnight[i + 1]);
 }
 
 /** Alert severities that earn the red treatment rather than amber. */

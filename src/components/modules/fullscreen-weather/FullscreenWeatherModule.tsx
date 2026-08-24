@@ -12,7 +12,8 @@ import { LocationRequired } from '../LocationRequired';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
 import {
-  tzHour, getOrientation, isNightHour,
+  tzHour, getOrientation, isNightHour, timelineHours, hoursWithin,
+  CANVAS_PAD_X_U, CANVAS_PAD_Y_U,
   type WeatherScale, type WeatherViewProps, type SunTimes,
 } from './weather-view-utils';
 import ConditionParticles from './ConditionParticles';
@@ -20,6 +21,8 @@ import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from './useFitScale';
 import PanoramaView from './PanoramaView';
 import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';
+import WeekView from './WeekView';
+import HourlyView from './HourlyView';
 
 interface FullscreenWeatherModuleProps {
   config: FullscreenWeatherConfig;
@@ -90,8 +93,16 @@ export default function FullscreenWeatherModule({
   const theme = getThemeTokens(config.theme ?? fullscreenTheme);
 
   // Counts, not array identities: a refetch that returns the same shape must
-  // not restart the fit loop.
-  const hourlyCount = hourly.length;
+  // not restart the fit loop. And the count the *view draws*, not the raw
+  // length: Open-Meteo and NOAA drop entries older than an hour, so the raw
+  // list shrinks by one at every hour boundary while the 24-row timeline
+  // stays 24 rows. Re-fitting an identical layout costs a frame at factor 1
+  // (the list visibly overflows at large type) and a fresh bisection.
+  const hourlyCount = config.view === 'hourly'
+    ? timelineHours(hourly).length
+    : config.view === 'almanac'
+      ? hoursWithin(hourly, 12).length
+      : Math.min(48, hourly.length);
   const forecastCount = forecast.length;
   const minutelyCount = minutely.length;
   const alertCount = alerts.length;
@@ -213,18 +224,30 @@ export default function FullscreenWeatherModule({
       )}
       {motionOn && <ConditionParticles kind={particleKind(skyCondition)} height={dims.h} />}
 
+      {/*
+        Two boxes, not one. The outer carries the canvas padding; the inner is
+        what the fit loop measures. `scrollWidth` / `scrollHeight` only grow
+        past the *padding* edge, so with the padding on the measured element
+        any overflow that landed inside it (up to ~47px a side) was invisible
+        to the fit loop and rendered into the margin — which is how the Week
+        view's high-temperature column ended up clipped at the canvas edge at
+        2x-large. With the padding outside, the measured box is exactly the
+        content area, and overflow past it is what gets measured.
+      */}
+      <div style={{ position: 'relative', zIndex: 2, height: '100%', padding: `${u * CANVAS_PAD_Y_U}px ${u * CANVAS_PAD_X_U}px` }}>
       <div
         ref={stackRef}
+        data-testid="fsw-stack"
         // The fit loop measures this element, and needs to know which factor
         // the layout it is reading belongs to. See useFitScale.
         {...{ [FIT_FACTOR_ATTR]: String(fit), [FIT_SETTLED_ATTR]: String(fitSettled) }}
         style={{
-        position: 'relative', zIndex: 2, height: '100%',
+        height: '100%',
         display: 'flex', flexDirection: 'column',
-        padding: `${u * 4}px ${u * 4.4}px`,
         gap: u * 2,
         // The fit loop reads scrollHeight against this box, so the box must be
-        // the canvas and the content must be allowed to exceed it while measuring.
+        // the content area and the content must be allowed to exceed it while
+        // measuring.
         overflow: 'hidden',
       }}>
         {!hasData ? (
@@ -235,9 +258,14 @@ export default function FullscreenWeatherModule({
           <AlmanacView {...viewProps} />
         ) : config.view === 'ambient' ? (
           <AmbientView {...viewProps} />
+        ) : config.view === 'week' ? (
+          <WeekView {...viewProps} />
+        ) : config.view === 'hourly' ? (
+          <HourlyView {...viewProps} />
         ) : (
           <PanoramaView {...viewProps} />
         )}
+      </div>
       </div>
     </div>
   );

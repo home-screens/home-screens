@@ -3323,6 +3323,8 @@
       "viewPanorama": "Panorama",
       "viewAlmanac": "Almanach",
       "viewAmbient": "Ambiente",
+      "viewWeek": "Wochenausblick",
+      "viewHourly": "Stunde für Stunde",
       "themeDefault": "Standard (aus Einstellungen)",
       "typographySize": "Schriftgröße",
       "densityCozy": "Luftig",

@@ -21,3 +21,12 @@ export function kmhToWindUnit(kmh: number, isMetric: boolean): number {
 export function mmToPrecipUnit(mm: number, isMetric: boolean): number {
   return isMetric ? mm : mm * 0.0393701;
 }
+
+/**
+ * The label beside a wind speed. Every provider normalises wind to km/h
+ * (metric) or mph (imperial) before it reaches a module, so the label depends
+ * on the unit setting alone.
+ */
+export function windUnitLabel(units: 'metric' | 'imperial'): string {
+  return units === 'metric' ? 'km/h' : 'mph';
+}

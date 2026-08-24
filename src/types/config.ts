@@ -1663,7 +1663,13 @@ export interface FullscreenMealPlannerConfig {
 }
 
 // Fullscreen weather module config
-export type FullscreenWeatherView = 'panorama' | 'almanac' | 'ambient';
+/**
+ * panorama — the flagship stack; almanac — instrument bento; ambient — huge
+ * read-from-across-the-room; week — the daily forecast as the whole screen;
+ * hourly — the next 24 hours as a timeline (down the page in portrait, across
+ * it in landscape).
+ */
+export type FullscreenWeatherView = 'panorama' | 'almanac' | 'ambient' | 'week' | 'hourly';
 
 /** 'auto' tints the background by condition and sun elevation; 'off' falls
  *  back to the flat theme background. The sky is a wash *behind* the cards,
@@ -1691,7 +1697,7 @@ export interface FullscreenWeatherConfig {
   showRibbon: boolean;
   /** Panorama: the bottom wind/humidity/UV/pressure/sunset rail. */
   showStatRail: boolean;
-  /** Panorama: how many forecast days the range-bar list shows (3-7). */
+  /** Panorama + Week: how many forecast days the daily list shows (3-7). */
   daysToShow: number;
   /** Optional place-name override, mirroring WeatherConfig.locationLabel. */
   locationLabel?: string;

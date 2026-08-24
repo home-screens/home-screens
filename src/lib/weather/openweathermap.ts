@@ -2,6 +2,7 @@ import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchWeatherJSON } from './fetch';
 import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
 import { average } from './daily';
+import { msToWindUnit } from './units';
 
 // ── OpenWeatherMap API response types ────────────────────────────────
 
@@ -92,8 +93,13 @@ function aggregateDay(date: string, day: DayAccumulator, units: string, mapIcon:
     precipProbability: Math.round(Math.max(...day.pop)),
     precipAmount: units === 'imperial' ? Math.round(day.rain / 25.4 * 100) / 100 : Math.round(day.rain * 10) / 10,
     humidity: Math.round(average(day.humidity) ?? 0),
-    windSpeed: Math.round(average(day.wind) ?? 0),
+    windSpeed: Math.round(windToUnit(average(day.wind) ?? 0, units)),
   };
+}
+
+/** OWM wind: m/s under `metric`, mph under `imperial`. Modules expect km/h or mph. */
+function windToUnit(speed: number, units: string): number {
+  return units === 'metric' ? msToWindUnit(speed, true) : speed;
 }
 
 // ── OpenWeatherMap provider ──────────────────────────────────────────
@@ -139,6 +145,9 @@ export class OpenWeatherMapProvider implements WeatherProvider {
       this.fetchForecast(lat, lon, units),
     ]);
 
+    // OWM's `units=metric` reports wind in m/s (imperial is already mph);
+    // every other provider hands modules km/h, so match them here.
+    const wind = (speed: number) => windToUnit(speed, units);
     const current: HourlyWeather = {
       time: new Date(currentData.dt * 1000).toISOString(),
       temp: currentData.main.temp,
@@ -146,7 +155,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
       humidity: currentData.main.humidity,
       icon: this.mapIcon(currentData.weather[0]?.icon ?? ''),
       description: currentData.weather[0]?.description ?? '',
-      windSpeed: currentData.wind.speed,
+      windSpeed: wind(currentData.wind.speed),
       precipProbability: 0,
     };
 
@@ -157,7 +166,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
       humidity: h.main.humidity,
       icon: this.mapIcon(h.weather[0]?.icon ?? ''),
       description: h.weather[0]?.description ?? '',
-      windSpeed: h.wind.speed,
+      windSpeed: wind(h.wind.speed),
       precipProbability: (h.pop ?? 0) * 100,
     }));
 

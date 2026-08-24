@@ -1,6 +1,7 @@
 'use client';
 
 import { CloudRain, Droplets, Wind } from 'lucide-react';
+import { windUnitLabel } from '@/lib/weather/units';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -18,7 +19,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
   const tWeather = useTranslate('weather');
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
   const days = forecast.slice(0, config.daysToShow);
-  const windUnit = units === 'metric' ? 'km/h' : 'mph';
+  const windUnit = windUnitLabel(units);
   const showHighLow = config.showHighLow !== false;
 
   // Day count drives the width and the enabled stats drive the height, so this

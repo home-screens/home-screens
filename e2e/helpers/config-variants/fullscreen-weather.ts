@@ -65,6 +65,13 @@ export const FULLSCREEN_WEATHER_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod).toContainText('3-day outlook'); },
   },
   {
+    // The same field trims the Week view, which counts a `fsw-week-day` per day.
+    type: 'fullscreen-weather', name: 'days-to-show-week-3', kind: 'networked', stubKey: 'weather',
+    stubBody: SEVEN_DAY_BODY,
+    config: { view: 'week', daysToShow: 3 },
+    expect: async (mod) => { await expect(mod.locator('[data-testid="fsw-week-day"]')).toHaveCount(3); },
+  },
+  {
     // showRibbon hides the 48h temperature curve (the only <svg> in Panorama
     // once the stat rail is off, so assert on the section label instead).
     type: 'fullscreen-weather', name: 'hide-ribbon', kind: 'networked', stubKey: 'weather',

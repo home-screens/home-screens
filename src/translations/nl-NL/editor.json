@@ -3323,6 +3323,8 @@
       "viewPanorama": "Panorama",
       "viewAlmanac": "Almanak",
       "viewAmbient": "Sfeer",
+      "viewWeek": "Week vooruit",
+      "viewHourly": "Uur voor uur",
       "themeDefault": "Standaard (uit Instellingen)",
       "typographySize": "Tekstgrootte",
       "densityCozy": "Ruim",

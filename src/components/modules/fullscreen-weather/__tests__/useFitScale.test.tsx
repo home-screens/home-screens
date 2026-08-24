@@ -34,9 +34,15 @@ const IDEAL = CANVAS / CONTENT_AT_FULL;
 let frameCallbacks: FrameRequestCallback[] = [];
 /** The factor React has rendered (the component's current state). */
 let dispatchedFactor = 1;
+/** Whether the hook reports the search finished. */
+let dispatchedSettled = false;
 /** The factor the DOM is actually laid out at. */
 let renderedFactor = 1;
 let commitQueue: number[] = [];
+/** How many distinct factors the "browser" has laid out so far. */
+let commitsLanded = 0;
+/** After this many landed commits the browser stops committing (a stall). */
+let stallAfterCommits = Infinity;
 
 /**
  * One animation frame: the browser first lays out whatever React has committed
@@ -44,24 +50,30 @@ let commitQueue: number[] = [];
  */
 function tickFrame(lagFrames: number) {
   commitQueue.push(dispatchedFactor);
-  if (commitQueue.length > lagFrames) renderedFactor = commitQueue.shift()!;
+  if (commitQueue.length > lagFrames && commitsLanded < stallAfterCommits) {
+    const next = commitQueue.shift()!;
+    if (next !== renderedFactor) commitsLanded += 1;
+    renderedFactor = next;
+  }
 
   const due = frameCallbacks;
   frameCallbacks = [];
   for (const cb of due) cb(0);
 }
 
-/** Run frames until the loop stops asking for more. */
-function runToSettle(lagFrames: number, maxFrames = 300) {
+/** Run frames until the loop stops asking for more, and prove it finished. */
+function runToSettle(lagFrames: number, maxFrames = 400) {
   for (let i = 0; i < maxFrames && frameCallbacks.length > 0; i++) {
     act(() => { tickFrame(lagFrames); });
   }
+  expect(frameCallbacks, 'the loop is still asking for frames').toHaveLength(0);
+  expect(dispatchedSettled, 'the loop stopped without settling').toBe(true);
 }
 
-function Harness({ onFactor }: { onFactor: (f: number) => void }) {
+function Harness({ onFit }: { onFit: (f: number, settled: boolean) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { factor } = useFitScale(ref, ['fixed-deps']);
-  onFactor(factor);
+  const { factor, settled } = useFitScale(ref, ['fixed-deps']);
+  onFit(factor, settled);
   return <div ref={ref} {...{ [FIT_FACTOR_ATTR]: String(factor) }} />;
 }
 
@@ -99,17 +111,25 @@ function installFakeLayout() {
   };
 }
 
-function measureConverged(lagFrames: number): number {
+function resetBrowser() {
   dispatchedFactor = 1;
+  dispatchedSettled = false;
   renderedFactor = 1;
   commitQueue = [];
+  commitsLanded = 0;
+  stallAfterCommits = Infinity;
   frameCallbacks = [];
+}
 
+function mountHarness() {
+  return render(<Harness onFit={(f, settled) => { dispatchedFactor = f; dispatchedSettled = settled; }} />);
+}
+
+function measureConverged(lagFrames: number): number {
+  resetBrowser();
   const restore = installFakeLayout();
   try {
-    act(() => {
-      render(<Harness onFactor={(f) => { dispatchedFactor = f; }} />);
-    });
+    act(() => { mountHarness(); });
     runToSettle(lagFrames);
     return dispatchedFactor;
   } finally {
@@ -163,5 +183,98 @@ describe('useFitScale', () => {
 
   it('survives a two-frame lag', () => {
     expect(measureConverged(2)).toBeCloseTo(measureConverged(0), 5);
+  });
+
+  /**
+   * The wait used to give up after 20 frames and measure the stale layout
+   * anyway, so a commit that slipped a third of a second (a busy machine)
+   * reintroduced the corruption above. A slow commit must be waited out, and
+   * the answer must be the same one a fast commit gives.
+   */
+  it('waits out a commit that slips well past the old 20-frame bound', () => {
+    expect(measureConverged(25)).toBeCloseTo(measureConverged(0), 5);
+  });
+
+  /**
+   * The expiry path. When a commit never arrives the loop must not judge the
+   * stale layout, and it must not fall to the unmeasured MIN_FACTOR floor
+   * either — that is the tiny type the loop exists to avoid. It settles on
+   * the largest factor it has *measured* to fit, says so on the console, and
+   * reports itself settled so nothing waits on it forever.
+   */
+  describe('when a commit never arrives', () => {
+    it('settles on the largest factor already measured to fit, loudly', () => {
+      resetBrowser();
+      // Probe 1 (does not fit) and probe 0.67 (does not fit) commit; the
+      // probe after that never does. Nothing has fitted yet at that point,
+      // so fall through to a later stall: let three commits land, which
+      // includes the first fitting probe (0.5 fits: 2000 * 0.5 = 1000).
+      stallAfterCommits = 2;
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const restore = installFakeLayout();
+      try {
+        act(() => { mountHarness(); });
+        runToSettle(0, 400);
+        // Committed layouts: 1 (start), 0.67 (fails), 0.505 (fits). The next
+        // probe never lands, so the loop settles on 0.505.
+        expect(dispatchedFactor).toBeCloseTo(0.505, 3);
+        expect(dispatchedFactor).toBeGreaterThan(0.34);
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0][0])).toMatch(/never committed/);
+      } finally {
+        restore();
+        warn.mockRestore();
+      }
+    });
+
+    it('settles on the layout on screen when nothing has been measured to fit', () => {
+      resetBrowser();
+      // Only the first probe (1, does not fit) is ever laid out.
+      stallAfterCommits = 0;
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const restore = installFakeLayout();
+      try {
+        act(() => { mountHarness(); });
+        runToSettle(0, 400);
+        expect(dispatchedFactor).toBe(1);
+        expect(warn).toHaveBeenCalledTimes(1);
+      } finally {
+        restore();
+        warn.mockRestore();
+      }
+    });
+  });
+
+  /**
+   * A measurement taken while a web font is still loading describes the
+   * fallback face; the swap changes every line's height after the loop has
+   * settled, with nothing to re-run it. The loop discards such a measurement
+   * and takes it again once the fonts are in.
+   */
+  it('re-measures after a pending web font lands instead of settling on the fallback face', async () => {
+    resetBrowser();
+    let resolveFonts!: () => void;
+    const fonts = { status: 'loading' as 'loading' | 'loaded', ready: new Promise<void>((r) => { resolveFonts = r; }) };
+    Object.defineProperty(document, 'fonts', { configurable: true, value: fonts });
+    const restore = installFakeLayout();
+    try {
+      act(() => { mountHarness(); });
+      // While the font loads, frames pass and no probe is consumed.
+      act(() => { tickFrame(0); });
+      expect(frameCallbacks).toHaveLength(0);
+      expect(dispatchedFactor).toBe(1);
+      expect(dispatchedSettled).toBe(false);
+
+      fonts.status = 'loaded';
+      resolveFonts();
+      await act(async () => { await fonts.ready; });
+      expect(frameCallbacks).toHaveLength(1);
+      runToSettle(0);
+      expect(dispatchedFactor).toBeGreaterThan(IDEAL - 0.01);
+      expect(dispatchedFactor).toBeLessThanOrEqual(IDEAL + 0.01);
+    } finally {
+      restore();
+      delete (document as unknown as Record<string, unknown>).fonts;
+    }
   });
 });

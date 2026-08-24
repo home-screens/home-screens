@@ -4,9 +4,13 @@
  * readouts. Shared by the scale and landscape specs so the two measure the
  * same layout — a difference between them should mean the canvas changed, not
  * the data.
+ *
+ * `start` pins the first hourly entry; a test that depends on where the
+ * timeline crosses midnight must pass one, or its answer changes with the
+ * hour the suite happens to run at.
  */
-export function richWeather() {
-  const now = Date.now();
+export function richWeather(start = Date.now()) {
+  const now = start;
   return {
     hourly: Array.from({ length: 48 }, (_, i) => {
       const h = (14 + i) % 24;
@@ -25,6 +29,7 @@ export function richWeather() {
       date: new Date(now + d * 86400_000).toISOString().slice(0, 10),
       high: 84 - d * 2, low: 58 + d, icon: 'sun', description: 'Sunny',
       precipProbability: d === 3 ? 80 : 5,
+      windSpeed: 8 + d,
     })),
     minutely: Array.from({ length: 60 }, (_, m) => ({
       time: Math.floor(now / 1000) + m * 60,

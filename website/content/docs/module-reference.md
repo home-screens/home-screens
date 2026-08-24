@@ -137,7 +137,9 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 ### Full-Screen Weather
 
-A fullscreen weather dashboard with three views. **Panorama** stacks the current conditions, an optional next-hour rain strip, a temperature curve, a 7-day outlook with range bars, and a row of stats. **Almanac** is a grid of instrument cards: sun arc, moon phase, wind, humidity, pressure, UV, and visibility, plus the next 12 hours. **Ambient** is a large, plain read for across the room.
+A fullscreen weather dashboard with five views. **Panorama** stacks the current conditions, an optional next-hour rain strip, a temperature curve, a 7-day outlook with range bars, and a row of stats. **Almanac** is a grid of instrument cards: sun arc, moon phase, wind, humidity, pressure, UV, and visibility, plus the next 12 hours. **Ambient** is a large, plain read for across the room. **Week ahead** gives each forecast day its own band (or, on a landscape display, its own column) with the day's icon, description, rain chance, wind (when the weather source reports a daily figure), and a high/low bar on a shared scale. **Hour by hour** draws the next 24 hours as a timeline (48 on sources that report every three hours): a temperature curve through every hour, with rain chance and wind beside it. It runs down the page on a portrait display and across it on a landscape one.
+
+Every view has a portrait and a landscape layout, picked automatically from the display's shape.
 
 The background tint follows the current conditions and the position of the sun, layered behind the cards so it never affects how readable anything is. Set **Background tint** to Off for a plain themed background.
 
@@ -153,7 +155,7 @@ The temperature curve draws however many hours your source returns, and its head
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"panorama"` | `panorama`, `almanac`, or `ambient` |
+| `view` | string | `"panorama"` | `panorama`, `almanac`, `ambient`, `week`, or `hourly` |
 | `theme` | string | — | Full-screen palette; unset inherits the display default |
 | `skyLayer` | string | `"auto"` | `auto` tints the background by conditions, `off` uses the plain theme background |
 | `animateConditions` | boolean | `true` | Falling rain and snow. Turn off if the display stutters on older hardware |
@@ -162,7 +164,7 @@ The temperature curve draws however many hours your source returns, and its head
 | `showTime` | boolean | `true` | Clock in the header. Follows your 12/24-hour setting and the display's time zone |
 | `showRibbon` | boolean | `true` | Temperature curve (Panorama) |
 | `showStatRail` | boolean | `true` | Bottom stats row (Panorama) |
-| `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama) |
+| `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama and Week ahead) |
 | `locationLabel` | string | — | Overrides the place name shown in the header |
 | `accentColor` | string | — | Leave empty to let the accent follow the weather (amber for clear, blue for rain, violet for storms); set a colour to pin it |
 | `density` | string | `"snug"` | `cozy` or `snug`. Controls padding, gaps, and chart heights |
