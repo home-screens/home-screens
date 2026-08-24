@@ -63,8 +63,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 7', () => {
-    expect(getLatestSchemaVersion()).toBe(7);
+  it('getLatestSchemaVersion returns 8', () => {
+    expect(getLatestSchemaVersion()).toBe(8);
   });
 });
 
@@ -299,13 +299,14 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(7);
-    // v2 through v7 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(6);
+    expect(result.version).toBe(8);
+    // v2 through v8 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(7);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
-    // next-view countdowns (this fixture has no modules at all), and v7 only
-    // touches sleep blocks with a dim schedule (this fixture has none). No
+    // next-view countdowns (this fixture has no modules at all), v7 only
+    // touches sleep blocks with a dim schedule (this fixture has none), and
+    // v8 only touches calendar modules carrying the prerelease keys. No
     // display registry is injected — single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
@@ -323,9 +324,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(7);
-    // Only v4, v5, v6 and v7 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(4);
+    expect(result.version).toBe(8);
+    // Only v4 through v8 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(5);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -426,5 +427,68 @@ describe('migration v7: idle dimming becomes an explicit toggle', () => {
     const { config: result } = migrateUp(config, 7);
 
     expect(result.displays).toEqual(before);
+  });
+});
+
+describe('migration v8: multi-week theme and cap become grid-wide keys', () => {
+  const STYLE = { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 };
+  type Module = ScreenConfiguration['screens'][number]['modules'][number];
+
+  function calendar(id: string, config: Record<string, unknown>): Module {
+    return { id, type: 'calendar', position: { x: 0, y: 0 }, size: { w: 500, h: 500 }, zIndex: 1, config, style: STYLE } as Module;
+  }
+  const moduleConfig = (config: ScreenConfiguration) => config.screens[0].modules[0].config as Record<string, unknown>;
+
+  it('renames multiWeekTheme and multiWeekMaxEventsPerCell in place', () => {
+    const config = makeConfig(7);
+    config.screens[0].modules = [calendar('cal', { viewMode: 'multi-week', multiWeekTheme: 'clean', multiWeekMaxEventsPerCell: 8 })];
+
+    const { config: result } = migrateUp(config, 8);
+
+    expect(result.version).toBe(8);
+    expect(moduleConfig(result)).toEqual({ viewMode: 'multi-week', gridTheme: 'clean', gridMaxEventsPerCell: 8 });
+  });
+
+  it('keeps a new key that is already set and only drops the old one', () => {
+    const config = makeConfig(7);
+    config.screens[0].modules = [calendar('cal', { multiWeekTheme: 'banner', gridTheme: 'minimal' })];
+
+    const { config: result } = migrateUp(config, 8);
+
+    expect(moduleConfig(result)).toEqual({ gridTheme: 'minimal' });
+  });
+
+  it('leaves calendar modules without the old keys untouched', () => {
+    const config = makeConfig(7);
+    config.screens[0].modules = [calendar('cal', { viewMode: 'month', gridTheme: 'vivid' })];
+    const before = structuredClone(config.screens[0].modules[0]);
+
+    const { config: result } = migrateUp(config, 8);
+
+    expect(result.screens[0].modules[0]).toEqual(before);
+  });
+
+  it('migrates screens owned by displays too', () => {
+    const config = makeConfig(7);
+    config.displays = [
+      {
+        id: 'kitchen',
+        name: 'Kitchen',
+        displayWidth: 1080,
+        displayHeight: 1920,
+        screens: [{ id: 's1', name: 'Screen 1', backgroundImage: '', modules: [calendar('cal', { multiWeekTheme: 'vivid' })] }],
+      },
+    ] as ScreenConfiguration['displays'];
+
+    const { config: result } = migrateUp(config, 8);
+
+    expect(result.displays![0].screens[0].modules[0].config).toEqual({ gridTheme: 'vivid' });
+  });
+
+  it('passes a screen with no modules array through instead of throwing', () => {
+    const config = makeConfig(7);
+    (config.screens[0] as unknown as { modules: undefined }).modules = undefined;
+
+    expect(() => migrateUp(config, 8)).not.toThrow();
   });
 });

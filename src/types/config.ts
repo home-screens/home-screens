@@ -744,7 +744,7 @@ export interface FullscreenCalendarConfig {
 // Calendar module config
 export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month';
 
-export type MultiWeekTheme = 'banner' | 'clean' | 'minimal' | 'vivid';
+export type CalendarGridTheme = 'banner' | 'clean' | 'minimal' | 'vivid';
 
 export interface CalendarConfig {
   viewMode: CalendarViewMode;
@@ -755,8 +755,10 @@ export interface CalendarConfig {
   showWeekNumbers: boolean;
   // Multi-week grid view: total weeks rendered, 4-12 (row 1 = current week)
   weeksToShow?: number;
-  // Multi-week grid view: event pills per day cell, 2-10
-  multiWeekMaxEventsPerCell?: number;
+  // Grid views (week / month / multi-week): event pills per day cell before
+  // "+N more", 2-10. Unset = 5 on the week grid (its cells run a full column
+  // tall), 4 on the shorter month and multi-week cells.
+  gridMaxEventsPerCell?: number;
   // Grid views (week / month / multi-week): first column day. Default sunday.
   startDay?: WeekStartDay;
   // Grid views (week / month / multi-week): event rendering style.
@@ -766,13 +768,14 @@ export interface CalendarConfig {
   gridEventStyle?: 'classic' | 'colored';
   // Colored style only: faint light pill background behind timed events.
   gridEventPillBackground?: boolean;
-  // Multi-week view visual theme. 'banner' (default when unset) is the
-  // original look: tinted day-number strips, padded times, pills driven by
+  // Month + multi-week grid theme (the two views share one renderer and
+  // differ only in range). 'banner' (default when unset) is the original
+  // look: tinted day-number strips, padded times, pills driven by
   // gridEventStyle. 'clean' / 'minimal' / 'vivid' share the modern skeleton
-  // (month-range header, corner day numbers, today ring, stitched multi-day
-  // pills) and differ only in pill treatment — they supersede gridEventStyle
-  // and gridEventPillBackground for this view.
-  multiWeekTheme?: MultiWeekTheme;
+  // (month or month-range header, corner day numbers, today ring, stitched
+  // multi-day pills) and differ only in pill treatment — they supersede
+  // gridEventStyle and gridEventPillBackground for these views.
+  gridTheme?: CalendarGridTheme;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   titleFilter?: CalendarTitleFilter;
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'

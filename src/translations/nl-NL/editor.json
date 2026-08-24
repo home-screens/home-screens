@@ -2296,7 +2296,7 @@
       "gridEventStyleClassic": "Klassiek",
       "gridEventStyleColored": "Gekleurd",
       "gridEventPill": "Achtergrond achter afspraken",
-      "multiWeekTheme": "Thema",
+      "gridTheme": "Thema",
       "themeBanner": "Banner (origineel)",
       "themeClean": "Strak",
       "themeMinimal": "Minimaal",

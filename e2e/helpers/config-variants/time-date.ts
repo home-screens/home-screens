@@ -598,7 +598,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: lacks('CAL NEAR', 'CAL FARWEEK'),
   },
   {
-    // multiWeekMaxEventsPerCell caps pills per day cell; three single-day
+    // gridMaxEventsPerCell caps pills per day cell; three single-day
     // timed events on day+1, cap 2 shows the first two, hides the third, and
     // "+1 more" reports it.
     type: 'calendar', name: 'events-per-cell', kind: 'networked', stubKey: 'calendar',
@@ -607,7 +607,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       { id: 'cwec-2', title: 'CAL CAP TWO', start: calIso(1, 10), end: calIso(1, 11), allDay: false },
       { id: 'cwec-3', title: 'CAL CAP THREE', start: calIso(1, 12), end: calIso(1, 13), allDay: false },
     ],
-    config: { viewMode: 'multi-week', multiWeekMaxEventsPerCell: 2 },
+    config: { viewMode: 'multi-week', gridMaxEventsPerCell: 2 },
     expect: async (mod) => {
       await expect(mod).toContainText('CAL CAP ONE');
       await expect(mod).toContainText('CAL CAP TWO');
@@ -637,7 +637,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       todayEvent('cges-a', 'CAL SOLID', { allDay: true, start: dateStr(0), end: dateStr(1), calendarColor: '#eab308' }),
       todayEvent('cges-b', 'CAL TIMED', { calendarColor: '#3b82f6' }),
     ],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored' },
+    config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored' },
     expect: async (mod) => {
       const solid = mod.locator('[data-event-id="cges-a"]');
       await expect(solid).toHaveCSS('background-color', 'rgb(234, 179, 8)');
@@ -655,23 +655,23 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // Banner-only field, so the theme is pinned against the registry default.
     type: 'calendar', name: 'grid-event-pill-background', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored', gridEventPillBackground: true },
+    config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored', gridEventPillBackground: true },
     expect: async (mod) => {
       await expect(mod.locator('[data-event-id="cgp-a"]').first()).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
     },
   },
   {
-    // Banner keeps the original look: no data-mw-theme marker and the padded
+    // Banner keeps the original look: no data-grid-theme marker and the padded
     // time prefix on timed pills. That prefix only exists under the colored
     // grid style (classic renders dot + title with no time), so pin
     // gridEventStyle here.
     type: 'calendar', name: 'multi-week-theme-banner', kind: 'networked', stubKey: 'calendar',
     stubBody: [{ id: 'cmt-b', title: 'CAL THEME BANNER', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'banner', gridEventStyle: 'colored' },
+    config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored' },
     expect: async (mod) => {
       await expect(mod).toContainText('CAL THEME BANNER');
       await expect(mod).toContainText('08:05 AM');
-      await expect(mod.locator('[data-mw-theme]')).toHaveCount(0);
+      await expect(mod.locator('[data-grid-theme]')).toHaveCount(0);
     },
   },
   {
@@ -679,21 +679,34 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // year) and a compact unpadded time, with the padded banner format gone.
     type: 'calendar', name: 'multi-week-theme-clean', kind: 'networked', stubKey: 'calendar',
     stubBody: [{ id: 'cmt-c', title: 'CAL THEME CLEAN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'clean' },
+    config: { viewMode: 'multi-week', gridTheme: 'clean' },
     expect: async (mod) => {
-      await expect(mod.locator('[data-mw-theme="clean"]')).toBeVisible();
+      await expect(mod.locator('[data-grid-theme="clean"]')).toBeVisible();
       await expect(mod).toContainText(/20\d\d/);
       await expect(mod).toContainText('8:05a');
       await expect(mod).not.toContainText('08:05 AM');
     },
   },
   {
+    // The month grid shares the themed renderer: clean renders the modern
+    // skeleton marker with a single-month header (no en-dash range, unlike
+    // the rolling multi-week grid) and the compact time format.
+    type: 'calendar', name: 'month-theme-clean', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cmc-1', 'CAL MONTH CLEAN', { start: calIso(0, 8, 5), end: calIso(0, 9) })],
+    config: { viewMode: 'month', gridTheme: 'clean' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-grid-theme="clean"]')).toBeVisible();
+      await expect(mod.locator('[data-grid-theme="clean"] > p')).toHaveText(/^[^–]+ 20\d\d$/);
+      await expect(mod).toContainText('8:05a');
+    },
+  },
+  {
     // Minimal drops the time prefix entirely; the title still renders.
     type: 'calendar', name: 'multi-week-theme-minimal', kind: 'networked', stubKey: 'calendar',
     stubBody: [{ id: 'cmt-m', title: 'CAL THEME MIN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'minimal' },
+    config: { viewMode: 'multi-week', gridTheme: 'minimal' },
     expect: async (mod) => {
-      await expect(mod.locator('[data-mw-theme="minimal"]')).toBeVisible();
+      await expect(mod.locator('[data-grid-theme="minimal"]')).toBeVisible();
       await expect(mod).toContainText('CAL THEME MIN');
       await expect(mod).not.toContainText('8:05a');
     },
@@ -703,7 +716,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // auto-contrast text rule the all-day pills use (yellow -> near-black).
     type: 'calendar', name: 'multi-week-theme-vivid', kind: 'networked', stubKey: 'calendar',
     stubBody: [{ id: 'cmt-v', title: 'CAL THEME VIVID', start: calIso(1, 8), end: calIso(1, 9), allDay: false, calendarColor: '#eab308' }],
-    config: { viewMode: 'multi-week', multiWeekTheme: 'vivid' },
+    config: { viewMode: 'multi-week', gridTheme: 'vivid' },
     expect: async (mod) => {
       const pill = mod.locator('[data-event-id="cmt-v"]');
       await expect(pill).toHaveCSS('background-color', 'rgb(234, 179, 8)');

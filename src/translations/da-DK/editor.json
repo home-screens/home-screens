@@ -2296,7 +2296,7 @@
       "gridEventStyleClassic": "Klassisk",
       "gridEventStyleColored": "Farvet",
       "gridEventPill": "Baggrund bag begivenheder",
-      "multiWeekTheme": "Tema",
+      "gridTheme": "Tema",
       "themeBanner": "Banner (oprindelig)",
       "themeClean": "Enkel",
       "themeMinimal": "Minimalistisk",

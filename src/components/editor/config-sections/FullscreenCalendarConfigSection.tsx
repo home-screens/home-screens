@@ -118,6 +118,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         onChange={(v) => set({ view: v })}
         options={VIEW_OPTIONS}
       />
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-calendar.themeDefault"
+      />
       <LabeledSelect
         label={t('common.density')}
         value={c.density ?? 'cozy'}
@@ -302,11 +307,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* ── Look: whole-module styling ── */}
       <CalendarGroup label={groups.look}>
-        <FullscreenThemeSelect
-          value={c.theme}
-          onChange={(theme) => set({ theme })}
-          defaultOptionKey="configSections.fullscreen-calendar.themeDefault"
-        />
         <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
         {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
         {view !== 'day-timeline' && (

@@ -241,11 +241,11 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/multi-week/month views |
 | `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (4–12), starting with the current week |
-| `multiWeekMaxEventsPerCell` | number | `4` | Multi-week view: event pills per day cell before "+N more" (2–10) |
+| `gridMaxEventsPerCell` | number | `4` | Week/multi-week/month grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week and month cells |
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
 | `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
 | `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
-| `multiWeekTheme` | string | `"banner"` | Multi-week view look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
+| `gridTheme` | string | `"banner"` | Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
@@ -262,7 +262,7 @@ Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/gett
 
 **Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color — the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time — in both styles.
 
-**Multi-week themes:** `banner` keeps the view exactly as it has always looked. The three newer themes share a cleaner grid — a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar — and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. New calendar modules start on `clean`; existing ones stay on `banner` until you switch.
+**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid — a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar — and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker.
 
 ### Countdown
 

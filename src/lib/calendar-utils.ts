@@ -13,10 +13,29 @@ export function clampWeeksToShow(value: number | undefined): number {
   return Math.min(12, Math.max(4, value as number));
 }
 
+/** Clamp a grid's gridMaxEventsPerCell to its 2-10 range. Unset or not a
+ * number (same hand-edited-config caveat as clampWeeksToShow) falls back to
+ * the view's own default: 5 on the week grid, whose cells run a full column
+ * tall, and 4 on the shorter month and multi-week cells. */
+export function clampGridMaxEventsPerCell(value: number | undefined, viewMode: string | undefined): number {
+  if (!Number.isFinite(value)) return defaultGridMaxEventsPerCell(viewMode);
+  return Math.min(10, Math.max(2, value as number));
+}
+
+export function defaultGridMaxEventsPerCell(viewMode: string | undefined): number {
+  return viewMode === 'week' ? 5 : 4;
+}
+
 /** Grid views render their full visible range (wall-calendar semantics);
  * list views stay upcoming-only. */
 export function isGridView(viewMode: string | undefined): boolean {
   return viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week';
+}
+
+/** The month and multi-week grids share one renderer and one `gridTheme`
+ * (the week grid keeps its own single-row layout, styled by gridEventStyle). */
+export function isThemedGridView(viewMode: string | undefined): boolean {
+  return viewMode === 'month' || viewMode === 'multi-week';
 }
 
 /** date-fns weekStartsOn for a config startDay. The views and the fetch

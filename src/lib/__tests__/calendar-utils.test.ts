@@ -10,6 +10,9 @@ import {
   applyTitleFilter,
   sanitizeEventDescription,
   clampWeeksToShow,
+  clampGridMaxEventsPerCell,
+  defaultGridMaxEventsPerCell,
+  isThemedGridView,
   weekNumberOptions,
   eventsForDay,
   formatEventTime,
@@ -945,5 +948,37 @@ describe('applyTitleFilter', () => {
       { title: 'Soccer practice' },
       { title: 'Focus time' },
     ]);
+  });
+});
+
+describe('clampGridMaxEventsPerCell', () => {
+  it('defaults per grid: 5 on the week grid, 4 on month and multi-week', () => {
+    expect(clampGridMaxEventsPerCell(undefined, 'week')).toBe(5);
+    expect(clampGridMaxEventsPerCell(undefined, 'month')).toBe(4);
+    expect(clampGridMaxEventsPerCell(undefined, 'multi-week')).toBe(4);
+    expect(defaultGridMaxEventsPerCell('week')).toBe(5);
+    expect(defaultGridMaxEventsPerCell('month')).toBe(4);
+  });
+
+  it('clamps to the 2-10 range', () => {
+    expect(clampGridMaxEventsPerCell(1, 'month')).toBe(2);
+    expect(clampGridMaxEventsPerCell(7, 'week')).toBe(7);
+    expect(clampGridMaxEventsPerCell(99, 'multi-week')).toBe(10);
+  });
+
+  it('falls back to the view default for hand-edited non-numeric values', () => {
+    // NaN would otherwise reach events.slice(0, NaN) and blank every cell.
+    expect(clampGridMaxEventsPerCell(Number.NaN, 'month')).toBe(4);
+    expect(clampGridMaxEventsPerCell('abc' as unknown as number, 'week')).toBe(5);
+  });
+});
+
+describe('isThemedGridView', () => {
+  it('covers exactly the two views that share the themed grid renderer', () => {
+    expect(isThemedGridView('month')).toBe(true);
+    expect(isThemedGridView('multi-week')).toBe(true);
+    expect(isThemedGridView('week')).toBe(false);
+    expect(isThemedGridView('daily')).toBe(false);
+    expect(isThemedGridView(undefined)).toBe(false);
   });
 });

@@ -17,6 +17,7 @@ class ResizeObserverStub {
 }
 (globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
 
+import { TEXT_OPACITY } from '@/lib/constants';
 import CalendarModule from '../CalendarModule';
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
@@ -419,7 +420,7 @@ describe('CalendarModule multi-week view', () => {
       { id: 'cap-3', title: 'Cap Three', start: format(addHours(addDays(now, 2), 2), LOCAL), end: format(addHours(addDays(now, 2), 3), LOCAL) },
     ] as CalendarEvent[];
     const { queryByText } = render(
-      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, multiWeekMaxEventsPerCell: 2 })} style={style} events={busyDay} /></Wrapper>,
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridMaxEventsPerCell: 2 })} style={style} events={busyDay} /></Wrapper>,
     );
     expect(queryByText('Cap Two')).not.toBeNull();
     expect(queryByText('Cap Three')).toBeNull();
@@ -585,7 +586,7 @@ describe('grid event styling', () => {
 
   it('reports per-cell overflow under the colored style', () => {
     const { queryByText } = render(
-      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored', multiWeekMaxEventsPerCell: 2 })} style={style} events={[timedLate, timedBlue, allDayYellow]} /></Wrapper>,
+      <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored', gridMaxEventsPerCell: 2 })} style={style} events={[timedLate, timedBlue, allDayYellow]} /></Wrapper>,
     );
     expect(queryByText('+1 more')).not.toBeNull();
   });
@@ -613,7 +614,7 @@ describe('grid event styling', () => {
   });
 });
 
-describe('multi-week modern themes', () => {
+describe('month and multi-week grid themes', () => {
   const mw = (overrides: Partial<CalendarConfig> = {}) =>
     makeConfig({ viewMode: 'multi-week', weeksToShow: 4, ...overrides });
   const timedBlue = {
@@ -633,11 +634,11 @@ describe('multi-week modern themes', () => {
     allDay: true, calendarColor: '#4073ff',
   } as CalendarEvent;
 
-  it('defaults to the banner theme when multiWeekTheme is unset', () => {
+  it('defaults to the banner theme when gridTheme is unset', () => {
     const { container, queryByText } = render(
       <Wrapper><CalendarModule config={mw()} style={style} events={[]} /></Wrapper>,
     );
-    expect(container.querySelector('[data-mw-theme]')).toBeNull();
+    expect(container.querySelector('[data-grid-theme]')).toBeNull();
     expect(queryByText('July – August 2026')).toBeNull();
     // The banner strip is still on plain day numbers (default accent #3b82f6 at 0.25)
     expect((queryByText('16') as HTMLElement).style.backgroundColor).toBe('rgba(59, 130, 246, 0.25)');
@@ -645,9 +646,9 @@ describe('multi-week modern themes', () => {
 
   it('clean: renders the month-range header, quiet day numbers, and a solid today badge', () => {
     const { container, queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
     );
-    expect(container.querySelector('[data-mw-theme="clean"]')).not.toBeNull();
+    expect(container.querySelector('[data-grid-theme="clean"]')).not.toBeNull();
     expect(queryByText('July – August 2026')).not.toBeNull();
     const plain = queryByText('16') as HTMLElement;
     expect(plain.style.backgroundColor).toBe(''); // no strip
@@ -658,7 +659,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: rings the today cell and shades weekend cells', () => {
     const { queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
     );
     const todayCell = (queryByText('15') as HTMLElement).parentElement!.parentElement as HTMLElement;
     expect(todayCell.style.boxShadow).toContain('inset 0 0 0 1.5px');
@@ -671,7 +672,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: bolds the first of the month with the month name and an accent hairline', () => {
     const { queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
     );
     const aug1 = queryByText('Aug 1') as HTMLElement; // real space — no banner flex-gap collapse
     expect(aug1).not.toBeNull();
@@ -682,7 +683,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: pills lead with a compact colored time and a semibold title', () => {
     const { getByText, queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[timedBlue, onHour]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[timedBlue, onHour]} /></Wrapper>,
     );
     expect(queryByText('08:05 AM')).toBeNull(); // padded banner format gone
     expect(getByText('8:05a')).toBeTruthy();    // off the hour keeps minutes
@@ -694,7 +695,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: supersedes gridEventStyle for this view', () => {
     const { getByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', gridEventStyle: 'colored' })} style={style} events={[timedBlue]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean', gridEventStyle: 'colored' })} style={style} events={[timedBlue]} /></Wrapper>,
     );
     // colored style would paint the title span in the calendar color; the
     // clean pill colors the wrapper via style.textColor and leaves the span alone
@@ -703,7 +704,7 @@ describe('multi-week modern themes', () => {
 
   it('minimal: drops times and marks pills with a calendar-color bar', () => {
     const { getByText, queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'minimal' })} style={style} events={[timedBlue]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'minimal' })} style={style} events={[timedBlue]} /></Wrapper>,
     );
     expect(queryByText('8:05a')).toBeNull();
     const pill = (getByText('Haircut') as HTMLElement).parentElement as HTMLElement;
@@ -712,7 +713,7 @@ describe('multi-week modern themes', () => {
 
   it('vivid: timed pills go solid in the calendar color with auto-contrast text', () => {
     const { getByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'vivid' })} style={style} events={[timedBlue]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'vivid' })} style={style} events={[timedBlue]} /></Wrapper>,
     );
     const pill = (getByText('Haircut') as HTMLElement).parentElement as HTMLElement;
     expect(pill.style.backgroundColor).toBe('rgb(59, 130, 246)');
@@ -722,7 +723,7 @@ describe('multi-week modern themes', () => {
 
   it('stitches a multi-day all-day event: solid first day, hollow squared continuations', () => {
     const { container } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[trip]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[trip]} /></Wrapper>,
     );
     const pills = Array.from(container.querySelectorAll('[data-event-id="mt3"]')) as HTMLElement[];
     expect(pills).toHaveLength(3); // Jul 17, 18, 19 — 19 is in the next week row
@@ -743,7 +744,7 @@ describe('multi-week modern themes', () => {
       allDay: false,
     } as CalendarEvent;
     const { getByText, queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[pastEvent]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[pastEvent]} /></Wrapper>,
     );
     const eventsWrap = (getByText('Monday Thing') as HTMLElement).closest('div')!.parentElement as HTMLElement;
     expect(eventsWrap.style.opacity).toBe('0.45');
@@ -754,7 +755,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: bolds and accents the weekday header over today’s column', () => {
     const { getByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
     );
     // The clock is pinned to a Wednesday, so only that column's header lights up.
     const wed = getByText('Wed') as HTMLElement;
@@ -765,9 +766,9 @@ describe('multi-week modern themes', () => {
     expect(thu.style.color).toBe('');
   });
 
-  it('month view leaves its weekday headers unhighlighted', () => {
-    // The header row is shared with the modern multi-week skeleton; the
-    // today-column highlight is opt-in and must not leak into MonthView.
+  it('banner month view leaves its weekday headers unhighlighted', () => {
+    // The header row is shared with the modern skeleton; the today-column
+    // highlight is opt-in and must not leak into the banner grid.
     const { container } = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month' })} style={style} events={[]} /></Wrapper>,
     );
@@ -778,7 +779,7 @@ describe('multi-week modern themes', () => {
 
   it('clean: keeps the week-number column and a Monday start', () => {
     const { container } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', showWeekNumbers: true, startDay: 'monday' })} style={style} events={[]} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean', showWeekNumbers: true, startDay: 'monday' })} style={style} events={[]} /></Wrapper>,
     );
     const headers = Array.from(container.querySelectorAll('[class*="tracking-wider"]')) as HTMLElement[];
     expect(headers[0].textContent).toBe('Mon');
@@ -788,6 +789,50 @@ describe('multi-week modern themes', () => {
     expect(weekNumbers[0].textContent).toBe('29');
   });
 
+  it('month grid: honors the theme with a month header and out-of-month dimming', () => {
+    const { container, queryByText, queryAllByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month', gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(container.querySelector('[data-grid-theme="clean"]')).not.toBeNull();
+    // Month, not month-range: the padding days from June/August don't widen the label.
+    expect(queryByText('July 2026')).not.toBeNull();
+    expect(queryByText('June – August 2026')).toBeNull();
+    // Jun 28 leads the Sunday-start grid: out of month, so its number is dimmed
+    // while the in-month Jul 16 keeps the regular weight.
+    const jun28 = queryAllByText('28')[0]; // Jul 28 is the second match
+    expect(jun28.style.opacity).toBe(String(TEXT_OPACITY.dim));
+    const jul16 = queryByText('16') as HTMLElement;
+    expect(jul16.style.opacity).toBe(String(TEXT_OPACITY.secondary));
+    // Past in-month days are not dimmed (wall-calendar semantics).
+    const jul13 = queryByText('13') as HTMLElement;
+    expect(jul13.style.opacity).toBe(String(TEXT_OPACITY.secondary));
+  });
+
+  it('month grid: banner dims out-of-month cells and keeps the month title', () => {
+    const { queryByText, queryAllByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month' })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(queryByText('July 2026')).not.toBeNull();
+    const jun28Cell = queryAllByText('28')[0].parentElement as HTMLElement;
+    expect(jun28Cell.style.opacity).toBe(String(TEXT_OPACITY.tertiary));
+    const jul13Cell = (queryByText('13') as HTMLElement).parentElement as HTMLElement;
+    expect(jul13Cell.style.opacity).toBe('1');
+  });
+
+  it('month grid: honors gridMaxEventsPerCell', () => {
+    const busy = [1, 2, 3].map((n) => ({
+      id: `mmo${n}`, title: `Busy ${n}`,
+      start: format(new Date(2026, 6, 21, 8 + n, 0), LOCAL), end: format(new Date(2026, 6, 21, 9 + n, 0), LOCAL),
+      allDay: false,
+    })) as CalendarEvent[];
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month', gridTheme: 'vivid', gridMaxEventsPerCell: 2 })} style={style} events={busy} /></Wrapper>,
+    );
+    expect(queryByText('Busy 2')).not.toBeNull();
+    expect(queryByText('Busy 3')).toBeNull();
+    expect(queryByText('+1 more')).not.toBeNull();
+  });
+
   it('reports per-cell overflow with the chip', () => {
     const busy = [1, 2, 3].map((n) => ({
       id: `mo${n}`, title: `Busy ${n}`,
@@ -795,10 +840,89 @@ describe('multi-week modern themes', () => {
       allDay: false,
     })) as CalendarEvent[];
     const { queryByText } = render(
-      <Wrapper><CalendarModule config={mw({ multiWeekTheme: 'clean', multiWeekMaxEventsPerCell: 2 })} style={style} events={busy} /></Wrapper>,
+      <Wrapper><CalendarModule config={mw({ gridTheme: 'clean', gridMaxEventsPerCell: 2 })} style={style} events={busy} /></Wrapper>,
     );
     expect(queryByText('Busy 2')).not.toBeNull();
     expect(queryByText('Busy 3')).toBeNull();
     expect(queryByText('+1 more')).not.toBeNull();
+  });
+});
+
+describe('month grid: month-start marks belong to the rolling grid only', () => {
+  // Pinned clock: Wed Jul 15 2026. The Sunday-start July grid runs Jun 28 –
+  // Aug 1, so the trailing Sat Aug 1 is an out-of-month padding cell.
+  it('modern: the padding Aug 1 is a plain muted digit, not a bold "Aug 1" under a rule', () => {
+    const { container, queryByText, queryAllByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month', gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(queryByText('Aug 1')).toBeNull();
+    expect(queryByText('Jul 1')).toBeNull();
+    const aug1 = queryAllByText('1').at(-1) as HTMLElement;
+    expect(aug1.style.fontWeight).toBe('400');
+    expect(aug1.style.opacity).toBe(String(TEXT_OPACITY.dim));
+    // No cell carries the month-start hairline (only today's ring exists).
+    const ruled = Array.from(container.querySelectorAll<HTMLElement>('[style*="inset 0 2px 0"]'));
+    expect(ruled).toHaveLength(0);
+  });
+
+  it('banner: no month abbreviation or gradient on either 1st', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month' })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(container.textContent).not.toContain('Aug1');
+    expect(container.textContent).not.toContain('Jul1');
+    expect(container.querySelectorAll('[style*="linear-gradient"]')).toHaveLength(0);
+  });
+
+  it('rolling grid still marks Aug 1 with its month name (muted only when it has passed)', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridTheme: 'clean' })} style={style} events={[]} /></Wrapper>,
+    );
+    const aug1 = queryByText('Aug 1') as HTMLElement;
+    expect(aug1).not.toBeNull();
+    expect(aug1.style.fontWeight).toBe('700');
+    expect(aug1.style.opacity).toBe(String(TEXT_OPACITY.primary));
+  });
+});
+
+describe('gridMaxEventsPerCell governs all three grids', () => {
+  const busyDay = (count: number) => Array.from({ length: count }, (_, i) => ({
+    id: `cap${i}`, title: `Cap ${i + 1}`,
+    start: format(new Date(2026, 6, 15, 8 + i, 0), LOCAL), end: format(new Date(2026, 6, 15, 8 + i, 30), LOCAL),
+    allDay: false,
+  })) as CalendarEvent[];
+
+  it('week grid: unset shows 5, an explicit cap applies', () => {
+    const five = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week' })} style={style} events={busyDay(6)} /></Wrapper>,
+    );
+    expect(five.queryByText('Cap 5')).not.toBeNull();
+    expect(five.queryByText('Cap 6')).toBeNull();
+    expect(five.queryByText('+1 more')).not.toBeNull();
+    five.unmount();
+
+    const two = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week', gridMaxEventsPerCell: 2 })} style={style} events={busyDay(6)} /></Wrapper>,
+    );
+    expect(two.queryByText('Cap 2')).not.toBeNull();
+    expect(two.queryByText('Cap 3')).toBeNull();
+    expect(two.queryByText('+4 more')).not.toBeNull();
+  });
+
+  it('banner month grid: unset shows 4', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month' })} style={style} events={busyDay(6)} /></Wrapper>,
+    );
+    expect(queryByText('Cap 4')).not.toBeNull();
+    expect(queryByText('Cap 5')).toBeNull();
+    expect(queryByText('+2 more')).not.toBeNull();
+  });
+
+  it('a hand-edited non-numeric cap falls back to the default instead of blanking cells', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'month', gridTheme: 'clean', gridMaxEventsPerCell: 'abc' as unknown as number })} style={style} events={busyDay(6)} /></Wrapper>,
+    );
+    expect(queryByText('Cap 4')).not.toBeNull();
+    expect(queryByText('+2 more')).not.toBeNull();
   });
 });

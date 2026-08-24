@@ -2296,7 +2296,7 @@
       "gridEventStyleClassic": "Klassisch",
       "gridEventStyleColored": "Farbig",
       "gridEventPill": "Hintergrund hinter Terminen",
-      "multiWeekTheme": "Design",
+      "gridTheme": "Design",
       "themeBanner": "Banner (Original)",
       "themeClean": "Klar",
       "themeMinimal": "Minimalistisch",

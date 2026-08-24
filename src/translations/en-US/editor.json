@@ -2296,7 +2296,7 @@
       "gridEventStyleClassic": "Classic",
       "gridEventStyleColored": "Colored",
       "gridEventPill": "Background behind timed events",
-      "multiWeekTheme": "Theme",
+      "gridTheme": "Theme",
       "themeBanner": "Banner (original)",
       "themeClean": "Clean",
       "themeMinimal": "Minimal",

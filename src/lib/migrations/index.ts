@@ -2,6 +2,7 @@ import type { ScreenConfiguration } from '@/types/config';
 import { v4ToV5 } from './v4-to-v5';
 import { v5ToV6 } from './v5-to-v6';
 import { v6ToV7 } from './v6-to-v7';
+import { v7ToV8 } from './v7-to-v8';
 
 interface Migration {
   version: number;
@@ -71,6 +72,9 @@ const migrations: Migration[] = [
   // Migration 007: idle dimming became an explicit toggle; configs whose dim
   // schedule implicitly suppressed idle behavior get idleDimEnabled: false.
   v6ToV7,
+  // Migration 008: the calendar's multi-week theme and per-cell cap became
+  // grid-wide fields; the prerelease keys are renamed in place.
+  v7ToV8,
 ];
 
 /** @internal Get all migrations sorted by version */

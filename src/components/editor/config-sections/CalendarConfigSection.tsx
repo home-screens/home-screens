@@ -7,7 +7,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
-import { isGridView } from '@/lib/calendar-utils';
+import { isGridView, isThemedGridView, defaultGridMaxEventsPerCell } from '@/lib/calendar-utils';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
@@ -43,11 +43,11 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     eventTapDetails?: boolean;
     eventTapStyle?: EventTapStyle;
     weeksToShow?: number;
-    multiWeekMaxEventsPerCell?: number;
+    gridMaxEventsPerCell?: number;
     startDay?: string;
     gridEventStyle?: string;
     gridEventPillBackground?: boolean;
-    multiWeekTheme?: string;
+    gridTheme?: string;
     showCountdown?: boolean;
     showProgressBar?: boolean;
     emptyDayText?: string;
@@ -60,11 +60,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
   const sourceFilter = c.sourceFilter ?? [];
-  const multiWeekTheme = c.multiWeekTheme ?? 'banner';
+  const gridTheme = c.gridTheme ?? 'banner';
+  const isThemedGrid = isThemedGridView(viewMode);
   // The modern themes carry their own pill styling; gridEventStyle and the
-  // pill toggle only apply to multi-week under the banner theme (and to the
-  // week/month grids always).
-  const themeControlsPills = viewMode === 'multi-week' && multiWeekTheme !== 'banner';
+  // pill toggle only apply to the themed grids under the banner theme (and
+  // to the week grid always).
+  const themeControlsPills = isThemedGrid && gridTheme !== 'banner';
 
   const VIEW_MODES = [
     { value: 'daily', label: t('configSections.calendar.viewDaily') },
@@ -84,7 +85,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'colored', label: t('configSections.calendar.gridEventStyleColored') },
   ] as const;
 
-  const MULTI_WEEK_THEME_OPTIONS = [
+  const GRID_THEME_OPTIONS = [
     { value: 'banner', label: t('configSections.calendar.themeBanner') },
     { value: 'clean', label: t('configSections.calendar.themeClean') },
     { value: 'minimal', label: t('configSections.calendar.themeMinimal') },
@@ -105,7 +106,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_MODES.find((v) => v.value === viewMode)?.label ?? '';
   const isListView = viewMode === 'daily' || viewMode === 'agenda';
-  // Modern multi-week themes own their pill styling, so the grid style select
+  // The modern grid themes own their pill styling, so the grid style select
   // disappears — which can leave the Event rows group with nothing in it.
   const showsGridEventStyle = isGridView(viewMode) && !themeControlsPills;
   // Agenda week separators label their week start with the same startDay the
@@ -121,12 +122,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         options={VIEW_MODES}
       />
 
-      {viewMode === 'multi-week' && (
+      {isThemedGrid && (
         <LabeledSelect
-          label={t('configSections.calendar.multiWeekTheme')}
-          value={multiWeekTheme}
-          onChange={(v) => set({ multiWeekTheme: v })}
-          options={MULTI_WEEK_THEME_OPTIONS}
+          label={t('configSections.calendar.gridTheme')}
+          value={gridTheme}
+          onChange={(v) => set({ gridTheme: v })}
+          options={GRID_THEME_OPTIONS}
         />
       )}
 
@@ -179,24 +180,24 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           />
         )}
         {viewMode === 'multi-week' && (
-          <>
-            <Slider
-              label={t('configSections.calendar.weeksToShow')}
-              value={c.weeksToShow ?? 6}
-              min={4}
-              max={12}
-              step={1}
-              onChange={(v) => set({ weeksToShow: v })}
-            />
-            <Slider
-              label={t('configSections.calendar.eventsPerCell')}
-              value={c.multiWeekMaxEventsPerCell ?? 4}
-              min={2}
-              max={10}
-              step={1}
-              onChange={(v) => set({ multiWeekMaxEventsPerCell: v })}
-            />
-          </>
+          <Slider
+            label={t('configSections.calendar.weeksToShow')}
+            value={c.weeksToShow ?? 6}
+            min={4}
+            max={12}
+            step={1}
+            onChange={(v) => set({ weeksToShow: v })}
+          />
+        )}
+        {isGridView(viewMode) && (
+          <Slider
+            label={t('configSections.calendar.eventsPerCell')}
+            value={c.gridMaxEventsPerCell ?? defaultGridMaxEventsPerCell(viewMode)}
+            min={2}
+            max={10}
+            step={1}
+            onChange={(v) => set({ gridMaxEventsPerCell: v })}
+          />
         )}
         {viewMode === 'agenda' && (
           <LabeledSelect
