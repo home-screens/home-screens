@@ -23,7 +23,15 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock", "Weather", "Calendar (week)", "Chore chart (compact)", "Garbage day", "Countdown", "Affirmations"],
   },
   {
-    image: "02-chore-chart",
+    image: "02-weather-panorama",
+    title: "Weather, full screen",
+    when: "Friday 7:42 AM",
+    description:
+      "The full-screen weather module's Panorama view in Midnight: a big current read with the sky tinted by the conditions, a next-hour rain strip, a 36-hour temperature curve with the night shaded, a 7-day outlook with range bars, and a row of stats along the bottom.",
+    modules: ["Full-screen weather (panorama)"],
+  },
+  {
+    image: "03-chore-chart",
     title: "Chore chart",
     when: "Friday 4:20 PM",
     description:
@@ -31,7 +39,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Fullscreen chore chart"],
   },
   {
-    image: "03-weather-station",
+    image: "04-weather-station",
     title: "Weather station",
     when: "Friday 7:42 AM, storm day",
     description:
@@ -39,7 +47,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Weather (current", "hourly", "daily", "alerts", "precipitation)", "Sunrise & sunset (circle", "sky theme)", "Moon phase", "Air quality"],
   },
   {
-    image: "04-morning-light",
+    image: "05-morning-light",
     title: "Morning, light",
     when: "Friday 7:15 AM",
     description:
@@ -47,7 +55,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Greeting", "Clock (classic)", "Date (stacked)", "Weather (daily)", "Calendar (agenda)", "Todo", "Traffic", "Quote"],
   },
   {
-    image: "05-cinematic",
+    image: "06-cinematic",
     title: "Cinematic",
     when: "Friday 9:07 PM",
     description:
@@ -55,7 +63,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Text", "Clock (flip)", "Date (minimal)", "Shape (divider)", "Weather (compact)", "Calendar (agenda)", "News (ticker)"],
   },
   {
-    image: "06-photo-frame",
+    image: "07-photo-frame",
     title: "Photo frame",
     when: "Friday 5:20 PM",
     description:
@@ -63,7 +71,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Photo slideshow", "Clock (classic)", "Weather (compact)", "Shape (divider)", "Calendar (agenda)"],
   },
   {
-    image: "07-markets-news",
+    image: "08-markets-news",
     title: "Markets & news",
     when: "Friday 3:05 PM",
     description:
@@ -71,7 +79,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (world)", "Year progress", "Stock ticker (cards)", "Crypto (compact)", "News (list)", "History"],
   },
   {
-    image: "08-minimal-light",
+    image: "09-minimal-light",
     title: "Minimal, light",
     when: "Friday 9:40 AM",
     description:
@@ -79,7 +87,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (word)", "Date (editorial)", "Weather (compact)", "Calendar (agenda)", "Sunrise & sunset (arc)"],
   },
   {
-    image: "09-month-grid",
+    image: "10-month-grid",
     title: "Month grid",
     when: "Friday, August 2026",
     description:
@@ -87,7 +95,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Fullscreen calendar (month grid)"],
   },
   {
-    image: "10-three-day-schedule",
+    image: "11-three-day-schedule",
     title: "Three-day schedule",
     when: "Friday 10:12 AM",
     description:
@@ -95,7 +103,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Fullscreen calendar (schedule view)"],
   },
   {
-    image: "11-synthwave",
+    image: "12-synthwave",
     title: "Synthwave",
     when: "Friday 11:14 PM",
     description:
@@ -103,7 +111,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Shape (glow)", "Clock (neon)", "Text (neon effect)", "Weather (hourly)", "Crypto (cards)", "Stock ticker (ticker)", "News (ticker)"],
   },
   {
-    image: "12-bento",
+    image: "13-bento",
     title: "Bento",
     when: "Friday 12:30 PM",
     description:
@@ -111,7 +119,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (split)", "Weather (current)", "Calendar (daily)", "Countdown (flip)", "Moon phase", "Chore chart (progress)", "Year progress", "QR code (Wi-Fi)", "Dad joke"],
   },
   {
-    image: "13-morning-briefing",
+    image: "14-morning-briefing",
     title: "Morning briefing",
     when: "Friday 6:52 AM",
     description:
@@ -119,7 +127,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Greeting", "Clock (classic)", "Date (stacked)", "Traffic", "Calendar (daily)", "Todoist", "News (compact)", "Affirmations (card)"],
   },
   {
-    image: "14-kitchen-light",
+    image: "15-kitchen-light",
     title: "Kitchen, light",
     when: "Friday 4:45 PM",
     description:
@@ -127,7 +135,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock", "Weather (current)", "Meal planner (week", "next meal)", "Sticky note", "Calendar (daily)", "Garbage day", "Chore chart (progress)"],
   },
   {
-    image: "15-ambient",
+    image: "16-ambient",
     title: "Ambient",
     when: "Friday 8:31 PM",
     description:
@@ -135,7 +143,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (analog)", "Date (editorial)", "Quote", "Sunrise & sunset (arc)"],
   },
   {
-    image: "16-playroom",
+    image: "17-playroom",
     title: "Playroom",
     when: "Friday 3:30 PM",
     description:
@@ -143,7 +151,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Greeting", "Clock (fuzzy)", "Weather (current)", "Chore chart (star chart)", "Sticky note", "Countdown (flip)", "Affirmations (typewriter)", "Meal planner (next meal)"],
   },
   {
-    image: "17-panels",
+    image: "18-panels",
     title: "Panels",
     when: "Friday 8:30 AM",
     description:
@@ -151,7 +159,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (digital)", "Sunrise & sunset", "Weather (table)", "Calendar (multi-week", "clean)", "Todoist", "Traffic", "Air quality", "Stock ticker (compact)"],
   },
   {
-    image: "18-menu-board",
+    image: "19-menu-board",
     title: "Menu board",
     when: "Week of August 17",
     description:
@@ -159,7 +167,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Fullscreen meal planner (week view)"],
   },
   {
-    image: "19-game-night",
+    image: "20-game-night",
     title: "Game night",
     when: "Friday 7:48 PM",
     description:
@@ -167,7 +175,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Clock (neon)", "Countdown", "Sports (cards)", "Standings (table)", "News (list)", "Dad joke"],
   },
   {
-    image: "20-editorial",
+    image: "21-editorial",
     title: "Editorial",
     when: "Friday 8:05 AM",
     description:
@@ -175,7 +183,7 @@ export const DASHBOARDS: Dashboard[] = [
     modules: ["Date (banner)", "Shape (rules)", "Clock (classic)", "Weather (compact)", "Calendar (agenda)", "Word of the day", "History", "Quote"],
   },
   {
-    image: "21-family-hub-light",
+    image: "22-family-hub-light",
     title: "Family hub, light",
     when: "Friday 7:42 AM",
     description:
