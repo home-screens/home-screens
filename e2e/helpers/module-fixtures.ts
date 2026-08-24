@@ -247,6 +247,13 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     config: { view: 'agenda' },
     expect: containsText('Dentist Appointment'),
   },
+  // Reuses the shared `weather` stub, so the 72° in weather.json is the hero
+  // temperature here too. Panorama is the default view and exercises the most
+  // surface (hero, ribbon, range bars, stat rail) in one render.
+  'fullscreen-weather': {
+    type: 'fullscreen-weather', kind: 'networked', stubKey: 'weather',
+    expect: containsText('72°'),
+  },
   'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
   'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
   // The stub aborts the media load itself, so assert the <video> resolved its

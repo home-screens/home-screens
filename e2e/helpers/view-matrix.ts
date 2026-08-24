@@ -52,4 +52,5 @@ export const VIEW_MATRIX: ViewSpec[] = [
   { type: 'fullscreen-chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: ['chores', 'rewards-store'] },
   { type: 'meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'next-meal', 'compact', 'list'] },
   { type: 'fullscreen-meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'menu-board', 'next-meal'] },
+  { type: 'fullscreen-weather', key: 'view', kind: 'networked', stubKey: 'weather', views: ['panorama', 'almanac', 'ambient'] },
 ];

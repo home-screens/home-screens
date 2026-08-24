@@ -737,5 +737,70 @@
     "holiday": "Jour férié",
     "birthday": "Anniversaire",
     "birthdayWithAge": "Anniversaire · {age} ans"
+  },
+  "fullscreen-weather": {
+    "loading": "Chargement des prévisions…",
+    "today": "Aujourd'hui",
+    "feelsLike": "Ressenti {temp}°",
+    "highOf": "Max {temp}°",
+    "lowOf": "Min {temp}°",
+    "sections": {
+      "outlook": "Prévisions sur {days} jours",
+      "nextHour": "Prochaine heure",
+      "nextHours": "Prochaines {hours} heures",
+      "chanceOfPrecip": "Risque de pluie"
+    },
+    "nowcast": {
+      "dry": "Pas de pluie cette heure-ci",
+      "continues": "Se poursuit pendant l'heure",
+      "stopsIn": "S'atténue dans {minutes} min environ",
+      "startsIn": "Débute dans {minutes} min environ",
+      "now": "Maintenant",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Sévère",
+      "advisory": "Avis"
+    },
+    "stats": {
+      "wind": "Vent",
+      "humidity": "Humidité",
+      "uv": "Indice UV",
+      "pressure": "Pression",
+      "sunset": "Coucher"
+    },
+    "cards": {
+      "sun": "Soleil",
+      "moon": "Lune",
+      "wind": "Vent",
+      "humidity": "Humidité",
+      "pressure": "Pression",
+      "uv": "Indice UV",
+      "visibility": "Visibilité",
+      "next12": "Prochaines 12 heures",
+      "daylight": "de jour aujourd'hui",
+      "dewPoint": "Point de rosée {temp}°",
+      "windNote": "Vitesse actuelle du vent",
+      "pressureFalling": "En baisse — le temps change",
+      "pressureRising": "En hausse — ça se calme",
+      "pressureSteady": "Stable"
+    },
+    "moon": {
+      "new": "Nouvelle lune",
+      "waxingCrescent": "Premier croissant",
+      "firstQuarter": "Premier quartier",
+      "waxingGibbous": "Gibbeuse croissante",
+      "full": "Pleine lune",
+      "waningGibbous": "Gibbeuse décroissante",
+      "lastQuarter": "Dernier quartier",
+      "waningCrescent": "Dernier croissant",
+      "illuminated": "{percent}% éclairée"
+    },
+    "uv": {
+      "low": "Faible — aucune protection",
+      "moderate": "Modéré — chapeau et lunettes",
+      "high": "Élevé — crème solaire",
+      "veryHigh": "Très élevé — bien se couvrir"
+    }
   }
 }

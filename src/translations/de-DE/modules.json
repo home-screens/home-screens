@@ -732,5 +732,70 @@
     "holiday": "Feiertag",
     "birthday": "Geburtstag",
     "birthdayWithAge": "Geburtstag · wird {age}"
+  },
+  "fullscreen-weather": {
+    "loading": "Wettervorhersage wird geladen…",
+    "today": "Heute",
+    "feelsLike": "Gefühlt {temp}°",
+    "highOf": "Höchstwert {temp}°",
+    "lowOf": "Tiefstwert {temp}°",
+    "sections": {
+      "outlook": "{days}-Tage-Vorschau",
+      "nextHour": "Nächste Stunde",
+      "nextHours": "Nächste {hours} Stunden",
+      "chanceOfPrecip": "Regenwahrscheinlichkeit"
+    },
+    "nowcast": {
+      "dry": "In dieser Stunde kein Regen",
+      "continues": "Hält die nächste Stunde an",
+      "stopsIn": "Lässt in etwa {minutes} Min nach",
+      "startsIn": "Beginnt in etwa {minutes} Min",
+      "now": "Jetzt",
+      "minutes": "{n} Min"
+    },
+    "alerts": {
+      "severe": "Unwetter",
+      "advisory": "Hinweis"
+    },
+    "stats": {
+      "wind": "Wind",
+      "humidity": "Luftfeuchte",
+      "uv": "UV-Index",
+      "pressure": "Luftdruck",
+      "sunset": "Sonnenuntergang"
+    },
+    "cards": {
+      "sun": "Sonne",
+      "moon": "Mond",
+      "wind": "Wind",
+      "humidity": "Luftfeuchte",
+      "pressure": "Luftdruck",
+      "uv": "UV-Index",
+      "visibility": "Sichtweite",
+      "next12": "Nächste 12 Stunden",
+      "daylight": "Tageslicht heute",
+      "dewPoint": "Taupunkt {temp}°",
+      "windNote": "Aktuelle Windgeschwindigkeit",
+      "pressureFalling": "Fallend — Wetterwechsel",
+      "pressureRising": "Steigend — es beruhigt sich",
+      "pressureSteady": "Gleichbleibend"
+    },
+    "moon": {
+      "new": "Neumond",
+      "waxingCrescent": "Zunehmende Sichel",
+      "firstQuarter": "Erstes Viertel",
+      "waxingGibbous": "Zunehmender Mond",
+      "full": "Vollmond",
+      "waningGibbous": "Abnehmender Mond",
+      "lastQuarter": "Letztes Viertel",
+      "waningCrescent": "Abnehmende Sichel",
+      "illuminated": "{percent}% beleuchtet"
+    },
+    "uv": {
+      "low": "Niedrig — kein Schutz nötig",
+      "moderate": "Mittel — Hut und Sonnenbrille",
+      "high": "Hoch — Sonnencreme",
+      "veryHigh": "Sehr hoch — gut bedecken"
+    }
   }
 }

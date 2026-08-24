@@ -732,5 +732,70 @@
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
     "birthdayWithAge": "Verjaardag · wordt {age}"
+  },
+  "fullscreen-weather": {
+    "loading": "Weersverwachting laden…",
+    "today": "Vandaag",
+    "feelsLike": "Voelt als {temp}°",
+    "highOf": "Max {temp}°",
+    "lowOf": "Min {temp}°",
+    "sections": {
+      "outlook": "Verwachting {days} dagen",
+      "nextHour": "Komend uur",
+      "nextHours": "Komende {hours} uur",
+      "chanceOfPrecip": "Kans op regen"
+    },
+    "nowcast": {
+      "dry": "Dit uur geen regen verwacht",
+      "continues": "Houdt het komende uur aan",
+      "stopsIn": "Neemt over ongeveer {minutes} min af",
+      "startsIn": "Begint over ongeveer {minutes} min",
+      "now": "Nu",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Ernstig",
+      "advisory": "Waarschuwing"
+    },
+    "stats": {
+      "wind": "Wind",
+      "humidity": "Vochtigheid",
+      "uv": "UV-index",
+      "pressure": "Luchtdruk",
+      "sunset": "Zonsondergang"
+    },
+    "cards": {
+      "sun": "Zon",
+      "moon": "Maan",
+      "wind": "Wind",
+      "humidity": "Vochtigheid",
+      "pressure": "Luchtdruk",
+      "uv": "UV-index",
+      "visibility": "Zicht",
+      "next12": "Komende 12 uur",
+      "daylight": "daglicht vandaag",
+      "dewPoint": "Dauwpunt {temp}°",
+      "windNote": "Huidige windsnelheid",
+      "pressureFalling": "Dalend — weer verandert",
+      "pressureRising": "Stijgend — het wordt rustiger",
+      "pressureSteady": "Stabiel"
+    },
+    "moon": {
+      "new": "Nieuwe maan",
+      "waxingCrescent": "Wassende sikkel",
+      "firstQuarter": "Eerste kwartier",
+      "waxingGibbous": "Wassende maan",
+      "full": "Volle maan",
+      "waningGibbous": "Afnemende maan",
+      "lastQuarter": "Laatste kwartier",
+      "waningCrescent": "Afnemende sikkel",
+      "illuminated": "{percent}% verlicht"
+    },
+    "uv": {
+      "low": "Laag — geen bescherming nodig",
+      "moderate": "Matig — pet en zonnebril",
+      "high": "Hoog — zonnebrand",
+      "veryHigh": "Zeer hoog — goed bedekken"
+    }
   }
 }

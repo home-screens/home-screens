@@ -16,14 +16,17 @@ import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
 
 // Provider capabilities — controls which toggles and views are visible
-const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean }> = {
+const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean; uv?: boolean }> = {
   openweathermap: {},
-  weatherapi: {},
-  pirateweather: { minutely: true, alerts: true },
+  weatherapi: { uv: true },
+  pirateweather: { minutely: true, alerts: true, uv: true, pressure: true, visibility: true, dewPoint: true },
   noaa: { alerts: true, pressure: true, visibility: true, dewPoint: true },
-  'open-meteo': { pressure: true, dewPoint: true },
+  'open-meteo': { pressure: true, dewPoint: true, uv: true },
   yr: { pressure: true },
   smhi: { pressure: true },
+  // Met Office was missing entirely, so the editor reported it as having no
+  // optional fields even though the provider emits all of these.
+  metoffice: { pressure: true, dewPoint: true, uv: true },
   envcanada: {},
 };
 

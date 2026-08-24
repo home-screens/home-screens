@@ -171,6 +171,7 @@
       "fullscreen-chore-chart": "Vollbild-Aufgabentafel",
       "fullscreen-meal-planner": "Vollbild-Essensplaner",
       "fullscreen-photo": "Vollbild-Fotoanzeige",
+      "fullscreen-weather": "Vollbild-Wetter",
       "clock": "Uhr",
       "calendar": "Kalender",
       "countdown": "Countdown",
@@ -3316,6 +3317,29 @@
       "ruleCountNone": "keine",
       "ruleCountOne": "1 Regel",
       "ruleCountOther": "{count} Regeln"
+    },
+    "fullscreen-weather": {
+      "view": "Ansicht",
+      "viewPanorama": "Panorama",
+      "viewAlmanac": "Almanach",
+      "viewAmbient": "Ambiente",
+      "themeDefault": "Standard (aus Einstellungen)",
+      "typographySize": "Schriftgröße",
+      "densityCozy": "Luftig",
+      "densitySnug": "Kompakt",
+      "skyLayer": "Hintergrundfarbe",
+      "skyAuto": "Dem Wetter folgen",
+      "skyOff": "Aus (einfaches Design)",
+      "animateConditions": "Fallender Regen und Schnee",
+      "animateConditionsHint": "Schalte dies aus, wenn die Anzeige auf älterer Hardware ruckelt.",
+      "showAlerts": "Wetterwarnungen anzeigen",
+      "showRibbon": "Temperaturkurve anzeigen",
+      "showStatRail": "Untere Werteleiste anzeigen",
+      "showNowcast": "Regenvorschau für die nächste Stunde",
+      "showNowcastHint": "Minutengenauer Regen gibt es nur bei Pirate Weather. Bei jeder anderen Wetterquelle bleibt dieser Streifen ausgeblendet.",
+      "daysToShow": "Tage in der Vorschau",
+      "locationLabel": "Ortsname",
+      "accentColor": "Akzentfarbe"
     }
   },
   "imageBrowsers": {

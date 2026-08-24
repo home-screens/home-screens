@@ -737,5 +737,70 @@
     "holiday": "Feriado",
     "birthday": "Aniversário",
     "birthdayWithAge": "Aniversário · faz {age} anos"
+  },
+  "fullscreen-weather": {
+    "loading": "Carregando a previsão…",
+    "today": "Hoje",
+    "feelsLike": "Sensação de {temp}°",
+    "highOf": "Máx {temp}°",
+    "lowOf": "Mín {temp}°",
+    "sections": {
+      "outlook": "Previsão de {days} dias",
+      "nextHour": "Próxima hora",
+      "nextHours": "Próximas {hours} horas",
+      "chanceOfPrecip": "Chance de chuva"
+    },
+    "nowcast": {
+      "dry": "Sem chuva prevista nesta hora",
+      "continues": "Continua pela próxima hora",
+      "stopsIn": "Diminui em cerca de {minutes} min",
+      "startsIn": "Começa em cerca de {minutes} min",
+      "now": "Agora",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Grave",
+      "advisory": "Aviso"
+    },
+    "stats": {
+      "wind": "Vento",
+      "humidity": "Umidade",
+      "uv": "Índice UV",
+      "pressure": "Pressão",
+      "sunset": "Pôr do sol"
+    },
+    "cards": {
+      "sun": "Sol",
+      "moon": "Lua",
+      "wind": "Vento",
+      "humidity": "Umidade",
+      "pressure": "Pressão",
+      "uv": "Índice UV",
+      "visibility": "Visibilidade",
+      "next12": "Próximas 12 horas",
+      "daylight": "de luz hoje",
+      "dewPoint": "Ponto de orvalho {temp}°",
+      "windNote": "Velocidade atual do vento",
+      "pressureFalling": "Caindo — o tempo vai mudar",
+      "pressureRising": "Subindo — vai firmar",
+      "pressureSteady": "Estável"
+    },
+    "moon": {
+      "new": "Lua nova",
+      "waxingCrescent": "Crescente côncava",
+      "firstQuarter": "Quarto crescente",
+      "waxingGibbous": "Crescente gibosa",
+      "full": "Lua cheia",
+      "waningGibbous": "Minguante gibosa",
+      "lastQuarter": "Quarto minguante",
+      "waningCrescent": "Minguante côncava",
+      "illuminated": "{percent}% iluminada"
+    },
+    "uv": {
+      "low": "Baixo — sem proteção",
+      "moderate": "Moderado — boné e óculos",
+      "high": "Alto — protetor solar",
+      "veryHigh": "Muito alto — se cubra bem"
+    }
   }
 }

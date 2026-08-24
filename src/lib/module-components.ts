@@ -51,6 +51,7 @@ const builtinComponentEntries = {
   'fullscreen-chore-chart': dynamic(() => import('@/components/modules/fullscreen-chore-chart/FullscreenChoreChartModule')),
   'fullscreen-meal-planner': dynamic(() => import('@/components/modules/fullscreen-meal-planner/FullscreenMealPlannerModule')),
   'fullscreen-photo': dynamic(() => import('@/components/modules/fullscreen-photo/FullscreenPhotoModule')),
+  'fullscreen-weather': dynamic(() => import('@/components/modules/fullscreen-weather/FullscreenWeatherModule')),
 } satisfies Record<BuiltinModuleType, unknown>;
 
 const builtinComponents =

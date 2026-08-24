@@ -732,5 +732,70 @@
     "holiday": "Holiday",
     "birthday": "Birthday",
     "birthdayWithAge": "Birthday · turns {age}"
+  },
+  "fullscreen-weather": {
+    "loading": "Getting the forecast…",
+    "today": "Today",
+    "feelsLike": "Feels like {temp}°",
+    "highOf": "High {temp}°",
+    "lowOf": "Low {temp}°",
+    "sections": {
+      "outlook": "{days}-day outlook",
+      "nextHour": "Next hour",
+      "nextHours": "Next {hours} hours",
+      "chanceOfPrecip": "Chance of rain"
+    },
+    "nowcast": {
+      "dry": "No rain expected this hour",
+      "continues": "Keeping on for the next hour",
+      "stopsIn": "Easing off in about {minutes} min",
+      "startsIn": "Starting in about {minutes} min",
+      "now": "Now",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Severe",
+      "advisory": "Advisory"
+    },
+    "stats": {
+      "wind": "Wind",
+      "humidity": "Humidity",
+      "uv": "UV Index",
+      "pressure": "Pressure",
+      "sunset": "Sunset"
+    },
+    "cards": {
+      "sun": "Sun",
+      "moon": "Moon",
+      "wind": "Wind",
+      "humidity": "Humidity",
+      "pressure": "Pressure",
+      "uv": "UV index",
+      "visibility": "Visibility",
+      "next12": "Next 12 hours",
+      "daylight": "of daylight today",
+      "dewPoint": "Dew point {temp}°",
+      "windNote": "Current wind speed",
+      "pressureFalling": "Falling — weather changing",
+      "pressureRising": "Rising — settling down",
+      "pressureSteady": "Holding steady"
+    },
+    "moon": {
+      "new": "New Moon",
+      "waxingCrescent": "Waxing Crescent",
+      "firstQuarter": "First Quarter",
+      "waxingGibbous": "Waxing Gibbous",
+      "full": "Full Moon",
+      "waningGibbous": "Waning Gibbous",
+      "lastQuarter": "Last Quarter",
+      "waningCrescent": "Waning Crescent",
+      "illuminated": "{percent}% lit"
+    },
+    "uv": {
+      "low": "Low — no protection needed",
+      "moderate": "Moderate — hat and sunglasses",
+      "high": "High — sunscreen",
+      "veryHigh": "Very high — cover up"
+    }
   }
 }

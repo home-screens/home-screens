@@ -266,6 +266,7 @@ export class MetOfficeProvider implements WeatherProvider {
         dewPoint: e.screenDewPointTemperature != null
           ? celsiusToUnit(e.screenDewPointTemperature, isMetric)
           : undefined,
+        uvIndex: e.uvIndex != null ? Math.round(e.uvIndex) : undefined,
       }));
   }
 

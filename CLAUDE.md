@@ -38,7 +38,7 @@ npx playwright test --project=editor   # Run one surface's E2E specs
 - `(remote)` — remote control + family surfaces (chores, meals, timers, photos) at `/remote`
 
 ### Module System
-The codebase uses a **module registry pattern**. There are 42 built-in module types. Each requires:
+The codebase uses a **module registry pattern**. There are 43 built-in module types. Each requires:
 1. A React component in `src/components/modules/`
 2. A type in the `BuiltinModuleType` union (`src/types/config.ts`). `ModuleType` is the composite alias `BuiltinModuleType | PluginModuleType` and has no member list to extend.
 3. A config interface in `src/types/config.ts`

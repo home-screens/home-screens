@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 42 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 43 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
@@ -20,7 +20,7 @@ Where a module has a `refreshIntervalMs` option, its default comes from that mod
 
 These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag — position, size, and style controls are hidden in the editor since the module always occupies the full display area.
 
-**Themes:** all four full-screen modules share one `theme` field with six color palettes: `linen`, `paper`, and `mist` (light), `charcoal`, `midnight`, and `slate` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the six ids falls back to Linen.
+**Themes:** all five full-screen modules share one `theme` field with six color palettes: `linen`, `paper`, and `mist` (light), `charcoal`, `midnight`, and `slate` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the six ids falls back to Linen.
 
 The older `darkMode` boolean on Full-Screen Calendar and Full-Screen Chore Chart has been superseded by `theme` and is no longer shown in the editor. It still works as a fallback so older configurations keep rendering: `darkMode: true` maps to `charcoal` and `false` maps to `linen`. It is ignored entirely whenever `theme` is set.
 
@@ -134,6 +134,38 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 - **today** — Focused view of today's meals with large cards and details.
 - **menu-board** — Restaurant-style board layout for displaying the week's menu.
 - **next-meal** — Large display of the next upcoming meal with context label.
+
+### Full-Screen Weather
+
+A fullscreen weather dashboard with three views. **Panorama** stacks the current conditions, an optional next-hour rain strip, a temperature curve, a 7-day outlook with range bars, and a row of stats. **Almanac** is a grid of instrument cards: sun arc, moon phase, wind, humidity, pressure, UV, and visibility, plus the next 12 hours. **Ambient** is a large, plain read for across the room.
+
+The background tint follows the current conditions and the position of the sun, layered behind the cards so it never affects how readable anything is. Set **Background tint** to Off for a plain themed background.
+
+Some panels depend on what your weather source provides, and hide themselves when it has nothing to show:
+
+- **Next-hour rain** needs minute-by-minute data, which only Pirate Weather offers today.
+- **Weather warnings** need alerts, available from Pirate Weather and NOAA.
+- **Pressure** and **dew point** come from NOAA, Open-Meteo, and the Met Office.
+- **UV index** comes from Pirate Weather, the Met Office, WeatherAPI, and Open-Meteo.
+- **Visibility** comes from NOAA.
+
+The temperature curve draws however many hours your source returns, and its heading says how many. Most sources give 48 hours; OpenWeatherMap gives 5 days in 3-hour steps; NOAA gives about 6 days hourly.
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `view` | string | `"panorama"` | `panorama`, `almanac`, or `ambient` |
+| `theme` | string | — | Full-screen palette; unset inherits the display default |
+| `skyLayer` | string | `"auto"` | `auto` tints the background by conditions, `off` uses the plain theme background |
+| `animateConditions` | boolean | `true` | Falling rain and snow. Turn off if the display stutters on older hardware |
+| `showNowcast` | boolean | `true` | Next-hour rain strip (Panorama, Pirate Weather only) |
+| `showAlerts` | boolean | `true` | Severe-weather banner |
+| `showRibbon` | boolean | `true` | Temperature curve (Panorama) |
+| `showStatRail` | boolean | `true` | Bottom stats row (Panorama) |
+| `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama) |
+| `locationLabel` | string | — | Overrides the place name shown in the header |
+| `accentColor` | string | — | Overrides the conditions-derived accent |
+| `density` | string | `"snug"` | `cozy` or `snug` |
+| `typographySize` | string | `"medium"` | Text scale |
 
 ### Full-Screen Photo Viewer
 

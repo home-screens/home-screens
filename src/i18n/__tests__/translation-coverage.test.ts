@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { LOCALES, FALLBACK_LOCALE } from '@/i18n/manifest';
 import { BUILT_IN_NAMESPACES } from '@/i18n/types';
 import { flatten, loadDict } from './helpers/dict';
+import { getAllModuleDefinitions } from '@/lib/module-registry';
 
 /**
  * Untranslated-value ratchet — the third side of the parity guarantee.
@@ -53,6 +54,10 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.fullscreen-calendar.googleCalendarNumbered',
   'editor|configSections.fullscreen-calendar.viewAgenda',
   'editor|configSections.fullscreen-photo.sourceImmich',
+  'editor|configSections.fullscreen-weather.viewPanorama',
+  'modules|fullscreen-weather.cards.wind',
+  'modules|fullscreen-weather.nowcast.minutes',
+  'modules|fullscreen-weather.stats.wind',
   'editor|configSections.fullscreen-photo.transitionZoom',
   'editor|configSections.icon.animation',
   'editor|configSections.iframe.url',
@@ -785,6 +790,35 @@ describe('translation coverage (untranslated-value ratchet)', () => {
         found.length,
         `${locale} now has only ${found.length} untranslated values — lower its BUDGETS entry to ${found.length}.`,
       ).toBeGreaterThanOrEqual(budget);
+    });
+  }
+});
+
+/**
+ * Every built-in module needs a `registry.types.<type>` label in every locale.
+ *
+ * The palette, canvas, and PropertyPanel all render `t('registry.types.' + type)`,
+ * so a missing entry ships the raw key as the module's name. The untranslated-value
+ * ratchet above cannot catch it: it only compares keys that exist in en-US against
+ * their locale counterparts, and a type absent from *every* dictionary is invisible
+ * to it. (fullscreen-weather shipped with exactly this gap.)
+ */
+describe('registry module labels', () => {
+  const builtinTypes = getAllModuleDefinitions()
+    .map((d) => d.type)
+    .filter((t) => !t.startsWith('plugin:'));
+
+  for (const locale of Object.keys(LOCALES)) {
+    it(`${locale}: every built-in module type has a registry label`, () => {
+      const dict = loadDict(locale, 'editor') as
+        | { registry?: { types?: Record<string, unknown> } }
+        | null;
+      const types = dict?.registry?.types ?? {};
+      const missing = builtinTypes.filter((t) => typeof types[t] !== 'string' || !types[t]);
+      expect(
+        missing,
+        `${locale} is missing registry.types entries for: ${missing.join(', ')}`,
+      ).toEqual([]);
     });
   }
 });

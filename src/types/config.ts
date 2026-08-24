@@ -42,7 +42,8 @@ export type BuiltinModuleType =
   | 'fullscreen-calendar'
   | 'fullscreen-chore-chart'
   | 'fullscreen-meal-planner'
-  | 'fullscreen-photo';
+  | 'fullscreen-photo'
+  | 'fullscreen-weather';
 
 type PluginModuleType = `plugin:${string}`;
 
@@ -1659,6 +1660,39 @@ export interface FullscreenMealPlannerConfig {
   showDifficulty: boolean;
   theme?: string;
   tapRecipeAction?: RecipeTapAction;
+}
+
+// Fullscreen weather module config
+export type FullscreenWeatherView = 'panorama' | 'almanac' | 'ambient';
+
+/** 'auto' tints the background by condition and sun elevation; 'off' falls
+ *  back to the flat theme background. The sky is a wash *behind* the cards,
+ *  so turning it off never changes any text contrast. */
+export type FullscreenWeatherSky = 'auto' | 'off';
+
+export interface FullscreenWeatherConfig {
+  view: FullscreenWeatherView;
+  density: 'cozy' | 'snug';
+  typographySize: FullscreenTypographySize;
+  accentColor: string;
+  theme?: string;
+  /** Condition-reactive background wash. Default 'auto'. */
+  skyLayer?: FullscreenWeatherSky;
+  /** Falling rain/snow particles. Off is the cheap mode for slow Pis. Default true. */
+  animateConditions?: boolean;
+  /** Panorama: the minute-by-minute strip. Renders only when the provider
+   *  returns minutely data (Pirate Weather today); hides itself otherwise. */
+  showNowcast: boolean;
+  /** Panorama + Almanac: severe-weather banner. */
+  showAlerts: boolean;
+  /** Panorama: the 48h temperature ribbon. */
+  showRibbon: boolean;
+  /** Panorama: the bottom wind/humidity/UV/pressure/sunset rail. */
+  showStatRail: boolean;
+  /** Panorama: how many forecast days the range-bar list shows (3-7). */
+  daysToShow: number;
+  /** Optional place-name override, mirroring WeatherConfig.locationLabel. */
+  locationLabel?: string;
 }
 
 // Fullscreen photo viewer module config

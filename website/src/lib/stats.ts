@@ -8,7 +8,7 @@
 // Bump a number here, run `npm test` at the repo root, and the failing
 // assertion tells you exactly what to update.
 
-export const MODULE_COUNT = 42;
+export const MODULE_COUNT = 43;
 export const MODULE_CATEGORY_COUNT = 9;
 export const WEATHER_PROVIDER_COUNT = 9;
 export const STANDINGS_LEAGUE_COUNT = 12;

@@ -732,5 +732,70 @@
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
     "birthdayWithAge": "Fødselsdag · fylder {age}"
+  },
+  "fullscreen-weather": {
+    "loading": "Henter vejrudsigten…",
+    "today": "I dag",
+    "feelsLike": "Føles som {temp}°",
+    "highOf": "Max {temp}°",
+    "lowOf": "Min {temp}°",
+    "sections": {
+      "outlook": "{days}-dages udsigt",
+      "nextHour": "Den næste time",
+      "nextHours": "De næste {hours} timer",
+      "chanceOfPrecip": "Risiko for regn"
+    },
+    "nowcast": {
+      "dry": "Ingen regn den næste time",
+      "continues": "Fortsætter den næste time",
+      "stopsIn": "Aftager om cirka {minutes} min",
+      "startsIn": "Begynder om cirka {minutes} min",
+      "now": "Nu",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Alvorligt",
+      "advisory": "Varsel"
+    },
+    "stats": {
+      "wind": "Vind",
+      "humidity": "Luftfugtighed",
+      "uv": "UV-indeks",
+      "pressure": "Lufttryk",
+      "sunset": "Solnedgang"
+    },
+    "cards": {
+      "sun": "Sol",
+      "moon": "Måne",
+      "wind": "Vind",
+      "humidity": "Luftfugtighed",
+      "pressure": "Lufttryk",
+      "uv": "UV-indeks",
+      "visibility": "Sigtbarhed",
+      "next12": "De næste 12 timer",
+      "daylight": "dagslys i dag",
+      "dewPoint": "Dugpunkt {temp}°",
+      "windNote": "Aktuel vindhastighed",
+      "pressureFalling": "Faldende — vejret skifter",
+      "pressureRising": "Stigende — det falder til ro",
+      "pressureSteady": "Stabilt"
+    },
+    "moon": {
+      "new": "Nymåne",
+      "waxingCrescent": "Tiltagende måne",
+      "firstQuarter": "Første kvarter",
+      "waxingGibbous": "Tiltagende halvmåne",
+      "full": "Fuldmåne",
+      "waningGibbous": "Aftagende halvmåne",
+      "lastQuarter": "Sidste kvarter",
+      "waningCrescent": "Aftagende måne",
+      "illuminated": "{percent}% oplyst"
+    },
+    "uv": {
+      "low": "Lavt — ingen beskyttelse nødvendig",
+      "moderate": "Moderat — hat og solbriller",
+      "high": "Højt — solcreme",
+      "veryHigh": "Meget højt — dæk dig godt til"
+    }
   }
 }

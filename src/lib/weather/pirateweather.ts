@@ -100,6 +100,10 @@ export class PirateWeatherProvider implements WeatherProvider {
         description: h.summary ?? '',
         windSpeed: h.windSpeed,
         precipProbability: h.precipProbability != null ? Math.round(h.precipProbability * 100) : 0,
+        uvIndex: h.uvIndex != null ? Math.round(h.uvIndex) : undefined,
+        pressure: h.pressure != null ? Math.round(h.pressure) : undefined,
+        dewPoint: h.dewPoint != null ? Math.round(h.dewPoint) : undefined,
+        visibility: h.visibility != null ? Math.round(h.visibility * 10) / 10 : undefined,
       }));
   }
 

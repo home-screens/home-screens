@@ -5,7 +5,7 @@ import {
   Quote, ListTodo, StickyNote, HandMetal,
   Newspaper, TrendingUp, Bitcoin, BookOpen, History,
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
-  ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles,
+  ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles, CloudSunRain,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
   Star, Shapes, Video,
 } from 'lucide-react';
@@ -322,6 +322,31 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
     fillsCanvas: true,
+  },
+  {
+    type: 'fullscreen-weather',
+    label: 'Full-Screen Weather',
+    icon: CloudSunRain,
+    category: 'Full Screen',
+    defaultConfig: {
+      view: 'panorama',
+      density: 'snug',
+      typographySize: 'medium',
+      accentColor: '',
+      skyLayer: 'auto',
+      animateConditions: true,
+      showNowcast: true,
+      showAlerts: true,
+      showRibbon: true,
+      showStatRail: true,
+      daysToShow: 7,
+    },
+    defaultSize: { w: 1080, h: 1920 },
+    defaultStyle: FULLSCREEN_STYLE,
+    fillsCanvas: true,
+    // Gives the module hourly, forecast, minutely, alerts, units, locationName
+    // and coordinates in one shot — see module-props.ts `needsWeather`.
+    dataRequirements: ['weather'],
   },
   {
     type: 'fullscreen-photo',

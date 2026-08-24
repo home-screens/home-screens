@@ -79,7 +79,7 @@ test('every built-in module type has an E2E fixture, and no fixture is stale', (
   expect(stale, `Fixtures reference unknown module types: ${stale.join(', ')}`).toEqual([]);
 
   // Guards against a silent registry shrink (e.g. a bad merge dropping types).
-  expect(builtin.length).toBe(42);
+  expect(builtin.length).toBe(43);
 });
 
 /**
@@ -599,6 +599,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'icon', key: 'animation', union: 'IconAnimation' },
   { type: 'icon', key: 'style', union: 'IconStyle' },
   { type: 'fullscreen-photo', key: 'transition', union: 'FullscreenPhotoTransition' },
+  { type: 'fullscreen-weather', key: 'skyLayer', union: 'FullscreenWeatherSky' },
   { type: 'qr-code', key: 'mode', union: 'QRCodeMode' },
   { type: 'shape', key: 'endStyle', union: 'ShapeEndStyle' },
   { type: 'shape', key: 'gridPattern', union: 'ShapeGridPattern' },

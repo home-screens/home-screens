@@ -18,6 +18,9 @@ export interface HourlyWeather {
   pressure?: number;       // hPa (from station observations)
   visibility?: number;     // km or miles depending on units
   dewPoint?: number;       // degrees in configured unit
+  /** 0-11+ UV index. Only providers that expose a forecast UV value set this;
+   *  consumers must treat `undefined` as "this source doesn't offer UV". */
+  uvIndex?: number;
 }
 
 export interface ForecastDay {

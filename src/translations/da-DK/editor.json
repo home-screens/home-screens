@@ -171,6 +171,7 @@
       "fullscreen-chore-chart": "Pligtskema i fuld skærm",
       "fullscreen-meal-planner": "Madplan i fuld skærm",
       "fullscreen-photo": "Fotovisning i fuld skærm",
+      "fullscreen-weather": "Fuldskærmsvejr",
       "clock": "Ur",
       "calendar": "Kalender",
       "countdown": "Nedtælling",
@@ -3316,6 +3317,29 @@
       "ruleCountNone": "ingen",
       "ruleCountOne": "1 regel",
       "ruleCountOther": "{count} regler"
+    },
+    "fullscreen-weather": {
+      "view": "Visning",
+      "viewPanorama": "Panorama",
+      "viewAlmanac": "Almanak",
+      "viewAmbient": "Stemning",
+      "themeDefault": "Standard (fra Indstillinger)",
+      "typographySize": "Tekststørrelse",
+      "densityCozy": "Luftig",
+      "densitySnug": "Kompakt",
+      "skyLayer": "Baggrundsfarve",
+      "skyAuto": "Følg vejret",
+      "skyOff": "Fra (enkelt tema)",
+      "animateConditions": "Faldende regn og sne",
+      "animateConditionsHint": "Slå fra, hvis skærmen hakker på ældre hardware.",
+      "showAlerts": "Vis vejrvarsler",
+      "showRibbon": "Vis temperaturkurven",
+      "showStatRail": "Vis nederste datarække",
+      "showNowcast": "Regn den næste time",
+      "showNowcastHint": "Regn minut for minut findes kun hos Pirate Weather. Med enhver anden vejrkilde forbliver denne stribe skjult.",
+      "daysToShow": "Dage i listen",
+      "locationLabel": "Stednavn",
+      "accentColor": "Accentfarve"
     }
   },
   "imageBrowsers": {

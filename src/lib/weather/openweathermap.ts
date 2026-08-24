@@ -102,9 +102,30 @@ function aggregateDay(date: string, day: DayAccumulator, units: string, mapIcon:
 export class OpenWeatherMapProvider implements WeatherProvider {
   private apiKey: string;
 
+  /** Memoised per instance; `createWeatherProvider` builds a fresh provider per
+   *  request, so this dedupes the two calls a single refresh makes and never
+   *  serves a stale payload across requests. Mirrors PirateWeatherProvider. */
+  private forecastPromise?: Promise<OWMForecastResponse>;
+
   constructor(apiKey?: string) {
     if (!apiKey) throw new Error('OpenWeatherMap API key is not configured. Add it in Settings → Weather.');
     this.apiKey = apiKey;
+  }
+
+  /**
+   * The 5day/3hour forecast: 40 timestamps, 120h at 3-hour steps, free tier.
+   *
+   * `getHourly` and `getForecast` both need it, and a single refresh calls
+   * both — so without this memo every refresh fetched the identical URL twice.
+   */
+  private fetchForecast(lat: number, lon: number, units: string): Promise<OWMForecastResponse> {
+    if (!this.forecastPromise) {
+      this.forecastPromise = fetchWeatherJSON<OWMForecastResponse>(
+        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`,
+        'OpenWeatherMap',
+      );
+    }
+    return this.forecastPromise;
   }
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
@@ -113,10 +134,9 @@ export class OpenWeatherMapProvider implements WeatherProvider {
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`,
         'OpenWeatherMap',
       ),
-      fetchWeatherJSON<OWMForecastResponse>(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${units}&cnt=8&appid=${this.apiKey}`,
-        'OpenWeatherMap',
-      ),
+      // Previously capped with `cnt=8` (24h), which threw away 96 hours the
+      // very same URL was already returning to `getForecast`.
+      this.fetchForecast(lat, lon, units),
     ]);
 
     const current: HourlyWeather = {
@@ -145,8 +165,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
   }
 
   async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
-    const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`;
-    const data = await fetchWeatherJSON<OWMForecastResponse>(url, 'OpenWeatherMap');
+    const data = await this.fetchForecast(lat, lon, units);
     const dayMap = groupByDate(data.list ?? []);
 
     const days: ForecastDay[] = [];

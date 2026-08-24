@@ -14,6 +14,7 @@ interface OMHourlyResponse {
   precipitation_probability: number[];
   surface_pressure: number[];
   dew_point_2m: number[];
+  uv_index: number[];
   is_day: number[];
 }
 
@@ -39,7 +40,7 @@ export class OpenMeteoProvider implements WeatherProvider {
     const params = new URLSearchParams({
       latitude: String(lat),
       longitude: String(lon),
-      hourly: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation_probability,surface_pressure,dew_point_2m,is_day',
+      hourly: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation_probability,surface_pressure,dew_point_2m,uv_index,is_day',
       temperature_unit: isMetric ? 'celsius' : 'fahrenheit',
       wind_speed_unit: isMetric ? 'kmh' : 'mph',
       precipitation_unit: isMetric ? 'mm' : 'inch',
@@ -71,6 +72,7 @@ export class OpenMeteoProvider implements WeatherProvider {
         precipProbability: h.precipitation_probability[i] ?? 0,
         pressure: h.surface_pressure[i] != null ? Math.round(h.surface_pressure[i]) : undefined,
         dewPoint: h.dew_point_2m[i] != null ? Math.round(h.dew_point_2m[i]) : undefined,
+        uvIndex: h.uv_index?.[i] != null ? Math.round(h.uv_index[i]) : undefined,
       });
     }
     return results;

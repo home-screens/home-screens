@@ -171,6 +171,7 @@
       "fullscreen-chore-chart": "Tabla de tareas en pantalla completa",
       "fullscreen-meal-planner": "Planificador de comidas en pantalla completa",
       "fullscreen-photo": "Visor de fotos en pantalla completa",
+      "fullscreen-weather": "Tiempo a pantalla completa",
       "clock": "Reloj",
       "calendar": "Calendario",
       "countdown": "Cuenta atrás",
@@ -3321,6 +3322,29 @@
       "ruleCountNone": "ninguna",
       "ruleCountOne": "1 regla",
       "ruleCountOther": "{count} reglas"
+    },
+    "fullscreen-weather": {
+      "view": "Vista",
+      "viewPanorama": "Panorama",
+      "viewAlmanac": "Almanaque",
+      "viewAmbient": "Ambiente",
+      "themeDefault": "Predeterminado (Ajustes)",
+      "typographySize": "Tamaño del texto",
+      "densityCozy": "Amplio",
+      "densitySnug": "Compacto",
+      "skyLayer": "Tinte de fondo",
+      "skyAuto": "Seguir el tiempo",
+      "skyOff": "Desactivado (tema plano)",
+      "animateConditions": "Lluvia y nieve en movimiento",
+      "animateConditionsHint": "Desactívalo si la pantalla va a tirones en equipos antiguos.",
+      "showAlerts": "Mostrar avisos meteorológicos",
+      "showRibbon": "Mostrar la curva de temperatura",
+      "showStatRail": "Mostrar la fila de datos inferior",
+      "showNowcast": "Lluvia de la próxima hora",
+      "showNowcastHint": "La lluvia minuto a minuto solo está disponible en Pirate Weather. Con cualquier otra fuente esta franja permanece oculta.",
+      "daysToShow": "Días en la lista",
+      "locationLabel": "Nombre del lugar",
+      "accentColor": "Color de acento"
     }
   },
   "imageBrowsers": {

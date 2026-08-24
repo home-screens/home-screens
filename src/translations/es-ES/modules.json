@@ -737,5 +737,70 @@
     "holiday": "Festivo",
     "birthday": "Cumpleaños",
     "birthdayWithAge": "Cumpleaños · cumple {age}"
+  },
+  "fullscreen-weather": {
+    "loading": "Cargando la previsión…",
+    "today": "Hoy",
+    "feelsLike": "Sensación de {temp}°",
+    "highOf": "Máx {temp}°",
+    "lowOf": "Mín {temp}°",
+    "sections": {
+      "outlook": "Previsión de {days} días",
+      "nextHour": "Próxima hora",
+      "nextHours": "Próximas {hours} horas",
+      "chanceOfPrecip": "Probabilidad de lluvia"
+    },
+    "nowcast": {
+      "dry": "No se espera lluvia esta hora",
+      "continues": "Continúa durante la próxima hora",
+      "stopsIn": "Amaina en unos {minutes} min",
+      "startsIn": "Empieza en unos {minutes} min",
+      "now": "Ahora",
+      "minutes": "{n} min"
+    },
+    "alerts": {
+      "severe": "Grave",
+      "advisory": "Aviso"
+    },
+    "stats": {
+      "wind": "Viento",
+      "humidity": "Humedad",
+      "uv": "Índice UV",
+      "pressure": "Presión",
+      "sunset": "Puesta de sol"
+    },
+    "cards": {
+      "sun": "Sol",
+      "moon": "Luna",
+      "wind": "Viento",
+      "humidity": "Humedad",
+      "pressure": "Presión",
+      "uv": "Índice UV",
+      "visibility": "Visibilidad",
+      "next12": "Próximas 12 horas",
+      "daylight": "de luz hoy",
+      "dewPoint": "Punto de rocío {temp}°",
+      "windNote": "Velocidad actual del viento",
+      "pressureFalling": "Bajando — cambio de tiempo",
+      "pressureRising": "Subiendo — se calma",
+      "pressureSteady": "Estable"
+    },
+    "moon": {
+      "new": "Luna nueva",
+      "waxingCrescent": "Creciente",
+      "firstQuarter": "Cuarto creciente",
+      "waxingGibbous": "Gibosa creciente",
+      "full": "Luna llena",
+      "waningGibbous": "Gibosa menguante",
+      "lastQuarter": "Cuarto menguante",
+      "waningCrescent": "Menguante",
+      "illuminated": "{percent}% iluminada"
+    },
+    "uv": {
+      "low": "Bajo — sin protección",
+      "moderate": "Moderado — gorra y gafas",
+      "high": "Alto — protector solar",
+      "veryHigh": "Muy alto — cúbrete bien"
+    }
   }
 }

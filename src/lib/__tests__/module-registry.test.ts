@@ -21,7 +21,7 @@ const ALL_MODULE_TYPES: ModuleType[] = [
   'multi-month', 'garbage-day', 'standings', 'affirmations',
   'date', 'meal-planner', 'iframe', 'chore-chart',
   'fullscreen-calendar', 'fullscreen-chore-chart', 'fullscreen-meal-planner',
-  'fullscreen-photo', 'display-control', 'icon', 'shape',
+  'fullscreen-photo', 'fullscreen-weather', 'display-control', 'icon', 'shape',
 ];
 
 describe('MODULE_CATEGORIES', () => {
@@ -167,8 +167,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 42', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(42);
+  it('returns an array of length 43', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(43);
   });
 
   it('all items have required fields', () => {
@@ -222,14 +222,15 @@ describe('getModulesByCategory', () => {
     }
   });
 
-  it('Full Screen contains fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-photo', () => {
+  it('Full Screen contains fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-photo, fullscreen-weather', () => {
     const grouped = getModulesByCategory();
     const types = grouped.get('Full Screen')!.map((d) => d.type);
     expect(types).toContain('fullscreen-calendar');
     expect(types).toContain('fullscreen-chore-chart');
     expect(types).toContain('fullscreen-meal-planner');
     expect(types).toContain('fullscreen-photo');
-    expect(types).toHaveLength(4);
+    expect(types).toContain('fullscreen-weather');
+    expect(types).toHaveLength(5);
   });
 
   it('Time & Date contains clock, calendar, countdown, year-progress', () => {
@@ -303,8 +304,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(42);
-    expect(allTypes.size).toBe(42);
+    expect(total).toBe(43);
+    expect(allTypes.size).toBe(43);
   });
 });
 

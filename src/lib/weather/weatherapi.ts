@@ -21,6 +21,7 @@ interface WAHour {
   wind_mph: number;
   condition: WACondition;
   chance_of_rain: number;
+  uv?: number;
 }
 
 interface WADay {
@@ -81,6 +82,7 @@ export class WeatherAPIProvider implements WeatherProvider {
       description: h.condition.text ?? '',
       windSpeed: isCelsius ? h.wind_kph : h.wind_mph,
       precipProbability: h.chance_of_rain ?? 0,
+      uvIndex: h.uv != null ? Math.round(h.uv) : undefined,
     }));
   }
 

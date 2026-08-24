@@ -9,6 +9,7 @@ import { NEWS_FINANCE_VARIANTS } from './news-finance';
 import { PERSONAL_VARIANTS } from './personal';
 import { MEDIA_FULLSCREEN_VARIANTS } from './media-fullscreen';
 import { FULLSCREEN_FAMILY_VARIANTS } from './fullscreen-family';
+import { FULLSCREEN_WEATHER_VARIANTS } from './fullscreen-weather';
 
 export type { ConfigVariant } from './types';
 
@@ -29,4 +30,5 @@ export const CONFIG_VARIANTS: ConfigVariant[] = [
   ...PERSONAL_VARIANTS,
   ...MEDIA_FULLSCREEN_VARIANTS,
   ...FULLSCREEN_FAMILY_VARIANTS,
+  ...FULLSCREEN_WEATHER_VARIANTS,
 ];

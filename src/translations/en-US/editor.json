@@ -171,6 +171,7 @@
       "fullscreen-chore-chart": "Full-Screen Chore Chart",
       "fullscreen-meal-planner": "Full-Screen Meal Planner",
       "fullscreen-photo": "Full-Screen Photo Viewer",
+      "fullscreen-weather": "Full-Screen Weather",
       "clock": "Clock",
       "calendar": "Calendar",
       "countdown": "Countdown",
@@ -3316,6 +3317,29 @@
       "ruleCountNone": "none",
       "ruleCountOne": "1 rule",
       "ruleCountOther": "{count} rules"
+    },
+    "fullscreen-weather": {
+      "view": "View",
+      "viewPanorama": "Panorama",
+      "viewAlmanac": "Almanac",
+      "viewAmbient": "Ambient",
+      "themeDefault": "Default (from Settings)",
+      "typographySize": "Typography Size",
+      "densityCozy": "Cozy",
+      "densitySnug": "Snug",
+      "skyLayer": "Background tint",
+      "skyAuto": "Follow the weather",
+      "skyOff": "Off (plain theme)",
+      "animateConditions": "Falling rain and snow",
+      "animateConditionsHint": "Turn this off if the display stutters on older hardware.",
+      "showAlerts": "Show weather warnings",
+      "showRibbon": "Show the temperature curve",
+      "showStatRail": "Show the bottom stats row",
+      "showNowcast": "Show the next-hour rain strip",
+      "showNowcastHint": "Minute-by-minute rain is only available from Pirate Weather. With any other weather source this strip stays hidden.",
+      "daysToShow": "Days in the forecast list",
+      "locationLabel": "Place name",
+      "accentColor": "Accent Color"
     }
   },
   "imageBrowsers": {
