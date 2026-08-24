@@ -32,7 +32,35 @@ export interface WeatherScale {
   typoMul: number;
   densityMul: number;
   isDark: boolean;
+  /**
+   * Canvas shape. Landscape is a different **arrangement** of the same parts,
+   * not a rescaling of the portrait one — see `getOrientation`.
+   */
+  orientation: Orientation;
 }
+
+export type Orientation = 'portrait' | 'landscape';
+
+/**
+ * Canvas shape, from the rendered box.
+ *
+ * Ties go to portrait: a square canvas reads correctly as a vertical stack,
+ * and splitting it into two columns leaves both too narrow for the charts.
+ * Mirrors `getOrientation` in fullscreen-chore-chart.
+ */
+export function getOrientation(width: number, height: number): Orientation {
+  return width > height ? 'landscape' : 'portrait';
+}
+
+/**
+ * Share of the landscape canvas the left rail takes.
+ *
+ * Exported because the temperature ribbon has to reconstruct its own rendered
+ * width to keep its viewBox aspect honest (see the `preserveAspectRatio` note
+ * in PanoramaView), and it cannot measure itself without re-rendering inside
+ * the fit loop.
+ */
+export const LANDSCAPE_LEFT_FRACTION = 0.34;
 
 export interface WeatherViewProps {
   config: FullscreenWeatherConfig;

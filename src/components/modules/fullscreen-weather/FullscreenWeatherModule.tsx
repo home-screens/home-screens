@@ -10,9 +10,9 @@ import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/c
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
-import { tzHour, type WeatherScale, type WeatherViewProps, type SunTimes } from './weather-view-utils';
+import { tzHour, getOrientation, type WeatherScale, type WeatherViewProps, type SunTimes } from './weather-view-utils';
 import ConditionParticles from './ConditionParticles';
-import { useFitScale } from './useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR } from './useFitScale';
 import PanoramaView from './PanoramaView';
 import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';
@@ -103,6 +103,7 @@ export default function FullscreenWeatherModule({
       typoMul,
       densityMul,
       isDark: theme.isDark,
+      orientation: getOrientation(dims.w, dims.h),
     };
   }, [dims, requestedTypoMul, fit, config.density, theme.isDark]);
 
@@ -174,6 +175,7 @@ export default function FullscreenWeatherModule({
       ref={containerRef}
       data-testid="fullscreen-weather"
       data-view={config.view}
+      data-orientation={scale.orientation}
       style={{
         position: 'relative', width: '100%', height: '100%', overflow: 'hidden',
         background: theme.bg, color: theme.text,
@@ -189,7 +191,12 @@ export default function FullscreenWeatherModule({
       )}
       {motionOn && <ConditionParticles kind={particleKind(skyCondition)} height={dims.h} />}
 
-      <div ref={stackRef} style={{
+      <div
+        ref={stackRef}
+        // The fit loop measures this element, and needs to know which factor
+        // the layout it is reading belongs to. See useFitScale.
+        {...{ [FIT_FACTOR_ATTR]: String(fit) }}
+        style={{
         position: 'relative', zIndex: 2, height: '100%',
         display: 'flex', flexDirection: 'column',
         padding: `${u * 4}px ${u * 4.4}px`,

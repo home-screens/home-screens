@@ -7,6 +7,13 @@ import { hourLabel, smoothPath, tzHour, hourlyInstant } from './weather-view-uti
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand } from './weather-parts';
 
+/** Every bento card takes its placement from the caller, not from itself. */
+interface CardProps {
+  p: WeatherViewProps;
+  /** Grid spans in portrait, flex weights in landscape. */
+  place: React.CSSProperties;
+}
+
 /**
  * Instrument bento. Every card self-hides when its field is undefined, because
  * field coverage varies sharply by provider (visibility is NOAA-only, dew point
@@ -16,17 +23,53 @@ import { Card, Label, TopBar, AlertBand } from './weather-parts';
 export default function AlmanacView(p: WeatherViewProps) {
   const { u } = p.scale;
   const now = p.hourly[0];
+  const landscape = p.scale.orientation === 'landscape';
 
   // Which readout cards have data varies by provider, so the count is 0-5.
-  // Spans are computed from that count instead of hard-coded, otherwise a
-  // provider with, say, three of them leaves a visible hole in the last row.
-  type SmallCard = (props: { p: WeatherViewProps; span: number }) => React.ReactElement;
-  const present: Array<{ key: string; Comp: SmallCard }> = [];
+  const present: Array<{ key: string; Comp: (props: CardProps) => React.ReactElement }> = [];
   if (now?.windSpeed != null) present.push({ key: 'wind', Comp: WindCard });
   if (now?.humidity != null) present.push({ key: 'humidity', Comp: HumidityCard });
   if (now?.pressure != null) present.push({ key: 'pressure', Comp: PressureCard });
   if (now?.uvIndex != null) present.push({ key: 'uv', Comp: UVCard });
   if (now?.visibility != null) present.push({ key: 'visibility', Comp: VisibilityCard });
+
+  const gridGap = u * 1.5;
+
+  if (landscape) {
+    return (
+      <>
+        <TopBar p={p} />
+        <MiniHero p={p} />
+        <AlertBand p={p} />
+        {/*
+          Two rows, not five.
+          The portrait grid needs roughly 1500px of height; a 1080-tall canvas
+          has ~730px left after the top bar, mini hero, and alert band, and the
+          `minmax(min-content, ...)` row floors that keep the portrait cards
+          from overlapping mean `useFitScale` can never claw that back — the
+          bisection correctly reports a hard floor taller than the box. So
+          landscape re-orders rather than rescales.
+
+          Flex rows also retire the span arithmetic: a row of `flex: 1`
+          children cannot leave the hole that a partly-filled grid row does, so
+          the "how many readouts did this provider give us?" tail-span
+          computation below applies to portrait only.
+        */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: gridGap }}>
+          <div style={{ flex: 1.15, display: 'flex', gap: gridGap }}>
+            <SunCard p={p} place={{ flex: 4 }} />
+            <MoonCard p={p} place={{ flex: 3 }} />
+            <Next12Card p={p} place={{ flex: 5 }} />
+          </div>
+          {present.length > 0 && (
+            <div style={{ flex: .85, display: 'flex', gap: gridGap }}>
+              {present.map(({ key, Comp }) => <Comp key={key} p={p} place={{ flex: 1 }} />)}
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
 
   // Lay them 3-per-row (span 2), then widen the final row's cards so a
   // provider with 4 or 5 of them doesn't leave a visible hole.
@@ -45,8 +88,6 @@ export default function AlmanacView(p: WeatherViewProps) {
   // the grid grows, the flex parent (min-height:auto) grows with it, and the
   // fit loop finally has an overflow to respond to. Hand-picked pixel floors
   // were tried first and were simply wrong at 4x-large.
-  const gridGap = u * 1.5;
-
   return (
     <>
       <TopBar p={p} />
@@ -65,10 +106,12 @@ export default function AlmanacView(p: WeatherViewProps) {
           'minmax(min-content, .9fr)',
         ].join(' '),
       }}>
-        <SunCard p={p} />
-        <MoonCard p={p} />
-        {smallCards.map(({ key, Comp, span }) => <Comp key={key} p={p} span={span} />)}
-        <Next12Card p={p} />
+        <SunCard p={p} place={{ gridColumn: 'span 3', gridRow: 'span 2' }} />
+        <MoonCard p={p} place={{ gridColumn: 'span 3', gridRow: 'span 2' }} />
+        {smallCards.map(({ key, Comp, span }) => (
+          <Comp key={key} p={p} place={{ gridColumn: `span ${span}` }} />
+        ))}
+        <Next12Card p={p} place={{ gridColumn: 'span 6' }} />
       </div>
     </>
   );
@@ -76,13 +119,18 @@ export default function AlmanacView(p: WeatherViewProps) {
 
 function MiniHero({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
+  const landscape = p.scale.orientation === 'landscape';
   const now = p.hourly[0];
   const today = p.forecast[0];
   const Icon = getWeatherIcon(now?.icon ?? 'thermometer', 'outline');
+  // Landscape trades hero size for bento height: the canvas is 1080 tall
+  // rather than 1920, and the bento is what has to fit into what is left.
+  const tempSize = landscape ? s * 8 : s * 10;
+  const iconSize = landscape ? s * 6 : s * 7.5;
   return (
     <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: u * 2.5 }}>
-      <Icon style={{ width: s * 7.5, height: s * 7.5, color: p.accent }} strokeWidth={1} />
-      <div style={{ fontSize: s * 10, fontWeight: 200, letterSpacing: '-.05em', lineHeight: .9 }}>
+      <Icon style={{ width: iconSize, height: iconSize, color: p.accent }} strokeWidth={1} />
+      <div style={{ fontSize: tempSize, fontWeight: 200, letterSpacing: '-.05em', lineHeight: .9 }}>
         {now ? Math.round(now.temp) : '--'}
         <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
       </div>
@@ -113,7 +161,33 @@ const Unit = ({ children, s }: { children: React.ReactNode; s: number }) => (
   <span style={{ fontSize: s * 2.2, fontWeight: 400, color: 'var(--fsw-text-3)', marginLeft: s * .12 }}>{children}</span>
 );
 
-function SunCard({ p }: { p: WeatherViewProps }) {
+/**
+ * The readout body: the value block, taking whatever slack the card has.
+ *
+ * Portrait cards are short and wide, so the value sits at the bottom of that
+ * slack — what `margin-top: auto` used to do. Landscape cards are close to
+ * square, and bottom-aligning there strands the number under a field of
+ * nothing.
+ *
+ * Landscape therefore top-aligns instead of centring. Centring looks right
+ * card-by-card but breaks the row: these cards carry different trailing art
+ * (a bar, a sparkline, nothing at all), so a centred value lands at a
+ * different height in every one. Top-aligning puts every number on the same
+ * baseline and settles the art against the card floor.
+ */
+function Readout({ p, children }: { p: WeatherViewProps; children: React.ReactNode }) {
+  const { u } = p.scale;
+  const landscape = p.scale.orientation === 'landscape';
+  return (
+    <div style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      justifyContent: landscape ? 'flex-start' : 'flex-end',
+      marginTop: landscape ? u * 1.4 : 0,
+    }}>{children}</div>
+  );
+}
+
+function SunCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const W = 460;
   const H = 250;
@@ -129,7 +203,7 @@ function SunCard({ p }: { p: WeatherViewProps }) {
   const mins = Math.round((p.sun.dayLengthMs % 3600000) / 60000);
 
   return (
-    <Card u={u} style={{ gridColumn: 'span 3', gridRow: 'span 2', display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.sun')}</Label>
       <div style={{ marginTop: u * 1.3 }}>
         <Big s={s}>{hours}<Unit s={s}>h</Unit> {mins}<Unit s={s}>m</Unit></Big>
@@ -156,7 +230,7 @@ function SunCard({ p }: { p: WeatherViewProps }) {
   );
 }
 
-function MoonCard({ p }: { p: WeatherViewProps }) {
+function MoonCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const illum = SunCalc.getMoonIllumination(p.now);
   const pct = Math.round(illum.fraction * 100);
@@ -173,7 +247,7 @@ function MoonCard({ p }: { p: WeatherViewProps }) {
   const LIT = 'url(#fsw-moon-grad)';
 
   return (
-    <Card u={u} style={{ gridColumn: 'span 3', gridRow: 'span 2', display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.moon')}</Label>
       <div style={{ marginTop: s * 1.3 }}>
         <div style={{ fontSize: s * 3.5, fontWeight: 250, letterSpacing: '-.03em', lineHeight: 1.1 }}>
@@ -214,33 +288,33 @@ function phaseNameKey(phase: number): string {
   return 'waningCrescent';
 }
 
-function WindCard({ p, span }: { p: WeatherViewProps; span: number }) {
+function WindCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const now = p.hourly[0];
   const unit = p.units === 'metric' ? 'km/h' : 'mph';
   return (
-    <Card u={u} style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.wind')}</Label>
-      <div style={{ marginTop: 'auto' }}>
+      <Readout p={p}>
         <Big s={s}>{Math.round(now!.windSpeed!)}<Unit s={s}>{unit}</Unit></Big>
         <Note s={s} u={u}>{p.t('fullscreen-weather.cards.windNote')}</Note>
-      </div>
+      </Readout>
     </Card>
   );
 }
 
-function HumidityCard({ p, span }: { p: WeatherViewProps; span: number }) {
+function HumidityCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const now = p.hourly[0]!;
   const pctOn = Math.round((now.humidity! / 100) * 20);
   return (
-    <Card u={u} style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.humidity')}</Label>
-      <div style={{ marginTop: 'auto' }}>
+      <Readout p={p}>
         <Big s={s}>{Math.round(now.humidity!)}%</Big>
         {now.dewPoint != null && <Note s={s} u={u}>{p.t('fullscreen-weather.cards.dewPoint', { temp: Math.round(now.dewPoint) })}</Note>}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: u * 5, marginTop: u * 1.3 }}>
+      </Readout>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: u * 5, marginTop: u * 1.3, flex: 'none' }}>
         {Array.from({ length: 20 }, (_, i) => (
           <i key={i} style={{
             flex: 1, display: 'block', borderRadius: 3,
@@ -253,7 +327,7 @@ function HumidityCard({ p, span }: { p: WeatherViewProps; span: number }) {
   );
 }
 
-function PressureCard({ p, span }: { p: WeatherViewProps; span: number }) {
+function PressureCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const series = p.hourly.slice(0, 12).map((h) => h.pressure).filter((v): v is number => v != null);
   const now = p.hourly[0]!;
@@ -263,14 +337,14 @@ function PressureCard({ p, span }: { p: WeatherViewProps; span: number }) {
   const trend = series.length > 1 ? series[series.length - 1] - series[0] : 0;
 
   return (
-    <Card u={u} style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.pressure')}</Label>
-      <div style={{ marginTop: 'auto' }}>
+      <Readout p={p}>
         <Big s={s}>{Math.round(now.pressure!)}<Unit s={s}>hPa</Unit></Big>
         <Note s={s} u={u}>{p.t(trend < -1 ? 'fullscreen-weather.cards.pressureFalling' : trend > 1 ? 'fullscreen-weather.cards.pressureRising' : 'fullscreen-weather.cards.pressureSteady')}</Note>
-      </div>
+      </Readout>
       {pts.length > 1 && (
-        <svg viewBox="0 0 300 80" style={{ width: '100%', marginTop: u * .8 }}>
+        <svg viewBox="0 0 300 80" style={{ width: '100%', marginTop: u * .8, flex: 'none' }}>
           <path d={smoothPath(pts)} fill="none" stroke={p.accent} strokeWidth={3} strokeLinecap="round" />
           <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={6} fill={p.accent} />
         </svg>
@@ -279,20 +353,20 @@ function PressureCard({ p, span }: { p: WeatherViewProps; span: number }) {
   );
 }
 
-function UVCard({ p, span }: { p: WeatherViewProps; span: number }) {
+function UVCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const uv = p.hourly[0]!.uvIndex!;
   const color = uv >= 8 ? '#dc2626' : uv >= 6 ? '#f97316' : uv >= 3 ? '#eab308' : '#22c55e';
   const key = uv >= 8 ? 'veryHigh' : uv >= 6 ? 'high' : uv >= 3 ? 'moderate' : 'low';
   return (
-    <Card u={u} style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.uv')}</Label>
-      <div style={{ marginTop: 'auto' }}>
+      <Readout p={p}>
         <div style={{ fontSize: s * 4.8, fontWeight: 250, letterSpacing: '-.035em', lineHeight: 1, color }}>{uv}</div>
         <Note s={s} u={u}>{p.t(`fullscreen-weather.uv.${key}`)}</Note>
-      </div>
+      </Readout>
       <div style={{
-        height: u * .85, borderRadius: 999, marginTop: u * 1.4, position: 'relative',
+        height: u * .85, borderRadius: 999, marginTop: u * 1.4, position: 'relative', flex: 'none',
         background: 'linear-gradient(90deg,#22c55e,#eab308,#f97316,#dc2626,#7c3aed)',
       }}>
         <div style={{
@@ -305,25 +379,25 @@ function UVCard({ p, span }: { p: WeatherViewProps; span: number }) {
   );
 }
 
-function VisibilityCard({ p, span }: { p: WeatherViewProps; span: number }) {
+function VisibilityCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const unit = p.units === 'metric' ? 'km' : 'mi';
   return (
-    <Card u={u} style={{ gridColumn: `span ${span}`, display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.visibility')}</Label>
-      <div style={{ marginTop: 'auto' }}>
+      <Readout p={p}>
         <Big s={s}>{p.hourly[0]!.visibility}<Unit s={s}>{unit}</Unit></Big>
-      </div>
+      </Readout>
     </Card>
   );
 }
 
-function Next12Card({ p }: { p: WeatherViewProps }) {
+function Next12Card({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const hrs = p.hourly.slice(0, 12);
-  if (hrs.length === 0) return null;
+  if (hrs.length === 0) return <></>;
   return (
-    <Card u={u} style={{ gridColumn: 'span 6', display: 'flex', flexDirection: 'column' }}>
+    <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.next12')}</Label>
       <div style={{ display: 'flex', flex: 1, alignItems: 'stretch', marginTop: u }}>
         {hrs.map((h, i) => {
@@ -331,7 +405,7 @@ function Next12Card({ p }: { p: WeatherViewProps }) {
           const pop = h.precipProbability ?? 0;
           return (
             <div key={i} style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+              flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: u * .65,
               borderRight: i === hrs.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
             }}>

@@ -3,48 +3,140 @@
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
-import { hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant } from './weather-view-utils';
+import { hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, LANDSCAPE_LEFT_FRACTION } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars } from './weather-parts';
 
+/**
+ * The flagship view, in two arrangements of the same parts.
+ *
+ * Portrait stacks every section full-width. On a landscape canvas that leaves
+ * the 7-day tracks 1600px wide carrying 40px of information, and a hero with
+ * half a screen of dead air between the temperature and its icon — so
+ * landscape splits instead: the two *wide* things (the 48h curve and the week
+ * bars) take the wide column, the two *tall* things (hero, nowcast) take a
+ * narrow one, and the stat rail turns on its side to fill it out.
+ */
 export default function PanoramaView(p: WeatherViewProps) {
-  const { s, u } = p.scale;
-  const now = p.hourly[0];
-  const today = p.forecast[0];
-  const Icon = getWeatherIcon(now?.icon ?? 'thermometer', 'outline');
+  return p.scale.orientation === 'landscape'
+    ? <PanoramaLandscape p={p} />
+    : <PanoramaPortrait p={p} />;
+}
 
+function PanoramaPortrait({ p }: { p: WeatherViewProps }) {
   return (
     <>
       <TopBar p={p} />
-
-      {/* Hero */}
-      <div style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: u * 2.4 }}>
-        <div>
-          <div data-testid="fsw-hero-temp" style={{ fontSize: s * 20, lineHeight: .84, fontWeight: 200, letterSpacing: '-.055em' }}>
-            {now ? Math.round(now.temp) : '--'}
-            <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
-          </div>
-          <div style={{ fontSize: s * 3.6, fontWeight: 500, letterSpacing: '-.02em', marginTop: u * 2 }}>
-            {now?.description ?? ''}
-          </div>
-          <div style={{ fontSize: s * 2.1, color: 'var(--fsw-text-2)', marginTop: u, display: 'flex', gap: u * 1.4 }}>
-            {now?.feelsLike != null && <span>{p.t('fullscreen-weather.feelsLike', { temp: Math.round(now.feelsLike) })}</span>}
-            {today && <span style={{ opacity: .4 }}>·</span>}
-            {today && <span>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</span>}
-          </div>
-        </div>
-        <div style={{ flex: 'none', width: s * 26, height: s * 26, display: 'grid', placeItems: 'center', position: 'relative' }}>
-          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', filter: `blur(${s * 3.2}px)`, opacity: .5, background: p.accent }} />
-          <Icon style={{ width: s * 18, height: s * 18, position: 'relative' }} strokeWidth={.85} />
-        </div>
-      </div>
-
+      <Hero p={p} />
       <AlertBand p={p} />
       <NowcastStrip p={p} />
       {p.config.showRibbon !== false && <TempRibbon p={p} />}
       <DayRangeBars p={p} />
       {p.config.showStatRail !== false && <StatRail p={p} />}
     </>
+  );
+}
+
+function PanoramaLandscape({ p }: { p: WeatherViewProps }) {
+  const { u } = p.scale;
+  return (
+    <>
+      <TopBar p={p} />
+      {/*
+        No `min-height: 0` on this row, deliberately. A collapsed flex child
+        renders smaller than its content without growing `scrollHeight`, which
+        hides the overflow from `useFitScale` entirely — the failure mode that
+        cost two rounds of bugs in the portrait pass. Leaving `min-height` at
+        its `auto` default floors the row at its content and keeps overflow
+        visible to the fit loop.
+      */}
+      <div style={{ flex: 1, display: 'flex', gap: u * 2 }}>
+        <div style={{
+          width: `${LANDSCAPE_LEFT_FRACTION * 100}%`, flex: 'none',
+          display: 'flex', flexDirection: 'column', gap: u * 2,
+        }}>
+          <Hero p={p} />
+          <AlertBand p={p} />
+          <NowcastStrip p={p} />
+          {p.config.showStatRail !== false && <StatRailVertical p={p} />}
+        </div>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
+          {p.config.showRibbon !== false && <TempRibbon p={p} />}
+          <DayRangeBars p={p} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Current temperature, condition icon, and today's supporting line.
+ *
+ * Portrait sets the text against the icon across the full width. Landscape
+ * pairs them on one line inside the narrow column and takes `flex: 1`, so the
+ * hero is what absorbs whatever the alert, nowcast, and stat rail leave — the
+ * left column is the only part of the layout with slack.
+ */
+function Hero({ p }: { p: WeatherViewProps }) {
+  const { s, u } = p.scale;
+  const landscape = p.scale.orientation === 'landscape';
+  const now = p.hourly[0];
+  const today = p.forecast[0];
+  const Icon = getWeatherIcon(now?.icon ?? 'thermometer', 'outline');
+
+  const temp = (
+    <div data-testid="fsw-hero-temp" style={{
+      fontSize: landscape ? s * 17 : s * 20,
+      lineHeight: .84, fontWeight: 200, letterSpacing: '-.055em',
+    }}>
+      {now ? Math.round(now.temp) : '--'}
+      <span style={{ fontSize: '.38em', verticalAlign: 'baseline', position: 'relative', top: '-1.02em', marginLeft: '-.04em', opacity: .38 }}>°</span>
+    </div>
+  );
+
+  const art = (
+    <div style={{
+      flex: 'none', width: landscape ? s * 18 : s * 26, height: landscape ? s * 18 : s * 26,
+      display: 'grid', placeItems: 'center', position: 'relative',
+    }}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', filter: `blur(${s * 3.2}px)`, opacity: .5, background: p.accent }} />
+      <Icon style={{ width: landscape ? s * 13 : s * 18, height: landscape ? s * 13 : s * 18, position: 'relative' }} strokeWidth={.85} />
+    </div>
+  );
+
+  const caption = (
+    <div>
+      <div style={{ fontSize: landscape ? s * 3.2 : s * 3.6, fontWeight: 500, letterSpacing: '-.02em', marginTop: landscape ? u * 1.2 : u * 2 }}>
+        {now?.description ?? ''}
+      </div>
+      <div style={{ fontSize: s * 2.1, color: 'var(--fsw-text-2)', marginTop: u, display: 'flex', gap: u * 1.4 }}>
+        {now?.feelsLike != null && <span>{p.t('fullscreen-weather.feelsLike', { temp: Math.round(now.feelsLike) })}</span>}
+        {today && <span style={{ opacity: .4 }}>·</span>}
+        {today && <span>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</span>}
+      </div>
+    </div>
+  );
+
+  if (landscape) {
+    return (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: u * 1.6 }}>
+          {temp}
+          {art}
+        </div>
+        {caption}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: u * 2.4 }}>
+      <div>
+        {temp}
+        {caption}
+      </div>
+      {art}
+    </div>
   );
 }
 
@@ -59,9 +151,9 @@ function NowcastStrip({ p }: { p: WeatherViewProps }) {
 
   return (
     <Card u={u} style={{ flex: 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: u * 1.3 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: u, marginBottom: u * 1.3 }}>
         <Label s={s}>{p.t('fullscreen-weather.sections.nextHour')}</Label>
-        <div style={{ fontSize: s * 1.8, fontWeight: 600, letterSpacing: '-.01em' }}>{verdict.text}</div>
+        <div style={{ fontSize: s * 1.8, fontWeight: 600, letterSpacing: '-.01em', textAlign: 'right' }}>{verdict.text}</div>
       </div>
       <div style={{ height: u * 7, display: 'flex', alignItems: 'flex-end', gap: 2 }}>
         {verdict.series.map((v, i) => (
@@ -74,10 +166,7 @@ function NowcastStrip({ p }: { p: WeatherViewProps }) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: u * .9, fontSize: s * 1.25, color: 'var(--fsw-text-3)', fontWeight: 500 }}>
         <span>{p.t('fullscreen-weather.nowcast.now')}</span>
-        <span>{p.t('fullscreen-weather.nowcast.minutes', { n: 15 })}</span>
-        <span>{p.t('fullscreen-weather.nowcast.minutes', { n: 30 })}</span>
-        <span>{p.t('fullscreen-weather.nowcast.minutes', { n: 45 })}</span>
-        <span>{p.t('fullscreen-weather.nowcast.minutes', { n: 60 })}</span>
+        {[15, 30, 45, 60].map((n) => <span key={n}>{p.t('fullscreen-weather.nowcast.minutes', { n })}</span>)}
       </div>
     </Card>
   );
@@ -93,6 +182,7 @@ function NowcastStrip({ p }: { p: WeatherViewProps }) {
  */
 function TempRibbon({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
+  const landscape = p.scale.orientation === 'landscape';
   const hrs = p.hourly.slice(0, 48);
   if (hrs.length < 2) return null;
 
@@ -108,10 +198,15 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
 
   // The rendered box and the viewBox are given the same aspect, so
   // `preserveAspectRatio="none"` scales x and y equally and text is not
-  // stretched. Card inner width = display width minus the stack padding
-  // (u*4.4 a side) and the card padding (u*2.3 a side).
-  const renderedW = Math.max(120, p.scale.width - u * 13.4);
-  const renderedH = Math.max(60, u * 27);
+  // stretched. That means reconstructing the card's own width: the stack pads
+  // u*4.4 a side and the card u*2.3 a side, and in landscape the card sits in
+  // the right-hand column rather than spanning the canvas.
+  const contentW = p.scale.width - u * 8.8;
+  const cardOuterW = landscape
+    ? (contentW - u * 2) * (1 - LANDSCAPE_LEFT_FRACTION)
+    : contentW;
+  const renderedW = Math.max(120, cardOuterW - u * 4.6);
+  const renderedH = Math.max(60, u * (landscape ? 30 : 27));
   const VH = Math.round((W * renderedH) / renderedW);
 
   const TOP = 26 * r;                                    // markers + callout headroom
@@ -172,7 +267,7 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   const spanHours = Math.round((hourlyInstant(hrs[N - 1]).getTime() - hourlyInstant(hrs[0]).getTime()) / 3600000);
 
   return (
-    <Card u={u} style={{ flex: 'none' }}>
+    <Card u={u} testId="fsw-ribbon" style={{ flex: 'none' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: u * .6 }}>
         <Label s={s}>{p.t('fullscreen-weather.sections.nextHours', { hours: spanHours })}</Label>
         <div style={{ display: 'flex', alignItems: 'center', gap: u * .6, fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.13em', textTransform: 'uppercase', color: 'var(--fsw-text-3)' }}>
@@ -241,14 +336,19 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   );
 }
 
-/** Wind / humidity / UV / pressure / sunset. Each cell hides when unavailable. */
-function StatRail({ p }: { p: WeatherViewProps }) {
-  const { s, u } = p.scale;
+interface StatCell {
+  icon: typeof Wind;
+  key: string;
+  value: string;
+}
+
+/** Wind / humidity / UV / pressure / sunset. Each cell drops out when unavailable. */
+function statCells(p: WeatherViewProps): StatCell[] {
   const now = p.hourly[0];
-  if (!now) return null;
+  if (!now) return [];
 
   const windUnit = p.units === 'metric' ? 'km/h' : 'mph';
-  const cells: Array<{ icon: typeof Wind; key: string; value: string }> = [];
+  const cells: StatCell[] = [];
   if (now.windSpeed != null) cells.push({ icon: Wind, key: p.t('fullscreen-weather.stats.wind'), value: `${Math.round(now.windSpeed)} ${windUnit}` });
   if (now.humidity != null) cells.push({ icon: Droplets, key: p.t('fullscreen-weather.stats.humidity'), value: `${Math.round(now.humidity)}%` });
   if (now.uvIndex != null) cells.push({ icon: Sun, key: p.t('fullscreen-weather.stats.uv'), value: String(now.uvIndex) });
@@ -260,10 +360,17 @@ function StatRail({ p }: { p: WeatherViewProps }) {
       value: new Intl.DateTimeFormat(p.locale, { hour: 'numeric', minute: '2-digit', timeZone: p.timezone }).format(p.sun.sunset),
     });
   }
+  return cells;
+}
+
+/** Portrait: one strip across the foot of the stack. */
+function StatRail({ p }: { p: WeatherViewProps }) {
+  const { s, u } = p.scale;
+  const cells = statCells(p);
   if (cells.length === 0) return null;
 
   return (
-    <Card u={u} style={{ flex: 'none', display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, padding: `${u * 2}px 0` }}>
+    <Card u={u} testId="fsw-stat-rail" style={{ flex: 'none', display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, padding: `${u * 2}px 0` }}>
       {cells.map((c, i) => {
         const Ico = c.icon;
         return (
@@ -274,6 +381,39 @@ function StatRail({ p }: { p: WeatherViewProps }) {
             <Ico style={{ width: s * 2.5, height: s * 2.5, color: 'var(--fsw-text-3)' }} strokeWidth={1.6} />
             <div style={{ fontSize: s * 2.6, fontWeight: 600, letterSpacing: '-.02em' }}>{c.value}</div>
             <div style={{ fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.11em', textTransform: 'uppercase', color: 'var(--fsw-text-3)' }}>{c.key}</div>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
+
+/**
+ * Landscape: the same cells as a column in the left rail.
+ *
+ * The bottom strip works on a wide canvas, but it leaves the narrow column
+ * hollow whenever there is no alert and no nowcast — which is most of the
+ * time, since only Pirate Weather returns minutely data. Standing the rail up
+ * gives the column a floor it can always fill and hands the full height of the
+ * wide column to the charts.
+ */
+function StatRailVertical({ p }: { p: WeatherViewProps }) {
+  const { s, u } = p.scale;
+  const cells = statCells(p);
+  if (cells.length === 0) return null;
+
+  return (
+    <Card u={u} testId="fsw-stat-rail" style={{ flex: 'none', padding: `${u * .6}px ${u * 2.3}px` }}>
+      {cells.map((c, i) => {
+        const Ico = c.icon;
+        return (
+          <div key={c.key} style={{
+            display: 'flex', alignItems: 'center', gap: u * 1.6, padding: `${u * 1.35}px 0`,
+            borderBottom: i === cells.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
+          }}>
+            <Ico style={{ width: s * 2.3, height: s * 2.3, color: 'var(--fsw-text-3)', flex: 'none' }} strokeWidth={1.6} />
+            <div style={{ fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.11em', textTransform: 'uppercase', color: 'var(--fsw-text-3)' }}>{c.key}</div>
+            <div style={{ marginLeft: 'auto', fontSize: s * 2.4, fontWeight: 600, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{c.value}</div>
           </div>
         );
       })}

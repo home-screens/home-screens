@@ -18,9 +18,11 @@ export function Label({ children, s }: { children: React.ReactNode; s: number })
 
 /** `u` (structure), not `s` (type): a card's padding and radius should follow
  *  density, not how large the household set the text. */
-export function Card({ children, u, style }: { children: React.ReactNode; u: number; style?: React.CSSProperties }) {
+export function Card({ children, u, style, testId }: {
+  children: React.ReactNode; u: number; style?: React.CSSProperties; testId?: string;
+}) {
   return (
-    <div style={{
+    <div data-testid={testId} style={{
       background: 'var(--fsw-surface)',
       border: '1px solid var(--fsw-border)',
       borderRadius: u * 2.1,
