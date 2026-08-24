@@ -75,6 +75,12 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Location not configured'),
   },
   {
+    // Without coordinates the shared weather fetch never runs, so the module
+    // has to say so itself rather than sit on its loading copy.
+    type: 'fullscreen-weather', name: 'missing-location', kind: 'network-free', noLocation: true,
+    expect: showsCopy('Location not configured'),
+  },
+  {
     // Unseeded sandbox → no members → the "get started" empty state.
     type: 'chore-chart', name: 'no-members', kind: 'local-data',
     expect: showsCopy('Add family members to get started'),

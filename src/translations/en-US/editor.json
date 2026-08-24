@@ -3339,6 +3339,7 @@
       "showNowcastHint": "Minute-by-minute rain is only available from Pirate Weather. With any other weather source this strip stays hidden.",
       "daysToShow": "Days in the forecast list",
       "locationLabel": "Place name",
+      "accentAuto": "Accent color follows the weather",
       "accentColor": "Accent Color",
       "showTime": "Show the time"
     }

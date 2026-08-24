@@ -51,13 +51,3 @@ export function tempColor(temp: number, units: 'metric' | 'imperial' = 'imperial
   const b = Math.round(c0[2] + (c1[2] - c0[2]) * k);
   return `rgba(${r},${g},${b},${alpha})`;
 }
-
-/** Evenly spaced ramp swatches, for legends and gradient definitions. */
-export function rampSwatches(units: 'metric' | 'imperial' = 'imperial', count = 6): string[] {
-  const loF = 20;
-  const hiF = 95;
-  return Array.from({ length: count }, (_, i) => {
-    const f = loF + ((hiF - loF) * i) / (count - 1);
-    return tempColor(units === 'metric' ? ((f - 32) * 5) / 9 : f, units);
-  });
-}

@@ -129,11 +129,21 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
         onChange={(v) => set({ locationLabel: v })}
       />
 
-      <ColorPicker
-        label={t('configSections.fullscreen-weather.accentColor')}
-        value={c.accentColor || '#f59e0b'}
-        onChange={(v) => set({ accentColor: v })}
+      {/* An empty accentColor means "follow the weather": amber for clear,
+          blue for rain, violet for storms. The picker can only ever write a
+          colour, so the way back to empty has to be its own control. */}
+      <Toggle
+        label={t('configSections.fullscreen-weather.accentAuto')}
+        checked={!c.accentColor}
+        onChange={(auto) => set({ accentColor: auto ? '' : '#f59e0b' })}
       />
+      {c.accentColor ? (
+        <ColorPicker
+          label={t('configSections.fullscreen-weather.accentColor')}
+          value={c.accentColor}
+          onChange={(v) => set({ accentColor: v })}
+        />
+      ) : null}
     </>
   );
 }

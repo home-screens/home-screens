@@ -1,9 +1,10 @@
 'use client';
 
+import { useId } from 'react';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
-import { hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, LANDSCAPE_LEFT_FRACTION } from './weather-view-utils';
+import { hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, isNightHour, LANDSCAPE_LEFT_FRACTION } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars } from './weather-parts';
 
@@ -143,8 +144,8 @@ function Hero({ p }: { p: WeatherViewProps }) {
 /** Minute-by-minute precipitation for the next hour. Pirate Weather only today. */
 function NowcastStrip({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
-  if (!p.config.showNowcast) return null;
-  const verdict = nowcastVerdict(p.minutely, p.t);
+  if (p.config.showNowcast === false) return null;
+  const verdict = nowcastVerdict(p.minutely, p.units, p.t);
   // No minutely payload at all means the provider does not offer it — the
   // section omits itself rather than showing an empty state on the wall.
   if (!verdict) return null;
@@ -183,6 +184,11 @@ function NowcastStrip({ p }: { p: WeatherViewProps }) {
 function TempRibbon({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
   const landscape = p.scale.orientation === 'landscape';
+  // Gradient ids are document-global; namespace them so two instances in one
+  // document (editor preview beside a background mount) do not cross-reference.
+  const uid = useId();
+  const tempGradId = `${uid}-temp`;
+  const areaGradId = `${uid}-area`;
   const hrs = p.hourly.slice(0, 48);
   if (hrs.length < 2) return null;
 
@@ -233,14 +239,8 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   ));
 
   const meta = hrs.map((h) => {
-    const inst = hourlyInstant(h);
-    const hour = tzHour(inst, p.timezone);
-    const isNight = p.sun.sunriseHour === p.sun.sunsetHour
-      ? false
-      : p.sun.sunriseHour < p.sun.sunsetHour
-        ? hour < p.sun.sunriseHour || hour >= p.sun.sunsetHour
-        : hour < p.sun.sunriseHour && hour >= p.sun.sunsetHour;
-    return { hour, isNight };
+    const hour = tzHour(hourlyInstant(h), p.timezone);
+    return { hour, isNight: isNightHour(hour, p.sun) };
   });
 
   const hiI = temps.indexOf(Math.max(...temps));
@@ -277,8 +277,8 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
       </div>
       <svg viewBox={`0 0 ${W} ${VH}`} preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: renderedH }}>
         <defs>
-          <linearGradient id="fsw-temp" x1="0" x2="1">{stops}</linearGradient>
-          <linearGradient id="fsw-area" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={tempGradId} x1="0" x2="1">{stops}</linearGradient>
+          <linearGradient id={areaGradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--fsw-text)" stopOpacity=".16" />
             <stop offset="100%" stopColor="var(--fsw-text)" stopOpacity="0" />
           </linearGradient>
@@ -300,8 +300,8 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
           return null;
         })}
 
-        <path d={area} fill="url(#fsw-area)" />
-        <path d={line} fill="none" stroke="url(#fsw-temp)" strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />
+        <path d={area} fill={`url(#${areaGradId})`} />
+        <path d={line} fill="none" stroke={`url(#${tempGradId})`} strokeWidth={4.5} strokeLinecap="round" strokeLinejoin="round" />
 
         {hrs.map((h, i) => {
           const pop = (h.precipProbability ?? 0) / 100;
@@ -321,7 +321,7 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
           const tx = atStart ? 2 : atEnd ? W - 2 : x(i);
           return (
             <text key={`a${i}`} x={tx} y={VH - AXIS * .25} fontSize={13 * r} fontWeight={500} fill="var(--fsw-text-3)" textAnchor={anchor}>
-              {hourLabel(Math.floor(m.hour))}
+              {hourLabel(Math.floor(m.hour), p.timeFormat)}
             </text>
           );
         })}

@@ -18,10 +18,24 @@ const STEPS = 7;
  */
 export const FIT_FACTOR_ATTR = 'data-fit-factor';
 
+/**
+ * Attribute the caller stamps with `settled`, so a test (or anything else
+ * waiting on the layout) can tell a finished fit from one still bisecting
+ * without guessing at a timeout.
+ */
+export const FIT_SETTLED_ATTR = 'data-fit-settled';
+
 /** How many frames to wait for React to commit a probe before giving up and
  *  measuring anyway. Bounded so a caller that forgets to stamp the attribute
  *  degrades to the old behaviour instead of spinning at 60fps forever. */
 const MAX_COMMIT_WAIT_FRAMES = 20;
+
+export interface FitScale {
+  /** The scale factor to render at right now (1 while the first probe runs). */
+  factor: number;
+  /** True once the search has finished and `factor` is final for these deps. */
+  settled: boolean;
+}
 
 /**
  * The largest scale factor at which a fixed-height layout still fits its canvas.
@@ -61,8 +75,8 @@ const MAX_COMMIT_WAIT_FRAMES = 20;
  * the same commit, so an attribute that matches the probe proves the layout
  * does too. If it does not match yet, the frame is skipped, not counted.
  */
-export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[]): number {
-  const [factor, setFactor] = useState(1);
+export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[]): FitScale {
+  const [fit, setFit] = useState<FitScale>({ factor: 1, settled: false });
   const stateRef = useRef({ lo: MIN_FACTOR, hi: 1, step: 0, probe: 1 });
 
   useLayoutEffect(() => {
@@ -70,7 +84,7 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
     if (!el) return;
 
     stateRef.current = { lo: MIN_FACTOR, hi: 1, step: 0, probe: 1 };
-    setFactor(1);
+    setFit({ factor: 1, settled: false });
 
     let cancelled = false;
     let raf = 0;
@@ -113,15 +127,20 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
         st.hi = st.probe;
       }
 
-      if (st.step === 0 && st.lo === 1) return; // fitted at full size, nothing to do
+      if (st.step === 0 && st.lo === 1) {
+        // Fitted at full size, nothing to do.
+        setFit({ factor: 1, settled: true });
+        return;
+      }
       if (st.step >= STEPS) {
-        if (st.probe !== st.lo) { st.probe = st.lo; setFactor(st.lo); }
+        st.probe = st.lo;
+        setFit({ factor: st.lo, settled: true });
         return;
       }
 
       st.step += 1;
       st.probe = (st.lo + st.hi) / 2;
-      setFactor(st.probe);
+      setFit({ factor: st.probe, settled: false });
       raf = requestAnimationFrame(measure);
     };
 
@@ -130,5 +149,5 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
     // eslint-disable-next-line react-hooks/exhaustive-deps -- caller passes the layout inputs
   }, deps);
 
-  return factor;
+  return fit;
 }

@@ -164,7 +164,7 @@ The temperature curve draws however many hours your source returns, and its head
 | `showStatRail` | boolean | `true` | Bottom stats row (Panorama) |
 | `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama) |
 | `locationLabel` | string | — | Overrides the place name shown in the header |
-| `accentColor` | string | — | Overrides the conditions-derived accent |
+| `accentColor` | string | — | Leave empty to let the accent follow the weather (amber for clear, blue for rain, violet for storms); set a colour to pin it |
 | `density` | string | `"snug"` | `cozy` or `snug`. Controls padding, gaps, and chart heights |
 | `typographySize` | string | `"medium"` | Text size. Scales type only, so the layout keeps its proportions |
 

@@ -63,8 +63,9 @@ async function render(
   await expect(root).toBeVisible();
   await expect(root).toContainText('°');
 
-  // useFitScale converges over a few animation frames.
-  await page.waitForTimeout(400);
+  // useFitScale bisects over several animation frames and can wait on React
+  // to commit each probe; the stack stamps data-fit-settled when it is done.
+  await expect(root.locator('[data-fit-settled="true"]')).toHaveCount(1);
 
   return root.evaluate((el) => {
     const stack = el.querySelector(':scope > div:last-child') as HTMLElement;

@@ -1,9 +1,10 @@
 'use client';
 
+import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
-import { hourLabel, smoothPath, tzHour, hourlyInstant } from './weather-view-utils';
+import { hourLabel, smoothPath, tzHour, hourlyInstant, hoursWithin } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand } from './weather-parts';
 
@@ -189,6 +190,9 @@ function Readout({ p, children }: { p: WeatherViewProps; children: React.ReactNo
 
 function SunCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
+  const gradId = `${useId()}-sun`;
+  // No sunrise today means polar day or night: the arc has nothing to mark.
+  const hasArc = p.sun.sunrise != null && p.sun.sunset != null;
   const W = 460;
   const H = 250;
   const { sunriseHour, sunsetHour } = p.sun;
@@ -212,16 +216,20 @@ function SunCard({ p, place }: CardProps) {
       <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', maxHeight: '100%' }} preserveAspectRatio="xMidYMid meet">
         <defs>
-          <linearGradient id="fsw-sun" x1="0" x2="1">
+          <linearGradient id={gradId} x1="0" x2="1">
             <stop offset="0%" stopColor="#f59e0b" stopOpacity=".22" />
             <stop offset="50%" stopColor="#fbbf24" />
             <stop offset="100%" stopColor="#f59e0b" stopOpacity=".22" />
           </linearGradient>
         </defs>
         <line x1={18} y1={H - 34} x2={W - 34} y2={H - 34} stroke="var(--fsw-border)" strokeWidth={1.5} strokeDasharray="4 6" />
-        <path d={arc} fill="none" stroke="url(#fsw-sun)" strokeWidth={4} strokeLinecap="round" />
-        <circle cx={ax(prog)} cy={ay(prog)} r={22} fill="#fbbf24" opacity=".20" />
-        <circle cx={ax(prog)} cy={ay(prog)} r={11} fill="#fbbf24" />
+        <path d={arc} fill="none" stroke={`url(#${gradId})`} strokeWidth={4} strokeLinecap="round" />
+        {hasArc && (
+          <>
+            <circle cx={ax(prog)} cy={ay(prog)} r={22} fill="#fbbf24" opacity=".20" />
+            <circle cx={ax(prog)} cy={ay(prog)} r={11} fill="#fbbf24" />
+          </>
+        )}
         <text x={18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)">{fmt(p.sun.sunrise)}</text>
         <text x={W - 18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)" textAnchor="end">{fmt(p.sun.sunset)}</text>
       </svg>
@@ -242,9 +250,12 @@ function MoonCard({ p, place }: CardProps) {
   // (c < 0). Verified at all four quarters plus both crescents.
   const c = Math.cos(2 * Math.PI * illum.phase);
   const waxing = illum.phase < 0.5;
+  const uid = useId();
+  const clipId = `${uid}-moon-clip`;
+  const gradId = `${uid}-moon-grad`;
   const R = 62;
   const DARK = '#39404e';
-  const LIT = 'url(#fsw-moon-grad)';
+  const LIT = `url(#${gradId})`;
 
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -258,14 +269,14 @@ function MoonCard({ p, place }: CardProps) {
       <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
         <svg viewBox="0 0 150 150" style={{ width: u * 23, maxWidth: '100%', maxHeight: '100%' }}>
           <defs>
-            <clipPath id="fsw-moon-clip"><circle cx="75" cy="75" r="62" /></clipPath>
-            <radialGradient id="fsw-moon-grad" gradientUnits="userSpaceOnUse" cx="52" cy="48" r="96">
+            <clipPath id={clipId}><circle cx="75" cy="75" r="62" /></clipPath>
+            <radialGradient id={gradId} gradientUnits="userSpaceOnUse" cx="52" cy="48" r="96">
               <stop offset="0%" stopColor="#ffffff" /><stop offset="100%" stopColor="#cbd5e1" />
             </radialGradient>
           </defs>
           <circle cx="75" cy="75" r="72" fill={p.accent} opacity=".10" />
           <circle cx="75" cy="75" r="62" fill={DARK} />
-          <g clipPath="url(#fsw-moon-clip)">
+          <g clipPath={`url(#${clipId})`}>
             <circle cx="75" cy="75" r={R} fill={LIT} />
             <circle cx={waxing ? 75 - R : 75 + R} cy="75" r={R} fill={DARK} />
             <ellipse cx="75" cy="75" rx={Math.abs(c) * R} ry={R} fill={c > 0 ? DARK : LIT} />
@@ -329,7 +340,7 @@ function HumidityCard({ p, place }: CardProps) {
 
 function PressureCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
-  const series = p.hourly.slice(0, 12).map((h) => h.pressure).filter((v): v is number => v != null);
+  const series = hoursWithin(p.hourly, 12).map((h) => h.pressure).filter((v): v is number => v != null);
   const now = p.hourly[0]!;
   const mn = Math.min(...series);
   const mx = Math.max(...series);
@@ -394,7 +405,7 @@ function VisibilityCard({ p, place }: CardProps) {
 
 function Next12Card({ p, place }: CardProps) {
   const { s, u } = p.scale;
-  const hrs = p.hourly.slice(0, 12);
+  const hrs = hoursWithin(p.hourly, 12);
   if (hrs.length === 0) return <></>;
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -410,7 +421,7 @@ function Next12Card({ p, place }: CardProps) {
               borderRight: i === hrs.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
             }}>
               <div style={{ fontSize: s * 1.35, fontWeight: 600, color: 'var(--fsw-text-3)' }}>
-                {hourLabel(Math.floor(tzHour(hourlyInstant(h), p.timezone)))}
+                {hourLabel(Math.floor(tzHour(hourlyInstant(h), p.timezone)), p.timeFormat)}
               </div>
               <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? '#38bdf8' : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
               <div style={{ fontSize: s * 2.3, fontWeight: 600, letterSpacing: '-.02em', color: tempColor(h.temp, p.units) }}>{Math.round(h.temp)}°</div>

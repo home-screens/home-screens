@@ -23,14 +23,12 @@ import type { SkyCondition } from './sky-layer';
 export interface WeatherScale {
   /** Base unit: 1% of the shorter viewport edge. */
   bu: number;
-  /** Type unit: `bu * typographySize multiplier`. Fonts and inline icons. */
+  /** Type unit: `bu * typographySize multiplier`, fit-corrected. Fonts and inline icons. */
   s: number;
-  /** Structure unit: `bu * density multiplier`. Padding, gaps, chart heights. */
+  /** Structure unit: `bu * density multiplier`, fit-corrected. Padding, gaps, chart heights. */
   u: number;
   width: number;
   height: number;
-  typoMul: number;
-  densityMul: number;
   isDark: boolean;
   /**
    * Canvas shape. Landscape is a different **arrangement** of the same parts,
@@ -71,6 +69,7 @@ export interface WeatherViewProps {
   minutely: MinutelyPrecip[];
   alerts: WeatherAlert[];
   units: 'metric' | 'imperial';
+  /** The real current instant (see `useRealClock`); format it with `timezone`. */
   now: Date;
   timezone?: string;
   locationLabel: string;
@@ -81,6 +80,14 @@ export interface WeatherViewProps {
   locale: string;
 }
 
+/**
+ * Today's daylight model.
+ *
+ * `sunrise` / `sunset` are null when the sun never crosses the horizon today
+ * (polar day or night) or when there are no coordinates. In that case
+ * `isNight` is constant for the whole day and `isNightHour` returns it for
+ * every hour, rather than pretending there was a sunrise at midnight.
+ */
 export interface SunTimes {
   sunrise: Date | null;
   sunset: Date | null;
@@ -91,9 +98,23 @@ export interface SunTimes {
   dayLengthMs: number;
 }
 
-export const degree = (units: 'metric' | 'imperial') => (units === 'metric' ? '°C' : '°F');
+/**
+ * Whether a wall-clock hour falls outside today's daylight window.
+ *
+ * One implementation for the sky layer, the ribbon's night shading, and the
+ * hero: the ribbon applies today's window to every hour it draws, which is a
+ * fair approximation over 48 hours and avoids a SunCalc call per point.
+ */
+export function isNightHour(hour: number, sun: SunTimes): boolean {
+  if (!sun.sunrise || !sun.sunset) return sun.isNight;
+  const { sunriseHour, sunsetHour } = sun;
+  if (sunriseHour === sunsetHour) return sun.isNight;
+  return sunriseHour < sunsetHour
+    ? hour < sunriseHour || hour >= sunsetHour
+    : hour < sunriseHour && hour >= sunsetHour;
+}
 
-/** Short hour label: 0 -> "12a", 13 -> "1p". */
+/** Short hour label: 0 -> "12a", 13 -> "1p"; "00", "13" in 24-hour mode. */
 export function hourLabel(hour: number, timeFormat: '12h' | '24h' = '12h'): string {
   if (timeFormat === '24h') return `${String(hour).padStart(2, '0')}`;
   if (hour === 0) return '12a';
@@ -148,6 +169,27 @@ export function hourlyInstant(h: HourlyWeather): Date {
   return h.timeEpoch != null ? new Date(h.timeEpoch * 1000) : new Date(h.time);
 }
 
+/**
+ * The entries that fall inside the next `hours` hours, by timestamp.
+ *
+ * Providers disagree on step size (OpenWeatherMap is 3-hourly), so slicing a
+ * fixed count would put 36 hours under a "Next 12 hours" heading. The window
+ * is half-open from the first entry, so a 3-hour source yields 0h..9h (four
+ * entries) and an hourly source yields 0h..11h (twelve).
+ */
+export function hoursWithin(hourly: HourlyWeather[], hours: number): HourlyWeather[] {
+  if (hourly.length === 0) return [];
+  const start = hourlyInstant(hourly[0]).getTime();
+  const end = start + hours * 3600_000;
+  const out: HourlyWeather[] = [];
+  for (const h of hourly) {
+    const at = hourlyInstant(h).getTime();
+    if (Number.isNaN(at) || at >= end) break;
+    out.push(h);
+  }
+  return out;
+}
+
 /** Alert severities that earn the red treatment rather than amber. */
 export function alertTone(severity: WeatherAlert['severity']): { fg: string; isSevere: boolean } {
   const isSevere = severity === 'Extreme' || severity === 'Severe';
@@ -155,21 +197,30 @@ export function alertTone(severity: WeatherAlert['severity']): { fg: string; isS
 }
 
 /**
+ * Rain rate that fills the nowcast bar. Pirate Weather (the only minutely
+ * source) reports `precipIntensity` in inches/hour for imperial and mm/hour
+ * for metric (`units=ca`), and 0.4 in/h is roughly 10 mm/h: a hard downpour.
+ * A single threshold in one unit made every metric drizzle read as a storm.
+ */
+const FULL_BAR_INTENSITY = { imperial: 0.4, metric: 10 } as const;
+
+/**
  * Plain-language summary of the next hour of precipitation.
  * Returns null when there is nothing worth saying, which also hides the strip.
+ *
+ * Bar height is intensity alone. Pirate Weather's intensity is already the
+ * expected rate for that minute, so the probability field carries no extra
+ * signal for the chart and only the intensity is normalised.
  */
 export function nowcastVerdict(
   minutely: MinutelyPrecip[],
+  units: 'metric' | 'imperial',
   t: WeatherViewProps['t'],
 ): { text: string; series: number[] } | null {
   if (!minutely || minutely.length === 0) return null;
 
-  const series = minutely.slice(0, 60).map((m) => {
-    const byIntensity = Math.min(1, (m.intensity ?? 0) / 0.4);
-    const byProb = (m.probability ?? 0) / 100;
-    // Providers vary in which field carries the signal; take the stronger.
-    return Math.max(0, Math.min(1, Math.max(byIntensity, byProb * byIntensity > 0 ? byIntensity : 0)));
-  });
+  const full = FULL_BAR_INTENSITY[units];
+  const series = minutely.slice(0, 60).map((m) => Math.max(0, Math.min(1, (m.intensity ?? 0) / full)));
   if (series.every((v) => v <= 0.02)) {
     return { text: t('fullscreen-weather.nowcast.dry'), series };
   }

@@ -3339,6 +3339,7 @@
       "showNowcastHint": "Minutengenauer Regen gibt es nur bei Pirate Weather. Bei jeder anderen Wetterquelle bleibt dieser Streifen ausgeblendet.",
       "daysToShow": "Tage in der Vorschau",
       "locationLabel": "Ortsname",
+      "accentAuto": "Akzentfarbe folgt dem Wetter",
       "accentColor": "Akzentfarbe",
       "showTime": "Uhrzeit anzeigen"
     }

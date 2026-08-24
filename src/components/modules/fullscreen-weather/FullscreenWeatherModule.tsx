@@ -3,16 +3,20 @@
 import { useMemo, useRef } from 'react';
 import SunCalc from 'suncalc';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useRealClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
+import { LocationRequired } from '../LocationRequired';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
-import { tzHour, getOrientation, type WeatherScale, type WeatherViewProps, type SunTimes } from './weather-view-utils';
+import {
+  tzHour, getOrientation, isNightHour,
+  type WeatherScale, type WeatherViewProps, type SunTimes,
+} from './weather-view-utils';
 import ConditionParticles from './ConditionParticles';
-import { useFitScale, FIT_FACTOR_ATTR } from './useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from './useFitScale';
 import PanoramaView from './PanoramaView';
 import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';
@@ -39,15 +43,31 @@ interface FullscreenWeatherModuleProps {
 const DROP_LIGHT = 'rgba(71,85,105,.62)';
 const DROP_DARK = 'rgba(196,220,255,.88)';
 
+const DAY_MS = 86_400_000;
+
+/**
+ * How the fit correction is split between type and structure.
+ *
+ * When the stack outgrows the canvas, `useFitScale` returns a factor below 1
+ * and both units shrink — but structure gives way faster than type, so a
+ * larger `typographySize` still buys visibly larger text instead of being
+ * cancelled out by padding and chart heights growing alongside it. The
+ * exponents are applied to the *requested* multipliers, never to a unit that
+ * already contains the factor, or the two would collapse back to one.
+ */
+const TYPE_FIT_EXPONENT = 0.6;
+const STRUCTURE_FIT_EXPONENT = 1.6;
+
 export default function FullscreenWeatherModule({
   config,
-  style: _style,
+  style,
   hourly: rawHourly,
   forecast: rawForecast,
   minutely: rawMinutely,
   alerts: rawAlerts,
   units = 'imperial',
   timezone,
+  locationMissing,
   locationName,
   latitude,
   longitude,
@@ -57,7 +77,10 @@ export default function FullscreenWeatherModule({
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { containerRef, dims } = useFullscreenDims();
-  const now = useTZClock(timezone, 60_000);
+  // The real instant, not the tz-shifted wall clock: it feeds SunCalc and is
+  // formatted with an explicit `timeZone` everywhere below, so a shifted date
+  // would be shifted twice on any Pi whose OS zone differs from the display's.
+  const now = useRealClock(60_000);
 
   const hourly = useMemo(() => rawHourly ?? [], [rawHourly]);
   const forecast = useMemo(() => rawForecast ?? [], [rawForecast]);
@@ -79,7 +102,7 @@ export default function FullscreenWeatherModule({
   // content already fits, which is every size up to extra-large.
   const stackRef = useRef<HTMLDivElement>(null);
   const requestedTypoMul = getTypoMultiplier(config.typographySize ?? 'medium');
-  const fit = useFitScale(stackRef, [
+  const { factor: fit, settled: fitSettled } = useFitScale(stackRef, [
     config.view, config.typographySize, config.density, config.daysToShow,
     config.showNowcast, config.showAlerts, config.showRibbon, config.showStatRail,
     config.showTime,
@@ -88,20 +111,13 @@ export default function FullscreenWeatherModule({
 
   const scale: WeatherScale = useMemo(() => {
     const bu = Math.min(dims.w, dims.h) / 100;
-    const typoMul = requestedTypoMul * fit;
     const densityMul = getDensityMultiplier(config.density ?? 'snug');
     return {
       bu,
-      // Type and structure scale independently — see WeatherScale. When the
-      // fit correction bites, structure gives way faster than type (exponents
-      // 1.6 vs 0.6), so a larger typographySize still buys visibly larger text
-      // instead of being cancelled out by padding growing alongside it.
-      s: bu * typoMul * Math.pow(fit, 0.5),
-      u: bu * densityMul * Math.pow(fit, 1.5),
+      s: bu * requestedTypoMul * Math.pow(fit, TYPE_FIT_EXPONENT),
+      u: bu * densityMul * Math.pow(fit, STRUCTURE_FIT_EXPONENT),
       width: dims.w,
       height: dims.h,
-      typoMul,
-      densityMul,
       isDark: theme.isDark,
       orientation: getOrientation(dims.w, dims.h),
     };
@@ -115,21 +131,23 @@ export default function FullscreenWeatherModule({
       return { sunrise: null, sunset: null, sunriseHour: 0, sunsetHour: 24, isNight: false, dayLengthMs: 0 };
     }
     const times = SunCalc.getTimes(now, latitude, longitude);
-    const sunrise = Number.isNaN(times.sunrise?.getTime()) ? null : times.sunrise;
-    const sunset = Number.isNaN(times.sunset?.getTime()) ? null : times.sunset;
-    const sunriseHour = sunrise ? tzHour(sunrise, timezone) : 0;
-    const sunsetHour = sunset ? tzHour(sunset, timezone) : 24;
-    const nowHour = tzHour(now, timezone);
-    // Polar day/night collapses the window; treat a missing event as all-day.
-    const isNight = sunrise && sunset
-      ? (sunriseHour < sunsetHour
-        ? nowHour < sunriseHour || nowHour >= sunsetHour
-        : nowHour < sunriseHour && nowHour >= sunsetHour)
-      : false;
-    return {
-      sunrise, sunset, sunriseHour, sunsetHour, isNight,
-      dayLengthMs: sunrise && sunset ? Math.max(0, sunset.getTime() - sunrise.getTime()) : 0,
+    const valid = (d: Date | undefined) => (d && !Number.isNaN(d.getTime()) ? d : null);
+    const sunrise = valid(times.sunrise);
+    const sunset = valid(times.sunset);
+    if (!sunrise || !sunset) {
+      // Polar day or night: the sun never crosses the horizon today, so its
+      // altitude right now settles which one, for the whole day.
+      const up = SunCalc.getPosition(now, latitude, longitude).altitude > 0;
+      return { sunrise: null, sunset: null, sunriseHour: 0, sunsetHour: 24, isNight: !up, dayLengthMs: up ? DAY_MS : 0 };
+    }
+    const window: SunTimes = {
+      sunrise, sunset,
+      sunriseHour: tzHour(sunrise, timezone),
+      sunsetHour: tzHour(sunset, timezone),
+      isNight: false,
+      dayLengthMs: Math.max(0, sunset.getTime() - sunrise.getTime()),
     };
+    return { ...window, isNight: isNightHour(tzHour(now, timezone), window) };
   }, [latitude, longitude, now, timezone]);
 
   const skyCondition = resolveSkyCondition(hourly[0]?.icon, sun.isNight);
@@ -145,6 +163,10 @@ export default function FullscreenWeatherModule({
     locationName,
     latitude != null && longitude != null ? { lat: latitude, lon: longitude } : null,
   ) ?? '';
+
+  if (locationMissing) {
+    return <LocationRequired style={style} />;
+  }
 
   const viewProps: WeatherViewProps = {
     config, scale, hourly, forecast, minutely, alerts, units, now, timezone,
@@ -195,7 +217,7 @@ export default function FullscreenWeatherModule({
         ref={stackRef}
         // The fit loop measures this element, and needs to know which factor
         // the layout it is reading belongs to. See useFitScale.
-        {...{ [FIT_FACTOR_ATTR]: String(fit) }}
+        {...{ [FIT_FACTOR_ATTR]: String(fit), [FIT_SETTLED_ATTR]: String(fitSettled) }}
         style={{
         position: 'relative', zIndex: 2, height: '100%',
         display: 'flex', flexDirection: 'column',

@@ -3,7 +3,7 @@
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { MapPin, Droplet } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
-import { alertTone, degree } from './weather-view-utils';
+import { alertTone } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 
 /** Section label: small, tracked-out, muted. Shared by every card. */
@@ -63,7 +63,7 @@ export function TopBar({ p }: { p: WeatherViewProps }) {
 export function AlertBand({ p }: { p: WeatherViewProps }) {
   const { s, u } = p.scale;
   const alert = p.alerts[0];
-  if (!p.config.showAlerts || !alert) return null;
+  if (p.config.showAlerts === false || !alert) return null;
   const { fg, isSevere } = alertTone(alert.severity);
 
   return (
@@ -182,4 +182,3 @@ function dayName(dateStr: string, index: number, p: WeatherViewProps): string {
   return new Intl.DateTimeFormat(p.locale, { weekday: 'short', timeZone: p.timezone }).format(d);
 }
 
-export { degree };

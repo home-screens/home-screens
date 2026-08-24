@@ -60,7 +60,7 @@ function runToSettle(lagFrames: number, maxFrames = 300) {
 
 function Harness({ onFactor }: { onFactor: (f: number) => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const factor = useFitScale(ref, ['fixed-deps']);
+  const { factor } = useFitScale(ref, ['fixed-deps']);
   onFactor(factor);
   return <div ref={ref} {...{ [FIT_FACTOR_ATTR]: String(factor) }} />;
 }
