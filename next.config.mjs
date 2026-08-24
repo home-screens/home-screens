@@ -33,6 +33,37 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/api/calendar': ['./node_modules/temporal-polyfill/**/*'],
   },
+  // The auto-generated `_not-found` page has no custom not-found.tsx to
+  // anchor its trace, so Next's file tracer falls back to sweeping the
+  // entire project root into the standalone output — source, tests, docs,
+  // the marketing site, historical release notes, none of which the server
+  // reads from disk at runtime. Only src/translations/*.json is a real
+  // runtime dependency (src/i18n/file-reader.ts reads it for /api/i18n), so
+  // everything else under src/ is safe to drop.
+  outputFileTracingExcludes: {
+    '*': [
+      './src/app/**',
+      './src/components/**',
+      './src/contexts/**',
+      './src/hooks/**',
+      './src/i18n/**',
+      './src/lib/**',
+      './src/stores/**',
+      './src/types/**',
+      './src/*.ts',
+      './docs/**',
+      './e2e/**',
+      './website/**',
+      './mockups/**',
+      './scripts/**',
+      './RELEASE_NOTES/**',
+      './infrastructure/**',
+      './README.md',
+      './LICENSE',
+      './CLAUDE.md',
+      './tsconfig.tsbuildinfo',
+    ],
+  },
   async headers() {
     const isDev = process.env.NODE_ENV !== 'production';
     const scriptSrc = isDev
