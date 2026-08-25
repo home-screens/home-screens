@@ -372,7 +372,21 @@
         "updated": "Actualizado {time}",
         "updatedNow": "Actualizado ahora mismo",
         "notUpdating": "Sin actualizar",
-        "errorSince": "{error} · funcionó por última vez {time}"
+        "errorSince": "{error} · funcionó por última vez {time}",
+        "errors": {
+          "googleCalendarFailed": "No se pudo cargar este calendario de Google",
+          "googleUnreachable": "No se puede acceder a Google Calendar",
+          "holidaysFailed": "No se pudo cargar la lista de festivos",
+          "icloudBirthdaysFailed": "No se pudieron cargar los cumpleaños de iCloud",
+          "icloudCalendarFailed": "No se pudo cargar este calendario de iCloud",
+          "icloudNoAccount": "No hay ninguna cuenta de iCloud conectada para este calendario",
+          "icloudNotICloudUrl": "La dirección del calendario no es un enlace de iCloud",
+          "icloudUnreachable": "No se puede acceder a iCloud",
+          "linkHttpError": "No se pudo acceder al enlace (HTTP {status})",
+          "linkInvalid": "El enlace no es una dirección web válida",
+          "linkUnreachable": "No se pudo acceder al enlace",
+          "linkUnreadable": "El enlace no devolvió un calendario legible"
+        }
       },
       "people": {
         "heading": "Personas",

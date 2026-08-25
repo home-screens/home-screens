@@ -1,7 +1,7 @@
 import type { CalendarSettings, ModuleType, Screen } from '@/types/config';
 import { getAllModuleDefinitions, getModuleDefinition, type ProvidedStateKey } from '@/lib/module-registry';
 import { calendarProvidedStateKeys } from '@/lib/calendar-state';
-import { hasAnyCalendarSource } from '@/lib/calendar-window';
+import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import type { TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
 

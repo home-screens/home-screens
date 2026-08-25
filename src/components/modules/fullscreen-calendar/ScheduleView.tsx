@@ -1,22 +1,24 @@
 'use client';
 
 import { useMemo } from 'react';
-import { addDays, isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
+import { isSameDay } from 'date-fns';
+import { parseEventWallTime, isEventOnDay, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
+import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { autoScheduleDays, dayDecorFor, clampStyle } from './FullscreenCalendarModule';
+import { autoScheduleDays, clampStyle, dayCellFill, resolveTodayHighlight, useDayDecors, useDayList } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { EVENT_BLOCK_BASE_ZINDEX } from '@/lib/fullscreen-overlap';
-import { NO_DECOR, eventGlyph, eventOpacity, mergeCellDecor, rulesNeedNow } from '@/lib/calendar-rules';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import { computeTimedEventLayout } from './event-layout';
+import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-layout';
 import { DayWeatherBadge } from './WeatherInline';
-import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/config';
 import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
-import { eventHoursOnDay } from './event-layout';
+import { eventAriaLabel } from './list-view-bits';
 
 export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -25,9 +27,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
 
-  const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
-  const showTodayMarker = highlightStyle !== 'off';
+  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const overlapMode = config.eventOverlap ?? 'columns';
   const wrapTitles = config.wrapEventTitles === true;
 
@@ -42,13 +42,14 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   // First column follows the start anchor: sliding today (default), the
   // calendar-stable week start, or the upcoming weekend. Anchored modes can
   // put whole days in the past; they dim via dimPastEvents below so elapsed
-  // days read as intentionally finished rather than broken.
-  const scheduleStart = resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOnFor(config.startDay));
-  const days = useMemo(
-    () => Array.from({ length: daysToShow }, (_, i) => addDays(scheduleStart, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- scheduleStart is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-    [scheduleStart.toDateString(), daysToShow],
+  // days read as intentionally finished rather than broken. `today` is
+  // identity-stable until midnight, so these memos hold across clock ticks.
+  const weekStartsOn = weekStartsOnFor(config.startDay);
+  const scheduleStart = useMemo(
+    () => resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn),
+    [today, config.scheduleStartAnchor, weekStartsOn],
   );
+  const days = useDayList(scheduleStart, daysToShow);
 
   // Hour range: the configured fixed hours, or a window that follows the
   // clock. The now-line only makes sense when today is actually one of the
@@ -91,23 +92,10 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
     return { dayEvents, overlapLayout, hiddenStarts, hourSpans };
   }), [days, events, hourStart, hourEnd, overlapMode, timezone]);
 
-  // Day-rule decor per column (header badges + column look), computed once
-  // per render rather than once per header and once per column. Bails before
-  // the per-day filter when no rules exist (the default), and keys on the
-  // day string rather than the Date so the 60s clock tick doesn't rebuild it
-  // — same reasoning as dayLayouts above. `dayLayouts` can't supply the
-  // events here: it drops all-day rows, which a day match must still see.
-  const dayRules = config.dayRules;
-  // The clock only joins the key when a rule actually reads `past`; otherwise
-  // the 60s tick would rebuild this for nothing.
-  const rulesNow = rulesNeedNow(undefined, dayRules) ? now : null;
-  const decorByDay = useMemo(
-    () => (!dayRules || dayRules.length === 0
-      ? days.map(() => NO_DECOR)
-      : days.map((day) => dayDecorFor(config, day, events.filter((ev) => isEventOnDay(ev, day, timezone)), { today, now, timezone, isDark: scale.isDark }))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- today/now are new Date objects each render; toDateString() is the stable day key, and rulesNow re-keys on the clock only for rules that read it
-    [days, events, dayRules, config, today.toDateString(), rulesNow, timezone, scale.isDark],
-  );
+  // Day-rule decor per column (header badges + column look). `dayLayouts`
+  // can't supply the events here: it drops all-day rows, which a day match
+  // must still see.
+  const decorByDay = useDayDecors(days, events, config, { today, now, timezone, isDark: scale.isDark });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -194,13 +182,13 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                     fontVariantNumeric: 'tabular-nums',
                   }}
                 >
-                  {formatHourLabel(h, am, pm)}
+                  {formatHourLabel(h, timeFormat, am, pm)}
                 </div>
               );
             })}
             {/* Now badge in gutter */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" timePattern={timeFormat === '24h' ? 'HH:mm' : 'h:mm'} locale={locale} />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" timeFormat={timeFormat} locale={locale} />
             )}
           </div>
 
@@ -225,11 +213,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                   style={mergeCellDecor({
                     position: 'relative',
                     borderLeft: '1px solid var(--cal-border-subtle)',
-                    background: isToday && showTodayBg
-                      ? 'var(--cal-today-fill)'
-                      : isWeekend && config.shadeWeekends
-                        ? 'var(--cal-weekend-shade)'
-                        : undefined,
+                    background: dayCellFill(isToday, showTodayBg, isWeekend, config),
                     opacity: isPast && config.dimPastEvents ? 'var(--cal-past-opacity)' : 1,
                   } as React.CSSProperties, decorByDay[dayIdx])}
                 >
@@ -249,23 +233,13 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
 
                     const top = (evStart - hourStart) * hourHeight;
                     const height = Math.max((evEnd - evStart) * hourHeight, fontSize * 1.5);
-                    const color = ev.calendarColor ?? '#3B82F6';
+                    const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+                    const glyph = eventGlyph(ev);
                     const isPastEvent = isToday && evEnd <= nowHour;
 
                     const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
                     const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
-                    const evAriaLabel = ev.location
-                      ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
-                          title: ev.title,
-                          start: evStartLabel,
-                          end: evEndLabel,
-                          location: ev.location,
-                        })
-                      : t('fullscreen-calendar.ariaLabels.eventTimed', {
-                          title: ev.title,
-                          start: evStartLabel,
-                          end: evEndLabel,
-                        });
+                    const evAriaLabel = eventAriaLabel(t, ev, { startLabel: evStartLabel, endLabel: evEndLabel });
 
                     return (
                       <div
@@ -303,7 +277,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                           lineHeight: 1.3,
                           ...clampStyle(wrapTitles),
                         }}>
-                          {ev.icon ? `${ev.icon} ` : ''}{ev.title}
+                          {glyph ? `${glyph} ` : ''}{ev.title}
                         </div>
                         {height >= fontSize * 2 && (
                           <div style={{
@@ -442,13 +416,14 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
               }}
             >
               {dayAllDay.map(ev => {
-                const color = ev.calendarColor ?? '#3B82F6';
+                const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+                const glyph = eventGlyph(ev);
                 return (
                   <div
                     key={ev.id}
                     className="fsc-event-block"
                     data-event-id={ev.id}
-                    aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
+                    aria-label={eventAriaLabel(t, ev, { allDay: true })}
                     style={{
                       fontSize: fontSize * 0.65,
                       fontWeight: 600,
@@ -460,7 +435,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       opacity: ev.opacity,
                     }}
                   >
-                    {ev.icon ? `${ev.icon} ` : ''}{ev.title}
+                    {glyph ? `${glyph} ` : ''}{ev.title}
                   </div>
                 );
               })}
@@ -474,7 +449,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                     key={ev.id}
                     className="fsc-event-block flex items-center"
                     data-event-id={ev.id}
-                    aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
+                    aria-label={eventAriaLabel(t, ev, { allDay: true })}
                     style={{
                       gap: scale.bu * 0.2,
                       fontSize: fontSize * 0.65,

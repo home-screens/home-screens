@@ -6,8 +6,9 @@ import type {
   CalendarEvent,
   CalendarEventMatch,
   CalendarEventRule,
+  CalendarTitleFilter,
 } from '@/types/config';
-import { eventKindGlyph, isEventUpcoming } from './calendar-utils';
+import { applyTitleFilter, eventKindGlyph, isEventUpcoming } from './calendar-utils';
 import { parseHexToRgb } from './hex-color';
 
 /**
@@ -229,6 +230,55 @@ export function resolveDayDecor(
   }
   if (background == null && opacity == null && borderColor == null && badges.length === 0) return NO_DECOR;
   return { background, opacity, borderColor, badges };
+}
+
+/**
+ * The one event-selection pipeline both calendar modules run before
+ * rendering: source filter → title filter → event rules → optional
+ * upcoming-only narrowing. `now` is only read by rules that match `past`
+ * and by the cutoff compare — when neither applies, callers pass a stable
+ * stand-in so their memo keys don't churn on the 60s clock tick (the rules
+ * pass mints new event objects, which would thrash memoized renderers).
+ */
+export function selectCalendarEvents(
+  events: CalendarEvent[],
+  opts: {
+    sourceFilter?: string[];
+    titleFilter?: CalendarTitleFilter;
+    eventRules?: CalendarEventRule[];
+    timezone?: string;
+    /** Clock for `past` rule matching and the cutoff compare. */
+    now: Date;
+    /** Keep only events still ongoing/future relative to this instant; omit for full-range views. */
+    upcomingCutoff?: Date;
+  },
+): CalendarEvent[] {
+  const sourced = !opts.sourceFilter || opts.sourceFilter.length === 0
+    ? events
+    : events.filter((ev) => !ev.sourceId || opts.sourceFilter!.includes(ev.sourceId));
+  const filtered = applyEventRules(
+    applyTitleFilter(sourced, opts.titleFilter),
+    opts.eventRules,
+    { now: opts.now, timezone: opts.timezone },
+  );
+  if (!opts.upcomingCutoff) return filtered;
+  const cutoff = opts.upcomingCutoff;
+  return filtered.filter((ev) => isEventUpcoming(ev, cutoff, opts.timezone));
+}
+
+/**
+ * Day-rule decor for one day cell / header, shared by both calendar
+ * modules. The auto tint is stronger on dark surfaces, where a light wash
+ * reads as nothing — the compact module always renders on its dark card,
+ * so it passes `isDark: true`.
+ */
+export function dayDecorFor(
+  config: { dayRules?: CalendarDayRule[] },
+  day: Date,
+  dayEvents: CalendarEvent[],
+  ctx: { today: Date; now: Date; timezone?: string; isDark: boolean },
+): DayDecor {
+  return resolveDayDecor(day, dayEvents, config.dayRules, ctx, { autoTintAlpha: ctx.isDark ? 0.22 : 0.14 });
 }
 
 /** Glyph for an event row / pill: a rule icon beats the built-in kind glyph. */

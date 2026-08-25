@@ -235,7 +235,7 @@ describe('fetchCalendarEvents', () => {
     ]);
 
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
-    expect(events[0].calendarColor).toBe('#3b82f6');
+    expect(events[0].calendarColor).toBe('#3B82F6');
   });
 
   it('returns empty array when no events exist', async () => {

@@ -4,7 +4,7 @@ import type { ICalSource } from '@/types/config';
 import type { CalendarEvent } from '@/types/config';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
-import type { SourceFetchResult } from '@/lib/calendar-source-status';
+import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { logger } from '@/lib/logger';
 
 const log = logger('ical');
@@ -97,13 +97,12 @@ export async function fetchICalEvents(
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const from = new Date(timeMin);
   const to = new Date(timeMax);
-  const allEvents: CalendarEvent[] = [];
-  const sourceResults: SourceFetchResult[] = [];
 
-  const results = await Promise.allSettled(
-    sources.map(async (source): Promise<{ events: CalendarEvent[]; result: SourceFetchResult }> => {
-      const fail = (error: string): { events: CalendarEvent[]; result: SourceFetchResult } =>
-        ({ events: [], result: { id: source.id, name: source.name, ok: false, error } });
+  const { events, results } = await settleSourceFetches(
+    sources,
+    async (source) => {
+      const fail = (error: string, messageKey: string, messageParams?: Record<string, string | number>): { events: CalendarEvent[]; results: SourceFetchResult[] } =>
+        ({ events: [], results: [{ id: source.id, name: source.name, ok: false, error, messageKey, messageParams }] });
 
       // Validate URL scheme — normalize webcal:// to https://
       let fetchUrl = source.url;
@@ -112,7 +111,7 @@ export async function fetchICalEvents(
         parsed = new URL(fetchUrl);
       } catch {
         log.warn(`Invalid URL for source "${source.name}" (${source.id})`);
-        return fail("The link isn't a valid web address");
+        return fail("The link isn't a valid web address", 'linkInvalid');
       }
       if (parsed.protocol === 'webcal:') {
         fetchUrl = fetchUrl.replace(/^webcal:/i, 'https:');
@@ -120,44 +119,37 @@ export async function fetchICalEvents(
       }
       if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
         log.warn(`Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
-        return fail("The link isn't a valid web address");
+        return fail("The link isn't a valid web address", 'linkInvalid');
       }
 
       // Fetch the ICS data
       const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
       if (!res.ok) {
         log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
-        return fail(`Could not reach the link (HTTP ${res.status})`);
+        return fail(`Could not reach the link (HTTP ${res.status})`, 'linkHttpError', { status: res.status });
       }
       const icsText = await res.text();
 
       // Parse and process ICS — wrapped in try/catch so a malformed feed
       // is logged and treated as a failing source
       try {
-        const events = parseICSEvents(icsText, source, from, to);
-        return { events, result: { id: source.id, name: source.name, ok: true } };
+        const parsedEvents = parseICSEvents(icsText, source, from, to);
+        return { events: parsedEvents, results: [{ id: source.id, name: source.name, ok: true }] };
       } catch (err) {
         log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
-        return fail("The link didn't return a readable calendar");
+        return fail("The link didn't return a readable calendar", 'linkUnreadable');
       }
-    }),
+    },
+    (source, reason) => {
+      // Unexpected rejections (e.g. fetchWithTimeout network errors)
+      log.warn('Source fetch rejected', reason);
+      return [{ id: source.id, name: source.name, ok: false, error: 'Could not reach the link', messageKey: 'linkUnreachable' }];
+    },
   );
 
-  results.forEach((result, i) => {
-    if (result.status === 'fulfilled') {
-      allEvents.push(...result.value.events);
-      sourceResults.push(result.value.result);
-    } else {
-      // Unexpected rejections (e.g. fetchWithTimeout network errors)
-      log.warn('Source fetch rejected', result.reason);
-      const source = sources[i];
-      sourceResults.push({ id: source.id, name: source.name, ok: false, error: 'Could not reach the link' });
-    }
-  });
-
   // Sort by start time
-  allEvents.sort((a, b) => compareEventStarts(a.start, b.start));
-  return { events: allEvents, results: sourceResults };
+  events.sort((a, b) => compareEventStarts(a.start, b.start));
+  return { events, results };
 }
 
 /** Compute a fallback end date when DTEND is missing. */

@@ -3,18 +3,22 @@
 import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
-  parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel, isWeekendDay,
+  parseEventDate, parseEventWallTime, formatEventTime,
+  bucketEventsForDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel, isWeekendDay,
+  eventRowTimeLabel, isPastInAgendaGroup, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
+import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { MapPin, dayDecorFor } from './FullscreenCalendarModule';
+import { MapPin } from 'lucide-react';
+import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import type { CalendarEvent, CalendarViewProps } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarViewProps } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
-import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator } from './list-view-bits';
+import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, eventAriaLabel } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 interface DayGroupEvent {
@@ -35,12 +39,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   const daysAhead = config.agendaDaysAhead ?? 14;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.agendaShowDescription === true;
-  // Four-value highlight, matching the schedule and month grid: 'full' and
-  // 'subtle' tint the day group (alpha already scaled behind
-  // --cal-today-fill), 'minimal' keeps only the TODAY marker, 'off' neither.
-  const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const showTodayMarker = highlightStyle !== 'off';
-  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
+  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const emptyDayText = config.emptyDayText?.trim();
 
@@ -48,17 +47,9 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
     const groups: { date: Date; events: DayGroupEvent[]; boundary: ReturnType<typeof boundaryBetween> }[] = [];
     for (let i = 0; i < daysAhead; i++) {
       const date = addDays(today, i);
-      let dayEvents = events
-        .filter(ev => isEventOnDay(ev, date, timezone))
-        .map(ev => ({ ev, segment: classifyEventOnDay(ev, date, timezone) }))
-        .sort((a, b) => {
-          // All-day rows first — including middle days of split multi-day
-          // events, which promote to all-day rendering.
-          const aAll = a.ev.allDay === true || a.segment === 'middle';
-          const bAll = b.ev.allDay === true || b.segment === 'middle';
-          if (aAll !== bAll) return aAll ? -1 : 1;
-          return compareEventStarts(a.ev.start, b.ev.start);
-        });
+      // All-day rows first — including middle days of split multi-day
+      // events, which promote to all-day rendering.
+      let dayEvents: DayGroupEvent[] = bucketEventsForDay(events, date, timezone);
       if (i === 0 && config.agendaShowFinishedToday === true) {
         const finished = dayEvents.filter(({ ev, segment }) =>
           ev.allDay !== true && segment !== 'middle' && parseEventWallTime(ev.end, timezone) <= now);
@@ -81,12 +72,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
     const decor = dayDecorFor(config, date, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
-    // Today beats the weekend shade; a day rule beats both (merged last).
-    const dayFill = isGroupToday && showTodayBg
-      ? 'var(--cal-today-fill)'
-      : isWeekendDay(date) && config.shadeWeekends !== false
-        ? 'var(--cal-weekend-shade)'
-        : undefined;
+    const dayFill = dayCellFill(isGroupToday, showTodayBg, isWeekendDay(date), config);
 
     return (
       <div key={date.toISOString()} style={mergeCellDecor({
@@ -150,14 +136,12 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
         )}
 
         {dayEvents.map(({ ev, segment }) => {
-          const color = ev.calendarColor ?? '#3B82F6';
+          const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
           const start = parseEventWallTime(ev.start, timezone);
           const end = parseEventWallTime(ev.end, timezone);
-          const nowHour = now.getHours() + now.getMinutes() / 60;
-          const isPast = isGroupToday && !ev.allDay && segment !== 'middle' &&
-            (end.getHours() + end.getMinutes() / 60) <= nowHour && end <= addDays(date, 1);
           const description = showDescription ? sanitizeEventDescription(ev.description) : '';
           const isAllDayRow = ev.allDay === true || segment === 'middle';
+          const isPast = isPastInAgendaGroup(end, date, now, isGroupToday, isAllDayRow);
           const status = eventStatusSlot({
             start, end, isAllDayRow, rowDate: date, now, locale, segment,
             showCountdown: config.showCountdown === true,
@@ -174,7 +158,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 className="fsc-event-block"
                 data-event-id={ev.id}
                 role="article"
-                aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
+                aria-label={eventAriaLabel(t, ev, { allDay: true })}
                 style={{
                   ...eventSurface(color, scale, 'card', { radius: 10 }),
                   padding: `${scale.bu * 0.6}px ${scale.bu * 1.0}px`,
@@ -222,29 +206,11 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
 
           const startLabel = formatEventTime(start, timeFormat, locale);
           const endLabel = formatEventTime(end, timeFormat, locale);
-          // Split multi-day rows show only the true partial time on their
-          // first and last days ("From 10:00 AM" / "Until 3:00 PM"). Rows
-          // from a source that stopped updating carry a "saved" suffix.
-          const baseTimeLabel = segment === 'first'
-            ? t('fullscreen-calendar.fromTime', { time: startLabel })
-            : segment === 'last'
-              ? t('fullscreen-calendar.untilTime', { time: endLabel })
-              : `${startLabel} – ${endLabel}`;
-          const timeLabel = ev.sourceId && failingSourceIds?.has(ev.sourceId)
-            ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
-            : baseTimeLabel;
-          const ariaLabel = ev.location
-            ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
-                title: ev.title,
-                start: startLabel,
-                end: endLabel,
-                location: ev.location,
-              })
-            : t('fullscreen-calendar.ariaLabels.eventTimed', {
-                title: ev.title,
-                start: startLabel,
-                end: endLabel,
-              });
+          const timeLabel = withSavedSuffix(
+            eventRowTimeLabel({ segment, startLabel, endLabel, t, ns: 'fullscreen-calendar' }),
+            ev, failingSourceIds, t,
+          );
+          const ariaLabel = eventAriaLabel(t, ev, { startLabel, endLabel });
 
           return (
             <div

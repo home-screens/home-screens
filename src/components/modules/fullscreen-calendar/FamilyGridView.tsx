@@ -1,25 +1,26 @@
 'use client';
 
 import { useMemo } from 'react';
-import { addDays, isSameDay, startOfWeek } from 'date-fns';
+import { isSameDay } from 'date-fns';
 import {
-  parseEventWallTime, isEventOnDay, compareEventStarts, classifyEventOnDay, weekStartsOnFor, formatEventTime, isWeekendDay,
+  parseEventWallTime, isEventOnDay, bucketEventsForDay, weekStartsOnFor, formatEventTime, isWeekendDay,
+  eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
-import { buildPersonRows, eventsForRow, type PersonRow } from '@/lib/calendar-people';
+import { EVERYONE_COLOR, buildPersonRows, eventsForRow, type PersonRow } from '@/lib/calendar-people';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import type { TranslateFn } from '@/i18n';
-import { clampStyle, dayDecorFor } from './FullscreenCalendarModule';
-import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import { clampStyle, dayCellFill, resolveTodayHighlight, useDayDecors, useWeekDays } from './view-support';
+import type { CalendarEvent, CalendarViewProps, RowCtx } from './view-support';
+import { PersonAvatar, PeopleHint } from './person-view-bits';
+import type { DayDecor } from '@/lib/calendar-rules';
 import { eventSurface } from '@/lib/calendar-event-surface';
-import { NO_DECOR, eventGlyph, eventOpacity, mergeCellDecor, rulesNeedNow } from '@/lib/calendar-rules';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { DayWeatherBadge } from './WeatherInline';
+import { eventAriaLabel } from './list-view-bits';
 import { useContainerHeight } from './shared-time-grid';
-import { DEFAULT_TIME_FORMAT, type TimeFormat } from '@/types/config';
-
-/** Neutral avatar for the shared row; person rows use their own color. */
-const EVERYONE_COLOR = '#6b7280';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 interface CellEvent {
   ev: CalendarEvent;
@@ -32,23 +33,20 @@ interface CellEvent {
  * sit once on the Everyone row, and a cell that overflows shows "+N" rather
  * than shrinking its text — the board must stay legible at seven people.
  */
-export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, people }: CalendarViewProps) {
+export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, people, failingSourceIds }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const { scrollRef, containerH } = useContainerHeight();
 
-  const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
-  const showTodayMarker = highlightStyle !== 'off';
-
-  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- weekStart is a new Date each render; the day string is the stable key
-    [weekStart.toDateString()],
+  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
+  const rowCtx = useMemo<RowCtx>(
+    () => ({ t, locale, timeFormat, timezone, scale, fontSize, config }),
+    [t, locale, timeFormat, timezone, scale, fontSize, config],
   );
+
+  const days = useWeekDays(today, weekStartsOnFor(config.startDay));
 
   const weekEvents = useMemo(
     () => events.filter((ev) => days.some((day) => isEventOnDay(ev, day, timezone))),
@@ -66,27 +64,11 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   // Per row: the week's events bucketed by day, all-day first then by start.
   const grid = useMemo(() => rows.map((row) => {
     const own = eventsForRow(weekEvents, row, rows);
-    const cells: CellEvent[][] = days.map((day) => own
-      .filter((ev) => isEventOnDay(ev, day, timezone))
-      .map((ev) => ({ ev, segment: classifyEventOnDay(ev, day, timezone) }))
-      .sort((a, b) => {
-        const aAll = a.ev.allDay || a.segment === 'middle';
-        const bAll = b.ev.allDay || b.segment === 'middle';
-        if (aAll !== bAll) return aAll ? -1 : 1;
-        return compareEventStarts(a.ev.start, b.ev.start);
-      }));
+    const cells: CellEvent[][] = days.map((day) => bucketEventsForDay(own, day, timezone));
     return { row, cells, count: own.length };
   }), [rows, weekEvents, days, timezone]);
 
-  const dayRules = config.dayRules;
-  const rulesNow = rulesNeedNow(undefined, dayRules) ? now : null;
-  const decorByDay = useMemo(
-    () => (!dayRules || dayRules.length === 0
-      ? days.map(() => NO_DECOR)
-      : days.map((day) => dayDecorFor(config, day, weekEvents.filter((ev) => isEventOnDay(ev, day, timezone)), { today, now, timezone, isDark: scale.isDark }))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- today/now are new Dates each render; the day string is the stable key, rulesNow re-keys only for rules that read the clock
-    [days, weekEvents, dayRules, config, today.toDateString(), rulesNow, timezone, scale.isDark],
-  );
+  const decorByDay = useDayDecors(days, weekEvents, config, { today, now, timezone, isDark: scale.isDark });
 
   // Fixed geometry so a cell can budget how many chips fit: the grid never
   // scrolls on a kiosk, so overflow must be a "+N" chip, not clipped text.
@@ -94,7 +76,12 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   // fallback names rows after sources), and rows are capped so one or two
   // calendars never become giant bands; leftover space stays empty.
   const nameColW = scale.bu * (isLandscape ? 13 : 18);
-  const headerH = fontSize * 4.4;
+  // The day headers stack label + date circle, plus a weather line when the
+  // day placement is active; the fixed row must budget for what actually
+  // renders, or the centered stack bleeds under the module header above and
+  // over the grid below.
+  const hasDayWeather = weather != null && (weather.placement === 'days' || weather.placement === 'days-and-events');
+  const headerH = fontSize * (hasDayWeather ? 5.4 : 4.4);
   const rowMaxH = fontSize * 20;
   const rowH = containerH > 0 && rows.length > 0 ? Math.min(rowMaxH, (containerH - headerH) / rows.length) : 0;
   const noPeople = !people || people.length === 0;
@@ -166,52 +153,39 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
             days={days}
             today={today}
             now={now}
-            timezone={timezone}
-            config={config}
-            scale={scale}
-            fontSize={fontSize}
+            ctx={rowCtx}
             cellPad={cellPad}
             chipGap={chipGap}
             maxPerCell={maxPerCell}
             wrapTitles={!isLandscape}
             showTodayBg={showTodayBg}
             decorByDay={decorByDay}
-            timeFormat={timeFormat}
-            locale={locale}
-            t={t}
+            failingSourceIds={failingSourceIds}
           />
         ))}
       </div>
-      {noPeople && (
-        <div data-people-hint="" style={{ padding: `${scale.bu * 1.2}px ${scale.bu * 1.5}px`, fontSize: fontSize * 1.05, color: 'var(--cal-text-tertiary)' }}>
-          {t('fullscreen-calendar.peopleHint')}
-        </div>
-      )}
+      {noPeople && <PeopleHint fontSize={fontSize} padding={`${scale.bu * 1.2}px ${scale.bu * 1.5}px`} t={t} />}
     </div>
   );
 }
 
-function PersonRowCells({ row, cells, count, days, today, now, timezone, config, scale, fontSize, cellPad, chipGap, maxPerCell, wrapTitles, showTodayBg, decorByDay, timeFormat, locale, t }: {
+function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, maxPerCell, wrapTitles, showTodayBg, decorByDay, failingSourceIds }: {
   row: PersonRow;
   cells: CellEvent[][];
   count: number;
   days: Date[];
   today: Date;
   now: Date;
-  timezone?: string;
-  config: CalendarViewProps['config'];
-  scale: CalendarScale;
-  fontSize: number;
+  ctx: RowCtx;
   cellPad: number;
   chipGap: number;
   maxPerCell: number;
   wrapTitles: boolean;
   showTodayBg: boolean;
-  decorByDay: ReturnType<typeof dayDecorFor>[];
-  timeFormat: TimeFormat;
-  locale: string;
-  t: TranslateFn;
+  decorByDay: DayDecor[];
+  failingSourceIds?: ReadonlySet<string>;
 }) {
+  const { t, scale, fontSize, config } = ctx;
   const isEveryone = row.sourceIds === null;
   const avatarSize = fontSize * 2.6;
   return (
@@ -226,14 +200,7 @@ function PersonRowCells({ row, cells, count, days, today, now, timezone, config,
           minWidth: 0,
         }}
       >
-        <span aria-hidden="true" style={{
-          width: avatarSize, height: avatarSize, borderRadius: '50%', flexShrink: 0,
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-          background: row.color, color: '#fff',
-          fontSize: fontSize * (row.initials.length > 2 ? 0.6 : 0.9), fontWeight: 700, letterSpacing: '0.02em',
-        }}>
-          {row.initials}
-        </span>
+        <PersonAvatar row={row} size={avatarSize} fontSize={fontSize * 0.9} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: fontSize * 1.15, fontWeight: 650, color: 'var(--cal-text-primary)', lineHeight: 1.1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }}>
             {row.name}
@@ -263,16 +230,14 @@ function PersonRowCells({ row, cells, count, days, today, now, timezone, config,
               padding: cellPad,
               borderBottom: '1px solid var(--cal-border-subtle)',
               borderLeft: '1px solid var(--cal-border-subtle)',
-              background: isToday && showTodayBg
-                ? 'var(--cal-today-fill)'
-                : isWeekendDay(day) && config.shadeWeekends !== false ? 'var(--cal-weekend-shade)' : undefined,
+              background: dayCellFill(isToday, showTodayBg, isWeekendDay(day), config),
               opacity: isPast && config.dimPastEvents ? 'var(--cal-past-opacity)' : 1,
               overflow: 'hidden',
               minWidth: 0,
             } as React.CSSProperties, decorByDay[dayIdx])}
           >
             {visible.map(({ ev, segment }) => (
-              <EventChip key={ev.id} event={ev} segment={segment} timezone={timezone} now={now} scale={scale} fontSize={fontSize} wrapTitles={wrapTitles} timeFormat={timeFormat} locale={locale} t={t} />
+              <EventChip key={ev.id} event={ev} segment={segment} now={now} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
             ))}
             {hidden > 0 && (cornerBadge ? (
               <div style={{
@@ -295,32 +260,37 @@ function PersonRowCells({ row, cells, count, days, today, now, timezone, config,
   );
 }
 
-function EventChip({ event, segment, timezone, now, scale, fontSize, wrapTitles, timeFormat, locale, t }: {
+function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
   event: CalendarEvent;
   segment: EventDaySegment;
-  timezone?: string;
   now: Date;
-  scale: CalendarScale;
-  fontSize: number;
+  ctx: RowCtx;
   wrapTitles: boolean;
-  timeFormat: TimeFormat;
-  locale: string;
-  t: TranslateFn;
+  failingSourceIds?: ReadonlySet<string>;
 }) {
-  const color = event.calendarColor ?? '#3B82F6';
+  const { t, locale, timeFormat, timezone, scale, fontSize } = ctx;
+  const color = event.calendarColor ?? DEFAULT_EVENT_COLOR;
   const isAllDay = event.allDay || segment === 'middle';
   const start = parseEventWallTime(event.start, timezone);
   const end = parseEventWallTime(event.end, timezone);
   const timeLabel = isAllDay
     ? null
-    : segment === 'first' ? t('fullscreen-calendar.fromTime', { time: formatEventTime(start, timeFormat, locale) })
-    : segment === 'last' ? t('fullscreen-calendar.untilTime', { time: formatEventTime(end, timeFormat, locale) })
-    : formatEventTime(start, timeFormat, locale);
+    : withSavedSuffix(
+        eventRowTimeLabel({
+          segment,
+          startLabel: formatEventTime(start, timeFormat, locale),
+          endLabel: formatEventTime(end, timeFormat, locale),
+          t, ns: 'fullscreen-calendar', single: 'start',
+        }),
+        event, failingSourceIds, t,
+      );
   const finished = !isAllDay && end <= now;
   const glyph = eventGlyph(event);
-  const ariaLabel = isAllDay
-    ? t('fullscreen-calendar.ariaLabels.eventAllDay', { title: event.title })
-    : t('fullscreen-calendar.ariaLabels.eventTimed', { title: event.title, start: formatEventTime(start, timeFormat, locale), end: formatEventTime(end, timeFormat, locale) });
+  const ariaLabel = eventAriaLabel(t, event, {
+    startLabel: formatEventTime(start, timeFormat, locale),
+    endLabel: formatEventTime(end, timeFormat, locale),
+    allDay: isAllDay,
+  });
   return (
     <div
       className="fsc-event-block"

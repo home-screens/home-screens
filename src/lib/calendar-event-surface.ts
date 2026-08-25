@@ -6,7 +6,7 @@
  */
 
 import type { CSSProperties } from 'react';
-import { parseHexToRgb } from '@/lib/hex-color';
+import { darkAdjustRgb, parseHexToRgbOrBlue } from '@/lib/calendar-color';
 import type { FullscreenEventStyle, FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 
@@ -29,21 +29,7 @@ export function resolveCalendarAccent(accentColor: string | undefined, tokens: F
   return resolveFullscreenAccent(accentColor, tokens, calendarFallbackAccent(tokens.isDark));
 }
 
-// ─── Color helpers (safe alpha + dark-mode adjustment) ───
-
-function parseHexToRgbOrBlue(color: string): [number, number, number] {
-  return parseHexToRgb(color) ?? [59, 130, 246]; // fallback blue-500
-}
-
-function darkAdjustRgb(r: number, g: number, b: number): [number, number, number] {
-  // Approximate CSS saturate(0.85) brightness(1.1) — desaturate toward luminance, then brighten
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return [
-    Math.min(255, Math.round((lum + 0.85 * (r - lum)) * 1.1)),
-    Math.min(255, Math.round((lum + 0.85 * (g - lum)) * 1.1)),
-    Math.min(255, Math.round((lum + 0.85 * (b - lum)) * 1.1)),
-  ];
-}
+// ─── Color helpers (safe alpha + dark-mode adjustment; primitives in calendar-color) ───
 
 /** Safely compose a source color + alpha, with optional dark-mode desaturation. */
 export function eventBg(color: string, alpha: number, isDark: boolean): string {

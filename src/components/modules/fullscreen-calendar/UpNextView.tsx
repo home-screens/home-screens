@@ -1,29 +1,19 @@
 'use client';
 
 import { useMemo } from 'react';
-import { addDays, isSameDay } from 'date-fns';
 import {
-  parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
+  parseEventDate, parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
 } from '@/lib/calendar-utils';
+import { buildUpNextModel, UP_NEXT_LATER_MAX, type UpNextTimedEvent } from '@/lib/calendar-up-next';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import type { TranslateFn } from '@/i18n';
-import { MapPin } from './FullscreenCalendarModule';
-import type { CalendarEvent, CalendarScale, CalendarViewProps, CalendarWeather } from './FullscreenCalendarModule';
+import { MapPin } from 'lucide-react';
+import type { CalendarViewProps, CalendarWeather, RowCtx } from './view-support';
 import { eventSurface, eventBorder } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
 import { EventWeatherLine } from './WeatherInline';
-import { EventProgressBar } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT, type TimeFormat } from '@/types/config';
-
-interface TimedEvent {
-  ev: CalendarEvent;
-  start: Date;
-  end: Date;
-}
-
-const LATER_MAX = 6;
-const EARLIER_MAX = 2;
-const TOMORROW_MAX = 5;
+import { EventProgressBar, eventAriaLabel } from './list-view-bits';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 /**
  * The hallway view: one event rendered huge (what is next, or what is
@@ -35,56 +25,21 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
-  const laterCount = Math.max(0, Math.min(LATER_MAX, Math.round(config.upNextLaterCount ?? 3)));
+  const laterCount = Math.max(0, Math.min(UP_NEXT_LATER_MAX, Math.round(config.upNextLaterCount ?? 3)));
   const showEarlier = config.upNextShowEarlier !== false;
   const showTomorrow = config.upNextShowTomorrow !== false;
-  const tomorrow = addDays(today, 1);
+  const rowCtx = useMemo<RowCtx>(
+    () => ({ t, locale, timeFormat, timezone, scale, fontSize, config }),
+    [t, locale, timeFormat, timezone, scale, fontSize, config],
+  );
 
-  const model = useMemo(() => {
-    const timed: TimedEvent[] = events
-      .filter((ev) => !ev.allDay)
-      .map((ev) => ({ ev, start: parseEventWallTime(ev.start, timezone), end: parseEventWallTime(ev.end, timezone) }));
-    const upcoming = timed.filter((x) => x.start > now).sort((a, b) => a.start.getTime() - b.start.getTime());
-    const running = timed.filter((x) => x.start <= now && x.end > now).sort((a, b) => a.end.getTime() - b.end.getTime());
-    const finishedToday = timed
-      .filter((x) => x.end <= now && isSameDay(x.end, today))
-      .sort((a, b) => b.end.getTime() - a.end.getTime());
-
-    const hero = upcoming[0] ?? running[0] ?? null;
-    const heroIsRunning = hero != null && upcoming.length === 0;
-    const heroDay = hero ? hero.start : today;
-    const heroToday = hero ? isSameDay(hero.start, today) : true;
-    const later = hero
-      ? upcoming.filter((x) => x !== hero && isSameDay(x.start, hero.start)).slice(0, laterCount)
-      : [];
-    // Running rows always show; only the finished list is capped, so a
-    // running hero never buys an extra "Done" row.
-    const earlier = showEarlier
-      ? [...running.filter((x) => x !== hero), ...finishedToday.slice(0, EARLIER_MAX)]
-      : [];
-    const allDayToday = events.filter((ev) => ev.allDay && isEventOnDay(ev, today, timezone));
-    // Tomorrow shows whatever the sections above did not already draw: the
-    // hero can sit on any future day (and all-day events never hero), so
-    // exclude drawn ids instead of gating the section on the hero being today.
-    // A still-running multi-day event is the Now/Earlier story, not
-    // tomorrow's schedule, so it never rides the Tomorrow list either.
-    const runningIds = new Set(running.map((x) => x.ev.id));
-    const shownIds = new Set([
-      ...(hero ? [hero.ev.id] : []),
-      ...later.map((x) => x.ev.id),
-      ...allDayToday.map((ev) => ev.id),
-    ]);
-    const tomorrowRows = showTomorrow
-      ? events
-          .filter((ev) => isEventOnDay(ev, tomorrow, timezone) && !shownIds.has(ev.id) && !runningIds.has(ev.id))
-          .sort((a, b) => (a.allDay === b.allDay ? compareEventStarts(a.start, b.start) : a.allDay ? -1 : 1))
-          .slice(0, TOMORROW_MAX)
-      : [];
-    const remainingToday = upcoming.filter((x) => isSameDay(x.start, today)).length;
-    return { hero, heroIsRunning, heroDay, heroToday, later, earlier, allDayToday, tomorrowRows, remainingToday, hasAnyUpcoming: upcoming.length > 0 };
-  }, [events, now, today, tomorrow, timezone, laterCount, showEarlier, showTomorrow]);
-
-  const { hero, heroIsRunning, heroDay, heroToday, later, earlier, allDayToday, tomorrowRows, remainingToday } = model;
+  // The hero/later/earlier/tomorrow selection lives in the lib
+  // (buildUpNextModel) so its exclusion edges are unit-tested.
+  const model = useMemo(
+    () => buildUpNextModel(events, now, today, { timezone, laterCount, showEarlier, showTomorrow }),
+    [events, now, today, timezone, laterCount, showEarlier, showTomorrow],
+  );
+  const { hero, heroIsRunning, heroDay, heroToday, later, earlier, allDayToday, tomorrowRows, remainingToday, tomorrow } = model;
   const pad = scale.bu * 3.5;
   const sectionGap = scale.bu * 3;
 
@@ -112,7 +67,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {allDayToday.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: scale.bu * 0.8, marginTop: scale.bu * 2, flexShrink: 0 }}>
           {allDayToday.map((ev) => {
-            const color = ev.calendarColor ?? '#3B82F6';
+            const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
             const glyph = eventGlyph(ev);
             const kind = eventKindLabel(ev, today.getFullYear(), t, 'fullscreen-calendar');
             return (
@@ -120,7 +75,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
                 key={ev.id}
                 className="fsc-event-block"
                 data-event-id={ev.id}
-                aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
+                aria-label={eventAriaLabel(t, ev, { allDay: true })}
                 style={{
                   ...eventSurface(color, scale, 'chip', { radius: 999 }),
                   padding: `${scale.bu * 0.5}px ${scale.bu * 1.4}px`,
@@ -143,7 +98,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {/* Hero */}
       <div style={{ marginTop: scale.bu * 4, flexShrink: 0 }}>
         {hero ? (
-          <HeroCard item={hero} running={heroIsRunning} heroToday={heroToday} heroDay={heroDay} now={now} scale={scale} fontSize={fontSize} timeFormat={timeFormat} locale={locale} weather={weather} failingSourceIds={failingSourceIds} t={t} />
+          <HeroCard item={hero} running={heroIsRunning} heroToday={heroToday} heroDay={heroDay} now={now} ctx={rowCtx} weather={weather} failingSourceIds={failingSourceIds} />
         ) : (
           <div style={{
             borderRadius: scale.bu * 2, padding: `${scale.bu * 3.5}px ${scale.bu * 4}px`,
@@ -163,8 +118,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {later.length > 0 && (
         <Section title={heroToday ? t('fullscreen-calendar.upNext.laterToday') : t('fullscreen-calendar.upNext.alsoOn', { day: formatDateSync(heroDay, 'EEEE', { locale }) })} fontSize={fontSize} gap={sectionGap}>
           {later.map((x) => (
-            <ListRow key={x.ev.id} item={x} now={now} scale={scale} fontSize={fontSize} timeFormat={timeFormat} locale={locale} t={t}
-              trailing={formatCountdown(x.start, now, locale)} />
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx} trailing={formatCountdown(x.start, now, locale)} />
           ))}
         </Section>
       )}
@@ -176,7 +130,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
             const progress = eventProgress(x.start, x.end, now);
             const isRunning = progress != null;
             return (
-              <ListRow key={x.ev.id} item={x} now={now} scale={scale} fontSize={fontSize} timeFormat={timeFormat} locale={locale} t={t}
+              <ListRow key={x.ev.id} item={x} ctx={rowCtx}
                 dim={!isRunning}
                 trailing={isRunning
                   ? t('fullscreen-calendar.upNext.minutesLeft', { count: Math.max(1, Math.ceil((x.end.getTime() - now.getTime()) / 60_000)) })
@@ -195,7 +149,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
               key={ev.id}
               item={{ ev, start: parseEventWallTime(ev.start, timezone), end: parseEventWallTime(ev.end, timezone) }}
               allDay={ev.allDay}
-              now={now} scale={scale} fontSize={fontSize} timeFormat={timeFormat} locale={locale} t={t}
+              ctx={rowCtx}
               trailing={ev.sourceName ?? ''}
             />
           ))}
@@ -218,22 +172,19 @@ function Section({ title, fontSize, gap, children }: { title: string; fontSize: 
   );
 }
 
-function HeroCard({ item, running, heroToday, heroDay, now, scale, fontSize, timeFormat, locale, weather, failingSourceIds, t }: {
-  item: TimedEvent;
+function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failingSourceIds }: {
+  item: UpNextTimedEvent;
   running: boolean;
   heroToday: boolean;
   heroDay: Date;
   now: Date;
-  scale: CalendarScale;
-  fontSize: number;
-  timeFormat: TimeFormat;
-  locale: string;
+  ctx: RowCtx;
   weather?: CalendarWeather;
   failingSourceIds?: ReadonlySet<string>;
-  t: TranslateFn;
 }) {
+  const { t, locale, timeFormat, scale, fontSize } = ctx;
   const { ev, start, end } = item;
-  const color = ev.calendarColor ?? '#3B82F6';
+  const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
   const bar = eventBorder(color, scale.isDark);
   const progress = running ? eventProgress(start, end, now) : null;
   const countdown = running ? '' : formatCountdown(start, now, locale);
@@ -246,7 +197,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, scale, fontSize, tim
       className="fsc-event-block"
       data-event-id={ev.id}
       role="article"
-      aria-label={t('fullscreen-calendar.ariaLabels.eventTimed', { title: ev.title, start: startLabel, end: endLabel })}
+      aria-label={eventAriaLabel(t, ev, { startLabel, endLabel })}
       style={{
         position: 'relative', overflow: 'hidden',
         ...eventSurface(color, scale, 'block', { radius: scale.bu * 2, washAlpha: 0.14 }),
@@ -304,28 +255,21 @@ function HeroCard({ item, running, heroToday, heroDay, now, scale, fontSize, tim
   );
 }
 
-function ListRow({ item, allDay, now, scale, fontSize, timeFormat, locale, t, trailing, dim, progress }: {
-  item: TimedEvent;
+function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
+  item: UpNextTimedEvent;
   allDay?: boolean;
-  now: Date;
-  scale: CalendarScale;
-  fontSize: number;
-  timeFormat: TimeFormat;
-  locale: string;
-  t: TranslateFn;
+  ctx: RowCtx;
   trailing?: string;
   dim?: boolean;
   progress?: number | null;
 }) {
+  const { t, locale, timeFormat, scale, fontSize } = ctx;
   const { ev, start, end } = item;
-  const color = ev.calendarColor ?? '#3B82F6';
+  const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
   const glyph = eventGlyph(ev);
   const startLabel = formatEventTime(start, timeFormat, locale);
   const endLabel = formatEventTime(end, timeFormat, locale);
-  const ariaLabel = allDay
-    ? t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })
-    : t('fullscreen-calendar.ariaLabels.eventTimed', { title: ev.title, start: startLabel, end: endLabel });
-  void now;
+  const ariaLabel = eventAriaLabel(t, ev, { startLabel, endLabel, allDay });
   return (
     <div
       className="fsc-event-block"

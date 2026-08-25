@@ -1,6 +1,11 @@
 import type { CalendarEvent, CalendarPerson } from '@/types/config';
-import { eventHoursOnDay } from '@/components/modules/fullscreen-calendar/event-layout';
+import { eventHoursOnDay } from '@/lib/calendar-event-layout';
 import { isEventOnDay } from '@/lib/calendar-utils';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+
+/** Neutral gray for the shared "Everyone" row and unknown-member avatars;
+ *  person rows use their own configured color. */
+export const EVERYONE_COLOR = '#6b7280';
 
 /**
  * Per-person plumbing for the family grid and free time views.
@@ -75,7 +80,7 @@ export function buildPersonRows(
   for (const ev of events) {
     if (!ev.sourceId || ev.kind === 'holiday') { unclaimed = true; continue; }
     if (!sources.has(ev.sourceId)) {
-      sources.set(ev.sourceId, { name: ev.sourceName ?? ev.sourceId, color: ev.calendarColor ?? '#3B82F6' });
+      sources.set(ev.sourceId, { name: ev.sourceName ?? ev.sourceId, color: ev.calendarColor ?? DEFAULT_EVENT_COLOR });
     }
   }
   if (opts.includeEveryone && unclaimed) rows.push(everyone);
@@ -139,7 +144,7 @@ export function busyBlocksForDay(
     const start = Math.max(startHour, hourStart);
     const end = Math.min(endHour, hourEnd);
     if (end <= start) continue;
-    blocks.push({ id: ev.id, title: ev.title, color: ev.calendarColor ?? '#3B82F6', start, end });
+    blocks.push({ id: ev.id, title: ev.title, color: ev.calendarColor ?? DEFAULT_EVENT_COLOR, start, end });
   }
   return blocks.sort((a, b) => a.start - b.start || a.end - b.end);
 }

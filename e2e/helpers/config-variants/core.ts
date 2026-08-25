@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import {
-  has, lacks, matches, notMatches, child, count, redBackground,
+  has, lacks, matches, notMatches, child, count, redBackground, localDate, localIso,
   TINY_GIF, WEATHER_WIND, WEATHER_NO_ALERTS, STANDINGS_8, TODOIST_2,
 } from './shared';
 
@@ -496,12 +496,7 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     // — that event is built to always be currently running, never past.
     type: 'calendar', name: 'dim-past-events', kind: 'networked', stubKey: 'calendar',
     stubBody: [{
-      id: 'past-1', title: 'Ended Event', ...(() => {
-        const d = new Date();
-        const pad = (n: number) => String(n).padStart(2, '0');
-        const at = (h: number, m: number) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad(m)}:00`;
-        return { start: at(0, 1), end: at(0, 2) };
-      })(),
+      id: 'past-1', title: 'Ended Event', start: localIso(0, 0, 1), end: localIso(0, 0, 2),
       allDay: false, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal',
     }],
     config: { viewMode: 'daily', dimPastEvents: true },
@@ -521,20 +516,10 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     // over them rather than stopping at the first one. Same past-event
     // construction as dim-past-events above.
     type: 'calendar', name: 'now-rule-skips-all-day', kind: 'networked', stubKey: 'calendar',
-    stubBody: (() => {
-      const d = new Date();
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const ymd = (offsetDays: number) => {
-        const dd = new Date(d);
-        dd.setDate(dd.getDate() + offsetDays);
-        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
-      };
-      const at = (h: number, m: number) => `${ymd(0)}T${pad(h)}:${pad(m)}:00`;
-      return [
-        { id: 'ar-allday', title: 'Vacation', start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
-        { id: 'ar-past', title: 'Ended Event', start: at(0, 1), end: at(0, 2), allDay: false, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
-      ];
-    })(),
+    stubBody: [
+      { id: 'ar-allday', title: 'Vacation', start: localDate(0), end: localDate(1), allDay: true, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
+      { id: 'ar-past', title: 'Ended Event', start: localIso(0, 0, 1), end: localIso(0, 0, 2), allDay: false, calendarColor: '#4073ff', sourceId: 'cal-primary', sourceName: 'Personal' },
+    ],
     config: { viewMode: 'daily', daysToShow: 1, dimPastEvents: true, showNowRule: true },
     expect: async (mod) => {
       // evaluateAll grabs a single DOM snapshot with no auto-wait (unlike
@@ -553,25 +538,16 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     // "Holiday" in the time slot. Birth year computed relative to "now" so
     // the asserted age never drifts as the test suite ages.
     type: 'calendar', name: 'birthday-kind', kind: 'networked', stubKey: 'calendar',
-    stubBody: (() => {
-      const d = new Date();
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const ymd = (offsetDays: number) => {
-        const dd = new Date(d);
-        dd.setDate(dd.getDate() + offsetDays);
-        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
-      };
-      return [
-        {
-          id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: d.getFullYear() - 9,
-          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
-        },
-        {
-          id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
-          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
-        },
-      ];
-    })(),
+    stubBody: [
+      {
+        id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: new Date().getFullYear() - 9,
+        start: localDate(0), end: localDate(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
+      },
+      {
+        id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
+        start: localDate(0), end: localDate(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
+      },
+    ],
     config: { viewMode: 'daily' },
     expect: async (mod) => { await has('Birthday · turns 9')(mod); await has('Holiday')(mod); },
   },
@@ -596,25 +572,16 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     // number, no colored bar/dot. Holidays keep the normal solid bar. Birth
     // year computed relative to "now" so the asserted age never drifts.
     type: 'fullscreen-calendar', name: 'birthday-kind', kind: 'networked', stubKey: 'calendar',
-    stubBody: (() => {
-      const d = new Date();
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const ymd = (offsetDays: number) => {
-        const dd = new Date(d);
-        dd.setDate(dd.getDate() + offsetDays);
-        return `${dd.getFullYear()}-${pad(dd.getMonth() + 1)}-${pad(dd.getDate())}`;
-      };
-      return [
-        {
-          id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: d.getFullYear() - 9,
-          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
-        },
-        {
-          id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
-          start: ymd(0), end: ymd(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
-        },
-      ];
-    })(),
+    stubBody: [
+      {
+        id: 'bday-1', title: 'Ava', kind: 'birthday', birthYear: new Date().getFullYear() - 9,
+        start: localDate(0), end: localDate(1), allDay: true, calendarColor: '#EC4899', sourceId: 'cal-primary', sourceName: 'Personal',
+      },
+      {
+        id: 'holiday-1', title: 'Labor Day', kind: 'holiday',
+        start: localDate(0), end: localDate(1), allDay: true, calendarColor: '#10b981', sourceId: 'holidays', sourceName: 'Public Holidays',
+      },
+    ],
     config: { view: 'month-grid' },
     expect: async (mod) => { await has('Ava turns 9')(mod); await has('Labor Day')(mod); },
   },

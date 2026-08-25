@@ -1,34 +1,11 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, matches, notMatches, child, count, redBackground, redStyle } from './shared';
+import { has, lacks, matches, notMatches, child, count, redBackground, redStyle, localIso, localDate } from './shared';
 import { parseDateInTZ } from '@/lib/timezone';
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 
-// --- Date helpers (computed at import time, close to test run) --------------
-
-const pad = (n: number) => String(n).padStart(2, '0');
-
-/** An ISO local timestamp `dayOffset` days from today at `hour:minute`. */
-function calIso(dayOffset: number, hour: number, minute = 0): string {
-  const d = new Date();
-  d.setDate(d.getDate() + dayOffset);
-  d.setHours(hour, minute, 0, 0);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
-}
-
-/** Today's YYYY-MM-DD in local time. */
-function todayStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-/** A YYYY-MM-DD `dayOffset` days from today (all-day event bounds). */
-function dateStr(dayOffset: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + dayOffset);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+// --- Date helpers: localIso / localDate come from ./shared -----------------
 
 /**
  * A timed calendar event that spans all of today (00:01 → tomorrow 23:59), so
@@ -36,12 +13,12 @@ function dateStr(dayOffset: number): string {
  * column regardless of wall-clock time.
  */
 function todayEvent(id: string, title: string, extra: Record<string, unknown> = {}) {
-  return { id, title, start: calIso(0, 0, 1), end: calIso(1, 23, 59), allDay: false, ...extra };
+  return { id, title, start: localIso(0, 0, 1), end: localIso(1, 23, 59), allDay: false, ...extra };
 }
 
 /** A short timed event on `dayOffset` at noon. */
 function dayEvent(id: string, title: string, dayOffset: number, extra: Record<string, unknown> = {}) {
-  return { id, title, start: calIso(dayOffset, 12), end: calIso(dayOffset, 13), allDay: false, ...extra };
+  return { id, title, start: localIso(dayOffset, 12), end: localIso(dayOffset, 13), allDay: false, ...extra };
 }
 
 // --- The matrix ------------------------------------------------------------
@@ -377,7 +354,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'countdown', name: 'stay-until-end-of-day', kind: 'network-free',
     config: {
       view: 'all', showPastEvents: false, stayUntilEndOfDay: true,
-      events: [{ id: 'cd-today', name: 'CD TODAY', date: `${todayStr()}T00:00` }],
+      events: [{ id: 'cd-today', name: 'CD TODAY', date: `${localDate(0)}T00:00` }],
     },
     expect: async (mod) => { await has('CD TODAY')(mod); await has('Today!')(mod); },
   },
@@ -550,7 +527,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // Custom wording replaces "No events" in empty daily columns; with one
     // event today and two columns, tomorrow's column is always empty.
     type: 'calendar', name: 'empty-day-text', kind: 'networked', stubKey: 'calendar',
-    stubBody: [todayEvent('ced-1', 'CAL TODAY ONLY', { end: calIso(0, 23, 59) })],
+    stubBody: [todayEvent('ced-1', 'CAL TODAY ONLY', { end: localIso(0, 23, 59) })],
     config: { viewMode: 'daily', daysToShow: 2, emptyDayText: 'CAL FREE DAY' },
     expect: async (mod) => { await has('CAL FREE DAY')(mod); await expect(mod).not.toContainText('No events'); },
   },
@@ -574,8 +551,8 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // under its start day, so both assertions are flag-dependent.
     type: 'calendar', name: 'agenda-show-finished-today', kind: 'networked', stubKey: 'calendar',
     stubBody: [
-      { id: 'chp-1', title: 'CAL RACE WEEKEND', start: calIso(-2, 8), end: calIso(1, 18), allDay: false },
-      { id: 'chp-2', title: 'CAL ENDED TODAY', start: calIso(0, 0, 0), end: calIso(0, 0, 1), allDay: false },
+      { id: 'chp-1', title: 'CAL RACE WEEKEND', start: localIso(-2, 8), end: localIso(1, 18), allDay: false },
+      { id: 'chp-2', title: 'CAL ENDED TODAY', start: localIso(0, 0, 0), end: localIso(0, 0, 1), allDay: false },
     ],
     config: { viewMode: 'agenda', agendaShowFinishedToday: true },
     expect: async (mod) => {
@@ -603,9 +580,9 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // "+1 more" reports it.
     type: 'calendar', name: 'events-per-cell', kind: 'networked', stubKey: 'calendar',
     stubBody: [
-      { id: 'cwec-1', title: 'CAL CAP ONE', start: calIso(1, 8), end: calIso(1, 9), allDay: false },
-      { id: 'cwec-2', title: 'CAL CAP TWO', start: calIso(1, 10), end: calIso(1, 11), allDay: false },
-      { id: 'cwec-3', title: 'CAL CAP THREE', start: calIso(1, 12), end: calIso(1, 13), allDay: false },
+      { id: 'cwec-1', title: 'CAL CAP ONE', start: localIso(1, 8), end: localIso(1, 9), allDay: false },
+      { id: 'cwec-2', title: 'CAL CAP TWO', start: localIso(1, 10), end: localIso(1, 11), allDay: false },
+      { id: 'cwec-3', title: 'CAL CAP THREE', start: localIso(1, 12), end: localIso(1, 13), allDay: false },
     ],
     config: { viewMode: 'multi-week', gridMaxEventsPerCell: 2 },
     expect: async (mod) => {
@@ -634,7 +611,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'calendar', name: 'grid-event-style-colored', kind: 'networked', stubKey: 'calendar',
     stubBody: [
       // All-day bounds are date-only with an exclusive end (next day).
-      todayEvent('cges-a', 'CAL SOLID', { allDay: true, start: dateStr(0), end: dateStr(1), calendarColor: '#eab308' }),
+      todayEvent('cges-a', 'CAL SOLID', { allDay: true, start: localDate(0), end: localDate(1), calendarColor: '#eab308' }),
       todayEvent('cges-b', 'CAL TIMED', { calendarColor: '#3b82f6' }),
     ],
     config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored' },
@@ -666,7 +643,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // grid style (classic renders dot + title with no time), so pin
     // gridEventStyle here.
     type: 'calendar', name: 'multi-week-theme-banner', kind: 'networked', stubKey: 'calendar',
-    stubBody: [{ id: 'cmt-b', title: 'CAL THEME BANNER', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    stubBody: [{ id: 'cmt-b', title: 'CAL THEME BANNER', start: localIso(1, 8, 5), end: localIso(1, 9), allDay: false }],
     config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored' },
     expect: async (mod) => {
       await expect(mod).toContainText('CAL THEME BANNER');
@@ -678,7 +655,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // Clean renders the modern skeleton: month-range header (always carries a
     // year) and a compact unpadded time, with the padded banner format gone.
     type: 'calendar', name: 'multi-week-theme-clean', kind: 'networked', stubKey: 'calendar',
-    stubBody: [{ id: 'cmt-c', title: 'CAL THEME CLEAN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    stubBody: [{ id: 'cmt-c', title: 'CAL THEME CLEAN', start: localIso(1, 8, 5), end: localIso(1, 9), allDay: false }],
     config: { viewMode: 'multi-week', gridTheme: 'clean' },
     expect: async (mod) => {
       await expect(mod.locator('[data-grid-theme="clean"]')).toBeVisible();
@@ -692,7 +669,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // skeleton marker with a single-month header (no en-dash range, unlike
     // the rolling multi-week grid) and the compact time format.
     type: 'calendar', name: 'month-theme-clean', kind: 'networked', stubKey: 'calendar',
-    stubBody: [todayEvent('cmc-1', 'CAL MONTH CLEAN', { start: calIso(0, 8, 5), end: calIso(0, 9) })],
+    stubBody: [todayEvent('cmc-1', 'CAL MONTH CLEAN', { start: localIso(0, 8, 5), end: localIso(0, 9) })],
     config: { viewMode: 'month', gridTheme: 'clean' },
     expect: async (mod) => {
       await expect(mod.locator('[data-grid-theme="clean"]')).toBeVisible();
@@ -703,7 +680,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
   {
     // Minimal drops the time prefix entirely; the title still renders.
     type: 'calendar', name: 'multi-week-theme-minimal', kind: 'networked', stubKey: 'calendar',
-    stubBody: [{ id: 'cmt-m', title: 'CAL THEME MIN', start: calIso(1, 8, 5), end: calIso(1, 9), allDay: false }],
+    stubBody: [{ id: 'cmt-m', title: 'CAL THEME MIN', start: localIso(1, 8, 5), end: localIso(1, 9), allDay: false }],
     config: { viewMode: 'multi-week', gridTheme: 'minimal' },
     expect: async (mod) => {
       await expect(mod.locator('[data-grid-theme="minimal"]')).toBeVisible();
@@ -715,7 +692,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // Vivid paints timed pills solid in the calendar color with the same
     // auto-contrast text rule the all-day pills use (yellow -> near-black).
     type: 'calendar', name: 'multi-week-theme-vivid', kind: 'networked', stubKey: 'calendar',
-    stubBody: [{ id: 'cmt-v', title: 'CAL THEME VIVID', start: calIso(1, 8), end: calIso(1, 9), allDay: false, calendarColor: '#eab308' }],
+    stubBody: [{ id: 'cmt-v', title: 'CAL THEME VIVID', start: localIso(1, 8), end: localIso(1, 9), allDay: false, calendarColor: '#eab308' }],
     config: { viewMode: 'multi-week', gridTheme: 'vivid' },
     expect: async (mod) => {
       const pill = mod.locator('[data-event-id="cmt-v"]');

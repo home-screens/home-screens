@@ -3,7 +3,56 @@ import { isSameDay } from 'date-fns';
 import { toTZWallTime } from '@/lib/timezone';
 import { formatEventTime } from '@/lib/calendar-utils';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarSourceStatus, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type TimeFormat } from '@/types/config';
+
+/**
+ * The "failure does not mean empty" status both calendar modules render:
+ * while the shared fetch is failing, the events on screen are the kept
+ * last-good payload — `statusText` badges them as saved rather than live
+ * (day-scoped saved-from time, display-timezone formatted). Only a failure
+ * with NO successful fetch ever (`neverLoaded`) renders a "can't load"
+ * state: last-good data whose visible window happens to be empty is a
+ * normal quiet day, not an outage. When the shared fetch is fine but a
+ * single source is failing, the text names it via the useFailingSources
+ * derivation; several at once fall back to the generic saved wording.
+ * `ns` picks each module's namespace for the saved strings, same as
+ * `eventKindLabel`.
+ */
+export function calendarStaleStatus(opts: {
+  calendarStatus: CalendarFetchStatus | undefined;
+  failingSources: CalendarSourceStatus[];
+  soloFailingName: string | undefined;
+  soloFailingSince: string | null;
+  timezone: string | undefined;
+  timeFormat: TimeFormat | undefined;
+  locale: string;
+  today: Date;
+  t: TranslateFn;
+  ns: 'calendar' | 'fullscreen-calendar';
+}): { fetchFailed: boolean; neverLoaded: boolean; statusText: string | null } {
+  const { calendarStatus, t, ns } = opts;
+  const fetchFailed = calendarStatus?.error != null;
+  const neverLoaded = fetchFailed && calendarStatus?.updatedAt == null;
+  // The saved-from time is only meaningful on the day it happened; a
+  // multi-day outage falls back to the generic wording.
+  const savedWall = fetchFailed && calendarStatus?.updatedAt != null
+    ? (opts.timezone ? toTZWallTime(new Date(calendarStatus.updatedAt), opts.timezone) : new Date(calendarStatus.updatedAt))
+    : null;
+  const staleSince = savedWall && isSameDay(savedWall, opts.today)
+    ? formatEventTime(savedWall, opts.timeFormat ?? DEFAULT_TIME_FORMAT, opts.locale)
+    : null;
+  let statusText: string | null = null;
+  if (fetchFailed && !neverLoaded) {
+    statusText = staleSince ? t(`${ns}.savedFrom`, { time: staleSince }) : t(`${ns}.savedEvents`);
+  } else if (!fetchFailed && opts.failingSources.length > 0) {
+    statusText = opts.soloFailingName
+      ? (opts.soloFailingSince
+        ? t('calendar.sourceNotUpdating', { name: opts.soloFailingName, time: opts.soloFailingSince })
+        : t('calendar.sourceNotUpdatingNoTime', { name: opts.soloFailingName }))
+      : t(`${ns}.savedEvents`);
+  }
+  return { fetchFailed, neverLoaded, statusText };
+}
 
 /**
  * Shared derivation of the per-source failure presentation both calendar

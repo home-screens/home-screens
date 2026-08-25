@@ -372,7 +372,21 @@
         "updated": "Bijgewerkt {time}",
         "updatedNow": "Zojuist bijgewerkt",
         "notUpdating": "Wordt niet bijgewerkt",
-        "errorSince": "{error} · laatst gelukt {time}"
+        "errorSince": "{error} · laatst gelukt {time}",
+        "errors": {
+          "googleCalendarFailed": "Deze agenda kon niet uit Google worden geladen",
+          "googleUnreachable": "Google Agenda is niet bereikbaar",
+          "holidaysFailed": "De feestdagenlijst kon niet worden geladen",
+          "icloudBirthdaysFailed": "Verjaardagen konden niet uit iCloud worden geladen",
+          "icloudCalendarFailed": "Deze agenda kon niet uit iCloud worden geladen",
+          "icloudNoAccount": "Er is geen iCloud-account gekoppeld voor deze agenda",
+          "icloudNotICloudUrl": "Het agenda-adres is geen iCloud-link",
+          "icloudUnreachable": "iCloud is niet bereikbaar",
+          "linkHttpError": "De link is niet bereikbaar (HTTP {status})",
+          "linkInvalid": "De link is geen geldig webadres",
+          "linkUnreachable": "De link is niet bereikbaar",
+          "linkUnreadable": "De link leverde geen leesbare agenda op"
+        }
       },
       "people": {
         "heading": "Personen",

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { CALENDAR_STATE_KEYS, CALENDAR_STATE_KEY_LIST, calendarProvidedStateKeys, deriveCalendarState } from '../calendar-state';
 import type { CalendarEvent } from '@/types/config';
+import { makeEvent } from './helpers/calendar-fixtures';
 
 const K = CALENDAR_STATE_KEYS;
 
@@ -10,16 +11,7 @@ const now = new Date('2026-08-20T15:00:00');
 const opts = { timeFormat: '12h' as const, locale: 'en-US' };
 const inTZ = (timezone: string) => ({ ...opts, timezone });
 
-function ev(over: Partial<CalendarEvent> = {}): CalendarEvent {
-  return {
-    id: over.id ?? 'e1',
-    title: 'Soccer practice',
-    start: '2026-08-20T16:30:00',
-    end: '2026-08-20T18:00:00',
-    allDay: false,
-    ...over,
-  };
-}
+const ev = makeEvent;
 
 function allDay(over: Partial<CalendarEvent> = {}): CalendarEvent {
   return ev({ start: '2026-08-20', end: '2026-08-21', allDay: true, title: 'Ada turns 9', ...over });

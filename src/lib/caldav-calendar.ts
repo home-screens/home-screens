@@ -3,7 +3,7 @@ import type { CalendarEvent, ICloudSource } from '@/types/config';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
 import { parseICSEvents } from '@/lib/ical-calendar';
 import { compareEventStarts } from '@/lib/calendar-utils';
-import type { SourceFetchResult } from '@/lib/calendar-source-status';
+import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { logger } from '@/lib/logger';
 
 const log = logger('caldav');
@@ -138,39 +138,30 @@ export async function fetchICloudEvents(
     byAccount.set(source.accountId, list);
   }
 
-  const allEvents: CalendarEvent[] = [];
-  const allResults: SourceFetchResult[] = [];
-  const entries = [...byAccount.entries()];
-  const settled = await Promise.allSettled(
-    entries.map(async ([accountId, accountSources]) => {
+  const { events, results } = await settleSourceFetches(
+    [...byAccount.entries()],
+    async ([accountId, accountSources]) => {
       const account = accounts.find((a) => a.id === accountId);
       if (!account) {
         log.warn(`No iCloud account on file for sources ${accountSources.map((s) => s.name).join(', ')}`);
         return {
           events: [] as CalendarEvent[],
           results: accountSources.map((s): SourceFetchResult =>
-            ({ id: s.id, name: s.name, ok: false, error: 'No iCloud account is connected for this calendar' })),
+            ({ id: s.id, name: s.name, ok: false, error: 'No iCloud account is connected for this calendar', messageKey: 'icloudNoAccount' })),
         };
       }
       return fetchAccountEvents(account, accountSources, from, to);
-    }),
+    },
+    ([, accountSources], reason) => {
+      // Account-level failure (auth or network): every source on it fails.
+      log.warn('iCloud account fetch rejected', reason);
+      return accountSources.map((s): SourceFetchResult =>
+        ({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud", messageKey: 'icloudUnreachable' }));
+    },
   );
 
-  settled.forEach((result, i) => {
-    if (result.status === 'fulfilled') {
-      allEvents.push(...result.value.events);
-      allResults.push(...result.value.results);
-    } else {
-      // Account-level failure (auth or network): every source on it fails.
-      log.warn('iCloud account fetch rejected', result.reason);
-      const [, accountSources] = entries[i];
-      allResults.push(...accountSources.map((s): SourceFetchResult =>
-        ({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud" })));
-    }
-  });
-
-  allEvents.sort((a, b) => compareEventStarts(a.start, b.start));
-  return { events: allEvents, results: allResults };
+  events.sort((a, b) => compareEventStarts(a.start, b.start));
+  return { events, results };
 }
 
 async function fetchAccountEvents(
@@ -184,7 +175,7 @@ async function fetchAccountEvents(
     if (s.kind !== 'calendar') return false;
     if (!isICloudUrl(s.url)) {
       log.warn(`Skipping "${s.name}": calendar URL is not an iCloud address (${s.url})`);
-      results.push({ id: s.id, name: s.name, ok: false, error: "The calendar address isn't an iCloud link" });
+      results.push({ id: s.id, name: s.name, ok: false, error: "The calendar address isn't an iCloud link", messageKey: 'icloudNotICloudUrl' });
       return false;
     }
     return true;
@@ -202,14 +193,15 @@ async function fetchAccountEvents(
     } catch (err) {
       log.warn(`iCloud sign-in failed for ${account.appleId}`, err);
       for (const s of calendarSources) {
-        results.push({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud" });
+        results.push({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud", messageKey: 'icloudUnreachable' });
       }
     }
   }
   if (client && calendarSources.length) {
     const caldavClient = client;
-    const settled = await Promise.allSettled(
-      calendarSources.map(async (source) => {
+    const settled = await settleSourceFetches(
+      calendarSources,
+      async (source) => {
         const objects = await withTimeout(
           (fetchOptions) =>
             caldavClient.fetchCalendarObjects({
@@ -228,19 +220,15 @@ async function fetchAccountEvents(
             log.warn(`Unparseable event in "${source.name}" (${obj.url})`, err);
           }
         }
-        return sourceEvents;
-      }),
+        return { events: sourceEvents, results: [{ id: source.id, name: source.name, ok: true }] };
+      },
+      (source, reason) => {
+        log.warn(`iCloud calendar fetch failed for ${account.appleId}`, reason);
+        return [{ id: source.id, name: source.name, ok: false, error: "Couldn't load this calendar from iCloud", messageKey: 'icloudCalendarFailed' }];
+      },
     );
-    settled.forEach((result, i) => {
-      const source = calendarSources[i];
-      if (result.status === 'fulfilled') {
-        events.push(...result.value);
-        results.push({ id: source.id, name: source.name, ok: true });
-      } else {
-        log.warn(`iCloud calendar fetch failed for ${account.appleId}`, result.reason);
-        results.push({ id: source.id, name: source.name, ok: false, error: "Couldn't load this calendar from iCloud" });
-      }
-    });
+    events.push(...settled.events);
+    results.push(...settled.results);
   }
 
   for (const source of birthdaySources) {
@@ -249,7 +237,7 @@ async function fetchAccountEvents(
       results.push({ id: source.id, name: source.name, ok: true });
     } catch (err) {
       log.warn(`iCloud birthdays fetch failed for ${account.appleId}`, err);
-      results.push({ id: source.id, name: source.name, ok: false, error: "Couldn't load birthdays from iCloud" });
+      results.push({ id: source.id, name: source.name, ok: false, error: "Couldn't load birthdays from iCloud", messageKey: 'icloudBirthdaysFailed' });
     }
   }
 

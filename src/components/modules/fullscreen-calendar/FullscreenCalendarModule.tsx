@@ -1,26 +1,28 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState } from 'react';
-import { startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
+import { memo, useMemo } from 'react';
+import { startOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText, Users, Zap, Hourglass } from 'lucide-react';
+import { CalendarX } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { applyEventRules, resolveDayDecor, type DayDecor } from '@/lib/calendar-rules';
-import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, listViewCutoff, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
-import { buildHourlyIndex, type HourlyIndex } from './event-weather';
-import { toTZWallTime } from '@/lib/timezone';
+import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
+import { listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
+import { buildLegend } from '@/lib/calendar-legend';
+import { effectiveWeatherPlacement, viewTraits } from './view-traits';
+import type { CalendarScale, CalendarViewProps, CalendarWeather } from './view-support';
+import { buildHourlyIndex } from './event-weather';
 import { getWeatherIcon } from '@/lib/weather-icons';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type CalendarTitleFilter, type CalendarEventRule, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
-import { hasExtras, type ExtrasIndex } from '@/lib/calendar-extras';
+import type { CalendarFetchStatus, CalendarPerson, CalendarSourceStatus, CalendarTitleFilter, CalendarEventRule, FullscreenCalendarConfig, ModuleStyle, CalendarEvent, TimeFormat } from '@/types/config';
+import { hasExtras } from '@/lib/calendar-extras';
 import { toISODate } from '@/lib/meal-constants';
 import { useCalendarExtras } from './useCalendarExtras';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop } from '@/lib/fullscreen-themes';
-import type { FullscreenEventStyle } from '@/lib/fullscreen-themes';
 import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
@@ -31,7 +33,8 @@ import { UpNextView } from './UpNextView';
 import { FreeTimeView } from './FreeTimeView';
 import { EventDetailOverlay } from '../shared/EventDetailOverlay';
 import { CalendarLegend } from '../shared/CalendarLegend';
-import { useFailingSources } from '../shared/useFailingSources';
+import { calendarStaleStatus, useFailingSources } from '../shared/useFailingSources';
+import { useEventTapDetail } from '../shared/useEventTapDetail';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
 // (potentially hundreds of) event blocks from reconciling on those frames —
@@ -45,58 +48,9 @@ const MemoFamilyGridView = memo(FamilyGridView);
 const MemoUpNextView = memo(UpNextView);
 const MemoFreeTimeView = memo(FreeTimeView);
 
-// ─── Types ───
-
-// Re-export CalendarEvent from central types for view imports
+// Shared view types/helpers live in view-support (the views import from
+// there, never from this module, so there is no parent↔view import cycle).
 export type { CalendarEvent } from '@/types/config';
-
-export interface CalendarScale {
-  bu: number; // base unit = min(w, h) / 100
-  width: number;
-  height: number;
-  orientation: 'portrait' | 'landscape';
-  densityMul: number;
-  typoMul: number;
-  isDark: boolean;
-  /** How the active theme paints event blocks. See `eventSurface`. */
-  eventStyle: FullscreenEventStyle;
-}
-
-// Re-export MapPin for use in subviews
-export { MapPin };
-
-/** Weather data + placement bundle threaded to the list views. The hourly
- *  index is pre-built here (once per fetch) so per-row lookups on every
- *  60s tick are O(1) instead of a scan over the full hourly horizon. */
-export interface CalendarWeather {
-  hourlyIndex: HourlyIndex;
-  forecast?: ForecastDay[];
-  placement: WeatherPlacement;
-}
-
-/**
- * The one props contract every fullscreen view accepts. `viewProps` below is
- * annotated with it and each view's signature uses it, so adding a field here
- * reaches all five views — a per-view interface would let a JSX spread pass
- * a prop the view silently ignores (spreads skip excess-property checks).
- */
-export interface CalendarViewProps {
-  events: CalendarEvent[];
-  /** Display timezone; event times are bucketed and labeled in it, like `today`/`now`. */
-  timezone?: string;
-  config: FullscreenCalendarConfig;
-  scale: CalendarScale;
-  today: Date;
-  now: Date;
-  timeFormat?: TimeFormat;
-  weather?: CalendarWeather;
-  /** Sources whose feed is failing; list-view rows add a "saved" time suffix. */
-  failingSourceIds?: ReadonlySet<string>;
-  /** Settings > Calendar > People; absent = the per-person views fall back to one row per source. */
-  people?: CalendarPerson[];
-  /** Week list household rows (planned meals + chore progress), keyed by local ISO date. */
-  extras?: ExtrasIndex;
-}
 
 // ─── Helpers ───
 
@@ -118,32 +72,17 @@ function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
   return ratio < 1.2 && h > w ? 'portrait' : 'landscape';
 }
 
-
-export function autoScheduleDays(width: number, density: string): number {
-  const minColWidth = density === 'cozy' ? 200 : 150;
-  const scaledMin = minColWidth * (Math.min(width, 1080) / 1080);
-  const gutterWidth = 50;
-  return Math.min(7, Math.max(1, Math.floor((width - gutterWidth) / scaledMin)));
-}
-
-function filterEvents(events: CalendarEvent[], sourceFilter?: string[]): CalendarEvent[] {
-  if (!sourceFilter || sourceFilter.length === 0) return events;
-  return events.filter(ev => {
-    if (ev.sourceId && sourceFilter.includes(ev.sourceId)) return true;
-    if (!ev.sourceId) return true;
-    return false;
-  });
-}
-
 /**
  * Events a fullscreen-calendar view should render: source-filtered, then
- * title-filtered, then — for the agenda view only — narrowed to upcoming
- * events, or to events ending today or later when `showFinishedToday` is
- * on (the agenda iterates days from today, so finished rows land under
- * today and dim via `dimPastEvents`). The other views (schedule, week-list,
- * month-grid, day-timeline) render fixed day/week/month ranges and
- * intentionally show past events, so they take the shared feed as-is.
- * Exported for unit testing this branch without rendering the component.
+ * title-filtered, then rule-filtered, then — for the agenda view only —
+ * narrowed to upcoming events, or to events ending today or later when
+ * `showFinishedToday` is on (the agenda iterates days from today, so
+ * finished rows land under today and dim via `dimPastEvents`). Every other
+ * view takes the shared feed as-is: the fixed-range views (schedule,
+ * week-list, month-grid, day-timeline, family-grid) intentionally show
+ * past events, and up-next / free-time narrow to their own upcoming /
+ * today-and-tomorrow shapes inside the view. Exported for unit testing
+ * this branch without rendering the component.
  */
 export function selectVisibleEvents(
   events: CalendarEvent[],
@@ -152,108 +91,15 @@ export function selectVisibleEvents(
   now: Date,
   opts: { timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean; eventRules?: CalendarEventRule[] } = {},
 ): CalendarEvent[] {
-  const filtered = applyEventRules(
-    applyTitleFilter(filterEvents(events, sourceFilter), opts.titleFilter),
-    opts.eventRules,
-    { now, timezone: opts.timezone },
-  );
-  if (view !== 'agenda') return filtered;
-  const cutoff = listViewCutoff(now, opts.showFinishedToday === true);
-  return filtered.filter(ev => isEventUpcoming(ev, cutoff, opts.timezone));
+  return selectCalendarEvents(events, {
+    sourceFilter,
+    titleFilter: opts.titleFilter,
+    eventRules: opts.eventRules,
+    timezone: opts.timezone,
+    now,
+    upcomingCutoff: view === 'agenda' ? listViewCutoff(now, opts.showFinishedToday === true) : undefined,
+  });
 }
-
-/** Day-rule decor for one day cell / header in a fullscreen view. The auto
- *  tint is stronger on dark themes, where a light wash reads as nothing. */
-export function dayDecorFor(
-  config: FullscreenCalendarConfig,
-  day: Date,
-  dayEvents: CalendarEvent[],
-  ctx: { today: Date; now: Date; timezone?: string; isDark: boolean },
-): DayDecor {
-  return resolveDayDecor(day, dayEvents, config.dayRules, ctx, { autoTintAlpha: ctx.isDark ? 0.22 : 0.14 });
-}
-
-/** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */
-export function clampStyle(wrap: boolean): React.CSSProperties {
-  return wrap
-    ? {
-        display: '-webkit-box',
-        WebkitLineClamp: 2,
-        WebkitBoxOrient: 'vertical',
-        whiteSpace: 'normal',
-        wordBreak: 'break-word',
-        overflow: 'hidden',
-      }
-    : {
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-      };
-}
-
-function getHeaderTitle(
-  view: string,
-  today: Date,
-  t: TranslateFn,
-  locale: string,
-  scheduleDays?: number,
-  startDay?: WeekStartDay,
-  scheduleStart?: Date,
-): string {
-  switch (view) {
-    case 'schedule': {
-      // The range starts at the anchor-resolved first column, which is only
-      // `today` for the default anchor.
-      const first = scheduleStart ?? today;
-      const endDay = addDays(first, (scheduleDays ?? 7) - 1);
-      if (first.getMonth() === endDay.getMonth()) {
-        return `${formatDateSync(first, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
-      }
-      return `${formatDateSync(first, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
-    }
-    case 'week-list':
-    case 'family-grid': {
-      const weekStartsOn = weekStartsOnFor(startDay);
-      const weekStart = startOfWeek(today, { weekStartsOn });
-      const weekEnd = endOfWeek(today, { weekStartsOn });
-      return `${formatDateSync(weekStart, 'MMMM d', { locale })} \u2013 ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
-    }
-    case 'month-grid':
-      return formatDateSync(today, 'MMMM yyyy', { locale });
-    case 'up-next':
-      return t('fullscreen-calendar.headerUpNext');
-    case 'free-time':
-      return t('fullscreen-calendar.headerFreeTime');
-    case 'day-timeline':
-      return formatDateSync(today, 'EEEE, MMMM d', { locale });
-    case 'agenda':
-      return t('fullscreen-calendar.headerUpcoming');
-    default:
-      return formatDateSync(today, 'MMMM yyyy', { locale });
-  }
-}
-
-const VIEW_ICONS: Record<string, typeof Columns3> = {
-  'schedule': Columns3,
-  'week-list': List,
-  'month-grid': Grid3X3,
-  'day-timeline': CalendarClock,
-  'agenda': ScrollText,
-  'family-grid': Users,
-  'up-next': Zap,
-  'free-time': Hourglass,
-};
-
-const VIEW_LABEL_KEYS: Record<string, string> = {
-  'schedule': 'fullscreen-calendar.viewLabels.schedule',
-  'week-list': 'fullscreen-calendar.viewLabels.weekList',
-  'month-grid': 'fullscreen-calendar.viewLabels.monthGrid',
-  'day-timeline': 'fullscreen-calendar.viewLabels.dayTimeline',
-  'agenda': 'fullscreen-calendar.viewLabels.agenda',
-  'family-grid': 'fullscreen-calendar.viewLabels.familyGrid',
-  'up-next': 'fullscreen-calendar.viewLabels.upNext',
-  'free-time': 'fullscreen-calendar.viewLabels.freeTime',
-};
 
 // ─── Skeleton loading ───
 
@@ -280,14 +126,10 @@ function SkeletonLoading({ scale }: { scale: CalendarScale }) {
 
 // ─── Empty state ───
 
-function EmptyState({ scale, view, t, fetchFailed }: { scale: CalendarScale; view: string; t: TranslateFn; fetchFailed?: boolean }) {
+function EmptyState({ scale, emptyKey, t, fetchFailed }: { scale: CalendarScale; emptyKey: string; t: TranslateFn; fetchFailed?: boolean }) {
   // A failed fetch with nothing kept is an outage, not a free day — it must
   // never render the same wording as a genuinely empty calendar.
-  const label = fetchFailed ? t('fullscreen-calendar.cantLoadEvents')
-    : view === 'month-grid' ? t('fullscreen-calendar.noEventsThisMonth')
-    : view === 'agenda' || view === 'up-next' ? t('fullscreen-calendar.noUpcomingEvents')
-    : view === 'day-timeline' || view === 'free-time' ? t('fullscreen-calendar.noEventsToday')
-    : t('fullscreen-calendar.noEventsThisWeek');
+  const label = fetchFailed ? t('fullscreen-calendar.cantLoadEvents') : t(emptyKey);
   return (
     <div style={{
       display: 'flex',
@@ -352,7 +194,10 @@ export default function FullscreenCalendarModule({
 
   // Updates every 60s — drives now-line movement and midnight rollover
   const now = useTZClock(timezone);
-  const today = useMemo(() => startOfDay(now), [now]);
+  // Keyed on the ms value, not `now`: `today`'s identity holds until
+  // midnight, so memos and view props keyed on it survive the 60s ticks.
+  const todayMs = startOfDay(now).getTime();
+  const today = useMemo(() => new Date(todayMs), [todayMs]);
 
   // Legend ring, named header pill, and per-row "saved" suffix all key off
   // this shared derivation (see useFailingSources).
@@ -360,12 +205,17 @@ export default function FullscreenCalendarModule({
     sourceStatus, sourceFilter: config.sourceFilter, timezone, timeFormat, locale, today, t,
   });
 
+  // The 60s tick only changes the selection when the agenda cutoff applies
+  // or a rule actually reads the clock; otherwise keep the memo stable
+  // across ticks — the rules pass mints new event objects, which would
+  // thrash every event-keyed memo in the views for nothing on a Pi.
+  const selectionNow = config.view === 'agenda' || rulesNeedNow(config.eventRules) ? now : null;
   const events = useMemo(
-    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, now, {
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, selectionNow ?? today, {
       timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
       eventRules: config.eventRules,
     }),
-    [rawEvents, config.view, config.sourceFilter, now, timezone, config.titleFilter, config.agendaShowFinishedToday, config.eventRules],
+    [rawEvents, config.view, config.sourceFilter, selectionNow, today, timezone, config.titleFilter, config.agendaShowFinishedToday, config.eventRules],
   );
 
   const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
@@ -394,44 +244,21 @@ export default function FullscreenCalendarModule({
     isDark: theme.isDark,
     eventStyle: theme.eventStyle ?? 'wash',
   }), [dims, config.density, config.typographySize, theme.isDark, theme.eventStyle]);
-  // For schedule view, compute effective days count for the header title
-  const scheduleDays = config.view === 'schedule'
-    ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
-    : undefined;
-  const scheduleStart = config.view === 'schedule'
-    ? resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOnFor(config.startDay))
-    : undefined;
-  const headerTitle = getHeaderTitle(config.view, today, t, locale, scheduleDays, config.startDay, scheduleStart);
+
+  // Everything view-shaped (title, icon, empty wording, legend window,
+  // weather surfaces) comes from the shared registry.
+  const traits = viewTraits(config.view);
+  const headerTitle = traits.headerTitle({ today, t, locale, config, scaleWidth: scale.width });
 
   // Legend rows come from the events the current view actually draws — the
   // shared fetch window is wider than any single view, so scope to the
-  // view's day range first. Only the view→window mapping lives here; the
-  // date math and the holidays-label remap are shared (calendar-utils).
+  // view's day range first (the registry knows each view's range).
   const legendPlacement = config.showLegend ?? 'off';
   const legend = useMemo(() => {
     if (legendPlacement === 'off') return [];
-    const weekStartsOn = weekStartsOnFor(config.startDay);
-    const window =
-      config.view === 'schedule'
-        ? viewDayWindow({
-            kind: 'days', today, weekStartsOn,
-            start: resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn),
-            count: config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density),
-          })
-        : config.view === 'week-list' || config.view === 'family-grid' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
-        : config.view === 'month-grid' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
-        : config.view === 'day-timeline' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: 1 })
-        : config.view === 'free-time' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.freeTimeShowTomorrow !== false ? 2 : 1 })
-        // The up-next hero can sit on any future day (its feed is forward-
-        // unbounded), so its legend scopes to everything from today on.
-        : config.view === 'up-next' ? { start: today, end: addDays(today, 366) }
-        : viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.agendaDaysAhead > 0 ? config.agendaDaysAhead : 14 });
+    const window = traits.legendWindow({ today, weekStartsOn: weekStartsOnFor(config.startDay), config, scaleWidth: scale.width });
     return buildLegend(events, window, timezone, t('calendar.publicHolidays'));
-  }, [
-    legendPlacement, events, timezone, today, t,
-    config.view, config.startDay, config.scheduleStartAnchor, config.scheduleDaysToShow,
-    config.density, config.agendaDaysAhead, config.freeTimeShowTomorrow, scale.width,
-  ]);
+  }, [legendPlacement, events, timezone, today, t, traits, config, scale.width]);
 
   // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;
@@ -441,9 +268,8 @@ export default function FullscreenCalendarModule({
   // Resolve weather Lucide icon
   const WeatherIcon = weatherIconId ? getWeatherIcon(weatherIconId, 'outline') : null;
 
-  const ViewIcon = VIEW_ICONS[config.view] ?? Columns3;
-  const viewLabelKey = VIEW_LABEL_KEYS[config.view];
-  const viewLabel = viewLabelKey ? t(viewLabelKey) : config.view;
+  const ViewIcon = traits.icon;
+  const viewLabel = t(traits.labelKey);
 
   const weatherPlacement = effectiveWeatherPlacement(config.view, config);
   const weather = useMemo<CalendarWeather>(
@@ -482,44 +308,21 @@ export default function FullscreenCalendarModule({
   // renders the "can't load" state: last-good data whose visible window
   // happens to be empty (an agenda after the day's last event) is a normal
   // empty day, not an outage.
-  const fetchFailed = calendarStatus?.error != null;
-  const neverLoaded = fetchFailed && calendarStatus?.updatedAt == null;
-  // The saved-from time is only meaningful on the day it happened; a
-  // multi-day outage falls back to the generic wording. Formatted in the
-  // display timezone like every other time in the module.
-  const savedWall = fetchFailed && calendarStatus?.updatedAt != null
-    ? (timezone ? toTZWallTime(new Date(calendarStatus.updatedAt), timezone) : new Date(calendarStatus.updatedAt))
-    : null;
-  const staleSince = savedWall && startOfDay(savedWall).getTime() === today.getTime()
-    ? formatEventTime(savedWall, timeFormat ?? DEFAULT_TIME_FORMAT, locale)
-    : null;
+  const { neverLoaded, statusText } = calendarStaleStatus({
+    calendarStatus, failingSources, soloFailingName, soloFailingSince,
+    timezone, timeFormat, locale, today, t, ns: 'fullscreen-calendar',
+  });
 
-
-  // Tap-to-open detail: one delegated handler on the root instead of a
-  // callback threaded through all five views. Every event element carries
-  // data-event-id, so closest() maps a tap back to its event. State holds the
-  // id, not the event object: the event is re-resolved each render so a data
-  // refresh updates the open overlay (or closes it if the event is gone)
-  // instead of showing a stale snapshot.
+  // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   const tapDetails = config.eventTapDetails === true;
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const detailEvent = detailId ? events.find(ev => ev.id === detailId) ?? null : null;
-  // Config is live-pushed without a remount; turning the feature off must
-  // also clear the selection or re-enabling would reopen it unprompted.
-  useEffect(() => {
-    if (!tapDetails) setDetailId(null);
-  }, [tapDetails]);
-  const handleRootClick = (e: React.MouseEvent) => {
-    const id = (e.target as HTMLElement).closest?.('[data-event-id]')?.getAttribute('data-event-id');
-    if (id) setDetailId(id);
-  };
+  const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(events, tapDetails);
 
   return (
     <div
       ref={containerRef}
       className="fsc-root"
       data-tap-events={tapDetails ? '' : undefined}
-      onClick={tapDetails ? handleRootClick : undefined}
+      onClick={onRootClick}
       style={{
         width: '100%',
         height: '100%',
@@ -565,17 +368,23 @@ export default function FullscreenCalendarModule({
       <style>{cssTokens}</style>
 
       {/* Header bar */}
-      <header className="fsc-header" style={{ height: `${scale.bu * 5}px`, flexShrink: 0 }} role="banner">
+      {/* The bar grows with the typography setting so a scaled-up serif
+          title never spills over the view below; `small` keeps the full
+          5bu bar (the pills and badges in it don't shrink as far). */}
+      <header className="fsc-header" style={{ height: `${scale.bu * 5 * Math.max(1, scale.typoMul)}px`, flexShrink: 0 }} role="banner">
         <h1
           className="fsc-header-title"
-          style={{ fontSize: `${scale.bu * 3.5 * scale.typoMul}px`, margin: 0 }}
+          // Explicit line height: the serif's default line box is ~1.45em,
+          // which overshoots the bar and paints descenders over the view.
+          style={{ fontSize: `${scale.bu * 3.5 * scale.typoMul}px`, lineHeight: 1.15, margin: 0 }}
         >
           {headerTitle}
         </h1>
         <div style={{ flex: 1 }} />
-        {fetchFailed && !neverLoaded ? (
-          // The saved-events pill takes the weather pill's slot so the header
-          // element count never changes; calm amber, no "error" language.
+        {statusText ? (
+          // The saved-events / source-outage pill takes the weather pill's
+          // slot so the header element count never changes; calm amber, no
+          // "error" language (wording shared via calendarStaleStatus).
           <span
             className="fsc-stale-pill"
             style={{
@@ -585,27 +394,7 @@ export default function FullscreenCalendarModule({
             role="status"
           >
             <span className="fsc-stale-dot" aria-hidden="true" />
-            {staleSince
-              ? t('fullscreen-calendar.savedFrom', { time: staleSince })
-              : t('fullscreen-calendar.savedEvents')}
-          </span>
-        ) : !fetchFailed && failingSources.length > 0 ? (
-          // Per-source outage while the shared fetch itself is fine: name the
-          // one failing source; several at once fall back to generic wording.
-          <span
-            className="fsc-stale-pill"
-            style={{
-              fontSize: `${scale.bu * 1.1 * scale.typoMul}px`,
-              color: scale.isDark ? '#d9a441' : '#92642c',
-            }}
-            role="status"
-          >
-            <span className="fsc-stale-dot" aria-hidden="true" />
-            {soloFailingName
-              ? (soloFailingSince
-                ? t('calendar.sourceNotUpdating', { name: soloFailingName, time: soloFailingSince })
-                : t('calendar.sourceNotUpdatingNoTime', { name: soloFailingName }))
-              : t('fullscreen-calendar.savedEvents')}
+            {statusText}
           </span>
         ) : weatherPlacement === 'header' && currentTemp != null && (
           <span
@@ -644,7 +433,7 @@ export default function FullscreenCalendarModule({
           // A fetch that has never succeeded is an outage even when the view
           // has settings-derived content (people rows, meals/chores): drawing
           // every person with zero events would read as a free week.
-          <EmptyState scale={scale} view={config.view} t={t} fetchFailed={neverLoaded} />
+          <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} fetchFailed={neverLoaded} />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div
@@ -683,11 +472,11 @@ export default function FullscreenCalendarModule({
           event={detailEvent}
           variant={config.eventTapStyle ?? 'sheet'}
           theme={theme}
-          accentColor={eventBorder(detailEvent.calendarColor ?? '#3B82F6', theme.isDark)}
+          accentColor={eventBorder(detailEvent.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
           timeFormat={timeFormat}
           timezone={timezone}
           now={now}
-          onClose={() => setDetailId(null)}
+          onClose={closeDetail}
         />
       )}
     </div>

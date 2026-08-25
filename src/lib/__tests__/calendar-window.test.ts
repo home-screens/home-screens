@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
-import { getCalendarFetchWindow, buildCalendarUrl, googleCalendarIdList, hasAnyCalendarSource, hasCalendarFeedSources } from '@/lib/calendar-window';
+import { getCalendarFetchWindow } from '@/lib/calendar-window';
+import { buildCalendarUrl, googleCalendarIdList, hasAnyCalendarSource, hasCalendarFeedSources } from '@/lib/calendar-sources';
 import type { CalendarSettings, ModuleInstance, ModuleType, Screen } from '@/types/config';
 
 function makeModule(type: ModuleType, config: Record<string, unknown>, enabled?: boolean): ModuleInstance {
@@ -65,7 +66,8 @@ describe('getCalendarFetchWindow', () => {
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     expect(win).not.toBeNull();
     const gridStart = startOfWeek(startOfMonth(NOW), { weekStartsOn: 0 });
-    const gridEnd = endOfWeek(endOfMonth(NOW), { weekStartsOn: 0 });
+    // Half-open grid end (midnight after the last cell) + one day of padding.
+    const gridEnd = addDays(startOfDay(endOfWeek(endOfMonth(NOW), { weekStartsOn: 0 })), 1);
     expect(win!.timeMin).toBe(addDays(gridStart, -1).toISOString());
     // Grid end (padded) is beyond now + 7 days, so timeMax is sent
     expect(win!.timeMax).toBe(addDays(gridEnd, 1).toISOString());
@@ -121,7 +123,8 @@ describe('getCalendarFetchWindow', () => {
       [makeScreen([makeModule('fullscreen-calendar', { view: 'month-grid', startDay: 'monday' })])], NOW, DAYS_AHEAD,
     );
     const gridStart = startOfWeek(startOfMonth(NOW), { weekStartsOn: 1 });
-    const gridEnd = endOfWeek(endOfMonth(NOW), { weekStartsOn: 1 });
+    // Half-open grid end (midnight after the last cell) + one day of padding.
+    const gridEnd = addDays(startOfDay(endOfWeek(endOfMonth(NOW), { weekStartsOn: 1 })), 1);
     expect(monthWin!.timeMin).toBe(addDays(gridStart, -1).toISOString());
     expect(monthWin!.timeMax).toBe(addDays(gridEnd, 1).toISOString());
   });
@@ -147,7 +150,8 @@ describe('getCalendarFetchWindow', () => {
     ];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     const gridStart = startOfWeek(startOfMonth(NOW), { weekStartsOn: 0 });
-    const gridEnd = endOfWeek(endOfMonth(NOW), { weekStartsOn: 0 });
+    // Half-open grid end (midnight after the last cell) + one day of padding.
+    const gridEnd = addDays(startOfDay(endOfWeek(endOfMonth(NOW), { weekStartsOn: 0 })), 1);
     expect(win!.timeMin).toBe(addDays(gridStart, -1).toISOString());
     expect(win!.timeMax).toBe(addDays(gridEnd, 1).toISOString());
   });

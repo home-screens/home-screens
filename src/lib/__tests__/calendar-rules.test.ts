@@ -11,23 +11,14 @@ import {
   rulesNeedNow,
 } from '../calendar-rules';
 import type { CalendarEvent, CalendarEventRule, CalendarDayRule } from '@/types/config';
+import { makeEvent } from './helpers/calendar-fixtures';
 
 const now = new Date('2026-08-20T15:00:00');
 const today = new Date('2026-08-20T00:00:00');
 const ctx = { now, today };
 
-function ev(over: Partial<CalendarEvent> = {}): CalendarEvent {
-  return {
-    id: over.id ?? 'e1',
-    title: 'Soccer practice',
-    start: '2026-08-20T16:30:00',
-    end: '2026-08-20T18:00:00',
-    allDay: false,
-    calendarColor: '#EC4899',
-    sourceId: 'ava',
-    ...over,
-  };
-}
+const ev = (over: Partial<CalendarEvent> = {}): CalendarEvent =>
+  makeEvent({ calendarColor: '#EC4899', sourceId: 'ava', ...over });
 
 describe('matchesEvent', () => {
   it('matches everything with an empty match', () => {

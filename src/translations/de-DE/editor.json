@@ -372,7 +372,21 @@
         "updated": "Aktualisiert {time}",
         "updatedNow": "Gerade aktualisiert",
         "notUpdating": "Wird nicht aktualisiert",
-        "errorSince": "{error} · zuletzt erfolgreich {time}"
+        "errorSince": "{error} · zuletzt erfolgreich {time}",
+        "errors": {
+          "googleCalendarFailed": "Dieser Kalender konnte nicht von Google geladen werden",
+          "googleUnreachable": "Google Kalender ist nicht erreichbar",
+          "holidaysFailed": "Die Feiertagsliste konnte nicht geladen werden",
+          "icloudBirthdaysFailed": "Geburtstage konnten nicht von iCloud geladen werden",
+          "icloudCalendarFailed": "Dieser Kalender konnte nicht von iCloud geladen werden",
+          "icloudNoAccount": "Für diesen Kalender ist kein iCloud-Konto verbunden",
+          "icloudNotICloudUrl": "Die Kalenderadresse ist kein iCloud-Link",
+          "icloudUnreachable": "iCloud ist nicht erreichbar",
+          "linkHttpError": "Der Link ist nicht erreichbar (HTTP {status})",
+          "linkInvalid": "Der Link ist keine gültige Webadresse",
+          "linkUnreachable": "Der Link ist nicht erreichbar",
+          "linkUnreadable": "Der Link lieferte keinen lesbaren Kalender"
+        }
       },
       "people": {
         "heading": "Personen",

@@ -1,20 +1,12 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import type { ReactNode } from 'react';
-import { I18nProvider } from '@/i18n/provider';
-import enUSModules from '@/translations/en-US/modules.json';
-import enUSCore from '@/translations/en-US/core.json';
 import type { FullscreenCalendarConfig } from '@/types/config';
-import type { CalendarEvent, CalendarScale } from '../FullscreenCalendarModule';
+import type { CalendarEvent } from '../view-support';
+import { installResizeObserverStub, I18nWrapper as Wrapper, testScale } from '../../__tests__/helpers/harness';
 
-class ResizeObserverStub {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-(globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
+installResizeObserverStub();
 
 import { WeekListView } from '../WeekListView';
 import { MonthGridView } from '../MonthGridView';
@@ -22,18 +14,7 @@ import { AgendaView } from '../AgendaView';
 import { ScheduleView } from '../ScheduleView';
 import { DayTimelineView } from '../DayTimelineView';
 
-function Wrapper({ children }: { children: ReactNode }) {
-  return (
-    <I18nProvider locale="en-US" blob={{ modules: enUSModules, core: enUSCore }}>
-      {children}
-    </I18nProvider>
-  );
-}
-
-const scale: CalendarScale = {
-  bu: 10, width: 1080, height: 1920, orientation: 'portrait', densityMul: 1, typoMul: 1, isDark: true,
-  eventStyle: 'wash',
-};
+const scale = testScale();
 
 const config: FullscreenCalendarConfig = {
   view: 'week-list',

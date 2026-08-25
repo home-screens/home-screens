@@ -372,7 +372,21 @@
         "updated": "Updated {time}",
         "updatedNow": "Updated just now",
         "notUpdating": "Not updating",
-        "errorSince": "{error} · last worked {time}"
+        "errorSince": "{error} · last worked {time}",
+        "errors": {
+          "googleCalendarFailed": "Couldn't load this calendar from Google",
+          "googleUnreachable": "Couldn't reach Google Calendar",
+          "holidaysFailed": "Couldn't load the holiday list",
+          "icloudBirthdaysFailed": "Couldn't load birthdays from iCloud",
+          "icloudCalendarFailed": "Couldn't load this calendar from iCloud",
+          "icloudNoAccount": "No iCloud account is connected for this calendar",
+          "icloudNotICloudUrl": "The calendar address isn't an iCloud link",
+          "icloudUnreachable": "Couldn't reach iCloud",
+          "linkHttpError": "Could not reach the link (HTTP {status})",
+          "linkInvalid": "The link isn't a valid web address",
+          "linkUnreachable": "Could not reach the link",
+          "linkUnreadable": "The link didn't return a readable calendar"
+        }
       },
       "people": {
         "heading": "People",

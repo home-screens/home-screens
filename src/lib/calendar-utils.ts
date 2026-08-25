@@ -1,8 +1,7 @@
-import { addDays, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, FullscreenCalendarConfig, ScheduleStartAnchor, TimeFormat, WeatherPlacement, WeekStartDay } from '@/types/config';
+import { addDays, differenceInMinutes, startOfDay } from 'date-fns';
+import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, ScheduleStartAnchor, TimeFormat, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
-import { parseHexToRgb } from '@/lib/hex-color';
 import { toTZWallTime } from '@/lib/timezone';
 
 /** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
@@ -173,71 +172,6 @@ export function formatEventTime(date: Date, timeFormat: TimeFormat, locale: stri
   return formatDateSync(date, pattern, { locale }).trim();
 }
 
-const PILL_DARK_TEXT = '#1b1b1f';
-
-/**
- * Auto-contrast text color for a solid pill background: light calendar
- * colors (yellows, limes) get near-black text, dark ones white. YIQ
- * luminance `((299R + 587G + 114B) / 1000) >= 160` picks dark; anything
- * unparseable (named colors, junk) falls back to white like the mockup's
- * "always white" policy.
- */
-export function pickPillTextColor(hex: string | undefined): string {
-  const rgb = hex ? parseHexToRgb(hex) : null;
-  if (!rgb) return '#fff';
-  const [r, g, b] = rgb;
-  return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
-}
-
-/**
- * Hex plus rgb()/rgba() functional notation, which is what ModuleStyle
- * backgrounds are stored as. Anything else (named colors, gradients,
- * color-mix) returns null — callers keep their fallback.
- */
-function parseCssColorToRgb(color: string | undefined): [number, number, number] | null {
-  if (!color) return null;
-  const fn = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  if (fn) return [Number(fn[1]), Number(fn[2]), Number(fn[3])];
-  return parseHexToRgb(color);
-}
-
-function wcagLuminance([r, g, b]: [number, number, number]): number {
-  const lin = (c: number) => {
-    const s = c / 255;
-    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-}
-
-function contrastRatio(a: [number, number, number], b: [number, number, number]): number {
-  const la = wcagLuminance(a);
-  const lb = wcagLuminance(b);
-  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
-}
-
-/**
- * Text color for content sitting on a translucent accent tint. The tint
- * hue, the text color, and the surface under both are all independently
- * user-configurable, so no static pairing is safe: estimate the tint's
- * effective surface (accent at `tintAlpha` over the module background),
- * keep `preferred` while it clears 3:1 against that estimate, and fall
- * back to the same YIQ black/white pick as pickPillTextColor when it
- * doesn't. A translucent module background is treated as its own RGB (the
- * wallpaper behind it is unknowable); unparseable inputs keep `preferred`.
- */
-export function pickTintedTextColor(preferred: string, accentColor: string, moduleBackground: string | undefined, tintAlpha = 0.25): string {
-  const accent = parseHexToRgb(accentColor);
-  const ground = parseCssColorToRgb(moduleBackground);
-  const text = parseCssColorToRgb(preferred);
-  if (!accent || !ground || !text) return preferred;
-  const surface = [0, 1, 2].map(
-    (i) => Math.round(accent[i] * tintAlpha + ground[i] * (1 - tintAlpha)),
-  ) as [number, number, number];
-  if (contrastRatio(text, surface) >= 3) return preferred;
-  const [r, g, b] = surface;
-  return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
-}
-
 /**
  * Compact grid-pill time: "8a", "5:30p" (12h) or "17:30" (24h). The modern
  * multi-week themes use this so the title, not the timestamp, owns the pill
@@ -289,35 +223,6 @@ export function formatMonthRangeLabel(start: Date, end: Date, locale: string): s
     return `${formatDateSync(start, 'MMMM', { locale })} – ${formatDateSync(end, 'MMMM yyyy', { locale })}`;
   }
   return `${formatDateSync(start, 'MMMM yyyy', { locale })} – ${formatDateSync(end, 'MMMM yyyy', { locale })}`;
-}
-
-/**
- * Calendar-color time text for the clean multi-week pills. The pill surface
- * is white at 10% over the module background, and raw mid-saturation
- * calendar colors often land under 3:1 on it — mix toward white in 25%
- * steps until the color clears 3:1 (6 steps bounded, ~82% of the way to
- * white). Lightening only buys contrast on a dark surface: the module
- * background is free-form, so on a light one every step moves the color
- * closer to the surface instead of away from it. When the loop exhausts
- * without clearing 3:1, fall back to the same YIQ black/white pick as
- * pickPillTextColor rather than returning the worst candidate.
- * Unparseable calendar colors fall back to white; unparseable module
- * backgrounds estimate against the default charcoal.
- */
-export function pickGridTimeColor(calendarColor: string, moduleBackground: string | undefined): string {
-  const rgb = parseHexToRgb(calendarColor);
-  if (!rgb) return '#fff';
-  const ground = parseCssColorToRgb(moduleBackground) ?? [38, 40, 46];
-  const surface = [0, 1, 2].map((i) => Math.round(255 * 0.1 + ground[i] * 0.9)) as [number, number, number];
-  let c: [number, number, number] = rgb;
-  for (let i = 0; i < 6 && contrastRatio(c, surface) < 3; i++) {
-    c = c.map((v) => Math.round(v + (255 - v) * 0.25)) as [number, number, number];
-  }
-  if (contrastRatio(c, surface) < 3) {
-    const [r, g, b] = surface;
-    return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
-  }
-  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }
 
 /**
@@ -400,6 +305,31 @@ export function classifyTimedSpan(evStart: Date, evEnd: Date, date: Date): Event
   // Continuation day (isEventOnDay already established the overlap): the
   // event runs past this day's midnight → middle; otherwise it ends today.
   return evEnd > dayEnd ? 'middle' : 'last';
+}
+
+/**
+ * One day's events in list-view display order: rows that render as all-day
+ * (true all-day events plus middle days of split multi-day events, which
+ * promote to all-day rendering) first, then timed rows by start. The
+ * cross-view invariant behind the fullscreen agenda, week list, and family
+ * grid; `eventsForDay` stays the segment-unaware variant the compact grids
+ * use.
+ */
+export function bucketEventsForDay<T extends { start: string; end: string; allDay?: boolean }>(
+  events: T[],
+  day: Date,
+  timezone?: string,
+): { ev: T; segment: EventDaySegment; isAllDayRow: boolean }[] {
+  return events
+    .filter((ev) => isEventOnDay(ev, day, timezone))
+    .map((ev) => {
+      const segment = classifyEventOnDay(ev, day, timezone);
+      return { ev, segment, isAllDayRow: ev.allDay === true || segment === 'middle' };
+    })
+    .sort((a, b) => {
+      if (a.isAllDayRow !== b.isAllDayRow) return a.isAllDayRow ? -1 : 1;
+      return compareEventStarts(a.ev.start, b.ev.start);
+    });
 }
 
 /**
@@ -504,6 +434,30 @@ export function isPastInDailyColumn(
   return isToday && !isAllDay && segment !== 'middle' && end <= now;
 }
 
+/**
+ * Whether a timed row in the fullscreen agenda's TODAY group has already
+ * ended. The compare is hour-decomposed rather than a direct instant
+ * compare: `end` is a display-wall time and `now` ticks on the same wall
+ * clock, so on today's group both share a calendar day and clock hours
+ * compare directly; the end-of-day bound then keeps a midnight-crossing
+ * row (segment 'first', rendered under today) from dimming before it
+ * actually ends. Rows on future day groups are never past; all-day and
+ * middle-segment rows carry no past meaning. The compact counterpart is
+ * `isPastInDailyColumn`, which can use a plain instant compare because its
+ * today column always shares `now`'s day.
+ */
+export function isPastInAgendaGroup(
+  end: Date,
+  groupDate: Date,
+  now: Date,
+  isGroupToday: boolean,
+  isAllDayRow: boolean,
+): boolean {
+  if (!isGroupToday || isAllDayRow) return false;
+  const nowHour = now.getHours() + now.getMinutes() / 60;
+  return end.getHours() + end.getMinutes() / 60 <= nowHour && end <= addDays(groupDate, 1);
+}
+
 /** UI glyph for a kind-aware row/cell; null for a plain event (no chrome change). */
 export function eventKindGlyph(kind: CalendarEvent['kind']): string | null {
   if (kind === 'birthday') return '🎂';
@@ -579,49 +533,61 @@ export function eventStatusSlot(opts: {
   return { countdown: countdown || null, progress: null };
 }
 
+/** "45m", "1h 30m" between two instants — the compact module's row suffix. */
+export function formatEventDuration(start: Date, end: Date): string {
+  const mins = differenceInMinutes(end, start);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  const rem = mins % 60;
+  return rem > 0 ? `${hrs}h ${rem}m` : `${hrs}h`;
+}
+
+/**
+ * The one product rule for a list row's time text, shared by both calendar
+ * modules: split multi-day rows show only their true partial time on their
+ * first and last days ("From 10:00 AM" / "Until 3:00 PM"); plain rows show
+ * the view's single-day presentation. `ns` picks the translation namespace,
+ * same as `eventKindLabel` — each surface owns its own copy of these keys.
+ */
+export function eventRowTimeLabel(opts: {
+  segment: EventDaySegment | undefined;
+  startLabel: string;
+  endLabel: string;
+  t: TranslateFn;
+  ns: 'calendar' | 'fullscreen-calendar';
+  /** Plain single-day rows: a full range (default), the start alone (compact chips), or "start · 1h 30m". */
+  single?: 'range' | 'start' | 'duration';
+  /** Required when `single` is 'duration'. */
+  start?: Date;
+  end?: Date;
+}): string {
+  if (opts.segment === 'first') return opts.t(`${opts.ns}.fromTime`, { time: opts.startLabel });
+  if (opts.segment === 'last') return opts.t(`${opts.ns}.untilTime`, { time: opts.endLabel });
+  if (opts.single === 'start') return opts.startLabel;
+  if (opts.single === 'duration' && opts.start && opts.end) {
+    return `${opts.startLabel} · ${formatEventDuration(opts.start, opts.end)}`;
+  }
+  return `${opts.startLabel} – ${opts.endLabel}`;
+}
+
+/**
+ * Append the quiet "saved" marker to a row's time text when the event's
+ * source feed has stopped updating, so stale rows never read as live. The
+ * key lives in the compact `calendar.*` namespace; both modules share it.
+ */
+export function withSavedSuffix(
+  label: string,
+  ev: { sourceId?: string },
+  failingSourceIds: ReadonlySet<string> | undefined,
+  t: TranslateFn,
+): string {
+  return ev.sourceId && failingSourceIds?.has(ev.sourceId)
+    ? `${label} · ${t('calendar.savedShort')}`
+    : label;
+}
+
 /** Agenda boundary separators; month beats week when boundaries coincide. */
 export type AgendaBoundary = 'month' | 'week' | null;
-
-/**
- * Resolve the fullscreen calendar's weather placement, honoring the legacy
- * `showWeather` boolean from configs saved before the placement enum existed
- * (true → 'header'). Lives here (not in the module component) so the editor
- * config section shares one resolver instead of inlining a copy.
- */
-export function resolveWeatherPlacement(
-  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
-): WeatherPlacement {
-  if (config.weatherPlacement) return config.weatherPlacement;
-  return config.showWeather === false ? 'off' : 'header';
-}
-
-/** Which views can render day-header weather / per-event weather. */
-const WEATHER_DAYS_VIEWS = new Set(['agenda', 'week-list', 'schedule', 'family-grid']);
-const WEATHER_EVENTS_VIEWS = new Set(['agenda', 'week-list', 'up-next']);
-
-/**
- * The placement a given view actually renders. Placements carry across view
- * switches (the module keeps one config), so a value the current view has no
- * surface for must degrade to the header pill — never to nothing: "I picked
- * a weather option and weather vanished" is the failure mode this prevents.
- * The stored config is untouched; switching back restores the richer
- * placement.
- */
-export function effectiveWeatherPlacement(
-  view: FullscreenCalendarConfig['view'],
-  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
-): WeatherPlacement {
-  const resolved = resolveWeatherPlacement(config);
-  if (resolved === 'off' || resolved === 'header') return resolved;
-  const days = WEATHER_DAYS_VIEWS.has(view);
-  const events = WEATHER_EVENTS_VIEWS.has(view);
-  if (resolved === 'days') return days ? 'days' : 'header';
-  if (resolved === 'events') return events ? 'events' : 'header';
-  // days-and-events
-  if (days && events) return 'days-and-events';
-  if (days) return 'days';
-  return 'header';
-}
 
 /**
  * The separator to render between two consecutive agenda day groups.
@@ -673,22 +639,6 @@ export function listViewCutoff(now: Date, keepFinishedToday: boolean): Date {
 }
 
 /**
- * Events overlapping the half-open [start, end) window on the display wall
- * clock. Used to scope the legend to the days a view actually draws, since
- * the shared fetch window is usually wider than any single view.
- */
-export function eventsInWindow<T extends { start: string; end: string }>(
-  events: T[],
-  start: Date,
-  end: Date,
-  timezone?: string,
-): T[] {
-  return events.filter(
-    (ev) => parseEventWallTime(ev.start, timezone) < end && parseEventWallTime(ev.end, timezone) > start,
-  );
-}
-
-/**
  * Case-insensitive substring match against event titles. No terms (or an
  * undefined filter) passes everything through. 'include' keeps only events
  * matching at least one term; 'exclude' drops any event that matches one.
@@ -710,153 +660,4 @@ export function applyTitleFilter<T extends { title: string }>(
   return titleFilter?.mode === 'exclude'
     ? events.filter((ev) => !matches(ev.title))
     : events.filter((ev) => matches(ev.title));
-}
-
-/**
- * Half-open [start, end) day range a calendar view draws, for legend
- * scoping. One authority for the date math; each module maps its own view
- * union onto a kind (the mapping is inherently per-module, the math is not).
- * - 'days': `count` days starting at `start` (defaults to today)
- * - 'week': the week containing today
- * - 'weeks': `count` weeks starting at today's week
- * - 'month-grid': the padded month grid around today
- */
-export function viewDayWindow(opts: {
-  kind: 'days' | 'week' | 'weeks' | 'month-grid';
-  today: Date;
-  weekStartsOn: 0 | 1;
-  start?: Date;
-  count?: number;
-}): { start: Date; end: Date } {
-  const { kind, today, weekStartsOn } = opts;
-  switch (kind) {
-    case 'days': {
-      const start = opts.start ?? today;
-      return { start, end: addDays(start, Math.max(1, opts.count ?? 1)) };
-    }
-    case 'week': {
-      const start = startOfWeek(today, { weekStartsOn });
-      return { start, end: addDays(start, 7) };
-    }
-    case 'weeks': {
-      const start = startOfWeek(today, { weekStartsOn });
-      return { start, end: addDays(start, Math.max(1, opts.count ?? 1) * 7) };
-    }
-    case 'month-grid': {
-      const start = startOfWeek(startOfMonth(today), { weekStartsOn });
-      return { start, end: addDays(endOfWeek(endOfMonth(today), { weekStartsOn }), 1) };
-    }
-  }
-}
-
-/**
- * Legend rows for a view: scope events to the window it draws (null = the
- * caller's set is already exactly what renders), collect unique sources, and
- * swap the holidays pseudo-source's baked-in English name for the localized
- * label. The one composition both calendar modules share.
- */
-export function buildLegend(
-  events: { start: string; end: string; sourceId?: string; sourceName?: string; calendarColor?: string }[],
-  window: { start: Date; end: Date } | null,
-  timezone: string | undefined,
-  holidaysLabel: string,
-): LegendSource[] {
-  const scoped = window ? eventsInWindow(events, window.start, window.end, timezone) : events;
-  return legendSources(scoped).map((s) =>
-    s.sourceId === 'holidays' ? { ...s, sourceName: holidaysLabel } : s,
-  );
-}
-
-/** One legend row: a source that has at least one rendered event. */
-export interface LegendSource {
-  sourceId: string;
-  sourceName: string;
-  calendarColor: string;
-}
-
-/**
- * The sources to show in a calendar legend: unique per sourceId, in
- * first-seen event order. Callers pass the events they actually render (after
- * their own source filtering), so a configured source with nothing in the
- * window never appears. The dot takes each source's most common event color,
- * not the first seen — Google applies per-event colorId overrides, and a lone
- * recolored event must not repaint the whole source's dot.
- */
-export function legendSources(
-  events: { sourceId?: string; sourceName?: string; calendarColor?: string }[],
-): LegendSource[] {
-  const seen = new Map<string, { sourceName: string; colorCounts: Map<string, number> }>();
-  for (const ev of events) {
-    if (!ev.sourceId || !ev.sourceName) continue;
-    const entry = seen.get(ev.sourceId) ?? { sourceName: ev.sourceName, colorCounts: new Map<string, number>() };
-    const color = ev.calendarColor ?? '#3B82F6';
-    entry.colorCounts.set(color, (entry.colorCounts.get(color) ?? 0) + 1);
-    seen.set(ev.sourceId, entry);
-  }
-  return [...seen.entries()].map(([sourceId, { sourceName, colorCounts }]) => {
-    let best = '#3B82F6';
-    let bestCount = 0;
-    for (const [color, count] of colorCounts) {
-      // Strict > keeps first-seen order as the tiebreak.
-      if (count > bestCount) { best = color; bestCount = count; }
-    }
-    return { sourceId, sourceName, calendarColor: best };
-  });
-}
-
-const ENTITY_MAP: Record<string, string> = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-};
-
-// Max Unicode code point — `String.fromCodePoint` throws RangeError above this.
-const MAX_CODE_POINT = 0x10ffff;
-
-function decodeNumericEntity(literal: string, code: number): string {
-  if (!Number.isFinite(code) || code < 0 || code > MAX_CODE_POINT) return literal;
-  return String.fromCodePoint(code);
-}
-
-/**
- * Normalize an event description from an ICS or Google Calendar feed for display.
- *
- * ICS DESCRIPTION fields are nominally plain text but commonly contain inline
- * HTML (`<p>…</p>`, `<br>`, entity references). This converts block-level breaks
- * to real newlines, strips remaining tags, decodes common entities, and trims —
- * so callers can render with `whitespace-pre-line` and let CSS handle wrapping.
- *
- * Output is **plain text only**. Never feed it to `dangerouslySetInnerHTML` or a
- * Markdown renderer: tag-stripping happens before entity decoding, so
- * `&lt;script&gt;` would become a real `<script>` tag in HTML context.
- */
-export function sanitizeEventDescription(raw?: string | null): string {
-  if (!raw) return '';
-  let out = raw
-    .replace(/\r\n?/g, '\n')
-    .replace(/<br\s*\/?\s*>/gi, '\n')
-    .replace(/<\/(p|div|h[1-6])>/gi, '\n\n')
-    .replace(/<\/li>/gi, '\n')
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (_, ref: string) => {
-      if (ref.startsWith('#x') || ref.startsWith('#X')) {
-        return decodeNumericEntity(_, parseInt(ref.slice(2), 16));
-      }
-      if (ref.startsWith('#')) {
-        return decodeNumericEntity(_, parseInt(ref.slice(1), 10));
-      }
-      return ENTITY_MAP[ref.toLowerCase()] ?? _;
-    });
-  // Collapse runs of inline whitespace per line, then collapse 3+ blank lines to 2.
-  out = out
-    .split('\n')
-    .map((line) => line.replace(/[\t ]+/g, ' ').trim())
-    .join('\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-  return out;
 }

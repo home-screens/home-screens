@@ -1,24 +1,27 @@
 'use client';
 
 import { useMemo } from 'react';
-import { startOfWeek, addDays, isSameDay } from 'date-fns';
+import { isSameDay } from 'date-fns';
 import {
-  parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, eventKindLabel, isWeekendDay,
+  parseEventDate, parseEventWallTime, weekStartsOnFor, formatEventTime,
+  bucketEventsForDay, eventStatusSlot, eventKindLabel, isWeekendDay,
+  eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
+import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps, RowCtx } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
-import { dayDecorFor } from './FullscreenCalendarModule';
+import { dayCellFill, dayDecorFor, resolveTodayHighlight, useWeekDays } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import { CountdownPill, EventProgressBar } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
+import { CountdownPill, EventProgressBar, eventAriaLabel } from './list-view-bits';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
-import { initialsOf } from '@/lib/calendar-people';
+import { EVERYONE_COLOR, initialsOf } from '@/lib/calendar-people';
 import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
 
 export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, extras }: CalendarViewProps) {
@@ -28,21 +31,14 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.weekShowDescription === true;
-  // Four-value highlight, same split the schedule and month grid use: 'full'
-  // and 'subtle' tint the day group (the module has already scaled the alpha
-  // behind --cal-today-fill), 'minimal' leaves only the bar and TODAY pill,
-  // 'off' removes both.
-  const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const showTodayMarker = highlightStyle !== 'off';
-  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
+  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const emptyDayText = config.emptyDayText?.trim();
-
-  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
-  const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- weekStart is a new Date object each render; toDateString() gives a stable string key that only changes when the day changes
-    [weekStart.toDateString()],
+  const rowCtx = useMemo<RowCtx>(
+    () => ({ t, locale, timeFormat, timezone, scale, fontSize, config }),
+    [t, locale, timeFormat, timezone, scale, fontSize, config],
   );
+
+  const days = useWeekDays(today, weekStartsOnFor(config.startDay));
 
   // Landscape: split the first four and last three days
   const leftDays = isLandscape ? days.slice(0, 4) : days;
@@ -51,24 +47,15 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   function renderDay(day: Date) {
     const isToday = isSameDay(day, today);
     const isPast = day < today && !isToday;
-    const dayEvents = events
-      .filter(ev => isEventOnDay(ev, day, timezone))
-      .map(ev => ({ ev, segment: classifyEventOnDay(ev, day, timezone) }));
     // Middle days of split multi-day events promote to the all-day group.
-    const allDayEvs = dayEvents.filter(({ ev, segment }) => ev.allDay || segment === 'middle');
-    const timedEvs = dayEvents
-      .filter(({ ev, segment }) => !ev.allDay && segment !== 'middle')
-      .sort((a, b) => compareEventStarts(a.ev.start, b.ev.start));
+    const dayEvents = bucketEventsForDay(events, day, timezone);
+    const allDayEvs = dayEvents.filter((e) => e.isAllDayRow);
+    const timedEvs = dayEvents.filter((e) => !e.isAllDayRow);
 
     const shouldCollapse = isPast && config.weekCollapsePastDays;
     const dayExtras = extras?.byDate[toISODate(day)];
     const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
-    // Today beats the weekend shade; a day rule beats both (it is merged last).
-    const dayFill = isToday && showTodayBg
-      ? 'var(--cal-today-fill)'
-      : isWeekendDay(day) && config.shadeWeekends !== false
-        ? 'var(--cal-weekend-shade)'
-        : undefined;
+    const dayFill = dayCellFill(isToday, showTodayBg, isWeekendDay(day), config);
 
     return (
       <div
@@ -123,12 +110,12 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
         {!shouldCollapse && (<>
           {/* All-day events (plus promoted middle days) */}
           {allDayEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} isAllDay showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} failingSourceIds={failingSourceIds} />
+            <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} ctx={rowCtx} weather={weather} isAllDay showDescription={showDescription} failingSourceIds={failingSourceIds} />
           ))}
 
           {/* Timed events */}
           {timedEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} failingSourceIds={failingSourceIds} />
+            <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} ctx={rowCtx} weather={weather} showDescription={showDescription} failingSourceIds={failingSourceIds} />
           ))}
 
           {/* Household rows: planned meals, then the day's chore progress */}
@@ -234,7 +221,7 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
                 <span key={id} style={{
                   width: avatarSize, height: avatarSize, borderRadius: '50%',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  background: m?.color ?? '#6b7280', color: '#fff', fontSize: fontSize * 0.55, fontWeight: 700,
+                  background: m?.color ?? EVERYONE_COLOR, color: '#fff', fontSize: fontSize * 0.55, fontWeight: 700,
                   border: '1.5px solid var(--cal-bg)', marginLeft: i === 0 ? 0 : -avatarSize * 0.3,
                 }}>
                   {initialsOf(m?.name ?? '?')}
@@ -257,24 +244,19 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
   );
 }
 
-function EventRow({ event, timezone, segment, rowDate, now, config, weather, fontSize, scale, isAllDay, showDescription, timeFormat, t, locale, failingSourceIds }: {
+function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDescription, failingSourceIds }: {
   event: CalendarEvent;
-  timezone?: string;
-  failingSourceIds?: ReadonlySet<string>;
   segment: EventDaySegment;
   rowDate: Date;
   now: Date;
-  config: FullscreenCalendarConfig;
+  ctx: RowCtx;
   weather?: CalendarWeather;
-  fontSize: number;
-  scale: CalendarScale;
   isAllDay?: boolean;
   showDescription?: boolean;
-  timeFormat: TimeFormat;
-  t: TranslateFn;
-  locale: string;
+  failingSourceIds?: ReadonlySet<string>;
 }) {
-  const color = event.calendarColor ?? '#3B82F6';
+  const { t, locale, timeFormat, timezone, scale, fontSize, config } = ctx;
+  const color = event.calendarColor ?? DEFAULT_EVENT_COLOR;
   const start = parseEventWallTime(event.start, timezone);
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
@@ -286,17 +268,12 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
     showProgressBar: config.showProgressBar === true,
     countdownAllDay: config.countdownAllDay === true,
   });
-  // Split multi-day rows show only the true partial time on their first and
-  // last days; middle days arrive here with isAllDay set. Rows from a source
-  // that stopped updating carry a "saved" suffix.
-  const baseTimeLabel = segment === 'first'
-    ? t('fullscreen-calendar.fromTime', { time: startLabel })
-    : segment === 'last'
-      ? t('fullscreen-calendar.untilTime', { time: endLabel })
-      : `${startLabel} – ${endLabel}`;
-  const timeLabel = event.sourceId && failingSourceIds?.has(event.sourceId)
-    ? `${baseTimeLabel} · ${t('calendar.savedShort')}`
-    : baseTimeLabel;
+  // Middle days of split multi-day events arrive here with isAllDay set
+  // (they promote to the all-day group).
+  const timeLabel = withSavedSuffix(
+    eventRowTimeLabel({ segment, startLabel, endLabel, t, ns: 'fullscreen-calendar' }),
+    event, failingSourceIds, t,
+  );
   const glyph = eventGlyph(event);
   const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'fullscreen-calendar');
   // `wash` keeps the original bare row (the surface paints nothing for it);
@@ -305,25 +282,7 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
   // had no surface at all, hence the only one that adjusts its own layout.
   const filled = scale.eventStyle !== 'wash';
 
-  let ariaLabel: string;
-  if (isAllDay) {
-    ariaLabel = event.location
-      ? `${t('fullscreen-calendar.ariaLabels.eventAllDay', { title: event.title })}, ${event.location}`
-      : t('fullscreen-calendar.ariaLabels.eventAllDay', { title: event.title });
-  } else if (event.location) {
-    ariaLabel = t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
-      title: event.title,
-      start: startLabel,
-      end: endLabel,
-      location: event.location,
-    });
-  } else {
-    ariaLabel = t('fullscreen-calendar.ariaLabels.eventTimed', {
-      title: event.title,
-      start: startLabel,
-      end: endLabel,
-    });
-  }
+  const ariaLabel = eventAriaLabel(t, event, { startLabel, endLabel, allDay: isAllDay });
 
   return (
     <div

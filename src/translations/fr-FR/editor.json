@@ -372,7 +372,21 @@
         "updated": "Mis à jour {time}",
         "updatedNow": "Mis à jour à l'instant",
         "notUpdating": "Ne se met plus à jour",
-        "errorSince": "{error} · dernier succès {time}"
+        "errorSince": "{error} · dernier succès {time}",
+        "errors": {
+          "googleCalendarFailed": "Impossible de charger cet agenda depuis Google",
+          "googleUnreachable": "Google Agenda est injoignable",
+          "holidaysFailed": "Impossible de charger la liste des jours fériés",
+          "icloudBirthdaysFailed": "Impossible de charger les anniversaires depuis iCloud",
+          "icloudCalendarFailed": "Impossible de charger ce calendrier depuis iCloud",
+          "icloudNoAccount": "Aucun compte iCloud n'est connecté pour ce calendrier",
+          "icloudNotICloudUrl": "L'adresse du calendrier n'est pas un lien iCloud",
+          "icloudUnreachable": "iCloud est injoignable",
+          "linkHttpError": "Impossible d'accéder au lien (HTTP {status})",
+          "linkInvalid": "Le lien n'est pas une adresse web valide",
+          "linkUnreachable": "Impossible d'accéder au lien",
+          "linkUnreadable": "Le lien n'a pas renvoyé de calendrier lisible"
+        }
       },
       "people": {
         "heading": "Personnes",

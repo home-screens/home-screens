@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { addHours, format } from 'date-fns';
 import { selectVisibleEvents } from '../FullscreenCalendarModule';
 import type { CalendarEvent, FullscreenCalendarConfig } from '@/types/config';
-
-const LOCAL = "yyyy-MM-dd'T'HH:mm:ss";
-const NOW = new Date(2026, 6, 15, 12, 0, 0);
+import { LOCAL, NOW } from '@/lib/__tests__/helpers/calendar-fixtures';
 
 function ev(id: string, startOffsetH: number, endOffsetH: number, extra: Partial<CalendarEvent> = {}): CalendarEvent {
   return {

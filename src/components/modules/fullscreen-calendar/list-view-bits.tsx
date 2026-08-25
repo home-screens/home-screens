@@ -2,12 +2,35 @@
 
 import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarScale } from './FullscreenCalendarModule';
+import type { CalendarScale } from './view-support';
 
 /**
- * Small shared pieces for the agenda and week-list views: the status slot
- * (countdown pill / progress bar) and the agenda boundary separators.
+ * Small shared pieces for the fullscreen list views: the status slot
+ * (countdown pill / progress bar), the agenda boundary separators, and the
+ * event-row aria label.
  */
+
+/**
+ * Accessible name for an event row/chip/block, built the same way in every
+ * view so a screen-reader user hears the location wherever one exists.
+ * `startLabel`/`endLabel` are the already-formatted times; all-day rows
+ * skip them.
+ */
+export function eventAriaLabel(
+  t: TranslateFn,
+  ev: { title: string; location?: string },
+  opts: { startLabel?: string; endLabel?: string; allDay?: boolean } = {},
+): string {
+  if (opts.allDay) {
+    const base = t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title });
+    return ev.location ? `${base}, ${ev.location}` : base;
+  }
+  const start = opts.startLabel ?? '';
+  const end = opts.endLabel ?? '';
+  return ev.location
+    ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', { title: ev.title, start, end, location: ev.location })
+    : t('fullscreen-calendar.ariaLabels.eventTimed', { title: ev.title, start, end });
+}
 
 /** Countdown pill — the "not started yet" face of the status slot. */
 export function CountdownPill({ label, fontSize }: { label: string; fontSize: number }) {

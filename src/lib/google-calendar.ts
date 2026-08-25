@@ -1,7 +1,8 @@
 import { google } from 'googleapis';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { compareEventStarts } from '@/lib/calendar-utils';
-import type { SourceFetchResult } from '@/lib/calendar-source-status';
+import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import type { CalendarEvent } from '@/types/config';
 import { logger } from '@/lib/logger';
 
@@ -33,7 +34,7 @@ export async function fetchCalendarEvents(
   const calendarNameMap = new Map<string, string>();
   for (const cal of calListRes.data.items ?? []) {
     if (cal.id) {
-      calendarColorMap.set(cal.id, cal.backgroundColor ?? '#3b82f6');
+      calendarColorMap.set(cal.id, cal.backgroundColor ?? DEFAULT_EVENT_COLOR);
       calendarNameMap.set(cal.id, cal.summary ?? cal.id);
     }
   }
@@ -41,13 +42,14 @@ export async function fetchCalendarEvents(
   // Map event colorId values to their actual hex colors
   const eventColorMap = new Map<string, string>();
   for (const [id, color] of Object.entries(colorsRes.data.event ?? {})) {
-    eventColorMap.set(id, color.background ?? '#3b82f6');
+    eventColorMap.set(id, color.background ?? DEFAULT_EVENT_COLOR);
   }
 
   // Fetch events from all selected calendars in parallel; one broken
   // calendar becomes a failing `results` entry, not a whole-fetch rejection.
-  const settled = await Promise.allSettled(
-    calendarIds.map(async (calendarId) => {
+  const { events, results } = await settleSourceFetches(
+    calendarIds,
+    async (calendarId) => {
       const response = await calendar.events.list({
         calendarId,
         timeMin,
@@ -56,7 +58,7 @@ export async function fetchCalendarEvents(
         orderBy: 'startTime',
       });
 
-      const calColor = calendarColorMap.get(calendarId) ?? '#3b82f6';
+      const calColor = calendarColorMap.get(calendarId) ?? DEFAULT_EVENT_COLOR;
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
       const items = hideDeclined
         ? (response.data.items ?? []).filter((event) => event.attendees?.find((a) => a.self)?.responseStatus !== 'declined')
@@ -64,7 +66,7 @@ export async function fetchCalendarEvents(
       // Calendar-id prefix keeps ids unique when the same event appears on
       // two selected calendars; the fallback covers the (rare) missing id so
       // no event ever renders with an empty, untappable identity.
-      return items.map((event) => ({
+      const calEvents: CalendarEvent[] = items.map((event) => ({
         id: `${calendarId}:${event.id ?? `${event.start?.dateTime ?? event.start?.date ?? ''}-${event.summary ?? ''}`}`,
         title: event.summary ?? '(No title)',
         start: event.start?.dateTime ?? event.start?.date ?? '',
@@ -79,22 +81,14 @@ export async function fetchCalendarEvents(
         sourceName: calName,
         ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
       }));
-    }),
+      return { events: calEvents, results: [{ id: calendarId, name: calName, ok: true }] };
+    },
+    (calendarId, reason) => {
+      log.warn(`Google calendar fetch failed for ${calendarId}`, reason);
+      const calName = calendarNameMap.get(calendarId) ?? calendarId;
+      return [{ id: calendarId, name: calName, ok: false, error: "Couldn't load this calendar from Google", messageKey: 'googleCalendarFailed' }];
+    },
   );
-
-  const events: CalendarEvent[] = [];
-  const results: SourceFetchResult[] = [];
-  settled.forEach((outcome, i) => {
-    const calendarId = calendarIds[i];
-    const calName = calendarNameMap.get(calendarId) ?? calendarId;
-    if (outcome.status === 'fulfilled') {
-      events.push(...outcome.value);
-      results.push({ id: calendarId, name: calName, ok: true });
-    } else {
-      log.warn(`Google calendar fetch failed for ${calendarId}`, outcome.reason);
-      results.push({ id: calendarId, name: calName, ok: false, error: "Couldn't load this calendar from Google" });
-    }
-  });
 
   events.sort((a, b) => compareEventStarts(a.start, b.start));
   return { events, results };

@@ -5,10 +5,7 @@ import {
   compareEventStarts,
   isEventOnDay,
   isEventUpcoming,
-  legendSources,
-  eventsInWindow,
   applyTitleFilter,
-  sanitizeEventDescription,
   clampWeeksToShow,
   clampGridMaxEventsPerCell,
   defaultGridMaxEventsPerCell,
@@ -18,8 +15,6 @@ import {
   eventsForDay,
   formatEventTime,
   isAllDayEvent,
-  pickPillTextColor,
-  pickTintedTextColor,
   classifyEventOnDay,
   resolveScheduleStart,
   formatCountdown,
@@ -30,13 +25,14 @@ import {
   eventKindLabel,
   eventStatusSlot,
   boundaryBetween,
-  resolveWeatherPlacement,
-  effectiveWeatherPlacement,
   formatEventTimeCompact,
   allDaySpanSegment,
   formatMonthRangeLabel,
-  pickGridTimeColor,
 } from '@/lib/calendar-utils';
+import { legendSources, eventsInWindow } from '@/lib/calendar-legend';
+import { sanitizeEventDescription } from '@/lib/event-description';
+import { pickGridTimeColor, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-color';
+import { resolveWeatherPlacement, effectiveWeatherPlacement } from '@/components/modules/fullscreen-calendar/view-traits';
 
 describe('clampWeeksToShow', () => {
   it('defaults to 6 when unset', () => {

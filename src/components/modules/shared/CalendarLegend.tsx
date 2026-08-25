@@ -1,4 +1,4 @@
-import type { LegendSource } from '@/lib/calendar-utils';
+import type { LegendSource } from '@/lib/calendar-legend';
 
 /**
  * Source legend for the calendar modules: one dot + name per source that has

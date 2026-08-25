@@ -1,36 +1,18 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import { format } from 'date-fns';
-import { I18nProvider } from '@/i18n/provider';
-import enUSModules from '@/translations/en-US/modules.json';
-import enUSCore from '@/translations/en-US/core.json';
 import type { FullscreenCalendarConfig } from '@/types/config';
-import type { CalendarEvent, CalendarScale } from '../FullscreenCalendarModule';
+import type { CalendarEvent } from '../view-support';
+import { LOCAL } from '@/lib/__tests__/helpers/calendar-fixtures';
+import { installResizeObserverStub, I18nWrapper as Wrapper, testScale } from '../../__tests__/helpers/harness';
 
-class ResizeObserverStub {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-(globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
+installResizeObserverStub();
 
 import { AgendaView } from '../AgendaView';
 
-function Wrapper({ children }: { children: ReactNode }) {
-  return (
-    <I18nProvider locale="en-US" blob={{ modules: enUSModules, core: enUSCore }}>
-      {children}
-    </I18nProvider>
-  );
-}
-
-const scale: CalendarScale = {
-  bu: 10, width: 1080, height: 1920, orientation: 'portrait', densityMul: 1, typoMul: 1, isDark: true,
-  eventStyle: 'wash',
-};
+const scale = testScale();
 
 const base: FullscreenCalendarConfig = {
   view: 'agenda',
@@ -43,7 +25,6 @@ const base: FullscreenCalendarConfig = {
   agendaDaysAhead: 7,
 } as FullscreenCalendarConfig;
 
-const LOCAL = "yyyy-MM-dd'T'HH:mm:ss";
 const today = new Date(2026, 7, 25);
 const now = new Date(2026, 7, 25, 17, 0);
 const at = (h: number, m = 0) => format(new Date(2026, 7, 25, h, m), LOCAL);

@@ -1,5 +1,5 @@
 import type { ChoreCompletion, ChoreDefinition, ChoreMember, MealSettings, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
-import { completionKey, resolveAssignmentsFor } from '@/components/modules/chore-chart/types';
+import { completionKey, resolveAssignmentsFor } from '@/lib/chore-assignments';
 import { SLOT_ORDER, resolveMealWithEntry } from '@/lib/meal-constants';
 
 /**

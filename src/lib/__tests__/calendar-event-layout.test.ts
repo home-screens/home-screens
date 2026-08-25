@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeTimedEventLayout, eventHoursOnDay } from '../event-layout';
+import { computeTimedEventLayout, eventHoursOnDay } from '../calendar-event-layout';
 
 // Local-time ISO strings (with a 'T' and no 'Z') so date parsing reads the
 // literal clock hour regardless of the machine timezone.

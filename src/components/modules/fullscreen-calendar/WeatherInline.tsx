@@ -2,7 +2,7 @@
 
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { dailyForDay, weatherForEvent } from './event-weather';
-import type { CalendarWeather } from './FullscreenCalendarModule';
+import type { CalendarWeather } from './view-support';
 
 /**
  * Inline weather for the list views (agenda + week-list): the daily

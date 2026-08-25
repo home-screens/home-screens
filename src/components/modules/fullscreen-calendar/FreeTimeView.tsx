@@ -4,12 +4,13 @@ import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
 import { isEventOnDay, formatEventTime } from '@/lib/calendar-utils';
 import {
-  buildPersonRows, eventsForRow, busyBlocksForDay, freeGaps, commonFreeGaps, initialsOf, EVERYONE_ROW_ID,
+  buildPersonRows, eventsForRow, busyBlocksForDay, freeGaps, commonFreeGaps, initialsOf, EVERYONE_COLOR, EVERYONE_ROW_ID,
   type BusyBlock, type FreeGap, type PersonRow,
 } from '@/lib/calendar-people';
+import { PersonAvatar, PeopleHint } from './person-view-bits';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { formatHourLabel } from './shared-time-grid';
 import { DEFAULT_TIME_FORMAT, type TimeFormat } from '@/types/config';
@@ -18,7 +19,6 @@ import { DEFAULT_TIME_FORMAT, type TimeFormat } from '@/types/config';
 const MIN_GAP_HOURS = 0.5;
 /** The "everyone is free" card only counts a span this long. */
 const EVERYONE_MIN_HOURS = 1;
-const EVERYONE_COLOR = '#6b7280';
 
 interface PersonDay {
   row: PersonRow;
@@ -128,11 +128,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
           </div>
         ))}
       </div>
-      {noPeople && (
-        <div data-people-hint="" style={{ flexShrink: 0, padding: `${scale.bu * 1.2}px ${sidePad}px 0`, fontSize: fontSize * 1.05, color: 'var(--cal-text-tertiary)' }}>
-          {t('fullscreen-calendar.peopleHint')}
-        </div>
-      )}
+      {noPeople && <PeopleHint fontSize={fontSize} padding={`${scale.bu * 1.2}px ${sidePad}px 0`} t={t} />}
 
       {/* Everyone card */}
       <div style={{
@@ -173,7 +169,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
           {tomorrowRows.map(({ row, blocks, dayGaps }) => (
             <div key={row.id} style={{ display: 'grid', gridTemplateColumns: `${nameColW}px 1fr`, alignItems: 'center', height: fontSize * 3.6, borderTop: '1px solid var(--cal-border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 0.6, fontSize: fontSize * 1.1, fontWeight: 600, color: 'var(--cal-text-primary)', minWidth: 0, paddingRight: scale.bu * 0.8 }}>
-                <Avatar row={row} size={fontSize * 1.9} fontSize={fontSize * 0.7} />
+                <PersonAvatar row={row} size={fontSize * 1.9} fontSize={fontSize * 0.7} />
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
               </div>
               <Track blocks={blocks} gaps={dayGaps} fromHour={hourStart} nowX={null} x={x} fontSize={fontSize * 0.85} scale={scale} height={fontSize * 2.4} fmtLen={fmtLen} compact />
@@ -198,23 +194,11 @@ function HourAxis({ hourStart, hourEnd, nameColW, sidePad, fontSize, am, pm, tim
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${hours.length}, 1fr)`, fontSize: fontSize * 0.75, color: 'var(--cal-text-tertiary)', fontVariantNumeric: 'tabular-nums', padding: `${fontSize * 0.4}px 0` }}>
         {hours.map((h, i) => (
           <span key={h} style={{ whiteSpace: 'nowrap', visibility: i % step === 0 ? 'visible' : 'hidden' }}>
-            {timeFormat === '24h' ? `${String(h).padStart(2, '0')}:00` : formatHourLabel(h, am, pm)}
+            {formatHourLabel(h, timeFormat, am, pm)}
           </span>
         ))}
       </div>
     </div>
-  );
-}
-
-function Avatar({ row, size, fontSize }: { row: PersonRow; size: number; fontSize: number }) {
-  return (
-    <span aria-hidden="true" style={{
-      width: size, height: size, borderRadius: '50%', flexShrink: 0,
-      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      background: row.color, color: '#fff', fontSize: row.initials.length > 2 ? fontSize * 0.7 : fontSize, fontWeight: 700,
-    }}>
-      {row.initials}
-    </span>
   );
 }
 
@@ -232,7 +216,7 @@ function PersonLabel({ row, gaps, freeNow, dayOver, fontSize, scale, fmtHour, t 
     : dayOver ? t('fullscreen-calendar.freeTime.doneForToday') : t('fullscreen-calendar.freeTime.busyAllDay');
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 0.8, minWidth: 0, paddingRight: scale.bu * 0.8 }}>
-      <Avatar row={row} size={fontSize * 2.6} fontSize={fontSize * 0.9} />
+      <PersonAvatar row={row} size={fontSize * 2.6} fontSize={fontSize * 0.9} />
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: fontSize * 1.2, fontWeight: 650, color: 'var(--cal-text-primary)', lineHeight: 1.1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }}>{row.name}</div>
         <div style={{ fontSize: fontSize * 0.78, color: 'var(--cal-text-tertiary)', marginTop: 2, lineHeight: 1.2 }}>{status}</div>
@@ -328,7 +312,7 @@ function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLe
 function formatHourAt(day: Date, hour: number, timeFormat: TimeFormat, locale: string, am: string, pm: string): string {
   const whole = Math.floor(hour);
   const minutes = Math.round((hour - whole) * 60);
-  if (whole >= 24) return timeFormat === '24h' ? '24:00' : formatHourLabel(0, am, pm);
+  if (whole >= 24) return timeFormat === '24h' ? '24:00' : formatHourLabel(24, timeFormat, am, pm);
   const d = new Date(day.getFullYear(), day.getMonth(), day.getDate(), whole, minutes);
   return formatEventTime(d, timeFormat, locale);
 }

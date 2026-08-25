@@ -1,25 +1,25 @@
 'use client';
 
-import { memo, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { isSameDay, startOfDay, addDays, differenceInMinutes, differenceInCalendarDays, startOfWeek, getWeek, isSameMonth } from 'date-fns';
+import { useMemo } from 'react';
+import { startOfDay } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
-import { DayBadges } from './shared/DayBadges';
-import { applyEventRules, eventGlyph, eventOpacity, mergeCellDecor, resolveDayDecor, rulesNeedNow, type DayDecor } from '@/lib/calendar-rules';
-import { parseEventWallTime, isEventUpcoming, listViewCutoff, buildLegend, viewDayWindow, type LegendSource, compareEventStarts, sanitizeEventDescription, clampWeeksToShow, clampGridMaxEventsPerCell, isGridView, weekStartsOnFor, weekNumberOptions, eventsForDay, formatEventTime, formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, pickGridTimeColor, isAllDayEvent, pickPillTextColor, pickTintedTextColor, classifyTimedSpan, eventStatusSlot, eventProgress, isPastInDailyColumn, eventKindLabel, boundaryBetween, applyTitleFilter, type EventDaySegment } from '@/lib/calendar-utils';
-import { useFailingSources } from './shared/useFailingSources';
-import { toTZWallTime } from '@/lib/timezone';
-import type { CalendarFetchStatus, CalendarSourceStatus } from '@/types/config';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type CalendarGridTheme, type TimeFormat } from '@/types/config';
+import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
+import { isEventUpcoming, listViewCutoff, clampWeeksToShow, isGridView, weekStartsOnFor } from '@/lib/calendar-utils';
+import { buildLegend, viewDayWindow, type LegendSource } from '@/lib/calendar-legend';
+import { calendarStaleStatus, useFailingSources } from './shared/useFailingSources';
+import { useEventTapDetail } from './shared/useEventTapDetail';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { SectionHeader } from './shared/SectionHeader';
-import { MetadataText } from './shared/MetadataText';
-import { ContentCard } from './shared/ContentCard';
+import type { EventDisplayStyle } from './calendar/support';
+import { DailyView } from './calendar/DailyView';
+import { AgendaView } from './calendar/AgendaView';
+import { WeekView } from './calendar/WeekView';
+import { GridView } from './calendar/grid';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -31,987 +31,6 @@ interface CalendarModuleProps {
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
 }
-
-/**
- * How event lines render, resolved once per module render and threaded to
- * every view as a single memoized object (its identity only changes when a
- * field does, so the memoized EventCard stays cached across clock ticks).
- * `timezone` rides along because event times must be formatted and bucketed
- * in the display's timezone, exactly like the grid's today-highlight.
- */
-interface EventDisplayStyle {
-  timeFormat: TimeFormat;
-  gridStyle: 'classic' | 'colored';
-  pillBackground: boolean;
-  timezone?: string;
-  /** Sources whose feed is failing; list rows add a "saved" time suffix. */
-  failingSourceIds?: ReadonlySet<string>;
-}
-
-function formatDuration(start: Date, end: Date): string {
-  const mins = differenceInMinutes(end, start);
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  const rem = mins % 60;
-  return rem > 0 ? `${hrs}h ${rem}m` : `${hrs}h`;
-}
-
-function formatRelativeDay(
-  date: Date,
-  today: Date,
-  tCore: TranslateFn,
-  locale: string,
-): string {
-  const diffDays = Math.round((startOfDay(date).getTime() - startOfDay(today).getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return tCore('today');
-  if (diffDays === 1) return tCore('tomorrow');
-  if (diffDays === -1) return tCore('yesterday');
-  return formatDateSync(date, 'EEEE, MMM d', { locale });
-}
-
-// ─── Event Card (shared across views) ───
-
-// Memoized: grid views mount hundreds of these and the module re-renders
-// every minute on the timezone clock tick with the same event object refs,
-// so the shallow compare skips re-parsing/re-formatting every pill per tick.
-const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
-  event: CalendarEvent;
-  textColor: string;
-  showTime: boolean;
-  showLocation: boolean;
-  showDescription?: boolean;
-  compact?: boolean;
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  t: TranslateFn;
-  locale: string;
-  /** Day-relative part of a multi-day event (list views pass the row's day). */
-  segment?: EventDaySegment;
-  /** Status slot: countdown text before start / progress fraction while running. */
-  countdown?: string | null;
-  progress?: number | null;
-  /** Daily view only: already-ended today, faded via dimPastEvents. */
-  dimmed?: boolean;
-  /** Daily view only: currently running, ringed via showNowRule. */
-  live?: boolean;
-}) {
-  const { timeFormat, gridStyle, pillBackground, timezone } = eventStyle;
-  const isAllDay = isAllDayEvent(event);
-  // Classic compact pills render only the dot and title — return before
-  // parsing dates, since grid views mount hundreds of these per render.
-  // (Colored timed pills parse the start below for their time prefix.)
-  if (compact) {
-    const eventColor = event.calendarColor ?? accentColor;
-    const glyph = eventGlyph(event);
-    if (gridStyle === 'colored') {
-      if (isAllDay) {
-        return (
-          <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor), opacity: event.opacity }}>
-            {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}>{glyph}</span>}
-            <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
-          </div>
-        );
-      }
-      const start = parseEventWallTime(event.start, timezone);
-      return (
-        <div
-          data-event-id={event.id}
-          className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-          style={{ backgroundColor: pillBackground ? 'rgba(255,255,255,0.10)' : undefined, opacity: event.opacity }}
-        >
-          <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
-            {formatEventTime(start, timeFormat, locale, true)}
-          </span>
-          <span className="truncate" style={{ fontSize: '0.7em', color: eventColor }}>{event.title}</span>
-        </div>
-      );
-    }
-    return (
-      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)', opacity: event.opacity }}>
-        {glyph ? (
-          <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}>{glyph}</span>
-        ) : (
-          <div
-            className="w-1.5 h-1.5 rounded-full shrink-0"
-            style={{ backgroundColor: event.calendarColor ?? accentColor }}
-          />
-        )}
-        <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>
-      </div>
-    );
-  }
-
-  const start = parseEventWallTime(event.start, timezone);
-  const end = parseEventWallTime(event.end, timezone);
-  const description = showDescription ? sanitizeEventDescription(event.description) : '';
-  const glyph = eventGlyph(event);
-  const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'calendar');
-  // Split multi-day rows: middle days promote to an all-day label, first and
-  // last days show only their true partial time. Rows from a source that
-  // stopped updating carry a "saved" suffix.
-  const baseTimeContent = kindLabel ?? (isAllDay || segment === 'middle' ? t('calendar.allDay')
-    : segment === 'first' ? t('calendar.fromTime', { time: formatEventTime(start, timeFormat, locale) })
-    : segment === 'last' ? t('calendar.untilTime', { time: formatEventTime(end, timeFormat, locale) })
-    : `${formatEventTime(start, timeFormat, locale)} · ${formatDuration(start, end)}`);
-  const timeContent = event.sourceId && eventStyle.failingSourceIds?.has(event.sourceId)
-    ? `${baseTimeContent} · ${t('calendar.savedShort')}`
-    : baseTimeContent;
-
-  return (
-    <ContentCard
-      data-event-id={event.id}
-      className="flex gap-2"
-      style={{
-        padding: '6px 10px',
-        opacity: eventOpacity(event, dimmed ? 0.4 : 1),
-        boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
-      }}
-    >
-      {glyph ? (
-        <span aria-hidden="true" className="shrink-0 text-center" style={{ width: 9, fontSize: '0.8em', lineHeight: 1, marginTop: 3 }}>{glyph}</span>
-      ) : (
-        <div
-          className="w-0.5 rounded-full shrink-0 self-stretch"
-          style={{ backgroundColor: event.calendarColor ?? accentColor }}
-        />
-      )}
-      <div className="min-w-0 flex-1">
-        {showTime && (
-          <div className="flex items-center gap-1.5">
-            <MetadataText size="sm">{timeContent}</MetadataText>
-            {countdown && (
-              <span
-                className="shrink-0 rounded-full font-semibold whitespace-nowrap"
-                style={{
-                  fontSize: '0.6em',
-                  color: accentColor,
-                  backgroundColor: 'rgba(255,255,255,0.10)',
-                  padding: '1px 7px',
-                }}
-              >
-                {countdown}
-              </span>
-            )}
-          </div>
-        )}
-        <p className="font-medium leading-tight line-clamp-2" style={{ fontSize: '0.85em' }}>{event.title}</p>
-        {progress != null && (
-          <div
-            role="progressbar"
-            aria-valuenow={Math.round(progress * 100)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            className="rounded-full overflow-hidden"
-            style={{ height: 3, marginTop: 4, backgroundColor: 'rgba(255,255,255,0.15)' }}
-          >
-            <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, backgroundColor: accentColor }} />
-          </div>
-        )}
-        {showLocation && event.location && (
-          <MetadataText size="xs" className="leading-tight">
-            {event.location}
-          </MetadataText>
-        )}
-        {description && (
-          <p
-            className="leading-snug whitespace-pre-line break-words"
-            style={{ fontSize: '0.72em', opacity: TEXT_OPACITY.secondary, marginTop: '2px' }}
-          >
-            {description}
-          </p>
-        )}
-      </div>
-    </ContentCard>
-  );
-});
-
-// ─── Daily View (original) ───
-
-/** Thin accent rule marking "now" in today's column, between already-ended
- *  and upcoming/running events. Purely a visual echo of what each row's own
- *  time already says, so it carries no accessible name of its own. */
-function NowRule({ now, accentColor, timeFormat, locale }: {
-  now: Date;
-  accentColor: string;
-  timeFormat: TimeFormat;
-  locale: string;
-}) {
-  return (
-    <div data-now-rule className="flex items-center gap-1.5" style={{ margin: '2px 0 4px' }} aria-hidden="true">
-      <span className="rounded-full shrink-0" style={{ width: 6, height: 6, backgroundColor: accentColor }} />
-      <span style={{ fontSize: '0.55em', fontWeight: 700, color: accentColor, whiteSpace: 'nowrap' }}>
-        {formatEventTime(now, timeFormat, locale)}
-      </span>
-      <span className="flex-1" style={{ height: 1, backgroundColor: accentColor, opacity: 0.6 }} />
-    </div>
-  );
-}
-
-function DailyView({ events, config, style, today, now, accentColor, t, tCore, locale, eventStyle }: {
-  events: CalendarEvent[];
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  config: CalendarConfig;
-  style: ModuleStyle;
-  today: Date;
-  now: Date;
-  t: TranslateFn;
-  tCore: TranslateFn;
-  locale: string;
-}) {
-  const daysToShow = config.daysToShow ?? 3;
-  const showTime = config.showTime !== false;
-  const showLocation = config.showLocation !== false;
-  const showDescription = config.dailyShowDescription === true;
-  const emptyDayText = config.emptyDayText?.trim();
-  const dimPastEvents = config.dimPastEvents === true;
-  const showNowRule = config.showNowRule === true;
-
-  const days = Array.from({ length: daysToShow }, (_, i) => {
-    const date = addDays(today, i);
-    const dayEvents = eventsForDay(events, date, eventStyle.timezone);
-    return { date, events: dayEvents };
-  });
-
-  return (
-    <div className="flex h-full gap-3">
-      {days.map(({ date, events: dayEvents }) => {
-        const isToday = isSameDay(date, today);
-        const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
-        return (
-          <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0 rounded" style={mergeCellDecor({}, decor)}>
-            <div className="text-center mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <SectionHeader active={isToday}>
-                {isToday ? tCore('today') : formatDateSync(date, 'EEE', { locale })}
-              </SectionHeader>
-              <p
-                className="font-bold"
-                style={{ fontSize: '1.3em', opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}
-              >
-                {formatDateSync(date, 'd', { locale })}
-              </p>
-              <DayBadges badges={decor.badges} style={{ justifyContent: 'center', fontSize: '0.8em' }} />
-              <p style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
-                {formatDateSync(date, 'MMM', { locale })}
-              </p>
-            </div>
-            <div className="flex flex-col gap-1.5 overflow-hidden flex-1">
-              {dayEvents.length === 0 ? (
-                <div
-                  className="flex items-center justify-center rounded-lg px-2.5 py-3"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
-                >
-                  <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
-                </div>
-              ) : (
-                (() => {
-                  // The now rule sits right after the last already-ended
-                  // event, so a currently-running one stays above it with
-                  // its live ring/progress bar intact.
-                  const rows: ReactNode[] = [];
-                  let ruleInserted = false;
-                  for (const ev of dayEvents) {
-                    const start = parseEventWallTime(ev.start, eventStyle.timezone);
-                    const end = parseEventWallTime(ev.end, eventStyle.timezone);
-                    const isAllDay = isAllDayEvent(ev);
-                    const segment = isAllDay ? 'single' : classifyTimedSpan(start, end, date);
-                    const isPast = isPastInDailyColumn(end, now, isToday, isAllDay, segment);
-                    const isLive = !isAllDay && !isPast && eventProgress(start, end, now) != null;
-                    // All-day rows and 'middle' segments (a multi-day timed
-                    // event just passing through today) carry no past/future
-                    // meaning for today's column — eventsForDay sorts by the
-                    // event's original start, which for a 'middle' segment
-                    // can be days ago, so it can't be allowed to trigger
-                    // (or block) the now-rule boundary the way a real
-                    // today-relative event does.
-                    if (showNowRule && isToday && !ruleInserted && !isAllDay && segment !== 'middle' && !isPast) {
-                      rows.push(<NowRule key="now-rule" now={now} accentColor={accentColor} timeFormat={eventStyle.timeFormat} locale={locale} />);
-                      ruleInserted = true;
-                    }
-                    const status = eventStatusSlot({
-                      start, end,
-                      isAllDayRow: isAllDay || segment === 'middle',
-                      rowDate: date, now, locale, segment,
-                      showCountdown: config.showCountdown === true,
-                      showProgressBar: config.showProgressBar === true,
-                      countdownAllDay: false,
-                    });
-                    rows.push(
-                      <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={dimPastEvents && isPast} live={showNowRule && isLive} />
-                    );
-                  }
-                  if (showNowRule && isToday && !ruleInserted) {
-                    rows.push(<NowRule key="now-rule" now={now} accentColor={accentColor} timeFormat={eventStyle.timeFormat} locale={locale} />);
-                  }
-                  return rows;
-                })()
-              )}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─── Agenda View ───
-
-function AgendaView({ events, config, style, today, now, accentColor, t, tCore, locale, eventStyle }: {
-  events: CalendarEvent[];
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  config: CalendarConfig;
-  style: ModuleStyle;
-  today: Date;
-  now: Date;
-  t: TranslateFn;
-  tCore: TranslateFn;
-  locale: string;
-}) {
-  const showTime = config.showTime !== false;
-  const showLocation = config.showLocation !== false;
-  const showDescription = config.agendaShowDescription === true;
-  const showFinishedToday = config.agendaShowFinishedToday === true;
-  const maxEvents = config.maxEvents ?? 20;
-  const weekStartsOn = weekStartsOnFor(config.startDay);
-
-  // maxEvents is an upcoming-first budget. A plain ascending slice would let
-  // events that already ended today (the earliest starts, present only with
-  // agendaShowFinishedToday) crowd out every upcoming row; keep the nearest
-  // upcoming events and backfill leftover budget with the most recent
-  // finished ones. Without finished rows this is the original slice.
-  const isFinished = (ev: CalendarEvent) => parseEventWallTime(ev.end, eventStyle.timezone) <= now;
-  const chronological = [...events].sort((a, b) => compareEventStarts(a.start, b.start));
-  const upcoming = chronological.filter((ev) => !isFinished(ev)).slice(0, maxEvents);
-  const finished = chronological.filter(isFinished);
-  const sorted = [...finished.slice(Math.max(0, finished.length - (maxEvents - upcoming.length))), ...upcoming]
-    .sort((a, b) => compareEventStarts(a.start, b.start));
-
-  // Group by day
-  const groups: { date: Date; events: CalendarEvent[] }[] = [];
-  for (const ev of sorted) {
-    const evDate = startOfDay(parseEventWallTime(ev.start, eventStyle.timezone));
-    // With showFinishedToday the list starts at today, so an ongoing
-    // multi-day event that started earlier re-homes under Today instead of
-    // anchoring a past-day group above everything else.
-    const groupDate = showFinishedToday && evDate < today ? today : evDate;
-    const existing = groups.find((g) => isSameDay(g.date, groupDate));
-    if (existing) {
-      existing.events.push(ev);
-    } else {
-      groups.push({ date: groupDate, events: [ev] });
-    }
-  }
-
-  if (groups.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.noUpcomingEvents')}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3 overflow-hidden h-full">
-      {groups.map(({ date, events: dayEvents }, gi) => {
-        const boundary = gi > 0
-          ? boundaryBetween(groups[gi - 1].date, date, config.agendaSeparators, weekStartsOn)
-          : null;
-        const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
-        return (
-        <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.borderColor ? 6 : undefined }, decor)}>
-          {boundary === 'month' && (
-            <div className="mb-2">
-              <p className="font-semibold" style={{ fontSize: '0.9em', color: accentColor }}>
-                {formatDateSync(date, 'MMMM', { locale })}
-              </p>
-              <div className="rounded-full" style={{ height: 2, backgroundColor: accentColor, opacity: 0.55, marginTop: 2 }} />
-            </div>
-          )}
-          {boundary === 'week' && (
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
-              <span className="shrink-0 uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary, fontWeight: 600 }}>
-                {t('calendar.weekOf', { date: formatDateSync(addDays(date, -((date.getDay() - weekStartsOn + 7) % 7)), 'MMM d', { locale }) })}
-              </span>
-              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
-            </div>
-          )}
-          <div className="flex items-center gap-2 mb-1.5">
-            <SectionHeader className="shrink-0" active={isSameDay(date, today)}>
-              {formatRelativeDay(date, today, tCore, locale)}
-            </SectionHeader>
-            <DayBadges badges={decor.badges} style={{ fontSize: '0.75em' }} />
-            <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            {dayEvents.map((ev) => {
-              const start = parseEventWallTime(ev.start, eventStyle.timezone);
-              const end = parseEventWallTime(ev.end, eventStyle.timezone);
-              const isAllDay = isAllDayEvent(ev);
-              // A timed event re-homed under Today (started on an earlier
-              // day) must not read as "starts today at <its original
-              // time>": classify it day-relative like the daily view does,
-              // so it renders "All day" mid-span or "Until 6:00 PM" on its
-              // last day. Rows grouped under their own start day keep the
-              // plain time + duration.
-              const segment = !isAllDay && !isSameDay(start, date) ? classifyTimedSpan(start, end, date) : undefined;
-              const status = eventStatusSlot({
-                start, end,
-                isAllDayRow: isAllDay || segment === 'middle',
-                rowDate: date, now, locale, segment,
-                showCountdown: config.showCountdown === true,
-                showProgressBar: config.showProgressBar === true,
-                countdownAllDay: false,
-              });
-              return (
-                <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={isFinished(ev)} />
-              );
-            })}
-          </div>
-        </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Accent color at a given alpha. ColorPicker's text input accepts any CSS
- * color, so plain hex-suffix concatenation ("red" + "cc") would produce
- * invalid CSS; only append when the value really is a 6-digit hex. */
-function withAlpha(color: string, alphaHex: string): string {
-  if (/^#[0-9a-fA-F]{6}$/.test(color)) return `${color}${alphaHex}`;
-  const pct = Math.round((parseInt(alphaHex, 16) / 255) * 100);
-  return `color-mix(in srgb, ${color} ${pct}%, transparent)`;
-}
-
-function dayDecorFor(config: CalendarConfig, date: Date, dayEvents: CalendarEvent[], today: Date, now: Date, timezone: string | undefined): DayDecor {
-  return resolveDayDecor(date, dayEvents, config.dayRules, { today, now, timezone }, { autoTintAlpha: 0.22 });
-}
-
-// ─── Shared grid pieces (week / month / multi-week) ───
-
-/** Gutter for the month and multi-week grids: 2px, double the week grid's
- *  1px, because their cells are short and need more air to separate. The
- *  same value must reach every grid of a view (header row included) or the
- *  weekday labels drift off the columns below. */
-const GRID_GAP = 'gap-0.5';
-
-function gridTemplateFor(showWeekNumbers: boolean): string {
-  // The week-number column is a fixed width, not `auto`: the header and the
-  // body rows are separate grids, so an `auto` column resolves per grid
-  // (empty header cell ≈ 0px vs two week-number digits) and shifts every
-  // weekday label off the day column below it.
-  return showWeekNumbers ? '1.6em repeat(7, 1fr)' : 'repeat(7, 1fr)';
-}
-
-function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em' }: {
-  date: Date;
-  config: CalendarConfig;
-  className?: string;
-  fontSize?: string;
-}) {
-  return (
-    <div className={`flex items-start justify-center px-1 ${className}`}>
-      <span style={{ fontSize, opacity: TEXT_OPACITY.tertiary }}>
-        {getWeek(date, weekNumberOptions(config.startDay))}
-      </span>
-    </div>
-  );
-}
-
-/** Weekday header for the month and multi-week grids (the week grid renders
- *  its own, with day numbers and badges). */
-function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, today, accentColor }: {
-  dates: Date[];
-  showWeekNumbers: boolean;
-  locale: string;
-  /** Modern grid themes: bold + accent the column containing `today`. */
-  today?: Date;
-  accentColor?: string;
-}) {
-  return (
-    <div className={`grid ${GRID_GAP}`} style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
-      {showWeekNumbers && <div />}
-      {dates.map((d) => {
-        const highlight = today != null && accentColor != null && d.getDay() === today.getDay();
-        return (
-          <div key={d.toISOString()} className="text-center py-0.5">
-            <span
-              className={`uppercase tracking-wider${highlight ? ' font-bold' : ''}`}
-              style={{ fontSize: '0.6em', ...(highlight ? { color: accentColor } : { opacity: TEXT_OPACITY.tertiary }) }}
-            >
-              {formatDateSync(d, 'EEE', { locale })}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function DayCellEvents({ events, maxPerCell, textColor, accentColor, eventStyle, t, locale, gapClass = 'gap-px' }: {
-  events: CalendarEvent[];
-  maxPerCell: number;
-  textColor: string;
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  t: TranslateFn;
-  locale: string;
-  gapClass?: string;
-}) {
-  return (
-    <div className={`flex flex-col ${gapClass} overflow-hidden`}>
-      {events.slice(0, maxPerCell).map((ev) => (
-        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={false} showLocation={false} compact accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
-      ))}
-      {events.length > maxPerCell && (
-        <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {t('calendar.moreCount', { count: events.length - maxPerCell })}
-        </span>
-      )}
-    </div>
-  );
-}
-
-// ─── Week Grid View ───
-
-function WeekView({ events, config, style, today, now, accentColor, t, locale, eventStyle }: {
-  events: CalendarEvent[];
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  config: CalendarConfig;
-  style: ModuleStyle;
-  today: Date;
-  now: Date;
-  t: TranslateFn;
-  tCore: TranslateFn;
-  locale: string;
-}) {
-  const showWeekNumbers = config.showWeekNumbers ?? false;
-  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
-  const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const gridTemplate = gridTemplateFor(showWeekNumbers);
-  const dayRows = daysInWeek.map((date) => {
-    const dayEvents = eventsForDay(events, date, eventStyle.timezone);
-    return { date, dayEvents, decor: dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone) };
-  });
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="grid gap-px mb-1" style={{ gridTemplateColumns: gridTemplate }}>
-        {showWeekNumbers && (
-          <div className="flex items-center justify-center px-1">
-            <span style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.weekShort')}</span>
-          </div>
-        )}
-        {dayRows.map(({ date, decor }) => {
-          const isToday = isSameDay(date, today);
-          return (
-            <div key={date.toISOString()} className="text-center py-1">
-              <p className="uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
-                {formatDateSync(date, 'EEE', { locale })}
-              </p>
-              <div
-                className="inline-flex items-center justify-center rounded-full"
-                style={{
-                  width: '1.8em',
-                  height: '1.8em',
-                  fontSize: '0.85em',
-                  fontWeight: isToday ? 700 : 500,
-                  backgroundColor: isToday ? withAlpha(accentColor, 'cc') : 'transparent',
-                  opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
-                }}
-              >
-                {formatDateSync(date, 'd', { locale })}
-              </div>
-              <DayBadges badges={decor.badges} style={{ justifyContent: 'center', display: 'flex', fontSize: '0.75em' }} />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Event grid */}
-      <div className="grid gap-px flex-1 overflow-hidden" style={{ gridTemplateColumns: gridTemplate }}>
-        {showWeekNumbers && (
-          <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize="0.6em" />
-        )}
-        {dayRows.map(({ date, dayEvents, decor }) => {
-          return (
-            <div
-              key={date.toISOString()}
-              className="flex flex-col p-0.5 overflow-hidden rounded"
-              style={mergeCellDecor({ backgroundColor: 'rgba(255,255,255,0.03)' }, decor)}
-            >
-              <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, 'week')} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── Month + Multi-Week Grid Views ───
-
-interface GridViewProps {
-  events: CalendarEvent[];
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  config: CalendarConfig;
-  style: ModuleStyle;
-  today: Date;
-  now: Date;
-  t: TranslateFn;
-  tCore: TranslateFn;
-  locale: string;
-}
-
-type GridSkeletonProps = GridViewProps & { grid: ResolvedGrid };
-
-/** Everything the two grid skeletons need to know about the days they draw,
- *  resolved once from `config.viewMode`. Month = the current month padded to
- *  whole weeks: out-of-month days render muted and nothing marks a month
- *  start (the title already names the month). Weeks = `weeksToShow` rows
- *  from the current week: past days render muted and every 1st carries its
- *  month name plus an accent rule. The day math is `viewDayWindow`'s, the
- *  same authority the fetch and legend windows use, so the grid can never
- *  disagree with them. */
-interface ResolvedGrid {
-  kind: 'month' | 'weeks';
-  weeks: Date[][];
-  /** The month name on the month grid, the month range on the rolling grid. */
-  title: string;
-  isMuted(date: Date, isToday: boolean): boolean;
-  marksMonthStart(date: Date): boolean;
-}
-
-/** Keyed on the day (not the `today` object) so the parent's minute tick
- *  doesn't rebuild up to 84 cells' worth of dates. */
-function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): ResolvedGrid {
-  const todayMs = today.getTime();
-  const kind = config.viewMode === 'month' ? 'month' : 'weeks';
-  const count = clampWeeksToShow(config.weeksToShow);
-  const { startDay } = config;
-  return useMemo(() => {
-    const anchor = new Date(todayMs);
-    const weekStartsOn = weekStartsOnFor(startDay);
-    const { start, end } = kind === 'month'
-      ? viewDayWindow({ kind: 'month-grid', today: anchor, weekStartsOn })
-      : viewDayWindow({ kind: 'weeks', today: anchor, weekStartsOn, count });
-    const weeks = Array.from({ length: differenceInCalendarDays(end, start) / 7 }, (_, w) =>
-      Array.from({ length: 7 }, (_, d) => addDays(start, w * 7 + d)));
-    if (kind === 'month') {
-      return {
-        kind,
-        weeks,
-        title: formatDateSync(anchor, 'MMMM yyyy', { locale }),
-        isMuted: (date) => !isSameMonth(date, anchor),
-        marksMonthStart: () => false,
-      };
-    }
-    return {
-      kind,
-      weeks,
-      title: formatMonthRangeLabel(start, addDays(end, -1), locale),
-      isMuted: (date, isToday) => date < anchor && !isToday,
-      marksMonthStart: (date) => date.getDate() === 1,
-    };
-  }, [todayMs, startDay, kind, count, locale]);
-}
-
-function GridTitle({ children }: { children: string }) {
-  return <p className="text-center font-semibold" style={{ fontSize: '0.85em' }}>{children}</p>;
-}
-
-function useGridEventsByDay(weeks: Date[][], events: CalendarEvent[], timezone: string | undefined): Map<number, CalendarEvent[]> {
-  return useMemo(() => {
-    const map = new Map<number, CalendarEvent[]>();
-    for (const week of weeks) {
-      for (const date of week) {
-        map.set(date.getTime(), eventsForDay(events, date, timezone));
-      }
-    }
-    return map;
-  }, [weeks, events, timezone]);
-}
-
-/** The month and multi-week views. `gridTheme` picks the skeleton: the
- *  original banner grid, or the modern shared skeleton with a per-theme pill
- *  treatment. The two views are the same grid; only the resolved range differs. */
-function GridView(props: GridViewProps) {
-  const theme = props.config.gridTheme ?? 'banner';
-  const grid = useResolvedGrid(props.config, props.today, props.locale);
-  if (theme === 'banner') return <GridBannerView {...props} grid={grid} />;
-  return <GridModernView {...props} grid={grid} theme={theme} />;
-}
-
-function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid }: GridSkeletonProps) {
-  const showWeekNumbers = config.showWeekNumbers ?? false;
-  const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
-  const gridTemplate = gridTemplateFor(showWeekNumbers);
-
-  // Badge colors are loop-invariant; computed once, not per cell (up to 84
-  // cells re-render on every minute tick).
-  const todayBadgeBg = withAlpha(accentColor, 'cc');
-  const dayBadgeBg = withAlpha(accentColor, '40');
-  const todayText = pickPillTextColor(accentColor);
-  const dayText = pickTintedTextColor(style.textColor, accentColor, style.backgroundColor);
-  const monthText = pickTintedTextColor(accentColor, accentColor, style.backgroundColor);
-
-  const { weeks } = grid;
-  const eventsByDay = useGridEventsByDay(weeks, events, eventStyle.timezone);
-
-  return (
-    <div className={`flex flex-col h-full ${GRID_GAP}`}>
-      {/* The rolling grid never had a title under the banner look; the month grid keeps its own. */}
-      {grid.kind === 'month' && <GridTitle>{grid.title}</GridTitle>}
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} />
-
-      <div className={`flex flex-col ${GRID_GAP} flex-1`}>
-        {weeks.map((week, wi) => (
-          <div key={wi} className={`grid ${GRID_GAP} flex-1`} style={{ gridTemplateColumns: gridTemplate }}>
-            {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
-            {week.map((date) => {
-              const isToday = isSameDay(date, today);
-              const isMuted = grid.isMuted(date, isToday);
-              const marksMonthStart = grid.marksMonthStart(date);
-              const dayEvents = eventsByDay.get(date.getTime()) ?? [];
-              const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
-              const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
-
-              return (
-                <div
-                  key={date.toISOString()}
-                  className="flex flex-col p-0.5 overflow-hidden rounded"
-                  style={mergeCellDecor({
-                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
-                    ...(marksMonthStart ? { backgroundImage: `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent)` } : {}),
-                    opacity: isMuted ? TEXT_OPACITY.tertiary : 1,
-                  }, decor)}
-                >
-                  {/* Digits at 0.65em to match the week grid; height 1.35em
-                      keeps the previous badge's pixel height. Flex splits
-                      month + day into separate items, so the spacing between
-                      them must come from `gap` — a literal space would be
-                      collapsed away. */}
-                  <span className="flex items-center justify-center rounded leading-none mb-0.5" style={{
-                    height: '1.35em', fontSize: '0.65em', gap: '0.25em',
-                    fontWeight: isToday ? 700 : 400,
-                    backgroundColor: isToday ? todayBadgeBg : dayBadgeBg,
-                    color: isToday ? todayText : dayText,
-                  }}>
-                    {marksMonthStart && (
-                      <span style={{ color: isToday ? todayText : monthText, fontWeight: isToday ? 700 : 600 }}>
-                        {formatDateSync(date, 'MMM', { locale })}
-                      </span>
-                    )}
-                    {formatDateSync(date, 'd', { locale })}
-                    {hasBirthday && <span aria-hidden="true">🎂</span>}
-                    <DayBadges badges={decor.badges} />
-                  </span>
-                  <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={maxPerCell} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/** One event pill in the modern grid themes. Clean = neutral pill, compact
- * contrast-guarded time in the calendar color, module-text semibold title.
- * Minimal = title only behind a 3px calendar-color bar. Vivid = solid
- * calendar-color pill with auto-contrast text. Multi-day all-day pills
- * stitch across their span: solid rounded-left first day, hollow squared
- * continuations — the 2px grid gutters read as one interrupted bar. */
-const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleBackground, accentColor, eventStyle, locale }: {
-  event: CalendarEvent;
-  date: Date;
-  theme: Exclude<CalendarGridTheme, 'banner'>;
-  // Primitives, not the ModuleStyle object, so the memo's shallow compare
-  // survives a parent re-render that rebuilds the style object (same
-  // rationale as EventCard's props).
-  textColor: string;
-  moduleBackground: string | undefined;
-  accentColor: string;
-  eventStyle: EventDisplayStyle;
-  locale: string;
-}) {
-  const color = event.calendarColor ?? accentColor;
-
-  if (isAllDayEvent(event)) {
-    const segment = allDaySpanSegment(event, date);
-    if (segment === 'middle' || segment === 'last') {
-      return (
-        <div
-          data-event-id={event.id}
-          className={`px-1 py-0.5 truncate ${segment === 'middle' ? 'rounded-none' : 'rounded-r'}`}
-          style={{ boxShadow: `inset 0 0 0 1.5px ${color}`, color: textColor, opacity: TEXT_OPACITY.heading }}
-        >
-          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{event.title}</span>
-        </div>
-      );
-    }
-    return (
-      <div
-        data-event-id={event.id}
-        className={`px-1 py-0.5 truncate ${segment === 'first' ? 'rounded-l' : 'rounded'}`}
-        style={{ backgroundColor: color, color: pickPillTextColor(color) }}
-      >
-        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
-      </div>
-    );
-  }
-
-  const title = <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>;
-
-  if (theme === 'minimal') {
-    return (
-      <div
-        data-event-id={event.id}
-        className="flex items-baseline rounded truncate"
-        style={{ padding: '2px 4px 2px 7px', backgroundColor: 'rgba(255,255,255,0.09)', boxShadow: `inset 3px 0 0 ${color}`, color: textColor }}
-      >
-        {title}
-      </div>
-    );
-  }
-
-  const start = parseEventWallTime(event.start, eventStyle.timezone);
-  const time = formatEventTimeCompact(start, eventStyle.timeFormat, locale);
-
-  if (theme === 'vivid') {
-    return (
-      <div
-        data-event-id={event.id}
-        className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-        style={{ backgroundColor: color, color: pickPillTextColor(color) }}
-      >
-        <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', opacity: 0.8 }}>{time}</span>
-        {title}
-      </div>
-    );
-  }
-
-  // clean
-  return (
-    <div
-      data-event-id={event.id}
-      className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-      style={{ backgroundColor: 'rgba(255,255,255,0.10)', color: textColor }}
-    >
-      <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>
-      {title}
-    </div>
-  );
-});
-
-/** Shared skeleton for the modern themes ('clean' | 'minimal' | 'vivid'):
- * month (or month-range) header, quiet corner day numbers with a solid badge
- * on today only, an accent ring on the today cell, weekend shading, bold
- * "MMM d" labels under an accent hairline where the rolling grid crosses into
- * a new month, stitched multi-day pills, and a chip-styled overflow row. The
- * theme only swaps the pill treatment (GridPill); gridEventStyle /
- * gridEventPillBackground do not apply here. data-grid-theme carries the
- * active theme for tests. */
-function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
-  const showWeekNumbers = config.showWeekNumbers ?? false;
-  const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
-  const gridTemplate = gridTemplateFor(showWeekNumbers);
-  const { textColor, backgroundColor: moduleBackground } = style;
-
-  // Loop-invariant colors, hoisted like the banner view's (up to 84 cells
-  // re-render on every minute tick).
-  const todayBadgeText = pickPillTextColor(accentColor);
-  const todayCellTint = withAlpha(accentColor, '24');
-  const todayRing = `inset 0 0 0 1.5px ${accentColor}`;
-  const monthRule = `inset 0 2px 0 ${withAlpha(accentColor, 'bf')}`;
-
-  const { weeks } = grid;
-  const eventsByDay = useGridEventsByDay(weeks, events, eventStyle.timezone);
-
-  return (
-    <div data-grid-theme={theme} className={`flex flex-col h-full ${GRID_GAP}`}>
-      <GridTitle>{grid.title}</GridTitle>
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} today={today} accentColor={accentColor} />
-      <div className={`flex flex-col ${GRID_GAP} flex-1`}>
-        {weeks.map((week, wi) => (
-          <div key={wi} className={`grid ${GRID_GAP} flex-1`} style={{ gridTemplateColumns: gridTemplate }}>
-            {showWeekNumbers && <WeekNumberCell date={week[0]} config={config} />}
-            {week.map((date) => {
-              const isToday = isSameDay(date, today);
-              const isMuted = grid.isMuted(date, isToday);
-              const marksMonthStart = grid.marksMonthStart(date);
-              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-              const dayEvents = eventsByDay.get(date.getTime()) ?? [];
-              const shown = dayEvents.slice(0, maxPerCell);
-              const overflow = dayEvents.length - shown.length;
-              const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
-              const cellShadow = [isToday ? todayRing : null, marksMonthStart ? monthRule : null]
-                .filter(Boolean).join(', ');
-
-              const decor = dayDecorFor(config, date, dayEvents, today, now, eventStyle.timezone);
-
-              return (
-                <div
-                  key={date.toISOString()}
-                  className="flex flex-col p-0.5 overflow-hidden rounded"
-                  style={mergeCellDecor({
-                    backgroundColor: isToday ? todayCellTint : `rgba(255, 255, 255, ${isWeekend ? 0.065 : 0.045})`,
-                    ...(cellShadow ? { boxShadow: cellShadow } : {}),
-                  }, decor)}
-                >
-                  <div className="flex items-center shrink-0" style={{ height: '1.4em', padding: '0 0.15em', marginBottom: '0.1em' }}>
-                    {isToday ? (
-                      <span
-                        className="inline-flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
-                        style={{ minWidth: '1.4em', height: '1.4em', padding: '0 0.3em', fontSize: '0.65em', backgroundColor: accentColor, color: todayBadgeText }}
-                      >
-                        {formatDateSync(date, 'd', { locale })}
-                      </span>
-                    ) : (
-                      <span
-                        className="leading-none tabular-nums"
-                        style={{
-                          fontSize: '0.65em',
-                          fontWeight: marksMonthStart ? 700 : 400,
-                          // Muted wins: a month boundary that has already
-                          // passed still reads as one, just not loudly.
-                          opacity: isMuted ? TEXT_OPACITY.dim : marksMonthStart ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
-                        }}
-                      >
-                        {formatDateSync(date, marksMonthStart ? 'MMM d' : 'd', { locale })}
-                      </span>
-                    )}
-                    {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.6em', marginLeft: '0.2em' }}>🎂</span>}
-                    <DayBadges badges={decor.badges} style={{ fontSize: '0.65em', marginLeft: '0.25em' }} />
-                  </div>
-                  <div className="flex flex-col gap-px overflow-hidden" style={isMuted ? { opacity: TEXT_OPACITY.dim } : undefined}>
-                    {shown.map((ev) => {
-                      const pill = <GridPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />;
-                      return ev.opacity == null ? pill : <div key={ev.id} style={{ opacity: ev.opacity }}>{pill}</div>;
-                    })}
-                    {overflow > 0 && (
-                      <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                        {t('calendar.moreCount', { count: overflow })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Component ───
 
 // Stable fallback so the memoized pipeline below doesn't see a fresh array
 // (and re-run) on every render while the shared feed is still loading.
@@ -1025,9 +44,6 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   now: Date;
   accentColor: string;
   eventStyle: EventDisplayStyle;
-  t: TranslateFn;
-  tCore: TranslateFn;
-  locale: string;
 }>> = {
   daily: DailyView,
   agenda: AgendaView,
@@ -1038,7 +54,6 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
 
 export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus }: CalendarModuleProps) {
   const t = useTranslate('modules');
-  const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
   const sourceFilter = config.sourceFilter;
@@ -1048,21 +63,22 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // fine (matches the fullscreen calendar's own NowLine).
   const wantsFastTick = config.showCountdown === true || config.showProgressBar === true;
   const now = useTZClock(timezone, wantsFastTick ? 30_000 : 60_000);
-  const today = startOfDay(now);
-  // Source filter -> keyword filter -> event rules. Memoized so the rule
-  // pass (which mints new event objects) only re-runs on a real input
-  // change; the clock joins the key only when a rule actually reads it.
+  // Keyed on the ms value, not `now`: `today`'s identity holds until
+  // midnight, so memos keyed on it survive the clock ticks.
+  const todayMs = startOfDay(now).getTime();
+  const today = useMemo(() => new Date(todayMs), [todayMs]);
+  // Source filter -> keyword filter -> event rules (the shared
+  // selectCalendarEvents pipeline). Memoized so the rule pass (which mints
+  // new event objects) only re-runs on a real input change; the clock joins
+  // the key only when a rule actually reads it.
   const eventRules = config.eventRules;
   const rulesNow = rulesNeedNow(eventRules) ? now : null;
-  const sourcedEvents = useMemo(() => {
-    const filtered = applyTitleFilter(
-      (sourceFilter && sourceFilter.length > 0)
-        ? rawEvents.filter((ev) => !ev.sourceId || sourceFilter.includes(ev.sourceId))
-        : rawEvents,
-      config.titleFilter,
-    );
-    return applyEventRules(filtered, eventRules, { now: rulesNow ?? new Date(0), timezone });
-  }, [rawEvents, sourceFilter, config.titleFilter, eventRules, rulesNow, timezone]);
+  const sourcedEvents = useMemo(
+    () => selectCalendarEvents(rawEvents, {
+      sourceFilter, titleFilter: config.titleFilter, eventRules, timezone, now: rulesNow ?? new Date(0),
+    }),
+    [rawEvents, sourceFilter, config.titleFilter, eventRules, rulesNow, timezone],
+  );
   const viewMode = config.viewMode ?? 'daily';
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
@@ -1075,10 +91,11 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const keepFinishedToday =
     (viewMode === 'daily' && (config.dimPastEvents === true || config.showNowRule === true)) ||
     (viewMode === 'agenda' && config.agendaShowFinishedToday === true);
-  const cutoff = listViewCutoff(now, keepFinishedToday);
-  const allEvents = isGridView(viewMode)
-    ? sourcedEvents
-    : sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
+  const allEvents = useMemo(() => {
+    if (isGridView(viewMode)) return sourcedEvents;
+    const cutoff = listViewCutoff(now, keepFinishedToday);
+    return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
+  }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone]);
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
   // Legend ring, named stale banner, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).
@@ -1089,10 +106,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // shared fetch window is wider than any single view, so scope to the
   // view's day range first (agenda has no day bound beyond the upcoming
   // filter). Only the view→window mapping lives here; the date math and the
-  // holidays-label remap are shared (calendar-utils).
+  // holidays-label remap are shared (calendar-legend).
   const legendPlacement = config.showLegend ?? 'off';
-  let legend: LegendSource[] = [];
-  if (legendPlacement !== 'off') {
+  const legend = useMemo<LegendSource[]>(() => {
+    if (legendPlacement === 'off') return [];
     const weekStartsOn = weekStartsOnFor(config.startDay);
     const window =
       viewMode === 'daily' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.daysToShow ?? 3 })
@@ -1100,8 +117,8 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       : viewMode === 'month' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
       : viewMode === 'multi-week' ? viewDayWindow({ kind: 'weeks', today, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) })
       : null; // agenda
-    legend = buildLegend(allEvents, window, timezone, t('calendar.publicHolidays'));
-  }
+    return buildLegend(allEvents, window, timezone, t('calendar.publicHolidays'));
+  }, [legendPlacement, viewMode, config.startDay, config.daysToShow, config.weeksToShow, today, allEvents, timezone, t]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? '#3b82f6';
   const gridEventStyle = config.gridEventStyle;
@@ -1119,36 +136,20 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     };
   }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone, failingSourceIds]);
 
-  // Tap-to-open detail: same delegated-handler contract as the fullscreen
-  // calendar — every EventCard carries data-event-id, state holds the id and
-  // the event is re-resolved each render so refetches never leave the overlay
-  // showing a stale snapshot. The module renders light-on-dark over a photo
-  // background with no theme system, so the overlay uses the Charcoal tokens.
+  // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
+  // The module renders light-on-dark over a photo background with no theme
+  // system, so the overlay uses the Charcoal tokens.
   const tapDetails = config.eventTapDetails === true;
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const detailEvent = detailId ? allEvents.find((ev) => ev.id === detailId) ?? null : null;
-  useEffect(() => {
-    if (!tapDetails) setDetailId(null);
-  }, [tapDetails]);
-  const handleRootClick = (e: React.MouseEvent) => {
-    const id = (e.target as HTMLElement).closest?.('[data-event-id]')?.getAttribute('data-event-id');
-    if (id) setDetailId(id);
-  };
+  const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
 
   // Failure ≠ empty: while the shared calendar fetch is failing, kept
-  // events get a quiet "saved" line. Only a failure with NO successful fetch
-  // ever (updatedAt null) renders the "can't load" message — last-good data
-  // whose upcoming window happens to be empty is a normal quiet day. The
-  // saved-from time is day-scoped and display-timezone-formatted.
-  const fetchFailed = calendarStatus?.error != null;
-  const neverLoaded = fetchFailed && calendarStatus?.updatedAt == null;
-  const savedWall = fetchFailed && calendarStatus?.updatedAt != null
-    ? (timezone ? toTZWallTime(new Date(calendarStatus.updatedAt), timezone) : new Date(calendarStatus.updatedAt))
-    : null;
-  const staleSince = savedWall && isSameDay(savedWall, today)
-    ? formatEventTime(savedWall, resolvedTimeFormat, locale)
-    : null;
-
+  // events get a quiet "saved" line; per-source outages name the failing
+  // source. Only a failure with NO successful fetch ever renders the
+  // "can't load" message (see calendarStaleStatus).
+  const { neverLoaded, statusText } = calendarStaleStatus({
+    calendarStatus, failingSources, soloFailingName, soloFailingSince,
+    timezone, timeFormat: resolvedTimeFormat, locale, today, t, ns: 'calendar',
+  });
 
   if (neverLoaded) {
     return (
@@ -1165,28 +166,13 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       <div
         className="h-full flex flex-col"
         data-tap-events={tapDetails ? '' : undefined}
-        onClick={tapDetails ? handleRootClick : undefined}
+        onClick={onRootClick}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
-        {fetchFailed ? (
+        {statusText && (
           <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
             <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
-            <span style={{ color: '#d9a441', fontWeight: 600 }}>
-              {staleSince ? t('calendar.savedFrom', { time: staleSince }) : t('calendar.savedEvents')}
-            </span>
-          </div>
-        ) : failingSources.length > 0 && (
-          // Per-source outage while the shared fetch itself is fine: name the
-          // one failing source; several at once fall back to generic wording.
-          <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
-            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
-            <span style={{ color: '#d9a441', fontWeight: 600 }}>
-              {soloFailingName
-                ? (soloFailingSince
-                  ? t('calendar.sourceNotUpdating', { name: soloFailingName, time: soloFailingSince })
-                  : t('calendar.sourceNotUpdatingNoTime', { name: soloFailingName }))
-                : t('calendar.savedEvents')}
-            </span>
+            <span style={{ color: '#d9a441', fontWeight: 600 }}>{statusText}</span>
           </div>
         )}
         {legendPlacement === 'header' && (
@@ -1200,7 +186,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
         <div className="flex-1 min-h-0">
-          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} t={t} tCore={tCore} locale={locale} />
+          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} />
         </div>
         {legendPlacement === 'footer' && (
           <CalendarLegend
@@ -1222,7 +208,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           timeFormat={resolvedTimeFormat}
           timezone={timezone}
           now={now}
-          onClose={() => setDetailId(null)}
+          onClose={closeDetail}
         />
       )}
     </ModuleWrapper>

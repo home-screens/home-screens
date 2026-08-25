@@ -1,9 +1,9 @@
-import { addDays, addWeeks, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import { clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { viewDayWindow } from '@/lib/calendar-legend';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
   CalendarConfig,
-  CalendarSettings,
   FullscreenCalendarConfig,
   ModuleInstance,
   Screen,
@@ -26,8 +26,8 @@ import type {
  * `listViewCutoff`, in CalendarModule's `allEvents` gate and
  * FullscreenCalendarModule's `selectVisibleEvents`), so widening the shared
  * fetch never leaks past events into them; the views that keep today's
- * finished events (both agendas' `agendaShowFinishedToday`, fullscreen
- * day-timeline) widen to start of today here via `fromStartOfToday`.
+ * finished events widen to start of today here via `fromStartOfToday` (see
+ * its call sites for the current list).
  */
 export interface CalendarFetchWindow {
   /** ISO instant to fetch from — earlier than the server's "now" default. */
@@ -42,17 +42,17 @@ interface ModuleWindow {
   end: Date | null;
 }
 
-function monthGridWindow(now: Date, weekStartsOn: 0 | 1): ModuleWindow {
-  // Month grids render leading/trailing days of adjacent months, so the
-  // window covers the full visible grid, not just the calendar month.
-  return {
-    start: startOfWeek(startOfMonth(now), { weekStartsOn }),
-    end: endOfWeek(endOfMonth(now), { weekStartsOn }),
-  };
+/**
+ * A grid view's drawn day range via `viewDayWindow` — the same authority
+ * the views and legends use, so the fetch can never disagree with the grid.
+ * `viewDayWindow`'s half-open end (midnight after the last drawn day) is
+ * within a millisecond of the old inclusive end-of-day instants; the fetch
+ * window's ±1-day padding absorbs the difference.
+ */
+function gridWindow(kind: 'week' | 'weeks' | 'month-grid', now: Date, weekStartsOn: 0 | 1, count?: number): ModuleWindow {
+  return viewDayWindow({ kind, today: now, weekStartsOn, count });
 }
 
-/** The event window a single module's current view renders, or null if the
- *  server's upcoming-only default already covers it. */
 /**
  * Window for views that keep today's already-ended events: start of today,
  * server default end. The server's "now" default would starve them of
@@ -67,25 +67,20 @@ function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date):
   return config.agendaShowFinishedToday === true ? fromStartOfToday(now) : null;
 }
 
+/** The event window a single module's current view renders, or null if the
+ *  server's upcoming-only default already covers it. */
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
-    // Shared with the views (calendar-utils) so the window always covers the grid.
+    // Every grid honors startDay; the window follows the same convention so
+    // past days of the displayed range are always inside the fetch. The
+    // clamp mirrors the multi-week view's so hand-edited configs can't
+    // starve the clamped rows.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<CalendarConfig>).startDay);
-    if (view === 'month') return monthGridWindow(now, weekStartsOn);
-    if (view === 'week') {
-      // WeekView honors startDay; the window follows the same convention so
-      // past days of the displayed week are always inside the fetch.
-      return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
-    }
+    if (view === 'month') return gridWindow('month-grid', now, weekStartsOn);
+    if (view === 'week') return gridWindow('week', now, weekStartsOn);
     if (view === 'multi-week') {
-      // Multi-week grid renders N weeks from the current week start. startDay
-      // is honored directly so a Monday-start week containing a Sunday (whose
-      // Monday lies six days back) is fully covered; the clamp mirrors the
-      // view's so hand-edited configs can't starve the clamped rows.
-      const weeks = clampWeeksToShow((mod.config as Partial<CalendarConfig>).weeksToShow);
-      const start = startOfWeek(now, { weekStartsOn });
-      return { start, end: addWeeks(start, weeks) };
+      return gridWindow('weeks', now, weekStartsOn, clampWeeksToShow((mod.config as Partial<CalendarConfig>).weeksToShow));
     }
     if (view === 'agenda') return agendaWindow(mod.config as Partial<CalendarConfig>, now);
     return null; // daily: upcoming only
@@ -95,10 +90,8 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
     // Both fullscreen grids honor startDay; the window follows the same
     // convention so their leading days are always inside the fetch.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
-    if (view === 'month-grid') return monthGridWindow(now, weekStartsOn);
-    if (view === 'week-list' || view === 'family-grid') {
-      return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
-    }
+    if (view === 'month-grid') return gridWindow('month-grid', now, weekStartsOn);
+    if (view === 'week-list' || view === 'family-grid') return gridWindow('week', now, weekStartsOn);
     // Up next lists today's finished events under "Earlier" and free time
     // draws the whole day's busy blocks, so both need today from midnight.
     if (view === 'up-next' || view === 'free-time') return fromStartOfToday(now);
@@ -180,72 +173,5 @@ export function getCalendarFetchWindow(
   return { timeMin, timeMax };
 }
 
-/**
- * True when settings carry at least one non-Google calendar source the server
- * resolves on its own: an enabled iCal URL, an enabled iCloud calendar or
- * birthday feed, or a public-holiday country. Single source of truth for the
- * "is there anything to fetch?" question, so a new source type only needs to be
- * added here.
- */
-export function hasCalendarFeedSources(
-  calendar: Partial<Pick<CalendarSettings, 'icalSources' | 'icloudSources' | 'holidayCountry'>>,
-): boolean {
-  return Boolean(
-    calendar.icalSources?.some(s => s.enabled)
-    || calendar.icloudSources?.some(s => s.enabled)
-    || calendar.holidayCountry,
-  );
-}
-
-/**
- * The Google calendar ids the shared fetch asks for: the multi-calendar list
- * when it has entries, else the single legacy field. One reader so the fetch
- * hook and `hasAnyCalendarSource` can never disagree about whether a Google
- * calendar is configured.
- */
-export function googleCalendarIdList(
-  calendar: Partial<Pick<CalendarSettings, 'googleCalendarIds' | 'googleCalendarId'>>,
-): string[] {
-  if (calendar.googleCalendarIds?.length) return calendar.googleCalendarIds;
-  return calendar.googleCalendarId ? [calendar.googleCalendarId] : [];
-}
-
-/**
- * True when anything at all would be fetched — a Google calendar id or any
- * server-resolved feed. Exactly the condition under which `buildCalendarUrl`
- * returns a non-empty URL, so it also answers "will this display ever publish
- * calendar shared state?" for the editor's key picker.
- */
-export function hasAnyCalendarSource(calendar: CalendarSettings | undefined): boolean {
-  if (!calendar) return false;
-  return googleCalendarIdList(calendar).length > 0 || hasCalendarFeedSources(calendar);
-}
-
-/**
- * Build the `/api/calendar` URL for the shared display fetch. Kept pure and
- * separate from the hook so the URL-stability contract is unit-testable: the
- * URL must be byte-stable across renders within a day (a per-render or
- * per-minute change would make `useFetchData` refetch in a loop). `timeMin`
- * is emitted whenever a fetch window exists; `timeMax` only when the window
- * carries one (grids extending past the daysAhead default). Returns `''` when
- * no calendar source is configured, which `useFetchData` treats as "skip".
- * `hasFeedSources` covers every server-resolved source that is not a Google
- * calendar id (iCal URLs, iCloud calendars and birthdays, public holidays); the
- * route reads those from settings itself, so the URL only needs to know that
- * at least one exists.
- */
-export function buildCalendarUrl(
-  calendarIdList: string[],
-  hasFeedSources: boolean,
-  fetchWindow: CalendarFetchWindow | null,
-  refreshEpoch: number,
-): string {
-  if (!calendarIdList.length && !hasFeedSources) return '';
-  const params = [
-    calendarIdList.length ? `calendarIds=${encodeURIComponent(calendarIdList.join(','))}` : '',
-    fetchWindow ? `timeMin=${encodeURIComponent(fetchWindow.timeMin)}` : '',
-    fetchWindow?.timeMax ? `timeMax=${encodeURIComponent(fetchWindow.timeMax)}` : '',
-    refreshEpoch > 0 ? `_r=${refreshEpoch}` : '',
-  ].filter(Boolean).join('&');
-  return `/api/calendar${params ? `?${params}` : ''}`;
-}
+// Source predicates and the /api/calendar URL builder live in
+// `calendar-sources.ts`; this file owns only the fetch-window math.

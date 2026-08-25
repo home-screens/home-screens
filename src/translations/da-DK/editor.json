@@ -372,7 +372,21 @@
         "updated": "Opdateret {time}",
         "updatedNow": "Lige opdateret",
         "notUpdating": "Opdateres ikke",
-        "errorSince": "{error} · virkede sidst {time}"
+        "errorSince": "{error} · virkede sidst {time}",
+        "errors": {
+          "googleCalendarFailed": "Denne kalender kunne ikke hentes fra Google",
+          "googleUnreachable": "Google Kalender kan ikke nås",
+          "holidaysFailed": "Listen over helligdage kunne ikke hentes",
+          "icloudBirthdaysFailed": "Fødselsdage kunne ikke hentes fra iCloud",
+          "icloudCalendarFailed": "Denne kalender kunne ikke hentes fra iCloud",
+          "icloudNoAccount": "Der er ingen iCloud-konto forbundet til denne kalender",
+          "icloudNotICloudUrl": "Kalenderadressen er ikke et iCloud-link",
+          "icloudUnreachable": "iCloud kan ikke nås",
+          "linkHttpError": "Linket kan ikke nås (HTTP {status})",
+          "linkInvalid": "Linket er ikke en gyldig webadresse",
+          "linkUnreachable": "Linket kan ikke nås",
+          "linkUnreadable": "Linket returnerede ikke en læsbar kalender"
+        }
       },
       "people": {
         "heading": "Personer",

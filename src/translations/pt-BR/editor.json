@@ -372,7 +372,21 @@
         "updated": "Atualizado {time}",
         "updatedNow": "Atualizado agora",
         "notUpdating": "Sem atualizar",
-        "errorSince": "{error} · funcionou pela última vez {time}"
+        "errorSince": "{error} · funcionou pela última vez {time}",
+        "errors": {
+          "googleCalendarFailed": "Não foi possível carregar esta agenda do Google",
+          "googleUnreachable": "Não foi possível acessar o Google Agenda",
+          "holidaysFailed": "Não foi possível carregar a lista de feriados",
+          "icloudBirthdaysFailed": "Não foi possível carregar os aniversários do iCloud",
+          "icloudCalendarFailed": "Não foi possível carregar esta agenda do iCloud",
+          "icloudNoAccount": "Nenhuma conta do iCloud está conectada para esta agenda",
+          "icloudNotICloudUrl": "O endereço da agenda não é um link do iCloud",
+          "icloudUnreachable": "Não foi possível acessar o iCloud",
+          "linkHttpError": "Não foi possível acessar o link (HTTP {status})",
+          "linkInvalid": "O link não é um endereço web válido",
+          "linkUnreachable": "Não foi possível acessar o link",
+          "linkUnreadable": "O link não retornou uma agenda legível"
+        }
       },
       "people": {
         "heading": "Pessoas",

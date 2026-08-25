@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import type { DayBadge } from '@/lib/calendar-rules';
-import { pickPillTextColor } from '@/lib/calendar-utils';
+import { pickPillTextColor } from '@/lib/calendar-color';
 
 /**
  * Chip stack from day rules, rendered next to a day number in both calendar

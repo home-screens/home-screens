@@ -2,33 +2,17 @@
 
 import { describe, it, expect, vi, afterEach, beforeAll, afterAll } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import { addDays, addHours, format } from 'date-fns';
 import { DEFAULT_MODULE_STYLE, type CalendarConfig, type CalendarEvent, type ModuleStyle } from '@/types/config';
-import { I18nProvider } from '@/i18n/provider';
-import enUSModules from '@/translations/en-US/modules.json';
-import enUSCore from '@/translations/en-US/core.json';
+import { LOCAL, NOW } from '@/lib/__tests__/helpers/calendar-fixtures';
+import { installResizeObserverStub, I18nWrapper as Wrapper } from './helpers/harness';
 
-// jsdom doesn't ship ResizeObserver; scaled-font hooks need it.
-class ResizeObserverStub {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-(globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
+installResizeObserverStub();
 
 import { TEXT_OPACITY } from '@/lib/constants';
 import CalendarModule from '../CalendarModule';
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
-
-function Wrapper({ children }: { children: ReactNode }) {
-  return (
-    <I18nProvider locale="en-US" blob={{ modules: enUSModules, core: enUSCore }}>
-      {children}
-    </I18nProvider>
-  );
-}
 
 function makeConfig(overrides: Partial<CalendarConfig> = {}): CalendarConfig {
   return {
@@ -42,19 +26,8 @@ function makeConfig(overrides: Partial<CalendarConfig> = {}): CalendarConfig {
   };
 }
 
-const LOCAL = "yyyy-MM-dd'T'HH:mm:ss";
-
-// A fixed midweek instant, not the real clock. The module reads the current
-// time to decide which week and month to show, so fixtures built off the real
-// clock drift across those boundaries: run in the first three hours of a
-// Sunday and "three hours ago" lands on Saturday, which the week view (which
-// starts on Sunday) correctly puts in the *previous* week. That is a real
-// 1.8%-of-the-week failure, and it only shows up in CI because CI runs in UTC
-// while a developer three hours west is still on Saturday evening.
-//
-// Noon on a Wednesday leaves three clear days on either side, so every
-// relative event below stays inside both the displayed week and the month.
-const NOW = new Date(2026, 6, 15, 12, 0, 0); // Wednesday, 15 July 2026
+// NOW/LOCAL come from the shared calendar fixtures — a fixed midweek
+// instant, not the real clock (see calendar-fixtures for the drift rationale).
 
 beforeAll(() => {
   // shouldAdvanceTime keeps React's scheduler from stalling under fake timers.

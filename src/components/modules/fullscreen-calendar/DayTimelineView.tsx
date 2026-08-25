@@ -2,19 +2,22 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
+import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import { MapPin, dayDecorFor } from './FullscreenCalendarModule';
+import { MapPin } from 'lucide-react';
+import { dayDecorFor } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { EVENT_BLOCK_BASE_ZINDEX } from '@/lib/fullscreen-overlap';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import { computeTimedEventLayout } from './event-layout';
-import type { CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
+import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-layout';
+import type { CalendarScale, CalendarViewProps } from './view-support';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
-import { eventHoursOnDay } from './event-layout';
+import { eventAriaLabel } from './list-view-bits';
 
 
 // Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
@@ -117,8 +120,8 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
     const timed = dayEvents.filter(ev => !ev.allDay);
     const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode, timezone);
     return { dayEvents, allDayEvs: allDay, birthdayEvs: birthdays, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-  }, [events, today.toDateString(), hourStart, hourEnd, overlapMode, timezone]);
+    // `today` is identity-stable until midnight, so this holds across ticks.
+  }, [events, today, hourStart, hourEnd, overlapMode, timezone]);
 
   // The view has no day header of its own (the module header names the
   // day), so day-rule badges get a strip above the all-day row and the
@@ -153,10 +156,11 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
             {t('fullscreen-calendar.allDay')}
           </div>
           {allDayEvs.map(ev => {
-            const color = ev.calendarColor ?? '#3B82F6';
+            const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+            const glyph = eventGlyph(ev);
             const description = config.dayShowDescription ? sanitizeEventDescription(ev.description) : '';
             return (
-              <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
+              <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} aria-label={eventAriaLabel(t, ev, { allDay: true })} style={{
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
                 ...eventSurface(color, scale, 'chip', { radius: 6 }),
                 fontSize: fontSize * 0.95,
@@ -164,7 +168,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                 marginBottom: scale.bu * 0.2,
                 opacity: ev.opacity,
               }}>
-                {ev.icon ? `${ev.icon} ` : ''}{ev.title}
+                {glyph ? `${glyph} ` : ''}{ev.title}
                 {description && (
                   <div style={{
                     fontSize: fontSize * 0.75,
@@ -187,7 +191,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
             const age = birthdayAge(ev.birthYear, today.getFullYear());
             const label = age != null ? t('fullscreen-calendar.birthdayWithAge', { age }) : t('fullscreen-calendar.birthday');
             return (
-              <div key={ev.id} className="fsc-event-block flex items-center" data-event-id={ev.id} aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
+              <div key={ev.id} className="fsc-event-block flex items-center" data-event-id={ev.id} aria-label={eventAriaLabel(t, ev, { allDay: true })} style={{
                 gap: scale.bu * 0.4,
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
                 fontSize: fontSize * 0.95,
@@ -224,13 +228,13 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                   whiteSpace: 'nowrap',
                   fontVariantNumeric: 'tabular-nums',
                 }}>
-                  {formatHourLabel(h, am, pm)}
+                  {formatHourLabel(h, timeFormat, am, pm)}
                 </div>
               );
             })}
             {/* Now badge */}
             {config.showNowLine && nowInRange && (
-              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timePattern={timeFormat === '24h' ? 'HH:mm' : 'h:mm a'} locale={locale} />
+              <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="left" timeFormat={timeFormat} locale={locale} />
             )}
           </div>
 
@@ -270,23 +274,13 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
 
               const top = (evStart - hourStart) * hourHeight;
               const height = Math.max((evEnd - evStart) * hourHeight, fontSize * 2.5);
-              const color = ev.calendarColor ?? '#3B82F6';
+              const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+              const glyph = eventGlyph(ev);
               const isPast = isToday && evEnd <= nowHour;
 
               const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
               const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
-              const evAriaLabel = ev.location
-                ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', {
-                    title: ev.title,
-                    start: evStartLabel,
-                    end: evEndLabel,
-                    location: ev.location,
-                  })
-                : t('fullscreen-calendar.ariaLabels.eventTimed', {
-                    title: ev.title,
-                    start: evStartLabel,
-                    end: evEndLabel,
-                  });
+              const evAriaLabel = eventAriaLabel(t, ev, { startLabel: evStartLabel, endLabel: evEndLabel });
 
               return (
                 <div
@@ -322,7 +316,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     fontWeight: 600,
                     color: 'var(--cal-text-primary)',
                   }}>
-                    {ev.icon ? `${ev.icon} ` : ''}{ev.title}
+                    {glyph ? `${glyph} ` : ''}{ev.title}
                   </div>
                   <div style={{
                     fontSize: fontSize * 0.8,

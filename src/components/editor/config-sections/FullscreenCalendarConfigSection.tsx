@@ -6,7 +6,7 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { effectiveWeatherPlacement } from '@/lib/calendar-utils';
+import { effectiveWeatherPlacement, viewTraits } from '@/components/modules/fullscreen-calendar/view-traits';
 import { resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
@@ -117,14 +117,10 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'footer', label: t('configSections.fullscreen-calendar.legendFooter') },
   ];
 
-  const isListView = view === 'agenda' || view === 'week-list';
-  // People as rows: both need Settings > Calendar > People to be more than
-  // one row per source, so they get a pointer there.
-  const isPersonView = view === 'family-grid' || view === 'free-time';
+  // View-shape flags come from the shared registry, so the editor's gating
+  // can never disagree with what the view actually renders.
+  const { isListView, isPersonView, isSingleDay: isSingleDayView, isTimeGrid, weather: viewWeather } = viewTraits(view);
   const peopleCount = useEditorStore((s) => s.config?.settings?.calendar?.people?.length ?? 0);
-  // Today's column/day is the whole board on the single-day views, so
-  // there is nothing to highlight or shade against.
-  const isSingleDayView = view === 'day-timeline' || view === 'up-next' || view === 'free-time';
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
   const groups = useCalendarGroupLabels();
@@ -132,7 +128,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   // The "this view" heading names the view itself, so the block that swaps
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_OPTIONS.find((v) => v.value === view)?.label ?? '';
-  const isTimeGrid = view === 'schedule' || view === 'day-timeline';
   const descriptionKey = view in SHOW_DESCRIPTION_KEY ? SHOW_DESCRIPTION_KEY[view as keyof typeof SHOW_DESCRIPTION_KEY] : null;
 
   return (
@@ -431,16 +426,13 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           value={effectiveWeatherPlacement(view, c)}
           onChange={(v) => set({ weatherPlacement: v })}
           options={
-            // Each view offers only the placements it can render: list views
-            // take all five, schedule and the family grid add day-header
-            // weather, up next shows it on the hero event, and month-grid,
-            // day-timeline and free time have no per-day/per-event surface.
+            // Each view offers only the placements it can render — driven by
+            // the same registry the display uses to pick weather surfaces.
             WEATHER_PLACEMENT_OPTIONS.filter((o) => {
               if (o.value === 'off' || o.value === 'header') return true;
-              if (isListView) return true;
-              if (view === 'schedule' || view === 'family-grid') return o.value === 'days';
-              if (view === 'up-next') return o.value === 'events';
-              return false;
+              if (o.value === 'days') return viewWeather.days;
+              if (o.value === 'events') return viewWeather.events;
+              return viewWeather.days && viewWeather.events; // days-and-events
             })
           }
         />

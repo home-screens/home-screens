@@ -110,7 +110,7 @@ function triTo(value: TriState): boolean | undefined {
   return value === 'any' ? undefined : value === 'yes';
 }
 
-export function EventMatchFields({ match, availableSources, onChange }: {
+function EventMatchFields({ match, availableSources, onChange }: {
   match: CalendarEventMatch;
   availableSources: CalendarSource[];
   onChange: (next: CalendarEventMatch) => void;

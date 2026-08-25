@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, count, lacks, matches, notMatches } from './shared';
+import { has, count, lacks, matches, notMatches, dayAt, localIso, localDate } from './shared';
 
 /**
  * Phase-1 batch rows for the fullscreen-calendar module — see
@@ -27,87 +27,68 @@ import { has, count, lacks, matches, notMatches } from './shared';
 
 // --- Event fixture builders (local naive ISO, matching todayCalendarEvents) --
 
-const pad = (n: number) => String(n).padStart(2, '0');
-
-function dayAt(offsetDays: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d;
-}
-
-/** Local `YYYY-MM-DDTHH:mm:00` for a timed event on `today + offsetDays`. */
-function isoTimed(offsetDays: number, hour: number, minute: number): string {
-  const d = dayAt(offsetDays);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(hour)}:${pad(minute)}:00`;
-}
-
-/** Local `YYYY-MM-DD` (date-only ⇒ all-day) for `today + offsetDays`. */
-function isoDate(offsetDays: number): string {
-  const d = dayAt(offsetDays);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
 
 const BLUE = '#4073ff';
 
 /** One timed event today, 10:00–13:00, with a description tall enough to surface. */
 const SCHEDULE_DESC = [
-  { id: 'sd1', title: 'SCHED DESC EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 13, 0), allDay: false, description: 'SCHED DESC E2E', calendarColor: BLUE },
+  { id: 'sd1', title: 'SCHED DESC EVENT', start: localIso(0, 10, 0), end: localIso(0, 13, 0), allDay: false, description: 'SCHED DESC E2E', calendarColor: BLUE },
 ];
 
 /** Two overlapping events today, so stacked mode actually layers one block
  *  over another — the only case that composites an opaque background. */
 const OVERLAPPING = [
-  { id: 'ov1', title: 'OVERLAP BASE', start: isoTimed(0, 10, 0), end: isoTimed(0, 13, 0), allDay: false, calendarColor: BLUE },
-  { id: 'ov2', title: 'OVERLAP TOP', start: isoTimed(0, 11, 0), end: isoTimed(0, 12, 0), allDay: false, calendarColor: '#e11d48' },
+  { id: 'ov1', title: 'OVERLAP BASE', start: localIso(0, 10, 0), end: localIso(0, 13, 0), allDay: false, calendarColor: BLUE },
+  { id: 'ov2', title: 'OVERLAP TOP', start: localIso(0, 11, 0), end: localIso(0, 12, 0), allDay: false, calendarColor: '#e11d48' },
 ];
 
 /** Two events today with distinct source ids — the filter keeps one, drops the other. */
 const SOURCE_FILTER = [
-  { id: 'sf1', title: 'KEEP EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 11, 0), allDay: false, calendarColor: BLUE, sourceId: 'keep-src', sourceName: 'Keep' },
-  { id: 'sf2', title: 'DROP EVENT', start: isoTimed(0, 12, 0), end: isoTimed(0, 13, 0), allDay: false, calendarColor: '#e11d48', sourceId: 'drop-src', sourceName: 'Drop' },
+  { id: 'sf1', title: 'KEEP EVENT', start: localIso(0, 10, 0), end: localIso(0, 11, 0), allDay: false, calendarColor: BLUE, sourceId: 'keep-src', sourceName: 'Keep' },
+  { id: 'sf2', title: 'DROP EVENT', start: localIso(0, 12, 0), end: localIso(0, 13, 0), allDay: false, calendarColor: '#e11d48', sourceId: 'drop-src', sourceName: 'Drop' },
 ];
 
 /** One timed event this week with a description (week-list EventRow). */
 const WEEK_DESC = [
-  { id: 'wd1', title: 'WEEK DESC EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 11, 0), allDay: false, description: 'WEEK DESC E2E', calendarColor: BLUE },
+  { id: 'wd1', title: 'WEEK DESC EVENT', start: localIso(0, 10, 0), end: localIso(0, 11, 0), allDay: false, description: 'WEEK DESC E2E', calendarColor: BLUE },
 ];
 
 /** Three timed events today so a per-cell cap of 1 forces a "+2 more" overflow. */
 const MONTH_MANY = [
-  { id: 'mm1', title: 'MONTH EV1', start: isoTimed(0, 9, 0), end: isoTimed(0, 10, 0), allDay: false, calendarColor: BLUE },
-  { id: 'mm2', title: 'MONTH EV2', start: isoTimed(0, 11, 0), end: isoTimed(0, 12, 0), allDay: false, calendarColor: BLUE },
-  { id: 'mm3', title: 'MONTH EV3', start: isoTimed(0, 13, 0), end: isoTimed(0, 14, 0), allDay: false, calendarColor: BLUE },
+  { id: 'mm1', title: 'MONTH EV1', start: localIso(0, 9, 0), end: localIso(0, 10, 0), allDay: false, calendarColor: BLUE },
+  { id: 'mm2', title: 'MONTH EV2', start: localIso(0, 11, 0), end: localIso(0, 12, 0), allDay: false, calendarColor: BLUE },
+  { id: 'mm3', title: 'MONTH EV3', start: localIso(0, 13, 0), end: localIso(0, 14, 0), allDay: false, calendarColor: BLUE },
 ];
 
 /** One all-day event today with a description (day-timeline all-day strip). */
 const DAY_DESC = [
-  { id: 'dd1', title: 'DAY DESC EVENT', start: isoDate(0), end: isoDate(1), allDay: true, description: 'DAYDESC E2E', calendarColor: BLUE },
+  { id: 'dd1', title: 'DAY DESC EVENT', start: localDate(0), end: localDate(1), allDay: true, description: 'DAYDESC E2E', calendarColor: BLUE },
 ];
 
 /** A near (today) and a far (+20d) upcoming all-day event to probe the agenda window. */
 const AGENDA_RANGE = [
-  { id: 'ar1', title: 'AGENDA NEAR', start: isoDate(0), end: isoDate(1), allDay: true, calendarColor: BLUE },
-  { id: 'ar2', title: 'AGENDA FAR', start: isoDate(20), end: isoDate(21), allDay: true, calendarColor: BLUE },
+  { id: 'ar1', title: 'AGENDA NEAR', start: localDate(0), end: localDate(1), allDay: true, calendarColor: BLUE },
+  { id: 'ar2', title: 'AGENDA FAR', start: localDate(20), end: localDate(21), allDay: true, calendarColor: BLUE },
 ];
 
 /** A single upcoming all-day event today (rest of the window is empty). */
 const AGENDA_ONE = [
-  { id: 'ao1', title: 'AGENDA ONLY', start: isoDate(0), end: isoDate(1), allDay: true, calendarColor: BLUE },
+  { id: 'ao1', title: 'AGENDA ONLY', start: localDate(0), end: localDate(1), allDay: true, calendarColor: BLUE },
 ];
 
 /** One upcoming all-day event today with a description (agenda card). */
 const AGENDA_DESC = [
-  { id: 'ag1', title: 'AGENDA DESC EVENT', start: isoDate(0), end: isoDate(1), allDay: true, description: 'AGENDADESC E2E', calendarColor: BLUE },
+  { id: 'ag1', title: 'AGENDA DESC EVENT', start: localDate(0), end: localDate(1), allDay: true, description: 'AGENDADESC E2E', calendarColor: BLUE },
 ];
 
 /** A one-hour timed event two days out at noon — its countdown reads "in 2 days" at any run time (whole-calendar-day diff). */
 const COUNTDOWN_EVENT = [
-  { id: 'cd1', title: 'COUNTDOWN EVENT', start: isoTimed(2, 12, 0), end: isoTimed(2, 13, 0), allDay: false, calendarColor: BLUE },
+  { id: 'cd1', title: 'COUNTDOWN EVENT', start: localIso(2, 12, 0), end: localIso(2, 13, 0), allDay: false, calendarColor: BLUE },
 ];
 
 /** An all-day event three days out (all-day countdown opt-in). */
 const ALLDAY_FUTURE = [
-  { id: 'af1', title: 'ALLDAY FUTURE', start: isoDate(3), end: isoDate(4), allDay: true, calendarColor: BLUE },
+  { id: 'af1', title: 'ALLDAY FUTURE', start: localDate(3), end: localDate(4), allDay: true, calendarColor: BLUE },
 ];
 
 /**
@@ -120,8 +101,8 @@ const ALLDAY_FUTURE = [
 const LIVE_WEATHER = {
   hourly: [],
   forecast: [
-    { date: isoDate(0), high: 87, low: 61, icon: 'sun', description: 'Sunshowers' },
-    { date: isoDate(1), high: 80, low: 55, icon: 'sun', description: 'Cloudy' },
+    { date: localDate(0), high: 87, low: 61, icon: 'sun', description: 'Sunshowers' },
+    { date: localDate(1), high: 80, low: 55, icon: 'sun', description: 'Cloudy' },
   ],
 };
 
@@ -130,25 +111,25 @@ const TODAY_EEE = dayAt(0).toLocaleDateString('en-US', { weekday: 'short' });
 
 /** A timed event tomorrow morning: always upcoming, whatever the run time. */
 const TOMORROW_MORNING = [
-  { id: 'tm1', title: 'UPNEXT HERO', start: isoTimed(1, 9, 0), end: isoTimed(1, 10, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
-  { id: 'tm2', title: 'LATER EVENT', start: isoTimed(1, 11, 0), end: isoTimed(1, 12, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  { id: 'tm1', title: 'UPNEXT HERO', start: localIso(1, 9, 0), end: localIso(1, 10, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  { id: 'tm2', title: 'LATER EVENT', start: localIso(1, 11, 0), end: localIso(1, 12, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
 ];
 
 /** The shared running event (today 00:01 to tomorrow 23:59) plus tomorrow's hero. */
 const RUNNING_PLUS_TOMORROW = [
-  { id: 'rn1', title: 'RUNNING NOW', start: isoTimed(0, 0, 1), end: isoTimed(1, 23, 59), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  { id: 'rn1', title: 'RUNNING NOW', start: localIso(0, 0, 1), end: localIso(1, 23, 59), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
   ...TOMORROW_MORNING.slice(0, 1),
 ];
 
 /** A running event today (so the hero is today's) plus an all-day event tomorrow. */
 const RUNNING_PLUS_TOMORROW_ALLDAY = [
   RUNNING_PLUS_TOMORROW[0],
-  { id: 'ta1', title: 'TOMORROW ALLDAY', start: isoDate(1), end: isoDate(2), allDay: true, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  { id: 'ta1', title: 'TOMORROW ALLDAY', start: localDate(1), end: localDate(2), allDay: true, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
 ];
 
 /** One event this week with no source id: unclaimed, so it lands on the Everyone row. */
 const UNCLAIMED_WEEK = [
-  { id: 'uc1', title: 'SHARED EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 11, 0), allDay: false, calendarColor: BLUE },
+  { id: 'uc1', title: 'SHARED EVENT', start: localIso(0, 10, 0), end: localIso(0, 11, 0), allDay: false, calendarColor: BLUE },
 ];
 
 /** Parse a rolling-window strip label ("2 PM", "12 AM", "14:00") to an hour 0..23. */
@@ -585,7 +566,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     // with the flag and gone from the flag-off companion (same feed), so the
     // row fails if the agenda ever stops filtering finished events.
     type: 'fullscreen-calendar', name: 'agenda-show-finished-today', kind: 'networked', stubKey: 'calendar',
-    stubBody: [{ id: 'aft1', title: 'AGENDA ENDED TODAY', start: isoTimed(0, 0, 0), end: isoTimed(0, 0, 1), allDay: false, calendarColor: BLUE }],
+    stubBody: [{ id: 'aft1', title: 'AGENDA ENDED TODAY', start: localIso(0, 0, 0), end: localIso(0, 0, 1), allDay: false, calendarColor: BLUE }],
     companions: [{ type: 'fullscreen-calendar', config: { view: 'agenda', agendaShowFinishedToday: false } }],
     config: { view: 'agenda', agendaShowFinishedToday: true },
     expect: async (mod, page) => {

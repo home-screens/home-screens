@@ -7,11 +7,12 @@ import {
 } from 'date-fns';
 import { isEventOnDay, weekStartsOnFor, weekNumberOptions, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { clampStyle, dayDecorFor } from './FullscreenCalendarModule';
+import { clampStyle, dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventBg, eventSurface } from '@/lib/calendar-event-surface';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import type { CalendarViewProps } from './FullscreenCalendarModule';
+import type { CalendarViewProps } from './view-support';
 import { useContainerHeight } from './shared-time-grid';
 
 export function MonthGridView({ events, timezone, config, scale, today, now }: CalendarViewProps) {
@@ -19,9 +20,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const showWeekNumbers = config.monthShowWeekNumbers;
-  const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
-  const showTodayMarker = highlightStyle !== 'off';
+  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const wrapTitles = config.wrapEventTitles === true;
 
   const weekStartsOn = weekStartsOnFor(config.startDay);
@@ -41,8 +40,8 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
       cursor = addDays(cursor, 1);
     }
     return { cells: result, weekCount: Math.ceil(result.length / 7) };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- today is a new Date object each render; toDateString() gives a stable key that only changes when the day changes
-  }, [today.toDateString(), weekStartsOn]);
+    // `today` is identity-stable until midnight, so this holds across ticks.
+  }, [today, weekStartsOn]);
 
   // Localized day-of-week labels derived from the active formatting locale
   const dowDates = useMemo(
@@ -145,17 +144,14 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                   opacity: !isCurrentMonth ? 0.35
                     : isPastDay && config.dimPastEvents ? 'var(--cal-past-opacity)'
                     : 1,
-                  background: isToday && showTodayBg
-                    ? 'var(--cal-today-fill)'
-                    : isWeekend && config.shadeWeekends
-                      ? 'var(--cal-weekend-shade)'
-                      : hasBirthday
-                        // Cell-level "a birthday is here" signal, not any one
-                        // kid's color — a fixed tint avoids picking one
-                        // source's color arbitrarily when several birthdays
-                        // land on the same day.
-                        ? eventBg('#EC4899', scale.isDark ? 0.16 : 0.10, scale.isDark)
-                        : undefined,
+                  background: dayCellFill(isToday, showTodayBg, isWeekend, config)
+                    ?? (hasBirthday
+                      // Cell-level "a birthday is here" signal, not any one
+                      // kid's color — a fixed tint avoids picking one
+                      // source's color arbitrarily when several birthdays
+                      // land on the same day.
+                      ? eventBg('#EC4899', scale.isDark ? 0.16 : 0.10, scale.isDark)
+                      : undefined),
                 }, decor)}
               >
                 {/* Day number */}
@@ -190,7 +186,8 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
 
                 {/* All-day span bars */}
                 {allDayEvs.map(ev => {
-                  const color = ev.calendarColor ?? '#3B82F6';
+                  const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
+                  const glyph = eventGlyph(ev);
                   return (
                     <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{
                       fontSize: fontSize * 0.55,
@@ -203,7 +200,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       opacity: ev.opacity,
                       ...clampStyle(wrapTitles),
                     }}>
-                      {ev.icon ? `${ev.icon} ` : ''}{ev.title}
+                      {glyph ? `${glyph} ` : ''}{ev.title}
                     </div>
                   );
                 })}
@@ -240,7 +237,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
 
                 {/* Event pills */}
                 {timedEvs.slice(0, maxShow).map(ev => {
-                  const color = ev.calendarColor ?? '#3B82F6';
+                  const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
                   const glyph = eventGlyph(ev);
                   return (
                     <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} style={{

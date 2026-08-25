@@ -7,7 +7,7 @@ import {
   choresAssignedTo,
   completionKey,
   todayStr,
-} from '@/components/modules/chore-chart/types';
+} from '@/lib/chore-assignments';
 
 export const dynamic = 'force-dynamic';
 

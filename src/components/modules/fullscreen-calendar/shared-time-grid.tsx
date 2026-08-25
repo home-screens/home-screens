@@ -8,13 +8,15 @@ import type { TimeFormat } from '@/types/config';
 // ─── Utilities ───
 
 /**
- * Format an hour number (0-23) as a 12-hour label using localized AM/PM
- * tokens (e.g. 0 → "12 AM", 13 → "1 PM"). Pass the resolved AM/PM strings
- * from `useTranslate('modules')` so the label honors the active locale.
+ * Format an hour number (0-24) as a gutter/axis label in the household time
+ * format: "8 PM" / "20:00". Owns the 24h branch so no call site can forget
+ * it. Pass the resolved AM/PM strings from `useTranslate('modules')` so the
+ * 12-hour label honors the active locale.
  */
-export function formatHourLabel(h: number, am: string, pm: string): string {
+export function formatHourLabel(h: number, timeFormat: TimeFormat, am: string, pm: string): string {
   // 24 is the end-of-day gutter label (an hourEnd of 24), which is midnight.
   const hour = h % 24;
+  if (timeFormat === '24h') return `${String(hour).padStart(2, '0')}:00`;
   if (hour === 0) return `12 ${am}`;
   if (hour === 12) return `12 ${pm}`;
   return hour > 12 ? `${hour - 12} ${pm}` : `${hour} ${am}`;
@@ -63,7 +65,7 @@ export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize
   pm: string;
   t: TranslateFn;
 }) {
-  const label = (h: number) => (timeFormat === '24h' ? `${String(h % 24).padStart(2, '0')}:00` : formatHourLabel(h % 24, am, pm));
+  const label = (h: number) => formatHourLabel(h, timeFormat, am, pm);
   return (
     <div
       data-rolling-window=""
@@ -175,14 +177,15 @@ interface NowBadgeProps {
   scale: { bu: number };
   fontSize: number;
   position: 'left' | 'right';
-  /** date-fns pattern for the badge label, derived from the household time format. */
-  timePattern?: string;
+  /** Household time format; the badge derives its own date-fns pattern from it. */
+  timeFormat: TimeFormat;
   /** Active formatting locale tag (e.g. "en-US") — used for the time label. */
   locale: string;
 }
 
 /** Small pill badge showing the current time, positioned in the time gutter. */
-export function NowBadge({ nowY, now, scale, fontSize, position, timePattern = 'h:mm', locale }: NowBadgeProps) {
+export function NowBadge({ nowY, now, scale, fontSize, position, timeFormat, locale }: NowBadgeProps) {
+  const timePattern = timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
   const posStyle = position === 'right'
     ? { right: scale.bu * 0.3 }
     : { left: scale.bu * 0.5 };

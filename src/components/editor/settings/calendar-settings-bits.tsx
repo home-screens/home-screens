@@ -3,7 +3,15 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
 import type { CalendarSourceStatus } from '@/types/config';
+
+/** Localized failure wording: the server's message key when it sent one,
+ *  else its plain-English prose (older payloads, plugin sources). */
+function sourceHealthMessage(status: CalendarSourceStatus, t: TranslateFn): string | undefined {
+  if (status.messageKey) return t(`settings.calendarPage.health.errors.${status.messageKey}`, status.messageParams);
+  return status.error;
+}
 
 /**
  * Shared pieces of the Defaults > Calendar page: the three area cards, the
@@ -80,6 +88,13 @@ export function useCalendarSourceHealth(): SourceHealthMap {
           const body = await res.json();
           if (Array.isArray(body.sourceStatus) && body.sourceStatus.length > 0) { apply(body.sourceStatus); return; }
         }
+        // Empty status = no display fetch has happened yet this process, so
+        // there is nothing cached to show. This one editor-window fetch is
+        // exactly the pattern calendar-source-status.ts warns against (it
+        // seeds the last-good state with an editor-shaped window and mints a
+        // cache entry no display will hit) — accepted as a cold-start
+        // trade-off so a fresh setup still gets health badges; the next
+        // display fetch overwrites it.
         const fallback = await editorFetch('/api/calendar', { signal: controller.signal });
         if (!fallback.ok) return;
         const body = await fallback.json();
@@ -108,7 +123,7 @@ export function SourceHealthBadge({ status }: { status: CalendarSourceStatus | u
   return (
     <span
       data-source-health="failing"
-      title={status.error}
+      title={sourceHealthMessage(status, t)}
       className="shrink-0 whitespace-nowrap rounded-full bg-hs-warning/10 px-2 py-0.5 text-[11px] font-semibold text-hs-warning"
     >
       {t('settings.calendarPage.health.notUpdating')}
@@ -120,11 +135,13 @@ export function SourceHealthBadge({ status }: { status: CalendarSourceStatus | u
 export function SourceHealthError({ status }: { status: CalendarSourceStatus | undefined }) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
-  if (!status || status.ok || !status.error) return null;
+  if (!status || status.ok) return null;
+  const message = sourceHealthMessage(status, t);
+  if (!message) return null;
   const since = status.fetchedAt != null ? formatRelativeTime(new Date(), new Date(status.fetchedAt), { locale }) : null;
   return (
     <span className="block text-[11px] text-hs-text-faint truncate">
-      {since ? t('settings.calendarPage.health.errorSince', { error: status.error, time: since }) : status.error}
+      {since ? t('settings.calendarPage.health.errorSince', { error: message, time: since }) : message}
     </span>
   );
 }

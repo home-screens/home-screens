@@ -680,6 +680,9 @@ export interface CalendarSourceStatus {
   name?: string;
   ok: boolean;
   error?: string;
+  /** i18n key under the editor's `settings.calendarPage.health.errors.*`; preferred over `error` at render time. */
+  messageKey?: string;
+  messageParams?: Record<string, string | number>;
   fetchedAt: number | null;
 }
 
@@ -697,6 +700,9 @@ export interface FullscreenCalendarConfig {
   density: CalendarDensity;
   typographySize: FullscreenTypographySize;
   accentColor: string;
+  // Dims whole past day columns/cells; default ON. Deliberately different
+  // from CalendarConfig.dimPastEvents (compact daily view, default off,
+  // today's-column rows only): same name, two view-specific behaviors.
   dimPastEvents: boolean;
   shadeWeekends: boolean;
   /** Deprecated: pre-weatherPlacement boolean; true resolves to 'header'. */
@@ -712,7 +718,7 @@ export interface FullscreenCalendarConfig {
   wrapEventTitles?: boolean;                  // default false; wrap long titles to 2 lines (schedule + month views)
   eventTapDetails?: boolean;                  // default false; touch displays: tap an event to open a detail overlay
   eventTapStyle?: EventTapStyle;              // default 'sheet' (bottom sheet); 'card' = centered card
-  startDay?: WeekStartDay;                    // grid views (week-list / month-grid): first day of the week. Default sunday
+  startDay?: WeekStartDay;                    // first day of the week wherever a view is week-anchored (week/month grids, family grid, the schedule 'start-of-week' anchor, agenda week separators). Default sunday
 
   // List views (agenda + week-list): one shared status slot per event row —
   // a countdown pill before the event starts, replaced by a progress bar
@@ -773,7 +779,10 @@ export interface FullscreenCalendarConfig {
   agendaHideEmptyDays: boolean;
   // Keep events that already ended today on the list (dimmed via
   // dimPastEvents) until midnight instead of dropping them as they end.
-  // Mirrors CalendarConfig.agendaShowFinishedToday.
+  // Mirrors CalendarConfig.agendaShowFinishedToday in name, but the
+  // policies differ deliberately: this view has no row cap, so it keeps
+  // only the most recent few finished rows (FINISHED_TODAY_MAX in
+  // AgendaView); the compact agenda backfills leftover maxEvents budget.
   agendaShowFinishedToday?: boolean;  // default false
   agendaShowDescription?: boolean;
   agendaSeparators?: AgendaSeparators;  // default 'none'
@@ -839,10 +848,14 @@ export interface CalendarConfig {
   // Agenda view: keep events that already ended today on the list (dimmed)
   // until midnight instead of dropping them the moment they end, and group
   // an ongoing multi-day event under Today rather than the day it started.
+  // Same name as the fullscreen toggle, different capping policy — see the
+  // note on FullscreenCalendarConfig.agendaShowFinishedToday.
   agendaShowFinishedToday?: boolean;   // default false
   // Sources present in the rendered window, as dot + name. Default 'off'.
   showLegend?: CalendarLegendPlacement;
   // Daily view: dim events in today's column that have already ended.
+  // Default off — deliberately different from the fullscreen module's
+  // same-named toggle (whole past days, default on).
   dimPastEvents?: boolean;   // default false
   // Daily view: thin accent rule between today's ended and upcoming events.
   showNowRule?: boolean;     // default false
