@@ -32,6 +32,12 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     '/api/calendar': ['./node_modules/temporal-polyfill/**/*'],
+    // Counters the './docs/**' exclude below, which the tracer applies as an
+    // unanchored substring match and would otherwise delete the Google Docs
+    // API out of googleapis, making the whole module fail to load at runtime
+    // (broke calendar in v1.11.0-rc.1). Verified: includes are applied after
+    // excludes, so this wins.
+    '/api/calendars': ['./node_modules/googleapis/build/src/apis/docs/**/*'],
   },
   // The auto-generated `_not-found` page has no custom not-found.tsx to
   // anchor its trace, so Next's file tracer falls back to sweeping the
@@ -40,8 +46,18 @@ const nextConfig = {
   // reads from disk at runtime. Only src/translations/*.json is a real
   // runtime dependency (src/i18n/file-reader.ts reads it for /api/i18n), so
   // everything else under src/ is safe to drop.
+  //
+  // CAUTION: the tracer matches these globs as unanchored substrings
+  // (picomatch contains: true), so a pattern like './docs/**' also deletes
+  // any node_modules path containing a 'docs/' segment — that stripped the
+  // Google Docs API out of googleapis and broke calendar in v1.11.0-rc.1
+  // (countered by the googleapis entry in outputFileTracingIncludes above).
+  // Before adding a pattern here, check no dependency ships runtime code
+  // under a matching path segment, and rebuild + verify .next/standalone.
+  // The '/**' key (all routes) also avoids Next's internal 'next-server'
+  // entry, which a bare '*' key would additionally match.
   outputFileTracingExcludes: {
-    '*': [
+    '/**': [
       './src/app/**',
       './src/components/**',
       './src/contexts/**',
