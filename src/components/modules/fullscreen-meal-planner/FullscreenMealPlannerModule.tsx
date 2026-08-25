@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
-import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
+import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { getActiveSlot, DEFAULT_MEAL_SETTINGS, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat } from '@/lib/meal-constants';
+import { getActiveSlot, DEFAULT_MEAL_SETTINGS, DEFAULT_ACCENT_COLOR, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import WeekView from './WeekView';
@@ -91,7 +91,8 @@ export default function FullscreenMealPlannerModule({
   // ── CSS custom properties ──
   const cssVars = {
     ...buildThemeCSSVars('fmp', theme),
-    '--fmp-accent': config.accentColor ?? '#f59e0b',
+    // Empty accentColor follows the theme's own accent (see the registry default).
+    '--fmp-accent': resolveFullscreenAccent(config.accentColor, theme, DEFAULT_ACCENT_COLOR),
   } as React.CSSProperties;
 
   const recipeTapMode = resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId);
@@ -126,7 +127,8 @@ export default function FullscreenMealPlannerModule({
     >
       <style>{`
         .fmp-root {
-          background: var(--fmp-bg);
+          background-color: var(--fmp-bg);
+          background-image: var(--fmp-bg-image);
           color: var(--fmp-text);
         }
         @keyframes fmpPulse {

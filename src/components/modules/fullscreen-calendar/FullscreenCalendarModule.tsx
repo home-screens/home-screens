@@ -10,13 +10,14 @@ import { applyEventRules, resolveDayDecor, type DayDecor } from '@/lib/calendar-
 import { applyTitleFilter, buildLegend, effectiveWeatherPlacement, formatEventTime, isEventUpcoming, listViewCutoff, resolveScheduleStart, viewDayWindow, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildHourlyIndex, type HourlyIndex } from './event-weather';
 import { toTZWallTime } from '@/lib/timezone';
-import { parseHexToRgb } from '@/lib/hex-color';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarTitleFilter, type CalendarEventRule, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop } from '@/lib/fullscreen-themes';
+import type { FullscreenEventStyle } from '@/lib/fullscreen-themes';
+import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
@@ -48,6 +49,8 @@ export interface CalendarScale {
   densityMul: number;
   typoMul: number;
   isDark: boolean;
+  /** How the active theme paints event blocks. See `eventSurface`. */
+  eventStyle: FullscreenEventStyle;
 }
 
 // Re-export MapPin for use in subviews
@@ -146,22 +149,6 @@ export function selectVisibleEvents(
   return filtered.filter(ev => isEventUpcoming(ev, cutoff, opts.timezone));
 }
 
-// ─── Color helpers (safe alpha + dark-mode adjustment) ───
-
-function parseHexToRgbOrBlue(color: string): [number, number, number] {
-  return parseHexToRgb(color) ?? [59, 130, 246]; // fallback blue-500
-}
-
-function darkAdjustRgb(r: number, g: number, b: number): [number, number, number] {
-  // Approximate CSS saturate(0.85) brightness(1.1) — desaturate toward luminance, then brighten
-  const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return [
-    Math.min(255, Math.round((lum + 0.85 * (r - lum)) * 1.1)),
-    Math.min(255, Math.round((lum + 0.85 * (g - lum)) * 1.1)),
-    Math.min(255, Math.round((lum + 0.85 * (b - lum)) * 1.1)),
-  ];
-}
-
 /** Day-rule decor for one day cell / header in a fullscreen view. The auto
  *  tint is stronger on dark themes, where a light wash reads as nothing. */
 export function dayDecorFor(
@@ -171,20 +158,6 @@ export function dayDecorFor(
   ctx: { today: Date; now: Date; timezone?: string; isDark: boolean },
 ): DayDecor {
   return resolveDayDecor(day, dayEvents, config.dayRules, ctx, { autoTintAlpha: ctx.isDark ? 0.22 : 0.14 });
-}
-
-/** Safely compose a source color + alpha, with optional dark-mode desaturation. */
-export function eventBg(color: string, alpha: number, isDark: boolean): string {
-  let [r, g, b] = parseHexToRgbOrBlue(color);
-  if (isDark) [r, g, b] = darkAdjustRgb(r, g, b);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-/** Return a solid source color, adjusted for dark mode. */
-export function eventBorder(color: string, isDark: boolean): string {
-  if (!isDark) return color;
-  const [r, g, b] = darkAdjustRgb(...parseHexToRgbOrBlue(color));
-  return `rgb(${r},${g},${b})`;
 }
 
 /** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */
@@ -203,11 +176,6 @@ export function clampStyle(wrap: boolean): React.CSSProperties {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
       };
-}
-
-function brightenForDark(color: string): string {
-  const [r, g, b] = parseHexToRgbOrBlue(color);
-  return `rgb(${Math.min(255, Math.round(r * 1.15))},${Math.min(255, Math.round(g * 1.15))},${Math.min(255, Math.round(b * 1.15))})`;
 }
 
 function getHeaderTitle(
@@ -379,10 +347,14 @@ export default function FullscreenCalendarModule({
   // Today-highlight fill derived from the resolved accent color so the
   // highlight follows accentColor (the fill was previously hardcoded orange).
   const highlightStyle = config.todayHighlightStyle ?? 'full';
-  const resolvedAccent = config.accentColor || (theme.isDark ? '#F97316' : '#EA580C');
+  const resolvedAccent = resolveCalendarAccent(config.accentColor, theme);
+  // Themes with an atmosphere layer dial the today wash down so the
+  // background survives; 'subtle' stays proportionally fainter than 'full'.
+  const fullAlpha = theme.todayFill ?? (theme.isDark ? 0.16 : 0.10);
+  const subtleAlpha = theme.todayFill != null ? theme.todayFill * 0.55 : (theme.isDark ? 0.07 : 0.05);
   const todayFill =
-    highlightStyle === 'full' ? eventBg(resolvedAccent, theme.isDark ? 0.16 : 0.10, theme.isDark)
-    : highlightStyle === 'subtle' ? eventBg(resolvedAccent, theme.isDark ? 0.07 : 0.05, theme.isDark)
+    highlightStyle === 'full' ? eventBg(resolvedAccent, fullAlpha, theme.isDark)
+    : highlightStyle === 'subtle' ? eventBg(resolvedAccent, subtleAlpha, theme.isDark)
     : 'transparent';
 
   const scale: CalendarScale = useMemo(() => ({
@@ -393,7 +365,8 @@ export default function FullscreenCalendarModule({
     densityMul: getDensityMultiplier(config.density),
     typoMul: getTypoMultiplier(config.typographySize),
     isDark: theme.isDark,
-  }), [dims, config.density, config.typographySize, theme.isDark]);
+    eventStyle: theme.eventStyle ?? 'wash',
+  }), [dims, config.density, config.typographySize, theme.isDark, theme.eventStyle]);
   // For schedule view, compute effective days count for the header title
   const scheduleDays = config.view === 'schedule'
     ? (config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density))
@@ -519,12 +492,25 @@ export default function FullscreenCalendarModule({
         '--cal-past-opacity': String(theme.pastOpacity),
         '--cal-weekend-shade': theme.surfaceAlt,
         '--cal-header-blur': theme.isDark ? '16px' : '12px',
+        // A user color still gets the dark-theme lift; a theme's own accent is
+        // already tuned for its background and is used verbatim.
         '--cal-accent': config.accentColor
-          ? (theme.isDark ? brightenForDark(config.accentColor) : config.accentColor)
-          : (theme.isDark ? '#F97316' : '#EA580C'),
+          ? (theme.isDark ? brightenForDark(config.accentColor) : resolvedAccent)
+          : resolvedAccent,
         '--cal-accent-bg': eventBg(resolvedAccent, theme.isDark ? 0.20 : 0.12, theme.isDark),
         '--cal-accent-surface': eventBg(resolvedAccent, theme.isDark ? 0.32 : 0.22, theme.isDark),
         '--cal-today-fill': todayFill,
+        '--cal-bg-image': theme.bgImage ?? 'none',
+        '--cal-surface-backdrop': surfaceBackdrop(theme),
+        // A theme's on-accent ink is tuned for that theme's accent only; a
+        // user-picked accent may be dark, so it keeps the original white.
+        '--cal-on-accent': config.accentColor ? '#fff' : (theme.onAccent ?? '#fff'),
+        // Sticky day bands (agenda) must cover what scrolls under them. The
+        // flat themes paint their background verbatim, as before; over an
+        // atmosphere layer a flat slab would punch a hole in the gradient, so
+        // those themes get the header's frosted treatment instead.
+        '--cal-band-bg': theme.bgImage ? theme.headerBg : theme.bg,
+        '--cal-band-backdrop': theme.bgImage ? `blur(${theme.isDark ? '16px' : '12px'})` : 'none',
       } as React.CSSProperties}
     >
       <style>{cssTokens}</style>
@@ -660,7 +646,8 @@ const cssTokens = `
   --cal-transition-fast: 150ms ease-out;
   --cal-transition-normal: 250ms ease-out;
   --cal-transition-slow: 400ms ease-out;
-  background: var(--cal-bg);
+  background-color: var(--cal-bg);
+  background-image: var(--cal-bg-image, none);
   color: var(--cal-text-primary);
 }
 
@@ -674,12 +661,24 @@ const cssTokens = `
     opacity 500ms ease-out;
 }
 
-/* Today highlight pulse */
+/* Today highlight pulse. The glow is a composited pseudo-element fading in
+   and out: animating box-shadow on the marker itself repaints the gradient
+   tiles beneath it on every frame, forever, on atmosphere themes. */
 @keyframes fsc-today-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 var(--cal-accent); }
-  50%      { box-shadow: 0 0 8px 2px var(--cal-accent); }
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
 }
 .fsc-today-pulse {
+  position: relative;
+}
+.fsc-today-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 8px 2px var(--cal-accent);
+  pointer-events: none;
+  will-change: opacity;
   animation: fsc-today-pulse 4s ease-in-out infinite;
 }
 
@@ -701,8 +700,9 @@ const cssTokens = `
     animation-duration: 0ms !important;
     animation-iteration-count: 1 !important;
   }
-  .fsc-today-pulse {
+  .fsc-today-pulse::after {
     animation: none !important;
+    opacity: 0;
   }
 }
 
@@ -728,6 +728,8 @@ const cssTokens = `
 .fsc-weather-pill {
   display: flex;
   align-items: center;
+  backdrop-filter: var(--cal-surface-backdrop, none);
+  -webkit-backdrop-filter: var(--cal-surface-backdrop, none);
   gap: 6px;
   color: var(--cal-text-secondary);
   background: var(--cal-surface);

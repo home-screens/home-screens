@@ -4,7 +4,9 @@ import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import { MapPin, dayDecorFor, eventBg, eventBorder } from './FullscreenCalendarModule';
+import { MapPin, dayDecorFor } from './FullscreenCalendarModule';
+import { eventSurface } from '@/lib/calendar-event-surface';
+import { EVENT_BLOCK_BASE_ZINDEX } from '@/lib/fullscreen-overlap';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout } from './event-layout';
@@ -145,10 +147,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
             return (
               <div key={ev.id} className="fsc-event-block" data-event-id={ev.id} aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })} style={{
                 padding: `${scale.bu * 0.3}px ${scale.bu * 0.8}px`,
-                borderRadius: 6,
-                background: eventBg(color, 0.13, scale.isDark),
-                color: eventBorder(color, scale.isDark),
-                border: `1px solid ${eventBg(color, 0.19, scale.isDark)}`,
+                ...eventSurface(color, scale, 'chip', { radius: 6 }),
                 fontSize: fontSize * 0.95,
                 fontWeight: 600,
                 marginBottom: scale.bu * 0.2,
@@ -291,15 +290,19 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     height,
                     left: `calc(${layout.left * 100}% + ${scale.bu * 0.8}px)`,
                     width: `calc(${layout.width * 100}% - ${scale.bu * 1.6}px)`,
-                    borderRadius: 8,
-                    borderLeft: `4px solid ${eventBorder(color, scale.isDark)}`,
-                    background: overlapMode === 'stacked'
-                      ? `linear-gradient(${eventBg(color, 0.13, scale.isDark)}, ${eventBg(color, 0.13, scale.isDark)}), var(--cal-bg)`
-                      : eventBg(color, 0.08, scale.isDark),
+                    ...eventSurface(color, scale, 'block', {
+                      radius: 8,
+                      barWidth: '4px',
+                      washAlpha: overlapMode === 'stacked' ? 0.13 : 0.08,
+                      // Only a block layered over another needs to hide what
+                      // is beneath it; the bottom of a stack stays translucent
+                      // so the theme's atmosphere shows through as elsewhere.
+                      opaque: overlapMode === 'stacked' && layout.zIndex > EVENT_BLOCK_BASE_ZINDEX,
+                    }),
                     padding: `${scale.bu * 0.6}px ${scale.bu * 0.8}px`,
                     overflow: 'hidden',
                     zIndex: layout.zIndex,
-                    boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
+                    ...(overlapMode === 'stacked' ? { boxShadow: 'var(--cal-card-shadow)' } : {}),
                     opacity: eventOpacity(ev, isPast && config.dimPastEvents ? 0.4 : 1),
                   }}
                 >

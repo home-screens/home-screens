@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
-import ColorPicker from '@/components/ui/ColorPicker';
+import FullscreenAccentPicker from './FullscreenAccentPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
@@ -11,6 +11,8 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
+import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import type {
@@ -23,6 +25,9 @@ type Config = Partial<FullscreenMealPlannerConfig>;
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+  // The accent the module paints while accentColor is empty (see the module).
+  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme), DEFAULT_ACCENT_COLOR);
+  const accentColor = c.accentColor || themeAccent;
 
   const VIEWS = [
     { value: 'week', label: t('configSections.fullscreen-meal-planner.viewWeek') },
@@ -102,9 +107,10 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       )}
 
       {/* Accent Color */}
-      <ColorPicker
+      <FullscreenAccentPicker
         label={t('configSections.fullscreen-meal-planner.accentColor')}
-        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
+        value={c.accentColor}
+        themeAccent={themeAccent}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -140,7 +146,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           savedMeals={mealData.savedMeals}
           plan={mealData.plan}
           settings={mealData.settings}
-          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
+          accentColor={accentColor}
           onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}
         />

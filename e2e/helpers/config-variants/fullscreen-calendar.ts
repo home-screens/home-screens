@@ -54,6 +54,13 @@ const SCHEDULE_DESC = [
   { id: 'sd1', title: 'SCHED DESC EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 13, 0), allDay: false, description: 'SCHED DESC E2E', calendarColor: BLUE },
 ];
 
+/** Two overlapping events today, so stacked mode actually layers one block
+ *  over another — the only case that composites an opaque background. */
+const OVERLAPPING = [
+  { id: 'ov1', title: 'OVERLAP BASE', start: isoTimed(0, 10, 0), end: isoTimed(0, 13, 0), allDay: false, calendarColor: BLUE },
+  { id: 'ov2', title: 'OVERLAP TOP', start: isoTimed(0, 11, 0), end: isoTimed(0, 12, 0), allDay: false, calendarColor: '#e11d48' },
+];
+
 /** Two events today with distinct source ids — the filter keeps one, drops the other. */
 const SOURCE_FILTER = [
   { id: 'sf1', title: 'KEEP EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 11, 0), allDay: false, calendarColor: BLUE, sourceId: 'keep-src', sourceName: 'Keep' },
@@ -128,7 +135,8 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
 
   {
     // Resolved accent (light theme) lands verbatim in the `--cal-accent` custom
-    // property on the root; default is #EA580C.
+    // property on the root. The default is empty ("follow the theme"), which
+    // resolves to the theme's own accent or, on the original themes, #EA580C.
     type: 'fullscreen-calendar', name: 'accent-color', kind: 'networked', stubKey: 'calendar',
     config: { view: 'schedule', accentColor: '#ff0000' },
     expect: async (mod) => { await expect(mod.locator('.fsc-root')).toHaveAttribute('style', /#ff0000/i); },
@@ -139,6 +147,50 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-calendar', name: 'theme-slate', kind: 'networked', stubKey: 'calendar',
     config: { view: 'schedule', theme: 'slate' },
     expect: async (mod) => { await expect(mod.locator('.fsc-root')).toHaveAttribute('style', /0f172a/i); },
+  },
+  {
+    // Sandstone paints events `solid`: the block is filled with the source
+    // color verbatim (#4073ff from the stub, light theme = no adjustment) and
+    // owns its ink, so the title is white on the fill. The theme's own accent
+    // (#C2410C) takes over from the orange default while accentColor is empty.
+    type: 'fullscreen-calendar', name: 'theme-sandstone-solid', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', theme: 'sandstone', accentColor: '' },
+    expect: async (mod) => {
+      const block = mod.locator('.fsc-event-block').first();
+      await expect(block).toBeVisible();
+      await expect(block).toHaveCSS('background-color', 'rgb(64, 115, 255)');
+      await expect(block.locator('div').first()).toHaveCSS('color', 'rgb(255, 255, 255)');
+      await expect(mod.locator('.fsc-root')).toHaveAttribute('style', /--cal-accent:\s*#C2410C/i);
+    },
+  },
+  {
+    // Vellum paints events `rule`: the theme surface (#ffffff) with a 3px
+    // colored edge and no tint.
+    type: 'fullscreen-calendar', name: 'theme-vellum-rule', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', theme: 'vellum' },
+    expect: async (mod) => {
+      const block = mod.locator('.fsc-event-block').first();
+      await expect(block).toBeVisible();
+      await expect(block).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+      await expect(block).toHaveCSS('border-left-width', '3px');
+      await expect(block).toHaveCSS('border-left-color', 'rgb(64, 115, 255)');
+    },
+  },
+  {
+    // Aurora paints events `glass` (a 1px hairline all round, no bar) over a
+    // radial-gradient atmosphere layer, and its dark on-accent ink lands on
+    // the today circle instead of the original white.
+    type: 'fullscreen-calendar', name: 'theme-aurora-glass', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', theme: 'aurora', accentColor: '' },
+    expect: async (mod) => {
+      const block = mod.locator('.fsc-event-block').first();
+      await expect(block).toBeVisible();
+      await expect(block).toHaveCSS('border-top-width', '1px');
+      await expect(block).toHaveCSS('border-left-width', '1px');
+      const rootBg = await mod.locator('.fsc-root').evaluate((el) => getComputedStyle(el).backgroundImage);
+      expect(rootBg).toContain('radial-gradient');
+      await expect(mod.locator('.fsc-today-pulse').first()).toHaveCSS('color', 'rgb(4, 33, 29)');
+    },
   },
   {
     // Header title font-size = bu * 3.5 * typoMul; 4x-large (2.15) clears any
@@ -260,10 +312,68 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Stacked overlap paints each event block with a layered linear-gradient
-    // background; columns mode (default) uses a flat rgba fill.
-    type: 'fullscreen-calendar', name: 'event-overlap-stacked', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'schedule', eventOverlap: 'stacked' },
+    // Week list shades its weekend day groups (audit 26 item 2). A 7-day week
+    // always spans Sat and Sun; today's group takes the today fill instead, so
+    // at least one weekend group carries linen's shade (#ede8e0).
+    type: 'fullscreen-calendar', name: 'shade-weekends-week-list', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'week-list', shadeWeekends: true },
+    expect: async (mod) => {
+      await expect(mod.getByText('Dentist Appointment').first()).toBeVisible();
+      const shaded = await mod.locator('div').evaluateAll(
+        (els) => els.filter((e) => getComputedStyle(e).backgroundColor === 'rgb(237, 232, 224)').length,
+      );
+      expect(shaded).toBeGreaterThan(0);
+    },
+  },
+  {
+    // Same shading in the agenda, whose 14-day window always spans a weekend.
+    type: 'fullscreen-calendar', name: 'shade-weekends-agenda', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', shadeWeekends: true, agendaHideEmptyDays: false },
+    expect: async (mod) => {
+      await expect(mod.getByText('Dentist Appointment').first()).toBeVisible();
+      const shaded = await mod.locator('div').evaluateAll(
+        (els) => els.filter((e) => getComputedStyle(e).backgroundColor === 'rgb(237, 232, 224)').length,
+      );
+      expect(shaded).toBeGreaterThan(0);
+    },
+  },
+  {
+    // Audit 26 item 3: the list views used to read todayHighlightStyle as
+    // on/off only, so 'full' and 'minimal' were identical. 'full' now tints
+    // today's group with --cal-today-fill, which on linen with the default
+    // accent is rgba(234,88,12,0.1).
+    type: 'fullscreen-calendar', name: 'today-highlight-full-week-list', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'week-list', todayHighlightStyle: 'full' },
+    expect: async (mod) => {
+      await expect(mod.getByText('Dentist Appointment').first()).toBeVisible();
+      const tinted = await mod.locator('div').evaluateAll(
+        (els) => els.filter((e) => getComputedStyle(e).backgroundColor === 'rgba(234, 88, 12, 0.1)').length,
+      );
+      expect(tinted).toBeGreaterThan(0);
+    },
+  },
+  {
+    // ...and 'minimal' keeps the marker without the tint, which is the
+    // distinction those two views previously could not express.
+    type: 'fullscreen-calendar', name: 'today-highlight-minimal-agenda', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', todayHighlightStyle: 'minimal', agendaHideEmptyDays: false },
+    expect: async (mod) => {
+      await expect(mod.getByText('Dentist Appointment').first()).toBeVisible();
+      const tinted = await mod.locator('div').evaluateAll(
+        (els) => els.filter((e) => getComputedStyle(e).backgroundColor === 'rgba(234, 88, 12, 0.1)').length,
+      );
+      expect(tinted).toBe(0);
+      await expect(mod.locator('.fsc-root')).toBeVisible();
+    },
+  },
+  {
+    // Stacked overlap paints the block that sits ON TOP of another with a
+    // layered linear-gradient background so what is beneath cannot read
+    // through; columns mode (default) uses a flat rgba fill. Needs two
+    // overlapping events — a lone block is never layered over anything, so
+    // it stays flat in both modes.
+    type: 'fullscreen-calendar', name: 'event-overlap-stacked', kind: 'networked', stubKey: 'calendar', stubBody: OVERLAPPING,
+    config: { view: 'schedule', eventOverlap: 'stacked', scheduleDaysToShow: 1 },
     expect: async (mod) => {
       await expect(mod.locator('.fsc-event-block').first()).toBeVisible();
       const bgs = await mod.locator('.fsc-event-block').evaluateAll(

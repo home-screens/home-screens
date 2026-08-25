@@ -6,6 +6,10 @@ export interface OverlapLayout {
   zIndex: number; // z-index for the event block (base 2, above hour lines)
 }
 
+/** The z-index of a block that sits on nothing. In stacked mode anything
+ *  above it is layered over another block and must paint opaquely. */
+export const EVENT_BLOCK_BASE_ZINDEX = 2;
+
 interface OverlapInput {
   id: string;
   startHour: number;
@@ -55,7 +59,7 @@ export function computeOverlapLayout(
     for (const ev of sorted) {
       const col = eventColumn.get(ev.id) ?? 0;
       const left = Math.min(col, MAX_STACK_LEVEL) * STACK_INDENT;
-      result.set(ev.id, { left, width: 1 - left, zIndex: 2 + Math.min(col, MAX_STACK_ZINDEX_LEVEL) });
+      result.set(ev.id, { left, width: 1 - left, zIndex: EVENT_BLOCK_BASE_ZINDEX + Math.min(col, MAX_STACK_ZINDEX_LEVEL) });
     }
     return result;
   }
@@ -67,9 +71,9 @@ export function computeOverlapLayout(
     const col = eventColumn.get(ev.id) ?? 0;
     if (col >= maxCols) {
       // Overflow events get hidden (parent skips rendering width-0 layouts)
-      result.set(ev.id, { left: 0, width: 0, zIndex: 2 });
+      result.set(ev.id, { left: 0, width: 0, zIndex: EVENT_BLOCK_BASE_ZINDEX });
     } else {
-      result.set(ev.id, { left: col * colWidth, width: colWidth, zIndex: 2 });
+      result.set(ev.id, { left: col * colWidth, width: colWidth, zIndex: EVENT_BLOCK_BASE_ZINDEX });
     }
   }
 

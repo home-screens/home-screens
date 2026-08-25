@@ -57,7 +57,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Full-Screen Meal Planner** — 4 views for the weekly meal plan
 - **Full-Screen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
-All five share one set of six color themes: Linen, Paper, and Mist for light rooms, Charcoal, Midnight, and Slate for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**.
+All five share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
 
 ### Time & Date
 

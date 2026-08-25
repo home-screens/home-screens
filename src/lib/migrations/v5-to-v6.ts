@@ -28,34 +28,11 @@
  * alone. A missing/invalid `scale` is treated as the render-time default of 1.
  */
 
-import type { ScreenConfiguration, Screen } from '@/types/config';
+import type { ScreenConfiguration } from '@/types/config';
+import { mapConfigModules } from './module-walk';
 
 /** The view-local multiplier removed from CountdownNextView. */
 const NEXT_VIEW_MULTIPLIER = 1.3;
-
-function migrateScreen(screen: Screen): Screen {
-  // Malformed shapes pass through untouched rather than being normalised. This
-  // is the first migration to walk `displays[].screens`, so it is the first
-  // that can meet a hand-edited or v3-era node whose arrays are absent, and
-  // `updateConfigAtomic` does NOT catch migration throws the way `readConfig`
-  // does — an unguarded `.map` here would 500 every write path until someone
-  // fixed config.json by hand.
-  if (!Array.isArray(screen.modules)) return screen;
-  let changed = false;
-  const modules = screen.modules.map((mod) => {
-    if (mod.type !== 'countdown') return mod;
-    const cfg = mod.config as Record<string, unknown>;
-    if (cfg?.view !== 'next') return mod;
-    const raw = cfg.scale;
-    const current = typeof raw === 'number' && Number.isFinite(raw) ? raw : 1;
-    changed = true;
-    return {
-      ...mod,
-      config: { ...cfg, scale: Math.round(current * NEXT_VIEW_MULTIPLIER * 10) / 10 },
-    } as typeof mod;
-  });
-  return changed ? { ...screen, modules } : screen;
-}
 
 export const v5ToV6 = {
   version: 6,
@@ -63,15 +40,16 @@ export const v5ToV6 = {
   up: (config: ScreenConfiguration): ScreenConfiguration => ({
     ...config,
     version: 6,
-    screens: Array.isArray(config.screens) ? config.screens.map(migrateScreen) : config.screens,
-    // Multi-display configs own their screens per display; the legacy
-    // top-level `screens` array is still populated, so both must be walked.
-    ...(Array.isArray(config.displays)
-      ? {
-          displays: config.displays.map((d) =>
-            Array.isArray(d.screens) ? { ...d, screens: d.screens.map(migrateScreen) } : d,
-          ),
-        }
-      : {}),
+    ...mapConfigModules(config, (mod) => {
+      if (mod.type !== 'countdown') return mod;
+      const cfg = mod.config as Record<string, unknown>;
+      if (cfg?.view !== 'next') return mod;
+      const raw = cfg.scale;
+      const current = typeof raw === 'number' && Number.isFinite(raw) ? raw : 1;
+      return {
+        ...mod,
+        config: { ...cfg, scale: Math.round(current * NEXT_VIEW_MULTIPLIER * 10) / 10 },
+      } as typeof mod;
+    }),
   }),
 };

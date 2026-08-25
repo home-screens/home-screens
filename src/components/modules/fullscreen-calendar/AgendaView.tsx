@@ -4,11 +4,12 @@ import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel,
+  classifyEventOnDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel, isWeekendDay,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin, dayDecorFor } from './FullscreenCalendarModule';
+import { eventSurface } from '@/lib/calendar-event-surface';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import type { CalendarEvent, CalendarViewProps } from './FullscreenCalendarModule';
@@ -34,7 +35,12 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   const daysAhead = config.agendaDaysAhead ?? 14;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.agendaShowDescription === true;
-  const showTodayMarker = (config.todayHighlightStyle ?? 'full') !== 'off';
+  // Four-value highlight, matching the schedule and month grid: 'full' and
+  // 'subtle' tint the day group (alpha already scaled behind
+  // --cal-today-fill), 'minimal' keeps only the TODAY marker, 'off' neither.
+  const highlightStyle = config.todayHighlightStyle ?? 'full';
+  const showTodayMarker = highlightStyle !== 'off';
+  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const emptyDayText = config.emptyDayText?.trim();
 
@@ -75,9 +81,20 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
     const decor = dayDecorFor(config, date, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
+    // Today beats the weekend shade; a day rule beats both (merged last).
+    const dayFill = isGroupToday && showTodayBg
+      ? 'var(--cal-today-fill)'
+      : isWeekendDay(date) && config.shadeWeekends !== false
+        ? 'var(--cal-weekend-shade)'
+        : undefined;
 
     return (
-      <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.borderColor ? scale.bu * 0.5 : undefined }, decor)}>
+      <div key={date.toISOString()} style={mergeCellDecor({
+        background: dayFill,
+        paddingLeft: dayFill ? scale.bu * 0.8 : undefined,
+        paddingRight: dayFill ? scale.bu * 0.8 : undefined,
+        borderRadius: dayFill || decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
+      }, decor)}>
         {boundary === 'month' && (
           <MonthSeparator monthStart={date} scale={scale} fontSize={fontSize} locale={locale} />
         )}
@@ -93,7 +110,11 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           padding: `${scale.bu * 1.2}px 0 ${scale.bu * 0.7}px`,
           position: 'sticky',
           top: 0,
-          background: 'var(--cal-bg)',
+          background: dayFill
+            ? `linear-gradient(${dayFill}, ${dayFill}), var(--cal-band-bg)`
+            : 'var(--cal-band-bg)',
+          backdropFilter: 'var(--cal-band-backdrop)',
+          WebkitBackdropFilter: 'var(--cal-band-backdrop)',
           zIndex: 5,
           display: 'flex',
           alignItems: 'center',
@@ -155,12 +176,9 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 role="article"
                 aria-label={t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title })}
                 style={{
-                  background: 'var(--cal-surface)',
-                  borderRadius: 10,
-                  borderLeft: `4px solid ${color}`,
+                  ...eventSurface(color, scale, 'card', { radius: 10 }),
                   padding: `${scale.bu * 0.6}px ${scale.bu * 1.0}px`,
                   marginBottom: scale.bu * 0.6,
-                  boxShadow: 'var(--cal-card-shadow)',
                   position: 'relative',
                   opacity: ev.opacity,
                 }}
@@ -236,12 +254,9 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
               role="article"
               aria-label={ariaLabel}
               style={{
-                background: 'var(--cal-surface)',
-                borderRadius: 10,
-                borderLeft: `4px solid ${color}`,
+                ...eventSurface(color, scale, 'card', { radius: 10 }),
                 padding: `${scale.bu * 0.7}px ${scale.bu * 1.0}px`,
                 marginBottom: scale.bu * 0.6,
-                boxShadow: 'var(--cal-card-shadow)',
                 opacity: eventOpacity(ev, isPast && config.dimPastEvents ? 0.4 : 1),
                 position: 'relative',
               }}

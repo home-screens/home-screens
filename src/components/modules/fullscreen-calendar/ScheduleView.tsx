@@ -2,10 +2,12 @@
 
 import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, sanitizeEventDescription, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { autoScheduleDays, dayDecorFor, eventBg, eventBorder, clampStyle } from './FullscreenCalendarModule';
+import { autoScheduleDays, dayDecorFor, clampStyle } from './FullscreenCalendarModule';
+import { eventSurface } from '@/lib/calendar-event-surface';
+import { EVENT_BLOCK_BASE_ZINDEX } from '@/lib/fullscreen-overlap';
 import { NO_DECOR, eventGlyph, eventOpacity, mergeCellDecor, rulesNeedNow } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout } from './event-layout';
@@ -102,7 +104,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: `repeat(${daysToShow}, 1fr)` }}>
           {days.map((day, dayIdx) => {
             const isToday = isSameDay(day, today);
-            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+            const isWeekend = isWeekendDay(day);
             return (
               <div
                 key={day.toISOString()}
@@ -138,7 +140,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                       height: fontSize * 2.0,
                       borderRadius: '50%',
                       background: 'var(--cal-accent)',
-                      color: '#fff',
+                      color: 'var(--cal-on-accent, #fff)',
                     }}>
                       {formatDateSync(day, 'd', { locale })}
                     </span>
@@ -198,7 +200,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
           }}>
             {days.map((day, dayIdx) => {
               const isToday = isSameDay(day, today);
-              const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+              const isWeekend = isWeekendDay(day);
               const isPast = day < today && !isToday;
               const { dayEvents, overlapLayout, hiddenStarts, hourSpans } = dayLayouts[dayIdx];
 
@@ -265,15 +267,19 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                           height,
                           left: `calc(${layout.left * 100}% + 2px)`,
                           width: `calc(${layout.width * 100}% - 4px)`,
-                          borderRadius: scale.bu * 0.4,
-                          borderLeft: `3px solid ${eventBorder(color, scale.isDark)}`,
-                          background: overlapMode === 'stacked'
-                            ? `linear-gradient(${eventBg(color, 0.13, scale.isDark)}, ${eventBg(color, 0.13, scale.isDark)}), var(--cal-bg)`
-                            : eventBg(color, 0.09, scale.isDark),
+                          ...eventSurface(color, scale, 'block', {
+                            radius: scale.bu * 0.4,
+                            washAlpha: overlapMode === 'stacked' ? 0.13 : 0.09,
+                            // Only a block layered over another needs to hide
+                            // what is beneath it (see DayTimelineView).
+                            opaque: overlapMode === 'stacked' && layout.zIndex > EVENT_BLOCK_BASE_ZINDEX,
+                          }),
                           padding: `${scale.bu * 0.3}px ${scale.bu * 0.5}px`,
                           overflow: 'hidden',
                           zIndex: layout.zIndex,
-                          boxShadow: overlapMode === 'stacked' ? 'var(--cal-card-shadow)' : undefined,
+                          // Spread conditionally: an unconditional `undefined`
+                          // would wipe the inset highlight the glass styles set.
+                          ...(overlapMode === 'stacked' ? { boxShadow: 'var(--cal-card-shadow)' } : {}),
                           opacity: eventOpacity(ev, isPastEvent && config.dimPastEvents ? 0.4 : 1),
                         }}
                       >
@@ -430,10 +436,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       fontSize: fontSize * 0.65,
                       fontWeight: 600,
                       padding: `${scale.bu * 0.1}px ${scale.bu * 0.3}px`,
-                      borderRadius: 3,
-                      background: eventBg(color, 0.13, scale.isDark),
-                      color: eventBorder(color, scale.isDark),
-                      border: `1px solid ${eventBg(color, 0.20, scale.isDark)}`,
+                      ...eventSurface(color, scale, 'chip', { radius: 3 }),
                       ...clampStyle(wrapTitles),
                       lineHeight: 1.4,
                       marginBottom: 1,

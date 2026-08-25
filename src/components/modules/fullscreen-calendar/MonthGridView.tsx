@@ -7,7 +7,8 @@ import {
 } from 'date-fns';
 import { isEventOnDay, weekStartsOnFor, weekNumberOptions, birthdayAge } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { clampStyle, dayDecorFor, eventBg } from './FullscreenCalendarModule';
+import { clampStyle, dayDecorFor } from './FullscreenCalendarModule';
+import { eventBg, eventSurface } from '@/lib/calendar-event-surface';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import type { CalendarViewProps } from './FullscreenCalendarModule';
@@ -168,7 +169,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       height: fontSize * 1.5,
                       borderRadius: '50%',
                       background: 'var(--cal-accent)',
-                      color: '#fff',
+                      color: 'var(--cal-on-accent, #fff)',
                       fontSize: fontSize * 0.8,
                       fontWeight: 600,
                     }}>
@@ -249,11 +250,16 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       padding: `${scale.bu * 0.05}px ${scale.bu * 0.2}px`,
                       marginBottom: 1,
                       overflow: 'hidden',
+                      ...eventSurface(color, scale, 'pill', { radius: 3 }),
                       opacity: eventOpacity(ev, 1),
                     }}>
                       {glyph ? (
                         <span aria-hidden="true" style={{ fontSize: fontSize * 0.5, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
-                      ) : (
+                      ) : scale.eventStyle === 'wash' ? (
+                        // The source-color dot is the only calendar marker a
+                        // bare `wash` pill has. Under the other styles the
+                        // surface itself carries the color (a fill or a rule),
+                        // and a dot would vanish into it or double it up.
                         <div style={{
                           width: fontSize * 0.35,
                           height: fontSize * 0.35,
@@ -261,7 +267,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                           background: color,
                           flexShrink: 0,
                         }} />
-                      )}
+                      ) : null}
                       <span style={{
                         fontSize: fontSize * 0.55,
                         fontWeight: 500,

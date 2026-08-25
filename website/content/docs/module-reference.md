@@ -20,7 +20,9 @@ Where a module has a `refreshIntervalMs` option, its default comes from that mod
 
 These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag — position, size, and style controls are hidden in the editor since the module always occupies the full display area.
 
-**Themes:** all five full-screen modules share one `theme` field with six color palettes: `linen`, `paper`, and `mist` (light), `charcoal`, `midnight`, and `slate` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the six ids falls back to Linen.
+**Themes:** all five full-screen modules share one `theme` field with twelve color palettes: `linen`, `paper`, `mist`, `sandstone`, `vellum`, and `bloom` (light), `charcoal`, `midnight`, `slate`, `aurora`, `obsidian`, and `horizon` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the twelve ids falls back to Linen.
+
+The six newer themes (`sandstone`, `vellum`, `bloom`, `aurora`, `obsidian`, `horizon`) additionally carry their own accent color and, on the Full-Screen Calendar only, an event style deciding how event blocks are painted: a faint tint (`linen` and the other original themes), a translucent card, a solid color fill, or a plain surface with a colored edge. All but `vellum` also paint a static gradient behind the module. On the calendar, chore chart, and meal planner, setting `accentColor` overrides the theme's own accent and leaving it empty follows the theme; the weather module's accent follows the sky instead, and the photo viewer has none.
 
 The older `darkMode` boolean on Full-Screen Calendar and Full-Screen Chore Chart has been superseded by `theme` and is no longer shown in the editor. It still works as a fallback so older configurations keep rendering: `darkMode: true` maps to `charcoal` and `false` maps to `linen`. It is ignored entirely whenever `theme` is set.
 

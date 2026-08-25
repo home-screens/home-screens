@@ -813,6 +813,23 @@ test('fullscreen-calendar: switching Today highlight persists', async ({ page, r
   expect((await moduleConfig(request, 'fullscreen-calendar')).todayHighlightStyle).toBe('off');
 });
 
+test('fullscreen-calendar: picking a theme tile persists and the caption does not reset it', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-calendar'));
+
+  // The theme picker is a grid of pressable tiles named "<Theme> <group>".
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: /^Aurora/ }).click();
+  });
+  expect((await moduleConfig(request, 'fullscreen-calendar')).theme).toBe('aurora');
+  await expect(page.getByRole('button', { name: /^Aurora/ })).toHaveAttribute('aria-pressed', 'true');
+
+  // The grid sits under a plain caption, not a wrapping <label>: clicking the
+  // caption must not forward to the first tile and reset the theme.
+  await page.locator('label:text-is("Theme")').click();
+  await page.waitForTimeout(300);
+  expect((await moduleConfig(request, 'fullscreen-calendar')).theme).toBe('aurora');
+});
+
 test('fullscreen-chore-chart: toggling Show Rewards Button persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-chore-chart'));
 

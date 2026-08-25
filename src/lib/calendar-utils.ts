@@ -38,6 +38,18 @@ export function isThemedGridView(viewMode: string | undefined): boolean {
   return viewMode === 'month' || viewMode === 'multi-week';
 }
 
+/**
+ * Saturday or Sunday, from the date itself.
+ *
+ * The month grid derives its own weekend flag from the column index instead,
+ * because a Monday-start grid shifts which columns are the weekend; that is a
+ * grid-position question, not a date question, so it stays where it is.
+ */
+export function isWeekendDay(date: Date): boolean {
+  const dow = date.getDay();
+  return dow === 0 || dow === 6;
+}
+
 /** date-fns weekStartsOn for a config startDay. The views and the fetch
  * window must share this mapping so the window always covers the grid. */
 export function weekStartsOnFor(startDay: WeekStartDay | undefined): 0 | 1 {

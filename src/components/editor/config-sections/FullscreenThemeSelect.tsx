@@ -1,7 +1,7 @@
 'use client';
 
 import LabeledField from '@/components/ui/LabeledField';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
+import FullscreenThemeTile, { themeTileClass } from '@/components/editor/settings/shared/FullscreenThemeTile';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
 
@@ -16,9 +16,13 @@ interface FullscreenThemeSelectProps {
 }
 
 /**
- * The theme-override select shared by the fullscreen config sections. Every
- * fullscreen module offers the same list of `FULLSCREEN_THEMES` plus a
- * "default" option; only the default option's label wording differs.
+ * The theme picker shared by the fullscreen config sections: every
+ * `FULLSCREEN_THEMES` entry plus an "inherit the display default" tile.
+ *
+ * This was a plain `<select>` of theme names. That was workable at six
+ * themes and stops being workable past that — the names alone say nothing
+ * about what a theme looks like, and several of them differ mainly in how
+ * events are painted, which a name cannot convey at all.
  */
 export default function FullscreenThemeSelect({
   value,
@@ -27,17 +31,37 @@ export default function FullscreenThemeSelect({
 }: FullscreenThemeSelectProps) {
   const t = useTranslate('editor');
   return (
-    <LabeledField label={t('common.theme')}>
-      <select
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value || undefined)}
-        className={INPUT_CLASS}
-      >
-        <option value="">{t(defaultOptionKey)}</option>
+    // `div`, not the default `label`: a label wrapping thirteen buttons
+    // forwards a click on the caption or the gap between tiles to the first
+    // button, silently resetting the theme to the display default.
+    <LabeledField label={t('common.theme')} as="div">
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          aria-pressed={value === undefined}
+          onClick={() => onChange(undefined)}
+          className={`flex flex-col items-center gap-1.5 rounded-lg border p-2 transition-colors ${themeTileClass(value === undefined)}`}
+        >
+          <div className="w-11 h-[30px] flex-shrink-0 rounded-[5px] border border-dashed border-hs-border-strong" />
+          <span
+            className={`text-[10px] font-semibold text-center leading-tight ${
+              value === undefined ? 'text-hs-accent-hover' : 'text-hs-text-body'
+            }`}
+          >
+            {t(defaultOptionKey)}
+          </span>
+        </button>
+
         {FULLSCREEN_THEMES.map((theme) => (
-          <option key={theme.id} value={theme.id}>{theme.name} ({theme.group})</option>
+          <FullscreenThemeTile
+            key={theme.id}
+            theme={theme}
+            layout="stack"
+            selected={value === theme.id}
+            onSelect={() => onChange(theme.id)}
+          />
         ))}
-      </select>
+      </div>
     </LabeledField>
   );
 }

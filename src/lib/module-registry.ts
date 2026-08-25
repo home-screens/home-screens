@@ -240,7 +240,10 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'schedule',
       density: 'cozy',
       typographySize: 'medium',
-      accentColor: '#EA580C',
+      // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
+      // A hex here would outrank every themed accent, since a set accentColor
+      // is treated as a deliberate user choice.
+      accentColor: '',
       dimPastEvents: true,
       shadeWeekends: true,
       weatherPlacement: 'header',
@@ -297,7 +300,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       darkMode: true,
       density: 'cozy',
       typographySize: 'medium',
-      accentColor: DEFAULT_ACCENT_COLOR,
+      // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
+      accentColor: '',
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -312,7 +316,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'week',
       density: 'cozy',
       typographySize: 'medium',
-      accentColor: DEFAULT_ACCENT_COLOR,
+      // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
+      accentColor: '',
       showPrepTime: true,
       showTags: true,
       showEmoji: true,

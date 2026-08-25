@@ -13,6 +13,7 @@ import {
   clampGridMaxEventsPerCell,
   defaultGridMaxEventsPerCell,
   isThemedGridView,
+  isWeekendDay,
   weekNumberOptions,
   eventsForDay,
   formatEventTime,
@@ -980,5 +981,18 @@ describe('isThemedGridView', () => {
     expect(isThemedGridView('week')).toBe(false);
     expect(isThemedGridView('daily')).toBe(false);
     expect(isThemedGridView(undefined)).toBe(false);
+  });
+});
+
+describe('isWeekendDay', () => {
+  it('is true for Saturday and Sunday', () => {
+    expect(isWeekendDay(new Date('2026-08-22T12:00:00'))).toBe(true); // Sat
+    expect(isWeekendDay(new Date('2026-08-23T12:00:00'))).toBe(true); // Sun
+  });
+
+  it('is false for weekdays', () => {
+    for (const d of ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28']) {
+      expect(isWeekendDay(new Date(`${d}T12:00:00`))).toBe(false);
+    }
   });
 });

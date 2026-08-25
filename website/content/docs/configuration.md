@@ -164,8 +164,9 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   }
 
   fullscreenTheme?: string        // Global theme preset for fullscreen modules. One of
-                                  // "linen", "paper", "mist" (light) or "charcoal",
-                                  // "midnight", "slate" (dark).
+                                  // "linen", "paper", "mist", "sandstone", "vellum", "bloom"
+                                  // (light) or "charcoal", "midnight", "slate", "aurora",
+                                  // "obsidian", "horizon" (dark).
 
   locale?: string                 // BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US".
                                   // Controls display language, dictionary lookup, and (unless

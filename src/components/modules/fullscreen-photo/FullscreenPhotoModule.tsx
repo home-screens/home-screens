@@ -215,6 +215,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // Theme
   const themeId = config.theme ?? fullscreenTheme ?? 'midnight';
   const theme = getThemeTokens(themeId);
+  // The empty/loading screens are the only frames the theme paints; they
+  // carry its atmosphere layer like every other fullscreen module.
+  const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
 
   // Single photo mode — render directly, no fetch or rotation needed
   if (isSinglePhoto) {
@@ -224,7 +227,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
         <div
           ref={containerRef}
           className="w-full h-full flex items-center justify-center"
-          style={{ backgroundColor: theme.bg, color: theme.textSecondary }}
+          style={{ ...themeGround, color: theme.textSecondary }}
         >
           <div className="text-center space-y-3">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
@@ -262,7 +265,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: theme.bg, color: theme.textSecondary }}
+        style={{ ...themeGround, color: theme.textSecondary }}
       >
         <div className="text-center space-y-3">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
@@ -285,7 +288,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
-        style={{ backgroundColor: theme.bg }}
+        style={themeGround}
       >
         <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: theme.border, borderTopColor: theme.text }} />
       </div>

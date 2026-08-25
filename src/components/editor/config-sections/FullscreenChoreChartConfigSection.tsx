@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Toggle from '@/components/ui/Toggle';
-import ColorPicker from '@/components/ui/ColorPicker';
+import FullscreenAccentPicker from './FullscreenAccentPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
@@ -11,6 +11,8 @@ import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
+import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
 import type {
   ModuleInstance,
@@ -24,6 +26,9 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+  // The accent the module paints while accentColor is empty (see the module).
+  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme, c.darkMode), DEFAULT_ACCENT_COLOR);
+  const accentColor = c.accentColor || themeAccent;
 
   const typographySizeOptions = useTypographySizeOptions();
 
@@ -105,9 +110,10 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       />
 
       {/* Accent Color */}
-      <ColorPicker
+      <FullscreenAccentPicker
         label={t('configSections.fullscreen-chore-chart.accentColor')}
-        value={c.accentColor ?? DEFAULT_ACCENT_COLOR}
+        value={c.accentColor}
+        themeAccent={themeAccent}
         onChange={(v) => set({ accentColor: v })}
       />
 
@@ -172,7 +178,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {showModal && (
         <ChoreChartModal
           weekStartDay={c.weekStartDay ?? 'monday'}
-          accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
+          accentColor={accentColor}
           onClose={() => setShowModal(false)}
         />
       )}

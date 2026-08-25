@@ -1,12 +1,14 @@
 'use client';
 
 import Toggle from '@/components/ui/Toggle';
-import ColorPicker from '@/components/ui/ColorPicker';
+import FullscreenAccentPicker from './FullscreenAccentPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { effectiveWeatherPlacement } from '@/lib/calendar-utils';
+import { resolveCalendarAccent } from '@/lib/calendar-event-surface';
+import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
@@ -28,6 +30,10 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
   const sourceFilter = c.sourceFilter ?? [];
+  // What the picker shows while accentColor is empty: the accent the module
+  // paints with, resolved through the same chain as the display (inherited
+  // theme included) so the swatch and the kiosk can never disagree.
+  const themeAccent = resolveCalendarAccent('', useFullscreenThemeTokens(c.theme, c.darkMode));
 
   const VIEW_OPTIONS: { value: FullscreenCalendarView; label: string }[] = [
     { value: 'schedule', label: t('configSections.fullscreen-calendar.viewSchedule') },
@@ -307,7 +313,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* ── Look: whole-module styling ── */}
       <CalendarGroup label={groups.look}>
-        <ColorPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor ?? '#EA580C'} onChange={(v) => set({ accentColor: v })} />
+        <FullscreenAccentPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor} themeAccent={themeAccent} onChange={(v) => set({ accentColor: v })} />
         {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
         {view !== 'day-timeline' && (
           <LabeledSelect
@@ -317,8 +323,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             options={TODAY_HIGHLIGHT_OPTIONS}
           />
         )}
-        <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
-        <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+        {/* Day timeline renders a single day, so it has no weekend to shade. */}
+        {view !== 'day-timeline' && (
+          <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
+        )}
+        {/* A now-line needs a time axis; the list views and month grid have none. */}
+        {isTimeGrid && (
+          <Toggle label={t('configSections.fullscreen-calendar.showNowLine')} checked={c.showNowLine !== false} onChange={(v) => set({ showNowLine: v })} />
+        )}
         <LabeledSelect
           label={t('configSections.fullscreen-calendar.weatherPlacement')}
           // The EFFECTIVE placement for the current view: a richer placement

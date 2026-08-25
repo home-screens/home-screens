@@ -211,7 +211,9 @@ export default function FullscreenWeatherModule({
       data-orientation={scale.orientation}
       style={{
         position: 'relative', width: '100%', height: '100%', overflow: 'hidden',
-        background: theme.bg, color: theme.text,
+        // The theme's atmosphere layer shows whenever the sky layer is off;
+        // with the sky on it is covered, and costs nothing.
+        backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none', color: theme.text,
         fontVariantNumeric: 'tabular-nums',
         ...themeVars,
       }}

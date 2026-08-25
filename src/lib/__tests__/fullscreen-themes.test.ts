@@ -6,21 +6,43 @@ import {
   buildThemeCSSVars,
   getTypoMultiplier,
   getDensityMultiplier,
+  resolveFullscreenAccent,
+  surfaceBackdrop,
 } from '../fullscreen-themes';
 
 // ---------------------------------------------------------------------------
 // FULLSCREEN_THEMES registry
 // ---------------------------------------------------------------------------
 describe('FULLSCREEN_THEMES', () => {
-  it('contains exactly 6 themes', () => {
-    expect(FULLSCREEN_THEMES).toHaveLength(6);
+  it('contains exactly 12 themes', () => {
+    expect(FULLSCREEN_THEMES).toHaveLength(12);
   });
 
-  it('has 3 light and 3 dark themes', () => {
+  it('has 6 light and 6 dark themes', () => {
     const light = FULLSCREEN_THEMES.filter((t) => t.group === 'light');
     const dark = FULLSCREEN_THEMES.filter((t) => t.group === 'dark');
-    expect(light).toHaveLength(3);
-    expect(dark).toHaveLength(3);
+    expect(light).toHaveLength(6);
+    expect(dark).toHaveLength(6);
+  });
+
+  it('leaves the six original themes free of atmosphere tokens', () => {
+    // Adding optional tokens must not silently restyle a display someone
+    // already chose, so the pre-existing themes stay on the defaults.
+    for (const id of ['linen', 'paper', 'mist', 'charcoal', 'midnight', 'slate']) {
+      const tokens = FULLSCREEN_THEMES.find((t) => t.id === id)!.tokens;
+      expect(tokens.bgImage).toBeUndefined();
+      expect(tokens.eventStyle).toBeUndefined();
+      expect(tokens.accent).toBeUndefined();
+      expect(tokens.todayFill).toBeUndefined();
+    }
+  });
+
+  it('gives every themed event style a matching accent and on-accent pair', () => {
+    for (const theme of FULLSCREEN_THEMES) {
+      if (!theme.tokens.eventStyle) continue;
+      expect(theme.tokens.accent).toMatch(/^#[0-9a-fA-F]{6}$/);
+      expect(theme.tokens.onAccent).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
   });
 
   it('all themes have unique IDs', () => {
@@ -108,6 +130,9 @@ describe('buildThemeCSSVars', () => {
 
     expect(vars['--meal-bg']).toBe(tokens.bg);
     expect(vars['--meal-surface']).toBe(tokens.surface);
+    // Themes with no atmosphere layer still emit valid values.
+    expect(vars['--meal-bg-image']).toBe('none');
+    expect(vars['--meal-surface-backdrop']).toBe('none');
     expect(vars['--meal-text']).toBe(tokens.text);
     expect(vars['--meal-text-2']).toBe(tokens.textSecondary);
     expect(vars['--meal-text-3']).toBe(tokens.textMuted);
@@ -117,15 +142,51 @@ describe('buildThemeCSSVars', () => {
     expect(vars['--meal-past-op']).toBe(String(tokens.pastOpacity));
   });
 
-  it('produces exactly 9 CSS properties', () => {
+  it('produces exactly 11 CSS properties', () => {
     const vars = buildThemeCSSVars('x', getThemeTokens('paper'));
-    expect(Object.keys(vars)).toHaveLength(9);
+    expect(Object.keys(vars)).toHaveLength(11);
   });
 
   it('uses different prefix correctly', () => {
     const vars = buildThemeCSSVars('chore', getThemeTokens('mist'));
     expect(vars).toHaveProperty('--chore-bg');
     expect(vars).not.toHaveProperty('--meal-bg');
+  });
+
+  it('emits the atmosphere layer for themes that carry one', () => {
+    const vars = buildThemeCSSVars('x', getThemeTokens('aurora'));
+    expect(vars['--x-bg-image']).toMatch(/^radial-gradient/);
+    expect(vars['--x-surface-backdrop']).toBe('blur(18px)');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// surfaceBackdrop
+// ---------------------------------------------------------------------------
+describe('surfaceBackdrop', () => {
+  it('is a real blur only when the theme asks for one', () => {
+    // `blur(0px)` is not free on the Pi: it still promotes a backdrop
+    // render surface for no visual change, so flat themes get `none`.
+    expect(surfaceBackdrop(getThemeTokens('linen'))).toBe('none');
+    expect(surfaceBackdrop(getThemeTokens('obsidian'))).toBe('blur(20px)');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resolveFullscreenAccent
+// ---------------------------------------------------------------------------
+describe('resolveFullscreenAccent', () => {
+  it('lets a user color win over the theme accent', () => {
+    expect(resolveFullscreenAccent('#ff0000', getThemeTokens('aurora'), '#000')).toBe('#ff0000');
+  });
+
+  it('falls through to the theme accent while the user color is empty', () => {
+    expect(resolveFullscreenAccent('', getThemeTokens('aurora'), '#000')).toBe('#5EEAD4');
+    expect(resolveFullscreenAccent(undefined, getThemeTokens('aurora'), '#000')).toBe('#5EEAD4');
+  });
+
+  it('uses the module fallback on a theme with no accent of its own', () => {
+    expect(resolveFullscreenAccent('', getThemeTokens('charcoal'), '#f59e0b')).toBe('#f59e0b');
   });
 });
 

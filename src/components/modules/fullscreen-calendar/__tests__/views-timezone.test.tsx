@@ -32,6 +32,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 const scale: CalendarScale = {
   bu: 10, width: 1080, height: 1920, orientation: 'portrait', densityMul: 1, typoMul: 1, isDark: true,
+  eventStyle: 'wash',
 };
 
 const config: FullscreenCalendarConfig = {

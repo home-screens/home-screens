@@ -3,7 +3,8 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
+import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
@@ -194,13 +195,15 @@ export default function FullscreenChoreChartModule({
         display: 'flex',
         flexDirection: 'column',
         ...buildThemeCSSVars('fcc', theme),
-        '--fcc-accent': config.accentColor ?? '#f59e0b',
+        // Empty accentColor follows the theme's own accent (see the registry default).
+        '--fcc-accent': resolveFullscreenAccent(config.accentColor, theme, DEFAULT_ACCENT_COLOR),
         colorScheme: theme.isDark ? 'dark' : 'light',
       } as React.CSSProperties}
     >
       <style>{`
         .fcc-root {
-          background: var(--fcc-bg);
+          background-color: var(--fcc-bg);
+          background-image: var(--fcc-bg-image);
           color: var(--fcc-text);
         }
       `}</style>

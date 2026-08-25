@@ -63,8 +63,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 8', () => {
-    expect(getLatestSchemaVersion()).toBe(8);
+  it('getLatestSchemaVersion returns 9', () => {
+    expect(getLatestSchemaVersion()).toBe(9);
   });
 });
 
@@ -299,15 +299,17 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(8);
-    // v2 through v8 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(7);
+    expect(result.version).toBe(9);
+    // v2 through v9 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(8);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
     // touches sleep blocks with a dim schedule (this fixture has none), and
-    // v8 only touches calendar modules carrying the prerelease keys. No
-    // display registry is injected — single-display mode stays single-display.
+    // v8 only touches calendar modules carrying the prerelease keys, and v9
+    // only touches fullscreen-calendar modules carrying the retired default
+    // accent. No display registry is injected — single-display mode stays
+    // single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
@@ -324,9 +326,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(8);
-    // Only v4 through v8 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(5);
+    expect(result.version).toBe(9);
+    // Only v4 through v9 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(6);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -492,3 +494,114 @@ describe('migration v8: multi-week theme and cap become grid-wide keys', () => {
     expect(() => migrateUp(config, 8)).not.toThrow();
   });
 });
+
+describe('migration v9: the retired fullscreen-calendar accent is cleared', () => {
+  type Module = ScreenConfiguration['screens'][number]['modules'][number];
+  const STYLE = { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 };
+  function fsCalendar(id: string, config: Record<string, unknown>): Module {
+    return { id, type: 'fullscreen-calendar', position: { x: 0, y: 0 }, size: { w: 1080, h: 1920 }, zIndex: 1, config, style: STYLE } as Module;
+  }
+  function smallCalendar(id: string, config: Record<string, unknown>): Module {
+    return { id, type: 'calendar', position: { x: 0, y: 0 }, size: { w: 500, h: 500 }, zIndex: 1, config, style: STYLE } as Module;
+  }
+  const moduleConfig = (config: ScreenConfiguration) => config.screens[0].modules[0].config as Record<string, unknown>;
+
+  it('clears the retired default so the theme accent applies', () => {
+    const config = makeConfig(8);
+    config.screens[0].modules = [fsCalendar('fsc', { view: 'schedule', theme: 'aurora', accentColor: '#EA580C' })];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(result.version).toBe(9);
+    expect(moduleConfig(result)).toEqual({ view: 'schedule', theme: 'aurora', accentColor: '' });
+  });
+
+  it('matches the retired default regardless of hex case', () => {
+    const config = makeConfig(8);
+    config.screens[0].modules = [fsCalendar('fsc', { accentColor: '#ea580c' })];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(moduleConfig(result).accentColor).toBe('');
+  });
+
+  it('keeps a color the user actually picked', () => {
+    const config = makeConfig(8);
+    config.screens[0].modules = [fsCalendar('fsc', { accentColor: '#ff0000' })];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(moduleConfig(result).accentColor).toBe('#ff0000');
+  });
+
+  it('leaves an already-empty accent alone', () => {
+    const config = makeConfig(8);
+    config.screens[0].modules = [fsCalendar('fsc', { accentColor: '' })];
+    const before = structuredClone(config.screens[0].modules[0]);
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(result.screens[0].modules[0]).toEqual(before);
+  });
+
+  it('leaves the small calendar module untouched', () => {
+    // Only the fullscreen module's registry default changed; the `calendar`
+    // module still ships a real accent hex of its own.
+    const config = makeConfig(8);
+    config.screens[0].modules = [smallCalendar('cal', { accentColor: '#EA580C' })];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(moduleConfig(result).accentColor).toBe('#EA580C');
+  });
+
+  it('clears the retired amber default of the chore chart and meal planner too', () => {
+    const config = makeConfig(8);
+    config.screens[0].modules = [
+      { ...fsCalendar('chores', { accentColor: '#F59E0B' }), type: 'fullscreen-chore-chart' } as Module,
+      { ...fsCalendar('meals', { accentColor: '#f59e0b' }), type: 'fullscreen-meal-planner' } as Module,
+      // The small chore chart keeps its own real default.
+      { ...fsCalendar('small', { accentColor: '#f59e0b' }), type: 'chore-chart' } as Module,
+    ];
+
+    const { config: result } = migrateUp(config, 9);
+
+    const accents = result.screens[0].modules.map((m) => (m.config as Record<string, unknown>).accentColor);
+    expect(accents).toEqual(['', '', '#f59e0b']);
+  });
+
+  it('does not clear the calendar orange from a module whose default was amber', () => {
+    // Each module type only sheds its own retired default.
+    const config = makeConfig(8);
+    config.screens[0].modules = [{ ...fsCalendar('meals', { accentColor: '#EA580C' }), type: 'fullscreen-meal-planner' } as Module];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect(moduleConfig(result).accentColor).toBe('#EA580C');
+  });
+
+  it('migrates screens owned by displays too', () => {
+    const config = makeConfig(8);
+    config.displays = [
+      {
+        id: 'kitchen',
+        name: 'Kitchen',
+        displayWidth: 1080,
+        displayHeight: 1920,
+        screens: [{ id: 's1', name: 'Screen 1', backgroundImage: '', modules: [fsCalendar('fsc', { accentColor: '#EA580C' })] }],
+      },
+    ] as ScreenConfiguration['displays'];
+
+    const { config: result } = migrateUp(config, 9);
+
+    expect((result.displays![0].screens[0].modules[0].config as Record<string, unknown>).accentColor).toBe('');
+  });
+
+  it('passes a screen with no modules array through instead of throwing', () => {
+    const config = makeConfig(8);
+    (config.screens[0] as unknown as { modules: undefined }).modules = undefined;
+
+    expect(() => migrateUp(config, 9)).not.toThrow();
+  });
+});
+

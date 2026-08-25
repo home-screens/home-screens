@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
 import {
   parseEventDate, parseEventWallTime, isEventOnDay, compareEventStarts, sanitizeEventDescription, weekStartsOnFor, formatEventTime,
-  classifyEventOnDay, eventStatusSlot, eventKindLabel,
+  classifyEventOnDay, eventStatusSlot, eventKindLabel, isWeekendDay,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -12,6 +12,7 @@ import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps } from './FullscreenCalendarModule';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { dayDecorFor } from './FullscreenCalendarModule';
+import { eventSurface } from '@/lib/calendar-event-surface';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { CountdownPill, EventProgressBar } from './list-view-bits';
@@ -24,7 +25,13 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.weekShowDescription === true;
-  const showTodayMarker = (config.todayHighlightStyle ?? 'full') !== 'off';
+  // Four-value highlight, same split the schedule and month grid use: 'full'
+  // and 'subtle' tint the day group (the module has already scaled the alpha
+  // behind --cal-today-fill), 'minimal' leaves only the bar and TODAY pill,
+  // 'off' removes both.
+  const highlightStyle = config.todayHighlightStyle ?? 'full';
+  const showTodayMarker = highlightStyle !== 'off';
+  const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
   const emptyDayText = config.emptyDayText?.trim();
 
   const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
@@ -52,6 +59,12 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
 
     const shouldCollapse = isPast && config.weekCollapsePastDays;
     const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
+    // Today beats the weekend shade; a day rule beats both (it is merged last).
+    const dayFill = isToday && showTodayBg
+      ? 'var(--cal-today-fill)'
+      : isWeekendDay(day) && config.shadeWeekends !== false
+        ? 'var(--cal-weekend-shade)'
+        : undefined;
 
     return (
       <div
@@ -60,10 +73,15 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
         style={mergeCellDecor({
           marginBottom: scale.bu * 0.4,
           opacity: isPast && config.dimPastEvents ? 0.5 : 1,
+          background: dayFill,
           borderLeft: isToday && showTodayMarker ? `3px solid var(--cal-accent)` : undefined,
-          paddingLeft: isToday && showTodayMarker ? scale.bu * 1.2 : undefined,
+          // Today already insets itself for its accent bar; a weekend-only
+          // fill gets its own breathing room instead. No negative margins —
+          // the landscape layout puts these groups in columns.
+          paddingLeft: isToday && showTodayMarker ? scale.bu * 1.2 : dayFill ? scale.bu * 0.8 : undefined,
+          paddingRight: dayFill ? scale.bu * 0.8 : undefined,
           marginLeft: isToday && showTodayMarker ? -scale.bu * 1.5 : undefined,
-          borderRadius: decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
+          borderRadius: dayFill || decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
         }, decor)}
       >
         {/* Day header */}
@@ -205,6 +223,11 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
     : baseTimeLabel;
   const glyph = eventGlyph(event);
   const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'fullscreen-calendar');
+  // `wash` keeps the original bare row (the surface paints nothing for it);
+  // every other style fills the row, which then needs inset padding and a
+  // gap so rows stop touching each other. The only view whose original look
+  // had no surface at all, hence the only one that adjusts its own layout.
+  const filled = scale.eventStyle !== 'wash';
 
   let ariaLabel: string;
   if (isAllDay) {
@@ -236,7 +259,9 @@ function EventRow({ event, timezone, segment, rowDate, now, config, weather, fon
         display: 'flex',
         alignItems: 'flex-start',
         gap: scale.bu * 0.8,
-        padding: `${scale.bu * 0.7}px 0`,
+        padding: filled ? `${scale.bu * 0.7}px ${scale.bu * 0.8}px` : `${scale.bu * 0.7}px 0`,
+        marginBottom: filled ? scale.bu * 0.35 : undefined,
+        ...eventSurface(color, scale, 'row', { radius: 8 }),
         opacity: eventOpacity(event, 1),
       }}
     >
