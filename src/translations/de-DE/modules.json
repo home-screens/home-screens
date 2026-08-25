@@ -155,7 +155,10 @@
       "weekList": "Woche",
       "monthGrid": "Monat",
       "dayTimeline": "Tag",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "familyGrid": "Familie",
+      "upNext": "Als Nächstes",
+      "freeTime": "Freie Zeit"
     },
     "zones": {
       "morning": "Vormittag",
@@ -172,7 +175,8 @@
       "eventTimed": "{title}, {start} bis {end}",
       "eventTimedAtLocation": "{title}, {start} bis {end}, bei {location}",
       "monthCell": "{date}, {count} Termine",
-      "legend": "Kalenderquellen"
+      "legend": "Kalenderquellen",
+      "familyGrid": "Familien-Wochenraster"
     },
     "fromTime": "Ab {time}",
     "untilTime": "Bis {time}",
@@ -184,7 +188,66 @@
     "birthday": "Geburtstag",
     "birthdayWithAge": "Geburtstag · wird {age}",
     "birthdayShort": "Geburtstag",
-    "birthdayAgeShort": "wird {age}"
+    "birthdayAgeShort": "wird {age}",
+    "headerUpNext": "Als Nächstes",
+    "headerFreeTime": "Freie Zeit",
+    "everyone": "Alle",
+    "thisWeekCount": {
+      "one": "{count} diese Woche",
+      "other": "{count} diese Woche"
+    },
+    "upNext": {
+      "next": "Als Nächstes",
+      "now": "Jetzt",
+      "laterToday": "Später heute",
+      "alsoOn": "Auch am {day}",
+      "earlier": "Früher heute",
+      "tomorrow": "Morgen, {day}",
+      "nothingElseToday": "Heute nichts mehr",
+      "moreToday": {
+        "one": "{count} weiterer heute",
+        "other": "{count} weitere heute"
+      },
+      "minutesLeft": {
+        "one": "Noch {count} Min.",
+        "other": "Noch {count} Min."
+      },
+      "done": "Erledigt"
+    },
+    "freeTime": {
+      "today": "Heute",
+      "household": "Haushalt",
+      "everyoneFree": "Alle sind frei",
+      "nobodyFree": "Keine gemeinsame freie Zeit",
+      "rangeToday": "{range} heute",
+      "noCommonTimeToday": "Heute ist niemand gleichzeitig frei",
+      "alsoToday": "Außerdem {ranges}.",
+      "tomorrowFrom": "Morgen: {range}.",
+      "tomorrowNone": "Morgen: keine gemeinsame freie Zeit.",
+      "tomorrow": "Morgen, {day}",
+      "freeAfter": "Frei ab {time}",
+      "freeUntil": "Frei bis {time}",
+      "busyAllDay": "Den ganzen Tag beschäftigt",
+      "minutes": {
+        "one": "{count} Min.",
+        "other": "{count} Min."
+      },
+      "hours": "{hours} Std.",
+      "dayDone": "Das war es für heute",
+      "doneForToday": "Für heute fertig"
+    },
+    "rollingWindow": {
+      "showing": "Zeigt {range}, folgt der Uhr",
+      "earlierToday": {
+        "one": "{count} früher heute",
+        "other": "{count} früher heute"
+      }
+    },
+    "extras": {
+      "chores": "Aufgaben",
+      "choresDone": "{done} von {total} Aufgaben erledigt"
+    },
+    "peopleHint": "Füge unter Einstellungen > Kalender Personen hinzu, damit jeder eine eigene Zeile bekommt."
   },
   "weather": {
     "tomorrowShort": "Morgen",

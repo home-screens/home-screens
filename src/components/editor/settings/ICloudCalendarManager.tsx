@@ -7,6 +7,7 @@ import type { ICloudSource } from '@/types/config';
 import type { ICloudCalendarListing } from '@/lib/caldav-calendar';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
 import { logger } from '@/lib/logger';
 
 const log = logger('ICloudCalendarManager');
@@ -29,9 +30,11 @@ type AccountCalendars =
 interface ICloudCalendarManagerProps {
   icloudSources: ICloudSource[];
   onChange: (updates: { icloudSources: ICloudSource[] }) => void;
+  /** Per-source health keyed by ICloudSource id, for the badge on each picked calendar. */
+  health?: SourceHealthMap;
 }
 
-export default function ICloudCalendarManager({ icloudSources, onChange }: ICloudCalendarManagerProps) {
+export default function ICloudCalendarManager({ icloudSources, onChange, health }: ICloudCalendarManagerProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const [accounts, setAccounts] = useState<ICloudAccountInfo[]>([]);
@@ -190,17 +193,18 @@ export default function ICloudCalendarManager({ icloudSources, onChange }: IClou
     icloudSources.find((s) => s.accountId === accountId && s.kind === 'calendar' && s.url === cal.url)?.color
       ?? cal.color ?? '#3b82f6';
 
+  const sourceFor = (accountId: string, kind: ICloudSource['kind'], url: string) =>
+    icloudSources.find((s) => s.accountId === accountId && s.kind === kind && (kind === 'birthdays' || s.url === url));
+
   return (
-    <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('settings.calendarPage.icloud.heading')}
-      </h3>
+    <SourceBlock title={t('settings.calendarPage.icloud.heading')} testId="icloud-calendar-block">
       <div className="space-y-3">
         {accountsLoading ? (
           <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.checkingAccounts')}</p>
         ) : (
           accounts.map((account) => {
             const cals = calendarsByAccount[account.id];
+            const accountSources = icloudSources.filter((s) => s.accountId === account.id);
             return (
               <div key={account.id} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -221,7 +225,27 @@ export default function ICloudCalendarManager({ icloudSources, onChange }: IClou
                 {!cals || cals.status === 'loading' ? (
                   <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.loadingCalendars')}</p>
                 ) : cals.status === 'error' ? (
-                  <p className="text-xs text-hs-warning">{t('settings.calendarPage.icloud.calendarsError')}</p>
+                  // A failed listing (expired app password, iCloud down) is
+                  // exactly when per-source health matters most: the picked
+                  // calendars still exist in config, so show each with its
+                  // cached status instead of only a generic error line.
+                  <div className="space-y-2">
+                    <p className="text-xs text-hs-warning">{t('settings.calendarPage.icloud.calendarsError')}</p>
+                    {accountSources.length > 0 && (
+                      <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
+                        {accountSources.map((s) => (
+                          <div key={s.id} className="flex items-center gap-3 px-3 py-2">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                            <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                              <span className="block truncate">{s.name}</span>
+                              <SourceHealthError status={health?.get(s.id)} />
+                            </span>
+                            <SourceHealthBadge status={health?.get(s.id)} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ) : cals.calendars.length === 0 && !cals.birthdaysAvailable ? (
                   <p className="text-xs text-hs-text-faint">{t('settings.calendarPage.icloud.noCalendars')}</p>
                 ) : (
@@ -243,7 +267,15 @@ export default function ICloudCalendarManager({ icloudSources, onChange }: IClou
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: sourceColor(account.id, cal) }}
                           />
-                          <span className="text-sm text-hs-text-body truncate">{cal.name}</span>
+                          <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                            <span className="block truncate">{cal.name}</span>
+                            {isSelected(account.id, cal.url) && (
+                              <SourceHealthError status={health?.get(sourceFor(account.id, 'calendar', cal.url)?.id ?? '')} />
+                            )}
+                          </span>
+                          {isSelected(account.id, cal.url) && (
+                            <SourceHealthBadge status={health?.get(sourceFor(account.id, 'calendar', cal.url)?.id ?? '')} />
+                          )}
                         </label>
                       ))}
                       {cals.birthdaysAvailable && (
@@ -255,9 +287,15 @@ export default function ICloudCalendarManager({ icloudSources, onChange }: IClou
                             className="rounded border-hs-border-strong bg-hs-card text-hs-accent focus:ring-hs-accent focus:ring-offset-0"
                           />
                           <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-hs-text-faint" />
-                          <span className="text-sm text-hs-text-body truncate">
-                            {t('settings.calendarPage.icloud.birthdays')}
+                          <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                            <span className="block truncate">{t('settings.calendarPage.icloud.birthdays')}</span>
+                            {birthdaysSelected(account.id) && (
+                              <SourceHealthError status={health?.get(sourceFor(account.id, 'birthdays', '')?.id ?? '')} />
+                            )}
                           </span>
+                          {birthdaysSelected(account.id) && (
+                            <SourceHealthBadge status={health?.get(sourceFor(account.id, 'birthdays', '')?.id ?? '')} />
+                          )}
                         </label>
                       )}
                     </div>
@@ -320,6 +358,6 @@ export default function ICloudCalendarManager({ icloudSources, onChange }: IClou
           {t('settings.calendarPage.icloud.helpText')}
         </p>
       </div>
-    </section>
+    </SourceBlock>
   );
 }

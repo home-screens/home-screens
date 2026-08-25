@@ -320,6 +320,7 @@
         "disconnect": "Afbryd",
         "selectCalendars": "Vælg kalendere, der skal vises",
         "noCalendars": "Ingen kalendere fundet.",
+        "notInListing": "Er ikke længere på Google-kalenderlisten",
         "primaryBadge": "(primær)",
         "hideDeclinedLabel": "Skjul begivenheder du har afvist",
         "credentialsRequired": "Der kræves Google OAuth-oplysninger for at forbinde din kalender.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Log ind for automatisk at se dine kalendere. Kræver en Google OAuth-klient af typen \"TVs and Limited Input devices\" i Cloud Console.",
         "copyCode": "Kopiér kode",
-        "codeCopied": "Kopieret!"
+        "codeCopied": "Kopieret!",
+        "googleOnly": "Kun Google"
       },
       "icloud": {
         "heading": "iCloud-kalender",
@@ -371,7 +373,26 @@
         "updatedNow": "Lige opdateret",
         "notUpdating": "Opdateres ikke",
         "errorSince": "{error} · virkede sidst {time}"
-      }
+      },
+      "people": {
+        "heading": "Personer",
+        "help": "Giv hvert familiemedlem et navn, og vælg deres kalendere. Familieoversigten og Fritid viser én række pr. person; kalendere uden person tæller som fælles.",
+        "namePlaceholder": "Navn (f.eks. Ella)",
+        "addPerson": "+ Tilføj person",
+        "calendars": "Kalendere",
+        "noSources": "Forbind først en kalender ovenfor, og vælg derefter hvilke der hører til denne person.",
+        "noCalendarsPicked": "Ingen kalendere valgt",
+        "remove": "Fjern {name}",
+        "noPeople": "Ingen personer endnu."
+      },
+      "areas": {
+        "sources": "Hvor begivenhederne kommer fra",
+        "sourcesDescription": "Forbind de kalendere, skærmen skal læse. Hver viser, om den bliver opdateret.",
+        "show": "Hvad der vises",
+        "showDescription": "Grænser som alle kalendermoduler starter fra. Et modul kan indsnævre yderligere med egne filtre."
+      },
+      "heading": "Kalender",
+      "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2558,7 +2579,26 @@
       "showLegend": "Kildeforklaring",
       "legendOff": "Fra",
       "legendHeader": "Øverst i kalenderen",
-      "legendFooter": "Nederst i kalenderen"
+      "legendFooter": "Nederst i kalenderen",
+      "viewFamilyGrid": "Familieoversigt (personer × uge)",
+      "viewUpNext": "Næste",
+      "viewFreeTime": "Fritid",
+      "hourWindow": "Viste timer",
+      "hourWindowFixed": "Faste timer",
+      "hourWindowRolling": "Følg uret",
+      "rollingHours": "Timer i vinduet",
+      "showMeals": "Vis planlagte måltider",
+      "showChores": "Vis fremgang for pligter",
+      "showEveryoneRow": "Rækken „Alle“ til fælles begivenheder",
+      "laterCount": "Begivenheder vist efter den næste",
+      "showEarlier": "Vis dagens tidligere begivenheder",
+      "showTomorrow": "Vis i morgen",
+      "peopleHint": "Ingen personer sat op endnu, så hver kalender får sin egen række.",
+      "peopleConfigured": {
+        "one": "{count} person sat op.",
+        "other": "{count} personer sat op."
+      },
+      "peopleLink": "Administrer personer"
     },
     "fullscreen-chore-chart": {
       "view": "Visning",

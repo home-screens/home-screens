@@ -12,7 +12,9 @@ import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout } from './event-layout';
 import type { CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
-import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
+import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
+import { resolveHourWindow } from '@/lib/calendar-hour-window';
+import { eventHoursOnDay } from './event-layout';
 
 
 // Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
@@ -81,8 +83,16 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   const am = t('fullscreen-calendar.am');
   const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
-  const hourStart = config.dayHourStart ?? 6;
-  const hourEnd = config.dayHourEnd ?? 22;
+  const isToday = isSameDay(now, today);
+  const nowHour = now.getHours() + now.getMinutes() / 60;
+  // Fixed configured hours, or a window that follows the clock (see
+  // resolveHourWindow); the view always shows today, so the window has a
+  // "now" to follow whenever the clock and the day agree.
+  const { hourStart, hourEnd, rolling } = resolveHourWindow({
+    mode: config.hourWindow, rollingHours: config.rollingHours,
+    fixedStart: config.dayHourStart ?? 6, fixedEnd: config.dayHourEnd ?? 22,
+    nowHour, todayVisible: isToday,
+  });
   const totalHours = hourEnd - hourStart;
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const gutterWidth = scale.bu * 5.5;
@@ -93,8 +103,6 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;
   const gridHeight = totalHours * hourHeight;
 
-  const isToday = isSameDay(now, today);
-  const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowInRange = isToday && nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
 
@@ -116,6 +124,9 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   // day), so day-rule badges get a strip above the all-day row and the
   // look applies to the whole view.
   const decor = dayDecorFor(config, today, dayEvents, { today, now, timezone, isDark: scale.isDark });
+  const hiddenEarlier = rolling
+    ? timedEvs.filter(ev => eventHoursOnDay(ev, today, timezone).endHour <= hourStart).length
+    : 0;
 
   return (
     <div style={mergeCellDecor({ display: 'flex', flexDirection: 'column', height: '100%' }, decor)}>
@@ -389,6 +400,10 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
           </div>
         </div>
       </div>
+
+      {rolling && (
+        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} am={am} pm={pm} t={t} />
+      )}
     </div>
   );
 }

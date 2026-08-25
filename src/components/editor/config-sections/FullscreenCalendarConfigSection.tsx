@@ -14,7 +14,10 @@ import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement } from '@/types/config';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement, HourWindowMode } from '@/types/config';
+import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
+import { useEditorStore } from '@/stores/editor-store';
+import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
 const SHOW_DESCRIPTION_KEY = {
@@ -41,6 +44,14 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'month-grid', label: t('configSections.fullscreen-calendar.viewMonthGrid') },
     { value: 'day-timeline', label: t('configSections.fullscreen-calendar.viewDayTimeline') },
     { value: 'agenda', label: t('configSections.fullscreen-calendar.viewAgenda') },
+    { value: 'family-grid', label: t('configSections.fullscreen-calendar.viewFamilyGrid') },
+    { value: 'up-next', label: t('configSections.fullscreen-calendar.viewUpNext') },
+    { value: 'free-time', label: t('configSections.fullscreen-calendar.viewFreeTime') },
+  ];
+
+  const HOUR_WINDOW_OPTIONS: { value: HourWindowMode; label: string }[] = [
+    { value: 'fixed', label: t('configSections.fullscreen-calendar.hourWindowFixed') },
+    { value: 'rolling', label: t('configSections.fullscreen-calendar.hourWindowRolling') },
   ];
 
   const DENSITY_OPTIONS: { value: CalendarDensity; label: string }[] = [
@@ -107,6 +118,13 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   ];
 
   const isListView = view === 'agenda' || view === 'week-list';
+  // People as rows: both need Settings > Calendar > People to be more than
+  // one row per source, so they get a pointer there.
+  const isPersonView = view === 'family-grid' || view === 'free-time';
+  const peopleCount = useEditorStore((s) => s.config?.settings?.calendar?.people?.length ?? 0);
+  // Today's column/day is the whole board on the single-day views, so
+  // there is nothing to highlight or shade against.
+  const isSingleDayView = view === 'day-timeline' || view === 'up-next' || view === 'free-time';
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
   const groups = useCalendarGroupLabels();
@@ -115,6 +133,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_OPTIONS.find((v) => v.value === view)?.label ?? '';
   const isTimeGrid = view === 'schedule' || view === 'day-timeline';
+  const descriptionKey = view in SHOW_DESCRIPTION_KEY ? SHOW_DESCRIPTION_KEY[view as keyof typeof SHOW_DESCRIPTION_KEY] : null;
 
   return (
     <>
@@ -165,25 +184,93 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
 
       {/* ── This view: every view-gated field, pooled ── */}
       <CalendarGroup label={viewLabel} when={viewLabel !== ''}>
+        {isPersonView && (
+          <p className="text-xs text-hs-text-muted leading-relaxed">
+            {peopleCount > 0
+              ? t('configSections.fullscreen-calendar.peopleConfigured', { count: peopleCount })
+              : t('configSections.fullscreen-calendar.peopleHint')}
+            {' '}
+            <a href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
+              {t('configSections.fullscreen-calendar.peopleLink')}
+            </a>
+          </p>
+        )}
         {isTimeGrid && (
+          <>
+            <LabeledSelect
+              label={t('configSections.fullscreen-calendar.hourWindow')}
+              value={c.hourWindow ?? 'fixed'}
+              onChange={(v) => set({ hourWindow: v })}
+              options={HOUR_WINDOW_OPTIONS}
+            />
+            {c.hourWindow === 'rolling' ? (
+              <LabeledInput
+                label={t('configSections.fullscreen-calendar.rollingHours')}
+                type="number"
+                min={ROLLING_HOURS_MIN}
+                max={ROLLING_HOURS_MAX}
+                value={c.rollingHours ?? ROLLING_HOURS_DEFAULT}
+                onChange={(v) => set({ rollingHours: Number(v) })}
+              />
+            ) : (
+              <>
+                <LabeledInput
+                  label={t('configSections.fullscreen-calendar.startHour')}
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
+                  onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
+                />
+                <LabeledInput
+                  label={t('configSections.fullscreen-calendar.endHour')}
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
+                  onChange={(v) => set(view === 'schedule' ? { scheduleHourEnd: Number(v) } : { dayHourEnd: Number(v) })}
+                />
+              </>
+            )}
+          </>
+        )}
+        {view === 'free-time' && (
           <>
             <LabeledInput
               label={t('configSections.fullscreen-calendar.startHour')}
               type="number"
               min={0}
               max={23}
-              value={view === 'schedule' ? (c.scheduleHourStart ?? 6) : (c.dayHourStart ?? 6)}
-              onChange={(v) => set(view === 'schedule' ? { scheduleHourStart: Number(v) } : { dayHourStart: Number(v) })}
+              value={c.freeTimeHourStart ?? 7}
+              onChange={(v) => set({ freeTimeHourStart: Number(v) })}
             />
             <LabeledInput
               label={t('configSections.fullscreen-calendar.endHour')}
               type="number"
               min={1}
               max={24}
-              value={view === 'schedule' ? (c.scheduleHourEnd ?? 22) : (c.dayHourEnd ?? 22)}
-              onChange={(v) => set(view === 'schedule' ? { scheduleHourEnd: Number(v) } : { dayHourEnd: Number(v) })}
+              value={c.freeTimeHourEnd ?? 22}
+              onChange={(v) => set({ freeTimeHourEnd: Number(v) })}
             />
+            <Toggle label={t('configSections.fullscreen-calendar.showTomorrow')} checked={c.freeTimeShowTomorrow !== false} onChange={(v) => set({ freeTimeShowTomorrow: v })} />
           </>
+        )}
+        {view === 'up-next' && (
+          <>
+            <LabeledInput
+              label={t('configSections.fullscreen-calendar.laterCount')}
+              type="number"
+              min={0}
+              max={6}
+              value={c.upNextLaterCount ?? 3}
+              onChange={(v) => set({ upNextLaterCount: Number(v) })}
+            />
+            <Toggle label={t('configSections.fullscreen-calendar.showEarlier')} checked={c.upNextShowEarlier !== false} onChange={(v) => set({ upNextShowEarlier: v })} />
+            <Toggle label={t('configSections.fullscreen-calendar.showTomorrow')} checked={c.upNextShowTomorrow !== false} onChange={(v) => set({ upNextShowTomorrow: v })} />
+          </>
+        )}
+        {view === 'family-grid' && (
+          <Toggle label={t('configSections.fullscreen-calendar.showEveryoneRow')} checked={c.familyShowEveryoneRow !== false} onChange={(v) => set({ familyShowEveryoneRow: v })} />
         )}
         {view === 'schedule' && (
           <>
@@ -212,7 +299,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           </>
         )}
         {view === 'week-list' && (
-          <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+          <>
+            <Toggle label={t('configSections.fullscreen-calendar.collapsePastDays')} checked={c.weekCollapsePastDays !== false} onChange={(v) => set({ weekCollapsePastDays: v })} />
+            <Toggle label={t('configSections.fullscreen-calendar.showMeals')} checked={c.showMeals === true} onChange={(v) => set({ showMeals: v })} />
+            <Toggle label={t('configSections.fullscreen-calendar.showChores')} checked={c.showChores === true} onChange={(v) => set({ showChores: v })} />
+          </>
         )}
         {view === 'month-grid' && (
           <>
@@ -249,7 +340,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         )}
         {/* Agenda week separators label their week start with the same startDay
             the grids use, so the select follows the separators option there. */}
-        {(view === 'week-list' || view === 'month-grid' || (view === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
+        {(view === 'week-list' || view === 'month-grid' || view === 'family-grid' || (view === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none')) && (
           <LabeledSelect
             label={t('configSections.calendar.weekStartsOn')}
             value={c.startDay ?? 'sunday'}
@@ -282,11 +373,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           other row is wrapEventTitles). View-gate that toggle and this needs a
           guard like the compact module's. */}
       <CalendarGroup label={groups.eventRows}>
-        {view !== 'month-grid' && (
+        {descriptionKey && (
           <Toggle
             label={t('common.showDescription')}
-            checked={!!c[SHOW_DESCRIPTION_KEY[view]]}
-            onChange={(v) => set({ [SHOW_DESCRIPTION_KEY[view]]: v })}
+            checked={!!c[descriptionKey]}
+            onChange={(v) => set({ [descriptionKey]: v })}
           />
         )}
         {view === 'day-timeline' && (
@@ -314,8 +405,8 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       {/* ── Look: whole-module styling ── */}
       <CalendarGroup label={groups.look}>
         <FullscreenAccentPicker label={t('configSections.fullscreen-calendar.accentColor')} value={c.accentColor} themeAccent={themeAccent} onChange={(v) => set({ accentColor: v })} />
-        {/* Today highlight — day-timeline shows a single day, so it has no today to highlight */}
-        {view !== 'day-timeline' && (
+        {/* Today highlight — the single-day views have no today to highlight */}
+        {!isSingleDayView && (
           <LabeledSelect
             label={t('configSections.fullscreen-calendar.todayHighlight')}
             value={c.todayHighlightStyle ?? 'full'}
@@ -323,8 +414,8 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             options={TODAY_HIGHLIGHT_OPTIONS}
           />
         )}
-        {/* Day timeline renders a single day, so it has no weekend to shade. */}
-        {view !== 'day-timeline' && (
+        {/* The single-day views have no weekend to shade. */}
+        {!isSingleDayView && (
           <Toggle label={t('configSections.fullscreen-calendar.shadeWeekends')} checked={c.shadeWeekends !== false} onChange={(v) => set({ shadeWeekends: v })} />
         )}
         {/* A now-line needs a time axis; the list views and month grid have none. */}
@@ -341,12 +432,15 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           onChange={(v) => set({ weatherPlacement: v })}
           options={
             // Each view offers only the placements it can render: list views
-            // take all five, schedule adds day-column weather, month-grid and
-            // day-timeline have no per-day/per-event surface.
+            // take all five, schedule and the family grid add day-header
+            // weather, up next shows it on the hero event, and month-grid,
+            // day-timeline and free time have no per-day/per-event surface.
             WEATHER_PLACEMENT_OPTIONS.filter((o) => {
               if (o.value === 'off' || o.value === 'header') return true;
               if (isListView) return true;
-              return view === 'schedule' && o.value === 'days';
+              if (view === 'schedule' || view === 'family-grid') return o.value === 'days';
+              if (view === 'up-next') return o.value === 'events';
+              return false;
             })
           }
         />

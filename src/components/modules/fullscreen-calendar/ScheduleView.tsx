@@ -14,7 +14,9 @@ import { computeTimedEventLayout } from './event-layout';
 import { DayWeatherBadge } from './WeatherInline';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './FullscreenCalendarModule';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/config';
-import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge } from './shared-time-grid';
+import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
+import { resolveHourWindow } from '@/lib/calendar-hour-window';
+import { eventHoursOnDay } from './event-layout';
 
 export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -22,9 +24,6 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   const am = t('fullscreen-calendar.am');
   const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
-  const hourStart = config.scheduleHourStart ?? 6;
-  const hourEnd = config.scheduleHourEnd ?? 22;
-  const totalHours = hourEnd - hourStart;
 
   const highlightStyle = config.todayHighlightStyle ?? 'full';
   const showTodayBg = highlightStyle === 'full' || highlightStyle === 'subtle';
@@ -51,6 +50,25 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
     [scheduleStart.toDateString(), daysToShow],
   );
 
+  // Hour range: the configured fixed hours, or a window that follows the
+  // clock. The now-line only makes sense when today is actually one of the
+  // visible columns — a next-weekend anchor can render an all-future board,
+  // where a live "current time" line would cut across days it doesn't
+  // belong to — and a rolling window has nothing to follow there either.
+  const nowHour = now.getHours() + now.getMinutes() / 60;
+  const todayVisible = days.some(day => isSameDay(day, today));
+  const { hourStart, hourEnd, rolling } = resolveHourWindow({
+    mode: config.hourWindow, rollingHours: config.rollingHours,
+    fixedStart: config.scheduleHourStart ?? 6, fixedEnd: config.scheduleHourEnd ?? 22,
+    nowHour, todayVisible,
+  });
+  const totalHours = hourEnd - hourStart;
+  // Today's timed events that ended before a rolling window opens, so the
+  // strip can say how many the board is not showing rather than nothing.
+  const hiddenEarlier = rolling
+    ? events.filter(ev => !ev.allDay && isEventOnDay(ev, today, timezone) && eventHoursOnDay(ev, today, timezone).endHour <= hourStart).length
+    : 0;
+
   // Fit grid exactly to container — no scrolling on kiosk display
   const gutterWidth = scale.bu * 4.5;
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 5.5 : 4.5);
@@ -59,11 +77,6 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
 
   // Current time position (timezone-aware, updates every 60s via parent).
-  // The now-line only makes sense when today is actually one of the visible
-  // columns — a next-weekend anchor can render an all-future board, where a
-  // live "current time" line would cut across days it doesn't belong to.
-  const nowHour = now.getHours() + now.getMinutes() / 60;
-  const todayVisible = days.some(day => isSameDay(day, today));
   const nowInRange = todayVisible && nowHour >= hourStart && nowHour <= hourEnd;
   const nowY = (nowHour - hourStart) * hourHeight;
 
@@ -361,6 +374,10 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
           </div>
         </div>
       </div>
+
+      {rolling && (
+        <RollingWindowStrip hourStart={hourStart} hourEnd={hourEnd} hiddenEarlier={hiddenEarlier} fontSize={fontSize} scale={scale} timeFormat={timeFormat} am={am} pm={pm} t={t} />
+      )}
     </div>
   );
 }

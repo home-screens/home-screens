@@ -32,7 +32,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, or `agenda` |
+| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, or `free-time` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
@@ -54,6 +54,8 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |
 | `startDay` | string | `"sunday"` | First day of the week in the week list and month grid views: `sunday` or `monday` |
+| `hourWindow` | string | `"fixed"` | Schedule and day timeline hours: `fixed` (the start and end hours below) or `rolling` (a window that follows the clock, starting an hour before now, so what is next is always full size; a footer strip names the window and counts today's earlier events it is not showing) |
+| `rollingHours` | number | `8` | Length of the rolling window in hours (4–16) |
 | `scheduleDaysToShow` | number | `0` | Days visible in schedule view (1–7, 0 = auto) |
 | `scheduleHourStart` | number | `6` | Schedule view start hour (0–23) |
 | `scheduleHourEnd` | number | `22` | Schedule view end hour (1–24) |
@@ -61,6 +63,15 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `scheduleStartAnchor` | string | `"today"` | First column of the schedule view: `today` (slides forward each day), `start-of-week` (days keep their place all week), or `next-weekend` (Saturday and Sunday planning board) |
 | `weekCollapsePastDays` | boolean | `true` | Collapse past days in week list view |
 | `weekShowDescription` | boolean | `false` | Show the event description under the title in week list view |
+| `showMeals` | boolean | `false` | Week list view: add the day's planned meals from the meal planner under its events |
+| `showChores` | boolean | `false` | Week list view: add one chore progress row per day (done/total, a bar, and who has a chore) from the chore chart |
+| `familyShowEveryoneRow` | boolean | `true` | Family grid view: an Everyone row for events on calendars that belong to nobody in particular |
+| `upNextLaterCount` | number | `3` | Up next view: how many more events from the same day to list under the big one (0–6) |
+| `upNextShowEarlier` | boolean | `true` | Up next view: list today's running and finished events |
+| `upNextShowTomorrow` | boolean | `true` | Up next view: list tomorrow's events |
+| `freeTimeHourStart` | number | `7` | Free time view start hour (0–23) |
+| `freeTimeHourEnd` | number | `22` | Free time view end hour (1–24) |
+| `freeTimeShowTomorrow` | boolean | `true` | Free time view: add a compact row per person for tomorrow |
 | `monthShowWeekNumbers` | boolean | `false` | Show week numbers in month grid view |
 | `monthMaxEventsPerCell` | number | `0` | Max events per cell in month grid (0 = auto) |
 | `dayHourStart` | number | `6` | Day timeline view start hour |
@@ -82,6 +93,11 @@ In the schedule and day timeline views, descriptions only draw when the event bl
 - **month-grid** — Traditional month calendar grid with event dots/names in each cell and today highlighted.
 - **day-timeline** — Single-day vertical timeline with event blocks, location details, and hour markers.
 - **agenda** — Scrollable list of upcoming events across multiple days, grouped by date.
+- **family-grid** — People as rows, the week as columns. Each person set up under **Settings > Calendar > People** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
+- **up-next** — The next event, big: title, time, place, countdown (or progress while it is running), then short lists for later today, earlier today, and tomorrow.
+- **free-time** — One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
+
+**People:** the family grid and free time views read the household list under **Settings > Calendar > People**: a name, a color, and which calendars belong to each person. A calendar picked for nobody is shared.
 
 ### Full-Screen Chore Chart
 

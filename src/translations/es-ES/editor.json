@@ -320,6 +320,7 @@
         "disconnect": "Desconectar",
         "selectCalendars": "Selecciona los calendarios a mostrar",
         "noCalendars": "No se han encontrado calendarios.",
+        "notInListing": "Ya no aparece en la lista de calendarios de Google",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Ocultar eventos que rechazaste",
         "credentialsRequired": "Se necesitan credenciales OAuth de Google para conectar tu calendario.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Inicia sesión para ver tus calendarios automáticamente. Requiere un cliente OAuth de Google de tipo «TVs and Limited Input devices» en la Cloud Console.",
         "copyCode": "Copiar código",
-        "codeCopied": "¡Copiado!"
+        "codeCopied": "¡Copiado!",
+        "googleOnly": "Solo Google"
       },
       "icloud": {
         "heading": "Calendario de iCloud",
@@ -371,7 +373,26 @@
         "updatedNow": "Actualizado ahora mismo",
         "notUpdating": "Sin actualizar",
         "errorSince": "{error} · funcionó por última vez {time}"
-      }
+      },
+      "people": {
+        "heading": "Personas",
+        "help": "Pon nombre a cada miembro de la familia y elige sus calendarios. La cuadrícula familiar y el tiempo libre muestran una fila por persona; los calendarios sin persona cuentan como compartidos.",
+        "namePlaceholder": "Nombre (p. ej. Ella)",
+        "addPerson": "+ Añadir persona",
+        "calendars": "Calendarios",
+        "noSources": "Conecta primero un calendario arriba y luego elige cuáles son de esta persona.",
+        "noCalendarsPicked": "Sin calendarios elegidos",
+        "remove": "Quitar a {name}",
+        "noPeople": "Todavía no hay personas."
+      },
+      "areas": {
+        "sources": "De dónde vienen los eventos",
+        "sourcesDescription": "Conecta los calendarios que la pantalla debe leer. Cada uno muestra si se está actualizando.",
+        "show": "Qué mostrar",
+        "showDescription": "Límites de los que parte cada módulo de calendario. Un módulo puede acotar más con sus propios filtros."
+      },
+      "heading": "Calendario",
+      "description": "Conecta tus calendarios, indica a quién pertenece cada uno y ajusta cuánto muestra cada módulo de calendario."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2563,7 +2584,26 @@
       "showLegend": "Leyenda de fuentes",
       "legendOff": "Desactivada",
       "legendHeader": "Arriba del calendario",
-      "legendFooter": "Abajo del calendario"
+      "legendFooter": "Abajo del calendario",
+      "viewFamilyGrid": "Cuadrícula familiar (personas × semana)",
+      "viewUpNext": "A continuación",
+      "viewFreeTime": "Tiempo libre",
+      "hourWindow": "Horas mostradas",
+      "hourWindowFixed": "Horas fijas",
+      "hourWindowRolling": "Seguir el reloj",
+      "rollingHours": "Horas en la ventana",
+      "showMeals": "Mostrar comidas planificadas",
+      "showChores": "Mostrar progreso de tareas",
+      "showEveryoneRow": "Fila «Todos» para eventos compartidos",
+      "laterCount": "Eventos listados después del siguiente",
+      "showEarlier": "Mostrar los eventos anteriores de hoy",
+      "showTomorrow": "Mostrar mañana",
+      "peopleHint": "Aún no hay personas configuradas, así que cada calendario tiene su propia fila.",
+      "peopleConfigured": {
+        "one": "{count} persona configurada.",
+        "other": "{count} personas configuradas."
+      },
+      "peopleLink": "Gestionar personas"
     },
     "fullscreen-chore-chart": {
       "view": "Vista",

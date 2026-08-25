@@ -5,6 +5,7 @@ import { uuid } from '@/lib/uuid';
 import type { ICalSource } from '@/types/config';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
 
 const ICAL_COLOR_PALETTE = [
   '#f97316', '#a855f7', '#3b82f6', '#ef4444',
@@ -14,9 +15,11 @@ const ICAL_COLOR_PALETTE = [
 interface ICalFeedManagerProps {
   icalSources: ICalSource[];
   onChange: (updates: { icalSources: ICalSource[] }) => void;
+  /** Per-source health keyed by ICalSource id, for the badge on each feed row. */
+  health?: SourceHealthMap;
 }
 
-export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManagerProps) {
+export default function ICalFeedManager({ icalSources, onChange, health }: ICalFeedManagerProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -69,15 +72,12 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
   }
 
   return (
-    <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('modals.icalFeeds.title')}
-      </h3>
+    <SourceBlock title={t('modals.icalFeeds.title')} testId="ical-feed-block">
       <div className="space-y-3">
         {icalSources.length > 0 && (
           <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
             {icalSources.map((source) => (
-              <div key={source.id}>
+              <div key={source.id} data-source-row={source.id}>
                 <div className="flex items-center gap-3 px-3 py-2">
                   <input
                     type="checkbox"
@@ -89,9 +89,11 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: source.color }}
                   />
-                  <span className="text-sm text-hs-text-body truncate flex-1">
-                    {source.name}
+                  <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                    <span className="block truncate">{source.name}</span>
+                    {source.enabled && <SourceHealthError status={health?.get(source.id)} />}
                   </span>
+                  {source.enabled && <SourceHealthBadge status={health?.get(source.id)} />}
                   <button
                     onClick={() => setEditingId(editingId === source.id ? null : source.id)}
                     className="text-xs text-hs-text-faint hover:text-hs-text-secondary transition-colors"
@@ -192,6 +194,6 @@ export default function ICalFeedManager({ icalSources, onChange }: ICalFeedManag
           {t('modals.icalFeeds.helpText')}
         </p>
       </div>
-    </section>
+    </SourceBlock>
   );
 }

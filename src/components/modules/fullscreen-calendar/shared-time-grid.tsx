@@ -2,6 +2,8 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { formatDateSync } from '@/i18n';
+import type { TranslateFn } from '@/i18n';
+import type { TimeFormat } from '@/types/config';
 
 // ─── Utilities ───
 
@@ -11,9 +13,11 @@ import { formatDateSync } from '@/i18n';
  * from `useTranslate('modules')` so the label honors the active locale.
  */
 export function formatHourLabel(h: number, am: string, pm: string): string {
-  if (h === 0) return `12 ${am}`;
-  if (h === 12) return `12 ${pm}`;
-  return h > 12 ? `${h - 12} ${pm}` : `${h} ${am}`;
+  // 24 is the end-of-day gutter label (an hourEnd of 24), which is midnight.
+  const hour = h % 24;
+  if (hour === 0) return `12 ${am}`;
+  if (hour === 12) return `12 ${pm}`;
+  return hour > 12 ? `${hour - 12} ${pm}` : `${hour} ${am}`;
 }
 
 // ─── Hooks ───
@@ -41,6 +45,48 @@ export function useContainerHeight() {
 }
 
 // ─── Components ───
+
+/**
+ * Footer strip for a time grid whose hours follow the clock: names the
+ * window it is showing and how many of today's events already ended before
+ * it opens, so a board that starts at 2 PM never reads as "nothing happened
+ * this morning".
+ */
+export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize, scale, timeFormat, am, pm, t }: {
+  hourStart: number;
+  hourEnd: number;
+  hiddenEarlier: number;
+  fontSize: number;
+  scale: { bu: number };
+  timeFormat: TimeFormat;
+  am: string;
+  pm: string;
+  t: TranslateFn;
+}) {
+  const label = (h: number) => (timeFormat === '24h' ? `${String(h % 24).padStart(2, '0')}:00` : formatHourLabel(h % 24, am, pm));
+  return (
+    <div
+      data-rolling-window=""
+      role="status"
+      style={{
+        display: 'flex', alignItems: 'center', gap: scale.bu * 0.8, flexShrink: 0,
+        padding: `${scale.bu * 0.5}px ${scale.bu * 1.5}px`,
+        borderTop: '1px solid var(--cal-border-subtle)',
+        background: 'var(--cal-surface-alt)',
+        fontSize: fontSize * 0.8, color: 'var(--cal-text-secondary)',
+      }}
+    >
+      <span>
+        {t('fullscreen-calendar.rollingWindow.showing', { range: `${label(hourStart)} – ${label(hourEnd)}` })}
+      </span>
+      {hiddenEarlier > 0 && (
+        <span style={{ marginLeft: 'auto', color: 'var(--cal-text-tertiary)', whiteSpace: 'nowrap' }}>
+          {t('fullscreen-calendar.rollingWindow.earlierToday', { count: hiddenEarlier })}
+        </span>
+      )}
+    </div>
+  );
+}
 
 interface HourLinesProps {
   totalHours: number;

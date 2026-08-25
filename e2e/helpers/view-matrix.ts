@@ -46,7 +46,7 @@ export const VIEW_MATRIX: ViewSpec[] = [
   { type: 'todoist', key: 'viewMode', kind: 'networked', stubKey: 'todoist', views: ['list', 'board', 'focus'] },
   { type: 'calendar', key: 'viewMode', kind: 'networked', stubKey: 'calendar', views: ['daily', 'agenda', 'week', 'multi-week', 'month'] },
   { type: 'fullscreen-calendar', key: 'view', kind: 'networked', stubKey: 'calendar', views: [
-    'schedule', 'week-list', 'month-grid', 'day-timeline', 'agenda'] },
+    'schedule', 'week-list', 'month-grid', 'day-timeline', 'agenda', 'family-grid', 'up-next', 'free-time'] },
   { type: 'chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: [
     'board', 'star-chart', 'today', 'progress', 'compact'] },
   { type: 'fullscreen-chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: ['chores', 'rewards-store'] },

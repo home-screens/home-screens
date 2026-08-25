@@ -139,12 +139,17 @@ test('Defaults › Calendar: disconnecting an iCloud account strips its sources'
   await expect(page.getByRole('button', { name: 'Add iCloud account' })).toBeVisible();
 });
 
-test('Defaults › Calendar: source status lists a failing feed with plain wording', async ({ page, request }) => {
-  await putConfig(request, baseConfig());
+test('Defaults › Calendar: each feed row shows its health, with plain wording when failing', async ({ page, request }) => {
+  const config = baseConfig();
+  config.settings.calendar.icalSources = [
+    { id: 'family', type: 'ical', name: 'Family', url: 'https://example.com/family.ics', color: '#3b82f6', enabled: true },
+    { id: 'school', type: 'ical', name: 'School', url: 'https://example.com/school.ics', color: '#f97316', enabled: true },
+  ];
+  await putConfig(request, config);
 
-  // The health section reads /api/calendar/status (the latest status any
-  // display fetch computed); stub it at the browser boundary the same way
-  // the display specs stub /api/calendar.
+  // Health reads /api/calendar/status (the latest status any display fetch
+  // computed); stub it at the browser boundary the same way the display
+  // specs stub /api/calendar. Badges land on the source rows themselves.
   await page.route('**/api/calendar/status*', (route) =>
     route.fulfill({
       contentType: 'application/json',
@@ -158,15 +163,14 @@ test('Defaults › Calendar: source status lists a failing feed with plain wordi
   );
 
   await page.goto('/editor/settings?section=defaults&page=calendar');
-  const health = page.getByTestId('calendar-source-health');
-  await expect(health).toContainText('Source status');
+  const feeds = page.getByTestId('ical-feed-block');
 
-  const okRow = health.locator('[data-source-health="ok"]');
-  await expect(okRow).toContainText('Family');
-  await expect(okRow).toContainText('Updated');
+  const okRow = feeds.locator('[data-source-row="family"]');
+  await expect(okRow.locator('[data-source-health="ok"]')).toContainText('Updated');
 
-  const badRow = health.locator('[data-source-health="failing"]');
-  await expect(badRow).toContainText('School');
-  await expect(badRow).toContainText('Not updating');
+  const badRow = feeds.locator('[data-source-row="school"]');
+  await expect(badRow.locator('[data-source-health="failing"]')).toContainText('Not updating');
   await expect(badRow).toContainText('Could not reach the link (HTTP 404)');
+  // Nothing on this page reads as a separate status list any more.
+  await expect(page.getByText('Source status')).toHaveCount(0);
 });

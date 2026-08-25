@@ -414,14 +414,19 @@ test.describe('fullscreen-calendar event tap', () => {
     },
   ];
 
-  // Record type so adding a sixth view fails compilation here — a plain
-  // array literal would silently leave the new view without tap coverage.
-  const VIEW_TAP_COVERED: Record<FullscreenCalendarView, true> = {
-    'schedule': true,
-    'week-list': true,
-    'month-grid': true,
-    'day-timeline': true,
-    'agenda': true,
+  // Record type so adding a view fails compilation here — a plain array
+  // literal would silently leave the new view without tap coverage. Free
+  // time draws only timed events (busy blocks on a clock track), so it has
+  // no all-day tap target by design.
+  const VIEW_TAP_COVERED: Record<FullscreenCalendarView, 'timed-and-all-day' | 'timed-only'> = {
+    'schedule': 'timed-and-all-day',
+    'week-list': 'timed-and-all-day',
+    'month-grid': 'timed-and-all-day',
+    'day-timeline': 'timed-and-all-day',
+    'agenda': 'timed-and-all-day',
+    'family-grid': 'timed-and-all-day',
+    'up-next': 'timed-and-all-day',
+    'free-time': 'timed-only',
   };
   const VIEWS = Object.keys(VIEW_TAP_COVERED) as FullscreenCalendarView[];
 
@@ -430,7 +435,8 @@ test.describe('fullscreen-calendar event tap', () => {
       await stubModuleData(page, { overrides: { calendar: VIEW_TAP_EVENTS } });
       const display = await renderOnDisplay(page, request, calendarScreen({ eventTapDetails: true, view }));
 
-      for (const title of ['VIEWTAP TIMED', 'VIEWTAP ALLDAY']) {
+      const titles = VIEW_TAP_COVERED[view] === 'timed-only' ? ['VIEWTAP TIMED'] : ['VIEWTAP TIMED', 'VIEWTAP ALLDAY'];
+      for (const title of titles) {
         await display.module('fullscreen-calendar').getByText(title).first().click();
         const dialog = page.getByRole('dialog', { name: title });
         await expect(dialog).toBeVisible();

@@ -596,8 +596,8 @@ export function resolveWeatherPlacement(
 }
 
 /** Which views can render day-header weather / per-event weather. */
-const WEATHER_DAYS_VIEWS = new Set(['agenda', 'week-list', 'schedule']);
-const WEATHER_EVENTS_VIEWS = new Set(['agenda', 'week-list']);
+const WEATHER_DAYS_VIEWS = new Set(['agenda', 'week-list', 'schedule', 'family-grid']);
+const WEATHER_EVENTS_VIEWS = new Set(['agenda', 'week-list', 'up-next']);
 
 /**
  * The placement a given view actually renders. Placements carry across view

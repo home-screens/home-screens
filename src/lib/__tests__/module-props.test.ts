@@ -58,6 +58,7 @@ const previewSettings: PreviewSettings = {
   units: 'imperial',
   fullscreenTheme: 'midnight',
   timeFormat: undefined,
+  calendarPeople: undefined,
 };
 
 const previewData: PreviewData = {

@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 
 /**
@@ -51,6 +51,8 @@ export interface PreviewSettings {
   units: 'metric' | 'imperial';
   fullscreenTheme: string | undefined;
   timeFormat: TimeFormat | undefined;
+  /** Settings > Calendar > People, for the per-person calendar views. */
+  calendarPeople: CalendarPerson[] | undefined;
 }
 
 interface ProviderWeatherData {
@@ -94,6 +96,8 @@ export interface ModuleDataSource {
   calendarStatus: CalendarFetchStatus | null;
   /** Per-source health from the calendar payload; null when absent. */
   calendarSourceStatus: CalendarSourceStatus[] | null;
+  /** Household people (Settings > Calendar); null when none are set up. */
+  calendarPeople: CalendarPerson[] | null;
   availableDisplays: Array<{ id: string; name: string }>;
 }
 
@@ -154,6 +158,11 @@ export function buildModuleProps(
   if (needsCalendar && source.calendarSourceStatus?.some((s) => !s.ok)) {
     props.sourceStatus = source.calendarSourceStatus;
   }
+  // Only attached while people exist, so a household without them builds the
+  // same props as before and the per-person views take their fallback path.
+  if (needsCalendar && source.calendarPeople && source.calendarPeople.length > 0) {
+    props.people = source.calendarPeople;
+  }
 
   const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
   if (needsWeather) {
@@ -207,6 +216,7 @@ export function toDisplaySource(
     timeFormat?: TimeFormat;
     locationName?: string;
     weather: { provider: string; units: 'metric' | 'imperial' };
+    calendar?: { people?: CalendarPerson[] };
   },
   location: { lat: number; lon: number } | null,
   sharedData: SharedDisplayData,
@@ -233,6 +243,7 @@ export function toDisplaySource(
     calendarSourceStatus: calendarData && !Array.isArray(calendarData)
       ? ((calendarData as Record<string, unknown>).sourceStatus as CalendarSourceStatus[] | undefined) ?? null
       : null,
+    calendarPeople: settings.calendar?.people ?? null,
     availableDisplays,
   };
 }
@@ -265,6 +276,7 @@ export function toEditorSource(
     // treat null as "healthy" and never render the saved-events pill.
     calendarStatus: null,
     calendarSourceStatus: null,
+    calendarPeople: settings?.calendarPeople ?? null,
     availableDisplays: displays,
   };
 }

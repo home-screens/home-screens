@@ -320,6 +320,7 @@
         "disconnect": "Verbinding verbreken",
         "selectCalendars": "Selecteer kalenders om weer te geven",
         "noCalendars": "Geen kalenders gevonden.",
+        "notInListing": "Staat niet meer in de Google-agendalijst",
         "primaryBadge": "(primair)",
         "hideDeclinedLabel": "Afspraken die je hebt afgewezen verbergen",
         "credentialsRequired": "Google OAuth-inloggegevens zijn vereist om je kalender te verbinden.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Meld je aan om je kalenders automatisch te zien. Vereist een Google OAuth-client van het type \"TVs and Limited Input devices\" in de Cloud Console.",
         "copyCode": "Code kopiëren",
-        "codeCopied": "Gekopieerd!"
+        "codeCopied": "Gekopieerd!",
+        "googleOnly": "Alleen Google"
       },
       "icloud": {
         "heading": "iCloud-agenda",
@@ -371,7 +373,26 @@
         "updatedNow": "Zojuist bijgewerkt",
         "notUpdating": "Wordt niet bijgewerkt",
         "errorSince": "{error} · laatst gelukt {time}"
-      }
+      },
+      "people": {
+        "heading": "Personen",
+        "help": "Geef elk gezinslid een naam en kies zijn of haar agenda's. Het gezinsrooster en Vrije tijd tonen één rij per persoon; agenda's zonder persoon gelden als gedeeld.",
+        "namePlaceholder": "Naam (bijv. Ella)",
+        "addPerson": "+ Persoon toevoegen",
+        "calendars": "Agenda's",
+        "noSources": "Koppel eerst hierboven een agenda en kies dan welke bij deze persoon horen.",
+        "noCalendarsPicked": "Geen agenda's gekozen",
+        "remove": "{name} verwijderen",
+        "noPeople": "Nog geen personen."
+      },
+      "areas": {
+        "sources": "Waar afspraken vandaan komen",
+        "sourcesDescription": "Koppel de agenda's die het scherm moet lezen. Elke agenda laat zien of hij bijgewerkt wordt.",
+        "show": "Wat er wordt getoond",
+        "showDescription": "Grenzen waar elke agendamodule mee begint. Een module kan met eigen filters verder inperken."
+      },
+      "heading": "Agenda",
+      "description": "Koppel je agenda's, geef aan van wie ze zijn en stel in hoeveel elke agendamodule toont."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2558,7 +2579,26 @@
       "showLegend": "Bronlegenda",
       "legendOff": "Uit",
       "legendHeader": "Boven in de kalender",
-      "legendFooter": "Onder in de kalender"
+      "legendFooter": "Onder in de kalender",
+      "viewFamilyGrid": "Gezinsrooster (personen × week)",
+      "viewUpNext": "Hierna",
+      "viewFreeTime": "Vrije tijd",
+      "hourWindow": "Getoonde uren",
+      "hourWindowFixed": "Vaste uren",
+      "hourWindowRolling": "Volg de klok",
+      "rollingHours": "Uren in het venster",
+      "showMeals": "Geplande maaltijden tonen",
+      "showChores": "Voortgang klusjes tonen",
+      "showEveryoneRow": "Rij 'Iedereen' voor gedeelde afspraken",
+      "laterCount": "Afspraken na de volgende tonen",
+      "showEarlier": "Eerdere afspraken van vandaag tonen",
+      "showTomorrow": "Morgen tonen",
+      "peopleHint": "Nog geen personen ingesteld, dus elke agenda krijgt een eigen rij.",
+      "peopleConfigured": {
+        "one": "{count} persoon ingesteld.",
+        "other": "{count} personen ingesteld."
+      },
+      "peopleLink": "Personen beheren"
     },
     "fullscreen-chore-chart": {
       "view": "Weergave",

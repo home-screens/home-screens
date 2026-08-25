@@ -155,7 +155,10 @@
       "weekList": "Week",
       "monthGrid": "Maand",
       "dayTimeline": "Dag",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "familyGrid": "Gezin",
+      "upNext": "Hierna",
+      "freeTime": "Vrije tijd"
     },
     "zones": {
       "morning": "Ochtend",
@@ -172,7 +175,8 @@
       "eventTimed": "{title}, {start} tot {end}",
       "eventTimedAtLocation": "{title}, {start} tot {end}, bij {location}",
       "monthCell": "{date}, {count} afspraken",
-      "legend": "Kalenderbronnen"
+      "legend": "Kalenderbronnen",
+      "familyGrid": "Gezinsweekrooster"
     },
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
@@ -184,7 +188,66 @@
     "birthday": "Verjaardag",
     "birthdayWithAge": "Verjaardag · wordt {age}",
     "birthdayShort": "jarig",
-    "birthdayAgeShort": "wordt {age}"
+    "birthdayAgeShort": "wordt {age}",
+    "headerUpNext": "Hierna",
+    "headerFreeTime": "Vrije tijd",
+    "everyone": "Iedereen",
+    "thisWeekCount": {
+      "one": "{count} deze week",
+      "other": "{count} deze week"
+    },
+    "upNext": {
+      "next": "Hierna",
+      "now": "Nu",
+      "laterToday": "Later vandaag",
+      "alsoOn": "Ook op {day}",
+      "earlier": "Eerder vandaag",
+      "tomorrow": "Morgen, {day}",
+      "nothingElseToday": "Verder niets vandaag",
+      "moreToday": {
+        "one": "Nog {count} vandaag",
+        "other": "Nog {count} vandaag"
+      },
+      "minutesLeft": {
+        "one": "Nog {count} min",
+        "other": "Nog {count} min"
+      },
+      "done": "Klaar"
+    },
+    "freeTime": {
+      "today": "Vandaag",
+      "household": "Huishouden",
+      "everyoneFree": "Iedereen is vrij",
+      "nobodyFree": "Geen gezamenlijke vrije tijd",
+      "rangeToday": "{range} vandaag",
+      "noCommonTimeToday": "Vandaag is niemand tegelijk vrij",
+      "alsoToday": "Ook {ranges}.",
+      "tomorrowFrom": "Morgen: {range}.",
+      "tomorrowNone": "Morgen: geen gezamenlijke vrije tijd.",
+      "tomorrow": "Morgen, {day}",
+      "freeAfter": "Vrij na {time}",
+      "freeUntil": "Vrij tot {time}",
+      "busyAllDay": "De hele dag bezet",
+      "minutes": {
+        "one": "{count} min",
+        "other": "{count} min"
+      },
+      "hours": "{hours} u",
+      "dayDone": "Dat was het voor vandaag",
+      "doneForToday": "Klaar voor vandaag"
+    },
+    "rollingWindow": {
+      "showing": "Toont {range}, volgt de klok",
+      "earlierToday": {
+        "one": "{count} eerder vandaag",
+        "other": "{count} eerder vandaag"
+      }
+    },
+    "extras": {
+      "chores": "Klusjes",
+      "choresDone": "{done} van {total} klusjes gedaan"
+    },
+    "peopleHint": "Voeg personen toe onder Instellingen > Agenda zodat iedereen een eigen rij krijgt."
   },
   "weather": {
     "tomorrowShort": "Morg",

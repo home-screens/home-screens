@@ -320,6 +320,7 @@
         "disconnect": "Déconnecter",
         "selectCalendars": "Sélectionne les calendriers à afficher",
         "noCalendars": "Aucun calendrier trouvé.",
+        "notInListing": "N'apparaît plus dans la liste des agendas Google",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Masquer les événements refusés",
         "credentialsRequired": "Les identifiants Google OAuth sont nécessaires pour connecter ton calendrier.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Connecte-toi pour voir automatiquement tes calendriers. Nécessite un client OAuth Google de type « TVs and Limited Input devices » dans la console Cloud.",
         "copyCode": "Copier le code",
-        "codeCopied": "Copié !"
+        "codeCopied": "Copié !",
+        "googleOnly": "Google uniquement"
       },
       "icloud": {
         "heading": "Calendrier iCloud",
@@ -371,7 +373,26 @@
         "updatedNow": "Mis à jour à l'instant",
         "notUpdating": "Ne se met plus à jour",
         "errorSince": "{error} · dernier succès {time}"
-      }
+      },
+      "people": {
+        "heading": "Personnes",
+        "help": "Donnez un nom à chaque membre de la famille et choisissez ses calendriers. La grille familiale et le temps libre affichent une ligne par personne ; les calendriers sans personne sont partagés.",
+        "namePlaceholder": "Nom (ex. Ella)",
+        "addPerson": "+ Ajouter une personne",
+        "calendars": "Calendriers",
+        "noSources": "Connectez d'abord un calendrier ci-dessus, puis choisissez ceux de cette personne.",
+        "noCalendarsPicked": "Aucun calendrier choisi",
+        "remove": "Retirer {name}",
+        "noPeople": "Aucune personne pour l'instant."
+      },
+      "areas": {
+        "sources": "D'où viennent les événements",
+        "sourcesDescription": "Connectez les calendriers que l'écran doit lire. Chacun indique s'il se met à jour.",
+        "show": "Quoi afficher",
+        "showDescription": "Limites de départ pour chaque module calendrier. Un module peut affiner avec ses propres filtres."
+      },
+      "heading": "Calendrier",
+      "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2563,7 +2584,26 @@
       "showLegend": "Légende des sources",
       "legendOff": "Désactivée",
       "legendHeader": "En haut du calendrier",
-      "legendFooter": "En bas du calendrier"
+      "legendFooter": "En bas du calendrier",
+      "viewFamilyGrid": "Grille familiale (personnes × semaine)",
+      "viewUpNext": "À suivre",
+      "viewFreeTime": "Temps libre",
+      "hourWindow": "Heures affichées",
+      "hourWindowFixed": "Heures fixes",
+      "hourWindowRolling": "Suivre l'horloge",
+      "rollingHours": "Heures dans la fenêtre",
+      "showMeals": "Afficher les repas prévus",
+      "showChores": "Afficher l'avancement des corvées",
+      "showEveryoneRow": "Ligne « Tout le monde » pour les événements partagés",
+      "laterCount": "Événements listés après le prochain",
+      "showEarlier": "Afficher les événements passés du jour",
+      "showTomorrow": "Afficher demain",
+      "peopleHint": "Aucune personne configurée : chaque calendrier a sa propre ligne.",
+      "peopleConfigured": {
+        "one": "{count} personne configurée.",
+        "other": "{count} personnes configurées."
+      },
+      "peopleLink": "Gérer les personnes"
     },
     "fullscreen-chore-chart": {
       "view": "Vue",

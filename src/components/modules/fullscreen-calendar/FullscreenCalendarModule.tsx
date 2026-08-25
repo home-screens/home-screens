@@ -3,7 +3,7 @@
 import { memo, useEffect, useMemo, useState } from 'react';
 import { startOfWeek, endOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText } from 'lucide-react';
+import { CalendarX, MapPin, List, Columns3, Grid3X3, CalendarClock, ScrollText, Users, Zap, Hourglass } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { applyEventRules, resolveDayDecor, type DayDecor } from '@/lib/calendar-rules';
@@ -13,7 +13,10 @@ import { toTZWallTime } from '@/lib/timezone';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarTitleFilter, type CalendarEventRule, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type CalendarTitleFilter, type CalendarEventRule, type FullscreenCalendarConfig, type ModuleStyle, type CalendarEvent, type TimeFormat, type WeatherPlacement, type WeekStartDay } from '@/types/config';
+import { hasExtras, type ExtrasIndex } from '@/lib/calendar-extras';
+import { toISODate } from '@/lib/meal-constants';
+import { useCalendarExtras } from './useCalendarExtras';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop } from '@/lib/fullscreen-themes';
 import type { FullscreenEventStyle } from '@/lib/fullscreen-themes';
@@ -23,6 +26,9 @@ import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
 import { DayTimelineView } from './DayTimelineView';
 import { AgendaView } from './AgendaView';
+import { FamilyGridView } from './FamilyGridView';
+import { UpNextView } from './UpNextView';
+import { FreeTimeView } from './FreeTimeView';
 import { EventDetailOverlay } from '../shared/EventDetailOverlay';
 import { CalendarLegend } from '../shared/CalendarLegend';
 import { useFailingSources } from '../shared/useFailingSources';
@@ -35,6 +41,9 @@ const MemoWeekListView = memo(WeekListView);
 const MemoMonthGridView = memo(MonthGridView);
 const MemoDayTimelineView = memo(DayTimelineView);
 const MemoAgendaView = memo(AgendaView);
+const MemoFamilyGridView = memo(FamilyGridView);
+const MemoUpNextView = memo(UpNextView);
+const MemoFreeTimeView = memo(FreeTimeView);
 
 // ─── Types ───
 
@@ -83,6 +92,10 @@ export interface CalendarViewProps {
   weather?: CalendarWeather;
   /** Sources whose feed is failing; list-view rows add a "saved" time suffix. */
   failingSourceIds?: ReadonlySet<string>;
+  /** Settings > Calendar > People; absent = the per-person views fall back to one row per source. */
+  people?: CalendarPerson[];
+  /** Week list household rows (planned meals + chore progress), keyed by local ISO date. */
+  extras?: ExtrasIndex;
 }
 
 // ─── Helpers ───
@@ -198,7 +211,8 @@ function getHeaderTitle(
       }
       return `${formatDateSync(first, 'MMMM d', { locale })} \u2013 ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
     }
-    case 'week-list': {
+    case 'week-list':
+    case 'family-grid': {
       const weekStartsOn = weekStartsOnFor(startDay);
       const weekStart = startOfWeek(today, { weekStartsOn });
       const weekEnd = endOfWeek(today, { weekStartsOn });
@@ -206,6 +220,10 @@ function getHeaderTitle(
     }
     case 'month-grid':
       return formatDateSync(today, 'MMMM yyyy', { locale });
+    case 'up-next':
+      return t('fullscreen-calendar.headerUpNext');
+    case 'free-time':
+      return t('fullscreen-calendar.headerFreeTime');
     case 'day-timeline':
       return formatDateSync(today, 'EEEE, MMMM d', { locale });
     case 'agenda':
@@ -221,6 +239,9 @@ const VIEW_ICONS: Record<string, typeof Columns3> = {
   'month-grid': Grid3X3,
   'day-timeline': CalendarClock,
   'agenda': ScrollText,
+  'family-grid': Users,
+  'up-next': Zap,
+  'free-time': Hourglass,
 };
 
 const VIEW_LABEL_KEYS: Record<string, string> = {
@@ -229,6 +250,9 @@ const VIEW_LABEL_KEYS: Record<string, string> = {
   'month-grid': 'fullscreen-calendar.viewLabels.monthGrid',
   'day-timeline': 'fullscreen-calendar.viewLabels.dayTimeline',
   'agenda': 'fullscreen-calendar.viewLabels.agenda',
+  'family-grid': 'fullscreen-calendar.viewLabels.familyGrid',
+  'up-next': 'fullscreen-calendar.viewLabels.upNext',
+  'free-time': 'fullscreen-calendar.viewLabels.freeTime',
 };
 
 // ─── Skeleton loading ───
@@ -261,8 +285,8 @@ function EmptyState({ scale, view, t, fetchFailed }: { scale: CalendarScale; vie
   // never render the same wording as a genuinely empty calendar.
   const label = fetchFailed ? t('fullscreen-calendar.cantLoadEvents')
     : view === 'month-grid' ? t('fullscreen-calendar.noEventsThisMonth')
-    : view === 'agenda' ? t('fullscreen-calendar.noUpcomingEvents')
-    : view === 'day-timeline' ? t('fullscreen-calendar.noEventsToday')
+    : view === 'agenda' || view === 'up-next' ? t('fullscreen-calendar.noUpcomingEvents')
+    : view === 'day-timeline' || view === 'free-time' ? t('fullscreen-calendar.noEventsToday')
     : t('fullscreen-calendar.noEventsThisWeek');
   return (
     <div style={{
@@ -302,6 +326,8 @@ interface FullscreenCalendarModuleProps {
   calendarStatus?: CalendarFetchStatus;
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
+  /** Attached only while Settings > Calendar > People is non-empty (see buildModuleProps). */
+  people?: CalendarPerson[];
 }
 
 export default function FullscreenCalendarModule({
@@ -317,6 +343,7 @@ export default function FullscreenCalendarModule({
   fullscreenTheme,
   calendarStatus,
   sourceStatus,
+  people,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -391,15 +418,19 @@ export default function FullscreenCalendarModule({
             start: resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn),
             count: config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scale.width, config.density),
           })
-        : config.view === 'week-list' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
+        : config.view === 'week-list' || config.view === 'family-grid' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
         : config.view === 'month-grid' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
         : config.view === 'day-timeline' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: 1 })
+        : config.view === 'free-time' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.freeTimeShowTomorrow !== false ? 2 : 1 })
+        // The up-next hero can sit on any future day (its feed is forward-
+        // unbounded), so its legend scopes to everything from today on.
+        : config.view === 'up-next' ? { start: today, end: addDays(today, 366) }
         : viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.agendaDaysAhead > 0 ? config.agendaDaysAhead : 14 });
     return buildLegend(events, window, timezone, t('calendar.publicHolidays'));
   }, [
     legendPlacement, events, timezone, today, t,
     config.view, config.startDay, config.scheduleStartAnchor, config.scheduleDaysToShow,
-    config.density, config.agendaDaysAhead, scale.width,
+    config.density, config.agendaDaysAhead, config.freeTimeShowTomorrow, scale.width,
   ]);
 
   // Current weather from hourly data
@@ -420,12 +451,30 @@ export default function FullscreenCalendarModule({
     [hourly, forecast, weatherPlacement],
   );
 
+  // Household rows for the week list. Only fetched while a toggle is on and
+  // the week list is the active view; the hook is a no-op otherwise.
+  const weekDates = useMemo(() => {
+    const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
+    return Array.from({ length: 7 }, (_, i) => toISODate(addDays(weekStart, i)));
+  }, [today, config.startDay]);
+  const wantsExtras = config.view === 'week-list';
+  const extras = useCalendarExtras(
+    { meals: wantsExtras && config.showMeals === true, chores: wantsExtras && config.showChores === true },
+    weekDates,
+  );
+
   const viewProps = useMemo<CalendarViewProps>(
-    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds }),
-    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds],
+    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people, extras }),
+    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people, extras],
   );
   const hasEvents = events.length > 0;
-  const isLoading = loading && !hasEvents;
+  // Views with something to say on an empty feed: the family grid and free
+  // time still draw every configured person, and a week list can be all
+  // meals and chores.
+  const hasContent = hasEvents
+    || ((config.view === 'family-grid' || config.view === 'free-time') && (people?.length ?? 0) > 0)
+    || (wantsExtras && hasExtras(extras, weekDates));
+  const isLoading = loading && !hasContent;
 
   // Failure \u2260 empty: while the shared calendar fetch is failing, the events
   // on screen are the kept last-good payload \u2014 badge them as saved rather
@@ -591,7 +640,10 @@ export default function FullscreenCalendarModule({
       <div className="fsc-content" style={{ flex: 1, minHeight: 0 }}>
         {isLoading ? (
           <SkeletonLoading scale={scale} />
-        ) : !hasEvents ? (
+        ) : neverLoaded || !hasContent ? (
+          // A fetch that has never succeeded is an outage even when the view
+          // has settings-derived content (people rows, meals/chores): drawing
+          // every person with zero events would read as a free week.
           <EmptyState scale={scale} view={config.view} t={t} fetchFailed={neverLoaded} />
         ) : (
           <AnimatePresence mode="wait">
@@ -609,6 +661,9 @@ export default function FullscreenCalendarModule({
               {config.view === 'month-grid' && <MemoMonthGridView {...viewProps} />}
               {config.view === 'day-timeline' && <MemoDayTimelineView {...viewProps} />}
               {config.view === 'agenda' && <MemoAgendaView {...viewProps} />}
+              {config.view === 'family-grid' && <MemoFamilyGridView {...viewProps} />}
+              {config.view === 'up-next' && <MemoUpNextView {...viewProps} />}
+              {config.view === 'free-time' && <MemoFreeTimeView {...viewProps} />}
             </motion.div>
           </AnimatePresence>
         )}

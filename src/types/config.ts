@@ -250,11 +250,26 @@ export interface ICloudSource {
   enabled: boolean;
 }
 
+/**
+ * A household member for the per-person calendar views (family grid, free
+ * time). `sourceIds` are the calendar sources (Google id, iCal/iCloud id)
+ * whose events belong to this person; a source assigned to nobody is shared
+ * by everyone. Optional, so a household that never sets people up still gets
+ * the per-source fallback those views render.
+ */
+export interface CalendarPerson {
+  id: string;
+  name: string;
+  color: string;
+  sourceIds: string[];
+}
+
 export interface CalendarSettings {
   googleCalendarId: string;
   googleCalendarIds: string[];
   icalSources: ICalSource[];
   icloudSources?: ICloudSource[];
+  people?: CalendarPerson[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')
@@ -566,7 +581,12 @@ export interface ClockConfig {
 }
 
 // Fullscreen calendar module config (Skylight-inspired ambient display)
-export type FullscreenCalendarView = 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda';
+export type FullscreenCalendarView =
+  | 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
+  | 'family-grid' | 'up-next' | 'free-time';
+// Time-grid hour range: the configured fixed hours, or a window of
+// `rollingHours` that slides with the clock so what is next stays full size.
+export type HourWindowMode = 'fixed' | 'rolling';
 export type CalendarDensity = 'cozy' | 'snug';
 export type FullscreenTypographySize =
   | 'small' | 'medium' | 'large' | 'extra-large' | '2x-large' | '3x-large' | '4x-large';
@@ -704,6 +724,12 @@ export interface FullscreenCalendarConfig {
   // Custom wording for empty days ("Free day!", "Leftovers"); '' = default.
   emptyDayText?: string;
 
+  // Time grids (schedule + day timeline): fixed configured hours, or a
+  // window that slides with the clock. Rolling starts one hour before now
+  // and always fits inside the configured fixed range's day.
+  hourWindow?: HourWindowMode;      // default 'fixed'
+  rollingHours?: number;            // 4-16, default 8; only with hourWindow 'rolling'
+
   // Schedule view
   scheduleDaysToShow: number;       // 1-7, 0 = auto
   scheduleHourStart: number;        // 0-23
@@ -714,6 +740,23 @@ export interface FullscreenCalendarConfig {
   // Week list view
   weekCollapsePastDays: boolean;
   weekShowDescription?: boolean;
+  // Household data on the week list: the day's planned meals (from the
+  // meal planner) and one aggregate chore row per day (from the chore chart).
+  showMeals?: boolean;              // default false
+  showChores?: boolean;             // default false
+
+  // Family grid view (people as rows, the week as columns)
+  familyShowEveryoneRow?: boolean;  // default true; shared events on their own row
+
+  // Up next view
+  upNextLaterCount?: number;        // 0-6, default 3: rows under the hero
+  upNextShowEarlier?: boolean;      // default true: today's finished / running events
+  upNextShowTomorrow?: boolean;     // default true
+
+  // Free time view
+  freeTimeHourStart?: number;       // 0-23, default 7
+  freeTimeHourEnd?: number;         // 1-24, default 22
+  freeTimeShowTomorrow?: boolean;   // default true
 
   // Month grid view
   monthShowWeekNumbers: boolean;

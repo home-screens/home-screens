@@ -155,7 +155,10 @@
       "weekList": "Week",
       "monthGrid": "Month",
       "dayTimeline": "Day",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "familyGrid": "Family",
+      "upNext": "Up next",
+      "freeTime": "Free time"
     },
     "zones": {
       "morning": "Morning",
@@ -172,7 +175,8 @@
       "eventTimed": "{title}, {start} to {end}",
       "eventTimedAtLocation": "{title}, {start} to {end}, at {location}",
       "monthCell": "{date}, {count} events",
-      "legend": "Calendar sources"
+      "legend": "Calendar sources",
+      "familyGrid": "Family week grid"
     },
     "fromTime": "From {time}",
     "untilTime": "Until {time}",
@@ -184,7 +188,66 @@
     "birthday": "Birthday",
     "birthdayWithAge": "Birthday · turns {age}",
     "birthdayShort": "Birthday",
-    "birthdayAgeShort": "turns {age}"
+    "birthdayAgeShort": "turns {age}",
+    "headerUpNext": "Up next",
+    "headerFreeTime": "Free time",
+    "everyone": "Everyone",
+    "thisWeekCount": {
+      "one": "{count} this week",
+      "other": "{count} this week"
+    },
+    "upNext": {
+      "next": "Next",
+      "now": "Now",
+      "laterToday": "Later today",
+      "alsoOn": "Also on {day}",
+      "earlier": "Earlier today",
+      "tomorrow": "Tomorrow, {day}",
+      "nothingElseToday": "Nothing else today",
+      "moreToday": {
+        "one": "{count} more today",
+        "other": "{count} more today"
+      },
+      "minutesLeft": {
+        "one": "{count} min left",
+        "other": "{count} min left"
+      },
+      "done": "Done"
+    },
+    "freeTime": {
+      "today": "Today",
+      "household": "Household",
+      "everyoneFree": "Everyone is free",
+      "nobodyFree": "No shared free time",
+      "rangeToday": "{range} today",
+      "noCommonTimeToday": "Nobody is free at the same time today",
+      "alsoToday": "Also {ranges}.",
+      "tomorrowFrom": "Tomorrow: {range}.",
+      "tomorrowNone": "Tomorrow: no shared free time.",
+      "tomorrow": "Tomorrow, {day}",
+      "freeAfter": "Free after {time}",
+      "freeUntil": "Free until {time}",
+      "busyAllDay": "Busy all day",
+      "minutes": {
+        "one": "{count} min",
+        "other": "{count} min"
+      },
+      "hours": "{hours} h",
+      "dayDone": "That's it for today",
+      "doneForToday": "Done for today"
+    },
+    "rollingWindow": {
+      "showing": "Showing {range}, follows the clock",
+      "earlierToday": {
+        "one": "{count} earlier today",
+        "other": "{count} earlier today"
+      }
+    },
+    "extras": {
+      "chores": "Chores",
+      "choresDone": "{done} of {total} chores done"
+    },
+    "peopleHint": "Add people under Settings > Calendar to give everyone their own row."
   },
   "weather": {
     "tomorrowShort": "Tmrw",

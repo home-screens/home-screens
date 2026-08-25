@@ -1,4 +1,4 @@
-import type { GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
+import type { CalendarPerson, GlobalSettings, ICalSource, ICloudSource, ScreensaverSettings, SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES } from '@/lib/sleep-timeline';
 
 /**
@@ -42,6 +42,7 @@ export interface CalendarState {
   selectedCalendarIds: string[];
   icalSources: ICalSource[];
   icloudSources: ICloudSource[];
+  people: CalendarPerson[];
   maxEvents: number;
   daysAhead: number;
   holidayCountry: string;
@@ -97,7 +98,7 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
-  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], maxEvents: 10, daysAhead: 7, holidayCountry: '', hideDeclined: false },
+  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], people: [], maxEvents: 10, daysAhead: 7, holidayCountry: '', hideDeclined: false },
   sleep: {
     sleepEnabled: false,
     idleDimEnabled: true,
@@ -196,6 +197,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       selectedCalendarIds: s.calendar.googleCalendarIds ?? (s.calendar.googleCalendarId ? [s.calendar.googleCalendarId] : []),
       icalSources: s.calendar.icalSources ?? [],
       icloudSources: s.calendar.icloudSources ?? [],
+      people: s.calendar.people ?? [],
       maxEvents: s.calendar.maxEvents ?? FORM_DEFAULTS.calendar.maxEvents,
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
@@ -244,6 +246,9 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       googleCalendarIds: calendar.selectedCalendarIds,
       icalSources: calendar.icalSources,
       icloudSources: calendar.icloudSources,
+      // Omitted while empty so a household that never set people up keeps
+      // the exact settings shape it had before the field existed.
+      ...(calendar.people.length > 0 ? { people: calendar.people } : {}),
       maxEvents: calendar.maxEvents,
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),

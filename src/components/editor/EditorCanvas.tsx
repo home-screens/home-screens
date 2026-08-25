@@ -144,6 +144,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       units: settings.weather.units,
       fullscreenTheme: settings.fullscreenTheme,
       timeFormat: settings.timeFormat,
+      calendarPeople: settings.calendar?.people,
     };
   }, [settings]);
 

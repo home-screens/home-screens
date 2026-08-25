@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, count } from './shared';
+import { has, count, lacks, matches, notMatches } from './shared';
 
 /**
  * Phase-1 batch rows for the fullscreen-calendar module — see
@@ -127,6 +127,39 @@ const LIVE_WEATHER = {
 
 /** Today's short weekday label, matching the schedule column-header format. */
 const TODAY_EEE = dayAt(0).toLocaleDateString('en-US', { weekday: 'short' });
+
+/** A timed event tomorrow morning: always upcoming, whatever the run time. */
+const TOMORROW_MORNING = [
+  { id: 'tm1', title: 'UPNEXT HERO', start: isoTimed(1, 9, 0), end: isoTimed(1, 10, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  { id: 'tm2', title: 'LATER EVENT', start: isoTimed(1, 11, 0), end: isoTimed(1, 12, 0), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+];
+
+/** The shared running event (today 00:01 to tomorrow 23:59) plus tomorrow's hero. */
+const RUNNING_PLUS_TOMORROW = [
+  { id: 'rn1', title: 'RUNNING NOW', start: isoTimed(0, 0, 1), end: isoTimed(1, 23, 59), allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+  ...TOMORROW_MORNING.slice(0, 1),
+];
+
+/** A running event today (so the hero is today's) plus an all-day event tomorrow. */
+const RUNNING_PLUS_TOMORROW_ALLDAY = [
+  RUNNING_PLUS_TOMORROW[0],
+  { id: 'ta1', title: 'TOMORROW ALLDAY', start: isoDate(1), end: isoDate(2), allDay: true, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha' },
+];
+
+/** One event this week with no source id: unclaimed, so it lands on the Everyone row. */
+const UNCLAIMED_WEEK = [
+  { id: 'uc1', title: 'SHARED EVENT', start: isoTimed(0, 10, 0), end: isoTimed(0, 11, 0), allDay: false, calendarColor: BLUE },
+];
+
+/** Parse a rolling-window strip label ("2 PM", "12 AM", "14:00") to an hour 0..23. */
+function hourOfLabel(label: string): number {
+  const m24 = label.match(/^(\d{1,2}):00$/);
+  if (m24) return Number(m24[1]);
+  const m12 = label.match(/^(\d{1,2}) (AM|PM)$/);
+  if (!m12) throw new Error(`unexpected hour label ${label}`);
+  const h = Number(m12[1]) % 12;
+  return m12[2] === 'PM' ? h + 12 : h;
+}
 
 // --- The matrix ------------------------------------------------------------
 
@@ -619,5 +652,155 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => {
       await expect(mod.locator('[role="list"][aria-label="Calendar sources"]')).toContainText('Personal');
     },
+  },
+
+  // ================= ROLLING HOURS (schedule + day timeline) =================
+
+  {
+    // A rolling window renders its footer strip; the fixed default never does.
+    type: 'fullscreen-calendar', name: 'hour-window-rolling', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'schedule', hourWindow: 'rolling' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-rolling-window]')).toContainText('Showing');
+    },
+  },
+  {
+    // The strip names the window, so its span is the configured length at
+    // any run time: 4 hours here, modulo the midnight clamp.
+    type: 'fullscreen-calendar', name: 'rolling-hours-4', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'day-timeline', hourWindow: 'rolling', rollingHours: 4 },
+    expect: async (mod) => {
+      const strip = mod.locator('[data-rolling-window]');
+      await expect(strip).toContainText('Showing');
+      const text = (await strip.textContent()) ?? '';
+      const m = text.match(/Showing (.+?) – (.+?),/);
+      expect(m, text).not.toBeNull();
+      const span = (hourOfLabel(m![2].trim()) - hourOfLabel(m![1].trim()) + 24) % 24;
+      expect(span).toBe(4);
+    },
+  },
+
+  // ================= WEEK LIST HOUSEHOLD ROWS =================
+
+  {
+    // Tonight's planned dinner from the shared meals store renders as a meal row.
+    type: 'fullscreen-calendar', name: 'week-show-meals', kind: 'networked', stubKey: 'calendar', seed: 'meals',
+    config: { view: 'week-list', showMeals: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-meal]').first()).toContainText('Spaghetti Night');
+    },
+  },
+  {
+    // One aggregate chore row per day: the seeded daily chore is 0/1 done.
+    type: 'fullscreen-calendar', name: 'week-show-chores', kind: 'networked', stubKey: 'calendar', seed: 'chores',
+    config: { view: 'week-list', showChores: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-chores]').first()).toContainText('0/1');
+    },
+  },
+
+  // ================= FAMILY GRID =================
+
+  {
+    // An event with no source is unclaimed: it lands on the Everyone row.
+    type: 'fullscreen-calendar', name: 'family-everyone-row', kind: 'networked', stubKey: 'calendar',
+    stubBody: UNCLAIMED_WEEK,
+    config: { view: 'family-grid', familyShowEveryoneRow: true },
+    expect: async (mod) => { await has('Everyone')(mod); await has('SHARED EVENT')(mod); },
+  },
+  {
+    // With the Everyone row off, unclaimed events have no row and draw nowhere.
+    type: 'fullscreen-calendar', name: 'family-everyone-row-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: UNCLAIMED_WEEK,
+    config: { view: 'family-grid', familyShowEveryoneRow: false },
+    expect: async (mod) => { await lacks(TODAY_EEE, 'Everyone')(mod); await expect(mod).not.toContainText('SHARED EVENT'); },
+  },
+  {
+    // People from settings become rows even when their calendars are empty
+    // this week; the stub's 'src-a' event belongs to Alpha Person.
+    type: 'fullscreen-calendar', name: 'family-people-rows', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_MORNING,
+    settings: { calendar: {
+      googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], maxEvents: 50, daysAhead: 7,
+      people: [
+        { id: 'p1', name: 'Alpha Person', color: '#db2777', sourceIds: ['src-a'] },
+        { id: 'p2', name: 'Quiet Person', color: '#059669', sourceIds: ['src-none'] },
+      ],
+    } },
+    config: { view: 'family-grid' },
+    expect: async (mod) => {
+      await has('Alpha Person')(mod);
+      await has('Quiet Person')(mod);
+      await expect(mod.locator('[role="rowheader"]')).toHaveCount(2);
+    },
+  },
+
+  // ================= UP NEXT =================
+
+  {
+    // Rows after the hero come from the hero's own day, capped by the count.
+    type: 'fullscreen-calendar', name: 'up-next-later-count', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_MORNING,
+    config: { view: 'up-next', upNextLaterCount: 3 },
+    expect: async (mod) => { await has('UPNEXT HERO')(mod); await has('LATER EVENT')(mod); },
+  },
+  {
+    // Tomorrow is off so the later-count effect is isolated: with the hero on
+    // tomorrow, the Tomorrow section would otherwise re-list what the count hid.
+    type: 'fullscreen-calendar', name: 'up-next-later-count-0', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_MORNING,
+    config: { view: 'up-next', upNextLaterCount: 0, upNextShowTomorrow: false },
+    expect: lacks('UPNEXT HERO', 'LATER EVENT'),
+  },
+  {
+    // A running event is listed under Earlier while tomorrow's is the hero.
+    type: 'fullscreen-calendar', name: 'up-next-show-earlier', kind: 'networked', stubKey: 'calendar',
+    stubBody: RUNNING_PLUS_TOMORROW,
+    config: { view: 'up-next', upNextShowEarlier: true },
+    expect: async (mod) => { await has('UPNEXT HERO')(mod); await has('RUNNING NOW')(mod); },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'up-next-show-earlier-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: RUNNING_PLUS_TOMORROW,
+    config: { view: 'up-next', upNextShowEarlier: false },
+    expect: lacks('UPNEXT HERO', 'RUNNING NOW'),
+  },
+  {
+    // With today's running event as the hero, tomorrow gets its own section.
+    type: 'fullscreen-calendar', name: 'up-next-show-tomorrow', kind: 'networked', stubKey: 'calendar',
+    stubBody: RUNNING_PLUS_TOMORROW_ALLDAY,
+    config: { view: 'up-next', upNextShowTomorrow: true },
+    expect: async (mod) => { await has('RUNNING NOW')(mod); await has('TOMORROW ALLDAY')(mod); },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'up-next-show-tomorrow-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: RUNNING_PLUS_TOMORROW_ALLDAY,
+    config: { view: 'up-next', upNextShowTomorrow: false },
+    expect: lacks('RUNNING NOW', 'TOMORROW ALLDAY'),
+  },
+
+  // ================= FREE TIME =================
+
+  {
+    // The hour axis follows the configured window: a noon start has no 9 AM label.
+    type: 'fullscreen-calendar', name: 'free-time-hours', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'free-time', freeTimeHourStart: 12, freeTimeHourEnd: 18 },
+    expect: async (mod) => { await matches(/12 PM/)(mod); await notMatches(/9 AM/)(mod); await notMatches(/8 PM/)(mod); },
+  },
+  {
+    // Free gaps are hatched spans; the all-day-spanning stub event leaves none.
+    type: 'fullscreen-calendar', name: 'free-time-end-hour', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'free-time', freeTimeHourStart: 7, freeTimeHourEnd: 12 },
+    expect: async (mod) => { await matches(/11 AM/)(mod); await notMatches(/1 PM/)(mod); },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'free-time-show-tomorrow', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'free-time', freeTimeShowTomorrow: true },
+    expect: matches(/Tomorrow/),
+  },
+  {
+    type: 'fullscreen-calendar', name: 'free-time-show-tomorrow-off', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'free-time', freeTimeShowTomorrow: false },
+    expect: async (mod) => { await has('Today')(mod); await notMatches(/Tomorrow/)(mod); },
   },
 ];

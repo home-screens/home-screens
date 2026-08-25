@@ -320,6 +320,7 @@
         "disconnect": "Verbindung trennen",
         "selectCalendars": "Kalender zur Anzeige auswählen",
         "noCalendars": "Keine Kalender gefunden.",
+        "notInListing": "Nicht mehr in der Google-Kalenderliste",
         "primaryBadge": "(primär)",
         "hideDeclinedLabel": "Abgesagte Termine ausblenden",
         "credentialsRequired": "Google-OAuth-Anmeldedaten sind erforderlich, um deinen Kalender zu verbinden.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console.",
         "copyCode": "Code kopieren",
-        "codeCopied": "Kopiert!"
+        "codeCopied": "Kopiert!",
+        "googleOnly": "Nur Google"
       },
       "icloud": {
         "heading": "iCloud-Kalender",
@@ -371,7 +373,26 @@
         "updatedNow": "Gerade aktualisiert",
         "notUpdating": "Wird nicht aktualisiert",
         "errorSince": "{error} · zuletzt erfolgreich {time}"
-      }
+      },
+      "people": {
+        "heading": "Personen",
+        "help": "Gib jedem Familienmitglied einen Namen und wähle seine Kalender. Familienraster und Freie Zeit zeigen eine Zeile pro Person; Kalender ohne Person gelten als gemeinsam.",
+        "namePlaceholder": "Name (z. B. Ella)",
+        "addPerson": "+ Person hinzufügen",
+        "calendars": "Kalender",
+        "noSources": "Verbinde zuerst oben einen Kalender und wähle dann, welche zu dieser Person gehören.",
+        "noCalendarsPicked": "Keine Kalender gewählt",
+        "remove": "{name} entfernen",
+        "noPeople": "Noch keine Personen."
+      },
+      "areas": {
+        "sources": "Woher die Termine kommen",
+        "sourcesDescription": "Verbinde die Kalender, die das Display lesen soll. Jeder zeigt, ob er aktualisiert wird.",
+        "show": "Was angezeigt wird",
+        "showDescription": "Grenzen, von denen jedes Kalendermodul ausgeht. Ein Modul kann mit eigenen Filtern weiter eingrenzen."
+      },
+      "heading": "Kalender",
+      "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2558,7 +2579,26 @@
       "showLegend": "Quellen-Legende",
       "legendOff": "Aus",
       "legendHeader": "Oben im Kalender",
-      "legendFooter": "Unten im Kalender"
+      "legendFooter": "Unten im Kalender",
+      "viewFamilyGrid": "Familienraster (Personen × Woche)",
+      "viewUpNext": "Als Nächstes",
+      "viewFreeTime": "Freie Zeit",
+      "hourWindow": "Angezeigte Stunden",
+      "hourWindowFixed": "Feste Stunden",
+      "hourWindowRolling": "Der Uhr folgen",
+      "rollingHours": "Stunden im Fenster",
+      "showMeals": "Geplante Mahlzeiten anzeigen",
+      "showChores": "Aufgaben-Fortschritt anzeigen",
+      "showEveryoneRow": "Zeile „Alle“ für gemeinsame Termine",
+      "laterCount": "Termine nach dem nächsten anzeigen",
+      "showEarlier": "Frühere Termine von heute anzeigen",
+      "showTomorrow": "Morgen anzeigen",
+      "peopleHint": "Noch keine Personen eingerichtet, daher bekommt jeder Kalender eine eigene Zeile.",
+      "peopleConfigured": {
+        "one": "{count} Person eingerichtet.",
+        "other": "{count} Personen eingerichtet."
+      },
+      "peopleLink": "Personen verwalten"
     },
     "fullscreen-chore-chart": {
       "view": "Ansicht",

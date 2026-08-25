@@ -155,7 +155,10 @@
       "weekList": "Uge",
       "monthGrid": "Måned",
       "dayTimeline": "Dag",
-      "agenda": "Agenda"
+      "agenda": "Agenda",
+      "familyGrid": "Familie",
+      "upNext": "Næste",
+      "freeTime": "Fritid"
     },
     "zones": {
       "morning": "Morgen",
@@ -172,7 +175,8 @@
       "eventTimed": "{title}, {start} til {end}",
       "eventTimedAtLocation": "{title}, {start} til {end}, ved {location}",
       "monthCell": "{date}, {count} begivenheder",
-      "legend": "Kalenderkilder"
+      "legend": "Kalenderkilder",
+      "familyGrid": "Familiens ugeoversigt"
     },
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
@@ -184,7 +188,66 @@
     "birthday": "Fødselsdag",
     "birthdayWithAge": "Fødselsdag · fylder {age}",
     "birthdayShort": "Fødselsdag",
-    "birthdayAgeShort": "fylder {age}"
+    "birthdayAgeShort": "fylder {age}",
+    "headerUpNext": "Næste",
+    "headerFreeTime": "Fritid",
+    "everyone": "Alle",
+    "thisWeekCount": {
+      "one": "{count} denne uge",
+      "other": "{count} denne uge"
+    },
+    "upNext": {
+      "next": "Næste",
+      "now": "Nu",
+      "laterToday": "Senere i dag",
+      "alsoOn": "Også {day}",
+      "earlier": "Tidligere i dag",
+      "tomorrow": "I morgen, {day}",
+      "nothingElseToday": "Ikke mere i dag",
+      "moreToday": {
+        "one": "{count} mere i dag",
+        "other": "{count} mere i dag"
+      },
+      "minutesLeft": {
+        "one": "{count} min tilbage",
+        "other": "{count} min tilbage"
+      },
+      "done": "Færdig"
+    },
+    "freeTime": {
+      "today": "I dag",
+      "household": "Husstand",
+      "everyoneFree": "Alle har fri",
+      "nobodyFree": "Ingen fælles fritid",
+      "rangeToday": "{range} i dag",
+      "noCommonTimeToday": "Ingen har fri samtidig i dag",
+      "alsoToday": "Også {ranges}.",
+      "tomorrowFrom": "I morgen: {range}.",
+      "tomorrowNone": "I morgen: ingen fælles fritid.",
+      "tomorrow": "I morgen, {day}",
+      "freeAfter": "Fri efter {time}",
+      "freeUntil": "Fri indtil {time}",
+      "busyAllDay": "Optaget hele dagen",
+      "minutes": {
+        "one": "{count} min",
+        "other": "{count} min"
+      },
+      "hours": "{hours} t",
+      "dayDone": "Det var alt for i dag",
+      "doneForToday": "Færdig for i dag"
+    },
+    "rollingWindow": {
+      "showing": "Viser {range}, følger uret",
+      "earlierToday": {
+        "one": "{count} tidligere i dag",
+        "other": "{count} tidligere i dag"
+      }
+    },
+    "extras": {
+      "chores": "Pligter",
+      "choresDone": "{done} af {total} pligter klaret"
+    },
+    "peopleHint": "Tilføj personer under Indstillinger > Kalender, så alle får deres egen række."
   },
   "weather": {
     "tomorrowShort": "I mrg",

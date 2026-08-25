@@ -155,7 +155,10 @@
       "weekList": "Semana",
       "monthGrid": "Mes",
       "dayTimeline": "Día",
-      "agenda": "Lista"
+      "agenda": "Lista",
+      "familyGrid": "Familia",
+      "upNext": "A continuación",
+      "freeTime": "Tiempo libre"
     },
     "zones": {
       "morning": "Mañana",
@@ -172,7 +175,8 @@
       "eventTimed": "{title}, de {start} a {end}",
       "eventTimedAtLocation": "{title}, de {start} a {end}, en {location}",
       "monthCell": "{date}, {count} eventos",
-      "legend": "Fuentes del calendario"
+      "legend": "Fuentes del calendario",
+      "familyGrid": "Cuadrícula semanal de la familia"
     },
     "fromTime": "Desde las {time}",
     "untilTime": "Hasta las {time}",
@@ -184,7 +188,66 @@
     "birthday": "Cumpleaños",
     "birthdayWithAge": "Cumpleaños · cumple {age}",
     "birthdayShort": "cumple años",
-    "birthdayAgeShort": "cumple {age}"
+    "birthdayAgeShort": "cumple {age}",
+    "headerUpNext": "A continuación",
+    "headerFreeTime": "Tiempo libre",
+    "everyone": "Todos",
+    "thisWeekCount": {
+      "one": "{count} esta semana",
+      "other": "{count} esta semana"
+    },
+    "upNext": {
+      "next": "Siguiente",
+      "now": "Ahora",
+      "laterToday": "Más tarde hoy",
+      "alsoOn": "También el {day}",
+      "earlier": "Antes hoy",
+      "tomorrow": "Mañana, {day}",
+      "nothingElseToday": "Nada más por hoy",
+      "moreToday": {
+        "one": "{count} más hoy",
+        "other": "{count} más hoy"
+      },
+      "minutesLeft": {
+        "one": "Queda {count} min",
+        "other": "Quedan {count} min"
+      },
+      "done": "Hecho"
+    },
+    "freeTime": {
+      "today": "Hoy",
+      "household": "Hogar",
+      "everyoneFree": "Todos están libres",
+      "nobodyFree": "Sin tiempo libre en común",
+      "rangeToday": "{range} hoy",
+      "noCommonTimeToday": "Hoy nadie está libre a la vez",
+      "alsoToday": "También {ranges}.",
+      "tomorrowFrom": "Mañana: {range}.",
+      "tomorrowNone": "Mañana: sin tiempo libre en común.",
+      "tomorrow": "Mañana, {day}",
+      "freeAfter": "Libre después de las {time}",
+      "freeUntil": "Libre hasta las {time}",
+      "busyAllDay": "Ocupado todo el día",
+      "minutes": {
+        "one": "{count} min",
+        "other": "{count} min"
+      },
+      "hours": "{hours} h",
+      "dayDone": "Eso es todo por hoy",
+      "doneForToday": "Listo por hoy"
+    },
+    "rollingWindow": {
+      "showing": "Mostrando {range}, sigue el reloj",
+      "earlierToday": {
+        "one": "{count} antes hoy",
+        "other": "{count} antes hoy"
+      }
+    },
+    "extras": {
+      "chores": "Tareas",
+      "choresDone": "{done} de {total} tareas hechas"
+    },
+    "peopleHint": "Añade personas en Ajustes > Calendario para que cada uno tenga su propia fila."
   },
   "weather": {
     "tomorrowShort": "Mñn",

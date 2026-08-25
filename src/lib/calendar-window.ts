@@ -96,9 +96,12 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
     // convention so their leading days are always inside the fetch.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
     if (view === 'month-grid') return monthGridWindow(now, weekStartsOn);
-    if (view === 'week-list') {
+    if (view === 'week-list' || view === 'family-grid') {
       return { start: startOfWeek(now, { weekStartsOn }), end: endOfWeek(now, { weekStartsOn }) };
     }
+    // Up next lists today's finished events under "Earlier" and free time
+    // draws the whole day's busy blocks, so both need today from midnight.
+    if (view === 'up-next' || view === 'free-time') return fromStartOfToday(now);
     if (view === 'schedule') {
       // The anchor decides the first column; both non-default anchors can
       // start away from today (past week days, a future Saturday), so the

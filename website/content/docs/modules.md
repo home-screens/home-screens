@@ -51,7 +51,7 @@ Each category in the palette groups related modules, with a count next to its na
 
 Ambient, always-on displays that fill the entire canvas. Position, size, and style controls are hidden because these modules always occupy the whole display.
 
-- **Full-Screen Calendar** — 5 views (schedule, week-list, month-grid, day-timeline, agenda), Skylight-inspired
+- **Full-Screen Calendar** — 8 views (schedule, week-list, month-grid, day-timeline, agenda, family-grid, up-next, free-time), Skylight-inspired, with a rolling hour window on the time grids and planned meals and chore progress on the week list
 - **Full-Screen Weather** — 5 views (panorama, almanac, ambient, week ahead, hour by hour), with the background tinted by the current conditions and a portrait and landscape layout for each view
 - **Full-Screen Chore Chart** — 2 views (the chore board and a rewards store), kid-friendly and ambient
 - **Full-Screen Meal Planner** — 4 views for the weekly meal plan

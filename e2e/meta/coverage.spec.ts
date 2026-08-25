@@ -633,6 +633,7 @@ const DISCRIMINATOR_UNION_DECISIONS: Record<string, string> = {
   AffirmationsCategory: 'content-pool selection, not a render mode',
   CalendarDensity: 'spacing scale, not a render mode; field-level row suffices',
   EventOverlapMode: 'two layout strategies; field-level row (columns vs stacked) covers both',
+  HourWindowMode: 'two hour-range strategies; the rolling variant row plus the fixed default covers both',
   EventTapStyle: 'tap overlay style exercised in interactive.spec.ts, not a static render mode',
   FullscreenTypographySize: 'CSS type scale, not render modes; field-level row (2 sizes) suffices',
   GarbageFrequency: 'weekly/biweekly cadence; the biweekly variant row covers the non-default member',

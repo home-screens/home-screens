@@ -17,8 +17,11 @@ import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { CountdownPill, EventProgressBar } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig, type TimeFormat } from '@/types/config';
+import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
+import { initialsOf } from '@/lib/calendar-people';
+import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, extras }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -58,6 +61,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
       .sort((a, b) => compareEventStarts(a.ev.start, b.ev.start));
 
     const shouldCollapse = isPast && config.weekCollapsePastDays;
+    const dayExtras = extras?.byDate[toISODate(day)];
     const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
     // Today beats the weekend shade; a day rule beats both (it is merged last).
     const dayFill = isToday && showTodayBg
@@ -127,8 +131,13 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
             <EventRow key={ev.id} event={ev} timezone={timezone} segment={segment} rowDate={day} now={now} config={config} weather={weather} fontSize={fontSize} scale={scale} showDescription={showDescription} timeFormat={timeFormat} t={t} locale={locale} failingSourceIds={failingSourceIds} />
           ))}
 
+          {/* Household rows: planned meals, then the day's chore progress */}
+          {dayExtras && extras && (
+            <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} t={t} />
+          )}
+
           {/* Empty day */}
-          {dayEvents.length === 0 && (
+          {dayEvents.length === 0 && !dayExtras && (
             <div style={{
               padding: `${scale.bu * 0.7}px 0`,
               fontSize: fontSize * 0.95,
@@ -177,6 +186,73 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
       }}
     >
       {days.map(renderDay)}
+    </div>
+  );
+}
+
+/**
+ * Meals and chores under a day's events. The chore row is one aggregate
+ * line (done/total, a bar, and stacked initials for everyone with a chore
+ * that day): the household has five kids, and a per-kid line each would
+ * crowd out the events.
+ */
+function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
+  day: DayExtras;
+  members: ExtrasIndex['members'];
+  fontSize: number;
+  scale: CalendarScale;
+  hasEvents: boolean;
+  t: TranslateFn;
+}) {
+  const rowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', gap: scale.bu * 0.8,
+    padding: `${scale.bu * 0.45}px ${scale.bu * 0.8}px`,
+    borderRadius: 6,
+    background: 'var(--cal-surface-alt)',
+    marginTop: scale.bu * 0.35,
+  };
+  const chores = day.chores;
+  const avatarSize = fontSize * 1.3;
+  return (
+    <div data-day-extras="" style={{ marginTop: hasEvents ? scale.bu * 0.5 : 0, borderTop: hasEvents ? '1px solid var(--cal-border-subtle)' : undefined, paddingTop: hasEvents ? scale.bu * 0.3 : 0 }}>
+      {day.meals.map((meal) => (
+        <div key={meal.slot} data-day-meal="" style={{ ...rowStyle, border: '1px dashed var(--cal-border)' }}>
+          <span style={{ fontSize: fontSize * 0.65, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cal-text-tertiary)', width: fontSize * 4.2, flexShrink: 0 }}>
+            {t(getMealSlotLabelKey(meal.slot))}
+          </span>
+          <span style={{ fontSize: fontSize * 1.0, fontWeight: 600, color: 'var(--cal-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {meal.emoji ? `${meal.emoji} ` : ''}{meal.name}
+          </span>
+        </div>
+      ))}
+      {chores && (
+        <div data-day-chores="" style={rowStyle} aria-label={t('fullscreen-calendar.extras.choresDone', { done: chores.done, total: chores.total })}>
+          <span style={{ display: 'flex', flexShrink: 0 }} aria-hidden="true">
+            {chores.memberIds.map((id, i) => {
+              const m = members[id];
+              return (
+                <span key={id} style={{
+                  width: avatarSize, height: avatarSize, borderRadius: '50%',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  background: m?.color ?? '#6b7280', color: '#fff', fontSize: fontSize * 0.55, fontWeight: 700,
+                  border: '1.5px solid var(--cal-bg)', marginLeft: i === 0 ? 0 : -avatarSize * 0.3,
+                }}>
+                  {initialsOf(m?.name ?? '?')}
+                </span>
+              );
+            })}
+          </span>
+          <span style={{ flex: 1, fontSize: fontSize * 0.95, color: 'var(--cal-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {t('fullscreen-calendar.extras.chores')}
+          </span>
+          <span style={{ fontSize: fontSize * 0.85, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: chores.done === chores.total ? 'var(--cal-accent)' : 'var(--cal-text-primary)' }}>
+            {chores.done}/{chores.total}
+          </span>
+          <span style={{ width: fontSize * 5, height: Math.max(3, fontSize * 0.4), borderRadius: 3, background: 'var(--cal-border)', overflow: 'hidden', flexShrink: 0 }}>
+            <span style={{ display: 'block', height: '100%', width: `${Math.round((chores.done / chores.total) * 100)}%`, background: 'var(--cal-accent)' }} />
+          </span>
+        </div>
+      )}
     </div>
   );
 }

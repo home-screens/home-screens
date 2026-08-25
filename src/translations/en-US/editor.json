@@ -320,6 +320,7 @@
         "disconnect": "Disconnect",
         "selectCalendars": "Select calendars to display",
         "noCalendars": "No calendars found.",
+        "notInListing": "Not in your Google calendar list anymore",
         "primaryBadge": "(primary)",
         "hideDeclinedLabel": "Hide events you declined",
         "credentialsRequired": "Google OAuth credentials are required to connect your calendar.",
@@ -336,7 +337,8 @@
         "verifyCredentialsPart3": ".",
         "signInHelp": "Sign in to automatically see your calendars. Requires a Google OAuth client of type \"TVs and Limited Input devices\" in the Cloud Console.",
         "copyCode": "Copy code",
-        "codeCopied": "Copied!"
+        "codeCopied": "Copied!",
+        "googleOnly": "Google only"
       },
       "icloud": {
         "heading": "iCloud Calendar",
@@ -371,7 +373,26 @@
         "updatedNow": "Updated just now",
         "notUpdating": "Not updating",
         "errorSince": "{error} · last worked {time}"
-      }
+      },
+      "people": {
+        "heading": "People",
+        "help": "Give each family member a name and pick their calendars. The family grid and free time views show one row per person; calendars picked for nobody count as shared.",
+        "namePlaceholder": "Name (e.g. Ella)",
+        "addPerson": "+ Add person",
+        "calendars": "Calendars",
+        "noSources": "Connect a calendar above first, then pick which ones belong to this person.",
+        "noCalendarsPicked": "No calendars picked",
+        "remove": "Remove {name}",
+        "noPeople": "No people yet."
+      },
+      "areas": {
+        "sources": "Where events come from",
+        "sourcesDescription": "Connect the calendars the display should read. Each one shows whether it is updating.",
+        "show": "What to show",
+        "showDescription": "Limits every calendar module starts from. A module can narrow further with its own filters."
+      },
+      "heading": "Calendar",
+      "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows."
     },
     "dataPage": {
       "intervalOptions": {
@@ -2558,7 +2579,26 @@
       "showLegend": "Source legend",
       "legendOff": "Off",
       "legendHeader": "Top of calendar",
-      "legendFooter": "Bottom of calendar"
+      "legendFooter": "Bottom of calendar",
+      "viewFamilyGrid": "Family Grid (People by Week)",
+      "viewUpNext": "Up Next",
+      "viewFreeTime": "Free Time",
+      "hourWindow": "Hours shown",
+      "hourWindowFixed": "Fixed hours",
+      "hourWindowRolling": "Follow the clock",
+      "rollingHours": "Hours in the window",
+      "showMeals": "Show planned meals",
+      "showChores": "Show chore progress",
+      "showEveryoneRow": "Everyone row for shared events",
+      "laterCount": "Events listed after the next one",
+      "showEarlier": "Show today's earlier events",
+      "showTomorrow": "Show tomorrow",
+      "peopleHint": "No people set up yet, so each calendar gets its own row.",
+      "peopleConfigured": {
+        "one": "{count} person set up.",
+        "other": "{count} people set up."
+      },
+      "peopleLink": "Manage people"
     },
     "fullscreen-chore-chart": {
       "view": "View",
