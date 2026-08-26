@@ -35,7 +35,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, or `free-time` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | `"#EA580C"` | Accent color for event indicators and highlights |
+| `accentColor` | string | — | Accent color for event indicators and highlights. Leave empty to follow the theme's own accent; set a color to pin it |
 | `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
 | `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
 | `weatherPlacement` | string | `"header"` | Where weather appears: `off`, `header` (temperature pill at the top), `days` (daily forecast on day headers), `events` (forecast for each event's start time), or `days-and-events`. Day placement renders in the schedule, week list, and agenda views; event placement in week list and agenda. Views without that surface fall back to the header pill, so weather never disappears when switching views |
@@ -46,7 +46,7 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `showProgressBar` | boolean | `false` | Week list and agenda views: show a progress bar on events happening right now |
 | `emptyDayText` | string | — | Custom wording for days with no events (for example "Free day!"); empty = the standard message |
 | `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
-| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
+| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `false` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `todayHighlightStyle` | string | `"full"` | How strongly today is highlighted: `full` (accent-tinted fill), `subtle` (faint background), `minimal` (marker only), or `off` |
 | `eventOverlap` | string | `"columns"` | How overlapping events are laid out in schedule and day timeline views: `columns` (side-by-side, with a "+N" indicator when events don't fit) or `stacked` (cascading overlap) |
@@ -83,6 +83,10 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `agendaShowFinishedToday` | boolean | `false` | Agenda view keeps events that already ended today on the list (dimmed) until midnight instead of dropping them as they end |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title in agenda view |
 | `agendaSeparators` | string | `"none"` | Boundary markers in agenda view: `none`, `weeks` (a "Week of" rule at each week start), or `weeks-and-months` (plus a month divider; the month marker wins when both land on the same day) |
+| `titleFilter` | object | — | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
+| `showLegend` | string | `"off"` | A color key naming each calendar the module is showing: `off`, `header`, or `footer` |
+| `eventRules` | array | — | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
+| `dayRules` | array | — | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
 
 In the schedule and day timeline views, descriptions only draw when the event block is tall enough to fit them, so short events show the title alone even with the toggle on.
 
@@ -112,11 +116,11 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
 | `allowDisplayComplete` | boolean | `true` | Let anyone tap a chore on the display itself to mark it done |
-| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
+| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `true` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | `"#f59e0b"` | Accent color for highlights and active time-of-day |
+| `accentColor` | string | — | Accent color for highlights and active time-of-day. Leave empty to follow the theme's own accent; set a color to pin it |
 
 **Layout details:**
 
@@ -136,12 +140,12 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `view` | string | `"week"` | Display style: `week`, `today`, `menu-board`, or `next-meal` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+| `accentColor` | string | — | Accent color for highlights. Leave empty to follow the theme's own accent; set a color to pin it |
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
 | `showEmoji` | boolean | `true` | Show meal emoji |
 | `showDifficulty` | boolean | `false` | Show difficulty indicator |
-| `theme` | string | — | Color palette: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen |
+| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
@@ -212,7 +216,7 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
-| `theme` | string | — | Color palette for the clock overlay and empty states: `linen`, `paper`, `mist` (light) or `charcoal`, `midnight`, `slate` (dark). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
+| `theme` | string | — | Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
 
 {% callout type="note" title="Immich source" %}
 The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive — selecting one clears the other.
@@ -275,6 +279,12 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |
+| `titleFilter` | object | — | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
+| `showLegend` | string | `"off"` | A color key naming each calendar the module is showing: `off`, `header`, or `footer` |
+| `eventRules` | array | — | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
+| `dayRules` | array | — | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
+| `dimPastEvents` | boolean | `false` | Daily view: fade events in today's column that have already ended. Deliberately different from the Full-Screen Calendar's same-named option, which fades whole past days and defaults on |
+| `showNowRule` | boolean | `false` | Daily view: a thin accent rule between today's finished and upcoming events |
 
 Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/getting-started#calendar-setup). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
 
@@ -1037,6 +1047,57 @@ With TomTom, each origin and destination address is looked up on a map first, so
 {% /callout %}
 
 ---
+
+## Event and day rules
+
+The **Calendar** and **Full-Screen Calendar** modules share two small rules engines that change how the calendar looks without touching the events themselves. Both are off until you add a rule, and both are edited under the module's settings in the editor.
+
+**Event rules** (`eventRules`) restyle or hide individual events. Each rule is a match plus the changes to apply:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Stable identifier for the rule |
+| `match` | object | What the rule applies to (see below) |
+| `hide` | boolean | Drop matching events from the view entirely |
+| `color` | string | Replace the calendar's color for these events |
+| `opacity` | number | 0.1–1, multiplied with whatever fade the view already applies |
+| `icon` | string | An emoji or short string shown in place of the color dot |
+| `title` | string | Replace the displayed title |
+
+**Day rules** (`dayRules`) tint whole days and add badges to them, on the views that draw days as cells or columns:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Stable identifier for the rule |
+| `match` | object | Which days the rule applies to (see below) |
+| `background` | string | A color, or `auto` to tint the day from its own events' colors |
+| `opacity` | number | 0.1–1, applied to the day |
+| `borderColor` | string | Outline color for the day |
+| `badgeIcon`, `badgeText`, `badgeColor` | string | A small marker drawn on the day |
+
+**Matching an event** — every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
+
+| Field | Type | Description |
+|---|---|---|
+| `text` | string | Matched against the title, case-insensitively |
+| `textMatch` | string | How `text` is compared: `contains` (default), `exact`, or `regex` |
+| `sourceIds` | array | Any of these calendar sources (a Google calendar id, an iCal or iCloud source id, or `holidays`) |
+| `location` | string | Case-insensitive substring of the event's location |
+| `allDay` | boolean | All-day events only, or timed events only |
+| `past` | boolean | `true` = already finished, `false` = upcoming or running now |
+| `kind` | string | `birthday`, `holiday`, or `event` |
+
+**Matching a day** uses the same idea:
+
+| Field | Type | Description |
+|---|---|---|
+| `when` | string | `today`, `past`, or `future` |
+| `daysOfWeek` | array | Day numbers where 0 is Sunday; empty or unset means every day |
+| `withEvents` | string | `any` (at least one event), `none` (an empty day), or `matching` (has an event matching `eventMatch`) |
+| `eventMatch` | object | An event match, used when `withEvents` is `matching` |
+
+Rules run from the top of the list down, and **the first rule to set a property wins for that property** — so list order is priority, and a later rule can still fill in something an earlier one left alone.
+
 
 ## Module Styling
 

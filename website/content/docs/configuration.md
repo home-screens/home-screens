@@ -28,6 +28,9 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
+| `data/routines.json` | Saved timer routines (the steps, not a running timer) | `/api/timers/routines` |
+| `data/timer-session.json` | The one timer running right now, as a snapshot plus timestamps so displays can count down on their own | `/api/timers/session` |
+| `data/google-picker-tokens.json` | Google Photos Picker tokens, kept separate from the Calendar tokens above | (internal) |
 | `data/backup-state.json` | Last-backup and last-dismissed timestamps behind the backup reminder | `/api/backup` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
@@ -201,11 +204,26 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   googleCalendarIds: string[]      // Multiple calendar IDs
   icalSources: ICalSource[]        // iCal/ICS feed sources
   icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
+  people?: CalendarPerson[]        // Household list; powers the family grid and free time views
   maxEvents: number                // Max events to display
   daysAhead: number                // Days to look ahead
   holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
+  hideDeclined?: boolean           // Google only: skip events the signed-in account declined
 }
 ```
+
+### CalendarPerson
+
+```typescript
+{
+  id: string
+  name: string
+  color: string                    // Used for this person's row and event bars
+  sourceIds: string[]              // Calendar source IDs belonging to this person
+}
+```
+
+Set up under **Settings > Calendar > People**. A calendar that no person claims counts as shared by the whole household. Only the Full-Screen Calendar's family grid and free time views read this list; every other view ignores it.
 
 ### ICalSource
 

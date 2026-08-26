@@ -290,6 +290,12 @@ Add feeds by URL under **iCal / ICS Feeds**, or sign in under **Google Calendar 
 
 Full walkthroughs for all three, including how to choose, are in [Calendar setup](/docs/getting-started#calendar-setup).
 
+**Source status** lists every calendar you have connected and when each one last brought in events, so a feed that quietly stopped working is visible here rather than just missing from the display. A source that is failing says so in plain words and keeps showing the last events it did fetch.
+
+**People** is the household list: give each family member a name and a color, then pick which calendars are theirs. The Full-Screen Calendar's family grid and free time views draw one row per person from this list; a calendar you do not give to anyone counts as shared by the whole house. Other calendar views ignore it, so you only need to fill this in if you use those two views.
+
+**Hide declined events** sits with the Google settings and applies to Google calendars only — it skips events the signed-in account has declined, so a turned-down invite stops taking up room.
+
 ### API keys
 
 All keys live here and are stored in `data/secrets.json` — no `.env.local` needed. Each shows a configured/not-configured indicator and can be saved or removed individually. Weather keys are the exception and live on their provider's card under **Settings > Weather**.

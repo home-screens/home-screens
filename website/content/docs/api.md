@@ -136,22 +136,56 @@ If every configured source fails at once, the route returns an error rather than
 
 **Response:**
 ```json
-[
-  {
-    "id": "event-id",
-    "title": "Team Meeting",
-    "start": "2026-03-08T10:00:00-06:00",
-    "end": "2026-03-08T11:00:00-06:00",
-    "allDay": false,
-    "location": "Room 42",
-    "calendarColor": "#4285f4",
-    "sourceId": "ical-1",
-    "sourceName": "Soccer Schedule"
-  }
-]
+{
+  "events": [
+    {
+      "id": "event-id",
+      "title": "Team Meeting",
+      "start": "2026-03-08T10:00:00-06:00",
+      "end": "2026-03-08T11:00:00-06:00",
+      "allDay": false,
+      "location": "Room 42",
+      "calendarColor": "#4285f4",
+      "sourceId": "ical-1",
+      "sourceName": "Soccer Schedule",
+      "kind": "event"
+    }
+  ],
+  "sourceStatus": [
+    { "id": "ical-1", "name": "Soccer Schedule", "ok": true, "fetchedAt": 1772000000000 },
+    { "id": "holidays", "name": "Public Holidays", "ok": false, "error": "Couldn't load the holiday list", "fetchedAt": null }
+  ]
+}
 ```
 
-`title` and `allDay` are always present. `location`, `description`, `calendarColor`, `sourceId`, and `sourceName` are optional; `sourceId` and `sourceName` are how a client tells a feed's events apart from a Google calendar's.
+On each event, `title` and `allDay` are always present. `location`, `description`, `calendarColor`, `sourceId`, and `sourceName` are optional; `sourceId` and `sourceName` are how a client tells a feed's events apart from a Google calendar's. `kind` is `birthday` or `holiday` for events coming from the contact-birthdays and public-holidays sources, and `event` (or absent) for everything else, so a client can style them differently without matching on the title. Birthdays additionally carry `birthYear` when the source knows it.
+
+`sourceStatus` reports the health of every configured source from that same fetch, so one broken feed is visible rather than silently missing. A source that fails keeps its last-good events in the `events` array, which is why the two have to be read together.
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Matches the events' `sourceId` — a Google calendar id, an iCal or iCloud source id, or `holidays` |
+| `name` | string | Best-effort display name; a source that has never succeeded may not have one |
+| `ok` | boolean | Whether the most recent attempt succeeded |
+| `error` | string | Plain, family-friendly wording for what went wrong, when it didn't |
+| `messageKey` | string | Translation key for the same message, under the editor's `settings.calendarPage.health.errors.*`. Preferred over `error` when you can translate |
+| `messageParams` | object | Values to interpolate into `messageKey` (for example an HTTP status) |
+| `fetchedAt` | number \| null | When this source last delivered events, in epoch milliseconds; `null` means never this session |
+
+### GET /api/calendar/status
+
+Returns just the per-source health from the most recent calendar fetch, without triggering a new one. The editor's **Source status** panel polls this: it costs nothing, never mints a cache entry, and never touches the saved-events map. The payload is empty until the first calendar fetch of the process, in which case a client should fall back to one regular `/api/calendar` call. Display access — it carries calendar names and upstream error text, so it is not public.
+
+**Response:**
+```json
+{
+  "sourceStatus": [
+    { "id": "ical-1", "name": "Soccer Schedule", "ok": true, "fetchedAt": 1772000000000 }
+  ]
+}
+```
+
+Entries have the same shape as the `sourceStatus` array on `/api/calendar` above.
 
 ### GET /api/calendars
 
@@ -1614,6 +1648,79 @@ Returns `{ "imageUrl": null }` if no image files are found for the asset.
 
 ---
 
+## Google Photos Picker
+
+Importing photos from Google Photos happens through Google's Picker: you pick the photos in Google's own UI, and Home Screens copies just those files into the local photo library. Nothing is read from your account beyond what you pick. The setup steps are in [Backgrounds](/docs/backgrounds). Every route here requires a valid editor session, and tokens are stored in `data/google-picker-tokens.json`.
+
+### GET /api/google-picker/auth
+
+Returns the Google consent URL to send the browser to.
+
+**Response:** `{ "url": "https://accounts.google.com/o/oauth2/v2/auth?..." }`
+
+### POST /api/google-picker/auth
+
+Exchanges the `code` Google hands back for tokens.
+
+**Body:** `{ "code": "<authorization code>" }`
+
+**Response:** `{ "connected": true }`. Returns `400` for a missing code or a rejected exchange.
+
+### GET /api/google-picker/status
+
+Whether the Picker is usable right now.
+
+**Response:** `{ "connected": true, "credentialsConfigured": true }` — `credentialsConfigured` is whether a client ID and secret have been saved at all, `connected` whether an account is currently authorized.
+
+### DELETE /api/google-picker/status
+
+Disconnects the account and discards its tokens. **Response:** `{ "connected": false }`
+
+### POST /api/google-picker/session
+
+Opens a picking session with Google.
+
+**Response:** `{ "id": "...", "pickerUri": "https://photos.google.com/picker/..." }` — open `pickerUri` for the person to make their selection.
+
+### GET /api/google-picker/session
+
+Polls a session to see whether the selection is finished. Takes `?id=<session id>`; returns `400` without one and `404` if the session is unknown.
+
+### DELETE /api/google-picker/session
+
+Closes a session. Takes `?id=<session id>`. **Response:** `{ "ok": true }`
+
+### POST /api/google-picker/import
+
+Starts copying the picked photos into the library. Returns `202` because the copy runs in the background — poll the job with `GET` below.
+
+**Body:** `{ "sessionId": "...", "folder": "<library folder>" }`
+
+**Response:** `{ "jobId": "...", "total": 42 }`, or `400` with an `error` of `nothing-picked`, `invalid-folder`, `busy` (an import is already running), or `too-many-items`.
+
+### GET /api/google-picker/import
+
+Reads the progress of a running or finished import. Takes `?jobId=<id>`; returns `404` if the job is unknown.
+
+**Response:**
+```json
+{
+  "id": "job-1",
+  "state": "running",
+  "total": 42,
+  "done": 10,
+  "skipped": 2,
+  "failed": 0,
+  "folder": "vacation",
+  "videoFiles": [],
+  "startedAt": 1772000000000
+}
+```
+
+`state` is `running`, `done`, or `error`. `skipped` counts files already in the library (matched by a deterministic name), and `failed` counts downloads that did not succeed — a failure is counted, never fatal to the job. `finishedAt` appears once the job ends, and `error` only when `state` is `error`.
+
+---
+
 ## Plugins
 
 The plugin system allows third-party modules to be installed from a central registry. Plugins are distributed as tarballs containing a manifest, a JavaScript bundle, and optional assets.
@@ -1725,6 +1832,22 @@ Updates a plugin's state (enable/disable or clear previous version after config 
 Both `enabled` and `clearPrevVersion` are optional.
 
 **Response:** `{ "ok": true }`
+
+### POST /api/plugins/migrate-config
+
+Runs an upgraded plugin's config migration against every placed instance of it, on every display. The editor calls this after installing a newer version of a plugin whose manifest declares `configMigrations`. Requires a valid session.
+
+The migration rules are read from the installed plugin's own manifest on disk, never taken from the request — the body only names which plugin to migrate, so a caller cannot inject arbitrary rewrites into your config. The read-modify-write runs through the same serialized queue as editor saves, so a migration can't clobber edits made while it runs.
+
+**Body:**
+```json
+{
+  "pluginId": "example-plugin",
+  "oldVersion": "1.2.0"
+}
+```
+
+**Response:** `{ "ok": true, "changed": true }` — `changed` is whether any module instance was actually rewritten. Returns `400` for an invalid plugin id or a missing `oldVersion`, and `404` if the plugin is not installed.
 
 ### GET /api/plugins/manifest/:pluginId
 
