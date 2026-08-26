@@ -1,5 +1,4 @@
-import { readFile } from 'fs/promises';
-import { writeSecureFile } from './secure-file';
+import { createJsonStore } from './json-store';
 import { getSecret, type SecretKey } from './secrets';
 import { fetchWithTimeout } from './api-utils';
 import { logger } from './logger';
@@ -31,7 +30,7 @@ export interface StoredGoogleTokens {
 }
 
 export interface GoogleTokenStoreOptions {
-  /** Absolute path of the tokens JSON file. */
+  /** Path of the tokens JSON file, relative to process.cwd(). */
   tokensPath: string;
   clientIdKey: SecretKey;
   clientSecretKey: SecretKey;
@@ -70,16 +69,24 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
   const log = logger(opts.logName);
   let refreshInFlight: Promise<string | null> | null = null;
 
+  // Same store the other secret files use (secrets.json, auth.json): writes
+  // are queued (so a disconnect can't interleave with an in-flight refresh's
+  // save), tmp+rename atomic (so a power cut on the Pi can't leave a torn
+  // tokens file), and chmod'd before the rename (so a refresh token is never
+  // briefly world-readable). No dirMode: these live directly in data/, which
+  // is shared with non-secret files.
+  const store = createJsonStore<StoredGoogleTokens | null>({
+    path: opts.tokensPath,
+    defaultValue: null,
+    chmod: 0o600,
+  });
+
   async function loadTokens(): Promise<StoredGoogleTokens | null> {
-    try {
-      return JSON.parse(await readFile(opts.tokensPath, 'utf-8'));
-    } catch {
-      return null;
-    }
+    return store.read();
   }
 
   async function saveTokens(tokens: StoredGoogleTokens): Promise<void> {
-    await writeSecureFile(opts.tokensPath, JSON.stringify(tokens, null, 2));
+    await store.write(tokens);
   }
 
   async function getClientCredentials(): Promise<{ clientId: string; clientSecret: string }> {

@@ -1,4 +1,3 @@
-import path from 'path';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { createGoogleTokenStore } from '@/lib/google-token-store';
 import {
@@ -38,7 +37,7 @@ const API_BASE = 'https://photospicker.googleapis.com/v1';
 export const REDIRECT_URI = 'https://homescreens.dev/connect/google';
 
 const store = createGoogleTokenStore({
-  tokensPath: path.join(process.cwd(), 'data', 'google-picker-tokens.json'),
+  tokensPath: 'data/google-picker-tokens.json',
   clientIdKey: 'google_web_client_id',
   clientSecretKey: 'google_web_client_secret',
   missingCredentialsMessage: 'Google Photos import needs a web Client ID and Secret. Add them in Settings → Integrations.',

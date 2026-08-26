@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, parseTagParam } from '@/lib/api-utils';
-import { downloadAndSaveBackground } from '@/lib/background-download';
+import { downloadAndSaveBackground, UnsupportedImageFormatError } from '@/lib/background-download';
 import { isSafeExternalUrl } from '@/lib/url-safety';
 
 /**
@@ -10,7 +10,7 @@ import { isSafeExternalUrl } from '@/lib/url-safety';
  */
 export function createImageDownloadHandler(config: {
   defaultPrefix: string;
-  downloadOptions?: { convertNonWeb?: boolean; validateImage?: boolean };
+  downloadOptions?: { rejectNonWeb?: boolean; validateImage?: boolean };
   beforeDownload?: (body: Record<string, unknown>) => Promise<void> | void;
   errorMsg: string;
 }) {
@@ -30,11 +30,21 @@ export function createImageDownloadHandler(config: {
       await config.beforeDownload(body);
     }
 
-    const result = await downloadAndSaveBackground(
-      imageUrl,
-      filename || `${config.defaultPrefix}-${Date.now()}`,
-      config.downloadOptions,
-    );
+    let result;
+    try {
+      result = await downloadAndSaveBackground(
+        imageUrl,
+        filename || `${config.defaultPrefix}-${Date.now()}`,
+        config.downloadOptions,
+      );
+    } catch (error) {
+      // The source really is an image, just not one a browser can render. Say
+      // so plainly instead of letting it fall through as a generic failure.
+      if (error instanceof UnsupportedImageFormatError) {
+        return NextResponse.json({ error: error.message }, { status: 415 });
+      }
+      throw error;
+    }
 
     return NextResponse.json(result, { status: 201 });
   }, config.errorMsg);

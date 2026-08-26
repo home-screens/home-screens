@@ -177,6 +177,23 @@ CHROMIUM_KIOSK_PI_FLAGS=(
   --ozone-platform=wayland
 )
 
+# Clear Chromium's crash state and purge session-restore data before a kiosk
+# launch. Without the first, a hard power cut leaves Chromium showing a restore
+# bubble over the kiosk; without the second, Chromium re-opens the previous
+# session's app window alongside the new --app window and the duplicate tab
+# silently drains the command queue.
+#
+# kiosk-launcher-display.sh and upgrade.sh's generated launcher carry literal
+# copies of this body because they run with no lib/ beside them.
+# scripts/__tests__/chromium-flags.test.ts fails if those copies drift.
+clear_chromium_crash_state() {
+  local prefs="${HOME}/.config/chromium/Default/Preferences"
+  if [ -f "${prefs}" ]; then
+    sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${prefs}"
+  fi
+  rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
+}
+
 # --- Kiosk block management ---
 
 write_kiosk_block() {

@@ -16,7 +16,12 @@
  * `127.0.0.1`) — when the TCP peer is one of those addresses, the
  * `X-Forwarded-For` chain it forwarded is honored by walking it right to
  * left past trusted hops. Default: trust no proxies.
+ *
+ * `normalizeIp` is shared with `ip-allowlist.ts` so "which IP is this?" and
+ * "is this IP allowed?" can never disagree about an edge case like
+ * `::ffff:garbage`.
  */
+import { normalizeIp } from './ip-allowlist';
 
 /**
  * Server-stamped header carrying the resolved client IP. Written only by
@@ -24,11 +29,6 @@
  * `getClientIP` (api-utils) and `extractIp` (proxy).
  */
 export const CLIENT_IP_HEADER = 'x-hs-client-ip';
-
-/** Strip the IPv4-mapped IPv6 prefix so `::ffff:192.168.1.50` compares as IPv4. */
-function normalizeIp(ip: string): string {
-  return ip.trim().replace(/^::ffff:/i, '');
-}
 
 /** Parse the HS_TRUSTED_PROXIES env value (comma-separated exact IPs). */
 export function parseTrustedProxies(raw: string | undefined): string[] {

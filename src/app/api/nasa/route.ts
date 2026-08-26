@@ -28,7 +28,7 @@ export const GET = withAuth(async (request: NextRequest) => {
 
 export const POST = createImageDownloadHandler({
   defaultPrefix: 'nasa',
-  downloadOptions: { convertNonWeb: true, validateImage: true },
+  downloadOptions: { rejectNonWeb: true, validateImage: true },
   errorMsg: 'Failed to download NASA image',
 });
 

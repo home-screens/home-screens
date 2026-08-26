@@ -1,5 +1,4 @@
 import { google } from 'googleapis';
-import path from 'path';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { createGoogleTokenStore, type StoredGoogleTokens } from '@/lib/google-token-store';
@@ -18,7 +17,7 @@ const DEVICE_CODE_URL = 'https://oauth2.googleapis.com/device/code';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
 const store = createGoogleTokenStore({
-  tokensPath: path.join(process.cwd(), 'data', 'google-tokens.json'),
+  tokensPath: 'data/google-tokens.json',
   clientIdKey: 'google_client_id',
   clientSecretKey: 'google_client_secret',
   missingCredentialsMessage: 'Google Calendar Client ID and Secret are not configured. Add them in Settings → Integrations.',

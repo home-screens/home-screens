@@ -55,7 +55,7 @@ function mockFetch(opts: {
 async function callDownload(
   url: string,
   prefix: string,
-  options?: { timeout?: number; convertNonWeb?: boolean; validateImage?: boolean },
+  options?: { timeout?: number; rejectNonWeb?: boolean; validateImage?: boolean },
 ) {
   const mod = await import('@/lib/background-download');
   return mod.downloadAndSaveBackground(url, prefix, options);
@@ -212,42 +212,55 @@ describe('downloadAndSaveBackground', () => {
     });
   });
 
-  describe('TIFF conversion (convertNonWeb: true)', () => {
-    it('attempts conversion for TIFF content type, falls back on sharp failure', async () => {
+  describe('non-web formats (rejectNonWeb: true)', () => {
+    // The module is re-imported per test (see callDownload), so the error
+    // class identity differs each time — assert on the name instead.
+    async function rejection(url: string) {
+      return callDownload(url, 'test', { rejectNonWeb: true }).then(
+        () => { throw new Error('expected a rejection'); },
+        (err: Error) => err,
+      );
+    }
+
+    it('rejects a TIFF content type with a message meant for a person', async () => {
       mockFetch({ contentType: 'image/tiff', body: Buffer.from('tiff-data') });
 
-      // sharp likely unavailable in test — conversion fails silently, raw buffer saved
-      const result = await callDownload(
-        'https://example.com/photo.tiff',
-        'test',
-        { convertNonWeb: true },
-      );
-      expect(result.path).toContain('test');
+      const err = await rejection('https://example.com/photo.tiff');
+      expect(err.name).toBe('UnsupportedImageFormatError');
+      expect(err.message).toMatch(/format the display can't show/);
     });
 
-    it('attempts conversion for .tif URL extension', async () => {
-      mockFetch({
-        contentType: 'application/octet-stream',
-        body: Buffer.from('tiff-data'),
-      });
+    it('rejects a .tif URL even when the content type is generic', async () => {
+      mockFetch({ contentType: 'application/octet-stream', body: Buffer.from('tiff-data') });
 
-      const result = await callDownload(
-        'https://example.com/photo.tif',
-        'test',
-        { convertNonWeb: true },
-      );
-      expect(result.path).toContain('test');
+      expect((await rejection('https://example.com/photo.tif')).name)
+        .toBe('UnsupportedImageFormatError');
     });
 
-    it('does not attempt conversion when convertNonWeb is false', async () => {
+    it.each([
+      ['image/jpeg', '.jpg'],
+      ['image/png', '.png'],
+      ['image/webp', '.webp'],
+      ['image/gif', '.gif'],
+      ['image/avif', '.avif'],
+    ])('accepts %s and saves it as %s', async (contentType, ext) => {
+      mockFetch({ contentType, body: Buffer.from('image-data') });
+
+      const result = await callDownload('https://example.com/photo', 'test', { rejectNonWeb: true });
+      expect(result.path).toContain(`test${ext}`);
+    });
+
+    it('ignores content-type parameters when matching the format', async () => {
+      mockFetch({ contentType: 'image/png; charset=binary', body: Buffer.from('png-data') });
+
+      const result = await callDownload('https://example.com/photo', 'test', { rejectNonWeb: true });
+      expect(result.path).toContain('test.png');
+    });
+
+    it('saves a TIFF unchanged when rejectNonWeb is off (default)', async () => {
       mockFetch({ contentType: 'image/tiff', body: Buffer.from('tiff-data') });
 
-      const result = await callDownload(
-        'https://example.com/photo.tiff',
-        'test',
-        { convertNonWeb: false },
-      );
-      // Without conversion, content-type includes 'tiff', not png/webp → defaults to .jpg
+      const result = await callDownload('https://example.com/photo.tiff', 'test', { rejectNonWeb: false });
       expect(result.path).toContain('test.jpg');
     });
   });

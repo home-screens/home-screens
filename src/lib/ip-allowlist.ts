@@ -3,15 +3,23 @@ import net from 'net';
 const MAPPED_V4_PREFIX = /^::ffff:/i;
 
 /**
- * Normalize IPv4-mapped IPv6 addresses to plain IPv4.
- * Node.js often reports 127.0.0.1 as ::ffff:127.0.0.1.
+ * Normalize an address for comparison: trim surrounding whitespace and fold
+ * IPv4-mapped IPv6 down to plain IPv4 (Node.js often reports 127.0.0.1 as
+ * ::ffff:127.0.0.1). The mapped prefix is only stripped when what remains is
+ * a real IPv4 address, so malformed input like `::ffff:garbage` is left
+ * intact rather than becoming a bare `garbage`.
+ *
+ * Single implementation on purpose: `client-ip.ts` resolves the effective
+ * client address and this module decides whether that address is allowed, so
+ * the two must normalize identically or they can disagree on an edge case.
  */
 export function normalizeIp(ip: string): string {
-  if (MAPPED_V4_PREFIX.test(ip)) {
-    const v4 = ip.replace(MAPPED_V4_PREFIX, '');
+  const trimmed = ip.trim();
+  if (MAPPED_V4_PREFIX.test(trimmed)) {
+    const v4 = trimmed.replace(MAPPED_V4_PREFIX, '');
     if (net.isIPv4(v4)) return v4;
   }
-  return ip;
+  return trimmed;
 }
 
 /**

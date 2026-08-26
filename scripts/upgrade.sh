@@ -433,31 +433,44 @@ case "${action}" in
         command -v dbus-run-session &>/dev/null && NEED_DBUS=true
       fi
 
-      if [ "${NEED_DBUS}" = true ]; then
-        WAYLAND_DISPLAY="${WAYLAND_DISPLAY}" XDG_RUNTIME_DIR="/run/user/$(id -u)" \
-          nohup dbus-run-session -- chromium --app=http://localhost:${PORT}/display \
-            --noerrdialogs --disable-infobars --no-first-run \
-            --disable-session-crashed-bubble --disable-translate \
-            --autoplay-policy=no-user-gesture-required \
-            --overscroll-history-navigation=0 \
-            --check-for-update-interval=31536000 --password-store=basic \
-            --ozone-platform=wayland --remote-debugging-port=9222 \
-            --ignore-gpu-blocklist --enable-zero-copy \
-            --num-raster-threads=2 --force-gpu-mem-available-mb=256 \
-            > /dev/null 2>&1 &
+      # Flags come from lib/common.sh, which is sourced conditionally at the
+      # top of this script. The literal fallback below keeps a relaunch from
+      # coming back as a bare, non-kiosk browser window when this script runs
+      # without lib/ beside it; scripts/__tests__/chromium-flags.test.ts fails
+      # if it drifts from common.sh.
+      if [ -n "${CHROMIUM_KIOSK_FLAGS+x}" ]; then
+        RELAUNCH_FLAGS=("${CHROMIUM_KIOSK_FLAGS[@]}" "${CHROMIUM_KIOSK_PI_FLAGS[@]}")
       else
-        WAYLAND_DISPLAY="${WAYLAND_DISPLAY}" XDG_RUNTIME_DIR="/run/user/$(id -u)" \
-          nohup chromium --app=http://localhost:${PORT}/display \
-            --noerrdialogs --disable-infobars --no-first-run \
-            --disable-session-crashed-bubble --disable-translate \
-            --autoplay-policy=no-user-gesture-required \
-            --overscroll-history-navigation=0 \
-            --check-for-update-interval=31536000 --password-store=basic \
-            --ozone-platform=wayland --remote-debugging-port=9222 \
-            --ignore-gpu-blocklist --enable-zero-copy \
-            --num-raster-threads=2 --force-gpu-mem-available-mb=256 \
-            > /dev/null 2>&1 &
+        RELAUNCH_FLAGS=(
+          --noerrdialogs
+          --disable-infobars
+          --no-first-run
+          --disable-session-crashed-bubble
+          --disable-translate
+          --autoplay-policy=no-user-gesture-required
+          --overscroll-history-navigation=0
+          --remote-debugging-port=9222
+          --ignore-gpu-blocklist
+          --enable-zero-copy
+          --num-raster-threads=2
+          --force-gpu-mem-available-mb=256
+          --check-for-update-interval=31536000
+          --password-store=basic
+          --ozone-platform=wayland
+        )
       fi
+
+      # One invocation; dbus-run-session is a prefix, not a second copy.
+      if [ "${NEED_DBUS}" = true ]; then
+        DBUS_PREFIX=(dbus-run-session --)
+      else
+        DBUS_PREFIX=()
+      fi
+
+      WAYLAND_DISPLAY="${WAYLAND_DISPLAY}" XDG_RUNTIME_DIR="/run/user/$(id -u)" \
+        nohup "${DBUS_PREFIX[@]}" chromium --app=http://localhost:${PORT}/display \
+          "${RELAUNCH_FLAGS[@]}" \
+          > /dev/null 2>&1 &
       echo "{\"ok\":true,\"method\":\"relaunch\"}"
     fi
     ;;

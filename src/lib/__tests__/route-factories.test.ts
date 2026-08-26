@@ -10,13 +10,14 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/background-download', () => ({
   downloadAndSaveBackground: vi.fn(),
+  UnsupportedImageFormatError: class UnsupportedImageFormatError extends Error {},
 }));
 
 vi.mock('@/lib/url-safety', () => ({
   isSafeExternalUrl: vi.fn(),
 }));
 
-import { downloadAndSaveBackground } from '@/lib/background-download';
+import { downloadAndSaveBackground, UnsupportedImageFormatError } from '@/lib/background-download';
 import { isSafeExternalUrl } from '@/lib/url-safety';
 
 const mockDownload = vi.mocked(downloadAndSaveBackground);
@@ -88,13 +89,32 @@ describe('createImageDownloadHandler', () => {
   });
 
   it('passes downloadOptions to downloadAndSaveBackground', async () => {
-    const handler = makeHandler({ downloadOptions: { convertNonWeb: true, validateImage: true } });
+    const handler = makeHandler({ downloadOptions: { rejectNonWeb: true, validateImage: true } });
     await handler(postRequest({ imageUrl: 'https://example.com/img.tiff' }));
     expect(mockDownload).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(String),
-      { convertNonWeb: true, validateImage: true },
+      { rejectNonWeb: true, validateImage: true },
     );
+  });
+
+  it('reports an unrenderable format as 415 with the message intact', async () => {
+    mockDownload.mockRejectedValue(
+      new UnsupportedImageFormatError("This picture is in a format the display can't show. Try a different one."),
+    );
+    const handler = makeHandler({ downloadOptions: { rejectNonWeb: true } });
+
+    const res = await handler(postRequest({ imageUrl: 'https://example.com/img.tiff' }));
+
+    expect(res.status).toBe(415);
+    expect((await res.json()).error).toMatch(/format the display can't show/);
+  });
+
+  it('still surfaces other download failures through the error wrapper', async () => {
+    mockDownload.mockRejectedValue(new Error('Failed to fetch image: 502'));
+    const handler = makeHandler();
+
+    expect((await handler(postRequest({ imageUrl: 'https://example.com/img.jpg' }))).status).toBe(500);
   });
 
   it('calls beforeDownload hook with full body', async () => {

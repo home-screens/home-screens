@@ -45,11 +45,7 @@ for i in $(seq 1 30); do
 done
 
 # Clear crash state and session restore data to avoid duplicate app windows
-CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
-if [ -f "${CHROME_PREFS}" ]; then
-  sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${CHROME_PREFS}"
-fi
-rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
+clear_chromium_crash_state
 
 echo "Launching Chromium in app mode..."
 # Flags come from lib/common.sh. The Pi-only list is deliberately not used

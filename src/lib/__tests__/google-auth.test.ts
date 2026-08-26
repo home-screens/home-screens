@@ -5,14 +5,26 @@ vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
 }));
 
+// The token store persists through createJsonStore; stub it with an
+// in-memory file-per-path so tests can seed and observe writes.
 const mockWriteFile = vi.fn();
-vi.mock('fs/promises', () => ({
-  readFile: vi.fn(),
-  writeFile: mockWriteFile,
-}));
+const storeFiles = new Map<string, string>();
 
-vi.mock('@/lib/secure-file', () => ({
-  writeSecureFile: (...args: unknown[]) => mockWriteFile(...args),
+vi.mock('@/lib/json-store', () => ({
+  createJsonStore: (opts: { path: string; defaultValue: unknown }) => ({
+    read: async () => {
+      const raw = storeFiles.get(opts.path);
+      return raw === undefined ? structuredClone(opts.defaultValue) : JSON.parse(raw);
+    },
+    write: async (data: unknown) => {
+      const raw = JSON.stringify(data, null, 2);
+      await mockWriteFile(opts.path, raw);
+      storeFiles.set(opts.path, raw);
+    },
+    updateAtomic: async () => { throw new Error('updateAtomic is not used by the token store'); },
+    remove: async () => { storeFiles.delete(opts.path); },
+    get filePath() { return opts.path; },
+  }),
 }));
 
 const mockSetCredentials = vi.fn();
@@ -31,7 +43,6 @@ vi.mock('googleapis', () => {
 
 // Dynamic import after mocks are in place
 const { getSecret } = await import('@/lib/secrets');
-const { readFile } = await import('fs/promises');
 const {
   requestDeviceCode,
   pollDeviceToken,
@@ -42,9 +53,10 @@ const {
 } = await import('@/lib/google-auth');
 
 const mockedGetSecret = vi.mocked(getSecret);
-const mockedReadFile = vi.mocked(readFile);
 
 // ── Helpers ──────────────────────────────────────────────────────────
+
+const TOKENS_PATH = 'data/google-tokens.json';
 
 function mockFetchResponse(body: unknown, ok = true, status = 200) {
   return vi.fn().mockResolvedValueOnce({
@@ -75,9 +87,9 @@ function setupCredentials(clientId = 'test-client-id', clientSecret = 'test-clie
 
 function setupTokensFile(tokens: Record<string, unknown> | null) {
   if (tokens === null) {
-    mockedReadFile.mockRejectedValue(new Error('ENOENT'));
+    storeFiles.delete(TOKENS_PATH);
   } else {
-    mockedReadFile.mockResolvedValue(JSON.stringify(tokens) as never);
+    storeFiles.set(TOKENS_PATH, JSON.stringify(tokens));
   }
 }
 
@@ -102,7 +114,7 @@ function mockRefreshFetch(body: unknown, ok = true) {
 beforeEach(() => {
   vi.unstubAllGlobals();
   mockedGetSecret.mockReset();
-  mockedReadFile.mockReset();
+  storeFiles.clear();
   mockWriteFile.mockReset();
   mockSetCredentials.mockReset();
 });

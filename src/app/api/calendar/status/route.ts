@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withDisplayAuth } from '@/lib/api-utils';
 import { getLatestSourceStatus } from '@/lib/calendar-source-status';
 
 export const dynamic = 'force-dynamic';
@@ -9,7 +10,11 @@ export const dynamic = 'force-dynamic';
  * it costs nothing, never mints a new cache entry, and never touches the
  * per-source saved-events map. Empty until the first calendar fetch of the
  * process (the panel falls back to one regular fetch in that case).
+ *
+ * Gated like /api/calendar itself: the payload carries calendar names and
+ * upstream error text, so it is not public.
  */
-export async function GET() {
-  return NextResponse.json({ sourceStatus: getLatestSourceStatus() });
-}
+export const GET = withDisplayAuth(
+  async () => NextResponse.json({ sourceStatus: getLatestSourceStatus() }),
+  'Failed to read calendar status',
+);

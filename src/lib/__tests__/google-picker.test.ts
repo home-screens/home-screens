@@ -7,16 +7,15 @@ vi.mock('@/lib/secrets', () => ({
 
 let tokensContent: string | null = null;
 
-vi.mock('fs/promises', () => ({
-  readFile: vi.fn(async () => {
-    if (tokensContent === null) throw new Error('ENOENT');
-    return tokensContent;
-  }),
-}));
-
-vi.mock('@/lib/secure-file', () => ({
-  writeSecureFile: vi.fn(async (_path: string, data: string) => {
-    tokensContent = data;
+// The token store persists through createJsonStore; stub it with an
+// in-memory backing so tests can seed and observe the tokens file.
+vi.mock('@/lib/json-store', () => ({
+  createJsonStore: (opts: { path: string; defaultValue: unknown }) => ({
+    read: async () => (tokensContent === null ? structuredClone(opts.defaultValue) : JSON.parse(tokensContent)),
+    write: async (data: unknown) => { tokensContent = JSON.stringify(data, null, 2); },
+    updateAtomic: async () => { throw new Error('updateAtomic is not used by the token store'); },
+    remove: async () => { tokensContent = null; },
+    get filePath() { return opts.path; },
   }),
 }));
 
