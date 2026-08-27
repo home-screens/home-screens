@@ -3424,6 +3424,7 @@
       "chooseFolder": "Ordner wählen",
       "changeFolder": "Ordner wechseln",
       "loadingFolders": "Ordner werden geladen…",
+      "upOneFolder": "Ein Ordner nach oben",
       "emptyFolder": "Keine Unterordner in diesem Ordner",
       "useThisFolder": "Diesen Ordner verwenden",
       "capNote": "Wenn der Ordnerbaum mehr als 1.000 Fotos enthält, nutzt die Diashow eine Zufallsauswahl von 1.000.",

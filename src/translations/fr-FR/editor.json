@@ -3429,6 +3429,7 @@
       "chooseFolder": "Choisir un dossier",
       "changeFolder": "Changer de dossier",
       "loadingFolders": "Chargement des dossiers…",
+      "upOneFolder": "Dossier parent",
       "emptyFolder": "Aucun sous-dossier ici",
       "useThisFolder": "Utiliser ce dossier",
       "capNote": "Si l'arborescence du dossier contient plus de 1 000 photos, le diaporama utilise un échantillon aléatoire de 1 000 photos.",

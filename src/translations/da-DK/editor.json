@@ -3424,6 +3424,7 @@
       "chooseFolder": "Vælg mappe",
       "changeFolder": "Skift mappe",
       "loadingFolders": "Indlæser mapper…",
+      "upOneFolder": "En mappe op",
       "emptyFolder": "Ingen undermapper her",
       "useThisFolder": "Brug denne mappe",
       "capNote": "Hvis mappestrukturen indeholder mere end 1000 billeder, bruger diasshowet et tilfældigt udvalg på 1000.",

@@ -3429,6 +3429,7 @@
       "chooseFolder": "Escolher pasta",
       "changeFolder": "Trocar pasta",
       "loadingFolders": "Carregando pastas…",
+      "upOneFolder": "Subir uma pasta",
       "emptyFolder": "Nenhuma subpasta aqui",
       "useThisFolder": "Usar esta pasta",
       "capNote": "Se a árvore de pastas tiver mais de 1000 fotos, a apresentação usa uma amostra aleatória de 1000.",

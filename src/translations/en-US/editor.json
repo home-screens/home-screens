@@ -3424,6 +3424,7 @@
       "chooseFolder": "Choose folder",
       "changeFolder": "Change folder",
       "loadingFolders": "Loading folders…",
+      "upOneFolder": "Up a folder",
       "emptyFolder": "No subfolders in this folder",
       "useThisFolder": "Use this folder",
       "capNote": "If the folder tree has more than 1,000 photos, slides use a random sample of 1,000.",

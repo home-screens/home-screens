@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
-import { Folder } from 'lucide-react';
+import { Folder, FolderUp } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 
 /** Mirrors ONEDRIVE_MAX_SAMPLE in src/lib/onedrive.ts (kept local — that module is server-only). */
@@ -264,6 +264,15 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
             ))}
           </div>
 
+          {current.id !== null && (
+            <button
+              onClick={() => setTrail(trail.slice(0, -1))}
+              className="flex items-center gap-1 text-left text-xs px-2 py-1 bg-hs-card border border-hs-border-strong rounded hover:border-hs-accent"
+            >
+              <FolderUp className="w-3 h-3 flex-shrink-0 text-hs-text-faint" />
+              <span>{t('configSections.onedriveSource.upOneFolder')}</span>
+            </button>
+          )}
           {foldersLoading && <p className="text-[11px] text-hs-text-muted">{t('configSections.onedriveSource.loadingFolders')}</p>}
           {foldersFailed === 'notfound' && (
             <p className="text-[11px] text-hs-warning">{t('configSections.onedriveSource.folderNotFound')}</p>
@@ -328,7 +337,12 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
               <Button
                 size="sm"
                 onClick={() => {
-                  setTrail([{ id: null, name: 'OneDrive' }]);
+                  // Start browsing at the saved folder, with the drive root
+                  // one level up. A missing label falls back to the root
+                  // name — both fields are written together when picking.
+                  setTrail(folderId
+                    ? [{ id: null, name: 'OneDrive' }, { id: folderId, name: folderName || 'OneDrive' }]
+                    : [{ id: null, name: 'OneDrive' }]);
                   setBrowsing(true);
                 }}
               >
