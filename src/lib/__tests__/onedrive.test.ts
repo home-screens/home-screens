@@ -26,6 +26,7 @@ vi.stubGlobal('fetch', mockFetch);
 import {
   startDeviceFlow, pollDeviceFlow, cancelDeviceFlow,
   listFolders, listPhotos, fetchThumbnail,
+  onedriveDisconnect,
   ONEDRIVE_MAX_SAMPLE,
 } from '@/lib/onedrive';
 
@@ -108,6 +109,25 @@ describe('device flow', () => {
     expect(result.state).toBe('failed');
     expect(result.message).toContain('app not found');
   });
+
+  it('backs off and reports the longer interval on slow_down', async () => {
+    await seedPendingFlow();
+    mockFetch.mockResolvedValue(errTokenResponse({ error: 'slow_down' }));
+
+    const result = await pollDeviceFlow();
+
+    expect(result).toEqual({ state: 'pending', intervalMs: 10_000 });
+  });
+
+  it('clears the pending flow on disconnect so a late sign-in cannot resurrect the grant', async () => {
+    await seedPendingFlow();
+    mockFetch.mockClear();
+
+    await onedriveDisconnect();
+
+    expect((await pollDeviceFlow()).state).toBe('idle');
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
 });
 
 describe('listFolders', () => {
@@ -157,6 +177,26 @@ describe('listFolders', () => {
 
     await expect(listFolders('gone')).rejects.toMatchObject({ status: 404 });
   });
+
+  it('decodes percent-encoded segments in the display path', async () => {
+    seedConnected();
+    mockFetch.mockImplementation(async () => json({
+      id: 'fld-2', name: 'Family',
+      folder: { childCount: 3 },
+      parentReference: { path: '/drive/root:/My%20Photos' },
+    }));
+
+    const result = await listFolders('fld-2');
+
+    expect(result.folder.path).toBe('OneDrive / My Photos / Family');
+  });
+
+  it('maps an upstream item-fetch failure to 502, not a missing folder', async () => {
+    seedConnected();
+    mockFetch.mockResolvedValue(new Response('', { status: 500 }));
+
+    await expect(listFolders('fld')).rejects.toMatchObject({ status: 502 });
+  });
 });
 
 describe('listPhotos', () => {
@@ -197,6 +237,21 @@ describe('listPhotos', () => {
 
     expect(calls).toBe(ONEDRIVE_MAX_SAMPLE / 200); // 5 pages then stop
     expect(photos).toHaveLength(50);
+  });
+
+  it('stops scanning at the page backstop when a folder holds no images', async () => {
+    seedConnected();
+    const nonImagePage = (n: number) => json({
+      value: Array.from({ length: 200 }, (_, i) => ({ id: `f${n}-${i}`, name: 'doc.pdf', file: {} })),
+      '@odata.nextLink': `${GRAPH}/me/drive/items/fld/children?$skiptoken=t${n}`,
+    });
+    let calls = 0;
+    mockFetch.mockImplementation(async () => nonImagePage(calls++));
+
+    const photos = await listPhotos('fld', 50);
+
+    expect(calls).toBe(25); // page backstop, not nextLink exhaustion
+    expect(photos).toEqual([]);
   });
 
   it('sends the bearer token from the stored grant', async () => {

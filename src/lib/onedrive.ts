@@ -31,6 +31,8 @@ const ONEDRIVE_SCOPES = 'Files.Read offline_access User.Read';
 /** Hub-side shuffle happens over at most this many photos (~5 Graph pages). */
 export const ONEDRIVE_MAX_SAMPLE = 1000;
 const PAGE_SIZE = 200;
+/** Bounds folders full of non-image files; stopping early only narrows the already-approximate sample. */
+const MAX_LIST_PAGES = 25;
 
 export class OneDriveError extends Error {
   /** HTTP status the API route should respond with. */
@@ -60,7 +62,10 @@ const tokenStore = createOAuthTokenStore({
 
 export const onedriveIsConnected = tokenStore.isConnected;
 export const onedriveVerifyConnected = tokenStore.verifyConnected;
-export const onedriveDisconnect = tokenStore.disconnect;
+export async function onedriveDisconnect(): Promise<void> {
+  cancelDeviceFlow();
+  await tokenStore.disconnect();
+}
 
 // ── Device-code sign-in ───────────────────────────────────────────────
 
@@ -119,6 +124,8 @@ export type DevicePollState = 'idle' | 'pending' | 'connected' | 'expired' | 'de
 export interface DevicePollResult {
   state: DevicePollState;
   message?: string;
+  /** Re-spaced poll interval (present on pending, after a slow_down nudge). */
+  intervalMs?: number;
 }
 
 /** One poll attempt of the pending flow. Callers space calls at flow.intervalMs. */
@@ -155,7 +162,12 @@ export async function pollDeviceFlow(): Promise<DevicePollResult> {
   }
 
   const error: string = data.error || '';
-  if (error === 'authorization_pending' || error === 'slow_down') return { state: 'pending' };
+  if (error === 'authorization_pending' || error === 'slow_down') {
+    // RFC 8628: back off 5s on slow_down. The route passes intervalMs
+    // through so the editor can re-space its polling.
+    if (error === 'slow_down') pending.intervalMs += 5000;
+    return { state: 'pending', intervalMs: pending.intervalMs };
+  }
   pendingDeviceFlow = null;
   if (error === 'expired_token') return { state: 'expired' };
   if (error === 'authorization_declined') return { state: 'declined' };
@@ -169,7 +181,14 @@ async function onedriveFetch(path: string, init?: FetchRetryOptions): Promise<Re
   const token = await tokenStore.getAccessToken();
   if (!token) throw new OneDriveError('Not connected to OneDrive', 401);
   // Absolute URLs come from @odata.nextLink pagination; paths join onto GRAPH.
-  const url = path.startsWith('http') ? path : `${GRAPH}${path}`;
+  // Response-supplied URLs must stay on Graph, like the picker's content URLs.
+  let url: string;
+  if (path.startsWith('http')) {
+    if (!path.startsWith(GRAPH)) throw new OneDriveError('Unexpected Graph URL', 502);
+    url = path;
+  } else {
+    url = `${GRAPH}${path}`;
+  }
   return fetchWithTimeout(url, {
     ...init,
     headers: { Authorization: `Bearer ${token}`, ...init?.headers },
@@ -206,7 +225,12 @@ function folderDisplayPath(item: DriveItem): string {
   const ancestors = match && match[1] ? match[1].split('/').filter(Boolean) : [];
   const isRoot = ancestors.length === 0 && (item.name == null || item.name === 'root');
   if (isRoot) return 'OneDrive';
-  return ['OneDrive', ...ancestors, item.name ?? ''].filter(Boolean).join(' / ');
+  // Graph percent-encodes path segments ("My Photos" → "My%20Photos");
+  // decode each, tolerating a stray % that would throw URIError.
+  const decode = (segment: string) => {
+    try { return decodeURIComponent(segment); } catch { return segment; }
+  };
+  return ['OneDrive', ...ancestors.map(decode), item.name ?? ''].filter(Boolean).join(' / ');
 }
 
 /**
@@ -218,7 +242,12 @@ export async function listFolders(itemId?: string): Promise<{ folder: OneDriveFo
   const select = '$select=id,name,folder,parentReference';
   const itemPath = itemId ? `/me/drive/items/${encodeURIComponent(itemId)}?${select}` : `/me/drive/root?${select}`;
   const itemRes = await onedriveFetch(itemPath, { timeout: 15_000 });
-  if (!itemRes.ok) throw new OneDriveError('Folder not found', itemRes.status === 401 ? 401 : 404);
+  if (!itemRes.ok) {
+    throw new OneDriveError(
+      itemRes.status === 404 ? 'Folder not found' : 'Could not read the OneDrive folder',
+      itemRes.status === 401 ? 401 : itemRes.status === 404 ? 404 : 502,
+    );
+  }
   const item: DriveItem = await itemRes.json();
 
   const childrenRes = await onedriveFetch(
@@ -228,11 +257,12 @@ export async function listFolders(itemId?: string): Promise<{ folder: OneDriveFo
   if (!childrenRes.ok) throw new OneDriveError('Could not read the folder', childrenRes.status === 401 ? 401 : 502);
   const children = await childrenRes.json();
 
+  const displayPath = folderDisplayPath(item);
   return {
     folder: {
       id: item.id,
-      name: folderDisplayPath(item) === 'OneDrive' ? 'OneDrive' : (item.name ?? ''),
-      path: folderDisplayPath(item),
+      name: displayPath === 'OneDrive' ? 'OneDrive' : (item.name ?? ''),
+      path: displayPath,
       childCount: item.folder?.childCount ?? null,
     },
     subfolders: ((children.value ?? []) as DriveItem[])
@@ -257,10 +287,12 @@ export interface OneDrivePhoto {
  */
 export async function listPhotos(folderId: string, count: number): Promise<OneDrivePhoto[]> {
   const images: OneDrivePhoto[] = [];
+  let pages = 0;
   let url: string | null =
     `/me/drive/items/${encodeURIComponent(folderId)}/children?$select=id,name,image&$top=${PAGE_SIZE}`;
 
-  while (url && images.length < ONEDRIVE_MAX_SAMPLE) {
+  while (url && images.length < ONEDRIVE_MAX_SAMPLE && pages < MAX_LIST_PAGES) {
+    pages += 1;
     const res = await onedriveFetch(url, { timeout: 15_000 });
     if (!res.ok) {
       throw new OneDriveError(
