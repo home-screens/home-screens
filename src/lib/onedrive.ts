@@ -214,6 +214,7 @@ interface DriveItem {
   name?: string | null;
   folder?: { childCount?: number | null } | null;
   image?: unknown;
+  deleted?: unknown;
   parentReference?: { path?: string | null } | null;
 }
 
@@ -278,9 +279,10 @@ export interface OneDrivePhoto {
 }
 
 /**
- * Images from one folder, shuffled. Graph has no random search (Immich
- * does), so the hub pages children — keeping only items with an image
- * facet — up to ONEDRIVE_MAX_SAMPLE, then shuffles and slices. Children
+ * Images from one folder AND everything inside it, shuffled. Graph's delta
+ * enumeration walks the whole subtree in one paged chain, which has no
+ * random search (Immich does), so the hub keeps only live items with an
+ * image facet, up to ONEDRIVE_MAX_SAMPLE, then shuffles and slices. Items
  * come back in Graph's name order, so folders larger than the cap are
  * name-biased; the editor panel calls that out via childCount.
  */
@@ -288,7 +290,7 @@ export async function listPhotos(folderId: string, count: number): Promise<OneDr
   const images: OneDrivePhoto[] = [];
   let pages = 0;
   let url: string | null =
-    `/me/drive/items/${encodeURIComponent(folderId)}/children?$select=id,name,image&$top=${PAGE_SIZE}`;
+    `/me/drive/items/${encodeURIComponent(folderId)}/delta?$select=id,name,image,folder,deleted`;
 
   while (url && images.length < ONEDRIVE_MAX_SAMPLE && pages < MAX_LIST_PAGES) {
     pages += 1;
@@ -301,7 +303,11 @@ export async function listPhotos(folderId: string, count: number): Promise<OneDr
     }
     const data = await res.json();
     for (const item of (data.value ?? []) as DriveItem[]) {
-      if (item.image) images.push({ id: item.id, name: item.name ?? item.id });
+      // delta returns folders and tombstones for deleted items alongside
+      // the files; keep only live images.
+      if (item.image && !item.folder && !item.deleted) {
+        images.push({ id: item.id, name: item.name ?? item.id });
+      }
     }
     url = (data['@odata.nextLink'] as string | undefined) ?? null;
   }

@@ -159,7 +159,7 @@ Home Screens supports four photo sources for the **Photo Slideshow** and **Full-
 - **Local** — photos uploaded to `public/backgrounds/` or a subdirectory, managed through the editor or API
 - **[Immich](https://immich.app)** — a self-hosted Google Photos alternative; browse and display photos from your Immich library with album, person (face recognition), and favorites filtering
 - **iCloud shared album** — paste a public shared album link from Apple Photos; no account or API key needed
-- **OneDrive** — photos straight from a folder in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
+- **OneDrive** — photos straight from a folder and its subfolders in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
 
 For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
 

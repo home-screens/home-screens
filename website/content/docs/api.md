@@ -1483,7 +1483,7 @@ Folder browser for the editor: one folder plus its immediate subfolders (first 2
 
 ### GET /api/onedrive/photos
 
-The slideshow's photo list: photos from one folder, shuffled. Used by photo slideshow and fullscreen photo. Display access — a display token works.
+The slideshow's photo list: photos from one folder and all of its subfolders, shuffled. Used by photo slideshow and fullscreen photo. Display access — a display token works.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|

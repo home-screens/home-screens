@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 const cache = createTTLCache<MediaListItem[]>(5 * 60_000); // 5 minutes, like the Immich route
 
 /**
- * The slideshow's photo list. Always the typed MediaListItem[] shape — this
+ * The slideshow's photo list, covering the folder and all of its
+ * subfolders. Always the typed MediaListItem[] shape — this
  * source postdates videos and never served the legacy string[] responses.
  * A missing folderId answers [] so an unconfigured module shows its clean
  * empty state rather than an error.

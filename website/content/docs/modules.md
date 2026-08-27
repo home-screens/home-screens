@@ -47,7 +47,7 @@ Photo Slideshow and Full-Screen Photo Viewer can pull photos straight from a per
 2. Open **Authentication** and set **Allow public client flows** to Yes.
 3. Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
 4. Back in the module's Photo Source picker choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
-5. Pick a folder. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
+5. Pick a folder. Photos come from that folder and every folder inside it. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 If the saved sign-in ever stops working on its own, click **Sign in with Microsoft** again.
 

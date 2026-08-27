@@ -200,17 +200,20 @@ describe('listFolders', () => {
 });
 
 describe('listPhotos', () => {
-  it('keeps only images, follows nextLinks, caps the sample, and slices to count', async () => {
+  it('gathers live images from the folder\'s whole subtree via delta', async () => {
     seedConnected();
     const page = (n: number, last: boolean) => json({
       value: [
         { id: `img-${n}`, name: `a${n}.jpg`, image: {} },
         { id: `vid-${n}`, name: `v${n}.mp4`, video: {} },
+        { id: 'dir-1', name: 'Sub', folder: {} },
+        { id: 'del-1', name: 'gone.jpg', image: {}, deleted: {} },
       ],
-      ...(last ? {} : { '@odata.nextLink': `${GRAPH}/me/drive/items/fld/children?$skiptoken=t${n}` }),
+      ...(last ? {} : { '@odata.nextLink': `${GRAPH}/me/drive/items/fld/delta?$skiptoken=t${n}` }),
     });
-    // 4 pages × 1 image each = 4 images; videos dropped. The shuffle is
-    // identity-mocked, so the slice takes the first `count` in listing order.
+    // 4 pages × 1 image each = 4 images; videos, subfolders, and deleted
+    // tombstones dropped. The shuffle is identity-mocked, so the slice takes
+    // the first `count` in listing order.
     mockFetch.mockImplementation(async (url: string) => {
       if (url.includes('skiptoken=t0')) return page(1, false);
       if (url.includes('skiptoken=t1')) return page(2, false);
@@ -220,6 +223,7 @@ describe('listPhotos', () => {
 
     const photos = await listPhotos('fld', 2);
 
+    expect(mockFetch.mock.calls[0][0]).toContain('/delta?');
     expect(photos).toEqual([{ id: 'img-0', name: 'a0.jpg' }, { id: 'img-1', name: 'a1.jpg' }]);
     expect(mockFetch).toHaveBeenCalledTimes(4); // first page + 3 nextLinks
   });
@@ -228,7 +232,7 @@ describe('listPhotos', () => {
     seedConnected();
     const bigPage = (n: number) => json({
       value: Array.from({ length: 200 }, (_, i) => ({ id: `p${n}-${i}`, name: `p.jpg`, image: {} })),
-      '@odata.nextLink': `${GRAPH}/me/drive/items/fld/children?$skiptoken=t${n}`,
+      '@odata.nextLink': `${GRAPH}/me/drive/items/fld/delta?$skiptoken=t${n}`,
     });
     let calls = 0;
     mockFetch.mockImplementation(async () => bigPage(calls++));
