@@ -281,7 +281,7 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
               {foldersData.subfolders.length === 0 ? (
                 <p className="text-[11px] text-hs-text-faint">{t('configSections.onedriveSource.emptyFolder')}</p>
               ) : (
-                <div className="grid grid-cols-2 gap-1">
+                <div className="flex flex-col gap-1">
                   {foldersData.subfolders.map((sub) => (
                     <button
                       key={sub.id}
