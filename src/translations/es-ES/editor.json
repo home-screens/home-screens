@@ -2702,7 +2702,8 @@
       "shuffleOrder": "Orden aleatorio",
       "kenBurnsEffect": "Efecto Ken Burns",
       "showClockOverlay": "Mostrar reloj superpuesto",
-      "mobileHintPrefix": "Sube fotos desde tu móvil en la pestaña Fotos en"
+      "mobileHintPrefix": "Sube fotos desde tu móvil en la pestaña Fotos en",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Cada semana",
@@ -2929,7 +2930,8 @@
       "photoCountOther": "{count} fotos",
       "noPhotosInFolder": "No hay fotos en esta carpeta",
       "slideInterval": "Intervalo de diapositiva (segundos)",
-      "transition": "Transición"
+      "transition": "Transición",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Personalizado (URL / texto)",
@@ -3410,6 +3412,33 @@
       "accentAuto": "El color de acento sigue el tiempo",
       "accentColor": "Color de acento",
       "showTime": "Mostrar la hora"
+    },
+    "onedriveSource": {
+      "checking": "Comprobando la conexión de OneDrive…",
+      "credentialsNeeded": "Primero añade tu ID de aplicación de Microsoft en Ajustes, Claves de API.",
+      "signIn": "Iniciar sesión con Microsoft",
+      "waiting": "Esperando a que termines de iniciar sesión",
+      "enterCode": "Introduce este código en",
+      "cancel": "Cancelar",
+      "signedIn": "Sesión iniciada",
+      "connectedAs": "Sesión iniciada como {account}",
+      "disconnect": "Desconectar OneDrive",
+      "retry": "Reintentar",
+      "folder": "Carpeta",
+      "noFolderChosen": "Todavía no hay carpeta elegida",
+      "chooseFolder": "Elegir carpeta",
+      "changeFolder": "Cambiar carpeta",
+      "loadingFolders": "Cargando carpetas…",
+      "emptyFolder": "No hay subcarpetas aquí",
+      "useThisFolder": "Usar esta carpeta",
+      "capNote": "Carpeta grande: la presentación usa una muestra aleatoria de 1000 fotos.",
+      "loadFailed": "No se pudieron cargar tus carpetas de OneDrive.",
+      "folderNotFound": "Carpeta no encontrada. Elige otra carpeta.",
+      "photosPerRefresh": "Fotos por actualización",
+      "noPhotos": "Aún no hay fotos en esta carpeta",
+      "signInDeclined": "Se canceló el inicio de sesión",
+      "signInExpired": "Ese código caducó. Vuelve a iniciar sesión.",
+      "signInFailed": "El inicio de sesión no funcionó. Comprueba el ID de aplicación e inténtalo de nuevo."
     }
   },
   "imageBrowsers": {

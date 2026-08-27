@@ -2697,7 +2697,8 @@
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
-      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op"
+      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Elke week",
@@ -2924,7 +2925,8 @@
       "photoCountOther": "{count} foto's",
       "noPhotosInFolder": "Geen foto's in deze map",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang"
+      "transition": "Overgang",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",
@@ -3405,6 +3407,33 @@
       "accentAuto": "Accentkleur volgt het weer",
       "accentColor": "Accentkleur",
       "showTime": "Tijd tonen"
+    },
+    "onedriveSource": {
+      "checking": "OneDrive-verbinding controleren…",
+      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij Instellingen, API-sleutels.",
+      "signIn": "Inloggen met Microsoft",
+      "waiting": "Wachten tot je klaar bent met inloggen",
+      "enterCode": "Voer deze code in op",
+      "cancel": "Annuleren",
+      "signedIn": "Ingelogd",
+      "connectedAs": "Ingelogd als {account}",
+      "disconnect": "OneDrive loskoppelen",
+      "retry": "Opnieuw proberen",
+      "folder": "Map",
+      "noFolderChosen": "Nog geen map gekozen",
+      "chooseFolder": "Map kiezen",
+      "changeFolder": "Map wijzigen",
+      "loadingFolders": "Mappen laden…",
+      "emptyFolder": "Geen submappen in deze map",
+      "useThisFolder": "Deze map gebruiken",
+      "capNote": "Grote map: de diavoorstelling gebruikt een willekeurige selectie van 1000 foto's.",
+      "loadFailed": "Kon je OneDrive-mappen niet laden.",
+      "folderNotFound": "Map niet gevonden. Kies een andere map.",
+      "photosPerRefresh": "Foto's per verversing",
+      "noPhotos": "Nog geen foto's in deze map",
+      "signInDeclined": "Inloggen is geannuleerd",
+      "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
+      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
     }
   },
   "imageBrowsers": {

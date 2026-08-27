@@ -2697,7 +2697,8 @@
       "shuffleOrder": "Zufällige Reihenfolge",
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
-      "mobileHintPrefix": "Fotos vom Handy hochladen – über den Fotos-Tab unter"
+      "mobileHintPrefix": "Fotos vom Handy hochladen – über den Fotos-Tab unter",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Wöchentlich",
@@ -2924,7 +2925,8 @@
       "photoCountOther": "{count} Fotos",
       "noPhotosInFolder": "Keine Fotos in diesem Ordner",
       "slideInterval": "Bildwechsel (Sekunden)",
-      "transition": "Übergang"
+      "transition": "Übergang",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Benutzerdefiniert (URL / Text)",
@@ -3405,6 +3407,33 @@
       "accentAuto": "Akzentfarbe folgt dem Wetter",
       "accentColor": "Akzentfarbe",
       "showTime": "Uhrzeit anzeigen"
+    },
+    "onedriveSource": {
+      "checking": "OneDrive-Verbindung wird geprüft…",
+      "credentialsNeeded": "Trage zuerst deine Microsoft Application ID unter Einstellungen, API-Schlüssel ein.",
+      "signIn": "Mit Microsoft anmelden",
+      "waiting": "Warte darauf, dass du die Anmeldung abschließt",
+      "enterCode": "Gib diesen Code ein auf",
+      "cancel": "Abbrechen",
+      "signedIn": "Angemeldet",
+      "connectedAs": "Angemeldet als {account}",
+      "disconnect": "OneDrive trennen",
+      "retry": "Erneut versuchen",
+      "folder": "Ordner",
+      "noFolderChosen": "Noch kein Ordner gewählt",
+      "chooseFolder": "Ordner wählen",
+      "changeFolder": "Ordner wechseln",
+      "loadingFolders": "Ordner werden geladen…",
+      "emptyFolder": "Keine Unterordner in diesem Ordner",
+      "useThisFolder": "Diesen Ordner verwenden",
+      "capNote": "Großer Ordner: Die Diashow nutzt eine Zufallsauswahl von 1.000 Fotos.",
+      "loadFailed": "OneDrive-Ordner konnten nicht geladen werden.",
+      "folderNotFound": "Ordner nicht gefunden. Wähle einen anderen Ordner.",
+      "photosPerRefresh": "Fotos pro Aktualisierung",
+      "noPhotos": "Noch keine Fotos in diesem Ordner",
+      "signInDeclined": "Anmeldung wurde abgebrochen",
+      "signInExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut.",
+      "signInFailed": "Anmeldung hat nicht funktioniert. Prüfe die Application ID und versuche es erneut."
     }
   },
   "imageBrowsers": {

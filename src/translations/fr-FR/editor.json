@@ -2702,7 +2702,8 @@
       "shuffleOrder": "Ordre aléatoire",
       "kenBurnsEffect": "Effet Ken Burns",
       "showClockOverlay": "Afficher l'horloge en superposition",
-      "mobileHintPrefix": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur"
+      "mobileHintPrefix": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Chaque semaine",
@@ -2929,7 +2930,8 @@
       "photoCountOther": "{count} photos",
       "noPhotosInFolder": "Aucune photo dans ce dossier",
       "slideInterval": "Intervalle entre les diapos (secondes)",
-      "transition": "Transition"
+      "transition": "Transition",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Personnalisé (URL / texte)",
@@ -3410,6 +3412,33 @@
       "accentAuto": "La couleur d'accent suit la météo",
       "accentColor": "Couleur d'accent",
       "showTime": "Afficher l'heure"
+    },
+    "onedriveSource": {
+      "checking": "Vérification de la connexion OneDrive…",
+      "credentialsNeeded": "Ajoutez d'abord votre ID d'application Microsoft dans Paramètres, Clés API.",
+      "signIn": "Se connecter avec Microsoft",
+      "waiting": "En attente de la fin de votre connexion",
+      "enterCode": "Saisissez ce code sur",
+      "cancel": "Annuler",
+      "signedIn": "Connecté",
+      "connectedAs": "Connecté en tant que {account}",
+      "disconnect": "Déconnecter OneDrive",
+      "retry": "Réessayer",
+      "folder": "Dossier",
+      "noFolderChosen": "Aucun dossier choisi",
+      "chooseFolder": "Choisir un dossier",
+      "changeFolder": "Changer de dossier",
+      "loadingFolders": "Chargement des dossiers…",
+      "emptyFolder": "Aucun sous-dossier ici",
+      "useThisFolder": "Utiliser ce dossier",
+      "capNote": "Grand dossier : le diaporama utilise un échantillon aléatoire de 1 000 photos.",
+      "loadFailed": "Impossible de charger vos dossiers OneDrive.",
+      "folderNotFound": "Dossier introuvable. Choisissez un autre dossier.",
+      "photosPerRefresh": "Photos par actualisation",
+      "noPhotos": "Pas encore de photos dans ce dossier",
+      "signInDeclined": "La connexion a été annulée",
+      "signInExpired": "Ce code a expiré. Relancez la connexion.",
+      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez."
     }
   },
   "imageBrowsers": {

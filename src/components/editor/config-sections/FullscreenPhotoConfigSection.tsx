@@ -11,6 +11,7 @@ import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { OneDrivePhotoSourceSection } from './OneDrivePhotoSourceSection';
 import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
 import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
@@ -48,6 +49,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
   const [photoCount, setPhotoCount] = useState(0);
   const { status: secrets } = useSecretStatus();
   const hasImmichKey = !!secrets.immich_api_key && !!secrets.immich_url;
+  const hasOneDrive = !!secrets.microsoft_client_id;
 
   // iCloud needs no key, so the source select is always shown; Immich joins
   // the list only once its server + API key are configured.
@@ -55,6 +57,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
     { value: 'local', label: t('configSections.fullscreen-photo.sourceLocal') },
     ...(hasImmichKey ? [{ value: 'immich' as const, label: t('configSections.fullscreen-photo.sourceImmich') }] : []),
     { value: 'icloud', label: t('configSections.fullscreen-photo.sourceICloud') },
+    ...(hasOneDrive ? [{ value: 'onedrive' as const, label: t('configSections.fullscreen-photo.sourceOneDrive') }] : []),
   ];
 
   const source: PhotoSource = c.source ?? 'local';
@@ -103,6 +106,8 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
       ) : source === 'icloud' ? (
         <ICloudAlbumSourceSection config={c as Record<string, unknown>} set={set} />
+      ) : source === 'onedrive' ? (
+        <OneDrivePhotoSourceSection config={c as Record<string, unknown>} set={set} />
       ) : (
         <>
           {/* Mode toggle: Slideshow vs Single Photo */}
@@ -194,7 +199,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
       )}
 
       {/* Photos / videos mix — only for slideshow mode */}
-      {!isSinglePhoto && (
+      {!isSinglePhoto && source !== 'onedrive' && (
         <MediaTypesFields config={c as Record<string, unknown>} set={set} />
       )}
 
