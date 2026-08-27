@@ -176,17 +176,19 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo.
   // Photo-only configs receive the legacy string[] response; normalize both
   // shapes into MediaListItem so the render path below is uniform.
-  const [data] = useFetchData<string[] | MediaListItem[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
+  const listUrl = isSinglePhoto ? '' : photoSlideshowUrl(config);
+  const [data] = useFetchData<string[] | MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
   const items = useMemo<MediaListItem[]>(
     () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
     [data],
   );
-  const files = items;
 
   const intervalMs = config.intervalMs ?? 30000;
   // Per-item rotation: photos advance on the timer, videos on onEnded —
   // an all-photo list degenerates to the plain fixed-interval rotation.
-  const [photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos);
+  // The list URL keys the batch, so a periodic refresh is held until the
+  // current pass completes instead of re-dealing mid-slideshow.
+  const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl);
 
   // Dual-layer crossfade state
   const [activeLayer, setActiveLayer] = useState(0);
@@ -260,7 +262,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   }
 
   // Empty state
-  if (data !== null && files.length === 0) {
+  if (data !== null && items.length === 0) {
     return (
       <div
         ref={containerRef}
