@@ -166,6 +166,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
 
   { pageId: 'integrations', fieldId: 'integrations.google', labelKey: 'settings.integrationsPage.google.name' },
   { pageId: 'integrations', fieldId: 'integrations.immich', labelKey: 'settings.integrationsPage.immich.name' },
+  { pageId: 'integrations', fieldId: 'integrations.microsoft', labelKey: 'settings.integrationsPage.microsoft.name' },
   { pageId: 'integrations', fieldId: 'integrations.unsplash', labelKey: 'settings.integrationsPage.unsplash.name' },
   { pageId: 'integrations', fieldId: 'integrations.nasa', labelKey: 'settings.integrationsPage.nasa.name' },
   { pageId: 'integrations', fieldId: 'integrations.todoist', labelKey: 'settings.integrationsPage.todoist.name' },
