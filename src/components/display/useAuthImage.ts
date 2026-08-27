@@ -11,11 +11,11 @@ import { displayFetch } from '@/lib/display-fetch';
  * is returned directly since those don't require authentication.
  */
 export function useAuthImage(src: string | undefined): string | undefined {
-  // Lazy initializer: static (non-API) paths can be returned on the very first
-  // render, avoiding a one-frame blank flash while the effect fires.
-  const [blobUrl, setBlobUrl] = useState<string | undefined>(
-    () => (src && !src.startsWith('/api/')) ? src : undefined,
-  );
+  // The URL only renders while it belongs to the CURRENT src: a src change
+  // keeps the old URL in state until the new blob resolves, and serving it
+  // in between made an active slide layer briefly flash its PREVIOUS image
+  // on every rotation.
+  const [loaded, setLoaded] = useState<{ forSrc: string; url: string } | null>(null);
   const prevBlobRef = useRef<string | null>(null);
 
   function revokePrev() {
@@ -28,14 +28,14 @@ export function useAuthImage(src: string | undefined): string | undefined {
   useEffect(() => {
     if (!src) {
       revokePrev();
-      setBlobUrl(undefined);
+      setLoaded(null);
       return;
     }
 
     // Only intercept API-served images — static paths work without auth
     if (!src.startsWith('/api/')) {
       revokePrev();
-      setBlobUrl(src);
+      setLoaded(null);
       return;
     }
 
@@ -45,19 +45,19 @@ export function useAuthImage(src: string | undefined): string | undefined {
       if (cancelled) return;
       if (!res.ok) {
         revokePrev();
-        setBlobUrl(undefined);
+        setLoaded(null);
         return;
       }
       const blob = await res.blob();
       if (cancelled) return;
       const url = URL.createObjectURL(blob);
       revokePrev();
-      setBlobUrl(url);
+      setLoaded({ forSrc: src, url });
       prevBlobRef.current = url;
     }).catch(() => {
       if (!cancelled) {
         revokePrev();
-        setBlobUrl(undefined);
+        setLoaded(null);
       }
     });
 
@@ -71,5 +71,7 @@ export function useAuthImage(src: string | undefined): string | undefined {
     return () => { revokePrev(); };
   }, []);
 
-  return blobUrl;
+  if (!src) return undefined;
+  if (!src.startsWith('/api/')) return src;
+  return loaded?.forSrc === src ? loaded.url : undefined;
 }
