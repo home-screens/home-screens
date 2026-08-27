@@ -93,9 +93,14 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
     style, data, error,
     loadingMessage: t('photo-slideshow.loading'),
     // An empty iCloud album usually means a bad link or the album's public
-    // website being off — say that instead of a generic "no photos".
+    // website being off; an empty OneDrive folder points back at the
+    // editor's folder picker — say so instead of a generic "no photos".
     empty: items.length === 0
-      && t(config.source === 'icloud' ? 'photo-slideshow.emptyICloud' : 'photo-slideshow.empty'),
+      && t(
+        config.source === 'icloud' ? 'photo-slideshow.emptyICloud'
+          : config.source === 'onedrive' ? 'photo-slideshow.emptyOneDrive'
+            : 'photo-slideshow.empty',
+      ),
   });
   if (gate) return gate;
 

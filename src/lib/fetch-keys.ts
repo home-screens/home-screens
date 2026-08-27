@@ -89,6 +89,15 @@ export function photoSlideshowUrl(config: AnyConfig): string {
     if (wantsMedia) params.set('media', media!);
     return `/api/icloud/photos?${params}`;
   }
+  if (config.source === 'onedrive') {
+    // Photos-only source: no media= param, so the route always answers the
+    // typed MediaListItem[] shape.
+    const params = new URLSearchParams();
+    if (config.onedriveFolderId) params.set('folderId', config.onedriveFolderId);
+    if (config.onedriveCount) params.set('count', String(config.onedriveCount));
+    const query = params.toString();
+    return query ? `/api/onedrive/photos?${query}` : '/api/onedrive/photos';
+  }
   const dir = config.directory as string | undefined;
   const params = new URLSearchParams();
   if (dir) params.set('directory', dir);

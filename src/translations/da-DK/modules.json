@@ -633,7 +633,8 @@
     "noPhotoSelectedHint": "Vælg et billede i editorpanelet.",
     "noPhotosYet": "Ingen billeder endnu",
     "noPhotosYetHint": "Upload billeder fra din telefon under fanen Billeder på /remote, eller vælg en mappe i editoren.",
-    "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet."
+    "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet.",
+    "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren."
   },
   "dad-joke": {
     "loading": "Indlæser vittighed…"
@@ -751,7 +752,8 @@
   "photo-slideshow": {
     "loading": "Indlæser billeder…",
     "empty": "Ingen billeder fundet",
-    "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til."
+    "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til.",
+    "emptyOneDrive": "Endnu ingen billeder. Tjek OneDrive-mappen i editoren."
   },
   "video": {
     "loading": "Indlæser video…",

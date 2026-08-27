@@ -1178,13 +1178,19 @@ export interface PhotoSlideshowConfig {
   transition: 'fade' | 'none';
   objectFit: 'cover' | 'contain' | 'fill';
   refreshIntervalMs: number;
-  source?: 'local' | 'immich' | 'icloud';
+  source?: 'local' | 'immich' | 'icloud' | 'onedrive';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
   /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
   icloudAlbumUrl?: string;
+  /** Graph driveItem ID of the OneDrive folder this module pulls from (source 'onedrive'). */
+  onedriveFolderId?: string;
+  /** Folder label captured at pick time — display only, the ID is authoritative. */
+  onedriveFolderName?: string;
+  /** Photos per refresh for source 'onedrive'. Default 50. */
+  onedriveCount?: number;
   /** Default 'photos' — existing photo-only behavior. */
   mediaTypes?: SlideshowMediaTypes;
   /** Force-advance cap for video slides. Default 60000. */
@@ -1775,13 +1781,19 @@ export interface FullscreenPhotoConfig {
   showClock: boolean;
   kenBurns: boolean;
   theme?: string;
-  source?: 'local' | 'immich' | 'icloud';
+  source?: 'local' | 'immich' | 'icloud' | 'onedrive';
   immichAlbumId?: string;
   immichPersonId?: string;
   immichFavoritesOnly?: boolean;
   immichCount?: number;
   /** Public share link (icloud.com/sharedalbum/#TOKEN) or bare token. */
   icloudAlbumUrl?: string;
+  /** Graph driveItem ID of the OneDrive folder this module pulls from (source 'onedrive'). */
+  onedriveFolderId?: string;
+  /** Folder label captured at pick time — display only, the ID is authoritative. */
+  onedriveFolderName?: string;
+  /** Photos per refresh for source 'onedrive'. Default 50. */
+  onedriveCount?: number;
   /** Default 'photos' — existing photo-only behavior. */
   mediaTypes?: SlideshowMediaTypes;
   /** Force-advance cap for video slides. Default 60000. */
