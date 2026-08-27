@@ -60,7 +60,6 @@ const tokenStore = createOAuthTokenStore({
   hasCredentials: async () => (await getMicrosoftClientId()) !== null,
 });
 
-export const onedriveIsConnected = tokenStore.isConnected;
 export const onedriveVerifyConnected = tokenStore.verifyConnected;
 export async function onedriveDisconnect(): Promise<void> {
   cancelDeviceFlow();
