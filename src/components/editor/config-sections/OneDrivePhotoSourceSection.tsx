@@ -126,7 +126,10 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
         else if (data.state === 'expired') finish(timer, t('configSections.onedriveSource.signInExpired'));
         else if (data.state === 'declined') finish(timer, t('configSections.onedriveSource.signInDeclined'));
         else if (data.state === 'failed') finish(timer, t('configSections.onedriveSource.signInFailed'));
-        // 'pending' (and a raced 'idle') keep waiting.
+        // 'idle' means no pending flow is left (hub restarted, another tab
+        // replaced it, or a disconnect raced us) — the shown code is dead.
+        else if (data.state === 'idle') finish(timer, t('configSections.onedriveSource.signInExpired'));
+        // 'pending' keeps waiting.
       } catch {
         if (!cancelled && !settled && ++failures >= MAX_CONSECUTIVE_FAILURES) {
           finish(timer, t('configSections.onedriveSource.signInFailed'));
@@ -342,7 +345,7 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
             onChange={(v) => set({ onedriveCount: v })}
           />
 
-          {previewThumbs.length > 0 ? (
+          {previewData !== null && (previewThumbs.length > 0 ? (
             <div className="flex gap-1 mt-1 overflow-x-auto">
               {previewThumbs.map((url) => (
                 <img
@@ -354,9 +357,9 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
                 />
               ))}
             </div>
-          ) : folderId ? (
+          ) : (
             <p className="text-[10px] text-hs-text-faint">{t('configSections.onedriveSource.noPhotos')}</p>
-          ) : null}
+          ))}
         </>
       )}
       {error && <p className="text-[11px] text-hs-warning leading-relaxed">{error}</p>}
