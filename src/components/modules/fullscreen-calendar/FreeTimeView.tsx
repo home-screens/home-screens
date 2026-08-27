@@ -4,7 +4,8 @@ import { useMemo } from 'react';
 import { addDays, isSameDay } from 'date-fns';
 import { isEventOnDay, formatEventTime } from '@/lib/calendar-utils';
 import {
-  buildPersonRows, eventsForRow, busyBlocksForDay, freeGaps, commonFreeGaps, initialsOf, EVERYONE_COLOR, EVERYONE_ROW_ID,
+  buildPersonRows, eventsForRow, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, initialsOf,
+  EVERYONE_COLOR, EVERYONE_ROW_ID,
   type BusyBlock, type FreeGap, type PersonRow,
 } from '@/lib/calendar-people';
 import { PersonAvatar, PeopleHint } from './person-view-bits';
@@ -124,7 +125,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
             padding: `0 ${sidePad}px`, borderTop: '1px solid var(--cal-border-subtle)',
           }}>
             <PersonLabel row={row} gaps={gaps} freeNow={nowInRange && gaps[0] != null && gaps[0].start <= fromHour + 1 / 60} dayOver={dayOver} fontSize={fontSize} scale={scale} fmtHour={fmtHour} t={t} />
-            <Track blocks={blocks} gaps={dayGaps} fromHour={isToday ? fromHour : hourStart} nowX={nowInRange ? x(nowHour) : null} x={x} fontSize={fontSize} scale={scale} height={fontSize * 4.2} fmtLen={fmtLen} />
+            <Track blocks={blocks} gaps={dayGaps} fromHour={isToday ? fromHour : hourStart} nowX={nowInRange ? x(nowHour) : null} x={x} fontSize={fontSize} scale={scale} height={fontSize * 4.2} fmtLen={fmtLen} t={t} />
           </div>
         ))}
       </div>
@@ -172,7 +173,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
                 <PersonAvatar row={row} size={fontSize * 1.9} fontSize={fontSize * 0.7} />
                 <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
               </div>
-              <Track blocks={blocks} gaps={dayGaps} fromHour={hourStart} nowX={null} x={x} fontSize={fontSize * 0.85} scale={scale} height={fontSize * 2.4} fmtLen={fmtLen} compact />
+              <Track blocks={blocks} gaps={dayGaps} fromHour={hourStart} nowX={null} x={x} fontSize={fontSize * 0.85} scale={scale} height={fontSize * 2.4} fmtLen={fmtLen} compact t={t} />
             </div>
           ))}
         </div>
@@ -232,7 +233,7 @@ function PersonLabel({ row, gaps, freeNow, dayOver, fontSize, scale, fmtHour, t 
  * competing with what is left; free-span length labels only count the
  * part that is still ahead.
  */
-function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLen, compact }: {
+function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLen, compact, t }: {
   blocks: BusyBlock[];
   gaps: FreeGap[];
   fromHour: number;
@@ -243,6 +244,7 @@ function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLe
   height: number;
   fmtLen: (g: FreeGap) => string;
   compact?: boolean;
+  t: TranslateFn;
 }) {
   const inset = compact ? 3 : 5;
   return (
@@ -280,21 +282,45 @@ function Track({ blocks, gaps, fromHour, nowX, x, fontSize, scale, height, fmtLe
           </div>
         );
       })}
+      {/* Colored spans first, then one label per overlap run on top of them.
+          Two blocks in the same run would otherwise print their titles into
+          the same strip and superimpose into unreadable text. */}
       {blocks.map((b) => (
         <div
           key={b.id}
           className="fsc-event-block"
           data-event-id={b.id}
           title={b.title}
+          aria-label={b.title}
+          role="img"
           style={{
             position: 'absolute', top: inset, bottom: inset, left: x(b.start), width: `calc(${x(b.end)} - ${x(b.start)})`,
             ...eventSurface(b.color, scale, 'block', { radius: scale.bu * 0.6, washAlpha: 0.32 }),
-            display: 'flex', alignItems: 'center', padding: `0 ${scale.bu * 0.6}px`,
-            fontSize: fontSize * 0.95, fontWeight: 600, color: 'var(--cal-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden',
+            zIndex: 2,
+          }}
+        />
+      ))}
+      {clusterBusyBlocks(blocks).map((c) => (
+        <div
+          key={`label-${c.primary.id}`}
+          aria-hidden="true"
+          // Carries the run's tap target too: it covers the whole run, so a
+          // tap anywhere on it opens the event the label names.
+          data-event-id={c.primary.id}
+          style={{
+            position: 'absolute', top: inset, bottom: inset, left: x(c.start), width: `calc(${x(c.end)} - ${x(c.start)})`,
+            display: 'flex', alignItems: 'center', gap: scale.bu * 0.5, padding: `0 ${scale.bu * 0.6}px`,
+            fontSize: fontSize * 0.95, fontWeight: 600, color: 'var(--cal-text-primary)',
+            whiteSpace: 'nowrap', overflow: 'hidden',
             zIndex: 2,
           }}
         >
-          {b.title}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.primary.title}</span>
+          {c.blocks.length > 1 && (
+            <span style={{ flexShrink: 0, fontWeight: 500, color: 'var(--cal-text-secondary)' }}>
+              {t('fullscreen-calendar.moreCount', { count: c.blocks.length - 1 })}
+            </span>
+          )}
         </div>
       ))}
       {/* What is already behind us, dimmed as one region */}

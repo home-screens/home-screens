@@ -764,15 +764,18 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
 
   {
     // The hour axis follows the configured window: a noon start has no 9 AM label.
+    // The negative patterns exclude a preceding digit: the view's own header
+    // prints the wall clock, so a bare /9 AM/ also matches "10:09 AM" and the
+    // assertion turns into a once-an-hour flake.
     type: 'fullscreen-calendar', name: 'free-time-hours', kind: 'networked', stubKey: 'calendar',
     config: { view: 'free-time', freeTimeHourStart: 12, freeTimeHourEnd: 18 },
-    expect: async (mod) => { await matches(/12 PM/)(mod); await notMatches(/9 AM/)(mod); await notMatches(/8 PM/)(mod); },
+    expect: async (mod) => { await matches(/12 PM/)(mod); await notMatches(/(?<!\d)9 AM/)(mod); await notMatches(/(?<!\d)8 PM/)(mod); },
   },
   {
     // Free gaps are hatched spans; the all-day-spanning stub event leaves none.
     type: 'fullscreen-calendar', name: 'free-time-end-hour', kind: 'networked', stubKey: 'calendar',
     config: { view: 'free-time', freeTimeHourStart: 7, freeTimeHourEnd: 12 },
-    expect: async (mod) => { await matches(/11 AM/)(mod); await notMatches(/1 PM/)(mod); },
+    expect: async (mod) => { await matches(/11 AM/)(mod); await notMatches(/(?<!\d)1 PM/)(mod); },
   },
   {
     type: 'fullscreen-calendar', name: 'free-time-show-tomorrow', kind: 'networked', stubKey: 'calendar',

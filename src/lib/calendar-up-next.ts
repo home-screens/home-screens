@@ -31,6 +31,9 @@ export interface UpNextModel {
   heroDay: Date;
   heroToday: boolean;
   later: UpNextTimedEvent[];
+  /** In progress right now, never the hero. Its own section in the view. */
+  running: UpNextTimedEvent[];
+  /** Already ended today. Finished only — see `running`. */
   earlier: UpNextTimedEvent[];
   allDayToday: CalendarEvent[];
   tomorrowRows: CalendarEvent[];
@@ -63,11 +66,12 @@ export function buildUpNextModel(
   const later = hero
     ? upcoming.filter((x) => x !== hero && isSameDay(x.start, hero.start)).slice(0, laterCount)
     : [];
-  // Running rows always show; only the finished list is capped, so a
-  // running hero never buys an extra "Done" row.
-  const earlier = showEarlier
-    ? [...running.filter((x) => x !== hero), ...finishedToday.slice(0, EARLIER_MAX)]
-    : [];
+  // Running and finished are separate sections: a row reading "13 min left"
+  // filed under "Earlier today" says it already happened. Running rows always
+  // show; only the finished list is capped, so a running hero never buys an
+  // extra "Done" row.
+  const runningRows = showEarlier ? running.filter((x) => x !== hero) : [];
+  const earlier = showEarlier ? finishedToday.slice(0, EARLIER_MAX) : [];
   const allDayToday = events.filter((ev) => ev.allDay && isEventOnDay(ev, today, timezone));
   // Tomorrow shows whatever the sections above did not already draw: the
   // hero can sit on any future day (and all-day events never hero), so
@@ -87,5 +91,5 @@ export function buildUpNextModel(
         .slice(0, TOMORROW_MAX)
     : [];
   const remainingToday = upcoming.filter((x) => isSameDay(x.start, today)).length;
-  return { hero, heroIsRunning, heroDay, heroToday, later, earlier, allDayToday, tomorrowRows, remainingToday, hasAnyUpcoming: upcoming.length > 0, tomorrow };
+  return { hero, heroIsRunning, heroDay, heroToday, later, running: runningRows, earlier, allDayToday, tomorrowRows, remainingToday, hasAnyUpcoming: upcoming.length > 0, tomorrow };
 }

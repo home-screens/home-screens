@@ -62,11 +62,12 @@ describe('buildUpNextModel', () => {
     ], NOW, TODAY, OPTS);
     // The nearest upcoming event is tomorrow's t1, so it heroes (on a future
     // day) and leaves the Tomorrow list; the running spill-over stays the
-    // Earlier story and never joins Tomorrow either.
+    // Now story and never joins Tomorrow either.
     expect(model.hero?.ev.id).toBe('t1');
     expect(model.heroToday).toBe(false);
     expect(model.tomorrowRows.map((e) => e.id)).toEqual(['t-allday']);
-    expect(model.earlier.map((x) => x.ev.id)).toEqual(['spill']);
+    expect(model.running.map((x) => x.ev.id)).toEqual(['spill']);
+    expect(model.earlier).toEqual([]);
   });
 
   it('caps finished rows at two (most recent first) and keeps running rows uncapped', () => {
@@ -77,7 +78,11 @@ describe('buildUpNextModel', () => {
       ev('f2', iso(15, 9), iso(15, 10)),
       ev('f3', iso(15, 10), iso(15, 11)),
     ], NOW, TODAY, OPTS);
-    expect(model.earlier.map((x) => x.ev.id)).toEqual(['run', 'f3', 'f2']);
+    // Running rows are their own section, so the finished cap never spends a
+    // slot on them: "13 min left" under an "Earlier today" heading read as
+    // already finished.
+    expect(model.running.map((x) => x.ev.id)).toEqual(['run']);
+    expect(model.earlier.map((x) => x.ev.id)).toEqual(['f3', 'f2']);
   });
 
   it('honors showEarlier / showTomorrow toggles', () => {

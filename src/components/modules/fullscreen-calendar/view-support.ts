@@ -94,6 +94,17 @@ export function autoScheduleDays(width: number, density: string): number {
 // share one helper; re-exported here for the views' convenience.
 export { dayDecorFor } from '@/lib/calendar-rules';
 
+/**
+ * Bottom fade for a list that clips at its edge. These views deliberately
+ * never scroll on a kiosk, so the last card is cut wherever it happens to
+ * land — and a hard slice through a card's middle reads as a rendering
+ * fault. A short fade reads as "there is more below" instead.
+ */
+export function clippedListFade(px: number): CSSProperties {
+  const mask = `linear-gradient(to bottom, #000 calc(100% - ${px}px), transparent 100%)`;
+  return { maskImage: mask, WebkitMaskImage: mask };
+}
+
 /** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */
 export function clampStyle(wrap: boolean): CSSProperties {
   return wrap

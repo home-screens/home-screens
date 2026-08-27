@@ -195,8 +195,12 @@ export function effectiveWeatherPlacement(
   const { days, events } = viewTraits(view).weather;
   if (resolved === 'days') return days ? 'days' : 'header';
   if (resolved === 'events') return events ? 'events' : 'header';
-  // days-and-events
+  // days-and-events: keep whichever surfaces this view has, in either
+  // combination. Falling through to the header pill when the view can draw
+  // one of the two would make the richer setting show less than the
+  // narrower one (up-next draws event weather but no day headers).
   if (days && events) return 'days-and-events';
   if (days) return 'days';
+  if (events) return 'events';
   return 'header';
 }

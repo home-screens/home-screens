@@ -39,15 +39,25 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
     () => buildUpNextModel(events, now, today, { timezone, laterCount, showEarlier, showTomorrow }),
     [events, now, today, timezone, laterCount, showEarlier, showTomorrow],
   );
-  const { hero, heroIsRunning, heroDay, heroToday, later, earlier, allDayToday, tomorrowRows, remainingToday, tomorrow } = model;
+  const { hero, heroIsRunning, heroDay, heroToday, later, running: runningRows, earlier, allDayToday, tomorrowRows, remainingToday, tomorrow } = model;
   const pad = scale.bu * 3.5;
   const sectionGap = scale.bu * 3;
+  const isLandscape = scale.orientation === 'landscape';
 
   return (
     <div
       aria-label={t('fullscreen-calendar.viewLabels.upNext')}
-      style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: `${scale.bu * 2.5}px ${pad}px 0` }}
+      style={{
+        height: '100%', overflow: 'hidden', padding: `${scale.bu * 2.5}px ${pad}px 0`,
+        // Landscape has barely half the vertical room of portrait at the same
+        // base unit, so one column pushed Tomorrow off the bottom edge with
+        // nothing to say it had been dropped. Two columns fit the whole board.
+        ...(isLandscape
+          ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', columnGap: scale.bu * 4, alignItems: 'start' }
+          : { display: 'flex', flexDirection: 'column' }),
+      }}
     >
+      <div style={{ minWidth: 0 }}>
       {/* Date line */}
       <div style={{ flexShrink: 0 }}>
         <div style={{
@@ -113,37 +123,42 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
           </div>
         )}
       </div>
+      </div>
 
+      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: sectionGap, marginTop: isLandscape ? 0 : sectionGap }}>
       {/* Later on the hero's day */}
       {later.length > 0 && (
-        <Section title={heroToday ? t('fullscreen-calendar.upNext.laterToday') : t('fullscreen-calendar.upNext.alsoOn', { day: formatDateSync(heroDay, 'EEEE', { locale }) })} fontSize={fontSize} gap={sectionGap}>
+        <Section title={heroToday ? t('fullscreen-calendar.upNext.laterToday') : t('fullscreen-calendar.upNext.alsoOn', { day: formatDateSync(heroDay, 'EEEE', { locale }) })} fontSize={fontSize}>
           {later.map((x) => (
             <ListRow key={x.ev.id} item={x} ctx={rowCtx} trailing={formatCountdown(x.start, now, locale)} />
           ))}
         </Section>
       )}
 
-      {/* Earlier today: running first, then the last finished */}
+      {/* Happening now. Its own heading: a row reading "13 min left" under
+          "Earlier today" says it has already finished. */}
+      {runningRows.length > 0 && (
+        <Section title={t('fullscreen-calendar.upNext.now')} fontSize={fontSize}>
+          {runningRows.map((x) => (
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx}
+              trailing={t('fullscreen-calendar.upNext.minutesLeft', { count: Math.max(1, Math.ceil((x.end.getTime() - now.getTime()) / 60_000)) })}
+              progress={eventProgress(x.start, x.end, now)} />
+          ))}
+        </Section>
+      )}
+
+      {/* Already finished today */}
       {earlier.length > 0 && (
-        <Section title={t('fullscreen-calendar.upNext.earlier')} fontSize={fontSize} gap={sectionGap}>
-          {earlier.map((x) => {
-            const progress = eventProgress(x.start, x.end, now);
-            const isRunning = progress != null;
-            return (
-              <ListRow key={x.ev.id} item={x} ctx={rowCtx}
-                dim={!isRunning}
-                trailing={isRunning
-                  ? t('fullscreen-calendar.upNext.minutesLeft', { count: Math.max(1, Math.ceil((x.end.getTime() - now.getTime()) / 60_000)) })
-                  : t('fullscreen-calendar.upNext.done')}
-                progress={progress} />
-            );
-          })}
+        <Section title={t('fullscreen-calendar.upNext.earlier')} fontSize={fontSize}>
+          {earlier.map((x) => (
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx} dim trailing={t('fullscreen-calendar.upNext.done')} />
+          ))}
         </Section>
       )}
 
       {/* Tomorrow */}
       {tomorrowRows.length > 0 && (
-        <Section title={t('fullscreen-calendar.upNext.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })} fontSize={fontSize} gap={sectionGap}>
+        <Section title={t('fullscreen-calendar.upNext.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })} fontSize={fontSize}>
           {tomorrowRows.map((ev) => (
             <ListRow
               key={ev.id}
@@ -155,13 +170,14 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
           ))}
         </Section>
       )}
+      </div>
     </div>
   );
 }
 
-function Section({ title, fontSize, gap, children }: { title: string; fontSize: number; gap: number; children: React.ReactNode }) {
+function Section({ title, fontSize, children }: { title: string; fontSize: number; children: React.ReactNode }) {
   return (
-    <div style={{ marginTop: gap, flexShrink: 0, minHeight: 0 }}>
+    <div style={{ flexShrink: 0, minHeight: 0 }}>
       <div style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)', marginBottom: fontSize * 0.9 }}>
         {title}
       </div>

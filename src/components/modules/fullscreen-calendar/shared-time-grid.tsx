@@ -22,6 +22,18 @@ export function formatHourLabel(h: number, timeFormat: TimeFormat, am: string, p
   return hour > 12 ? `${hour - 12} ${pm}` : `${hour} ${am}`;
 }
 
+/**
+ * Vertical offset for an hour-axis label. Labels centre on their hour line,
+ * but the first and last lines sit exactly on the grid's clipped edges — the
+ * all-day band above, the legend below — so centring there slices the label
+ * through the middle. Those two tuck inside the grid instead.
+ */
+export function hourLabelShift(index: number, lastIndex: number): string {
+  if (index === 0) return 'translateY(0)';
+  if (index === lastIndex) return 'translateY(-100%)';
+  return 'translateY(-50%)';
+}
+
 // ─── Hooks ───
 
 /**

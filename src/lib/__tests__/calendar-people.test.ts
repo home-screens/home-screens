@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { CalendarEvent, CalendarPerson } from '@/types/config';
 import {
-  buildPersonRows, eventsForRow, initialsOf, busyBlocksForDay, freeGaps, commonFreeGaps, EVERYONE_ROW_ID,
+  buildPersonRows, eventsForRow, initialsOf, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, EVERYONE_ROW_ID,
 } from '@/lib/calendar-people';
 
 const ev = (id: string, sourceId: string | undefined, extra: Partial<CalendarEvent> = {}): CalendarEvent => ({
@@ -98,5 +98,40 @@ describe('free time', () => {
     expect(commonFreeGaps([a, b, c], 1)).toEqual([{ start: 8, end: 9 }, { start: 18, end: 20 }]);
     expect(commonFreeGaps([a, b, c], 1.5)).toEqual([{ start: 18, end: 20 }]);
     expect(commonFreeGaps([], 1)).toEqual([]);
+  });
+});
+
+describe('clusterBusyBlocks', () => {
+  const block = (id: string, start: number, end: number) => ({ id, title: id, color: '#123456', start, end });
+
+  it('leaves separate blocks in their own clusters', () => {
+    const out = clusterBusyBlocks([block('a', 9, 10), block('b', 14, 15)]);
+    expect(out.map((c) => c.blocks.map((b) => b.id))).toEqual([['a'], ['b']]);
+  });
+
+  it('groups overlapping blocks so only one label is drawn per run', () => {
+    // Soccer 6:00-7:30 over Family Dinner 6:00-7:00: two titles in the same
+    // strip superimposed into unreadable text before this grouping existed.
+    const out = clusterBusyBlocks([block('soccer', 18, 19.5), block('dinner', 18, 19)]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ start: 18, end: 19.5 });
+    expect(out[0].blocks.map((b) => b.id)).toEqual(['dinner', 'soccer']); // start order, ties by end
+    expect(out[0].primary.id).toBe('soccer');
+  });
+
+  it('names a run after its longest block, not the earliest', () => {
+    const out = clusterBusyBlocks([block('reminder', 18, 18.25), block('practice', 18, 19.5)]);
+    expect(out[0].primary.id).toBe('practice');
+  });
+
+  it('chains through a run that a middle block bridges', () => {
+    const out = clusterBusyBlocks([block('a', 9, 10), block('b', 9.5, 11), block('c', 10.5, 12)]);
+    expect(out).toHaveLength(1);
+    expect(out[0].end).toBe(12);
+  });
+
+  it('does not merge back-to-back blocks', () => {
+    const out = clusterBusyBlocks([block('a', 9, 10), block('b', 10, 11)]);
+    expect(out).toHaveLength(2);
   });
 });

@@ -82,7 +82,12 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   // over the grid below.
   const hasDayWeather = weather != null && (weather.placement === 'days' || weather.placement === 'days-and-events');
   const headerH = fontSize * (hasDayWeather ? 5.4 : 4.4);
-  const rowMaxH = fontSize * 20;
+  // Rows are capped so one or two calendars never become a giant band, but
+  // the old cap left a four-person household ~500px short of the bottom on a
+  // portrait board, which read as a truncated grid rather than a finished
+  // one. A roomier cap plus centring the block absorbs the remainder either
+  // way: a short household sits centred, a full one fills.
+  const rowMaxH = fontSize * 30;
   const rowH = containerH > 0 && rows.length > 0 ? Math.min(rowMaxH, (containerH - headerH) / rows.length) : 0;
   const noPeople = !people || people.length === 0;
   const cellPad = scale.bu * 0.5;
@@ -95,7 +100,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
       ref={scrollRef}
       role="grid"
       aria-label={t('fullscreen-calendar.ariaLabels.familyGrid')}
-      style={{ height: '100%', overflow: 'hidden' }}
+      style={{ height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
     >
       <div style={{
         display: 'grid',

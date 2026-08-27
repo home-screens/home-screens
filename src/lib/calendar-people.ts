@@ -149,6 +149,45 @@ export function busyBlocksForDay(
   return blocks.sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
+/** A run of busy blocks that touch or overlap, drawn as one labelled span. */
+export interface BusyCluster {
+  start: number;
+  end: number;
+  /** Every block in the run, in start order. */
+  blocks: BusyBlock[];
+  /** The longest block — what the run is named after. */
+  primary: BusyBlock;
+}
+
+/**
+ * Group busy blocks into connected runs. The blocks themselves still draw
+ * individually (their colors are the point of the track), but a run gets one
+ * label: two concurrent events each printing a title into the same strip
+ * superimposed them into unreadable glyph soup, which is the common case as
+ * soon as a personal event overlaps a shared household one.
+ *
+ * The label names the longest block rather than the earliest, so a run reads
+ * as the thing that actually occupies it — "Soccer Practice", not the
+ * 15-minute reminder that happened to start first.
+ */
+export function clusterBusyBlocks(blocks: readonly BusyBlock[]): BusyCluster[] {
+  const sorted = [...blocks].sort((a, b) => a.start - b.start || a.end - b.end);
+  const clusters: BusyCluster[] = [];
+  for (const b of sorted) {
+    const last = clusters[clusters.length - 1];
+    if (last && b.start < last.end) {
+      last.end = Math.max(last.end, b.end);
+      last.blocks.push(b);
+    } else {
+      clusters.push({ start: b.start, end: b.end, blocks: [b], primary: b });
+    }
+  }
+  for (const c of clusters) {
+    c.primary = c.blocks.reduce((best, b) => (b.end - b.start > best.end - best.start ? b : best), c.blocks[0]);
+  }
+  return clusters;
+}
+
 /**
  * The gaps between busy blocks inside the window that are at least
  * `minHours` long. Overlapping blocks are merged first so two parallel

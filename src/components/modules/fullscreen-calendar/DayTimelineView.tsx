@@ -15,7 +15,7 @@ import { DayBadges } from '../shared/DayBadges';
 import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-layout';
 import type { CalendarScale, CalendarViewProps } from './view-support';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
-import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
+import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
 
@@ -61,18 +61,24 @@ function ZoneBand({
         background: zone.tint,
         pointerEvents: 'none',
       }} />
+      {/* Above the event blocks (zIndex 2..9), below the now line (10). At
+          zIndex 1 any event crossing the zone boundary painted straight over
+          this, leaving "EVENING" rendering as "ENING"; the chip background
+          keeps it legible wherever it lands. */}
       <div style={{
         position: 'absolute',
         top: top + scale.bu * 0.3,
         left: scale.bu * 0.5,
         fontSize: fontSize * 0.55,
-        fontWeight: 400,
+        fontWeight: 500,
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
         color: 'var(--cal-text-tertiary)',
-        opacity: 0.6,
+        background: 'var(--cal-bg)',
+        borderRadius: scale.bu * 0.3,
+        padding: `${scale.bu * 0.12}px ${scale.bu * 0.35}px`,
         pointerEvents: 'none',
-        zIndex: 1,
+        zIndex: 9,
       }}>
         {label}
       </div>
@@ -223,7 +229,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                   fontSize: fontSize * 0.8,
                   fontWeight: 500,
                   color: 'var(--cal-text-tertiary)',
-                  transform: 'translateY(-50%)',
+                  transform: hourLabelShift(i, totalHours),
                   lineHeight: 1,
                   whiteSpace: 'nowrap',
                   fontVariantNumeric: 'tabular-nums',

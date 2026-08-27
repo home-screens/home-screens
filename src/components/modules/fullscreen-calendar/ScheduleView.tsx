@@ -16,7 +16,7 @@ import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-l
 import { DayWeatherBadge } from './WeatherInline';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/config';
-import { formatHourLabel, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
+import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
 
@@ -176,7 +176,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                     fontSize: fontSize * 0.75,
                     fontWeight: isCurrentHour ? 600 : 400,
                     color: isCurrentHour ? 'var(--cal-text-primary)' : 'var(--cal-text-tertiary)',
-                    transform: 'translateY(-50%)',
+                    transform: hourLabelShift(i, totalHours),
                     lineHeight: 1,
                     whiteSpace: 'nowrap',
                     fontVariantNumeric: 'tabular-nums',

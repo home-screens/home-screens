@@ -93,3 +93,45 @@ describe('computeOverlapLayout — stacked mode', () => {
     expect(layout.get('e9')!.zIndex).toBe(9);          // 2 + min(column 9, 7)
   });
 });
+
+describe('computeOverlapLayout — per-cluster column sizing', () => {
+  it('keeps a standalone event full width when a later pile-up needs three columns', () => {
+    // The 8 AM standup shares no moment with the 6 PM pile-up, so it must not
+    // inherit its column count — sizing the whole day off its worst moment
+    // truncated every title on an otherwise empty day.
+    const layout = computeOverlapLayout([
+      ev('standup', 8, 8.5),
+      ev('soccer', 18, 19.5), ev('dinner', 18, 19), ev('piano', 18.5, 19),
+    ]);
+    expect(layout.get('standup')).toEqual({ left: 0, width: 1, zIndex: 2 });
+    expect(layout.get('soccer')!.width).toBeCloseTo(1 / 3);
+    expect(layout.get('dinner')!.width).toBeCloseTo(1 / 3);
+    expect(layout.get('piano')!.width).toBeCloseTo(1 / 3);
+  });
+
+  it('sizes each cluster independently', () => {
+    const layout = computeOverlapLayout([
+      ev('a', 9, 10), ev('b', 9, 10),          // pair -> halves
+      ev('c', 14, 16), ev('d', 14, 15), ev('e', 14.5, 15), // triple -> thirds
+    ]);
+    expect(layout.get('a')!.width).toBe(0.5);
+    expect(layout.get('b')!.width).toBe(0.5);
+    expect(layout.get('c')!.width).toBeCloseTo(1 / 3);
+  });
+
+  it('treats back-to-back events as separate clusters', () => {
+    const layout = computeOverlapLayout([ev('a', 9, 10), ev('b', 10, 11), ev('c', 10, 11)]);
+    expect(layout.get('a')).toEqual({ left: 0, width: 1, zIndex: 2 });
+    expect(layout.get('b')!.width).toBe(0.5);
+    expect(layout.get('c')!.width).toBe(0.5);
+  });
+
+  it('restarts the stacked-mode indent for each cluster', () => {
+    const layout = computeOverlapLayout(
+      [ev('a', 9, 11), ev('b', 9.5, 10), ev('late', 20, 21)],
+      'stacked',
+    );
+    expect(layout.get('b')!.left).toBeGreaterThan(0);
+    expect(layout.get('late')!.left).toBe(0);
+  });
+});

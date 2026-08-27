@@ -132,8 +132,10 @@ describe('FreeTimeView', () => {
     );
     const text = container.textContent ?? '';
     // Dinner is drawn on both tracks (shared), each person's own event once.
-    expect(container.querySelectorAll('[data-event-id="dinner"]')).toHaveLength(2);
-    expect(container.querySelectorAll('[data-event-id="soccer"]')).toHaveLength(1);
+    // Scoped to the colored spans: an overlap run's label carries the same
+    // data-event-id so a tap on it opens the event it names.
+    expect(container.querySelectorAll('.fsc-event-block[data-event-id="dinner"]')).toHaveLength(2);
+    expect(container.querySelectorAll('.fsc-event-block[data-event-id="soccer"]')).toHaveLength(1);
     expect(text).toContain('Everyone is free');
     expect(text).toContain('7:30 PM – 10:00 PM today');
     expect(container.querySelectorAll('[data-free-gap]').length).toBeGreaterThan(0);

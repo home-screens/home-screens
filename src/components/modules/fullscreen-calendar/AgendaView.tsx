@@ -11,7 +11,7 @@ import {
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MapPin } from 'lucide-react';
-import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
+import { clippedListFade, dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
@@ -338,12 +338,14 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
         <div style={{
           overflow: 'hidden',
           padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
+          ...clippedListFade(scale.bu * 2.5),
         }}>
           {renderColumn(leftGroups)}
         </div>
         <div style={{
           overflow: 'hidden',
           padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
+          ...clippedListFade(scale.bu * 2.5),
         }}>
           {renderColumn(rightGroups)}
         </div>
@@ -356,6 +358,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
       height: '100%',
       overflow: 'hidden',
       padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
+      ...clippedListFade(scale.bu * 2.5),
     }}>
       {renderColumn(dayGroups)}
     </div>
