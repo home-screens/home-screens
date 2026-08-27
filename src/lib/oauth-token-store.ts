@@ -30,13 +30,11 @@ export interface OAuthTokenStoreOptions {
   revokeUrl?: string;
   /**
    * Token-request credential params (client_id, and client_secret when the
-   * provider has one). Throws missingCredentialsMessage when unusable.
+   * provider has one). Throws with the provider's own message when unusable.
    */
   getCredentials: () => Promise<Record<string, string>>;
   /** Passive presence check — no network. */
   hasCredentials: () => Promise<boolean>;
-  /** Thrown by getCredentials when credentials are missing. */
-  missingCredentialsMessage: string;
   /** Logger namespace. */
   logName: string;
 }

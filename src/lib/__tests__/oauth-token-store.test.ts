@@ -38,7 +38,6 @@ function tokenResponse(extras: Record<string, unknown> = {}) {
 const idOnlyOpts = (): OAuthTokenStoreOptions => ({
   tokensPath: 'data/test-tokens.json',
   tokenUrl: 'https://login.example.test/oauth2/token',
-  missingCredentialsMessage: 'credentials missing',
   logName: 'test-store',
   getCredentials: async () => ({ client_id: 'client-id-1' }),
   hasCredentials: async () => true,

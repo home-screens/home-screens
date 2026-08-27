@@ -76,7 +76,6 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     tokensPath: opts.tokensPath,
     tokenUrl: TOKEN_URL,
     revokeUrl: REVOKE_URL,
-    missingCredentialsMessage: opts.missingCredentialsMessage,
     logName: opts.logName,
     getCredentials: async () => {
       const { clientId, clientSecret } = await getClientCredentials();
