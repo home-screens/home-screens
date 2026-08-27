@@ -1,7 +1,5 @@
-import { createJsonStore } from './json-store';
 import { getSecret, type SecretKey } from './secrets';
-import { fetchWithTimeout } from './api-utils';
-import { logger } from './logger';
+import { createOAuthTokenStore, type StoredOAuthTokens } from './oauth-token-store';
 
 /**
  * Shared OAuth token store for the two Google integrations. Each grant lives
@@ -14,20 +12,15 @@ import { logger } from './logger';
  *   flow), tokens in data/google-picker-tokens.json.
  *
  * The flows differ per integration and stay in their own modules; everything
- * about holding a grant — persistence, proactive refresh, revocation — is
- * identical and lives here exactly once.
+ * about holding a grant — persistence, proactive refresh, revocation — lives
+ * in the provider-neutral oauth-token-store exactly once.
  */
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 
-export interface StoredGoogleTokens {
-  access_token?: string | null;
-  refresh_token?: string | null;
-  expiry_date?: number | null;
-  token_type?: string | null;
-  scope?: string;
-}
+/** Alias kept so existing Google call sites need no changes. */
+export type StoredGoogleTokens = StoredOAuthTokens;
 
 export interface GoogleTokenStoreOptions {
   /** Path of the tokens JSON file, relative to process.cwd(). */
@@ -66,29 +59,6 @@ export interface GoogleTokenStore {
 }
 
 export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTokenStore {
-  const log = logger(opts.logName);
-  let refreshInFlight: Promise<string | null> | null = null;
-
-  // Same store the other secret files use (secrets.json, auth.json): writes
-  // are queued (so a disconnect can't interleave with an in-flight refresh's
-  // save), tmp+rename atomic (so a power cut on the Pi can't leave a torn
-  // tokens file), and chmod'd before the rename (so a refresh token is never
-  // briefly world-readable). No dirMode: these live directly in data/, which
-  // is shared with non-secret files.
-  const store = createJsonStore<StoredGoogleTokens | null>({
-    path: opts.tokensPath,
-    defaultValue: null,
-    chmod: 0o600,
-  });
-
-  async function loadTokens(): Promise<StoredGoogleTokens | null> {
-    return store.read();
-  }
-
-  async function saveTokens(tokens: StoredGoogleTokens): Promise<void> {
-    await store.write(tokens);
-  }
-
   async function getClientCredentials(): Promise<{ clientId: string; clientSecret: string }> {
     const clientId = (await getSecret(opts.clientIdKey))?.trim();
     const clientSecret = (await getSecret(opts.clientSecretKey))?.trim();
@@ -102,104 +72,18 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     return Boolean(clientId && clientSecret);
   }
 
-  async function refreshAccessToken(tokens: StoredGoogleTokens): Promise<string | null> {
-    let credentials: { clientId: string; clientSecret: string };
-    try {
-      credentials = await getClientCredentials();
-    } catch (err) {
-      log.error('Token refresh impossible:', err instanceof Error ? err.message : err);
-      return null;
-    }
-    const res = await fetchWithTimeout(TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: credentials.clientId,
-        client_secret: credentials.clientSecret,
-        refresh_token: tokens.refresh_token!,
-        grant_type: 'refresh_token',
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.access_token) {
-      log.error('Token refresh failed:', data.error_description || data.error || res.status);
-      return null;
-    }
-    await saveTokens({
-      ...tokens,
-      access_token: data.access_token,
-      expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
-      // Google rarely returns a new refresh token on refresh — keep the old one.
-      refresh_token: data.refresh_token || tokens.refresh_token,
-      scope: data.scope ?? tokens.scope,
-    });
-    return data.access_token;
-  }
-
-  async function getAccessToken(): Promise<string | null> {
-    const tokens = await loadTokens();
-    if (!tokens) return null;
-
-    const fresh = tokens.expiry_date ? tokens.expiry_date > Date.now() + 60_000 : false;
-    if (tokens.access_token && fresh) return tokens.access_token;
-
-    if (!tokens.refresh_token) {
-      // Access-token-only grant — usable until it expires, then dead.
-      // No expiry_date recorded means we can't tell; assume still valid.
-      if (tokens.access_token && (!tokens.expiry_date || tokens.expiry_date > Date.now())) {
-        return tokens.access_token;
-      }
-      return null;
-    }
-
-    if (!refreshInFlight) {
-      refreshInFlight = refreshAccessToken(tokens).finally(() => { refreshInFlight = null; });
-    }
-    return refreshInFlight;
-  }
-
-  async function isConnected(): Promise<boolean> {
-    const tokens = await loadTokens();
-    if (tokens?.refresh_token) return true;
-    if (tokens?.access_token) {
-      if (!tokens.expiry_date) return true;
-      return tokens.expiry_date > Date.now();
-    }
-    return false;
-  }
-
-  async function verifyConnected(): Promise<boolean> {
-    return (await getAccessToken()) !== null;
-  }
-
-  async function disconnect(): Promise<void> {
-    try {
-      const tokens = await loadTokens();
-      if (tokens?.access_token) {
-        await fetchWithTimeout(REVOKE_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ token: tokens.access_token }),
-        });
-      }
-    } catch {
-      // Best effort revocation
-    }
-    try {
-      await saveTokens({});
-    } catch {
-      // Best effort cleanup
-    }
-  }
-
-  return {
-    loadTokens,
-    saveTokens,
-    getClientCredentials,
+  const store = createOAuthTokenStore({
+    tokensPath: opts.tokensPath,
+    tokenUrl: TOKEN_URL,
+    revokeUrl: REVOKE_URL,
+    missingCredentialsMessage: opts.missingCredentialsMessage,
+    logName: opts.logName,
+    getCredentials: async () => {
+      const { clientId, clientSecret } = await getClientCredentials();
+      return { client_id: clientId, client_secret: clientSecret };
+    },
     hasCredentials,
-    getAccessToken,
-    isConnected,
-    verifyConnected,
-    disconnect,
-  };
+  });
+
+  return { ...store, getClientCredentials, hasCredentials };
 }
