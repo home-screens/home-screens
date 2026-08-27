@@ -47,6 +47,9 @@ const STUBS: Record<string, { glob: string; file: string }> = {
   // legacy bare-array shape — real responses carry absolute Apple CDN URLs,
   // but data: URLs keep the render fully offline under blockExternal.
   icloud:       { glob: '**/api/icloud/photos*', file: 'backgrounds' },
+  // OneDrive photo listing (photo modules with source 'onedrive'); this
+  // source always answers the typed MediaListItem[] shape.
+  onedrive:     { glob: '**/api/onedrive/photos*', file: 'onedrive' },
 };
 
 type Override =
