@@ -206,7 +206,7 @@ describe('listPhotos', () => {
       value: [
         { id: `img-${n}`, name: `a${n}.jpg`, image: {} },
         { id: `vid-${n}`, name: `v${n}.mp4`, video: {} },
-        { id: 'dir-1', name: 'Sub', folder: {} },
+        { id: 'dir-1', name: 'Sub', folder: {}, image: {} }, // image+folder pins the folder guard
         { id: 'del-1', name: 'gone.jpg', image: {}, deleted: {} },
       ],
       ...(last ? {} : { '@odata.nextLink': `${GRAPH}/me/drive/items/fld/delta?$skiptoken=t${n}` }),
@@ -247,7 +247,7 @@ describe('listPhotos', () => {
     seedConnected();
     const nonImagePage = (n: number) => json({
       value: Array.from({ length: 200 }, (_, i) => ({ id: `f${n}-${i}`, name: 'doc.pdf', file: {} })),
-      '@odata.nextLink': `${GRAPH}/me/drive/items/fld/children?$skiptoken=t${n}`,
+      '@odata.nextLink': `${GRAPH}/me/drive/items/fld/delta?$skiptoken=t${n}`,
     });
     let calls = 0;
     mockFetch.mockImplementation(async () => nonImagePage(calls++));

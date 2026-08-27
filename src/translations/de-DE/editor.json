@@ -3426,7 +3426,7 @@
       "loadingFolders": "Ordner werden geladen…",
       "emptyFolder": "Keine Unterordner in diesem Ordner",
       "useThisFolder": "Diesen Ordner verwenden",
-      "capNote": "Großer Ordner: Die Diashow nutzt eine Zufallsauswahl von 1.000 Fotos.",
+      "capNote": "Wenn der Ordnerbaum mehr als 1.000 Fotos enthält, nutzt die Diashow eine Zufallsauswahl von 1.000.",
       "loadFailed": "OneDrive-Ordner konnten nicht geladen werden.",
       "folderNotFound": "Ordner nicht gefunden. Wähle einen anderen Ordner.",
       "photosPerRefresh": "Fotos pro Aktualisierung",

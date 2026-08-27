@@ -284,7 +284,8 @@ export interface OneDrivePhoto {
  * random search (Immich does), so the hub keeps only live items with an
  * image facet, up to ONEDRIVE_MAX_SAMPLE, then shuffles and slices. Items
  * come back in Graph's name order, so folders larger than the cap are
- * name-biased; the editor panel calls that out via childCount.
+ * name-biased; the editor panel flags any folder with subfolders or
+ * many direct children, since childCount alone can't see the tree size.
  */
 export async function listPhotos(folderId: string, count: number): Promise<OneDrivePhoto[]> {
   const images: OneDrivePhoto[] = [];

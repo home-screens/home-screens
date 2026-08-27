@@ -294,7 +294,10 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
                   ))}
                 </div>
               )}
-              {foldersData.folder.childCount !== null && foldersData.folder.childCount > LARGE_FOLDER_SAMPLE && (
+              {/* childCount covers direct children only — a folder of
+                  subfolders can hold a far bigger tree, so flag both. */}
+              {(foldersData.subfolders.length > 0
+                || (foldersData.folder.childCount ?? 0) > LARGE_FOLDER_SAMPLE) && (
                 <p className="text-[10px] text-hs-text-faint leading-relaxed">
                   {t('configSections.onedriveSource.capNote')}
                 </p>

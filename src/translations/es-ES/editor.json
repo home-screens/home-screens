@@ -3431,7 +3431,7 @@
       "loadingFolders": "Cargando carpetas…",
       "emptyFolder": "No hay subcarpetas aquí",
       "useThisFolder": "Usar esta carpeta",
-      "capNote": "Carpeta grande: la presentación usa una muestra aleatoria de 1000 fotos.",
+      "capNote": "Si el árbol de carpetas tiene más de 1000 fotos, la presentación usa una muestra aleatoria de 1000.",
       "loadFailed": "No se pudieron cargar tus carpetas de OneDrive.",
       "folderNotFound": "Carpeta no encontrada. Elige otra carpeta.",
       "photosPerRefresh": "Fotos por actualización",

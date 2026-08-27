@@ -1497,7 +1497,7 @@ The slideshow's photo list: photos from one folder and all of its subfolders, sh
 ]
 ```
 
-Cached for 5 minutes per `folderId` + `count` combination. The shuffle runs over at most 1,000 photos, so a very large folder is sampled rather than read end to end.
+Cached for 5 minutes per `folderId` + `count` combination. The shuffle runs over at most 1,000 photos, so a very large folder tree is sampled rather than read end to end.
 
 ### GET /api/onedrive/serve
 

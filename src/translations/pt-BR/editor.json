@@ -3431,7 +3431,7 @@
       "loadingFolders": "Carregando pastas…",
       "emptyFolder": "Nenhuma subpasta aqui",
       "useThisFolder": "Usar esta pasta",
-      "capNote": "Pasta grande: a apresentação usa uma amostra aleatória de 1000 fotos.",
+      "capNote": "Se a árvore de pastas tiver mais de 1000 fotos, a apresentação usa uma amostra aleatória de 1000.",
       "loadFailed": "Não foi possível carregar suas pastas do OneDrive.",
       "folderNotFound": "Pasta não encontrada. Escolha outra pasta.",
       "photosPerRefresh": "Fotos por atualização",

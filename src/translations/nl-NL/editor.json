@@ -3426,7 +3426,7 @@
       "loadingFolders": "Mappen laden…",
       "emptyFolder": "Geen submappen in deze map",
       "useThisFolder": "Deze map gebruiken",
-      "capNote": "Grote map: de diavoorstelling gebruikt een willekeurige selectie van 1000 foto's.",
+      "capNote": "Als de mappenboom meer dan 1000 foto's bevat, gebruikt de diavoorstelling een willekeurige selectie van 1000.",
       "loadFailed": "Kon je OneDrive-mappen niet laden.",
       "folderNotFound": "Map niet gevonden. Kies een andere map.",
       "photosPerRefresh": "Foto's per verversing",
