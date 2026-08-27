@@ -43,9 +43,9 @@ Most modules show something useful the moment you drop them on the canvas. A han
 
 Photo Slideshow and Full-Screen Photo Viewer can pull photos straight from a personal OneDrive folder.
 
-1. Create a free app registration: sign in at [portal.azure.com](https://portal.azure.com), open **App registrations**, and choose **New registration**. Pick "Personal Microsoft accounts only".
-2. Open **Authentication** and set **Allow public client flows** to Yes.
-3. Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
+1. Create a free app registration: sign in at [portal.azure.com](https://portal.azure.com), open **App registrations**, and choose **New registration**. Give it a name of your choice and pick "Personal accounts only". Leave the Redirect parts empty. Click Register.
+2. Open **Manage > Authentication > Settings** and enable **Allow public client flows**. Click Save.
+3. Click on **Overview** and Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
 4. Back in the module's Photo Source picker choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
 5. Pick a folder. Photos come from that folder and every folder inside it. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
