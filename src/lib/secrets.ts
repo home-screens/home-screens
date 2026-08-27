@@ -16,7 +16,8 @@ export type SecretKey =
   | 'google_web_client_secret'
   | 'github_token'
   | 'immich_url'
-  | 'immich_api_key';
+  | 'immich_api_key'
+  | 'microsoft_client_id';
 
 type SecretsStore = Partial<Record<SecretKey, string>>;
 
@@ -37,6 +38,7 @@ const ALL_KEYS: SecretKey[] = [
   'github_token',
   'immich_url',
   'immich_api_key',
+  'microsoft_client_id',
 ];
 
 export function isValidSecretKey(key: string): key is SecretKey {

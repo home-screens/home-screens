@@ -80,6 +80,7 @@ beforeEach(() => {
     github_token: false,
     immich_url: false,
     immich_api_key: false,
+    microsoft_client_id: false,
   });
 
   // Default: no telemetry data
@@ -267,6 +268,7 @@ describe('GET /api/system/stats - app stats', () => {
       github_token: false,
       immich_url: false,
       immich_api_key: false,
+      microsoft_client_id: false,
     });
 
     const res = await GET(makeRequest());

@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Füge deinen Immich-API-Schlüssel ein",
         "apiKeyHelp": "Erstelle unter Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Fotos aus deinem OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Application (client) ID einfügen",
+        "clientIdHelp": "Erstelle eine kostenlose App-Registrierung, aktiviere \"Allow public client flows\", und kopiere die Application (client) ID. Die Dokumentation hilft Schritt für Schritt."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-Fotohintergründe nach Kategorie",

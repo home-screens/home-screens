@@ -135,6 +135,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.integrationsPage.github.name',
   'editor|settings.integrationsPage.google.name',
   'editor|settings.integrationsPage.immich.name',
+  'editor|settings.integrationsPage.microsoft.name',
   'editor|settings.integrationsPage.nasa.name',
   'editor|settings.integrationsPage.todoist.name',
   'editor|settings.integrationsPage.tomtom.name',
@@ -273,6 +274,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
     'editor|propertyPanel.fields.h',
+    'editor|settings.integrationsPage.microsoft.clientIdLabel',
     'modules|clock.am',
     'modules|clock.pm',
     'modules|fullscreen-calendar.am',
@@ -304,6 +306,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.alertFormFields.positionLabel',
     'editor|settings.displaysIndex.formNameLabel',
     'editor|settings.integrationsPage.github.optionalBadge',
+    'editor|settings.integrationsPage.microsoft.clientIdLabel',
     'editor|settings.networkPage.hostname.heading',
     'editor|settings.perDisplayPage.overview.transitionLabels.crossfade',
     'editor|settings.pluginAuth.garmin.mfaPlaceholder',
@@ -575,6 +578,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.defaultDisplayPage.transitionOptions.blur',
     'editor|settings.defaultDisplayPage.transitionOptions.crossfade',
     'editor|settings.displaysIndex.tabsSuffix',
+    'editor|settings.integrationsPage.microsoft.clientIdLabel',
     'editor|settings.networkPage.interfaces.heading',
     'editor|settings.networkPage.wifiConnect.interfaceLabel',
     'editor|settings.perDisplayPage.display.canvasHeading',

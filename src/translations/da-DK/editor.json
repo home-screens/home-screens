@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Indsæt din Immich-API-nøgle",
         "apiKeyHelp": "Opret den i Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Billeder fra din OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Indsæt Application (client) ID",
+        "clientIdHelp": "Opret en gratis app-registrering, slå 'Allow public client flows' til, og kopier Application ID. Dokumentationen hjælper trin for trin."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-baggrundsbilleder efter kategori",

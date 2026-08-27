@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Plak je Immich API-sleutel",
         "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Foto's uit je OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Plak de Application (client) ID",
+        "clientIdHelp": "Maak een gratis app-registratie aan, zet 'Allow public client flows' aan en kopieer de Application (client) ID. De documentatie helpt je stap voor stap."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-foto-achtergronden per categorie",

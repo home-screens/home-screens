@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Paste your Immich API key",
         "apiKeyHelp": "Create at Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Photos from your OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Paste the Application (client) ID",
+        "clientIdHelp": "Create a free app registration, turn on Allow public client flows, and copy the Application (client) ID. The docs have step-by-step help."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD photo backgrounds by category",
