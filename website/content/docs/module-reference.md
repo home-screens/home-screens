@@ -194,7 +194,7 @@ The temperature curve draws however many hours your source returns, and its head
 
 ### Full-Screen Photo Viewer
 
-A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, or an iCloud shared album (with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
+A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, a OneDrive folder, or an iCloud shared album (with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
 
 The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label — nothing stores a "mode" setting on the module itself.
 
@@ -208,18 +208,25 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `shuffle` | boolean | `false` | Randomize photo order |
 | `showClock` | boolean | `true` | Show clock overlay on photos |
 | `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), or `icloud` (a public shared album — no keys needed) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
+| `onedriveFolderId` | string | — | OneDrive folder to pull photos from (OneDrive source) |
+| `onedriveFolderName` | string | — | Folder name as shown in the editor — display only, the ID above is authoritative |
+| `onedriveCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 | `theme` | string | — | Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
 
 {% callout type="note" title="Immich source" %}
 The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive — selecting one clears the other.
+{% /callout %}
+
+{% callout type="note" title="OneDrive source" %}
+The OneDrive option only appears in the Photo Source picker once a Microsoft **Application (client) ID** is saved in Settings > API keys. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
 {% /callout %}
 
 ---
@@ -887,7 +894,7 @@ MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone re
 
 ### Photo Slideshow
 
-Rotates through images from a local directory, an Immich photo library, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library — see [Google Photos](/docs/backgrounds#google-photos).
+Rotates through images from a local directory, an Immich photo library, a OneDrive folder, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library — see [Google Photos](/docs/backgrounds#google-photos).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -896,18 +903,23 @@ Rotates through images from a local directory, an Immich photo library, or an iC
 | `transition` | string | `"fade"` | Transition effect: `fade` or `none` |
 | `objectFit` | string | `"cover"` | Image fit mode |
 | `refreshIntervalMs` | number | `600000` | How often to re-scan the directory for new images (10 min) |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), or `icloud` (a public shared album — no keys needed) |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album — no keys needed) |
 | `immichAlbumId` | string | — | Filter to a specific Immich album |
 | `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
+| `onedriveFolderId` | string | — | OneDrive folder to pull photos from (OneDrive source) |
+| `onedriveFolderName` | string | — | Folder name as shown in the editor — display only, the ID above is authoritative |
+| `onedriveCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
 
 When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed — the display loads photos straight from Apple's servers. The album must have a public website link enabled.
+
+When using OneDrive as the source, the module signs in to your Microsoft account once with a short code and you pick a folder — the walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 **Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; local videos are any MP4/WebM/MOV files in the same backgrounds folder.
 

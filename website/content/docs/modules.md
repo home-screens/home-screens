@@ -37,9 +37,19 @@ Most modules show something useful the moment you drop them on the canvas. A han
 
 **Set your location once.** Weather, Moon Phase, Sunrise / Sunset, Air Quality, and Rain Map can't show anything until they know where you are. Set it in **Settings > Weather**, and every one of them picks it up. Greeting and Affirmations work without it but use it, when it's there, to match what they say to the weather outside.
 
-**A few modules need a free account key.** Air Quality needs an OpenWeatherMap key even though it isn't the weather module, Traffic needs Google Maps or TomTom (without one it shows made-up travel times), and Todoist needs your API token. Photo modules only need a key if you point them at an Immich library. Weather needs one only for certain providers, and calendars are set up under **Settings > Calendar** rather than API keys.
+**A few modules need a free account key.** Air Quality needs an OpenWeatherMap key even though it isn't the weather module, Traffic needs Google Maps or TomTom (without one it shows made-up travel times), and Todoist needs your API token. Photo modules only need a key if you point them at an Immich library or a OneDrive folder. Weather needs one only for certain providers, and calendars are set up under **Settings > Calendar** rather than API keys.
 
 The full list of which integration needs which key is in [API keys](/docs/getting-started#api-keys-settings-api-keys).
+
+### OneDrive photos
+
+Photo Slideshow and Full-Screen Photo Viewer can pull photos straight from a personal OneDrive folder.
+
+1. Create a free app registration: sign in at [portal.azure.com](https://portal.azure.com), open **App registrations**, and choose **New registration**. Pick "Personal Microsoft accounts only".
+2. Open **Authentication** and set **Allow public client flows** to Yes.
+3. Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
+4. Back in the module's Photo Source picker choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well).
+5. Pick a folder. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 ---
 
@@ -55,7 +65,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Full-Screen Weather** — 5 views (panorama, almanac, ambient, week ahead, hour by hour), with the background tinted by the current conditions and a portrait and landscape layout for each view
 - **Full-Screen Chore Chart** — 2 views (the chore board and a rewards store), kid-friendly and ambient
 - **Full-Screen Meal Planner** — 4 views for the weekly meal plan
-- **Full-Screen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich and iCloud shared-album support, and a single-photo "static wallpaper" mode
+- **Full-Screen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich, OneDrive, and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
 All five share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
 

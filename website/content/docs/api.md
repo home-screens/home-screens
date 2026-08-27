@@ -1422,6 +1422,96 @@ Streams a video asset from Immich. The incoming `Range` header is forwarded and 
 
 ---
 
+## OneDrive
+
+OneDrive photos for the Photo Slideshow and Full-Screen Photo Viewer modules. Sign-in is the OAuth 2.0 device flow against personal Microsoft accounts: the editor calls `POST /api/onedrive/auth` to get a `userCode`, you enter that code at the verification link on any device, and the editor polls `GET /api/onedrive/auth` until the state says `connected`. Requires a Microsoft **Application (client) ID** in Settings > API keys — the app-registration steps are in the [Modules guide](/docs/modules#one-drive-photos). Tokens live in `data/onedrive-tokens.json`, outside the config file, and are never returned by the API.
+
+### GET /api/onedrive/status
+
+Connection state for the editor panel. Requires a valid session.
+
+**Response:**
+```json
+{ "credentialsConfigured": true, "connected": true, "account": "family@example.com" }
+```
+
+`account` is `null` when not connected.
+
+### POST /api/onedrive/auth
+
+Starts the device-code sign-in. Requires a valid session.
+
+**Response:**
+```json
+{
+  "userCode": "ABCD-EFGH",
+  "verificationUri": "https://microsoft.com/link",
+  "intervalMs": 5000,
+  "expiresInSeconds": 900
+}
+```
+
+### GET /api/onedrive/auth
+
+One poll attempt of the pending sign-in — call it every `intervalMs` milliseconds. The route always answers 200; the state machine is the payload. Requires a valid session.
+
+**Response:** `{ "state": "pending", "intervalMs": 5000 }`
+
+`state` is one of `idle` (no sign-in started), `pending`, `connected`, `expired`, `declined`, or `failed`. `failed` adds a human-readable `message`, and `pending` restates the poll interval, raised when Microsoft asks for a slower pace.
+
+### DELETE /api/onedrive/auth
+
+Disconnects OneDrive. Personal Microsoft accounts have no revocation endpoint, so this drops the stored tokens locally — to end the grant on Microsoft's side too, remove the app from your Microsoft account's apps page. Requires a valid session.
+
+**Response:** `{ "connected": false }`
+
+### GET /api/onedrive/folders
+
+Folder browser for the editor: one folder plus its immediate subfolders (first 200). Requires a valid session.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `itemId` | string | — | Graph item ID of a folder; omit for the drive root |
+
+**Response:**
+```json
+{
+  "folder": { "id": "ABC123", "name": "Pictures", "path": "OneDrive / Pictures", "childCount": 12 },
+  "subfolders": [{ "id": "DEF456", "name": "Family" }]
+}
+```
+
+### GET /api/onedrive/photos
+
+The slideshow's photo list: photos from one folder, shuffled. Used by photo slideshow and fullscreen photo. Display access — a display token works.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `folderId` | string | *(required)* | Graph item ID of the folder. An empty value returns `[]` so an unconfigured module shows its empty state instead of an error |
+| `count` | number | `50` | Number of photos (1–200) |
+
+**Response:**
+```json
+[
+  { "url": "/api/onedrive/serve?itemId=abc123&size=preview", "type": "image" }
+]
+```
+
+Cached for 5 minutes per `folderId` + `count` combination. The shuffle runs over at most 1,000 photos, so a very large folder is sampled rather than read end to end.
+
+### GET /api/onedrive/serve
+
+Proxies a photo through the server, so displays never hold Graph's short-lived download URLs. Display access — a display token works.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `itemId` | string | *(required)* | Graph item ID of the photo |
+| `size` | string | `"preview"` | Image size: `preview` (the ~1920px Graph `large` thumbnail, used for slides) or `thumbnail` (`medium`, used by the editor's preview strip) |
+
+**Response:** The image binary with appropriate `Content-Type` header and a 7-day browser cache (`Cache-Control: public, max-age=604800, immutable`). The server keeps its own copy for 24 hours.
+
+---
+
 ## iCloud
 
 There are two iCloud integrations. **Shared albums** (photos) work without an Apple account or API key — the album's public share link is all that's needed, and asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN. **Calendar sync** signs in to an iCloud account with an app-specific password; credentials live in `data/icloud-accounts.json` (never in the config file) and are never returned by the API.

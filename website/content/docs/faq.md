@@ -154,15 +154,16 @@ Whichever provider you pick, set your location first at **Settings > Location & 
 
 ### What photo sources are supported?
 
-Home Screens supports three photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
+Home Screens supports four photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
 
 - **Local** — photos uploaded to `public/backgrounds/` or a subdirectory, managed through the editor or API
 - **[Immich](https://immich.app)** — a self-hosted Google Photos alternative; browse and display photos from your Immich library with album, person (face recognition), and favorites filtering
 - **iCloud shared album** — paste a public shared album link from Apple Photos; no account or API key needed
+- **OneDrive** — photos straight from a folder in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
 
 For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
 
-To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings → API Keys page. iCloud shared albums need no setup — just a shared album link with the public website option enabled.
+To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings → API Keys page. To use OneDrive, save the **Application (client) ID** from a free Microsoft app registration and sign in once from the module — the steps are in [OneDrive photos](/docs/modules#one-drive-photos). iCloud shared albums need no setup — just a shared album link with the public website option enabled.
 
 ---
 
