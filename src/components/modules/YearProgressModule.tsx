@@ -52,9 +52,12 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }:
   return (
     <div className="flex flex-col" style={{ gap: '0.3em' }}>
       <div className="flex justify-between items-baseline">
-        <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{label}</span>
+        {/* Label, percentage and bar width all derive from the wall clock, so
+            the server and the client disagree across any tick between the two
+            renders. Same treatment as the clock, date and countdown modules. */}
+        <span suppressHydrationWarning style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{label}</span>
         {showPercentage && (
-          <span className="tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
+          <span suppressHydrationWarning className="tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
             {clamped.toFixed(1)}%
           </span>
         )}
@@ -65,6 +68,7 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }:
       >
         <div
           className="h-full rounded-full relative"
+          suppressHydrationWarning
           style={{
             width: `${clamped}%`,
             background: hasAccent

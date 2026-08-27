@@ -87,6 +87,17 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     return () => clearInterval(id);
   }, [config.templateVariables]);
 
+  // A per-character effect wraps every glyph in its own span, so a template
+  // variable that resolves to a DIFFERENT LENGTH on the client than it did on
+  // the server ("Good morning" -> "Good afternoon" across the boundary)
+  // changes the child COUNT — which suppressHydrationWarning cannot cover, as
+  // it only forgives text and attributes on the element carrying it. Those
+  // strings render as one plain span until mount, then upgrade to the
+  // animated per-character form. Text with no template variable is unaffected
+  // and animates from the first paint as before.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const templateResolved = useMemo(
     () => (config.templateVariables ? resolveTemplateVariables(rawContent, timezone) : rawContent),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- tick drives periodic re-evaluation of time-based template variables
@@ -162,6 +173,10 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     return Array.from(text).map((ch, i) => (
       <span
         key={i}
+        // Same reason as the whole-string spans below: a template variable
+        // resolves against the wall clock, so the character the server wrote
+        // may not be the one the client hydrates with.
+        suppressHydrationWarning
         style={{
           display: 'inline-block',
           whiteSpace: 'pre',
@@ -174,27 +189,38 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
     ));
   };
 
+  const hasTemplateToken = config.templateVariables === true && rawContent.includes('{{');
+  const perCharReady = isPerChar && (mounted || !hasTemplateToken);
+
   // --- Render helpers ---
+  // Template variables ({{time}}, {{greeting}}, {{date}}...) resolve against
+  // the wall clock at render time, so the string the server rendered and the
+  // one the client hydrates with disagree whenever a minute (or a greeting /
+  // date boundary) falls between the two. That is a hydration mismatch React
+  // reports as an uncaught error on the display. The client value is the
+  // right one and React keeps it; suppressing the warning is the documented
+  // escape hatch for clock-derived text, and matches the date, clock, and
+  // countdown modules.
   const renderText = (text: string) => {
     const html = toHtml(text);
     const gradientAttr = gradientOn ? { 'data-text-gradient': '' } : {};
 
     // Per-char animations cannot use markdown; html mode short-circuits to whole-string animation.
     // Long text also falls back to whole-string animation to avoid GPU thrash from 100s of spans.
-    if (isPerChar && !html && text.length <= PER_CHAR_MAX_LENGTH) {
+    if (perCharReady && !html && text.length <= PER_CHAR_MAX_LENGTH) {
       const animName =
         effect === 'wave' ? '_textWave' : effect === 'bounce' ? '_textBounce' : '_textShake';
       return (
-        <span {...gradientAttr} style={textStyle}>
+        <span {...gradientAttr} style={textStyle} suppressHydrationWarning>
           {renderPerCharText(text, animName)}
         </span>
       );
     }
 
     if (html) {
-      return <span {...gradientAttr} style={textStyle} dangerouslySetInnerHTML={{ __html: html }} />;
+      return <span {...gradientAttr} style={textStyle} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: html }} />;
     }
-    return <span {...gradientAttr} style={textStyle}>{text}</span>;
+    return <span {...gradientAttr} style={textStyle} suppressHydrationWarning>{text}</span>;
   };
 
   const iconEl = config.icon ? (

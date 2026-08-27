@@ -51,14 +51,14 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
             {mStr}
             <span className="clock-colon-pulse">:</span>
             {sStr}
-            {ampm && <span style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}> {ampm}</span>}
+            {ampm && <span suppressHydrationWarning style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}> {ampm}</span>}
           </>
         ) : (
           <>
             {hStr}
             <span className="clock-colon-pulse">:</span>
             {mStr}
-            {ampm && <span style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}> {ampm}</span>}
+            {ampm && <span suppressHydrationWarning style={{ fontSize: '0.4em', marginLeft: '0.15em', opacity: TEXT_OPACITY.dim }}> {ampm}</span>}
           </>
         )}
       </div>

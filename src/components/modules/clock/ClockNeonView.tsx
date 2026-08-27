@@ -62,6 +62,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
         {timeStr}
         {ampm && (
           <span
+            suppressHydrationWarning
             style={{
               fontSize: '0.35em',
               marginLeft: '0.2em',

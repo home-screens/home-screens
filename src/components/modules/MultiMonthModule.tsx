@@ -114,10 +114,15 @@ function MonthGrid({
     <div className="flex flex-col min-h-0 flex-1">
       {/* Month header */}
       <div className="shrink-0" style={{ paddingBottom: '0.3em' }}>
-        <span style={{ fontWeight: 600, fontSize: '0.85em', opacity: isCurrentMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}>
+        {/* Which months are drawn, which day is "today", and every day number
+            come from the wall clock, so the server and the client disagree
+            across a midnight (or any pinned-clock) boundary. Suppression has to
+            sit on each leaf that carries a clock-derived value: it covers only
+            the element it is on, not its descendants. */}
+        <span suppressHydrationWarning style={{ fontWeight: 600, fontSize: '0.85em', opacity: isCurrentMonth ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary }}>
           {monthName}
         </span>
-        <span style={{ fontWeight: 400, fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary, marginLeft: '0.4em' }}>
+        <span suppressHydrationWarning style={{ fontWeight: 400, fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary, marginLeft: '0.4em' }}>
           {year}
         </span>
       </div>
@@ -158,6 +163,7 @@ function MonthGrid({
           {showWeekNumbers && (
             <div
               className="flex items-center justify-center"
+              suppressHydrationWarning
               style={{ fontSize: '0.45em', opacity: 0.2, fontVariantNumeric: 'tabular-nums' }}
             >
               {weeks[row]}
@@ -181,6 +187,7 @@ function MonthGrid({
               >
                 <div
                   className="flex items-center justify-center"
+                  suppressHydrationWarning
                   style={{
                     fontSize: '0.65em',
                     fontVariantNumeric: 'tabular-nums',

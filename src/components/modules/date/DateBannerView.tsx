@@ -34,7 +34,7 @@ export default function DateBannerView({ config, now, scaledFontSize, containerR
         suppressHydrationWarning
       >
         {parts.map((part, i) => (
-          <span key={i}>
+          <span key={i} suppressHydrationWarning>
             {i > 0 && (
               <span className="mx-2 opacity-30" style={{ color: config.accentColor }}>&bull;</span>
             )}
