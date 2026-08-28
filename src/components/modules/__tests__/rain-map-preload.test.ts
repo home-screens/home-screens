@@ -7,21 +7,30 @@ import { createTileStore } from '../rain-map-preload';
  * request spacing use vitest fake timers (which also mock Date.now, the
  * default clock).
  */
-function makeStore(opts?: { spacingMs?: number; cooldownMs?: number }) {
+function makeStore(opts?: { spacingMs?: number; cooldownMs?: number; timeoutMs?: number }) {
   const fetches: string[] = [];
   const created: string[] = [];
   const revoked: string[] = [];
-  let responder: (url: string) => { ok: boolean } = () => ({ ok: true });
+  let responder: (url: string) => { ok: boolean } | 'hang' = () => ({ ok: true });
   let tick = 0;
   const store = createTileStore({
     spacingMs: opts?.spacingMs ?? 0,
     cooldownMs: opts?.cooldownMs ?? 1_000,
+    timeoutMs: opts?.timeoutMs,
     now: () => tick,
-    fetchImpl: (async (url: string | URL | Request) => {
+    fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
       const u = String(url);
       fetches.push(u);
-      const { ok } = responder(u);
-      return ok
+      const verdict = responder(u);
+      if (verdict === 'hang') {
+        // A connection that never settles on its own — a half-open TCP
+        // connection the browser would sit on indefinitely. Only an abort
+        // (the store's timeout) can end it.
+        return new Promise<Response>((_, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        });
+      }
+      return verdict.ok
         ? new Response(new Blob(['png']), { status: 200 })
         : new Response(null, { status: 429 });
     }) as unknown as typeof fetch,
@@ -42,6 +51,8 @@ function makeStore(opts?: { spacingMs?: number; cooldownMs?: number }) {
     revoked,
     unsubscribe,
     failAll: () => (responder = () => ({ ok: false })),
+    hangAll: () => (responder = () => 'hang'),
+    hangExcept: (okUrl: string) => (responder = (u) => (u === okUrl ? { ok: true } : 'hang')),
     advance: (ms: number) => (tick += ms),
   };
 }
@@ -148,6 +159,30 @@ describe('createTileStore', () => {
     resub();
   });
 
+  it('aborts stalled fetches so they cannot wedge the queue for the whole tab', async () => {
+    vi.useFakeTimers();
+    const { store, fetches, hangExcept } = makeStore({ timeoutMs: 1_000 });
+    hangExcept('https://t/ok.png');
+    // Four hangs fill MAX_IN_FLIGHT before the good tile's turn; without a
+    // timeout the gate never reopens (a half-open connection never settles).
+    const all = store.ensure([
+      'https://t/a.png',
+      'https://t/b.png',
+      'https://t/c.png',
+      'https://t/d.png',
+      'https://t/ok.png',
+    ]);
+    expect(fetches).toHaveLength(4);
+
+    // Past the timeout the hangs abort into cooldown, the gate reopens, and
+    // the queued tile still gets its turn.
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(fetches).toHaveLength(5);
+    expect(fetches[4]).toBe('https://t/ok.png');
+    await all;
+    expect(store.get('https://t/ok.png')).toMatch(/^blob:/);
+  });
+
   it('resolves abandoned waiters when the last consumer leaves', async () => {
     const { store, unsubscribe } = makeStore();
     unsubscribe(); // drop makeStore's consumer so only the one below counts
@@ -175,6 +210,45 @@ describe('createTileStore', () => {
 
     await store.ensure(['https://t/old.png']);
     expect(fetches).toHaveLength(2); // re-requested, not served from a dead entry
+  });
+
+  it('retained windows prune to their union, so live windows never evict each other', async () => {
+    const { store, revoked } = makeStore();
+    const windowA = new Set(['https://t/a1.png', 'https://t/a2.png']);
+    const windowB = new Set(['https://t/b1.png', 'https://t/b2.png']);
+    const releaseA = store.retainWindow(windowA);
+    const releaseB = store.retainWindow(windowB);
+
+    await store.ensure([...windowA, ...windowB]);
+    expect(store.get('https://t/a1.png')).toMatch(/^blob:/);
+    expect(store.get('https://t/b1.png')).toMatch(/^blob:/);
+
+    // A's window rotating (release + re-retain with new URLs) must only prune
+    // to the union of the LIVE windows — B's tiles survive.
+    releaseA();
+    const releaseA2 = store.retainWindow(new Set(['https://t/a3.png']));
+    await store.ensure(['https://t/a3.png']);
+    expect(revoked).not.toContain('https://t/b1.png');
+    expect(store.get('https://t/b1.png')).toMatch(/^blob:/);
+    // A's old URLs are gone from every live window, so they were pruned.
+    expect(store.get('https://t/a1.png')).toBeNull();
+
+    releaseB();
+    releaseA2();
+  });
+
+  it('the last release keeps the final window cached for screen rotation', async () => {
+    const { store, revoked } = makeStore();
+    const windowA = new Set(['https://t/a1.png']);
+    const release = store.retainWindow(windowA);
+    await store.ensure([...windowA]);
+    expect(store.get('https://t/a1.png')).toMatch(/^blob:/);
+
+    // Unmounting the only consumer must not wipe the cache: the screen can
+    // rotate back seconds later and render instantly.
+    release();
+    expect(revoked).toHaveLength(0);
+    expect(store.get('https://t/a1.png')).toMatch(/^blob:/);
   });
 
   it('notifies subscribers and bumps the version when a tile settles', async () => {

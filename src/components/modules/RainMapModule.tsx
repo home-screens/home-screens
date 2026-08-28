@@ -163,7 +163,9 @@ export default function RainMapModule({
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   // Re-render when tiles settle into the store (loaded or pruned). The store
   // is shared across mounts, so a screen rotating back renders instantly.
-  useSyncExternalStore(radarTileStore.subscribe, radarTileStore.getVersion);
+  // The third argument is required: the display route renders modules on the
+  // server, and React's server renderer throws without getServerSnapshot.
+  useSyncExternalStore(radarTileStore.subscribe, radarTileStore.getVersion, radarTileStore.getVersion);
 
   // Combine past + nowcast frames
   const frames = useMemo(() => {
@@ -219,8 +221,10 @@ export default function RainMapModule({
     if (!frames.length || !data?.host || !radarTileGrid.tiles.length) return;
 
     // Frame paths are timestamped, so each refresh brings a new URL set.
-    // Prune the store to the current animation window or a never-unmounting
-    // display accumulates every URL it has ever seen.
+    // Register this instance's window: the store prunes to the union of all
+    // live instances' windows (sibling rain-maps keep their tiles) while a
+    // never-unmounting display still sheds URLs that rotate out of every
+    // window.
     const windowUrls = new Set<string>();
     for (const frame of frames) {
       for (const tile of radarTileGrid.tiles) {
@@ -228,7 +232,7 @@ export default function RainMapModule({
         if (url) windowUrls.add(url);
       }
     }
-    radarTileStore.prune(windowUrls);
+    const releaseWindow = radarTileStore.retainWindow(windowUrls);
 
     let cancelled = false;
     indexRef.current = 0;
@@ -260,6 +264,7 @@ export default function RainMapModule({
     });
 
     return () => {
+      releaseWindow();
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };

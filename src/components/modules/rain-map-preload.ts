@@ -38,6 +38,15 @@ export interface TileStore {
   ensure(urls: string[]): Promise<void>;
   /** Revoke + drop entries outside `validUrls` so the store stays bounded. */
   prune(validUrls: ReadonlySet<string>): void;
+  /**
+   * Register a consumer's animation window; returns a release function. The
+   * store prunes to the UNION of all live windows, never below it, so
+   * simultaneously mounted rain-map instances (two locations on one screen,
+   * editor previews) cannot evict each other's tiles. Releasing the last
+   * window prunes nothing — the final window stays cached so a screen
+   * rotating away and back reuses its tiles without touching the network.
+   */
+  retainWindow(urls: ReadonlySet<string>): () => void;
 }
 
 export interface TileStoreDeps {
@@ -49,10 +58,18 @@ export interface TileStoreDeps {
   spacingMs?: number;
   /** How long a failed tile waits before it may be retried. Default 90s. */
   cooldownMs?: number;
+  /**
+   * How long a single tile request may run before it is aborted and enters the
+   * failure cooldown. Default 10s. Without it a handful of half-open
+   * connections (kiosk WiFi drop) would occupy every in-flight slot forever
+   * and nothing would ever dispatch again for the rest of the tab's life.
+   */
+  timeoutMs?: number;
 }
 
 const DEFAULT_SPACING_MS = 250;
 const DEFAULT_COOLDOWN_MS = 90_000;
+const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_IN_FLIGHT = 4;
 
 interface TileEntry {
@@ -68,6 +85,7 @@ export function createTileStore({
   now = () => Date.now(),
   spacingMs = DEFAULT_SPACING_MS,
   cooldownMs = DEFAULT_COOLDOWN_MS,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 }: TileStoreDeps = {}): TileStore {
   const entries = new Map<string, TileEntry>();
   const queue: string[] = [];
@@ -81,6 +99,10 @@ export function createTileStore({
   // while none remain: a removed module must not keep draining its queue, while
   // screen rotation (unmount → remount seconds later) resumes the same queue.
   let consumers = 0;
+  // Live animation windows, keyed by retention handle. Pruning targets the
+  // union of these so sibling rain-map instances never evict each other.
+  const liveWindows = new Map<number, ReadonlySet<string>>();
+  let nextWindowId = 1;
 
   /** True when nothing more will happen for this URL without a new ensure(). */
   function isSettled(url: string): boolean {
@@ -137,8 +159,12 @@ export function createTileStore({
 
   async function dispatch(url: string) {
     inFlight.add(url);
+    // Abort-bound so a stalled connection can't hold an in-flight slot (and
+    // with all four slots held, wedge the queue) for the life of the tab.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const res = await fetchImpl(url);
+      const res = await fetchImpl(url, { signal: controller.signal });
       if (res.ok) {
         const blob = await res.blob();
         entries.set(url, { status: 'loaded', objectUrl: createObjectURL(blob) });
@@ -148,6 +174,7 @@ export function createTileStore({
     } catch {
       entries.set(url, { status: 'cooldown', retryAt: now() + cooldownMs });
     } finally {
+      clearTimeout(timeout);
       inFlight.delete(url);
       notify();
       pump();
@@ -176,6 +203,37 @@ export function createTileStore({
     });
   }
 
+  function prune(validUrls: ReadonlySet<string>) {
+    let changed = false;
+    for (const [url, e] of entries) {
+      if (e.status === 'loading') continue; // settles later; next prune drops it
+      if (validUrls.has(url)) continue;
+      if (e.objectUrl) revokeObjectURL(e.objectUrl);
+      entries.delete(url);
+      changed = true;
+    }
+    // Queued-but-not-yet-dispatched requests for rotated-out frames are
+    // pure waste — drop them too.
+    for (let i = queue.length - 1; i >= 0; i--) {
+      const url = queue[i];
+      if (validUrls.has(url)) continue;
+      if (entries.get(url)?.status === 'loading') entries.delete(url);
+      queue.splice(i, 1);
+      changed = true;
+    }
+    if (changed) notify();
+  }
+
+  function pruneToLiveWindows() {
+    // No live windows → keep the last union cached (screen rotation reuse).
+    if (liveWindows.size === 0) return;
+    const union = new Set<string>();
+    for (const urls of liveWindows.values()) {
+      for (const url of urls) union.add(url);
+    }
+    prune(union);
+  }
+
   return {
     subscribe(listener) {
       listeners.add(listener);
@@ -195,26 +253,16 @@ export function createTileStore({
     getVersion: () => version,
     get: (url) => entries.get(url)?.objectUrl ?? null,
     ensure,
-    prune(validUrls) {
-      let changed = false;
-      for (const [url, e] of entries) {
-        if (e.status === 'loading') continue; // settles later; next prune drops it
-        if (validUrls.has(url)) continue;
-        if (e.objectUrl) revokeObjectURL(e.objectUrl);
-        entries.delete(url);
-        changed = true;
-      }
-      // Queued-but-not-yet-dispatched requests for rotated-out frames are
-      // pure waste — drop them too.
-      for (let i = queue.length - 1; i >= 0; i--) {
-        const url = queue[i];
-        if (validUrls.has(url)) continue;
-        if (entries.get(url)?.status === 'loading') entries.delete(url);
-        queue.splice(i, 1);
-        changed = true;
-      }
-      if (changed) notify();
+    retainWindow(urls) {
+      const id = nextWindowId++;
+      liveWindows.set(id, urls);
+      pruneToLiveWindows();
+      return () => {
+        liveWindows.delete(id);
+        pruneToLiveWindows();
+      };
     },
+    prune,
   };
 }
 

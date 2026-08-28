@@ -2,6 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, act } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { DEFAULT_MODULE_STYLE, type RainMapConfig, type ModuleStyle } from '@/types/config';
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
@@ -125,6 +126,14 @@ describe('RainMapModule tile pipeline', () => {
     );
   });
 
+  it('server-renders without throwing (useSyncExternalStore needs a server snapshot)', () => {
+    // The display route renders modules on the server; React's server renderer
+    // requires getServerSnapshot on every useSyncExternalStore call or the
+    // whole page 500s (e2e stays green only because the browser recovers).
+    mockData = makeData([6100]);
+    expect(() => renderToString(ui())).not.toThrow();
+  });
+
   it('does not re-request failed tiles at animation tempo', async () => {
     tileResponder = () => false; // every tile 429s
     mockData = makeData([1100]);
@@ -185,6 +194,28 @@ describe('RainMapModule tile pipeline', () => {
     await flush();
     expect(tileFetches.filter((u) => u.includes('/256/5/')).length).toBe(0);
     expect(tileFetches.filter((u) => u.includes('/256/4/')).length).toBe(TILES_PER_FRAME);
+  });
+
+  it('a second instance with a different window cannot evict the first’s tiles', async () => {
+    // Latitudes 44.7 and 60 sit on fully disjoint tile rows at zoom 6, so the
+    // two windows share zero URLs.
+    mockData = makeData([5100]);
+    const tree = (withSecond: boolean) => (
+      <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
+        <RainMapModule config={{ ...config, latitude: 44.7 }} style={style} />
+        {withSecond && <RainMapModule config={{ ...config, latitude: 60 }} style={style} />}
+      </I18nProvider>
+    );
+    const { rerender } = render(tree(false));
+    await flush();
+    expect(document.querySelectorAll('img[src^="blob:"]')).toHaveLength(TILES_PER_FRAME);
+
+    // A second rain-map joins the screen (editor preview, second module).
+    // Registering its window must not revoke the first instance's tiles —
+    // pruning is to the union of live windows, not the last caller's window.
+    await act(async () => rerender(tree(true)));
+    await flush();
+    expect(document.querySelectorAll('img[src^="blob:"]')).toHaveLength(TILES_PER_FRAME * 2);
   });
 
   it('prunes the store to the current animation window when frames rotate', async () => {
