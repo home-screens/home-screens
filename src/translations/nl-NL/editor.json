@@ -1135,7 +1135,10 @@
       "changelog": {
         "heading": "Changelog",
         "viewButton": "Changelog bekijken",
-        "empty": "Geen releases gevonden op GitHub."
+        "empty": "Geen releases gevonden op GitHub.",
+        "notesHeading": "Release-opmerkingen voor {tag}",
+        "viewOnGitHub": "Bekijken op GitHub",
+        "noNotes": "Deze versie heeft geen opmerkingen."
       },
       "history": {
         "heading": "Versiegeschiedenis",

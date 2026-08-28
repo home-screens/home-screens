@@ -28,6 +28,8 @@ export interface SystemActions {
   loading: boolean;
   checking: boolean;
   showChangelog: boolean;
+  /** Release whose full notes are open in the changelog dialog, if any. */
+  openRelease: ChangelogRelease | null;
   powerState: PowerState;
   channel: 'stable' | 'dev';
   advancedMode: boolean;
@@ -35,6 +37,7 @@ export interface SystemActions {
   updateNotifSaveError: boolean;
   handleCheckUpdates: () => void;
   handleOpenChangelog: () => void;
+  handleOpenRelease: (release: ChangelogRelease | null) => void;
   handleToggleChannel: () => Promise<void>;
   handleToggleAdvanced: () => Promise<void>;
   handleToggleUpdateNotification: (enabled: boolean) => Promise<void>;
@@ -61,6 +64,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [openRelease, setOpenRelease] = useState<ChangelogRelease | null>(null);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
   const [updateNotifSaveError, setUpdateNotifSaveError] = useState(false);
   const [channel, setChannel] = useState<'stable' | 'dev'>(() => {
@@ -120,6 +124,10 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
   function handleOpenChangelog() {
     // The effect above owns the fetch — opening the panel is enough.
     setShowChangelog(true);
+  }
+
+  function handleOpenRelease(release: ChangelogRelease | null) {
+    setOpenRelease(release);
   }
 
   async function handleToggleChannel() {
@@ -250,6 +258,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     loading,
     checking,
     showChangelog,
+    openRelease,
     powerState,
     channel,
     advancedMode,
@@ -257,6 +266,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     updateNotifSaveError,
     handleCheckUpdates,
     handleOpenChangelog,
+    handleOpenRelease,
     handleToggleChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,

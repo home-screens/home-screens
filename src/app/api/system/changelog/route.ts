@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { fetchGitHubReleases, GITHUB_REPO } from '@/lib/version';
+import { fetchGitHubReleases, GITHUB_REPO, releasePageUrl } from '@/lib/version';
 import type { ChangelogRelease } from '@/lib/version';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 
@@ -20,6 +20,7 @@ export const GET = withAuth(async (request: NextRequest) => {
             name: r.name || r.tag_name,
             body: r.body || '',
             published: r.published_at,
+            url: r.html_url || releasePageUrl(r.tag_name),
           }),
         ),
       });
@@ -62,6 +63,7 @@ export const GET = withAuth(async (request: NextRequest) => {
           name: tag.name,
           body: '',
           published: null,
+          url: releasePageUrl(tag.name),
         }),
       ),
     });
@@ -73,11 +75,18 @@ export const GET = withAuth(async (request: NextRequest) => {
     : allReleases.filter((r: { draft: boolean; prerelease: boolean }) => !r.draft && !r.prerelease);
   return NextResponse.json({
     releases: filteredReleases.map(
-      (r: { tag_name: string; name: string; body: string; published_at: string }): ChangelogRelease => ({
+      (r: {
+        tag_name: string;
+        name: string;
+        body: string;
+        published_at: string;
+        html_url?: string;
+      }): ChangelogRelease => ({
         tag: r.tag_name,
         name: r.name || r.tag_name,
         body: r.body || '',
         published: r.published_at,
+        url: r.html_url || releasePageUrl(r.tag_name),
       }),
     ),
   });

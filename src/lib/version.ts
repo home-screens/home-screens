@@ -40,12 +40,20 @@ export interface ChangelogRelease {
   name: string;
   body: string;
   published: string | null;
+  /** Release page on GitHub, for the "read the rest on GitHub" link. */
+  url: string;
+}
+
+/** Canonical GitHub page for a tag, used when the API gives us no `html_url`. */
+export function releasePageUrl(tag: string): string {
+  return `https://github.com/${GITHUB_REPO}/releases/tag/${encodeURIComponent(tag)}`;
 }
 
 interface GitHubRelease {
   tag_name: string;
   name: string;
   body: string;
+  html_url?: string;
   draft: boolean;
   prerelease: boolean;
   published_at: string;

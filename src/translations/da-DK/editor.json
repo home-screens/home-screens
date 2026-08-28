@@ -1135,7 +1135,10 @@
       "changelog": {
         "heading": "Ændringer",
         "viewButton": "Se ændringer",
-        "empty": "Ingen udgivelser fundet på GitHub."
+        "empty": "Ingen udgivelser fundet på GitHub.",
+        "notesHeading": "Udgivelsesnoter for {tag}",
+        "viewOnGitHub": "Se på GitHub",
+        "noNotes": "Denne version har ingen noter."
       },
       "history": {
         "heading": "Versionshistorik",

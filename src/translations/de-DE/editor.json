@@ -1135,7 +1135,10 @@
       "changelog": {
         "heading": "Änderungsprotokoll",
         "viewButton": "Änderungsprotokoll anzeigen",
-        "empty": "Auf GitHub wurden keine Releases gefunden."
+        "empty": "Auf GitHub wurden keine Releases gefunden.",
+        "notesHeading": "Versionshinweise zu {tag}",
+        "viewOnGitHub": "Auf GitHub ansehen",
+        "noNotes": "Diese Version hat keine Hinweise."
       },
       "history": {
         "heading": "Versionsverlauf",

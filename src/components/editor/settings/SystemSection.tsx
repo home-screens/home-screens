@@ -1,6 +1,8 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import ChangelogModal from './ChangelogModal';
 import Toggle from '@/components/ui/Toggle';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useSystemActions } from './useSystemActions';
@@ -19,6 +21,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     loading,
     checking,
     showChangelog,
+    openRelease,
     powerState,
     channel,
     advancedMode,
@@ -26,6 +29,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     updateNotifSaveError,
     handleCheckUpdates,
     handleOpenChangelog,
+    handleOpenRelease,
     handleToggleChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,
@@ -233,28 +237,27 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         </div>
 
         {showChangelog && (
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
             {releases.length === 0 ? (
               <p className="text-xs text-hs-text-faint">
                 {t('settings.systemPage.changelog.empty')}
               </p>
             ) : (
               releases.map((r) => (
-                <div key={r.tag} className="rounded-md bg-hs-card border border-hs-border-strong p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-hs-text-body font-mono">{r.tag}</span>
-                    {r.published && (
-                      <span className="text-xs text-hs-text-faint">
-                        {new Date(r.published).toLocaleDateString(locale)}
-                      </span>
-                    )}
-                  </div>
-                  {r.body && (
-                    <p className="text-xs text-hs-text-muted mt-1 whitespace-pre-line line-clamp-3">
-                      {r.body}
-                    </p>
+                <button
+                  key={r.tag}
+                  type="button"
+                  onClick={() => handleOpenRelease(r)}
+                  className="w-full flex items-center gap-3 rounded-md bg-hs-input border border-hs-border px-3 py-2 text-left transition-colors hover:border-hs-border-strong hover:bg-hs-hover"
+                >
+                  <span className="text-sm text-hs-text-primary font-mono">{r.tag}</span>
+                  {r.published && (
+                    <span className="ml-auto text-xs text-hs-text-faint">
+                      {new Date(r.published).toLocaleDateString(locale)}
+                    </span>
                   )}
-                </div>
+                  <ChevronRight className={`w-4 h-4 shrink-0 text-hs-text-faint ${r.published ? '' : 'ml-auto'}`} />
+                </button>
               ))
             )}
           </div>
@@ -350,6 +353,10 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           {t('settings.systemPage.actions.help')}
         </p>
       </section>
+
+      {openRelease && (
+        <ChangelogModal release={openRelease} onClose={() => handleOpenRelease(null)} />
+      )}
     </div>
   );
 }

@@ -84,6 +84,25 @@ const VERSION_UPDATE_AVAILABLE = {
   updateAvailable: true,
 };
 
+const CHANGELOG = {
+  releases: [
+    {
+      tag: 'v1.2.3',
+      name: 'v1.2.3',
+      body: '## New\n\n- A long feature line that would be clipped by the old three-line preview.\n- A second feature, with `code` and a [link](https://example.com/docs).\n\n## Fixed\n\n- A bug fix.',
+      published: '2026-07-02T12:00:00Z',
+      url: 'https://github.com/home-screens/home-screens/releases/tag/v1.2.3',
+    },
+    {
+      tag: 'v1.2.2',
+      name: 'v1.2.2',
+      body: '## Fixed\n\n- An earlier fix.',
+      published: '2026-06-01T12:00:00Z',
+      url: 'https://github.com/home-screens/home-screens/releases/tag/v1.2.2',
+    },
+  ],
+};
+
 const BACKUPS = {
   backups: [
     { name: 'config-backup-2026-07-01.json', size: 4096, modified: '2026-07-01T12:00:00Z' },
@@ -113,6 +132,8 @@ type Overrides = {
   ip?: unknown;
   /** GET /api/system/network/confirm `pending` flag; `false` reports no pending rollback, driving the auto-revert branch. */
   confirmPending?: boolean;
+  /** Response body for GET /api/system/changelog. Defaults to no releases. */
+  changelog?: unknown;
 };
 
 /**
@@ -218,7 +239,7 @@ async function setupSystemStubs(page: Page, overrides: Overrides = {}): Promise<
     return route.fulfill({ json: BACKUPS });
   });
   await page.route('**/api/system/changelog**', (route) =>
-    route.fulfill({ json: { releases: [] } }),
+    route.fulfill({ json: overrides.changelog ?? { releases: [] } }),
   );
   // Power — stubbed as a hard safety net. Tests only exercise restart-service.
   await page.route('**/api/system/power', (route) => {
@@ -544,6 +565,43 @@ test.describe('Defaults › System', () => {
     // exact — the Full Backup section's "Restore Backup" button lives on the
     // same page now, and role-name matching is substring by default.
     await expect(page.getByRole('button', { name: 'Restore', exact: true })).toBeVisible();
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('opens a release in the changelog dialog with its full notes and a GitHub link', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page, { changelog: CHANGELOG });
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    await page.getByRole('button', { name: 'View Changelog' }).click();
+
+    // The list is one row per release — no clipped body preview.
+    const row = page.getByRole('button', { name: /v1\.2\.3/ }).last();
+    await expect(row).toBeVisible();
+    await row.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Release notes for v1.2.3' });
+    await expect(dialog).toBeVisible();
+    // Full body: both headings and the whole of a long bullet, not a 3-line clamp.
+    await expect(dialog.getByText('New', { exact: true })).toBeVisible();
+    await expect(dialog.getByText('Fixed', { exact: true })).toBeVisible();
+    await expect(
+      dialog.getByText('A long feature line that would be clipped by the old three-line preview.'),
+    ).toBeVisible();
+    // Inline markdown renders as elements, not literal syntax.
+    await expect(dialog.getByRole('link', { name: 'link' })).toHaveAttribute(
+      'href',
+      'https://example.com/docs',
+    );
+    await expect(dialog.getByRole('link', { name: 'View on GitHub' })).toHaveAttribute(
+      'href',
+      'https://github.com/home-screens/home-screens/releases/tag/v1.2.3',
+    );
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
 
     assertNoRealSystemCall(stubs);
   });

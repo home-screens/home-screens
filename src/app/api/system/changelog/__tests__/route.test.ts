@@ -50,7 +50,13 @@ describe('GET /api/system/changelog', () => {
 
   it('maps cached GitHub releases', async () => {
     mockFetchReleases.mockResolvedValue([
-      { tag_name: 'v1.2.0', name: 'Release 1.2.0', body: 'notes', published_at: '2026-01-01T00:00:00Z' },
+      {
+        tag_name: 'v1.2.0',
+        name: 'Release 1.2.0',
+        body: 'notes',
+        published_at: '2026-01-01T00:00:00Z',
+        html_url: 'https://github.com/home-screens/home-screens/releases/tag/v1.2.0',
+      },
     ] as never);
     const res = await GET(getRequest());
     expect(res.status).toBe(200);
@@ -60,6 +66,7 @@ describe('GET /api/system/changelog', () => {
       name: 'Release 1.2.0',
       body: 'notes',
       published: '2026-01-01T00:00:00Z',
+      url: 'https://github.com/home-screens/home-screens/releases/tag/v1.2.0',
     });
     // Cache hit → no direct fetch fallback.
     expect(fetchWithTimeoutMock).not.toHaveBeenCalled();
@@ -76,6 +83,8 @@ describe('GET /api/system/changelog', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.releases[0].tag).toBe('v2.0.0');
+    // No html_url in the payload → the canonical tag page is synthesized.
+    expect(body.releases[0].url).toBe('https://github.com/home-screens/home-screens/releases/tag/v2.0.0');
   });
 
   it('returns 502 when both releases and tags endpoints fail', async () => {

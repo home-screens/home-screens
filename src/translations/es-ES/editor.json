@@ -1135,7 +1135,10 @@
       "changelog": {
         "heading": "Changelog",
         "viewButton": "Ver changelog",
-        "empty": "No se encontraron releases en GitHub."
+        "empty": "No se encontraron releases en GitHub.",
+        "notesHeading": "Notas de la versión {tag}",
+        "viewOnGitHub": "Ver en GitHub",
+        "noNotes": "Esta versión no tiene notas."
       },
       "history": {
         "heading": "Historial de versiones",
