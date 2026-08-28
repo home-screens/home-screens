@@ -23,6 +23,7 @@ export type SecretKey =
   | 'github_token'
   | 'immich_url'
   | 'immich_api_key'
+  | 'microsoft_client_id'
   // Weather provider keys
   | 'weatherapi_key'
   | 'openweathermap_key'

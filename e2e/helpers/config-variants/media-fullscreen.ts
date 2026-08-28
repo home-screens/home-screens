@@ -244,6 +244,25 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
     },
   },
+  {
+    // source 'onedrive' routes the fetch to /api/onedrive/photos (typed
+    // shape served by the 'onedrive' stub). The payload-tail selector is
+    // routing-sensitive: the backgrounds fixture's gif ends ICTAEAOw, so a
+    // fall-through to the local source would not match.
+    type: 'photo-slideshow', name: 'source-onedrive', kind: 'networked', stubKey: 'onedrive',
+    config: { source: 'onedrive', onedriveFolderId: 'FldE2E1' },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="RAA7"]').first()).toBeAttached();
+    },
+  },
+  {
+    // Same onedrive routing for the fullscreen viewer.
+    type: 'fullscreen-photo', name: 'source-onedrive', kind: 'networked', stubKey: 'onedrive',
+    config: { source: 'onedrive', onedriveFolderId: 'FldE2E1' },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="RAA7"]').first()).toBeAttached();
+    },
+  },
 
   // ================= video =================
   // The stub serves the media list; the <video> element's own media fetch 404s

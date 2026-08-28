@@ -179,7 +179,7 @@ A fresh install does not ship coordinates: `settings.weather.latitude` and `long
 
 ### API Routes
 
-API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 111 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
+API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 116 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
 
 | Category | Routes | Purpose |
 |---|---|---|
@@ -193,7 +193,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only spokes |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/migrate-config`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
 | **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | WiFi scan and connect, hostname, static IP, and connectivity checks |
-| **Photos** | `google-picker/auth`, `google-picker/session`, `google-picker/import`, `google-picker/status`, `immich/*`, `icloud/photos`, `icloud/import` | Google Photos Picker import, Immich and iCloud photo sources |
+| **Photos** | `google-picker/auth`, `google-picker/session`, `google-picker/import`, `google-picker/status`, `immich/*`, `onedrive/*`, `icloud/photos`, `icloud/import` | Google Photos Picker import, Immich, OneDrive, and iCloud photo sources |
 | **i18n** | `i18n/[locale]` | Serves locale dictionaries by namespace |
 | **Utility** | `backgrounds`, `geocode`, `image-proxy`, `time`, `unsplash`, `immich` | Background images, geocoding, image proxying, server time, Unsplash and Immich photos |
 

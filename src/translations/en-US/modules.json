@@ -633,7 +633,8 @@
     "noPhotoSelectedHint": "Choose a photo in the editor panel.",
     "noPhotosYet": "No photos yet",
     "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.",
-    "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on."
+    "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on.",
+    "noPhotosYetHintOneDrive": "Check the OneDrive folder in the editor."
   },
   "dad-joke": {
     "loading": "Loading joke…"
@@ -751,7 +752,8 @@
   "photo-slideshow": {
     "loading": "Loading photos…",
     "empty": "No photos found",
-    "emptyICloud": "No photos yet. Check the album link and make sure Public Website is turned on."
+    "emptyICloud": "No photos yet. Check the album link and make sure Public Website is turned on.",
+    "emptyOneDrive": "No photos yet. Check the OneDrive folder in the editor."
   },
   "video": {
     "loading": "Loading video…",

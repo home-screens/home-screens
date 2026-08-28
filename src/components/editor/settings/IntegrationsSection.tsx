@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Send,
   Camera,
+  Cloud,
 } from 'lucide-react';
 import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
@@ -54,6 +55,7 @@ const INTEGRATIONS: Integration[] = [
   // are excluded from the card's Connected/partial status — see cardStatus.
   { name: 'Google', keys: ['google_client_id', 'google_client_secret', 'google_web_client_id', 'google_web_client_secret', 'google_maps_key'] },
   { name: 'Immich', keys: ['immich_url', 'immich_api_key'] },
+  { name: 'Microsoft', keys: ['microsoft_client_id'] },
   { name: 'Unsplash', keys: ['unsplash_access_key'] },
   { name: 'NASA', keys: ['nasa_api_key'] },
   { name: 'Todoist', keys: ['todoist_token'] },
@@ -102,6 +104,7 @@ export default function IntegrationsSection() {
         // fully configured Calendar+Maps setup from "Connected" to "partial".
         google: getStatusInfo(status, ['google_client_id', 'google_client_secret', 'google_maps_key'], t),
         immich: getStatusInfo(status, ['immich_url', 'immich_api_key'], t),
+        microsoft: getStatusInfo(status, ['microsoft_client_id'], t),
         unsplash: getStatusInfo(status, ['unsplash_access_key'], t),
         nasa: getStatusInfo(status, ['nasa_api_key'], t),
         todoist: getStatusInfo(status, ['todoist_token'], t),
@@ -123,7 +126,7 @@ export default function IntegrationsSection() {
     i.keys.some((k) => !!status[k]),
   ).length;
 
-  const { google, immich, unsplash, nasa, todoist, tomtom, github } = cardStatus;
+  const { google, immich, microsoft, unsplash, nasa, todoist, tomtom, github } = cardStatus;
 
   return (
     <section>
@@ -248,6 +251,25 @@ export default function IntegrationsSection() {
                 onSaved={refetch}
               />
             </div>
+          </IntegrationCard>
+
+          <IntegrationCard
+            fieldId="integrations.microsoft"
+            icon={<Cloud className="w-[18px] h-[18px] text-white" />}
+            iconBg="#0078d4"
+            name={t('settings.integrationsPage.microsoft.name')}
+            description={t('settings.integrationsPage.microsoft.description')}
+            statusLabel={microsoft.label}
+            statusType={microsoft.type}
+          >
+            <SecretField
+              label={t('settings.integrationsPage.microsoft.clientIdLabel')}
+              secretKey="microsoft_client_id"
+              placeholder={t('settings.integrationsPage.microsoft.clientIdPlaceholder')}
+              helpText={t('settings.integrationsPage.microsoft.clientIdHelp')}
+              status={!!status.microsoft_client_id}
+              onSaved={refetch}
+            />
           </IntegrationCard>
 
           <IntegrationCard

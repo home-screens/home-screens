@@ -10,6 +10,7 @@ import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import { ImmichPhotoSourceSection } from './ImmichPhotoSourceSection';
+import { OneDrivePhotoSourceSection } from './OneDrivePhotoSourceSection';
 import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
 import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
@@ -35,6 +36,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
   const [photoCount, setPhotoCount] = useState(0);
   const { status: secrets } = useSecretStatus();
   const hasImmichKey = !!secrets.immich_api_key && !!secrets.immich_url;
+  const hasOneDrive = !!secrets.microsoft_client_id;
 
   // iCloud needs no key, so the source select is always shown; Immich joins
   // the list only once its server + API key are configured.
@@ -42,6 +44,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
     { value: 'local', label: t('configSections.photo-slideshow.sourceLocal') },
     ...(hasImmichKey ? [{ value: 'immich', label: t('configSections.photo-slideshow.sourceImmich') }] : []),
     { value: 'icloud', label: t('configSections.photo-slideshow.sourceICloud') },
+    ...(hasOneDrive ? [{ value: 'onedrive', label: t('configSections.photo-slideshow.sourceOneDrive') }] : []),
   ];
 
   const source = (c.source as string) || 'local';
@@ -83,6 +86,8 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
         <ImmichPhotoSourceSection config={c as Record<string, unknown>} set={set} />
       ) : source === 'icloud' ? (
         <ICloudAlbumSourceSection config={c as Record<string, unknown>} set={set} />
+      ) : source === 'onedrive' ? (
+        <OneDrivePhotoSourceSection config={c as Record<string, unknown>} set={set} />
       ) : (
         <>
           {/* Folder picker */}
@@ -134,7 +139,9 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
         </>
       )}
 
-      <MediaTypesFields config={c as Record<string, unknown>} set={set} />
+      {source !== 'onedrive' && (
+        <MediaTypesFields config={c as Record<string, unknown>} set={set} />
+      )}
 
       <Slider
         label={t('configSections.photo-slideshow.slideInterval')}

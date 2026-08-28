@@ -17,7 +17,10 @@ import VideoLayer from './shared/VideoLayer';
 function SlideLayer({ src, active, objectFit, isFade }: {
   src: string; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
 }) {
-  const authSrc = useAuthImage(src);
+  // A slide layer goes active the moment its src changes, so it must never
+  // render the previous slide's blob while the new one loads — it stays
+  // hidden until its own image is ready.
+  const authSrc = useAuthImage(src, { holdPrevious: false });
   return (
     <img
       src={authSrc || undefined}
@@ -52,7 +55,8 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
 
   // Photo-only configs receive the legacy string[] response; normalize both
   // shapes into MediaListItem so the render path below is uniform.
-  const [data, error] = useFetchData<string[] | MediaListItem[]>(photoSlideshowUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  const listUrl = photoSlideshowUrl(config);
+  const [data, error] = useFetchData<string[] | MediaListItem[]>(listUrl, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const items = useMemo<MediaListItem[]>(
     () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
     [data],
@@ -61,7 +65,9 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
 
   // Per-item rotation: photos advance on the timer, videos on onEnded —
   // an all-photo list degenerates to the plain fixed-interval rotation.
-  const [index, advance] = useMediaRotation(items, intervalMs, false, playVideos);
+  // The list URL keys the batch, so a periodic refresh is held until the
+  // current pass completes instead of re-dealing mid-slideshow.
+  const [batch, index, advance] = useMediaRotation(items, intervalMs, false, playVideos, listUrl);
 
   // Track the active layer (0 or 1) to alternate which slide is on top
   const [activeLayer, setActiveLayer] = useState(0);
@@ -69,8 +75,8 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const prevIndexRef = useRef(index);
 
   useEffect(() => {
-    if (items.length === 0) return;
-    const item = items[index % items.length];
+    if (batch.length === 0) return;
+    const item = batch[index % batch.length];
 
     if (prevIndexRef.current !== index) {
       // Switch to the other layer for the new slide
@@ -87,15 +93,20 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
       setSources([item, item]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- layer crossfade uses refs (prevIndexRef, activeLayer) that shouldn't trigger re-runs
-  }, [index, items]);
+  }, [index, batch]);
 
   const gate = moduleGate({
     style, data, error,
     loadingMessage: t('photo-slideshow.loading'),
     // An empty iCloud album usually means a bad link or the album's public
-    // website being off — say that instead of a generic "no photos".
+    // website being off; an empty OneDrive folder points back at the
+    // editor's folder picker — say so instead of a generic "no photos".
     empty: items.length === 0
-      && t(config.source === 'icloud' ? 'photo-slideshow.emptyICloud' : 'photo-slideshow.empty'),
+      && t(
+        config.source === 'icloud' ? 'photo-slideshow.emptyICloud'
+          : config.source === 'onedrive' ? 'photo-slideshow.emptyOneDrive'
+            : 'photo-slideshow.empty',
+      ),
   });
   if (gate) return gate;
 
@@ -117,7 +128,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
           autoPlay={playVideos}
           objectFit={config.objectFit}
           muted
-          loop={items.length === 1}
+          loop={batch.length === 1}
           maxDurationMs={config.maxVideoDurationMs ?? DEFAULT_MAX_VIDEO_DURATION_MS}
           onEnded={advance}
         />

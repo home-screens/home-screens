@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Indsæt din Immich-API-nøgle",
         "apiKeyHelp": "Opret den i Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Billeder fra din OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Indsæt Application (client) ID",
+        "clientIdHelp": "Opret en gratis app-registrering, slå 'Allow public client flows' til, og kopier Application ID. Dokumentationen hjælper trin for trin."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-baggrundsbilleder efter kategori",
@@ -2690,7 +2697,8 @@
       "shuffleOrder": "Bland rækkefølgen",
       "kenBurnsEffect": "Ken Burns-effekt",
       "showClockOverlay": "Vis ur ovenpå",
-      "mobileHintPrefix": "Upload billeder fra din telefon under fanen Billeder på"
+      "mobileHintPrefix": "Upload billeder fra din telefon under fanen Billeder på",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Hver uge",
@@ -2917,7 +2925,8 @@
       "photoCountOther": "{count} billeder",
       "noPhotosInFolder": "Ingen billeder i denne mappe",
       "slideInterval": "Tid pr. billede (sekunder)",
-      "transition": "Overgang"
+      "transition": "Overgang",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Egen (URL / tekst)",
@@ -3398,6 +3407,34 @@
       "accentAuto": "Accentfarven følger vejret",
       "accentColor": "Accentfarve",
       "showTime": "Vis klokkeslæt"
+    },
+    "onedriveSource": {
+      "checking": "Tjekker OneDrive-forbindelsen…",
+      "credentialsNeeded": "Tilføj først dit Microsoft Application ID under Indstillinger, API-nøgler.",
+      "signIn": "Log ind med Microsoft",
+      "waiting": "Venter på, at du er færdig med at logge ind",
+      "enterCode": "Indtast denne kode på",
+      "cancel": "Annuller",
+      "signedIn": "Logget ind",
+      "connectedAs": "Logget ind som {account}",
+      "disconnect": "Frakobl OneDrive",
+      "retry": "Prøv igen",
+      "folder": "Mappe",
+      "noFolderChosen": "Endnu ingen mappe valgt",
+      "chooseFolder": "Vælg mappe",
+      "changeFolder": "Skift mappe",
+      "loadingFolders": "Indlæser mapper…",
+      "upOneFolder": "En mappe op",
+      "emptyFolder": "Ingen undermapper her",
+      "useThisFolder": "Brug denne mappe",
+      "capNote": "Hvis mappestrukturen indeholder mere end {cap} billeder, bruger diasshowet et tilfældigt udvalg på {cap}.",
+      "loadFailed": "Kunne ikke indlæse dine OneDrive-mapper.",
+      "folderNotFound": "Mappen blev ikke fundet. Vælg en anden mappe.",
+      "photosPerRefresh": "Billeder pr. opdatering",
+      "noPhotos": "Endnu ingen billeder i denne mappe",
+      "signInDeclined": "Login blev annulleret",
+      "signInExpired": "Koden udløb. Start login igen.",
+      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen."
     }
   },
   "imageBrowsers": {

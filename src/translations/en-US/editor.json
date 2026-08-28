@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Paste your Immich API key",
         "apiKeyHelp": "Create at Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Photos from your OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Paste the Application (client) ID",
+        "clientIdHelp": "Create a free app registration, turn on Allow public client flows, and copy the Application (client) ID. The docs have step-by-step help."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD photo backgrounds by category",
@@ -2690,7 +2697,8 @@
       "shuffleOrder": "Shuffle Order",
       "kenBurnsEffect": "Ken Burns Effect",
       "showClockOverlay": "Show Clock Overlay",
-      "mobileHintPrefix": "Upload photos from your phone via the Photos tab at"
+      "mobileHintPrefix": "Upload photos from your phone via the Photos tab at",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Every week",
@@ -2917,7 +2925,8 @@
       "photoCountOther": "{count} photos",
       "noPhotosInFolder": "No photos in this folder",
       "slideInterval": "Slide Interval (seconds)",
-      "transition": "Transition"
+      "transition": "Transition",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Custom (URL / Text)",
@@ -3398,6 +3407,34 @@
       "accentAuto": "Accent color follows the weather",
       "accentColor": "Accent Color",
       "showTime": "Show the time"
+    },
+    "onedriveSource": {
+      "checking": "Checking the OneDrive connection…",
+      "credentialsNeeded": "Add your Microsoft Application ID under Settings, API keys first.",
+      "signIn": "Sign in with Microsoft",
+      "waiting": "Waiting for you to finish signing in",
+      "enterCode": "Enter this code at",
+      "cancel": "Cancel",
+      "signedIn": "Signed in",
+      "connectedAs": "Signed in as {account}",
+      "disconnect": "Disconnect OneDrive",
+      "retry": "Try again",
+      "folder": "Folder",
+      "noFolderChosen": "No folder chosen yet",
+      "chooseFolder": "Choose folder",
+      "changeFolder": "Change folder",
+      "loadingFolders": "Loading folders…",
+      "upOneFolder": "Up a folder",
+      "emptyFolder": "No subfolders in this folder",
+      "useThisFolder": "Use this folder",
+      "capNote": "If the folder tree has more than {cap} photos, slides use a random sample of {cap}.",
+      "loadFailed": "Could not load your OneDrive folders.",
+      "folderNotFound": "Folder not found. Choose a different folder.",
+      "photosPerRefresh": "Photos per refresh",
+      "noPhotos": "No photos in this folder yet",
+      "signInDeclined": "Sign-in was cancelled",
+      "signInExpired": "That code expired. Start sign-in again.",
+      "signInFailed": "Sign-in did not work. Check the Application ID and try again."
     }
   },
   "imageBrowsers": {

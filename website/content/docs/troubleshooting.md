@@ -71,7 +71,7 @@ If your display shows nothing or a white screen:
 
 If modules appear stale or show old data:
 
-1. **Check API keys** — Some modules need a key from the service they pull from (Immich, Todoist, traffic, Google Maps, and a few weather providers). Open the editor and go to Settings > API keys to check them. Weather keys are the exception: they live on their provider's card under Settings > Weather. Stocks and news need no key at all.
+1. **Check API keys** — Some modules need a key from the service they pull from (Immich, OneDrive, Todoist, traffic, Google Maps, and a few weather providers). Open the editor and go to Settings > API keys to check them. Weather keys are the exception: they live on their provider's card under Settings > Weather. Stocks and news need no key at all.
 2. **Check refresh intervals** — Each module has a configurable refresh interval. Very long intervals mean data updates infrequently. Check the module settings in the editor.
 3. **Check network connectivity** — API-backed modules need internet access. Test from the Pi (the quotes matter, or the shell will split the URL at the `&`):
    ```bash

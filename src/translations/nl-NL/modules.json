@@ -633,7 +633,8 @@
     "noPhotoSelectedHint": "Kies een foto in het editorpaneel.",
     "noPhotosYet": "Nog geen foto's",
     "noPhotosYetHint": "Upload foto's vanaf je telefoon via het tabblad Foto's op /remote, of kies een map in de editor.",
-    "noPhotosYetHintICloud": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album."
+    "noPhotosYetHintICloud": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album.",
+    "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor."
   },
   "dad-joke": {
     "loading": "Mop laden…"
@@ -751,7 +752,8 @@
   "photo-slideshow": {
     "loading": "Foto's worden geladen…",
     "empty": "Geen foto's gevonden",
-    "emptyICloud": "Nog geen foto's. Controleer de albumlink en zorg dat 'Openbare website' aanstaat."
+    "emptyICloud": "Nog geen foto's. Controleer de albumlink en zorg dat 'Openbare website' aanstaat.",
+    "emptyOneDrive": "Nog geen foto's. Controleer de OneDrive-map in de editor."
   },
   "video": {
     "loading": "Video laden…",

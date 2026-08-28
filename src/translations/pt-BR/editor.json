@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Cole sua chave de API do Immich",
         "apiKeyHelp": "Crie em Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Fotos do seu OneDrive",
+        "clientIdLabel": "ID do aplicativo (cliente)",
+        "clientIdPlaceholder": "Cole o ID do aplicativo (cliente)",
+        "clientIdHelp": "Crie um registro de aplicativo gratuito, ative 'Allow public client flows' e copie o ID do aplicativo. A documentação explica cada passo."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "Planos de fundo HD por categoria",
@@ -2695,7 +2702,8 @@
       "shuffleOrder": "Ordem aleatória",
       "kenBurnsEffect": "Efeito Ken Burns",
       "showClockOverlay": "Mostrar relógio sobreposto",
-      "mobileHintPrefix": "Envie fotos do celular pela aba Fotos em"
+      "mobileHintPrefix": "Envie fotos do celular pela aba Fotos em",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Toda semana",
@@ -2922,7 +2930,8 @@
       "photoCountOther": "{count} fotos",
       "noPhotosInFolder": "Nenhuma foto nesta pasta",
       "slideInterval": "Intervalo do slide (segundos)",
-      "transition": "Transição"
+      "transition": "Transição",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Personalizado (URL / texto)",
@@ -3403,6 +3412,34 @@
       "accentAuto": "A cor de destaque segue o tempo",
       "accentColor": "Cor de destaque",
       "showTime": "Mostrar a hora"
+    },
+    "onedriveSource": {
+      "checking": "Verificando a conexão do OneDrive…",
+      "credentialsNeeded": "Primeiro adicione seu ID de aplicativo da Microsoft em Ajustes, Chaves de API.",
+      "signIn": "Entrar com a Microsoft",
+      "waiting": "Esperando você terminar de entrar",
+      "enterCode": "Digite este código em",
+      "cancel": "Cancelar",
+      "signedIn": "Conectado",
+      "connectedAs": "Conectado como {account}",
+      "disconnect": "Desconectar o OneDrive",
+      "retry": "Tentar de novo",
+      "folder": "Pasta",
+      "noFolderChosen": "Nenhuma pasta escolhida ainda",
+      "chooseFolder": "Escolher pasta",
+      "changeFolder": "Trocar pasta",
+      "loadingFolders": "Carregando pastas…",
+      "upOneFolder": "Subir uma pasta",
+      "emptyFolder": "Nenhuma subpasta aqui",
+      "useThisFolder": "Usar esta pasta",
+      "capNote": "Se a árvore de pastas tiver mais de {cap} fotos, a apresentação usa uma amostra aleatória de {cap}.",
+      "loadFailed": "Não foi possível carregar suas pastas do OneDrive.",
+      "folderNotFound": "Pasta não encontrada. Escolha outra pasta.",
+      "photosPerRefresh": "Fotos por atualização",
+      "noPhotos": "Ainda não há fotos nesta pasta",
+      "signInDeclined": "O login foi cancelado",
+      "signInExpired": "Esse código expirou. Comece o login novamente.",
+      "signInFailed": "O login não funcionou. Confira o ID do aplicativo e tente de novo."
     }
   },
   "imageBrowsers": {

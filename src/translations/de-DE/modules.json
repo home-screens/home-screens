@@ -633,7 +633,8 @@
     "noPhotoSelectedHint": "Wähle ein Foto im Editor-Bereich aus.",
     "noPhotosYet": "Noch keine Fotos",
     "noPhotosYetHint": "Lade Fotos von deinem Telefon über den Fotos-Tab unter /remote hoch oder wähle einen Ordner im Editor.",
-    "noPhotosYetHintICloud": "Prüfe den Album-Link im Editor und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist."
+    "noPhotosYetHintICloud": "Prüfe den Album-Link im Editor und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist.",
+    "noPhotosYetHintOneDrive": "Prüfe den OneDrive-Ordner im Editor."
   },
   "dad-joke": {
     "loading": "Witz wird geladen…"
@@ -751,7 +752,8 @@
   "photo-slideshow": {
     "loading": "Fotos werden geladen…",
     "empty": "Keine Fotos gefunden",
-    "emptyICloud": "Noch keine Fotos. Prüfe den Album-Link und stelle sicher, dass „Öffentliche Website“ aktiviert ist."
+    "emptyICloud": "Noch keine Fotos. Prüfe den Album-Link und stelle sicher, dass „Öffentliche Website“ aktiviert ist.",
+    "emptyOneDrive": "Noch keine Fotos. Prüfe den OneDrive-Ordner im Editor."
   },
   "video": {
     "loading": "Video wird geladen…",

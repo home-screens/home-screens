@@ -238,6 +238,7 @@ Pick one provider as your default; keys are entered on the provider's own card, 
 | Google Maps | Google Routes API key for the traffic module | For traffic module |
 | TomTom | Alternative to Google Maps for traffic. Enable **Geocoding API**, **Reverse Geocoding API**, and **Routing API** on the key (per-key, not just account-wide). | For traffic module |
 | Immich | Server URL + API key for your self-hosted photo library | For Immich photos in the photo-slideshow module |
+| Microsoft OneDrive | Application (client) ID from a free app registration, then a one-time sign-in in the module (see [OneDrive photos](/docs/modules#one-drive-photos)) | For OneDrive photos in the photo modules |
 | Unsplash | Access key for HD background photos. The free tier allows 50 requests per hour. | Optional — for Unsplash backgrounds |
 | NASA | API key for the Astronomy Picture of the Day (1,000 requests per hour). Image Library search works without a key. | Optional — for NASA imagery |
 | Todoist | API token, checked when you save it | For todoist module |
@@ -308,7 +309,7 @@ Sign in to iCloud with an **app-specific password** — a password you create ju
 
 **Weather needs no API key.** A new install starts on Open-Meteo, which is free and covers the whole world. It does need to know where you are, though: open **Settings > Location & language** and set your location, or a weather module will have nothing to show.
 
-You only need a key if you want a specific provider (OpenWeatherMap, WeatherAPI, Pirate Weather, or the Met Office) or extras like Immich photos, Todoist, or traffic routing.
+You only need a key if you want a specific provider (OpenWeatherMap, WeatherAPI, Pirate Weather, or the Met Office) or extras like Immich or OneDrive photos, Todoist, or traffic routing.
 
 ## Update Channel
 

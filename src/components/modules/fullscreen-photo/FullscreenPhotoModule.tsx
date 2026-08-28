@@ -44,7 +44,9 @@ function SlideLayer({
   kenBurns: boolean;
   layerIndex: number;
 }) {
-  const authSrc = useAuthImage(src);
+  // Never render the previous slide's blob on an already-active layer —
+  // the layer stays hidden until its own image is ready.
+  const authSrc = useAuthImage(src, { holdPrevious: false });
 
   const transitionStyle = useMemo((): React.CSSProperties => {
     const base: React.CSSProperties = {
@@ -176,17 +178,19 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo.
   // Photo-only configs receive the legacy string[] response; normalize both
   // shapes into MediaListItem so the render path below is uniform.
-  const [data] = useFetchData<string[] | MediaListItem[]>(isSinglePhoto ? '' : photoSlideshowUrl(config), FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
+  const listUrl = isSinglePhoto ? '' : photoSlideshowUrl(config);
+  const [data] = useFetchData<string[] | MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
   const items = useMemo<MediaListItem[]>(
     () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
     [data],
   );
-  const files = items;
 
   const intervalMs = config.intervalMs ?? 30000;
   // Per-item rotation: photos advance on the timer, videos on onEnded —
   // an all-photo list degenerates to the plain fixed-interval rotation.
-  const [photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos);
+  // The list URL keys the batch, so a periodic refresh is held until the
+  // current pass completes instead of re-dealing mid-slideshow.
+  const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl);
 
   // Dual-layer crossfade state
   const [activeLayer, setActiveLayer] = useState(0);
@@ -260,7 +264,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   }
 
   // Empty state
-  if (data !== null && files.length === 0) {
+  if (data !== null && items.length === 0) {
     return (
       <div
         ref={containerRef}
@@ -274,8 +278,14 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
           <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
           <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
             {/* An empty iCloud album usually means a bad link or the album's
-                public website being off — say that instead of upload advice. */}
-            {t(config.source === 'icloud' ? 'fullscreen-photo.noPhotosYetHintICloud' : 'fullscreen-photo.noPhotosYetHint')}
+                public website being off; an empty OneDrive folder points
+                back at the editor's folder picker — say so instead of
+                upload advice. */}
+            {t(
+              config.source === 'icloud' ? 'fullscreen-photo.noPhotosYetHintICloud'
+                : config.source === 'onedrive' ? 'fullscreen-photo.noPhotosYetHintOneDrive'
+                  : 'fullscreen-photo.noPhotosYetHint',
+            )}
           </p>
         </div>
       </div>

@@ -199,6 +199,16 @@ describe('photoSlideshowUrl', () => {
   it('omits album= when the icloud link is unset', () => {
     expect(photoSlideshowUrl({ source: 'icloud' })).toBe('/api/icloud/photos?');
   });
+
+  it('returns the onedrive endpoint for source onedrive', () => {
+    expect(photoSlideshowUrl({ source: 'onedrive' })).toBe('/api/onedrive/photos');
+  });
+
+  it('includes folderId and count for onedrive source', () => {
+    const url = photoSlideshowUrl({ source: 'onedrive', onedriveFolderId: 'fld!1', onedriveCount: 20 });
+    // URLSearchParams form-encodes '!' — the route decodes it back to fld!1.
+    expect(url).toBe('/api/onedrive/photos?folderId=fld%211&count=20');
+  });
 });
 
 describe('videoModuleUrl', () => {

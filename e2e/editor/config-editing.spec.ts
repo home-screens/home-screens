@@ -735,6 +735,22 @@ test('photo-slideshow: the Google Photos import panel opens and reports setup st
   await expect(page.getByText('add a Google Photos import Client ID')).toBeVisible();
 });
 
+test('photo-slideshow: OneDrive source offers sign-in and persists the choice', async ({ page, request }) => {
+  // The source option only exists once the Application ID secret is set;
+  // seed it before the editor loads (selectModule is a full page load, so
+  // useSecretStatus starts fresh).
+  await request.put('/api/secrets', { data: { key: 'microsoft_client_id', value: 'e2e-client-id' } });
+  await selectModule(page, request, buildModuleInstance('photo-slideshow'));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Photo Source').selectOption('onedrive');
+  });
+
+  expect((await moduleConfig(request, 'photo-slideshow')).source).toBe('onedrive');
+  // No stored grant in the sandbox, so the panel offers device-code sign-in.
+  await expect(page.getByRole('button', { name: 'Sign in with Microsoft' })).toBeVisible();
+});
+
 test('qr-code: switching Mode persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('qr-code', {
     mode: 'custom', data: 'https://example.com/e2e', label: 'E2E QR',

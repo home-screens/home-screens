@@ -844,6 +844,13 @@
         "apiKeyPlaceholder": "Plak je Immich API-sleutel",
         "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
       },
+      "microsoft": {
+        "name": "Microsoft OneDrive",
+        "description": "Foto's uit je OneDrive",
+        "clientIdLabel": "Application (client) ID",
+        "clientIdPlaceholder": "Plak de Application (client) ID",
+        "clientIdHelp": "Maak een gratis app-registratie aan, zet 'Allow public client flows' aan en kopieer de Application (client) ID. De documentatie helpt je stap voor stap."
+      },
       "unsplash": {
         "name": "Unsplash",
         "description": "HD-foto-achtergronden per categorie",
@@ -2690,7 +2697,8 @@
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
-      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op"
+      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op",
+      "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
       "frequencyWeekly": "Elke week",
@@ -2917,7 +2925,8 @@
       "photoCountOther": "{count} foto's",
       "noPhotosInFolder": "Geen foto's in deze map",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang"
+      "transition": "Overgang",
+      "sourceOneDrive": "OneDrive"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",
@@ -3398,6 +3407,34 @@
       "accentAuto": "Accentkleur volgt het weer",
       "accentColor": "Accentkleur",
       "showTime": "Tijd tonen"
+    },
+    "onedriveSource": {
+      "checking": "OneDrive-verbinding controleren…",
+      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij Instellingen, API-sleutels.",
+      "signIn": "Inloggen met Microsoft",
+      "waiting": "Wachten tot je klaar bent met inloggen",
+      "enterCode": "Voer deze code in op",
+      "cancel": "Annuleren",
+      "signedIn": "Ingelogd",
+      "connectedAs": "Ingelogd als {account}",
+      "disconnect": "OneDrive loskoppelen",
+      "retry": "Opnieuw proberen",
+      "folder": "Map",
+      "noFolderChosen": "Nog geen map gekozen",
+      "chooseFolder": "Map kiezen",
+      "changeFolder": "Map wijzigen",
+      "loadingFolders": "Mappen laden…",
+      "upOneFolder": "Één map omhoog",
+      "emptyFolder": "Geen submappen in deze map",
+      "useThisFolder": "Deze map gebruiken",
+      "capNote": "Als de mappenboom meer dan {cap} foto's bevat, gebruikt de diavoorstelling een willekeurige selectie van {cap}.",
+      "loadFailed": "Kon je OneDrive-mappen niet laden.",
+      "folderNotFound": "Map niet gevonden. Kies een andere map.",
+      "photosPerRefresh": "Foto's per verversing",
+      "noPhotos": "Nog geen foto's in deze map",
+      "signInDeclined": "Inloggen is geannuleerd",
+      "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
+      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
     }
   },
   "imageBrowsers": {
