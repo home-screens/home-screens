@@ -21,23 +21,18 @@ import type { ModuleType } from '@/types/config';
  * regression in any of them turns this red.
  */
 /**
- * The browser clock, pinned to the early hours of the SAME day the server is
- * on. That models the real hydration window — the client renders a moment
- * after the server, sometimes across a minute, hour, AM/PM or greeting
- * boundary — while keeping the calendar date identical.
+ * The browser clock, pinned to a date the server is nowhere near. Every module
+ * here renders something derived from "now", so a pin this far off guarantees
+ * the disagreement instead of waiting for a real midnight, minute or greeting
+ * boundary to land inside the hydration window.
  *
- * Deliberately not a different DATE: the multi-month grid emits 4, 5 or 6 week
- * rows depending on the month, so a cross-month pin changes the child count,
- * which `suppressHydrationWarning` cannot forgive (it covers only the element
- * it sits on, never a differing number of descendants). That residual case —
- * a display hydrating across a midnight that also changes a month's row count
- * — needs a fixed 6-row grid to close, which is a layout change, not a
- * suppression. Tracked separately rather than papered over here.
+ * A cross-DATE pin is the strong form of the ratchet: it also moves the month,
+ * which is what the multi-month grid's fixed six-week layout exists to survive.
+ * A module that goes back to deriving its child count from the clock turns this
+ * red rather than failing once a month on a kiosk.
  */
 function pinnedClock(): Date {
-  const d = new Date();
-  d.setHours(3, 7, 0, 0);
-  return d;
+  return new Date('2021-03-04T09:17:00');
 }
 
 interface Case {
@@ -60,6 +55,14 @@ const CASES: Case[] = [
   { name: 'text · rotation', type: 'text', config: { content: 'Now: {{time}}|{{greeting}}', templateVariables: true, rotationEnabled: true } },
   { name: 'year-progress', type: 'year-progress', config: {} },
   { name: 'multi-month', type: 'multi-month', config: {} },
+  // Six months at once: the grid's row count used to come from the date, so a
+  // wide span makes it near-impossible for a pinned clock to land on a month
+  // that happens to need the same number of rows as the server's.
+  { name: 'multi-month · 6 months', type: 'multi-month', config: { monthCount: 6 } },
+  // Adjacent days hidden: the rows that draw nothing are collapsed with a
+  // date-dependent `flex`, which has to stay a suppressed attribute rather
+  // than becoming a skipped child.
+  { name: 'multi-month · no adjacent days', type: 'multi-month', config: { monthCount: 6, showAdjacentDays: false } },
   { name: 'countdown', type: 'countdown', config: { events: [{ id: 'e1', name: 'LAUNCH', date: '2099-12-31' }] } },
 ];
 

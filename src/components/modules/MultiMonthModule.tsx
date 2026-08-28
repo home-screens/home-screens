@@ -1,6 +1,7 @@
 'use client';
 
 import { useTZClock } from '@/hooks/useTZClock';
+import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { weekStartsOnFor } from '@/lib/calendar-utils';
@@ -17,6 +18,18 @@ interface MultiMonthModuleProps {
 // We derive the localized short day names ('EEE') from this seed week so the
 // headers honour the user's formatting locale instead of being hardcoded English.
 const DAY_HEADER_SEED_SUNDAY = new Date(2024, 0, 7);
+
+/**
+ * Week rows drawn per month, always. A month naturally spans 4, 5 or 6 weeks,
+ * so deriving the count from the date made the number of row elements depend
+ * on the wall clock: a display hydrating across a month boundary sent N rows
+ * from the server and rendered M on the client, and `suppressHydrationWarning`
+ * forgives text and attributes on the element carrying it, never a differing
+ * number of children. Pinning it at six also gives every month identical cell
+ * heights, which a derived count did not.
+ */
+export const WEEKS_PER_GRID = 6;
+
 function getDayHeaders(startDay: WeekStartDay, locale: string) {
   const headers: string[] = [];
   const offset = weekStartsOnFor(startDay);
@@ -28,7 +41,7 @@ function getDayHeaders(startDay: WeekStartDay, locale: string) {
   return headers;
 }
 
-function getMonthGrid(year: number, month: number, startDay: WeekStartDay) {
+export function getMonthGrid(year: number, month: number, startDay: WeekStartDay) {
   const firstOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -46,12 +59,11 @@ function getMonthGrid(year: number, month: number, startDay: WeekStartDay) {
   for (let d = 1; d <= daysInMonth; d++) {
     cells.push({ day: d, current: true });
   }
-  const remainder = cells.length % 7;
-  if (remainder > 0) {
-    const fill = 7 - remainder;
-    for (let d = 1; d <= fill; d++) {
-      cells.push({ day: d, current: false });
-    }
+  // Pad with next-month days out to a constant 42 cells. Never more than 14
+  // are needed, and every month has at least 28 days, so the padding always
+  // falls inside the following month.
+  for (let d = 1; cells.length < WEEKS_PER_GRID * 7; d++) {
+    cells.push({ day: d, current: false });
   }
 
   return cells;
@@ -92,7 +104,7 @@ function MonthGrid({
   // Week numbers for each row
   const weeks: number[] = [];
   if (showWeekNumbers) {
-    for (let row = 0; row < cells.length / 7; row++) {
+    for (let row = 0; row < WEEKS_PER_GRID; row++) {
       const thursdayIdx = row * 7 + 3;
       const cell = cells[thursdayIdx];
       let cellMonth = month;
@@ -107,8 +119,6 @@ function MonthGrid({
       weeks.push(getISOWeek(new Date(cellYear, cellMonth, cell.day)));
     }
   }
-
-  const rows = cells.length / 7;
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -155,58 +165,81 @@ function MonthGrid({
       </div>
 
       {/* Day rows */}
-      {Array.from({ length: rows }, (_, row) => (
-        <div
-          key={row}
-          style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1px', flex: 1, minHeight: 0 }}
-        >
-          {showWeekNumbers && (
-            <div
-              className="flex items-center justify-center"
-              suppressHydrationWarning
-              style={{ fontSize: '0.45em', opacity: 0.2, fontVariantNumeric: 'tabular-nums' }}
-            >
-              {weeks[row]}
-            </div>
-          )}
-          {cells.slice(row * 7, row * 7 + 7).map((cell, col) => {
-            const isToday =
-              cell.current &&
-              year === today.year &&
-              month === today.month &&
-              cell.day === today.day;
+      {Array.from({ length: WEEKS_PER_GRID }, (_, row) => {
+        const rowCells = cells.slice(row * 7, row * 7 + 7);
+        // With adjacent days hidden, a trailing row of nothing but next-month
+        // days draws no ink, so collapse it to zero height instead of leaving
+        // blank space at the bottom of a short month. The row and its seven
+        // cells stay in the DOM — removing them would reintroduce the variable
+        // child count. The date-dependent `flex` is an attribute on this one
+        // element, which suppression does cover.
+        const collapsed = !showAdjacentDays && rowCells.every((c) => !c.current);
 
-            const isWeekend = startDay === 'sunday' ? (col === 0 || col === 6) : (col === 5 || col === 6);
-            const visible = cell.current || showAdjacentDays;
-
-            return (
+        return (
+          <div
+            key={row}
+            suppressHydrationWarning
+            style={{
+              display: 'grid',
+              gridTemplateColumns: gridCols,
+              gap: '1px',
+              flex: collapsed ? '0 0 0px' : 1,
+              minHeight: 0,
+              overflow: collapsed ? 'hidden' : undefined,
+            }}
+          >
+            {showWeekNumbers && (
               <div
-                key={col}
                 className="flex items-center justify-center"
-                style={{ minHeight: 0 }}
+                suppressHydrationWarning
+                style={{ fontSize: '0.45em', opacity: 0.2, fontVariantNumeric: 'tabular-nums' }}
               >
-                <div
-                  className="flex items-center justify-center"
-                  suppressHydrationWarning
-                  style={{
-                    fontSize: '0.65em',
-                    fontVariantNumeric: 'tabular-nums',
-                    opacity: !visible ? 0 : !cell.current ? 0.15 : highlightWeekends && isWeekend ? TEXT_OPACITY.dim : TEXT_OPACITY.heading,
-                    fontWeight: isToday ? 700 : 400,
-                    background: isToday ? 'rgba(59,130,246,0.85)' : 'transparent',
-                    color: isToday ? '#fff' : 'inherit',
-                    borderRadius: '50%',
-                    width: '1.75em',
-                    height: '1.75em',
-                  }}
-                >
-                  {visible ? cell.day : ''}
-                </div>
+                {weeks[row]}
               </div>
-            );
-          })}
-        </div>
-      ))}
+            )}
+            {rowCells.map((cell, col) => {
+              const isToday =
+                cell.current &&
+                year === today.year &&
+                month === today.month &&
+                cell.day === today.day;
+
+              const isWeekend = startDay === 'sunday' ? (col === 0 || col === 6) : (col === 5 || col === 6);
+              const visible = cell.current || showAdjacentDays;
+
+              return (
+                <div
+                  key={col}
+                  className="flex items-center justify-center"
+                  style={{ minHeight: 0 }}
+                >
+                  <div
+                    className="flex items-center justify-center"
+                    suppressHydrationWarning
+                    style={{
+                      fontSize: '0.65em',
+                      fontVariantNumeric: 'tabular-nums',
+                      opacity: !visible ? 0 : !cell.current ? 0.15 : highlightWeekends && isWeekend ? TEXT_OPACITY.dim : TEXT_OPACITY.heading,
+                      fontWeight: isToday ? 700 : 400,
+                      background: isToday ? 'rgba(59,130,246,0.85)' : 'transparent',
+                      color: isToday ? '#fff' : 'inherit',
+                      borderRadius: '50%',
+                      width: '1.75em',
+                      // Clamped to the row: the circle is decoration around a
+                      // 0.65em number, so letting its full 1.75em set the row's
+                      // minimum would drive the fit above to shrink the font long
+                      // before the digits were anywhere near colliding.
+                      height: 'min(1.75em, 100%)',
+                    }}
+                  >
+                    {visible ? cell.day : ''}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -236,40 +269,60 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
 
   const isHorizontal = view === 'horizontal';
 
+  // Every measurement in a month grid is an em, so the footprint of the whole
+  // module is monthCount x 6 rows of a font size that knows nothing about the
+  // box it has to fit. Six months side by side at the default font ran each
+  // grid's seven columns straight through its neighbour. Measure and scale down
+  // instead: horizontal runs out of width first, vertical out of height, and
+  // both are caught because the fit checks each axis.
+  const { boxRef, contentRef, fontSize } = useFitFontSize(
+    style.fontSize,
+    [view, monthCount, startDay, showWeekNumbers, today.year, today.month].join('|'),
+  );
+
   return (
     <ModuleWrapper style={style}>
-      <div
-        className="h-full"
-        style={{
-          display: 'flex',
-          flexDirection: isHorizontal ? 'row' : 'column',
-          gap: isHorizontal ? '1.2em' : '0.6em',
-        }}
-      >
-        {months.map(([y, m], idx) => (
-          <div
-            key={`${y}-${m}`}
-            className="flex min-h-0 min-w-0"
-            style={{
-              flex: 1,
-              borderLeft: isHorizontal && idx > 0 ? `1px solid ${DIVIDER.strong}` : undefined,
-              paddingLeft: isHorizontal && idx > 0 ? '1.2em' : undefined,
-              borderTop: !isHorizontal && idx > 0 ? `1px solid ${DIVIDER.default}` : undefined,
-              paddingTop: !isHorizontal && idx > 0 ? '0.6em' : undefined,
-            }}
-          >
-            <MonthGrid
-              year={y}
-              month={m}
-              today={today}
-              startDay={startDay}
-              showWeekNumbers={showWeekNumbers}
-              highlightWeekends={highlightWeekends}
-              showAdjacentDays={showAdjacentDays}
-              locale={locale}
-            />
-          </div>
-        ))}
+      <div ref={boxRef} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }}>
+        <div
+          ref={contentRef}
+          className="h-full"
+          style={{
+            display: 'flex',
+            flexDirection: isHorizontal ? 'row' : 'column',
+            gap: isHorizontal ? '1.2em' : '0.6em',
+          }}
+        >
+          {months.map(([y, m], idx) => (
+            <div
+              key={`${y}-${m}`}
+              // The constraint is dropped on the stacking axis on purpose: a
+              // month allowed to shrink below its own content silently swallows
+              // the overflow (columns run through the next month, rows run off
+              // the bottom) and the fit above measures only the last month's
+              // spill instead of the whole layout's. Held on the other axis,
+              // where the block still has to fit the box.
+              className={`flex ${isHorizontal ? 'min-h-0' : 'min-w-0'}`}
+              style={{
+                flex: 1,
+                borderLeft: isHorizontal && idx > 0 ? `1px solid ${DIVIDER.strong}` : undefined,
+                paddingLeft: isHorizontal && idx > 0 ? '1.2em' : undefined,
+                borderTop: !isHorizontal && idx > 0 ? `1px solid ${DIVIDER.default}` : undefined,
+                paddingTop: !isHorizontal && idx > 0 ? '0.6em' : undefined,
+              }}
+            >
+              <MonthGrid
+                year={y}
+                month={m}
+                today={today}
+                startDay={startDay}
+                showWeekNumbers={showWeekNumbers}
+                highlightWeekends={highlightWeekends}
+                showAdjacentDays={showAdjacentDays}
+                locale={locale}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </ModuleWrapper>
   );
