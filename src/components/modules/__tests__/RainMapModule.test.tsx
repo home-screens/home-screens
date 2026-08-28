@@ -20,6 +20,12 @@ vi.mock('@/hooks/useFetchData', () => ({
 // Radar tiles go through the module's tile store (fetch + object URLs), never
 // through <img src> to the CDN. Swap the shared store for a controllable one
 // whose network and clock are fake; the component code under test is real.
+// The fake responses are plain objects, NOT `new Response(...)`: in this jsdom
+// environment on Node 22 (CI's .node-version), globalThis.Response is jsdom's
+// while Blob is Node's, and consuming the cross-realm body throws
+// "object.stream is not a function" — every 200 tile would land in the
+// failure cooldown instead of loading. The store only reads `.ok` and awaits
+// `.blob()`, which is all these fakes implement.
 let tileResponder: (url: string) => boolean = () => true;
 let tileNow = 0;
 let tileBlobSeq = 0;
@@ -36,8 +42,8 @@ vi.mock('../rain-map-preload', async (importOriginal) => {
         const u = String(url);
         tileFetches.push(u);
         return tileResponder(u)
-          ? new Response(new Blob(['png']), { status: 200 })
-          : new Response(null, { status: 429 });
+          ? { ok: true, blob: async () => new Blob(['png']) }
+          : { ok: false };
       }) as unknown as typeof fetch,
       createObjectURL: () => `blob:mock-${++tileBlobSeq}`,
       revokeObjectURL: () => {},
