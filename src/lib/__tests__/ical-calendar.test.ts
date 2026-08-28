@@ -389,4 +389,191 @@ END:VCALENDAR`;
     expect(events).toHaveLength(1);
     expect(events[0].title).toBe('Besprechung');
   });
+  describe('feeds that name time zones by abbreviation', () => {
+    // The shape reported in issue #42: a feed that switched from IANA zone names to
+    // bare MDT/CST abbreviations. node-ical throws `Forbidden ICU TimeZone` on CST,
+    // which used to discard the whole calendar.
+    const ABBREVIATION_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//EN
+BEGIN:VTIMEZONE
+TZID:MDT
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:-0600
+TZOFFSETTO:-0600
+TZNAME:MDT
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:evt-mdt
+DTSTAMP:20250301T120000Z
+DTSTART;TZID=MDT:20250315T090000
+DTEND;TZID=MDT:20250315T100000
+SUMMARY:Mountain Event
+END:VEVENT
+BEGIN:VEVENT
+UID:evt-cst
+DTSTAMP:20250301T120000Z
+DTSTART;TZID=CST:20250316T090000
+DTEND;TZID=CST:20250316T100000
+SUMMARY:Central Event
+END:VEVENT
+END:VCALENDAR`;
+
+    it('loads the calendar instead of failing the whole feed', async () => {
+      mockFetchResponse(ABBREVIATION_ICS);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events).toHaveLength(2);
+    });
+
+    it('puts the events at the instant the abbreviation means', async () => {
+      mockFetchResponse(ABBREVIATION_ICS);
+
+      const { events } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      // MDT and CST are both UTC-6, so 09:00 local is 15:00 UTC.
+      expect(events[0].title).toBe('Mountain Event');
+      expect(events[0].start).toBe('2025-03-15T15:00:00.000Z');
+      expect(events[0].end).toBe('2025-03-15T16:00:00.000Z');
+      expect(events[1].title).toBe('Central Event');
+      expect(events[1].start).toBe('2025-03-16T15:00:00.000Z');
+    });
+
+    it('expands a recurring event in a half-hour zone', async () => {
+      mockFetchResponse(`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:evt-nst
+DTSTAMP:20250301T120000Z
+DTSTART;TZID=NST:20250303T080000
+DTEND;TZID=NST:20250303T090000
+RRULE:FREQ=WEEKLY;COUNT=3
+SUMMARY:Newfoundland Standup
+END:VEVENT
+END:VCALENDAR`);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events.map((e) => e.start)).toEqual([
+        '2025-03-03T11:30:00.000Z',
+        '2025-03-10T11:30:00.000Z',
+        '2025-03-17T11:30:00.000Z',
+      ]);
+    });
+
+    it('still loads a calendar whose zone cannot be resolved', async () => {
+      mockFetchResponse(`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:evt-bst
+DTSTAMP:20250301T120000Z
+DTSTART;TZID=BST:20250315T090000
+DTEND;TZID=BST:20250315T100000
+SUMMARY:Ambiguous Zone
+END:VEVENT
+END:VCALENDAR`);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events).toHaveLength(1);
+      expect(events[0].title).toBe('Ambiguous Zone');
+    });
+  });
+  describe('feeds whose VTIMEZONE declares daylight saving under an abbreviation', () => {
+    // A feed that labels the zone "CST" but supplies real DST rules. Resolving that to
+    // a fixed -06:00 would put every daylight-season event an hour late.
+    const DST_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VTIMEZONE
+TZID:CST
+BEGIN:STANDARD
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0600
+END:STANDARD
+BEGIN:DAYLIGHT
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+TZOFFSETFROM:-0600
+TZOFFSETTO:-0500
+END:DAYLIGHT
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:winter
+DTSTAMP:20260101T120000Z
+DTSTART;TZID=CST:20260115T090000
+DTEND;TZID=CST:20260115T100000
+SUMMARY:Winter
+END:VEVENT
+BEGIN:VEVENT
+UID:summer
+DTSTAMP:20260101T120000Z
+DTSTART;TZID=CST:20260715T090000
+DTEND;TZID=CST:20260715T100000
+SUMMARY:Summer
+END:VEVENT
+END:VCALENDAR`;
+
+    it('places events on both sides of the transition correctly', async () => {
+      mockFetchResponse(DST_ICS);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2026-01-01T00:00:00Z',
+        '2026-12-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events).toHaveLength(2);
+      // 09:00 standard time is 15:00Z; 09:00 daylight time is 14:00Z.
+      expect(events[0].title).toBe('Winter');
+      expect(events[0].start).toBe('2026-01-15T15:00:00.000Z');
+      expect(events[1].title).toBe('Summer');
+      expect(events[1].start).toBe('2026-07-15T14:00:00.000Z');
+    });
+
+    it('shifts a weekly recurrence as it crosses the spring transition', async () => {
+      mockFetchResponse(DST_ICS.replace(
+        'UID:winter',
+        'UID:weekly\r\nRRULE:FREQ=WEEKLY;COUNT=3',
+      ).replace('DTSTART;TZID=CST:20260115T090000', 'DTSTART;TZID=CST:20260226T090000')
+        .replace('DTEND;TZID=CST:20260115T100000', 'DTEND;TZID=CST:20260226T100000'));
+
+      const { events } = await fetchICalEvents(
+        [makeSource()],
+        '2026-02-01T00:00:00Z',
+        '2026-04-01T00:00:00Z',
+      );
+
+      // US daylight time starts 2026-03-08, so the third occurrence moves an hour.
+      expect(events.map((e) => e.start)).toEqual([
+        '2026-02-26T15:00:00.000Z',
+        '2026-03-05T15:00:00.000Z',
+        '2026-03-12T14:00:00.000Z',
+      ]);
+    });
+  });
 });

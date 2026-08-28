@@ -5,6 +5,7 @@ import type { CalendarEvent } from '@/types/config';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
+import { normalizeIcsTimezones } from '@/lib/ics-timezones';
 import { logger } from '@/lib/logger';
 
 const log = logger('ical');
@@ -34,8 +35,10 @@ export interface EventSourceMeta {
 /**
  * Parse one ICS document into CalendarEvents within [from, to).
  * Handles recurring events (expanded locally with overrides/exdates)
- * and all-day events. Throws on malformed ICS — callers decide how a
- * bad document degrades (skip the feed, skip the object, …).
+ * and all-day events. Feeds that name timezones by abbreviation instead of
+ * IANA zone are repaired first (see `normalizeIcsTimezones`). Throws on
+ * malformed ICS — callers decide how a bad document degrades (skip the feed,
+ * skip the object, …).
  */
 export function parseICSEvents(
   icsText: string,
@@ -43,7 +46,12 @@ export function parseICSEvents(
   from: Date,
   to: Date,
 ): CalendarEvent[] {
-  const components = ical.sync.parseICS(icsText);
+  const { text, replacements } = normalizeIcsTimezones(icsText);
+  if (replacements.size) {
+    const summary = [...replacements].map(([tzid, zone]) => `${tzid} -> ${zone ?? 'local time'}`).join(', ');
+    log.info(`Repaired non-standard time zones in "${source.name}" (${source.id}): ${summary}`);
+  }
+  const components = ical.sync.parseICS(text);
   const events: CalendarEvent[] = [];
 
   for (const component of Object.values(components)) {
