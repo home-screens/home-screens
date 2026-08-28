@@ -17,7 +17,10 @@ import VideoLayer from './shared/VideoLayer';
 function SlideLayer({ src, active, objectFit, isFade }: {
   src: string; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
 }) {
-  const authSrc = useAuthImage(src);
+  // A slide layer goes active the moment its src changes, so it must never
+  // render the previous slide's blob while the new one loads — it stays
+  // hidden until its own image is ready.
+  const authSrc = useAuthImage(src, { holdPrevious: false });
   return (
     <img
       src={authSrc || undefined}

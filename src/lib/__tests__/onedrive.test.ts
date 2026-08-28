@@ -26,9 +26,9 @@ vi.stubGlobal('fetch', mockFetch);
 import {
   startDeviceFlow, pollDeviceFlow, cancelDeviceFlow,
   listFolders, listPhotos, fetchThumbnail,
-  onedriveDisconnect,
-  ONEDRIVE_MAX_SAMPLE,
+  onedriveDisconnect, onedrivePhotoListCache, onedrivePhotoBytesCache,
 } from '@/lib/onedrive';
+import { ONEDRIVE_MAX_SAMPLE } from '@/lib/onedrive-shared';
 
 const DEVICE_URL = 'https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode';
 const GRAPH = 'https://graph.microsoft.com/v1.0';
@@ -127,6 +127,18 @@ describe('device flow', () => {
 
     expect((await pollDeviceFlow()).state).toBe('idle');
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('empties the photo caches on disconnect', async () => {
+    // The byte cache holds photos for a day; without this, "Disconnect
+    // OneDrive" would leave them rotating on the wall until it expired.
+    onedrivePhotoListCache.set('folder-50', [{ url: '/api/onedrive/serve?itemId=a', type: 'image' }]);
+    onedrivePhotoBytesCache.set('a-preview', { data: new ArrayBuffer(8), contentType: 'image/jpeg' });
+
+    await onedriveDisconnect();
+
+    expect(onedrivePhotoListCache.get('folder-50')).toBeNull();
+    expect(onedrivePhotoBytesCache.get('a-preview')).toBeNull();
   });
 });
 
@@ -289,6 +301,49 @@ describe('fetchThumbnail', () => {
 
     await fetchThumbnail('img-1', 'thumbnail');
     expect(mockFetch.mock.calls[1][0]).toBe(`${GRAPH}/me/drive/items/img-1/thumbnails/0/medium/content`);
+  });
+
+  it('falls back to the original bytes when Graph has no thumbnail for the item', async () => {
+    // Items Graph has not generated a thumbnail for still carry an image
+    // facet, so they reach the slideshow — without the fallback they would
+    // sit blank for a whole slide interval.
+    seedConnected();
+    mockFetch.mockImplementation(async (url: string) => (
+      url.includes('/thumbnails/')
+        ? new Response(null, { status: 404 })
+        : new Response(new Uint8Array([9, 9]), { status: 200, headers: { 'Content-Type': 'image/heic' } })
+    ));
+
+    const result = await fetchThumbnail('img-2', 'preview');
+
+    expect(mockFetch.mock.calls[1][0]).toBe(`${GRAPH}/me/drive/items/img-2/content`);
+    expect(result.contentType).toBe('image/heic');
+    expect(result.data.byteLength).toBe(2);
+  });
+
+  it('refuses an original too large to buffer on a Pi', async () => {
+    seedConnected();
+    mockFetch.mockImplementation(async (url: string) => (
+      url.includes('/thumbnails/')
+        ? new Response(null, { status: 404 })
+        : new Response(new Uint8Array([1]), {
+            status: 200,
+            headers: { 'Content-Type': 'image/tiff', 'Content-Length': String(64 * 1024 * 1024) },
+          })
+    ));
+
+    await expect(fetchThumbnail('img-3', 'preview')).rejects.toThrow('Could not load the photo');
+  });
+
+  it('does not fall back when the thumbnail call fails for any other reason', async () => {
+    // Only a 404 means "no thumbnail exists". A 5xx is an outage, and
+    // fetchWithTimeout already retried it — pulling the original there would
+    // just move a transient failure onto the heavier endpoint.
+    seedConnected();
+    mockFetch.mockImplementation(async () => new Response(null, { status: 500 }));
+
+    await expect(fetchThumbnail('img-4', 'preview')).rejects.toThrow('Could not load the photo');
+    expect(mockFetch.mock.calls.every(([url]) => String(url).includes('/thumbnails/'))).toBe(true);
   });
 });
 

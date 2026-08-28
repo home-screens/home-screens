@@ -919,7 +919,7 @@ When using Immich as the source, the editor shows a connection status indicator,
 
 When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed — the display loads photos straight from Apple's servers. The album must have a public website link enabled.
 
-When using OneDrive as the source, the module signs in to your Microsoft account once with a short code and you pick a folder, and its photos — subfolders included — feed the slideshow — the walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
+When using OneDrive as the source, the module signs in to your Microsoft account once with a short code, and then you pick a folder. That folder's photos feed the slideshow, subfolders included. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 **Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; local videos are any MP4/WebM/MOV files in the same backgrounds folder.
 

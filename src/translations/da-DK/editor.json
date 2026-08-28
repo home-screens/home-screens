@@ -3427,7 +3427,7 @@
       "upOneFolder": "En mappe op",
       "emptyFolder": "Ingen undermapper her",
       "useThisFolder": "Brug denne mappe",
-      "capNote": "Hvis mappestrukturen indeholder mere end 1000 billeder, bruger diasshowet et tilfældigt udvalg på 1000.",
+      "capNote": "Hvis mappestrukturen indeholder mere end {cap} billeder, bruger diasshowet et tilfældigt udvalg på {cap}.",
       "loadFailed": "Kunne ikke indlæse dine OneDrive-mapper.",
       "folderNotFound": "Mappen blev ikke fundet. Vælg en anden mappe.",
       "photosPerRefresh": "Billeder pr. opdatering",

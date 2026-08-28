@@ -3427,7 +3427,7 @@
       "upOneFolder": "Up a folder",
       "emptyFolder": "No subfolders in this folder",
       "useThisFolder": "Use this folder",
-      "capNote": "If the folder tree has more than 1,000 photos, slides use a random sample of 1,000.",
+      "capNote": "If the folder tree has more than {cap} photos, slides use a random sample of {cap}.",
       "loadFailed": "Could not load your OneDrive folders.",
       "folderNotFound": "Folder not found. Choose a different folder.",
       "photosPerRefresh": "Photos per refresh",

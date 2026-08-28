@@ -3,6 +3,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { displayFetch } from '@/lib/display-fetch';
 
+export interface AuthImageOptions {
+  /**
+   * What to show while a changed `src` is still loading.
+   *
+   * `true` (default) keeps the previously loaded image on screen until the
+   * new one is ready — right for a lone <img> whose caller unmounts or blanks
+   * it when this returns nothing, like the screen background, which would
+   * otherwise flash black on every rotation.
+   *
+   * `false` returns undefined instead, so the URL only ever renders while it
+   * belongs to the CURRENT src. Right for a crossfade slide layer, which
+   * becomes active the moment its src changes and stays mounted-but-hidden
+   * while the blob loads: serving the previous blob there made every rotation
+   * briefly flash the photo from two advances back.
+   */
+  holdPrevious?: boolean;
+}
+
 /**
  * Fetches an image URL through displayFetch (which injects the display Bearer
  * token) and returns a blob URL that <img> tags can render without auth.
@@ -10,11 +28,8 @@ import { displayFetch } from '@/lib/display-fetch';
  * For non-API paths (e.g. /backgrounds/foo.jpg from public/) the original URL
  * is returned directly since those don't require authentication.
  */
-export function useAuthImage(src: string | undefined): string | undefined {
-  // The URL only renders while it belongs to the CURRENT src: a src change
-  // keeps the old URL in state until the new blob resolves, and serving it
-  // in between made an active slide layer briefly flash its PREVIOUS image
-  // on every rotation.
+export function useAuthImage(src: string | undefined, options?: AuthImageOptions): string | undefined {
+  const holdPrevious = options?.holdPrevious ?? true;
   const [loaded, setLoaded] = useState<{ forSrc: string; url: string } | null>(null);
   const prevBlobRef = useRef<string | null>(null);
 
@@ -73,5 +88,6 @@ export function useAuthImage(src: string | undefined): string | undefined {
 
   if (!src) return undefined;
   if (!src.startsWith('/api/')) return src;
-  return loaded?.forSrc === src ? loaded.url : undefined;
+  if (loaded?.forSrc === src) return loaded.url;
+  return holdPrevious ? loaded?.url : undefined;
 }

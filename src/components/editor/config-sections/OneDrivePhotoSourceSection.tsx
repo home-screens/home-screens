@@ -7,10 +7,12 @@ import LabeledField from '@/components/ui/LabeledField';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { Folder, FolderUp } from 'lucide-react';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { formatNumber } from '@/i18n/formatters';
+import { ONEDRIVE_MAX_SAMPLE } from '@/lib/onedrive-shared';
 
-/** Mirrors ONEDRIVE_MAX_SAMPLE in src/lib/onedrive.ts (kept local — that module is server-only). */
-const LARGE_FOLDER_SAMPLE = 1000;
+/** How many photos the preview strip shows. */
+const PREVIEW_COUNT = 4;
 
 interface Props {
   config: Record<string, unknown>;
@@ -56,6 +58,7 @@ interface TrailEntry {
  */
 export function OneDrivePhotoSourceSection({ config, set }: Props) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
   const [status, setStatus] = useState<OneDriveStatus | null>(null);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -164,13 +167,18 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
     return () => { cancelled = true; };
   }, [browsing, status?.connected, current.id, reloadBump]);
 
-  // Preview strip — a 4-photo sample, swapped to thumbnail-sized serves.
+  // Preview strip — a small sample, swapped to thumbnail-sized serves.
+  // Ask for the module's own count rather than PREVIEW_COUNT and slice here:
+  // listing walks the whole folder tree regardless of count, so a preview-only
+  // count would pay for a full Graph crawl on a cache key nothing else hits.
+  // Sharing the display's key makes the preview warm the cache instead.
   const previewUrl = browsing || !folderId || !status?.connected
     ? null
-    : `/api/onedrive/photos?folderId=${encodeURIComponent(folderId)}&count=4`;
+    : `/api/onedrive/photos?folderId=${encodeURIComponent(folderId)}&count=${count}`;
   const { data: previewData } = useEditorData<MediaItem[]>(previewUrl);
   const previewThumbs = (previewData ?? [])
     .filter((item) => item.type === 'image')
+    .slice(0, PREVIEW_COUNT)
     .map((item) => item.url.replace('size=preview', 'size=thumbnail'));
 
   const signIn = async () => {
@@ -306,9 +314,11 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
               {/* childCount covers direct children only — a folder of
                   subfolders can hold a far bigger tree, so flag both. */}
               {(foldersData.subfolders.length > 0
-                || (foldersData.folder.childCount ?? 0) > LARGE_FOLDER_SAMPLE) && (
+                || (foldersData.folder.childCount ?? 0) > ONEDRIVE_MAX_SAMPLE) && (
                 <p className="text-[10px] text-hs-text-faint leading-relaxed">
-                  {t('configSections.onedriveSource.capNote')}
+                  {t('configSections.onedriveSource.capNote', {
+                    cap: formatNumber(ONEDRIVE_MAX_SAMPLE, { locale: formattingLocale }),
+                  })}
                 </p>
               )}
               <Button

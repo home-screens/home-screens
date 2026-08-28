@@ -3432,7 +3432,7 @@
       "upOneFolder": "Dossier parent",
       "emptyFolder": "Aucun sous-dossier ici",
       "useThisFolder": "Utiliser ce dossier",
-      "capNote": "Si l'arborescence du dossier contient plus de 1 000 photos, le diaporama utilise un échantillon aléatoire de 1 000 photos.",
+      "capNote": "Si l'arborescence du dossier contient plus de {cap} photos, le diaporama utilise un échantillon aléatoire de {cap} photos.",
       "loadFailed": "Impossible de charger vos dossiers OneDrive.",
       "folderNotFound": "Dossier introuvable. Choisissez un autre dossier.",
       "photosPerRefresh": "Photos par actualisation",

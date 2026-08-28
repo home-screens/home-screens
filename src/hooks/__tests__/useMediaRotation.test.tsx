@@ -146,3 +146,65 @@ describe('useMediaRotation batch holding', () => {
     expect(result.current[1]).toBe(0);
   });
 });
+
+describe('useMediaRotation shuffle toggle', () => {
+  it('restores sequential order when shuffle is turned off', () => {
+    // advance()'s reshuffle-on-wrap only fires while shuffle is on, so
+    // without an explicit rebuild the batch would walk its shuffled order
+    // forever after the toggle went off.
+    const items = Array.from({ length: 6 }, (_, i) => photo(i));
+    const { result, rerender } = renderHook(
+      ({ shuffle }) => useMediaRotation(items, 5000, shuffle, true, '/api/photos'),
+      { initialProps: { shuffle: true } },
+    );
+
+    act(() => vi.advanceTimersByTime(5001));
+    rerender({ shuffle: false });
+
+    // The rebuild happens in place, so the pass carries on from where it was
+    // (pos 1) rather than jumping the slideshow back to its first photo.
+    const seen: number[] = [];
+    for (let i = 0; i < items.length; i++) {
+      seen.push(result.current[1]);
+      act(() => vi.advanceTimersByTime(5001));
+    }
+    expect(seen).toEqual([1, 2, 3, 4, 5, 0]);
+  });
+
+  it('reshuffles immediately when shuffle is turned on', () => {
+    const items = Array.from({ length: 12 }, (_, i) => photo(i));
+    const { result, rerender } = renderHook(
+      ({ shuffle }) => useMediaRotation(items, 5000, shuffle, true, '/api/photos'),
+      { initialProps: { shuffle: false } },
+    );
+
+    act(() => vi.advanceTimersByTime(5001)); // → index 1, sequential
+    rerender({ shuffle: true });
+
+    // Walk out the rest of the pass (pos 1..11) without wrapping, so this
+    // reads the order the toggle built rather than advance()'s wrap reshuffle.
+    const seen: number[] = [];
+    for (let i = 1; i < items.length; i++) {
+      seen.push(result.current[1]);
+      act(() => vi.advanceTimersByTime(5001));
+    }
+    expect(new Set(seen).size).toBe(seen.length); // no repeats
+    expect(seen).not.toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]); // not still sequential
+  });
+
+  it('a shuffle toggle does not pull a held refresh in early', () => {
+    const batchA = [photo(0), photo(1), photo(2), photo(3)];
+    const batchB = [photo(10), photo(11), photo(12), photo(13)];
+    const { result, rerender } = renderHook(
+      ({ items, shuffle }) => useMediaRotation(items, 5000, shuffle, true, '/api/photos'),
+      { initialProps: { items: batchA, shuffle: false } },
+    );
+
+    act(() => vi.advanceTimersByTime(5001)); // → index 1
+    rerender({ items: batchB, shuffle: false }); // same-key refresh: held
+    expect(result.current[0]).toBe(batchA);
+
+    rerender({ items: batchB, shuffle: true });
+    expect(result.current[0]).toBe(batchA);
+  });
+});

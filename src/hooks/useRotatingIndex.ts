@@ -38,6 +38,8 @@ export function useRotatingIndex(itemCount: number, intervalMs: number): number 
  * never swaps slides mid-pass or revisits photos early. A changed key (new
  * folder/album/source), a different length, or a one-item batch adopts
  * immediately. Callers that pass no key get length-based adoption instead.
+ * Flipping `shuffle` rebuilds the visit order over the batch already playing,
+ * in place — the current slide stays up and a held refresh still waits.
  */
 export function useMediaRotation<T extends { type: 'image' | 'video' }>(
   items: T[],
@@ -48,17 +50,22 @@ export function useMediaRotation<T extends { type: 'image' | 'video' }>(
 ): [T[], number, () => void] {
   const pendingRef = useRef(items);
   const keyRef = useRef<string | undefined>(batchKey);
+  const shuffleRef = useRef(shuffle);
   const builtRef = useRef(false);
   const [active, setActive] = useState<T[]>(items);
   const [order, setOrder] = useState<number[]>([]);
   const [pos, setPos] = useState(0);
 
+  const buildOrder = useCallback((length: number) => {
+    const arr = Array.from({ length }, (_, i) => i);
+    return length > 0 && shuffle ? shuffleArray(arr) : arr;
+  }, [shuffle]);
+
   const adopt = useCallback((batch: T[]) => {
     setActive(batch);
-    const arr = Array.from({ length: batch.length }, (_, i) => i);
-    setOrder(batch.length > 0 && shuffle ? shuffleArray(arr) : arr);
+    setOrder(buildOrder(batch.length));
     setPos(0);
-  }, [shuffle]);
+  }, [buildOrder]);
 
   // Adopt the incoming batch now, or hold it until the pass wraps. Keyed
   // callers hold same-source refreshes until the pass wraps; without a key
@@ -71,11 +78,22 @@ export function useMediaRotation<T extends { type: 'image' | 'video' }>(
       : keyRef.current !== batchKey || active.length <= 1 || active.length !== items.length;
     if (items.length === 0 || !builtRef.current || changed) {
       keyRef.current = batchKey;
+      shuffleRef.current = shuffle;
       builtRef.current = true;
       adopt(items);
+    } else if (shuffleRef.current !== shuffle) {
+      // Toggling shuffle has to rebuild the order right now: the reshuffle in
+      // advance() only fires while shuffle is on, so turning it off would
+      // otherwise leave the batch walking its shuffled order forever. Rebuild
+      // over the batch already playing, not `items`, so a held refresh still
+      // waits for the wrap — and keep `pos`, both because a checkbox should
+      // not jump the slideshow back to its first photo and because a rebuild
+      // landing on pos 0 would read as a wrap and adopt that held refresh.
+      shuffleRef.current = shuffle;
+      setOrder(buildOrder(active.length));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- active.length is only needed when items change
-  }, [items, batchKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `active` is read only when items/shuffle change, and must not re-run this
+  }, [items, batchKey, shuffle, buildOrder]);
 
   // A held refresh takes over when the pass wraps back to the start.
   useEffect(() => {

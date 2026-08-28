@@ -34,13 +34,13 @@ afterEach(() => {
 });
 
 describe('useAuthImage', () => {
-  it('returns undefined while a changed src is still loading, never the stale blob', async () => {
+  it('holdPrevious false returns undefined while a changed src loads, never the stale blob', async () => {
     // Regression: the incoming slide layer becomes active the moment its src
     // changes — serving the PREVIOUS src's blob during the fetch made every
     // rotation briefly flash the photo from two advances back.
     const resolveA = deferredResponse();
     const { result, rerender } = renderHook(
-      ({ src }) => useAuthImage(src),
+      ({ src }) => useAuthImage(src, { holdPrevious: false }),
       { initialProps: { src: '/api/onedrive/serve?itemId=a' } },
     );
 
@@ -51,6 +51,27 @@ describe('useAuthImage', () => {
     const resolveB = deferredResponse();
     rerender({ src: '/api/onedrive/serve?itemId=b' });
     expect(result.current).toBeUndefined();
+
+    await act(async () => { resolveB(); });
+    expect(result.current).toBe('blob:mock-2');
+  });
+
+  it('holds the previous image by default while a changed src loads', async () => {
+    // The screen background is a lone <img> its caller unmounts when this
+    // returns nothing — dropping to undefined mid-swap flashed the screen
+    // black on every background rotation.
+    const resolveA = deferredResponse();
+    const { result, rerender } = renderHook(
+      ({ src }) => useAuthImage(src),
+      { initialProps: { src: '/api/backgrounds/serve?file=a.jpg' } },
+    );
+
+    await act(async () => { resolveA(); });
+    expect(result.current).toBe('blob:mock-1');
+
+    const resolveB = deferredResponse();
+    rerender({ src: '/api/backgrounds/serve?file=b.jpg' });
+    expect(result.current).toBe('blob:mock-1');
 
     await act(async () => { resolveB(); });
     expect(result.current).toBe('blob:mock-2');

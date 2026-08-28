@@ -44,7 +44,9 @@ function SlideLayer({
   kenBurns: boolean;
   layerIndex: number;
 }) {
-  const authSrc = useAuthImage(src);
+  // Never render the previous slide's blob on an already-active layer —
+  // the layer stays hidden until its own image is ready.
+  const authSrc = useAuthImage(src, { holdPrevious: false });
 
   const transitionStyle = useMemo((): React.CSSProperties => {
     const base: React.CSSProperties = {

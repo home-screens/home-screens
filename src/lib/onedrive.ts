@@ -1,8 +1,10 @@
 import { getSecret } from './secrets';
-import { fetchWithTimeout, type FetchRetryOptions } from './api-utils';
+import { fetchWithTimeout, createTTLCache, type FetchRetryOptions } from './api-utils';
 import { shuffleArray } from './shuffle';
 import { createOAuthTokenStore } from './oauth-token-store';
+import { ONEDRIVE_MAX_SAMPLE } from './onedrive-shared';
 import { logger } from './logger';
+import type { MediaListItem } from '@/types/config';
 
 /**
  * Microsoft Graph client for the OneDrive photo source.
@@ -28,10 +30,10 @@ const GRAPH = 'https://graph.microsoft.com/v1.0';
 /** Minimal read-only scopes: drive items, a refresh token, and /me for the status line. */
 const ONEDRIVE_SCOPES = 'Files.Read offline_access User.Read';
 
-/** Hub-side shuffle happens over at most this many photos (~5 Graph pages). */
-export const ONEDRIVE_MAX_SAMPLE = 1000;
 const PAGE_SIZE = 200;
-/** Bounds folders full of non-image files; stopping early only narrows the already-approximate sample. */
+/** Bounds folders full of non-image files; stopping early only narrows the
+ *  already-approximate sample. Both list calls pin $top to PAGE_SIZE, so this
+ *  is a real ceiling: 25 x 200 items scanned to fill a 1,000-photo sample. */
 const MAX_LIST_PAGES = 25;
 
 export class OneDriveError extends Error {
@@ -64,6 +66,25 @@ export const onedriveVerifyConnected = tokenStore.verifyConnected;
 export async function onedriveDisconnect(): Promise<void> {
   cancelDeviceFlow();
   await tokenStore.disconnect();
+  // Dropping the grant has to drop what the grant already fetched: the byte
+  // cache below holds photos for 24h, so without this "Disconnect OneDrive"
+  // would leave them on the wall for another day.
+  clearOneDriveCaches();
+}
+
+// ── Route caches ──────────────────────────────────────────────────────
+
+/**
+ * Both photo caches live here rather than in their route modules so that
+ * `onedriveDisconnect` can empty them. Sizing matches the Immich equivalents:
+ * five minutes for a photo list, a day for the decoded bytes.
+ */
+export const onedrivePhotoListCache = createTTLCache<MediaListItem[]>(5 * 60_000);
+export const onedrivePhotoBytesCache = createTTLCache<{ data: ArrayBuffer; contentType: string }>(24 * 60 * 60 * 1000);
+
+export function clearOneDriveCaches(): void {
+  onedrivePhotoListCache.clear();
+  onedrivePhotoBytesCache.clear();
 }
 
 // ── Device-code sign-in ───────────────────────────────────────────────
@@ -291,7 +312,7 @@ export async function listPhotos(folderId: string, count: number): Promise<OneDr
   const images: OneDrivePhoto[] = [];
   let pages = 0;
   let url: string | null =
-    `/me/drive/items/${encodeURIComponent(folderId)}/delta?$select=id,name,image,folder,deleted`;
+    `/me/drive/items/${encodeURIComponent(folderId)}/delta?$select=id,name,image,folder,deleted&$top=${PAGE_SIZE}`;
 
   while (url && images.length < ONEDRIVE_MAX_SAMPLE && pages < MAX_LIST_PAGES) {
     pages += 1;
@@ -318,11 +339,20 @@ export async function listPhotos(folderId: string, count: number): Promise<OneDr
 
 // ── Thumbnails + account ──────────────────────────────────────────────
 
+/** Largest original we are willing to buffer when no thumbnail exists. */
+const MAX_ORIGINAL_BYTES = 20 * 1024 * 1024;
+
 /**
  * A single photo's bytes. Never hand the display a Graph download URL —
  * they expire after about an hour; the hub proxies and caches instead.
  * Slides use the ~1920px `large` thumbnail, the editor strip `medium` —
  * original camera files are needlessly heavy for a Pi.
+ *
+ * Graph 404s the thumbnail path for items it has not generated one for
+ * (freshly uploaded, or a format it cannot render). Those items still carry
+ * an image facet, so they reach the slideshow and would otherwise sit blank
+ * for a whole slide interval; fall back to the original bytes, bounded so a
+ * 60MB raw file can't be pulled onto a Pi.
  */
 export async function fetchThumbnail(
   itemId: string,
@@ -333,8 +363,29 @@ export async function fetchThumbnail(
     `/me/drive/items/${encodeURIComponent(itemId)}/thumbnails/0/${graphSize}/content`,
     { timeout: 20_000 },
   );
+  if (res.ok) {
+    return { data: await res.arrayBuffer(), contentType: res.headers.get('Content-Type') || 'image/jpeg' };
+  }
+  if (res.status === 401) throw new OneDriveError('Could not load the photo', 401);
+  if (res.status !== 404) throw new OneDriveError('Could not load the photo', 502);
+  return fetchOriginal(itemId);
+}
+
+async function fetchOriginal(itemId: string): Promise<{ data: ArrayBuffer; contentType: string }> {
+  const res = await onedriveFetch(`/me/drive/items/${encodeURIComponent(itemId)}/content`, { timeout: 30_000 });
   if (!res.ok) throw new OneDriveError('Could not load the photo', res.status === 401 ? 401 : 502);
-  return { data: await res.arrayBuffer(), contentType: res.headers.get('Content-Type') || 'image/jpeg' };
+  const declared = Number(res.headers.get('Content-Length'));
+  if (declared > MAX_ORIGINAL_BYTES) {
+    log.error('Photo has no thumbnail and its original is too large to proxy:', itemId);
+    throw new OneDriveError('Could not load the photo', 502);
+  }
+  const data = await res.arrayBuffer();
+  // Content-Length is advisory; re-check what actually arrived before caching it.
+  if (data.byteLength > MAX_ORIGINAL_BYTES) {
+    log.error('Photo has no thumbnail and its original is too large to proxy:', itemId);
+    throw new OneDriveError('Could not load the photo', 502);
+  }
+  return { data, contentType: res.headers.get('Content-Type') || 'image/jpeg' };
 }
 
 /** Whose account is connected, for the status line. Best-effort. */

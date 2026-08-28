@@ -3432,7 +3432,7 @@
       "upOneFolder": "Subir una carpeta",
       "emptyFolder": "No hay subcarpetas aquí",
       "useThisFolder": "Usar esta carpeta",
-      "capNote": "Si el árbol de carpetas tiene más de 1000 fotos, la presentación usa una muestra aleatoria de 1000.",
+      "capNote": "Si el árbol de carpetas tiene más de {cap} fotos, la presentación usa una muestra aleatoria de {cap}.",
       "loadFailed": "No se pudieron cargar tus carpetas de OneDrive.",
       "folderNotFound": "Carpeta no encontrada. Elige otra carpeta.",
       "photosPerRefresh": "Fotos por actualización",

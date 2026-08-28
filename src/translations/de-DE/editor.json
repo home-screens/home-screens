@@ -3427,7 +3427,7 @@
       "upOneFolder": "Ein Ordner nach oben",
       "emptyFolder": "Keine Unterordner in diesem Ordner",
       "useThisFolder": "Diesen Ordner verwenden",
-      "capNote": "Wenn der Ordnerbaum mehr als 1.000 Fotos enthält, nutzt die Diashow eine Zufallsauswahl von 1.000.",
+      "capNote": "Wenn der Ordnerbaum mehr als {cap} Fotos enthält, nutzt die Diashow eine Zufallsauswahl von {cap}.",
       "loadFailed": "OneDrive-Ordner konnten nicht geladen werden.",
       "folderNotFound": "Ordner nicht gefunden. Wähle einen anderen Ordner.",
       "photosPerRefresh": "Fotos pro Aktualisierung",
