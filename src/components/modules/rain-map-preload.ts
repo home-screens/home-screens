@@ -1,51 +1,231 @@
 /**
- * Bounded preload cache for radar tile images.
+ * Rate-bounded radar tile store.
  *
- * Tracks which tile URLs have already loaded so animation cycles skip
- * re-fetching them. Two rules keep a weeks-long kiosk mount healthy:
- * - Failed tiles are NOT recorded, so a transient tile error is retried on
- *   the next preload pass instead of staying blank for the life of the mount.
- * - `prune` drops every cached URL outside the current animation window, so
- *   the cache is bounded by one window's tile count (radar frame paths are
- *   timestamped and would otherwise accumulate forever).
+ * All radar tile network flows through this store — the rendered <img> tags
+ * only ever point at cached object URLs. Three rules keep a weeks-long kiosk
+ * mount inside RainViewer's limits (500 requests/min per IP with a 300/min
+ * burst; one animation window is 13+ frames x 25 tiles = 325+ requests, more
+ * than both):
+ * - A single issuance queue spaces dispatches >= spacingMs apart, so the
+ *   request rate is bounded no matter how fast the animation cycles or how
+ *   many frames it sweeps.
+ * - A failed tile enters a cooldown and is not re-requested until it lapses.
+ *   Retrying 429s at animation tempo just feeds the rate limiter (rejected
+ *   requests still consume the window), and 429 responses are never cacheable,
+ *   so every animation-tempo retry is real network — the storm that got this
+ *   module rate-limited in the first place.
+ * - Successes are cached as object URLs, so cycling frames and remounting
+ *   screens (rotation) render for free; `prune` revokes URLs outside the
+ *   current window so the store stays bounded (frame paths are timestamped
+ *   and would otherwise accumulate forever).
  *
- * The image factory is injectable so the cache behavior is unit-testable
- * without a DOM.
+ * Everything with a side effect is injectable so the store is unit-testable
+ * without a DOM or network.
  */
-export type PreloadImage = Pick<HTMLImageElement, 'onload' | 'onerror' | 'src'>;
 
-export interface TilePreloader {
-  /** Preload any URLs not already cached; resolves when every request settles. */
-  preload(urls: string[]): Promise<void>;
-  /** Drop cached URLs that are not in the given set. */
+export interface TileStore {
+  /** Subscribe to tile loads/prunes; returns an unsubscribe function. */
+  subscribe(listener: () => void): () => void;
+  /** Monotonic change counter for useSyncExternalStore snapshots. */
+  getVersion(): number;
+  /** Object URL for a loaded tile, or null. Never triggers network. */
+  get(url: string): string | null;
+  /**
+   * Queue any of these URLs that are missing; resolves when every URL has
+   * settled (loaded, failed, or already covered by an active cooldown).
+   * Never rejects.
+   */
+  ensure(urls: string[]): Promise<void>;
+  /** Revoke + drop entries outside `validUrls` so the store stays bounded. */
   prune(validUrls: ReadonlySet<string>): void;
 }
 
-export function createTilePreloader(
-  createImage: () => PreloadImage = () => new Image(),
-): TilePreloader {
-  const loaded = new Set<string>();
-  return {
-    preload(urls) {
-      return Promise.all(
-        urls.map((url) => {
-          if (!url || loaded.has(url)) return Promise.resolve();
-          return new Promise<void>((resolve) => {
-            const img = createImage();
-            img.onload = () => {
-              loaded.add(url);
-              resolve();
-            };
-            img.onerror = () => resolve();
-            img.src = url;
-          });
-        }),
-      ).then(() => undefined);
-    },
-    prune(validUrls) {
-      for (const url of loaded) {
-        if (!validUrls.has(url)) loaded.delete(url);
+export interface TileStoreDeps {
+  fetchImpl?: typeof fetch;
+  createObjectURL?: (blob: Blob) => string;
+  revokeObjectURL?: (url: string) => void;
+  now?: () => number;
+  /** Minimum spacing between dispatched tile requests. Default 250ms (≤240/min). */
+  spacingMs?: number;
+  /** How long a failed tile waits before it may be retried. Default 90s. */
+  cooldownMs?: number;
+}
+
+const DEFAULT_SPACING_MS = 250;
+const DEFAULT_COOLDOWN_MS = 90_000;
+const MAX_IN_FLIGHT = 4;
+
+interface TileEntry {
+  status: 'loading' | 'loaded' | 'cooldown';
+  objectUrl?: string;
+  retryAt?: number;
+}
+
+export function createTileStore({
+  fetchImpl = (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init),
+  createObjectURL = (blob: Blob) => URL.createObjectURL(blob),
+  revokeObjectURL = (url: string) => URL.revokeObjectURL(url),
+  now = () => Date.now(),
+  spacingMs = DEFAULT_SPACING_MS,
+  cooldownMs = DEFAULT_COOLDOWN_MS,
+}: TileStoreDeps = {}): TileStore {
+  const entries = new Map<string, TileEntry>();
+  const queue: string[] = [];
+  const inFlight = new Set<string>();
+  const waiters: Array<{ urls: Set<string>; resolve: () => void }> = [];
+  const listeners = new Set<() => void>();
+  let version = 0;
+  let lastDispatchAt = -Infinity;
+  let pumpTimer: ReturnType<typeof setTimeout> | null = null;
+  // Mounted consumers (useSyncExternalStore subscriptions). Dispatch pauses
+  // while none remain: a removed module must not keep draining its queue, while
+  // screen rotation (unmount → remount seconds later) resumes the same queue.
+  let consumers = 0;
+
+  /** True when nothing more will happen for this URL without a new ensure(). */
+  function isSettled(url: string): boolean {
+    const e = entries.get(url);
+    if (!e) return true;
+    if (e.status === 'loaded') return true;
+    if (e.status === 'cooldown') return true; // an attempt already settled; a lapsed cooldown re-queues only via ensure()
+    return false; // loading
+  }
+
+  function settleWaiters() {
+    for (let i = waiters.length - 1; i >= 0; i--) {
+      const waiter = waiters[i];
+      let ready = true;
+      for (const url of waiter.urls) {
+        if (!isSettled(url)) {
+          ready = false;
+          break;
+        }
       }
+      if (ready) {
+        waiters.splice(i, 1);
+        waiter.resolve();
+      }
+    }
+  }
+
+  function notify() {
+    version++;
+    settleWaiters();
+    for (const listener of listeners) listener();
+  }
+
+  function pump() {
+    if (pumpTimer) {
+      clearTimeout(pumpTimer);
+      pumpTimer = null;
+    }
+    while (queue.length && consumers > 0 && inFlight.size < MAX_IN_FLIGHT) {
+      const dueAt = lastDispatchAt + spacingMs;
+      const wait = dueAt - now();
+      if (wait > 0) {
+        pumpTimer = setTimeout(pump, wait);
+        break;
+      }
+      // Skip entries pruned while queued.
+      let url = queue.shift();
+      while (url && !entries.has(url)) url = queue.shift();
+      if (!url) break;
+      lastDispatchAt = now();
+      void dispatch(url);
+    }
+  }
+
+  async function dispatch(url: string) {
+    inFlight.add(url);
+    try {
+      const res = await fetchImpl(url);
+      if (res.ok) {
+        const blob = await res.blob();
+        entries.set(url, { status: 'loaded', objectUrl: createObjectURL(blob) });
+      } else {
+        entries.set(url, { status: 'cooldown', retryAt: now() + cooldownMs });
+      }
+    } catch {
+      entries.set(url, { status: 'cooldown', retryAt: now() + cooldownMs });
+    } finally {
+      inFlight.delete(url);
+      notify();
+      pump();
+    }
+  }
+
+  function ensure(urls: string[]): Promise<void> {
+    for (const url of urls) {
+      if (!url) continue;
+      const e = entries.get(url);
+      if (e?.status === 'loaded') continue;
+      if (e?.status === 'cooldown') {
+        if (now() < (e.retryAt ?? 0)) continue; // settled — cooldown still holds
+        entries.delete(url); // cooldown elapsed → eligible again
+      } else if (e?.status === 'loading') {
+        continue; // already queued or in flight
+      }
+      entries.set(url, { status: 'loading' });
+      queue.push(url);
+    }
+    pump();
+    const wanted = urls.filter(Boolean);
+    if (wanted.every(isSettled)) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      waiters.push({ urls: new Set(wanted), resolve });
+    });
+  }
+
+  return {
+    subscribe(listener) {
+      listeners.add(listener);
+      consumers++;
+      pump(); // a consumer arriving may resume a paused queue
+      return () => {
+        listeners.delete(listener);
+        consumers--;
+        if (consumers === 0) {
+          // Every ensure() promise is abandoned by now (its component
+          // unmounted and cancelled), so settle the waiters rather than leak.
+          const pending = waiters.splice(0);
+          for (const w of pending) w.resolve();
+        }
+      };
+    },
+    getVersion: () => version,
+    get: (url) => entries.get(url)?.objectUrl ?? null,
+    ensure,
+    prune(validUrls) {
+      let changed = false;
+      for (const [url, e] of entries) {
+        if (e.status === 'loading') continue; // settles later; next prune drops it
+        if (validUrls.has(url)) continue;
+        if (e.objectUrl) revokeObjectURL(e.objectUrl);
+        entries.delete(url);
+        changed = true;
+      }
+      // Queued-but-not-yet-dispatched requests for rotated-out frames are
+      // pure waste — drop them too.
+      for (let i = queue.length - 1; i >= 0; i--) {
+        const url = queue[i];
+        if (validUrls.has(url)) continue;
+        if (entries.get(url)?.status === 'loading') entries.delete(url);
+        queue.splice(i, 1);
+        changed = true;
+      }
+      if (changed) notify();
     },
   };
 }
+
+/**
+ * Shared across mounts: a screen rotating away and back reuses the previous
+ * window's tiles without touching the network. Pinned on `globalThis` so every
+ * copy of this module sees the SAME store — a dev-server hot swap re-evaluates
+ * the module and would otherwise mint a second store whose queue drains in
+ * parallel with the first (observed as a doubled request rate).
+ */
+const RADAR_TILE_STORE_KEY = '__hsRadarTileStore';
+export const radarTileStore: TileStore =
+  ((globalThis as Record<string | symbol, unknown>)[RADAR_TILE_STORE_KEY] as TileStore | undefined) ??
+  (((globalThis as Record<string | symbol, unknown>)[RADAR_TILE_STORE_KEY] = createTileStore()) as TileStore);

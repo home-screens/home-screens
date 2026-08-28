@@ -15,6 +15,12 @@ import path from 'path';
 
 const FIXTURE_DIR = path.resolve(__dirname, '..', 'fixtures', 'module-data');
 
+/** 1×1 transparent PNG for radar tile stubs. */
+const TILE_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+
 function fixture(name: string): unknown {
   return JSON.parse(readFileSync(path.join(FIXTURE_DIR, `${name}.json`), 'utf8'));
 }
@@ -73,6 +79,17 @@ export interface StubHandle {
   externalHits: string[];
 }
 
+/**
+ * Radar tile URLs served by the tile stub, newest last. Reset on every
+ * `stubModuleData` call. The rain-map module renders tiles as blob URLs, so
+ * config fields that only affect the tile URL (color scheme, smoothing, snow)
+ * are asserted against these served URLs instead of the DOM.
+ */
+let radarTileUrls: string[] = [];
+export function getRadarTileUrls(): readonly string[] {
+  return radarTileUrls;
+}
+
 function isAppHost(url: string): boolean {
   return /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/)/.test(url);
 }
@@ -80,6 +97,7 @@ function isAppHost(url: string): boolean {
 export async function stubModuleData(page: Page, opts: StubOptions = {}): Promise<StubHandle> {
   const { overrides = {}, blockExternal = true } = opts;
   const handle: StubHandle = { externalHits: [] };
+  radarTileUrls = [];
 
   // Register the external-block catch-all FIRST so the specific /api stubs
   // added afterwards take precedence (Playwright matches most-recently-added
@@ -115,6 +133,17 @@ export async function stubModuleData(page: Page, opts: StubOptions = {}): Promis
       });
     });
   }
+
+  // Radar tiles: the rain-map module fetches these cross-origin (through its
+  // rate-bounded tile store) and renders them as blob URLs, so a spec can only
+  // see a populated radar layer if the tiles resolve. Serve a 1×1 PNG so the
+  // store succeeds; added after the catch-all so it takes precedence and the
+  // request never escapes to the real CDN. Served URLs are recorded for
+  // variant rows that assert URL-encoded config fields.
+  await page.route('**/v2/radar/**/*/*.png', (route: Route) => {
+    radarTileUrls.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: 'image/png', body: TILE_PNG });
+  });
 
   return handle;
 }

@@ -200,14 +200,15 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   // aqi 2 in air-quality.json maps to the 'fair' label ("Fair"), so assert the
   // derived category rather than the bare index digit.
   'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: containsText('Fair') },
-  // Radar tiles build their src from the fetched RainViewer host (rain-map.json:
-  // "https://tilecache.rainviewer.com"), so a tile carrying that host proves the
-  // payload rendered onto the map — not merely that the wrapper has size.
+  // Radar tiles go through the module's rate-bounded tile store: URLs from
+  // the fetched RainViewer host (rain-map.json) are fetched to blobs, so a
+  // blob-src radar tile proves the full payload → fetch → render round trip —
+  // not merely that the wrapper has size.
   'rain-map': {
     type: 'rain-map', kind: 'networked', stubKey: 'rain-map',
     expect: async (mod) => {
       await expect(mod).toBeVisible();
-      await expect(mod.locator('img[src*="tilecache.rainviewer.com"]').first()).toBeAttached();
+      await expect(mod.locator('img[src^="blob:"]').first()).toBeAttached();
     },
   },
   news: { type: 'news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },

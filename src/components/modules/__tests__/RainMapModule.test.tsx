@@ -16,27 +16,41 @@ vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: () => [mockData, null],
 }));
 
-import RainMapModule from '../RainMapModule';
+// Radar tiles go through the module's tile store (fetch + object URLs), never
+// through <img src> to the CDN. Swap the shared store for a controllable one
+// whose network and clock are fake; the component code under test is real.
+let tileResponder: (url: string) => boolean = () => true;
+let tileNow = 0;
+let tileBlobSeq = 0;
+const tileFetches: string[] = [];
+vi.mock('../rain-map-preload', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../rain-map-preload')>();
+  return {
+    ...actual,
+    radarTileStore: actual.createTileStore({
+      spacingMs: 0,
+      cooldownMs: 60_000,
+      now: () => tileNow,
+      fetchImpl: (async (url: string | URL | Request) => {
+        const u = String(url);
+        tileFetches.push(u);
+        return tileResponder(u)
+          ? new Response(new Blob(['png']), { status: 200 })
+          : new Response(null, { status: 429 });
+      }) as unknown as typeof fetch,
+      createObjectURL: () => `blob:mock-${++tileBlobSeq}`,
+      revokeObjectURL: () => {},
+    }),
+  };
+});
 
-/**
- * Preload requests go through `new Image()` (via createTilePreloader's default
- * factory); the rendered <img> tags do not, so FakeImage.instances counts
- * exactly the preload traffic.
- */
-class FakeImage {
-  static instances: FakeImage[] = [];
-  onload: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  src = '';
-  constructor() {
-    FakeImage.instances.push(this);
-  }
-}
+import RainMapModule from '../RainMapModule';
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
 
 // Huge animation delays so the rotation timer never fires under real timers;
-// each preload cycle is driven purely by settling the fake images.
+// each preload cycle is driven purely by settling the fake fetches. The
+// frame-swap test uses fake timers with small delays instead.
 const config: RainMapConfig = {
   latitude: 44.7,
   longitude: -93.4,
@@ -64,77 +78,134 @@ const makeData = (times: number[]): RainViewerResponse => ({
   satellite: { infrared: [] },
 });
 
-/** Count preload requests issued for a given frame timestamp. */
+/** Count tile requests issued for a given frame timestamp. */
 const requestsFor = (t: number) =>
-  FakeImage.instances.filter((img) => img.src.includes(`/v2/radar/${t}/`)).length;
+  tileFetches.filter((url) => url.includes(`/v2/radar/${t}/`)).length;
 
-/** Settle every pending preload image, flushing the resulting microtasks. */
-async function settleAll(mode: 'load' | 'error') {
-  const pending = FakeImage.instances.filter((img) => img.onload);
-  await act(async () => {
-    for (const img of pending) {
-      const cb = mode === 'load' ? img.onload : img.onerror;
-      img.onload = img.onerror = null;
-      cb?.();
-    }
-  });
+/** Flush the fetch/store/animation promise chains until they settle. */
+async function flush() {
+  for (let i = 0; i < 10; i++) {
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
 }
 
-function ui() {
+function ui(overrides?: Partial<RainMapConfig>) {
   return (
     <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
-      <RainMapModule config={config} style={style} />
+      <RainMapModule config={{ ...config, ...overrides }} style={style} />
     </I18nProvider>
   );
 }
 
-describe('RainMapModule preload cache', () => {
+describe('RainMapModule tile pipeline', () => {
   beforeEach(() => {
-    FakeImage.instances = [];
-    vi.stubGlobal('Image', FakeImage);
+    tileResponder = () => true;
+    tileNow = 0;
+    tileFetches.length = 0;
   });
 
   afterEach(() => {
     cleanup();
-    vi.unstubAllGlobals();
+    vi.useRealTimers();
     mockData = null;
   });
 
-  it('retries failed tiles on the next preload pass instead of caching the failure', async () => {
+  it('renders loaded radar tiles from the store, not from CDN URLs', async () => {
     mockData = makeData([1000]);
     render(ui());
+    await flush();
 
-    // Initial preload of the only frame.
-    expect(requestsFor(1000)).toBe(TILES_PER_FRAME);
-
-    // Every tile fails (transient CDN blip). The animation loop then preloads
-    // the "next" frame — the same single frame — which must re-request the
-    // failed tiles rather than treat them as loaded.
-    await settleAll('error');
-    expect(requestsFor(1000)).toBe(TILES_PER_FRAME * 2);
+    const imgs = document.querySelectorAll('img[src^="blob:"]');
+    expect(imgs).toHaveLength(TILES_PER_FRAME);
+    // Base map tiles keep their direct CDN srcs.
+    expect(document.querySelectorAll('img[src*="basemaps.cartocdn.com"]')).toHaveLength(
+      TILES_PER_FRAME,
+    );
   });
 
-  it('prunes the cache to the current animation window when frames rotate', async () => {
-    mockData = makeData([1000, 2000]);
+  it('does not re-request failed tiles at animation tempo', async () => {
+    tileResponder = () => false; // every tile 429s
+    mockData = makeData([1100]);
+    render(ui());
+    await flush();
+
+    // Initial pass: one request per tile. The animation loop then ensures the
+    // "next" frame — the same single frame — which must be a no-op while the
+    // cooldown holds instead of re-feeding the rate limiter.
+    expect(requestsFor(1100)).toBe(TILES_PER_FRAME);
+  });
+
+  it('advancing frames swaps src on the same <img> nodes (no remount refetch)', async () => {
+    vi.useFakeTimers();
+    mockData = makeData([3100, 3200]);
+    // animationSpeedMs is clamped to a 500ms minimum by the component.
+    render(ui({ animationSpeedMs: 500, extraDelayLastFrameMs: 500 }));
+    await flush();
+
+    const beforeNodes = [...document.querySelectorAll('img[src^="blob:"]')] as HTMLImageElement[];
+    // Snapshot src VALUES — reading node.src later would return the mutated
+    // (already-swapped) value since the nodes are reused.
+    const beforeSrcs = beforeNodes.map((img) => img.src);
+    expect(beforeNodes).toHaveLength(TILES_PER_FRAME);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    const after = [...document.querySelectorAll('img[src^="blob:"]')] as HTMLImageElement[];
+    expect(after).toHaveLength(TILES_PER_FRAME);
+    // Same DOM nodes (stable per-tile keys), different frame's blob srcs.
+    expect(after.every((img, i) => img === beforeNodes[i])).toBe(true);
+    expect(after.some((img, i) => img.src !== beforeSrcs[i])).toBe(true);
+  });
+
+  it('debounces radar window changes so slider drags fetch only the resting zoom', async () => {
+    vi.useFakeTimers();
+    mockData = makeData([4100]);
+    const { rerender } = render(ui({ zoom: 6 }));
+    await flush();
+    expect(tileFetches.filter((u) => u.includes('/256/6/')).length).toBe(TILES_PER_FRAME);
+
+    // A drag through zoom 5 must not fetch zoom 5's window — only the value
+    // the slider settles on (zoom 4) may load, after the debounce.
+    await act(async () => rerender(ui({ zoom: 5 })));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(150);
+      await rerender(ui({ zoom: 4 }));
+    });
+    await act(async () => rerender(ui({ zoom: 4 })));
+    expect(tileFetches.filter((u) => u.includes('/256/5/')).length).toBe(0);
+    expect(tileFetches.filter((u) => u.includes('/256/4/')).length).toBe(0);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(600);
+    });
+    await flush();
+    expect(tileFetches.filter((u) => u.includes('/256/5/')).length).toBe(0);
+    expect(tileFetches.filter((u) => u.includes('/256/4/')).length).toBe(TILES_PER_FRAME);
+  });
+
+  it('prunes the store to the current animation window when frames rotate', async () => {
+    mockData = makeData([2100, 2200]);
     const { rerender } = render(ui());
+    await flush();
+    expect(requestsFor(2100)).toBe(TILES_PER_FRAME);
+    expect(requestsFor(2200)).toBe(TILES_PER_FRAME);
 
-    // Frame 1000 preloads, then the loop preloads frame 2000.
-    expect(requestsFor(1000)).toBe(TILES_PER_FRAME);
-    await settleAll('load');
-    expect(requestsFor(2000)).toBe(TILES_PER_FRAME);
-    await settleAll('load');
-
-    // Refresh slides the window: frame 1000 rotates out, 3000 arrives.
-    // The effect must prune 1000's URLs from the cache.
-    mockData = makeData([2000, 3000]);
+    // Refresh slides the window: frame 2100 rotates out, 2300 arrives.
+    // The effect must prune 2100's URLs from the store.
+    mockData = makeData([2200, 2300]);
     await act(async () => rerender(ui()));
-    await settleAll('load');
+    await flush();
 
-    // A window containing frame 1000 again must re-request its tiles: they
+    // A window containing frame 2100 again must re-request its tiles: they
     // were pruned. (Unpruned legacy behavior would serve them from the
-    // ever-growing cache and issue zero requests.)
-    mockData = makeData([1000, 2000]);
+    // ever-growing store and issue zero requests.)
+    mockData = makeData([2100, 2200]);
     await act(async () => rerender(ui()));
-    expect(requestsFor(1000)).toBe(TILES_PER_FRAME * 2);
+    await flush();
+    expect(requestsFor(2100)).toBe(TILES_PER_FRAME * 2);
   });
 });
