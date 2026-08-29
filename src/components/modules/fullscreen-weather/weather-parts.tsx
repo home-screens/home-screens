@@ -5,6 +5,7 @@ import { MapPin, Droplet, Wind } from 'lucide-react';
 import type { ForecastDay } from '@/lib/weather';
 import { windUnitLabel } from '@/lib/weather/units';
 import type { WeatherViewProps, WeekRange } from './weather-view-utils';
+import { FIT_MEASURE_ATTR } from './useFitScale';
 import {
   alertTone, cachedFormat, weekRange,
   CARD_PAD_X_U, CARD_PAD_Y_U, DAILY_RAIN_SHOWN_PCT, MIN_BAR_PCT,
@@ -21,13 +22,20 @@ export function Label({ children, s }: { children: React.ReactNode; s: number })
   );
 }
 
-/** `u` (structure), not `s` (type): a card's padding and radius should follow
- *  density, not how large the household set the text. */
+/**
+ * `u` (structure), not `s` (type): a card's padding and radius should follow
+ * density, not how large the household set the text.
+ *
+ * Every card is a box the fit loop measures on its own (`FIT_MEASURE_ATTR`):
+ * a card sits in a column or a grid cell of fixed width, and content that
+ * outgrows it lands on the neighbouring card without moving the stack's
+ * overflow at all.
+ */
 export function Card({ children, u, style, testId }: {
   children: React.ReactNode; u: number; style?: React.CSSProperties; testId?: string;
 }) {
   return (
-    <div data-testid={testId} style={{
+    <div data-testid={testId} {...{ [FIT_MEASURE_ATTR]: '' }} style={{
       background: 'var(--fsw-surface)',
       border: '1px solid var(--fsw-border)',
       borderRadius: u * 2.1,
@@ -208,7 +216,7 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
   const listMin = rowMin * days.length;
 
   return (
-    <Card u={u} style={{
+    <Card u={u} testId="fsw-days" style={{
       flex: 1, display: 'flex', flexDirection: 'column',
       // header + rows + the card's own vertical padding
       minHeight: listMin + u * 6.1,

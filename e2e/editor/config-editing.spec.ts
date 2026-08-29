@@ -1279,8 +1279,8 @@ test.describe('PropertyPanel Position & Size', () => {
   // before driving the X/Y/W/H number inputs. Each input is a <label> wrapping
   // <span>X</span><input type=number>, so getByLabel reaches it by the span text.
   // These four fields set exact values with no grid snapping (moveModule /
-  // resizeModule store the raw number), complementing the mouse-drag/resize
-  // coverage in interactions.spec.ts.
+  // resizeModule store the number as typed, stopped only at the canvas
+  // edge), complementing the mouse-drag/resize coverage in interactions.spec.ts.
 
   test('typing exact X/Y moves the module on canvas and persists', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('text', { content: 'MOVE ME' }));
@@ -1323,6 +1323,28 @@ test.describe('PropertyPanel Position & Size', () => {
     await expect.poll(async () => (await moduleInstance(request)).size).toEqual({ w: 480, h: 360 });
     await expect.poll(async () => (await canvasModule.boundingBox())!.width).toBeGreaterThan(startBox.width);
     await expect.poll(async () => (await canvasModule.boundingBox())!.height).toBeGreaterThan(startBox.height);
+  });
+
+  test('a typed W/H past the canvas edge stops at the edge', async ({ page, request }) => {
+    // The resize handle sits at the module's far corner and the canvas clips
+    // at its border: a size past the edge is a module the editor loses.
+    const mod = buildModuleInstance('text', { content: 'TOO BIG' });
+    mod.position = { x: 100, y: 200 };
+    mod.size = { w: 200, h: 160 };
+    await selectModule(page, request, mod);
+
+    await page.getByRole('button', { name: 'Position & Size', exact: true }).click();
+
+    await autosaved(page, async () => {
+      await page.getByLabel('W', { exact: true }).fill('5000');
+    });
+    await autosaved(page, async () => {
+      await page.getByLabel('H', { exact: true }).fill('5000');
+    });
+
+    // 1080 - 100 by 1920 - 200 on the portrait canvas.
+    await expect.poll(async () => (await moduleInstance(request)).size).toEqual({ w: 980, h: 1720 });
+    await expect(page.getByLabel('W', { exact: true })).toHaveValue('980');
   });
 });
 

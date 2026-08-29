@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { useRef } from 'react';
-import { useFitScale, FIT_FACTOR_ATTR } from '../useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR, FIT_MEASURE_ATTR } from '../useFitScale';
 
 /**
  * The fit loop bisects for the largest scale factor that still fits the canvas,
@@ -70,20 +70,41 @@ function runToSettle(lagFrames: number, maxFrames = 400) {
   expect(dispatchedSettled, 'the loop stopped without settling').toBe(true);
 }
 
-function Harness({ onFit }: { onFit: (f: number, settled: boolean) => void }) {
+/**
+ * `column` renders an interior box inside the measured root, stamped with
+ * `FIT_MEASURE_ATTR` or not, for the interior-overflow tests.
+ */
+type Column = 'none' | 'stamped' | 'unstamped';
+
+function Harness({ onFit, column = 'none' }: { onFit: (f: number, settled: boolean) => void; column?: Column }) {
   const ref = useRef<HTMLDivElement>(null);
   const { factor, settled } = useFitScale(ref, ['fixed-deps']);
   onFit(factor, settled);
-  return <div ref={ref} {...{ [FIT_FACTOR_ATTR]: String(factor) }} />;
+  return (
+    <div ref={ref} {...{ [FIT_FACTOR_ATTR]: String(factor) }}>
+      {column === 'stamped' && <div {...{ [FIT_MEASURE_ATTR]: '' }} />}
+      {column === 'unstamped' && <div />}
+    </div>
+  );
 }
 
+/**
+ * Where the overflow lives. `root`: the root is taller than the canvas.
+ * `interior`: the root fits on both axes, and every element *inside* it is
+ * wider than its box — the fixed-width-column case, where the root's own
+ * scroll metrics never move.
+ */
+type Overflow = 'root' | 'interior';
+
 /** Serve every layout read from `renderedFactor`. jsdom has no layout of its own. */
-function installFakeLayout() {
-  const sizes: Record<string, () => number> = {
+function installFakeLayout(overflow: Overflow = 'root') {
+  const content = () => Math.max(CANVAS, Math.round(CONTENT_AT_FULL * renderedFactor));
+  const isRoot = (el: HTMLElement) => el.hasAttribute(FIT_FACTOR_ATTR);
+  const sizes: Record<string, (this: HTMLElement) => number> = {
     clientHeight: () => CANVAS,
     clientWidth: () => CANVAS,
-    scrollWidth: () => CANVAS,
-    scrollHeight: () => Math.max(CANVAS, Math.round(CONTENT_AT_FULL * renderedFactor)),
+    scrollWidth() { return overflow === 'interior' && !isRoot(this) ? content() : CANVAS; },
+    scrollHeight() { return overflow === 'root' ? content() : CANVAS; },
   };
   for (const [prop, get] of Object.entries(sizes)) {
     Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get });
@@ -121,8 +142,8 @@ function resetBrowser() {
   frameCallbacks = [];
 }
 
-function mountHarness() {
-  return render(<Harness onFit={(f, settled) => { dispatchedFactor = f; dispatchedSettled = settled; }} />);
+function mountHarness(column: Column = 'none') {
+  return render(<Harness column={column} onFit={(f, settled) => { dispatchedFactor = f; dispatchedSettled = settled; }} />);
 }
 
 function measureConverged(lagFrames: number): number {
@@ -156,6 +177,40 @@ describe('useFitScale', () => {
     // 7 bisection steps over [0.34, 1] resolve to about half a percent.
     expect(converged).toBeGreaterThan(IDEAL - 0.01);
     expect(converged).toBeLessThanOrEqual(IDEAL + 0.01);
+  });
+
+  /**
+   * Overflow inside a fixed-width column never reaches the root's scroll
+   * metrics: the content renders over the neighbouring column instead. That
+   * is how the landscape Panorama hero ended up on top of the temperature
+   * ribbon at factor 1. A box stamped with `FIT_MEASURE_ATTR` is judged
+   * alongside the root; an unstamped one is the caller's own business.
+   */
+  describe('interior boxes', () => {
+    it('shrinks for a stamped box that overflows while the root fits', () => {
+      resetBrowser();
+      const restore = installFakeLayout('interior');
+      try {
+        act(() => { mountHarness('stamped'); });
+        runToSettle(0);
+        expect(dispatchedFactor).toBeGreaterThan(IDEAL - 0.01);
+        expect(dispatchedFactor).toBeLessThanOrEqual(IDEAL + 0.01);
+      } finally {
+        restore();
+      }
+    });
+
+    it('does not measure a box that is not stamped', () => {
+      resetBrowser();
+      const restore = installFakeLayout('interior');
+      try {
+        act(() => { mountHarness('unstamped'); });
+        runToSettle(0);
+        expect(dispatchedFactor).toBe(1);
+      } finally {
+        restore();
+      }
+    });
   });
 
   /**

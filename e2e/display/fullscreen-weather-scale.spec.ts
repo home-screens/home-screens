@@ -5,6 +5,7 @@ import { putConfig } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { richWeather } from '../helpers/weather-payload';
+import { measureParts, type PartReport } from '../helpers/part-geometry';
 import type { FullscreenTypographySize, FullscreenWeatherView } from '@/types/config';
 
 const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week', 'hourly'];
@@ -25,7 +26,7 @@ const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week'
 
 async function render(
   page: Page, request: APIRequestContext, config: Record<string, unknown>,
-): Promise<{ overY: number; overX: number; heroPx: number; clockPx: number; padPx: number; errors: string[] }> {
+): Promise<{ overY: number; overX: number; heroPx: number; clockPx: number; padPx: number; parts: PartReport; errors: string[] }> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
 
@@ -45,6 +46,12 @@ async function render(
   // to commit each probe; the stack stamps data-fit-settled when it is done.
   await expect(root.locator('[data-fit-settled="true"]')).toHaveCount(1);
 
+  // Overflow past the stack is one failure; parts colliding inside it is the
+  // other, and the scroll metrics cannot see that one (see part-geometry).
+  const parts = await page.evaluate(measureParts, {
+    rootSelector: '[data-testid="fsw-stack"]', ignore: ['fsw-hourly-spline', 'fsw-now-ring'],
+  });
+
   return root.evaluate((el) => {
     const stack = el.querySelector('[data-testid="fsw-stack"]') as HTMLElement;
     const hero = el.querySelector('[data-testid="fsw-hero-temp"]');
@@ -58,7 +65,7 @@ async function render(
       padPx: parseFloat(getComputedStyle(stack.parentElement!).paddingTop),
       errors: [] as string[],
     };
-  }).then((r) => ({ ...r, errors }));
+  }).then((r) => ({ ...r, parts, errors }));
 }
 
 const SIZES: FullscreenTypographySize[] = [
@@ -72,6 +79,8 @@ for (const view of VIEWS) {
       expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
       expect(r.overY, `${view}/${typographySize} overflows vertically by ${r.overY}px`).toBeLessThanOrEqual(2);
       expect(r.overX, `${view}/${typographySize} overflows horizontally by ${r.overX}px`).toBeLessThanOrEqual(2);
+      expect(r.parts.count, `${view}/${typographySize}: too few parts measured`).toBeGreaterThanOrEqual(3);
+      expect(r.parts.overlaps, `${view}/${typographySize}: parts overlap:\n  ${r.parts.overlaps.join('\n  ')}`).toEqual([]);
     });
   }
 
@@ -80,6 +89,7 @@ for (const view of VIEWS) {
     const r = await render(page, request, { view, typographySize: '4x-large', density: 'cozy', theme: 'linen' });
     expect(r.overY).toBeLessThanOrEqual(2);
     expect(r.overX).toBeLessThanOrEqual(2);
+    expect(r.parts.overlaps, `${view}/4x-large/cozy: parts overlap:\n  ${r.parts.overlaps.join('\n  ')}`).toEqual([]);
   });
 }
 

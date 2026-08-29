@@ -82,6 +82,69 @@ test.describe('module lifecycle', () => {
     await pollConfig(request, (c) => c.screens[0].modules[0].size.h).then((p) => p.toBeGreaterThan(200));
   });
 
+  /**
+   * The canvas clips at its border and the resize handle sits at the module's
+   * far corner, so a resize allowed past the edge takes the handle with it and
+   * the module can no longer be resized or (the drag clamp assumes it fits)
+   * moved. The store stops the size at the edge instead, from wherever the
+   * module sits, and the handle stays inside the canvas.
+   */
+  test('resizing past the canvas edge stops at the edge and keeps the handle reachable', async ({ page, request }) => {
+    // 80px of canvas to the right, 120px below: any real drag overshoots both.
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [textModule('EDGE', { id: 'edge', position: { x: 600, y: 1600 }, size: { w: 400, h: 200 } })])],
+    }));
+    await openEditor(page);
+
+    await page.locator('[data-module-id="edge"]').click();
+    const handle = page.locator('[data-testid="selection-overlay"] .cursor-se-resize');
+    await expect(handle).toBeVisible();
+    const box = (await handle.boundingBox())!;
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 300, box.y + 300, { steps: 15 });
+    const saved = page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
+    await page.mouse.up();
+    await saved;
+
+    await pollConfig(request, (c) => c.screens[0].modules[0].size).then((p) => p.toEqual({ w: 480, h: 320 }));
+
+    const canvas = (await page.getByTestId('editor-canvas').boundingBox())!;
+    const after = (await handle.boundingBox())!;
+    expect(after.x + after.width, 'handle should stay inside the canvas').toBeLessThanOrEqual(canvas.x + canvas.width + 1);
+    expect(after.y + after.height, 'handle should stay inside the canvas').toBeLessThanOrEqual(canvas.y + canvas.height + 1);
+  });
+
+  test('a module saved past the canvas edge can still be grabbed and pulled back', async ({ page, request }) => {
+    // An older save, a hand-edited file, or a display whose dimensions shrank.
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [textModule('BIG', { id: 'big', position: { x: 0, y: 0 }, size: { w: 1400, h: 2200 } })])],
+    }));
+    await openEditor(page);
+
+    await page.locator('[data-module-id="big"]').click();
+    const handle = page.locator('[data-testid="selection-overlay"] .cursor-se-resize');
+    await expect(handle).toBeVisible();
+    const canvas = (await page.getByTestId('editor-canvas').boundingBox())!;
+    const box = (await handle.boundingBox())!;
+    // The ring covers the visible part of the module, so the handle is at the
+    // canvas corner rather than 320x280 canvas-px beyond it.
+    expect(box.x + box.width).toBeLessThanOrEqual(canvas.x + canvas.width + 1);
+    expect(box.y + box.height).toBeLessThanOrEqual(canvas.y + canvas.height + 1);
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x - 60, box.y - 60, { steps: 15 });
+    const saved = page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
+    await page.mouse.up();
+    await saved;
+
+    // Back inside the canvas after one drag of the handle.
+    await pollConfig(request, (c) => c.screens[0].modules[0].size.w).then((p) => p.toBeLessThanOrEqual(1080));
+    await pollConfig(request, (c) => c.screens[0].modules[0].size.h).then((p) => p.toBeLessThanOrEqual(1920));
+  });
+
   test('deleting a module removes it from config and the canvas', async ({ page, request }) => {
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'S1', [textModule('DELETE ME', { id: 'del' })])],

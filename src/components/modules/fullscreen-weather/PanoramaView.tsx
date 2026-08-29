@@ -11,6 +11,7 @@ import {
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars, PrecipLegendHeader } from './weather-parts';
+import { FIT_MEASURE_ATTR } from './useFitScale';
 
 /**
  * The flagship view, in two arrangements of the same parts.
@@ -56,7 +57,14 @@ function PanoramaLandscape({ p }: { p: WeatherViewProps }) {
         visible to the fit loop.
       */}
       <div style={{ flex: 1, display: 'flex', gap: u * 2 }}>
-        <div style={{
+        {/*
+          Both columns are measured by the fit loop (`FIT_MEASURE_ATTR`). The
+          left one is fixed-width and the hero is all type: above a certain
+          typography size the temperature and its icon are wider than the
+          column and render over the ribbon, and nothing about the stack's
+          own overflow changes when they do.
+        */}
+        <div {...{ [FIT_MEASURE_ATTR]: '' }} style={{
           width: `${LANDSCAPE_LEFT_FRACTION * 100}%`, flex: 'none',
           display: 'flex', flexDirection: 'column', gap: u * 2,
         }}>
@@ -65,7 +73,7 @@ function PanoramaLandscape({ p }: { p: WeatherViewProps }) {
           <NowcastStrip p={p} />
           {p.config.showStatRail !== false && <StatRailVertical p={p} />}
         </div>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
+        <div {...{ [FIT_MEASURE_ATTR]: '' }} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
           {p.config.showRibbon !== false && <TempRibbon p={p} />}
           <DayRangeBars p={p} />
         </div>
@@ -100,7 +108,7 @@ function Hero({ p }: { p: WeatherViewProps }) {
   );
 
   const art = (
-    <div style={{
+    <div data-testid="fsw-hero-art" style={{
       flex: 'none', width: landscape ? s * 18 : s * 26, height: landscape ? s * 18 : s * 26,
       display: 'grid', placeItems: 'center', position: 'relative',
     }}>

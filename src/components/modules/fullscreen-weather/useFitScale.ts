@@ -26,6 +26,19 @@ export const FIT_FACTOR_ATTR = 'data-fit-factor';
 export const FIT_SETTLED_ATTR = 'data-fit-settled';
 
 /**
+ * Attribute for an interior box whose content must fit inside it.
+ *
+ * The root's scroll metrics only see overflow past the root's own edge. A
+ * fixed-width column can hold content wider than itself without moving
+ * either number — the content renders over the neighbouring column — and
+ * the loop would report a fit. The landscape Panorama hero did exactly that:
+ * the temperature and its icon spilled out of the left column and over the
+ * temperature ribbon, at factor 1, with every overflow check green. Stamp
+ * the column (or card) and the loop measures it alongside the root.
+ */
+export const FIT_MEASURE_ATTR = 'data-fit-measure';
+
+/**
  * How many frames to wait for React to commit a probe before giving up.
  *
  * A caller that never stamps the attribute is measured immediately (see
@@ -61,6 +74,10 @@ export interface FitScale {
  * so bigger settings reliably render bigger.
  *
  * Returns 1 whenever the content already fits, so the common sizes pay nothing.
+ *
+ * "Fits" is judged on the measured element and on every descendant stamped
+ * with `FIT_MEASURE_ATTR` — see that attribute for why the root alone is not
+ * enough.
  *
  * ## Why the caller must stamp `FIT_FACTOR_ATTR`
  *
@@ -112,8 +129,17 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
       return Math.abs(Number(stamped) - probe) < 1e-9;
     };
 
-    const fits = (node: HTMLElement) =>
-      node.scrollHeight - node.clientHeight <= 1 && node.scrollWidth - node.clientWidth <= 1;
+    const overflows = (box: HTMLElement) =>
+      box.scrollHeight - box.clientHeight > 1 || box.scrollWidth - box.clientWidth > 1;
+
+    /** The root and every stamped interior box hold their content. */
+    const fits = (node: HTMLElement) => {
+      if (overflows(node)) return false;
+      for (const box of node.querySelectorAll<HTMLElement>(`[${FIT_MEASURE_ATTR}]`)) {
+        if (overflows(box)) return false;
+      }
+      return true;
+    };
 
     /**
      * Whether a web font is still on its way. The measured text is laid out

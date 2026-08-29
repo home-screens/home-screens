@@ -85,18 +85,43 @@ export function createModuleSlice(
       }), { coalesce: COALESCE_KEYS.moduleStyle(moduleId) });
     },
 
+    // Both geometry actions keep the module inside the canvas. They are the
+    // single write path for the drag ghost, the resize handle, and the typed
+    // X/Y/W/H fields, so the clamp lives here rather than in each caller. A
+    // module allowed past the edge is a module the editor loses: the canvas
+    // clips at its border, so the resize handle at the module's far corner
+    // becomes unreachable and the drag clamp (which assumes the module fits)
+    // pins it in place.
     moveModule: (screenId, moduleId, position) => {
       const { selectedDisplayId } = get();
-      mutateConfig((config) => ({
-        config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, position })),
-      }), { coalesce: COALESCE_KEYS.moveModule(moduleId) });
+      mutateConfig((config) => {
+        const dims = getActiveDimensions(config, selectedDisplayId);
+        return {
+          config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({
+            ...m,
+            position: {
+              x: Math.max(0, Math.min(dims.width - m.size.w, position.x)),
+              y: Math.max(0, Math.min(dims.height - m.size.h, position.y)),
+            },
+          })),
+        };
+      }, { coalesce: COALESCE_KEYS.moveModule(moduleId) });
     },
 
     resizeModule: (screenId, moduleId, size) => {
       const { selectedDisplayId } = get();
-      mutateConfig((config) => ({
-        config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({ ...m, size })),
-      }), { coalesce: COALESCE_KEYS.resizeModule(moduleId) });
+      mutateConfig((config) => {
+        const dims = getActiveDimensions(config, selectedDisplayId);
+        return {
+          config: updateModuleInConfig(config, selectedDisplayId, screenId, moduleId, (m) => ({
+            ...m,
+            size: {
+              w: Math.max(1, Math.min(dims.width - m.position.x, size.w)),
+              h: Math.max(1, Math.min(dims.height - m.position.y, size.h)),
+            },
+          })),
+        };
+      }, { coalesce: COALESCE_KEYS.resizeModule(moduleId) });
     },
 
     reorderModule: (screenId, moduleId, to) => {

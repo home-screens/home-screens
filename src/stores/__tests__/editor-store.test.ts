@@ -200,6 +200,38 @@ describe('editor store', () => {
       const mod = store.getState().config!.screens[0].modules[0];
       expect(mod.position).toEqual({ x: 200, y: 300 });
     });
+
+    it('keeps the module inside the canvas', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      // A 1080x1920 portrait canvas; without the transform the editor
+      // orients these dimensions landscape.
+      config.settings.displayTransform = '90';
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config });
+
+      store.getState().moveModule('screen-1', 'mod-1', { x: 5000, y: -50 });
+      expect(store.getState().config!.screens[0].modules[0].position).toEqual({ x: 680, y: 0 });
+    });
+
+    it('pins a module larger than the canvas to the origin', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      // A 1080x1920 portrait canvas; without the transform the editor
+      // orients these dimensions landscape.
+      config.settings.displayTransform = '90';
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 1400, h: 2200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config });
+
+      store.getState().moveModule('screen-1', 'mod-1', { x: 100, y: 100 });
+      expect(store.getState().config!.screens[0].modules[0].position).toEqual({ x: 0, y: 0 });
+    });
   });
 
   describe('resizeModule', () => {
@@ -216,6 +248,45 @@ describe('editor store', () => {
 
       const mod = store.getState().config!.screens[0].modules[0];
       expect(mod.size).toEqual({ w: 600, h: 400 });
+    });
+
+    /**
+     * The resize handle sits at the module's bottom-right corner and the
+     * canvas clips at its border, so a size that reaches past the edge puts
+     * the handle where nothing can grab it. The size stops at the edge, from
+     * wherever the module sits.
+     */
+    it('stops at the canvas edge from the module position', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      // A 1080x1920 portrait canvas; without the transform the editor
+      // orients these dimensions landscape.
+      config.settings.displayTransform = '90';
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 600, y: 1600 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config });
+
+      store.getState().resizeModule('screen-1', 'mod-1', { w: 5000, h: 5000 });
+      expect(store.getState().config!.screens[0].modules[0].size).toEqual({ w: 480, h: 320 });
+    });
+
+    it('clamps against the selected display dimensions, not the global ones', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        displays: [{
+          id: 'wall', name: 'Wall', displayWidth: 1920, displayHeight: 1080, displayTransform: 'normal',
+          screens: [{ id: 'screen-1', name: 'Screen 1', backgroundImage: '', modules: [{
+            id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 },
+            zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+          }] }],
+        }],
+      });
+      store.setState({ config, selectedDisplayId: 'wall' });
+
+      store.getState().resizeModule('screen-1', 'mod-1', { w: 5000, h: 5000 });
+      expect(store.getState().config!.displays![0].screens[0].modules[0].size).toEqual({ w: 1920, h: 1080 });
     });
   });
 

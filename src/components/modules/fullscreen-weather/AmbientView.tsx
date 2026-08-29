@@ -3,6 +3,7 @@
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
 import { TopBar, AlertBand } from './weather-parts';
+import { FIT_MEASURE_ATTR } from './useFitScale';
 
 /**
  * Read-from-across-the-room minimal. Temperature, condition, one supporting
@@ -25,7 +26,7 @@ export default function AmbientView(p: WeatherViewProps) {
   const artIcon = landscape ? s * 21 : s * 19;
 
   const art = (
-    <div style={{
+    <div data-testid="fsw-hero-art" style={{
       flex: 'none', width: artBox, height: artBox, display: 'grid', placeItems: 'center',
       marginBottom: landscape ? 0 : u * 1.4, position: 'relative',
     }}>
@@ -35,7 +36,7 @@ export default function AmbientView(p: WeatherViewProps) {
   );
 
   const temp = (
-    <div style={{ fontSize: landscape ? s * 27 : s * 32, fontWeight: 150, letterSpacing: '-.06em', lineHeight: .82 }}>
+    <div data-testid="fsw-hero-temp" style={{ fontSize: landscape ? s * 27 : s * 32, fontWeight: 150, letterSpacing: '-.06em', lineHeight: .82 }}>
       {now ? Math.round(now.temp) : '--'}
       <span style={{ fontSize: '.34em', verticalAlign: 'baseline', position: 'relative', top: '-1.12em', marginLeft: '-.03em', opacity: .34 }}>°</span>
     </div>
@@ -46,7 +47,15 @@ export default function AmbientView(p: WeatherViewProps) {
       <TopBar p={p} />
       <AlertBand p={p} />
 
-      <div style={{
+      {/*
+        `minHeight: 0` lets this block take whatever the top bar, alert, and
+        chips leave rather than pushing them off the canvas, which also
+        means the hero can be taller than the block: at 4x-large it spilled
+        over the alert band above it and the chips below, and the stack's
+        own overflow never moved. Stamped so the fit loop measures the
+        block itself.
+      */}
+      <div {...{ [FIT_MEASURE_ATTR]: '' }} style={{
         flex: 1, display: 'flex', flexDirection: 'column',
         justifyContent: 'center', alignItems: 'center', textAlign: 'center', minHeight: 0,
       }}>
@@ -72,7 +81,7 @@ export default function AmbientView(p: WeatherViewProps) {
       </div>
 
       {chips.length > 0 && (
-        <div style={{
+        <div data-testid="fsw-chips" style={{
           flex: 'none', display: 'grid', gridTemplateColumns: `repeat(${chips.length}, 1fr)`, gap: u * 1.3,
           // Five chips across a 1920 canvas are 370px wide and 90px tall,
           // which reads as banners rather than chips. Capping the strip and

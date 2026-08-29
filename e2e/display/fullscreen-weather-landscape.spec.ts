@@ -5,6 +5,7 @@ import { putConfig } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { richWeather } from '../helpers/weather-payload';
+import { measureParts, type PartReport } from '../helpers/part-geometry';
 import type { FullscreenTypographySize, FullscreenWeatherView } from '@/types/config';
 
 const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week', 'hourly'];
@@ -29,23 +30,60 @@ interface Measured {
   overY: number;
   overX: number;
   orientation: string | null;
+  /** Pairwise collision report over every `data-testid` part in the stack. */
+  parts: PartReport;
   errors: string[];
 }
+
+/**
+ * Overlays that sit on other parts by design. The hourly spline spans the
+ * whole hour list; the week ribbon's now-ring is pinned on today's bar.
+ */
+const DELIBERATE_OVERLAYS = ['fsw-hourly-spline', 'fsw-now-ring'];
 
 const LANDSCAPE = { w: 1920, h: 1080 };
 const SMALL_LANDSCAPE = { w: 1280, h: 800 };
 const PORTRAIT = { w: 1080, h: 1920 };
+
+/**
+ * Two payloads, because the layout is a different shape under each and the
+ * hero overflow only shows under one. `richWeather` carries minutely data and
+ * an alert, so Panorama's left column fills with the nowcast strip and the
+ * alert band, the stack overflows vertically, and the fit loop shrinks the
+ * hero into its column as a side effect. Only Pirate Weather returns minutely
+ * data and alerts are rare, so the plain payload is what most walls show: a
+ * left column with slack, a fit factor of 1, and the hero as wide as the
+ * typography size makes it.
+ */
+const PAYLOADS = {
+  plain: () => ({ ...richWeather(), minutely: [], alerts: [] }),
+  rich: () => richWeather(),
+} as const;
+type PayloadKind = keyof typeof PAYLOADS;
+
+interface RenderOpts {
+  payload?: ReturnType<typeof richWeather>;
+  settings?: Record<string, unknown>;
+  /**
+   * Module box, when it should not fill the canvas. The module derives its
+   * orientation from its own rendered box, so a portrait display can host a
+   * landscape module: that is how a user shrinking a fullscreen module in
+   * the editor found the hero overflowing its column.
+   */
+  module?: { x: number; y: number; w: number; h: number };
+}
 
 async function render(
   page: Page,
   request: APIRequestContext,
   canvas: { w: number; h: number },
   config: Record<string, unknown>,
-  opts: { payload?: ReturnType<typeof richWeather>; settings?: Record<string, unknown> } = {},
+  opts: RenderOpts = {},
 ): Promise<Measured> {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
 
+  const box = opts.module ?? { x: 0, y: 0, w: canvas.w, h: canvas.h };
   await stubModuleData(page, { overrides: { weather: opts.payload ?? richWeather() } });
   await page.setViewportSize({ width: canvas.w, height: canvas.h });
   await putConfig(request, baseConfig({
@@ -53,7 +91,8 @@ async function render(
       ...buildModuleInstance('fullscreen-weather', { theme: 'linen', ...config }),
       // `fillsCanvas` sizes the module to the canvas in the editor; a config
       // written by hand has to say so itself.
-      size: { w: canvas.w, h: canvas.h },
+      position: { x: box.x, y: box.y },
+      size: { w: box.w, h: box.h },
     }])],
     settings: {
       ...matrixSettings(),
@@ -71,6 +110,10 @@ async function render(
   // to commit each probe; the stack stamps data-fit-settled when it is done.
   await expect(root.locator('[data-fit-settled="true"]')).toHaveCount(1);
 
+  const parts = await page.evaluate(measureParts, {
+    rootSelector: '[data-testid="fsw-stack"]', ignore: DELIBERATE_OVERLAYS,
+  });
+
   return root.evaluate((el) => {
     const stack = el.querySelector('[data-testid="fsw-stack"]') as HTMLElement;
     return {
@@ -79,7 +122,20 @@ async function render(
       orientation: el.getAttribute('data-orientation'),
       errors: [] as string[],
     };
-  }).then((r) => ({ ...r, errors }));
+  }).then((r) => ({ ...r, parts, errors }));
+}
+
+/**
+ * The stack's scroll metrics see overflow past its own edge and nothing
+ * else. Content that outgrows a fixed-width column renders over the next
+ * column without moving either number, so every fit test also asserts that
+ * no part collides with another. The count floor keeps the pairwise check
+ * from passing vacuously when a selector stops matching.
+ */
+function expectNoCollisions(r: Measured, label: string) {
+  expect(r.parts.count, `${label}: too few parts measured`).toBeGreaterThanOrEqual(3);
+  expect(r.parts.overlaps, `${label}: parts overlap:\n  ${r.parts.overlaps.join('\n  ')}`).toEqual([]);
+  expect(r.parts.escaped, `${label}: parts escape the stack:\n  ${r.parts.escaped.join('\n  ')}`).toEqual([]);
 }
 
 const SIZES: FullscreenTypographySize[] = [
@@ -88,27 +144,58 @@ const SIZES: FullscreenTypographySize[] = [
 
 test.describe('every view fits a landscape canvas', () => {
   for (const view of VIEWS) {
-    for (const typographySize of SIZES) {
-      test(`${view} fits 1920x1080 at ${typographySize}`, async ({ page, request }) => {
-        const r = await render(page, request, LANDSCAPE, { view, typographySize });
+    for (const payloadKind of Object.keys(PAYLOADS) as PayloadKind[]) {
+      for (const typographySize of SIZES) {
+        test(`${view} fits 1920x1080 at ${typographySize} (${payloadKind} payload)`, async ({ page, request }) => {
+          const r = await render(page, request, LANDSCAPE, { view, typographySize }, { payload: PAYLOADS[payloadKind]() });
+          expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
+          expect(r.orientation).toBe('landscape');
+          expect(r.overY, `${view}/${typographySize} overflows vertically by ${r.overY}px`).toBeLessThanOrEqual(2);
+          expect(r.overX, `${view}/${typographySize} overflows horizontally by ${r.overX}px`).toBeLessThanOrEqual(2);
+          expectNoCollisions(r, `${view}/${typographySize}/${payloadKind}`);
+        });
+      }
+
+      // A smaller landscape panel is a different problem: `bu` is 8 rather than
+      // 10.8, so the whole layout comes down ~26% before the fit loop even runs.
+      test(`${view} fits 1280x800 at 4x-large with cozy density (${payloadKind} payload)`, async ({ page, request }) => {
+        const r = await render(page, request, SMALL_LANDSCAPE, {
+          view, typographySize: '4x-large', density: 'cozy',
+        }, { payload: PAYLOADS[payloadKind]() });
+        expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
+        expect(r.orientation).toBe('landscape');
+        expect(r.overY).toBeLessThanOrEqual(2);
+        expect(r.overX).toBeLessThanOrEqual(2);
+        expectNoCollisions(r, `${view}/4x-large/cozy/${payloadKind} @1280x800`);
+      });
+    }
+  }
+});
+
+/**
+ * Landscape does not need a landscape display. The module reads orientation
+ * off its own box, so shrinking a fullscreen module on a portrait display
+ * until it is wider than tall flips it to the two-column arrangement — with
+ * a much smaller `bu`, and a left column too narrow for the hero at any
+ * typography size above medium. That is how the column overflow was found,
+ * and it has to hold however the box got its shape.
+ */
+test.describe('a module resized into landscape on a portrait display', () => {
+  // Roughly the box the report came from: a portrait canvas, module dragged
+  // down to a wide panel across the top.
+  const PANEL = { x: 24, y: 24, w: 1032, h: 660 };
+
+  for (const view of VIEWS) {
+    for (const typographySize of ['large', '4x-large'] as FullscreenTypographySize[]) {
+      test(`${view} fits a ${PANEL.w}x${PANEL.h} panel at ${typographySize}`, async ({ page, request }) => {
+        const r = await render(page, request, PORTRAIT, { view, typographySize }, { module: PANEL, payload: PAYLOADS.plain() });
         expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
         expect(r.orientation).toBe('landscape');
         expect(r.overY, `${view}/${typographySize} overflows vertically by ${r.overY}px`).toBeLessThanOrEqual(2);
         expect(r.overX, `${view}/${typographySize} overflows horizontally by ${r.overX}px`).toBeLessThanOrEqual(2);
+        expectNoCollisions(r, `${view}/${typographySize} in a ${PANEL.w}x${PANEL.h} panel`);
       });
     }
-
-    // A smaller landscape panel is a different problem: `bu` is 8 rather than
-    // 10.8, so the whole layout comes down ~26% before the fit loop even runs.
-    test(`${view} fits 1280x800 at 4x-large with cozy density`, async ({ page, request }) => {
-      const r = await render(page, request, SMALL_LANDSCAPE, {
-        view, typographySize: '4x-large', density: 'cozy',
-      });
-      expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
-      expect(r.orientation).toBe('landscape');
-      expect(r.overY).toBeLessThanOrEqual(2);
-      expect(r.overX).toBeLessThanOrEqual(2);
-    });
   }
 });
 

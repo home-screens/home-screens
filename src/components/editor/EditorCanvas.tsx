@@ -297,6 +297,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   <SelectionOverlay
                     mod={sel}
                     scale={effectiveScale}
+                    displayWidth={displayWidth}
+                    displayHeight={displayHeight}
                     onResize={(size) => resizeModule(selectedScreenId!, sel.id, size)}
                   />
                 ) : null;

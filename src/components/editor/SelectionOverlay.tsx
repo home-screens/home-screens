@@ -17,12 +17,25 @@ import type { ModuleInstance } from '@/types/config';
 export default function SelectionOverlay({
   mod,
   scale,
+  displayWidth,
+  displayHeight,
   onResize,
 }: {
   mod: ModuleInstance;
   scale: number;
+  displayWidth: number;
+  displayHeight: number;
   onResize: (size: { w: number; h: number }) => void;
 }) {
+  // The store clamps every resize to the canvas, but a config can still
+  // arrive with a module past the edge (an older save, a hand-edited file,
+  // a display whose dimensions shrank). The canvas clips at its border, so
+  // a ring drawn at the module's true size would put the handle outside it
+  // where nothing can reach it. Draw the ring over the visible part instead:
+  // the handle then sits at the visible corner, and one drag of it writes a
+  // size the store brings back inside.
+  const visibleW = Math.max(0, Math.min(mod.size.w, displayWidth - mod.position.x));
+  const visibleH = Math.max(0, Math.min(mod.size.h, displayHeight - mod.position.y));
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
   const handleResizeStart = useCallback(
@@ -68,8 +81,8 @@ export default function SelectionOverlay({
       style={{
         left: mod.position.x * scale,
         top: mod.position.y * scale,
-        width: mod.size.w * scale,
-        height: mod.size.h * scale,
+        width: visibleW * scale,
+        height: visibleH * scale,
         borderRadius: mod.style.borderRadius * scale,
         // Above every module, below the drag ghost (z-9999).
         zIndex: 9000,
