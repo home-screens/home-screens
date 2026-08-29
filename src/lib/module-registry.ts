@@ -624,6 +624,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'cards',
       tickerSpeed: 5,
       showSparkline: true,
+      sparklineMode: 'day',
+      sparklineTheme: 'classic',
     },
     defaultSize: { w: 400, h: 300 },
   },

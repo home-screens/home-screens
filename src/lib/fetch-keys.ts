@@ -11,7 +11,10 @@ type AnyConfig = Record<string, any>;
 
 export function stocksUrl(config: AnyConfig): string | null {
   const symbols = config.symbols as string | undefined;
-  return symbols ? `/api/stocks?symbols=${encodeURIComponent(symbols)}` : null;
+  if (!symbols) return null;
+  const mode = config.sparklineMode as string | undefined;
+  const charts = mode === 'week' ? 'week' : mode === 'both' ? 'day,week' : 'day';
+  return `/api/stocks?symbols=${encodeURIComponent(symbols)}&charts=${charts}`;
 }
 
 export function cryptoUrl(config: AnyConfig): string | null {

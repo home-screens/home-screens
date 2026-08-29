@@ -1101,6 +1101,12 @@ export interface StockTickerConfig {
   cardScale?: number;
   tickerSpeed?: number;
   showSparkline?: boolean;  // Trend line on cards view; default true
+  // Which chart(s) the cards view draws; default 'day'
+  sparklineMode?: 'day' | 'week' | 'both';
+  // 'classic' keeps the exact current rendering (plain line, even spacing,
+  // day-change color); 'shaded' adds backdrop + tint, time-scaled day chart,
+  // and per-chart colors. Default 'classic'.
+  sparklineTheme?: 'classic' | 'shaded';
 }
 
 // Crypto module config

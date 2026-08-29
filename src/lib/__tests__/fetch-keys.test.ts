@@ -24,8 +24,24 @@ import {
 // ── URL builders that return null when config is empty ──────────
 
 describe('stocksUrl', () => {
-  it('builds URL with encoded symbols', () => {
-    expect(stocksUrl({ symbols: 'AAPL,MSFT' })).toBe('/api/stocks?symbols=AAPL%2CMSFT');
+  it('builds URL with encoded symbols and default day chart', () => {
+    expect(stocksUrl({ symbols: 'AAPL,MSFT' })).toBe('/api/stocks?symbols=AAPL%2CMSFT&charts=day');
+  });
+
+  it('maps sparklineMode day to charts=day', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'day' })).toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
+  it('maps sparklineMode week to charts=week', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'week' })).toBe('/api/stocks?symbols=AAPL&charts=week');
+  });
+
+  it('maps sparklineMode both to charts=day,week', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day,week');
+  });
+
+  it('treats unknown sparklineMode as day', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'nope' })).toBe('/api/stocks?symbols=AAPL&charts=day');
   });
 
   it('returns null when symbols is missing', () => {

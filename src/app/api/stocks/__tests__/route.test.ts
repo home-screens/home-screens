@@ -9,41 +9,56 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, cache } from '@/app/api/stocks/route';
 
-function makeYahooResponse(price: number, previousClose: number, closes?: unknown[]) {
+interface YahooLeg {
+  price: number;
+  previousClose?: number; // yesterday's close (any range)
+  chartPreviousClose?: number; // close before the chart window
+  closes?: unknown[];
+  timestamps?: unknown[];
+  regularStart?: number;
+  regularEnd?: number;
+  tradingPeriods?: Array<Array<{ start: number }>>;
+}
+
+function makeYahooResponse(leg: YahooLeg) {
   return {
     chart: {
       result: [
         {
           meta: {
-            regularMarketPrice: price,
-            chartPreviousClose: previousClose,
+            regularMarketPrice: leg.price,
+            ...(leg.previousClose !== undefined ? { previousClose: leg.previousClose } : {}),
+            ...(leg.chartPreviousClose !== undefined
+              ? { chartPreviousClose: leg.chartPreviousClose }
+              : {}),
+            ...(leg.regularStart !== undefined
+              ? {
+                  currentTradingPeriod: {
+                    regular: { start: leg.regularStart, end: leg.regularEnd },
+                  },
+                }
+              : {}),
+            ...(leg.tradingPeriods ? { tradingPeriods: leg.tradingPeriods } : {}),
           },
-          ...(closes ? { indicators: { quote: [{ close: closes }] } } : {}),
+          ...(leg.timestamps ? { timestamp: leg.timestamps } : {}),
+          ...(leg.closes ? { indicators: { quote: [{ close: leg.closes }] } } : {}),
         },
       ],
     },
   };
 }
 
-function mockFetchSuccess(
-  responses: Record<string, { price: number; previousClose: number; closes?: unknown[] }>,
-) {
+function mockFetchSuccess(responses: Record<string, Record<string, YahooLeg>>) {
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string) => {
       const symbol = Object.keys(responses).find((s) => url.includes(encodeURIComponent(s)));
-      if (!symbol) {
-        return Promise.resolve({
-          ok: false,
-          status: 404,
-          json: () => Promise.resolve({}),
-        });
+      const range = url.includes('range=5d') ? 'week' : 'day';
+      const leg = symbol ? responses[symbol][range] : undefined;
+      if (!leg) {
+        return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) });
       }
-      const { price, previousClose, closes } = responses[symbol];
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(makeYahooResponse(price, previousClose, closes)),
-      });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(makeYahooResponse(leg)) });
     }),
   );
 }
@@ -61,9 +76,12 @@ function mockFetchAllFail() {
   );
 }
 
-function makeRequest(symbols?: string): NextRequest {
-  const params = symbols !== undefined ? `?symbols=${encodeURIComponent(symbols)}` : '';
-  return new NextRequest(`http://localhost/api/stocks${params}`);
+function makeRequest(symbols?: string, charts?: string): NextRequest {
+  const params = new URLSearchParams();
+  if (symbols !== undefined) params.set('symbols', symbols);
+  if (charts !== undefined) params.set('charts', charts);
+  const qs = params.toString();
+  return new NextRequest(`http://localhost/api/stocks${qs ? `?${qs}` : ''}`);
 }
 
 describe('GET /api/stocks', () => {
@@ -73,7 +91,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('fetches a single stock with correct response shape', async () => {
-    mockFetchSuccess({ AAPL: { price: 150.123, previousClose: 148.5 } });
+    mockFetchSuccess({ AAPL: { day: { price: 150.123, chartPreviousClose: 148.5 } } });
 
     const response = await GET(makeRequest('AAPL'));
     const json = await response.json();
@@ -91,7 +109,7 @@ describe('GET /api/stocks', () => {
 
   it('requests an intraday range and returns the close series as a sparkline', async () => {
     mockFetchSuccess({
-      AAPL: { price: 150.0, previousClose: 148.0, closes: [148.5, 149.0, 150.0] },
+      AAPL: { day: { price: 150.0, chartPreviousClose: 148.0, closes: [148.5, 149.0, 150.0] } },
     });
 
     const response = await GET(makeRequest('AAPL'));
@@ -106,7 +124,9 @@ describe('GET /api/stocks', () => {
 
   it('drops null closes and trims sparkline precision to 6 significant digits', async () => {
     mockFetchSuccess({
-      AAPL: { price: 150.0, previousClose: 148.0, closes: [148.123456789, null, 149.987654321] },
+      AAPL: {
+        day: { price: 150.0, chartPreviousClose: 148.0, closes: [148.123456789, null, 149.987654321] },
+      },
     });
 
     const response = await GET(makeRequest('AAPL'));
@@ -119,7 +139,7 @@ describe('GET /api/stocks', () => {
     // price=100.456, previousClose=99.123
     // change = 1.333, rounded = 1.33
     // changePercent = (1.333/99.123)*100 = 1.34468..., rounded = 1.34
-    mockFetchSuccess({ TSLA: { price: 100.456, previousClose: 99.123 } });
+    mockFetchSuccess({ TSLA: { day: { price: 100.456, chartPreviousClose: 99.123 } } });
 
     const response = await GET(makeRequest('TSLA'));
     const json = await response.json();
@@ -130,7 +150,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('handles negative change (price dropped)', async () => {
-    mockFetchSuccess({ MSFT: { price: 95.0, previousClose: 100.0 } });
+    mockFetchSuccess({ MSFT: { day: { price: 95.0, chartPreviousClose: 100.0 } } });
 
     const response = await GET(makeRequest('MSFT'));
     const json = await response.json();
@@ -141,8 +161,8 @@ describe('GET /api/stocks', () => {
 
   it('fetches multiple stocks', async () => {
     mockFetchSuccess({
-      AAPL: { price: 150.0, previousClose: 148.0 },
-      GOOGL: { price: 2800.0, previousClose: 2750.0 },
+      AAPL: { day: { price: 150.0, chartPreviousClose: 148.0 } },
+      GOOGL: { day: { price: 2800.0, chartPreviousClose: 2750.0 } },
     });
 
     const response = await GET(makeRequest('AAPL,GOOGL'));
@@ -156,7 +176,7 @@ describe('GET /api/stocks', () => {
 
   it('handles partial failure — returns only successful stocks', async () => {
     // Only AAPL succeeds; BADTICKER will not match any key
-    mockFetchSuccess({ AAPL: { price: 150.0, previousClose: 148.0 } });
+    mockFetchSuccess({ AAPL: { day: { price: 150.0, chartPreviousClose: 148.0 } } });
 
     const response = await GET(makeRequest('AAPL,BADTICKER'));
     const json = await response.json();
@@ -177,7 +197,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('defaults to AAPL when no symbols param provided', async () => {
-    mockFetchSuccess({ AAPL: { price: 175.0, previousClose: 170.0 } });
+    mockFetchSuccess({ AAPL: { day: { price: 175.0, chartPreviousClose: 170.0 } } });
 
     const response = await GET(makeRequest());
     const json = await response.json();
@@ -188,7 +208,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('filters out empty and whitespace-only symbols', async () => {
-    mockFetchSuccess({ AAPL: { price: 150.0, previousClose: 148.0 } });
+    mockFetchSuccess({ AAPL: { day: { price: 150.0, chartPreviousClose: 148.0 } } });
 
     const response = await GET(makeRequest('AAPL, , ,'));
     const json = await response.json();
@@ -199,7 +219,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('trims whitespace around symbols', async () => {
-    mockFetchSuccess({ AAPL: { price: 150.0, previousClose: 148.0 } });
+    mockFetchSuccess({ AAPL: { day: { price: 150.0, chartPreviousClose: 148.0 } } });
 
     const response = await GET(makeRequest(' AAPL '));
     const json = await response.json();
@@ -209,7 +229,7 @@ describe('GET /api/stocks', () => {
   });
 
   it('uppercases the symbol in the response', async () => {
-    mockFetchSuccess({ aapl: { price: 150.0, previousClose: 148.0 } });
+    mockFetchSuccess({ aapl: { day: { price: 150.0, chartPreviousClose: 148.0 } } });
 
     const response = await GET(makeRequest('aapl'));
     const json = await response.json();
@@ -246,5 +266,188 @@ describe('GET /api/stocks', () => {
 
     expect(response.status).toBe(502);
     expect(json.error).toBe('Failed to fetch any stock data');
+  });
+
+  // ── chart sets ──
+
+  it('parses charts=week and fetches the 5d range at 30m granularity', async () => {
+    mockFetchSuccess({
+      AAPL: { week: { price: 150, previousClose: 148, chartPreviousClose: 140, closes: [140.5, 145, 150] } },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('interval=30m&range=5d'),
+      expect.anything(),
+    );
+    expect(json.stocks[0]).toEqual({
+      symbol: 'AAPL',
+      // previousClose (148) wins over chartPreviousClose (140): daily numbers stay daily
+      price: 150,
+      change: 2,
+      changePercent: 1.35,
+      sparklineWeek: [140.5, 145, 150],
+      weekChangePercent: 7.14,
+    });
+  });
+
+  it('charts=day,week fetches both ranges and returns both series', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: { price: 150, previousClose: 148, closes: [148.5, 150] },
+        week: { price: 150, previousClose: 148, chartPreviousClose: 140, closes: [140, 150] },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'day,week'));
+    const json = await response.json();
+
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
+    expect(calls.some((u) => u.includes('range=1d'))).toBe(true);
+    expect(calls.some((u) => u.includes('range=5d'))).toBe(true);
+    expect(json.stocks[0].sparkline).toEqual([148.5, 150]);
+    expect(json.stocks[0].sparklineWeek).toEqual([140, 150]);
+    expect(json.stocks[0].weekChangePercent).toBe(7.14);
+  });
+
+  it('drops unknown charts members and defaults to day', async () => {
+    mockFetchSuccess({ AAPL: { day: { price: 150, chartPreviousClose: 148 } } });
+
+    const response = await GET(makeRequest('AAPL', 'month,banana'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparkline).toEqual([]);
+    expect(json.stocks[0].sparklineWeek).toBeUndefined();
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
+    expect(calls.some((u) => u.includes('range=5d'))).toBe(false);
+  });
+
+  it('keeps a symbol when only one leg of a both-request succeeds', async () => {
+    mockFetchSuccess({
+      AAPL: { week: { price: 150, previousClose: 148, chartPreviousClose: 140, closes: [140, 150] } },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'day,week'));
+    const json = await response.json();
+
+    expect(json.stocks).toHaveLength(1);
+    expect(json.stocks[0].sparkline).toBeUndefined();
+    expect(json.stocks[0].sparklineWeek).toEqual([140, 150]);
+  });
+
+  it('reports where the week chart last day begins', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        week: {
+          price: 150, previousClose: 148, chartPreviousClose: 140,
+          closes: [140, 141, 142, 143, 144],
+          timestamps: [100, 200, 300, 400, 500],
+          tradingPeriods: [[{ start: 100 }], [{ start: 200 }], [{ start: 300 }]],
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+
+    // Last session starts at 300 → first stamp ≥ 300 is index 2 → 2/(5-1) = 0.5
+    expect(json.stocks[0].weekLastDayStart).toBe(0.5);
+  });
+
+  it('omits weekLastDayStart without trading periods', async () => {
+    mockFetchSuccess({
+      AAPL: { week: { price: 150, previousClose: 148, chartPreviousClose: 140, closes: [140, 150], timestamps: [100, 200] } },
+    });
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+    expect(json.stocks[0].weekLastDayStart).toBeUndefined();
+  });
+
+  // ── day-chart time fractions ──
+
+  it('scales day x-positions to the regular session window', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [1000, 1300, 1600],   // session 1000–2000
+          regularStart: 1000, regularEnd: 2000,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineXs).toEqual([0, 0.3, 0.6]);
+  });
+
+  it('keeps x-fractions aligned with closes when nulls are dropped', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, null, 150],
+          timestamps: [1000, 1300, 1600],
+          regularStart: 1000, regularEnd: 2000,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparkline).toEqual([148.5, 150]);
+    expect(json.stocks[0].sparklineXs).toEqual([0, 0.6]);
+  });
+
+  it('omits sparklineXs when the series predates the session window (stale data)', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [100, 200, 300],      // all far outside 1000–2000
+          regularStart: 1000, regularEnd: 2000,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparkline).toEqual([148.5, 149, 150]);
+    expect(json.stocks[0].sparklineXs).toBeUndefined();
+  });
+
+  it('omits sparklineXs when the response has no trading period', async () => {
+    mockFetchSuccess({
+      AAPL: { day: { price: 150, previousClose: 148, closes: [148.5, 150], timestamps: [10, 20] } },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineXs).toBeUndefined();
+  });
+
+  // ── cache separation ──
+
+  it('caches day and week requests separately', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: { price: 150, previousClose: 148, closes: [148.5, 150] },
+        week: { price: 150, previousClose: 148, chartPreviousClose: 140, closes: [140, 150] },
+      },
+    });
+
+    await GET(makeRequest('AAPL', 'day'));
+    await GET(makeRequest('AAPL', 'week'));
+
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
+    expect(calls.filter((u) => u.includes('AAPL'))).toHaveLength(2);
   });
 });

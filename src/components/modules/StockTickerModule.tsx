@@ -26,6 +26,10 @@ interface StockData {
   change: number | null;
   changePercent: number | null;
   sparkline?: number[];
+  sparklineXs?: number[];
+  sparklineWeek?: number[];
+  weekChangePercent?: number | null;
+  weekLastDayStart?: number;
 }
 
 function formatChange(val: number) {
@@ -44,6 +48,10 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
       changeValue: change,
       changeLabel: `${formatChange(change)} (${formatPercent(changePercent)})`,
       sparkline: stock.sparkline,
+      sparklineXs: stock.sparklineXs,
+      weekSparkline: stock.sparklineWeek,
+      weekPositive: stock.weekChangePercent == null ? undefined : stock.weekChangePercent >= 0,
+      weekHighlightFromX: stock.weekLastDayStart,
     };
   });
 }
@@ -112,6 +120,8 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
       showSparkline={config.showSparkline ?? true}
+      sparklineMode={config.sparklineMode ?? 'day'}
+      sparklineTheme={config.sparklineTheme ?? 'classic'}
       style={style}
       loadingMessage={t('stock-ticker.loading')}
       emptyMessage={t('stock-ticker.empty')}

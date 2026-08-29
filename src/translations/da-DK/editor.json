@@ -2523,7 +2523,14 @@
       "cryptoIdsLabel": "Mønt-id'er (adskilt med komma, CoinGecko)",
       "tickerUnitStock": "sek/aktie",
       "tickerUnitCoin": "sek/mønt",
-      "showSparkline": "Vis tendenslinje"
+      "showSparkline": "Vis tendenslinje",
+      "chartTheme": "Tema",
+      "chartThemeClassic": "Klassisk",
+      "chartThemeShaded": "Skygget",
+      "chartContent": "Grafindhold",
+      "chartContentDay": "Kun i dag",
+      "chartContentWeek": "Kun den seneste uge",
+      "chartContentBoth": "I dag og den seneste uge"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Tidsplan (kolonnegitter)",

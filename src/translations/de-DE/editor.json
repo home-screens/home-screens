@@ -2523,7 +2523,14 @@
       "cryptoIdsLabel": "Coin-IDs (kommagetrennt, CoinGecko)",
       "tickerUnitStock": "Sek./Aktie",
       "tickerUnitCoin": "Sek./Coin",
-      "showSparkline": "Trendlinie anzeigen"
+      "showSparkline": "Trendlinie anzeigen",
+      "chartTheme": "Design",
+      "chartThemeClassic": "Klassisch",
+      "chartThemeShaded": "Schattiert",
+      "chartContent": "Diagramminhalt",
+      "chartContentDay": "Nur heute",
+      "chartContentWeek": "Nur letzte Woche",
+      "chartContentBoth": "Heute und letzte Woche"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Stundenplan (Spaltenraster)",

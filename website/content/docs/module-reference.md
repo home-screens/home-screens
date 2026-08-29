@@ -498,7 +498,11 @@ Real-time stock prices from Yahoo Finance.
 | `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
 | `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). The quickest way to make prices readable across a room. Not used by the ticker view |
 | `showSparkline` | boolean | `true` | Draw a small trend line on each card in the cards view |
+| `sparklineTheme` | string | `"classic"` | Chart look: `classic` (plain line, evenly spaced) or `shaded` (soft backdrop and tint, day chart scaled to trading hours) |
+| `sparklineMode` | string | `"day"` | Which chart each card shows: `day`, `week`, or `both` (day and week side by side) |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
+
+In the `shaded` theme the day chart's width represents the full trading session (9:30–16:00 ET), so the line stops at the current time and the empty part of the chart is the remaining trading time. Each chart is colored by its own period's move; the price-change text always shows today's change.
 
 ### Crypto Price
 

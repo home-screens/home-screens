@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -41,30 +41,66 @@ interface SparklineProps {
   points: number[];
   positive: boolean;
   scale: number;
+  /** Optional 0-1 x positions (session-time fractions). Shaded mode only. */
+  xs?: number[];
+  /** Chart width in em before scale; default 5.5. */
+  widthEm?: number;
+  /** Stretch to the container's width instead of a fixed em width (shaded layout). */
+  fillWidth?: boolean;
+  /** Shaded theme: backdrop + under-line tint + xs time scaling. */
+  shaded?: boolean;
+  /** Shade the region from this 0-1 x fraction to the right edge (week chart's last day). Shaded mode only. */
+  highlightFromX?: number;
 }
 
 /** Tiny trend line — colour matches the change value, shape is the price series */
-export function Sparkline({ points, positive, scale }: SparklineProps) {
+export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX }: SparklineProps) {
+  const gradientId = useId();
   if (points.length < 2) return null;
   const min = Math.min(...points);
   const max = Math.max(...points);
   const range = max - min;
-  const coords = points
-    .map((p, i) => {
-      const x = (i / (points.length - 1)) * 100;
-      // 2-unit padding inside the 32-unit viewBox so the stroke never clips
-      const y = range === 0 ? 16 : 30 - ((p - min) / range) * 28;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
-    .join(' ');
+  const positions =
+    shaded && xs && xs.length === points.length
+      ? xs
+      : points.map((_, i) => i / (points.length - 1));
+  const coordPairs = points.map((p, i) => {
+    const x = positions[i] * 100;
+    // 2-unit padding inside the 32-unit viewBox so the stroke never clips
+    const y = range === 0 ? 16 : 30 - ((p - min) / range) * 28;
+    // toFixed(2) strings, so the classic polyline stays byte-identical
+    return { x: x.toFixed(2), y: y.toFixed(2) };
+  });
+  const coords = coordPairs.map((c) => `${c.x},${c.y}`).join(' ');
+  const area =
+    `M${coordPairs[0].x},31 ` +
+    coordPairs.map((c) => `L${c.x},${c.y}`).join(' ') +
+    ` L${coordPairs[coordPairs.length - 1].x},31 Z`;
   return (
     <svg
-      className={`financial-sparkline ${positive ? 'text-green-400' : 'text-red-400'}`}
+      className={`financial-sparkline ${shaded ? 'financial-sparkline-shaded ' : ''}${positive ? 'text-green-400' : 'text-red-400'}`}
       viewBox="0 0 100 32"
       preserveAspectRatio="none"
-      style={{ width: `${5.5 * scale}em`, height: `${1.4 * scale}em`, opacity: 0.85 }}
+      style={{ width: fillWidth ? '100%' : `${(widthEm ?? 5.5) * scale}em`, height: `${1.4 * scale}em`, opacity: 0.85 }}
       aria-hidden="true"
     >
+      {shaded && (
+        <>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="currentColor" stopOpacity={0.3} />
+              <stop offset="1" stopColor="currentColor" stopOpacity={0.1} />
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="100" height="32" fill="currentColor" opacity={0.1} />
+          {highlightFromX !== undefined && highlightFromX >= 0 && highlightFromX < 1 && (
+            <rect x={(highlightFromX * 100).toFixed(2)} y="0"
+              width={(100 - highlightFromX * 100).toFixed(2)} height="32"
+              fill="currentColor" opacity={0.15} />
+          )}
+          <path d={area} fill={`url(#${gradientId})`} />
+        </>
+      )}
       <polyline
         points={coords}
         fill="none"
@@ -80,6 +116,11 @@ export function Sparkline({ points, positive, scale }: SparklineProps) {
 
 // ── Shared item shape for cards/ticker views ──
 
+/** Which chart(s) the cards view draws */
+export type SparklineMode = 'day' | 'week' | 'both';
+/** 'classic' keeps the plain line; 'shaded' adds backdrop + tint + xs scaling */
+export type SparklineTheme = 'classic' | 'shaded';
+
 export interface FinancialItem {
   key: string;
   label: string;
@@ -87,6 +128,10 @@ export interface FinancialItem {
   changeValue: number;
   changeLabel: string;
   sparkline?: number[];
+  sparklineXs?: number[];
+  weekSparkline?: number[];
+  weekPositive?: boolean;
+  weekHighlightFromX?: number;
 }
 
 // ── Cards View ──
@@ -94,7 +139,15 @@ export interface FinancialItem {
 /** Shared cards view — grid of FinancialCards. Equal grid tracks (not
  * flex-wrap) so cards on different rows stay column-aligned regardless
  * of how wide each card's price/change text is. */
-export function FinancialCardsView({ items, scale, showSparkline }: { items: FinancialItem[]; scale: number; showSparkline?: boolean }) {
+export function FinancialCardsView({
+  items, scale, showSparkline, sparklineMode = 'day', sparklineTheme = 'classic',
+}: {
+  items: FinancialItem[];
+  scale: number;
+  showSparkline?: boolean;
+  sparklineMode?: SparklineMode;
+  sparklineTheme?: SparklineTheme;
+}) {
   return (
     <div
       className="grid content-center h-full gap-3 w-full"
@@ -108,6 +161,12 @@ export function FinancialCardsView({ items, scale, showSparkline }: { items: Fin
           changeValue={item.changeValue}
           changeLabel={item.changeLabel}
           sparkline={showSparkline ? item.sparkline : undefined}
+          sparklineXs={showSparkline ? item.sparklineXs : undefined}
+          weekSparkline={showSparkline ? item.weekSparkline : undefined}
+          weekPositive={showSparkline ? item.weekPositive : undefined}
+          weekHighlightFromX={showSparkline ? item.weekHighlightFromX : undefined}
+          sparklineMode={sparklineMode}
+          sparklineTheme={sparklineTheme}
           scale={scale}
         />
       ))}
