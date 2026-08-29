@@ -161,7 +161,7 @@ export default function RainMapModule({
   const [displayIndex, setDisplayIndex] = useState(0);
   const indexRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // Re-render when tiles settle into the store (loaded or pruned). The store
+  // Re-render when tiles settle into the store (loaded or evicted). The store
   // is shared across mounts, so a screen rotating back renders instantly.
   // The third argument is required: the display route renders modules on the
   // server, and React's server renderer throws without getServerSnapshot.
@@ -214,53 +214,76 @@ export default function RainMapModule({
     [radarTileGrid.tiles, getRadarUrl],
   );
 
-  // Load the first frame, then start the animation loop. Each animation step
-  // ensures the next frame's tiles before advancing — a no-op for tiles that
-  // are already loaded or still in their failure cooldown.
+  // Queue every frame in display order, then animate over the frames whose
+  // tiles have settled. The store paces requests far slower than the animation
+  // runs, so a cold start would otherwise cycle through mostly empty frames
+  // for over a minute; instead the loop grows as frames arrive and never
+  // shows a frame it has not loaded.
   useEffect(() => {
-    if (!frames.length || !data?.host || !radarTileGrid.tiles.length) return;
+    const perFrame = frames.map(frameUrls);
+    if (!perFrame.length || !perFrame[0].length || !data?.host) return;
 
     // Frame paths are timestamped, so each refresh brings a new URL set.
-    // Register this instance's window: the store prunes to the union of all
-    // live instances' windows (sibling rain-maps keep their tiles) while a
-    // never-unmounting display still sheds URLs that rotate out of every
-    // window.
-    const windowUrls = new Set<string>();
-    for (const frame of frames) {
-      for (const tile of radarTileGrid.tiles) {
-        const url = getRadarUrl(frame, tile);
-        if (url) windowUrls.add(url);
-      }
-    }
-    const releaseWindow = radarTileStore.retainWindow(windowUrls);
+    // Register this instance's window: its tiles are never evicted while it
+    // is live, and queued requests the window no longer wants are dropped.
+    const releaseWindow = radarTileStore.retainWindow(new Set(perFrame.flat()));
 
     let cancelled = false;
+    let started = false;
+    // True while the loop is holding on the only ready frame.
+    let parked = false;
+    const ready = new Set<number>();
     indexRef.current = 0;
     setDisplayIndex(0);
 
-    // Ensure just the first frame, then start animating
-    radarTileStore.ensure(frameUrls(frames[0])).then(() => {
-      if (cancelled) return;
-
-      function scheduleNext() {
-        if (cancelled) return;
-        const current = indexRef.current;
-        const next = (current + 1) % frames.length;
-        const isLooping = next === 0;
-        const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
-
-        // Ensure the next frame's tiles during the current frame's display time
-        radarTileStore.ensure(frameUrls(frames[next]));
-
-        timerRef.current = setTimeout(() => {
-          if (cancelled) return;
-          indexRef.current = next;
-          setDisplayIndex(next);
-          scheduleNext();
-        }, delay);
+    // Next ready frame after `current` in display order, or `current` itself
+    // while it is the only one.
+    function nextReady(current: number): number {
+      for (let step = 1; step < perFrame.length; step++) {
+        const candidate = (current + step) % perFrame.length;
+        if (ready.has(candidate)) return candidate;
       }
+      return current;
+    }
 
-      scheduleNext();
+    function scheduleNext() {
+      if (cancelled) return;
+      const current = indexRef.current;
+      const next = nextReady(current);
+      parked = next === current;
+      const isLooping = next <= current;
+      const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
+
+      // Re-ensure the frame about to be shown: a no-op while its tiles are
+      // loaded, a retry once a failed tile's cooldown has lapsed.
+      radarTileStore.ensure(perFrame[next]);
+
+      timerRef.current = setTimeout(() => {
+        if (cancelled) return;
+        indexRef.current = next;
+        setDisplayIndex(next);
+        scheduleNext();
+      }, delay);
+    }
+
+    perFrame.forEach((urls, i) => {
+      radarTileStore.ensure(urls).then(() => {
+        if (cancelled) return;
+        ready.add(i);
+        if (!started) {
+          // The first frame to settle starts the loop (frame 0, except when
+          // a later frame was already cached).
+          started = true;
+          indexRef.current = i;
+          setDisplayIndex(i);
+          scheduleNext();
+        } else if (parked) {
+          // A second frame arrived: move on at animation tempo instead of
+          // waiting out the end-of-loop hold.
+          clearTimeout(timerRef.current);
+          scheduleNext();
+        }
+      });
     });
 
     return () => {
@@ -268,7 +291,7 @@ export default function RainMapModule({
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [frames, data?.host, radarTileGrid.tiles, getRadarUrl, frameUrls, animationSpeedMs, extraDelayLastFrameMs]);
+  }, [frames, data?.host, frameUrls, animationSpeedMs, extraDelayLastFrameMs]);
 
   const gate = moduleGate({
     style, data, error,

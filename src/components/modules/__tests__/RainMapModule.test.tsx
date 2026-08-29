@@ -26,7 +26,7 @@ vi.mock('@/hooks/useFetchData', () => ({
 // "object.stream is not a function" — every 200 tile would land in the
 // failure cooldown instead of loading. The store only reads `.ok` and awaits
 // `.blob()`, which is all these fakes implement.
-let tileResponder: (url: string) => boolean = () => true;
+let tileResponder: (url: string) => number | 'hang' = () => 200;
 let tileNow = 0;
 let tileBlobSeq = 0;
 const tileFetches: string[] = [];
@@ -37,13 +37,18 @@ vi.mock('../rain-map-preload', async (importOriginal) => {
     radarTileStore: actual.createTileStore({
       spacingMs: 0,
       cooldownMs: 60_000,
+      // Two frames' worth of tiles: small enough that a third frame forces
+      // the store to evict, so the bounded-cache test can observe it.
+      maxEntries: 50,
       now: () => tileNow,
       fetchImpl: (async (url: string | URL | Request) => {
         const u = String(url);
         tileFetches.push(u);
-        return tileResponder(u)
-          ? { ok: true, blob: async () => new Blob(['png']) }
-          : { ok: false };
+        const status = tileResponder(u);
+        if (status === 'hang') return new Promise(() => {});
+        return status === 200
+          ? { ok: true, status, blob: async () => new Blob(['png']) }
+          : { ok: false, status };
       }) as unknown as typeof fetch,
       createObjectURL: () => `blob:mock-${++tileBlobSeq}`,
       revokeObjectURL: () => {},
@@ -108,7 +113,7 @@ function ui(overrides?: Partial<RainMapConfig>) {
 
 describe('RainMapModule tile pipeline', () => {
   beforeEach(() => {
-    tileResponder = () => true;
+    tileResponder = () => 200;
     tileNow = 0;
     tileFetches.length = 0;
   });
@@ -141,7 +146,7 @@ describe('RainMapModule tile pipeline', () => {
   });
 
   it('does not re-request failed tiles at animation tempo', async () => {
-    tileResponder = () => false; // every tile 429s
+    tileResponder = () => 503; // every tile fails
     mockData = makeData([1100]);
     render(ui());
     await flush();
@@ -224,25 +229,91 @@ describe('RainMapModule tile pipeline', () => {
     expect(document.querySelectorAll('img[src^="blob:"]')).toHaveLength(TILES_PER_FRAME * 2);
   });
 
-  it('prunes the store to the current animation window when frames rotate', async () => {
+  it('keeps the store bounded as frames rotate out of the window', async () => {
     mockData = makeData([2100, 2200]);
     const { rerender } = render(ui());
     await flush();
     expect(requestsFor(2100)).toBe(TILES_PER_FRAME);
     expect(requestsFor(2200)).toBe(TILES_PER_FRAME);
 
-    // Refresh slides the window: frame 2100 rotates out, 2300 arrives.
-    // The effect must prune 2100's URLs from the store.
+    // Refresh slides the window: frame 2100 rotates out, 2300 arrives. Three
+    // frames exceed the store's cap, so the frame no live window wants goes.
     mockData = makeData([2200, 2300]);
     await act(async () => rerender(ui()));
     await flush();
+    expect(requestsFor(2300)).toBe(TILES_PER_FRAME);
 
     // A window containing frame 2100 again must re-request its tiles: they
-    // were pruned. (Unpruned legacy behavior would serve them from the
-    // ever-growing store and issue zero requests.)
+    // were evicted. (An unbounded store would serve them forever and grow
+    // with every timestamped frame path the API ever returned.)
     mockData = makeData([2100, 2200]);
     await act(async () => rerender(ui()));
     await flush();
     expect(requestsFor(2100)).toBe(TILES_PER_FRAME * 2);
+  });
+
+  it('a refresh next to a sibling instance does not refetch either window', async () => {
+    // Both instances re-run their tile effects in one commit: React runs
+    // every cleanup (release) before every effect body (retain). Nothing may
+    // be evicted in between, or both windows reload every refresh.
+    mockData = makeData([8100]);
+    const tree = () => (
+      <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
+        <RainMapModule config={{ ...config, latitude: 44.7 }} style={style} />
+        <RainMapModule config={{ ...config, latitude: 60 }} style={style} />
+      </I18nProvider>
+    );
+    const { rerender } = render(tree());
+    await flush();
+    expect(requestsFor(8100)).toBe(TILES_PER_FRAME * 2);
+
+    mockData = makeData([8100, 8200]);
+    await act(async () => rerender(tree()));
+    await flush();
+    expect(requestsFor(8100)).toBe(TILES_PER_FRAME * 2); // unchanged frame served from cache
+    expect(requestsFor(8200)).toBe(TILES_PER_FRAME * 2);
+    expect(document.querySelectorAll('img[src^="blob:"]')).toHaveLength(TILES_PER_FRAME * 2);
+  });
+
+  it('rotating between two screens with different rain-maps reuses both windows', async () => {
+    mockData = makeData([9100]);
+    const tree = (latitude: number) => (
+      <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
+        <RainMapModule key={latitude} config={{ ...config, latitude }} style={style} />
+      </I18nProvider>
+    );
+    // Screen 1 (lat 44.7) → screen 2 (lat 60) → back to screen 1.
+    const { rerender } = render(tree(44.7));
+    await flush();
+    await act(async () => rerender(tree(60)));
+    await flush();
+    expect(requestsFor(9100)).toBe(TILES_PER_FRAME * 2);
+
+    await act(async () => rerender(tree(44.7)));
+    await flush();
+    expect(requestsFor(9100)).toBe(TILES_PER_FRAME * 2); // no refetch on the way back
+    expect(document.querySelectorAll('img[src^="blob:"]')).toHaveLength(TILES_PER_FRAME);
+  });
+
+  it('does not advance onto a frame whose tiles have not loaded', async () => {
+    vi.useFakeTimers();
+    // Frame 2 never loads: the loop must keep showing frame 1 rather than
+    // cycling through a blank frame while the store paces its requests.
+    tileResponder = (u) => (u.includes('/v2/radar/7200/') ? 'hang' : 200);
+    mockData = makeData([7100, 7200]);
+    render(ui({ animationSpeedMs: 500, extraDelayLastFrameMs: 500 }));
+    await flush();
+    const before = [...document.querySelectorAll('img[src^="blob:"]')].map(
+      (img) => (img as HTMLImageElement).src,
+    );
+    expect(before).toHaveLength(TILES_PER_FRAME);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2_000);
+    });
+    const after = [...document.querySelectorAll('img[src^="blob:"]')].map(
+      (img) => (img as HTMLImageElement).src,
+    );
+    expect(after).toEqual(before);
   });
 });
