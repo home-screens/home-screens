@@ -51,10 +51,12 @@ interface SparklineProps {
   shaded?: boolean;
   /** Shade the region from this 0-1 x fraction to the right edge (week chart's last day). Shaded mode only. */
   highlightFromX?: number;
+  /** Faint vertical ticks at these 0-1 x fractions (session boundaries). Shaded mode only. */
+  dividers?: number[];
 }
 
 /** Tiny trend line — colour matches the change value, shape is the price series */
-export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX }: SparklineProps) {
+export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX, dividers }: SparklineProps) {
   const gradientId = useId();
   if (points.length < 2) return null;
   const min = Math.min(...points);
@@ -98,6 +100,11 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
               width={(100 - highlightFromX * 100).toFixed(2)} height="32"
               fill="currentColor" opacity={0.15} />
           )}
+          {dividers?.map((x) => (
+            <line key={x} className="financial-sparkline-divider"
+              x1={(x * 100).toFixed(2)} y1="0" x2={(x * 100).toFixed(2)} y2="32"
+              stroke="currentColor" strokeOpacity={0.18} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+          ))}
           <path d={area} fill={`url(#${gradientId})`} />
         </>
       )}
@@ -120,6 +127,8 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
 export type SparklineMode = 'day' | 'week' | 'both';
 /** 'classic' keeps the plain line; 'shaded' adds backdrop + tint + xs scaling */
 export type SparklineTheme = 'classic' | 'shaded';
+/** Range captions drawn on the charts (already translated: 1D / 5D, 1T / 5T, ...) */
+export interface SparklineLabels { day: string; week: string }
 
 export interface FinancialItem {
   key: string;
@@ -140,13 +149,14 @@ export interface FinancialItem {
  * flex-wrap) so cards on different rows stay column-aligned regardless
  * of how wide each card's price/change text is. */
 export function FinancialCardsView({
-  items, scale, showSparkline, sparklineMode = 'day', sparklineTheme = 'classic',
+  items, scale, showSparkline, sparklineMode = 'day', sparklineTheme = 'classic', sparklineLabels,
 }: {
   items: FinancialItem[];
   scale: number;
   showSparkline?: boolean;
   sparklineMode?: SparklineMode;
   sparklineTheme?: SparklineTheme;
+  sparklineLabels?: SparklineLabels;
 }) {
   return (
     <div
@@ -167,6 +177,7 @@ export function FinancialCardsView({
           weekHighlightFromX={showSparkline ? item.weekHighlightFromX : undefined}
           sparklineMode={sparklineMode}
           sparklineTheme={sparklineTheme}
+          sparklineLabels={showSparkline ? sparklineLabels : undefined}
           scale={scale}
         />
       ))}

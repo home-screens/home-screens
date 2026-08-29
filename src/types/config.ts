@@ -1107,6 +1107,9 @@ export interface StockTickerConfig {
   // day-change color); 'shaded' adds backdrop + tint, time-scaled day chart,
   // and per-chart colors. Default 'classic'.
   sparklineTheme?: 'classic' | 'shaded';
+  // Caption each chart with its range (1D / 5D) and, in the shaded theme,
+  // tick the week chart into its sessions. Default false.
+  sparklineLabels?: boolean;
 }
 
 // Crypto module config

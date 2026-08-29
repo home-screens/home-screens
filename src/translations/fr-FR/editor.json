@@ -2533,6 +2533,7 @@
       "chartThemeClassic": "Classique",
       "chartThemeShaded": "Ombré",
       "chartContent": "Contenu du graphique",
+      "chartLabels": "Étiqueter les graphiques (1J / 5J)",
       "chartContentDay": "Aujourd'hui seulement",
       "chartContentWeek": "Semaine dernière seulement",
       "chartContentBoth": "Aujourd'hui et semaine dernière"

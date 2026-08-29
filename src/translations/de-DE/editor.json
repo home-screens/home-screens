@@ -2528,6 +2528,7 @@
       "chartThemeClassic": "Klassisch",
       "chartThemeShaded": "Schattiert",
       "chartContent": "Diagramminhalt",
+      "chartLabels": "Diagramme beschriften (1T / 5T)",
       "chartContentDay": "Nur heute",
       "chartContentWeek": "Nur letzte Woche",
       "chartContentBoth": "Heute und letzte Woche"

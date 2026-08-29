@@ -38,13 +38,14 @@ describe('FinancialCard sparkline modes', () => {
     expect(svg.getAttribute('class')).toContain('text-red-400');
   });
 
-  it('classic week keeps the day color (classic ignores per-chart colors)', () => {
+  it('classic week colors by the week change too (theme changes the look, not the data)', () => {
     const { container } = render(
       <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
         sparklineMode="week" sparklineTheme="classic"
         weekSparkline={[3, 2, 1]} weekPositive={false} />,
     );
-    expect(container.querySelector('svg.financial-sparkline')!.getAttribute('class')).toContain('text-green-400');
+    // Up day, down week: a falling line must never render green.
+    expect(container.querySelector('svg.financial-sparkline')!.getAttribute('class')).toContain('text-red-400');
   });
 
   it('week chart carries the last-day band in shaded mode only', () => {
@@ -148,6 +149,107 @@ describe('FinancialCard sparkline modes', () => {
     expect(svgs).toHaveLength(2);
     for (const svg of svgs) expect(svg.style.width).toBe('100%');
     const row = container.querySelector('.financial-sparkline-row') as HTMLElement;
+    // The negative margins only widen the box when the item stretches; a
+    // percentage width would stay content-box wide and the centered parent
+    // would swallow the margins (a layout no-op).
+    expect(row.style.alignSelf).toBe('stretch');
     expect(row.style.marginInline).toBe('-0.25em');
+    expect(row.className).not.toContain('w-full');
+  });
+
+  it('shaded single chart wrapper stretches with the side inset', () => {
+    const { container } = render(
+      <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+        sparkline={[1, 2, 3]} sparklineTheme="shaded" />,
+    );
+    const area = container.querySelector('.financial-sparkline-area') as HTMLElement;
+    expect(area.style.alignSelf).toBe('stretch');
+    expect(area.style.marginInline).toBe('-0.25em');
+    expect(area.className).not.toContain('w-full');
+  });
+
+  describe('chart labels', () => {
+    const LABELS = { day: '1D', week: '5D' };
+
+    it('renders nothing extra when labels are off', () => {
+      const { container } = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineMode="both" sparklineTheme="shaded"
+          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
+      );
+      expect(container.querySelectorAll('.financial-sparkline-label')).toHaveLength(0);
+      expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
+    });
+
+    it('captions both shaded charts and ticks the week chart into its sessions', () => {
+      const { container } = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineMode="both" sparklineTheme="shaded" sparklineLabels={LABELS}
+          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
+      );
+      const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
+      expect(labels).toEqual(['1D', '5D']);
+      // 0.8 = five sessions -> four dividers, on the week chart only.
+      const svgs = container.querySelectorAll<SVGSVGElement>('svg.financial-sparkline');
+      expect(svgs[0].querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
+      expect(svgs[1].querySelectorAll('.financial-sparkline-divider')).toHaveLength(4);
+      // Each shaded chart lives in a relative slot that still fills its half.
+      for (const svg of svgs) expect(svg.style.width).toBe('100%');
+      expect(container.querySelectorAll('.financial-sparkline-slot')).toHaveLength(2);
+    });
+
+    it('puts the caption in the corner the line leaves empty', () => {
+      const rising = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineTheme="shaded" sparklineLabels={LABELS} sparkline={[1, 2, 3]} />,
+      );
+      const risingCap = rising.container.querySelector('.financial-sparkline-label') as HTMLElement;
+      expect(risingCap.style.top).toBe('0.35em');
+      expect(risingCap.style.bottom).toBe('');
+
+      const falling = render(
+        <FinancialCard label="NVDA" price={150} scale={1} {...DAY}
+          sparklineTheme="shaded" sparklineLabels={LABELS} sparkline={[3, 2, 1]} />,
+      );
+      const fallingCap = falling.container.querySelector('.financial-sparkline-label') as HTMLElement;
+      expect(fallingCap.style.bottom).toBe('0.35em');
+      expect(fallingCap.style.top).toBe('');
+    });
+
+    it('captions a week-only shaded tile so it cannot pass for a day tile', () => {
+      const { container } = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineMode="week" sparklineTheme="shaded" sparklineLabels={LABELS}
+          weekSparkline={[3, 2, 1]} weekHighlightFromX={0.75} />,
+      );
+      expect(container.querySelector('.financial-sparkline-label')!.textContent).toBe('5D');
+      // 0.75 = a four-session holiday week -> three dividers.
+      expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(3);
+    });
+
+    it('classic gets the caption under the line and no dividers', () => {
+      const { container } = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineMode="both" sparklineTheme="classic" sparklineLabels={LABELS}
+          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
+      );
+      const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
+      expect(labels).toEqual(['1D', '5D']);
+      expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
+      const svgs = container.querySelectorAll<SVGSVGElement>('svg.financial-sparkline');
+      for (const svg of svgs) expect(svg.style.width).toBe('2.6em');
+    });
+
+    it('skips dividers when the last-day fraction is unknown or nonsensical', () => {
+      for (const from of [undefined, 0, 1, 0.5, 0.99]) {
+        const { container } = render(
+          <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+            sparklineMode="week" sparklineTheme="shaded" sparklineLabels={LABELS}
+            weekSparkline={[3, 2, 1]} weekHighlightFromX={from} />,
+        );
+        // 0.5 -> two sessions -> one divider is the only valid case here.
+        expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(from === 0.5 ? 1 : 0);
+      }
+    });
   });
 });

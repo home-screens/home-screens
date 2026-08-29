@@ -33,6 +33,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
       showSparkline?: boolean;
       sparklineMode?: SparklineMode;
       sparklineTheme?: SparklineTheme;
+      sparklineLabels?: boolean;
     } & Record<string, unknown>
   >(mod, screenId);
 
@@ -99,6 +100,11 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
             value={c.sparklineMode ?? 'day'}
             onChange={(v) => set({ sparklineMode: v })}
             options={CHART_CONTENTS}
+          />
+          <Toggle
+            label={t('configSections.financial.chartLabels')}
+            checked={c.sparklineLabels ?? false}
+            onChange={(v) => set({ sparklineLabels: v })}
           />
         </>
       )}

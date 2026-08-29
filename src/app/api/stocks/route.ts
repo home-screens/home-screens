@@ -1,18 +1,23 @@
 import { NextResponse } from 'next/server';
-import { cachedProxyRoute, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
+import { cachedProxyRoute, createTTLCache, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
+
+type Chart = 'day' | 'week';
 
 interface StockResult {
   symbol: string;
   price: number;
-  change: number;
-  changePercent: number;
+  /** Today's move; null when Yahoo gives no prior-session close to measure from. */
+  change: number | null;
+  changePercent: number | null;
   sparkline?: number[];
   sparklineXs?: number[];
   sparklineWeek?: number[];
   weekChangePercent?: number;
   weekLastDayStart?: number;
+  /** Requested charts whose upstream fetch failed; the symbol is still served from the legs that worked. */
+  missingCharts?: Chart[];
 }
 
 interface YahooChart {
@@ -31,12 +36,12 @@ interface YahooChart {
 type ChartWithMeta = YahooChart & { meta: NonNullable<YahooChart['meta']> };
 
 /** Canonical chart set: fixed order (day before week) keeps cache keys stable. */
-function parseCharts(raw: string | null): ('day' | 'week')[] {
+function parseCharts(raw: string | null): Chart[] {
   const wanted = new Set(
     (raw ?? '')
       .split(',')
       .map((s) => s.trim())
-      .filter((s): s is 'day' | 'week' => s === 'day' || s === 'week'),
+      .filter((s): s is Chart => s === 'day' || s === 'week'),
   );
   if (wanted.size === 0) return ['day'];
   return (['day', 'week'] as const).filter((c) => wanted.has(c));
@@ -124,43 +129,116 @@ function computeWeekLastDayStart(chart: YahooChart, stamps: number[], closeCount
   return Math.round((firstIndex / (closeCount - 1)) * 1e4) / 1e4;
 }
 
-async function fetchLeg(symbol: string, chart: 'day' | 'week'): Promise<ChartWithMeta> {
+const LEG_TTL_MS = 30 * 1000;
+const BACKOFF_BASE_MS = 30 * 1000;
+const BACKOFF_MAX_MS = 5 * 60 * 1000;
+
+/**
+ * Per-(symbol, chart) cache + single-flight. The route response cache is keyed
+ * by symbols AND chart set, so a cards tile asking for `day,week` and a ticker
+ * asking for `day` would otherwise each hit Yahoo for the same 1d chart. Legs
+ * are the unit Yahoo actually serves, so they are the unit we dedupe on.
+ */
+const legCache = createTTLCache<ChartWithMeta>(LEG_TTL_MS);
+const legInflight = new Map<string, Promise<ChartWithMeta>>();
+
+/**
+ * Store-wide 429 back-off. One rate-limit response pauses every Yahoo call
+ * (all symbols, both legs) for a growing window instead of letting each leg's
+ * own retry loop and each display's 30s poll keep hammering the limiter.
+ * A successful fetch resets the escalation.
+ */
+let rateLimitedUntil = 0;
+let rateLimitStrikes = 0;
+
+function noteRateLimited(): void {
+  const delay = Math.min(BACKOFF_BASE_MS * 2 ** rateLimitStrikes, BACKOFF_MAX_MS);
+  rateLimitStrikes++;
+  rateLimitedUntil = Date.now() + delay;
+  console.warn(`[stocks] Yahoo rate limited; pausing all stock fetches for ${Math.round(delay / 1000)}s`);
+}
+
+async function fetchLegUncached(symbol: string, chart: Chart): Promise<ChartWithMeta> {
+  if (Date.now() < rateLimitedUntil) {
+    throw new Error(`Rate limited: pausing ${symbol} ${chart} fetch`);
+  }
   const { interval, range } = YAHOO_PARAMS[chart];
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`;
   const res = await fetchWithTimeout(url);
+  if (res.status === 429) {
+    noteRateLimited();
+    throw new Error(`Rate limited fetching ${symbol}`);
+  }
   if (!res.ok) throw new Error(`Failed to fetch ${symbol}`);
   const data = await res.json();
   const result = data.chart?.result?.[0];
   if (!result?.meta) throw new Error(`No data for ${symbol}`);
+  rateLimitStrikes = 0;
   return result as ChartWithMeta;
 }
 
-async function fetchStock(symbol: string, charts: ('day' | 'week')[]): Promise<StockResult> {
+function fetchLeg(symbol: string, chart: Chart): Promise<ChartWithMeta> {
+  const key = `${symbol.toUpperCase()}|${chart}`;
+  const cached = legCache.get(key);
+  if (cached) return Promise.resolve(cached);
+  const existing = legInflight.get(key);
+  if (existing) return existing;
+  const promise = fetchLegUncached(symbol, chart)
+    .then((leg) => {
+      legCache.set(key, leg);
+      return leg;
+    })
+    .finally(() => {
+      if (legInflight.get(key) === promise) legInflight.delete(key);
+    });
+  legInflight.set(key, promise);
+  return promise;
+}
+
+/**
+ * The prior-session close that today's change is measured from. Under the 1d
+ * range Yahoo's chartPreviousClose IS the prior session's close (the order the
+ * route has always used); under 5d it is the close before the whole week, so
+ * the week leg may only contribute previousClose. No baseline means no daily
+ * change, never a week-sized one dressed up as today's.
+ */
+function dailyBaseline(day: ChartWithMeta | undefined, week: ChartWithMeta | undefined): number | undefined {
+  if (day) return num(day.meta.chartPreviousClose) ?? num(day.meta.previousClose);
+  if (week) return num(week.meta.previousClose);
+  return undefined;
+}
+
+async function fetchStock(symbol: string, charts: Chart[]): Promise<StockResult> {
   const legs = await Promise.allSettled(
     charts.map((chart) => fetchLeg(symbol, chart).then((yc) => ({ chart, yc }))),
   );
   const ok = legs.filter(
-    (l): l is PromiseFulfilledResult<{ chart: 'day' | 'week'; yc: ChartWithMeta }> => l.status === 'fulfilled',
+    (l): l is PromiseFulfilledResult<{ chart: Chart; yc: ChartWithMeta }> => l.status === 'fulfilled',
   );
+  const missingCharts = charts.filter((_, i) => legs[i].status === 'rejected');
+  for (let i = 0; i < legs.length; i++) {
+    const leg = legs[i];
+    if (leg.status === 'rejected') {
+      const reason = leg.reason instanceof Error ? leg.reason.message : String(leg.reason);
+      console.warn(`[stocks] ${symbol} ${charts[i]} chart failed: ${reason}`);
+    }
+  }
   const day = ok.find((l) => l.value.chart === 'day')?.value.yc;
   const week = ok.find((l) => l.value.chart === 'week')?.value.yc;
   const base = day ?? week;
   if (!base) throw new Error(`No data for ${symbol}`);
 
-  const meta = base.meta;
-  const price = num(meta.regularMarketPrice);
-  // previousClose is yesterday's close under any range; chartPreviousClose
-  // becomes the pre-window close under 5d, which would corrupt daily numbers.
-  const previousClose = num(meta.previousClose) ?? num(meta.chartPreviousClose);
-  if (price === undefined || previousClose === undefined) throw new Error(`No data for ${symbol}`);
-  const change = price - previousClose;
-  const changePercent = (change / previousClose) * 100;
+  const price = num(base.meta.regularMarketPrice);
+  if (price === undefined) throw new Error(`No data for ${symbol}`);
+  const baseline = dailyBaseline(day, week);
+  const change = baseline === undefined ? null : price - baseline;
+  const changePercent = baseline === undefined || change === null ? null : (change / baseline) * 100;
 
   const result: StockResult = {
     symbol: symbol.toUpperCase(),
     price: Math.round(price * 100) / 100,
-    change: Math.round(change * 100) / 100,
-    changePercent: Math.round(changePercent * 100) / 100,
+    change: change === null ? null : Math.round(change * 100) / 100,
+    changePercent: changePercent === null ? null : Math.round(changePercent * 100) / 100,
   };
 
   if (day) {
@@ -178,6 +256,7 @@ async function fetchStock(symbol: string, charts: ('day' | 'week')[]): Promise<S
       result.weekChangePercent = Math.round(((price - weekBaseline) / weekBaseline) * 100 * 100) / 100;
     }
   }
+  if (missingCharts.length > 0) result.missingCharts = missingCharts;
   return result;
 }
 
@@ -211,5 +290,14 @@ const { GET, cache } = cachedProxyRoute<Record<string, unknown>>({
   errorMessage: 'Failed to fetch stocks',
 });
 
+/** @internal Clears the response cache, the per-leg cache and the 429 back-off. */
+function clearStockCaches(): void {
+  cache.clear();
+  legCache.clear();
+  legInflight.clear();
+  rateLimitedUntil = 0;
+  rateLimitStrikes = 0;
+}
+
 /** @internal */
-export { GET, cache };
+export { GET, cache, clearStockCaches };

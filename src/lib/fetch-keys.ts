@@ -12,7 +12,12 @@ type AnyConfig = Record<string, any>;
 export function stocksUrl(config: AnyConfig): string | null {
   const symbols = config.symbols as string | undefined;
   if (!symbols) return null;
-  const mode = config.sparklineMode as string | undefined;
+  // Only the cards view draws charts, and only with the trend line on. Any
+  // other view (or a hidden trend line) still needs the day leg for the
+  // price and change, but must not drag the week leg along for nothing.
+  const view = (config.view as string | undefined) ?? 'cards';
+  const chartsShown = view === 'cards' && config.showSparkline !== false;
+  const mode = chartsShown ? (config.sparklineMode as string | undefined) : undefined;
   const charts = mode === 'week' ? 'week' : mode === 'both' ? 'day,week' : 'day';
   return `/api/stocks?symbols=${encodeURIComponent(symbols)}&charts=${charts}`;
 }

@@ -37,16 +37,20 @@ function formatChange(val: number) {
   return `${sign}${val.toFixed(2)}`;
 }
 
+/** Today's move as text; an en dash when the API had no prior close to measure from. */
+function formatChangeLabel(change: number | null, changePercent: number | null): string {
+  if (change == null || changePercent == null) return '\u2013';
+  return `${formatChange(change)} (${formatPercent(changePercent)})`;
+}
+
 function toFinancialItems(stocks: StockData[]): FinancialItem[] {
   return stocks.map((stock, i) => {
-    const change = stock.change ?? 0;
-    const changePercent = stock.changePercent ?? 0;
     return {
       key: `${stock.symbol}-${i}`,
       label: stock.symbol,
       price: stock.price ?? 0,
-      changeValue: change,
-      changeLabel: `${formatChange(change)} (${formatPercent(changePercent)})`,
+      changeValue: stock.change ?? 0,
+      changeLabel: formatChangeLabel(stock.change ?? null, stock.changePercent ?? null),
       sparkline: stock.sparkline,
       sparklineXs: stock.sparklineXs,
       weekSparkline: stock.sparklineWeek,
@@ -122,6 +126,9 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       showSparkline={config.showSparkline ?? true}
       sparklineMode={config.sparklineMode ?? 'day'}
       sparklineTheme={config.sparklineTheme ?? 'classic'}
+      sparklineLabels={config.sparklineLabels
+        ? { day: t('stock-ticker.chartLabels.day'), week: t('stock-ticker.chartLabels.week') }
+        : undefined}
       style={style}
       loadingMessage={t('stock-ticker.loading')}
       emptyMessage={t('stock-ticker.empty')}

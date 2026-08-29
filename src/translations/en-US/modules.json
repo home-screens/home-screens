@@ -604,6 +604,7 @@
     "noGames": "No games found"
   },
   "stock-ticker": {
+    "chartLabels": { "day": "1D", "week": "5D" },
     "loading": "Loading…",
     "empty": "No stock data",
     "headers": {

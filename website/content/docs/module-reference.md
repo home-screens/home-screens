@@ -500,9 +500,10 @@ Real-time stock prices from Yahoo Finance.
 | `showSparkline` | boolean | `true` | Draw a small trend line on each card in the cards view |
 | `sparklineTheme` | string | `"classic"` | Chart look: `classic` (plain line, evenly spaced) or `shaded` (soft backdrop and tint, day chart scaled to trading hours) |
 | `sparklineMode` | string | `"day"` | Which chart each card shows: `day`, `week`, or `both` (day and week side by side) |
+| `sparklineLabels` | boolean | `false` | Caption each chart with its range (`1D` for today, `5D` for the past week) so the two are easy to tell apart. In the `shaded` theme the week chart is also ticked into its trading sessions |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
-In the `shaded` theme the day chart's width represents the full trading session (9:30–16:00 ET), so the line stops at the current time and the empty part of the chart is the remaining trading time. Each chart is colored by its own period's move; the price-change text always shows today's change.
+Each chart is colored by its own period's move (the day chart by today's change, the week chart by the week's change) in both themes; the price-change text always shows today's change. In the `shaded` theme the day chart's width represents that symbol's full regular trading session on its own exchange (for example 9:30 to 16:00 Eastern for US stocks), so during the session the line stops at the current time and the empty part of the chart is the remaining trading time. Outside the session, or when the session bounds are not available, the points are spread evenly across the full width. The `classic` theme always spreads points evenly.
 
 ### Crypto Price
 

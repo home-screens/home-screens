@@ -2533,6 +2533,7 @@
       "chartThemeClassic": "Clásico",
       "chartThemeShaded": "Sombreado",
       "chartContent": "Contenido del gráfico",
+      "chartLabels": "Etiquetar gráficos (1D / 5D)",
       "chartContentDay": "Solo hoy",
       "chartContentWeek": "Solo la semana pasada",
       "chartContentBoth": "Hoy y semana pasada"

@@ -2528,6 +2528,7 @@
       "chartThemeClassic": "Classic",
       "chartThemeShaded": "Shaded",
       "chartContent": "Chart content",
+      "chartLabels": "Label charts (1D / 5D)",
       "chartContentDay": "Today only",
       "chartContentWeek": "Past week only",
       "chartContentBoth": "Today and past week"

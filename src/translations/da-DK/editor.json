@@ -2528,6 +2528,7 @@
       "chartThemeClassic": "Klassisk",
       "chartThemeShaded": "Skygget",
       "chartContent": "Grafindhold",
+      "chartLabels": "Mærk grafer (1D / 5D)",
       "chartContentDay": "Kun i dag",
       "chartContentWeek": "Kun den seneste uge",
       "chartContentBoth": "I dag og den seneste uge"

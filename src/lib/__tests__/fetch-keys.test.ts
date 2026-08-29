@@ -36,6 +36,18 @@ describe('stocksUrl', () => {
     expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'week' })).toBe('/api/stocks?symbols=AAPL&charts=week');
   });
 
+  it('fetches only the day leg for views that never draw charts', () => {
+    // The editor hides the chart selects outside cards but keeps the value.
+    for (const view of ['ticker', 'table', 'compact']) {
+      expect(stocksUrl({ symbols: 'AAPL', view, sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day');
+    }
+  });
+
+  it('fetches only the day leg when the trend line is hidden', () => {
+    expect(stocksUrl({ symbols: 'AAPL', view: 'cards', showSparkline: false, sparklineMode: 'week' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
   it('maps sparklineMode both to charts=day,week', () => {
     expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day,week');
   });

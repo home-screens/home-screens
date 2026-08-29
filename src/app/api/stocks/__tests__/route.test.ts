@@ -7,7 +7,7 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-import { GET, cache } from '@/app/api/stocks/route';
+import { GET, clearStockCaches } from '@/app/api/stocks/route';
 
 interface YahooLeg {
   price: number;
@@ -87,7 +87,8 @@ function makeRequest(symbols?: string, charts?: string): NextRequest {
 describe('GET /api/stocks', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    cache.clear();
+    clearStockCaches();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   it('fetches a single stock with correct response shape', async () => {
@@ -335,6 +336,40 @@ describe('GET /api/stocks', () => {
     expect(json.stocks).toHaveLength(1);
     expect(json.stocks[0].sparkline).toBeUndefined();
     expect(json.stocks[0].sparklineWeek).toEqual([140, 150]);
+    // The partial leg is named, not silently dropped, and logged.
+    expect(json.stocks[0].missingCharts).toEqual(['day']);
+    expect(json.failedSymbols).toBeUndefined();
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('AAPL day chart failed'));
+  });
+
+  it('week-only without previousClose reports no daily change instead of the week move', async () => {
+    // Yahoo's 5d chartPreviousClose is the close before the whole week. Using
+    // it as today's baseline would turn a -0.24% day into a +0.50% "today".
+    mockFetchSuccess({
+      VFIAX: { week: { price: 712.67, chartPreviousClose: 709.14, closes: [709, 712.67] } },
+    });
+
+    const response = await GET(makeRequest('VFIAX', 'week'));
+    const json = await response.json();
+
+    expect(json.stocks[0].change).toBeNull();
+    expect(json.stocks[0].changePercent).toBeNull();
+    expect(json.stocks[0].weekChangePercent).toBe(0.5);
+    expect(json.stocks[0].sparklineWeek).toEqual([709, 712.67]);
+  });
+
+  it('day leg keeps chartPreviousClose as the daily baseline (pre-open safe)', async () => {
+    // Under 1d, chartPreviousClose is the prior session's close, the baseline
+    // the route has always used. previousClose is only a fallback.
+    mockFetchSuccess({
+      AAPL: { day: { price: 150, previousClose: 150, chartPreviousClose: 148 } },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'day'));
+    const json = await response.json();
+
+    expect(json.stocks[0].change).toBe(2);
+    expect(json.stocks[0].changePercent).toBe(1.35);
   });
 
   it('reports where the week chart last day begins', async () => {
@@ -434,9 +469,9 @@ describe('GET /api/stocks', () => {
     expect(json.stocks[0].sparklineXs).toBeUndefined();
   });
 
-  // ── cache separation ──
+  // ── upstream dedupe ──
 
-  it('caches day and week requests separately', async () => {
+  it('reuses a fetched leg across chart sets instead of refetching it', async () => {
     mockFetchSuccess({
       AAPL: {
         day: { price: 150, previousClose: 148, closes: [148.5, 150] },
@@ -444,10 +479,57 @@ describe('GET /api/stocks', () => {
       },
     });
 
-    await GET(makeRequest('AAPL', 'day'));
-    await GET(makeRequest('AAPL', 'week'));
+    // A ticker (day) and a cards tile (day,week) share the 1d chart.
+    const dayOnly = await (await GET(makeRequest('AAPL', 'day'))).json();
+    const both = await (await GET(makeRequest('AAPL', 'day,week'))).json();
+    const weekOnly = await (await GET(makeRequest('AAPL', 'week'))).json();
 
     const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
-    expect(calls.filter((u) => u.includes('AAPL'))).toHaveLength(2);
+    expect(calls.filter((u) => u.includes('range=1d'))).toHaveLength(1);
+    expect(calls.filter((u) => u.includes('range=5d'))).toHaveLength(1);
+    expect(dayOnly.stocks[0].sparklineWeek).toBeUndefined();
+    expect(both.stocks[0].sparkline).toEqual([148.5, 150]);
+    expect(both.stocks[0].sparklineWeek).toEqual([140, 150]);
+    expect(weekOnly.stocks[0].sparkline).toBeUndefined();
+  });
+
+  it('collapses concurrent requests for the same leg into one upstream call', async () => {
+    mockFetchSuccess({ AAPL: { day: { price: 150, chartPreviousClose: 148 } } });
+
+    await Promise.all([
+      GET(makeRequest('AAPL', 'day')),
+      GET(makeRequest('AAPL', 'day,week')),
+      GET(makeRequest('AAPL,MSFT', 'day')),
+    ]);
+
+    const calls = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
+    expect(calls.filter((u) => u.includes('AAPL') && u.includes('range=1d'))).toHaveLength(1);
+  });
+
+  // ── 429 back-off ──
+
+  it('pauses every Yahoo call after a 429 instead of retrying each poll', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 429,
+          headers: { get: () => '0' },
+          json: () => Promise.resolve({}),
+        }),
+      ),
+    );
+
+    const first = await GET(makeRequest('AAPL,MSFT', 'day,week'));
+    expect(first.status).toBe(502);
+    const callsAfterFirst = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
+    expect(callsAfterFirst).toBeGreaterThan(0);
+    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('rate limited'));
+
+    // Within the back-off window nothing reaches Yahoo, even for new symbols.
+    const second = await GET(makeRequest('GOOGL', 'day'));
+    expect(second.status).toBe(502);
+    expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(callsAfterFirst);
   });
 });

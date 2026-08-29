@@ -604,6 +604,7 @@
     "noGames": "Aucun match trouvé"
   },
   "stock-ticker": {
+    "chartLabels": { "day": "1J", "week": "5J" },
     "loading": "Chargement…",
     "empty": "Aucune donnée boursière",
     "headers": {

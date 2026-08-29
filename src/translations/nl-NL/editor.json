@@ -2528,6 +2528,7 @@
       "chartThemeClassic": "Klassiek",
       "chartThemeShaded": "Gearceerd",
       "chartContent": "Grafiekinhoud",
+      "chartLabels": "Grafieklabels (1D / 5D)",
       "chartContentDay": "Alleen vandaag",
       "chartContentWeek": "Alleen afgelopen week",
       "chartContentBoth": "Vandaag en afgelopen week"

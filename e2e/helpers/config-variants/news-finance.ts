@@ -132,6 +132,18 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     config: { view: 'cards', sparklineTheme: 'shaded', sparklineMode: 'both' },
     expect: count('.financial-sparkline', 4),
   },
+  {
+    // Labels caption every chart (2 stocks x day + week = 4 captions); the
+    // default (off) renders none, which the both-mode row above pins by
+    // asserting only the SVGs.
+    type: 'stock-ticker', name: 'sparkline-labels', kind: 'networked', stubKey: 'stocks',
+    config: { view: 'cards', sparklineTheme: 'shaded', sparklineMode: 'both', sparklineLabels: true },
+    expect: async (mod) => {
+      await count('.financial-sparkline-label', 4)(mod);
+      await has('1D')(mod);
+      await has('5D')(mod);
+    },
+  },
 
   // -- crypto --
   {
