@@ -20,12 +20,18 @@ export default function SelectionOverlay({
   displayWidth,
   displayHeight,
   onResize,
+  onResizeEnd,
 }: {
   mod: ModuleInstance;
   scale: number;
   displayWidth: number;
   displayHeight: number;
   onResize: (size: { w: number; h: number }) => void;
+  /** Fired when a resize drag finishes. The browser follows the gesture with
+   *  a click — on the handle when released there, or on the canvas (the
+   *  common ancestor of handle and release target) when released anywhere
+   *  else — which the canvas must not read as a background click. */
+  onResizeEnd: () => void;
 }) {
   // The store clamps every resize to the canvas, but a config can still
   // arrive with a module past the edge (an older save, a hand-edited file,
@@ -65,12 +71,13 @@ export default function SelectionOverlay({
         resizeRef.current = null;
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        onResizeEnd();
       };
 
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     },
-    [mod.size, scale, onResize],
+    [mod.size, scale, onResize, onResizeEnd],
   );
 
   return (

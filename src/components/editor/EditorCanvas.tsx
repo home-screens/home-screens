@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
@@ -195,6 +195,19 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const canUndo = useEditorStore((s) => s._past.length > 0);
   const canRedo = useEditorStore((s) => s._future.length > 0);
 
+  // Every finished resize drag is followed by a click: on the handle when
+  // released there, or on the canvas div itself when released anywhere else
+  // (the click targets the nearest common ancestor of the mousedown and
+  // mouseup targets). Either way it bubbles here and would read as a
+  // background click, dropping the selection the user just finished
+  // resizing. Swallow exactly that one click; the next mousedown clears a
+  // stale swallow (a resize that ended without a trailing click, e.g.
+  // released outside the window) so it can never eat a later click.
+  const swallowNextCanvasClickRef = useRef(false);
+  const handleResizeEnd = useCallback(() => {
+    swallowNextCanvasClickRef.current = true;
+  }, []);
+
   if (!currentScreen) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-hs-text-faint">
@@ -272,7 +285,16 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               // they can't compete with editor chrome outside the canvas.
               isolation: 'isolate',
             }}
-            onClick={() => selectModule(null)}
+            onMouseDownCapture={() => {
+              swallowNextCanvasClickRef.current = false;
+            }}
+            onClick={() => {
+              if (swallowNextCanvasClickRef.current) {
+                swallowNextCanvasClickRef.current = false;
+                return;
+              }
+              selectModule(null);
+            }}
           >
             <PageBackgroundProvider>
               <CanvasBackground
@@ -300,6 +322,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                     displayWidth={displayWidth}
                     displayHeight={displayHeight}
                     onResize={(size) => resizeModule(selectedScreenId!, sel.id, size)}
+                    onResizeEnd={handleResizeEnd}
                   />
                 ) : null;
               })()}

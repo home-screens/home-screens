@@ -78,6 +78,12 @@ test.describe('module lifecycle', () => {
     await page.mouse.up();
     await saved;
 
+    // The resize gesture ends with the browser dispatching a trailing click
+    // (on the handle or the canvas, whichever the release point makes the
+    // target). It must not read as a background click: the module stays
+    // selected with its handle still grabbable.
+    await expect(page.locator('[data-testid="selection-overlay"]')).toBeVisible();
+
     await pollConfig(request, (c) => c.screens[0].modules[0].size.w).then((p) => p.toBeGreaterThan(400));
     await pollConfig(request, (c) => c.screens[0].modules[0].size.h).then((p) => p.toBeGreaterThan(200));
   });
