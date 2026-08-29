@@ -64,7 +64,7 @@ describe('FinancialCard sparkline modes', () => {
     expect(classic.container.querySelector('svg.financial-sparkline')!.querySelectorAll('rect')).toHaveLength(0);
   });
 
-  it('both mode renders two charts side by side', () => {
+  it('both mode renders two charts side by side, week left of day', () => {
     const { container } = render(
       <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
         sparklineMode="both" sparklineTheme="shaded"
@@ -73,8 +73,9 @@ describe('FinancialCard sparkline modes', () => {
     );
     const svgs = container.querySelectorAll('svg.financial-sparkline');
     expect(svgs).toHaveLength(2);
-    expect(svgs[0].getAttribute('class')).toContain('text-green-400'); // day chart
-    expect(svgs[1].getAttribute('class')).toContain('text-red-400');   // week chart
+    // Chronological reading: the past week on the left, today on the right.
+    expect(svgs[0].getAttribute('class')).toContain('text-red-400');   // week chart
+    expect(svgs[1].getAttribute('class')).toContain('text-green-400'); // day chart
     expect(container.querySelector('.financial-sparkline-row')).not.toBeNull();
   });
 
@@ -188,11 +189,11 @@ describe('FinancialCard sparkline modes', () => {
           sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
       );
       const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
-      expect(labels).toEqual(['1D', '5D']);
-      // 0.8 = five sessions -> four dividers, on the week chart only.
+      expect(labels).toEqual(['5D', '1D']);
+      // 0.8 = five sessions -> four dividers, on the week chart (left) only.
       const svgs = container.querySelectorAll<SVGSVGElement>('svg.financial-sparkline');
-      expect(svgs[0].querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
-      expect(svgs[1].querySelectorAll('.financial-sparkline-divider')).toHaveLength(4);
+      expect(svgs[0].querySelectorAll('.financial-sparkline-divider')).toHaveLength(4);
+      expect(svgs[1].querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
       // Each shaded chart lives in a relative slot that still fills its half.
       for (const svg of svgs) expect(svg.style.width).toBe('100%');
       expect(container.querySelectorAll('.financial-sparkline-slot')).toHaveLength(2);
@@ -234,10 +235,22 @@ describe('FinancialCard sparkline modes', () => {
           sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
       );
       const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
-      expect(labels).toEqual(['1D', '5D']);
+      expect(labels).toEqual(['5D', '1D']);
       expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
       const svgs = container.querySelectorAll<SVGSVGElement>('svg.financial-sparkline');
       for (const svg of svgs) expect(svg.style.width).toBe('2.6em');
+    });
+
+    it('ticks the week chart at the exact boundaries the API reports', () => {
+      const { container } = render(
+        <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
+          sparklineMode="week" sparklineTheme="shaded" sparklineLabels={LABELS}
+          weekSparkline={[3, 2, 1]} weekHighlightFromX={0.55} weekDayBoundaries={[0.25, 0.55]} />,
+      );
+      const xs = [...container.querySelectorAll('.financial-sparkline-divider')].map((l) => l.getAttribute('x1'));
+      // The unequal-session fractions as served — not the equal-session guess
+      // the 0.55 lastDayStart would produce on its own.
+      expect(xs).toEqual(['25.00', '55.00']);
     });
 
     it('skips dividers when the last-day fraction is unknown or nonsensical', () => {

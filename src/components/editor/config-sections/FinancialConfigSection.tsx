@@ -20,9 +20,10 @@ interface FinancialConfigProps {
   symbolsPlaceholder: string;
   tickerUnitText: string;
   showChartRange?: boolean;
+  showModeSelect?: boolean;
 }
 
-function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange }: FinancialConfigProps) {
+function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange, showModeSelect }: FinancialConfigProps) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<
     {
@@ -34,6 +35,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
       sparklineMode?: SparklineMode;
       sparklineTheme?: SparklineTheme;
       sparklineLabels?: boolean;
+      displayMode?: 'single' | 'multiple';
     } & Record<string, unknown>
   >(mod, screenId);
 
@@ -54,23 +56,41 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
     { value: 'both' as const, label: t('configSections.financial.chartContentBoth') },
   ];
 
+  const MODES = [
+    { value: 'multiple' as const, label: t('configSections.financial.modeMultiple') },
+    { value: 'single' as const, label: t('configSections.financial.modeSingle') },
+  ];
+
   const view = c.view ?? 'cards';
   const sparklineOn = view === 'cards' && (c.showSparkline ?? true);
+  // Stock-only single-tile mode; crypto never passes showModeSelect, so its
+  // panel renders exactly as before no matter what displayMode holds.
+  const single = (showModeSelect ?? false) && (c.displayMode ?? 'multiple') === 'single';
   const symbolsValue = (c[symbolsField] as string) || symbolsPlaceholder;
 
   return (
     <>
+      {showModeSelect && (
+        <ViewSelect
+          label={t('configSections.financial.mode')}
+          value={c.displayMode ?? 'multiple'}
+          onChange={(v) => set({ displayMode: v })}
+          options={MODES}
+        />
+      )}
       <LabeledInput
-        label={symbolsLabel}
+        label={single ? t('configSections.financial.symbolLabel') : symbolsLabel}
         value={symbolsValue}
         onChange={(v) => set({ [symbolsField]: v })}
       />
-      <ViewSelect
-        value={view}
-        onChange={(v) => set({ view: v })}
-        options={FINANCIAL_VIEWS}
-      />
-      {view !== 'ticker' && (
+      {!single && (
+        <ViewSelect
+          value={view}
+          onChange={(v) => set({ view: v })}
+          options={FINANCIAL_VIEWS}
+        />
+      )}
+      {!single && view !== 'ticker' && (
         <Slider
           label={t('configSections.financial.scale')}
           value={c.cardScale ?? 1}
@@ -80,14 +100,14 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           onChange={(v) => set({ cardScale: v })}
         />
       )}
-      {view === 'cards' && (
+      {!single && view === 'cards' && (
         <Toggle
           label={t('configSections.financial.showSparkline')}
           checked={c.showSparkline ?? true}
           onChange={(v) => set({ showSparkline: v })}
         />
       )}
-      {sparklineOn && showChartRange && (
+      {showChartRange && (single || sparklineOn) && (
         <>
           <ViewSelect
             label={t('configSections.financial.chartTheme')}
@@ -101,14 +121,16 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
             onChange={(v) => set({ sparklineMode: v })}
             options={CHART_CONTENTS}
           />
-          <Toggle
-            label={t('configSections.financial.chartLabels')}
-            checked={c.sparklineLabels ?? false}
-            onChange={(v) => set({ sparklineLabels: v })}
-          />
         </>
       )}
-      {view === 'ticker' && (
+      {showChartRange && (single || sparklineOn) && (
+        <Toggle
+          label={t('configSections.financial.chartLabels')}
+          checked={c.sparklineLabels ?? false}
+          onChange={(v) => set({ sparklineLabels: v })}
+        />
+      )}
+      {!single && view === 'ticker' && (
         <Slider
           label={t('configSections.financial.tickerSpeed', { unit: tickerUnitText })}
           value={c.tickerSpeed ?? 5}
@@ -143,6 +165,7 @@ export function StockTickerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       symbolsPlaceholder="AAPL,GOOGL,MSFT"
       tickerUnitText={t('configSections.financial.tickerUnitStock')}
       showChartRange
+      showModeSelect
     />
   );
 }

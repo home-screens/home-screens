@@ -111,7 +111,7 @@ rsync -azP --delete \
 # The Pi installs with --omit=dev (no tsx), so ship the self-contained bundle
 # that the launcher (scripts/check-config.mjs) prefers when present.
 step "Bundling config-check CLI..."
-CHECK_CONFIG_TMPDIR="$(mktemp -d -t check-config)"
+CHECK_CONFIG_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/hs-check-config.XXXXXX")"
 (cd "$PROJECT_DIR" && npx esbuild scripts/check-config.ts --bundle --platform=node \
   --format=cjs --outfile="$CHECK_CONFIG_TMPDIR/check-config.cjs" --log-level=warning)
 rsync -azP "$CHECK_CONFIG_TMPDIR/check-config.cjs" "$HOST:$REMOTE_DIR/scripts/check-config.cjs"

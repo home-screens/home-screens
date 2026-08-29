@@ -26,6 +26,21 @@ export function formatPercent(val: number): string {
   return `${sign}${val.toFixed(2)}%`;
 }
 
+/** Format a change value with sign prefix (no percent sign) */
+export function formatChange(val: number): string {
+  const sign = val >= 0 ? '+' : '';
+  return `${sign}${val.toFixed(2)}`;
+}
+
+/** Tiered axis-label rounding: whole dollars at $10+, one decimal under $10, two under $1.
+ * `locale` threads through toLocaleString (like formatUSD) so grouping and the
+ * decimal mark match the tile's price header. */
+export function formatAxisValue(v: number, locale: string = DEFAULT_LOCALE): string {
+  if (v < 1) return `$${v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (v < 10) return `$${v.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+  return `$${v.toLocaleString(locale, { maximumFractionDigits: 0 })}`;
+}
+
 /** Colour-code a value: green for positive, red for negative */
 export function ChangeColor({ value, children }: { value: number; children: ReactNode }) {
   return (
@@ -36,6 +51,18 @@ export function ChangeColor({ value, children }: { value: number; children: Reac
 }
 
 // ── Sparkline ──
+
+/**
+ * Map a value to its y coordinate in the 0..32 viewBox: 2-unit padding band
+ * inside the box, with a flat domain (min === max) landing on the mid-line
+ * y=16. The single source of this mapping — Sparkline's line and level lines
+ * and SingleTile's gutter axis labels all derive from it, so they cannot
+ * drift apart.
+ */
+export function sparklineY(value: number, min: number, max: number): number {
+  const range = max - min;
+  return range === 0 ? 16 : 30 - ((value - min) / range) * 28;
+}
 
 interface SparklineProps {
   points: number[];
@@ -51,39 +78,63 @@ interface SparklineProps {
   shaded?: boolean;
   /** Shade the region from this 0-1 x fraction to the right edge (week chart's last day). Shaded mode only. */
   highlightFromX?: number;
-  /** Faint vertical ticks at these 0-1 x fractions (session boundaries). Shaded mode only. */
+  /** Faint vertical ticks at these 0-1 x fractions (session boundaries). */
   dividers?: number[];
+  /** Run the tint fill to the chart's bottom edge instead of stopping one unit
+   * short (single-tile layout). Default keeps the cards look. */
+  flushBottomFill?: boolean;
+  /** Draw dividers over the tint fill instead of beneath it (single-tile
+   * layout, so they stay visible across the flush fill). Default keeps the
+   * cards look. */
+  dividersOverFill?: boolean;
+  /** Explicit y-scale (shared-scale rendering); absent = the series' own min/max.
+   * Values outside the domain map outside the padded band and clip at the svg
+   * viewport — graceful but silent; flat domains flatten at the mid-line. */
+  domain?: { min: number; max: number };
+  /** Thin horizontal lines at the domain's max and min levels. */
+  showLevelLines?: boolean;
+  /** Stretch to the container's height instead of the fixed 1.4em (Single layout). */
+  fillHeight?: boolean;
 }
 
 /** Tiny trend line — colour matches the change value, shape is the price series */
-export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX, dividers }: SparklineProps) {
+export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX, dividers, flushBottomFill, dividersOverFill, domain, showLevelLines, fillHeight }: SparklineProps) {
   const gradientId = useId();
   if (points.length < 2) return null;
-  const min = Math.min(...points);
-  const max = Math.max(...points);
-  const range = max - min;
+  const min = domain?.min ?? Math.min(...points);
+  const max = domain?.max ?? Math.max(...points);
+  // Level-line y coords at the mapping's extremes (max first, matching the
+  // historical DOM order); a flat domain collapses them to the same mid-line
+  // y, deduped so one line draws, not two stacked.
+  const levelYs = [...new Set([sparklineY(max, min, max), sparklineY(min, min, max)])];
   const positions =
     shaded && xs && xs.length === points.length
       ? xs
       : points.map((_, i) => i / (points.length - 1));
   const coordPairs = points.map((p, i) => {
     const x = positions[i] * 100;
-    // 2-unit padding inside the 32-unit viewBox so the stroke never clips
-    const y = range === 0 ? 16 : 30 - ((p - min) / range) * 28;
     // toFixed(2) strings, so the classic polyline stays byte-identical
-    return { x: x.toFixed(2), y: y.toFixed(2) };
+    return { x: x.toFixed(2), y: sparklineY(p, min, max).toFixed(2) };
   });
   const coords = coordPairs.map((c) => `${c.x},${c.y}`).join(' ');
+  // The cards look stops the tint one unit above the backdrop's bottom edge;
+  // the single-tile layout runs it flush (flushBottomFill).
+  const areaBottom = flushBottomFill ? 32 : 31;
   const area =
-    `M${coordPairs[0].x},31 ` +
+    `M${coordPairs[0].x},${areaBottom} ` +
     coordPairs.map((c) => `L${c.x},${c.y}`).join(' ') +
-    ` L${coordPairs[coordPairs.length - 1].x},31 Z`;
+    ` L${coordPairs[coordPairs.length - 1].x},${areaBottom} Z`;
+  const dividerNodes = dividers?.map((x, i) => (
+    <line key={`${x}-${i}`} className="financial-sparkline-divider"
+      x1={(x * 100).toFixed(2)} y1="0" x2={(x * 100).toFixed(2)} y2="32"
+      stroke="currentColor" strokeOpacity={0.18} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+  ));
   return (
     <svg
       className={`financial-sparkline ${shaded ? 'financial-sparkline-shaded ' : ''}${positive ? 'text-green-400' : 'text-red-400'}`}
       viewBox="0 0 100 32"
       preserveAspectRatio="none"
-      style={{ width: fillWidth ? '100%' : `${(widthEm ?? 5.5) * scale}em`, height: `${1.4 * scale}em`, opacity: 0.85 }}
+      style={{ width: fillWidth ? '100%' : `${(widthEm ?? 5.5) * scale}em`, height: fillHeight ? '100%' : `${1.4 * scale}em`, opacity: 0.85 }}
       aria-hidden="true"
     >
       {shaded && (
@@ -100,14 +151,16 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
               width={(100 - highlightFromX * 100).toFixed(2)} height="32"
               fill="currentColor" opacity={0.15} />
           )}
-          {dividers?.map((x) => (
-            <line key={x} className="financial-sparkline-divider"
-              x1={(x * 100).toFixed(2)} y1="0" x2={(x * 100).toFixed(2)} y2="32"
-              stroke="currentColor" strokeOpacity={0.18} strokeWidth={1} vectorEffect="non-scaling-stroke" />
-          ))}
+          {!dividersOverFill && dividerNodes}
           <path d={area} fill={`url(#${gradientId})`} />
         </>
       )}
+      {(!shaded || dividersOverFill) && dividerNodes}
+      {showLevelLines && levelYs.map((y, i) => (
+        <line key={i} className="financial-sparkline-level"
+          x1="0" y1={y} x2="100" y2={y}
+          stroke="currentColor" strokeOpacity={0.18} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      ))}
       <polyline
         points={coords}
         fill="none"
@@ -141,6 +194,7 @@ export interface FinancialItem {
   weekSparkline?: number[];
   weekPositive?: boolean;
   weekHighlightFromX?: number;
+  weekDayBoundaries?: number[];
 }
 
 // ── Cards View ──
@@ -175,6 +229,7 @@ export function FinancialCardsView({
           weekSparkline={showSparkline ? item.weekSparkline : undefined}
           weekPositive={showSparkline ? item.weekPositive : undefined}
           weekHighlightFromX={showSparkline ? item.weekHighlightFromX : undefined}
+          weekDayBoundaries={showSparkline ? item.weekDayBoundaries : undefined}
           sparklineMode={sparklineMode}
           sparklineTheme={sparklineTheme}
           sparklineLabels={showSparkline ? sparklineLabels : undefined}

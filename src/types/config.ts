@@ -1110,6 +1110,9 @@ export interface StockTickerConfig {
   // Caption each chart with its range (1D / 5D) and, in the shaded theme,
   // tick the week chart into its sessions. Default false.
   sparklineLabels?: boolean;
+  // 'multiple' renders every symbol in the chosen view; 'single' dedicates
+  // the tile to the first symbol (quote header + full-space chart).
+  displayMode?: 'single' | 'multiple';
 }
 
 // Crypto module config

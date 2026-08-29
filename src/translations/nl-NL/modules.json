@@ -604,6 +604,7 @@
     "noGames": "Geen wedstrijden gevonden"
   },
   "stock-ticker": {
+    "chartCaptions": { "day": "1-dag", "week": "5-dagen" },
     "chartLabels": { "day": "1D", "week": "5D" },
     "loading": "Laden…",
     "empty": "Geen aandelengegevens",

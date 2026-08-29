@@ -627,6 +627,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       sparklineMode: 'day',
       sparklineTheme: 'classic',
       sparklineLabels: false,
+      displayMode: 'multiple',
     },
     defaultSize: { w: 400, h: 300 },
   },

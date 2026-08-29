@@ -2529,6 +2529,10 @@
       "chartThemeShaded": "Shaded",
       "chartContent": "Chart content",
       "chartLabels": "Label charts (1D / 5D)",
+      "mode": "Mode",
+      "modeSingle": "Single",
+      "modeMultiple": "Multiple",
+      "symbolLabel": "Symbol",
       "chartContentDay": "Today only",
       "chartContentWeek": "Past week only",
       "chartContentBoth": "Today and past week"

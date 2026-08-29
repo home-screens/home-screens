@@ -2534,6 +2534,10 @@
       "chartThemeShaded": "Sombreado",
       "chartContent": "Contenido del gráfico",
       "chartLabels": "Etiquetar gráficos (1D / 5D)",
+      "mode": "Modo",
+      "modeSingle": "Único",
+      "modeMultiple": "Múltiple",
+      "symbolLabel": "Símbolo",
       "chartContentDay": "Solo hoy",
       "chartContentWeek": "Solo la semana pasada",
       "chartContentBoth": "Hoy y semana pasada"

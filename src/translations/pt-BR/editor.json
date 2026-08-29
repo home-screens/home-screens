@@ -2534,6 +2534,10 @@
       "chartThemeShaded": "Sombreado",
       "chartContent": "Conteúdo do gráfico",
       "chartLabels": "Rotular gráficos (1D / 5D)",
+      "mode": "Modo",
+      "modeSingle": "Único",
+      "modeMultiple": "Múltiplo",
+      "symbolLabel": "Símbolo",
       "chartContentDay": "Apenas hoje",
       "chartContentWeek": "Apenas a semana passada",
       "chartContentBoth": "Hoje e a semana passada"

@@ -7,10 +7,12 @@ import { useTranslate } from '@/i18n';
 import {
   formatUSD,
   formatPercent,
+  formatChange,
   ChangeColor,
 } from './financial/shared';
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
 import FinancialDataModule from './financial/FinancialDataModule';
+import SingleTile from './financial/SingleTile';
 import { stocksUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 interface StockTickerModuleProps {
@@ -22,19 +24,17 @@ const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['stock-ticker']?.ttlMs ?? 30_000;
 
 interface StockData {
   symbol: string;
+  name?: string;
   price: number | null;
   change: number | null;
   changePercent: number | null;
   sparkline?: number[];
   sparklineXs?: number[];
+  sparklineHourMarks?: number[];
   sparklineWeek?: number[];
   weekChangePercent?: number | null;
   weekLastDayStart?: number;
-}
-
-function formatChange(val: number) {
-  const sign = val >= 0 ? '+' : '';
-  return `${sign}${val.toFixed(2)}`;
+  weekDayBoundaries?: number[];
 }
 
 /** Today's move as text; an en dash when the API had no prior close to measure from. */
@@ -56,6 +56,7 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
       weekSparkline: stock.sparklineWeek,
       weekPositive: stock.weekChangePercent == null ? undefined : stock.weekChangePercent >= 0,
       weekHighlightFromX: stock.weekLastDayStart,
+      weekDayBoundaries: stock.weekDayBoundaries,
     };
   });
 }
@@ -111,6 +112,10 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
     },
   ], [t]);
 
+  const displayMode = config.displayMode ?? 'multiple';
+  const sparklineMode = config.sparklineMode ?? 'day';
+  const sparklineTheme = config.sparklineTheme ?? 'classic';
+
   return (
     <FinancialDataModule<StockData>
       url={stocksUrl(config) ?? ''}
@@ -124,14 +129,37 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
       showSparkline={config.showSparkline ?? true}
-      sparklineMode={config.sparklineMode ?? 'day'}
-      sparklineTheme={config.sparklineTheme ?? 'classic'}
+      sparklineMode={sparklineMode}
+      sparklineTheme={sparklineTheme}
       sparklineLabels={config.sparklineLabels
         ? { day: t('stock-ticker.chartLabels.day'), week: t('stock-ticker.chartLabels.week') }
         : undefined}
       style={style}
       loadingMessage={t('stock-ticker.loading')}
       emptyMessage={t('stock-ticker.empty')}
+      renderSingle={displayMode === 'single'
+        ? (stock) => (
+          <SingleTile
+            symbol={stock.symbol}
+            name={stock.name}
+            price={stock.price}
+            change={stock.change}
+            changePercent={stock.changePercent}
+            sparkline={stock.sparkline}
+            sparklineXs={stock.sparklineXs}
+            sparklineHourMarks={stock.sparklineHourMarks}
+            sparklineWeek={stock.sparklineWeek}
+            weekChangePercent={stock.weekChangePercent}
+            weekLastDayStart={stock.weekLastDayStart}
+            weekDayBoundaries={stock.weekDayBoundaries}
+            sparklineMode={sparklineMode}
+            sparklineTheme={sparklineTheme}
+            chartCaptions={config.sparklineLabels
+              ? { day: t('stock-ticker.chartCaptions.day'), week: t('stock-ticker.chartCaptions.week') }
+              : undefined}
+          />
+        )
+        : undefined}
     />
   );
 }

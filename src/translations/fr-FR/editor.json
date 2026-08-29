@@ -2534,6 +2534,10 @@
       "chartThemeShaded": "Ombré",
       "chartContent": "Contenu du graphique",
       "chartLabels": "Étiqueter les graphiques (1J / 5J)",
+      "mode": "Mode",
+      "modeSingle": "Unique",
+      "modeMultiple": "Multiple",
+      "symbolLabel": "Symbole",
       "chartContentDay": "Aujourd'hui seulement",
       "chartContentWeek": "Semaine dernière seulement",
       "chartContentBoth": "Aujourd'hui et semaine dernière"

@@ -144,6 +144,47 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
       await has('5D')(mod);
     },
   },
+  {
+    // Single mode: full-tile layout for the first symbol, classic chart.
+    // Classic renders no backdrop rect (rects are shaded-only); the svg count
+    // pins that a chart actually rendered.
+    type: 'stock-ticker', name: 'single-classic', kind: 'networked', stubKey: 'stocks',
+    config: { displayMode: 'single' },
+    expect: async (mod) => {
+      await has('Apple Inc.')(mod);
+      await count('.financial-sparkline', 1)(mod);
+      await count('.financial-sparkline rect', 0)(mod);
+    },
+  },
+  {
+    // Single shaded: gutter axis labels + backdrop chart fill the tile.
+    type: 'stock-ticker', name: 'single-shaded', kind: 'networked', stubKey: 'stocks',
+    config: { displayMode: 'single', sparklineTheme: 'shaded' },
+    expect: async (mod) => {
+      await count('.financial-axis-label', 2)(mod);
+      await count('.financial-sparkline rect', 1)(mod);
+    },
+  },
+  {
+    // Single both: shared scale, one axis pair, two charts.
+    type: 'stock-ticker', name: 'single-both', kind: 'networked', stubKey: 'stocks',
+    config: { displayMode: 'single', sparklineTheme: 'shaded', sparklineMode: 'both' },
+    expect: async (mod) => {
+      await count('.financial-sparkline', 2)(mod);
+      await count('.financial-axis-label', 2)(mod);
+      await has('$151')(mod);
+    },
+  },
+  {
+    // Single + Label charts: a long-form caption sits above each chart.
+    type: 'stock-ticker', name: 'single-labels', kind: 'networked', stubKey: 'stocks',
+    config: { displayMode: 'single', sparklineTheme: 'shaded', sparklineMode: 'both', sparklineLabels: true },
+    expect: async (mod) => {
+      await has('1-day')(mod);
+      await has('5-days')(mod);
+      await count('.financial-single-caption', 2)(mod);
+    },
+  },
 
   // -- crypto --
   {
