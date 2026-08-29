@@ -225,6 +225,11 @@ export function getModulesByCategory(): Map<string, ModuleDefinition[]> {
 // Built-in module definitions
 // ---------------------------------------------------------------------------
 
+/** A fresh news module follows one well-known feed; the editor swaps it per locale. */
+const DEFAULT_NEWS_FEED: import('@/types/config').NewsFeedSource = {
+  id: 'default-bbc', url: 'https://feeds.bbci.co.uk/news/rss.xml', label: 'BBC News',
+};
+
 const FULLSCREEN_STYLE: Partial<import('@/types/config').ModuleStyle> = {
   padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0,
 };
@@ -381,6 +386,34 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       kenBurns: false,
       mediaTypes: 'photos',
       maxVideoDurationMs: 60_000,
+    },
+    defaultSize: { w: 1080, h: 1920 },
+    defaultStyle: FULLSCREEN_STYLE,
+    fillsCanvas: true,
+  },
+  {
+    type: 'fullscreen-news',
+    label: 'Full-Screen News',
+    icon: Newspaper,
+    category: 'Full Screen',
+    defaultConfig: {
+      feeds: [DEFAULT_NEWS_FEED],
+      view: 'story',
+      refreshIntervalMs: FETCH_KEY_REGISTRY['fullscreen-news']?.ttlMs ?? 300_000,
+      rotateIntervalMs: 15000,
+      maxItems: 12,
+      showDescription: true,
+      showSource: true,
+      showTimestamp: true,
+      showImages: true,
+      showTime: true,
+      typographySize: 'medium',
+      accentColor: '',
+      maxAgeHours: 0,
+      blockedWords: '',
+      requiredWords: '',
+      preserveOrder: false,
+      tapAction: 'qr',
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -601,7 +634,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: Newspaper,
     category: 'News & Finance',
     defaultConfig: {
-      feedUrl: '',
+      feeds: [DEFAULT_NEWS_FEED],
       view: 'headline',
       refreshIntervalMs: FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000,
       rotateIntervalMs: 10000,
@@ -610,6 +643,21 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDescription: false,
       tickerSpeed: 5,
       accentColor: undefined,
+      showHeader: true,
+      showSource: true,
+      showImages: true,
+      descriptionLines: 2,
+      singleLineTitles: false,
+      showCounter: true,
+      highlightBreaking: false,
+      showNewMarker: false,
+      cardColumns: 2,
+      tickerSeparator: 'dot',
+      maxAgeHours: 0,
+      blockedWords: '',
+      requiredWords: '',
+      preserveOrder: false,
+      tapAction: 'qr',
     },
     defaultSize: { w: 500, h: 400 },
   },

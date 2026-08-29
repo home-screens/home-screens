@@ -27,9 +27,18 @@ export function cryptoUrl(config: AnyConfig): string | null {
   return ids ? `/api/crypto?ids=${encodeURIComponent(ids)}` : null;
 }
 
-export function newsUrl(config: AnyConfig): string {
-  const feed = config.feedUrl as string | undefined;
-  return `/api/news?feed=${encodeURIComponent(feed || '')}`;
+/**
+ * One request for every feed a news module follows, in config order, so the
+ * server answers one result per feed and the prefetch key matches the
+ * module's own fetch exactly. An empty list yields no URL (nothing to fetch).
+ */
+export function newsUrl(config: AnyConfig): string | null {
+  const feeds = config.feeds as Array<{ url?: string }> | undefined;
+  const urls = (Array.isArray(feeds) ? feeds : [])
+    .map((f) => (typeof f?.url === 'string' ? f.url.trim() : ''))
+    .filter((u, i, all) => u.length > 0 && all.indexOf(u) === i);
+  if (urls.length === 0) return null;
+  return `/api/news?${urls.map((u) => `feed=${encodeURIComponent(u)}`).join('&')}`;
 }
 
 export function airQualityUrl(): string {
@@ -159,6 +168,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'stock-ticker': { buildUrl: stocksUrl, ttlMs: 30_000 },        // server: 30s
   crypto:         { buildUrl: cryptoUrl, ttlMs: 30_000 },         // server: 30s
   news:           { buildUrl: newsUrl, ttlMs: 300_000 },           // server: 5min
+  'fullscreen-news': { buildUrl: newsUrl, ttlMs: 300_000 },        // same feeds API as news
   'air-quality':  { buildUrl: airQualityUrl, ttlMs: 300_000 },    // server: 5min
   sports:         { buildUrl: sportsUrl, ttlMs: 60_000 },          // no server cache
   standings:      { buildUrl: standingsUrl, ttlMs: 300_000 },      // no server cache

@@ -38,7 +38,7 @@ const BUILTIN_MODULE_TYPE_MAP: Record<BuiltinModuleType, true> = {
   'icon': true, 'shape': true,
   'chore-chart': true, 'fullscreen-calendar': true, 'fullscreen-chore-chart': true,
   'fullscreen-meal-planner': true, 'fullscreen-photo': true,
-  'fullscreen-weather': true,
+  'fullscreen-weather': true, 'fullscreen-news': true,
 };
 const BUILTIN_MODULE_TYPES: ReadonlySet<string> = new Set(Object.keys(BUILTIN_MODULE_TYPE_MAP));
 

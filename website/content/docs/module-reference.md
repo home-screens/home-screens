@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 43 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 44 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
@@ -228,6 +228,27 @@ The Immich options only appear in the editor when both **Immich Server URL** and
 {% callout type="note" title="OneDrive source" %}
 The OneDrive option only appears in the Photo Source picker once a Microsoft **Application (client) ID** is saved in Settings > API keys. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
 {% /callout %}
+
+### Full-Screen News
+
+The News Headlines feeds on the whole canvas: one story at a time with its photo, or a newspaper-style front page. Follows the same feed list, shorthands, and filters as [News Headlines](#news-headlines).
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `feeds` | array | BBC News | Same shape as News Headlines |
+| `view` | string | `"story"` | `story` (one story at a time, its picture filling the top of the screen) or `front-page` (a lead story plus the next five) |
+| `refreshIntervalMs` | number | `300000` | How often to fetch new stories (5 min) |
+| `rotateIntervalMs` | number | `15000` | Seconds per story, or per front page |
+| `maxItems` | number | `12` | Stories to show after merging every feed |
+| `showImages` | boolean | `true` | Show story pictures |
+| `showDescription` | boolean | `true` | Show the story summary |
+| `showSource` | boolean | `true` | Show the feed name |
+| `showTimestamp` | boolean | `true` | Show how long ago each story was published |
+| `showTime` | boolean | `true` | Clock and date in the corner |
+| `typographySize` | string | `"medium"` | `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
+| `accentColor` | string | `""` | Progress bar and pill colour; empty follows the theme |
+| `maxAgeHours`, `blockedWords`, `requiredWords`, `preserveOrder`, `tapAction` | | | Same as News Headlines |
+| `theme` | string | — | One of the shared full-screen palettes (see [Themes](#full-screen) above); unset inherits the display default |
 
 ---
 
@@ -473,19 +494,37 @@ Animated precipitation radar map powered by RainViewer. Displays past radar and 
 
 ### News Headlines
 
-Rotating RSS feed headlines with multiple view modes.
+Headlines from any RSS 2.0, RSS 1.0 (RDF), Atom, or JSON feed, several feeds merged into one list. The [News guide](/docs/news) walks through picking feeds, local news, topics, and filters.
+
+Feeds are a list. Each entry is `{ "id", "url", "label"?, "color"?, "homeNetwork"?, "maxItems"? }`. `url` is a real feed address or one of the shorthands `local` (news near the household location in Settings), `topic:<keywords>`, `youtube:<channelId>`, or `reddit:<subreddit>`.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `feedUrl` | string | `""` | RSS feed URL |
-| `view` | string | `"headline"` | Display mode: `headline`, `list`, `ticker`, or `compact` |
-| `refreshIntervalMs` | number | `300000` | How often to fetch new articles (5 min) |
-| `rotateIntervalMs` | number | `10000` | How often to rotate headlines (10 sec) |
-| `maxItems` | number | `10` | Maximum number of items to display |
-| `showTimestamp` | boolean | `false` | Show article timestamps |
-| `showDescription` | boolean | `false` | Show article descriptions |
-| `tickerSpeed` | number | `5` | Scroll speed for ticker view |
-| `accentColor` | string | — | Accent color for list bullet indicators (optional) |
+| `feeds` | array | BBC News | Feeds to follow, in order (up to 12). `label` overrides the name shown as the story source; `color` tints the source dot; `homeNetwork` lets the hub read a feed from a device on your own network (a self-hosted reader); `maxItems` caps stories from that feed before merging |
+| `view` | string | `"headline"` | Display mode: `headline` (one story at a time), `list`, `ticker`, `compact`, or `cards` (photo grid) |
+| `refreshIntervalMs` | number | `300000` | How often to fetch new stories (5 min) |
+| `rotateIntervalMs` | number | `10000` | How often the headline view moves to the next story, and how often list and cards views turn the page when stories do not all fit (10 sec) |
+| `maxItems` | number | `10` | Stories to show after merging every feed (3 to 24) |
+| `maxAgeHours` | number | `0` | Hide stories older than this many hours; `0` = any age |
+| `blockedWords` | string | `""` | Comma or newline separated words; a story mentioning any of them in its headline or summary is hidden |
+| `requiredWords` | string | `""` | Comma or newline separated words; only stories mentioning one of them show |
+| `preserveOrder` | boolean | `false` | Keep each feed's own order instead of sorting newest first |
+| `tapAction` | string | `"qr"` | What a tap does on a touch display: `qr` (a code that opens the story on your phone), `details` (the summary, with a small code), or `none` |
+| `title` | string | — | Header text; unset shows "News" in the display language |
+| `showHeader` | boolean | `true` | Show the header strip (headline, list, and cards views) |
+| `showSource` | boolean | `true` | Show the feed name next to each story |
+| `showTimestamp` | boolean | `false` | Show how long ago each story was published |
+| `showDescription` | boolean | `false` | Show the story summary (headline, list, and cards views) |
+| `descriptionLines` | number | `2` | Lines of summary before it is cut off (1 to 4) |
+| `showImages` | boolean | `true` | Show story pictures where the view has room (headline, list, cards) |
+| `singleLineTitles` | boolean | `false` | Cut headlines to one line |
+| `showCounter` | boolean | `true` | "3 of 12" in the header of the headline view, and the page count on list and cards |
+| `highlightBreaking` | boolean | `false` | Mark stories under an hour old with a "Just in" pill |
+| `showNewMarker` | boolean | `false` | Dot stories that arrived since the display's last refresh |
+| `cardColumns` | number | `2` | Columns in the cards view (1 to 3); rows are however many fit |
+| `tickerSpeed` | number | `5` | Seconds per story in the ticker view |
+| `tickerSeparator` | string | `"dot"` | Glyph between ticker stories: `dot`, `pipe`, or `slash` |
+| `accentColor` | string | — | List bullet, "Just in" pill, and new-story dot colour (optional) |
 
 ### Stock Ticker
 

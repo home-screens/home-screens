@@ -174,6 +174,8 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       return handleProfile(request, queryDisplayId);
     case 'alert':
       return handleAlert(request, queryDisplayId);
+    case 'module-command':
+      return handleModuleCommand(request, queryDisplayId);
     case 'status':
       return handleStatus(request, queryDisplayId);
     default:
@@ -228,6 +230,39 @@ async function handleGotoScreen(
   if (displayId instanceof NextResponse) return displayId;
   enqueueCommand(displayId, 'goto-screen', { screen });
   return NextResponse.json({ ok: true, command: 'goto-screen', screen });
+}
+
+const MODULE_COMMAND_ID_RE = /^[a-z0-9][a-z0-9:_-]{0,63}$/;
+
+/**
+ * POST /api/display/module-command  { module: 'news', action: 'next', value? }
+ *
+ * Pokes every mounted module of one type on the target display (or all
+ * displays). The hub does not know which actions a module understands; the
+ * module ignores what it does not handle. `module` and `action` are short
+ * lowercase tokens so a typo cannot smuggle markup into the display.
+ */
+async function handleModuleCommand(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const moduleType = typeof body?.module === 'string' ? body.module.trim().toLowerCase() : '';
+  const action = typeof body?.action === 'string' ? body.action.trim().toLowerCase() : '';
+  if (!MODULE_COMMAND_ID_RE.test(moduleType) || !MODULE_COMMAND_ID_RE.test(action)) {
+    return NextResponse.json(
+      { error: 'module and action must be short lowercase names, e.g. { "module": "news", "action": "next" }' },
+      { status: 400 },
+    );
+  }
+  const rawValue = body?.value;
+  const value = typeof rawValue === 'number' && Number.isFinite(rawValue)
+    ? rawValue
+    : typeof rawValue === 'string' && rawValue.length <= 200 ? rawValue : undefined;
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+  enqueueCommand(displayId, 'module-command', { module: moduleType, action, ...(value !== undefined ? { value } : {}) });
+  return NextResponse.json({ ok: true, command: 'module-command', module: moduleType, action });
 }
 
 /**

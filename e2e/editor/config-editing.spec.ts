@@ -891,6 +891,16 @@ test('fullscreen-photo: switching Mode persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'fullscreen-photo')).file).toBe('');
 });
 
+test('fullscreen-news: switching View persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-news'));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('View').selectOption('front-page');
+  });
+
+  expect((await moduleConfig(request, 'fullscreen-news')).view).toBe('front-page');
+});
+
 // ── Task 13: Deep per-module config — high-complexity modules ───────────────
 // The ratchet baseline above covers one field per module. These add breadth on
 // the six highest-surface-area modules (weather, text, chore-chart,

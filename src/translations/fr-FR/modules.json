@@ -604,7 +604,10 @@
     "noGames": "Aucun match trouvé"
   },
   "stock-ticker": {
-    "chartLabels": { "day": "1J", "week": "5J" },
+    "chartLabels": {
+      "day": "1J",
+      "week": "5J"
+    },
     "loading": "Chargement…",
     "empty": "Aucune donnée boursière",
     "headers": {
@@ -664,7 +667,18 @@
   "news": {
     "loading": "Chargement des actualités…",
     "empty": "Aucun titre",
+    "noFeeds": "Ajoute un flux d'actualités dans l'éditeur",
+    "allUnavailable": "Les actualités ne sont pas disponibles pour le moment",
     "header": "Actualités",
+    "localNews": "Actualités locales",
+    "counter": "{current} sur {total}",
+    "justIn": "À l'instant",
+    "newStory": "Nouvel article",
+    "unavailable": "Indisponible pour le moment : {feeds}",
+    "scanToRead": "Scanne pour lire sur ton téléphone",
+    "noLink": "Cet article n'a pas de lien",
+    "noDescription": "Pas de résumé pour cet article",
+    "tapToClose": "Touche pour fermer",
     "timeAgo": {
       "justNow": "à l'instant",
       "minutes": "il y a {count} min",

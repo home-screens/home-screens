@@ -604,7 +604,10 @@
     "noGames": "Ingen kampe fundet"
   },
   "stock-ticker": {
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Indlæser…",
     "empty": "Ingen aktiedata",
     "headers": {
@@ -663,7 +666,18 @@
   "news": {
     "loading": "Indlæser nyheder…",
     "empty": "Ingen overskrifter",
+    "noFeeds": "Tilføj et nyhedsfeed i editoren",
+    "allUnavailable": "Nyheder er ikke tilgængelige lige nu",
     "header": "Nyheder",
+    "localNews": "Lokale nyheder",
+    "counter": "{current} af {total}",
+    "justIn": "Lige nu",
+    "newStory": "Ny historie",
+    "unavailable": "Ikke tilgængelig lige nu: {feeds}",
+    "scanToRead": "Scan for at læse på din telefon",
+    "noLink": "Denne historie har intet link",
+    "noDescription": "Intet resumé af denne historie",
+    "tapToClose": "Tryk for at lukke",
     "timeAgo": {
       "justNow": "lige nu",
       "minutes": "for {count} m siden",

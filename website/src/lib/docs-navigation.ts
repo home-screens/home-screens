@@ -13,6 +13,7 @@ export const navigation = [
       { title: 'Editor', href: '/docs/editor' },
       { title: 'Modules', href: '/docs/modules' },
       { title: 'Backgrounds', href: '/docs/backgrounds' },
+      { title: 'News feeds', href: '/docs/news' },
       { title: 'Profiles & Scheduling', href: '/docs/profiles' },
       { title: 'Remote Control', href: '/docs/remote-control' },
       { title: 'Voice Control', href: '/docs/voice-control' },

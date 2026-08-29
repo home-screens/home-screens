@@ -257,6 +257,7 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   },
   'photo-slideshow': { type: 'photo-slideshow', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
   'fullscreen-photo': { type: 'fullscreen-photo', kind: 'networked', stubKey: 'backgrounds', expect: hasImgSrc(STUB_BACKGROUND_SRC) },
+  'fullscreen-news': { type: 'fullscreen-news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },
   // The stub aborts the media load itself, so assert the <video> resolved its
   // src from the typed list (mirroring hasImgSrc's toBeAttached rationale).
   video: {

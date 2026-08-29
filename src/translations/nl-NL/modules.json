@@ -604,7 +604,10 @@
     "noGames": "Geen wedstrijden gevonden"
   },
   "stock-ticker": {
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Laden…",
     "empty": "Geen aandelengegevens",
     "headers": {
@@ -663,7 +666,18 @@
   "news": {
     "loading": "Nieuws laden…",
     "empty": "Geen koppen",
+    "noFeeds": "Voeg in de editor een nieuwsfeed toe",
+    "allUnavailable": "Nieuws is nu niet beschikbaar",
     "header": "Nieuws",
+    "localNews": "Lokaal nieuws",
+    "counter": "{current} van {total}",
+    "justIn": "Net binnen",
+    "newStory": "Nieuw bericht",
+    "unavailable": "Nu niet beschikbaar: {feeds}",
+    "scanToRead": "Scan om op je telefoon te lezen",
+    "noLink": "Dit bericht heeft geen link",
+    "noDescription": "Geen samenvatting voor dit bericht",
+    "tapToClose": "Tik om te sluiten",
     "timeAgo": {
       "justNow": "zojuist",
       "minutes": "{count} min geleden",

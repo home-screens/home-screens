@@ -21,7 +21,7 @@ const ALL_MODULE_TYPES: ModuleType[] = [
   'multi-month', 'garbage-day', 'standings', 'affirmations',
   'date', 'meal-planner', 'iframe', 'chore-chart',
   'fullscreen-calendar', 'fullscreen-chore-chart', 'fullscreen-meal-planner',
-  'fullscreen-photo', 'fullscreen-weather', 'display-control', 'icon', 'shape',
+  'fullscreen-photo', 'fullscreen-weather', 'fullscreen-news', 'display-control', 'icon', 'shape',
 ];
 
 describe('MODULE_CATEGORIES', () => {
@@ -41,7 +41,7 @@ describe('MODULE_CATEGORIES', () => {
 });
 
 describe('Registry completeness', () => {
-  it('registers all 42 module types', () => {
+  it('registers all 44 module types', () => {
     for (const type of ALL_MODULE_TYPES) {
       expect(getModuleDefinition(type as ModuleType), `Missing module: ${type}`).toBeDefined();
     }
@@ -167,8 +167,8 @@ describe('getModuleDefinition', () => {
 });
 
 describe('getAllModuleDefinitions', () => {
-  it('returns an array of length 43', () => {
-    expect(getAllModuleDefinitions()).toHaveLength(43);
+  it('returns an array of length 44', () => {
+    expect(getAllModuleDefinitions()).toHaveLength(44);
   });
 
   it('all items have required fields', () => {
@@ -222,7 +222,7 @@ describe('getModulesByCategory', () => {
     }
   });
 
-  it('Full Screen contains fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-photo, fullscreen-weather', () => {
+  it('Full Screen contains fullscreen-calendar, fullscreen-chore-chart, fullscreen-meal-planner, fullscreen-photo, fullscreen-weather, fullscreen-news', () => {
     const grouped = getModulesByCategory();
     const types = grouped.get('Full Screen')!.map((d) => d.type);
     expect(types).toContain('fullscreen-calendar');
@@ -230,7 +230,8 @@ describe('getModulesByCategory', () => {
     expect(types).toContain('fullscreen-meal-planner');
     expect(types).toContain('fullscreen-photo');
     expect(types).toContain('fullscreen-weather');
-    expect(types).toHaveLength(5);
+    expect(types).toContain('fullscreen-news');
+    expect(types).toHaveLength(6);
   });
 
   it('Time & Date contains clock, calendar, countdown, year-progress', () => {
@@ -294,7 +295,7 @@ describe('getModulesByCategory', () => {
     expect(types).toHaveLength(1);
   });
 
-  it('total modules across all categories equals 42 (no duplicates, no missing)', () => {
+  it('total modules across all categories equals 44 (no duplicates, no missing)', () => {
     const grouped = getModulesByCategory();
     let total = 0;
     const allTypes = new Set<string>();
@@ -304,8 +305,8 @@ describe('getModulesByCategory', () => {
         total++;
       }
     }
-    expect(total).toBe(43);
-    expect(allTypes.size).toBe(43);
+    expect(total).toBe(44);
+    expect(allTypes.size).toBe(44);
   });
 });
 
@@ -330,9 +331,12 @@ describe('Data correctness spot checks', () => {
     expect(config.showWeekNumbers).toBe(false);
   });
 
-  it('news defaultConfig: feedUrl empty, refreshIntervalMs 300000', () => {
+  it('news defaultConfig: BBC preset feed, refreshIntervalMs 300000', () => {
     const config = getModuleDefinition('news')!.defaultConfig;
-    expect(config.feedUrl).toBe('');
+    expect(config.feeds).toEqual([
+      { id: 'default-bbc', url: 'https://feeds.bbci.co.uk/news/rss.xml', label: 'BBC News' },
+    ]);
+    expect('feedUrl' in config).toBe(false);
     expect(config.refreshIntervalMs).toBe(300000);
     expect(config.rotateIntervalMs).toBe(10000);
   });

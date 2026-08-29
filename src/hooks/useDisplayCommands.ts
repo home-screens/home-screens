@@ -11,6 +11,7 @@ import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore } from '@/lib/provider-health-store';
 import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore } from '@/stores/alert-store';
+import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
 import type { AlertType } from '@/types/config';
 
 export interface CommandHandlers {
@@ -192,6 +193,14 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
                   icon: typeof p.icon === 'string' ? p.icon : undefined,
                   dismissible: typeof p.dismissible === 'boolean' ? p.dismissible : undefined,
                 });
+              }
+              break;
+            }
+            case 'module-command': {
+              const p = cmd.payload;
+              if (p && typeof p.module === 'string' && typeof p.action === 'string') {
+                const value = typeof p.value === 'string' || typeof p.value === 'number' ? p.value : undefined;
+                dispatchModuleCommand({ module: p.module, action: p.action, value });
               }
               break;
             }

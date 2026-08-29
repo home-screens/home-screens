@@ -37,6 +37,7 @@ export { FullscreenCalendarConfigSection } from './FullscreenCalendarConfigSecti
 export { FullscreenChoreChartConfigSection } from './FullscreenChoreChartConfigSection';
 export { FullscreenMealPlannerConfigSection } from './FullscreenMealPlannerConfigSection';
 export { FullscreenPhotoConfigSection } from './FullscreenPhotoConfigSection';
+export { FullscreenNewsConfigSection } from './FullscreenNewsConfigSection';
 export { FullscreenWeatherConfigSection } from './FullscreenWeatherConfigSection';
 export { WordOfDayConfigSection } from './WordOfDayConfigSection';
 export { DisplayControlConfigSection } from './DisplayControlConfigSection';

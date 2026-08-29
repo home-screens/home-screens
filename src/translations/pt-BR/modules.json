@@ -604,7 +604,10 @@
     "noGames": "Nenhum jogo encontrado"
   },
   "stock-ticker": {
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Carregando…",
     "empty": "Sem dados de ações",
     "headers": {
@@ -664,7 +667,18 @@
   "news": {
     "loading": "Carregando notícias…",
     "empty": "Sem manchetes",
+    "noFeeds": "Adicione um feed de notícias no editor",
+    "allUnavailable": "As notícias não estão disponíveis agora",
     "header": "Notícias",
+    "localNews": "Notícias locais",
+    "counter": "{current} de {total}",
+    "justIn": "Agora mesmo",
+    "newStory": "Notícia nova",
+    "unavailable": "Indisponível no momento: {feeds}",
+    "scanToRead": "Escaneie para ler no celular",
+    "noLink": "Esta notícia não tem link",
+    "noDescription": "Sem resumo para esta notícia",
+    "tapToClose": "Toque para fechar",
     "timeAgo": {
       "justNow": "agora mesmo",
       "minutes": "há {count} min",

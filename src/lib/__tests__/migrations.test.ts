@@ -63,8 +63,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 9', () => {
-    expect(getLatestSchemaVersion()).toBe(9);
+  it('getLatestSchemaVersion returns 10', () => {
+    expect(getLatestSchemaVersion()).toBe(10);
   });
 });
 
@@ -299,17 +299,17 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(9);
-    // v2 through v9 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(8);
+    expect(result.version).toBe(10);
+    // v2 through v10 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(9);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
     // touches sleep blocks with a dim schedule (this fixture has none), and
     // v8 only touches calendar modules carrying the prerelease keys, and v9
     // only touches fullscreen-calendar modules carrying the retired default
-    // accent. No display registry is injected — single-display mode stays
-    // single-display.
+    // accent, and v10 only touches news modules (this fixture has none). No
+    // display registry is injected — single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
@@ -326,9 +326,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(9);
-    // Only v4 through v9 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(6);
+    expect(result.version).toBe(10);
+    // Only v4 through v10 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(7);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -605,3 +605,127 @@ describe('migration v9: the retired fullscreen-calendar accent is cleared', () =
   });
 });
 
+
+describe('migration v10: news modules follow a list of feeds', () => {
+  type Module = ScreenConfiguration['screens'][number]['modules'][number];
+  const STYLE = { opacity: 1, borderRadius: 12, padding: 16, backgroundColor: '', textColor: '#fff', fontFamily: 'Inter', fontSize: 16, backdropBlur: 0, borderWidth: 0, borderColor: '', shadowSize: 0 };
+  const BBC = 'https://feeds.bbci.co.uk/news/rss.xml';
+  function news(id: string, config: Record<string, unknown>): Module {
+    return { id, type: 'news', position: { x: 0, y: 0 }, size: { w: 500, h: 300 }, zIndex: 1, config, style: STYLE } as Module;
+  }
+  const moduleConfig = (config: ScreenConfiguration, i = 0) => config.screens[0].modules[i].config as Record<string, unknown>;
+
+  it('turns feedUrl into a one-entry feeds list keyed off the module id', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feedUrl: 'https://example.com/rss', view: 'list', maxItems: 5 })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(result.version).toBe(10);
+    expect(moduleConfig(result)).toEqual({
+      view: 'list',
+      maxItems: 5,
+      feeds: [{ id: 'n1-feed-1', url: 'https://example.com/rss' }],
+    });
+  });
+
+  it('trims the feedUrl and does not label a non-BBC feed', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feedUrl: '  https://example.com/rss \n' })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(moduleConfig(result).feeds).toEqual([{ id: 'n1-feed-1', url: 'https://example.com/rss' }]);
+  });
+
+  it('writes an empty feedUrl out as the BBC preset it used to stand for', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feedUrl: '' }), news('n2', { feedUrl: '   ' }), news('n3', {})];
+
+    const { config: result } = migrateUp(config, 10);
+
+    for (const i of [0, 1, 2]) {
+      const cfg = moduleConfig(result, i);
+      expect(cfg.feeds, `module ${i}`).toEqual([{ id: `n${i + 1}-feed-1`, url: BBC, label: 'BBC News' }]);
+      expect('feedUrl' in cfg, `module ${i}`).toBe(false);
+    }
+  });
+
+  it('labels an explicit BBC feedUrl as BBC News too', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feedUrl: BBC })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(moduleConfig(result).feeds).toEqual([{ id: 'n1-feed-1', url: BBC, label: 'BBC News' }]);
+  });
+
+  it('keeps an existing feeds list and drops a stray feedUrl next to it', () => {
+    const feeds = [{ id: 'a', url: 'https://a.example.com/rss', label: 'A' }, { id: 'b', url: 'topic:parks' }];
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feeds, feedUrl: 'https://stale.example.com/rss', view: 'cards' })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(moduleConfig(result)).toEqual({ feeds, view: 'cards' });
+  });
+
+  it('leaves a module that already has feeds and no feedUrl untouched (same reference)', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [news('n1', { feeds: [{ id: 'a', url: 'https://a.example.com/rss' }] })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(result.screens[0].modules[0]).toEqual(config.screens[0].modules[0]);
+  });
+
+  it('leaves non-news modules alone even when they carry a feedUrl', () => {
+    const config = makeConfig(9);
+    const other = { id: 'x', type: 'text', position: { x: 0, y: 0 }, size: { w: 1, h: 1 }, zIndex: 1, config: { feedUrl: 'https://x', content: 'hi' }, style: STYLE } as Module;
+    config.screens[0].modules = [other];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(result.screens[0].modules[0]).toEqual(other);
+  });
+
+  it('walks every display\'s own screens as well as the legacy top-level screens', () => {
+    const config: ScreenConfiguration = {
+      ...makeConfig(9),
+      displays: [
+        {
+          id: 'kitchen', name: 'Kitchen', displayWidth: 1080, displayHeight: 1920,
+          screens: [{ id: 'k1', name: 'K', modules: [news('kn', { feedUrl: 'https://kitchen.example.com/rss' })] } as ScreenConfiguration['screens'][number]],
+        },
+        { id: 'empty', name: 'Empty', displayWidth: 1080, displayHeight: 1920, screens: [] },
+      ],
+    };
+    config.screens[0].modules = [news('top', { feedUrl: '' })];
+
+    const { config: result } = migrateUp(config, 10);
+
+    expect(moduleConfig(result).feeds).toEqual([{ id: 'top-feed-1', url: BBC, label: 'BBC News' }]);
+    expect(result.displays?.[0].screens[0].modules[0].config).toEqual({
+      feeds: [{ id: 'kn-feed-1', url: 'https://kitchen.example.com/rss' }],
+    });
+    expect(result.displays?.[1]).toEqual(config.displays?.[1]);
+  });
+
+  it('tolerates a news module with no config object', () => {
+    const config = makeConfig(9);
+    config.screens[0].modules = [{ ...news('n1', {}), config: undefined } as unknown as Module];
+
+    expect(() => migrateUp(config, 10)).not.toThrow();
+  });
+
+  it('is part of the full chain from v1', () => {
+    const config = makeConfig(1);
+    config.screens[0].modules = [news('n1', { feedUrl: 'https://example.com/rss' })];
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(result.version).toBe(10);
+    expect(migrationsRun.at(-1)).toMatch(/^v10: /);
+    expect(moduleConfig(result).feeds).toEqual([{ id: 'n1-feed-1', url: 'https://example.com/rss' }]);
+  });
+});

@@ -604,7 +604,10 @@
     "noGames": "Keine Spiele gefunden"
   },
   "stock-ticker": {
-    "chartLabels": { "day": "1T", "week": "5T" },
+    "chartLabels": {
+      "day": "1T",
+      "week": "5T"
+    },
     "loading": "Wird geladen…",
     "empty": "Keine Aktiendaten",
     "headers": {
@@ -663,7 +666,18 @@
   "news": {
     "loading": "Nachrichten werden geladen…",
     "empty": "Keine Schlagzeilen",
+    "noFeeds": "Füge im Editor einen Nachrichten-Feed hinzu",
+    "allUnavailable": "Nachrichten sind gerade nicht verfügbar",
     "header": "Nachrichten",
+    "localNews": "Lokale Nachrichten",
+    "counter": "{current} von {total}",
+    "justIn": "Gerade rein",
+    "newStory": "Neue Meldung",
+    "unavailable": "Gerade nicht verfügbar: {feeds}",
+    "scanToRead": "Scannen, um am Handy zu lesen",
+    "noLink": "Diese Meldung hat keinen Link",
+    "noDescription": "Keine Zusammenfassung zu dieser Meldung",
+    "tapToClose": "Zum Schließen tippen",
     "timeAgo": {
       "justNow": "gerade eben",
       "minutes": "vor {count} Min",

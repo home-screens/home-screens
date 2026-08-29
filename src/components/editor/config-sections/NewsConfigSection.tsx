@@ -3,117 +3,101 @@
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
-import RefreshIntervalSlider from './RefreshIntervalSlider';
 import ColorPicker from '@/components/ui/ColorPicker';
-import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
+import SectionHeading from '@/components/ui/SectionHeading';
 import ViewSelect from '@/components/editor/ViewSelect';
+import RefreshIntervalSlider from './RefreshIntervalSlider';
+import { NewsSourcesFields } from './news/NewsSourcesFields';
+import { NewsFiltersFields } from './news/NewsFiltersFields';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import type { ModuleInstance, NewsView } from '@/types/config';
+import type { ModuleInstance, NewsConfig, NewsTickerSeparator, NewsView } from '@/types/config';
 
-const NEWS_FEED_PRESETS = [
-  { label: 'BBC News', url: '' },
-  { label: 'NPR', url: 'https://feeds.npr.org/1001/rss.xml' },
-  { label: 'Associated Press', url: 'https://feedx.net/rss/ap.xml' },
-  { label: 'Reuters', url: 'https://news.google.com/rss/search?q=source:reuters&hl=en-US&gl=US&ceid=US:en' },
-  { label: 'ABC News', url: 'https://feeds.abcnews.com/abcnews/topstories' },
-  { label: 'CBS News', url: 'https://www.cbsnews.com/latest/rss/main' },
-  { label: 'Ars Technica', url: 'https://feeds.arstechnica.com/arstechnica/index' },
-  { label: 'MarketWatch', url: 'https://feeds.marketwatch.com/marketwatch/topstories' },
-];
-
-const PRESET_URLS = new Set(NEWS_FEED_PRESETS.map((p) => p.url));
+type Config = Partial<NewsConfig>;
 
 export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+
   const NEWS_VIEWS: { value: NewsView; label: string }[] = [
     { value: 'headline', label: t('configSections.news.viewHeadline') },
     { value: 'list', label: t('configSections.news.viewList') },
     { value: 'ticker', label: t('configSections.news.viewTicker') },
     { value: 'compact', label: t('configSections.news.viewCompact') },
+    { value: 'cards', label: t('configSections.news.viewCards') },
   ];
-  const { config: c, set } = useModuleConfig<{
-    feedUrl?: string; view?: NewsView; refreshIntervalMs?: number; rotateIntervalMs?: number;
-    maxItems?: number; showTimestamp?: boolean; showDescription?: boolean; tickerSpeed?: number;
-    accentColor?: string;
-  }>(mod, screenId);
+  const SEPARATORS: { value: NewsTickerSeparator; label: string }[] = [
+    { value: 'dot', label: t('configSections.news.separatorDot') },
+    { value: 'pipe', label: t('configSections.news.separatorPipe') },
+    { value: 'slash', label: t('configSections.news.separatorSlash') },
+  ];
 
-  const feedUrl = (c.feedUrl as string) || '';
-  const isCustom = feedUrl !== '' && !PRESET_URLS.has(feedUrl);
   const view = c.view ?? 'headline';
+  const hasImages = view === 'list' || view === 'cards' || view === 'headline';
 
   return (
     <>
-      <LabeledField label={t('configSections.news.feedSource')}>
-        <select
-          value={isCustom ? '__custom__' : feedUrl}
-          onChange={(e) => {
-            const val = e.target.value;
-            set({ feedUrl: val === '__custom__' ? 'https://' : val });
-          }}
-          className={INPUT_CLASS}
-        >
-          {NEWS_FEED_PRESETS.map((p) => (
-            <option key={p.url} value={p.url}>{p.label}</option>
-          ))}
-          <option value="__custom__">{t('configSections.news.customUrlOption')}</option>
-        </select>
-      </LabeledField>
-      {isCustom && (
-        <LabeledInput
-          label={t('configSections.news.customRssFeedUrl')}
-          value={feedUrl}
-          onChange={(v) => set({ feedUrl: v })}
-          placeholder="https://example.com/feed.xml"
-        />
-      )}
-      <ViewSelect
-        value={view}
-        onChange={(v) => set({ view: v })}
-        options={NEWS_VIEWS}
-      />
+      <NewsSourcesFields config={c} set={set} />
+
+      <ViewSelect value={view} onChange={(v) => set({ view: v })} options={NEWS_VIEWS} />
+
       {view === 'headline' && (
-        <Slider
-          label={t('configSections.news.rotateHeadlines')}
-          value={(c.rotateIntervalMs ?? 10000) / 1000}
-          min={3}
-          max={30}
-          onChange={(v) => set({ rotateIntervalMs: v * 1000 })}
-        />
+        <>
+          <Slider
+            label={t('configSections.news.rotateHeadlines')}
+            value={(c.rotateIntervalMs ?? 10000) / 1000}
+            min={3}
+            max={30}
+            onChange={(v) => set({ rotateIntervalMs: v * 1000 })}
+          />
+          <Toggle
+            label={t('configSections.news.showCounter')}
+            checked={c.showCounter !== false}
+            onChange={(v) => set({ showCounter: v })}
+          />
+        </>
       )}
+
       {view !== 'headline' && (
         <Slider
           label={t('configSections.news.maxItems')}
           value={c.maxItems ?? 10}
           min={3}
-          max={20}
+          max={24}
           onChange={(v) => set({ maxItems: v })}
         />
       )}
-      {view === 'ticker' && (
-        <Slider
-          label={t('configSections.news.tickerSpeed')}
-          value={c.tickerSpeed ?? 5}
-          min={1}
-          max={15}
-          onChange={(v) => set({ tickerSpeed: v })}
-        />
+
+      {hasImages && (
+        <>
+          <Toggle
+            label={t('configSections.news.showImages')}
+            checked={c.showImages !== false}
+            onChange={(v) => set({ showImages: v })}
+          />
+          <Toggle
+            label={t('common.showDescription')}
+            checked={c.showDescription ?? false}
+            onChange={(v) => set({ showDescription: v })}
+          />
+          {c.showDescription && (
+            <Slider
+              label={t('configSections.news.descriptionLines')}
+              value={c.descriptionLines ?? 2}
+              min={1}
+              max={4}
+              onChange={(v) => set({ descriptionLines: v })}
+            />
+          )}
+          <Toggle
+            label={t('configSections.news.singleLineTitles')}
+            checked={c.singleLineTitles === true}
+            onChange={(v) => set({ singleLineTitles: v })}
+          />
+        </>
       )}
-      {(view === 'list' || view === 'compact') && (
-        <Toggle
-          label={t('configSections.news.showTimestamp')}
-          checked={c.showTimestamp ?? false}
-          onChange={(v) => set({ showTimestamp: v })}
-        />
-      )}
-      {view === 'list' && (
-        <Toggle
-          label={t('common.showDescription')}
-          checked={c.showDescription ?? false}
-          onChange={(v) => set({ showDescription: v })}
-        />
-      )}
+
       {view === 'list' && (
         <ColorPicker
           label={t('configSections.news.bulletColor')}
@@ -121,6 +105,72 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
           onChange={(v) => set({ accentColor: v || undefined })}
         />
       )}
+
+      {view === 'ticker' && (
+        <>
+          <Slider
+            label={t('configSections.news.tickerSpeed')}
+            value={c.tickerSpeed ?? 5}
+            min={1}
+            max={15}
+            onChange={(v) => set({ tickerSpeed: v })}
+          />
+          <LabeledSelect
+            label={t('configSections.news.tickerSeparator')}
+            value={c.tickerSeparator ?? 'dot'}
+            onChange={(v) => set({ tickerSeparator: v })}
+            options={SEPARATORS}
+          />
+        </>
+      )}
+
+      {view === 'cards' && (
+        <Slider
+          label={t('configSections.news.cardColumns')}
+          value={c.cardColumns ?? 2}
+          min={1}
+          max={3}
+          onChange={(v) => set({ cardColumns: v })}
+        />
+      )}
+
+      <SectionHeading>{t('configSections.news.details')}</SectionHeading>
+      <Toggle
+        label={t('configSections.news.showHeader')}
+        checked={c.showHeader !== false}
+        onChange={(v) => set({ showHeader: v })}
+      />
+      {c.showHeader !== false && (
+        <LabeledInput
+          label={t('configSections.news.headerText')}
+          value={c.title ?? ''}
+          onChange={(v) => set({ title: v || undefined })}
+          placeholder={t('configSections.news.headerTextPlaceholder')}
+        />
+      )}
+      <Toggle
+        label={t('configSections.news.showSource')}
+        checked={c.showSource !== false}
+        onChange={(v) => set({ showSource: v })}
+      />
+      <Toggle
+        label={t('configSections.news.showTimestamp')}
+        checked={c.showTimestamp ?? false}
+        onChange={(v) => set({ showTimestamp: v })}
+      />
+      <Toggle
+        label={t('configSections.news.highlightBreaking')}
+        checked={c.highlightBreaking === true}
+        onChange={(v) => set({ highlightBreaking: v })}
+      />
+      <Toggle
+        label={t('configSections.news.showNewMarker')}
+        checked={c.showNewMarker === true}
+        onChange={(v) => set({ showNewMarker: v })}
+      />
+
+      <NewsFiltersFields config={c} set={set} />
+
       <RefreshIntervalSlider
         value={c.refreshIntervalMs}
         onChange={(ms) => set({ refreshIntervalMs: ms })}

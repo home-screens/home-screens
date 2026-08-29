@@ -404,6 +404,98 @@ describe('POST /api/display/goto-screen', () => {
   });
 });
 
+describe('POST /api/display/module-command', () => {
+  it('enqueues the module and action on the default queue', async () => {
+    const res = await POST(makeRequest({ module: 'news', action: 'next' }), makeParams('module-command'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ ok: true, command: 'module-command', module: 'news', action: 'next' });
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'module-command', { module: 'news', action: 'next' });
+  });
+
+  it('targets a specific display via the body displayId', async () => {
+    const res = await POST(
+      makeRequest({ module: 'news', action: 'prev', displayId: 'kitchen' }),
+      makeParams('module-command'),
+    );
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith('kitchen', 'module-command', { module: 'news', action: 'prev' });
+  });
+
+  it('broadcasts with ?display=all', async () => {
+    const req = new NextRequest('http://localhost/api/display/module-command?display=all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ module: 'news', action: 'next' }),
+    });
+    const res = await POST(req, makeParams('module-command'));
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith('all', 'module-command', { module: 'news', action: 'next' });
+  });
+
+  it('normalizes surrounding whitespace and case', async () => {
+    const res = await POST(makeRequest({ module: '  News ', action: 'NEXT ' }), makeParams('module-command'));
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'module-command', { module: 'news', action: 'next' });
+  });
+
+  it('passes a numeric or short string value through, dropping anything else', async () => {
+    await POST(makeRequest({ module: 'news', action: 'goto', value: 3 }), makeParams('module-command'));
+    expect(enqueueCommand).toHaveBeenLastCalledWith(undefined, 'module-command', { module: 'news', action: 'goto', value: 3 });
+
+    await POST(makeRequest({ module: 'news', action: 'goto', value: 'story-7' }), makeParams('module-command'));
+    expect(enqueueCommand).toHaveBeenLastCalledWith(undefined, 'module-command', { module: 'news', action: 'goto', value: 'story-7' });
+
+    await POST(makeRequest({ module: 'news', action: 'goto', value: 'x'.repeat(201) }), makeParams('module-command'));
+    expect(enqueueCommand).toHaveBeenLastCalledWith(undefined, 'module-command', { module: 'news', action: 'goto' });
+
+    await POST(makeRequest({ module: 'news', action: 'goto', value: { nested: true } }), makeParams('module-command'));
+    expect(enqueueCommand).toHaveBeenLastCalledWith(undefined, 'module-command', { module: 'news', action: 'goto' });
+
+    await POST(makeRequest({ module: 'news', action: 'goto', value: Number.NaN }), makeParams('module-command'));
+    expect(enqueueCommand).toHaveBeenLastCalledWith(undefined, 'module-command', { module: 'news', action: 'goto' });
+  });
+
+  it('accepts namespaced plugin module types', async () => {
+    const res = await POST(makeRequest({ module: 'plugin:home-assistant', action: 'refresh' }), makeParams('module-command'));
+    expect(res.status).toBe(200);
+    expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'module-command', { module: 'plugin:home-assistant', action: 'refresh' });
+  });
+
+  it('rejects names carrying markup or other characters', async () => {
+    for (const bad of ['<script>', 'news alert', 'news/next', 'näws', '-news', '']) {
+      const res = await POST(makeRequest({ module: bad, action: 'next' }), makeParams('module-command'));
+      expect(res.status, `module ${JSON.stringify(bad)}`).toBe(400);
+    }
+    const res = await POST(makeRequest({ module: 'news', action: 'next<b>' }), makeParams('module-command'));
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('rejects an over-long name', async () => {
+    const res = await POST(makeRequest({ module: 'a'.repeat(65), action: 'next' }), makeParams('module-command'));
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects missing or non-string fields', async () => {
+    expect((await POST(makeRequest({ action: 'next' }), makeParams('module-command'))).status).toBe(400);
+    expect((await POST(makeRequest({ module: 'news' }), makeParams('module-command'))).status).toBe(400);
+    expect((await POST(makeRequest({ module: 7, action: 'next' }), makeParams('module-command'))).status).toBe(400);
+    expect((await POST(makeRequest(), makeParams('module-command'))).status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid displayId', async () => {
+    const res = await POST(
+      makeRequest({ module: 'news', action: 'next', displayId: 'Not A Slug!' }),
+      makeParams('module-command'),
+    );
+    expect(res.status).toBe(400);
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/display/sleep-override', () => {
   it('enqueues the hold duration on the default queue', async () => {
     const res = await POST(makeRequest({ minutes: 120 }), makeParams('sleep-override'));
