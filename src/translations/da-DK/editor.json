@@ -2517,6 +2517,7 @@
       "viewTicker": "Bånd (rullende)",
       "viewTable": "Tabel",
       "viewCompact": "Kompakt",
+      "viewSingle": "Enkelt",
       "scale": "Størrelse",
       "tickerSpeed": "Båndhastighed ({unit})",
       "stockSymbolsLabel": "Symboler (adskilt med komma)",
@@ -2529,6 +2530,7 @@
       "chartThemeShaded": "Skygget",
       "chartContent": "Grafindhold",
       "chartLabels": "Mærk grafer (1D / 5D)",
+      "symbolLabel": "Symbol",
       "chartContentDay": "Kun i dag",
       "chartContentWeek": "Kun den seneste uge",
       "chartContentBoth": "I dag og den seneste uge"

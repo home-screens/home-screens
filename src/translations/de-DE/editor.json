@@ -2517,6 +2517,7 @@
       "viewTicker": "Ticker (laufender Text)",
       "viewTable": "Tabelle",
       "viewCompact": "Kompakt",
+      "viewSingle": "Einzeln",
       "scale": "Skalierung",
       "tickerSpeed": "Tickergeschwindigkeit ({unit})",
       "stockSymbolsLabel": "Symbole (kommagetrennt)",
@@ -2529,6 +2530,7 @@
       "chartThemeShaded": "Schattiert",
       "chartContent": "Diagramminhalt",
       "chartLabels": "Diagramme beschriften (1T / 5T)",
+      "symbolLabel": "Symbol",
       "chartContentDay": "Nur heute",
       "chartContentWeek": "Nur letzte Woche",
       "chartContentBoth": "Heute und letzte Woche"

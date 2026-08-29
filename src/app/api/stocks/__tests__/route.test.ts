@@ -13,10 +13,12 @@ interface YahooLeg {
   price: number;
   previousClose?: number; // yesterday's close (any range)
   chartPreviousClose?: number; // close before the chart window
+  shortName?: string; // company name from Yahoo meta
   closes?: unknown[];
   timestamps?: unknown[];
   regularStart?: number;
   regularEnd?: number;
+  gmtoffset?: number; // exchange UTC offset in seconds (Yahoo meta)
   tradingPeriods?: Array<Array<{ start: number }>>;
 }
 
@@ -31,6 +33,7 @@ function makeYahooResponse(leg: YahooLeg) {
             ...(leg.chartPreviousClose !== undefined
               ? { chartPreviousClose: leg.chartPreviousClose }
               : {}),
+            ...(leg.shortName !== undefined ? { shortName: leg.shortName } : {}),
             ...(leg.regularStart !== undefined
               ? {
                   currentTradingPeriod: {
@@ -38,6 +41,7 @@ function makeYahooResponse(leg: YahooLeg) {
                   },
                 }
               : {}),
+            ...(leg.gmtoffset !== undefined ? { gmtoffset: leg.gmtoffset } : {}),
             ...(leg.tradingPeriods ? { tradingPeriods: leg.tradingPeriods } : {}),
           },
           ...(leg.timestamps ? { timestamp: leg.timestamps } : {}),
@@ -400,6 +404,93 @@ describe('GET /api/stocks', () => {
     expect(json.stocks[0].weekLastDayStart).toBeUndefined();
   });
 
+  it('includes the company name from meta.shortName', async () => {
+    mockFetchSuccess({
+      AAPL: { day: { price: 150, previousClose: 148, shortName: 'Apple Inc.' } },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+    expect(json.stocks[0].name).toBe('Apple Inc.');
+  });
+
+  it('reports week day-boundary fractions from trading periods', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        week: {
+          price: 150, previousClose: 148, chartPreviousClose: 140,
+          closes: [140, 141, 142, 143, 144],
+          timestamps: [100, 200, 300, 400, 500],
+          tradingPeriods: [[{ start: 300 }, { start: 100 }, { start: 450 }]],
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+    // Sessions start at 100/300/450 (scrambled above; starts get sorted before
+    // scanning); stamps >= 300 first at index 2, >= 450 at index 4. The 450
+    // day begins at the very last bar (fraction 1) and draws no gridline.
+    expect(json.stocks[0].weekDayBoundaries).toEqual([0.5]);
+  });
+
+  it('drops a last day that begins at the final bar (no fraction-1 outputs)', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        week: {
+          price: 150, previousClose: 148, chartPreviousClose: 140,
+          closes: [140, 141, 142, 143, 144],
+          timestamps: [100, 200, 300, 400, 500],
+          tradingPeriods: [[{ start: 100 }, { start: 500 }]],
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+    // The new day owns only the last bar: neither a band nor a gridline draws
+    // at the chart's right border.
+    expect(json.stocks[0].weekLastDayStart).toBeUndefined();
+    expect(json.stocks[0].weekDayBoundaries).toBeUndefined();
+  });
+
+  it('reports boundaries and lastDayStart from one consistent scan', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        week: {
+          price: 150, previousClose: 148, chartPreviousClose: 140,
+          closes: [140, 141, 142, 143],
+          timestamps: [100, 200, 300, 400],
+          tradingPeriods: [[{ start: 100 }, { start: 300 }, { start: 500 }]],
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+    // Session 300 begins at index 2 (2/3); session 500 has no bar yet, so it
+    // contributes neither a boundary nor a lastDayStart.
+    expect(json.stocks[0].weekDayBoundaries).toEqual([0.6667]);
+    expect(json.stocks[0].weekLastDayStart).toBeUndefined();
+  });
+
+  it('omits weekDayBoundaries when no session start lands past the first bar', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        week: {
+          price: 150, previousClose: 148, chartPreviousClose: 140,
+          closes: [140, 141, 142],
+          timestamps: [100, 200, 300],
+          tradingPeriods: [[{ start: 90 }, { start: 95 }]],
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL', 'week'));
+    const json = await response.json();
+    expect(json.stocks[0].weekDayBoundaries).toBeUndefined();
+  });
+
   // ── day-chart time fractions ──
 
   it('scales day x-positions to the regular session window', async () => {
@@ -467,6 +558,86 @@ describe('GET /api/stocks', () => {
     const json = await response.json();
 
     expect(json.stocks[0].sparklineXs).toBeUndefined();
+  });
+
+  // ── day-chart hour marks ──
+
+  it('reports whole-hour marks exchange-locally for a 9:30-16:00 session', async () => {
+    // Session epoch 55800-79200 at gmtoffset -4h is 09:30-16:00 local:
+    // whole local hours strictly inside are 10:00..15:00.
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [55800, 67500, 79200],
+          regularStart: 55800, regularEnd: 79200, gmtoffset: -14400,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineHourMarks).toEqual([0.0769, 0.2308, 0.3846, 0.5385, 0.6923, 0.8462]);
+  });
+
+  it('reports whole-hour marks for a non-US session in its own hours', async () => {
+    // Session epoch 25200-55800 at gmtoffset +2h is 09:00-17:30 local (XETRA-like):
+    // whole local hours strictly inside are 10:00..17:00 — not the US 10:00-15:00
+    // set, and no mark at the 09:00 open (fraction 0).
+    mockFetchSuccess({
+      SAP: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [25200, 40500, 55800],
+          regularStart: 25200, regularEnd: 55800, gmtoffset: 7200,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('SAP'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineHourMarks).toEqual([0.1176, 0.2353, 0.3529, 0.4706, 0.5882, 0.7059, 0.8235, 0.9412]);
+  });
+
+  it('omits hour marks when Yahoo gives no exchange offset', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [55800, 67500, 79200],
+          regularStart: 55800, regularEnd: 79200,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineHourMarks).toBeUndefined();
+  });
+
+  it('omits hour marks when the data is stale (no session window)', async () => {
+    mockFetchSuccess({
+      AAPL: {
+        day: {
+          price: 150, previousClose: 148,
+          closes: [148.5, 149, 150],
+          timestamps: [100, 200, 300],
+          regularStart: 55800, regularEnd: 79200, gmtoffset: -14400,
+        },
+      },
+    });
+
+    const response = await GET(makeRequest('AAPL'));
+    const json = await response.json();
+
+    expect(json.stocks[0].sparklineXs).toBeUndefined();
+    expect(json.stocks[0].sparklineHourMarks).toBeUndefined();
   });
 
   // ── upstream dedupe ──

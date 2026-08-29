@@ -9,6 +9,7 @@ import {
   FinancialTableView,
   FinancialCompactView,
 } from './shared';
+import SingleTile from './SingleTile';
 import type { FinancialItem, TableColumn, CompactRow, SparklineLabels, SparklineMode, SparklineTheme } from './shared';
 import { useFetchData } from '@/hooks/useFetchData';
 
@@ -65,6 +66,12 @@ export default function FinancialDataModule<TItem>({
 
   return (
     <ModuleWrapper style={style}>
+      {view === 'single' && (
+        <SingleTile item={toFinancialItems(items)[0]}
+          sparklineMode={sparklineMode ?? 'day'}
+          sparklineTheme={sparklineTheme ?? 'classic'}
+          labels={sparklineLabels} />
+      )}
       {view === 'cards' && (
         <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline}
           sparklineMode={sparklineMode}

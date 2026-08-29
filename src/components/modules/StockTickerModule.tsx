@@ -7,6 +7,7 @@ import { useTranslate } from '@/i18n';
 import {
   formatUSD,
   formatPercent,
+  formatChange,
   ChangeColor,
 } from './financial/shared';
 import type { TableColumn, FinancialItem, CompactRow } from './financial/shared';
@@ -22,19 +23,17 @@ const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['stock-ticker']?.ttlMs ?? 30_000;
 
 interface StockData {
   symbol: string;
+  name?: string;
   price: number | null;
   change: number | null;
   changePercent: number | null;
   sparkline?: number[];
   sparklineXs?: number[];
+  sparklineHourMarks?: number[];
   sparklineWeek?: number[];
   weekChangePercent?: number | null;
   weekLastDayStart?: number;
-}
-
-function formatChange(val: number) {
-  const sign = val >= 0 ? '+' : '';
-  return `${sign}${val.toFixed(2)}`;
+  weekDayBoundaries?: number[];
 }
 
 /** Today's move as text; an en dash when the API had no prior close to measure from. */
@@ -48,14 +47,17 @@ function toFinancialItems(stocks: StockData[]): FinancialItem[] {
     return {
       key: `${stock.symbol}-${i}`,
       label: stock.symbol,
+      name: stock.name,
       price: stock.price ?? 0,
       changeValue: stock.change ?? 0,
       changeLabel: formatChangeLabel(stock.change ?? null, stock.changePercent ?? null),
       sparkline: stock.sparkline,
       sparklineXs: stock.sparklineXs,
+      sparklineHourMarks: stock.sparklineHourMarks,
       weekSparkline: stock.sparklineWeek,
       weekPositive: stock.weekChangePercent == null ? undefined : stock.weekChangePercent >= 0,
       weekHighlightFromX: stock.weekLastDayStart,
+      weekDayBoundaries: stock.weekDayBoundaries,
     };
   });
 }
@@ -111,6 +113,11 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
     },
   ], [t]);
 
+  const view = config.view ?? 'cards';
+  // Cards caption with the terse 1D / 5D; the single tile has room for the
+  // long form (1-day / 5-days) above each chart.
+  const labelKey = view === 'single' ? 'chartCaptions' : 'chartLabels';
+
   return (
     <FinancialDataModule<StockData>
       url={stocksUrl(config) ?? ''}
@@ -120,14 +127,14 @@ export default function StockTickerModule({ config, style }: StockTickerModulePr
       toCompactRows={toCompactRows}
       tableColumns={stockTableColumns}
       tableItemKey={(stock, i) => `${stock.symbol}-${i}`}
-      view={config.view ?? 'cards'}
+      view={view}
       cardScale={config.cardScale ?? 1}
       tickerSpeed={config.tickerSpeed ?? 5}
       showSparkline={config.showSparkline ?? true}
       sparklineMode={config.sparklineMode ?? 'day'}
       sparklineTheme={config.sparklineTheme ?? 'classic'}
       sparklineLabels={config.sparklineLabels
-        ? { day: t('stock-ticker.chartLabels.day'), week: t('stock-ticker.chartLabels.week') }
+        ? { day: t(`stock-ticker.${labelKey}.day`), week: t(`stock-ticker.${labelKey}.week`) }
         : undefined}
       style={style}
       loadingMessage={t('stock-ticker.loading')}

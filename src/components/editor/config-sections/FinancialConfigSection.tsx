@@ -12,6 +12,9 @@ import type { SparklineMode, SparklineTheme } from '@/components/modules/financi
 
 type FinancialView = StockTickerView | CryptoView;
 
+const STOCK_VIEWS: readonly StockTickerView[] = ['cards', 'ticker', 'table', 'compact', 'single'];
+const CRYPTO_VIEWS: readonly CryptoView[] = ['cards', 'ticker', 'table', 'compact'];
+
 interface FinancialConfigProps {
   mod: ModuleInstance;
   screenId: string;
@@ -20,9 +23,11 @@ interface FinancialConfigProps {
   symbolsPlaceholder: string;
   tickerUnitText: string;
   showChartRange?: boolean;
+  /** Views this module offers, in menu order. */
+  views: readonly FinancialView[];
 }
 
-function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange }: FinancialConfigProps) {
+function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange, views }: FinancialConfigProps) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<
     {
@@ -37,12 +42,14 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
     } & Record<string, unknown>
   >(mod, screenId);
 
-  const FINANCIAL_VIEWS: { value: FinancialView; label: string }[] = [
-    { value: 'cards', label: t('configSections.financial.viewCards') },
-    { value: 'ticker', label: t('configSections.financial.viewTicker') },
-    { value: 'table', label: t('configSections.financial.viewTable') },
-    { value: 'compact', label: t('configSections.financial.viewCompact') },
-  ];
+  const VIEW_LABELS: Record<FinancialView, string> = {
+    cards: t('configSections.financial.viewCards'),
+    ticker: t('configSections.financial.viewTicker'),
+    table: t('configSections.financial.viewTable'),
+    compact: t('configSections.financial.viewCompact'),
+    single: t('configSections.financial.viewSingle'),
+  };
+  const viewOptions = views.map((value) => ({ value, label: VIEW_LABELS[value] }));
 
   const CHART_THEMES = [
     { value: 'classic' as const, label: t('configSections.financial.chartThemeClassic') },
@@ -55,22 +62,25 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
   ];
 
   const view = c.view ?? 'cards';
-  const sparklineOn = view === 'cards' && (c.showSparkline ?? true);
+  // The single tile shows one symbol and always draws its chart(s); cards
+  // draw them only with the trend line on.
+  const single = view === 'single';
+  const chartsShown = single || (view === 'cards' && (c.showSparkline ?? true));
   const symbolsValue = (c[symbolsField] as string) || symbolsPlaceholder;
 
   return (
     <>
-      <LabeledInput
-        label={symbolsLabel}
-        value={symbolsValue}
-        onChange={(v) => set({ [symbolsField]: v })}
-      />
       <ViewSelect
         value={view}
         onChange={(v) => set({ view: v })}
-        options={FINANCIAL_VIEWS}
+        options={viewOptions}
       />
-      {view !== 'ticker' && (
+      <LabeledInput
+        label={single ? t('configSections.financial.symbolLabel') : symbolsLabel}
+        value={symbolsValue}
+        onChange={(v) => set({ [symbolsField]: v })}
+      />
+      {!single && view !== 'ticker' && (
         <Slider
           label={t('configSections.financial.scale')}
           value={c.cardScale ?? 1}
@@ -87,7 +97,7 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           onChange={(v) => set({ showSparkline: v })}
         />
       )}
-      {sparklineOn && showChartRange && (
+      {showChartRange && chartsShown && (
         <>
           <ViewSelect
             label={t('configSections.financial.chartTheme')}
@@ -143,6 +153,7 @@ export function StockTickerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       symbolsPlaceholder="AAPL,GOOGL,MSFT"
       tickerUnitText={t('configSections.financial.tickerUnitStock')}
       showChartRange
+      views={STOCK_VIEWS}
     />
   );
 }
@@ -157,6 +168,7 @@ export function CryptoConfigSection({ mod, screenId }: { mod: ModuleInstance; sc
       symbolsLabel={t('configSections.financial.cryptoIdsLabel')}
       symbolsPlaceholder="bitcoin,ethereum"
       tickerUnitText={t('configSections.financial.tickerUnitCoin')}
+      views={CRYPTO_VIEWS}
     />
   );
 }

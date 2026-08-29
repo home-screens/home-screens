@@ -275,6 +275,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    'editor|configSections.financial.symbolLabel',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
@@ -292,6 +293,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|choreChartModal.choreForm.ticketsLabel',
     'editor|configSections.countdown.namePlaceholder',
     'editor|configSections.display-control.layoutPad',
+    'editor|configSections.financial.symbolLabel',
     'editor|configSections.greeting.name',
     'editor|configSections.icon.flipHorizontal',
     'editor|configSections.shape.orientationHorizontal',

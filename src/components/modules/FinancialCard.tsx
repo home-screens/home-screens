@@ -18,6 +18,8 @@ interface FinancialCardProps {
   weekSparkline?: number[];
   weekPositive?: boolean;
   weekHighlightFromX?: number;
+  /** Day-boundary x fractions from the API (the week chart's session ticks). */
+  weekDayBoundaries?: number[];
   sparklineMode?: SparklineMode;
   sparklineTheme?: SparklineTheme;
   /** When set, each chart is captioned with its range and the shaded week chart gets session ticks. */
@@ -35,17 +37,6 @@ function captionEdge(points: number[]): 'top' | 'bottom' {
   return (points[0] - min) / (max - min) >= 0.5 ? 'bottom' : 'top';
 }
 
-/**
- * Session boundaries for the week chart, derived from where its last session
- * begins: 0.8 means five equal sessions, 0.75 a four-day holiday week.
- */
-function weekDividers(lastDayStart: number | undefined): number[] | undefined {
-  if (lastDayStart === undefined || lastDayStart <= 0 || lastDayStart >= 1) return undefined;
-  const sessions = Math.round(1 / (1 - lastDayStart));
-  if (sessions < 2 || sessions > 10) return undefined;
-  return Array.from({ length: sessions - 1 }, (_, k) => (k + 1) / sessions);
-}
-
 function ChartCaption({ text, edge, scale }: { text: string; edge: 'top' | 'bottom'; scale: number }) {
   return (
     <span
@@ -59,7 +50,7 @@ function ChartCaption({ text, edge, scale }: { text: string; edge: 'top' | 'bott
 
 export default function FinancialCard({
   label, price, changeValue, changeLabel, scale,
-  sparkline, sparklineXs, weekSparkline, weekPositive, weekHighlightFromX,
+  sparkline, sparklineXs, weekSparkline, weekPositive, weekHighlightFromX, weekDayBoundaries,
   sparklineMode = 'day', sparklineTheme = 'classic', sparklineLabels,
 }: FinancialCardProps) {
   const dayPositive = changeValue >= 0;
@@ -91,7 +82,7 @@ export default function FinancialCard({
   // sessions; classic charts get the caption centered underneath, since
   // there is no backdrop to sit on. Without labels the DOM is unchanged.
   const labels = sparklineLabels;
-  const dividers = shaded && labels ? weekDividers(weekHighlightFromX) : undefined;
+  const dividers = shaded && labels ? weekDayBoundaries : undefined;
 
   const dayChart = hasDay ? (
     <Sparkline points={sparkline} positive={dayPositive} scale={scale}
@@ -125,22 +116,23 @@ export default function FinancialCard({
     charts = hasDay || hasWeek ? (
       shaded ? (
         // Both charts stretch to 100% and flex-shrink to equal halves; the
-        // row carries the shared side inset.
+        // row carries the shared side inset. Week sits left of day, so the
+        // pair reads chronologically: the past week, then today.
         <div className="financial-sparkline-row flex items-center justify-center"
           style={{ gap: `${0.5 * scale}em`, ...areaStyle }}>
-          {hasDay && (labels ? shadedSlot(dayChart, sparkline, labels.day) : dayChart)}
           {hasWeek && (labels ? shadedSlot(weekChart, weekSparkline, labels.week) : weekChart)}
+          {hasDay && (labels ? shadedSlot(dayChart, sparkline, labels.day) : dayChart)}
         </div>
       ) : (
         <div className="financial-sparkline-row flex items-center justify-center w-full"
           style={{ gap: `${0.5 * scale}em` }}>
-          {hasDay && (() => {
-            const chart = <Sparkline points={sparkline} positive={dayPositive} scale={scale} xs={dayXs} widthEm={2.6} />;
-            return labels ? classicSlot(chart, labels.day) : chart;
-          })()}
           {hasWeek && (() => {
             const chart = <Sparkline points={weekSparkline} positive={weekColor} scale={scale} widthEm={2.6} />;
             return labels ? classicSlot(chart, labels.week) : chart;
+          })()}
+          {hasDay && (() => {
+            const chart = <Sparkline points={sparkline} positive={dayPositive} scale={scale} xs={dayXs} widthEm={2.6} />;
+            return labels ? classicSlot(chart, labels.day) : chart;
           })()}
         </div>
       )

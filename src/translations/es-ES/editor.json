@@ -2522,6 +2522,7 @@
       "viewTicker": "Ticker (desplazamiento)",
       "viewTable": "Tabla",
       "viewCompact": "Compacto",
+      "viewSingle": "Único",
       "scale": "Escala",
       "tickerSpeed": "Velocidad del ticker ({unit})",
       "stockSymbolsLabel": "Símbolos (separados por comas)",
@@ -2534,6 +2535,7 @@
       "chartThemeShaded": "Sombreado",
       "chartContent": "Contenido del gráfico",
       "chartLabels": "Etiquetar gráficos (1D / 5D)",
+      "symbolLabel": "Símbolo",
       "chartContentDay": "Solo hoy",
       "chartContentWeek": "Solo la semana pasada",
       "chartContentBoth": "Hoy y semana pasada"

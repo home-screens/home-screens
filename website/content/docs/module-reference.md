@@ -495,15 +495,15 @@ Real-time stock prices from Yahoo Finance.
 |---|---|---|---|
 | `symbols` | string | `"AAPL,GOOGL,MSFT"` | Comma-separated stock symbols |
 | `refreshIntervalMs` | number | `30000` | Refresh interval (30 sec) |
-| `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, or `compact` |
-| `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). The quickest way to make prices readable across a room. Not used by the ticker view |
+| `view` | string | `"cards"` | Display mode: `cards`, `ticker`, `table`, `compact`, or `single`. `single` dedicates the tile to the first symbol: ticker and company name, large price with change, and one chart filling the tile (min/max axis labels; in the `shaded` theme, hour marks on the day chart and day marks on the week chart, in the symbol's own exchange hours). Only that first symbol is fetched |
+| `cardScale` | number | `1` | Size multiplier for the cards, table, and compact views (0.5–3). The quickest way to make prices readable across a room. Not used by the ticker or single views |
 | `showSparkline` | boolean | `true` | Draw a small trend line on each card in the cards view |
 | `sparklineTheme` | string | `"classic"` | Chart look: `classic` (plain line, evenly spaced) or `shaded` (soft backdrop and tint, day chart scaled to trading hours) |
-| `sparklineMode` | string | `"day"` | Which chart each card shows: `day`, `week`, or `both` (day and week side by side) |
+| `sparklineMode` | string | `"day"` | Which chart each card shows: `day`, `week`, or `both` (the week chart sits left of the day chart, so the pair reads chronologically) |
 | `sparklineLabels` | boolean | `false` | Caption each chart with its range (`1D` for today, `5D` for the past week) so the two are easy to tell apart. In the `shaded` theme the week chart is also ticked into its trading sessions |
 | `tickerSpeed` | number | `5` | Scroll speed for ticker view |
 
-Each chart is colored by its own period's move (the day chart by today's change, the week chart by the week's change) in both themes; the price-change text always shows today's change. In the `shaded` theme the day chart's width represents that symbol's full regular trading session on its own exchange (for example 9:30 to 16:00 Eastern for US stocks), so during the session the line stops at the current time and the empty part of the chart is the remaining trading time. Outside the session, or when the session bounds are not available, the points are spread evenly across the full width. The `classic` theme always spreads points evenly.
+Each chart is colored by its own period's move (the day chart by today's change, the week chart by the week's change) in both themes; the price-change text always shows today's change. In the `shaded` theme the day chart's width represents that symbol's full regular trading session on its own exchange (for example 9:30 to 16:00 Eastern for US stocks), so during the session the line stops at the current time and the empty part of the chart is the remaining trading time. Outside the session, or when the session bounds are not available, the points are spread evenly across the full width. The `classic` theme always spreads points evenly. The `single` view's chart honors `sparklineTheme`, `sparklineMode`, and `sparklineLabels` (its captions read `1-day` / `5-days`); when both charts are shown they share one vertical scale.
 
 ### Crypto Price
 

@@ -41,7 +41,7 @@ export const VIEW_MATRIX: ViewSpec[] = [
   { type: 'sports', key: 'view', kind: 'networked', stubKey: 'sports', views: ['scoreboard', 'cards', 'list', 'ticker'] },
   { type: 'standings', key: 'view', kind: 'networked', stubKey: 'standings', views: ['table', 'compact', 'conference'] },
   { type: 'news', key: 'view', kind: 'networked', stubKey: 'news', views: ['headline', 'list', 'ticker', 'compact'] },
-  { type: 'stock-ticker', key: 'view', kind: 'networked', stubKey: 'stocks', views: ['cards', 'ticker', 'table', 'compact'] },
+  { type: 'stock-ticker', key: 'view', kind: 'networked', stubKey: 'stocks', views: ['cards', 'ticker', 'table', 'compact', 'single'] },
   { type: 'crypto', key: 'view', kind: 'networked', stubKey: 'crypto', views: ['cards', 'ticker', 'table', 'compact'] },
   { type: 'todoist', key: 'viewMode', kind: 'networked', stubKey: 'todoist', views: ['list', 'board', 'focus'] },
   { type: 'calendar', key: 'viewMode', kind: 'networked', stubKey: 'calendar', views: ['daily', 'agenda', 'week', 'multi-week', 'month'] },

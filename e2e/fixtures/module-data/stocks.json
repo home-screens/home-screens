@@ -5,22 +5,90 @@
       "price": 150.25,
       "change": 1.23,
       "changePercent": 0.55,
-      "sparkline": [149.1, 149.6, 149.3, 150.0, 150.4, 150.25],
-      "sparklineXs": [0, 0.2, 0.4, 0.6, 0.8, 1],
-      "sparklineWeek": [151.0, 150.8, 149.9, 150.1, 150.25],
+      "sparkline": [
+        149.1,
+        149.6,
+        149.3,
+        150.0,
+        150.4,
+        150.25
+      ],
+      "sparklineXs": [
+        0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sparklineHourMarks": [
+        0.0769,
+        0.2308,
+        0.3846,
+        0.5385,
+        0.6923,
+        0.8462
+      ],
+      "sparklineWeek": [
+        151.0,
+        150.8,
+        149.9,
+        150.1,
+        150.25
+      ],
       "weekChangePercent": -0.49,
-      "weekLastDayStart": 0.6
+      "weekLastDayStart": 0.6,
+      "name": "Apple Inc.",
+      "weekDayBoundaries": [
+        0.2,
+        0.4,
+        0.6
+      ]
     },
     {
       "symbol": "MSFT",
       "price": 402.1,
       "change": -2.4,
       "changePercent": -0.59,
-      "sparkline": [404.5, 403.8, 404.1, 403.0, 402.5, 402.1],
-      "sparklineXs": [0, 0.2, 0.4, 0.6, 0.8, 1],
-      "sparklineWeek": [401.0, 401.5, 402.0, 402.3, 402.1],
+      "sparkline": [
+        404.5,
+        403.8,
+        404.1,
+        403.0,
+        402.5,
+        402.1
+      ],
+      "sparklineXs": [
+        0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        1
+      ],
+      "sparklineHourMarks": [
+        0.0769,
+        0.2308,
+        0.3846,
+        0.5385,
+        0.6923,
+        0.8462
+      ],
+      "sparklineWeek": [
+        401.0,
+        401.5,
+        402.0,
+        402.3,
+        402.1
+      ],
       "weekChangePercent": 0.28,
-      "weekLastDayStart": 0.6
+      "weekLastDayStart": 0.6,
+      "name": "Microsoft Corporation",
+      "weekDayBoundaries": [
+        0.2,
+        0.4,
+        0.6
+      ]
     }
   ]
 }

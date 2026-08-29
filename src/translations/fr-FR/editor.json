@@ -2522,6 +2522,7 @@
       "viewTicker": "Téléscripteur (défilant)",
       "viewTable": "Tableau",
       "viewCompact": "Compact",
+      "viewSingle": "Unique",
       "scale": "Échelle",
       "tickerSpeed": "Vitesse du téléscripteur ({unit})",
       "stockSymbolsLabel": "Symboles (séparés par des virgules)",
@@ -2534,6 +2535,7 @@
       "chartThemeShaded": "Ombré",
       "chartContent": "Contenu du graphique",
       "chartLabels": "Étiqueter les graphiques (1J / 5J)",
+      "symbolLabel": "Symbole",
       "chartContentDay": "Aujourd'hui seulement",
       "chartContentWeek": "Semaine dernière seulement",
       "chartContentBoth": "Aujourd'hui et semaine dernière"

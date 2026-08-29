@@ -52,6 +52,32 @@ describe('stocksUrl', () => {
     expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day,week');
   });
 
+  it('single view fetches only the first configured symbol', () => {
+    // The tile shows one symbol; fetching the rest would spend upstream calls
+    // for nothing and let a failure on the first symbol swap in the second.
+    expect(stocksUrl({ symbols: 'AAPL,GOOGL,MSFT', view: 'single' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=day');
+    expect(stocksUrl({ symbols: ' AAPL , MSFT', view: 'single' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
+  it('single view fetches the week leg its chart content asks for, with the trend line toggled off', () => {
+    // The editor hides the trend-line toggle for the single view but keeps
+    // its value; the tile always draws its charts, so it must not gate the legs.
+    expect(stocksUrl({ symbols: 'AAPL', view: 'single', showSparkline: false, sparklineMode: 'week' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=week');
+    expect(stocksUrl({ symbols: 'AAPL', view: 'single', showSparkline: false, sparklineMode: 'both' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=day,week');
+  });
+
+  it('single view defaults to the day leg', () => {
+    expect(stocksUrl({ symbols: 'AAPL', view: 'single' })).toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
+  it('blank symbols yield no URL', () => {
+    expect(stocksUrl({ symbols: '   ', view: 'single' })).toBeNull();
+  });
+
   it('treats unknown sparklineMode as day', () => {
     expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'nope' })).toBe('/api/stocks?symbols=AAPL&charts=day');
   });

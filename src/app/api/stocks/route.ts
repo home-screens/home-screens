@@ -7,15 +7,21 @@ type Chart = 'day' | 'week';
 
 interface StockResult {
   symbol: string;
+  /** Company name from Yahoo meta.shortName, when the leg carried one. */
+  name?: string;
   price: number;
   /** Today's move; null when Yahoo gives no prior-session close to measure from. */
   change: number | null;
   changePercent: number | null;
   sparkline?: number[];
   sparklineXs?: number[];
+  /** X fractions (0-1) of the day chart's whole trading hours, exchange-local. */
+  sparklineHourMarks?: number[];
   sparklineWeek?: number[];
   weekChangePercent?: number;
   weekLastDayStart?: number;
+  /** X fractions (0-1) where each new trading day begins in the week series. */
+  weekDayBoundaries?: number[];
   /** Requested charts whose upstream fetch failed; the symbol is still served from the legs that worked. */
   missingCharts?: Chart[];
 }
@@ -25,7 +31,10 @@ interface YahooChart {
     regularMarketPrice?: unknown;
     previousClose?: unknown;
     chartPreviousClose?: unknown;
+    shortName?: unknown;
     currentTradingPeriod?: { regular?: { start?: unknown; end?: unknown } };
+    /** Exchange UTC offset in seconds (Yahoo meta). */
+    gmtoffset?: unknown;
     tradingPeriods?: unknown[];
   };
   timestamp?: unknown[];
@@ -57,7 +66,7 @@ function num(v: unknown): number | undefined {
 }
 
 /** Finite closes paired with their timestamps (null intervals dropped from both). */
-function extractDaySeries(chart: YahooChart): { closes: number[]; xs?: number[] } {
+function extractDaySeries(chart: YahooChart): { closes: number[]; xs?: number[]; hourMarks?: number[] } {
   const closesRaw = chart.indicators?.quote?.[0]?.close ?? [];
   const stampsRaw = chart.timestamp ?? [];
   const closes: number[] = [];
@@ -69,8 +78,10 @@ function extractDaySeries(chart: YahooChart): { closes: number[]; xs?: number[] 
     const t = num(stampsRaw[i]);
     if (t !== undefined) stamps.push(t);
   }
-  const xs = computeXs(stamps, closes.length, chart);
-  return { closes, xs };
+  const scaled = computeXs(stamps, closes.length, chart);
+  return scaled === undefined
+    ? { closes }
+    : { closes, xs: scaled.xs, hourMarks: scaled.hourMarks };
 }
 
 /** Week closes paired with their timestamps (null intervals dropped from both). */
@@ -94,8 +105,14 @@ function extractWeekSeries(chart: YahooChart): { closes: number[]; stamps: numbe
  * stops at "now" and the remaining trading time stays empty. Omitted when the
  * data is stale (half or more timestamps outside the window — weekends,
  * pre-open) or when Yahoo gives no session bounds; the client then even-spaces.
+ * The same guard carries the hour marks: without honest x positions there is
+ * no honest place for hour gridlines either.
  */
-function computeXs(stamps: number[], closeCount: number, chart: YahooChart): number[] | undefined {
+function computeXs(
+  stamps: number[],
+  closeCount: number,
+  chart: YahooChart,
+): { xs: number[]; hourMarks?: number[] } | undefined {
   const regular = chart.meta?.currentTradingPeriod?.regular;
   const start = num(regular?.start);
   const end = num(regular?.end);
@@ -104,29 +121,70 @@ function computeXs(stamps: number[], closeCount: number, chart: YahooChart): num
   const inside = stamps.filter((t) => t >= start && t <= end);
   if (inside.length < Math.ceil(stamps.length / 2)) return undefined;
   const span = end - start;
-  return stamps.map((t) =>
+  const xs = stamps.map((t) =>
     Math.round(Math.min(1, Math.max(0, (t - start) / span)) * 1e4) / 1e4,
   );
+  const gmtoffset = num(chart.meta?.gmtoffset);
+  const hourMarks = gmtoffset === undefined ? undefined : computeHourMarks(start, end, span, gmtoffset);
+  return hourMarks?.length ? { xs, hourMarks } : { xs };
 }
 
 /**
- * Fraction (0-1) where the week chart's LAST trading day begins, so the
- * client can shade that region. Derived from the per-session bounds in
- * meta.tradingPeriods against the kept closes' timestamps; undefined when
- * Yahoo gives no session bounds or the data predates the last session.
+ * Whole trading hours strictly inside the session as 0-1 x fractions — local
+ * to the exchange via its gmtoffset, so a US 9:30-16:00 session marks
+ * 10:00-15:00 while a 09:00-17:30 European one marks 10:00-17:00. A session
+ * that opens exactly on the hour contributes no fraction-0 mark.
  */
-function computeWeekLastDayStart(chart: YahooChart, stamps: number[], closeCount: number): number | undefined {
+function computeHourMarks(start: number, end: number, span: number, gmtoffset: number): number[] {
+  // Local wall-clock = epoch + gmtoffset; a whole local hour begins where
+  // that sum is a multiple of 3600.
+  const intoHour = (((start + gmtoffset) % 3600) + 3600) % 3600;
+  const marks: number[] = [];
+  for (let t = start + ((3600 - intoHour) % 3600); t < end; t += 3600) {
+    const frac = Math.round(((t - start) / span) * 1e4) / 1e4;
+    if (frac > 0 && frac < 1) marks.push(frac);
+  }
+  return marks;
+}
+
+/**
+ * Where each new trading day begins in the week series, as 0-1 fractions
+ * against the kept closes' timestamps, from the per-session bounds in
+ * meta.tradingPeriods. One pass owns both outputs so they can never disagree:
+ * `lastDayStart` (the client's highlight band) is the final boundary whenever
+ * it lands inside the series. A day that begins at the very last bar
+ * (fraction 1) draws neither a band nor a gridline — the chart edge is not a
+ * divider. Members are undefined when Yahoo gives no session bounds or the
+ * data predates the last session.
+ */
+function computeWeekBoundaries(
+  chart: YahooChart,
+  stamps: number[],
+  closeCount: number,
+): { lastDayStart?: number; dayBoundaries?: number[] } {
   const periods: unknown = chart.meta?.tradingPeriods;
-  if (!Array.isArray(periods) || stamps.length < closeCount || closeCount < 2) return undefined;
+  if (!Array.isArray(periods) || stamps.length < closeCount || closeCount < 2) return {};
   const starts = periods
     .flatMap((day) => (Array.isArray(day) ? day : [day]))
     .map((p) => num((p as { start?: unknown })?.start))
-    .filter((s): s is number => s !== undefined);
-  if (starts.length === 0) return undefined;
-  const lastStart = Math.max(...starts);
-  const firstIndex = stamps.findIndex((t) => t >= lastStart);
-  if (firstIndex < 0) return undefined;
-  return Math.round((firstIndex / (closeCount - 1)) * 1e4) / 1e4;
+    .filter((s): s is number => s !== undefined)
+    .sort((a, b) => a - b);
+  if (starts.length === 0) return {};
+  const frac = (idx: number) => Math.round((idx / (closeCount - 1)) * 1e4) / 1e4;
+  const out: number[] = [];
+  // Sorted starts: once one lands past the data, so do all after it, and the
+  // last start (the band's) is then unplaced too.
+  let lastFrac: number | undefined;
+  for (const start of starts) {
+    const idx = stamps.findIndex((t) => t >= start);
+    if (idx < 0) { lastFrac = undefined; break; }
+    lastFrac = frac(idx);
+    if (lastFrac > 0 && lastFrac < 1 && (out.length === 0 || lastFrac > out[out.length - 1])) out.push(lastFrac);
+  }
+  return {
+    ...(lastFrac !== undefined && lastFrac < 1 ? { lastDayStart: lastFrac } : {}),
+    ...(out.length > 0 ? { dayBoundaries: out } : {}),
+  };
 }
 
 const LEG_TTL_MS = 30 * 1000;
@@ -241,16 +299,21 @@ async function fetchStock(symbol: string, charts: Chart[]): Promise<StockResult>
     changePercent: changePercent === null ? null : Math.round(changePercent * 100) / 100,
   };
 
+  const shortName = typeof base.meta.shortName === 'string' ? base.meta.shortName.trim() : '';
+  if (shortName) result.name = shortName;
+
   if (day) {
-    const { closes, xs } = extractDaySeries(day);
+    const { closes, xs, hourMarks } = extractDaySeries(day);
     result.sparkline = closes;
     if (xs) result.sparklineXs = xs;
+    if (hourMarks) result.sparklineHourMarks = hourMarks;
   }
   if (week) {
     const { closes, stamps } = extractWeekSeries(week);
     result.sparklineWeek = closes;
-    const lastDayStart = computeWeekLastDayStart(week, stamps, closes.length);
+    const { lastDayStart, dayBoundaries } = computeWeekBoundaries(week, stamps, closes.length);
     if (lastDayStart !== undefined) result.weekLastDayStart = lastDayStart;
+    if (dayBoundaries !== undefined) result.weekDayBoundaries = dayBoundaries;
     const weekBaseline = num(week.meta.chartPreviousClose);
     if (weekBaseline !== undefined) {
       result.weekChangePercent = Math.round(((price - weekBaseline) / weekBaseline) * 100 * 100) / 100;

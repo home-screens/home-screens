@@ -1092,7 +1092,8 @@ export interface NewsConfig {
 }
 
 // Stock ticker module config
-export type StockTickerView = 'cards' | 'ticker' | 'table' | 'compact';
+// 'single' dedicates the tile to the first symbol: quote header + full-space chart.
+export type StockTickerView = 'cards' | 'ticker' | 'table' | 'compact' | 'single';
 
 export interface StockTickerConfig {
   symbols: string;

@@ -2517,6 +2517,7 @@
       "viewTicker": "Ticker (Scrolling)",
       "viewTable": "Table",
       "viewCompact": "Compact",
+      "viewSingle": "Single",
       "scale": "Scale",
       "tickerSpeed": "Ticker Speed ({unit})",
       "stockSymbolsLabel": "Symbols (comma-separated)",
@@ -2529,6 +2530,7 @@
       "chartThemeShaded": "Shaded",
       "chartContent": "Chart content",
       "chartLabels": "Label charts (1D / 5D)",
+      "symbolLabel": "Symbol",
       "chartContentDay": "Today only",
       "chartContentWeek": "Past week only",
       "chartContentBoth": "Today and past week"
