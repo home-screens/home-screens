@@ -42,13 +42,13 @@ function formatTime(pubDate: string, t: TranslateFn): string {
 }
 
 /** Headline view — single rotating headline (original behavior) */
-function HeadlineView({ items, rotateMs, t }: { items: NewsItem[]; rotateMs: number; t: TranslateFn }) {
+function HeadlineView({ items, rotateMs, showTitle, t }: { items: NewsItem[]; rotateMs: number; showTitle: boolean; t: TranslateFn }) {
   const index = useRotatingIndex(items.length, rotateMs);
   const item = items[index % items.length];
 
   return (
     <div className="flex flex-col items-center justify-center h-full gap-2">
-      <SectionHeader>{t('news.header')}</SectionHeader>
+      {showTitle && <SectionHeader>{t('news.header')}</SectionHeader>}
       <p className="text-center leading-relaxed">
         {item?.title ?? t('news.loading')}
       </p>
@@ -57,8 +57,9 @@ function HeadlineView({ items, rotateMs, t }: { items: NewsItem[]; rotateMs: num
 }
 
 /** List view — vertical scrollable list with optional timestamps and descriptions */
-function ListView({ items, showTimestamp, showDescription, accentColor, t }: {
+function ListView({ items, showTimestamp, showDescription, accentColor, showTitle, t }: {
   items: NewsItem[];
+  showTitle: boolean;
   showTimestamp: boolean;
   showDescription: boolean;
   accentColor?: string;
@@ -66,7 +67,7 @@ function ListView({ items, showTimestamp, showDescription, accentColor, t }: {
 }) {
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <SectionHeader className="shrink-0 mb-2">{t('news.header')}</SectionHeader>
+      {showTitle && <SectionHeader className="shrink-0 mb-2">{t('news.header')}</SectionHeader>}
       <div className="flex flex-col gap-2.5 overflow-y-auto min-h-0 pr-1">
         {items.map((item, i) => (
           <div key={i} className="flex gap-2" style={{ fontSize: '0.9em' }}>
@@ -153,10 +154,11 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
     <ModuleWrapper style={style}>
       <div ref={containerRef} className="h-full" style={{ fontSize: `${scaledFontSize}px` }}>
       {view === 'headline' && (
-        <HeadlineView items={allItems} rotateMs={config.rotateIntervalMs ?? 10000} t={t} />
+        <HeadlineView items={allItems} rotateMs={config.rotateIntervalMs ?? 10000} showTitle={config.showTitle !== false} t={t} />
       )}
       {view === 'list' && (
         <ListView
+          showTitle={config.showTitle !== false}
           items={items}
           showTimestamp={config.showTimestamp ?? false}
           showDescription={config.showDescription ?? false}

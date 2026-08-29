@@ -17,7 +17,9 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
 
   return (
     <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.hourlyForecast')}</h2>
+      {config.showTitle !== false && (
+        <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.hourlyForecast')}</h2>
+      )}
       {hours.length === 0 ? (
         <WeatherEmptyState />
       ) : (

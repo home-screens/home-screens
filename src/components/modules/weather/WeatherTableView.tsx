@@ -23,7 +23,9 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
 
   return (
     <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
-      <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
+      {config.showTitle !== false && (
+        <h2 className="font-semibold mb-3 shrink-0" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
+      )}
       {days.length === 0 ? (
         <WeatherEmptyState message={t('weather.noForecastData')} />
       ) : (

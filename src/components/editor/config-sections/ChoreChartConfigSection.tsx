@@ -24,6 +24,7 @@ type Config = {
   showTimeOfDay?: boolean;
   allowDisplayComplete?: boolean;
   accentColor?: string;
+  showTitle?: boolean;
 };
 
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -89,6 +90,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
         checked={c.showTimeOfDay ?? true}
         onChange={(v) => set({ showTimeOfDay: v })}
       />
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <Toggle
         label={t('configSections.chore-chart.tapToComplete')}
         checked={c.allowDisplayComplete ?? true}

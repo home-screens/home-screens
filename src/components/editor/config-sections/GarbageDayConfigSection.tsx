@@ -4,20 +4,16 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, GarbageDayConfig } from '@/types/config';
 
 export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const { config: c, set } = useModuleConfig<{
-    trashDay?: number; trashFrequency?: string; trashStartDate?: string; trashColor?: string;
-    recyclingDay?: number; recyclingFrequency?: string; recyclingStartDate?: string; recyclingColor?: string;
-    customDay?: number; customFrequency?: string; customStartDate?: string; customColor?: string;
-    customLabel?: string; highlightMode?: string;
-  }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<GarbageDayConfig>>(mod, screenId);
 
   const FREQUENCY_OPTIONS = [
     { value: 'weekly', label: t('configSections.garbage-day.frequencyWeekly') },
@@ -89,6 +85,7 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
         onChange={(v) => set({ highlightMode: v })}
         options={HIGHLIGHT_OPTIONS}
       />
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
     </>
   );
 }

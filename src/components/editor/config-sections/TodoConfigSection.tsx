@@ -8,10 +8,10 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance, TodoItem } from '@/types/config';
+import type { ModuleInstance, TodoConfig, TodoItem } from '@/types/config';
 
 export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ title?: string; items?: TodoItem[]; accentColor?: string; interactive?: boolean }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<TodoConfig>>(mod, screenId);
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const items = c.items ?? [];
@@ -30,6 +30,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         value={(c.title as string) || t('configSections.todo.defaultTitle')}
         onChange={(v) => set({ title: v })}
       />
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">{t('configSections.todo.items')}</span>
         <Button size="sm" onClick={addItem}>{tCore('actions.add')}</Button>

@@ -35,7 +35,9 @@ export function CompactView({ config, data }: CompactViewProps) {
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-2" style={{ opacity: TEXT_OPACITY.secondary }}>
-        <span style={{ fontSize: '0.8em', fontWeight: 600 }}>{t('chore-chart.chores')}</span>
+        {config.showTitle !== false && (
+          <span style={{ fontSize: '0.8em', fontWeight: 600 }}>{t('chore-chart.chores')}</span>
+        )}
         <div className="flex-1" />
         {members.map((m) => (
           <span key={m.id} title={m.name} className="flex items-center">

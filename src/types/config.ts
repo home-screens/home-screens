@@ -891,6 +891,8 @@ export interface WeatherConfig {
   /** Overrides the geocoded name when set — the escape hatch for the long
    *  strings Nominatim returns and for hand-entered coordinates. */
   locationLabel?: string;
+  /** Show the "Forecast" / "Hourly Forecast" heading (hourly, daily, table views). Omitted = shown. */
+  showTitle?: boolean;
 }
 
 
@@ -1049,6 +1051,8 @@ export interface TodoItem {
 
 export interface TodoConfig {
   title: string;
+  /** Show the title text (the done count stays). Omitted = shown. */
+  showTitle?: boolean;
   items: TodoItem[];
   accentColor?: string;
   /**
@@ -1088,6 +1092,8 @@ export interface NewsConfig {
   showDescription: boolean;
   tickerSpeed?: number;
   accentColor?: string;     // List bullet color; default undefined (text-based bullet)
+  /** Show the built-in "News" header (headline + list views). Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Stock ticker module config
@@ -1138,6 +1144,8 @@ export interface HistoryConfig {
   showDividers?: boolean;
   sourceMuffinLabs?: boolean;
   sourceWikipedia?: boolean;
+  /** Show the built-in "On This Day" header. Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Moon phase module config
@@ -1247,6 +1255,8 @@ export interface TrafficRoute {
 export interface TrafficConfig {
   routes: TrafficRoute[];
   refreshIntervalMs: number;
+  /** Show the built-in "Traffic" header. Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Sports scores module config
@@ -1278,6 +1288,8 @@ export interface TodoistConfig {
   maxTasks: number;
   refreshIntervalMs: number;
   title: string;
+  /** Show the title text (the task count stays). Omitted = shown. */
+  showTitle?: boolean;
   // When true, tapping a task on a touchscreen closes it via Todoist's API.
   allowComplete?: boolean;
 }
@@ -1319,6 +1331,8 @@ export interface GarbageDayConfig {
   customColor: string;
   customLabel: string;
   highlightMode: 'day-of' | 'day-before';
+  /** Show the built-in "Collection Schedule" header. Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Rain map module config
@@ -1457,6 +1471,8 @@ export interface MealPlannerConfig {
   showTags: boolean;
   accentColor: string;
   tapRecipeAction?: RecipeTapAction;
+  /** Show the "Today's Meals" label in the today view. Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Icon module config (Font Awesome)
@@ -1701,6 +1717,8 @@ export interface ChoreChartConfig {
   showTimeOfDay: boolean;
   allowDisplayComplete: boolean;
   accentColor: string;
+  /** Show the built-in view title ("Family Chores", "Star Chart", ...). Omitted = shown. */
+  showTitle?: boolean;
 }
 
 export type FullscreenChoreChartView = 'chores' | 'rewards-store';
@@ -1734,6 +1752,8 @@ export interface FullscreenMealPlannerConfig {
   showDifficulty: boolean;
   theme?: string;
   tapRecipeAction?: RecipeTapAction;
+  /** Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu"). Omitted = shown. */
+  showTitle?: boolean;
 }
 
 // Fullscreen weather module config

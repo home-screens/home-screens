@@ -25,6 +25,7 @@
     "objectFitContain": "Contener",
     "objectFitFill": "Rellenar",
     "showDescription": "Mostrar descripción",
+    "showTitle": "Mostrar título",
     "apiKey": "Clave de API",
     "resolution": "Resolución",
     "orientation": "Orientación",
@@ -2134,7 +2135,7 @@
       "fontWeightReset": "Restablecer al valor predeterminado",
       "title": "Título de la tarjeta",
       "titleFontSize": "Tamaño del título",
-      "titleOwnTitleHint": "Este widget también muestra su propio título desde sus ajustes, así que pueden verse dos títulos."
+      "titleOwnTitleHint": "Este widget también muestra su propio título, así que pueden verse dos. Desactiva «Mostrar título» en sus ajustes para dejar solo este."
     },
     "actions": {
       "bringToFront": "Al frente",

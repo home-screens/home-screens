@@ -25,6 +25,7 @@
     "objectFitContain": "Contenir",
     "objectFitFill": "Remplir",
     "showDescription": "Afficher la description",
+    "showTitle": "Afficher le titre",
     "apiKey": "Clé API",
     "resolution": "Résolution",
     "orientation": "Orientation",
@@ -2134,7 +2135,7 @@
       "fontWeightReset": "Rétablir la valeur par défaut",
       "title": "Titre de la carte",
       "titleFontSize": "Taille du titre",
-      "titleOwnTitleHint": "Ce widget affiche aussi son propre titre depuis ses réglages, deux titres peuvent donc apparaître."
+      "titleOwnTitleHint": "Ce widget affiche aussi son propre titre, deux peuvent donc apparaître. Désactivez « Afficher le titre » dans ses réglages pour ne garder que celui-ci."
     },
     "actions": {
       "bringToFront": "Premier plan",

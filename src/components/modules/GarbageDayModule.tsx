@@ -226,7 +226,9 @@ export default function GarbageDayModule({ config, style, timezone }: GarbageDay
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full">
-        <SectionHeader className="mb-2">{t('garbage-day.header')}</SectionHeader>
+        {config.showTitle !== false && (
+          <SectionHeader className="mb-2">{t('garbage-day.header')}</SectionHeader>
+        )}
 
         <div className="flex flex-col gap-1 flex-1 justify-center">
           <WasteRow

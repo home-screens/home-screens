@@ -25,6 +25,7 @@
     "objectFitContain": "Tilpas",
     "objectFitFill": "Stræk",
     "showDescription": "Vis beskrivelse",
+    "showTitle": "Vis titel",
     "apiKey": "API-nøgle",
     "resolution": "Opløsning",
     "orientation": "Retning",
@@ -2130,7 +2131,7 @@
       "fontWeightReset": "Nulstil til standard",
       "title": "Korttitel",
       "titleFontSize": "Titelstørrelse",
-      "titleOwnTitleHint": "Denne widget viser også sin egen titel fra indstillingerne, så der kan ses to titler."
+      "titleOwnTitleHint": "Denne widget viser også sin egen titel, så der kan ses to. Slå ‘Vis titel’ fra i dens indstillinger for kun at beholde denne."
     },
     "actions": {
       "bringToFront": "Flyt forrest",

@@ -25,6 +25,7 @@
     "objectFitContain": "Passend",
     "objectFitFill": "Vullen",
     "showDescription": "Beschrijving tonen",
+    "showTitle": "Titel tonen",
     "apiKey": "API-sleutel",
     "resolution": "Resolutie",
     "orientation": "Oriëntatie",
@@ -2130,7 +2131,7 @@
       "fontWeightReset": "Terugzetten op standaard",
       "title": "Kaarttitel",
       "titleFontSize": "Titelgrootte",
-      "titleOwnTitleHint": "Deze widget toont ook een eigen titel uit de instellingen, dus er kunnen twee titels verschijnen."
+      "titleOwnTitleHint": "Deze widget toont ook een eigen titel, dus er kunnen er twee verschijnen. Zet ‘Titel tonen’ uit in de instellingen om alleen deze te houden."
     },
     "actions": {
       "bringToFront": "Naar voren",

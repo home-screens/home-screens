@@ -7,7 +7,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, TodoistConfig } from '@/types/config';
 import { settingsPath } from '@/lib/settings-route';
 
 function TodoistTokenStatus() {
@@ -68,22 +68,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     { value: 'due_date', label: t('configSections.todoist.sortBy.due_date') },
     { value: 'alphabetical', label: t('configSections.todoist.sortBy.alphabetical') },
   ] as const;
-  const { config: c, set } = useModuleConfig<{
-    title?: string;
-    viewMode?: string;
-    groupBy?: string;
-    sortBy?: string;
-    projectFilter?: string;
-    labelFilter?: string;
-    showNoDueDate?: boolean;
-    showSubtasks?: boolean;
-    showLabels?: boolean;
-    showProject?: boolean;
-    showDescription?: boolean;
-    maxTasks?: number;
-    refreshIntervalMs?: number;
-    allowComplete?: boolean;
-  }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<TodoistConfig>>(mod, screenId);
   const viewMode = c.viewMode ?? 'list';
 
   return (
@@ -94,6 +79,7 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         value={c.title ?? 'Todoist'}
         onChange={(v) => set({ title: v })}
       />
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <LabeledSelect
         label={t('configSections.todoist.viewMode')}
         value={viewMode}

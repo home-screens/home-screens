@@ -25,6 +25,7 @@ type Config = Partial<FullscreenMealPlannerConfig>;
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+  const view = c.view ?? 'week';
   // The accent the module paints while accentColor is empty (see the module).
   const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme), DEFAULT_ACCENT_COLOR);
   const accentColor = c.accentColor || themeAccent;
@@ -62,7 +63,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* View */}
       <LabeledSelect
         label={t('configSections.fullscreen-meal-planner.view')}
-        value={c.view ?? 'week'}
+        value={view}
         onChange={(v) => set({ view: v })}
         options={VIEWS}
       />
@@ -88,6 +89,9 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       <Toggle label={t('configSections.fullscreen-meal-planner.showPrepTime')} checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
       <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
       <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
+      {view !== 'next-meal' && (
+        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
+      )}
 
       {/* Tap-to-open recipe */}
       <LabeledSelect

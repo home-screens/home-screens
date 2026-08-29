@@ -10,6 +10,7 @@ import { PERSONAL_VARIANTS } from './personal';
 import { MEDIA_FULLSCREEN_VARIANTS } from './media-fullscreen';
 import { FULLSCREEN_FAMILY_VARIANTS } from './fullscreen-family';
 import { FULLSCREEN_WEATHER_VARIANTS } from './fullscreen-weather';
+import { TITLE_VARIANTS, TITLE_VIEW_VARIANTS } from './titles';
 
 export type { ConfigVariant } from './types';
 
@@ -31,4 +32,6 @@ export const CONFIG_VARIANTS: ConfigVariant[] = [
   ...MEDIA_FULLSCREEN_VARIANTS,
   ...FULLSCREEN_FAMILY_VARIANTS,
   ...FULLSCREEN_WEATHER_VARIANTS,
+  ...TITLE_VARIANTS,
+  ...TITLE_VIEW_VARIANTS,
 ];

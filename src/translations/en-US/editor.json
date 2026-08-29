@@ -25,6 +25,7 @@
     "objectFitContain": "Contain",
     "objectFitFill": "Fill",
     "showDescription": "Show Description",
+    "showTitle": "Show Title",
     "apiKey": "API Key",
     "resolution": "Resolution",
     "orientation": "Orientation",
@@ -2130,7 +2131,7 @@
       "fontWeightReset": "Reset to default",
       "title": "Card Title",
       "titleFontSize": "Title Size",
-      "titleOwnTitleHint": "This widget also shows its own title from its settings, so you may see two titles."
+      "titleOwnTitleHint": "This widget also shows its own title, so you may see two. Turn off Show Title in its settings to keep just this one."
     },
     "actions": {
       "bringToFront": "Bring to Front",

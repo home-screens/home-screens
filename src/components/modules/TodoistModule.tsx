@@ -103,6 +103,7 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
   }, [data, config, completedIds]);
 
   const title = config.title || 'Todoist';
+  const showTitle = config.showTitle !== false;
   const viewMode = config.viewMode ?? 'list';
   // Stabilize `now` so useMemo deps in child views don't bust on every render.
   // Recompute only when fresh data arrives from the API.
@@ -117,17 +118,21 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-semibold" style={{ fontSize: '1.1em' }}>
-            {title}
-          </h2>
-          <MetadataText size="xs">
-            {/* A truncated fetch (past the route's 4000-item ceiling) makes
-                totalCount an undercount, so show it as a floor rather than an
-                exact figure. Almost nobody hits this, but a silently short
-                list presented as complete is the worst version of the bug. */}
-            {data?.truncated
-              ? t('todoist.taskCountAtLeast', { count: totalCount })
-              : t('todoist.taskCount', { count: totalCount })}
+          {showTitle && (
+            <h2 className="font-semibold" style={{ fontSize: '1.1em' }}>
+              {title}
+            </h2>
+          )}
+          {/* Stays visible with the title off: it is the only place a
+              truncated fetch is surfaced. */}
+          <MetadataText size="xs" className="ml-auto">
+              {/* A truncated fetch (past the route's 4000-item ceiling) makes
+                  totalCount an undercount, so show it as a floor rather than an
+                  exact figure. Almost nobody hits this, but a silently short
+                  list presented as complete is the worst version of the bug. */}
+              {data?.truncated
+                ? t('todoist.taskCountAtLeast', { count: totalCount })
+                : t('todoist.taskCount', { count: totalCount })}
           </MetadataText>
         </div>
 

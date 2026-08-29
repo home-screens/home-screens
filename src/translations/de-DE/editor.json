@@ -25,6 +25,7 @@
     "objectFitContain": "Einpassen",
     "objectFitFill": "Strecken",
     "showDescription": "Beschreibung anzeigen",
+    "showTitle": "Titel anzeigen",
     "apiKey": "API-Schlüssel",
     "resolution": "Auflösung",
     "orientation": "Ausrichtung",
@@ -2130,7 +2131,7 @@
       "fontWeightReset": "Auf Standard zurücksetzen",
       "title": "Kartentitel",
       "titleFontSize": "Titelgröße",
-      "titleOwnTitleHint": "Dieses Widget zeigt zusätzlich einen eigenen Titel aus seinen Einstellungen, es können also zwei Titel erscheinen."
+      "titleOwnTitleHint": "Dieses Widget zeigt auch einen eigenen Titel, es können also zwei erscheinen. Schalte „Titel anzeigen“ in seinen Einstellungen aus, um nur diesen zu behalten."
     },
     "actions": {
       "bringToFront": "Nach vorn",

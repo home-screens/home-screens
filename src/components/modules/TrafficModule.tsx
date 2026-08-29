@@ -50,7 +50,9 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full gap-2">
-        <SectionHeader className="text-center">{t('traffic.sectionTitle')}</SectionHeader>
+        {config.showTitle !== false && (
+          <SectionHeader className="text-center">{t('traffic.sectionTitle')}</SectionHeader>
+        )}
 
         {data && (
           <div className="flex flex-col gap-2">

@@ -42,8 +42,10 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
     >
       {({ accentColor, hasAccent }) => (
         <>
-          <SectionHeader>{t('history.header')}</SectionHeader>
-          {config.showDividers !== false && (
+          {config.showTitle !== false && (
+            <SectionHeader>{t('history.header')}</SectionHeader>
+          )}
+          {config.showTitle !== false && config.showDividers !== false && (
             <AccentDivider accentColor={accentColor} hasAccent={hasAccent} />
           )}
 

@@ -278,11 +278,7 @@ test('every API route is E2E-exercised, unit-tested, or an explicit decision', (
  * a decision, not an omission — a NEW module with a rendering-affecting
  * field must get a variant row, not an allowlist entry.
  */
-const CONFIG_VARIANT_FREE_MODULES = new Set<string>([
-  // No rendering-affecting config field identified (all config tunes the
-  // upstream fetch, not the client render).
-  'traffic',
-]);
+const CONFIG_VARIANT_FREE_MODULES = new Set<string>([]);
 
 /**
  * Config-variant coverage ratchet. Every built-in module type must have at

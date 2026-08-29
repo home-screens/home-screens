@@ -30,7 +30,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
     scaledFontSize,
     [
       days.length, showHighLow, config.showPrecipitation !== false, config.showPrecipAmount,
-      config.showHumidity, config.showWind,
+      config.showHumidity, config.showWind, config.showTitle !== false,
     ].join('|'),
   );
 
@@ -42,7 +42,9 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
     >
       {/* Natural-height stack: this is what gets measured against the box above. */}
       <div ref={contentRef} className="flex flex-col">
-        <h2 className="font-semibold mb-[0.35em]" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
+        {config.showTitle !== false && (
+          <h2 className="font-semibold mb-[0.35em]" style={{ fontSize: '1.125em', opacity: TEXT_OPACITY.heading }}>{t('weather.forecast')}</h2>
+        )}
         {days.length === 0 ? (
           <WeatherEmptyState message={t('weather.noForecastData')} />
         ) : (

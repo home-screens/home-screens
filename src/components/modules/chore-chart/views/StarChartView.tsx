@@ -25,9 +25,11 @@ export function StarChartView({ config, data }: StarChartViewProps) {
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Title */}
-      <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        &#11088; {t('chore-chart.starChart')} &#11088;
-      </div>
+      {config.showTitle !== false && (
+        <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
+          &#11088; {t('chore-chart.starChart')} &#11088;
+        </div>
+      )}
 
       {/* Grid */}
       <div className="flex-1 overflow-auto" style={{ scrollbarWidth: 'none' }}>

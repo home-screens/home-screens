@@ -134,22 +134,24 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
   return (
     <div className="flex flex-col h-full gap-2">
       {/* Title */}
-      <div className="flex items-center gap-2 mb-0.5">
-        <div
-          className="h-px flex-1 rounded-full"
-          style={{ backgroundColor: `${config.accentColor}30` }}
-        />
-        <span
-          className="uppercase tracking-[0.2em] font-semibold shrink-0"
-          style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
-        >
-          {t('meal-planner.todaysMeals')}
-        </span>
-        <div
-          className="h-px flex-1 rounded-full"
-          style={{ backgroundColor: `${config.accentColor}30` }}
-        />
-      </div>
+      {config.showTitle !== false && (
+        <div className="flex items-center gap-2 mb-0.5">
+          <div
+            className="h-px flex-1 rounded-full"
+            style={{ backgroundColor: `${config.accentColor}30` }}
+          />
+          <span
+            className="uppercase tracking-[0.2em] font-semibold shrink-0"
+            style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
+          >
+            {t('meal-planner.todaysMeals')}
+          </span>
+          <div
+            className="h-px flex-1 rounded-full"
+            style={{ backgroundColor: `${config.accentColor}30` }}
+          />
+        </div>
+      )}
 
       {/* Meal cards */}
       <div className="flex flex-col gap-1.5 flex-1">

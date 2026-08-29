@@ -5,7 +5,7 @@ import { getDifficultyColor } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function TodayView({
-  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const currentHour = now.getHours();
@@ -52,12 +52,14 @@ export default function TodayView({
       fontFamily: bodyFont, padding: pad,
     }}>
       {/* Header */}
-      <div style={{
-        fontFamily: headerFont, fontSize: s * 2.2, fontWeight: 400,
-        color: 'var(--fmp-text)', marginBottom: s * 1.5,
-      }}>
-        {t('fullscreen-meal-planner.todaysMeals')}
-      </div>
+      {showTitle && (
+        <div style={{
+          fontFamily: headerFont, fontSize: s * 2.2, fontWeight: 400,
+          color: 'var(--fmp-text)', marginBottom: s * 1.5,
+        }}>
+          {t('fullscreen-meal-planner.todaysMeals')}
+        </div>
+      )}
 
       {/* Hero card */}
       <div style={{

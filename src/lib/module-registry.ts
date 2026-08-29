@@ -81,9 +81,10 @@ export interface ModuleDefinition {
    */
   cardless?: boolean;
   /**
-   * True for modules that render a title of their own from config (todo,
-   * todoist). The editor shows a hint under Card Title so users know the two
-   * are independent and would stack.
+   * True for modules that render a built-in title of their own (a fixed
+   * header like "Traffic", or a configurable one like todo's). The editor shows
+   * a hint under Card Title so users know the two would stack, and points at
+   * the module's Show Title toggle.
    */
   hasOwnTitle?: boolean;
   /**
@@ -334,6 +335,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showEmoji: true,
       showDifficulty: false,
       tapRecipeAction: 'off',
+      showTitle: true,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,
@@ -514,6 +516,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Weather',
     icon: CloudSun,
     category: 'Weather & Environment',
+    hasOwnTitle: true,
     defaultConfig: {
       view: 'hourly',
       iconSet: 'color',
@@ -528,6 +531,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showWind: false,
       hideWhenNoAlerts: false,
       showLocation: false,
+      showTitle: true,
     },
     defaultSize: { w: 600, h: 300 },
   },
@@ -600,6 +604,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'News Headlines',
     icon: Newspaper,
     category: 'News & Finance',
+    hasOwnTitle: true,
     defaultConfig: {
       feedUrl: '',
       view: 'headline',
@@ -610,6 +615,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDescription: false,
       tickerSpeed: 5,
       accentColor: undefined,
+      showTitle: true,
     },
     defaultSize: { w: 500, h: 400 },
   },
@@ -713,11 +719,13 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'This Day in History',
     icon: History,
     category: 'Knowledge & Fun',
+    hasOwnTitle: true,
     defaultConfig: {
       refreshIntervalMs: FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000,
       rotationIntervalMs: 10000,
       accentColor: '#000000',
       showDividers: true,
+      showTitle: true,
     },
     defaultSize: { w: 500, h: 200 },
   },
@@ -731,6 +739,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     hasOwnTitle: true,
     defaultConfig: {
       title: 'To Do',
+      showTitle: true,
       items: [],
       accentColor: '#000000',
       interactive: false,
@@ -779,6 +788,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       maxTasks: 30,
       refreshIntervalMs: FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000,
       title: 'Todoist',
+      showTitle: true,
     },
     defaultSize: { w: 400, h: 550 },
   },
@@ -787,6 +797,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Garbage Day',
     icon: Trash2,
     category: 'Personal',
+    hasOwnTitle: true,
     defaultConfig: {
       trashDay: 1,       // Monday
       trashFrequency: 'weekly',
@@ -802,6 +813,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       customColor: '#fbbf24',
       customLabel: 'Yard Waste',
       highlightMode: 'day-before',
+      showTitle: true,
     },
     defaultSize: { w: 350, h: 320 },
   },
@@ -827,6 +839,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Meal Planner',
     icon: UtensilsCrossed,
     category: 'Personal',
+    hasOwnTitle: true,
     defaultConfig: {
       view: 'week',
       showEmoji: true,
@@ -834,6 +847,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTags: true,
       accentColor: DEFAULT_ACCENT_COLOR,
       tapRecipeAction: 'off',
+      showTitle: true,
     },
     defaultSize: { w: 500, h: 600 },
   },
@@ -842,6 +856,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Chore Chart',
     icon: ClipboardList,
     category: 'Personal',
+    hasOwnTitle: true,
     defaultConfig: {
       view: 'board',
       weekStartDay: 'monday',
@@ -850,6 +865,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTimeOfDay: true,
       allowDisplayComplete: true,
       accentColor: DEFAULT_ACCENT_COLOR,
+      showTitle: true,
     },
     defaultSize: { w: 500, h: 650 },
     defaultStyle: { fontSize: 24 },
@@ -1051,9 +1067,11 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     label: 'Traffic / Commute',
     icon: Car,
     category: 'Travel',
+    hasOwnTitle: true,
     defaultConfig: {
       routes: [],
       refreshIntervalMs: FETCH_KEY_REGISTRY['traffic']?.ttlMs ?? 300_000,
+      showTitle: true,
     },
     defaultSize: { w: 450, h: 300 },
   },

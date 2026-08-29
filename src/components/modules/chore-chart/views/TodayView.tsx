@@ -53,10 +53,12 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Header */}
-      <div className="text-center mb-2">
-        <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; {tCore('today')}</div>
-        <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{dayName}</div>
-      </div>
+      {config.showTitle !== false && (
+        <div className="text-center mb-2">
+          <div style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>&#128203; {tCore('today')}</div>
+          <div style={{ fontSize: '0.85em', fontWeight: 600 }}>{dayName}</div>
+        </div>
+      )}
 
       {/* Time sections */}
       <div className="flex-1 overflow-y-auto space-y-2" style={{ scrollbarWidth: 'none' }}>

@@ -90,9 +90,11 @@ export function ProgressView({ config, data }: ProgressViewProps) {
   return (
     <div className="flex flex-col h-full items-center" style={{ fontSize: 'inherit' }}>
       {/* Title */}
-      <div className="text-center mb-3" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        &#128202; {t('chore-chart.familyProgress')}
-      </div>
+      {config.showTitle !== false && (
+        <div className="text-center mb-3" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
+          &#128202; {t('chore-chart.familyProgress')}
+        </div>
+      )}
 
       {/* Progress rings */}
       <div className="flex items-center justify-center gap-4 flex-wrap">

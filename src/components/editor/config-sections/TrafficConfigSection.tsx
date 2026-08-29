@@ -1,15 +1,16 @@
 'use client';
 
 import Button from '@/components/ui/Button';
+import Toggle from '@/components/ui/Toggle';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useIndexListEditor } from '@/hooks/useListEditor';
 import { NESTED_INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, TrafficConfig } from '@/types/config';
 
 export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
-  const { config: c, set } = useModuleConfig<{ routes?: { label: string; origin: string; destination: string }[]; refreshIntervalMs?: number }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<TrafficConfig>>(mod, screenId);
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const routes = c.routes ?? [];
@@ -23,6 +24,7 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <div className="space-y-2">
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <RefreshIntervalSlider
         value={c.refreshIntervalMs}
         onChange={(ms) => set({ refreshIntervalMs: ms })}

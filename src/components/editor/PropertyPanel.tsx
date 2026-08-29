@@ -212,7 +212,7 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
                   set(title === undefined ? { title: undefined, titleFontSize: undefined } : { title })
                 }
               />
-              {getModuleDefinition(mod.type)?.hasOwnTitle && (
+              {getModuleDefinition(mod.type)?.hasOwnTitle && mod.config.showTitle !== false && (
                 <p className="text-[11px] text-hs-text-muted">{t('propertyPanel.fields.titleOwnTitleHint')}</p>
               )}
               {!!s.title?.trim() && (

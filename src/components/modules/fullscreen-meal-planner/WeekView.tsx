@@ -6,7 +6,7 @@ import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function WeekView({
-  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, headerFont, bodyFont, recipeTapMode,
+  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -34,9 +34,11 @@ export default function WeekView({
         padding: `${pad}px ${pad}px ${pad * 0.3}px`,
         flexShrink: 0,
       }}>
-        <div style={{ fontFamily: headerFont, fontSize: s * 2.8, fontWeight: 400, color: 'var(--fmp-text)' }}>
-          {t('fullscreen-meal-planner.thisWeeksMeals')}
-        </div>
+        {showTitle && (
+          <div style={{ fontFamily: headerFont, fontSize: s * 2.8, fontWeight: 400, color: 'var(--fmp-text)' }}>
+            {t('fullscreen-meal-planner.thisWeeksMeals')}
+          </div>
+        )}
         <div style={{ fontSize: s * 1.1, color: 'var(--fmp-text-3)', marginTop: s * 0.3 }}>
           {dateRange}, {weekStartDate.getFullYear()}
         </div>

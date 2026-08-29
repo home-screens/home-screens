@@ -26,9 +26,11 @@ export function BoardView({ config, data }: BoardViewProps) {
   return (
     <div className="flex flex-col h-full" style={{ fontSize: 'inherit' }}>
       {/* Title */}
-      <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
-        {t('chore-chart.familyChores')}
-      </div>
+      {config.showTitle !== false && (
+        <div className="text-center mb-2" style={{ fontSize: '0.85em', fontWeight: 600, opacity: TEXT_OPACITY.secondary }}>
+          {t('chore-chart.familyChores')}
+        </div>
+      )}
 
       {/* Columns */}
       {/* data-swipe-ignore: these columns scroll sideways with 5+ members —

@@ -105,6 +105,7 @@ export default function FullscreenMealPlannerModule({
     showPrepTime: config.showPrepTime ?? true,
     showTags: config.showTags ?? true,
     showDifficulty: config.showDifficulty ?? false,
+    showTitle: config.showTitle !== false,
     headerFont, bodyFont,
     recipeTapMode,
   };

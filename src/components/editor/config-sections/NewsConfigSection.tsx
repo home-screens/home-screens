@@ -10,7 +10,7 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import type { ModuleInstance, NewsView } from '@/types/config';
+import type { ModuleInstance, NewsConfig, NewsView } from '@/types/config';
 
 const NEWS_FEED_PRESETS = [
   { label: 'BBC News', url: '' },
@@ -33,11 +33,7 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     { value: 'ticker', label: t('configSections.news.viewTicker') },
     { value: 'compact', label: t('configSections.news.viewCompact') },
   ];
-  const { config: c, set } = useModuleConfig<{
-    feedUrl?: string; view?: NewsView; refreshIntervalMs?: number; rotateIntervalMs?: number;
-    maxItems?: number; showTimestamp?: boolean; showDescription?: boolean; tickerSpeed?: number;
-    accentColor?: string;
-  }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<NewsConfig>>(mod, screenId);
 
   const feedUrl = (c.feedUrl as string) || '';
   const isCustom = feedUrl !== '' && !PRESET_URLS.has(feedUrl);
@@ -73,6 +69,9 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ view: v })}
         options={NEWS_VIEWS}
       />
+      {(view === 'headline' || view === 'list') && (
+        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
+      )}
       {view === 'headline' && (
         <Slider
           label={t('configSections.news.rotateHeadlines')}

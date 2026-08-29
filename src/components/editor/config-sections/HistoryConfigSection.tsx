@@ -6,11 +6,11 @@ import Toggle from '@/components/ui/Toggle';
 import AccentColorPicker from '@/components/ui/AccentColorPicker';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, HistoryConfig } from '@/types/config';
 
 export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
-  const { config: c, set } = useModuleConfig<{ refreshIntervalMs?: number; rotationIntervalMs?: number; accentColor?: string; showDividers?: boolean; sourceMuffinLabs?: boolean; sourceWikipedia?: boolean }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<HistoryConfig>>(mod, screenId);
 
   return (
     <>
@@ -32,6 +32,7 @@ export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         max={1440}
         step={5}
       />
+      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <Toggle label={t('configSections.history.showDividers')} checked={c.showDividers !== false} onChange={(v) => set({ showDividers: v })} />
       <AccentColorPicker
         value={c.accentColor ?? '#000000'}

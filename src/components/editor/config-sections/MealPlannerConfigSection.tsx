@@ -25,11 +25,13 @@ type Config = {
   showTags?: boolean;
   accentColor?: string;
   tapRecipeAction?: RecipeTapAction;
+  showTitle?: boolean;
 };
 
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
+  const view = c.view ?? 'week';
   const VIEWS: { value: MealPlannerView; label: string }[] = [
     { value: 'week', label: t('configSections.meal-planner.viewWeek') },
     { value: 'today', label: t('configSections.meal-planner.viewToday') },
@@ -48,7 +50,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
     <>
       {/* View Mode */}
       <ViewSelect
-        value={c.view ?? 'week'}
+        value={view}
         onChange={(v) => set({ view: v })}
         options={VIEWS}
       />
@@ -69,6 +71,9 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         checked={c.showTags ?? true}
         onChange={(v) => set({ showTags: v })}
       />
+      {view === 'today' && (
+        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
+      )}
 
       {/* Tap-to-open recipe */}
       <LabeledSelect

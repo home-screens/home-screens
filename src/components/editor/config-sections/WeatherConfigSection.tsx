@@ -13,7 +13,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { getLocation } from '@/lib/location';
 import { formatCoords } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
+import type { ModuleInstance, WeatherConfig, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
 
 // Provider capabilities — controls which toggles and views are visible
 const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean; uv?: boolean }> = {
@@ -54,25 +54,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     { value: 'precipitation', label: t('configSections.weather.views.precipitation') },
     { value: 'alerts', label: t('configSections.weather.views.alerts') },
   ];
-  const { config: c, set } = useModuleConfig<{
-    view?: WeatherView;
-    iconSet?: WeatherIconSet;
-    provider?: WeatherProviderOption;
-    hoursToShow?: number;
-    showFeelsLike?: boolean;
-    daysToShow?: number;
-    showHighLow?: boolean;
-    showPrecipitation?: boolean;
-    showPrecipAmount?: boolean;
-    showHumidity?: boolean;
-    showWind?: boolean;
-    showPressure?: boolean;
-    showVisibility?: boolean;
-    showDewPoint?: boolean;
-    hideWhenNoAlerts?: boolean;
-    showLocation?: boolean;
-    locationLabel?: string;
-  }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<Partial<WeatherConfig>>(mod, screenId);
 
   const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
   const settings = useEditorStore((s) => s.config?.settings);
@@ -152,6 +134,9 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           onChange={(v) => set({ locationLabel: v })}
           placeholder={automaticLabel}
         />
+      )}
+      {(view === 'hourly' || view === 'daily' || view === 'table') && (
+        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       )}
       {view === 'alerts' && caps.alerts && (
         <Toggle label={t('configSections.weather.hideWhenNoAlerts')} checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />

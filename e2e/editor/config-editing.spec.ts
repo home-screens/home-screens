@@ -619,7 +619,7 @@ test('todo: editing Title persists', async ({ page, request }) => {
   }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Title').fill('MY TODOS');
+    await page.getByLabel('Title', { exact: true }).fill('MY TODOS');
   });
 
   expect((await moduleConfig(request, 'todo')).title).toBe('MY TODOS');

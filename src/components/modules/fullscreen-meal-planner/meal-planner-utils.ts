@@ -20,6 +20,7 @@ export interface MealPlannerViewProps {
   showPrepTime: boolean;
   showTags: boolean;
   showDifficulty: boolean;
+  showTitle: boolean;
   headerFont: string;
   bodyFont: string;
   recipeTapMode: RecipeTapMode;

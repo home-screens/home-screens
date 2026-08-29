@@ -196,10 +196,12 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
     <ModuleWrapper style={style}>
       <div ref={containerRef} className="flex flex-col h-full" style={{ fontSize: `${scaledFontSize}px` }}>
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-semibold" style={{ fontSize: '1.25em' }}>
-            {title}
-          </h2>
-          <MetadataText className="tabular-nums">
+          {config.showTitle !== false && (
+            <h2 className="font-semibold" style={{ fontSize: '1.25em' }}>
+              {title}
+            </h2>
+          )}
+          <MetadataText className="tabular-nums ml-auto">
             {doneCount}/{totalCount}
           </MetadataText>
         </div>
