@@ -421,8 +421,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.affirmations.categoryAffirmations',
     'editor|configSections.affirmations.categoryCompliments',
     'editor|configSections.calendar.sources',
-    'editor|configSections.financial.mode',
-    'editor|configSections.financial.modeMultiple',
     'editor|configSections.financial.viewCompact',
     'editor|configSections.fullscreen-calendar.sources',
     'editor|configSections.fullscreen-photo.mode',

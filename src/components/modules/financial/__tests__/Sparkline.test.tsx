@@ -132,8 +132,8 @@ describe('Sparkline', () => {
     expect(lines[2].getAttribute('x2')).toBe('75.00');
   });
 
-  it('level lines only when requested, at the domain extremes', () => {
-    const withLines = render(<Sparkline points={[1, 2, 3]} positive scale={1} shaded showLevelLines />);
+  it('level lines only in the single layout, at the domain extremes', () => {
+    const withLines = render(<Sparkline points={[1, 2, 3]} positive scale={1} shaded layout="single" />);
     expect(withLines.container.querySelectorAll('svg.financial-sparkline line.financial-sparkline-level')).toHaveLength(2);
     const lines = withLines.container.querySelectorAll('line.financial-sparkline-level');
     expect(lines[0].getAttribute('y1')).toBe('2');
@@ -145,16 +145,17 @@ describe('Sparkline', () => {
 
   it('flat domain draws one mid level line, not two stacked', () => {
     const { container } = render(
-      <Sparkline points={[5, 5, 5]} positive scale={1} shaded showLevelLines />,
+      <Sparkline points={[5, 5, 5]} positive scale={1} shaded layout="single" />,
     );
     const lines = container.querySelectorAll('line.financial-sparkline-level');
     expect(lines).toHaveLength(1);
     expect(lines[0].getAttribute('y1')).toBe('16');
   });
 
-  it('fillHeight stretches the svg to its container height', () => {
-    const { container } = render(<Sparkline points={[1, 2, 3]} positive scale={1} fillWidth fillHeight />);
+  it('single layout stretches the svg to its container in both directions', () => {
+    const { container } = render(<Sparkline points={[1, 2, 3]} positive scale={1} layout="single" />);
     expect(svgOf(container).style.height).toBe('100%');
+    expect(svgOf(container).style.width).toBe('100%');
   });
 
   it('shaded tint stops one unit above the backdrop bottom (cards look, unchanged)', () => {
@@ -164,9 +165,9 @@ describe('Sparkline', () => {
     expect(d.endsWith('L100.00,31 Z')).toBe(true);
   });
 
-  it('flushBottomFill runs the tint to the chart bottom (single-tile layout)', () => {
+  it('single layout runs the tint to the chart bottom', () => {
     const { container } = render(
-      <Sparkline points={[1, 2, 3]} positive scale={1} shaded xs={[0, 0.5, 1]} flushBottomFill />,
+      <Sparkline points={[1, 2, 3]} positive scale={1} shaded xs={[0, 0.5, 1]} layout="single" />,
     );
     const d = svgOf(container).querySelector('path')!.getAttribute('d')!;
     expect(d.startsWith('M0.00,32')).toBe(true);
@@ -181,9 +182,9 @@ describe('Sparkline', () => {
     expect(html.indexOf('<path')).toBeGreaterThan(html.indexOf('financial-sparkline-divider'));
   });
 
-  it('dividersOverFill paints dividers over the tint (single-tile layout)', () => {
+  it('single layout paints dividers over the tint', () => {
     const { container } = render(
-      <Sparkline points={[1, 2, 3]} positive scale={1} shaded dividers={[0.5]} dividersOverFill />,
+      <Sparkline points={[1, 2, 3]} positive scale={1} shaded dividers={[0.5]} layout="single" />,
     );
     const html = svgOf(container).innerHTML;
     expect(html.indexOf('<path')).toBeLessThan(html.indexOf('financial-sparkline-divider'));

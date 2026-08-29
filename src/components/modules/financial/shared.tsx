@@ -32,13 +32,23 @@ export function formatChange(val: number): string {
   return `${sign}${val.toFixed(2)}`;
 }
 
-/** Tiered axis-label rounding: whole dollars at $10+, one decimal under $10, two under $1.
- * `locale` threads through toLocaleString (like formatUSD) so grouping and the
- * decimal mark match the tile's price header. */
-export function formatAxisValue(v: number, locale: string = DEFAULT_LOCALE): string {
-  if (v < 1) return `$${v.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (v < 10) return `$${v.toLocaleString(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
-  return `$${v.toLocaleString(locale, { maximumFractionDigits: 0 })}`;
+/**
+ * The gutter's max/min axis labels, formatted together so they share one
+ * rounding tier and never read as the same value at two heights. The tier
+ * starts at the magnitude's floor (whole dollars at $10+, one decimal under
+ * $10, two under $1) and adds decimals only until the two labels differ, so a
+ * $12 stock's quiet 12.18..12.44 day reads $12.2 / $12.4, not $12 / $12.
+ * `locale` threads through toLocaleString (like formatUSD) so grouping and
+ * the decimal mark match the tile's price header.
+ */
+export function formatAxisLabels(min: number, max: number, locale: string = DEFAULT_LOCALE): { min: string; max: string } {
+  const floor = min < 1 ? 2 : min < 10 ? 1 : 0;
+  const fmt = (v: number, d: number) => `$${v.toLocaleString(locale, { minimumFractionDigits: d, maximumFractionDigits: d })}`;
+  let out = { min: fmt(min, floor), max: fmt(max, floor) };
+  for (let d = floor + 1; d <= 4 && out.min === out.max && min !== max; d++) {
+    out = { min: fmt(min, d), max: fmt(max, d) };
+  }
+  return out;
 }
 
 /** Colour-code a value: green for positive, red for negative */
@@ -80,25 +90,23 @@ interface SparklineProps {
   highlightFromX?: number;
   /** Faint vertical ticks at these 0-1 x fractions (session boundaries). */
   dividers?: number[];
-  /** Run the tint fill to the chart's bottom edge instead of stopping one unit
-   * short (single-tile layout). Default keeps the cards look. */
-  flushBottomFill?: boolean;
-  /** Draw dividers over the tint fill instead of beneath it (single-tile
-   * layout, so they stay visible across the flush fill). Default keeps the
-   * cards look. */
-  dividersOverFill?: boolean;
   /** Explicit y-scale (shared-scale rendering); absent = the series' own min/max.
    * Values outside the domain map outside the padded band and clip at the svg
    * viewport — graceful but silent; flat domains flatten at the mid-line. */
   domain?: { min: number; max: number };
-  /** Thin horizontal lines at the domain's max and min levels. */
-  showLevelLines?: boolean;
-  /** Stretch to the container's height instead of the fixed 1.4em (Single layout). */
-  fillHeight?: boolean;
+  /**
+   * 'card' (default) is the cards look: fixed 1.4em height, tint stopping one
+   * unit above the backdrop's bottom edge, dividers beneath the tint.
+   * 'single' is the single tile's chart: fills its slot in both directions,
+   * tint flush to the bottom, dividers over the tint so they stay visible
+   * across the flush fill, and thin level lines at the domain's max and min.
+   */
+  layout?: 'card' | 'single';
 }
 
 /** Tiny trend line — colour matches the change value, shape is the price series */
-export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX, dividers, flushBottomFill, dividersOverFill, domain, showLevelLines, fillHeight }: SparklineProps) {
+export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, shaded, highlightFromX, dividers, domain, layout = 'card' }: SparklineProps) {
+  const single = layout === 'single';
   const gradientId = useId();
   if (points.length < 2) return null;
   const min = domain?.min ?? Math.min(...points);
@@ -117,13 +125,14 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
     return { x: x.toFixed(2), y: sparklineY(p, min, max).toFixed(2) };
   });
   const coords = coordPairs.map((c) => `${c.x},${c.y}`).join(' ');
-  // The cards look stops the tint one unit above the backdrop's bottom edge;
-  // the single-tile layout runs it flush (flushBottomFill).
-  const areaBottom = flushBottomFill ? 32 : 31;
+  const areaBottom = single ? 32 : 31;
   const area =
     `M${coordPairs[0].x},${areaBottom} ` +
     coordPairs.map((c) => `L${c.x},${c.y}`).join(' ') +
     ` L${coordPairs[coordPairs.length - 1].x},${areaBottom} Z`;
+  // Cards tuck the dividers beneath the tint; the single tile paints them over
+  // it (and classic has no tint to order against).
+  const dividersUnderFill = shaded && !single;
   const dividerNodes = dividers?.map((x, i) => (
     <line key={`${x}-${i}`} className="financial-sparkline-divider"
       x1={(x * 100).toFixed(2)} y1="0" x2={(x * 100).toFixed(2)} y2="32"
@@ -134,7 +143,7 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
       className={`financial-sparkline ${shaded ? 'financial-sparkline-shaded ' : ''}${positive ? 'text-green-400' : 'text-red-400'}`}
       viewBox="0 0 100 32"
       preserveAspectRatio="none"
-      style={{ width: fillWidth ? '100%' : `${(widthEm ?? 5.5) * scale}em`, height: fillHeight ? '100%' : `${1.4 * scale}em`, opacity: 0.85 }}
+      style={{ width: single || fillWidth ? '100%' : `${(widthEm ?? 5.5) * scale}em`, height: single ? '100%' : `${1.4 * scale}em`, opacity: 0.85 }}
       aria-hidden="true"
     >
       {shaded && (
@@ -151,12 +160,12 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
               width={(100 - highlightFromX * 100).toFixed(2)} height="32"
               fill="currentColor" opacity={0.15} />
           )}
-          {!dividersOverFill && dividerNodes}
+          {dividersUnderFill && dividerNodes}
           <path d={area} fill={`url(#${gradientId})`} />
         </>
       )}
-      {(!shaded || dividersOverFill) && dividerNodes}
-      {showLevelLines && levelYs.map((y, i) => (
+      {!dividersUnderFill && dividerNodes}
+      {single && levelYs.map((y, i) => (
         <line key={i} className="financial-sparkline-level"
           x1="0" y1={y} x2="100" y2={y}
           stroke="currentColor" strokeOpacity={0.18} strokeWidth={1} vectorEffect="non-scaling-stroke" />
@@ -186,11 +195,15 @@ export interface SparklineLabels { day: string; week: string }
 export interface FinancialItem {
   key: string;
   label: string;
+  /** Full name behind the label (company name); the single view shows it. */
+  name?: string;
   price: number;
   changeValue: number;
   changeLabel: string;
   sparkline?: number[];
   sparklineXs?: number[];
+  /** Hour-mark x fractions from the API, in the symbol's own exchange hours. */
+  sparklineHourMarks?: number[];
   weekSparkline?: number[];
   weekPositive?: boolean;
   weekHighlightFromX?: number;

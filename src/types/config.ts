@@ -1092,7 +1092,8 @@ export interface NewsConfig {
 }
 
 // Stock ticker module config
-export type StockTickerView = 'cards' | 'ticker' | 'table' | 'compact';
+// 'single' dedicates the tile to the first symbol: quote header + full-space chart.
+export type StockTickerView = 'cards' | 'ticker' | 'table' | 'compact' | 'single';
 
 export interface StockTickerConfig {
   symbols: string;
@@ -1110,9 +1111,6 @@ export interface StockTickerConfig {
   // Caption each chart with its range (1D / 5D) and, in the shaded theme,
   // tick the week chart into its sessions. Default false.
   sparklineLabels?: boolean;
-  // 'multiple' renders every symbol in the chosen view; 'single' dedicates
-  // the tile to the first symbol (quote header + full-space chart).
-  displayMode?: 'single' | 'multiple';
 }
 
 // Crypto module config

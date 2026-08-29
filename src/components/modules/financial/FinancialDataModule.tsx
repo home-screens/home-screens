@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import type { ModuleStyle } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
 import { moduleGate } from '../ModuleStates';
@@ -10,6 +9,7 @@ import {
   FinancialTableView,
   FinancialCompactView,
 } from './shared';
+import SingleTile from './SingleTile';
 import type { FinancialItem, TableColumn, CompactRow, SparklineLabels, SparklineMode, SparklineTheme } from './shared';
 import { useFetchData } from '@/hooks/useFetchData';
 
@@ -32,9 +32,6 @@ interface FinancialDataModuleProps<TItem> {
   loadingMessage: string;
   emptyMessage: string;
   compactLabelWidth?: string;
-  /** When set, renders a single-item layout instead of the shared views.
-   * Receives the first item; only called after the loading/empty gates pass. */
-  renderSingle?: (item: TItem) => ReactNode;
 }
 
 export default function FinancialDataModule<TItem>({
@@ -56,7 +53,6 @@ export default function FinancialDataModule<TItem>({
   loadingMessage,
   emptyMessage,
   compactLabelWidth,
-  renderSingle,
 }: FinancialDataModuleProps<TItem>) {
   const [data, error] = useFetchData<Record<string, TItem[]>>(url, refreshIntervalMs);
   const items = (data?.[dataKey] as TItem[] | undefined) ?? [];
@@ -68,16 +64,14 @@ export default function FinancialDataModule<TItem>({
   });
   if (gate) return gate;
 
-  if (renderSingle) {
-    return (
-      <ModuleWrapper style={style}>
-        {items.length > 0 ? renderSingle(items[0]) : null}
-      </ModuleWrapper>
-    );
-  }
-
   return (
     <ModuleWrapper style={style}>
+      {view === 'single' && (
+        <SingleTile item={toFinancialItems(items)[0]}
+          sparklineMode={sparklineMode ?? 'day'}
+          sparklineTheme={sparklineTheme ?? 'classic'}
+          labels={sparklineLabels} />
+      )}
       {view === 'cards' && (
         <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline}
           sparklineMode={sparklineMode}

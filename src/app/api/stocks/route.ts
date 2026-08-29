@@ -112,7 +112,7 @@ function computeXs(
   stamps: number[],
   closeCount: number,
   chart: YahooChart,
-): { xs: number[]; hourMarks: number[] } | undefined {
+): { xs: number[]; hourMarks?: number[] } | undefined {
   const regular = chart.meta?.currentTradingPeriod?.regular;
   const start = num(regular?.start);
   const end = num(regular?.end);
@@ -125,8 +125,8 @@ function computeXs(
     Math.round(Math.min(1, Math.max(0, (t - start) / span)) * 1e4) / 1e4,
   );
   const gmtoffset = num(chart.meta?.gmtoffset);
-  const hourMarks = gmtoffset === undefined ? [] : computeHourMarks(start, end, span, gmtoffset);
-  return { xs, hourMarks };
+  const hourMarks = gmtoffset === undefined ? undefined : computeHourMarks(start, end, span, gmtoffset);
+  return hourMarks?.length ? { xs, hourMarks } : { xs };
 }
 
 /**
@@ -172,14 +172,15 @@ function computeWeekBoundaries(
   if (starts.length === 0) return {};
   const frac = (idx: number) => Math.round((idx / (closeCount - 1)) * 1e4) / 1e4;
   const out: number[] = [];
-  for (let d = 1; d < starts.length; d++) {
-    const idx = stamps.findIndex((t) => t >= starts[d]);
-    if (idx < 0) break;
-    const f = frac(idx);
-    if (f > 0 && f < 1 && (out.length === 0 || f > out[out.length - 1])) out.push(f);
+  // Sorted starts: once one lands past the data, so do all after it, and the
+  // last start (the band's) is then unplaced too.
+  let lastFrac: number | undefined;
+  for (const start of starts) {
+    const idx = stamps.findIndex((t) => t >= start);
+    if (idx < 0) { lastFrac = undefined; break; }
+    lastFrac = frac(idx);
+    if (lastFrac > 0 && lastFrac < 1 && (out.length === 0 || lastFrac > out[out.length - 1])) out.push(lastFrac);
   }
-  const lastIdx = stamps.findIndex((t) => t >= starts[starts.length - 1]);
-  const lastFrac = lastIdx < 0 ? undefined : frac(lastIdx);
   return {
     ...(lastFrac !== undefined && lastFrac < 1 ? { lastDayStart: lastFrac } : {}),
     ...(out.length > 0 ? { dayBoundaries: out } : {}),
@@ -305,7 +306,7 @@ async function fetchStock(symbol: string, charts: Chart[]): Promise<StockResult>
     const { closes, xs, hourMarks } = extractDaySeries(day);
     result.sparkline = closes;
     if (xs) result.sparklineXs = xs;
-    if (hourMarks && hourMarks.length > 0) result.sparklineHourMarks = hourMarks;
+    if (hourMarks) result.sparklineHourMarks = hourMarks;
   }
   if (week) {
     const { closes, stamps } = extractWeekSeries(week);

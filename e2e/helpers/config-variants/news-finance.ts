@@ -145,11 +145,11 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Single mode: full-tile layout for the first symbol, classic chart.
+    // Single view: full-tile layout for the first symbol, classic chart.
     // Classic renders no backdrop rect (rects are shaded-only); the svg count
     // pins that a chart actually rendered.
     type: 'stock-ticker', name: 'single-classic', kind: 'networked', stubKey: 'stocks',
-    config: { displayMode: 'single' },
+    config: { view: 'single' },
     expect: async (mod) => {
       await has('Apple Inc.')(mod);
       await count('.financial-sparkline', 1)(mod);
@@ -159,7 +159,7 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
   {
     // Single shaded: gutter axis labels + backdrop chart fill the tile.
     type: 'stock-ticker', name: 'single-shaded', kind: 'networked', stubKey: 'stocks',
-    config: { displayMode: 'single', sparklineTheme: 'shaded' },
+    config: { view: 'single', sparklineTheme: 'shaded' },
     expect: async (mod) => {
       await count('.financial-axis-label', 2)(mod);
       await count('.financial-sparkline rect', 1)(mod);
@@ -168,7 +168,7 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
   {
     // Single both: shared scale, one axis pair, two charts.
     type: 'stock-ticker', name: 'single-both', kind: 'networked', stubKey: 'stocks',
-    config: { displayMode: 'single', sparklineTheme: 'shaded', sparklineMode: 'both' },
+    config: { view: 'single', sparklineTheme: 'shaded', sparklineMode: 'both' },
     expect: async (mod) => {
       await count('.financial-sparkline', 2)(mod);
       await count('.financial-axis-label', 2)(mod);
@@ -178,7 +178,7 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
   {
     // Single + Label charts: a long-form caption sits above each chart.
     type: 'stock-ticker', name: 'single-labels', kind: 'networked', stubKey: 'stocks',
-    config: { displayMode: 'single', sparklineTheme: 'shaded', sparklineMode: 'both', sparklineLabels: true },
+    config: { view: 'single', sparklineTheme: 'shaded', sparklineMode: 'both', sparklineLabels: true },
     expect: async (mod) => {
       await has('1-day')(mod);
       await has('5-days')(mod);

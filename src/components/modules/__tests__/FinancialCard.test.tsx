@@ -186,11 +186,12 @@ describe('FinancialCard sparkline modes', () => {
       const { container } = render(
         <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
           sparklineMode="both" sparklineTheme="shaded" sparklineLabels={LABELS}
-          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
+          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8}
+          weekDayBoundaries={[0.2, 0.4, 0.6, 0.8]} />,
       );
       const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
       expect(labels).toEqual(['5D', '1D']);
-      // 0.8 = five sessions -> four dividers, on the week chart (left) only.
+      // The API's four day boundaries tick the week chart (left) only.
       const svgs = container.querySelectorAll<SVGSVGElement>('svg.financial-sparkline');
       expect(svgs[0].querySelectorAll('.financial-sparkline-divider')).toHaveLength(4);
       expect(svgs[1].querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
@@ -221,10 +222,10 @@ describe('FinancialCard sparkline modes', () => {
       const { container } = render(
         <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
           sparklineMode="week" sparklineTheme="shaded" sparklineLabels={LABELS}
-          weekSparkline={[3, 2, 1]} weekHighlightFromX={0.75} />,
+          weekSparkline={[3, 2, 1]} weekHighlightFromX={0.75} weekDayBoundaries={[0.25, 0.5, 0.75]} />,
       );
       expect(container.querySelector('.financial-sparkline-label')!.textContent).toBe('5D');
-      // 0.75 = a four-session holiday week -> three dividers.
+      // A four-session holiday week: three boundaries, three dividers.
       expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(3);
     });
 
@@ -232,7 +233,8 @@ describe('FinancialCard sparkline modes', () => {
       const { container } = render(
         <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
           sparklineMode="both" sparklineTheme="classic" sparklineLabels={LABELS}
-          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8} />,
+          sparkline={[1, 2, 3]} weekSparkline={[3, 2, 1]} weekHighlightFromX={0.8}
+          weekDayBoundaries={[0.2, 0.4, 0.6, 0.8]} />,
       );
       const labels = [...container.querySelectorAll('.financial-sparkline-label')].map((e) => e.textContent);
       expect(labels).toEqual(['5D', '1D']);
@@ -248,20 +250,17 @@ describe('FinancialCard sparkline modes', () => {
           weekSparkline={[3, 2, 1]} weekHighlightFromX={0.55} weekDayBoundaries={[0.25, 0.55]} />,
       );
       const xs = [...container.querySelectorAll('.financial-sparkline-divider')].map((l) => l.getAttribute('x1'));
-      // The unequal-session fractions as served — not the equal-session guess
-      // the 0.55 lastDayStart would produce on its own.
       expect(xs).toEqual(['25.00', '55.00']);
     });
 
-    it('skips dividers when the last-day fraction is unknown or nonsensical', () => {
-      for (const from of [undefined, 0, 1, 0.5, 0.99]) {
+    it('draws no dividers when the API reports no day boundaries, whatever the band says', () => {
+      for (const from of [undefined, 0, 0.5, 0.8, 1]) {
         const { container } = render(
           <FinancialCard label="AAPL" price={150} scale={1} {...DAY}
             sparklineMode="week" sparklineTheme="shaded" sparklineLabels={LABELS}
             weekSparkline={[3, 2, 1]} weekHighlightFromX={from} />,
         );
-        // 0.5 -> two sessions -> one divider is the only valid case here.
-        expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(from === 0.5 ? 1 : 0);
+        expect(container.querySelectorAll('.financial-sparkline-divider')).toHaveLength(0);
       }
     });
   });

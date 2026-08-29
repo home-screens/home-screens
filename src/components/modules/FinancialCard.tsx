@@ -18,7 +18,7 @@ interface FinancialCardProps {
   weekSparkline?: number[];
   weekPositive?: boolean;
   weekHighlightFromX?: number;
-  /** Exact day-boundary x fractions from the API; preferred over the guess. */
+  /** Day-boundary x fractions from the API (the week chart's session ticks). */
   weekDayBoundaries?: number[];
   sparklineMode?: SparklineMode;
   sparklineTheme?: SparklineTheme;
@@ -35,17 +35,6 @@ function captionEdge(points: number[]): 'top' | 'bottom' {
   const max = Math.max(...points);
   if (max === min) return 'top';
   return (points[0] - min) / (max - min) >= 0.5 ? 'bottom' : 'top';
-}
-
-/**
- * Session boundaries for the week chart, derived from where its last session
- * begins: 0.8 means five equal sessions, 0.75 a four-day holiday week.
- */
-function weekDividers(lastDayStart: number | undefined): number[] | undefined {
-  if (lastDayStart === undefined || lastDayStart <= 0 || lastDayStart >= 1) return undefined;
-  const sessions = Math.round(1 / (1 - lastDayStart));
-  if (sessions < 2 || sessions > 10) return undefined;
-  return Array.from({ length: sessions - 1 }, (_, k) => (k + 1) / sessions);
 }
 
 function ChartCaption({ text, edge, scale }: { text: string; edge: 'top' | 'bottom'; scale: number }) {
@@ -92,12 +81,8 @@ export default function FinancialCard({
   // chart sits in a relative slot) and the week chart is ticked into its
   // sessions; classic charts get the caption centered underneath, since
   // there is no backdrop to sit on. Without labels the DOM is unchanged.
-  // Session ticks prefer the exact boundaries the API reports and fall back
-  // to the equal-session guess only for responses that carry none.
   const labels = sparklineLabels;
-  const dividers = shaded && labels
-    ? (weekDayBoundaries ?? weekDividers(weekHighlightFromX))
-    : undefined;
+  const dividers = shaded && labels ? weekDayBoundaries : undefined;
 
   const dayChart = hasDay ? (
     <Sparkline points={sparkline} positive={dayPositive} scale={scale}
