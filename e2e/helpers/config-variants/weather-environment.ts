@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, lacks, child, count } from './shared';
+import { getRadarTileUrls } from '../stubs';
 
 /**
  * Phase-1 batch rows for the WEATHER, AIR-QUALITY, and RAIN-MAP modules —
@@ -113,30 +114,47 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     config: { zoom: 8 },
     expect: child('img[src*="dark_all/8/"]'),
   },
-  // colorScheme is the radar tile URL color segment (default 2 → set 4).
+  // colorScheme is the radar tile URL color segment (default 2 → set 4). The
+  // module renders tiles as blob URLs, so URL-encoded fields are asserted
+  // against the URLs the tile stub actually served.
   {
     type: 'rain-map', name: 'color-scheme', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { colorScheme: 4 },
-    expect: child('img[src*="/4/1_1.png"]'),
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect
+        .poll(() => getRadarTileUrls().some((u) => u.includes('/4/1_1.png')))
+        .toBe(true);
+    },
   },
   // showSnow:false flips the snow segment of the radar tile URL (..._1 → ..._0).
   {
     type: 'rain-map', name: 'hide-snow', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { showSnow: false },
-    expect: child('img[src*="1_0.png"]'),
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect
+        .poll(() => getRadarTileUrls().some((u) => u.includes('1_0.png')))
+        .toBe(true);
+    },
   },
   // smooth:false flips the smoothing segment of the radar tile URL (1_.. → 0_..).
   {
     type: 'rain-map', name: 'no-smooth', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { smooth: false },
-    expect: child('img[src*="0_1.png"]'),
+    expect: async (mod) => {
+      await expect(mod).toBeVisible();
+      await expect
+        .poll(() => getRadarTileUrls().some((u) => u.includes('0_1.png')))
+        .toBe(true);
+    },
   },
   // opacity is the computed opacity on the radar layer imgs (default 0.7).
   {
     type: 'rain-map', name: 'opacity', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { opacity: 0.35 },
     expect: async (mod) => {
-      const img = mod.locator('img[src*="rainviewer"]').first();
+      const img = mod.locator('img[src^="blob:"]').first();
       await expect(img).toBeAttached();
       const op = await img.evaluate((el) => getComputedStyle(el).opacity);
       expect(op).toBe('0.35');

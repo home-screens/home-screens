@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo, useSyncExternalStore } from 'react';
 import type { RainMapConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
-import { createTilePreloader } from './rain-map-preload';
+import { radarTileStore } from './rain-map-preload';
 import { useFetchData } from '@/hooks/useFetchData';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
@@ -80,6 +80,41 @@ function computeTileGrid(lat: number, lon: number, tileZoom: number, scale: numb
 }
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000;
 
+/** How long the radar window inputs must be stable before tiles are fetched. */
+const RADAR_WINDOW_DEBOUNCE_MS = 500;
+
+interface RadarWindowInputs {
+  lat: number;
+  lon: number;
+  radarZoom: number;
+  radarScale: number;
+  colorScheme: number;
+  smooth: number;
+  snow: number;
+}
+
+/**
+ * Delays propagating the radar-window inputs until they have been stable for
+ * `ms`. Editor sliders (native range inputs) commit every intermediate step of
+ * a drag, and each intermediate zoom/location/color value would otherwise mint
+ * a full animation window of tile requests; the tile effect must only ever see
+ * the value the slider rests on. The first render propagates immediately.
+ */
+function useDebouncedRadarWindow(inputs: RadarWindowInputs, ms: number): RadarWindowInputs {
+  const [debounced, setDebounced] = useState(inputs);
+  const key = JSON.stringify(inputs);
+  const settledKeyRef = useRef(key);
+  useEffect(() => {
+    if (key === settledKeyRef.current) return;
+    const id = setTimeout(() => {
+      settledKeyRef.current = key;
+      setDebounced(JSON.parse(key) as RadarWindowInputs);
+    }, ms);
+    return () => clearTimeout(id);
+  }, [key, ms]);
+  return debounced;
+}
+
 const BASE_TILE_URLS: Record<string, string> = {
   dark: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
   standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -124,11 +159,13 @@ export default function RainMapModule({
   const [data, error] = useFetchData<RainViewerResponse>(rainMapUrl(), refreshMs);
 
   const [displayIndex, setDisplayIndex] = useState(0);
-  const [_imagesReady, setImagesReady] = useState(false);
   const indexRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // Lazy init via useState so exactly one preloader lives per mount.
-  const [preloader] = useState(createTilePreloader);
+  // Re-render when tiles settle into the store (loaded or evicted). The store
+  // is shared across mounts, so a screen rotating back renders instantly.
+  // The third argument is required: the display route renders modules on the
+  // server, and React's server renderer throws without getServerSnapshot.
+  useSyncExternalStore(radarTileStore.subscribe, radarTileStore.getVersion, radarTileStore.getVersion);
 
   // Combine past + nowcast frames
   const frames = useMemo(() => {
@@ -140,6 +177,16 @@ export default function RainMapModule({
   const radarZoom = Math.min(zoom, MAX_RADAR_ZOOM);
   const radarScale = Math.pow(2, zoom - radarZoom); // 1 at zoom ≤ 7, 2 at 8, 4 at 9, etc.
 
+  // Debounce the inputs that define the radar tile window. Editor sliders
+  // (native range inputs) fire per step during a drag, and each intermediate
+  // zoom/location/color value would otherwise mint a full 325-URL window of
+  // tiles; only the value the slider settles on is ever fetched. The base map
+  // below stays live so the canvas keeps up with the pointer.
+  const radarWindow = useDebouncedRadarWindow(
+    { lat, lon, radarZoom, radarScale, colorScheme, smooth, snow },
+    RADAR_WINDOW_DEBOUNCE_MS,
+  );
+
   // Base map tile grid (uses full zoom, native tile size)
   const tileGrid = useMemo(
     () => computeTileGrid(lat, lon, zoom, 1),
@@ -148,81 +195,103 @@ export default function RainMapModule({
 
   // Radar tile grid (uses capped zoom, scaled up to match the base map)
   const radarTileGrid = useMemo(
-    () => computeTileGrid(lat, lon, radarZoom, radarScale),
-    [lat, lon, radarZoom, radarScale],
+    () => computeTileGrid(radarWindow.lat, radarWindow.lon, radarWindow.radarZoom, radarWindow.radarScale),
+    [radarWindow],
   );
 
   // Build radar tile URL for a given frame
   const getRadarUrl = useCallback(
     (frame: RainFrame, tile: { x: number; y: number }) => {
       if (!data?.host) return '';
-      return `${data.host}${frame.path}/${TILE_SIZE}/${radarZoom}/${tile.x}/${tile.y}/${colorScheme}/${smooth}_${snow}.png`;
+      return `${data.host}${frame.path}/${TILE_SIZE}/${radarWindow.radarZoom}/${tile.x}/${tile.y}/${radarWindow.colorScheme}/${radarWindow.smooth}_${radarWindow.snow}.png`;
     },
-    [data, radarZoom, colorScheme, smooth, snow],
+    [data, radarWindow],
   );
 
-  // Preload a single frame's radar tiles, returning a promise that resolves
-  // when all tiles for that frame have settled. Tiles already loaded in a
-  // previous cycle are skipped; failed tiles are retried on the next pass.
-  const preloadFrame = useCallback(
-    (frame: RainFrame) =>
-      preloader.preload(radarTileGrid.tiles.map((tile) => getRadarUrl(frame, tile))),
-    [preloader, radarTileGrid.tiles, getRadarUrl],
+  // Tile URLs for one frame, through the rate-bounded store.
+  const frameUrls = useCallback(
+    (frame: RainFrame) => radarTileGrid.tiles.map((tile) => getRadarUrl(frame, tile)),
+    [radarTileGrid.tiles, getRadarUrl],
   );
 
-  // Preload the first frame, then start the animation loop.
-  // Each animation step preloads the next frame before advancing.
+  // Queue every frame in display order, then animate over the frames whose
+  // tiles have settled. The store paces requests far slower than the animation
+  // runs, so a cold start would otherwise cycle through mostly empty frames
+  // for over a minute; instead the loop grows as frames arrive and never
+  // shows a frame it has not loaded.
   useEffect(() => {
-    if (!frames.length || !data?.host || !radarTileGrid.tiles.length) return;
+    const perFrame = frames.map(frameUrls);
+    if (!perFrame.length || !perFrame[0].length || !data?.host) return;
 
     // Frame paths are timestamped, so each refresh brings a new URL set.
-    // Prune the preload cache to the current animation window or a
-    // never-unmounting display accumulates every URL it has ever seen.
-    const windowUrls = new Set<string>();
-    for (const frame of frames) {
-      for (const tile of radarTileGrid.tiles) {
-        const url = getRadarUrl(frame, tile);
-        if (url) windowUrls.add(url);
-      }
-    }
-    preloader.prune(windowUrls);
+    // Register this instance's window: its tiles are never evicted while it
+    // is live, and queued requests the window no longer wants are dropped.
+    const releaseWindow = radarTileStore.retainWindow(new Set(perFrame.flat()));
 
     let cancelled = false;
+    let started = false;
+    // True while the loop is holding on the only ready frame.
+    let parked = false;
+    const ready = new Set<number>();
     indexRef.current = 0;
     setDisplayIndex(0);
-    setImagesReady(false);
 
-    // Preload just the first frame, then start animating
-    preloadFrame(frames[0]).then(() => {
-      if (cancelled) return;
-      setImagesReady(true);
-
-      function scheduleNext() {
-        if (cancelled) return;
-        const current = indexRef.current;
-        const next = (current + 1) % frames.length;
-        const isLooping = next === 0;
-        const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
-
-        // Preload the next frame's tiles during the current frame's display time
-        preloadFrame(frames[next]);
-
-        timerRef.current = setTimeout(() => {
-          if (cancelled) return;
-          indexRef.current = next;
-          setDisplayIndex(next);
-          scheduleNext();
-        }, delay);
+    // Next ready frame after `current` in display order, or `current` itself
+    // while it is the only one.
+    function nextReady(current: number): number {
+      for (let step = 1; step < perFrame.length; step++) {
+        const candidate = (current + step) % perFrame.length;
+        if (ready.has(candidate)) return candidate;
       }
+      return current;
+    }
 
-      scheduleNext();
+    function scheduleNext() {
+      if (cancelled) return;
+      const current = indexRef.current;
+      const next = nextReady(current);
+      parked = next === current;
+      const isLooping = next <= current;
+      const delay = isLooping ? extraDelayLastFrameMs : animationSpeedMs;
+
+      // Re-ensure the frame about to be shown: a no-op while its tiles are
+      // loaded, a retry once a failed tile's cooldown has lapsed.
+      radarTileStore.ensure(perFrame[next]);
+
+      timerRef.current = setTimeout(() => {
+        if (cancelled) return;
+        indexRef.current = next;
+        setDisplayIndex(next);
+        scheduleNext();
+      }, delay);
+    }
+
+    perFrame.forEach((urls, i) => {
+      radarTileStore.ensure(urls).then(() => {
+        if (cancelled) return;
+        ready.add(i);
+        if (!started) {
+          // The first frame to settle starts the loop (frame 0, except when
+          // a later frame was already cached).
+          started = true;
+          indexRef.current = i;
+          setDisplayIndex(i);
+          scheduleNext();
+        } else if (parked) {
+          // A second frame arrived: move on at animation tempo instead of
+          // waiting out the end-of-loop hold.
+          clearTimeout(timerRef.current);
+          scheduleNext();
+        }
+      });
     });
 
     return () => {
+      releaseWindow();
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [frames, data?.host, radarTileGrid.tiles, preloader, getRadarUrl, preloadFrame, animationSpeedMs, extraDelayLastFrameMs]);
+  }, [frames, data?.host, frameUrls, animationSpeedMs, extraDelayLastFrameMs]);
 
   const gate = moduleGate({
     style, data, error,
@@ -285,23 +354,30 @@ export default function RainMapModule({
             transform: 'translate(-50%, -50%)',
           }}
         >
-          {radarTileGrid.tiles.map((tile) => (
-            <img
-              key={`radar-${tile.x}-${tile.y}-${currentFrame.time}`}
-              src={getRadarUrl(currentFrame, tile)}
-              alt=""
-              className="absolute"
-              style={{
-                width: radarTileGrid.scaledSize,
-                height: radarTileGrid.scaledSize,
-                left: tile.px,
-                top: tile.py,
-                opacity: radarOpacity,
-                imageRendering: radarScale > 1 ? 'pixelated' : undefined,
-              }}
-              draggable={false}
-            />
-          ))}
+          {radarTileGrid.tiles.map((tile) => {
+            // Blob URLs come from the tile store, so a frame advance just
+            // swaps src on the same nodes — no remount, no network. Tiles not
+            // yet loaded (or in failure cooldown) render as gaps.
+            const src = radarTileStore.get(getRadarUrl(currentFrame, tile));
+            if (!src) return null;
+            return (
+              <img
+                key={`radar-${tile.x}-${tile.y}`}
+                src={src}
+                alt=""
+                className="absolute"
+                style={{
+                  width: radarTileGrid.scaledSize,
+                  height: radarTileGrid.scaledSize,
+                  left: tile.px,
+                  top: tile.py,
+                  opacity: radarOpacity,
+                  imageRendering: radarScale > 1 ? 'pixelated' : undefined,
+                }}
+                draggable={false}
+              />
+            );
+          })}
         </div>
 
         {/* Center marker dot */}
