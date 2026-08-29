@@ -63,6 +63,16 @@
       "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/caveat/OFL.txt"
     },
     {
+      "family": "Gelasio",
+      "file": "gelasio-variable.woff2",
+      "weight": "400 700",
+      "bytes": 34796,
+      "source": "https://fonts.gstatic.com/s/gelasio/v14/cIf9MaFfvUQxTTqS9C6hYUsEkIo.woff2",
+      "licence": "OFL-1.1",
+      "licenceFile": "licenses/gelasio-OFL.txt",
+      "licenceSource": "https://raw.githubusercontent.com/google/fonts/main/ofl/gelasio/OFL.txt"
+    },
+    {
       "family": "Poppins",
       "file": "poppins-400.woff2",
       "weight": "400",

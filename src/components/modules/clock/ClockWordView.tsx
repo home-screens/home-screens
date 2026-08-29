@@ -4,6 +4,7 @@ import { timeToWords } from './word-time';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
+import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
 export default function ClockWordView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
@@ -24,7 +25,7 @@ export default function ClockWordView({ config, now, scaledFontSize, containerRe
       <div
         className="text-center"
         style={{
-          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontFamily: EDITORIAL_SERIF_STACK,
           fontSize: scaledFontSize * 1.8,
           lineHeight: 1.7,
           color: 'rgba(255, 248, 240, 0.92)',
@@ -39,7 +40,7 @@ export default function ClockWordView({ config, now, scaledFontSize, containerRe
         <div
           className="text-center mt-4"
           style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
+            fontFamily: EDITORIAL_SERIF_STACK,
             fontSize: scaledFontSize * 0.9,
             lineHeight: 1.6,
             letterSpacing: '0.02em',

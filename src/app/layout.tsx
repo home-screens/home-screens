@@ -58,6 +58,16 @@ const caveat = localFont({
   variable: '--font-caveat',
   display: 'swap',
 });
+// Metric-compatible substitute for Georgia, which is a Microsoft core font and
+// is not installed on Raspberry Pi OS. Sits behind real Georgia in the stack,
+// so desktop browsers still get Georgia and a kiosk gets an identical-metric
+// face instead of falling through to whatever the generic `serif` alias maps to.
+const gelasio = localFont({
+  src: './fonts/gelasio-variable.woff2',
+  weight: '400 700',
+  variable: '--font-gelasio',
+  display: 'swap',
+});
 
 // Static families: a distinct file per weight.
 const poppins = localFont({
@@ -95,6 +105,7 @@ const FONT_VARIABLES = [
   playfair.variable,
   lora.variable,
   dmSerif.variable,
+  gelasio.variable,
   jetbrains.variable,
   bebas.variable,
   caveat.variable,

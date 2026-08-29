@@ -5,6 +5,7 @@ import { timeToFuzzy } from './word-time';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
+import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
 /**
  * Fuzzy clock — warm, conversational time in italic serif typography.
@@ -31,7 +32,7 @@ export default function ClockFuzzyView({ config, now, scaledFontSize, containerR
         className="text-center leading-snug"
         style={{
           fontSize: scaledFontSize * 2.2,
-          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontFamily: EDITORIAL_SERIF_STACK,
           fontStyle: 'italic',
           fontWeight: 300,
           lineHeight: 1.3,

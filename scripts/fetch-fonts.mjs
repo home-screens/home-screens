@@ -55,6 +55,13 @@ const FAMILIES = [
   { name: 'JetBrains Mono', slug: 'jetbrains-mono', gf: 'jetbrainsmono', range: '100..800', cssWeight: '100 800' },
   { name: 'Caveat', slug: 'caveat', gf: 'caveat', range: '400..700', cssWeight: '400 700' },
 
+  // Metric-compatible stand-in for Georgia. Georgia itself is a Microsoft core
+  // font: present on macOS/Windows, absent from Raspberry Pi OS, so a kiosk
+  // fell through to the generic `serif` alias and rendered the "Georgia" font
+  // choice in whatever face fontconfig happened to have. Gelasio matches
+  // Georgia's metrics, so it substitutes without reflowing anything.
+  { name: 'Gelasio', slug: 'gelasio', gf: 'gelasio', range: '400..700', cssWeight: '400 700' },
+
   // Genuinely static: a distinct file per weight.
   { name: 'Poppins', slug: 'poppins', gf: 'poppins', weights: ['400', '600', '700'] },
   { name: 'DM Serif Display', slug: 'dm-serif-display', gf: 'dmserifdisplay', weights: ['400'] },

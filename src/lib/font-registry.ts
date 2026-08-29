@@ -35,7 +35,12 @@ export const FONT_REGISTRY: readonly FontDefinition[] = [
   { id: 'playfair',  label: 'Playfair Display', cssStack: 'var(--font-playfair), Georgia, serif',     category: 'serif',  weights: [400, 700, 900] },
   { id: 'lora',      label: 'Lora',           cssStack: 'var(--font-lora), Georgia, serif',           category: 'serif',  weights: [400, 700] },
   { id: 'dm-serif',  label: 'DM Serif Display', cssStack: 'var(--font-dm-serif), Georgia, serif',     category: 'serif',  weights: [400] },
-  { id: 'georgia',   label: 'Georgia',        cssStack: 'Georgia, "Times New Roman", serif',          category: 'serif',  weights: [400, 700] },
+  // Real Georgia first (macOS/Windows browsers have it), then the vendored
+  // Gelasio, which is metric-compatible with Georgia. Georgia is a Microsoft
+  // core font and is absent from Raspberry Pi OS, so without the self-hosted
+  // fallback a kiosk dropped to the generic `serif` alias and rendered this
+  // choice in an unrelated face.
+  { id: 'georgia',   label: 'Georgia',        cssStack: 'Georgia, var(--font-gelasio), serif',        category: 'serif',  weights: [400, 700] },
 
   // -- Monospace --
   { id: 'jetbrains', label: 'JetBrains Mono', cssStack: 'var(--font-jetbrains), ui-monospace, monospace', category: 'mono', weights: [400, 700] },
@@ -114,3 +119,12 @@ export function getFontDefinitionByStack(cssStack: string): FontDefinition | und
 export function fontsByCategory(): Record<FontCategory, FontDefinition[]> {
   return FONTS_BY_CATEGORY;
 }
+
+/**
+ * Serif stack for views whose design is inherently serif regardless of the
+ * module's own font setting (the word and fuzzy clocks). Routed through the
+ * registry so such a view can never hardcode a family the display lacks —
+ * that is exactly how those two clocks ended up rendering in a fallback face
+ * on Raspberry Pi OS, which has no Georgia.
+ */
+export const EDITORIAL_SERIF_STACK = resolveFontStack('georgia') ?? 'serif';
