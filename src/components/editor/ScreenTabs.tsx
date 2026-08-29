@@ -18,6 +18,7 @@ import { useTranslate } from '@/i18n';
 import { useTabRename } from '@/hooks/useTabRename';
 import { useTabScroll } from '@/hooks/useTabScroll';
 import { useSortableSensors } from '@/hooks/useDndSensors';
+import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
@@ -47,6 +48,8 @@ export default function ScreenTabs() {
   const [exportScreenId, setExportScreenId] = useState<string | null>(null);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [importLayout, setImportLayout] = useState<LayoutExport | null>(null);
+  const { inputRef: layoutInputRef, openFilePicker, handleFileChange } =
+    useLayoutFileImport(setImportLayout);
 
   const screenSignature = screens.map((screen) => `${screen.id}:${screen.name}`).join('|');
   const { scrollContainerRef, canScrollLeft, canScrollRight, scrollTabs } = useTabScroll({
@@ -238,6 +241,15 @@ export default function ScreenTabs() {
           >
             {t('screenTabs.addMenu.fromTemplate')}
           </button>
+          <button
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
+            onClick={() => {
+              openFilePicker();
+              setAddMenuPos(null);
+            }}
+          >
+            {t('screenTabs.addMenu.fromFile')}
+          </button>
         </div>
       )}
 
@@ -315,6 +327,15 @@ export default function ScreenTabs() {
           )}
         </div>
       )}
+
+      {/* Hidden file input backing "From File…" */}
+      <input
+        ref={layoutInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
 
       {/* Modals */}
       {showExportModal && (

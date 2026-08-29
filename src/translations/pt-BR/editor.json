@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Adicionar tela",
     "addMenu": {
       "blank": "Tela em branco",
-      "fromTemplate": "A partir de modelo…"
+      "fromTemplate": "A partir de modelo…",
+      "fromFile": "A partir de arquivo…"
     },
     "contextMenu": {
       "moveLeft": "Mover para a esquerda",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 dias"
       },
       "alerts": {
-        "invalidLayoutFile": "Arquivo de layout inválido:\n{errors}",
-        "invalidJsonFile": "Arquivo JSON inválido.",
         "exportBackupFailed": "Falha ao exportar backup.",
         "invalidBackupFile": "Arquivo de backup inválido."
       },
@@ -2228,6 +2227,12 @@
     "visualSummaryWithTransition": "Rotação: {seconds}s, transição: {transition}",
     "saveError": "Falha ao salvar. Verifique sua conexão e tente novamente.",
     "importButton": "Importar"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Arquivo de layout inválido:\n{errors}",
+      "invalidJsonFile": "Arquivo JSON inválido."
+    }
   },
   "installFromUrlModal": {
     "title": "Instalar plugin de URL",

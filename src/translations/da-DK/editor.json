@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Tilføj skærm",
     "addMenu": {
       "blank": "Tom skærm",
-      "fromTemplate": "Fra skabelon…"
+      "fromTemplate": "Fra skabelon…",
+      "fromFile": "Fra fil…"
     },
     "contextMenu": {
       "moveLeft": "Flyt til venstre",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 dage"
       },
       "alerts": {
-        "invalidLayoutFile": "Ugyldig layoutfil:\n{errors}",
-        "invalidJsonFile": "Ugyldig JSON-fil.",
         "exportBackupFailed": "Kunne ikke eksportere sikkerhedskopien.",
         "invalidBackupFile": "Ugyldig sikkerhedskopi."
       },
@@ -2224,6 +2223,12 @@
     "visualSummaryWithTransition": "Skærmskift: {seconds} s, overgang: {transition}",
     "saveError": "Kunne ikke gemme. Tjek din forbindelse, og prøv igen.",
     "importButton": "Importér"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Ugyldig layoutfil:\n{errors}",
+      "invalidJsonFile": "Ugyldig JSON-fil."
+    }
   },
   "installFromUrlModal": {
     "title": "Installér plugin fra URL",

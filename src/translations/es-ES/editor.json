@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Añadir pantalla",
     "addMenu": {
       "blank": "Pantalla en blanco",
-      "fromTemplate": "Desde plantilla…"
+      "fromTemplate": "Desde plantilla…",
+      "fromFile": "Desde un archivo…"
     },
     "contextMenu": {
       "moveLeft": "Mover a la izquierda",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 días"
       },
       "alerts": {
-        "invalidLayoutFile": "Archivo de diseño no válido:\n{errors}",
-        "invalidJsonFile": "Archivo JSON no válido.",
         "exportBackupFailed": "No se pudo exportar la copia de seguridad.",
         "invalidBackupFile": "Archivo de copia de seguridad no válido."
       },
@@ -2228,6 +2227,12 @@
     "visualSummaryWithTransition": "Rotación: {seconds} s, transición: {transition}",
     "saveError": "No se pudo guardar. Comprueba tu conexión y vuelve a intentarlo.",
     "importButton": "Importar"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Archivo de diseño no válido:\n{errors}",
+      "invalidJsonFile": "Archivo JSON no válido."
+    }
   },
   "installFromUrlModal": {
     "title": "Instalar plugin desde URL",

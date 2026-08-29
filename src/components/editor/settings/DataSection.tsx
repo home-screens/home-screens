@@ -5,12 +5,12 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
-import { validateLayoutExport } from '@/lib/layout-export';
 import type { LayoutExport } from '@/types/layout-export';
 import type { BackupReminderSettings } from '@/types/config';
 import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import LayoutExportModal from '@/components/editor/LayoutExportModal';
+import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplatePicker from '@/components/editor/TemplatePicker';
 import { useTranslate } from '@/i18n';
@@ -46,10 +46,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     [t],
   );
 
-  const layoutInputRef = useRef<HTMLInputElement>(null);
   const backupInputRef = useRef<HTMLInputElement>(null);
   const [showExportModal, setShowExportModal] = useState(false);
   const [importLayout, setImportLayout] = useState<LayoutExport | null>(null);
+  const { inputRef: layoutInputRef, openFilePicker, handleFileChange } =
+    useLayoutFileImport(setImportLayout);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [backupBusy, setBackupBusy] = useState(false);
 
@@ -129,31 +130,6 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     updateSettings({ backupReminder: current });
     saveConfig();
   }, [reminder, updateSettings, saveConfig]);
-
-  const handleLayoutImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result as string);
-        const validation = validateLayoutExport(data);
-        if (!validation.valid) {
-          useConfirmStore.getState().alert(
-            t('settings.dataPage.alerts.invalidLayoutFile', {
-              errors: validation.errors.join('\n'),
-            }),
-          );
-          return;
-        }
-        setImportLayout(data as LayoutExport);
-      } catch {
-        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidJsonFile'));
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }, [t]);
 
   const handleBackupExport = useCallback(async () => {
     setBackupBusy(true);
@@ -240,7 +216,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => layoutInputRef.current?.click()}
+              onClick={openFilePicker}
               data-field-id="data.shareLayoutImport"
             >
               {t('settings.dataPage.shareLayout.importButton')}
@@ -399,7 +375,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         type="file"
         accept=".json"
         className="hidden"
-        onChange={handleLayoutImport}
+        onChange={handleFileChange}
       />
       <input
         ref={backupInputRef}

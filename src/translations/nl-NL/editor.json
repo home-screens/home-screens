@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Scherm toevoegen",
     "addMenu": {
       "blank": "Leeg scherm",
-      "fromTemplate": "Uit sjabloon…"
+      "fromTemplate": "Uit sjabloon…",
+      "fromFile": "Uit bestand…"
     },
     "contextMenu": {
       "moveLeft": "Naar links verplaatsen",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 dagen"
       },
       "alerts": {
-        "invalidLayoutFile": "Ongeldig lay-outbestand:\n{errors}",
-        "invalidJsonFile": "Ongeldig JSON-bestand.",
         "exportBackupFailed": "Back-up exporteren mislukt.",
         "invalidBackupFile": "Ongeldig back-upbestand."
       },
@@ -2224,6 +2223,12 @@
     "visualSummaryWithTransition": "Rotatie: {seconds}s, overgang: {transition}",
     "saveError": "Opslaan mislukt. Controleer je verbinding en probeer opnieuw.",
     "importButton": "Importeren"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Ongeldig lay-outbestand:\n{errors}",
+      "invalidJsonFile": "Ongeldig JSON-bestand."
+    }
   },
   "installFromUrlModal": {
     "title": "Plugin installeren via URL",

@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Screen hinzufügen",
     "addMenu": {
       "blank": "Leerer Screen",
-      "fromTemplate": "Aus Vorlage …"
+      "fromTemplate": "Aus Vorlage …",
+      "fromFile": "Aus Datei …"
     },
     "contextMenu": {
       "moveLeft": "Nach links verschieben",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 Tage"
       },
       "alerts": {
-        "invalidLayoutFile": "Ungültige Layout-Datei:\n{errors}",
-        "invalidJsonFile": "Ungültige JSON-Datei.",
         "exportBackupFailed": "Backup konnte nicht exportiert werden.",
         "invalidBackupFile": "Ungültige Backup-Datei."
       },
@@ -2224,6 +2223,12 @@
     "visualSummaryWithTransition": "Rotation: {seconds}s, Übergang: {transition}",
     "saveError": "Speichern fehlgeschlagen – prüfe deine Verbindung und versuche es erneut.",
     "importButton": "Importieren"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Ungültige Layout-Datei:\n{errors}",
+      "invalidJsonFile": "Ungültige JSON-Datei."
+    }
   },
   "installFromUrlModal": {
     "title": "Plugin aus URL installieren",

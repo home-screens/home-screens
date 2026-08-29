@@ -120,7 +120,8 @@
     "addScreenAriaLabel": "Add screen",
     "addMenu": {
       "blank": "Blank Screen",
-      "fromTemplate": "From Template…"
+      "fromTemplate": "From Template…",
+      "fromFile": "From File…"
     },
     "contextMenu": {
       "moveLeft": "Move Left",
@@ -416,8 +417,6 @@
         "thirtyDays": "30 days"
       },
       "alerts": {
-        "invalidLayoutFile": "Invalid layout file:\n{errors}",
-        "invalidJsonFile": "Invalid JSON file.",
         "exportBackupFailed": "Failed to export backup.",
         "invalidBackupFile": "Invalid backup file."
       },
@@ -2224,6 +2223,12 @@
     "visualSummaryWithTransition": "Rotation: {seconds}s, transition: {transition}",
     "saveError": "Failed to save. Check your connection and try again.",
     "importButton": "Import"
+  },
+  "layoutImport": {
+    "alerts": {
+      "invalidLayoutFile": "Invalid layout file:\n{errors}",
+      "invalidJsonFile": "Invalid JSON file."
+    }
   },
   "installFromUrlModal": {
     "title": "Install Plugin from URL",

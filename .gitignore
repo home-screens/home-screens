@@ -66,6 +66,9 @@ infrastructure/telemetry-worker/.wrangler
 # playwright
 /test-results/
 /playwright-report/
+/blob-report/
+/all-blob-reports/
+.playwright-mcp/
 
 # typescript
 *.tsbuildinfo
