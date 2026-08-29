@@ -62,7 +62,6 @@ function makeConfig(
         googleCalendarId: 'cal-id-1',
         googleCalendarIds: ['cal-id-1'],
         icalSources: [],
-        maxEvents: 10,
         daysAhead: 7,
       },
       sleep: {

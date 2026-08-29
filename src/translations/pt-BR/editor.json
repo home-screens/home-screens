@@ -363,7 +363,6 @@
         "help": "Mostrar feriados públicos nos widgets de calendário. Dados do Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Máx. de eventos",
         "daysAheadLabel": "Dias à frente"
       },
       "health": {

@@ -41,7 +41,7 @@ export function matrixSettings(): Record<string, unknown> {
   return {
     ...MATRIX_LOCATION,
     weather: { provider: 'weatherapi', latitude: MATRIX_LOCATION.latitude, longitude: MATRIX_LOCATION.longitude, units: 'imperial' },
-    calendar: { googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], maxEvents: 50, daysAhead: 7 },
+    calendar: { googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], daysAhead: 7 },
   };
 }
 

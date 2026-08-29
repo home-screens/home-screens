@@ -363,7 +363,6 @@
         "help": "Toon officiële feestdagen op kalenderwidgets. Gegevens van Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Max. afspraken",
         "daysAheadLabel": "Dagen vooruit"
       },
       "health": {

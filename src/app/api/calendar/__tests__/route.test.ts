@@ -37,6 +37,7 @@ import { fetchICalEvents } from '@/lib/ical-calendar';
 import { fetchICloudEvents } from '@/lib/caldav-calendar';
 import { listICloudAccounts } from '@/lib/icloud-accounts';
 import { readConfig } from '@/lib/config';
+import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
 
 const mockFetchGoogle = vi.mocked(fetchCalendarEvents);
 const mockFetchICal = vi.mocked(fetchICalEvents);
@@ -64,7 +65,6 @@ function makeConfig(overrides: Partial<ScreenConfiguration['settings']['calendar
         googleCalendarId: '',
         googleCalendarIds: [],
         icalSources: [],
-        maxEvents: 50,
         daysAhead: 7,
         ...overrides,
       },
@@ -259,120 +259,62 @@ describe('ICS + Google Calendar merging', () => {
     expect(json[3].title).toBe('Google Afternoon');
   });
 
-  it('respects maxEvents limit, keeping the nearest upcoming events', async () => {
-    mockReadConfig.mockResolvedValue(
-      makeConfig({
-        googleCalendarIds: ['primary'],
-        icalSources: [
-          { id: 'ics-1', type: 'ical', name: 'ICS', url: 'https://example.com/cal.ics', color: '#ff0000', enabled: true },
-        ],
-        maxEvents: 2,
-      }),
-    );
-
-    // Events relative to real "now" so they stay upcoming regardless of when
-    // the suite runs (the route reads the live clock, not a fake timer).
-    const inHours = (h: number) => new Date(Date.now() + h * 3600000).toISOString();
-    mockFetchGoogle.mockResolvedValue({ events: [
-      makeEvent('g1', inHours(2), 'Google Soon'),
-      makeEvent('g2', inHours(6), 'Google Later'),
-    ], results: [{ id: 'mock-ok', ok: true }] });
-    mockFetchICal.mockResolvedValue({ events: [
-      makeEvent('i1', inHours(1), 'ICal First'),
-    ], results: [{ id: 'mock-ok', ok: true }] });
-
-    const req = makeRequest();
-    const res = await GET(req);
-    const body = await res.json(); const json = body.events ?? body;
-
-    // Nearest two upcoming survive, sorted ascending; the +6h one is dropped.
-    expect(json).toHaveLength(2);
-    expect(json.map((e: CalendarEvent) => e.title)).toEqual(['ICal First', 'Google Soon']);
-  });
-
   // Anchor all offsets to one base so window spans are exact to the
-  // millisecond (a span computed from two Date.now() reads could drift past a
-  // scaling threshold and flake).
+  // millisecond (a span computed from two Date.now() reads could drift and
+  // flake).
   const atBase = Date.now();
   const at = (h: number) => new Date(atBase + h * 3600000).toISOString();
 
-  it('scales the cap to the window so a widened grid fetch is not truncated to the upcoming budget', async () => {
-    // daysAhead 7 (default window). A ~28-day window should scale the cap ~4x,
-    // so a month's worth of events survives instead of being cut to maxEvents.
-    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 5, daysAhead: 7 }));
+  it('returns every event inside a widened grid window; no user setting trims the fetch', async () => {
+    // A month grid draws whatever its window holds. The old per-user "max
+    // events" once scaled into this fetch and silently cut a busy family's
+    // month grid to the nearest few days (issue #21 and the Cozi report).
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }));
 
-    // 24 events spread across the widened window — well over the raw cap of 5.
-    const events = Array.from({ length: 24 }, (_, i) =>
-      makeEvent(`e${i}`, at((i - 12) * 24), `Event ${i}`),
+    const events = Array.from({ length: 300 }, (_, i) =>
+      makeEvent(`e${i}`, at((i - 150) * 4), `Event ${i}`),
     );
-    mockFetchGoogle.mockResolvedValue({ events: events, results: [{ id: 'mock-ok', ok: true }] });
+    mockFetchGoogle.mockResolvedValue({ events, results: [{ id: 'mock-ok', ok: true }] });
 
-    const req = makeRequest({ timeMin: at(-14 * 24), timeMax: at(14 * 24) });
+    const req = makeRequest({ timeMin: at(-30 * 24), timeMax: at(30 * 24) });
     const res = await GET(req);
     const body = await res.json(); const json = body.events ?? body;
 
-    // 28-day window / 7-day default → 4x → cap 20; all 24 don't fit but far
-    // more than the raw 5 survive (the whole point of issue #21). The at(0)
-    // event has already ended (end = start = "now") and so rides alongside
-    // the budget rather than inside it: 20 + 1.
-    expect(json.length).toBeGreaterThan(5);
-    expect(json.length).toBe(21);
+    expect(json).toHaveLength(300);
   });
 
-  it('does not let past events starve upcoming ones when the budget is exceeded', async () => {
-    // Regression for issue #21: when even the scaled cap is exceeded, a plain
-    // ascending slice would spend the whole budget on the earliest (past)
-    // events and drop every upcoming one. Upcoming-first budgeting keeps the
-    // upcoming event and backfills with the most-recent past. Window pinned to
-    // the default span (timeMax = timeMin + 7d) so no scaling applies.
-    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 3, daysAhead: 7 }));
-
-    mockFetchGoogle.mockResolvedValue({ events: [
-      makeEvent('p1', at(-96), 'Past A'),
-      makeEvent('p2', at(-72), 'Past B'),
-      makeEvent('p3', at(-48), 'Past C'),
-      makeEvent('p4', at(-24), 'Past D'),
-      makeEvent('u1', at(24), 'Upcoming'),
-    ], results: [{ id: 'mock-ok', ok: true }] });
-
-    const req = makeRequest({ timeMin: at(-120), timeMax: at(48) });
-    const res = await GET(req);
-    const body = await res.json(); const json = body.events ?? body;
-
-    const titles = json.map((e: CalendarEvent) => e.title);
-    expect(json).toHaveLength(3);
-    // The single upcoming event is never sliced away...
-    expect(titles).toContain('Upcoming');
-    // ...and the retained past events are the two most recent, not the oldest.
-    expect(titles).toContain('Past D');
-    expect(titles).toContain('Past C');
-    expect(titles).not.toContain('Past A');
-  });
-
-  it('keeps events that ended earlier today ahead of later upcoming ones', async () => {
-    // The agenda's agendaShowFinishedToday widens timeMin to start of today
-    // so today's finished events reach the display. They must neither be
-    // backfilled from leftover budget (a dense week would silently drop the
-    // rows the flag exists to show) nor eat the upcoming budget (a small cap
-    // would drop every upcoming row instead); they ride alongside it. Window
-    // pinned to the default span so no scaling applies.
-    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], maxEvents: 2, daysAhead: 7 }));
+  it('applies the fixed safety cap upcoming-first, keeping rows that ended today alongside it', async () => {
+    // Only a pathological feed trips the cap. When it does, the nearest
+    // upcoming rows survive, today's finished rows ride alongside the budget
+    // (the agenda's finished-today flag exists to show them), and earlier
+    // days are the first to go; the far end of the future is cut before any
+    // nearer row.
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }));
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const endedToday = new Date(todayStart.getTime() + 60_000).toISOString();
 
+    const upcoming = Array.from({ length: CALENDAR_FETCH_MAX_EVENTS + 5 }, (_, i) =>
+      makeEvent(`u${i}`, at(1 + i), `Upcoming ${i}`),
+    );
     mockFetchGoogle.mockResolvedValue({ events: [
-      makeEvent('y1', at(-48), 'Yesterday'),
+      makeEvent('p1', at(-96), 'Past A'),
+      makeEvent('p2', at(-72), 'Past B'),
       makeEvent('e1', endedToday, 'Ended today'),
-      makeEvent('u1', at(24), 'Upcoming A'),
-      makeEvent('u2', at(48), 'Upcoming B'),
+      ...upcoming,
     ], results: [{ id: 'mock-ok', ok: true }] });
 
-    const req = makeRequest({ timeMin: at(-72), timeMax: at(96) });
+    const req = makeRequest({ timeMin: at(-120), timeMax: at(CALENDAR_FETCH_MAX_EVENTS + 48) });
     const res = await GET(req);
     const body = await res.json(); const json = body.events ?? body;
 
     const titles = json.map((e: CalendarEvent) => e.title);
-    expect(titles).toEqual(['Ended today', 'Upcoming A', 'Upcoming B']);
+    expect(json).toHaveLength(CALENDAR_FETCH_MAX_EVENTS + 1);
+    expect(titles).toContain('Ended today');
+    expect(titles).toContain('Upcoming 0');
+    expect(titles).toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS - 1}`);
+    expect(titles).not.toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS}`);
+    expect(titles).not.toContain('Past A');
+    expect(titles).not.toContain('Past B');
   });
 
   it('returns ICS events when Google fails (partial success)', async () => {
@@ -876,17 +818,14 @@ describe('time parameters', () => {
     expect(diff).toBe(7 * 86400000);
   });
 
-  it('defaults maxEvents to 100 when not configured', async () => {
-    const config = makeConfig({
+  it('a default-window fetch is never trimmed below the safety cap', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
       googleCalendarIds: ['primary'],
       icalSources: [
         { id: 'ics-1', type: 'ical', name: 'ICS', url: 'https://example.com/cal.ics', color: '#ff0000', enabled: true },
       ],
-    });
-    delete (config.settings.calendar as unknown as Record<string, unknown>).maxEvents;
-    mockReadConfig.mockResolvedValue(config);
+    }));
 
-    // Create 120 events to verify the 100-event cap
     const googleEvents = Array.from({ length: 60 }, (_, i) =>
       makeEvent(`g${i}`, `2026-03-13T${String(i).padStart(2, '0')}:00:00Z`),
     );
@@ -900,7 +839,7 @@ describe('time parameters', () => {
     const res = await GET(req);
     const body = await res.json(); const json = body.events ?? body;
 
-    expect(json).toHaveLength(100);
+    expect(json).toHaveLength(120);
   });
 });
 

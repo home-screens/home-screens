@@ -322,7 +322,6 @@ describe('hasAnyCalendarSource', () => {
     googleCalendarId: '',
     googleCalendarIds: [],
     icalSources: [],
-    maxEvents: 10,
     daysAhead: 30,
   };
 

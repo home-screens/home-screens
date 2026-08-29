@@ -54,6 +54,51 @@ describe('withSavedEvents', () => {
     const out = withSavedEvents([], [{ id: 's1', ok: false }], new Date(2026, 8, 1), new Date(2026, 9, 1));
     expect(out).toEqual([]);
   });
+
+  it('a narrow success keeps saved rows outside its window (a list fetch never shrinks a grid fallback)', () => {
+    // Wide month fetch succeeds, then a 7-day list fetch succeeds, then the
+    // source fails on the next wide fetch: the substituted set must still
+    // cover the whole month, not just the week the last success covered.
+    const month = [
+      mk('early', '2026-07-03T10:00:00'),
+      mk('mid', '2026-07-12T10:00:00'),
+      mk('late', '2026-07-25T10:00:00'),
+    ];
+    withSavedEvents(month, [{ id: 's1', ok: true }], winStart, winEnd);
+    const weekStart = new Date(2026, 6, 10);
+    const weekEnd = new Date(2026, 6, 17);
+    withSavedEvents([mk('mid', '2026-07-12T10:00:00')], [{ id: 's1', ok: true }], weekStart, weekEnd);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], winStart, winEnd);
+    expect(out.map((e) => e.id).sort()).toEqual(['early', 'late', 'mid']);
+  });
+
+  it('a success replaces the saved rows inside its window, so upstream deletions take effect', () => {
+    withSavedEvents([mk('a', '2026-07-12T10:00:00'), mk('b', '2026-07-13T10:00:00')], [{ id: 's1', ok: true }], winStart, winEnd);
+    const weekStart = new Date(2026, 6, 10);
+    const weekEnd = new Date(2026, 6, 17);
+    // Same window, 'b' is gone upstream and 'c' is new.
+    withSavedEvents([mk('a', '2026-07-12T10:00:00'), mk('c', '2026-07-14T10:00:00')], [{ id: 's1', ok: true }], weekStart, weekEnd);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], winStart, winEnd);
+    expect(out.map((e) => e.id).sort()).toEqual(['a', 'c']);
+  });
+
+  it('drops saved rows that ended long before now, measured from now rather than the fetch window', () => {
+    const now = new Date(2026, 7, 1).getTime();
+    const wide = [mk('old', '2026-04-20T10:00:00'), mk('recent', '2026-06-30T10:00:00')];
+    withSavedEvents(wide, [{ id: 's1', ok: true }], new Date(2026, 3, 1), winEnd, now);
+    // A later narrow success: 'old' ended > 90 days before now and goes;
+    // 'recent' is outside this window but within retention and stays.
+    withSavedEvents([], [{ id: 's1', ok: true }], winStart, winEnd, now);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], new Date(2026, 3, 1), winEnd, now);
+    expect(out.map((e) => e.id)).toEqual(['recent']);
+  });
+
+  it('keeps sources independent when merging', () => {
+    withSavedEvents([mk('x', '2026-07-10T10:00:00', 'other')], [{ id: 'other', ok: true }], winStart, winEnd);
+    withSavedEvents([mk('y', '2026-07-11T10:00:00')], [{ id: 's1', ok: true }], winStart, winEnd);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }, { id: 'other', ok: true }], winStart, winEnd);
+    expect(out.map((e) => e.id)).toEqual(['y']);
+  });
 });
 
 describe('settleSourceFetches', () => {

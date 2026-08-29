@@ -26,7 +26,6 @@ function validConfig(overrides?: Partial<ScreenConfiguration>): ScreenConfigurat
         googleCalendarId: '',
         googleCalendarIds: [],
         icalSources: [],
-        maxEvents: 20,
         daysAhead: 14,
       },
     },

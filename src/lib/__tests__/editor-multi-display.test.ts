@@ -20,7 +20,6 @@ function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
       googleCalendarId: '',
       googleCalendarIds: [],
       icalSources: [],
-      maxEvents: 10,
       daysAhead: 7,
     },
     ...overrides,

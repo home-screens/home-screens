@@ -3,7 +3,7 @@ import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
-import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
+import { CALENDAR_FETCH_MAX_EVENTS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { budgetEvents, mergeSourceStatus, recordSourceStatus, withSavedEvents, type SourceFetchResult } from '@/lib/calendar-source-status';
 import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
@@ -27,14 +27,13 @@ interface CalendarParams {
   hideDeclined: boolean;
   timeMin: string;
   timeMax: string;
-  maxEvents: number;
   timezone: string | undefined;
   icalKey: string;
   icloudKey: string;
 }
 
 // Hard ceiling on the requested window span. Bounds two costs that scale with
-// span and aren't capped by maxEvents: recurring-event expansion in the ICS
+// span and aren't bounded by the event cap: recurring-event expansion in the ICS
 // parser, and the number of distinct cache keys (which embed the window). The
 // widest in-app request is a 12-week multi-week grid plus padding (~87
 // days), so this only ever clamps a hand-crafted LAN request.
@@ -85,26 +84,16 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const timeMin = new Date(timeMinMs).toISOString();
     const timeMax = new Date(timeMaxMs).toISOString();
 
-    const configuredMax = config.settings.calendar.maxEvents ?? 100;
-    // `maxEvents` bounds the *upcoming* list. When a grid view widens the
-    // window into the past (or far into the future), that budget can't cover a
-    // whole busy month, so scale it to the window and keep the density
-    // (events/day) the default window implies. Never below the configured cap.
-    const windowMs = timeMaxMs - timeMinMs;
-    const maxEvents = windowMs > defaultWindowMs
-      ? Math.max(configuredMax, Math.ceil((configuredMax * windowMs) / defaultWindowMs))
-      : configuredMax;
-
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
     const icloudKey = icloudSources.map(s => `${s.id}:${s.color}:${s.kind}:${s.url}`).join(',');
 
     const timezone = config.settings.timezone;
 
-    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone, icalKey, icloudKey };
+    return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey };
   },
-  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone }) =>
-    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax}:${maxEvents};tz:${timezone ?? ''}`,
-  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, maxEvents, timezone }) => {
+  cacheKey: ({ calendarIds, icalKey, icloudKey, holidayCountry, hideDeclined, timeMin, timeMax, timezone }) =>
+    `g:${[...calendarIds].sort().join(',')};i:${icalKey};ic:${icloudKey};h:${holidayCountry ?? ''};hd:${hideDeclined};${timeMin}:${timeMax};tz:${timezone ?? ''}`,
+  execute: async ({ calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone }) => {
     if (calendarIds.length === 0 && icalSources.length === 0 && icloudSources.length === 0 && !holidayCountry) {
       return NextResponse.json(
         { error: 'No calendars configured. Add a Google account, iCloud account, or ICS feed in editor settings.' },
@@ -200,9 +189,11 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
 
     const merged = [...google.events, ...ical.events, ...icloud.events, ...holidays.events]
       .sort((a, b) => compareEventStarts(a.start, b.start));
-    // Upcoming-first budgeting only when even the window-scaled cap is
-    // exceeded — see budgetEvents for the three-bucket policy.
-    return { events: budgetEvents(merged, maxEvents, timezone), sourceStatus };
+    // The safety cap is deliberately not a user setting: a small "max
+    // events" once scaled into the grid fetch and silently truncated month
+    // grids to the nearest few days. Upcoming-first budgeting only when the
+    // cap is exceeded — see budgetEvents for the three-bucket policy.
+    return { events: budgetEvents(merged, CALENDAR_FETCH_MAX_EVENTS, timezone), sourceStatus };
   },
   errorMessage: 'Failed to fetch calendar events',
 });

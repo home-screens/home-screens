@@ -270,7 +270,6 @@ export interface CalendarSettings {
   icalSources: ICalSource[];
   icloudSources?: ICloudSource[];
   people?: CalendarPerson[];
-  maxEvents: number;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')
   hideDeclined?: boolean; // Google only: skip events the signed-in account declined

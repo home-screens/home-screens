@@ -35,6 +35,7 @@ export function usePreviewData(): PreviewData {
   const [previewData, setPreviewData] = useState<PreviewData>({
     weatherByProvider: {},
     calendarEvents: null,
+    calendarSourceStatus: null,
   });
 
   // Pull the weather-relevant settings from the editor store. Changing any
@@ -129,8 +130,9 @@ export function usePreviewData(): PreviewData {
         if (calRes.ok) {
           const calData = await calRes.json();
           const events = Array.isArray(calData.events) ? calData.events : Array.isArray(calData) ? calData : [];
+          const sourceStatus = Array.isArray(calData.sourceStatus) ? calData.sourceStatus : null;
           if (!controller.signal.aborted) {
-            setPreviewData((prev) => ({ ...prev, calendarEvents: events }));
+            setPreviewData((prev) => ({ ...prev, calendarEvents: events, calendarSourceStatus: sourceStatus }));
           }
         }
       } catch (err) {

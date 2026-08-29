@@ -152,7 +152,6 @@ describe('collectProvidedStateKeys host keys', () => {
     googleCalendarId: '',
     googleCalendarIds: [],
     icalSources: [],
-    maxEvents: 10,
     daysAhead: 30,
     ...over,
   });

@@ -25,7 +25,6 @@ interface CalendarSettings {
   icalSources: ICalSource[];
   icloudSources: ICloudSource[];
   people: CalendarPerson[];
-  maxEvents: number;
   daysAhead: number;
   holidayCountry?: string;
   hideDeclined: boolean;
@@ -37,7 +36,7 @@ interface Props {
 }
 
 export default function CalendarSection({ values, onChange }: Props) {
-  const { selectedCalendarIds, icalSources, icloudSources, people, maxEvents, daysAhead, holidayCountry, hideDeclined } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, people, daysAhead, holidayCountry, hideDeclined } = values;
   const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
@@ -278,7 +277,34 @@ export default function CalendarSection({ values, onChange }: Props) {
         <p className="text-[13px] text-hs-text-faint">{t('settings.calendarPage.description')}</p>
       </div>
 
-      {/* 1. Where events come from: every source type, each row with its health */}
+      {/* 1. What to show: the window every calendar module starts from. First
+          on purpose: a single slider that decides how far every list looks
+          ahead should never sit below the long list of sources. */}
+      <SettingsArea
+        title={t('settings.calendarPage.areas.show')}
+        description={t('settings.calendarPage.areas.showDescription')}
+        testId="calendar-area-show"
+      >
+        <div data-field-id="calendar.daysAhead">
+          <Slider
+            label={t('settings.calendarPage.shared.daysAheadLabel')}
+            value={daysAhead}
+            min={1}
+            max={90}
+            onChange={(v) => onChange({ daysAhead: v })}
+          />
+        </div>
+        <div className="mt-3 pt-3 border-t border-hs-border-strong" data-field-id="calendar.hideDeclined">
+          <Toggle
+            label={t('settings.calendarPage.google.hideDeclinedLabel')}
+            checked={hideDeclined}
+            onChange={(v) => onChange({ hideDeclined: v })}
+          />
+          <p className="mt-1 text-[11px] text-hs-text-faint">{t('settings.calendarPage.google.googleOnly')}</p>
+        </div>
+      </SettingsArea>
+
+      {/* 2. Where events come from: every source type, each row with its health */}
       <SettingsArea
         title={t('settings.calendarPage.areas.sources')}
         description={t('settings.calendarPage.areas.sourcesDescription')}
@@ -348,7 +374,7 @@ export default function CalendarSection({ values, onChange }: Props) {
         </SourceBlock>
       </SettingsArea>
 
-      {/* 2. People: who the calendars belong to */}
+      {/* 3. People: who the calendars belong to */}
       <SettingsArea
         title={t('settings.calendarPage.people.heading')}
         description={t('settings.calendarPage.people.help')}
@@ -359,41 +385,6 @@ export default function CalendarSection({ values, onChange }: Props) {
         </div>
       </SettingsArea>
 
-      {/* 3. What to show: the limits every calendar module starts from */}
-      <SettingsArea
-        title={t('settings.calendarPage.areas.show')}
-        description={t('settings.calendarPage.areas.showDescription')}
-        testId="calendar-area-show"
-      >
-        <div className="grid grid-cols-2 gap-3">
-          <div data-field-id="calendar.maxEvents">
-            <Slider
-              label={t('settings.calendarPage.shared.maxEventsLabel')}
-              value={maxEvents}
-              min={1}
-              max={100}
-              onChange={(v) => onChange({ maxEvents: v })}
-            />
-          </div>
-          <div data-field-id="calendar.daysAhead">
-            <Slider
-              label={t('settings.calendarPage.shared.daysAheadLabel')}
-              value={daysAhead}
-              min={1}
-              max={90}
-              onChange={(v) => onChange({ daysAhead: v })}
-            />
-          </div>
-        </div>
-        <div className="mt-3 pt-3 border-t border-hs-border-strong" data-field-id="calendar.hideDeclined">
-          <Toggle
-            label={t('settings.calendarPage.google.hideDeclinedLabel')}
-            checked={hideDeclined}
-            onChange={(v) => onChange({ hideDeclined: v })}
-          />
-          <p className="mt-1 text-[11px] text-hs-text-faint">{t('settings.calendarPage.google.googleOnly')}</p>
-        </div>
-      </SettingsArea>
     </div>
   );
 }

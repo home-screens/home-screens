@@ -24,7 +24,6 @@ function makeSettings(rotationIntervalMs: number): GlobalSettings {
       googleCalendarId: '',
       googleCalendarIds: [],
       icalSources: [],
-      maxEvents: 0,
       daysAhead: 0,
     },
   };

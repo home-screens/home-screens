@@ -363,7 +363,6 @@
         "help": "Mostrar festivos en los widgets de calendario. Datos de Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Máx. eventos",
         "daysAheadLabel": "Días por delante"
       },
       "health": {

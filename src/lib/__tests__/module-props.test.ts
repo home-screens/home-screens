@@ -64,6 +64,7 @@ const previewSettings: PreviewSettings = {
 const previewData: PreviewData = {
   weatherByProvider: { weatherapi: WEATHER_PAYLOAD },
   calendarEvents: EVENTS,
+  calendarSourceStatus: null,
 };
 
 const displaySource = () => toDisplaySource(
@@ -95,6 +96,7 @@ describe('adapter equivalence', () => {
     const fromEditor = buildModuleProps(mod, toEditorSource(previewSettings, {
       weatherByProvider: { noaa: WEATHER_PAYLOAD },
       calendarEvents: null,
+      calendarSourceStatus: null,
     }));
     expect(fromDisplay.hourly).toEqual(WEATHER_PAYLOAD.hourly);
     expect(fromEditor.hourly).toEqual(WEATHER_PAYLOAD.hourly);
@@ -134,8 +136,22 @@ describe('buildModuleProps', () => {
     const props = buildModuleProps(instance('calendar'), toEditorSource(previewSettings, {
       weatherByProvider: {},
       calendarEvents: null,
+      calendarSourceStatus: null,
     }));
     expect(props).not.toHaveProperty('events');
+  });
+
+  it('the editor preview passes per-source health through like the display does', () => {
+    // A feed the hub cannot reach must badge its saved rows in the preview
+    // too; only the whole-fetch status (calendarStatus) is display-only.
+    const failing = [{ id: 'ics-1', name: 'Cozi', ok: false, error: 'Could not reach the link', fetchedAt: null }];
+    const props = buildModuleProps(instance('calendar'), toEditorSource(previewSettings, {
+      weatherByProvider: {},
+      calendarEvents: [],
+      calendarSourceStatus: failing,
+    }));
+    expect(props.sourceStatus).toEqual(failing);
+    expect(props).not.toHaveProperty('calendarStatus');
   });
 
   it('gives display-control the registered displays', () => {
@@ -175,7 +191,7 @@ describe('toEditorSource', () => {
   });
 
   it('supplies safe defaults before the config has loaded', () => {
-    const source = toEditorSource(null, { weatherByProvider: {}, calendarEvents: null });
+    const source = toEditorSource(null, { weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
     expect(source.location).toBeNull();
     expect(source.weather.units).toBe('imperial');
     expect(source.weather.globalProvider).toBe('weatherapi');
@@ -219,7 +235,7 @@ describe('timeFormat threading', () => {
   });
 
   it('toEditorSource reads the preview settings snapshot', () => {
-    const source = toEditorSource({ ...previewSettings, timeFormat: '24h' }, { weatherByProvider: {}, calendarEvents: null });
+    const source = toEditorSource({ ...previewSettings, timeFormat: '24h' }, { weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
     expect(source.timeFormat).toBe('24h');
   });
 });

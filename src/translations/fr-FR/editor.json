@@ -363,7 +363,6 @@
         "help": "Affiche les jours fériés sur les widgets de calendrier. Données de Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Nombre max d'événements",
         "daysAheadLabel": "Jours à l'avance"
       },
       "health": {

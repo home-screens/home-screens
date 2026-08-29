@@ -76,7 +76,7 @@ export function baseConfig(overrides: BaseConfigOverrides = {}): ScreenConfigura
       longitude: 0,
       telemetryEnabled: false,
       weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 50, daysAhead: 7 },
+      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
       ...(overrides.settings ?? {}),
     },
     screens: overrides.screens ?? [makeScreen('screen-1', 'Screen 1', [textModule('E2E HOME SCREEN')])],

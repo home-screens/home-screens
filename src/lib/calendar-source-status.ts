@@ -59,33 +59,57 @@ const lastGoodFetch = new Map<string, number>();
 
 // Last successful events per source id. A failing source keeps serving its
 // saved events (badged "saved" on the display) instead of silently vanishing.
-// Best-effort: saved events come from that source's last successful window,
-// which may not fully cover a different requested window. Bounded by
-// sources × window size; resets with the process like lastGoodFetch.
+// The set is merged by coverage, not overwritten: a success replaces only
+// the rows inside the window it fetched and keeps everything saved outside
+// it, so a narrow list-view fetch (or the editor's cold-start health probe)
+// can never shrink a month grid's fallback to a few days. Bounded by
+// sources x the widest window seen, minus rows older than the retention
+// below; resets with the process like lastGoodFetch.
 const lastGoodEvents = new Map<string, CalendarEvent[]>();
+
+// Saved rows that ended this long before now are dropped on the next
+// success for that source. Measured from now, never from the fetch window:
+// a narrow list fetch must not evict the month rows a grid fetch saved. The
+// widest in-app grid (12-week multi-week plus padding) looks back under 90
+// days, so anything older is dead weight.
+const SAVED_EVENT_RETENTION_MS = 90 * 86400000;
+
+/** Event overlaps the half-open window (same test the fetchers apply upstream). */
+function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date): boolean {
+  return new Date(ev.end) > windowStart && new Date(ev.start) < windowEnd;
+}
 
 /**
  * Record per-source last-good events, or substitute them for a failing
- * source. Substituted events are re-filtered to the requested window — the
- * saved set may come from a different window, and out-of-window strays would
- * eat the maxEvents budget of healthy sources. Known limitation: entries are
- * keyed by source id alone, so if a source's URL is repointed while the new
- * target is failing, the old target's events serve (badged "saved") until
- * the new one first succeeds.
+ * source. On success the source's saved set becomes: previously saved rows
+ * outside this request's window (minus stale ones) plus the fresh rows, so
+ * the fallback always covers the union of every window that has succeeded.
+ * Substituted events are re-filtered to the requested window, so
+ * out-of-window strays never eat the budget of healthy sources. Known
+ * limitation: entries are keyed by source id alone, so if a source's URL is
+ * repointed while the new target is failing, the old target's events serve
+ * (badged "saved") until the new one first succeeds. `nowMs` is injectable
+ * for tests only.
  */
 export function withSavedEvents(
   events: CalendarEvent[],
   results: SourceFetchResult[],
   windowStart: Date,
   windowEnd: Date,
+  nowMs: number = Date.now(),
 ): CalendarEvent[] {
   const out = [...events];
+  const retainAfter = nowMs - SAVED_EVENT_RETENTION_MS;
   for (const r of results) {
     if (r.ok) {
-      lastGoodEvents.set(r.id, events.filter((ev) => ev.sourceId === r.id));
+      const fresh = events.filter((ev) => ev.sourceId === r.id);
+      const kept = (lastGoodEvents.get(r.id) ?? []).filter(
+        (ev) => !overlapsWindow(ev, windowStart, windowEnd) && new Date(ev.end).getTime() >= retainAfter,
+      );
+      lastGoodEvents.set(r.id, [...kept, ...fresh]);
     } else {
       const saved = lastGoodEvents.get(r.id) ?? [];
-      out.push(...saved.filter((ev) => new Date(ev.end) > windowStart && new Date(ev.start) < windowEnd));
+      out.push(...saved.filter((ev) => overlapsWindow(ev, windowStart, windowEnd)));
     }
   }
   return out;

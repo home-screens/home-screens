@@ -66,6 +66,8 @@ interface ProviderWeatherData {
 export interface PreviewData {
   weatherByProvider: Record<string, ProviderWeatherData>;
   calendarEvents: unknown[] | null;
+  /** Per-source health from the same payload, so the preview badges saved rows like the kiosk. */
+  calendarSourceStatus: CalendarSourceStatus[] | null;
 }
 
 /**
@@ -272,10 +274,13 @@ export function toEditorSource(
         previewData.weatherByProvider[provider] ?? previewData.weatherByProvider[globalProvider] ?? null,
     },
     calendarEvents: previewData.calendarEvents,
-    // The editor preview has no display fetch loop to report on; modules
-    // treat null as "healthy" and never render the saved-events pill.
+    // The editor preview has no display fetch loop to report on (null reads
+    // as healthy), but the payload's per-source health is real: a feed the
+    // hub can't reach shows the same "not updating" pill and saved-row
+    // suffixes here as on the kiosk, so the preview never passes off a
+    // saved copy as live.
     calendarStatus: null,
-    calendarSourceStatus: null,
+    calendarSourceStatus: previewData.calendarSourceStatus,
     calendarPeople: settings?.calendarPeople ?? null,
     availableDisplays: displays,
   };

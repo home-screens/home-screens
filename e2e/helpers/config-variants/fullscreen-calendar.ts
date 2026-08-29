@@ -702,7 +702,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-calendar', name: 'family-people-rows', kind: 'networked', stubKey: 'calendar',
     stubBody: TOMORROW_MORNING,
     settings: { calendar: {
-      googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], maxEvents: 50, daysAhead: 7,
+      googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], daysAhead: 7,
       people: [
         { id: 'p1', name: 'Alpha Person', color: '#db2777', sourceIds: ['src-a'] },
         { id: 'p2', name: 'Quiet Person', color: '#059669', sourceIds: ['src-none'] },

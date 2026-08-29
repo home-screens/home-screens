@@ -153,7 +153,6 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'weather', fieldId: 'weather.provider.envcanada', label: 'Environment Canada' },
 
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
-  { pageId: 'calendar', fieldId: 'calendar.maxEvents', labelKey: 'settings.calendarPage.shared.maxEventsLabel' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
   { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },
 

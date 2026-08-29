@@ -363,7 +363,6 @@
         "help": "Gesetzliche Feiertage in Kalender-Widgets anzeigen. Daten von Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Max. Termine",
         "daysAheadLabel": "Tage im Voraus"
       },
       "health": {

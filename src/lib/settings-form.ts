@@ -43,7 +43,6 @@ export interface CalendarState {
   icalSources: ICalSource[];
   icloudSources: ICloudSource[];
   people: CalendarPerson[];
-  maxEvents: number;
   daysAhead: number;
   holidayCountry: string;
   hideDeclined: boolean;
@@ -98,7 +97,7 @@ export const FORM_DEFAULTS: SettingsState = {
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
-  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], people: [], maxEvents: 10, daysAhead: 7, holidayCountry: '', hideDeclined: false },
+  calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], people: [], daysAhead: 7, holidayCountry: '', hideDeclined: false },
   sleep: {
     sleepEnabled: false,
     idleDimEnabled: true,
@@ -198,7 +197,6 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       icalSources: s.calendar.icalSources ?? [],
       icloudSources: s.calendar.icloudSources ?? [],
       people: s.calendar.people ?? [],
-      maxEvents: s.calendar.maxEvents ?? FORM_DEFAULTS.calendar.maxEvents,
       daysAhead: s.calendar.daysAhead ?? FORM_DEFAULTS.calendar.daysAhead,
       holidayCountry: s.calendar.holidayCountry ?? '',
       hideDeclined: s.calendar.hideDeclined ?? false,
@@ -249,7 +247,6 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       // Omitted while empty so a household that never set people up keeps
       // the exact settings shape it had before the field existed.
       ...(calendar.people.length > 0 ? { people: calendar.people } : {}),
-      maxEvents: calendar.maxEvents,
       daysAhead: calendar.daysAhead,
       ...(calendar.holidayCountry ? { holidayCountry: calendar.holidayCountry } : {}),
       hideDeclined: calendar.hideDeclined,

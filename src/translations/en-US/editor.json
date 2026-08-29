@@ -363,7 +363,6 @@
         "help": "Show public holidays on calendar widgets. Data from Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Max Events",
         "daysAheadLabel": "Days Ahead"
       },
       "health": {

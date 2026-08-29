@@ -363,7 +363,6 @@
         "help": "Vis helligdage i kalendermodulerne. Data fra Nager.Date."
       },
       "shared": {
-        "maxEventsLabel": "Maks. antal begivenheder",
         "daysAheadLabel": "Dage frem"
       },
       "health": {

@@ -48,6 +48,13 @@ export const CALENDAR_STATE_REPUBLISH_MS = 60 * 1000;
 // default.
 export const DEFAULT_CALENDAR_DAYS_AHEAD = 7;
 
+// Safety cap on the merged `/api/calendar` payload. Not a user setting: the
+// grids draw whatever their window holds, and list views trim themselves
+// (the calendar module's agenda has its own per-module `maxEvents`). This
+// only bounds a pathological feed so a Pi never parses a five-figure
+// payload; `budgetEvents` keeps the nearest upcoming rows when it trips.
+export const CALENDAR_FETCH_MAX_EVENTS = 2000;
+
 // How often the editor polls GET /api/display/shared-state while a condition
 // panel is open. That poll doubles as the "an editor is watching" signal, so
 // the hub's interest TTL below is derived from it rather than restated: the

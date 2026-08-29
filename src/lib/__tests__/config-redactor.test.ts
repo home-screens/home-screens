@@ -10,7 +10,7 @@ function baseConfig(): ScreenConfiguration {
       displayWidth: 1080, displayHeight: 1920, displayTransform: '90',
       latitude: 44.71, longitude: -93.42,
       weather: { provider: 'weatherapi', latitude: 44.71, longitude: -93.42, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
     },
     screens: [],
   };
