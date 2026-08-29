@@ -2528,7 +2528,15 @@
       "cryptoIdsLabel": "IDs de moedas (separados por vírgula, CoinGecko)",
       "tickerUnitStock": "s/ação",
       "tickerUnitCoin": "s/moeda",
-      "showSparkline": "Mostrar linha de tendência"
+      "showSparkline": "Mostrar linha de tendência",
+      "chartTheme": "Tema",
+      "chartThemeClassic": "Clássico",
+      "chartThemeShaded": "Sombreado",
+      "chartContent": "Conteúdo do gráfico",
+      "chartLabels": "Rotular gráficos (1D / 5D)",
+      "chartContentDay": "Apenas hoje",
+      "chartContentWeek": "Apenas a semana passada",
+      "chartContentBoth": "Hoje e a semana passada"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Agenda (grade de colunas)",

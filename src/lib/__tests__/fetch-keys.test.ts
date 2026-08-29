@@ -24,8 +24,36 @@ import {
 // ── URL builders that return null when config is empty ──────────
 
 describe('stocksUrl', () => {
-  it('builds URL with encoded symbols', () => {
-    expect(stocksUrl({ symbols: 'AAPL,MSFT' })).toBe('/api/stocks?symbols=AAPL%2CMSFT');
+  it('builds URL with encoded symbols and default day chart', () => {
+    expect(stocksUrl({ symbols: 'AAPL,MSFT' })).toBe('/api/stocks?symbols=AAPL%2CMSFT&charts=day');
+  });
+
+  it('maps sparklineMode day to charts=day', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'day' })).toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
+  it('maps sparklineMode week to charts=week', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'week' })).toBe('/api/stocks?symbols=AAPL&charts=week');
+  });
+
+  it('fetches only the day leg for views that never draw charts', () => {
+    // The editor hides the chart selects outside cards but keeps the value.
+    for (const view of ['ticker', 'table', 'compact']) {
+      expect(stocksUrl({ symbols: 'AAPL', view, sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day');
+    }
+  });
+
+  it('fetches only the day leg when the trend line is hidden', () => {
+    expect(stocksUrl({ symbols: 'AAPL', view: 'cards', showSparkline: false, sparklineMode: 'week' }))
+      .toBe('/api/stocks?symbols=AAPL&charts=day');
+  });
+
+  it('maps sparklineMode both to charts=day,week', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'both' })).toBe('/api/stocks?symbols=AAPL&charts=day,week');
+  });
+
+  it('treats unknown sparklineMode as day', () => {
+    expect(stocksUrl({ symbols: 'AAPL', sparklineMode: 'nope' })).toBe('/api/stocks?symbols=AAPL&charts=day');
   });
 
   it('returns null when symbols is missing', () => {

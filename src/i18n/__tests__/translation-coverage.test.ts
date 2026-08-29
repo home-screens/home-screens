@@ -275,6 +275,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
+    'modules|stock-ticker.chartLabels.day',
+    'modules|stock-ticker.chartLabels.week',
     'editor|propertyPanel.fields.h',
     'editor|settings.integrationsPage.microsoft.clientIdLabel',
     'modules|clock.am',
@@ -340,6 +343,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.routineName',
   ]),
   'es-ES': new Set([
+    // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
+    'modules|stock-ticker.chartLabels.day',
+    'modules|stock-ticker.chartLabels.week',
     'core|actions.color',
     'core|timer.minutesShort',
     'editor|backgroundPicker.tabs.local',
@@ -531,6 +537,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.stepMinutes',
   ]),
   'nl-NL': new Set([
+    // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
+    'modules|stock-ticker.chartLabels.day',
+    'modules|stock-ticker.chartLabels.week',
     'core|actions.label',
     'core|meal.tags.comfort',
     'core|meal.tags.lunch',
@@ -652,6 +661,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.title',
   ]),
   'pt-BR': new Set([
+    // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
+    'modules|stock-ticker.chartLabels.day',
+    'modules|stock-ticker.chartLabels.week',
     'core|timer.minutesShort',
     'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',

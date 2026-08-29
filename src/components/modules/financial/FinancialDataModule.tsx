@@ -9,7 +9,7 @@ import {
   FinancialTableView,
   FinancialCompactView,
 } from './shared';
-import type { FinancialItem, TableColumn, CompactRow } from './shared';
+import type { FinancialItem, TableColumn, CompactRow, SparklineLabels, SparklineMode, SparklineTheme } from './shared';
 import { useFetchData } from '@/hooks/useFetchData';
 
 interface FinancialDataModuleProps<TItem> {
@@ -24,6 +24,9 @@ interface FinancialDataModuleProps<TItem> {
   cardScale: number;
   tickerSpeed: number;
   showSparkline?: boolean;
+  sparklineMode?: SparklineMode;
+  sparklineTheme?: SparklineTheme;
+  sparklineLabels?: SparklineLabels;
   style: ModuleStyle;
   loadingMessage: string;
   emptyMessage: string;
@@ -42,6 +45,9 @@ export default function FinancialDataModule<TItem>({
   cardScale,
   tickerSpeed,
   showSparkline,
+  sparklineMode,
+  sparklineTheme,
+  sparklineLabels,
   style,
   loadingMessage,
   emptyMessage,
@@ -59,7 +65,12 @@ export default function FinancialDataModule<TItem>({
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'cards' && <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline} />}
+      {view === 'cards' && (
+        <FinancialCardsView items={toFinancialItems(items)} scale={cardScale} showSparkline={showSparkline}
+          sparklineMode={sparklineMode}
+          sparklineTheme={sparklineTheme}
+          sparklineLabels={sparklineLabels} />
+      )}
       {view === 'ticker' && <FinancialTickerView items={toFinancialItems(items)} speed={tickerSpeed} />}
       {view === 'table' && (
         <FinancialTableView

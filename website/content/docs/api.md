@@ -891,23 +891,44 @@ Marks a Todoist task complete. This is what an interactive Todoist module calls 
 
 ### GET /api/stocks
 
-Fetches stock prices from Yahoo Finance. Cached for 30 seconds.
+Fetches stock prices and chart series from Yahoo Finance. Responses are cached for 30 seconds per symbol list and chart set; underneath, each symbol's chart is cached and de-duplicated separately for 30 seconds, so a ticker asking for `day` and a cards tile asking for `day,week` share one upstream call for the day chart.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `symbols` | string | `"AAPL"` | Comma-separated stock symbols (e.g. `AAPL,GOOGL`) |
+| `charts` | string | `"day"` | Which chart series to include: `day`, `week`, or `day,week`. Unknown values are ignored; an empty or all-unknown list falls back to `day` |
 
 **Response:**
 ```json
 {
   "stocks": [
-    { "symbol": "AAPL", "price": 178.52, "change": 2.31, "changePercent": 1.31 }
+    {
+      "symbol": "AAPL",
+      "price": 178.52,
+      "change": 2.31,
+      "changePercent": 1.31,
+      "sparkline": [176.4, 177.1, 178.52],
+      "sparklineXs": [0, 0.5, 1],
+      "sparklineWeek": [171.2, 174.8, 178.52],
+      "weekChangePercent": 4.12,
+      "weekLastDayStart": 0.8
+    }
   ],
   "failedSymbols": ["NOTREAL"]
 }
 ```
 
-Symbols are fetched independently, so one bad ticker doesn't sink the rest: the ones that worked come back in `stocks` and the ones that didn't are listed in `failedSymbols`, which is omitted when everything succeeded. If every symbol fails you get `502 { "error": "Failed to fetch any stock data" }`.
+| Field | Present when | Description |
+|---|---|---|
+| `change`, `changePercent` | always | Today's move against the prior session's close. `null` when Yahoo gives no prior close to measure from (most often a `week`-only request for a fund that only reports a weekly baseline); never a week-sized number dressed up as today's |
+| `sparkline` | `charts` includes `day` and the day chart loaded | Today's 5-minute closes |
+| `sparklineXs` | with `sparkline`, when Yahoo reports the session bounds and the data is from the current session | Each point's position (0 to 1) across the regular trading session, so a client can leave the rest of the session empty. Omitted for stale or out-of-session data, in which case spread the points evenly |
+| `sparklineWeek` | `charts` includes `week` and the week chart loaded | The past five trading days' 30-minute closes |
+| `weekChangePercent` | with `sparklineWeek` | The week's move against the close before the five-day window |
+| `weekLastDayStart` | with `sparklineWeek`, when Yahoo reports per-day session bounds | Position (0 to 1) where the last trading day begins in `sparklineWeek` |
+| `missingCharts` | a requested chart failed but the other one loaded | The charts (`day` or `week`) that could not be fetched for this symbol; the price and change come from the chart that worked |
+
+Symbols are fetched independently, so one bad ticker doesn't sink the rest: the ones that worked come back in `stocks` and the ones that didn't are listed in `failedSymbols`, which is omitted when everything succeeded. If every symbol fails you get `502 { "error": "Failed to fetch any stock data" }`. When Yahoo rate-limits the hub (HTTP 429), every stock request is paused for 30 seconds, doubling on repeated limits up to 5 minutes, and requests made during the pause return `502` without contacting Yahoo.
 
 ### GET /api/crypto
 

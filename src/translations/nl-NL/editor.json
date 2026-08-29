@@ -2523,7 +2523,15 @@
       "cryptoIdsLabel": "Coin-ID's (komma-gescheiden, CoinGecko)",
       "tickerUnitStock": "sec/aandeel",
       "tickerUnitCoin": "sec/coin",
-      "showSparkline": "Trendlijn tonen"
+      "showSparkline": "Trendlijn tonen",
+      "chartTheme": "Thema",
+      "chartThemeClassic": "Klassiek",
+      "chartThemeShaded": "Gearceerd",
+      "chartContent": "Grafiekinhoud",
+      "chartLabels": "Grafieklabels (1D / 5D)",
+      "chartContentDay": "Alleen vandaag",
+      "chartContentWeek": "Alleen afgelopen week",
+      "chartContentBoth": "Vandaag en afgelopen week"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Schema (kolomraster)",

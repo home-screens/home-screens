@@ -46,6 +46,25 @@ const STANDINGS_2_GROUPS = {
   })),
 };
 
+/**
+ * Week-flavored stub: both stocks up today, both down over the week, so the
+ * week-only variant flips both charts from green to red.
+ */
+const STOCKS_WEEK_RED = {
+  stocks: [
+    {
+      symbol: 'AAPL', price: 150.25, change: 1.23, changePercent: 0.55,
+      sparkline: [149.1, 149.6, 150.25], sparklineXs: [0, 0.5, 1],
+      sparklineWeek: [152.0, 151.4, 150.25], weekChangePercent: -1.15, weekLastDayStart: 0.6667,
+    },
+    {
+      symbol: 'MSFT', price: 402.1, change: 1.1, changePercent: 0.27,
+      sparkline: [401.0, 401.5, 402.1], sparklineXs: [0, 0.5, 1],
+      sparklineWeek: [405.0, 403.8, 402.1], weekChangePercent: -0.72, weekLastDayStart: 0.6667,
+    },
+  ],
+};
+
 // --- The matrix ------------------------------------------------------------
 
 export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
@@ -88,6 +107,42 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     type: 'stock-ticker', name: 'hide-sparkline', kind: 'networked', stubKey: 'stocks',
     config: { view: 'cards', showSparkline: false },
     expect: async (mod) => { await has('AAPL')(mod); await count('.financial-sparkline', 0)(mod); },
+  },
+  {
+    // Shaded theme adds the backdrop rect under each sparkline.
+    type: 'stock-ticker', name: 'sparkline-theme', kind: 'networked', stubKey: 'stocks',
+    config: { view: 'cards', sparklineTheme: 'shaded' },
+    expect: count('.financial-sparkline rect', 2),
+  },
+  {
+    // Week-only charts colored by the week's move (both red in this stub,
+    // while their day changes are positive). Shaded is required — classic
+    // keeps the day color for every chart. Count 2 (not 4) pins week-only.
+    type: 'stock-ticker', name: 'sparkline-mode-week', kind: 'networked', stubKey: 'stocks',
+    stubBody: STOCKS_WEEK_RED,
+    config: { view: 'cards', sparklineTheme: 'shaded', sparklineMode: 'week' },
+    expect: async (mod) => {
+      await count('.financial-sparkline', 2)(mod);
+      await count('.financial-sparkline.text-red-400', 2)(mod);
+    },
+  },
+  {
+    // Both mode doubles the charts: 2 stocks x (day + week).
+    type: 'stock-ticker', name: 'sparkline-mode-both', kind: 'networked', stubKey: 'stocks',
+    config: { view: 'cards', sparklineTheme: 'shaded', sparklineMode: 'both' },
+    expect: count('.financial-sparkline', 4),
+  },
+  {
+    // Labels caption every chart (2 stocks x day + week = 4 captions); the
+    // default (off) renders none, which the both-mode row above pins by
+    // asserting only the SVGs.
+    type: 'stock-ticker', name: 'sparkline-labels', kind: 'networked', stubKey: 'stocks',
+    config: { view: 'cards', sparklineTheme: 'shaded', sparklineMode: 'both', sparklineLabels: true },
+    expect: async (mod) => {
+      await count('.financial-sparkline-label', 4)(mod);
+      await has('1D')(mod);
+      await has('5D')(mod);
+    },
   },
 
   // -- crypto --

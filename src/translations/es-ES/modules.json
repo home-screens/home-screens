@@ -604,6 +604,7 @@
     "noGames": "No se encontraron partidos"
   },
   "stock-ticker": {
+    "chartLabels": { "day": "1D", "week": "5D" },
     "loading": "Cargando…",
     "empty": "Sin datos bursátiles",
     "headers": {

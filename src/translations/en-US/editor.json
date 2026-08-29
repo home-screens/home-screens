@@ -2523,7 +2523,15 @@
       "cryptoIdsLabel": "Coin IDs (comma-separated, CoinGecko)",
       "tickerUnitStock": "sec/stock",
       "tickerUnitCoin": "sec/coin",
-      "showSparkline": "Show trend line"
+      "showSparkline": "Show trend line",
+      "chartTheme": "Theme",
+      "chartThemeClassic": "Classic",
+      "chartThemeShaded": "Shaded",
+      "chartContent": "Chart content",
+      "chartLabels": "Label charts (1D / 5D)",
+      "chartContentDay": "Today only",
+      "chartContentWeek": "Past week only",
+      "chartContentBoth": "Today and past week"
     },
     "fullscreen-calendar": {
       "viewSchedule": "Schedule (Column Grid)",

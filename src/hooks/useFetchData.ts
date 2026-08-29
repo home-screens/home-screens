@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
@@ -13,15 +13,28 @@ import { displayFetch } from '@/lib/display-fetch';
  * failed, so consumers can mark the kept data as stale; `updatedAt` is when
  * the kept data was last successfully fetched (cache restores carry the
  * cache's original fetch time).
+ *
+ * A different `url` is a different dataset: the kept payload is dropped (and
+ * restored from the display cache when that URL has one) so a module never
+ * renders the new request's shape against the old request's data.
  */
 export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null, number | null] {
   const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const lastUrl = useRef(url);
 
   useEffect(() => {
-    if (!url) { setData(null); setError(null); setUpdatedAt(null); return; }
+    if (!url) { setData(null); setError(null); setUpdatedAt(null); lastUrl.current = url; return; }
+    if (lastUrl.current !== url) {
+      // Only on a real URL change, not on a refreshMs/translator re-run,
+      // so a settings tweak never blinks a module that keeps its URL.
+      lastUrl.current = url;
+      setData(null);
+      setError(null);
+      setUpdatedAt(null);
+    }
     const controller = new AbortController();
 
     async function fetchAndCache() {

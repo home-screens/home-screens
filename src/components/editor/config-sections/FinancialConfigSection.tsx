@@ -8,6 +8,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, StockTickerView, CryptoView } from '@/types/config';
+import type { SparklineMode, SparklineTheme } from '@/components/modules/financial/shared';
 
 type FinancialView = StockTickerView | CryptoView;
 
@@ -18,11 +19,23 @@ interface FinancialConfigProps {
   symbolsLabel: string;
   symbolsPlaceholder: string;
   tickerUnitText: string;
+  showChartRange?: boolean;
 }
 
-function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText }: FinancialConfigProps) {
+function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel, symbolsPlaceholder, tickerUnitText, showChartRange }: FinancialConfigProps) {
   const t = useTranslate('editor');
-  const { config: c, set } = useModuleConfig<{ view?: FinancialView; refreshIntervalMs?: number; cardScale?: number; tickerSpeed?: number; showSparkline?: boolean } & Record<string, unknown>>(mod, screenId);
+  const { config: c, set } = useModuleConfig<
+    {
+      view?: FinancialView;
+      refreshIntervalMs?: number;
+      cardScale?: number;
+      tickerSpeed?: number;
+      showSparkline?: boolean;
+      sparklineMode?: SparklineMode;
+      sparklineTheme?: SparklineTheme;
+      sparklineLabels?: boolean;
+    } & Record<string, unknown>
+  >(mod, screenId);
 
   const FINANCIAL_VIEWS: { value: FinancialView; label: string }[] = [
     { value: 'cards', label: t('configSections.financial.viewCards') },
@@ -31,7 +44,18 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
     { value: 'compact', label: t('configSections.financial.viewCompact') },
   ];
 
+  const CHART_THEMES = [
+    { value: 'classic' as const, label: t('configSections.financial.chartThemeClassic') },
+    { value: 'shaded' as const, label: t('configSections.financial.chartThemeShaded') },
+  ];
+  const CHART_CONTENTS = [
+    { value: 'day' as const, label: t('configSections.financial.chartContentDay') },
+    { value: 'week' as const, label: t('configSections.financial.chartContentWeek') },
+    { value: 'both' as const, label: t('configSections.financial.chartContentBoth') },
+  ];
+
   const view = c.view ?? 'cards';
+  const sparklineOn = view === 'cards' && (c.showSparkline ?? true);
   const symbolsValue = (c[symbolsField] as string) || symbolsPlaceholder;
 
   return (
@@ -62,6 +86,27 @@ function FinancialConfigSectionInner({ mod, screenId, symbolsField, symbolsLabel
           checked={c.showSparkline ?? true}
           onChange={(v) => set({ showSparkline: v })}
         />
+      )}
+      {sparklineOn && showChartRange && (
+        <>
+          <ViewSelect
+            label={t('configSections.financial.chartTheme')}
+            value={c.sparklineTheme ?? 'classic'}
+            onChange={(v) => set({ sparklineTheme: v })}
+            options={CHART_THEMES}
+          />
+          <ViewSelect
+            label={t('configSections.financial.chartContent')}
+            value={c.sparklineMode ?? 'day'}
+            onChange={(v) => set({ sparklineMode: v })}
+            options={CHART_CONTENTS}
+          />
+          <Toggle
+            label={t('configSections.financial.chartLabels')}
+            checked={c.sparklineLabels ?? false}
+            onChange={(v) => set({ sparklineLabels: v })}
+          />
+        </>
       )}
       {view === 'ticker' && (
         <Slider
@@ -97,6 +142,7 @@ export function StockTickerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       symbolsLabel={t('configSections.financial.stockSymbolsLabel')}
       symbolsPlaceholder="AAPL,GOOGL,MSFT"
       tickerUnitText={t('configSections.financial.tickerUnitStock')}
+      showChartRange
     />
   );
 }
