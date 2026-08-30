@@ -52,3 +52,25 @@ for (const locale of Object.keys(LOCALES)) {
     }
   });
 }
+
+/**
+ * Same check for the kid view, which shares the (remote) layout. This is the
+ * surface where a raw key does the most damage: a child reading
+ * `choresTab.subNav.today` has no way to know it means "still loading".
+ */
+test('/chores renders translated chrome with no i18n fetch available', async ({ page, request }) => {
+  await page.route('**/api/i18n/**', (route) => route.abort());
+
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [choreChartModule()])],
+    settings: { locale: 'de-DE' },
+  }));
+  const seeded = await request.put('/api/chores/data', { data: CHORE_DATA });
+  expect(seeded.ok()).toBe(true);
+
+  await page.goto('/chores');
+
+  await expect(page.getByText('Feed the dog')).toBeVisible();
+  await expect(page.getByText(LOCALE_TODAY['de-DE'], { exact: true }).first()).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('choresTab.');
+});

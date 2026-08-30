@@ -76,13 +76,16 @@ test('the Photos tab is gated on a full-screen photo module', async ({ page, req
   // A chore module alone renders the bottom bar (Control + Chores) but no Photos.
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'Screen One', [choreChartModule()])] }));
   await page.goto('/remote');
-  await expect(page.getByRole('button', { name: 'Chores' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Photos' })).toHaveCount(0);
+  // `exact` matters on the tab locators: the Settings sheet (rendered but
+  // off-screen) carries "Download config, chores, meals & rewards", which a
+  // substring match picks up as a second "Chores" button.
+  await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Photos', exact: true })).toHaveCount(0);
 
   // Adding a full-screen photo module surfaces the Photos tab.
   await putConfig(request, photoConfig());
   await page.reload();
-  const photosTab = page.getByRole('button', { name: 'Photos' });
+  const photosTab = page.getByRole('button', { name: 'Photos', exact: true });
   await expect(photosTab).toBeVisible();
 
   // Opening it shows the Photos surface (header + directory pill + upload CTA).
@@ -103,7 +106,7 @@ test('uploading a photo adds it to the grid and writes it to disk', async ({ pag
   // Open the tab pre-scoped to the isolated folder via the module's directory.
   await putConfig(request, photoConfig(folder));
   await page.goto('/remote');
-  await page.getByRole('button', { name: 'Photos' }).click();
+  await page.getByRole('button', { name: 'Photos', exact: true }).click();
   await expect(page.getByText('No photos in this folder')).toBeVisible();
   // With the folder empty, the empty-state hint co-exists with the upload label;
   // the exact-match CTA locator must still resolve to exactly one element.
@@ -130,7 +133,7 @@ test('creating a folder from the UI lists it as a directory pill', async ({ page
 
   await putConfig(request, photoConfig());
   await page.goto('/remote');
-  await page.getByRole('button', { name: 'Photos' }).click();
+  await page.getByRole('button', { name: 'Photos', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible();
 
   await page.getByRole('button', { name: 'New Folder' }).click();
@@ -150,7 +153,7 @@ test('deleting a photo removes it from the grid and from disk', async ({ page, r
 
   await putConfig(request, photoConfig(folder));
   await page.goto('/remote');
-  await page.getByRole('button', { name: 'Photos' }).click();
+  await page.getByRole('button', { name: 'Photos', exact: true }).click();
 
   // The seeded image renders; open the per-image delete confirmation.
   const deleteButton = page.getByRole('button', { name: 'Delete photo' });

@@ -41,3 +41,23 @@ for (const locale of Object.keys(LOCALES)) {
     }
   });
 }
+
+/**
+ * The dictionaries are inlined by the (remote) layout's `buildLocaleBlob`, not
+ * fetched after mount. Blocking /api/i18n leaves the blob as the only possible
+ * source, so translated copy appearing here proves it shipped with the
+ * document. Without it `translate()` returns the key and the whole surface
+ * renders as `tabs.chores`-style raw keys until the request lands.
+ */
+test('/remote renders translated chrome with no i18n fetch available', async ({ page, request }) => {
+  await page.route('**/api/i18n/**', (route) => route.abort());
+
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [choreChartModule()])],
+    settings: { locale: 'de-DE' },
+  }));
+  await page.goto('/remote');
+
+  await expect(page.getByText(LOCALE_CHORES_TAB['de-DE'], { exact: true }).first()).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('tabs.');
+});
