@@ -217,7 +217,7 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
   # that the hub install pulls in transitively.
   info "Installing kiosk packages..."
   sudo apt-get update -qq
-  sudo apt-get install -y -qq chromium labwc wtype wlr-randr fonts-noto-color-emoji curl jq
+  sudo apt-get install -y -qq chromium labwc wtype wlr-randr fonts-noto-color-emoji fonts-dejavu-core curl jq
   if [ "${PI_VARIANT}" = "lite" ]; then
     sudo apt-get install -y -qq fonts-noto-core libpam-systemd dbus-user-session
   fi
@@ -240,6 +240,11 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
   SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
   info "Installing boot splash..."
   setup_boot_splash "${SCRIPT_DIR}/boot-splash"
+
+  # 2c. Generic font-family aliases. Same reasoning as the boot splash: the
+  #     full install gets this from upgrade.sh setup-system, display-only has
+  #     to call the shared helper itself.
+  setup_font_aliases
 
   # 3. Display orientation prompts (same as full install)
   if [ "${NON_INTERACTIVE}" = "true" ]; then

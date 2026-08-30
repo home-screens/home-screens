@@ -33,22 +33,48 @@ describe('FONT_REGISTRY', () => {
 });
 
 /**
- * These two entries are the only ones allowed to render in a font the machine
- * happens to have: they exist precisely to say "whatever this platform uses".
- * Every other entry must name a self-hosted family, because the displays run
- * Raspberry Pi OS, which has none of the fonts a Mac or Windows browser has.
- * The "Georgia" entry used to be OS-only and rendered on a kiosk in whatever
- * face fontconfig mapped the generic `serif` alias to.
+ * CSS generic families, which are the ones a display can never be trusted to
+ * resolve. `fc-match` on a Home Screens Pi maps `sans-serif`, `serif` and
+ * `monospace` to Noto Color Emoji — a font with no Latin glyphs — so text that
+ * reaches a bare generic is rendered by whatever Chromium picks per glyph.
+ *
+ * `system-ui` and `ui-monospace` are deliberately not in this list. They are
+ * the whole point of the two platform entries and Chromium maps them to a real
+ * platform face rather than through fontconfig's generic aliases; the bundled
+ * fallback behind them is what makes them safe either way.
  */
-const PLATFORM_DEFAULT_FONT_IDS = ['system-ui', 'mono'];
+const GENERIC_FAMILIES = ['sans-serif', 'serif', 'monospace', 'cursive', 'fantasy'];
+
+/** The families a generic keyword can stand in for, in stack order. */
+function familiesOf(cssStack: string): string[] {
+  return cssStack.split(',').map((f) => f.trim().replace(/^['"]|['"]$/g, ''));
+}
 
 describe('self-hosted font coverage', () => {
   const layout = readFileSync(path.join(process.cwd(), 'src/app/layout.tsx'), 'utf8');
 
-  it('every font renders identically on a display that only has the bundled fonts', () => {
+  /**
+   * The invariant, stated as what actually breaks: a generic keyword must
+   * never be the family that ends up rendering. Every stack has to name a
+   * bundled `var(--font-*)` face before it reaches one.
+   *
+   * This used to exempt the two "platform default" entries (System UI, System
+   * Mono) wholesale, which is how System Mono shipped resolving to a
+   * proportional face on a Pi. There is no exemption now: those entries still
+   * put the platform families first, they just cannot bottom out on a generic.
+   */
+  it('no font stack can bottom out on a generic family', () => {
     for (const f of FONT_REGISTRY) {
-      if (PLATFORM_DEFAULT_FONT_IDS.includes(f.id)) continue;
-      expect(f.cssStack, `${f.label} has no self-hosted family`).toMatch(/var\(--font-[a-z-]+\)/);
+      const families = familiesOf(f.cssStack);
+      const firstGeneric = families.findIndex((fam) => GENERIC_FAMILIES.includes(fam));
+      const bundled = families.findIndex((fam) => /^var\(--font-[a-z-]+\)$/.test(fam));
+      expect(bundled, `${f.label} names no bundled var(--font-*) family`).toBeGreaterThanOrEqual(0);
+      if (firstGeneric >= 0) {
+        expect(
+          bundled,
+          `${f.label} reaches the generic "${families[firstGeneric]}" before any bundled face`,
+        ).toBeLessThan(firstGeneric);
+      }
     }
   });
 
@@ -86,8 +112,14 @@ describe('resolveFontStack', () => {
     // The original DEFAULT_MODULE_STYLE.fontFamily literal must now resolve to var(--font-inter)
     expect(resolveFontStack('Inter, system-ui, sans-serif')).toBe('var(--font-inter), system-ui, sans-serif');
     expect(resolveFontStack('Georgia, serif')).toBe('Georgia, var(--font-gelasio), serif');
-    expect(resolveFontStack('monospace')).toBe('ui-monospace, "SF Mono", Menlo, monospace');
-    expect(resolveFontStack('system-ui, sans-serif')).toBe('system-ui, -apple-system, "Segoe UI", sans-serif');
+    expect(resolveFontStack('monospace')).toBe('ui-monospace, "SF Mono", Menlo, var(--font-jetbrains), monospace');
+    expect(resolveFontStack('system-ui, sans-serif')).toBe('system-ui, -apple-system, "Segoe UI", var(--font-inter), sans-serif');
+    // The stacks these two entries carried before they gained a bundled
+    // fallback, in case a config stored the literal rather than the id.
+    expect(resolveFontStack('ui-monospace, "SF Mono", Menlo, monospace'))
+      .toBe('ui-monospace, "SF Mono", Menlo, var(--font-jetbrains), monospace');
+    expect(resolveFontStack('system-ui, -apple-system, "Segoe UI", sans-serif'))
+      .toBe('system-ui, -apple-system, "Segoe UI", var(--font-inter), sans-serif');
   });
 
   it('returns unknown raw CSS stacks unchanged', () => {

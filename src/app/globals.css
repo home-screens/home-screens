@@ -157,7 +157,14 @@
 body {
   background: var(--hs-bg-body);
   color: var(--hs-text-body);
-  font-family: Arial, Helvetica, sans-serif;
+  /* The app's own face, not the Next.js scaffold's Arial. Only the editor and
+     auth trees carried `font-sans`, so every module on /display, /remote and
+     /chores inherited Arial instead of Inter: different glyph widths, and no
+     weight below 400 on a Pi (fontconfig resolves Arial to Liberation Sans,
+     which ships Regular and Bold only). That also moved layout, not just
+     glyphs -- useFitScale bisects against measured text, so the display
+     settled on a different scale factor than the editor previewed. */
+  font-family: var(--font-inter), system-ui, sans-serif;
 }
 
 .cursor-idle,

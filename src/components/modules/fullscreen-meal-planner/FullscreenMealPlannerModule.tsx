@@ -15,6 +15,7 @@ import WeekView from './WeekView';
 import TodayView from './TodayView';
 import MenuBoardView from './MenuBoardView';
 import NextMealView from './NextMealView';
+import { UI_SANS_STACK } from '@/lib/font-registry';
 
 interface MealDataResponse {
   savedMeals: SavedMeal[];
@@ -86,7 +87,11 @@ export default function FullscreenMealPlannerModule({
 
   const pad = s * 2 * d;
   const headerFont = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
-  const bodyFont = "'Inter', sans-serif";
+  // Not the bare family name: `'Inter'` only matched because next/font happens
+  // to name the face `inter` and CSS family matching is case-insensitive. If
+  // that generated name ever changes this silently falls through to the
+  // generic, which a Pi resolves to an emoji font.
+  const bodyFont = UI_SANS_STACK;
 
   // ── CSS custom properties ──
   const cssVars = {

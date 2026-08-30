@@ -321,12 +321,47 @@ function PressureCard({ p, place }: CardProps) {
         <Big s={s}>{Math.round(now.pressure!)}<Unit s={s}>hPa</Unit></Big>
         <Note s={s} u={u}>{p.t(trend < -1 ? 'fullscreen-weather.cards.pressureFalling' : trend > 1 ? 'fullscreen-weather.cards.pressureRising' : 'fullscreen-weather.cards.pressureSteady')}</Note>
       </Readout>
-      {pts.length > 1 && (
-        <svg viewBox="0 0 300 80" style={{ width: '100%', marginTop: u * .8, flex: 'none' }}>
-          <path d={smoothPath(pts)} fill="none" stroke={p.accent} strokeWidth={3} strokeLinecap="round" />
-          <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={6} fill={p.accent} />
-        </svg>
-      )}
+      {pts.length > 1 && (() => {
+        /*
+          An `svg` with a viewBox and no height takes its height from its
+          width — here `width: 100%` of the card — so this sparkline claimed
+          cardWidth * 80/300 of vertical space that no amount of `s`/`u`
+          shrinking could reclaim. On a wide, short module (1880x560) that was
+          ~99px of a ~130px card: the fit loop bottomed out at MIN_FACTOR and
+          the readout row was still clipped at the module edge. Every other
+          chart here already states its height and stretches to it; this was
+          the outlier.
+        */
+        const last = pts[pts.length - 1];
+        const dot = Math.max(5, u * .9);
+        return (
+          <div style={{ position: 'relative', marginTop: u * .8, flex: 'none' }}>
+            <svg
+              viewBox="0 0 300 80"
+              preserveAspectRatio="none"
+              style={{ display: 'block', width: '100%', height: u * 5 }}
+            >
+              <path
+                d={smoothPath(pts)} fill="none" stroke={p.accent}
+                strokeWidth={Math.max(2, u * .3)} strokeLinecap="round" strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+            {/*
+              Outside the svg on purpose: `preserveAspectRatio="none"` scales x
+              and y by different factors, which draws a `circle` as an ellipse
+              whose shape changes with the card's aspect. A positioned span is
+              round at every size, and `non-scaling-stroke` keeps the line an
+              even width under the same stretch.
+            */}
+            <span style={{
+              position: 'absolute', left: `${(last[0] / 300) * 100}%`, top: `${(last[1] / 80) * 100}%`,
+              width: dot, height: dot, borderRadius: '50%', background: p.accent,
+              transform: 'translate(-50%,-50%)',
+            }} />
+          </div>
+        );
+      })()}
     </Card>
   );
 }

@@ -2,6 +2,7 @@
 
 import { parseClockTime } from '@/lib/date-info';
 import type { ClockViewProps } from './types';
+import { UI_SANS_STACK } from '@/lib/font-registry';
 
 export default function ClockAnalogView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
   const { hours, minutes, seconds } = parseClockTime(config.format24h, now);
@@ -73,7 +74,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
                 fill="rgba(255,255,255,0.6)"
                 fontSize="8"
                 fontWeight="300"
-                fontFamily="system-ui, sans-serif"
+                fontFamily={UI_SANS_STACK}
               >
                 {i === 0 ? 12 : i}
               </text>

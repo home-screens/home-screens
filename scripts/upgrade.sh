@@ -570,7 +570,9 @@ case "${action}" in
     changed=""
 
     # 0. Ensure required system packages are installed
-    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji plymouth plymouth-themes vim"
+    # fonts-dejavu-core is what the generic-family aliases below point at. It
+    # is present on Desktop images already; Lite needs it named explicitly.
+    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji fonts-dejavu-core plymouth plymouth-themes vim"
     missing=""
     for pkg in ${REQUIRED_PACKAGES}; do
       if ! dpkg -s "${pkg}" &>/dev/null; then
@@ -589,6 +591,10 @@ case "${action}" in
       sudo apt-get install -y -qq ${missing}
       changed="${changed}packages,"
     fi
+
+    # 0b. Generic font-family aliases (see setup_font_aliases in lib/common.sh).
+    setup_font_aliases
+    changed="${changed}${FONT_ALIAS_CHANGES}"
 
     # Ensure GPU access for labwc/Chromium on Lite (Desktop adds these by default)
     if [ "${PI_VARIANT}" = "lite" ]; then

@@ -29,7 +29,11 @@ export const FONT_REGISTRY: readonly FontDefinition[] = [
   { id: 'inter',     label: 'Inter',          cssStack: 'var(--font-inter), system-ui, sans-serif',   category: 'sans',   weights: [100, 200, 300, 400, 500, 600, 700, 800, 900] },
   { id: 'roboto',    label: 'Roboto',         cssStack: 'var(--font-roboto), system-ui, sans-serif',  category: 'sans',   weights: [400, 500, 700] },
   { id: 'poppins',   label: 'Poppins',        cssStack: 'var(--font-poppins), system-ui, sans-serif', category: 'sans',   weights: [400, 600, 700] },
-  { id: 'system-ui', label: 'System UI',      cssStack: 'system-ui, -apple-system, "Segoe UI", sans-serif', category: 'sans', weights: [400, 700] },
+  // The two "whatever this device uses" entries still name a bundled face
+  // before the generic. Raspberry Pi OS resolves `sans-serif`, `serif` and
+  // `monospace` to Noto Color Emoji, which carries no Latin glyphs, so a bare
+  // generic is never a usable last resort on a display — see the registry test.
+  { id: 'system-ui', label: 'System UI',      cssStack: 'system-ui, -apple-system, "Segoe UI", var(--font-inter), sans-serif', category: 'sans', weights: [400, 700] },
 
   // -- Serif --
   { id: 'playfair',  label: 'Playfair Display', cssStack: 'var(--font-playfair), Georgia, serif',     category: 'serif',  weights: [400, 700, 900] },
@@ -44,7 +48,7 @@ export const FONT_REGISTRY: readonly FontDefinition[] = [
 
   // -- Monospace --
   { id: 'jetbrains', label: 'JetBrains Mono', cssStack: 'var(--font-jetbrains), ui-monospace, monospace', category: 'mono', weights: [400, 700] },
-  { id: 'mono',      label: 'System Mono',    cssStack: 'ui-monospace, "SF Mono", Menlo, monospace',  category: 'mono',   weights: [400, 700] },
+  { id: 'mono',      label: 'System Mono',    cssStack: 'ui-monospace, "SF Mono", Menlo, var(--font-jetbrains), monospace', category: 'mono', weights: [400, 700] },
 
   // -- Display --
   { id: 'bebas',     label: 'Bebas Neue',     cssStack: 'var(--font-bebas), Impact, sans-serif',      category: 'display', weights: [400] },
@@ -72,6 +76,10 @@ const LEGACY_STACK_TO_ID: Record<string, string> = {
   'Georgia, serif': 'georgia',
   'monospace': 'mono',
   'system-ui, sans-serif': 'system-ui',
+  // The pre-bundled-fallback stacks, kept so a config that stored the literal
+  // still resolves to the entry rather than falling through unrecognised.
+  'ui-monospace, "SF Mono", Menlo, monospace': 'mono',
+  'system-ui, -apple-system, "Segoe UI", sans-serif': 'system-ui',
 };
 
 // Precomputed lookup tables (built once at module load).
@@ -128,3 +136,23 @@ export function fontsByCategory(): Record<FontCategory, FontDefinition[]> {
  * on Raspberry Pi OS, which has no Georgia.
  */
 export const EDITORIAL_SERIF_STACK = resolveFontStack('georgia') ?? 'serif';
+
+/**
+ * Sans stack for chrome that is not the module's own body text and so never
+ * picks up the inherited font: SVG `<text>` (which does not inherit a CSS
+ * font-family set on an HTML ancestor the way normal text does) and the few
+ * places that build a style object from scratch.
+ *
+ * Same reasoning as EDITORIAL_SERIF_STACK. The arc clock's numerals were
+ * `system-ui, sans-serif`, which rendered in the OS UI face on every platform
+ * and, on Raspberry Pi OS, could reach the generic `sans-serif` alias — which
+ * fontconfig maps to Noto Color Emoji.
+ */
+export const UI_SANS_STACK = resolveFontStack('inter') ?? 'sans-serif';
+
+/**
+ * Monospace stack for inline code. `ui-monospace, monospace` rendered markdown
+ * code spans in Courier on macOS and, on a Pi, resolved through the generic
+ * `monospace` alias to Noto Color Emoji.
+ */
+export const UI_MONO_STACK = resolveFontStack('jetbrains') ?? 'monospace';

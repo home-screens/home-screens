@@ -5,6 +5,7 @@ import { parseClockTime } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { ClockViewProps } from './types';
+import { UI_SANS_STACK } from '@/lib/font-registry';
 
 export default function ClockArcView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
@@ -150,7 +151,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
             fill={accentColor}
             opacity={0.4}
             fontSize={labelSize}
-            fontFamily="system-ui, sans-serif"
+            fontFamily={UI_SANS_STACK}
           >
             {t('clock.arc.morningLabel')}
           </text>
@@ -161,7 +162,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
             fill={accentColor}
             opacity={0.4}
             fontSize={labelSize}
-            fontFamily="system-ui, sans-serif"
+            fontFamily={UI_SANS_STACK}
           >
             {t('clock.arc.eveningLabel')}
           </text>
@@ -175,7 +176,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
               fill={accentColor}
               opacity={0.25}
               fontSize={labelSize * 0.9}
-              fontFamily="system-ui, sans-serif"
+              fontFamily={UI_SANS_STACK}
             >
               {isBeforeDawn ? t('clock.arc.beforeDawn') : isAfterDusk ? t('clock.arc.afterDusk') : ''}
             </text>

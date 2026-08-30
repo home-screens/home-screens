@@ -254,6 +254,49 @@ ${marker_end}"
   return 0
 }
 
+# --- Font aliases ---
+
+setup_font_aliases() {
+  # Point the CSS generic families at real fonts.
+  #
+  # On a stock Raspberry Pi OS with fonts-noto-color-emoji installed,
+  # `fc-match sans-serif`, `serif` and `monospace` all return Noto Color Emoji,
+  # a font with no Latin glyphs. Chromium then resolves Latin text per glyph
+  # through whatever comes next, so letters and digits can land in different
+  # faces and text measures wrong.
+  #
+  # Home Screens' own font stacks always name a bundled face before any
+  # generic, so the app does not depend on this. It is here for CSS the app
+  # does not control: plugin stylesheets ship with the plugin, and an author
+  # writing `font-family: sans-serif` should get a readable face, not emoji.
+  #
+  # Idempotent. Sets FONT_ALIAS_CHANGES so callers can fold it into their own
+  # change tracking, matching setup_boot_splash.
+  local conf="/etc/fonts/local.conf"
+  FONT_ALIAS_CHANGES=""
+
+  local body
+  body="$(cat <<'FONTCONF'
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<!-- Managed by Home Screens (setup_font_aliases). Edits will be replaced. -->
+<fontconfig>
+  <alias><family>sans-serif</family><prefer><family>DejaVu Sans</family></prefer></alias>
+  <alias><family>serif</family><prefer><family>DejaVu Serif</family></prefer></alias>
+  <alias><family>monospace</family><prefer><family>DejaVu Sans Mono</family></prefer></alias>
+</fontconfig>
+FONTCONF
+)"
+
+  if [ "$(cat "${conf}" 2>/dev/null)" != "${body}" ]; then
+    printf '%s\n' "${body}" | sudo tee "${conf}" >/dev/null
+    # Refresh the cache so the next Chromium start picks the aliases up.
+    sudo fc-cache -f >/dev/null 2>&1 || true
+    FONT_ALIAS_CHANGES="fontconfig,"
+  fi
+  return 0
+}
+
 # --- Plymouth boot splash ---
 
 setup_boot_splash() {

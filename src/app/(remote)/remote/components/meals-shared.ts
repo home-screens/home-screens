@@ -1,5 +1,6 @@
 import type { MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
 import { toISODate, getActiveSlot, alignToWeekStart } from '@/lib/meal-constants';
+import { UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
  * Compute the 7 dates of the week containing `referenceDate`, aligned to
@@ -65,7 +66,7 @@ export const INPUT_STYLE: React.CSSProperties = {
   borderRadius: 10,
   color: 'var(--hs-text-primary)',
   outline: 'none',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  fontFamily: UI_SANS_STACK,
 };
 
 // Section heading shared by the meal-settings sheet's sections

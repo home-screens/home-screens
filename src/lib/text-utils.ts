@@ -4,6 +4,7 @@
  */
 
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { UI_MONO_STACK } from '@/lib/font-registry';
 
 // ---------------------------------------------------------------------------
 // HTML escaping (XSS prevention)
@@ -24,7 +25,7 @@ export function parseMarkdown(text: string): string {
     .replace(/~~(.+?)~~/g, '<s>$1</s>')
     .replace(
       /`(.+?)`/g,
-      '<code style="background:rgba(255,255,255,0.1);padding:0 0.25em;border-radius:3px;font-family:ui-monospace,monospace">$1</code>',
+      `<code style="background:rgba(255,255,255,0.1);padding:0 0.25em;border-radius:3px;font-family:${UI_MONO_STACK}">$1</code>`,
     )
     .replace(/\n/g, '<br/>');
 }
