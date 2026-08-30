@@ -360,6 +360,9 @@ Displays multiple months in a vertical or horizontal layout with today highlight
 | `showWeekNumbers` | boolean | `false` | Show ISO week numbers |
 | `highlightWeekends` | boolean | `true` | Dim weekend days |
 | `showAdjacentDays` | boolean | `true` | Show days from adjacent months in empty cells |
+| `showCurrentMonthLabel` | boolean | `true` | Show the name of the current month above its grid (later months always keep theirs) |
+| `todayStyle` | string | `"filled"` | How today is marked: `filled`, `square`, `outline`, `underline`, `text`, or `none` |
+| `accentColor` | string | `"#3b82f6"` | Color of today's marker |
 
 ### Date
 

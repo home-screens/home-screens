@@ -31,7 +31,7 @@ import {
 } from '@/lib/calendar-utils';
 import { legendSources, eventsInWindow } from '@/lib/calendar-legend';
 import { sanitizeEventDescription } from '@/lib/event-description';
-import { pickGridTimeColor, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-color';
+import { pickGridTimeColor, pickPillTextColor, pickTintedTextColor, DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { resolveWeatherPlacement, effectiveWeatherPlacement } from '@/components/modules/fullscreen-calendar/view-traits';
 
 describe('clampWeeksToShow', () => {
@@ -350,7 +350,7 @@ describe('legendSources', () => {
     expect(legendSources(evs)).toEqual([
       { sourceId: 'family', sourceName: 'Family', calendarColor: '#3B82F6' },
       { sourceId: 'ava', sourceName: 'Ava', calendarColor: '#EC4899' },
-      { sourceId: 'school', sourceName: 'School', calendarColor: '#3B82F6' },
+      { sourceId: 'school', sourceName: 'School', calendarColor: DEFAULT_EVENT_COLOR },
     ]);
   });
 
@@ -455,6 +455,10 @@ describe('pickPillTextColor', () => {
   it('accepts 3-digit and 8-digit hex', () => {
     expect(pickPillTextColor('#ff0')).toBe('#1b1b1f');
     expect(pickPillTextColor('#3b82f6cc')).toBe('#fff');
+  });
+  it('accepts rgb()/rgba() notation, which the color pickers also accept', () => {
+    expect(pickPillTextColor('rgb(234, 179, 8)')).toBe('#1b1b1f');   // same yellow as #eab308
+    expect(pickPillTextColor('rgba(59, 130, 246, 0.9)')).toBe('#fff'); // same blue as #3b82f6
   });
   it('falls back to white for unparseable or missing values', () => {
     expect(pickPillTextColor('red')).toBe('#fff');

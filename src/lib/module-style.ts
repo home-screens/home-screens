@@ -1,5 +1,6 @@
 /** Convert a CSS color to rgba with a given alpha, so backdrop-filter blur
- *  shows through instead of being hidden by an opaque background. */
+ *  shows through instead of being hidden by an opaque background. Hex and
+ *  rgb()/rgba() convert directly; anything else falls back to `color-mix`. */
 export function colorWithAlpha(color: string, alpha: number): string {
   const short = color.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
   if (short) {
@@ -15,7 +16,10 @@ export function colorWithAlpha(color: string, alpha: number): string {
   if (rgba) return `rgba(${rgba[1]}, ${rgba[2]}, ${rgba[3]}, ${parseFloat(rgba[4]) * alpha})`;
   const rgb = color.match(/rgb\(\s*(\d+),\s*(\d+),\s*(\d+)\s*\)/);
   if (rgb) return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${alpha})`;
-  return color;
+  // Anything else (a named color or hsl() hand-written into config.json) used
+  // to come back fully opaque, which turned a translucent fill solid. color-mix
+  // applies the alpha without needing to parse the color ourselves.
+  return `color-mix(in srgb, ${color} ${alpha * 100}%, transparent)`;
 }
 
 /** The title strip's rendered size: titleFontSize when it is a usable number,

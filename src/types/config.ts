@@ -1378,6 +1378,13 @@ export interface AirQualityConfig {
 // Multi-month calendar config
 type MultiMonthView = 'vertical' | 'horizontal';
 
+/**
+ * How today's date is marked in a month grid. Every style paints the same
+ * `accentColor` — they differ only in where it lands (fill, ring, rule, ink),
+ * so the color means the same thing whichever style is picked.
+ */
+export type MultiMonthTodayStyle = 'filled' | 'square' | 'outline' | 'underline' | 'text' | 'none';
+
 export interface MultiMonthConfig {
   view: MultiMonthView;
   monthCount: number;
@@ -1385,6 +1392,16 @@ export interface MultiMonthConfig {
   showWeekNumbers: boolean;
   highlightWeekends: boolean;
   showAdjacentDays: boolean;
+  /**
+   * Show the month name + year heading over the CURRENT month's grid. The
+   * later months always keep their heading — without it there is nothing left
+   * to tell them apart. Omitted = shown.
+   */
+  showCurrentMonthLabel?: boolean;
+  /** How today's date is marked. Omitted = 'filled'. */
+  todayStyle?: MultiMonthTodayStyle;
+  /** Color of today's marker. Omitted = '#3b82f6'. */
+  accentColor?: string;
 }
 
 // Garbage day module config

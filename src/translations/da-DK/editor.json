@@ -2950,9 +2950,18 @@
       "layoutHorizontal": "Vandret (side om side)",
       "monthsToShow": "Måneder der vises",
       "weekStartsOn": "Ugen starter",
+      "showCurrentMonthLabel": "Vis navn på indeværende måned",
       "showWeekNumbers": "Vis ugenumre",
       "highlightWeekends": "Fremhæv weekender",
-      "showAdjacentDays": "Vis dage fra nabomåneder"
+      "showAdjacentDays": "Vis dage fra nabomåneder",
+      "todayHighlight": "Fremhævning af i dag",
+      "todayFilled": "Udfyldt cirkel",
+      "todaySquare": "Udfyldt firkant",
+      "todayOutline": "Cirkel med kant",
+      "todayUnderline": "Understregning",
+      "todayText": "Farvet tal",
+      "todayNone": "Ingen",
+      "accentColor": "Accentfarve"
     },
     "news": {
       "viewHeadline": "Overskrift (skiftende)",

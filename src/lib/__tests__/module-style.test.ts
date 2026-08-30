@@ -74,7 +74,8 @@ describe('colorWithAlpha', () => {
     expect(colorWithAlpha('rgb(100, 200, 50)', 0.8)).toBe('rgba(100, 200, 50, 0.8)');
   });
 
-  it('returns unrecognized colors unchanged', () => {
-    expect(colorWithAlpha('red', 0.5)).toBe('red');
+  it('falls back to color-mix for colors it cannot parse, so alpha still applies', () => {
+    expect(colorWithAlpha('red', 0.5)).toBe('color-mix(in srgb, red 50%, transparent)');
+    expect(colorWithAlpha('hsl(50 90% 60%)', 0.85)).toBe('color-mix(in srgb, hsl(50 90% 60%) 85%, transparent)');
   });
 });

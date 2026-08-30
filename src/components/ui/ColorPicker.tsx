@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { parseCssColorToRgb } from '@/lib/hex-color';
 
 interface ColorPickerProps {
   label: string;
@@ -17,12 +18,18 @@ interface ColorPickerProps {
 
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
-function isValidCssColor(input: string): boolean {
-  if (typeof window === 'undefined') return HEX_RE.test(input);
-  const probe = document.createElement('div');
-  probe.style.color = '';
-  probe.style.color = input;
-  return probe.style.color !== '';
+/**
+ * Hex and rgb()/rgba() only — the notations every renderer downstream can
+ * actually read. A DOM probe used to accept anything CSS parses, so `gold` or
+ * `hsl(50 90% 60%)` could be stored; the modules that tint a color or pick
+ * readable ink for a fill can't parse those, and silently fell back to an
+ * opaque fill with white text — today's date rendered as the least legible
+ * cell on the grid. The swatch still offers every color; only the typed form
+ * is narrowed. Parsing instead of probing also drops the server/client
+ * divergence the probe had (no `document` during SSR).
+ */
+function isSupportedColor(input: string): boolean {
+  return parseCssColorToRgb(input) !== null;
 }
 
 export default function ColorPicker({ label, value, onChange, defaultValue, resetLabel }: ColorPickerProps) {
@@ -71,7 +78,7 @@ export default function ColorPicker({ label, value, onChange, defaultValue, rese
                 : trimmed;
               onChange(normalized);
               setDraft(normalized);
-            } else if (isValidCssColor(trimmed)) {
+            } else if (isSupportedColor(trimmed)) {
               onChange(trimmed);
               setDraft(trimmed);
             } else {

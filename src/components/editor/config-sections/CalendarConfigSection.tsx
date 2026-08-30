@@ -8,17 +8,13 @@ import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
 import { isGridView, isThemedGridView, defaultGridMaxEventsPerCell } from '@/lib/calendar-utils';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarLegendPlacement, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
-
-// Sourced from the registry so the reset button can't drift from the accent
-// a freshly added calendar module actually starts with.
-const DEFAULT_CALENDAR_ACCENT = getModuleDefinition('calendar')!.defaultConfig.accentColor as string;
 
 // Stable selector fallback — a literal `?? []` inside a zustand selector
 // re-renders forever when the key is absent (React #185, tab crash).
@@ -283,7 +279,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       <CalendarGroup label={groups.look}>
         <ColorPicker
           label={t('configSections.calendar.accentColor')}
-          value={c.accentColor ?? '#3b82f6'}
+          value={c.accentColor ?? DEFAULT_CALENDAR_ACCENT}
           onChange={(v) => set({ accentColor: v })}
           defaultValue={DEFAULT_CALENDAR_ACCENT}
           resetLabel={t('common.resetToDefault')}

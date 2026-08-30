@@ -1,4 +1,4 @@
-import { parseHexToRgb } from '@/lib/hex-color';
+import { parseHexToRgb, parseCssColorToRgb } from '@/lib/hex-color';
 
 /**
  * The calendar modules' one contrast toolbox: text-on-fill picks (WCAG
@@ -8,8 +8,20 @@ import { parseHexToRgb } from '@/lib/hex-color';
  * drift between surfaces.
  */
 
+/**
+ * The accent blue every calendar-family module defaults to: the calendar
+ * module's event bars and today highlights, and the multi-month today marker.
+ * Registry defaults, module-side fallbacks and the editor's reset button all
+ * read it from here, so a config saved before an accent field existed (no
+ * stored value) can't render a different blue than the picker displays.
+ *
+ * Lowercase on purpose: `<input type="color">` emits lowercase hex, and the
+ * ColorPicker's reset button compares the stored value against this string.
+ */
+export const DEFAULT_CALENDAR_ACCENT = '#3b82f6';
+
 /** The blue every calendar surface falls back to when an event has no source color. */
-export const DEFAULT_EVENT_COLOR = '#3B82F6';
+export const DEFAULT_EVENT_COLOR = DEFAULT_CALENDAR_ACCENT;
 
 const PILL_DARK_TEXT = '#1b1b1f';
 
@@ -18,25 +30,14 @@ const PILL_DARK_TEXT = '#1b1b1f';
  * colors (yellows, limes) get near-black text, dark ones white. YIQ
  * luminance `((299R + 587G + 114B) / 1000) >= 160` picks dark; anything
  * unparseable (named colors, junk) falls back to white like the mockup's
- * "always white" policy.
+ * "always white" policy. Accepts rgb()/rgba() as well as hex, because the
+ * color pickers let a value be typed in either notation.
  */
 export function pickPillTextColor(hex: string | undefined): string {
-  const rgb = hex ? parseHexToRgb(hex) : null;
+  const rgb = hex ? parseCssColorToRgb(hex) : null;
   if (!rgb) return '#fff';
   const [r, g, b] = rgb;
   return (299 * r + 587 * g + 114 * b) / 1000 >= 160 ? PILL_DARK_TEXT : '#fff';
-}
-
-/**
- * Hex plus rgb()/rgba() functional notation, which is what ModuleStyle
- * backgrounds are stored as. Anything else (named colors, gradients,
- * color-mix) returns null — callers keep their fallback.
- */
-function parseCssColorToRgb(color: string | undefined): [number, number, number] | null {
-  if (!color) return null;
-  const fn = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-  if (fn) return [Number(fn[1]), Number(fn[2]), Number(fn[3])];
-  return parseHexToRgb(color);
 }
 
 function wcagLuminance([r, g, b]: [number, number, number]): number {

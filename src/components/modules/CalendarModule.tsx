@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { startOfDay } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
+import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
@@ -120,7 +121,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     return buildLegend(allEvents, window, timezone, t('calendar.publicHolidays'));
   }, [legendPlacement, viewMode, config.startDay, config.daysToShow, config.weeksToShow, today, allEvents, timezone, t]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
-  const accentColor = config.accentColor ?? '#3b82f6';
+  const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
   const gridEventStyle = config.gridEventStyle;
   const gridEventPillBackground = config.gridEventPillBackground;
   // Stable identity across clock ticks so the memoized EventCard's shallow

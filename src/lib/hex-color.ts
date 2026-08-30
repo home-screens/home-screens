@@ -19,3 +19,17 @@ export function parseHexToRgb(color: string): [number, number, number] | null {
     parseInt(hex.slice(4, 6), 16),
   ];
 }
+
+/**
+ * Hex plus rgb()/rgba() functional notation — the two notations every color
+ * control in the app produces, and the two every consumer can reason about
+ * (contrast picks, alpha math). Anything else (named colors, hsl(), gradients,
+ * color-mix) returns `null`; callers keep their fallback, and `ColorPicker`
+ * refuses the input rather than storing a value the renderers cannot read.
+ */
+export function parseCssColorToRgb(color: string | undefined): [number, number, number] | null {
+  if (!color) return null;
+  const fn = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (fn) return [Number(fn[1]), Number(fn[2]), Number(fn[3])];
+  return parseHexToRgb(color);
+}

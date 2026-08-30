@@ -303,6 +303,22 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // showCurrentMonthLabel off: the current month's heading (and its rule) is
+    // hidden, while the two months after it keep theirs — nothing else names
+    // them. The headings stay in the DOM (display:none) so the child count
+    // never becomes clock-derived, so this asserts visibility, not text.
+    type: 'multi-month', name: 'no-current-month-label', kind: 'network-free',
+    config: { showCurrentMonthLabel: false },
+    expect: async (mod) => {
+      const labels = mod.locator('[data-month-label]');
+      await expect(labels).toHaveCount(3); // default monthCount
+      await expect(labels.nth(0)).toBeHidden();
+      await expect(labels.nth(1)).toBeVisible();
+      await expect(labels.nth(2)).toBeVisible();
+      await has(String(new Date().getDate()))(mod); // day cells still render
+    },
+  },
+  {
     // showAdjacentDays off: leading/trailing days from neighbouring months are
     // no longer painted (adjacent cells render at opacity 0.15 only when shown).
     type: 'multi-month', name: 'no-adjacent-days', kind: 'network-free',
@@ -311,6 +327,98 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       await has(String(new Date().getDate()))(mod); // current-month days still render
       await count('[style*="opacity: 0.15"]', 0)(mod);
     },
+  },
+
+  {
+    // Side by side, the hidden heading keeps its space. Collapsing only the
+    // current month's would lift that whole grid ~1.3em above its neighbours,
+    // so this asserts the three weekday-header rows still share a top edge.
+    type: 'multi-month', name: 'no-current-month-label-horizontal', kind: 'network-free',
+    config: { view: 'horizontal', showCurrentMonthLabel: false },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-month-label]').first()).toBeHidden();
+      const headerRows = mod.locator('div:has(> div.text-center)');
+      await expect(headerRows).toHaveCount(3);
+      const tops = await headerRows.evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
+      expect(Math.max(...tops) - Math.min(...tops)).toBeLessThan(1);
+    },
+  },
+
+  // Today-marker styles. Each row paints the marker pure red so the assertion
+  // can find today's cell by color: `data-today` marks the cell, and which CSS
+  // property carries the red is what separates one style from the next.
+  {
+    type: 'multi-month', name: 'today-square', kind: 'network-free',
+    config: { todayStyle: 'square', accentColor: '#ff0000' },
+    expect: async (mod) => {
+      await redBackground('[data-today]')(mod);
+      const radius = await mod.locator('[data-today]').evaluate((el) => getComputedStyle(el).borderRadius);
+      expect(radius).not.toBe('50%');
+    },
+  },
+  {
+    type: 'multi-month', name: 'today-outline', kind: 'network-free',
+    config: { todayStyle: 'outline', accentColor: '#ff0000' },
+    expect: async (mod) => {
+      const el = mod.locator('[data-today]');
+      await expect(el).toBeAttached();
+      const s = await el.evaluate((node) => {
+        const cs = getComputedStyle(node);
+        return { border: cs.borderTopColor, width: cs.borderTopWidth, bg: cs.backgroundColor };
+      });
+      expect(s.border.replace(/\s/g, '')).toMatch(/^rgba?\(255,0,0/);
+      expect(parseFloat(s.width)).toBeGreaterThan(0);
+      // Outline only: no fill behind the number.
+      expect(s.bg.replace(/\s/g, '')).toMatch(/^rgba\(0,0,0,0\)$|^transparent$/);
+    },
+  },
+  {
+    type: 'multi-month', name: 'today-underline', kind: 'network-free',
+    config: { todayStyle: 'underline', accentColor: '#ff0000' },
+    expect: async (mod) => {
+      const el = mod.locator('[data-today]');
+      await expect(el).toBeAttached();
+      const s = await el.evaluate((node) => {
+        const cs = getComputedStyle(node);
+        return { bottom: cs.borderBottomColor, bottomWidth: cs.borderBottomWidth, topWidth: cs.borderTopWidth, radius: cs.borderRadius };
+      });
+      expect(s.bottom.replace(/\s/g, '')).toMatch(/^rgba?\(255,0,0/);
+      expect(parseFloat(s.bottomWidth)).toBeGreaterThan(0);
+      // A rule, not a ring: only the bottom edge is drawn, and it is square.
+      expect(parseFloat(s.topWidth)).toBe(0);
+      expect(s.radius).toBe('0px');
+    },
+  },
+  {
+    type: 'multi-month', name: 'today-text', kind: 'network-free',
+    config: { todayStyle: 'text', accentColor: '#ff0000' },
+    expect: async (mod) => {
+      await redStyle('[data-today]', 'color')(mod);
+      const bg = await mod.locator('[data-today]').evaluate((el) => getComputedStyle(el).backgroundColor);
+      expect(bg.replace(/\s/g, '')).toMatch(/^rgba\(0,0,0,0\)$|^transparent$/);
+    },
+  },
+  {
+    type: 'multi-month', name: 'today-none', kind: 'network-free',
+    config: { todayStyle: 'none', accentColor: '#ff0000' },
+    expect: async (mod) => {
+      const el = mod.locator('[data-today]');
+      await expect(el).toBeAttached();
+      const s = await el.evaluate((node) => {
+        const cs = getComputedStyle(node);
+        return { bg: cs.backgroundColor, border: cs.borderTopWidth, weight: cs.fontWeight };
+      });
+      // Nothing painted: today renders exactly like any other day.
+      expect(s.bg.replace(/\s/g, '')).toMatch(/^rgba\(0,0,0,0\)$|^transparent$/);
+      expect(parseFloat(s.border)).toBe(0);
+      expect(s.weight).toBe('400');
+    },
+  },
+  {
+    // accentColor recolors the default filled marker.
+    type: 'multi-month', name: 'accent-color', kind: 'network-free',
+    config: { accentColor: '#ff0000' },
+    expect: redBackground('[data-today]'),
   },
 
   // ================= COUNTDOWN (network-free) =================

@@ -13,6 +13,7 @@ import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { FETCH_KEY_REGISTRY } from './fetch-keys';
 import { resolveLucideIcon } from './lucide-resolver';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
+import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 
 type ModuleCategory =
@@ -468,7 +469,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       gridMaxEventsPerCell: 4,
       startDay: 'sunday',
       gridTheme: 'banner',
-      accentColor: '#3b82f6',
+      accentColor: DEFAULT_CALENDAR_ACCENT,
       dailyShowDescription: false,
       agendaShowDescription: false,
       agendaShowFinishedToday: false,
@@ -542,6 +543,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showWeekNumbers: false,
       highlightWeekends: true,
       showAdjacentDays: true,
+      showCurrentMonthLabel: true,
+      todayStyle: 'filled',
+      accentColor: DEFAULT_CALENDAR_ACCENT,
     },
     defaultSize: { w: 400, h: 700 },
     defaultStyle: { fontSize: 26 },

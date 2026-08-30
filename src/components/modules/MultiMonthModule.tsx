@@ -1,11 +1,14 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { weekStartsOnFor } from '@/lib/calendar-utils';
-import type { MultiMonthConfig, ModuleStyle, WeekStartDay } from '@/types/config';
+import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
+import { colorWithAlpha } from '@/lib/module-style';
+import type { MultiMonthConfig, ModuleStyle, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
 interface MultiMonthModuleProps {
@@ -76,6 +79,37 @@ function getISOWeek(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+/** Opacity of a filled today marker, so the grid behind it still reads through. */
+const TODAY_FILL_ALPHA = 0.85;
+
+/**
+ * The visual treatment layered onto today's cell. Returned as style overrides
+ * spread over the shared day-cell styles, so 'none' is simply an empty patch
+ * and today renders exactly like every other day.
+ */
+function todayMarkerStyle(todayStyle: MultiMonthTodayStyle, accent: string): CSSProperties {
+  switch (todayStyle) {
+    case 'none':
+      return {};
+    case 'filled':
+    case 'square':
+      return {
+        background: colorWithAlpha(accent, TODAY_FILL_ALPHA),
+        // A light accent (amber, lime) needs dark digits to stay readable —
+        // the same auto-contrast pick the calendar modules' pills use.
+        color: pickPillTextColor(accent),
+        borderRadius: todayStyle === 'square' ? '0.3em' : '50%',
+        fontWeight: 700,
+      };
+    case 'outline':
+      return { border: `0.09em solid ${accent}`, color: accent, fontWeight: 700 };
+    case 'underline':
+      return { borderRadius: 0, borderBottom: `0.12em solid ${accent}`, color: accent, fontWeight: 700 };
+    case 'text':
+      return { color: accent, fontWeight: 700 };
+  }
+}
+
 function MonthGrid({
   year,
   month,
@@ -84,6 +118,10 @@ function MonthGrid({
   showWeekNumbers,
   highlightWeekends,
   showAdjacentDays,
+  hideMonthLabel,
+  reserveHiddenLabel,
+  todayStyle,
+  todayMarker,
   locale,
 }: {
   year: number;
@@ -93,12 +131,27 @@ function MonthGrid({
   showWeekNumbers: boolean;
   highlightWeekends: boolean;
   showAdjacentDays: boolean;
+  hideMonthLabel: boolean;
+  reserveHiddenLabel: boolean;
+  todayStyle: MultiMonthTodayStyle;
+  todayMarker: CSSProperties;
   locale: string;
 }) {
   const cells = getMonthGrid(year, month, startDay);
   const headers = getDayHeaders(startDay, locale);
   const monthName = formatDateSync(new Date(year, month, 1), 'MMMM', { locale });
   const isCurrentMonth = year === today.year && month === today.month;
+  // Only the current month's heading answers to the toggle: the months after it
+  // have nothing else naming them.
+  //
+  // How it disappears depends on the layout. Stacked, the space is reclaimed
+  // (`display: none`), which is the point of the setting. Side by side, the
+  // months share a row, so collapsing one heading alone lifts that month's
+  // whole grid ~1.3em above its neighbours and the columns stop lining up —
+  // there the heading only goes invisible and keeps its space.
+  const labelStyle: CSSProperties | undefined = hideMonthLabel && isCurrentMonth
+    ? (reserveHiddenLabel ? { visibility: 'hidden' } : { display: 'none' })
+    : undefined;
   const gridCols = showWeekNumbers ? '1.4em repeat(7, 1fr)' : 'repeat(7, 1fr)';
 
   // Week numbers for each row
@@ -122,8 +175,11 @@ function MonthGrid({
 
   return (
     <div className="flex flex-col min-h-0 flex-1">
-      {/* Month header */}
-      <div className="shrink-0" style={{ paddingBottom: '0.3em' }}>
+      {/* Month header. Styled out rather than dropped from the tree, so the
+          side-by-side layout can still reserve its space (see `labelStyle`).
+          The separator goes with it, since the rule reads as an underline for
+          the heading and alone would float above the weekday row. */}
+      <div className="shrink-0" data-month-label suppressHydrationWarning style={{ paddingBottom: '0.3em', ...labelStyle }}>
         {/* Which months are drawn, which day is "today", and every day number
             come from the wall clock, so the server and the client disagree
             across a midnight (or any pinned-clock) boundary. Suppression has to
@@ -138,7 +194,7 @@ function MonthGrid({
       </div>
 
       {/* Thin separator line */}
-      <div className="shrink-0" style={{ height: '1px', background: DIVIDER.visible, marginBottom: '0.35em' }} />
+      <div className="shrink-0" suppressHydrationWarning style={{ height: '1px', background: DIVIDER.visible, marginBottom: '0.35em', ...labelStyle }} />
 
       {/* Day-of-week headers */}
       <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1px' }} className="shrink-0">
@@ -204,6 +260,8 @@ function MonthGrid({
                 month === today.month &&
                 cell.day === today.day;
 
+              const isMarkedToday = isToday && todayStyle !== 'none';
+
               const isWeekend = startDay === 'sunday' ? (col === 0 || col === 6) : (col === 5 || col === 6);
               const visible = cell.current || showAdjacentDays;
 
@@ -216,13 +274,17 @@ function MonthGrid({
                   <div
                     className="flex items-center justify-center"
                     suppressHydrationWarning
+                    data-today={isToday ? 'true' : undefined}
                     style={{
                       fontSize: '0.65em',
                       fontVariantNumeric: 'tabular-nums',
-                      opacity: !visible ? 0 : !cell.current ? 0.15 : highlightWeekends && isWeekend ? TEXT_OPACITY.dim : TEXT_OPACITY.heading,
-                      fontWeight: isToday ? 700 : 400,
-                      background: isToday ? 'rgba(59,130,246,0.85)' : 'transparent',
-                      color: isToday ? '#fff' : 'inherit',
+                      // A marked today stays fully opaque: a weekend accent ring
+                      // or colored number rendered at the dim weekend opacity
+                      // washes out exactly the day the user wants to spot.
+                      opacity: !visible ? 0 : !cell.current ? 0.15 : isMarkedToday ? TEXT_OPACITY.primary : highlightWeekends && isWeekend ? TEXT_OPACITY.dim : TEXT_OPACITY.heading,
+                      fontWeight: 400,
+                      background: 'transparent',
+                      color: 'inherit',
                       borderRadius: '50%',
                       width: '1.75em',
                       // Clamped to the row: the circle is decoration around a
@@ -230,6 +292,7 @@ function MonthGrid({
                       // minimum would drive the fit above to shrink the font long
                       // before the digits were anywhere near colliding.
                       height: 'min(1.75em, 100%)',
+                      ...(isToday ? todayMarker : null),
                     }}
                   >
                     {visible ? cell.day : ''}
@@ -254,6 +317,11 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const highlightWeekends = config.highlightWeekends ?? true;
   const showAdjacentDays = config.showAdjacentDays ?? true;
+  const hideMonthLabel = config.showCurrentMonthLabel === false;
+  const todayStyle = config.todayStyle ?? 'filled';
+  const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
+  // Built once per render, not once per day cell — 42 cells per month grid.
+  const todayMarker = todayMarkerStyle(todayStyle, accentColor);
 
   const today = {
     year: now.getFullYear(),
@@ -277,7 +345,7 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   // both are caught because the fit checks each axis.
   const { boxRef, contentRef, fontSize } = useFitFontSize(
     style.fontSize,
-    [view, monthCount, startDay, showWeekNumbers, today.year, today.month].join('|'),
+    [view, monthCount, startDay, showWeekNumbers, hideMonthLabel, today.year, today.month].join('|'),
   );
 
   return (
@@ -318,6 +386,10 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
                 showWeekNumbers={showWeekNumbers}
                 highlightWeekends={highlightWeekends}
                 showAdjacentDays={showAdjacentDays}
+                hideMonthLabel={hideMonthLabel}
+                reserveHiddenLabel={isHorizontal}
+                todayStyle={todayStyle}
+                todayMarker={todayMarker}
                 locale={locale}
               />
             </div>

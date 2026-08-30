@@ -631,6 +631,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'fullscreen-calendar', key: 'startDay', union: 'WeekStartDay' },
   { type: 'fullscreen-calendar', key: 'scheduleStartAnchor', union: 'ScheduleStartAnchor' },
   { type: 'multi-month', key: 'startDay', union: 'WeekStartDay' },
+  { type: 'multi-month', key: 'todayStyle', union: 'MultiMonthTodayStyle' },
   { type: 'chore-chart', key: 'weekStartDay', union: 'WeekStartDay' },
   { type: 'fullscreen-chore-chart', key: 'weekStartDay', union: 'WeekStartDay' },
 ];

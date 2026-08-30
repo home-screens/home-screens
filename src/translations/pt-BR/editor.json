@@ -2955,9 +2955,18 @@
       "layoutHorizontal": "Horizontal (lado a lado)",
       "monthsToShow": "Meses a mostrar",
       "weekStartsOn": "Semana começa em",
+      "showCurrentMonthLabel": "Mostrar nome do mês atual",
       "showWeekNumbers": "Mostrar números das semanas",
       "highlightWeekends": "Destacar fins de semana",
-      "showAdjacentDays": "Mostrar dias adjacentes"
+      "showAdjacentDays": "Mostrar dias adjacentes",
+      "todayHighlight": "Destaque de hoje",
+      "todayFilled": "Círculo preenchido",
+      "todaySquare": "Quadrado preenchido",
+      "todayOutline": "Círculo com contorno",
+      "todayUnderline": "Sublinhado",
+      "todayText": "Número colorido",
+      "todayNone": "Nenhum",
+      "accentColor": "Cor de destaque"
     },
     "news": {
       "viewHeadline": "Manchete (alternando)",

@@ -2950,9 +2950,18 @@
       "layoutHorizontal": "Horizontaal (naast elkaar)",
       "monthsToShow": "Aantal maanden tonen",
       "weekStartsOn": "Week begint op",
+      "showCurrentMonthLabel": "Naam van huidige maand tonen",
       "showWeekNumbers": "Weeknummers tonen",
       "highlightWeekends": "Weekenden markeren",
-      "showAdjacentDays": "Aangrenzende dagen tonen"
+      "showAdjacentDays": "Aangrenzende dagen tonen",
+      "todayHighlight": "Vandaag markeren",
+      "todayFilled": "Gevulde cirkel",
+      "todaySquare": "Gevuld vierkant",
+      "todayOutline": "Cirkel met rand",
+      "todayUnderline": "Onderstreping",
+      "todayText": "Gekleurd getal",
+      "todayNone": "Geen",
+      "accentColor": "Accentkleur"
     },
     "news": {
       "viewHeadline": "Kop (roterend)",
