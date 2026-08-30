@@ -472,6 +472,34 @@ In addition to (or instead of) a password, Home Screens can gate every route on 
 - **Allowlist survives password changes.** Setting, changing, clearing, or disabling the editor password no longer drops the IP allowlist — the restriction stays in force even during a password reset.
 - **Audit logged.** Every change to the allowlist or either toggle emits an `ip_allowlist_change` audit event so you can spot unexpected edits in the audit log.
 
+### Requests from other websites
+
+Whether or not you set a password, Home Screens refuses any request that changes something
+(`POST`, `PUT`, `PATCH`, `DELETE` under `/api/`) when the browser says it came from a
+different site. This is separate from the password and from the IP allowlist, and it is
+always on.
+
+It covers a case the others do not. "Anyone on my home network is trusted" is a reasonable
+position for a device on your own wifi, but it says nothing about a web page someone in the
+house happens to open. A page on any site can tell a browser to send a request to your hub,
+and browsers do not always ask permission first. That page can never read the answer, but
+without this check the request would still take effect.
+
+Browsers attach an `Origin` header to those requests and page code cannot fake it, so this is
+the one signal that reliably tells them apart. Requests with no `Origin` at all — `curl`, the
+per-Pi reporter script, anything not a browser — are unaffected, because a browser cannot
+produce one.
+
+**If you use a reverse proxy** that rewrites the `Host` header and does not pass
+`X-Forwarded-Host`, requests from your own address may be refused with
+`{"error": "Access denied", "reason": "cross_origin"}`. Set `HS_ALLOWED_ORIGINS` to the
+address you actually visit, comma-separated for more than one, using the same systemd
+override shown below:
+
+```
+Environment=HS_ALLOWED_ORIGINS=https://home.example.com
+```
+
 ### Keep API keys server-side
 
 API keys are stored in `data/secrets.json` and never sent to the browser. All external API calls go through server-side proxy routes under `/api/`. This means even if someone on your network accesses the display URL, they cannot extract your API keys from the page source or network requests.

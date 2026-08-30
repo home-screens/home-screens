@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
+import { isDisallowedCrossOriginWrite, parseAllowedOrigins } from '@/lib/same-origin';
 
 /* ─── Cached auth config ─────────────────────── */
 
@@ -214,15 +215,23 @@ function isProtectedRoute(pathname: string, method: string): boolean {
   return false;
 }
 
+/* ─── Cross-origin writes ────────────────────── */
+
+// Parsed once per process; the env var cannot change at runtime.
+const allowedOrigins = parseAllowedOrigins(process.env.HS_ALLOWED_ORIGINS);
+
 /* ─── Proxy ──────────────────────────────────── */
 
 /**
  * Next.js 16 proxy.
  *
- * Two responsibilities:
+ * Three responsibilities:
  * 1. IP access restriction — blocks non-allowlisted IPs from all routes
  *    except /login and /api/auth/status (when enabled via settings).
- * 2. Cookie-presence auth gate — enforces session cookie on protected routes
+ * 2. Cross-origin write rejection on /api/* — the one gate that runs even
+ *    with auth disabled, because it defends against attackers who are not on
+ *    the LAN at all and so are not covered by the trusted-network assumption.
+ * 3. Cookie-presence auth gate — enforces session cookie on protected routes
  *    (only when auth is enabled). Real validation happens in requireSession()
  *    inside route handlers.
  */
@@ -251,6 +260,28 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
     }
+  }
+
+  // ─── Cross-origin write gate ────────────────
+  // Deliberately BEFORE the `config.enabled` early-return below: a
+  // password-less install is exactly the one that needs this. "Trusted LAN" is
+  // an accepted trade-off for people on the network; it says nothing about a
+  // web page someone in the house happens to open, which can drive their
+  // browser into issuing writes here without a preflight.
+  if (
+    pathname.startsWith('/api/') &&
+    isDisallowedCrossOriginWrite({
+      method,
+      origin: request.headers.get('origin'),
+      host: request.headers.get('host'),
+      forwardedHost: request.headers.get('x-forwarded-host'),
+      allowedOrigins,
+    })
+  ) {
+    return Response.json(
+      { error: 'Access denied', reason: 'cross_origin' },
+      { status: 403 },
+    );
   }
 
   // ─── Auth cookie gate ───────────────────────
