@@ -41,6 +41,35 @@ test('enable a password via the API', async ({ request }) => {
   expect(status.authEnabled).toBe(true);
 });
 
+/**
+ * The login page's translations are inlined by the (auth) layout's
+ * `buildLocaleBlob`, not fetched after mount. Blocking /api/i18n leaves the
+ * blob as the only possible source, so localized copy appearing here proves
+ * it arrived with the document.
+ *
+ * This matters more on /login than anywhere else: `translate()` returns the
+ * key on a miss, and while the page is checking auth its entire content is
+ * one string — a post-mount fetch renders a blank screen with the literal
+ * `login.checkingAuth` centered on it.
+ */
+test('login renders localized copy with no i18n fetch available', async ({ page }) => {
+  await page.route('**/api/i18n/**', (route) => route.abort());
+  // Hold the status check open so the page stays in its checking branch long
+  // enough to assert on — that branch is where a missing dictionary shows.
+  await page.route('**/api/auth/status', async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await route.continue();
+  });
+
+  await page.goto('/login');
+  await expect(page.getByText('Checking authentication…')).toBeVisible();
+  await expect(page.getByText('login.checkingAuth')).toHaveCount(0);
+
+  // And the form itself, once the status check resolves.
+  await expect(page.getByText('Enter your password to continue')).toBeVisible();
+  await expect(page.locator('body')).not.toContainText('login.');
+});
+
 test('rememberMe:true issues a 90-day session cookie', async ({ request }) => {
   // The login route picks SESSION_REMEMBER_ME_AGE (90d) vs SESSION_MAX_AGE (30d)
   // off the rememberMe flag and stamps it as the Set-Cookie Max-Age. A correct
