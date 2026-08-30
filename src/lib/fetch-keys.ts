@@ -33,9 +33,39 @@ export function cryptoUrl(config: AnyConfig): string | null {
   return ids ? `/api/crypto?ids=${encodeURIComponent(ids)}` : null;
 }
 
-export function newsUrl(config: AnyConfig): string {
-  const feed = config.feedUrl as string | undefined;
-  return `/api/news?feed=${encodeURIComponent(feed || '')}`;
+/**
+ * One request for every feed a news module follows, in config order, so the
+ * server answers one result per feed and the prefetch key matches the
+ * module's own fetch exactly. An empty list yields no URL (nothing to fetch).
+ */
+export function newsUrl(config: AnyConfig): string | null {
+  const feeds = config.feeds as Array<{ url?: string }> | undefined;
+  const urls = (Array.isArray(feeds) ? feeds : [])
+    .map((f) => (typeof f?.url === 'string' ? f.url.trim() : ''))
+    .filter((u, i, all) => u.length > 0 && all.indexOf(u) === i);
+  if (urls.length === 0) return null;
+  return `/api/news?${urls.map((u) => `feed=${encodeURIComponent(u)}`).join('&')}`;
+}
+
+/**
+ * Editor-only variant of `newsUrl` that also names the feeds marked
+ * "home network", so Check and the preview can reach a self-hosted reader
+ * the user has not saved yet. `/api/news` honours `lan` only for an editor
+ * session; the display's own polling uses `newsUrl` and cannot ask for it.
+ */
+export function newsEditorUrl(feeds: Array<{ url?: string; homeNetwork?: boolean }> | undefined): string | null {
+  const seen = new Set<string>();
+  const params: string[] = [];
+  const lan: string[] = [];
+  for (const feed of feeds ?? []) {
+    const url = typeof feed?.url === 'string' ? feed.url.trim() : '';
+    if (url.length === 0 || seen.has(url)) continue;
+    seen.add(url);
+    params.push(`feed=${encodeURIComponent(url)}`);
+    if (feed.homeNetwork === true) lan.push(`lan=${encodeURIComponent(url)}`);
+  }
+  if (params.length === 0) return null;
+  return `/api/news?${[...params, ...lan].join('&')}`;
 }
 
 export function airQualityUrl(): string {
@@ -165,6 +195,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'stock-ticker': { buildUrl: stocksUrl, ttlMs: 30_000 },        // server: 30s
   crypto:         { buildUrl: cryptoUrl, ttlMs: 30_000 },         // server: 30s
   news:           { buildUrl: newsUrl, ttlMs: 300_000 },           // server: 5min
+  'fullscreen-news': { buildUrl: newsUrl, ttlMs: 300_000 },        // same feeds API as news
   'air-quality':  { buildUrl: airQualityUrl, ttlMs: 300_000 },    // server: 5min
   sports:         { buildUrl: sportsUrl, ttlMs: 60_000 },          // no server cache
   standings:      { buildUrl: standingsUrl, ttlMs: 300_000 },      // no server cache

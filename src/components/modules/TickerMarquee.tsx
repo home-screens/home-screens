@@ -8,13 +8,15 @@ interface TickerMarqueeProps {
   speed: number;
   /** Tailwind-compatible gap value in spacing units (default 6) */
   gap?: number;
+  /** Freeze the scroll in place (touch-to-pause). */
+  paused?: boolean;
 }
 
 /**
  * A reusable infinite-scrolling ticker marquee.
  * Renders children twice for seamless looping with CSS animation.
  */
-export default function TickerMarquee({ children, itemCount, speed, gap = 6 }: TickerMarqueeProps) {
+export default function TickerMarquee({ children, itemCount, speed, gap = 6, paused = false }: TickerMarqueeProps) {
   const duration = Math.max(1, itemCount) * speed;
   const gapPx = gap * 4; // Tailwind spacing: 1 unit = 4px
 
@@ -22,7 +24,7 @@ export default function TickerMarquee({ children, itemCount, speed, gap = 6 }: T
     <div className="flex items-center h-full w-full overflow-hidden">
       <div
         className="flex w-max animate-ticker-scroll whitespace-nowrap"
-        style={{ animationDuration: `${duration}s` }}
+        style={{ animationDuration: `${duration}s`, animationPlayState: paused ? 'paused' : 'running' }}
       >
         <div className="flex shrink-0" style={{ gap: `${gapPx}px`, paddingRight: `${gapPx}px` }}>
           {children}

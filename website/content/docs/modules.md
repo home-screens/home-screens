@@ -67,9 +67,10 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Full-Screen Weather** — 5 views (panorama, almanac, ambient, week ahead, hour by hour), with the background tinted by the current conditions and a portrait and landscape layout for each view
 - **Full-Screen Chore Chart** — 2 views (the chore board and a rewards store), kid-friendly and ambient
 - **Full-Screen Meal Planner** — 4 views for the weekly meal plan
+- **Full-Screen News** — 2 views (one story at a time with its photo, or a front page with a lead story and five more), following the same feeds as the News Headlines tile
 - **Full-Screen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich, OneDrive, and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
-All five share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
+All six share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
 
 ### Time & Date
 
@@ -87,7 +88,7 @@ All five share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Ve
 
 ### News & Finance
 
-- **News Headlines** (RSS, 4 views) · **Stock Ticker** (Yahoo Finance, 4 views) · **Crypto Price** (CoinGecko, 4 views)
+- **News Headlines** (any RSS, Atom, or JSON feed, several feeds at once, 5 views incl. a photo grid; see the [News guide](/docs/news)) · **Stock Ticker** (Yahoo Finance, 4 views) · **Crypto Price** (CoinGecko, 4 views)
 - **Sports Scores** (4 views) and **Sports Standings** (3 views) from ESPN, {% $stats.standingsLeagueCount %} leagues
 
 ### Knowledge & Fun
@@ -128,6 +129,7 @@ If your display is a touchscreen, a handful of modules do more than just show in
 - **To-Do List** — tap an item to tick it. **Off by default**; turn on *Interactive* in the module's settings. Ticks are kept separately from the list you type in the editor, so editing the list never wipes them, and every display showing the same list stays in step.
 - **Todoist** — tap a task to complete it in Todoist itself. **Off by default.**
 - **Meal Planner** and **Full-Screen Meal Planner** — tap a meal that has a saved recipe link to get a QR code you scan with your phone, or open the recipe page right on the display.
+- **News Headlines** and **Full-Screen News** — tap a story to get a QR code that opens it on your phone, or the story's summary. **On by default**; change or turn it off under *When a story is tapped*.
 - **Display Control** — buttons for sleep, brightness, and moving between screens, aimed at this display or another one.
 
 ---

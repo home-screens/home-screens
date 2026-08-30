@@ -24,14 +24,16 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
     expect: lacks('Apollo 11 lands on the Moon.', 'On This Day'),
   },
   {
+    // A distinctive header: the default "News" would also match the "BBC News"
+    // source tag that every story now carries.
     type: 'news', name: 'hide-title-headline', kind: 'networked', stubKey: 'news',
-    config: { view: 'headline', showTitle: false },
-    expect: lacks('Global markets rally on tech surge', 'News'),
+    config: { view: 'headline', title: 'E2E NEWS TITLE', showTitle: false },
+    expect: lacks('Global markets rally on tech surge', 'E2E NEWS TITLE'),
   },
   {
     type: 'news', name: 'hide-title-list', kind: 'networked', stubKey: 'news',
-    config: { view: 'list', showTitle: false },
-    expect: lacks('Global markets rally on tech surge', 'News'),
+    config: { view: 'list', title: 'E2E NEWS TITLE', showTitle: false },
+    expect: lacks('Global markets rally on tech surge', 'E2E NEWS TITLE'),
   },
   {
     // The whole title row goes (title + done count), the items stay.

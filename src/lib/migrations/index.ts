@@ -4,6 +4,7 @@ import { v5ToV6 } from './v5-to-v6';
 import { v6ToV7 } from './v6-to-v7';
 import { v7ToV8 } from './v7-to-v8';
 import { v8ToV9 } from './v8-to-v9';
+import { v9ToV10 } from './v9-to-v10';
 
 interface Migration {
   version: number;
@@ -79,6 +80,7 @@ const migrations: Migration[] = [
   // Migration 009: the retired fullscreen calendar / chore chart / meal
   // planner default accents are cleared so a theme's own accent can apply.
   v8ToV9,
+  v9ToV10,
 ];
 
 /** @internal Get all migrations sorted by version */

@@ -44,7 +44,9 @@ export type DisplayCommandType =
   | 'reload'
   | 'alert'
   | 'clear-alerts'
-  | 'dump-console-log';
+  | 'dump-console-log'
+  /** Poke one module type on the display, e.g. `{ module: 'news', action: 'next' }`. */
+  | 'module-command';
 
 export interface DisplayCommand {
   type: DisplayCommandType;

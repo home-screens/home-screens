@@ -70,6 +70,7 @@ import {
   FullscreenChoreChartConfigSection,
   FullscreenMealPlannerConfigSection,
   FullscreenPhotoConfigSection,
+  FullscreenNewsConfigSection,
   FullscreenWeatherConfigSection,
   WordOfDayConfigSection,
   DisplayControlConfigSection,
@@ -316,6 +317,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
   'fullscreen-chore-chart': FullscreenChoreChartConfigSection,
   'fullscreen-meal-planner': FullscreenMealPlannerConfigSection,
   'fullscreen-photo': FullscreenPhotoConfigSection,
+  'fullscreen-news': FullscreenNewsConfigSection,
   'fullscreen-weather': FullscreenWeatherConfigSection,
   'display-control': DisplayControlConfigSection,
 };

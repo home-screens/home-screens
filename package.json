@@ -29,6 +29,8 @@
     "archiver": "^7.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "entities": "^8.0.0",
+    "fast-xml-parser": "^5.11.1",
     "framer-motion": "^12.35.1",
     "googleapis": "^171.4.0",
     "lucide-react": "^1.14.0",

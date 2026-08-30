@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { ScreenConfiguration } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
+import { defaultPresetForLocale } from '@/lib/news-presets';
 
 // Must import the module registry so modules are registered before store operations
 import '@/lib/module-registry';
@@ -97,6 +98,36 @@ describe('editor store', () => {
       const modules = store.getState().config!.screens[0].modules;
       const maxExisting = Math.max(...modules.slice(0, 2).map((m) => m.zIndex));
       expect(modules[2].zIndex).toBe(maxExisting + 1);
+    });
+
+    it('seeds a news module with a feed in the household language', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.settings.locale = 'de-DE';
+      store.setState({ config, isDirty: false });
+
+      store.getState().addModule('screen-1', 'news');
+      store.getState().addModule('screen-1', 'fullscreen-news');
+
+      const feeds = store.getState().config!.screens[0].modules.map(
+        (m) => (m.config as { feeds: { url: string }[] }).feeds,
+      );
+      expect(feeds[0]).toHaveLength(1);
+      expect(feeds[0]).toEqual(feeds[1]);
+      expect(feeds[0][0].url).toBe(defaultPresetForLocale('de-DE').url);
+      expect(feeds[0][0].url).not.toBe(defaultPresetForLocale('en-US').url);
+    });
+
+    it('falls back to the registry default feed when the locale has no presets', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.settings.locale = 'ja-JP';
+      store.setState({ config, isDirty: false });
+
+      store.getState().addModule('screen-1', 'news');
+
+      const feeds = (store.getState().config!.screens[0].modules[0].config as { feeds: { url: string }[] }).feeds;
+      expect(feeds[0].url).toBe(defaultPresetForLocale('en-US').url);
     });
 
     it('renormalizes a legacy tied screen so zIndex stays dense on add', () => {

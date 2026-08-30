@@ -14,6 +14,7 @@ export type BuiltinModuleType =
   | 'sticky-note'
   | 'greeting'
   | 'news'
+  | 'fullscreen-news'
   | 'stock-ticker'
   | 'crypto'
   | 'word-of-day'
@@ -1080,20 +1081,93 @@ export interface GreetingConfig {
 }
 
 // News module config
-export type NewsView = 'headline' | 'list' | 'ticker' | 'compact';
+export type NewsView = 'headline' | 'list' | 'ticker' | 'compact' | 'cards';
+export type NewsTapAction = 'none' | 'qr' | 'details';
+export type NewsTickerSeparator = 'dot' | 'pipe' | 'slash';
 
-export interface NewsConfig {
-  feedUrl: string;
-  view: NewsView;
+/**
+ * One feed a news module follows. `url` is either a real feed URL (RSS, RDF,
+ * Atom, or JSON Feed) or a virtual source the server resolves:
+ *   - `local`               news near the household location (Settings > Location)
+ *   - `topic:<keywords>`    a keyword search feed
+ *   - `youtube:<channelId>` a YouTube channel's uploads
+ *   - `reddit:<subreddit>`  a subreddit's newest posts
+ */
+export interface NewsFeedSource {
+  id: string;
+  url: string;
+  /** Shown as the story source; falls back to the feed's own title. */
+  label?: string;
+  /** Source dot / pill colour; unset = neutral. */
+  color?: string;
+  /** Let the hub fetch this feed from a home-network address (self-hosted readers). */
+  homeNetwork?: boolean;
+  /** Cap on stories from this feed before merging; unset = no per-feed cap. */
+  maxItems?: number;
+}
+
+/** Fields shared by the news tile and the full-screen news module. */
+export interface NewsSourceOptions {
+  feeds: NewsFeedSource[];
   refreshIntervalMs: number;
-  rotateIntervalMs: number;
   maxItems: number;
+  /** Hide stories older than this many hours; 0 or unset = no limit. */
+  maxAgeHours?: number;
+  /** Comma or newline separated words; a story mentioning any of them is hidden. */
+  blockedWords?: string;
+  /** Comma or newline separated words; only stories mentioning one of them show. */
+  requiredWords?: string;
+  /** Keep each feed's own order instead of sorting newest first. */
+  preserveOrder?: boolean;
+  /** What a tap on a story does on a touch display. Default 'qr'. */
+  tapAction?: NewsTapAction;
+}
+
+export interface NewsConfig extends NewsSourceOptions {
+  view: NewsView;
+  rotateIntervalMs: number;
   showTimestamp: boolean;
   showDescription: boolean;
   tickerSpeed?: number;
   accentColor?: string;     // List bullet color; default undefined (text-based bullet)
+  /** Header text; unset = the translated "News". */
+  title?: string;
   /** Show the built-in "News" header (headline + list views). Omitted = shown. */
   showTitle?: boolean;
+  /** Show the feed name next to each story. Default true. */
+  showSource?: boolean;
+  /** Show story thumbnails where the view has room (list, cards, headline). Default true. */
+  showImages?: boolean;
+  /** Description clamp, 1 to 4 lines. Default 2. */
+  descriptionLines?: number;
+  /** Clamp headlines to one line. Default false. */
+  singleLineTitles?: boolean;
+  /** Headline view: "3 of 12" counter. Default true. */
+  showCounter?: boolean;
+  /** Mark stories under an hour old. Default false. */
+  highlightBreaking?: boolean;
+  /** Mark stories that arrived since the last refresh. Default false. */
+  showNewMarker?: boolean;
+  /** Cards view columns, 1 to 3. Default 2. */
+  cardColumns?: number;
+  /** Ticker view separator glyph. Default 'dot'. */
+  tickerSeparator?: NewsTickerSeparator;
+}
+
+export type FullscreenNewsView = 'story' | 'front-page';
+
+export interface FullscreenNewsConfig extends NewsSourceOptions {
+  view: FullscreenNewsView;
+  rotateIntervalMs: number;
+  showDescription: boolean;
+  showSource: boolean;
+  showTimestamp: boolean;
+  showImages: boolean;
+  /** Clock + date in the corner, like the full-screen photo viewer. */
+  showTime: boolean;
+  typographySize: FullscreenTypographySize;
+  /** Unset = follow the theme accent. */
+  accentColor: string;
 }
 
 // Stock ticker module config

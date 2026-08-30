@@ -79,7 +79,7 @@ test('every built-in module type has an E2E fixture, and no fixture is stale', (
   expect(stale, `Fixtures reference unknown module types: ${stale.join(', ')}`).toEqual([]);
 
   // Guards against a silent registry shrink (e.g. a bad merge dropping types).
-  expect(builtin.length).toBe(43);
+  expect(builtin.length).toBe(44);
 });
 
 /**
@@ -403,18 +403,21 @@ const stripComments = (s: string): string =>
  */
 function parseModuleConfigInterfaces(): Map<string, { fields: Set<string>; body: string }> {
   const src = readFileSync(path.resolve(REPO_ROOT, 'src/types/config.ts'), 'utf8');
-  const out = new Map<string, { fields: Set<string>; body: string }>();
-  for (const type of builtinTypes()) {
-    const iface = moduleConfigInterface(type);
-    const m = src.match(new RegExp(`(?:export )?interface ${iface}\\s*\\{`));
-    if (!m || m.index === undefined) continue; // asserted below
+
+  // One interface by name, following `extends` so a shared base (e.g. the
+  // news modules' NewsSourceOptions) contributes its fields to every child.
+  const parseInterface = (iface: string, seen = new Set<string>()): { fields: Set<string>; body: string } | null => {
+    if (seen.has(iface)) return null;
+    seen.add(iface);
+    const m = src.match(new RegExp(`(?:export )?interface ${iface}(?:\\s+extends\\s+([A-Za-z0-9_,\\s]+?))?\\s*\\{`));
+    if (!m || m.index === undefined) return null;
     let depth = 0;
     let end = -1;
     for (let i = m.index + m[0].length - 1; i < src.length; i++) {
       if (src[i] === '{') depth++;
       else if (src[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
     }
-    const body = stripComments(src.slice(m.index + m[0].length, end));
+    let body = stripComments(src.slice(m.index + m[0].length, end));
     const fields = new Set<string>();
     let d = 0;
     for (const line of body.split('\n')) {
@@ -424,7 +427,19 @@ function parseModuleConfigInterfaces(): Map<string, { fields: Set<string>; body:
       }
       for (const ch of line) { if (ch === '{') d++; else if (ch === '}') d--; }
     }
-    out.set(type, { fields, body });
+    for (const parent of (m[1] ?? '').split(',').map((p) => p.trim()).filter(Boolean)) {
+      const inherited = parseInterface(parent, seen);
+      if (!inherited) continue;
+      for (const f of inherited.fields) fields.add(f);
+      body += '\n' + inherited.body;
+    }
+    return { fields, body };
+  };
+
+  const out = new Map<string, { fields: Set<string>; body: string }>();
+  for (const type of builtinTypes()) {
+    const parsed = parseInterface(moduleConfigInterface(type));
+    if (parsed) out.set(type, parsed); // missing ones are asserted below
   }
   return out;
 }
@@ -504,8 +519,10 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'history.sourceWikipedia': 'fetch-only',
   'iframe.refreshIntervalMs': 'timing-only',
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
-  'news.feedUrl': 'fetch-only',
-  'news.refreshIntervalMs': 'timing-only',
+  // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
+  'news.showNewMarker': 'not-observable',
+  'fullscreen-news.refreshIntervalMs': 'timing-only',
+  'fullscreen-news.typographySize': 'style-only',
   'photo-slideshow.directory': 'fetch-only',
   'photo-slideshow.immichAlbumId': 'fetch-only',
   'photo-slideshow.immichCount': 'fetch-only',
@@ -601,6 +618,9 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'fullscreen-photo', key: 'transition', union: 'FullscreenPhotoTransition' },
   { type: 'fullscreen-weather', key: 'skyLayer', union: 'FullscreenWeatherSky' },
   { type: 'qr-code', key: 'mode', union: 'QRCodeMode' },
+  { type: 'news', key: 'tapAction', union: 'NewsTapAction' },
+  { type: 'news', key: 'tickerSeparator', union: 'NewsTickerSeparator' },
+  { type: 'fullscreen-news', key: 'tapAction', union: 'NewsTapAction' },
   { type: 'shape', key: 'endStyle', union: 'ShapeEndStyle' },
   { type: 'shape', key: 'gridPattern', union: 'ShapeGridPattern' },
   { type: 'shape', key: 'fillMode', union: 'ShapeFillMode' },

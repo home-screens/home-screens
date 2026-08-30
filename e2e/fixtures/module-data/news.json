@@ -1,6 +1,15 @@
 {
-  "items": [
-    { "title": "Global markets rally on tech surge", "link": "https://example.com/a", "pubDate": "Mon, 07 Jul 2098 09:00:00 GMT", "description": "Stocks climbed today." },
-    { "title": "City council approves new park", "link": "https://example.com/b", "pubDate": "Mon, 07 Jul 2098 08:00:00 GMT", "description": "Green space expansion." }
+  "feeds": [
+    {
+      "url": "https://feeds.bbci.co.uk/news/rss.xml",
+      "ok": true,
+      "title": "BBC News",
+      "format": "rss",
+      "fetchedAt": 4055000000000,
+      "items": [
+        { "id": "e2e-a", "title": "Global markets rally on tech surge", "link": "https://example.com/a", "description": "Stocks climbed today.", "timestamp": 4055000000000, "imageUrl": null },
+        { "id": "e2e-b", "title": "City council approves new park", "link": "https://example.com/b", "description": "Green space expansion.", "timestamp": 4054996400000, "imageUrl": null }
+      ]
+    }
   ]
 }

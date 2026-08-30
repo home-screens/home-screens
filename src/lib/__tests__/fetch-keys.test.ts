@@ -3,6 +3,7 @@ import {
   stocksUrl,
   cryptoUrl,
   newsUrl,
+  newsEditorUrl,
   airQualityUrl,
   sportsUrl,
   standingsUrl,
@@ -124,13 +125,49 @@ describe('trafficUrl', () => {
 // ── URL builders with defaults ──────────────────────────────────
 
 describe('newsUrl', () => {
-  it('builds URL with encoded feed', () => {
-    expect(newsUrl({ feedUrl: 'https://example.com/feed.xml' }))
+  it('builds URL with one encoded feed', () => {
+    expect(newsUrl({ feeds: [{ url: 'https://example.com/feed.xml' }] }))
       .toBe('/api/news?feed=https%3A%2F%2Fexample.com%2Ffeed.xml');
   });
 
-  it('uses empty string when feedUrl is missing', () => {
-    expect(newsUrl({})).toBe('/api/news?feed=');
+  it('joins several feeds as repeated feed= params in order', () => {
+    expect(newsUrl({ feeds: [{ url: 'https://a.example/rss' }, { url: 'local' }, { url: 'topic:school board' }] }))
+      .toBe('/api/news?feed=https%3A%2F%2Fa.example%2Frss&feed=local&feed=topic%3Aschool%20board');
+  });
+
+  it('returns null when there are no feeds', () => {
+    expect(newsUrl({})).toBeNull();
+    expect(newsUrl({ feeds: [] })).toBeNull();
+    expect(newsUrl({ feeds: 'nope' })).toBeNull();
+  });
+
+  it('trims URLs and drops blank or malformed entries', () => {
+    expect(newsUrl({ feeds: [{ url: '  https://a.example/rss  ' }, { url: '   ' }, {}, null, { url: 42 }] }))
+      .toBe('/api/news?feed=https%3A%2F%2Fa.example%2Frss');
+    expect(newsUrl({ feeds: [{ url: ' ' }] })).toBeNull();
+  });
+
+  it('dedupes repeated URLs so the prefetch key matches the module fetch', () => {
+    expect(newsUrl({ feeds: [{ url: 'https://a.example/rss' }, { url: ' https://a.example/rss' }, { url: 'https://b.example/rss' }] }))
+      .toBe('/api/news?feed=https%3A%2F%2Fa.example%2Frss&feed=https%3A%2F%2Fb.example%2Frss');
+  });
+});
+
+describe('newsEditorUrl', () => {
+  it('matches newsUrl when no feed is marked home-network', () => {
+    const feeds = [{ url: 'https://a.example/rss' }, { url: 'local' }];
+    expect(newsEditorUrl(feeds)).toBe(newsUrl({ feeds }));
+  });
+
+  it('names the home-network feeds so the route can check them before a save', () => {
+    expect(newsEditorUrl([{ url: 'http://192.168.1.5/feed', homeNetwork: true }, { url: 'https://a.example/rss' }]))
+      .toBe('/api/news?feed=http%3A%2F%2F192.168.1.5%2Ffeed&feed=https%3A%2F%2Fa.example%2Frss&lan=http%3A%2F%2F192.168.1.5%2Ffeed');
+  });
+
+  it('returns null when there is nothing to fetch', () => {
+    expect(newsEditorUrl(undefined)).toBeNull();
+    expect(newsEditorUrl([])).toBeNull();
+    expect(newsEditorUrl([{ url: '   ' }])).toBeNull();
   });
 });
 

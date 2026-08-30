@@ -664,7 +664,18 @@
   "news": {
     "loading": "Loading news…",
     "empty": "No headlines",
+    "noFeeds": "Add a news feed in the editor",
+    "allUnavailable": "News is not available right now",
     "header": "News",
+    "localNews": "Local news",
+    "counter": "{current} of {total}",
+    "justIn": "Just in",
+    "newStory": "New story",
+    "unavailable": "Not available right now: {feeds}",
+    "scanToRead": "Scan to read on your phone",
+    "noLink": "This story has no link",
+    "noDescription": "No summary for this story",
+    "tapToClose": "Tap to close",
     "timeAgo": {
       "justNow": "just now",
       "minutes": "{count}m ago",

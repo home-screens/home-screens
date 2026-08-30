@@ -949,19 +949,38 @@ Fetches cryptocurrency prices from CoinGecko. Cached for 30 seconds.
 
 ### GET /api/news
 
-Parses an RSS feed and returns articles. Cached for 5 minutes per feed URL.
+Fetches and parses one or more feeds (RSS 2.0, RSS 1.0/RDF, Atom, JSON Feed) and returns the stories per feed, in request order. Each feed is cached for 5 minutes and shared by every display asking for it.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `feed` | string | BBC News (`https://feeds.bbci.co.uk/news/rss.xml`) | RSS feed URL |
+| `feed` | string (repeatable) | — | A feed URL, or a shorthand: `local` (news near the location in Settings), `topic:<keywords>`, `youtube:<channelId>`, `reddit:<subreddit>`. Up to 12 per call |
 
-The feed has to be a public internet address. Feeds on your own network, on `localhost`, or on link-local addresses are turned away with `400 { "error": "Invalid or blocked feed URL" }`; that guard is there so nobody can use this endpoint to poke around inside your network. A feed that exists but doesn't respond returns `502`.
+A feed that fails does not fail the request: it comes back with `ok: false` and an `error` code next to its healthy siblings. Codes are `blocked-url` (private, loopback, or link-local address, or an unbuildable shorthand), `no-location` (`local` without a location in Settings), `unreachable`, `timeout`, `http-error` (with the upstream `status`), `not-a-feed`, `empty-url`, and `too-many-feeds`. Feeds on your own network are only fetched when the exact URL is saved in a news module with **Home network** turned on; the flag in the editor is the consent, the query string alone is not.
 
 **Response:**
 ```json
 {
-  "items": [
-    { "title": "Article Title", "link": "https://...", "pubDate": "2026-03-08T12:00:00Z" }
+  "feeds": [
+    {
+      "url": "https://feeds.bbci.co.uk/news/rss.xml",
+      "ok": true,
+      "title": "BBC News",
+      "format": "rss",
+      "fetchedAt": 1780000000000,
+      "items": [
+        {
+          "id": "https://www.bbc.co.uk/news/articles/abc",
+          "title": "Article title",
+          "link": "https://www.bbc.co.uk/news/articles/abc",
+          "description": "Plain-text summary, never HTML.",
+          "timestamp": 1779999000000,
+          "imageUrl": "https://ichef.bbci.co.uk/.../image.jpg",
+          "publisher": "BBC News",
+          "categories": ["UK"]
+        }
+      ]
+    },
+    { "url": "https://example.com/dead.xml", "ok": false, "error": "http-error", "status": 404, "items": [], "fetchedAt": 1780000000000 }
   ]
 }
 ```
@@ -2480,7 +2499,7 @@ Confirms a pending network change. Cancels the 60-second auto-revert timer and u
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), and [alert](#post-api-display-alert). For a ready-made Home Assistant package built on them — voice sentences included — see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [alert](#post-api-display-alert), and [module-command](#post-api-display-module-command) (next story on a news module). For a ready-made Home Assistant package built on them — voice sentences included — see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
@@ -2489,7 +2508,7 @@ When the hub has more than one display registered, every display-control endpoin
 - **Query string** — append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
 - **JSON body field** — `{ "displayId": "<id>", … }` (POST only).
 
-Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert) and rejected for read-only or mutate-config actions (status, profile). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
+Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command) and rejected for read-only or mutate-config actions (status, profile). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
 Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
 
@@ -2643,6 +2662,16 @@ Jumps the display straight to a specific screen — the command behind "show the
 `screen` is a screen **id or name**; the display client resolves it against its own rotation, matching the id first and then the name case-insensitively. The hub can't validate the target (screen sets are per-display and the queue never reads config), so an unknown target still returns `ok` here and is ignored with a console warning on the display. A screen excluded from the current rotation — for example by the active profile — is also ignored rather than jumped to. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
 
 **Response:** `{ "ok": true, "command": "goto-screen", "screen": "calendar" }`
+
+### POST /api/display/module-command
+
+Pokes every module of one type on the display. The hub just relays it; the module decides what the action means. Today the news modules understand `next`, `prev` (move to the next or previous story or page), `details` (open the current story's summary), and `dismiss` (close it) — so "next story" can be a voice command or a button. Broadcast with `?display=all` is allowed.
+
+**Body:** `{ "module": "news", "action": "next", "displayId": "kitchen" }` (`displayId` optional; `module` is `news` or `fullscreen-news`; an optional `value` string or number is passed through)
+
+`module` and `action` must be short lowercase names (letters, digits, `-`, `_`, `:`); anything else returns `400`.
+
+**Response:** `{ "ok": true, "command": "module-command", "module": "news", "action": "next" }`
 
 ### POST /api/display/sleep-override
 

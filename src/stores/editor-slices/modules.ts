@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { defaultPresetForLocale } from '@/lib/news-presets';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import {
   getActiveScreens,
@@ -38,6 +39,13 @@ export function createModuleSlice(
         delete moduleDefaultStyle.title;
         delete moduleDefaultStyle.titleFontSize;
       }
+      // The registry's default news feed is English; a household on another
+      // locale should start on a feed written in its own language.
+      const moduleConfig = { ...def.defaultConfig };
+      if (type === 'news' || type === 'fullscreen-news') {
+        const preset = defaultPresetForLocale(cfg?.settings?.locale);
+        moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
+      }
       // zIndex is assigned by appendOnTop against the target screen's modules
       // inside the mutation, so it is computed from the same list it lands in.
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
@@ -47,7 +55,7 @@ export function createModuleSlice(
         size: fillsCanvas
           ? { w: dims.width, h: dims.height }
           : { ...def.defaultSize },
-        config: { ...def.defaultConfig },
+        config: moduleConfig,
         style: { ...defaultStyle, ...moduleDefaultStyle },
       };
       mutateConfig((config) => ({
