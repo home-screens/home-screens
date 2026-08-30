@@ -93,6 +93,15 @@ describe('useNewsFeeds', () => {
   });
 
   it('applies the merge options from config', () => {
+    // The only test here that exercises maxAgeHours, and so the only one whose
+    // result depends on the wall clock: `mergeFeeds` falls back to the real
+    // `Date.now()` when the caller passes no `now`, and the hook doesn't pass
+    // one. Stories are built relative to the hardcoded NOW above, so without
+    // pinning the clock this test silently rots into a failure once real time
+    // passes NOW + maxAgeHours.
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+
     fetchState = [{
       feeds: [okResult(A_URL, [story('old', 50), story('war', 1, { title: 'War news' }), story('fresh', 2), story('also', 3)])],
     }, null, NOW];
@@ -103,6 +112,7 @@ describe('useNewsFeeds', () => {
     ));
 
     expect(result.current.items.map((i) => i.id)).toEqual(['fresh']);
+    vi.useRealTimers();
   });
 
   it('defaults maxItems to 10 when the config omits it', () => {
