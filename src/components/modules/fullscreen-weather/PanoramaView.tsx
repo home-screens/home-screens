@@ -211,8 +211,6 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   // callout balloon to 40 units against 13-unit axis labels and pushed its
   // baseline above y=0, where the card clipped it.
   const W = 964;
-  /** Typography ratio, dimensionless. 1.0 at `medium`; this is what SVG text scales by. */
-  const r = s / p.scale.bu;
 
   // The rendered box and the viewBox are given the same aspect, so
   // `preserveAspectRatio="none"` scales x and y equally and text is not
@@ -227,10 +225,32 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   const renderedH = Math.max(60, u * (landscape ? 30 : 27));
   const VH = Math.round((W * renderedH) / renderedW);
 
+  /** Floors for the two data bands, in viewBox units. */
+  const PB_MIN = 22;                                     // precip band
+  const CH_MIN = 40;                                     // temperature band
+
+  /**
+   * Typography ratio, dimensionless. 1.0 at `medium`; this is what SVG text
+   * scales by.
+   *
+   * Clamped, because the two are pulled in opposite directions: the r-scaled
+   * bands (headroom + hour labels) grow with the typography setting while `VH`
+   * *shrinks*, since `renderedH` follows `u` and the fit loop shrinks `u` as
+   * type grows. At 4x-large in landscape that left VH=93 against bands wanting
+   * 122, so `CH` and `PB` bottomed out on their floors and the temperature
+   * band simply ran past them into the hour labels — all eight of them sat on
+   * the curve, and nothing in the layout overflowed for the fit loop to catch.
+   *
+   * So `r` may not exceed what the box can actually seat: the floors are not
+   * negotiable, and the r-scaled parts get what is left.
+   */
+  const rMax = (VH - CH_MIN - PB_MIN) / (26 + 20);
+  const r = Math.max(0.45, Math.min(s / p.scale.bu, rMax));
+
   const TOP = 26 * r;                                    // markers + callout headroom
   const AXIS = 20 * r;                                   // hour labels
-  const PB = Math.max(22, (VH - TOP - AXIS) * 0.24);     // precip band
-  const CH = Math.max(40, VH - TOP - AXIS - PB);         // temperature band
+  const PB = Math.max(PB_MIN, (VH - TOP - AXIS) * 0.24);
+  const CH = Math.max(CH_MIN, VH - TOP - AXIS - PB);
   const PAD = 10;
 
   const N = hrs.length;
