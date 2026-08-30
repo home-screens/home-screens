@@ -104,7 +104,9 @@ describe('parseFeed: RSS 2.0', () => {
   });
 
   describe('image precedence', () => {
-    it('media:thumbnail wins over media:content, enclosure and the body image', () => {
+    it('media:content beats media:thumbnail, enclosure and the body image', () => {
+      // media:thumbnail is by definition the small copy, so it loses to the
+      // full-size tags even though it is listed last.
       const feed = parseFeed(rss(`
         <item>
           <title>Thumb</title>
@@ -113,7 +115,74 @@ describe('parseFeed: RSS 2.0', () => {
           <media:content url="https://img.example.com/content.jpg" type="image/jpeg"/>
           <media:thumbnail url="https://img.example.com/thumb.jpg"/>
         </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/content.jpg');
+    });
+
+    it('takes the smallest declared width that clears the hero target', () => {
+      // ABC News lists seven sizes, small ones first; 1600 is the first that
+      // is big enough, and 2400 would be needless bytes on a Pi.
+      const feed = parseFeed(rss(`
+        <item><title>Sizes</title>
+          <media:thumbnail url="https://img.example.com/144.jpg" width="144"/>
+          <media:thumbnail url="https://img.example.com/608.jpg" width="608"/>
+          <media:thumbnail url="https://img.example.com/2400.jpg" width="2400"/>
+          <media:thumbnail url="https://img.example.com/1600.jpg" width="1600"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/1600.jpg');
+    });
+
+    it('falls back to the largest declared width when none clears the target', () => {
+      const feed = parseFeed(rss(`
+        <item><title>Small</title>
+          <media:content url="https://img.example.com/400.jpg" type="image/jpeg" width="400"/>
+          <media:thumbnail url="https://img.example.com/800.jpg" width="800"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/800.jpg');
+    });
+
+    it('keeps a sized thumbnail over an empty media:content', () => {
+      // Wired ships a bare `<media:content/>` next to a real 1200px thumbnail.
+      const feed = parseFeed(rss(`
+        <item><title>Wired</title>
+          <media:content/>
+          <media:thumbnail url="https://img.example.com/1200.jpg" width="1200"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/1200.jpg');
+    });
+
+    it('accepts a media:content that declares neither type nor medium', () => {
+      // Le Monde ships `<media:content width height url>` and nothing else.
+      const feed = parseFeed(rss(`
+        <item><title>LeMonde</title>
+          <media:content width="644" height="322" url="https://img.example.com/le.jpg"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/le.jpg');
+    });
+
+    it('asks the publisher CDN for a bigger copy, keeping the feed URL as fallback', () => {
+      const feed = parseFeed(rss(`
+        <item><title>BBC</title>
+          <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/x/y.jpg"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://ichef.bbci.co.uk/ace/standard/1248/x/y.jpg');
+      expect(feed.items[0].imageUrlOriginal).toBe('https://ichef.bbci.co.uk/ace/standard/240/x/y.jpg');
+    });
+
+    it('leaves imageUrlOriginal unset when no rewrite rule applies', () => {
+      const feed = parseFeed(rss(`
+        <item><title>Other</title>
+          <media:thumbnail url="https://img.example.com/thumb.jpg"/>
+        </item>`));
       expect(feed.items[0].imageUrl).toBe('https://img.example.com/thumb.jpg');
+      expect(feed.items[0].imageUrlOriginal).toBeUndefined();
+    });
+
+    it('still uses a thumbnail when it is the only picture on offer', () => {
+      const feed = parseFeed(rss(`
+        <item><title>BBC</title>
+          <media:thumbnail width="240" height="135" url="https://img.example.com/240.jpg"/>
+        </item>`));
+      expect(feed.items[0].imageUrl).toBe('https://img.example.com/240.jpg');
     });
 
     it('media:content with an image type or medium wins over enclosure', () => {

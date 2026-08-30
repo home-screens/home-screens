@@ -3,6 +3,7 @@ import {
   stocksUrl,
   cryptoUrl,
   newsUrl,
+  newsEditorUrl,
   airQualityUrl,
   sportsUrl,
   standingsUrl,
@@ -123,6 +124,24 @@ describe('newsUrl', () => {
   it('dedupes repeated URLs so the prefetch key matches the module fetch', () => {
     expect(newsUrl({ feeds: [{ url: 'https://a.example/rss' }, { url: ' https://a.example/rss' }, { url: 'https://b.example/rss' }] }))
       .toBe('/api/news?feed=https%3A%2F%2Fa.example%2Frss&feed=https%3A%2F%2Fb.example%2Frss');
+  });
+});
+
+describe('newsEditorUrl', () => {
+  it('matches newsUrl when no feed is marked home-network', () => {
+    const feeds = [{ url: 'https://a.example/rss' }, { url: 'local' }];
+    expect(newsEditorUrl(feeds)).toBe(newsUrl({ feeds }));
+  });
+
+  it('names the home-network feeds so the route can check them before a save', () => {
+    expect(newsEditorUrl([{ url: 'http://192.168.1.5/feed', homeNetwork: true }, { url: 'https://a.example/rss' }]))
+      .toBe('/api/news?feed=http%3A%2F%2F192.168.1.5%2Ffeed&feed=https%3A%2F%2Fa.example%2Frss&lan=http%3A%2F%2F192.168.1.5%2Ffeed');
+  });
+
+  it('returns null when there is nothing to fetch', () => {
+    expect(newsEditorUrl(undefined)).toBeNull();
+    expect(newsEditorUrl([])).toBeNull();
+    expect(newsEditorUrl([{ url: '   ' }])).toBeNull();
   });
 });
 

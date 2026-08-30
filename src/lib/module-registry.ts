@@ -225,7 +225,11 @@ export function getModulesByCategory(): Map<string, ModuleDefinition[]> {
 // Built-in module definitions
 // ---------------------------------------------------------------------------
 
-/** A fresh news module follows one well-known feed; the editor swaps it per locale. */
+/**
+ * A fresh news module follows one well-known feed. `addModule` swaps this for
+ * the locale's own default preset (`defaultPresetForLocale`); it stands as the
+ * en-US answer and as the fallback for configs seeded outside the editor.
+ */
 const DEFAULT_NEWS_FEED: import('@/types/config').NewsFeedSource = {
   id: 'default-bbc', url: 'https://feeds.bbci.co.uk/news/rss.xml', label: 'BBC News',
 };

@@ -70,7 +70,7 @@ Ambient, always-on displays that fill the entire canvas. Position, size, and sty
 - **Full-Screen News** — 2 views (one story at a time with its photo, or a front page with a lead story and five more), following the same feeds as the News Headlines tile
 - **Full-Screen Photo Viewer** — digital photo frame with transitions, shuffle, Ken Burns, Immich, OneDrive, and iCloud shared-album support, and a single-photo "static wallpaper" mode
 
-All five share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
+All six share one set of twelve color themes: Linen, Paper, Mist, Sandstone, Vellum, and Bloom for light rooms, Charcoal, Midnight, Slate, Aurora, Obsidian, and Horizon for dark ones. Pick one per module, or set a default for the whole display in **Settings > Screen**. On the calendar, a theme also decides how event blocks are drawn, from a faint tint to solid color bars.
 
 ### Time & Date
 

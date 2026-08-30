@@ -8,6 +8,7 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import Toggle from '@/components/ui/Toggle';
 import { NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { newsEditorUrl } from '@/lib/fetch-keys';
 import { isVirtualSource } from '@/lib/news/sources';
 import type { NewsResponse } from '@/lib/news/types';
 import { useTranslate } from '@/i18n';
@@ -56,9 +57,11 @@ export function NewsFeedsEditor({ feeds, onChange }: NewsFeedsEditorProps) {
     });
 
   const check = async (feed: NewsFeedSource) => {
+    const url = newsEditorUrl([feed]);
+    if (!url) return;
     setChecks((prev) => ({ ...prev, [feed.id]: { status: 'checking' } }));
     try {
-      const res = await editorFetch(`/api/news?feed=${encodeURIComponent(feed.url.trim())}`);
+      const res = await editorFetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as NewsResponse;
       const result = data.feeds?.[0];

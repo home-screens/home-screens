@@ -35,6 +35,8 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
 
   const view = c.view ?? 'headline';
   const hasImages = view === 'list' || view === 'cards' || view === 'headline';
+  // Every view that pages, and so has something to count.
+  const hasCounter = view === 'headline' || view === 'list' || view === 'cards';
 
   return (
     <>
@@ -51,12 +53,15 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
             max={30}
             onChange={(v) => set({ rotateIntervalMs: v * 1000 })}
           />
-          <Toggle
-            label={t('configSections.news.showCounter')}
-            checked={c.showCounter !== false}
-            onChange={(v) => set({ showCounter: v })}
-          />
         </>
+      )}
+
+      {hasCounter && (
+        <Toggle
+          label={t('configSections.news.showCounter')}
+          checked={c.showCounter !== false}
+          onChange={(v) => set({ showCounter: v })}
+        />
       )}
 
       {view !== 'headline' && (

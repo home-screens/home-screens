@@ -27,6 +27,13 @@ export interface NewsItem {
   /** Epoch ms, or null when the feed omits or mangles the date. */
   timestamp: number | null;
   imageUrl: string | null;
+  /**
+   * What the feed actually advertised, when `imageUrl` was rewritten to ask
+   * the publisher's CDN for a larger copy (`news/image-upscale.ts`). The
+   * display falls back to this if the larger URL fails, so a stale rewrite
+   * rule costs nothing. Absent when no rewrite applied.
+   */
+  imageUrlOriginal?: string | null;
   /** Per-story publisher when the feed is an aggregator (Google News `<source>`). */
   publisher?: string;
   categories?: string[];

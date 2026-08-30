@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { hasEditorSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import type { ScreenConfiguration } from '@/types/config';
@@ -7,6 +8,7 @@ import type { ScreenConfiguration } from '@/types/config';
 vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
   requireSession: vi.fn(),
+  hasEditorSession: vi.fn().mockResolvedValue(true),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
@@ -73,6 +75,7 @@ beforeEach(() => {
   fetchMock.mockImplementation(async () => rssResponse());
   global.fetch = fetchMock;
   vi.mocked(readConfig).mockResolvedValue(baseConfig());
+  vi.mocked(hasEditorSession).mockResolvedValue(true);
 });
 
 describe('GET /api/news', () => {
@@ -274,6 +277,31 @@ describe('GET /api/news', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('expires a cached failure long before a cached success', async () => {
+    vi.useFakeTimers();
+    try {
+      fetchMock.mockImplementation(async () => new Response('', { status: 404 }));
+      await call(['https://example.com/dead']);
+      vi.advanceTimersByTime(30_000);
+      await call(['https://example.com/dead']);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      // Past the failure TTL: a feed that recovered gets another chance
+      // rather than sitting in the "unavailable" footer for a full success TTL.
+      vi.advanceTimersByTime(30_000);
+      await call(['https://example.com/dead']);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      fetchMock.mockImplementation(async () => rssResponse());
+      await call(['https://example.com/live']);
+      vi.advanceTimersByTime(60_000);
+      await call(['https://example.com/live']);
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('shares one upstream fetch between concurrent requests for the same feed', async () => {
     let resolveFetch!: (r: Response) => void;
     fetchMock.mockImplementation(() => new Promise<Response>((resolve) => { resolveFetch = resolve; }));
@@ -356,6 +384,34 @@ describe('GET /api/news', () => {
       expect(isSafeLocalOrExternalUrl).toHaveBeenCalledWith(LAN_FEED);
     });
 
+    it('lets an editor session check a feed it has not saved yet', async () => {
+      const res = await GET(new NextRequest(
+        `http://localhost/api/news?feed=${encodeURIComponent(LAN_FEED)}&lan=${encodeURIComponent(LAN_FEED)}`,
+      ));
+      const json = await res.json();
+      expect(json.feeds[0]).toMatchObject({ url: LAN_FEED, ok: true });
+      expect(isSafeLocalOrExternalUrl).toHaveBeenCalledWith(LAN_FEED);
+    });
+
+    it('ignores lan= without an editor session', async () => {
+      vi.mocked(hasEditorSession).mockResolvedValue(false);
+      const res = await GET(new NextRequest(
+        `http://localhost/api/news?feed=${encodeURIComponent(LAN_FEED)}&lan=${encodeURIComponent(LAN_FEED)}`,
+      ));
+      const json = await res.json();
+      expect(json.feeds[0]).toMatchObject({ ok: false, error: 'blocked-url' });
+      expect(isSafeLocalOrExternalUrl).not.toHaveBeenCalled();
+    });
+
+    it('lan= only covers the URL it names', async () => {
+      const res = await GET(new NextRequest(
+        `http://localhost/api/news?feed=${encodeURIComponent(LAN_FEED)}&lan=${encodeURIComponent('http://192.168.1.9/other')}`,
+      ));
+      const json = await res.json();
+      expect(json.feeds[0]).toMatchObject({ ok: false, error: 'blocked-url' });
+      expect(isSafeLocalOrExternalUrl).not.toHaveBeenCalled();
+    });
+
     it('does not extend consent to a different private URL in the same module', async () => {
       vi.mocked(readConfig).mockResolvedValue({
         ...baseConfig(),
@@ -370,6 +426,53 @@ describe('GET /api/news', () => {
       const { json } = await call([LAN_FEED]);
       expect(json.feeds[0]).toMatchObject({ ok: false, error: 'blocked-url' });
       expect(isSafeLocalOrExternalUrl).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('redirects', () => {
+    const redirect = (to: string) => new Response('', { status: 302, headers: { location: to } });
+
+    it('re-validates every hop instead of letting fetch follow them', async () => {
+      fetchMock.mockImplementation(async (url) =>
+        String(url) === 'https://example.com/r' ? redirect('https://elsewhere.example/feed.xml') : rssResponse());
+
+      const { json } = await call(['https://example.com/r']);
+
+      expect(json.feeds[0]).toMatchObject({ url: 'https://example.com/r', ok: true });
+      expect(isSafeExternalUrl).toHaveBeenCalledWith('https://elsewhere.example/feed.xml');
+      expect(fetchMock.mock.calls.map((c) => String(c[0]))).toEqual([
+        'https://example.com/r',
+        'https://elsewhere.example/feed.xml',
+      ]);
+      expect(fetchMock.mock.calls[0][1]).toMatchObject({ redirect: 'manual' });
+    });
+
+    it('blocks a redirect that points at a private or metadata address', async () => {
+      fetchMock.mockImplementation(async () => redirect('http://169.254.169.254/latest/meta-data/'));
+
+      const { json } = await call(['https://example.com/r']);
+
+      expect(json.feeds[0]).toMatchObject({ ok: false, error: 'blocked-url' });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves a relative Location against the current hop', async () => {
+      fetchMock.mockImplementation(async (url) =>
+        String(url).endsWith('/r') ? redirect('/feed.xml') : rssResponse());
+
+      const { json } = await call(['https://example.com/r']);
+
+      expect(json.feeds[0].ok).toBe(true);
+      expect(String(fetchMock.mock.calls[1][0])).toBe('https://example.com/feed.xml');
+    });
+
+    it('gives up on a redirect loop', async () => {
+      fetchMock.mockImplementation(async () => redirect('https://example.com/r'));
+
+      const { json } = await call(['https://example.com/r']);
+
+      expect(json.feeds[0]).toMatchObject({ ok: false, error: 'unreachable' });
+      expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(6);
     });
   });
 

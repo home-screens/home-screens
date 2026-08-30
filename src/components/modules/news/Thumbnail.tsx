@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { NewsDisplayItem } from '@/lib/news/types';
+import { useStoryImage } from './news-hooks';
 import { sourceInitial } from './news-shared';
 
 /**
@@ -19,9 +19,7 @@ export function Thumbnail({
   accentColor?: string;
   rounded?: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  useEffect(() => { setFailed(false); }, [item.imageUrl]);
-  const src = !failed ? item.imageUrl : null;
+  const { src, onError } = useStoryImage(item);
   const tint = item.sourceColor ?? accentColor ?? 'rgba(255,255,255,0.18)';
 
   return (
@@ -36,7 +34,7 @@ export function Thumbnail({
           alt=""
           loading="lazy"
           decoding="async"
-          onError={() => setFailed(true)}
+          onError={onError}
           className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (

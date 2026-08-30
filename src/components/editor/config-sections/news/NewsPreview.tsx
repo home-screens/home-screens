@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { newsUrl } from '@/lib/fetch-keys';
+import { newsEditorUrl } from '@/lib/fetch-keys';
 import { mergeFeeds } from '@/lib/news/merge';
 import type { NewsDisplayItem, NewsResponse } from '@/lib/news/types';
 import { useTranslate } from '@/i18n';
@@ -35,12 +35,12 @@ export function NewsPreview({ config }: NewsPreviewProps) {
   const requestSeq = useRef(0);
 
   const feeds = config.feeds ?? [];
-  const url = newsUrl(config);
+  const url = newsEditorUrl(feeds);
   const { maxAgeHours, blockedWords, requiredWords, preserveOrder } = config;
   // One string that changes whenever anything affecting the merged list does,
   // so the debounce can key on it without deep-comparing the feed array.
   const mergeKey = JSON.stringify([
-    feeds.map((f) => [f.id, f.url, f.label ?? '', f.color ?? '', f.maxItems ?? 0]),
+    feeds.map((f) => [f.id, f.url, f.label ?? '', f.color ?? '', f.maxItems ?? 0, f.homeNetwork ?? false]),
     maxAgeHours ?? 0, blockedWords ?? '', requiredWords ?? '', preserveOrder ?? false,
   ]);
 

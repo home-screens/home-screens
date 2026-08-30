@@ -100,6 +100,9 @@ export function NewsAddFeedMenu({ feeds, onAdd }: NewsAddFeedMenuProps) {
       case 'preset':
         if (!selectedPreset || existingUrls.has(selectedPreset.url)) return;
         onAdd({ url: selectedPreset.url, label: selectedPreset.publisher });
+        // Clear the pick so the select falls back to the next unused preset;
+        // leaving it would park on the one just added, now a disabled option.
+        setPresetId('');
         return;
       case 'custom':
         if (!isHttpUrl(value)) {

@@ -97,14 +97,23 @@ describe('mergeFeeds', () => {
   });
 
   describe('dedupe across feeds', () => {
-    it('by id', () => {
+    it('keeps two stories that share a guid across feeds', () => {
+      // Feed ids are only unique within their own feed (publishers do emit
+      // short opaque guids), so a collision must not drop a real story.
       const a = feed('a');
       const b = feed('b');
       const shared = item({ id: 'same-guid' });
-      const dup = item({ id: 'same-guid', title: 'Different headline', link: 'https://other.example/x' });
-      const out = mergeFeeds([ok(a, [shared]), ok(b, [dup])], { maxItems: 10, now: NOW });
-      expect(out).toHaveLength(1);
-      expect(out[0].feedId).toBe('a');
+      const collide = item({ id: 'same-guid', title: 'Different headline', link: 'https://other.example/x' });
+      const out = mergeFeeds([ok(a, [shared]), ok(b, [collide])], { maxItems: 10, now: NOW });
+      expect(out.map((i) => i.feedId)).toEqual(['a', 'b']);
+    });
+
+    it('by id within one feed', () => {
+      const a = feed('a');
+      const first = item({ id: 'same-guid' });
+      const dup = item({ id: 'same-guid', title: 'Repeated entry', link: 'https://other.example/x' });
+      const out = mergeFeeds([ok(a, [first, dup])], { maxItems: 10, now: NOW });
+      expect(out.map((i) => i.title)).toEqual([first.title]);
     });
 
     it('by link', () => {
@@ -162,10 +171,23 @@ describe('mergeFeeds', () => {
       expect(out.map((i) => i.id)).toEqual([clean.id]);
     });
 
-    it('blocked words match as substrings', () => {
+    it('blocked words match plurals', () => {
       const a = feed('a');
       const s = item({ title: 'Shootings reported' });
       expect(mergeFeeds([ok(a, [s])], { maxItems: 10, blockedWords: 'shooting', now: NOW })).toHaveLength(0);
+    });
+
+    it('blocked words match whole words, not any substring', () => {
+      const a = feed('a');
+      const keep = [
+        item({ title: 'Warsaw hosts the summit' }),
+        item({ title: 'New warehouse opens downtown' }),
+        item({ title: 'Award season begins' }),
+        item({ title: 'A warm week ahead' }),
+      ];
+      const drop = item({ title: 'The war enters its third year' });
+      const out = mergeFeeds([ok(a, [...keep, drop])], { maxItems: 10, blockedWords: 'war', now: NOW });
+      expect(out.map((i) => i.id)).toEqual(keep.map((i) => i.id));
     });
 
     it('requiredWords keeps only stories mentioning at least one word', () => {

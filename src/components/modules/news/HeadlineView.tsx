@@ -12,6 +12,9 @@ import { Thumbnail } from './Thumbnail';
 import { UnavailableFooter } from './UnavailableFooter';
 import type { NewsViewProps } from './news-view-types';
 
+/** Dots stop fitting the tile past a dozen, so the strip windows instead. */
+const MAX_DOTS = 12;
+
 /**
  * One story at a time. A plain swap on the timer, no enter/exit animation:
  * rotating content on a wall display should not draw the eye every ten
@@ -26,6 +29,13 @@ export default function HeadlineView({ items, config, t, locale, newKeys, onTap,
     details: () => { if (item && onTap) onTap(item); },
   });
   if (!item) return null;
+
+  // With more stories than dots the strip slides to keep the lit dot in view;
+  // showing the first twelve would leave every dot dim from story 13 on.
+  const dotStart = Math.min(
+    Math.max(index - Math.floor(MAX_DOTS / 2), 0),
+    Math.max(items.length - MAX_DOTS, 0),
+  );
 
   const age = formatNewsAge(item.timestamp, t, locale);
   const parts = metaParts(item, config, age);
@@ -78,11 +88,11 @@ export default function HeadlineView({ items, config, t, locale, newKeys, onTap,
       </StoryButton>
       {!config.showHeader && config.showCounter && items.length > 1 && (
         <div className="flex justify-center gap-1 shrink-0 pt-1" aria-hidden>
-          {items.slice(0, 12).map((dot, i) => (
+          {items.slice(dotStart, dotStart + MAX_DOTS).map((dot, i) => (
             <span
               key={newsItemKey(dot)}
               className="rounded-full"
-              style={{ width: '0.3em', height: '0.3em', backgroundColor: 'currentColor', opacity: i === index ? 0.9 : 0.25 }}
+              style={{ width: '0.3em', height: '0.3em', backgroundColor: 'currentColor', opacity: dotStart + i === index ? 0.9 : 0.25 }}
             />
           ))}
         </div>

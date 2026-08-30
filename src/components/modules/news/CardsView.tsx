@@ -55,7 +55,7 @@ export default function CardsView({ items, config, t, locale, newKeys, onTap, co
       {config.showHeader && (
         <div className="flex items-baseline justify-between gap-2 shrink-0 mb-2">
           <SectionHeader>{config.title ?? t('news.header')}</SectionHeader>
-          {pages.length > 1 && (
+          {config.showCounter && pages.length > 1 && (
             <span data-news-counter className="tabular-nums" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
               {t('news.counter', { current: pageIndex + 1, total: pages.length })}
             </span>

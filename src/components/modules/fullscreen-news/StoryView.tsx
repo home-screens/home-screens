@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { NewsDisplayItem } from '@/lib/news/types';
+import { useStoryImage } from '../news/news-hooks';
 import { clampLines, sourceInitial } from '../news/news-shared';
 import { StoryButton } from '../news/StoryButton';
 import { sourceTint, themeBgAlpha, type NewsViewContext } from './news-canvas';
@@ -25,11 +25,10 @@ export default function StoryView({ item, index, ctx }: { item: NewsDisplayItem;
   const { bu, s } = scale;
   const landscape = scale.orientation === 'landscape';
 
-  // A picture that fails to load falls back to the no-image layout for that
-  // story only; the next story gets a fresh chance.
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  useEffect(() => { setFailedUrl(null); }, [item.imageUrl]);
-  const imageUrl = options.showImages && item.imageUrl && failedUrl !== item.imageUrl ? item.imageUrl : null;
+  // A picture that fails to load retries the feed's own URL, then falls back
+  // to the no-image layout for that story only; the next story starts fresh.
+  const { src, onError } = useStoryImage(item);
+  const imageUrl = options.showImages ? src : null;
 
   const heroShare = imageUrl ? HERO_SHARE : landscape ? HERO_SHARE_LANDSCAPE_NO_IMAGE : HERO_SHARE_NO_IMAGE;
   const heroPct = `${heroShare * 100}%`;
@@ -79,7 +78,7 @@ export default function StoryView({ item, index, ctx }: { item: NewsDisplayItem;
             src={imageUrl}
             alt=""
             decoding="async"
-            onError={() => setFailedUrl(item.imageUrl)}
+            onError={onError}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (

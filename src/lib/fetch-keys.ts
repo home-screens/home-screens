@@ -41,6 +41,27 @@ export function newsUrl(config: AnyConfig): string | null {
   return `/api/news?${urls.map((u) => `feed=${encodeURIComponent(u)}`).join('&')}`;
 }
 
+/**
+ * Editor-only variant of `newsUrl` that also names the feeds marked
+ * "home network", so Check and the preview can reach a self-hosted reader
+ * the user has not saved yet. `/api/news` honours `lan` only for an editor
+ * session; the display's own polling uses `newsUrl` and cannot ask for it.
+ */
+export function newsEditorUrl(feeds: Array<{ url?: string; homeNetwork?: boolean }> | undefined): string | null {
+  const seen = new Set<string>();
+  const params: string[] = [];
+  const lan: string[] = [];
+  for (const feed of feeds ?? []) {
+    const url = typeof feed?.url === 'string' ? feed.url.trim() : '';
+    if (url.length === 0 || seen.has(url)) continue;
+    seen.add(url);
+    params.push(`feed=${encodeURIComponent(url)}`);
+    if (feed.homeNetwork === true) lan.push(`lan=${encodeURIComponent(url)}`);
+  }
+  if (params.length === 0) return null;
+  return `/api/news?${[...params, ...lan].join('&')}`;
+}
+
 export function airQualityUrl(): string {
   return '/api/air-quality';
 }

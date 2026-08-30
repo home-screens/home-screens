@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { hasEditorSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { decodeFeedBody, parseFeed, FeedParseError } from '@/lib/news/parse-feed';
@@ -23,13 +24,19 @@ export const dynamic = 'force-dynamic';
  * here from the household settings; see `src/lib/news/sources.ts`.
  *
  * Home-network feeds (self-hosted readers on RFC1918 addresses) are fetched
- * only when the exact URL is present in config with `homeNetwork: true`;
- * the editor toggle is the consent, a query flag alone is not.
+ * only when the exact URL is present in config with `homeNetwork: true`, or
+ * named by `lan=` on a request carrying an editor session (so the editor can
+ * check a feed before saving). The editor toggle is the consent; a query flag
+ * from a display is not.
  */
 
 export const MAX_FEEDS_PER_REQUEST = 12;
 export const MAX_ITEMS_PER_FEED = 50;
 const TTL_MS = 5 * 60 * 1000;
+/** Failures cache far shorter than successes: a feed that recovers should not
+ *  stay in the "unavailable" footer for a whole success TTL plus a poll. */
+const FAILURE_TTL_MS = 45 * 1000;
+const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_BODY_BYTES = 4 * 1024 * 1024;
 
@@ -64,18 +71,38 @@ async function fetchFeed(requested: string, target: string, allowHomeNetwork: bo
   const fail = (error: NewsFeedResult['error'], status?: number): NewsFeedResult =>
     ({ url: requested, ok: false, error, status, items: [], fetchedAt });
 
-  // SSRF guard runs on every miss, so cached entries were validated when stored.
-  const safe = allowHomeNetwork ? await isSafeLocalOrExternalUrl(target) : await isSafeExternalUrl(target);
-  if (!safe) return fail('blocked-url');
+  const isSafe = (url: string) =>
+    allowHomeNetwork ? isSafeLocalOrExternalUrl(url) : isSafeExternalUrl(url);
 
-  let res: Response;
+  // The SSRF guard runs on every miss, so cached entries were validated when
+  // stored. Redirects are followed manually so every hop is re-validated:
+  // letting fetch follow them would let an allowed public host 302 to
+  // http://169.254.169.254/ or http://192.168.1.1/ and have us fetch it.
+  if (!(await isSafe(target))) return fail('blocked-url');
+
+  let current = target;
+  let res!: Response;
   try {
-    res = await fetchWithTimeout(target, {
-      timeout: FETCH_TIMEOUT_MS,
-      retries: 1,
-      headers: { 'user-agent': USER_AGENT, accept: ACCEPT },
-      redirect: 'follow',
-    });
+    for (let hop = 0; ; hop++) {
+      res = await fetchWithTimeout(current, {
+        timeout: FETCH_TIMEOUT_MS,
+        retries: 1,
+        headers: { 'user-agent': USER_AGENT, accept: ACCEPT },
+        redirect: 'manual',
+      });
+      if (res.status < 300 || res.status >= 400) break;
+      const location = res.headers.get('location');
+      if (!location) break;
+      if (hop === MAX_REDIRECTS) return fail('unreachable');
+      let next: string;
+      try {
+        next = new URL(location, current).toString();
+      } catch {
+        return fail('blocked-url');
+      }
+      if (!(await isSafe(next))) return fail('blocked-url');
+      current = next;
+    }
   } catch (err) {
     const name = err instanceof Error ? err.name : '';
     return fail(name === 'TimeoutError' || name === 'AbortError' ? 'timeout' : 'unreachable');
@@ -112,9 +139,10 @@ function loadFeed(requested: string, target: string, allowHomeNetwork: boolean):
   if (existing) return existing.then((r) => ({ ...r, url: requested }));
   const run = fetchFeed(requested, target, allowHomeNetwork)
     .then((result) => {
-      // Failures are cached too, briefly, so a dead feed is not hammered by
-      // every display on every poll; the TTL is short enough to recover fast.
-      cache.set(key, result);
+      // Failures are cached too, so a dead feed is not hammered by every
+      // display on every poll, but on a much shorter TTL so a feed that comes
+      // back is not stuck in the "unavailable" footer.
+      cache.set(key, result, result.ok ? TTL_MS : FAILURE_TTL_MS);
       return result;
     })
     .finally(() => inflight.delete(key));
@@ -142,6 +170,16 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const locationName = config?.settings?.locationName;
   const lanFeeds = config ? homeNetworkFeeds(config) : new Set<string>();
 
+  // `lan=` lets the editor check a home-network feed it has not saved yet,
+  // and is honoured only for an editor session, which could grant the same
+  // consent by saving the config anyway. A display polls without it and so
+  // still reaches only the URLs already saved with `homeNetwork: true`.
+  const claimedLan = new Set(
+    request.nextUrl.searchParams.getAll('lan').map((u) => u.trim()).filter((u) => u.length > 0),
+  );
+  const allowClaimedLan = claimedLan.size > 0 && (await hasEditorSession(request));
+  const isLanFeed = (url: string) => lanFeeds.has(url) || (allowClaimedLan && claimedLan.has(url));
+
   const results = await Promise.all(requested.map(async (url, index): Promise<NewsFeedResult> => {
     if (index >= MAX_FEEDS_PER_REQUEST) return { url, ok: false, error: 'too-many-feeds', items: [], fetchedAt: now };
     if (!url) return { url, ok: false, error: 'empty-url', items: [], fetchedAt: now };
@@ -150,7 +188,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       return { url, ok: false, error: resolved.kind === 'local' ? 'no-location' : 'blocked-url', items: [], fetchedAt: now };
     }
     try {
-      return await loadFeed(url, resolved.url, resolved.kind === 'feed' && lanFeeds.has(url));
+      return await loadFeed(url, resolved.url, resolved.kind === 'feed' && isLanFeed(url));
     } catch {
       return { url, ok: false, error: 'unreachable', items: [], fetchedAt: now };
     }

@@ -6,8 +6,9 @@ import type { NewsDisplayItem, NewsFeedResult } from './types';
  * modules, the editor preview, and the unit tests all agree on what shows.
  *
  * Order of operations: per-feed cap -> word filters -> age filter -> dedupe
- * across feeds (id, link, then title) -> sort newest first (undated stories
- * sink, keeping their feed order) unless `preserveOrder` -> total cap.
+ * (id within a feed, link and title across feeds) -> sort newest first
+ * (undated stories sink, keeping their feed order) unless `preserveOrder`
+ * -> total cap.
  */
 
 export interface MergeOptions {
@@ -35,10 +36,43 @@ export function parseWordList(raw: string | undefined): string[] {
   return Array.from(new Set(words));
 }
 
+const WORD_CHAR = /[\p{L}\p{N}_]/u;
+
+function isWordChar(ch: string | undefined): boolean {
+  return ch !== undefined && WORD_CHAR.test(ch);
+}
+
+/**
+ * True when the match ends at a word edge, or runs on only through a plural
+ * "s" / "es" — so "shooting" still hides "shootings".
+ */
+function endsWord(text: string, from: number): boolean {
+  let end = from;
+  while (isWordChar(text[end])) end++;
+  const tail = text.slice(from, end);
+  return tail === '' || tail === 's' || tail === 'es';
+}
+
+/**
+ * Whole-word (or whole-phrase) match, plurals included. A plain substring test
+ * would make short filters unusable: "war" would also hide "Warsaw",
+ * "warehouse" and "award". A word that starts or ends with punctuation ("c++")
+ * has no boundary to check on that side.
+ */
 function mentionsAny(haystack: string, words: string[]): boolean {
   if (words.length === 0) return false;
   const lower = haystack.toLowerCase();
-  return words.some((w) => lower.includes(w));
+  return words.some((w) => {
+    const startBounded = isWordChar(w[0]);
+    const endBounded = isWordChar(w[w.length - 1]);
+    let at = lower.indexOf(w);
+    while (at >= 0) {
+      const startsWord = !startBounded || !isWordChar(at === 0 ? undefined : lower[at - 1]);
+      if (startsWord && (!endBounded || endsWord(lower, at + w.length))) return true;
+      at = lower.indexOf(w, at + 1);
+    }
+    return false;
+  });
 }
 
 function normalizeTitle(title: string): string {
@@ -58,6 +92,10 @@ export function mergeFeeds(feeds: FeedWithResult[], opts: MergeOptions): NewsDis
   for (const { feed, result } of feeds) {
     if (!result || !result.ok) continue;
     const perFeedCap = feed.maxItems && feed.maxItems > 0 ? feed.maxItems : Infinity;
+    // `item.id` is only unique within one feed (see types.ts) -- publishers do
+    // emit short opaque guids that collide across feeds -- so ids dedupe per
+    // feed while link and title dedupe the same story across publishers.
+    const seenIds = new Set<string>();
     let taken = 0;
     for (const item of result.items) {
       if (taken >= perFeedCap) break;
@@ -66,8 +104,10 @@ export function mergeFeeds(feeds: FeedWithResult[], opts: MergeOptions): NewsDis
       if (required.length > 0 && !mentionsAny(searchable, required)) continue;
       if (maxAgeMs > 0 && item.timestamp !== null && now - item.timestamp > maxAgeMs) continue;
 
-      const keys = [item.id, item.link ?? '', normalizeTitle(item.title)].filter((k) => k.length > 0);
+      if (item.id.length > 0 && seenIds.has(item.id)) continue;
+      const keys = [item.link ?? '', normalizeTitle(item.title)].filter((k) => k.length > 0);
       if (keys.some((k) => seen.has(k))) continue;
+      if (item.id.length > 0) seenIds.add(item.id);
       for (const k of keys) seen.add(k);
 
       merged.push({

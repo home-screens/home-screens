@@ -497,6 +497,49 @@ test('news: adjusting Max Items persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'news')).maxItems).toBe(11);
 });
 
+test('news: the preset picker moves on after each add', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('news', { view: 'list', feeds: [] }));
+  const picker = page.locator('select').filter({ has: page.locator('optgroup') });
+  const add = picker.locator('xpath=../../..').getByRole('button', { name: 'Add', exact: true });
+
+  const first = await picker.inputValue();
+  await add.click();
+  await expect(page.getByText('1 / 12')).toBeVisible();
+
+  // The preset just added is now a disabled option: parking on it would leave
+  // Add disabled and force a manual re-pick before every subsequent add.
+  expect(await picker.inputValue()).not.toBe(first);
+  await expect(add).toBeEnabled();
+
+  await autosaved(page, async () => { await add.click(); });
+  expect((await moduleConfig(request, 'news')).feeds).toHaveLength(2);
+});
+
+test('news: Check asks for home-network access for a feed that is not saved yet', async ({ page, request }) => {
+  const LAN = 'http://192.168.1.50:8080/rss';
+  await selectModule(page, request, buildModuleInstance('news', {
+    view: 'list', feeds: [{ id: 'lan', url: LAN, label: 'Home reader' }],
+  }));
+
+  const checks: string[] = [];
+  await page.route('**/api/news*', async (route) => {
+    checks.push(route.request().url());
+    await route.fulfill({
+      status: 200, contentType: 'application/json',
+      body: JSON.stringify({ feeds: [{ url: LAN, ok: true, title: 'Reader', format: 'rss', items: [], fetchedAt: Date.now() }] }),
+    });
+  });
+
+  await page.getByRole('button', { name: 'Edit Home reader' }).click();
+  await page.getByLabel('Home network').check();
+  await page.getByRole('button', { name: 'Check', exact: true }).click();
+
+  // Without the consent riding along, the route would fall back to the
+  // external-only guard and answer blocked-url for a perfectly good address.
+  await expect.poll(() => checks.some((u) => u.includes(`lan=${encodeURIComponent(LAN)}`))).toBe(true);
+  await expect(page.getByText("That link can't be used. Check it and try again.")).toHaveCount(0);
+});
+
 test('stock-ticker: editing Symbols persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('stock-ticker'));
 

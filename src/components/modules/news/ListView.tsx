@@ -19,6 +19,10 @@ import type { NewsViewProps } from './news-view-types';
  * on the rotate interval. Everything fits -> one page, no rotation.
  */
 export default function ListView({ items, config, t, locale, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
+  // The poll hands back a fresh `items` array every refresh, so keying the
+  // re-measure on its identity would re-page (and so reset to page 1) even
+  // when the rendered rows are byte-identical. Key on what the rows say.
+  const rowsKey = items.map((i) => `${newsItemKey(i)}|${i.title}|${i.description}|${i.imageUrl ?? ''}|${i.source}`).join('\u0001');
   const listRef = useRef<HTMLDivElement>(null);
   // null = measuring pass: every row rendered so heights can be read.
   const [pages, setPages] = useState<number[][] | null>(null);
@@ -28,7 +32,7 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
   // pass. Skipped on mount: the layout effect below has already measured by
   // the time this passive effect runs, and resetting here would throw that
   // first page layout away.
-  const measureDeps = [items, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, gen];
+  const measureDeps = [rowsKey, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, gen];
   const mountedRef = useRef(false);
   useEffect(() => {
     if (!mountedRef.current) { mountedRef.current = true; return; }
@@ -104,7 +108,7 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
       {config.showHeader && (
         <div className="flex items-baseline justify-between gap-2 shrink-0 mb-2">
           <SectionHeader>{config.title ?? t('news.header')}</SectionHeader>
-          {pageCount > 1 && (
+          {config.showCounter && pageCount > 1 && (
             <span data-news-counter className="tabular-nums" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.tertiary }}>
               {t('news.counter', { current: pageIndex + 1, total: pageCount })}
             </span>

@@ -1,4 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
+import { TARGET_IMAGE_WIDTH, upscaleImageUrl } from './image-upscale';
 import { cleanText, htmlToText, httpUrl, normalizeWhitespace, stripTitleTags } from './sanitize';
 import type { NewsItem, ParsedFeed } from './types';
 
@@ -86,36 +87,99 @@ function categories(node: Node): string[] | undefined {
   return out.length > 0 ? out.slice(0, 8) : undefined;
 }
 
-/** media:thumbnail -> media:content(image) -> enclosure(image) -> itunes:image -> media:group. */
-function mediaImage(node: Node): string | null {
+interface ImageCandidate {
+  url: string;
+  /** Declared `width` attribute, when the feed states one. */
+  width: number | null;
+  /** `media:thumbnail` is by definition the small copy; the rest are full-size. */
+  isThumbnail: boolean;
+}
+
+/** An image file extension, ignoring any query string (`/x.jpg?w=644`). */
+function looksLikeImageUrl(url: string): boolean {
+  return /\.(jpe?g|png|gif|webp|avif|bmp)(\?|#|$)/i.test(url);
+}
+
+function declaredWidth(node: Node): number | null {
+  const n = Number.parseInt(attr(node, 'width'), 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** Every image a feed item offers: media:thumbnail, media:content, enclosure, itunes:image, media:group. */
+function imageCandidates(node: Node): ImageCandidate[] {
+  const out: ImageCandidate[] = [];
+  const add = (url: string | null, width: number | null, isThumbnail: boolean) => {
+    if (url) out.push({ url, width, isThumbnail });
+  };
+
   for (const thumb of list(child(node, 'thumbnail'))) {
-    const url = httpUrl(attr(thumb, 'url'));
-    if (url) return url;
+    add(httpUrl(attr(thumb, 'url')), declaredWidth(thumb), true);
   }
   for (const content of list(child(node, 'content'))) {
     const type = attr(content, 'type');
     const medium = attr(content, 'medium');
-    if (type.startsWith('image/') || medium === 'image') {
-      const url = httpUrl(attr(content, 'url'));
-      if (url) return url;
+    // `type` and `medium` are both optional in Media RSS: Le Monde ships
+    // `<media:content width height url>` and nothing else. Fall back to the
+    // file extension so those are not dropped, while a video — which does
+    // declare its type or medium — still is.
+    const untyped = type === '' && medium === '' && looksLikeImageUrl(attr(content, 'url'));
+    // An empty `<media:content/>` carries no url and simply drops out here.
+    if (type.startsWith('image/') || medium === 'image' || untyped) {
+      add(httpUrl(attr(content, 'url')), declaredWidth(content), false);
     }
   }
   for (const enc of list(child(node, 'enclosure'))) {
     if (attr(enc, 'type').startsWith('image/')) {
-      const url = httpUrl(attr(enc, 'url'));
-      if (url) return url;
+      add(httpUrl(attr(enc, 'url')), declaredWidth(enc), false);
     }
   }
   const itunes = child(node, 'image');
   if (itunes) {
-    const url = httpUrl(attr(itunes, 'href') || attr(itunes, 'url') || text(child(itunes, 'url')));
-    if (url) return url;
+    add(httpUrl(attr(itunes, 'href') || attr(itunes, 'url') || text(child(itunes, 'url'))), null, false);
   }
   for (const group of list(child(node, 'group'))) {
-    const url = mediaImage(group);
-    if (url) return url;
+    out.push(...imageCandidates(group));
   }
-  return null;
+  return out;
+}
+
+/**
+ * The best picture a feed item offers, not merely the first one listed.
+ *
+ * Feeds routinely advertise several sizes and the small one comes first:
+ * ABC News lists seven thumbnails from 144px to 1600px, El Mundo pairs a
+ * 150px thumbnail with a 3072px `media:content`. Taking whatever came first
+ * meant a 1080-wide hero rendering a 150px image.
+ *
+ * Candidates fall into four tiers, best first:
+ *   1. declares a width that clears the target  -> the smallest such
+ *   2. full-size tag with no declared width      -> the first
+ *   3. declares a width below the target         -> the largest such
+ *   4. a thumbnail with no declared width        -> the first
+ *
+ * A missing width does not disqualify a candidate: most feeds state no size
+ * at all, and a `media:content` without one is still the full-size copy. A
+ * thumbnail is only taken when nothing better is on offer.
+ */
+function bestImage(candidates: ImageCandidate[]): string | null {
+  const clearsTarget = candidates.filter((c) => c.width !== null && c.width >= TARGET_IMAGE_WIDTH);
+  if (clearsTarget.length > 0) {
+    return clearsTarget.reduce((best, c) => (c.width! < best.width! ? c : best)).url;
+  }
+
+  const unsizedFullSize = candidates.find((c) => c.width === null && !c.isThumbnail);
+  if (unsizedFullSize) return unsizedFullSize.url;
+
+  const sized = candidates.filter((c) => c.width !== null);
+  if (sized.length > 0) {
+    return sized.reduce((best, c) => (c.width! > best.width! ? c : best)).url;
+  }
+
+  return candidates[0]?.url ?? null;
+}
+
+function mediaImage(node: Node): string | null {
+  return bestImage(imageCandidates(node));
 }
 
 // ─── RSS 2.0 + RSS 1.0 (RDF) ────────────────────────────────────────────────
@@ -257,13 +321,23 @@ function nonEmpty(item: NewsItem): boolean {
   return item.title.length > 0 || item.description.length > 0;
 }
 
+/**
+ * Ask the publisher's CDN for a bigger copy where we know how, keeping the
+ * advertised URL as the fallback. Applied once here so every feed format and
+ * every consumer (route cache included) sees the same pair.
+ */
+function withUpscaledImage(item: NewsItem): NewsItem {
+  const bigger = upscaleImageUrl(item.imageUrl);
+  return bigger ? { ...item, imageUrl: bigger, imageUrlOriginal: item.imageUrl } : item;
+}
+
 export function parseFeed(raw: string): ParsedFeed {
   const trimmed = raw.replace(/^﻿/, '').trim();
   if (!trimmed) throw new FeedParseError('Empty response');
 
   if (trimmed.startsWith('{')) {
     const feed = parseJsonFeed(trimmed);
-    return { ...feed, items: feed.items.filter(nonEmpty) };
+    return { ...feed, items: feed.items.filter(nonEmpty).map(withUpscaledImage) };
   }
 
   let doc: NodeObject;
@@ -281,7 +355,7 @@ export function parseFeed(raw: string): ParsedFeed {
   else if (doc.channel !== undefined) feed = parseRss(doc, 'rss'); // bare <channel> root
   else throw new FeedParseError(`Unrecognized feed format <${Object.keys(doc)[0] ?? '?'}>`);
 
-  return { ...feed, items: feed.items.filter(nonEmpty) };
+  return { ...feed, items: feed.items.filter(nonEmpty).map(withUpscaledImage) };
 }
 
 /**

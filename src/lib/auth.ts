@@ -247,6 +247,21 @@ export async function revokeAllSessions(): Promise<void> {
 }
 
 /**
+ * True when the caller is the editor: a valid session cookie, or auth
+ * disabled (in which case every caller can already PUT the config). Unlike
+ * `requireDisplayAuth` this rejects a display Bearer token, so it gates the
+ * few behaviours a display must not be able to ask for on its own.
+ */
+export async function hasEditorSession(request: Request): Promise<boolean> {
+  const state = await getCachedAuthState();
+  if (!state.passwordHash) return true; // auth disabled: nothing to escalate
+  if (!state.cookieSecret) return false;
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const token = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/)?.[1];
+  return Boolean(token && verifySession(token, state.cookieSecret, state.sessionEpoch));
+}
+
+/**
  * Validates the session cookie from a request.
  * No-op when auth is disabled. Throws a 401 Response when auth is enabled
  * and the session is invalid or missing.

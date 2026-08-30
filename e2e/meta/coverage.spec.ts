@@ -523,7 +523,6 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'history.sourceWikipedia': 'fetch-only',
   'iframe.refreshIntervalMs': 'timing-only',
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
-  'news.refreshIntervalMs': 'timing-only',
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'news.showNewMarker': 'not-observable',
   'fullscreen-news.refreshIntervalMs': 'timing-only',

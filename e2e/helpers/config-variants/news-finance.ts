@@ -26,7 +26,7 @@ const DAY_MS = 86_400_000;
 /** Far-future timestamps keep "newest first" deterministic without ever counting as "just in". */
 const FUTURE = 4_055_000_000_000;
 
-interface StubItem { id: string; title: string; description?: string; timestamp?: number | null; imageUrl?: string | null; link?: string | null }
+interface StubItem { id: string; title: string; description?: string; timestamp?: number | null; imageUrl?: string | null; imageUrlOriginal?: string | null; link?: string | null }
 
 /** `/api/news` answer for the default BBC feed with the given stories. */
 const newsStub = (items: StubItem[], url = BBC) => ({
@@ -36,6 +36,7 @@ const newsStub = (items: StubItem[], url = BBC) => ({
       id: i.id, title: i.title, link: i.link ?? `https://example.com/${i.id}`,
       description: i.description ?? '', timestamp: i.timestamp === undefined ? FUTURE - n * 3_600_000 : i.timestamp,
       imageUrl: i.imageUrl ?? null,
+      ...(i.imageUrlOriginal ? { imageUrlOriginal: i.imageUrlOriginal } : {}),
     })),
   }],
 });
@@ -61,6 +62,21 @@ const NEWS_WITH_IMAGE = newsStub([{ id: 'img', title: 'E2E PICTURE STORY', image
 /** Twelve long stories: more than the default 500x400 tile can show at once. */
 const NEWS_MANY = newsStub(Array.from({ length: 12 }, (_, i) => ({
   id: `many-${i}`, title: `E2E STORY ${i + 1} with a headline long enough to wrap onto a second line`, description: 'A summary line under the headline.',
+})));
+
+/**
+ * A story whose upscaled image cannot load (external host, blocked by the
+ * harness) but whose original still can, so the fallback is exercised.
+ */
+const NEWS_UPSCALE_FALLBACK = newsStub([{
+  id: 'fallback', title: 'E2E FALLBACK STORY',
+  imageUrl: 'https://ichef.blocked.example/ace/standard/1248/x/y.jpg',
+  imageUrlOriginal: TINY_GIF,
+}]);
+
+/** Twice as many stories as the headline view has indicator dots. */
+const NEWS_24 = newsStub(Array.from({ length: 24 }, (_, i) => ({
+  id: `dot-${i}`, title: `E2E STORY ${i + 1}`,
 })));
 
 /** The story tapped in the tap-action rows; the overlay must show its summary. */
@@ -253,6 +269,53 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
     type: 'news', name: 'counter-off', kind: 'networked', stubKey: 'news',
     config: { view: 'headline', showCounter: false },
     expect: async (mod) => { await has('Global markets rally on tech surge')(mod); await count('[data-news-counter]', 0)(mod); },
+  },
+  {
+    // A rewritten CDN URL that stops working must fall back to the URL the
+    // feed advertised, not straight to the placeholder block.
+    type: 'news', name: 'image-upscale-fallback', kind: 'networked', stubKey: 'news',
+    stubBody: NEWS_UPSCALE_FALLBACK, allowsExternal: true,
+    config: { view: 'list', showImages: true },
+    expect: async (mod) => {
+      await has('E2E FALLBACK STORY')(mod);
+      await expect(mod.locator('[data-news-thumb="image"]')).toBeVisible();
+      await expect.poll(() => mod.locator('[data-news-thumb] img').getAttribute('src')).toBe(TINY_GIF);
+    },
+  },
+  {
+    // Past the twelfth story the dot strip slides instead of running out, so
+    // one dot is always lit however many stories the module carries.
+    type: 'news', name: 'headline-dots-window', kind: 'networked', stubKey: 'news', stubBody: NEWS_24,
+    config: { view: 'headline', showHeader: false, showCounter: true, maxItems: 24, rotateIntervalMs: 400 },
+    expect: async (mod) => {
+      const dots = mod.locator('span.rounded-full');
+      await expect.poll(() => dots.count()).toBe(12);
+      await expect.poll(() => mod.getByText(/^E2E STORY 1[5-9]$/).count(), { timeout: 30_000 }).toBeGreaterThan(0);
+      const lit = await dots.evaluateAll((els) => els.filter((e) => (e as HTMLElement).style.opacity === '0.9').length);
+      expect(lit).toBe(1);
+    },
+  },
+  {
+    // A refresh that brings back the same rows must not re-page the list and
+    // yank the viewer back to page 1: the pager should climb past page 2.
+    type: 'news', name: 'list-paging-survives-refresh', kind: 'networked', stubKey: 'news', stubBody: NEWS_MANY,
+    config: { view: 'list', maxItems: 12, showDescription: true, rotateIntervalMs: 700, refreshIntervalMs: 1000 },
+    expect: async (mod) => {
+      const counter = mod.locator('[data-news-counter]');
+      await expect(counter).toHaveText(/1 of [2-9]/);
+      await expect.poll(async () => (await counter.textContent()) ?? '', { timeout: 20_000 }).toMatch(/3 of /);
+    },
+  },
+  {
+    // The counter belongs to every paging view, not just the headline: turning
+    // it off in the list must hide the page counter too.
+    type: 'news', name: 'list-counter-off', kind: 'networked', stubKey: 'news', stubBody: NEWS_MANY,
+    config: { view: 'list', maxItems: 12, showDescription: true, showCounter: false, rotateIntervalMs: 60_000 },
+    expect: async (mod) => {
+      await has('E2E STORY 1')(mod);
+      await expect.poll(async () => Number(await mod.locator('[data-news-pages]').getAttribute('data-news-pages'))).toBeGreaterThan(1);
+      await count('[data-news-counter]', 0)(mod);
+    },
   },
   {
     // The five-minute-old story gets the "Just in" pill.
