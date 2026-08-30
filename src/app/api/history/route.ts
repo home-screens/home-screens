@@ -1,12 +1,28 @@
+import { NextResponse } from 'next/server';
 import { cachedProxyRoute, fetchWithTimeout } from '@/lib/api-utils';
 import type { HistoryEvent, HistoryResponse } from '@/lib/history-types';
+import pkg from '../../../../package.json';
 
 export const dynamic = 'force-dynamic';
+
+// Wikimedia buckets clients by User-Agent and drops anything that doesn't
+// match their policy format (`name/version (contact)`) into the most
+// restrictive rate-limit tier, which answers every request with a 429.
+// Node's default agent lands in that tier, so the header is required.
+const WIKIMEDIA_USER_AGENT = `home-screens/${pkg.version} (github.com/home-screens/home-screens)`;
+
+// Both sources are best-effort and the result is cached for a day, so a
+// failing upstream should be abandoned immediately rather than retried.
+// Wikimedia's 429 carries `Retry-After: 1000`, which the shared retry helper
+// clamps to 60s per attempt and would otherwise spend two minutes sleeping on
+// while `Promise.all` holds the whole route open.
+const NO_RETRY = { retries: 0 } as const;
 
 async function fetchMuffinLabs(): Promise<HistoryEvent[]> {
   try {
     const res = await fetchWithTimeout('https://history.muffinlabs.com/date', {
       headers: { Accept: 'application/json' },
+      ...NO_RETRY,
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -24,7 +40,10 @@ async function fetchWikipedia(): Promise<HistoryEvent[]> {
     const dd = String(now.getDate()).padStart(2, '0');
     const res = await fetchWithTimeout(
       `https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`,
-      { headers: { Accept: 'application/json' } },
+      {
+        headers: { Accept: 'application/json', 'User-Agent': WIKIMEDIA_USER_AGENT },
+        ...NO_RETRY,
+      },
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -69,6 +88,17 @@ const { GET, cache } = cachedProxyRoute<HistoryResponse>({
         seen.add(e.year);
         deduped.push(e);
       }
+    }
+
+    // Both sources swallow their own failures and return [], so an empty
+    // result means every enabled source failed — never that the day has no
+    // history. Returning a NextResponse keeps it out of the 24h cache (the
+    // helper only caches plain values), so the next poll retries instead of
+    // the module sitting empty until the UTC date rolls over. Displays that
+    // already have events keep showing them, since useFetchData holds the
+    // last successful payload across a failed refresh.
+    if (deduped.length === 0) {
+      return NextResponse.json({ error: 'Failed to fetch historical events' }, { status: 502 });
     }
 
     return { events: shuffle(deduped) };

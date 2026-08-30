@@ -163,7 +163,7 @@ describe('GET /api/history', () => {
     expect(json.events[0].source).toBe('wikipedia');
   });
 
-  it('returns empty events when both sources fail', async () => {
+  it('errors instead of returning empty events when both sources fail', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() => Promise.reject(new Error('ECONNREFUSED'))),
@@ -173,8 +173,40 @@ describe('GET /api/history', () => {
     const response = await GET(dummyRequest);
     const json = await response.json();
 
+    // A 502 lets useFetchData keep the last good payload on a display,
+    // where a 200 with no events would blank the module.
+    expect(response.status).toBe(502);
+    expect(json.events).toBeUndefined();
+  });
+
+  it('does not cache a total failure, so the next poll retries', async () => {
+    let failing = true;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (failing) return Promise.reject(new Error('ECONNREFUSED'));
+        if (url.includes('history.muffinlabs.com')) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve(makeMuffinLabsResponse([{ year: '1959', text: 'Barbie doll goes on sale' }])),
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(makeWikipediaResponse([])) });
+      }),
+    );
+
+    const GET = await importGET();
+    expect((await GET(dummyRequest)).status).toBe(502);
+
+    // Same day, same cache key: the failure must not have been stored, or the
+    // module would sit empty until the UTC date rolled over.
+    failing = false;
+    const response = await GET(dummyRequest);
+    const json = await response.json();
+
     expect(response.status).toBe(200);
-    expect(json.events).toEqual([]);
+    expect(json.events).toHaveLength(1);
   });
 
   it('limits each source to 10 events', async () => {
@@ -207,6 +239,50 @@ describe('GET /api/history', () => {
     const wikiCall = calls.find((c: string[]) => c[0].includes('wikimedia.org'));
     expect(wikiCall).toBeDefined();
     expect(wikiCall![0]).toContain('/03/09');
+  });
+
+  it('sends an identifying User-Agent to Wikimedia (their policy 429s the default)', async () => {
+    mockBothSources([], []);
+
+    const GET = await importGET();
+    await GET(dummyRequest);
+
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    const wikiCall = calls.find((c: string[]) => c[0].includes('wikimedia.org'));
+    const headers = (wikiCall![1] as RequestInit).headers as Record<string, string>;
+    expect(headers['User-Agent']).toMatch(/^home-screens\/\S+ \(github\.com\/home-screens\/home-screens\)$/);
+  });
+
+  it('does not retry a rate-limited source', async () => {
+    // Wikimedia answers non-compliant clients with 429 + `Retry-After: 1000`.
+    // Retrying that would hold the whole route open for minutes while
+    // Promise.all waits, so each source gets exactly one attempt.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url.includes('wikimedia.org')) {
+          return Promise.resolve({
+            ok: false,
+            status: 429,
+            headers: new Headers({ 'Retry-After': '1000' }),
+            json: () => Promise.resolve({}),
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(makeMuffinLabsResponse([{ year: '1959', text: 'Barbie doll goes on sale' }])),
+        });
+      }),
+    );
+
+    const GET = await importGET();
+    const response = await GET(dummyRequest);
+    const json = await response.json();
+
+    expect(json.events).toHaveLength(1);
+    expect(json.events[0].source).toBe('muffinlabs');
+    const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+    expect(calls.filter((c: string[]) => c[0].includes('wikimedia.org'))).toHaveLength(1);
   });
 
   it('serves cached response on second call for the same day', async () => {
