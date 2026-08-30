@@ -37,6 +37,8 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   const hasImages = view === 'list' || view === 'cards' || view === 'headline';
   // Every view that pages, and so has something to count.
   const hasCounter = view === 'headline' || view === 'list' || view === 'cards';
+  // Ticker and compact draw no heading, so the title controls would do nothing.
+  const hasHeader = view === 'headline' || view === 'list' || view === 'cards';
 
   return (
     <>
@@ -140,18 +142,22 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       )}
 
       <SectionHeading>{t('configSections.news.details')}</SectionHeading>
-      <Toggle
-        label={t('common.showTitle')}
-        checked={c.showTitle !== false}
-        onChange={(v) => set({ showTitle: v })}
-      />
-      {c.showTitle !== false && (
-        <LabeledInput
-          label={t('configSections.news.headerText')}
-          value={c.title ?? ''}
-          onChange={(v) => set({ title: v || undefined })}
-          placeholder={t('configSections.news.headerTextPlaceholder')}
-        />
+      {hasHeader && (
+        <>
+          <Toggle
+            label={t('common.showTitle')}
+            checked={c.showTitle !== false}
+            onChange={(v) => set({ showTitle: v })}
+          />
+          {c.showTitle !== false && (
+            <LabeledInput
+              label={t('configSections.news.headerText')}
+              value={c.title ?? ''}
+              onChange={(v) => set({ title: v || undefined })}
+              placeholder={t('configSections.news.headerTextPlaceholder')}
+            />
+          )}
+        </>
       )}
       <Toggle
         label={t('configSections.news.showSource')}
