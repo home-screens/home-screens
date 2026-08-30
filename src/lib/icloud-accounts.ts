@@ -20,7 +20,7 @@ export interface ICloudAccountInfo {
   appleId: string;
 }
 
-interface ICloudAccountsFile {
+export interface ICloudAccountsFile {
   accounts: ICloudAccount[];
 }
 
@@ -30,6 +30,13 @@ const store = createJsonStore<ICloudAccountsFile>({
   chmod: 0o600,
   errorHandling: 'throw-corrupt',
 });
+
+/**
+ * Whole-file read/write, used by the credential backup. Everything else goes
+ * through the add/remove helpers below, which mutate atomically.
+ */
+export const readICloudAccountsFile = store.read;
+export const writeICloudAccountsFile = store.write;
 
 export async function listICloudAccounts(): Promise<ICloudAccount[]> {
   const file = await store.read();

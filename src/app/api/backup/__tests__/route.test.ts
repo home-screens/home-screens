@@ -4,16 +4,23 @@ import { NextRequest } from 'next/server';
 // Auth is the only dependency we stub — every other lib runs for real against
 // the per-worker sandbox `data/` (see vitest.setup.ts), so the export→restore
 // path is exercised end to end through the real json-store atomic writes.
-vi.mock('@/lib/auth', () => ({
+// importActual so readAuthState/writeAuthStateRaw stay real — the credential
+// restore path writes data/auth.json through them, in the sandbox.
+vi.mock('@/lib/auth', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/auth')>()),
   requireSession: vi.fn(),
   requireDisplayAuth: vi.fn(),
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
 import { GET, POST } from '@/app/api/backup/route';
+import { POST as POST_CREDENTIALS } from '@/app/api/backup/credentials/route';
 import { readConfig, writeConfig } from '@/lib/config';
 import { readChoreData, writeChoreData } from '@/lib/chore-data';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
+import { readAuthState, writeAuthStateRaw, isAuthEnabled } from '@/lib/auth';
+import { readSecrets, writeSecrets } from '@/lib/secrets';
+import { encryptCredentials } from '@/lib/backup-crypto';
 import { getLatestSchemaVersion } from '@/lib/migrations';
 import type { ScreenConfiguration } from '@/types/config';
 import type { ChoreData } from '@/lib/chore-data';
@@ -45,6 +52,8 @@ beforeEach(async () => {
   await writeConfig(cleanConfig);
   await writeChoreData(emptyChores);
   await writeBackupState({ lastBackupDate: null, lastDismissedDate: null });
+  await writeSecrets({});
+  await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
 });
 
 describe('GET /api/backup', () => {
@@ -54,7 +63,7 @@ describe('GET /api/backup', () => {
     const bundle = await res.json();
 
     expect(bundle._type).toBe('home-screens-backup');
-    expect(bundle._version).toBe(1);
+    expect(bundle._version).toBe(2);
     expect(typeof bundle._createdAt).toBe('string');
     expect(Number.isNaN(Date.parse(bundle._createdAt))).toBe(false);
 
@@ -267,5 +276,141 @@ describe('POST /api/backup — restore', () => {
 
     // Nothing may have been written — the seeded clean config is intact.
     expect((await readConfig()).screens[0].id).toBe('default');
+  });
+});
+
+describe('POST /api/backup — credential section', () => {
+  const PASSWORD = 'a good long password';
+
+  function bundleWith(credentials: unknown, extra: Record<string, unknown> = {}) {
+    return { _type: 'home-screens-backup', config: cleanConfig, credentials, ...extra };
+  }
+
+  it('ignores a v1 bundle with no credentials field', async () => {
+    await writeSecrets({ openweathermap_key: 'untouched' });
+    const res = await POST(postReq({ _type: 'home-screens-backup', config: cleanConfig }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).credentials).toBeUndefined();
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'untouched' });
+  });
+
+  it('applies a plaintext credential section', async () => {
+    const res = await POST(
+      postReq(bundleWith({ encrypted: false, data: { secrets: { openweathermap_key: 'from-backup' } } })),
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).credentials.applied).toEqual(['secrets']);
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'from-backup' });
+  });
+
+  it('asks for a password when the section is locked, writing nothing', async () => {
+    const envelope = await encryptCredentials({ secrets: { openweathermap_key: 'locked' } }, PASSWORD);
+    const res = await POST(postReq(bundleWith(envelope)));
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('passphrase_required');
+    // A missing password must cost nothing — not even the config write.
+    expect(await readSecrets()).toEqual({});
+    expect((await readConfig()).screens[0].id).toBe('default');
+  });
+
+  it('rejects the wrong password without writing anything', async () => {
+    const envelope = await encryptCredentials({ secrets: { openweathermap_key: 'locked' } }, PASSWORD);
+    const res = await POST(postReq(bundleWith(envelope, { _passphrase: 'wrong password here' })));
+
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('bad_passphrase');
+    expect(await readSecrets()).toEqual({});
+  });
+
+  it('applies an encrypted section given the right password', async () => {
+    const envelope = await encryptCredentials(
+      { secrets: { openweathermap_key: 'unlocked' }, auth: { passwordHash: 'h', salt: 's', cookieSecret: 'c' } },
+      PASSWORD,
+    );
+    const res = await POST(postReq(bundleWith(envelope, { _passphrase: PASSWORD })));
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.credentials.applied.sort()).toEqual(['auth', 'secrets']);
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'unlocked' });
+    expect((await readAuthState()).passwordHash).toBe('h');
+  });
+
+  it('rejects a credentials field that is not a recognizable envelope', async () => {
+    const res = await POST(postReq(bundleWith({ secrets: { openweathermap_key: 'raw' } })));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('invalid_credentials');
+    expect(await readSecrets()).toEqual({});
+  });
+
+  it('reports a damaged locked section rather than a wrong password', async () => {
+    const envelope = await encryptCredentials({ secrets: {} }, PASSWORD);
+    const damaged = { ...envelope, kdfParams: { ...envelope.kdfParams, N: 1000 } };
+    const res = await POST(postReq(bundleWith(damaged, { _passphrase: PASSWORD })));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('invalid_credentials');
+  });
+
+  // The client's fallback when the user cannot supply the password: re-post
+  // the same bundle without the credential section.
+  it('restores everything else when the credential section is dropped', async () => {
+    const res = await POST(
+      postReq({
+        _type: 'home-screens-backup',
+        config: { ...cleanConfig, screens: [{ id: 'from-backup', name: 'S', modules: [] }] },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect((await readConfig()).screens[0].id).toBe('from-backup');
+  });
+
+  it('holds back IP restrictions that would lock this device out', async () => {
+    const res = await POST(
+      postReq(
+        bundleWith({
+          encrypted: false,
+          data: {
+            auth: {
+              passwordHash: 'h',
+              salt: 's',
+              cookieSecret: 'c',
+              ipAllowlist: ['10.0.0.0/24'],
+              ipRestrictAccess: true,
+            },
+          },
+        }),
+      ),
+    );
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.credentials.applied).toContain('auth');
+    expect(json.credentials.skipped).toContain('auth.ipRestrictAccess');
+
+    const state = await readAuthState();
+    expect(state.ipRestrictAccess).toBe(false);
+    expect(state.ipAllowlist).toEqual(['10.0.0.0/24']);
+  });
+
+  it('round-trips a real export through GET then POST', async () => {
+    // The credentials route refuses to run without an editor password — that
+    // is the whole point of its gate — so give this device one.
+    await writeAuthStateRaw({ passwordHash: 'h', salt: 's', cookieSecret: 'c' });
+    vi.mocked(isAuthEnabled).mockResolvedValue(true);
+    await writeSecrets({ openweathermap_key: 'round-trip' });
+    const bundle = await (await GET(getReq())).json();
+    const credRes = await POST_CREDENTIALS(
+      new NextRequest('http://localhost/api/backup/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passphrase: PASSWORD }),
+      }),
+    );
+    bundle.credentials = await credRes.json();
+
+    await writeSecrets({});
+    const res = await POST(postReq({ ...bundle, _passphrase: PASSWORD }));
+    expect(res.status).toBe(200);
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'round-trip' });
   });
 });

@@ -700,8 +700,27 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 - **Import** replaces the current config with an uploaded JSON file (available in both the editor and the remote)
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
 
+### Backing up your keys
+
+By default a backup carries no keys at all. **This part needs an editor password** (Settings > Security): without one, anything on your network can ask the hub for your keys, and there is no way for it to tell you apart from anyone else. Until you set one, the checkbox below stays switched off.
+
+In the editor, **Settings > Backups & data > Full Backup** has two checkboxes:
+
+- **Include my API keys and connected accounts** adds your weather and map keys, your Google, iCloud, Immich and OneDrive sign-ins, your plugin logins, and your editor password to the file. Both boxes start unticked every time you open the page, so an accidental tick never becomes your standing default.
+- **Protect them with a password** locks that part of the file. You choose the password, and you need it again to put the keys back.
+
+A backup that carries keys is named `home-screens-backup-with-keys-<date>.json`, so you can tell it apart in a downloads folder.
+
+There is no way to recover the password. If you lose it you can still restore the backup — choose **Restore without my keys** at the prompt, and everything except the keys comes back. Losing the password costs you the keys, not your setup.
+
+Restoring a backup that includes your editor password signs you out, because the password on this device becomes the one from the backup. Sign in again with that password. If the backup also had network address rules turned on and this device isn't on the restored list, the rules are left switched off so you can't lock yourself out; turn them back on in Settings once you've added this device.
+
+The remote control's Settings sheet has no password prompt. Restoring a key-carrying backup there restores everything except the keys and tells you so — finish that part in the editor.
+
 {% callout type="warning" %}
-**The export is not everything.** API keys, iCloud and Google credentials, plugin bundles, and plugin account tokens are deliberately left out of the backup file, so restoring on a new Pi comes up with your integrations disconnected and your plugins missing. Re-enter them after a restore. For a genuinely complete copy, take the whole `data/` directory instead. Copying `data/config.json` on its own is narrower still: it captures none of your chores, completions, meals, or rewards.
+**Keep a key-carrying backup private.** Without the password option, anyone who opens the file can use your accounts. With it, the keys are sealed and only your password opens them.
+
+Plugin bundles themselves are still not in the backup, so a restored Pi comes up with its plugins missing (their saved logins return once you reinstall them). For a genuinely complete copy, take the whole `data/` directory instead. Copying `data/config.json` on its own is narrower still: it captures none of your chores, completions, meals, or rewards.
 {% /callout %}
 
 ## Example

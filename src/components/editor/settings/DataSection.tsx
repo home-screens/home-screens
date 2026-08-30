@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
 import type { LayoutExport } from '@/types/layout-export';
 import type { BackupReminderSettings } from '@/types/config';
@@ -13,7 +13,10 @@ import LayoutExportModal from '@/components/editor/LayoutExportModal';
 import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplatePicker from '@/components/editor/TemplatePicker';
+import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
 import { useTranslate } from '@/i18n';
+import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
+import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
@@ -23,6 +26,20 @@ interface ConfigBackupFile {
   name: string;
   size: number;
   modified: string;
+}
+
+/** Recoverable credential errors from POST /api/backup — machine codes the
+ *  server returns so the client can drive the unlock modal in any language. */
+const CREDENTIAL_ERROR_CODES = ['passphrase_required', 'bad_passphrase', 'invalid_credentials'] as const;
+type CredentialErrorCode = (typeof CREDENTIAL_ERROR_CODES)[number];
+
+function isCredentialErrorCode(value: unknown): value is CredentialErrorCode {
+  return typeof value === 'string' && (CREDENTIAL_ERROR_CODES as readonly string[]).includes(value);
+}
+
+interface RestoreResponse {
+  restored?: Record<string, boolean>;
+  credentials?: CredentialApplyResult;
 }
 
 // kind drives styling/role explicitly — don't sniff English prefixes from message.
@@ -54,6 +71,24 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [backupBusy, setBackupBusy] = useState(false);
 
+  // Credential opt-in. Deliberately NOT persisted to config: it resets on
+  // every mount, so an accidental tick never becomes the standing default for
+  // future exports.
+  const [includeCredentials, setIncludeCredentials] = useState(false);
+  const [protectCredentials, setProtectCredentials] = useState(false);
+  const [showExportPasswordModal, setShowExportPasswordModal] = useState(false);
+
+  // Restore-side password prompt for an encrypted bundle. `pendingRestore`
+  // holds the parsed bundle between the file read and a successful unlock.
+  const [pendingRestore, setPendingRestore] = useState<Record<string, unknown> | null>(null);
+  const [restorePasswordError, setRestorePasswordError] = useState<string | null>(null);
+
+  // The credential export refuses to run without an editor password: a
+  // password-less install has no way to tell the owner from anyone else on the
+  // network, and this is the one thing that hands out raw keys. Disable the
+  // opt-in rather than letting the export fail at the last step.
+  const [authEnabled, setAuthEnabled] = useState<boolean | null>(null);
+
   // Backup reminder state
   const reminder = config?.settings?.backupReminder;
   const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
@@ -72,6 +107,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           const state = await res.json();
           setLastBackupDate(state.lastBackupDate);
         }
+      })
+      .catch(() => {});
+    editorFetch('/api/auth/status')
+      .then(async (res) => {
+        if (res.ok) setAuthEnabled((await res.json()).authEnabled === true);
       })
       .catch(() => {});
     editorFetch('/api/system/backups')
@@ -131,64 +171,245 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     saveConfig();
   }, [reminder, updateSettings, saveConfig]);
 
-  const handleBackupExport = useCallback(async () => {
+  // Two calls, not one: `GET /api/backup` never carries credentials, so the
+  // opt-in section comes from a separate POST whose body can hold the
+  // password (a URL would leak it into history and proxy logs).
+  const runBackupExport = useCallback(async (password?: string) => {
     setBackupBusy(true);
     try {
       const res = await editorFetch('/api/backup');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const bundle = await res.json();
+
+      let withCredentials = false;
+      if (includeCredentials) {
+        const credRes = await editorFetch('/api/backup/credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ passphrase: password ?? '' }),
+        });
+        if (credRes.ok) {
+          bundle.credentials = await credRes.json();
+          withCredentials = true;
+        } else {
+          // Don't throw away a good bundle because the extra call failed.
+          const proceed = await useConfirmStore.getState().confirm({
+            title: t('settings.dataPage.alerts.credentialsExportFailedTitle'),
+            message: t('settings.dataPage.alerts.credentialsExportFailed'),
+            confirmLabel: t('settings.dataPage.alerts.credentialsExportFailedConfirm'),
+          });
+          if (!proceed) return;
+        }
+      }
+
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`);
+      const date = new Date().toISOString().slice(0, 10);
+      // A distinct filename so a file holding keys is identifiable at a
+      // glance in a downloads folder.
+      downloadBlob(
+        blob,
+        withCredentials
+          ? `home-screens-backup-with-keys-${date}.json`
+          : `home-screens-backup-${date}.json`,
+      );
       setLastBackupDate(new Date().toISOString());
     } catch {
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.exportBackupFailed'));
     } finally {
       setBackupBusy(false);
     }
-  }, [t]);
+  }, [includeCredentials, t]);
 
-  // Shared restore path for both legacy raw-config uploads and new bundle
-  // uploads. POST the body, then reload the server-authoritative config and
-  // hydrate the editor store from it. Hydrating directly from the upload
-  // would skip migrate-on-boot and leave the editor showing a pre-migration
-  // shape until the next save.
-  const postBackupAndReload = useCallback(async (rawJson: string) => {
+  const handleBackupExport = useCallback(async () => {
+    if (includeCredentials && protectCredentials) {
+      setShowExportPasswordModal(true);
+      return;
+    }
+    if (includeCredentials) {
+      const ok = await useConfirmStore.getState().confirm({
+        title: t('settings.dataPage.alerts.plaintextExportTitle'),
+        message: t('settings.dataPage.alerts.plaintextExportMessage'),
+        confirmLabel: t('settings.dataPage.alerts.plaintextExportConfirm'),
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
+    await runBackupExport();
+  }, [includeCredentials, protectCredentials, runBackupExport, t]);
+
+  // Finish a successful restore. Reloading the server-authoritative config
+  // (rather than hydrating from the upload) is what runs migrate-on-boot;
+  // hydrating directly would leave the editor on a pre-migration shape until
+  // the next save.
+  const finishRestore = useCallback(async (result: RestoreResponse) => {
+    const credentials = result.credentials;
+    const notices: string[] = [];
+    if (credentials?.skipped.includes('auth.ipRestrictAccess')) {
+      notices.push(t('settings.dataPage.restore.ipRulesNotRestored'));
+    }
+    if (credentials?.skipped.includes('auth')) {
+      notices.push(t('settings.dataPage.restore.loginNotRestored'));
+    }
+
+    // Restoring auth.json swapped the cookie secret, which just invalidated
+    // the session cookie this tab is holding. Any follow-up fetch would 401
+    // into a confusing half-loaded editor, so send the user to /login instead
+    // of reloading the config.
+    if (credentials?.applied.includes('auth')) {
+      await useConfirmStore.getState().alert(
+        [t('settings.dataPage.restore.signInAgain'), ...notices].join('\n\n'),
+        t('settings.dataPage.restore.completeTitle'),
+      );
+      window.location.assign('/login');
+      return;
+    }
+
+    if (notices.length > 0) {
+      await useConfirmStore.getState().alert(
+        notices.join('\n\n'),
+        t('settings.dataPage.restore.completeTitle'),
+      );
+    }
+
+    // Throw rather than skip on a bad response. `editorFetch` only throws on
+    // 401, so an `if (configRes.ok)` guard would swallow a 500 and leave the
+    // editor quietly showing pre-restore config with no sign anything was
+    // wrong. The caller turns this into "restored, but couldn't reload".
+    const configRes = await editorFetch('/api/config');
+    if (!configRes.ok) throw new Error(`HTTP ${configRes.status}`);
+    importConfig(JSON.stringify(await configRes.json()));
+    onSettingsImported();
+  }, [importConfig, onSettingsImported, t]);
+
+  /**
+   * Shared restore path for legacy raw-config uploads and bundles alike.
+   * Resolves to a credential error code when the server needs a password (or
+   * got the wrong one) — those are recoverable and drive the unlock modal
+   * rather than failing the whole restore.
+   */
+  const postBackupAndReload = useCallback(async (
+    bundle: Record<string, unknown>,
+    password?: string,
+  ): Promise<CredentialErrorCode | null> => {
+    let result: RestoreResponse;
     setBackupBusy(true);
     try {
+      const body = password ? { ...bundle, _passphrase: password } : bundle;
       const res = await editorFetch('/api/backup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: rawJson,
+        body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const configRes = await editorFetch('/api/config');
-      if (configRes.ok) {
-        const config = await configRes.json();
-        importConfig(JSON.stringify(config));
+      if (!res.ok) {
+        if (res.status === 400) {
+          const data = await res.json().catch(() => ({}));
+          if (isCredentialErrorCode(data?.error)) return data.error;
+        }
+        throw new Error(`HTTP ${res.status}`);
       }
-      onSettingsImported();
+      result = await res.json();
     } finally {
       setBackupBusy(false);
     }
-  }, [importConfig, onSettingsImported]);
 
-  const handleBackupRestore = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Deliberately outside the block above. Everything past this point has
+    // already been committed on the server, so a failure here is a reload
+    // problem, not a failed restore — reporting it as one would tell the user
+    // nothing happened to a device that has just been rewritten.
+    try {
+      await finishRestore(result);
+    } catch (err) {
+      if (isSessionExpired(err)) throw err;
+      useConfirmStore.getState().alert(t('settings.dataPage.restore.reloadFailed'));
+    }
+    return null;
+  }, [finishRestore, t]);
+
+  const handleBackupRestore = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        // Validate JSON parses (the API enforces shape — we just need to
-        // know whether to take the bundle vs legacy branch from the wrapper).
-        JSON.parse(reader.result as string);
-        await postBackupAndReload(reader.result as string);
-      } catch {
-        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
-      }
-    };
-    reader.readAsText(file);
     e.target.value = '';
+    if (!file) return;
+
+    let bundle: Record<string, unknown>;
+    try {
+      // Validate JSON parses (the API enforces shape — we only need to see
+      // whether this bundle carries a credential section, and whether it is
+      // locked, before deciding what to prompt for).
+      bundle = JSON.parse(await file.text());
+      if (!bundle || typeof bundle !== 'object') throw new Error('not an object');
+    } catch {
+      useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
+      return;
+    }
+
+    if (bundle.credentials !== undefined) {
+      if (isEncryptedEnvelope(bundle.credentials)) {
+        setRestorePasswordError(null);
+        setPendingRestore(bundle);
+        return;
+      }
+      const ok = await useConfirmStore.getState().confirm({
+        title: t('settings.dataPage.restore.plaintextTitle'),
+        message: t('settings.dataPage.restore.plaintextMessage'),
+        confirmLabel: t('settings.dataPage.restore.plaintextConfirm'),
+        variant: 'danger',
+      });
+      if (!ok) return;
+    }
+
+    try {
+      const code = await postBackupAndReload(bundle);
+      // The server rejects a credential section the client's cheaper
+      // `isEncryptedEnvelope` check let through — a hand-edited file, a
+      // truncated download. Without this the restore would just stop, with no
+      // message and nothing changed.
+      if (code === 'passphrase_required') {
+        setRestorePasswordError(null);
+        setPendingRestore(bundle);
+        return;
+      }
+      if (code) {
+        useConfirmStore.getState().alert(t('settings.dataPage.restore.damagedKeys'));
+      }
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      useConfirmStore.getState().alert(t('settings.dataPage.alerts.restoreBackupFailed'));
+    }
   }, [postBackupAndReload, t]);
+
+  const handleRestorePassword = useCallback(async (password: string) => {
+    if (!pendingRestore) return;
+    try {
+      const code = await postBackupAndReload(pendingRestore, password);
+      if (code === 'bad_passphrase' || code === 'passphrase_required') {
+        setRestorePasswordError(t('settings.dataPage.restore.wrongPassword'));
+        return;
+      }
+      if (code === 'invalid_credentials') {
+        setRestorePasswordError(t('settings.dataPage.restore.damagedKeys'));
+        return;
+      }
+      setPendingRestore(null);
+    } catch (err) {
+      setPendingRestore(null);
+      if (isSessionExpired(err)) return;
+      useConfirmStore.getState().alert(t('settings.dataPage.alerts.restoreBackupFailed'));
+    }
+  }, [pendingRestore, postBackupAndReload, t]);
+
+  // The escape hatch that keeps a forgotten password from costing the whole
+  // restore: drop the credential section and restore everything else.
+  const handleRestoreWithoutKeys = useCallback(async () => {
+    if (!pendingRestore) return;
+    const { credentials: _dropped, ...withoutCredentials } = pendingRestore;
+    setPendingRestore(null);
+    try {
+      await postBackupAndReload(withoutCredentials);
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      useConfirmStore.getState().alert(t('settings.dataPage.alerts.restoreBackupFailed'));
+    }
+  }, [pendingRestore, postBackupAndReload, t]);
 
   const handleTemplateSelect = (layout: LayoutExport) => {
     setShowTemplatePicker(false);
@@ -249,6 +470,64 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           <p className="text-xs text-hs-text-faint mb-3">
             {t('settings.dataPage.fullBackup.description')}
           </p>
+
+          <div className="space-y-2 mb-3">
+            <label
+              className={`flex items-start gap-2.5 ${
+                authEnabled === false ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+              }`}
+              data-field-id="data.fullBackupIncludeCredentials"
+            >
+              <input
+                type="checkbox"
+                checked={includeCredentials}
+                disabled={authEnabled === false}
+                onChange={(e) => {
+                  setIncludeCredentials(e.target.checked);
+                  if (!e.target.checked) setProtectCredentials(false);
+                }}
+                className="accent-hs-accent mt-0.5"
+              />
+              <span>
+                <span className="block text-xs text-hs-text-body">
+                  {t('settings.dataPage.fullBackup.includeCredentialsLabel')}
+                </span>
+                <span className="block text-xs text-hs-text-faint">
+                  {authEnabled === false
+                    ? t('settings.dataPage.fullBackup.needsEditorPassword')
+                    : t('settings.dataPage.fullBackup.includeCredentialsHelp')}
+                </span>
+              </span>
+            </label>
+
+            {includeCredentials && (
+              <div className="ml-6 space-y-2">
+                <label
+                  className="flex items-start gap-2.5 cursor-pointer"
+                  data-field-id="data.fullBackupProtectCredentials"
+                >
+                  <input
+                    type="checkbox"
+                    checked={protectCredentials}
+                    onChange={(e) => setProtectCredentials(e.target.checked)}
+                    className="accent-hs-accent mt-0.5"
+                  />
+                  <span className="text-xs text-hs-text-body">
+                    {t('settings.dataPage.fullBackup.protectLabel')}
+                  </span>
+                </label>
+                {!protectCredentials && (
+                  <p
+                    className="text-xs text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-md px-2.5 py-2"
+                    role="status"
+                  >
+                    {t('settings.dataPage.fullBackup.plaintextWarning')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
@@ -399,6 +678,27 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         <TemplatePicker
           onSelect={handleTemplateSelect}
           onClose={() => setShowTemplatePicker(false)}
+        />
+      )}
+      {showExportPasswordModal && (
+        <BackupPasswordModal
+          mode="set"
+          busy={backupBusy}
+          onSubmit={async (password) => {
+            setShowExportPasswordModal(false);
+            await runBackupExport(password);
+          }}
+          onClose={() => setShowExportPasswordModal(false)}
+        />
+      )}
+      {pendingRestore && (
+        <BackupPasswordModal
+          mode="enter"
+          busy={backupBusy}
+          error={restorePasswordError}
+          onSubmit={handleRestorePassword}
+          onSkip={handleRestoreWithoutKeys}
+          onClose={() => setPendingRestore(null)}
         />
       )}
     </>

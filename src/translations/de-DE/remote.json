@@ -455,7 +455,9 @@
         "invalidFileLabel": "Ungültige Backup-Datei",
         "failedLabel": "Wiederherstellung fehlgeschlagen",
         "idleDescription": "Lade eine Backup-Datei von diesem Gerät hoch",
-        "confirmingDescription": "Damit werden alle vorhandenen Daten ersetzt"
+        "confirmingDescription": "Damit werden alle vorhandenen Daten ersetzt",
+        "doneWithoutKeysLabel": "Wiederhergestellt, ohne Schlüssel",
+        "doneWithoutKeysDescription": "Deine Schlüssel und Konten bleiben unverändert. Trag sie im Editor wieder ein."
       }
     },
     "power": {

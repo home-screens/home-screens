@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Backup konnte nicht exportiert werden.",
-        "invalidBackupFile": "Ungültige Backup-Datei."
+        "invalidBackupFile": "Ungültige Backup-Datei.",
+        "restoreBackupFailed": "Dieses Backup konnte nicht wiederhergestellt werden.",
+        "credentialsExportFailedTitle": "Schlüssel konnten nicht mitgesichert werden",
+        "credentialsExportFailed": "Deine Schlüssel und Konten konnten diesem Backup nicht hinzugefügt werden. Den Rest trotzdem herunterladen?",
+        "credentialsExportFailedConfirm": "Trotzdem herunterladen",
+        "plaintextExportTitle": "Ohne Passwort sichern?",
+        "plaintextExportMessage": "Deine Schlüssel, verbundenen Konten und dein Editor-Passwort sind für jeden lesbar, der diese Datei öffnet. Bewahre sie an einem privaten Ort auf.",
+        "plaintextExportConfirm": "Trotzdem sichern"
       },
       "shareLayout": {
         "heading": "Layout teilen",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Vollständiges Backup",
-        "description": "Exportiere oder stelle die gesamte Konfiguration einschließlich aller Einstellungen, Aufgabendaten und des Verlaufs der Erledigungen wieder her. Für Backup und Geräteumzug. Enthält keine API-Schlüssel.",
+        "description": "Exportiere oder stelle alles wieder her: alle Einstellungen, Aufgabendaten und den Verlauf der Erledigungen. Für Backups und für den Umzug auf ein neues Gerät.",
         "working": "Arbeitet …",
         "backupButton": "Alle Daten sichern",
-        "restoreButton": "Backup wiederherstellen"
+        "restoreButton": "Backup wiederherstellen",
+        "includeCredentialsLabel": "Meine API-Schlüssel und verbundenen Konten mitsichern",
+        "includeCredentialsHelp": "Umfasst Wetter- und Kartenschlüssel, Google, iCloud, Immich, OneDrive, Plugin-Logins und dein Editor-Passwort.",
+        "protectLabel": "Mit einem Passwort schützen",
+        "plaintextWarning": "Wer diese Datei öffnet, kann deine Konten nutzen. Bewahre sie an einem privaten Ort auf.",
+        "needsEditorPassword": "Lege zuerst unter Sicherheit ein Editor-Passwort fest. Ohne eines könnte jeder in deinem Netzwerk die Schlüssel in deinem Backup lesen."
       },
       "backupReminder": {
         "heading": "Backup-Erinnerung",
@@ -465,6 +477,32 @@
           "error": "Fehler: {error}",
           "failed": "Backup konnte nicht wiederhergestellt werden"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Passwort wählen",
+        "setDescription": "Dieses Passwort sperrt die Schlüssel und Konten in deiner Backup-Datei. Du brauchst es, um sie wieder einzuspielen.",
+        "enterTitle": "Dieses Backup ist gesperrt",
+        "enterDescription": "Gib das Passwort ein, das du beim Erstellen dieses Backups gewählt hast.",
+        "passwordLabel": "Passwort",
+        "confirmLabel": "Passwort bestätigen",
+        "tooShort": "Verwende mindestens {count} Zeichen.",
+        "mismatch": "Die beiden Passwörter stimmen nicht überein.",
+        "noRecoveryNote": "Dieses Passwort lässt sich nicht wiederherstellen. Ohne es sind die Schlüssel in dieser Datei nicht lesbar.",
+        "skipButton": "Ohne meine Schlüssel wiederherstellen",
+        "continueButton": "Sichern",
+        "unlockButton": "Entsperren"
+      },
+      "restore": {
+        "completeTitle": "Wiederherstellung abgeschlossen",
+        "signInAgain": "Dieses Backup enthielt dein Editor-Passwort. Melde dich erneut mit dem Passwort aus diesem Backup an.",
+        "ipRulesNotRestored": "Deine Netzwerkadress-Regeln bleiben ausgeschaltet, weil dieses Gerät nicht auf der wiederhergestellten Liste steht. Du kannst sie in den Einstellungen wieder einschalten.",
+        "loginNotRestored": "Das Editor-Passwort aus diesem Backup war nicht verwendbar, das Passwort auf diesem Gerät bleibt unverändert.",
+        "plaintextTitle": "Dieses Backup enthält deine Schlüssel",
+        "plaintextMessage": "Es enthält deine API-Schlüssel, verbundenen Konten und dein Editor-Passwort. Beim Wiederherstellen werden die auf diesem Gerät ersetzt.",
+        "plaintextConfirm": "Wiederherstellen",
+        "wrongPassword": "Dieses Passwort hat nicht funktioniert. Versuch es erneut oder stelle ohne deine Schlüssel wieder her.",
+        "damagedKeys": "Die Schlüssel in dieser Datei sind beschädigt und nicht lesbar. Alles andere kannst du trotzdem wiederherstellen.",
+        "reloadFailed": "Dein Backup wurde wiederhergestellt, aber der Editor konnte nicht neu laden. Lade die Seite neu, um es zu sehen."
       }
     },
     "weatherPage": {

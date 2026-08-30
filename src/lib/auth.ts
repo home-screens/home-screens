@@ -3,7 +3,7 @@ import { createJsonStore } from './json-store';
 
 /* ─── Types ──────────────────────────────────── */
 
-interface AuthState {
+export interface AuthState {
   passwordHash: string | null;
   salt: string | null;
   cookieSecret: string | null;
@@ -48,6 +48,16 @@ async function writeAuthState(state: AuthState): Promise<void> {
   await authStore.write(state);
   cachedState = null;
 }
+
+/**
+ * Replace the whole auth state wholesale. Only the credential-backup restore
+ * uses this — every other caller goes through setPassword/clearPassword/
+ * setIpAllowlistConfig, which preserve the fields they don't own. Named
+ * `Raw` as a warning: the caller is responsible for a coherent state (a
+ * passwordHash without its salt is unusable) and for the fact that replacing
+ * `cookieSecret` invalidates every session cookie already issued.
+ */
+export const writeAuthStateRaw = writeAuthState;
 
 /* ─── Cached reads (short TTL for requireSession hot path) ── */
 

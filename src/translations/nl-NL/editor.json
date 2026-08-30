@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Back-up exporteren mislukt.",
-        "invalidBackupFile": "Ongeldig back-upbestand."
+        "invalidBackupFile": "Ongeldig back-upbestand.",
+        "restoreBackupFailed": "Deze back-up kon niet worden teruggezet.",
+        "credentialsExportFailedTitle": "Je sleutels konden niet mee",
+        "credentialsExportFailed": "Je sleutels en accounts konden niet aan deze back-up worden toegevoegd. De rest toch downloaden?",
+        "credentialsExportFailedConfirm": "Toch downloaden",
+        "plaintextExportTitle": "Back-up zonder wachtwoord maken?",
+        "plaintextExportMessage": "Je sleutels, gekoppelde accounts en je editorwachtwoord zijn leesbaar voor iedereen die dit bestand opent. Bewaar het op een privéplek.",
+        "plaintextExportConfirm": "Toch back-uppen"
       },
       "shareLayout": {
         "heading": "Lay-out delen",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Volledige back-up",
-        "description": "Exporteer of zet de hele configuratie terug, inclusief alle instellingen, klusjesgegevens en geschiedenis. Voor back-ups en migratie tussen apparaten. API-sleutels worden niet meegenomen.",
+        "description": "Exporteer of zet alles terug: alle instellingen, klusjesgegevens en geschiedenis. Voor back-ups en voor de overstap naar een nieuw apparaat.",
         "working": "Bezig…",
         "backupButton": "Alles back-uppen",
-        "restoreButton": "Back-up terugzetten"
+        "restoreButton": "Back-up terugzetten",
+        "includeCredentialsLabel": "Mijn API-sleutels en gekoppelde accounts meenemen",
+        "includeCredentialsHelp": "Bevat weer- en kaartsleutels, Google, iCloud, Immich, OneDrive, plugin-logins en je editorwachtwoord.",
+        "protectLabel": "Beveiligen met een wachtwoord",
+        "plaintextWarning": "Iedereen die dit bestand opent, kan je accounts gebruiken. Bewaar het op een privéplek.",
+        "needsEditorPassword": "Stel eerst een editorwachtwoord in, bij Beveiliging. Zonder wachtwoord kan iedereen in je netwerk de sleutels in je back-up lezen."
       },
       "backupReminder": {
         "heading": "Back-upherinnering",
@@ -465,6 +477,32 @@
           "error": "Fout: {error}",
           "failed": "Back-up terugzetten mislukt"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Kies een wachtwoord",
+        "setDescription": "Dit wachtwoord vergrendelt de sleutels en accounts in je back-upbestand. Je hebt het nodig om ze terug te zetten.",
+        "enterTitle": "Deze back-up is vergrendeld",
+        "enterDescription": "Voer het wachtwoord in dat je koos toen je deze back-up maakte.",
+        "passwordLabel": "Wachtwoord",
+        "confirmLabel": "Wachtwoord bevestigen",
+        "tooShort": "Gebruik minstens {count} tekens.",
+        "mismatch": "De twee wachtwoorden komen niet overeen.",
+        "noRecoveryNote": "Dit wachtwoord kan niet worden hersteld. Zonder dit wachtwoord zijn de sleutels in dit bestand onleesbaar.",
+        "skipButton": "Terugzetten zonder mijn sleutels",
+        "continueButton": "Back-uppen",
+        "unlockButton": "Ontgrendelen"
+      },
+      "restore": {
+        "completeTitle": "Terugzetten voltooid",
+        "signInAgain": "Deze back-up bevatte je editorwachtwoord. Log opnieuw in met het wachtwoord uit die back-up.",
+        "ipRulesNotRestored": "Je netwerkadresregels staan nog uit, omdat dit apparaat niet op de teruggezette lijst staat. Je kunt ze weer aanzetten in Instellingen.",
+        "loginNotRestored": "Het editorwachtwoord in deze back-up was niet bruikbaar, dus het wachtwoord op dit apparaat blijft hetzelfde.",
+        "plaintextTitle": "Deze back-up bevat je sleutels",
+        "plaintextMessage": "Er staan je API-sleutels, gekoppelde accounts en je editorwachtwoord in. Bij terugzetten vervangen ze die op dit apparaat.",
+        "plaintextConfirm": "Terugzetten",
+        "wrongPassword": "Dat wachtwoord werkte niet. Probeer het opnieuw of zet terug zonder je sleutels.",
+        "damagedKeys": "De sleutels in dit bestand zijn beschadigd en onleesbaar. Al het andere kun je nog wel terugzetten.",
+        "reloadFailed": "Je back-up is teruggezet, maar de editor kon niet herladen. Ververs de pagina om het te zien."
       }
     },
     "weatherPage": {

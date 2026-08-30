@@ -455,7 +455,9 @@
         "invalidFileLabel": "Ugyldig backupfil",
         "failedLabel": "Gendannelse fejlede",
         "idleDescription": "Upload en backupfil fra denne enhed",
-        "confirmingDescription": "Dette vil overskrive alle eksisterende data"
+        "confirmingDescription": "Dette vil overskrive alle eksisterende data",
+        "doneWithoutKeysLabel": "Gendannet, uden nøgler",
+        "doneWithoutKeysDescription": "Dine nøgler og konti er uændrede. Tilføj dem igen i editoren."
       }
     },
     "power": {

@@ -426,7 +426,7 @@ No inbound ports beyond the web server port are required. All external service c
 
 ## Security best practices
 
-Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your WiFi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here.
+Password protection is **off by default**. Until you set one, anyone on your network can change your settings, edit your WiFi details, restart the Pi, and install a different version. Your API keys are never readable, but everything else is open. On a normal home network that is usually fine; if you share the network more widely, start here. Backing up your API keys and connected accounts is the one thing that always needs a password, since without one the hub cannot tell you from anyone else on the network.
 
 ### Enable password protection
 

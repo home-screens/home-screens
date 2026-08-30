@@ -7,8 +7,24 @@ import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
 import { readRoutinesFile, writeRoutinesFile } from '@/lib/timer-data';
 import { writeBackupState } from '@/lib/backup-state';
-import { withAuth, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
 import { validateDisplays } from '@/lib/display-filter';
+import { applyCredentials, snapshotCredentials } from '@/lib/backup-credentials';
+import {
+  decryptCredentials,
+  BadPassphraseError,
+  MalformedEnvelopeError,
+} from '@/lib/backup-crypto';
+import {
+  CREDENTIAL_SECTIONS,
+  isCredentialEnvelope,
+  isEncryptedEnvelope,
+  type CredentialApplyResult,
+  type CredentialEnvelope,
+  type CredentialPayload,
+  type CredentialSection,
+} from '@/lib/backup-credentials-types';
+import { audit } from '@/lib/audit';
 import type { ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +42,9 @@ export const GET = withAuth(async () => {
 
   const bundle = {
     _type: 'home-screens-backup',
-    _version: 1,
+    // v2 adds the optional `credentials` section. A v2 bundle without that
+    // section is byte-identical in effect to v1, and v1 bundles still restore.
+    _version: 2,
     _createdAt: new Date().toISOString(),
     config,
     chores,
@@ -67,6 +85,13 @@ function validateRestoredConfig(config: unknown): string | null {
 // recognized before it is written as a full ScreenConfiguration.
 interface RestoreBundle {
   _type?: unknown;
+  /**
+   * Transient: the password for an encrypted `credentials` section. Never
+   * part of the bundle on disk — the editor adds it to the request body only,
+   * and the handler strips it before anything else touches the object.
+   */
+  _passphrase?: unknown;
+  credentials?: unknown;
   config?: ScreenConfiguration;
   chores?: Parameters<typeof writeChoreData>[0];
   choreCompletions?: Parameters<typeof writeCompletions>[0];
@@ -94,6 +119,46 @@ interface RestoreBundle {
 // the endpoint can't be used to exhaust memory with an oversized body.
 const MAX_RESTORE_BYTES = 25 * 1024 * 1024; // 25 MB
 
+/** Which credential sections a decrypted payload actually carries. */
+function sectionsPresentIn(payload: CredentialPayload): CredentialSection[] {
+  return CREDENTIAL_SECTIONS.filter((section) => payload[section] !== undefined);
+}
+
+/**
+ * Turn the bundle's `credentials` field into a payload we can write, or into
+ * the 400 the client needs to drive its passphrase prompt. Runs BEFORE any
+ * disk write, so a wrong password costs nothing.
+ *
+ * The error strings are machine codes, not prose: the editor maps them to
+ * localized copy, and `passphrase_required` specifically is what opens the
+ * password modal on the restore path.
+ */
+async function resolveCredentials(
+  raw: unknown,
+  passphrase: string | undefined,
+): Promise<CredentialPayload | NextResponse> {
+  if (!isCredentialEnvelope(raw)) {
+    return NextResponse.json({ error: 'invalid_credentials' }, { status: 400 });
+  }
+  const envelope = raw as CredentialEnvelope;
+  if (!isEncryptedEnvelope(envelope)) return envelope.data;
+
+  if (!passphrase) {
+    return NextResponse.json({ error: 'passphrase_required' }, { status: 400 });
+  }
+  try {
+    return await decryptCredentials(envelope, passphrase);
+  } catch (err) {
+    if (err instanceof BadPassphraseError) {
+      return NextResponse.json({ error: 'bad_passphrase' }, { status: 400 });
+    }
+    if (err instanceof MalformedEnvelopeError) {
+      return NextResponse.json({ error: 'invalid_credentials' }, { status: 400 });
+    }
+    throw err;
+  }
+}
+
 export const POST = withAuth(async (request: NextRequest) => {
   const body = await parseJsonBody<RestoreBundle>(request, {
     maxBytes: MAX_RESTORE_BYTES,
@@ -102,9 +167,24 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   // New bundle format
   if (body._type === 'home-screens-backup') {
+    // Strip the transient passphrase before anything else reads the body, so
+    // it can't be snapshotted, logged, or written to disk by accident.
+    const passphrase = typeof body._passphrase === 'string' ? body._passphrase : undefined;
+    delete body._passphrase;
+
     if (body.config !== undefined) {
       const err = validateRestoredConfig(body.config);
       if (err) return NextResponse.json({ error: err }, { status: 400 });
+    }
+
+    // Decrypt before any write: a wrong password must cost nothing, and the
+    // client's fallback is to re-post the same bundle with `credentials`
+    // stripped, which restores everything except the keys.
+    let credentialPayload: CredentialPayload | null = null;
+    if (body.credentials !== undefined) {
+      const resolved = await resolveCredentials(body.credentials, passphrase);
+      if (resolved instanceof NextResponse) return resolved;
+      credentialPayload = resolved;
     }
 
     // Snapshot current state of every file we're about to touch BEFORE any
@@ -117,11 +197,18 @@ export const POST = withAuth(async (request: NextRequest) => {
       rewards: body.rewards ? await readRewardData() : null,
       routines: body.routines ? await readRoutinesFile() : null,
     };
+    // Credential snapshot covers exactly the sections about to be written,
+    // including the empty ones — "there were no secrets before" is what a
+    // rollback has to be able to reinstate.
+    const credentialSnapshot = credentialPayload
+      ? await snapshotCredentials(sectionsPresentIn(credentialPayload))
+      : null;
 
     // Track which writes actually landed (post-await) so rollback only
     // reverts files that were actually mutated — the failing write itself
     // either completed the rename or didn't touch the file.
     const rollbacks: Array<() => Promise<void>> = [];
+    let credentialResult: CredentialApplyResult | null = null;
     try {
       if (body.config) {
         await writeConfig(body.config);
@@ -147,6 +234,30 @@ export const POST = withAuth(async (request: NextRequest) => {
         await writeRoutinesFile(body.routines);
         rollbacks.push(() => writeRoutinesFile(snapshots.routines!));
       }
+      // Credentials go last: applying `auth` replaces the cookie secret and
+      // invalidates the session cookie this very request is holding, so
+      // everything else must already be on disk by then.
+      if (credentialPayload) {
+        // Registered BEFORE the call, not after. Unlike the single-file
+        // writes above, applyCredentials is itself multi-write and can fail
+        // partway through; the snapshot is already taken, and re-applying it
+        // when nothing was written is a harmless no-op.
+        rollbacks.push(async () => {
+          await applyCredentials(credentialSnapshot!, {
+            enforceIpGuard: false,
+            // Undo plugin credential files the restore newly created.
+            prunePlugins: true,
+          });
+        });
+        credentialResult = await applyCredentials(credentialPayload, {
+          clientIp: getClientIP(request),
+        });
+        audit({
+          action: 'credential_backup_restore',
+          sections: credentialResult.applied.length,
+          skipped: credentialResult.skipped,
+        });
+      }
     } catch (err) {
       // Best-effort rollback in reverse order. allSettled so one failed
       // revert doesn't block the others — surface the original error either way.
@@ -163,6 +274,10 @@ export const POST = withAuth(async (request: NextRequest) => {
         rewards: !!body.rewards,
         routines: !!body.routines,
       },
+      // Present only when the bundle carried credentials. The editor needs
+      // `applied` to know whether the session it is holding just died (auth),
+      // and `skipped` to tell the user what the lockout guard held back.
+      ...(credentialResult ? { credentials: credentialResult } : {}),
     });
   }
 

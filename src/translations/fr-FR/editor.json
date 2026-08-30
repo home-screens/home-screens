@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Échec de l'exportation de la sauvegarde.",
-        "invalidBackupFile": "Fichier de sauvegarde invalide."
+        "invalidBackupFile": "Fichier de sauvegarde invalide.",
+        "restoreBackupFailed": "Impossible de restaurer cette sauvegarde.",
+        "credentialsExportFailedTitle": "Impossible d'inclure vos clés",
+        "credentialsExportFailed": "Vos clés et vos comptes connectés n'ont pas pu être ajoutés à cette sauvegarde. Télécharger le reste quand même ?",
+        "credentialsExportFailedConfirm": "Télécharger quand même",
+        "plaintextExportTitle": "Sauvegarder sans mot de passe ?",
+        "plaintextExportMessage": "Vos clés, vos comptes connectés et votre mot de passe de l'éditeur seront lisibles par toute personne qui ouvre ce fichier. Gardez-le dans un endroit privé.",
+        "plaintextExportConfirm": "Sauvegarder quand même"
       },
       "shareLayout": {
         "heading": "Partager la mise en page",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Sauvegarde complète",
-        "description": "Exporte ou restaure toute la configuration, y compris tous les paramètres, les données de tâches et l'historique. Pour la sauvegarde et la migration d'appareil. N'inclut pas les clés API.",
+        "description": "Exporte ou restaure tout : tous les paramètres, les données de tâches et l'historique. Pour les sauvegardes et pour passer à un nouvel appareil.",
         "working": "En cours…",
         "backupButton": "Sauvegarder toutes les données",
-        "restoreButton": "Restaurer la sauvegarde"
+        "restoreButton": "Restaurer la sauvegarde",
+        "includeCredentialsLabel": "Inclure mes clés API et mes comptes connectés",
+        "includeCredentialsHelp": "Couvre les clés météo et cartes, Google, iCloud, Immich, OneDrive, les connexions des extensions et votre mot de passe de l'éditeur.",
+        "protectLabel": "Les protéger par un mot de passe",
+        "plaintextWarning": "Toute personne qui ouvre ce fichier peut utiliser vos comptes. Gardez-le dans un endroit privé.",
+        "needsEditorPassword": "Définissez d'abord un mot de passe d'éditeur, dans Sécurité. Sans lui, toute personne sur votre réseau pourrait lire les clés de votre sauvegarde."
       },
       "backupReminder": {
         "heading": "Rappel de sauvegarde",
@@ -465,6 +477,32 @@
           "error": "Erreur : {error}",
           "failed": "Échec de la restauration de la sauvegarde"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Choisissez un mot de passe",
+        "setDescription": "Ce mot de passe verrouille les clés et les comptes dans votre fichier de sauvegarde. Il vous faudra le saisir pour les remettre en place.",
+        "enterTitle": "Cette sauvegarde est verrouillée",
+        "enterDescription": "Saisissez le mot de passe choisi lors de la création de cette sauvegarde.",
+        "passwordLabel": "Mot de passe",
+        "confirmLabel": "Confirmer le mot de passe",
+        "tooShort": "Utilisez au moins {count} caractères.",
+        "mismatch": "Les deux mots de passe ne correspondent pas.",
+        "noRecoveryNote": "Ce mot de passe ne peut pas être récupéré. Sans lui, les clés de ce fichier sont illisibles.",
+        "skipButton": "Restaurer sans mes clés",
+        "continueButton": "Sauvegarder",
+        "unlockButton": "Déverrouiller"
+      },
+      "restore": {
+        "completeTitle": "Restauration terminée",
+        "signInAgain": "Cette sauvegarde contenait le mot de passe de votre éditeur. Reconnectez-vous avec le mot de passe de cette sauvegarde.",
+        "ipRulesNotRestored": "Vos règles d'adresses réseau sont restées désactivées, car cet appareil ne figure pas sur la liste restaurée. Vous pouvez les réactiver dans les Réglages.",
+        "loginNotRestored": "Le mot de passe de l'éditeur contenu dans cette sauvegarde était inutilisable ; celui de cet appareil reste inchangé.",
+        "plaintextTitle": "Cette sauvegarde contient vos clés",
+        "plaintextMessage": "Elle contient vos clés API, vos comptes connectés et le mot de passe de votre éditeur. La restauration remplacera ceux de cet appareil.",
+        "plaintextConfirm": "Restaurer",
+        "wrongPassword": "Ce mot de passe n'a pas fonctionné. Réessayez, ou restaurez sans vos clés.",
+        "damagedKeys": "Les clés de ce fichier sont endommagées et illisibles. Vous pouvez tout de même restaurer le reste.",
+        "reloadFailed": "Votre sauvegarde a été restaurée, mais l'éditeur n'a pas pu se recharger. Actualisez la page pour la voir."
       }
     },
     "weatherPage": {

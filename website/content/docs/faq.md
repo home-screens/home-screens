@@ -78,7 +78,9 @@ Rolling back downloads the version you picked from GitHub and installs it the sa
 
 ### How do I backup my configuration?
 
-Go to **Settings > Backups & data > Full Backup** in the editor and click **Backup All Data**. This downloads a JSON file containing your screens, modules, settings, location, calendars, device preferences, and your chore and meal data. **API keys are not included**, so you'll re-enter those after a restore. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
+Go to **Settings > Backups & data > Full Backup** in the editor and click **Backup All Data**. This downloads a JSON file containing your screens, modules, settings, location, calendars, device preferences, and your chore and meal data. You can also back up from the [remote control](/docs/remote-control) by tapping the gear icon and choosing **Backup All Data**.
+
+Your API keys and connected accounts are left out unless you ask for them. Tick **Include my API keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file. You'll need an editor password set up first (Settings > Security). See [Backing up your keys](/docs/configuration#backing-up-your-keys) for what that covers and what happens if you forget the password.
 
 A configurable backup reminder will notify you when you haven't backed up recently (configurable in Settings > Backups & data).
 
@@ -87,6 +89,8 @@ You can also use the **Share Layout** option to export just the visual layout (s
 ### How do I restore a backup?
 
 Go to **Settings > Backups & data > Full Backup** in the editor and click **Restore Backup**. Select a backup file you saved earlier. (Don't confuse this with **Import Layout** in the Share Layout card, which only brings in screens and modules.) Your configuration will be replaced with the contents of the backup. Restore is also available from the remote control's Settings sheet.
+
+If the backup has a password on its keys, you'll be asked for it. If you can't remember it, choose **Restore without my keys** and everything else still comes back.
 
 ### How do I reset to factory defaults?
 

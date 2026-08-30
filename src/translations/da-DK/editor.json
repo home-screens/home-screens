@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Kunne ikke eksportere sikkerhedskopien.",
-        "invalidBackupFile": "Ugyldig sikkerhedskopi."
+        "invalidBackupFile": "Ugyldig sikkerhedskopi.",
+        "restoreBackupFailed": "Den sikkerhedskopi kunne ikke gendannes.",
+        "credentialsExportFailedTitle": "Dine nøgler kom ikke med",
+        "credentialsExportFailed": "Dine nøgler og konti kunne ikke lægges i denne sikkerhedskopi. Vil du hente resten alligevel?",
+        "credentialsExportFailedConfirm": "Hent alligevel",
+        "plaintextExportTitle": "Sikkerhedskopiér uden adgangskode?",
+        "plaintextExportMessage": "Dine nøgler, tilknyttede konti og din editor-adgangskode kan læses af alle, der åbner filen. Gem den et privat sted.",
+        "plaintextExportConfirm": "Sikkerhedskopiér alligevel"
       },
       "shareLayout": {
         "heading": "Del layout",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Fuld sikkerhedskopi",
-        "description": "Eksportér eller gendan hele opsætningen inklusive alle indstillinger, pligtdata og historik. Til sikkerhedskopiering og flytning til en ny enhed. Indeholder ikke API-nøgler.",
+        "description": "Eksportér eller gendan det hele: alle indstillinger, pligtdata og historik. Til sikkerhedskopiering og til at flytte til en ny enhed.",
         "working": "Arbejder…",
         "backupButton": "Sikkerhedskopiér alle data",
-        "restoreButton": "Gendan sikkerhedskopi"
+        "restoreButton": "Gendan sikkerhedskopi",
+        "includeCredentialsLabel": "Tag mine API-nøgler og tilknyttede konti med",
+        "includeCredentialsHelp": "Dækker vejr- og kortnøgler, Google, iCloud, Immich, OneDrive, plugin-logins og din editor-adgangskode.",
+        "protectLabel": "Beskyt dem med en adgangskode",
+        "plaintextWarning": "Alle, der åbner denne fil, kan bruge dine konti. Gem den et privat sted.",
+        "needsEditorPassword": "Vælg først en editor-adgangskode under Sikkerhed. Uden den kan alle på dit netværk læse nøglerne i din sikkerhedskopi."
       },
       "backupReminder": {
         "heading": "Påmindelse om sikkerhedskopi",
@@ -465,6 +477,32 @@
           "error": "Fejl: {error}",
           "failed": "Kunne ikke gendanne sikkerhedskopien"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Vælg en adgangskode",
+        "setDescription": "Adgangskoden låser nøglerne og kontiene inde i din sikkerhedskopi. Du skal bruge den for at lægge dem tilbage.",
+        "enterTitle": "Denne sikkerhedskopi er låst",
+        "enterDescription": "Indtast den adgangskode, du valgte, da du lavede sikkerhedskopien.",
+        "passwordLabel": "Adgangskode",
+        "confirmLabel": "Bekræft adgangskode",
+        "tooShort": "Brug mindst {count} tegn.",
+        "mismatch": "De to adgangskoder er ikke ens.",
+        "noRecoveryNote": "Adgangskoden kan ikke gendannes. Uden den kan nøglerne i filen ikke læses.",
+        "skipButton": "Gendan uden mine nøgler",
+        "continueButton": "Sikkerhedskopiér",
+        "unlockButton": "Lås op"
+      },
+      "restore": {
+        "completeTitle": "Gendannelse færdig",
+        "signInAgain": "Sikkerhedskopien indeholdt din editor-adgangskode. Log ind igen med adgangskoden fra den sikkerhedskopi.",
+        "ipRulesNotRestored": "Dine netværksadresse-regler blev slået fra, fordi denne enhed ikke står på den gendannede liste. Du kan slå dem til igen i Indstillinger.",
+        "loginNotRestored": "Editor-adgangskoden i sikkerhedskopien kunne ikke bruges, så adgangskoden på denne enhed er uændret.",
+        "plaintextTitle": "Denne sikkerhedskopi indeholder dine nøgler",
+        "plaintextMessage": "Den rummer dine API-nøgler, tilknyttede konti og din editor-adgangskode. Gendannelse erstatter dem, der er på denne enhed.",
+        "plaintextConfirm": "Gendan",
+        "wrongPassword": "Den adgangskode virkede ikke. Prøv igen, eller gendan uden dine nøgler.",
+        "damagedKeys": "Nøglerne i filen er beskadigede og kan ikke læses. Du kan stadig gendanne alt det andet.",
+        "reloadFailed": "Din sikkerhedskopi blev gendannet, men editoren kunne ikke genindlæse. Genindlæs siden for at se det."
       }
     },
     "weatherPage": {

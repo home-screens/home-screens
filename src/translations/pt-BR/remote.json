@@ -455,7 +455,9 @@
         "invalidFileLabel": "Arquivo de backup inválido",
         "failedLabel": "Falha ao restaurar",
         "idleDescription": "Envie um arquivo de backup deste dispositivo",
-        "confirmingDescription": "Isso vai substituir todos os dados existentes"
+        "confirmingDescription": "Isso vai substituir todos os dados existentes",
+        "doneWithoutKeysLabel": "Restaurado, sem as chaves",
+        "doneWithoutKeysDescription": "Suas chaves e contas continuam como estavam. Adicione-as de novo no editor."
       }
     },
     "power": {

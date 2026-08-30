@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Falha ao exportar backup.",
-        "invalidBackupFile": "Arquivo de backup inválido."
+        "invalidBackupFile": "Arquivo de backup inválido.",
+        "restoreBackupFailed": "Não foi possível restaurar esse backup.",
+        "credentialsExportFailedTitle": "Não foi possível incluir suas chaves",
+        "credentialsExportFailed": "Suas chaves e contas não puderam ser adicionadas a este backup. Baixar o resto mesmo assim?",
+        "credentialsExportFailedConfirm": "Baixar mesmo assim",
+        "plaintextExportTitle": "Fazer backup sem senha?",
+        "plaintextExportMessage": "Suas chaves, contas conectadas e a senha do editor poderão ser lidas por qualquer pessoa que abrir este arquivo. Guarde-o em um lugar privado.",
+        "plaintextExportConfirm": "Fazer backup mesmo assim"
       },
       "shareLayout": {
         "heading": "Compartilhar layout",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Backup completo",
-        "description": "Exporte ou restaure toda a configuração, incluindo todas as configurações, dados de tarefas e histórico de conclusão. Para backup e migração de dispositivo. Não inclui chaves de API.",
+        "description": "Exporte ou restaure tudo: todas as configurações, dados de tarefas e histórico. Para backups e para mudar de aparelho.",
         "working": "Processando…",
         "backupButton": "Fazer backup de tudo",
-        "restoreButton": "Restaurar backup"
+        "restoreButton": "Restaurar backup",
+        "includeCredentialsLabel": "Incluir minhas chaves de API e contas conectadas",
+        "includeCredentialsHelp": "Abrange chaves de clima e mapas, Google, iCloud, Immich, OneDrive, logins de plugins e a senha do editor.",
+        "protectLabel": "Proteger com uma senha",
+        "plaintextWarning": "Qualquer pessoa que abrir este arquivo pode usar suas contas. Guarde-o em um lugar privado.",
+        "needsEditorPassword": "Defina antes uma senha do editor, em Segurança. Sem ela, qualquer pessoa na sua rede poderia ler as chaves do seu backup."
       },
       "backupReminder": {
         "heading": "Lembrete de backup",
@@ -465,6 +477,32 @@
           "error": "Erro: {error}",
           "failed": "Falha ao restaurar o backup"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Escolha uma senha",
+        "setDescription": "Esta senha tranca as chaves e contas dentro do arquivo de backup. Você vai precisar dela para colocá-las de volta.",
+        "enterTitle": "Este backup está trancado",
+        "enterDescription": "Digite a senha que você escolheu ao criar este backup.",
+        "passwordLabel": "Senha",
+        "confirmLabel": "Confirmar senha",
+        "tooShort": "Use pelo menos {count} caracteres.",
+        "mismatch": "As duas senhas não são iguais.",
+        "noRecoveryNote": "Não há como recuperar esta senha. Sem ela, as chaves deste arquivo não podem ser lidas.",
+        "skipButton": "Restaurar sem minhas chaves",
+        "continueButton": "Fazer backup",
+        "unlockButton": "Destrancar"
+      },
+      "restore": {
+        "completeTitle": "Restauração concluída",
+        "signInAgain": "Este backup incluía a senha do seu editor. Entre novamente com a senha desse backup.",
+        "ipRulesNotRestored": "Suas regras de endereço de rede ficaram desligadas, porque este aparelho não está na lista restaurada. Você pode ligá-las de novo nas Configurações.",
+        "loginNotRestored": "A senha do editor deste backup não pôde ser usada, então a senha deste aparelho continua a mesma.",
+        "plaintextTitle": "Este backup contém suas chaves",
+        "plaintextMessage": "Ele guarda suas chaves de API, contas conectadas e a senha do editor. Restaurar vai substituir as deste aparelho.",
+        "plaintextConfirm": "Restaurar",
+        "wrongPassword": "Essa senha não funcionou. Tente de novo ou restaure sem suas chaves.",
+        "damagedKeys": "As chaves deste arquivo estão danificadas e não podem ser lidas. Você ainda pode restaurar todo o resto.",
+        "reloadFailed": "Seu backup foi restaurado, mas o editor não conseguiu recarregar. Atualize a página para ver."
       }
     },
     "weatherPage": {

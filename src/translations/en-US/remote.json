@@ -455,7 +455,9 @@
         "invalidFileLabel": "Invalid backup file",
         "failedLabel": "Restore failed",
         "idleDescription": "Upload a backup file from this device",
-        "confirmingDescription": "This will replace all existing data"
+        "confirmingDescription": "This will replace all existing data",
+        "doneWithoutKeysLabel": "Restored, keys not included",
+        "doneWithoutKeysDescription": "Your keys and accounts stayed as they are. Add them back in the editor."
       }
     },
     "power": {

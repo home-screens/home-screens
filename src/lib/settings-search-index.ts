@@ -180,6 +180,8 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'data', fieldId: 'data.templatesBrowse', labelKey: 'settings.dataPage.templates.browseButton' },
   { pageId: 'data', fieldId: 'data.fullBackupExport', labelKey: 'settings.dataPage.fullBackup.backupButton' },
   { pageId: 'data', fieldId: 'data.fullBackupRestore', labelKey: 'settings.dataPage.fullBackup.restoreButton' },
+  { pageId: 'data', fieldId: 'data.fullBackupIncludeCredentials', labelKey: 'settings.dataPage.fullBackup.includeCredentialsLabel' },
+  { pageId: 'data', fieldId: 'data.fullBackupProtectCredentials', labelKey: 'settings.dataPage.fullBackup.protectLabel' },
   { pageId: 'data', fieldId: 'data.configBackups', labelKey: 'settings.dataPage.configBackups.heading' },
   { pageId: 'data', fieldId: 'data.backupReminderEnabled', labelKey: 'settings.dataPage.backupReminder.enableLabel' },
   { pageId: 'data', fieldId: 'data.backupReminderInterval', labelKey: 'settings.dataPage.backupReminder.remindAfterLabel' },

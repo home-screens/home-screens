@@ -62,6 +62,9 @@ const tokenStore = createOAuthTokenStore({
   hasCredentials: async () => (await getMicrosoftClientId()) !== null,
 });
 
+/** The OneDrive grant's token store, exported for the credential backup. */
+export const onedriveTokenStore = tokenStore;
+
 export const onedriveVerifyConnected = tokenStore.verifyConnected;
 export async function onedriveDisconnect(): Promise<void> {
   cancelDeviceFlow();

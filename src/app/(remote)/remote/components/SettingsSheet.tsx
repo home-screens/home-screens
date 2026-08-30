@@ -112,8 +112,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
   const [themeChoice, setTheme] = useState<ThemeChoice>('dark');
 
   // Restore state machine: idle → confirming → busy → done/invalid-file/restore-failed
-  const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'invalid-file' | 'restore-failed'>('idle');
+  const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'done-without-keys' | 'invalid-file' | 'restore-failed'>('idle');
   const restoreDataRef = useRef<string | null>(null);
+  /** True when the selected bundle carried keys this sheet chose not to apply. */
+  const credentialsSkippedRef = useRef(false);
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const restoreTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -160,7 +162,15 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           setRestoreState('invalid-file');
           return;
         }
-        restoreDataRef.current = reader.result as string;
+        // A bundle can carry an opt-in credential section, and an encrypted
+        // one needs a password prompt this sheet deliberately doesn't have —
+        // /remote manages data, the editor manages setup. Drop the section and
+        // restore everything else, then say so, rather than dead-ending on a
+        // `passphrase_required` the user can't act on from a phone.
+        credentialsSkippedRef.current = data.credentials !== undefined;
+        if (credentialsSkippedRef.current) delete data.credentials;
+
+        restoreDataRef.current = JSON.stringify(data);
         setRestoreState('confirming');
         restoreTimerRef.current = setTimeout(() => {
           setRestoreState('idle');
@@ -185,7 +195,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
         body: restoreDataRef.current,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setRestoreState('done');
+      setRestoreState(credentialsSkippedRef.current ? 'done-without-keys' : 'done');
       restoreDataRef.current = null;
     } catch {
       setRestoreState('restore-failed');
@@ -315,7 +325,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
           <button
             onClick={restoreState === 'confirming' ? handleRestoreConfirm : () => restoreInputRef.current?.click()}
-            disabled={restoreState === 'busy' || restoreState === 'done'}
+            disabled={restoreState === 'busy' || restoreState === 'done' || restoreState === 'done-without-keys'}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
             <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${
@@ -328,13 +338,14 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
             <div className="flex-1 min-w-0">
               <div className={`text-[15px] font-medium ${
                 restoreState === 'confirming' ? 'text-hs-danger animate-pulse'
-                : restoreState === 'done' ? 'text-hs-success'
+                : restoreState === 'done' || restoreState === 'done-without-keys' ? 'text-hs-success'
                 : restoreState === 'invalid-file' || restoreState === 'restore-failed' ? 'text-hs-danger'
                 : 'text-hs-text-primary'
               }`}>
                 {restoreState === 'confirming' ? t('settingsSheet.data.restore.confirmingLabel')
                 : restoreState === 'busy' ? t('settingsSheet.data.restore.busyLabel')
                 : restoreState === 'done' ? t('settingsSheet.data.restore.doneLabel')
+                : restoreState === 'done-without-keys' ? t('settingsSheet.data.restore.doneWithoutKeysLabel')
                 : restoreState === 'invalid-file' ? t('settingsSheet.data.restore.invalidFileLabel')
                 : restoreState === 'restore-failed' ? t('settingsSheet.data.restore.failedLabel')
                 : t('settingsSheet.data.restore.label')}
@@ -344,6 +355,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
               )}
               {restoreState === 'confirming' && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.confirmingDescription')}</div>
+              )}
+              {restoreState === 'done-without-keys' && (
+                <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.doneWithoutKeysDescription')}</div>
               )}
             </div>
             {restoreState === 'idle' && (

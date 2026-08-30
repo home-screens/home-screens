@@ -33,7 +33,7 @@ export type { PluginTokens, TokenInjectionSpec } from '@/lib/plugin-auth-types';
 
 const log = logger('plugin-auth');
 
-const TOKENS_DIR = path.join('data', 'plugin-tokens');
+export const TOKENS_DIR = path.join('data', 'plugin-tokens');
 const PENDING_TTL_MS = 10 * 60 * 1000; // fallback user-interactive window
 const REFRESH_GRACE_MS = 60_000; // refresh when expiring within 60s
 
@@ -62,6 +62,16 @@ function tokenStoreFor(pluginId: string) {
 export async function loadPluginTokens(pluginId: string): Promise<PluginTokens | null> {
   const tokens = await tokenStoreFor(pluginId).read();
   return tokens?.access_token ? tokens : null;
+}
+
+/**
+ * Raw token read for the credential backup. Unlike `loadPluginTokens` this
+ * does NOT drop a record whose `access_token` is empty — a grant that is
+ * currently expired but still holds a refresh token is exactly what a backup
+ * needs to carry.
+ */
+export async function readPluginTokensRaw(pluginId: string): Promise<PluginTokens | null> {
+  return tokenStoreFor(pluginId).read();
 }
 
 export async function savePluginTokens(pluginId: string, tokens: PluginTokens): Promise<void> {

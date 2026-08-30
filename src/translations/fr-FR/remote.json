@@ -455,7 +455,9 @@
         "invalidFileLabel": "Fichier de sauvegarde invalide",
         "failedLabel": "Échec de la restauration",
         "idleDescription": "Téléverse un fichier de sauvegarde depuis cet appareil",
-        "confirmingDescription": "Cela remplacera toutes les données existantes"
+        "confirmingDescription": "Cela remplacera toutes les données existantes",
+        "doneWithoutKeysLabel": "Restauré, sans les clés",
+        "doneWithoutKeysDescription": "Vos clés et vos comptes n'ont pas changé. Ajoutez-les depuis l'éditeur."
       }
     },
     "power": {

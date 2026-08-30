@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "No se pudo exportar la copia de seguridad.",
-        "invalidBackupFile": "Archivo de copia de seguridad no válido."
+        "invalidBackupFile": "Archivo de copia de seguridad no válido.",
+        "restoreBackupFailed": "No se pudo restaurar esa copia de seguridad.",
+        "credentialsExportFailedTitle": "No se pudieron incluir tus claves",
+        "credentialsExportFailed": "Tus claves y cuentas no se pudieron añadir a esta copia. ¿Descargar el resto de todos modos?",
+        "credentialsExportFailedConfirm": "Descargar igualmente",
+        "plaintextExportTitle": "¿Hacer la copia sin contraseña?",
+        "plaintextExportMessage": "Tus claves, cuentas conectadas y la contraseña del editor podrán leerlas todas las personas que abran este archivo. Guárdalo en un sitio privado.",
+        "plaintextExportConfirm": "Hacer la copia igualmente"
       },
       "shareLayout": {
         "heading": "Compartir diseño",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Copia completa",
-        "description": "Exporta o restaura toda la configuración, incluidos los ajustes, datos de tareas e historial de finalización. Para copias de seguridad y migración entre dispositivos. No incluye claves de API.",
+        "description": "Exporta o restaura todo: todos los ajustes, los datos de tareas y el historial. Para copias de seguridad y para pasar a un dispositivo nuevo.",
         "working": "Trabajando…",
         "backupButton": "Hacer copia de todos los datos",
-        "restoreButton": "Restaurar copia"
+        "restoreButton": "Restaurar copia",
+        "includeCredentialsLabel": "Incluir mis claves de API y cuentas conectadas",
+        "includeCredentialsHelp": "Incluye las claves de tiempo y mapas, Google, iCloud, Immich, OneDrive, los inicios de sesión de los plugins y la contraseña del editor.",
+        "protectLabel": "Protegerlas con una contraseña",
+        "plaintextWarning": "Cualquiera que abra este archivo puede usar tus cuentas. Guárdalo en un sitio privado.",
+        "needsEditorPassword": "Primero establece una contraseña del editor, en Seguridad. Sin ella, cualquiera en tu red podría leer las claves de tu copia."
       },
       "backupReminder": {
         "heading": "Recordatorio de copia",
@@ -465,6 +477,32 @@
           "error": "Error: {error}",
           "failed": "No se pudo restaurar la copia"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Elige una contraseña",
+        "setDescription": "Esta contraseña bloquea las claves y las cuentas dentro del archivo de copia. La necesitarás para volver a ponerlas.",
+        "enterTitle": "Esta copia está bloqueada",
+        "enterDescription": "Escribe la contraseña que elegiste al crear esta copia.",
+        "passwordLabel": "Contraseña",
+        "confirmLabel": "Confirmar contraseña",
+        "tooShort": "Usa al menos {count} caracteres.",
+        "mismatch": "Las dos contraseñas no coinciden.",
+        "noRecoveryNote": "Esta contraseña no se puede recuperar. Sin ella, las claves de este archivo no se pueden leer.",
+        "skipButton": "Restaurar sin mis claves",
+        "continueButton": "Hacer copia",
+        "unlockButton": "Desbloquear"
+      },
+      "restore": {
+        "completeTitle": "Restauración terminada",
+        "signInAgain": "Esta copia incluía la contraseña de tu editor. Vuelve a iniciar sesión con la contraseña de esa copia.",
+        "ipRulesNotRestored": "Las reglas de direcciones de red se han dejado desactivadas, porque este dispositivo no está en la lista restaurada. Puedes volver a activarlas en Ajustes.",
+        "loginNotRestored": "La contraseña del editor de esta copia no se pudo usar, así que la de este dispositivo no ha cambiado.",
+        "plaintextTitle": "Esta copia contiene tus claves",
+        "plaintextMessage": "Contiene tus claves de API, tus cuentas conectadas y la contraseña del editor. Al restaurar se sustituirán las de este dispositivo.",
+        "plaintextConfirm": "Restaurar",
+        "wrongPassword": "Esa contraseña no ha funcionado. Inténtalo de nuevo o restaura sin tus claves.",
+        "damagedKeys": "Las claves de este archivo están dañadas y no se pueden leer. Aun así puedes restaurar todo lo demás.",
+        "reloadFailed": "Tu copia se restauró, pero el editor no pudo recargarse. Actualiza la página para verlo."
       }
     },
     "weatherPage": {

@@ -419,7 +419,14 @@
       },
       "alerts": {
         "exportBackupFailed": "Failed to export backup.",
-        "invalidBackupFile": "Invalid backup file."
+        "invalidBackupFile": "Invalid backup file.",
+        "restoreBackupFailed": "Could not restore that backup.",
+        "credentialsExportFailedTitle": "Could not include your keys",
+        "credentialsExportFailed": "Your keys and accounts could not be added to this backup. Download the rest anyway?",
+        "credentialsExportFailedConfirm": "Download anyway",
+        "plaintextExportTitle": "Back up without a password?",
+        "plaintextExportMessage": "Your keys, connected accounts, and editor password will be readable by anyone who opens this file. Keep it somewhere private.",
+        "plaintextExportConfirm": "Back up anyway"
       },
       "shareLayout": {
         "heading": "Share Layout",
@@ -434,10 +441,15 @@
       },
       "fullBackup": {
         "heading": "Full Backup",
-        "description": "Export or restore the entire configuration including all settings, chore data, and completion history. For backup and device migration. Does not include API keys.",
+        "description": "Export or restore everything: all settings, chore data, and completion history. Use it for backups and for moving to a new device.",
         "working": "Working…",
         "backupButton": "Backup All Data",
-        "restoreButton": "Restore Backup"
+        "restoreButton": "Restore Backup",
+        "includeCredentialsLabel": "Include my API keys and connected accounts",
+        "includeCredentialsHelp": "Covers weather and map keys, Google, iCloud, Immich, OneDrive, plugin logins, and your editor password.",
+        "protectLabel": "Protect them with a password",
+        "plaintextWarning": "Anyone who opens this file can use your accounts. Keep it somewhere private.",
+        "needsEditorPassword": "Set an editor password first, under Security. Without one, anyone on your network could read the keys in your backup."
       },
       "backupReminder": {
         "heading": "Backup Reminder",
@@ -465,6 +477,32 @@
           "error": "Error: {error}",
           "failed": "Failed to restore backup"
         }
+      },
+      "backupPassword": {
+        "setTitle": "Choose a password",
+        "setDescription": "This password locks the keys and accounts inside your backup file. You will need it to put them back.",
+        "enterTitle": "This backup is locked",
+        "enterDescription": "Enter the password you chose when you made this backup.",
+        "passwordLabel": "Password",
+        "confirmLabel": "Confirm password",
+        "tooShort": "Use at least {count} characters.",
+        "mismatch": "The two passwords do not match.",
+        "noRecoveryNote": "There is no way to recover this password. Without it, the keys in this file cannot be read.",
+        "skipButton": "Restore without my keys",
+        "continueButton": "Back up",
+        "unlockButton": "Unlock"
+      },
+      "restore": {
+        "completeTitle": "Restore finished",
+        "signInAgain": "This backup included your editor password. Sign in again using the password from that backup.",
+        "ipRulesNotRestored": "Your network address rules were left switched off, because this device is not on the restored list. You can turn them back on in Settings.",
+        "loginNotRestored": "The editor password in this backup could not be used, so the password on this device is unchanged.",
+        "plaintextTitle": "This backup contains your keys",
+        "plaintextMessage": "It holds your API keys, connected accounts, and editor password. Restoring will replace the ones on this device.",
+        "plaintextConfirm": "Restore",
+        "wrongPassword": "That password did not work. Try again, or restore without your keys.",
+        "damagedKeys": "The keys in this file are damaged and cannot be read. You can still restore everything else.",
+        "reloadFailed": "Your backup was restored, but the editor could not reload. Refresh the page to see it."
       }
     },
     "weatherPage": {

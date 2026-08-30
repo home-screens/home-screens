@@ -328,7 +328,7 @@ Two things to know before enabling restriction:
 
 ### Backups & data
 
-**Full Backup** exports everything including chore and meal history — but **not your API keys**, so after restoring onto a new device you'll re-enter those before weather and calendars work again. **Share Layout** exports only screens and modules, with no personal data, and is the safe one to hand to someone else. **Templates** start you from a pre-built layout while keeping your existing settings.
+**Full Backup** exports everything including chore and meal history. Your API keys and connected accounts are left out unless you tick **Include my API keys and connected accounts**, with an optional password to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Share Layout** exports only screens and modules, with no personal data, and is the safe one to hand to someone else. **Templates** start you from a pre-built layout while keeping your existing settings.
 
 **Config Backups** are the snapshots taken automatically before each upgrade, listed here alongside your manual ones. **Backup Reminder** nags you on a configurable interval, or can be switched off.
 

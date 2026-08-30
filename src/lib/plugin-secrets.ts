@@ -69,6 +69,26 @@ async function isValidSecretKey(pluginId: string, key: string): Promise<boolean>
 
 // --- Public API ---
 
+/**
+ * Whole-file read/write for a plugin's secrets, used by the credential
+ * backup. `readAllPluginSecrets` includes the legacy-path fallback, so a
+ * server that hasn't upgraded its plugins yet still backs up its tokens.
+ * The write goes through the plugin's own serialized queue.
+ */
+export async function readAllPluginSecrets(pluginId: string): Promise<Record<string, string>> {
+  return readPluginSecrets(pluginId);
+}
+
+export async function writeAllPluginSecrets(
+  pluginId: string,
+  secrets: Record<string, string>,
+): Promise<void> {
+  await storeFor(pluginId).write(secrets);
+  // The new-location file now supersedes any legacy copy; drop it so the
+  // read-fallback can never resurface a pre-restore value.
+  await fs.unlink(legacyPluginSecretsPath(pluginId)).catch(() => {});
+}
+
 /** Get a single plugin secret value. Returns null if not set. */
 export async function getPluginSecret(pluginId: string, key: string): Promise<string | null> {
   const store = await readPluginSecrets(pluginId);

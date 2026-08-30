@@ -2332,13 +2332,25 @@ Before composing the bundle, the hub broadcasts `dump-console-log` to every adop
 
 ### GET/POST /api/backup
 
-Full household backup bundle — exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker. POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+Full household backup bundle — exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
-Secrets in `data/secrets.json` are **not** included; you'll re-enter API keys after restore. This is what **Settings > Backups & data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
+GET never returns credentials. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. This is what **Settings > Backups & data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
+
+To restore a bundle whose `credentials` section is encrypted, add a transient `_passphrase` field to the POST body (it is stripped before anything is written and never stored). Credential failures come back as machine codes so the editor can localize them: `400 { "error": "passphrase_required" }` when the section is locked and no password was sent, `400 { "error": "bad_passphrase" }` when it was wrong, and `400 { "error": "invalid_credentials" }` when the section is damaged. None of these write anything — dropping the `credentials` field and re-posting restores everything else.
 
 A restore body is capped at 25 MB. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
 
-**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too — `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+
+### POST /api/backup/credentials
+
+Builds the optional credential section of a backup bundle: `data/secrets.json`, iCloud app passwords, the Google Calendar / Google Photos / OneDrive grants, per-plugin secrets and OAuth tokens, and `data/auth.json`. The response is `Cache-Control: no-store`.
+
+**Requires an editor password to be set**, not merely a session: `requireSession` is a no-op on an install with no password, and this is the only route that returns raw secret *values*. With no password configured it returns `403 { "error": "editor_password_required" }` and logs a `credential_backup_denied` audit entry.
+
+**Body:** `{ "passphrase": "…" }` to seal the section (scrypt + AES-256-GCM, minimum 8 characters), or `{}` for a plaintext one. A password shorter than the minimum returns `400 { "error": "passphrase_too_short" }`.
+
+**Response:** `{ "encrypted": false, "data": { … } }`, or `{ "encrypted": true, "kdf": "scrypt", "kdfParams": {…}, "salt": "…", "iv": "…", "tag": "…", "ciphertext": "…" }`. Sections this device has nothing for are omitted. The caller merges the result into a bundle from `GET /api/backup` as its `credentials` field.
 
 ### GET /api/backup/reminder
 

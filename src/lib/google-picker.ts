@@ -1,5 +1,5 @@
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { createGoogleTokenStore } from '@/lib/google-token-store';
+import { googlePickerTokenStore } from '@/lib/google-token-stores';
 import {
   reserveLibraryImport,
   abandonLibraryImport,
@@ -36,13 +36,7 @@ const API_BASE = 'https://photospicker.googleapis.com/v1';
  *  Every user registers this exact URI on their own OAuth web client. */
 export const REDIRECT_URI = 'https://homescreens.dev/connect/google';
 
-const store = createGoogleTokenStore({
-  tokensPath: 'data/google-picker-tokens.json',
-  clientIdKey: 'google_web_client_id',
-  clientSecretKey: 'google_web_client_secret',
-  missingCredentialsMessage: 'Google Photos import needs a web Client ID and Secret. Add them in Settings → Integrations.',
-  logName: 'google-picker',
-});
+const store = googlePickerTokenStore;
 
 // ── Auth ─────────────────────────────────────────────────────────────
 

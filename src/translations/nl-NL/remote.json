@@ -455,7 +455,9 @@
         "invalidFileLabel": "Ongeldig back-upbestand",
         "failedLabel": "Terugzetten mislukt",
         "idleDescription": "Upload een back-upbestand vanaf dit apparaat",
-        "confirmingDescription": "Hiermee worden alle bestaande gegevens vervangen"
+        "confirmingDescription": "Hiermee worden alle bestaande gegevens vervangen",
+        "doneWithoutKeysLabel": "Teruggezet, zonder sleutels",
+        "doneWithoutKeysDescription": "Je sleutels en accounts blijven zoals ze waren. Voeg ze weer toe in de editor."
       }
     },
     "power": {

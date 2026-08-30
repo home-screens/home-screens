@@ -1,7 +1,8 @@
 import { google } from 'googleapis';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { createGoogleTokenStore, type StoredGoogleTokens } from '@/lib/google-token-store';
+import type { StoredGoogleTokens } from '@/lib/google-token-store';
+import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { logger } from '@/lib/logger';
 
 const log = logger('google-auth');
@@ -16,13 +17,7 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 const DEVICE_CODE_URL = 'https://oauth2.googleapis.com/device/code';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
-const store = createGoogleTokenStore({
-  tokensPath: 'data/google-tokens.json',
-  clientIdKey: 'google_client_id',
-  clientSecretKey: 'google_client_secret',
-  missingCredentialsMessage: 'Google Calendar Client ID and Secret are not configured. Add them in Settings → Integrations.',
-  logName: 'google-auth',
-});
+const store = googleCalendarTokenStore;
 
 interface DeviceCodeResponse {
   device_code: string;

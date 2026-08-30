@@ -455,7 +455,9 @@
         "invalidFileLabel": "Archivo de copia no válido",
         "failedLabel": "Error al restaurar",
         "idleDescription": "Sube un archivo de copia desde este dispositivo",
-        "confirmingDescription": "Esto reemplazará todos los datos existentes"
+        "confirmingDescription": "Esto reemplazará todos los datos existentes",
+        "doneWithoutKeysLabel": "Restaurado, sin las claves",
+        "doneWithoutKeysDescription": "Tus claves y cuentas siguen igual. Vuelve a añadirlas en el editor."
       }
     },
     "power": {
