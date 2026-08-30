@@ -51,6 +51,25 @@ describe('getCalendarFetchWindow', () => {
     expect(win!.timeMax).toBeNull();
   });
 
+  it.each([
+    ['dimPastEvents', { viewMode: 'daily', dimPastEvents: true }],
+    ['showNowRule', { viewMode: 'daily', showNowRule: true }],
+  ])('widens to padded start-of-today for the daily view with %s', (_label, config) => {
+    // Both toggles exist to show today's already-ended events (dimmed, above
+    // the now rule). Those rows only exist if the fetch starts at midnight —
+    // the module's own keepFinishedToday gate can't recover what was never
+    // fetched.
+    const win = getCalendarFetchWindow([makeScreen([makeModule('calendar', config)])], NOW, DAYS_AHEAD);
+    expect(win).not.toBeNull();
+    expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
+    expect(win!.timeMax).toBeNull();
+  });
+
+  it('leaves the daily view on the server default when neither toggle is on', () => {
+    const screens = [makeScreen([makeModule('calendar', { viewMode: 'daily', dimPastEvents: false, showNowRule: false })])];
+    expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
+  });
+
   it('widens to padded start-of-today for a fullscreen agenda with agendaShowFinishedToday', () => {
     const screens = [makeScreen([
       makeModule('fullscreen-calendar', { view: 'agenda', agendaShowFinishedToday: true }),

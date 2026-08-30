@@ -1,7 +1,8 @@
-import { google } from 'googleapis';
+import { google, type calendar_v3 } from 'googleapis';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
+import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import type { CalendarEvent } from '@/types/config';
 import { logger } from '@/lib/logger';
@@ -10,6 +11,9 @@ const log = logger('google-calendar');
 
 /** Google's built-in read-only calendar of contact birthdays — a fixed, well-known id. */
 const GOOGLE_BIRTHDAYS_CALENDAR_ID = 'addressbook#contacts@group.v.calendar.google.com';
+
+/** Google's per-page maximum. Fewer round trips for the same events. */
+const GOOGLE_EVENTS_PAGE_SIZE = 2500;
 
 export async function fetchCalendarEvents(
   calendarIds: string[],
@@ -50,19 +54,35 @@ export async function fetchCalendarEvents(
   const { events, results } = await settleSourceFetches(
     calendarIds,
     async (calendarId) => {
-      const response = await calendar.events.list({
-        calendarId,
-        timeMin,
-        timeMax,
-        singleEvents: true,
-        orderBy: 'startTime',
-      });
+      // Google returns one *page* of events: 250 by default, 2500 at most,
+      // with `nextPageToken` set whenever more remain — and it may return a
+      // short page even under the limit, so the token is the only reliable
+      // "that's all" signal. Without this loop the tail of the window is
+      // silently dropped: `orderBy: 'startTime'` is ascending, so a busy
+      // calendar over a wide grid window loses its last weeks and those day
+      // cells render empty. Bounded by the same safety cap the route applies
+      // to the merged feed, so one pathological calendar can't page forever.
+      const raw: calendar_v3.Schema$Event[] = [];
+      let pageToken: string | undefined;
+      do {
+        const response = await calendar.events.list({
+          calendarId,
+          timeMin,
+          timeMax,
+          singleEvents: true,
+          orderBy: 'startTime',
+          maxResults: GOOGLE_EVENTS_PAGE_SIZE,
+          pageToken,
+        });
+        raw.push(...(response.data.items ?? []));
+        pageToken = response.data.nextPageToken ?? undefined;
+      } while (pageToken && raw.length < CALENDAR_FETCH_MAX_EVENTS);
 
       const calColor = calendarColorMap.get(calendarId) ?? DEFAULT_EVENT_COLOR;
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
       const items = hideDeclined
-        ? (response.data.items ?? []).filter((event) => event.attendees?.find((a) => a.self)?.responseStatus !== 'declined')
-        : (response.data.items ?? []);
+        ? raw.filter((event) => event.attendees?.find((a) => a.self)?.responseStatus !== 'declined')
+        : raw;
       // Calendar-id prefix keeps ids unique when the same event appears on
       // two selected calendars; the fallback covers the (rare) missing id so
       // no event ever renders with an empty, untappable identity.

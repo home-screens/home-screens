@@ -143,4 +143,27 @@ describe('budgetEvents', () => {
     const out = budgetEvents([earlier1, earlier2, endedToday, u1], 2, undefined, NOW);
     expect(out.map((e) => e.id)).toEqual(['earlier2', 'endedToday', 'u1']);
   });
+
+  it('keeps past days populated when upcoming events alone would fill the cap', () => {
+    // The grid failure this reserve exists for: a dense window where the
+    // leftover budget is zero, so earlier rows used to be dropped wholesale
+    // and every past cell rendered empty while future weeks looked fine.
+    const earlier = [1, 2, 3, 4].map((n) => mk(`earlier${n}`, `2026-07-${10 + n}T10:00:00`));
+    const upcoming = Array.from({ length: 200 }, (_, i) =>
+      mk(`u${i}`, `2026-07-15T${String(13 + Math.floor(i / 30)).padStart(2, '0')}:00:00`));
+    const out = budgetEvents([...earlier, ...upcoming], 100, undefined, NOW);
+    // Every earlier row survives (4 is well under the 25-row reserve), and
+    // the payload still respects the cap.
+    expect(out.filter((e) => e.id.startsWith('earlier')).map((e) => e.id))
+      .toEqual(['earlier1', 'earlier2', 'earlier3', 'earlier4']);
+    expect(out).toHaveLength(100);
+  });
+
+  it('caps the earlier reserve at a quarter of the budget, leaving the rest to upcoming', () => {
+    const earlier = Array.from({ length: 60 }, (_, i) => mk(`earlier${i}`, '2026-07-14T10:00:00'));
+    const upcoming = Array.from({ length: 200 }, (_, i) => mk(`u${i}`, '2026-07-15T13:00:00'));
+    const out = budgetEvents([...earlier, ...upcoming], 100, undefined, NOW);
+    expect(out.filter((e) => e.id.startsWith('earlier'))).toHaveLength(25);
+    expect(out.filter((e) => e.id.startsWith('u'))).toHaveLength(75);
+  });
 });

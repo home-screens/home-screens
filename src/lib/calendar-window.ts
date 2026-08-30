@@ -83,6 +83,14 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
       return gridWindow('weeks', now, weekStartsOn, clampWeeksToShow((mod.config as Partial<CalendarConfig>).weeksToShow));
     }
     if (view === 'agenda') return agendaWindow(mod.config as Partial<CalendarConfig>, now);
+    // Daily lists today forward, so the server's upcoming-only default covers
+    // it — unless past dimming or the now rule is on. Both exist to show the
+    // events that already ended today (dimmed, above the rule), and those rows
+    // only reach the module if the fetch starts at midnight. Same pairing as
+    // the agenda's `agendaShowFinishedToday`, and the same gate the module
+    // itself uses to keep them (`keepFinishedToday` in CalendarModule).
+    const daily = mod.config as Partial<CalendarConfig>;
+    if (daily.dimPastEvents === true || daily.showNowRule === true) return fromStartOfToday(now);
     return null; // daily: upcoming only
   }
   if (mod.type === 'fullscreen-calendar') {

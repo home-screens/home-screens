@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useCalendarFetchQuery } from '../useCalendarFetchQuery';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarSourceStatus } from '@/types/config';
@@ -74,6 +75,10 @@ export type SourceHealthMap = Map<string, CalendarSourceStatus>;
  */
 export function useCalendarSourceHealth(): SourceHealthMap {
   const [health, setHealth] = useState<SourceHealthMap>(() => new Map());
+  // Widest window any display on the hub renders, for the cold-start fallback
+  // below. Scoped to every display, not the selected one: this fetch seeds a
+  // process-wide map, so it has to cover whatever the busiest grid draws.
+  const calendarQuery = useCalendarFetchQuery('all');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,20 +94,23 @@ export function useCalendarSourceHealth(): SourceHealthMap {
           if (Array.isArray(body.sourceStatus) && body.sourceStatus.length > 0) { apply(body.sourceStatus); return; }
         }
         // Empty status = no display fetch has happened yet this process, so
-        // there is nothing cached to show. This one editor-window fetch is
-        // exactly the pattern calendar-source-status.ts warns against (it
-        // seeds the last-good state with an editor-shaped window and mints a
-        // cache entry no display will hit) — accepted as a cold-start
-        // trade-off so a fresh setup still gets health badges; the next
-        // display fetch overwrites it.
-        const fallback = await editorFetch('/api/calendar', { signal: controller.signal });
+        // there is nothing cached to show. Fetch once to get badges on a fresh
+        // setup, using the window the displays themselves would ask for: a
+        // bare fetch here would seed each source's saved-events set with an
+        // upcoming-only window, and a source that failed before the first
+        // display fetch would then fall back to a set holding no past days,
+        // emptying every grid's past cells while its future weeks render.
+        const fallback = await editorFetch(`/api/calendar${calendarQuery ? `?${calendarQuery}` : ''}`, { signal: controller.signal });
         if (!fallback.ok) return;
         const body = await fallback.json();
         if (Array.isArray(body.sourceStatus)) apply(body.sourceStatus);
       } catch { /* no sources configured or fetch failed: no badges */ }
     })();
     return () => controller.abort();
-  }, []);
+    // Re-reads health when the window changes (a display switch, a new grid
+    // module). Cheap: the status GET costs nothing, and the fallback below
+    // stops firing as soon as any fetch has happened this process.
+  }, [calendarQuery]);
 
   return health;
 }

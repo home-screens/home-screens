@@ -285,10 +285,11 @@ describe('ICS + Google Calendar merging', () => {
 
   it('applies the fixed safety cap upcoming-first, keeping rows that ended today alongside it', async () => {
     // Only a pathological feed trips the cap. When it does, the nearest
-    // upcoming rows survive, today's finished rows ride alongside the budget
-    // (the agenda's finished-today flag exists to show them), and earlier
-    // days are the first to go; the far end of the future is cut before any
-    // nearer row.
+    // upcoming rows survive and today's finished rows ride alongside the
+    // budget (the agenda's finished-today flag exists to show them). The far
+    // end of the future is cut before any nearer row — and before the handful
+    // of past days a grid draws, which hold a reserved share of the budget so
+    // a dense feed can't blank every past cell.
     mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }));
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
     const endedToday = new Date(todayStart.getTime() + 60_000).toISOString();
@@ -308,13 +309,15 @@ describe('ICS + Google Calendar merging', () => {
     const body = await res.json(); const json = body.events ?? body;
 
     const titles = json.map((e: CalendarEvent) => e.title);
+    // Two past rows + one ended-today row + the budget minus the two past rows.
     expect(json).toHaveLength(CALENDAR_FETCH_MAX_EVENTS + 1);
     expect(titles).toContain('Ended today');
     expect(titles).toContain('Upcoming 0');
-    expect(titles).toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS - 1}`);
-    expect(titles).not.toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS}`);
-    expect(titles).not.toContain('Past A');
-    expect(titles).not.toContain('Past B');
+    // The past days a grid draws survive; the far future is what gets cut.
+    expect(titles).toContain('Past A');
+    expect(titles).toContain('Past B');
+    expect(titles).toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS - 3}`);
+    expect(titles).not.toContain(`Upcoming ${CALENDAR_FETCH_MAX_EVENTS - 2}`);
   });
 
   it('returns ICS events when Google fails (partial success)', async () => {

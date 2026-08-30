@@ -297,4 +297,102 @@ describe('fetchCalendarEvents', () => {
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31', true);
     expect(events.map((e) => e.title)).toEqual(['Accepted', 'No attendees']);
   });
+
+  // Google caps a response at one page (250 by default, 2500 max) and signals
+  // more with nextPageToken. Unpaged, the tail of a wide grid window is lost:
+  // orderBy startTime is ascending, so the last weeks render empty.
+  describe('paging', () => {
+    /** Serve `pages` in order, each page's token pointing at the next. */
+    function setupPagedEvents(pages: Record<string, unknown>[][]) {
+      mockEventsList.mockImplementation(async (params: { pageToken?: string }) => {
+        const index = params.pageToken ? Number(params.pageToken) : 0;
+        const items = pages[index] ?? [];
+        const nextPageToken = index + 1 < pages.length ? String(index + 1) : undefined;
+        return { data: { items, nextPageToken } };
+      });
+    }
+
+    const evt = (id: string) => ({
+      id,
+      summary: id,
+      start: { dateTime: '2026-01-15T10:00:00Z' },
+      end: { dateTime: '2026-01-15T11:00:00Z' },
+    });
+
+    it('follows nextPageToken until the calendar is exhausted', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1', summary: 'Work' }]);
+      setupColors({});
+      setupPagedEvents([[evt('a'), evt('b')], [evt('c')], [evt('d')]]);
+
+      const { events, results } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-03-31');
+
+      expect(events.map((e) => e.title)).toEqual(['a', 'b', 'c', 'd']);
+      expect(results).toEqual([{ id: 'cal1', name: 'Work', ok: true }]);
+      expect(mockEventsList).toHaveBeenCalledTimes(3);
+      // The token from each page must be carried into the next request.
+      expect(mockEventsList.mock.calls[1][0]).toMatchObject({ pageToken: '1', calendarId: 'cal1' });
+      expect(mockEventsList.mock.calls[2][0]).toMatchObject({ pageToken: '2' });
+    });
+
+    it('sends no pageToken on the first request and asks for full pages', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1' }]);
+      setupColors({});
+      setupPagedEvents([[evt('a')]]);
+
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockEventsList).toHaveBeenCalledTimes(1);
+      expect(mockEventsList.mock.calls[0][0]).toMatchObject({ pageToken: undefined, maxResults: 2500 });
+    });
+
+    it('stops paging a runaway calendar at the safety cap', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1' }]);
+      setupColors({});
+      // Every page is full and every page claims another one follows.
+      const page = Array.from({ length: 1200 }, (_, i) => evt(`e${i}`));
+      mockEventsList.mockImplementation(async () => ({ data: { items: page, nextPageToken: 'more' } }));
+
+      const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2027-01-01');
+
+      // Two pages clear the 2000-event cap, so it stops rather than looping.
+      expect(mockEventsList).toHaveBeenCalledTimes(2);
+      expect(events).toHaveLength(2400);
+    });
+
+    it('pages each calendar independently', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1' }, { id: 'cal2' }]);
+      setupColors({});
+      mockEventsList.mockImplementation(async (params: { calendarId: string; pageToken?: string }) => {
+        if (params.calendarId === 'cal1') {
+          return params.pageToken
+            ? { data: { items: [evt('cal1-b')] } }
+            : { data: { items: [evt('cal1-a')], nextPageToken: 'next' } };
+        }
+        return { data: { items: [evt('cal2-a')] } };
+      });
+
+      const { events } = await fetchCalendarEvents(['cal1', 'cal2'], '2026-01-01', '2026-01-31');
+
+      expect(events.map((e) => e.title).sort()).toEqual(['cal1-a', 'cal1-b', 'cal2-a']);
+    });
+
+    it('drops declined events from every page, not just the first', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1' }]);
+      setupColors({});
+      const declined = {
+        ...evt('declined'),
+        attendees: [{ self: true, responseStatus: 'declined' }],
+      };
+      setupPagedEvents([[evt('kept-a')], [declined, evt('kept-b')]]);
+
+      const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31', true);
+
+      expect(events.map((e) => e.title)).toEqual(['kept-a', 'kept-b']);
+    });
+  });
 });

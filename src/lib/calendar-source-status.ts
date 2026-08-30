@@ -74,6 +74,10 @@ const lastGoodEvents = new Map<string, CalendarEvent[]>();
 // days, so anything older is dead weight.
 const SAVED_EVENT_RETENTION_MS = 90 * 86400000;
 
+// Share of an exceeded budget reserved for events that already ended before
+// today, so a dense window can never strip a grid's past days entirely.
+const EARLIER_BUDGET_SHARE = 0.25;
+
 /** Event overlaps the half-open window (same test the fetchers apply upstream). */
 function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date): boolean {
   return new Date(ev.end) > windowStart && new Date(ev.start) < windowEnd;
@@ -147,8 +151,10 @@ export function mergeSourceStatus(
  * and the daily / day-timeline dimming exist to show them, nothing
  * client-side could recover them if dropped here, and a single day bounds
  * their count (capped at maxEvents anyway, most recent first, so the
- * payload stays within 2x the budget). Leftover budget backfills the most
- * recent earlier events (nearest today, most likely visible in a grid).
+ * payload stays within 2x the budget). Earlier events (most recent first,
+ * nearest today, the ones a grid actually draws) take the leftover budget
+ * as before, but never less than a reserved share — leftovers alone were
+ * nothing at all once upcoming filled the cap on its own.
  * "Today" is the display's day, not the server's. With the default
  * timeMin = now, everything is upcoming and this degenerates to the
  * original slice. `nowIso` is injectable for tests only.
@@ -173,9 +179,18 @@ export function budgetEvents(
     else if (end > todayStart) endedToday.push(ev);
     else earlier.push(ev);
   }
-  const keptUpcoming = upcoming.slice(0, maxEvents);
+  // Earlier events take whatever upcoming leaves over, but never less than a
+  // reserved share. Leftovers alone came to exactly nothing the moment
+  // upcoming filled the budget by itself, which renders as every past day of
+  // a grid being empty while the future weeks look fine — the one failure
+  // this budget exists to prevent. A quarter covers far more than the ~2
+  // weeks of past days any grid draws, so upcoming still keeps three
+  // quarters of a cap it would otherwise have taken whole.
+  const leftover = maxEvents - Math.min(upcoming.length, maxEvents);
+  const earlierBudget = Math.max(leftover, Math.floor(maxEvents * EARLIER_BUDGET_SHARE));
+  const keptEarlier = earlier.slice(Math.max(0, earlier.length - earlierBudget));
+  const keptUpcoming = upcoming.slice(0, maxEvents - keptEarlier.length);
   const keptEndedToday = endedToday.slice(Math.max(0, endedToday.length - maxEvents));
-  const keptEarlier = earlier.slice(Math.max(0, earlier.length - (maxEvents - keptUpcoming.length)));
   return [...keptEarlier, ...keptEndedToday, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start));
 }
 

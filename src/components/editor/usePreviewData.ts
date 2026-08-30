@@ -3,10 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
-import { getCalendarFetchWindow } from '@/lib/calendar-window';
-import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
-import { createTZDate } from '@/lib/timezone';
+import { useEditorStore } from '@/stores/editor-store';
+import { useCalendarFetchQuery } from './useCalendarFetchQuery';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
@@ -108,19 +106,8 @@ export function usePreviewData(): PreviewData {
 
   // Calendar fetch window derived from the active display's screens — same
   // computation the kiosk uses, so month/week grid views preview with past
-  // events (WYSIWYG). Selecting a query *string* keeps the effect below from
-  // re-running on unrelated store changes (module drags, style edits).
-  const calendarQuery = useEditorStore((s) => {
-    if (!s.config) return '';
-    const win = getCalendarFetchWindow(
-      getActiveScreens(s.config, s.selectedDisplayId),
-      createTZDate(s.config.settings.timezone),
-      s.config.settings.calendar?.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
-    );
-    if (!win) return '';
-    return `timeMin=${encodeURIComponent(win.timeMin)}`
-      + (win.timeMax ? `&timeMax=${encodeURIComponent(win.timeMax)}` : '');
-  });
+  // events (WYSIWYG).
+  const calendarQuery = useCalendarFetchQuery('active');
 
   useEffect(() => {
     const controller = new AbortController();
