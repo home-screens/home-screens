@@ -1802,6 +1802,7 @@
         "one": "{count} Bildschirm",
         "other": "{count} Bildschirme"
       },
+      "currentScreenLabel": "Zeigt {name}",
       "multipleClientsCardHeading": "{count} verschiedene Clients melden für diese Anzeige",
       "tabsSuffix": "×{count} Tabs",
       "formEditTitle": "Anzeige bearbeiten",

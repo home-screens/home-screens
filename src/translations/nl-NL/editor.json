@@ -1802,6 +1802,7 @@
         "one": "{count} scherm",
         "other": "{count} schermen"
       },
+      "currentScreenLabel": "Toont {name}",
       "multipleClientsCardHeading": "{count} verschillende clients rapporteren voor dit scherm",
       "tabsSuffix": "×{count} tabs",
       "formEditTitle": "Scherm bewerken",

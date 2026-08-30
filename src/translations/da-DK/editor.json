@@ -1802,6 +1802,7 @@
         "one": "{count} skærm",
         "other": "{count} skærme"
       },
+      "currentScreenLabel": "Viser {name}",
       "multipleClientsCardHeading": "{count} forskellige klienter melder sig for dette display",
       "tabsSuffix": "×{count} faner",
       "formEditTitle": "Redigér display",

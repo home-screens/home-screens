@@ -721,6 +721,7 @@ function DisplayCard({
     : null;
   const dimensions = oriented ? `${oriented.width}×${oriented.height}` : null;
   const screenCount = displayScreenCount(display);
+  const currentScreenName = heartbeat?.status?.currentScreen?.name || null;
   const isMain = isMainDisplay(display.id);
 
   const reports = collapseReports(heartbeat?.viewportReports ?? []);
@@ -790,6 +791,11 @@ function DisplayCard({
         <span>
           {t('settings.displaysIndex.screenCount', { count: screenCount })}
         </span>
+        {currentScreenName && (
+          <span className="truncate">
+            {t('settings.displaysIndex.currentScreenLabel', { name: currentScreenName })}
+          </span>
+        )}
         {reporterIp ? (
           <span className="font-mono text-hs-text-faint">{reporterIp}</span>
         ) : (

@@ -1802,6 +1802,7 @@
         "one": "{count} screen",
         "other": "{count} screens"
       },
+      "currentScreenLabel": "Showing {name}",
       "multipleClientsCardHeading": "{count} distinct clients reporting for this display",
       "tabsSuffix": "×{count} tabs",
       "formEditTitle": "Edit Display",

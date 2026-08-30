@@ -1806,6 +1806,7 @@
         "other": "{count} écrans",
         "many": "{count} écrans"
       },
+      "currentScreenLabel": "Affiche {name}",
       "multipleClientsCardHeading": "{count} clients distincts signalent cet écran",
       "tabsSuffix": "×{count} onglets",
       "formEditTitle": "Modifier l’écran",
