@@ -5,12 +5,32 @@ on:
     tags: ['v*']
   # Manual runs build the tarball and the Pi image without cutting a tag or
   # publishing a release. Used to iterate on the image build.
+  #
+  # `rebuild_from_tag` re-cuts the image for a release that already shipped,
+  # using that release's published tarball instead of building the app again.
+  # The point is to fix a bad image without touching the app: the payload is
+  # the same bytes users already downloaded, while the OS layer comes from the
+  # stage scripts in this checkout. Skips the build job, so it runs in minutes.
+  #
+  # A rebuilt image is not a reproduction of the original: apt packages and the
+  # stage scripts are today's, and `setup-system` still comes from the old
+  # tarball. Fixes that live in image-creation/ therefore apply, and fixes that
+  # live in scripts/upgrade.sh do not.
   workflow_dispatch:
     inputs:
       version:
         description: 'Version string for artifact names (e.g. v1.2.3-test)'
-        required: true
+        required: false
         type: string
+      rebuild_from_tag:
+        description: 'Re-cut the image for an existing release, e.g. v1.11.0 (skips the app build)'
+        required: false
+        type: string
+      attach:
+        description: 'Upload the rebuilt image to that release, replacing any image already there'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -18,6 +38,9 @@ permissions:
 jobs:
   build:
     name: Build & Release
+    # A rebuild takes its payload from an already-published release, so there is
+    # nothing to compile. The image job handles the skip.
+    if: ${{ (inputs.rebuild_from_tag || '') == '' }}
     runs-on: ubuntu-24.04-arm
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -148,10 +171,30 @@ jobs:
   image:
     name: Build Pi image
     needs: build
+    # `always()` so a rebuild still runs with the build job skipped. Guard on
+    # the result explicitly, or a genuinely failed build would still be imaged.
+    if: ${{ always() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+
+      # The build job owns this on the normal path, but it is skipped on a
+      # rebuild, so the image job resolves its own version either way.
+      - name: Resolve version
+        id: version
+        run: |
+          REBUILD="${{ inputs.rebuild_from_tag }}"
+          if [ -n "${REBUILD}" ]; then
+            VERSION="${REBUILD}"
+          else
+            VERSION="${{ needs.build.outputs.version }}"
+          fi
+          if [ -z "${VERSION}" ]; then
+            echo "::error::Set either 'version' or 'rebuild_from_tag'"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Install build dependencies
         run: |
@@ -168,10 +211,24 @@ jobs:
           df -h /
 
       - name: Download tarball
+        if: ${{ (inputs.rebuild_from_tag || '') == '' }}
         uses: actions/download-artifact@v4
         with:
           name: standalone-tarball
           path: .
+
+      # Rebuild path: the artifact from the original run is long expired
+      # (retention-days: 1), but the release asset is permanent and is the
+      # exact payload users downloaded, checksum included.
+      - name: Download tarball from release
+        if: ${{ (inputs.rebuild_from_tag || '') != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${{ inputs.rebuild_from_tag }}" \
+            --repo "${{ github.repository }}" \
+            --pattern 'home-screens-*.tar.gz' \
+            --pattern 'home-screens-*.tar.gz.sha256'
 
       # The base OS image is ~1.3GB and pinned in the builder. Key on the
       # builder's hash so bumping the pin invalidates the cache.
@@ -183,7 +240,7 @@ jobs:
 
       - name: Build image
         env:
-          VERSION: ${{ needs.build.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           TARBALL="home-screens-${VERSION}.tar.gz"
           SHA="$(awk '{print $1}' "${TARBALL}.sha256")"
@@ -205,7 +262,7 @@ jobs:
       # Adds the image to the release the build job already created. Assets are
       # added, not replaced, so the tarball published above survives.
       - name: Attach image to release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: ${{ startsWith(github.ref, 'refs/tags/') && (inputs.rebuild_from_tag || '') == '' }}
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
@@ -213,3 +270,17 @@ jobs:
             image-creation/out/*.img.xz.sha256
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
+
+      # A rebuild targets a release that is not github.ref, which the action
+      # above cannot express, so upload directly. --clobber because the whole
+      # point is replacing an image that shipped broken. Opt-in: leave `attach`
+      # off to inspect the artifact before it goes anywhere users can reach.
+      - name: Attach rebuilt image to its release
+        if: ${{ (inputs.rebuild_from_tag || '') != '' && inputs.attach }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ inputs.rebuild_from_tag }}" \
+            image-creation/out/*.img.xz \
+            image-creation/out/*.img.xz.sha256 \
+            --repo "${{ github.repository }}" --clobber
