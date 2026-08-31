@@ -257,6 +257,14 @@ fi
 log_info "Running setup-system (services, kiosk, boot config)"
 USER="${APP_USER}" HOME="/home/${APP_USER}" bash "${APP_DIR}/scripts/upgrade.sh" setup-system
 
+# setup-system runs as root here, so anything it creates under the home
+# directory lands root-owned unless it chowns explicitly. It does, but this
+# sweep is the backstop for the whole class: a single root-owned dotfile
+# directory is enough to break the kiosk (a root-owned ~/.config stopped
+# Chromium creating its profile and aborted it at startup), and the failure
+# surfaces as a black screen with nothing in any log.
+chown -R "${APP_USER}:${APP_USER}" "/home/${APP_USER}"
+
 # ============================================================================
 # Verify installation
 # ============================================================================

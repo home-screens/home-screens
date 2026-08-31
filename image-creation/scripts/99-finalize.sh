@@ -371,6 +371,34 @@ if [ ! -f /etc/systemd/system/home-screens.service ]; then
     VERIFY_OK=false
 fi
 
+# The kiosk chain is getty@tty1 -> autologin -> ~/.bash_profile -> labwc ->
+# chromium. Every link below has shipped broken in an image at least once, and
+# each failure looks identical from the outside: a black screen, an empty
+# journal, and green app diagnostics (those only cover the Next.js service,
+# which is fine while the kiosk is dead). Assert them here so a base-image
+# change cannot reintroduce any of them silently.
+if [ ! -e /etc/systemd/system/getty.target.wants/getty@tty1.service ]; then
+    log_warn "Warning: getty@tty1 not enabled — tty1 gets no login shell, kiosk will never start"
+    VERIFY_OK=false
+fi
+
+if [ ! -f /etc/systemd/system/getty@tty1.service.d/autologin.conf ]; then
+    log_warn "Warning: autologin drop-in missing — tty1 will sit at a login prompt"
+    VERIFY_OK=false
+fi
+
+if [ "$(systemctl is-enabled userconfig.service 2>/dev/null)" = "enabled" ]; then
+    log_warn "Warning: userconfig.service still enabled — its wizard will hang on first boot"
+    VERIFY_OK=false
+fi
+
+for _d in "/home/${APP_USER}" "/home/${APP_USER}/.config"; do
+    if [ -e "${_d}" ] && [ "$(stat -c %U "${_d}")" != "${APP_USER}" ]; then
+        log_warn "Warning: ${_d} is owned by $(stat -c %U "${_d}"), not ${APP_USER} — Chromium cannot create its profile"
+        VERIFY_OK=false
+    fi
+done
+
 if [ "$VERIFY_OK" = "true" ]; then
     log_info "All verifications passed"
 else

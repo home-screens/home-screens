@@ -935,9 +935,20 @@ exec chromium \
       changed="${changed}labwc-autostart,"
     fi
 
-    # Fix ownership when running as root during image build
+    # Fix ownership when running as root during image build.
+    #
+    # The parent matters as much as the child: `mkdir -p` above creates
+    # ${HOME}/.config too, and as root it lands root-owned. Chromium then
+    # cannot create ${HOME}/.config/chromium, resolves its user-data and
+    # crashpad directories to an empty string, and aborts at startup
+    # ("chrome_crashpad_handler: --database is required"). Chromium is the
+    # labwc session leader, so that abort takes down the whole kiosk and the
+    # autologin cycle respawns until systemd parks getty@tty1 at
+    # start-limit-hit — a black screen with nothing running and nothing in
+    # the journal.
     if [ "$(id -u)" -eq 0 ] && [ -n "${USER}" ] && [ "${USER}" != "root" ]; then
-      chown -R "${USER}:${USER}" "${HOME}/.config/labwc"
+      chown "${USER}:${USER}" "${HOME}/.config"
+      chown -R "${USER}:${USER}" "${LABWC_DIR}"
     fi
 
     # 9. labwc auto-launch in .bash_profile (idempotent: updates stale blocks)

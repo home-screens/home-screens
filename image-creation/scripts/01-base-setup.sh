@@ -51,6 +51,24 @@ else
     log_info "User 'hs' already exists"
 fi
 
+# Raspberry Pi OS ships getty@tty1 DISABLED and userconfig.service ENABLED:
+# the first-boot wizard is what enables getty@tty1 once an account exists (see
+# `systemctl disable userconfig` / `systemctl enable getty@tty1` in
+# /usr/bin/cancel-rename). We create 'hs' with useradd above, so that wizard
+# never runs. Left alone it hangs forever on a whiptail dialog nobody can see,
+# tty1 never gets a login shell, autologin never fires, and the kiosk never
+# starts — a black screen with a clean journal.
+#
+# Do NOT call cancel-rename to do this. It routes through
+# `raspi-config nonint do_boot_behaviour B1` (console, no autologin), which
+# deletes /etc/systemd/system/getty@tty1.service.d/ and takes the autologin
+# drop-in that stage 04's setup-system writes with it.
+#
+# Both calls only write symlinks, so they are legal under HS_CHROOT.
+log_info "Enabling console login on tty1 (Pi OS leaves it disabled for its wizard)"
+systemctl disable userconfig.service 2>/dev/null || true
+systemctl enable getty@tty1.service
+
 log_info "Configuring SSH for password authentication"
 # Remove any drop-in configs that override PasswordAuthentication
 # (Pi OS Bookworm ships with sshd_config.d/ files that set it to 'no')
