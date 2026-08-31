@@ -409,16 +409,19 @@ if [ "${USERCONF_STATE}" = "enabled" ]; then
     VERIFY_OK=false
 fi
 
-# ADVISORY (not yet gating): does the unit plus its drop-in actually parse?
-# The existence check above passes a malformed drop-in happily, and the unit
-# then fails to start with a parse error. Left advisory for now because
-# systemd-analyze can be noisy in a chroot; promote to VERIFY_OK=false once a
-# few builds have shown it clean.
+# Does the unit plus its drop-in actually parse? The existence check above
+# passes a malformed drop-in happily, and the unit then fails to start with a
+# parse error.
+#
+# --man=false is required, not cosmetic: verify otherwise resolves every
+# Documentation= man page, and stage 02 strips man pages from the image, so it
+# reports `Command 'man agetty(8)' failed with code 1` on a perfectly good unit.
 if command -v systemd-analyze >/dev/null 2>&1; then
-    if ANALYZE_OUT="$(systemd-analyze verify getty@tty1.service 2>&1)"; then
-        log_info "systemd-analyze verify getty@tty1.service: clean${ANALYZE_OUT:+ (${ANALYZE_OUT})}"
+    if ANALYZE_OUT="$(systemd-analyze verify --man=false getty@tty1.service 2>&1)"; then
+        log_info "systemd-analyze verify getty@tty1.service: clean"
     else
-        log_warn "ADVISORY: systemd-analyze verify getty@tty1.service failed: ${ANALYZE_OUT}"
+        log_warn "Warning: getty@tty1.service does not verify: ${ANALYZE_OUT}"
+        VERIFY_OK=false
     fi
 fi
 
@@ -429,7 +432,7 @@ for _d in "/home/${APP_USER}" "/home/${APP_USER}/.config"; do
     fi
 done
 
-# ADVISORY (not yet gating): actually run the browser as the kiosk user.
+# Actually run the browser as the kiosk user.
 #
 # Every check above inspects a filesystem that has never booted. This is the
 # one cheap thing that EXECUTES part of the kiosk chain, and it needs no
@@ -439,26 +442,31 @@ done
 #   ERROR:chrome/app/chrome_main.cc:207] Failed to create headless user data
 #   directory container.
 #
-# HOME is load-bearing. The chroot runs with HOME=/root, so without overriding
-# it Chromium would build its profile under /root, succeed, and prove nothing
-# about the user that actually runs the kiosk.
+# Two flags are load-bearing, not cosmetic:
 #
-# Advisory for now: unverified whether Chromium runs clean inside the chroot,
-# where /proc, /sys and /dev belong to the build host. Read one build's log,
-# then promote to VERIFY_OK=false.
+#   HOME=/home/hs           the chroot runs with HOME=/root, so without this
+#                           Chromium builds its profile under /root, succeeds,
+#                           and proves nothing about the user running the kiosk
+#   --disable-dev-shm-usage /dev/shm belongs to the build host and is not
+#                           writable here, so Chromium dies on shared memory
+#                           long before it reaches the profile. Sending it to
+#                           /tmp keeps the check pointed at what we care about
 if command -v chromium >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
     # timeout: a wedged Chromium in a chroot would otherwise stall the build
     # until the job's 120-minute limit.
     if CHROMIUM_OUT="$(timeout 120 runuser -u "${APP_USER}" -- \
             env HOME="/home/${APP_USER}" \
-            chromium --headless --no-sandbox --dump-dom about:blank 2>&1)"; then
+            chromium --headless --no-sandbox --disable-dev-shm-usage \
+            --dump-dom about:blank 2>&1)"; then
         log_info "Chromium ran as ${APP_USER} and rendered a page"
     else
-        log_warn "ADVISORY: Chromium failed to run as ${APP_USER}:"
+        log_warn "Warning: Chromium failed to run as ${APP_USER} — the kiosk will not start:"
         echo "${CHROMIUM_OUT}" | head -10 | sed 's/^/    /'
+        VERIFY_OK=false
     fi
 else
-    log_warn "ADVISORY: skipped Chromium check (chromium or runuser not present)"
+    log_warn "Warning: chromium or runuser missing — cannot verify the browser runs"
+    VERIFY_OK=false
 fi
 
 if [ "$VERIFY_OK" = "true" ]; then
