@@ -25,6 +25,16 @@ export function defaultGridMaxEventsPerCell(viewMode: string | undefined): numbe
   return viewMode === 'week' ? 5 : 4;
 }
 
+/** Clamp a grid's gridDayLabelScale to its 0.8-2 range. Unset or not a number
+ * (same hand-edited-config caveat as clampWeeksToShow) reads as 1, leaving the
+ * day names and day numbers at their baked-in em sizes. The ceiling is 2
+ * because the day-number row grows with the type and the cell has to keep
+ * room for at least one event pill under it. */
+export function clampGridDayLabelScale(value: number | undefined): number {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(2, Math.max(0.8, value as number));
+}
+
 /** Grid views render their full visible range (wall-calendar semantics);
  * list views stay upcoming-only. */
 export function isGridView(viewMode: string | undefined): boolean {

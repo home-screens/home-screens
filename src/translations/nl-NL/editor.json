@@ -2373,6 +2373,7 @@
       "showFinishedToday": "Afgelopen gebeurtenissen van vandaag tonen",
       "weeksToShow": "Weken tonen",
       "eventsPerCell": "Max. evenementen per dag",
+      "dayLabelScale": "Grootte datumtekst",
       "weekStartsOn": "Week begint op",
       "showTime": "Tijd tonen",
       "showLocation": "Locatie tonen",

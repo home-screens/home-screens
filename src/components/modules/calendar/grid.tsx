@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react';
 import { isSameDay, isSameMonth, addDays, getWeek, differenceInCalendarDays } from 'date-fns';
 import {
   parseEventWallTime, eventsForDay, weekStartsOnFor, weekNumberOptions, clampWeeksToShow, clampGridMaxEventsPerCell,
+  clampGridDayLabelScale,
   formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, isAllDayEvent, isWeekendDay,
 } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
@@ -25,23 +26,37 @@ import { EventCard } from './EventCard';
  *  weekday labels drift off the columns below. */
 const GRID_GAP = 'gap-0.5';
 
-export function gridTemplateFor(showWeekNumbers: boolean): string {
+/** An `em` size at the configured day-label scale. Rounded because
+ *  `0.6 * 1.1` is 0.66000000000000003 in binary floating point and that whole
+ *  string would otherwise land in the DOM. */
+export function scaledEm(base: number, scale: number): string {
+  return `${Math.round(base * scale * 1000) / 1000}em`;
+}
+
+/** Reads the column layout off `config` rather than taking the flags loose,
+ *  so it can't be called with a scale that disagrees with the WeekNumberCell
+ *  sitting in the column it sizes. */
+export function gridTemplateFor(config: CalendarConfig): string {
   // The week-number column is a fixed width, not `auto`: the header and the
   // body rows are separate grids, so an `auto` column resolves per grid
   // (empty header cell ≈ 0px vs two week-number digits) and shifts every
-  // weekday label off the day column below it.
-  return showWeekNumbers ? '1.6em repeat(7, 1fr)' : 'repeat(7, 1fr)';
+  // weekday label off the day column below it. It tracks the day-label scale
+  // so a larger week number still fits its column.
+  if (!(config.showWeekNumbers ?? false)) return 'repeat(7, 1fr)';
+  return `${scaledEm(1.6, clampGridDayLabelScale(config.gridDayLabelScale))} repeat(7, 1fr)`;
 }
 
-export function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = '0.55em' }: {
+/** `fontSize` is the unscaled em size; the cell applies gridDayLabelScale
+ *  itself, since week numbers are date furniture like the day numbers. */
+export function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = 0.55 }: {
   date: Date;
   config: CalendarConfig;
   className?: string;
-  fontSize?: string;
+  fontSize?: number;
 }) {
   return (
     <div className={`flex items-start justify-center px-1 ${className}`}>
-      <span style={{ fontSize, opacity: TEXT_OPACITY.tertiary }}>
+      <span style={{ fontSize: scaledEm(fontSize, clampGridDayLabelScale(config.gridDayLabelScale)), opacity: TEXT_OPACITY.tertiary }}>
         {getWeek(date, weekNumberOptions(config.startDay))}
       </span>
     </div>
@@ -50,24 +65,25 @@ export function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = 
 
 /** Weekday header for the month and multi-week grids (the week grid renders
  *  its own, with day numbers and badges). */
-function DayOfWeekHeaderRow({ dates, showWeekNumbers, locale, today, accentColor }: {
+function DayOfWeekHeaderRow({ dates, config, locale, today, accentColor }: {
   dates: Date[];
-  showWeekNumbers: boolean;
+  config: CalendarConfig;
   locale: string;
   /** Modern grid themes: bold + accent the column containing `today`. */
   today?: Date;
   accentColor?: string;
 }) {
+  const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
   return (
-    <div className={`grid ${GRID_GAP}`} style={{ gridTemplateColumns: gridTemplateFor(showWeekNumbers) }}>
-      {showWeekNumbers && <div />}
+    <div className={`grid ${GRID_GAP}`} style={{ gridTemplateColumns: gridTemplateFor(config) }}>
+      {(config.showWeekNumbers ?? false) && <div />}
       {dates.map((d) => {
         const highlight = today != null && accentColor != null && d.getDay() === today.getDay();
         return (
           <div key={d.toISOString()} className="text-center py-0.5">
             <span
               className={`uppercase tracking-wider${highlight ? ' font-bold' : ''}`}
-              style={{ fontSize: '0.6em', ...(highlight ? { color: accentColor } : { opacity: TEXT_OPACITY.tertiary }) }}
+              style={{ fontSize: scaledEm(0.6, dayLabelScale), ...(highlight ? { color: accentColor } : { opacity: TEXT_OPACITY.tertiary }) }}
             >
               {formatDateSync(d, 'EEE', { locale })}
             </span>
@@ -198,7 +214,8 @@ export function GridView(props: GridViewProps) {
 function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid }: GridSkeletonProps) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
-  const gridTemplate = gridTemplateFor(showWeekNumbers);
+  const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
+  const gridTemplate = gridTemplateFor(config);
 
   // Badge colors are loop-invariant; computed once, not per cell (up to 84
   // cells re-render on every minute tick).
@@ -215,7 +232,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
     <div className={`flex flex-col h-full ${GRID_GAP}`}>
       {/* The rolling grid never had a title under the banner look; the month grid keeps its own. */}
       {grid.kind === 'month' && <GridTitle>{grid.title}</GridTitle>}
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} />
+      <DayOfWeekHeaderRow dates={weeks[0]} config={config} locale={locale} />
 
       <div className={`flex flex-col ${GRID_GAP} flex-1`}>
         {weeks.map((week, wi) => (
@@ -240,12 +257,15 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                   }, decor)}
                 >
                   {/* Digits at 0.65em to match the week grid; height 1.35em
-                      keeps the previous badge's pixel height. Flex splits
-                      month + day into separate items, so the spacing between
-                      them must come from `gap` — a literal space would be
-                      collapsed away. */}
+                      keeps the previous badge's pixel height. The height is
+                      NOT scaled: a length in `em` resolves against the
+                      element's own font-size, so the strip already grows with
+                      its digits — scaling it again grows it quadratically.
+                      Flex splits month + day into separate items, so the
+                      spacing between them must come from `gap` — a literal
+                      space would be collapsed away. */}
                   <span className="flex items-center justify-center rounded leading-none mb-0.5" style={{
-                    height: '1.35em', fontSize: '0.65em', gap: '0.25em',
+                    height: '1.35em', fontSize: scaledEm(0.65, dayLabelScale), gap: '0.25em',
                     fontWeight: isToday ? 700 : 400,
                     backgroundColor: isToday ? todayBadgeBg : dayBadgeBg,
                     color: isToday ? todayText : dayText,
@@ -369,7 +389,8 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
 function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
-  const gridTemplate = gridTemplateFor(showWeekNumbers);
+  const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
+  const gridTemplate = gridTemplateFor(config);
   const { textColor, backgroundColor: moduleBackground } = style;
 
   // Loop-invariant colors, hoisted like the banner view's (up to 84 cells
@@ -385,7 +406,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
   return (
     <div data-grid-theme={theme} className={`flex flex-col h-full ${GRID_GAP}`}>
       <GridTitle>{grid.title}</GridTitle>
-      <DayOfWeekHeaderRow dates={weeks[0]} showWeekNumbers={showWeekNumbers} locale={locale} today={today} accentColor={accentColor} />
+      <DayOfWeekHeaderRow dates={weeks[0]} config={config} locale={locale} today={today} accentColor={accentColor} />
       <div className={`flex flex-col ${GRID_GAP} flex-1`}>
         {weeks.map((week, wi) => (
           <div key={wi} className={`grid ${GRID_GAP} flex-1`} style={{ gridTemplateColumns: gridTemplate }}>
@@ -413,11 +434,17 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                     ...(cellShadow ? { boxShadow: cellShadow } : {}),
                   }, decor)}
                 >
-                  <div className="flex items-center shrink-0" style={{ height: '1.4em', padding: '0 0.15em', marginBottom: '0.1em' }}>
+                  {/* The row is a bare div with no font-size of its own, so
+                      its 1.4em resolves against the cell and has to be scaled
+                      by hand to keep making room for the digits. The badge
+                      below sizes its circle in its OWN em, which the scaled
+                      font-size already grew — scaling that too would balloon
+                      the circle out of the cell. */}
+                  <div className="flex items-center shrink-0" style={{ height: scaledEm(1.4, dayLabelScale), padding: '0 0.15em', marginBottom: '0.1em' }}>
                     {isToday ? (
                       <span
                         className="inline-flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
-                        style={{ minWidth: '1.4em', height: '1.4em', padding: '0 0.3em', fontSize: '0.65em', backgroundColor: accentColor, color: todayBadgeText }}
+                        style={{ minWidth: '1.4em', height: '1.4em', padding: '0 0.3em', fontSize: scaledEm(0.65, dayLabelScale), backgroundColor: accentColor, color: todayBadgeText }}
                       >
                         {formatDateSync(date, 'd', { locale })}
                       </span>
@@ -425,7 +452,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                       <span
                         className="leading-none tabular-nums"
                         style={{
-                          fontSize: '0.65em',
+                          fontSize: scaledEm(0.65, dayLabelScale),
                           fontWeight: marksMonthStart ? 700 : 400,
                           // Muted wins: a month boundary that has already
                           // passed still reads as one, just not loudly.
@@ -435,8 +462,8 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                         {formatDateSync(date, marksMonthStart ? 'MMM d' : 'd', { locale })}
                       </span>
                     )}
-                    {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.6em', marginLeft: '0.2em' }}>🎂</span>}
-                    <DayBadges badges={decor.badges} style={{ fontSize: '0.65em', marginLeft: '0.25em' }} />
+                    {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: scaledEm(0.6, dayLabelScale), marginLeft: '0.2em' }}>🎂</span>}
+                    <DayBadges badges={decor.badges} style={{ fontSize: scaledEm(0.65, dayLabelScale), marginLeft: '0.25em' }} />
                   </div>
                   <div className="flex flex-col gap-px overflow-hidden" style={isMuted ? { opacity: TEXT_OPACITY.dim } : undefined}>
                     {shown.map((ev) => {

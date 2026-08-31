@@ -2373,6 +2373,7 @@
       "showFinishedToday": "Vis dagens afsluttede begivenheder",
       "weeksToShow": "Uger der vises",
       "eventsPerCell": "Maks. begivenheder pr. dag",
+      "dayLabelScale": "Størrelse på datotekst",
       "weekStartsOn": "Ugen starter",
       "showTime": "Vis klokkeslæt",
       "showLocation": "Vis sted",

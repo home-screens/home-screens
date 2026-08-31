@@ -2378,6 +2378,7 @@
       "showFinishedToday": "Mostrar eventos de hoje já encerrados",
       "weeksToShow": "Semanas a mostrar",
       "eventsPerCell": "Máx. de eventos por dia",
+      "dayLabelScale": "Tamanho do texto das datas",
       "weekStartsOn": "Semana começa em",
       "showTime": "Mostrar horário",
       "showLocation": "Mostrar local",

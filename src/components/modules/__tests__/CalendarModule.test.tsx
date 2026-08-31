@@ -899,3 +899,82 @@ describe('gridMaxEventsPerCell governs all three grids', () => {
     expect(queryByText('+2 more')).not.toBeNull();
   });
 });
+
+describe('gridDayLabelScale sizes the date furniture only', () => {
+  const timed = [{
+    id: 'dls1', title: 'Haircut',
+    start: format(new Date(2026, 6, 15, 8, 5), LOCAL), end: format(new Date(2026, 6, 15, 9, 5), LOCAL),
+    allDay: false,
+  }] as CalendarEvent[];
+
+  /** Weekday headers are the only uppercase tracking-wider spans in a grid. */
+  const dayNames = (c: HTMLElement) => Array.from(c.querySelectorAll<HTMLElement>('.uppercase.tracking-wider'));
+
+  it('banner multi-week: headers and day numbers grow, event pills do not', () => {
+    const base = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={timed} /></Wrapper>,
+    );
+    const pillBefore = (base.getByText('Haircut') as HTMLElement).style.fontSize;
+    expect(dayNames(base.container)[0].style.fontSize).toBe('0.6em');
+    base.unmount();
+
+    const scaled = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridDayLabelScale: 1.5 })} style={style} events={timed} /></Wrapper>,
+    );
+    expect(dayNames(scaled.container)[0].style.fontSize).toBe('0.9em');
+    // The strip's height stays 1.35em: that em resolves against the strip's
+    // OWN font-size, so it already grew with the digits. Scaling it here too
+    // would grow the box quadratically.
+    const strip = scaled.getByText('15').closest('span') as HTMLElement;
+    expect(strip.style.fontSize).toBe('0.975em');
+    expect(strip.style.height).toBe('1.35em');
+    expect((scaled.getByText('Haircut') as HTMLElement).style.fontSize).toBe(pillBefore);
+  });
+
+  it('clean multi-week: today badge and its box scale together, pills untouched', () => {
+    const { container, getByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridTheme: 'clean', gridDayLabelScale: 1.5 })} style={style} events={timed} /></Wrapper>,
+    );
+    expect(dayNames(container)[0].style.fontSize).toBe('0.9em');
+    const todayBadge = getByText('15') as HTMLElement;
+    expect(todayBadge.style.fontSize).toBe('0.975em');
+    expect(todayBadge.style.minWidth).toBe('1.4em');
+    expect(todayBadge.style.height).toBe('1.4em');
+    // The row around it has no font-size of its own, so it does scale.
+    expect((todayBadge.parentElement as HTMLElement).style.height).toBe('2.1em');
+    expect((getByText('Haircut') as HTMLElement).style.fontSize).toBe('0.7em');
+  });
+
+  it('week grid: day names, day circles and week numbers scale', () => {
+    const { container, getByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week', showWeekNumbers: true, gridDayLabelScale: 2 })} style={style} events={timed} /></Wrapper>,
+    );
+    expect(dayNames(container)[0].style.fontSize).toBe('1.2em');
+    const circle = getByText('15') as HTMLElement;
+    expect(circle.style.fontSize).toBe('1.7em');
+    expect(circle.style.width).toBe('1.8em');
+    // Week 29 of 2026 contains Jul 15; its column widens with the digits.
+    expect((getByText('29') as HTMLElement).style.fontSize).toBe('1.2em');
+  });
+
+  it('unset leaves every size alone and out-of-range values are clamped', () => {
+    const unset = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4 })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(dayNames(unset.container)[0].style.fontSize).toBe('0.6em');
+    unset.unmount();
+
+    // Hand-edited config.json isn't type-checked, so absurd values must land
+    // on the bounds rather than blowing the cell apart.
+    const huge = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridDayLabelScale: 12 })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(dayNames(huge.container)[0].style.fontSize).toBe('1.2em');
+    huge.unmount();
+
+    const junk = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 4, gridDayLabelScale: 'big' as unknown as number })} style={style} events={[]} /></Wrapper>,
+    );
+    expect(dayNames(junk.container)[0].style.fontSize).toBe('0.6em');
+  });
+});

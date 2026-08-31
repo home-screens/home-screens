@@ -828,6 +828,14 @@ export interface CalendarConfig {
   // multi-day pills) and differ only in pill treatment — they supersede
   // gridEventStyle and gridEventPillBackground for these views.
   gridTheme?: CalendarGridTheme;
+  // Grid views (week / month / multi-week): multiplier on the day-name and
+  // day-number type only, 0.8-2, default 1. Every size in these views is an
+  // `em` off the module font size, so growing the module to read the dates
+  // from across the room grows the event pills with it and costs rows per
+  // cell. This scales the date furniture alone (headers, day numbers, week
+  // numbers, and the badges sharing their row); event pills keep tracking
+  // the module font size by themselves.
+  gridDayLabelScale?: number;
   sourceFilter?: string[];  // undefined or empty = all sources (merged)
   titleFilter?: CalendarTitleFilter;
   accentColor?: string;     // Event indicator bar and today highlights; default '#3b82f6'

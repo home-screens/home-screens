@@ -701,6 +701,30 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // gridDayLabelScale grows the date furniture alone: at 1.5 the weekday
+    // headers land at 0.6 * 1.5 = 0.9em and the day numbers at 0.65 * 1.5 =
+    // 0.975em, while the pill title keeps its own 0.7em. The pill assertion is
+    // the point of the field — the two sizes must move independently.
+    type: 'calendar', name: 'grid-day-label-scale', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cdls-1', 'CAL SCALED')],
+    config: { viewMode: 'multi-week', gridTheme: 'clean', gridDayLabelScale: 1.5 },
+    expect: async (mod) => {
+      // Matched on a regex, not a substring: React's SSR markup serializes
+      // inline styles without the space after the colon, and an element the
+      // client has re-rendered serializes through CSSOM with one.
+      const dayNames = mod.locator('.grid').first().locator('span.uppercase');
+      await expect(dayNames).toHaveCount(7);
+      await expect(dayNames.first()).toHaveAttribute('style', /font-size:\s*0\.9em/);
+      // Today's badge: scaled digits inside a circle that stays 1.4 of its
+      // own em, so it grows with them exactly once.
+      const todayBadge = mod.locator('span.rounded-full').first();
+      await expect(todayBadge).toHaveAttribute('style', /font-size:\s*0\.975em/);
+      await expect(todayBadge).toHaveAttribute('style', /min-width:\s*1\.4em/);
+      await expect(mod.locator('[data-event-id="cdls-1"] span.truncate').first())
+        .toHaveAttribute('style', /font-size:\s*0\.7em/);
+    },
+  },
+  {
     // startDay monday shifts the grid so the first day-of-week header reads Mon.
     type: 'calendar', name: 'start-day', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cwsd-1', 'CAL STARTDAY')],

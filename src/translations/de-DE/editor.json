@@ -2373,6 +2373,7 @@
       "showFinishedToday": "Heutige beendete Termine anzeigen",
       "weeksToShow": "Angezeigte Wochen",
       "eventsPerCell": "Max. Termine pro Tag",
+      "dayLabelScale": "Größe der Datumsschrift",
       "weekStartsOn": "Woche beginnt am",
       "showTime": "Uhrzeit anzeigen",
       "showLocation": "Ort anzeigen",

@@ -2373,6 +2373,7 @@
       "showFinishedToday": "Show Today's Finished Events",
       "weeksToShow": "Weeks to Show",
       "eventsPerCell": "Max Events per Day",
+      "dayLabelScale": "Date Text Size",
       "weekStartsOn": "Week Starts On",
       "showTime": "Show Time",
       "showLocation": "Show Location",

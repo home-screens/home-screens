@@ -40,6 +40,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     eventTapStyle?: EventTapStyle;
     weeksToShow?: number;
     gridMaxEventsPerCell?: number;
+    gridDayLabelScale?: number;
     startDay?: string;
     gridEventStyle?: string;
     gridEventPillBackground?: boolean;
@@ -193,6 +194,17 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             max={10}
             step={1}
             onChange={(v) => set({ gridMaxEventsPerCell: v })}
+          />
+        )}
+        {isGridView(viewMode) && (
+          <Slider
+            label={t('configSections.calendar.dayLabelScale')}
+            value={c.gridDayLabelScale ?? 1}
+            min={0.8}
+            max={2}
+            step={0.1}
+            displayValue={`${Math.round((c.gridDayLabelScale ?? 1) * 100)}%`}
+            onChange={(v) => set({ gridDayLabelScale: v })}
           />
         )}
         {viewMode === 'agenda' && (
