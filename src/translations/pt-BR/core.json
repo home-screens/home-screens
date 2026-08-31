@@ -36,6 +36,12 @@
     "daysAgo": "há {n}d",
     "weeksAgo": "há {n}sem"
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Nenhuma tela ainda",
+    "body": "Abra o editor em outro dispositivo para criar sua primeira tela.",
+    "hideHint": "Oculte isto em Configurações → Tela"
+  },
   "displayNotFound": {
     "notRegistered": "Tela não registrada",
     "adoptionLine1": "Esta tela está conectada ao hub, mas ainda não foi adotada.",

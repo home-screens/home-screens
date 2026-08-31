@@ -259,6 +259,31 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               />
             )}
           </OverrideRow>
+
+          <OverrideRow
+            label={t('settings.defaultDisplayPage.fields.setupHintLabel')}
+            defaultValue={settings.setupHintEnabled ?? true}
+            override={overrides.setupHintEnabled}
+            onFork={(seed) => setOverride('setupHintEnabled', seed)}
+            onReset={() => setOverride('setupHintEnabled', undefined)}
+            defaultsPageHref={DEFAULTS_HREF}
+            defaultsPageLabel={DEFAULTS_LABEL}
+            formatValue={(v) =>
+              v
+                ? t('settings.defaultDisplayPage.fields.setupHintToggle')
+                : t('settings.perDisplayPage.display.fields.setupHintLabelDisabled')
+            }
+            displayName={display.name}
+          >
+            {({ value, onChange, disabled }) => (
+              <Toggle
+                label={t('settings.defaultDisplayPage.fields.setupHintToggle')}
+                checked={value}
+                disabled={disabled}
+                onChange={onChange}
+              />
+            )}
+          </OverrideRow>
         </div>
       </div>
 

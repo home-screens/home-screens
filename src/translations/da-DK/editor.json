@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Stryg for at skifte skærm",
         "swipeEnabledToggle": "Slået til",
         "swipeEnabledHelp": "Stryg til venstre eller højre et vilkårligt sted på skærmen for at gå til næste eller forrige skærm.",
+        "setupHintLabel": "Opsætningsbesked på tomme displays",
+        "setupHintToggle": "Slået til",
+        "setupHintHelp": "Når et display ikke har nogen skærme at vise, kommer der en svag besked med adressen på denne editor. Slå det fra for at lade et tomt display være helt sort.",
         "transitionEffectLabel": "Overgangseffekt",
         "transitionEffectHelp": "Animationsstil ved skift mellem skærme. Sløring kan belaste grafikken på svage enheder.",
         "transitionDurationLabel": "Overgangens varighed",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pause ved tryk",
           "pauseTimeoutSeconds": "Pausens varighed",
           "swipeEnabled": "Stryg for at skifte",
+          "setupHintEnabled": "Opsætningsbesked",
           "cursorHideSeconds": "Skjul markøren",
           "fullscreenTheme": "Tema",
           "sleep": "Plan for slumring",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} sekunder",
           "pauseEnabledLabelDisabled": "Slået fra",
-          "swipeEnabledLabelDisabled": "Slået fra"
+          "swipeEnabledLabelDisabled": "Slået fra",
+          "setupHintLabelDisabled": "Slået fra"
         },
         "footer": {
           "overrideCountSingular": "{count} tilsidesættelse for displayet",

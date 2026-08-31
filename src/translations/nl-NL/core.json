@@ -36,6 +36,12 @@
     "daysAgo": "{n} d geleden",
     "weeksAgo": "{n} w geleden"
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Nog geen schermen",
+    "body": "Open de editor op een ander apparaat om je eerste scherm te maken.",
+    "hideHint": "Verberg dit via Instellingen → Scherm"
+  },
   "displayNotFound": {
     "notRegistered": "Display niet geregistreerd",
     "adoptionLine1": "Deze display is verbonden met de hub maar nog niet toegevoegd.",

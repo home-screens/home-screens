@@ -36,6 +36,12 @@
     "daysAgo": "il y a {n} j",
     "weeksAgo": "il y a {n} sem."
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Aucun écran pour l'instant",
+    "body": "Ouvre l'éditeur sur un autre appareil pour créer ton premier écran.",
+    "hideHint": "Masquer ceci dans Paramètres → Écran"
+  },
   "displayNotFound": {
     "notRegistered": "Affichage non enregistré",
     "adoptionLine1": "Cet affichage est connecté au hub mais n'a pas encore été adopté.",

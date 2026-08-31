@@ -30,6 +30,8 @@ import { getAllModuleDefinitions } from '@/lib/module-registry';
 
 /** Correctly identical in every locale — brand names, tokens, units, pure interpolation. */
 const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
+  // The product name, rendered as the watermark's eyebrow on an empty display.
+  'core|emptyDisplay.eyebrow',
   'core|meal.tags.snack',
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',

@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Wischen zum Bildschirmwechsel",
         "swipeEnabledToggle": "Aktiviert",
         "swipeEnabledHelp": "Wische irgendwo auf dem Bildschirm nach links oder rechts, um zum nächsten oder vorherigen Bildschirm zu wechseln.",
+        "setupHintLabel": "Einrichtungshinweis auf leeren Displays",
+        "setupHintToggle": "Aktiviert",
+        "setupHintHelp": "Wenn ein Display keine Bildschirme anzeigen kann, erscheint ein schwacher Hinweis mit der Adresse dieses Editors. Schalte das aus, damit ein leeres Display völlig schwarz bleibt.",
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Animationsstil beim Wechsel zwischen Bildschirmen. „Unschärfe“ kann auf leistungsschwachen Geräten GPU-intensiv sein.",
         "transitionDurationLabel": "Übergangsdauer",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pause per Tippen",
           "pauseTimeoutSeconds": "Pause-Timeout",
           "swipeEnabled": "Wisch-Navigation",
+          "setupHintEnabled": "Einrichtungshinweis",
           "cursorHideSeconds": "Mauszeiger ausblenden",
           "fullscreenTheme": "Design",
           "sleep": "Schlafzeitplan",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} Sekunden",
           "pauseEnabledLabelDisabled": "Deaktiviert",
-          "swipeEnabledLabelDisabled": "Deaktiviert"
+          "swipeEnabledLabelDisabled": "Deaktiviert",
+          "setupHintLabelDisabled": "Deaktiviert"
         },
         "footer": {
           "overrideCountSingular": "{count} Anzeige-Überschreibung",

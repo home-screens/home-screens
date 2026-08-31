@@ -362,6 +362,13 @@ export interface GlobalSettings {
   pauseTimeoutSeconds?: number;
   /** Flick left/right on the touchscreen to change screens. Default true. */
   swipeEnabled?: boolean;
+  /**
+   * Show the faint "no screens yet, here's the editor address" watermark on a
+   * display that resolves zero screens. Default true — a freshly-flashed Pi is
+   * otherwise a black rectangle with no clue where the hub lives. Turn it off
+   * to keep an intentionally-blank display genuinely blank.
+   */
+  setupHintEnabled?: boolean;
   backupReminder?: BackupReminderSettings;
   updateNotification?: UpdateNotificationSettings;
   /** BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US". */
@@ -457,6 +464,7 @@ export interface DisplayNodeSettings {
   pauseEnabled?: boolean;
   pauseTimeoutSeconds?: number;
   swipeEnabled?: boolean;
+  setupHintEnabled?: boolean;
   alerts?: AlertSettings;
 
   // NOTE: per-display location overrides (latitude/longitude/locationName/

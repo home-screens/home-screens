@@ -24,6 +24,7 @@ export interface DisplayState {
   pauseEnabled: boolean;
   pauseTimeoutSeconds: number;
   swipeEnabled: boolean;
+  setupHintEnabled: boolean;
 }
 
 export interface LocationState {
@@ -94,6 +95,7 @@ export const FORM_DEFAULTS: SettingsState = {
     pauseEnabled: true,
     pauseTimeoutSeconds: 300,
     swipeEnabled: true,
+    setupHintEnabled: true,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'weatherapi', units: 'imperial' },
@@ -181,6 +183,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       pauseEnabled: s.pauseEnabled ?? FORM_DEFAULTS.display.pauseEnabled,
       pauseTimeoutSeconds: s.pauseTimeoutSeconds ?? FORM_DEFAULTS.display.pauseTimeoutSeconds,
       swipeEnabled: s.swipeEnabled ?? FORM_DEFAULTS.display.swipeEnabled,
+      setupHintEnabled: s.setupHintEnabled ?? FORM_DEFAULTS.display.setupHintEnabled,
     },
     location: {
       lat: (s.latitude ?? s.weather.latitude)?.toString() ?? '',
@@ -229,6 +232,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
     pauseEnabled: display.pauseEnabled,
     pauseTimeoutSeconds: display.pauseTimeoutSeconds,
     swipeEnabled: display.swipeEnabled,
+    setupHintEnabled: display.setupHintEnabled,
     latitude: parsedLat,
     longitude: parsedLon,
     locationName: location.locationName ?? undefined,

@@ -36,6 +36,12 @@
     "daysAgo": "vor {n} T.",
     "weeksAgo": "vor {n} W."
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Noch keine Bildschirme",
+    "body": "Öffne den Editor auf einem anderen Gerät, um deinen ersten Bildschirm zu gestalten.",
+    "hideHint": "Ausblenden unter Einstellungen → Bildschirm"
+  },
   "displayNotFound": {
     "notRegistered": "Display nicht registriert",
     "adoptionLine1": "Dieses Display ist mit dem Hub verbunden, wurde aber noch nicht hinzugefügt.",

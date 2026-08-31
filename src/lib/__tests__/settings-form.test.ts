@@ -55,6 +55,7 @@ describe('settings-form transforms', () => {
         pauseEnabled: false,
         pauseTimeoutSeconds: 600,
         swipeEnabled: false,
+        setupHintEnabled: false,
       },
       location: { lat: '44.7133', lon: '-93.4227', locationName: 'Prior Lake, MN', timezone: 'America/Chicago' },
       weather: { provider: 'openweathermap', units: 'metric' },

@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Balayer pour changer d'écran",
         "swipeEnabledToggle": "Activé",
         "swipeEnabledHelp": "Balaie vers la gauche ou la droite n'importe où sur l'écran pour passer à l'écran suivant ou précédent.",
+        "setupHintLabel": "Message de configuration sur les affichages vides",
+        "setupHintToggle": "Activé",
+        "setupHintHelp": "Quand un affichage n'a aucun écran à montrer, il affiche un message discret avec l'adresse de cet éditeur. Désactive cette option pour laisser un affichage vide entièrement noir.",
         "transitionEffectLabel": "Effet de transition",
         "transitionEffectHelp": "Style d'animation lors du passage d'un écran à l'autre. Le flou peut solliciter le GPU sur les appareils peu puissants.",
         "transitionDurationLabel": "Durée de la transition",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pause au toucher",
           "pauseTimeoutSeconds": "Délai de pause",
           "swipeEnabled": "Navigation par balayage",
+          "setupHintEnabled": "Message de configuration",
           "cursorHideSeconds": "Masquer le curseur",
           "fullscreenTheme": "Thème",
           "sleep": "Calendrier de veille",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} secondes",
           "pauseEnabledLabelDisabled": "Désactivée",
-          "swipeEnabledLabelDisabled": "Désactivé"
+          "swipeEnabledLabelDisabled": "Désactivé",
+          "setupHintLabelDisabled": "Désactivé"
         },
         "footer": {
           "overrideCountSingular": "{count} surcharge d'affichage",

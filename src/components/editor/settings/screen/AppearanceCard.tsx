@@ -32,6 +32,7 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
     pauseEnabled,
     pauseTimeoutSeconds,
     swipeEnabled,
+    setupHintEnabled,
   } = values;
 
   // TRANSITION_OPTIONS is exported and consumed by multiple call sites
@@ -114,6 +115,18 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
         />
         <FieldHelp>
           {t('settings.defaultDisplayPage.fields.swipeEnabledHelp')}
+        </FieldHelp>
+      </FieldRow>
+
+      <FieldRow fieldId="display.setupHintEnabled">
+        <FieldLabel>{t('settings.defaultDisplayPage.fields.setupHintLabel')}</FieldLabel>
+        <Toggle
+          label={t('settings.defaultDisplayPage.fields.setupHintToggle')}
+          checked={setupHintEnabled}
+          onChange={(v) => onChange({ setupHintEnabled: v })}
+        />
+        <FieldHelp>
+          {t('settings.defaultDisplayPage.fields.setupHintHelp')}
         </FieldHelp>
       </FieldRow>
 

@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Swipe to change screens",
         "swipeEnabledToggle": "Enabled",
         "swipeEnabledHelp": "Flick left or right anywhere on the screen to go to the next or previous screen.",
+        "setupHintLabel": "Setup message on empty displays",
+        "setupHintToggle": "Enabled",
+        "setupHintHelp": "When a display has no screens to show, it shows a faint message with the address of this editor. Turn this off to leave an empty display completely black.",
         "transitionEffectLabel": "Transition effect",
         "transitionEffectHelp": "Animation style when cycling between screens. Blur may be GPU-intensive on low-power devices.",
         "transitionDurationLabel": "Transition duration",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pause on tap",
           "pauseTimeoutSeconds": "Pause timeout",
           "swipeEnabled": "Swipe navigation",
+          "setupHintEnabled": "Setup message",
           "cursorHideSeconds": "Hide cursor",
           "fullscreenTheme": "Theme",
           "sleep": "Sleep schedule",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} seconds",
           "pauseEnabledLabelDisabled": "Disabled",
-          "swipeEnabledLabelDisabled": "Disabled"
+          "swipeEnabledLabelDisabled": "Disabled",
+          "setupHintLabelDisabled": "Disabled"
         },
         "footer": {
           "overrideCountSingular": "{count} display override",

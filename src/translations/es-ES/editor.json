@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Deslizar para cambiar de pantalla",
         "swipeEnabledToggle": "Activado",
         "swipeEnabledHelp": "Desliza a la izquierda o a la derecha en cualquier parte de la pantalla para ir a la pantalla siguiente o anterior.",
+        "setupHintLabel": "Mensaje de configuración en displays vacíos",
+        "setupHintToggle": "Activado",
+        "setupHintHelp": "Cuando un display no tiene ninguna pantalla que mostrar, aparece un mensaje tenue con la dirección de este editor. Desactiva esto para dejar un display vacío completamente en negro.",
         "transitionEffectLabel": "Efecto de transición",
         "transitionEffectHelp": "Estilo de animación al cambiar entre pantallas. El desenfoque puede consumir mucha GPU en dispositivos de baja potencia.",
         "transitionDurationLabel": "Duración de la transición",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pausa al tocar",
           "pauseTimeoutSeconds": "Tiempo de pausa",
           "swipeEnabled": "Navegación deslizando",
+          "setupHintEnabled": "Mensaje de configuración",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
           "sleep": "Programa de suspensión",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
           "pauseEnabledLabelDisabled": "Desactivado",
-          "swipeEnabledLabelDisabled": "Desactivado"
+          "swipeEnabledLabelDisabled": "Desactivado",
+          "setupHintLabelDisabled": "Desactivado"
         },
         "footer": {
           "overrideCountSingular": "{count} anulación de display",

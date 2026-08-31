@@ -613,6 +613,9 @@
         "swipeEnabledLabel": "Deslizar para trocar de tela",
         "swipeEnabledToggle": "Ativado",
         "swipeEnabledHelp": "Deslize para a esquerda ou direita em qualquer lugar da tela para ir à tela seguinte ou anterior.",
+        "setupHintLabel": "Mensagem de configuração em telas vazias",
+        "setupHintToggle": "Ativado",
+        "setupHintHelp": "Quando uma tela não tem nada para mostrar, aparece uma mensagem discreta com o endereço deste editor. Desative isto para deixar uma tela vazia totalmente preta.",
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Estilo de animação ao alternar entre telas. Desfoque pode exigir muito da GPU em dispositivos mais fracos.",
         "transitionDurationLabel": "Duração da transição",
@@ -678,6 +681,7 @@
           "pauseEnabled": "Pausa ao tocar",
           "pauseTimeoutSeconds": "Tempo de pausa",
           "swipeEnabled": "Navegação por deslize",
+          "setupHintEnabled": "Mensagem de configuração",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
           "sleep": "Agenda de suspensão",
@@ -739,7 +743,8 @@
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
           "pauseEnabledLabelDisabled": "Desativada",
-          "swipeEnabledLabelDisabled": "Desativado"
+          "swipeEnabledLabelDisabled": "Desativado",
+          "setupHintLabelDisabled": "Desativado"
         },
         "footer": {
           "overrideCountSingular": "{count} substituição de tela",

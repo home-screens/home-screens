@@ -121,7 +121,7 @@ test('when every screen is scheduled out, the rotator falls back to enabled scre
     ],
   }));
   await page.goto('/display');
-  // The kiosk shows the fallback screen, not the "No screens configured" state.
+  // The kiosk shows the fallback screen, not the empty-display watermark.
   await expect(page.getByText('FALLBACK SCREEN A')).toBeVisible();
-  await expect(page.getByText('No screens configured')).toBeHidden();
+  await expect(page.getByTestId('empty-display-hint')).toBeHidden();
 });

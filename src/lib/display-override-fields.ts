@@ -31,6 +31,7 @@ export const DISPLAY_OVERRIDE_FIELDS = [
   'pauseEnabled',
   'pauseTimeoutSeconds',
   'swipeEnabled',
+  'setupHintEnabled',
   'cursorHideSeconds',
   'fullscreenTheme',
 ] as const satisfies readonly (keyof DisplayNodeSettings)[];

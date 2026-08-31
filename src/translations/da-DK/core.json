@@ -36,6 +36,12 @@
     "daysAgo": "{n}d siden",
     "weeksAgo": "{n}u siden"
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Ingen skærme endnu",
+    "body": "Åbn editoren på en anden enhed for at bygge din første skærm.",
+    "hideHint": "Skjul dette under Indstillinger → Skærm"
+  },
   "displayNotFound": {
     "notRegistered": "Skærm ikke registreret",
     "adoptionLine1": "Denne skærm er tilsluttet hubben, men er endnu ikke taget i brug.",

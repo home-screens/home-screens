@@ -274,7 +274,8 @@ function fieldLabel(field: string, t: TranslateFn): string {
  * The default-side read is guarded against `undefined` because almost
  * every override-able field is *optional* on `GlobalSettings` —
  * `transitionEffect`, `transitionDuration`, `pauseEnabled`,
- * `pauseTimeoutSeconds`, `swipeEnabled`, `cursorHideSeconds`, and `fullscreenTheme` are
+ * `pauseTimeoutSeconds`, `swipeEnabled`, `setupHintEnabled`, `cursorHideSeconds`, and
+ * `fullscreenTheme` are
  * all `T | undefined` per the type. Without the guard the chip would
  * render `"Theme: Charcoal (default: undefined)"` for any install whose
  * config never explicitly set a default. Only `rotationIntervalMs` is
@@ -349,6 +350,11 @@ function formatOverrideComparison(
       );
     case 'swipeEnabled':
       // Same generic On/Off chip values as pauseEnabled.
+      return compare(
+        formatPauseEnabled(overrideValue as boolean, t),
+        defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,
+      );
+    case 'setupHintEnabled':
       return compare(
         formatPauseEnabled(overrideValue as boolean, t),
         defaultValue != null ? formatPauseEnabled(defaultValue as boolean, t) : null,

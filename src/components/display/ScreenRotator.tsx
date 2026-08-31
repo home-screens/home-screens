@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } fr
 import type { Screen, GlobalSettings, Profile, DisplayRule } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
 import BackgroundProviderLayer from './BackgroundProviderLayer';
+import EmptyDisplayHint from './EmptyDisplayHint';
 import PluginServiceLayer from './PluginServiceLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
@@ -445,12 +446,14 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     setRotationEpoch((e) => e + 1);
   }, [safeIndex]);
 
+  // Zero resolved screens — nothing configured yet, or every screen disabled.
+  // The setup watermark points at this hub's own editor URL; `setupHintEnabled:
+  // false` (global, or overridden for this display) leaves the panel black.
   if (screens.length === 0) {
-    return (
-      <div style={{ width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-        No screens configured
-      </div>
-    );
+    if (settings.setupHintEnabled === false) {
+      return <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />;
+    }
+    return <EmptyDisplayHint />;
   }
 
   return (

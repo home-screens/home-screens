@@ -103,10 +103,21 @@ test('the display picks up config changes without a reload', async ({ page, requ
   await expect(page.getByText('AFTER UPDATE')).toBeVisible({ timeout: 9000 });
 });
 
-test('empty screens list shows the empty state', async ({ page, request }) => {
+test('empty screens list shows the setup watermark, with this hub\'s editor URL', async ({ page, request }) => {
   await putConfig(request, baseConfig({ screens: [] }));
   await page.goto('/display');
-  await expect(page.getByText('No screens configured')).toBeVisible();
+  const hint = page.getByTestId('empty-display-hint');
+  await expect(hint).toBeVisible();
+  await expect(hint.getByText('No screens yet')).toBeVisible();
+  // The URL is the one fact the person in front of a blank Pi cannot look up,
+  // so assert it resolves to this hub's own origin rather than a placeholder.
+  await expect(hint.getByText(`${new URL(page.url()).origin}/editor`)).toBeVisible();
+});
+
+test('setupHintEnabled:false leaves an empty display black', async ({ page, request }) => {
+  await putConfig(request, baseConfig({ screens: [], settings: { setupHintEnabled: false } }));
+  await page.goto('/display');
+  await expect(page.getByTestId('empty-display-hint')).toBeHidden();
 });
 
 test('per-display routes render each display, and /display resolves main inline', async ({ page, request }) => {

@@ -36,6 +36,12 @@
     "daysAgo": "hace {n} d",
     "weeksAgo": "hace {n} sem"
   },
+  "emptyDisplay": {
+    "eyebrow": "Home Screens",
+    "headline": "Aún no hay pantallas",
+    "body": "Abre el editor en otro dispositivo para crear tu primera pantalla.",
+    "hideHint": "Oculta esto en Ajustes → Pantalla"
+  },
   "displayNotFound": {
     "notRegistered": "Pantalla no registrada",
     "adoptionLine1": "Esta pantalla está conectada al hub pero aún no se ha adoptado.",
