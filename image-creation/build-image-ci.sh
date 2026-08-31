@@ -194,11 +194,49 @@ parted -s "$WORK_IMG" resizepart 2 100%
 # ---------------------------------------------------------------------------
 # 3. Attach and grow the filesystem
 # ---------------------------------------------------------------------------
+# `losetup -P` asks the kernel to scan the partition table, but the pN device
+# nodes are created asynchronously by udev. Touching them on the next line is a
+# race. It usually wins, which is why this went unnoticed for months; when it
+# loses, the build dies at the first use with
+#
+#   e2fsck: No such file or directory while trying to open /dev/loop0p2
+#
+# which reads like a corrupt base image rather than a timing problem. Wait for
+# the nodes, and nudge the kernel with partprobe if udev is slow or absent.
+wait_for_partitions() {
+    local dev="$1"
+    local i=0
+
+    if command -v udevadm >/dev/null 2>&1; then
+        udevadm settle --timeout=30 || true
+    fi
+
+    while [ "$i" -lt 30 ]; do
+        if [ -b "${dev}p1" ] && [ -b "${dev}p2" ]; then
+            return 0
+        fi
+        # Re-scan occasionally rather than every pass: partprobe on a device the
+        # kernel is still setting up can itself fail, and udev normally just
+        # needs a moment.
+        if [ $((i % 10)) -eq 9 ] && command -v partprobe >/dev/null 2>&1; then
+            partprobe "$dev" 2>/dev/null || true
+        fi
+        sleep 1
+        i=$((i + 1))
+    done
+
+    err "Partition nodes ${dev}p1 and ${dev}p2 never appeared after losetup -P"
+    err "Present: $(ls -1 "${dev}"* 2>/dev/null | tr '\n' ' ')"
+    return 1
+}
+
 log "Attaching loop device"
 # --direct-io=on bypasses the host page cache, which otherwise thrashes badly
 # on a multi-GB loop-mounted ext4.
 LOOPDEV="$(losetup --show -f -P --direct-io=on "$WORK_IMG")"
 log "Loop device: ${LOOPDEV}"
+
+wait_for_partitions "$LOOPDEV"
 
 # e2fsck exits 1 when it successfully CORRECTS errors, and 2 when it corrected
 # them and wants a reboot. Neither is a failure here; 4+ is.
