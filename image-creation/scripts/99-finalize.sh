@@ -382,14 +382,44 @@ if [ ! -e /etc/systemd/system/getty.target.wants/getty@tty1.service ]; then
     VERIFY_OK=false
 fi
 
+# systemctl operates offline when it detects a chroot, so it can answer this
+# properly rather than us inferring from a symlink. Both are kept: the symlink
+# is an unambiguous filesystem fact, and this is systemd's own resolution.
+# States are logged either way — a check whose command silently errors and
+# falls through the comparison is worse than no check at all.
+GETTY_STATE="$(systemctl is-enabled getty@tty1 2>&1 || true)"
+log_info "getty@tty1 is-enabled: ${GETTY_STATE}"
+case "${GETTY_STATE}" in
+    enabled|enabled-runtime) ;;
+    *)
+        log_warn "Warning: getty@tty1 reports '${GETTY_STATE}', expected enabled"
+        VERIFY_OK=false
+        ;;
+esac
+
 if [ ! -f /etc/systemd/system/getty@tty1.service.d/autologin.conf ]; then
     log_warn "Warning: autologin drop-in missing — tty1 will sit at a login prompt"
     VERIFY_OK=false
 fi
 
-if [ "$(systemctl is-enabled userconfig.service 2>/dev/null)" = "enabled" ]; then
+USERCONF_STATE="$(systemctl is-enabled userconfig.service 2>&1 || true)"
+log_info "userconfig.service is-enabled: ${USERCONF_STATE}"
+if [ "${USERCONF_STATE}" = "enabled" ]; then
     log_warn "Warning: userconfig.service still enabled — its wizard will hang on first boot"
     VERIFY_OK=false
+fi
+
+# ADVISORY (not yet gating): does the unit plus its drop-in actually parse?
+# The existence check above passes a malformed drop-in happily, and the unit
+# then fails to start with a parse error. Left advisory for now because
+# systemd-analyze can be noisy in a chroot; promote to VERIFY_OK=false once a
+# few builds have shown it clean.
+if command -v systemd-analyze >/dev/null 2>&1; then
+    if ANALYZE_OUT="$(systemd-analyze verify getty@tty1.service 2>&1)"; then
+        log_info "systemd-analyze verify getty@tty1.service: clean${ANALYZE_OUT:+ (${ANALYZE_OUT})}"
+    else
+        log_warn "ADVISORY: systemd-analyze verify getty@tty1.service failed: ${ANALYZE_OUT}"
+    fi
 fi
 
 for _d in "/home/${APP_USER}" "/home/${APP_USER}/.config"; do
@@ -398,6 +428,38 @@ for _d in "/home/${APP_USER}" "/home/${APP_USER}/.config"; do
         VERIFY_OK=false
     fi
 done
+
+# ADVISORY (not yet gating): actually run the browser as the kiosk user.
+#
+# Every check above inspects a filesystem that has never booted. This is the
+# one cheap thing that EXECUTES part of the kiosk chain, and it needs no
+# display, compositor or kernel. On the image that shipped with a root-owned
+# ~/.config it fails with exactly the diagnosis:
+#
+#   ERROR:chrome/app/chrome_main.cc:207] Failed to create headless user data
+#   directory container.
+#
+# HOME is load-bearing. The chroot runs with HOME=/root, so without overriding
+# it Chromium would build its profile under /root, succeed, and prove nothing
+# about the user that actually runs the kiosk.
+#
+# Advisory for now: unverified whether Chromium runs clean inside the chroot,
+# where /proc, /sys and /dev belong to the build host. Read one build's log,
+# then promote to VERIFY_OK=false.
+if command -v chromium >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+    # timeout: a wedged Chromium in a chroot would otherwise stall the build
+    # until the job's 120-minute limit.
+    if CHROMIUM_OUT="$(timeout 120 runuser -u "${APP_USER}" -- \
+            env HOME="/home/${APP_USER}" \
+            chromium --headless --no-sandbox --dump-dom about:blank 2>&1)"; then
+        log_info "Chromium ran as ${APP_USER} and rendered a page"
+    else
+        log_warn "ADVISORY: Chromium failed to run as ${APP_USER}:"
+        echo "${CHROMIUM_OUT}" | head -10 | sed 's/^/    /'
+    fi
+else
+    log_warn "ADVISORY: skipped Chromium check (chromium or runuser not present)"
+fi
 
 if [ "$VERIFY_OK" = "true" ]; then
     log_info "All verifications passed"
