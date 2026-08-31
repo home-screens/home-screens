@@ -100,7 +100,13 @@ export interface LatestImageRelease {
 //
 // When a release publishes an image, add its tag here. Until then the site
 // links to the newest release that really has one, which is stale but works.
+//
+// This cuts both ways: remove a tag when its image is withdrawn. v1.9.0 and
+// v1.10.0 both published images that were never added here, and both were
+// later deleted for shipping a kiosk that never started, so the entries they
+// never had would now be 404s on the first step of the install path.
 const IMAGE_RELEASE_TAGS = new Set([
+  'v1.11.0',
   'v1.8.0',
   'v1.7.0',
   'v1.6.0',
