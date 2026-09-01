@@ -243,7 +243,8 @@
         "system": "System og opdateringer",
         "displays": "Displays",
         "screen": "Skærm",
-        "automation": "Automatisering"
+        "automation": "Automatisering",
+        "phone": "På din telefon"
       },
       "groups": {
         "screen": "Skærm",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Indlæser indstillinger for måltider…",
       "intro": {
-        "part1": "Fælles indstillinger for madplanen. De vises også i ",
-        "remoteLinkLabel": "fjernbetjeningen",
-        "part2": "s indstillinger. Ændringer begge steder holdes synkroniseret."
+        "text": "Fælles indstillinger for måltidsplanlægningen. De vises også i familiefjernbetjeningen, og ændringer holdes ens begge steder."
       },
       "status": {
         "loadFailed": "Kunne ikke indlæse indstillingerne for måltider.",
@@ -1866,6 +1865,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Profiler og regler er pr. display, fordi de peger på hvert displays egne skærme. Skifter du her, skifter du også, hvilket display editoren arbejder på."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Standarder → På din telefon",
+      "title": "På din telefon",
+      "description": "To adresser, som begge kan åbnes på enhver telefon eller tablet på jeres wifi. Der skal ikke installeres noget.",
+      "open": "Åbn",
+      "chores": {
+        "heading": "Børn: kryds pligter af",
+        "needsChoreChart": "Tilføj et pligtskema til en skærm for at slå det til."
+      },
+      "remote": {
+        "heading": "Forældre: familiefjernbetjening"
+      },
+      "password": {
+        "label": "Bed om en adgangskode til familiefjernbetjeningen",
+        "checking": "Tjekker…",
+        "on": "Til. Børnenes side er åben under alle omstændigheder.",
+        "off": "Fra. Alle på jeres wifi kan åbne den.",
+        "setUpAction": "Sæt op",
+        "manageAction": "Administrér"
+      },
+      "print": {
+        "label": "Udskriv koderne",
+        "description": "Hæng dem på køleskabet ved siden af skærmen.",
+        "action": "Udskriv",
+        "sheetTitle": "Home Screens på din telefon"
+      }
     }
   },
   "backgroundPicker": {
@@ -2426,8 +2452,7 @@
       "accentColor": "Accentfarve",
       "membersCount": "{count} medlemmer",
       "choresCount": "{count} pligter",
-      "editChoreChart": "Redigér pligtskema",
-      "mobileHintPrefix": "Familien kan sætte flueben ved pligter fra telefonen under fanen Pligter på"
+      "editChoreChart": "Redigér pligtskema"
     },
     "timezoneUseDisplay": "Brug display-indstillingen ({timezone})",
     "timezoneUseDisplayNoZone": "Brug display-indstillingen",
@@ -2703,8 +2728,7 @@
       "tapToComplete": "Tryk for at klare (på skærmen)",
       "membersCount": "{count} medlemmer",
       "choresCount": "{count} pligter",
-      "editChoreChart": "Redigér pligtskema",
-      "mobileHintPrefix": "Familien kan sætte flueben ved pligter på touchskærmen eller fra telefonen under fanen Pligter på"
+      "editChoreChart": "Redigér pligtskema"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standard (fra Indstillinger)",
@@ -2726,13 +2750,12 @@
       "editMealPlanner": "Redigér madplan",
       "mobileHintPrefix": "Måltider, ugestart, tidsformat og standard serveringstider deles af alle måltidsmoduler. Redigér dem under",
       "mobileHintSettingsLink": "Indstillinger → Måltider",
-      "mobileHintSuffix": "eller i",
-      "mobileHintEnd": "indstillingerne.",
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
       "tapRecipeActionIframe": "Åbn opskriften på skærmen",
-      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen."
+      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen.",
+      "mobileHintTail": "så alle måltidsmoduler holdes ens."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (midnat)",
@@ -2761,7 +2784,6 @@
       "shuffleOrder": "Bland rækkefølgen",
       "kenBurnsEffect": "Ken Burns-effekt",
       "showClockOverlay": "Vis ur ovenpå",
-      "mobileHintPrefix": "Upload billeder fra din telefon under fanen Billeder på",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2935,7 +2957,6 @@
       "accentColor": "Accentfarve",
       "sharedSettingsPrefix": "Måltider, ugestart, tidsformat og standard serveringstider styres under",
       "sharedSettingsLink": "Indstillinger → Måltider",
-      "sharedSettingsOr": "eller",
       "sharedSettingsSuffix": "så alle dine måltidsmoduler er ens.",
       "savedMealsCount": "{count} gemte måltider",
       "plannedCount": "{count} planlagt",
@@ -3869,6 +3890,44 @@
       "eventsToday": "Begivenheder i dag",
       "busyNow": "Der er en begivenhed i gang nu",
       "allDayToday": "Der er en heldagsbegivenhed i dag"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Kryds pligter af",
+        "audience": "Til børnene",
+        "description": "Dagens pligter og belønninger. Der kan ikke ændres andet."
+      },
+      "remote": {
+        "name": "Familiefjernbetjening",
+        "audience": "Til forældrene",
+        "description": "Tilføj pligter, planlæg måltider, tilføj billeder og styr displays."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Ingen adgangskode",
+      "chores": {
+        "chores": "Kryds pligter af fra en telefon",
+        "remote": "Tilføj og ret pligter fra en telefon"
+      },
+      "meals": {
+        "remote": "Planlæg måltider fra en telefon"
+      },
+      "photos": {
+        "remote": "Tilføj billeder fra en telefon"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Pligter på en telefon",
+        "meals": "Måltider på en telefon",
+        "photos": "Billeder på en telefon"
+      },
+      "lede": "Scan med telefonens kamera, eller skriv adressen. Virker på alle enheder på jeres wifi derhjemme.",
+      "passwordHint": "I kan bede om en adgangskode under Indstillinger, i Sikkerhed.",
+      "copyLink": "Kopiér link",
+      "copied": "Kopieret"
     }
   }
 }

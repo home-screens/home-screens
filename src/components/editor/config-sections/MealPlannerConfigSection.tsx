@@ -12,6 +12,7 @@ import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { settingsPath } from '@/lib/settings-route';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
   ModuleInstance,
   MealPlannerView,
@@ -105,8 +106,9 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
         <a href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</a>{' '}
-        {t('configSections.meal-planner.sharedSettingsOr')} <span className="text-hs-text-muted">/remote</span> {t('configSections.meal-planner.sharedSettingsSuffix')}
+        {t('configSections.meal-planner.sharedSettingsSuffix')}
       </p>
+      <PhoneSurfaceLinks context="meals" />
 
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">

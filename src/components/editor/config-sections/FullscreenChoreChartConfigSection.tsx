@@ -14,6 +14,7 @@ import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
@@ -166,11 +167,8 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
             </Button>
           </div>
 
-          {/* Mobile hint */}
-          <p className="text-[11px] text-hs-text-faint leading-relaxed">
-            {t('configSections.fullscreen-chore-chart.mobileHintPrefix')}{' '}
-            <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
-          </p>
+          {/* Kids check off on /chores; parents add and edit on /remote. */}
+          <PhoneSurfaceLinks context="chores" />
         </>
       )}
 

@@ -17,6 +17,7 @@ import {
   Search,
   Server,
   Shield,
+  Smartphone,
   UtensilsCrossed,
   Wifi,
   Zap,
@@ -109,6 +110,10 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; gro
   weather: { labelKey: 'weather', icon: CloudSun, group: 'content' },
   calendar: { labelKey: 'calendar', icon: Calendar, group: 'content' },
   meals: { labelKey: 'meals', icon: UtensilsCrossed, group: 'content' },
+  // Sits with the feature pages it points at, not down in Maintenance beside
+  // the footer's external links: /chores and /remote are first-party surfaces,
+  // and a named row here is what makes them turn up in the sidebar search.
+  phone: { labelKey: 'phone', icon: Smartphone, group: 'content' },
   // API keys sit with Content, not Maintenance — the keys exist to unlock
   // content sources (photos, todo lists, traffic), so users hunting for
   // "why is my photo module empty" find them next to the feature pages.

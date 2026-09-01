@@ -1,7 +1,8 @@
 import { test, expect } from '../fixtures';
 import { getConfig, putConfig } from '../helpers/api';
-import { baseConfig } from '../helpers/config-fixtures';
+import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { autosaved } from '../helpers/editor';
+import { buildModuleInstance } from '../helpers/module-fixtures';
 
 /**
  * The lighter-weight slice of the Defaults settings pages: Calendar (one
@@ -85,4 +86,52 @@ test('sidebar footer links to the documentation site', async ({ page, request })
   await page.goto('/editor/settings?section=defaults&page=data');
 
   await expect(page.locator('a[href="https://homescreens.dev/docs"]')).toBeVisible();
+});
+
+/**
+ * Defaults › On your phone.
+ *
+ * The page's whole job is keeping the two phone surfaces distinct — `/chores`
+ * is the ungated kid view, `/remote` is the password-protectable parent one —
+ * so both tests below assert on that split rather than just smoke-rendering
+ * the heading. The kids' card greying out is the interesting case: `/chores`
+ * falls back to an empty state until a chore module exists anywhere, and the
+ * page reads that through the same `resolveChoreModuleConfig` the surface
+ * itself uses, so a regression in either drifts this test red.
+ */
+test('Defaults › On your phone: kids card is greyed out until a chore chart exists', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor/settings?section=defaults&page=phone');
+
+  await expect(page.getByRole('heading', { name: 'On your phone', level: 1 })).toBeVisible();
+
+  // Scoped to the on-screen rows: the printable sheet below them repeats both
+  // addresses, so an unscoped getByText('/remote') matches twice.
+  const kids = page.getByTestId('phone-surface-chores');
+  const parents = page.getByTestId('phone-surface-remote');
+
+  // No chore module in the base config, so the kids' row shows the hint
+  // instead of a scannable code, and offers no way through.
+  await expect(kids.getByText('Add a chore chart to any screen to turn this on.')).toBeVisible();
+  await expect(kids.getByRole('link', { name: 'Open' })).toHaveCount(0);
+
+  // The parent surface is unaffected — /remote works with or without chores.
+  await expect(parents.getByRole('link', { name: 'Open' })).toBeVisible();
+  await expect(parents.getByText('/remote')).toBeVisible();
+});
+
+test('Defaults › On your phone: adding a chore chart enables the kids card', async ({ page, request }) => {
+  await putConfig(
+    request,
+    baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [buildModuleInstance('chore-chart')])],
+    }),
+  );
+  await page.goto('/editor/settings?section=defaults&page=phone');
+
+  const kids = page.getByTestId('phone-surface-chores');
+
+  await expect(kids.getByText('Add a chore chart to any screen to turn this on.')).toHaveCount(0);
+  await expect(kids.getByRole('link', { name: 'Open' })).toBeVisible();
+  await expect(kids.getByText('/chores')).toBeVisible();
 });

@@ -33,6 +33,7 @@ export const DEFAULT_PAGE_IDS = [
   'weather',
   'calendar',
   'meals',
+  'phone',
   'integrations',
   'automation',
   'security',

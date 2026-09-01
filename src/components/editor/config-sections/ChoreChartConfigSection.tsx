@@ -11,6 +11,7 @@ import ViewSelect from '@/components/editor/ViewSelect';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
   ModuleInstance,
   ChoreChartView,
@@ -120,11 +121,8 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
         </Button>
       </div>
 
-      {/* Mobile hint */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.chore-chart.mobileHintPrefix')}{' '}
-        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
-      </p>
+      {/* Kids check off on /chores; parents add and edit on /remote. */}
+      <PhoneSurfaceLinks context="chores" />
 
       {/* Modal */}
       {showModal && (

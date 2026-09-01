@@ -243,7 +243,8 @@
         "system": "Sistema e atualizações",
         "displays": "Telas",
         "screen": "Tela",
-        "automation": "Automação"
+        "automation": "Automação",
+        "phone": "No seu celular"
       },
       "groups": {
         "screen": "Tela",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Carregando configurações de refeições…",
       "intro": {
-        "part1": "Configurações compartilhadas do planejador de refeições. Também aparecem na gaveta de configurações do ",
-        "remoteLinkLabel": "controle remoto",
-        "part2": ". Edições de qualquer um dos lados ficam sincronizadas."
+        "text": "Configurações compartilhadas do planejador de refeições. Elas também aparecem no controle da família, e as mudanças ficam sincronizadas."
       },
       "status": {
         "loadFailed": "Falha ao carregar as configurações de refeições.",
@@ -1870,6 +1869,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Perfis e regras são por tela porque referenciam as telas de cada uma. Trocar aqui também muda em qual tela o editor está trabalhando."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Padrões → No seu celular",
+      "title": "No seu celular",
+      "description": "Dois endereços, os dois abrem em qualquer celular ou tablet no seu wifi. Nada para instalar.",
+      "open": "Abrir",
+      "chores": {
+        "heading": "Crianças: marcar tarefas",
+        "needsChoreChart": "Adicione um quadro de tarefas a alguma tela para ligar isso."
+      },
+      "remote": {
+        "heading": "Pais: controle da família"
+      },
+      "password": {
+        "label": "Pedir uma senha no controle da família",
+        "checking": "Verificando…",
+        "on": "Ligado. A página das crianças continua aberta de qualquer jeito.",
+        "off": "Desligado. Qualquer pessoa no seu wifi pode abrir.",
+        "setUpAction": "Configurar",
+        "manageAction": "Gerenciar"
+      },
+      "print": {
+        "label": "Imprimir os códigos",
+        "description": "Cole na geladeira, do lado da tela.",
+        "action": "Imprimir",
+        "sheetTitle": "Home Screens no seu celular"
+      }
     }
   },
   "backgroundPicker": {
@@ -2431,8 +2457,7 @@
       "accentColor": "Cor de destaque",
       "membersCount": "{count} membros",
       "choresCount": "{count} tarefas",
-      "editChoreChart": "Editar quadro de tarefas",
-      "mobileHintPrefix": "Os membros da família podem marcar tarefas no celular pela aba Tarefas em"
+      "editChoreChart": "Editar quadro de tarefas"
     },
     "timezoneUseDisplay": "Usar a configuração do display ({timezone})",
     "timezoneUseDisplayNoZone": "Usar a configuração do display",
@@ -2708,8 +2733,7 @@
       "tapToComplete": "Tocar para concluir (na tela)",
       "membersCount": "{count} membros",
       "choresCount": "{count} tarefas",
-      "editChoreChart": "Editar quadro de tarefas",
-      "mobileHintPrefix": "Os membros da família podem marcar tarefas na tela sensível ao toque ou no celular pela aba Tarefas em"
+      "editChoreChart": "Editar quadro de tarefas"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Padrão (das configurações)",
@@ -2731,13 +2755,12 @@
       "editMealPlanner": "Editar planejador de refeições",
       "mobileHintPrefix": "Os horários, o início da semana, o formato de hora e os horários padrão de refeição são compartilhados entre todos os módulos de refeições. Edite-os em",
       "mobileHintSettingsLink": "Configurações → Refeições",
-      "mobileHintSuffix": "ou na",
-      "mobileHintEnd": "gaveta de configurações.",
       "tapRecipeAction": "Tocar na refeição abre a receita",
       "tapRecipeActionOff": "Desligado",
       "tapRecipeActionQr": "Mostrar código QR",
       "tapRecipeActionIframe": "Abrir a receita na tela",
-      "tapRecipeActionIframeHint": "Alguns sites de receitas não permitem abrir dentro do Home Screens e ficam em branco. Se isso acontecer, toque em “Mostrar código QR” na tela da receita."
+      "tapRecipeActionIframeHint": "Alguns sites de receitas não permitem abrir dentro do Home Screens e ficam em branco. Se isso acontecer, toque em “Mostrar código QR” na tela da receita.",
+      "mobileHintTail": "para que todos os módulos de refeições fiquem sincronizados."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Padrão (Midnight)",
@@ -2766,7 +2789,6 @@
       "shuffleOrder": "Ordem aleatória",
       "kenBurnsEffect": "Efeito Ken Burns",
       "showClockOverlay": "Mostrar relógio sobreposto",
-      "mobileHintPrefix": "Envie fotos do celular pela aba Fotos em",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2940,7 +2962,6 @@
       "accentColor": "Cor de destaque",
       "sharedSettingsPrefix": "Os horários, o início da semana, o formato de hora e os horários padrão de refeição são gerenciados em",
       "sharedSettingsLink": "Configurações → Refeições",
-      "sharedSettingsOr": "ou",
       "sharedSettingsSuffix": "para que todos os seus módulos de refeições fiquem em sincronia.",
       "savedMealsCount": "{count} refeições salvas",
       "plannedCount": "{count} planejadas",
@@ -3875,6 +3896,44 @@
       "eventsToday": "Eventos de hoje",
       "busyNow": "Há um evento acontecendo agora",
       "allDayToday": "Hoje há um evento de dia inteiro"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Marcar tarefas",
+        "audience": "Para as crianças",
+        "description": "As tarefas de hoje e as recompensas. Nada mais pode ser alterado."
+      },
+      "remote": {
+        "name": "Controle da família",
+        "audience": "Para os pais",
+        "description": "Adicionar tarefas, planejar refeições, adicionar fotos e controlar as telas."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Sem senha",
+      "chores": {
+        "chores": "Marcar tarefas pelo celular",
+        "remote": "Adicionar e editar tarefas pelo celular"
+      },
+      "meals": {
+        "remote": "Planejar refeições pelo celular"
+      },
+      "photos": {
+        "remote": "Adicionar fotos pelo celular"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Tarefas no celular",
+        "meals": "Refeições no celular",
+        "photos": "Fotos no celular"
+      },
+      "lede": "Escaneie com a câmera do celular ou digite o endereço. Funciona em qualquer aparelho no wifi de casa.",
+      "passwordHint": "Você pode pedir uma senha em Configurações, na parte de Segurança.",
+      "copyLink": "Copiar link",
+      "copied": "Copiado"
     }
   }
 }

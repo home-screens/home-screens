@@ -243,7 +243,8 @@
         "system": "Systeem & updates",
         "displays": "Displays",
         "screen": "Scherm",
-        "automation": "Automatisering"
+        "automation": "Automatisering",
+        "phone": "Op je telefoon"
       },
       "groups": {
         "screen": "Scherm",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Maaltijdinstellingen laden…",
       "intro": {
-        "part1": "Gedeelde maaltijdplanner-instellingen. Deze verschijnen ook in het ",
-        "remoteLinkLabel": "Afstandsbediening",
-        "part2": "-instellingenpaneel. Bewerkingen vanuit beide kanten blijven gesynchroniseerd."
+        "text": "Gedeelde instellingen voor de maaltijdplanner. Ze staan ook in de gezinsafstandsbediening en wijzigingen blijven overal gelijk."
       },
       "status": {
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
@@ -1866,6 +1865,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Profielen en regels gelden per display, omdat ze verwijzen naar de schermen van dat display. Hier wisselen verandert ook aan welk display de editor werkt."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Standaardwaarden → Op je telefoon",
+      "title": "Op je telefoon",
+      "description": "Twee adressen, allebei te openen op elke telefoon of tablet op je wifi. Je hoeft niets te installeren.",
+      "open": "Openen",
+      "chores": {
+        "heading": "Kinderen: klusjes afvinken",
+        "needsChoreChart": "Voeg een klusjeskaart toe aan een scherm om dit aan te zetten."
+      },
+      "remote": {
+        "heading": "Ouders: gezinsafstandsbediening"
+      },
+      "password": {
+        "label": "Vraag een wachtwoord voor de gezinsafstandsbediening",
+        "checking": "Bezig met controleren…",
+        "on": "Aan. De kinderpagina blijft hoe dan ook open.",
+        "off": "Uit. Iedereen op je wifi kan hem openen.",
+        "setUpAction": "Instellen",
+        "manageAction": "Beheren"
+      },
+      "print": {
+        "label": "De codes afdrukken",
+        "description": "Hang ze op de koelkast, naast het scherm.",
+        "action": "Afdrukken",
+        "sheetTitle": "Home Screens op je telefoon"
+      }
     }
   },
   "backgroundPicker": {
@@ -2426,8 +2452,7 @@
       "accentColor": "Accentkleur",
       "membersCount": "{count} leden",
       "choresCount": "{count} klusjes",
-      "editChoreChart": "Klusjeslijst bewerken",
-      "mobileHintPrefix": "Gezinsleden kunnen klusjes afvinken vanaf hun telefoon via het tabblad Klusjes op"
+      "editChoreChart": "Klusjeslijst bewerken"
     },
     "timezoneUseDisplay": "Display-instelling gebruiken ({timezone})",
     "timezoneUseDisplayNoZone": "Display-instelling gebruiken",
@@ -2703,8 +2728,7 @@
       "tapToComplete": "Tik om af te ronden (display)",
       "membersCount": "{count} leden",
       "choresCount": "{count} klusjes",
-      "editChoreChart": "Klusjeslijst bewerken",
-      "mobileHintPrefix": "Gezinsleden kunnen klusjes afvinken op het touchscreen of vanaf hun telefoon via het tabblad Klusjes op"
+      "editChoreChart": "Klusjeslijst bewerken"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standaard (uit Instellingen)",
@@ -2726,13 +2750,12 @@
       "editMealPlanner": "Maaltijdplanner bewerken",
       "mobileHintPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden gedeeld door alle maaltijdmodules. Bewerk ze via",
       "mobileHintSettingsLink": "Instellingen → Maaltijden",
-      "mobileHintSuffix": "of via",
-      "mobileHintEnd": "het instellingenpaneel.",
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
       "tapRecipeActionIframe": "Recept op het scherm openen",
-      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave."
+      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
+      "mobileHintTail": "zodat alle maaltijdmodules gelijk blijven."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standaard (Midnight)",
@@ -2761,7 +2784,6 @@
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
-      "mobileHintPrefix": "Upload foto's vanaf je telefoon via het tabblad Foto's op",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2935,7 +2957,6 @@
       "accentColor": "Accentkleur",
       "sharedSettingsPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden beheerd via",
       "sharedSettingsLink": "Instellingen → Maaltijden",
-      "sharedSettingsOr": "of",
       "sharedSettingsSuffix": "zodat al je maaltijdmodules synchroon blijven.",
       "savedMealsCount": "{count} opgeslagen maaltijden",
       "plannedCount": "{count} gepland",
@@ -3869,6 +3890,44 @@
       "eventsToday": "Afspraken vandaag",
       "busyNow": "Er is nu een afspraak bezig",
       "allDayToday": "Vandaag is er een afspraak van de hele dag"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Klusjes afvinken",
+        "audience": "Voor kinderen",
+        "description": "De klusjes van vandaag en de beloningen. Verder kan er niets worden aangepast."
+      },
+      "remote": {
+        "name": "Gezinsafstandsbediening",
+        "audience": "Voor ouders",
+        "description": "Klusjes toevoegen, maaltijden plannen, foto's toevoegen en displays bedienen."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Geen wachtwoord nodig",
+      "chores": {
+        "chores": "Klusjes afvinken op een telefoon",
+        "remote": "Klusjes toevoegen en bewerken op een telefoon"
+      },
+      "meals": {
+        "remote": "Maaltijden plannen op een telefoon"
+      },
+      "photos": {
+        "remote": "Foto's toevoegen op een telefoon"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Klusjes op een telefoon",
+        "meals": "Maaltijden op een telefoon",
+        "photos": "Foto's op een telefoon"
+      },
+      "lede": "Scan met de camera van je telefoon of typ het adres in. Werkt op elk apparaat op je wifi thuis.",
+      "passwordHint": "Je kunt om een wachtwoord vragen bij Instellingen, onder Beveiliging.",
+      "copyLink": "Link kopiëren",
+      "copied": "Gekopieerd"
     }
   }
 }

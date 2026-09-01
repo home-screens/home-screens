@@ -17,6 +17,7 @@ import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 
 type Config = Partial<FullscreenPhotoConfig>;
 type PhotoSource = NonNullable<FullscreenPhotoConfig['source']>;
@@ -254,11 +255,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
         onChange={(v) => set({ showClock: v })}
       />
 
-      {/* Mobile hint */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.fullscreen-photo.mobileHintPrefix')}{' '}
-        <span className="text-hs-text-muted">{typeof window !== 'undefined' ? `${window.location.origin}/remote` : '/remote'}</span>
-      </p>
+      <PhoneSurfaceLinks context="photos" />
 
       {showBrowser && (
         <ImageBrowserModal

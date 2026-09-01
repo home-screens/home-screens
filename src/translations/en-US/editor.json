@@ -243,7 +243,8 @@
         "system": "System & updates",
         "displays": "Displays",
         "screen": "Screen",
-        "automation": "Automation"
+        "automation": "Automation",
+        "phone": "On your phone"
       },
       "groups": {
         "screen": "Screen",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Loading meal settings…",
       "intro": {
-        "part1": "Shared meal-planner settings. These also appear in the ",
-        "remoteLinkLabel": "remote",
-        "part2": " settings drawer. Edits from either surface stay in sync."
+        "text": "Shared meal-planner settings. These also appear in the family remote, and edits from either place stay in sync."
       },
       "status": {
         "loadFailed": "Failed to load meal settings.",
@@ -1866,6 +1865,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Profiles and rules are per-display because they reference each display's own screens. Switching here changes which display the editor canvas is also working on."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Defaults → On your phone",
+      "title": "On your phone",
+      "description": "Two addresses, both open on any phone or tablet on your home wifi. Nothing to install.",
+      "open": "Open",
+      "chores": {
+        "heading": "Kids: check off chores",
+        "needsChoreChart": "Add a chore chart to any screen to turn this on."
+      },
+      "remote": {
+        "heading": "Parents: family remote"
+      },
+      "password": {
+        "label": "Ask for a password on the family remote",
+        "checking": "Checking…",
+        "on": "On. The kids' page stays open either way.",
+        "off": "Off. Anyone on your wifi can open it.",
+        "setUpAction": "Set up",
+        "manageAction": "Manage"
+      },
+      "print": {
+        "label": "Print the codes",
+        "description": "Stick them on the fridge next to the display.",
+        "action": "Print",
+        "sheetTitle": "Home Screens on your phone"
+      }
     }
   },
   "backgroundPicker": {
@@ -2426,8 +2452,7 @@
       "accentColor": "Accent Color",
       "membersCount": "{count} members",
       "choresCount": "{count} chores",
-      "editChoreChart": "Edit Chore Chart",
-      "mobileHintPrefix": "Family members can check off chores from their phone via the Chores tab at"
+      "editChoreChart": "Edit Chore Chart"
     },
     "timezoneUseDisplay": "Use display setting ({timezone})",
     "timezoneUseDisplayNoZone": "Use display setting",
@@ -2703,8 +2728,7 @@
       "tapToComplete": "Tap to Complete (Display)",
       "membersCount": "{count} members",
       "choresCount": "{count} chores",
-      "editChoreChart": "Edit Chore Chart",
-      "mobileHintPrefix": "Family members can check off chores on the touchscreen or from their phone via the Chores tab at"
+      "editChoreChart": "Edit Chore Chart"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Default (from Settings)",
@@ -2726,13 +2750,12 @@
       "editMealPlanner": "Edit Meal Planner",
       "mobileHintPrefix": "Meal slots, week start, time format, and default serving times are shared across all meal modules. Edit them from",
       "mobileHintSettingsLink": "Settings → Meals",
-      "mobileHintSuffix": "or the",
-      "mobileHintEnd": "settings drawer.",
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
       "tapRecipeActionIframe": "Open recipe on display",
-      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view."
+      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view.",
+      "mobileHintTail": "so every meal module stays in sync."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Default (Midnight)",
@@ -2761,7 +2784,6 @@
       "shuffleOrder": "Shuffle Order",
       "kenBurnsEffect": "Ken Burns Effect",
       "showClockOverlay": "Show Clock Overlay",
-      "mobileHintPrefix": "Upload photos from your phone via the Photos tab at",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2935,7 +2957,6 @@
       "accentColor": "Accent Color",
       "sharedSettingsPrefix": "Meal slots, week start, time format, and default serving times are managed from",
       "sharedSettingsLink": "Settings → Meals",
-      "sharedSettingsOr": "or",
       "sharedSettingsSuffix": "so all your meal modules stay in sync.",
       "savedMealsCount": "{count} saved meals",
       "plannedCount": "{count} planned",
@@ -3869,6 +3890,44 @@
       "eventsToday": "Events today",
       "busyNow": "An event is happening now",
       "allDayToday": "An all-day event is on today"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Check off chores",
+        "audience": "For kids",
+        "description": "Today's chores and rewards. Nothing else can be changed."
+      },
+      "remote": {
+        "name": "Family remote",
+        "audience": "For parents",
+        "description": "Add chores, plan meals, add photos, and control displays."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "No password needed",
+      "chores": {
+        "chores": "Check off chores from a phone",
+        "remote": "Add and edit chores from a phone"
+      },
+      "meals": {
+        "remote": "Plan meals from a phone"
+      },
+      "photos": {
+        "remote": "Add photos from a phone"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Chores on a phone",
+        "meals": "Meals on a phone",
+        "photos": "Photos on a phone"
+      },
+      "lede": "Scan with a phone camera, or type the address in. Works on any device on your home wifi.",
+      "passwordHint": "You can ask for a password in Settings, under Security.",
+      "copyLink": "Copy link",
+      "copied": "Copied"
     }
   }
 }

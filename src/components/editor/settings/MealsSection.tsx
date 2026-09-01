@@ -16,6 +16,7 @@ import {
 import { displayCache } from '@/lib/display-cache';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 
 /**
@@ -242,11 +243,7 @@ export default function MealsSection() {
       {/* Status row — mirrors the parent page's "Saved" indicator */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-hs-text-faint leading-relaxed">
-          {t('settings.mealsPage.intro.part1')}
-          <a href="/remote" className="text-hs-accent hover:text-hs-accent-hover underline">
-            {t('settings.mealsPage.intro.remoteLinkLabel')}
-          </a>
-          {t('settings.mealsPage.intro.part2')}
+          {t('settings.mealsPage.intro.text')}
         </p>
         <div className="flex items-center gap-2 text-xs">
           {saving && <span className="text-hs-text-faint">{tCore('status.saving')}</span>}
@@ -257,6 +254,12 @@ export default function MealsSection() {
             <span className="text-hs-danger">{status.message}</span>
           )}
         </div>
+      </div>
+
+      {/* The same settings are editable from the phone; this is the one page
+          that says so with a scannable code rather than a bare path. */}
+      <div className="max-w-xs">
+        <PhoneSurfaceLinks context="meals" />
       </div>
 
       {/* ── Meal Slots ── */}

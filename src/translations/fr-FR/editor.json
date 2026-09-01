@@ -243,7 +243,8 @@
         "system": "Système et mises à jour",
         "displays": "Affichages",
         "screen": "Écran",
-        "automation": "Automatisation"
+        "automation": "Automatisation",
+        "phone": "Sur votre téléphone"
       },
       "groups": {
         "screen": "Écran",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Chargement des paramètres des repas…",
       "intro": {
-        "part1": "Paramètres partagés du planificateur de repas. Ils apparaissent aussi dans le tiroir des paramètres de la ",
-        "remoteLinkLabel": "télécommande",
-        "part2": ". Les modifications depuis l'une ou l'autre surface restent synchronisées."
+        "text": "Réglages partagés du planificateur de repas. Ils apparaissent aussi dans la télécommande familiale, et les modifications restent synchronisées."
       },
       "status": {
         "loadFailed": "Échec du chargement des paramètres des repas.",
@@ -1870,6 +1869,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Les profils et les règles sont propres à chaque affichage, car ils référencent ses écrans. Changer ici change aussi l'affichage sur lequel travaille l'éditeur."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Valeurs par défaut → Sur votre téléphone",
+      "title": "Sur votre téléphone",
+      "description": "Deux adresses, toutes deux accessibles depuis n'importe quel téléphone ou tablette connecté à votre wifi. Rien à installer.",
+      "open": "Ouvrir",
+      "chores": {
+        "heading": "Enfants : cocher les tâches",
+        "needsChoreChart": "Ajoutez un tableau de tâches à un écran pour activer cette page."
+      },
+      "remote": {
+        "heading": "Parents : télécommande familiale"
+      },
+      "password": {
+        "label": "Demander un mot de passe pour la télécommande familiale",
+        "checking": "Vérification…",
+        "on": "Activé. La page des enfants reste ouverte dans tous les cas.",
+        "off": "Désactivé. Tout le monde sur votre wifi peut l'ouvrir.",
+        "setUpAction": "Configurer",
+        "manageAction": "Gérer"
+      },
+      "print": {
+        "label": "Imprimer les codes",
+        "description": "À coller sur le frigo, à côté de l'écran.",
+        "action": "Imprimer",
+        "sheetTitle": "Home Screens sur votre téléphone"
+      }
     }
   },
   "backgroundPicker": {
@@ -2431,8 +2457,7 @@
       "accentColor": "Couleur d'accent",
       "membersCount": "{count} membres",
       "choresCount": "{count} tâches",
-      "editChoreChart": "Modifier le tableau des tâches",
-      "mobileHintPrefix": "Les membres de la famille peuvent cocher leurs tâches depuis leur téléphone via l'onglet Tâches sur"
+      "editChoreChart": "Modifier le tableau des tâches"
     },
     "timezoneUseDisplay": "Utiliser le réglage de l'affichage ({timezone})",
     "timezoneUseDisplayNoZone": "Utiliser le réglage de l'affichage",
@@ -2708,8 +2733,7 @@
       "tapToComplete": "Toucher pour valider (sur l'affichage)",
       "membersCount": "{count} membres",
       "choresCount": "{count} tâches",
-      "editChoreChart": "Modifier le tableau des tâches",
-      "mobileHintPrefix": "Les membres de la famille peuvent cocher les tâches sur l'écran tactile ou depuis leur téléphone via l'onglet Tâches sur"
+      "editChoreChart": "Modifier le tableau des tâches"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Par défaut (depuis les paramètres)",
@@ -2731,13 +2755,12 @@
       "editMealPlanner": "Modifier le planificateur de repas",
       "mobileHintPrefix": "Les créneaux de repas, le début de semaine, le format d'heure et les heures de service par défaut sont partagés entre tous les modules de repas. Modifie-les depuis",
       "mobileHintSettingsLink": "Paramètres → Repas",
-      "mobileHintSuffix": "ou via le",
-      "mobileHintEnd": "tiroir des paramètres.",
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
       "tapRecipeActionIframe": "Ouvrir la recette sur l'écran",
-      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette."
+      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette.",
+      "mobileHintTail": "pour que tous les modules de repas restent synchronisés."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Par défaut (Minuit)",
@@ -2766,7 +2789,6 @@
       "shuffleOrder": "Ordre aléatoire",
       "kenBurnsEffect": "Effet Ken Burns",
       "showClockOverlay": "Afficher l'horloge en superposition",
-      "mobileHintPrefix": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2940,7 +2962,6 @@
       "accentColor": "Couleur d'accent",
       "sharedSettingsPrefix": "Les créneaux de repas, le début de semaine, le format d'heure et les heures de service par défaut sont gérés depuis",
       "sharedSettingsLink": "Paramètres → Repas",
-      "sharedSettingsOr": "ou",
       "sharedSettingsSuffix": "pour que tous tes modules de repas restent synchronisés.",
       "savedMealsCount": "{count} repas enregistrés",
       "plannedCount": "{count} planifiés",
@@ -3875,6 +3896,44 @@
       "eventsToday": "Événements aujourd'hui",
       "busyNow": "Un événement est en cours",
       "allDayToday": "Un événement sur toute la journée a lieu aujourd'hui"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Cocher les tâches",
+        "audience": "Pour les enfants",
+        "description": "Les tâches du jour et les récompenses. Rien d'autre ne peut être modifié."
+      },
+      "remote": {
+        "name": "Télécommande familiale",
+        "audience": "Pour les parents",
+        "description": "Ajouter des tâches, planifier les repas, ajouter des photos et piloter les affichages."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Aucun mot de passe",
+      "chores": {
+        "chores": "Cocher les tâches depuis un téléphone",
+        "remote": "Ajouter et modifier les tâches depuis un téléphone"
+      },
+      "meals": {
+        "remote": "Planifier les repas depuis un téléphone"
+      },
+      "photos": {
+        "remote": "Ajouter des photos depuis un téléphone"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Les tâches sur un téléphone",
+        "meals": "Les repas sur un téléphone",
+        "photos": "Les photos sur un téléphone"
+      },
+      "lede": "Scannez avec l'appareil photo du téléphone, ou saisissez l'adresse. Fonctionne sur tout appareil connecté à votre wifi.",
+      "passwordHint": "Vous pouvez demander un mot de passe dans Réglages, section Sécurité.",
+      "copyLink": "Copier le lien",
+      "copied": "Copié"
     }
   }
 }

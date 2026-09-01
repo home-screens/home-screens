@@ -37,6 +37,15 @@
   --hs-danger:         #f87171;
   --hs-warning:        #f59e0b;
 
+  /* Kid-surface tokens (dark). Distinguishes the ungated /chores page from
+     the password-protectable /remote wherever both are offered — same shape,
+     different audience, and the colour is the only thing that says so at a
+     glance. */
+  --hs-kid:            #c084fc;
+  --hs-kid-soft:       rgba(168, 85, 247, 0.10);
+  --hs-kid-ring:       rgba(168, 85, 247, 0.32);
+  --hs-kid-hover:      rgba(168, 85, 247, 0.18);
+
   /* Property-panel subgroup card (dark) */
   --hs-group-card-bg:      #1e2128;
   --hs-group-card-border:  #24272f;
@@ -84,6 +93,12 @@
   --hs-success:        #059669;
   --hs-danger:         #dc2626;
   --hs-warning:        #d97706;
+
+  /* Kid-surface tokens (light) */
+  --hs-kid:            #7e22ce;
+  --hs-kid-soft:       #f5edff;
+  --hs-kid-ring:       rgba(126, 34, 206, 0.24);
+  --hs-kid-hover:      #ecdcff;
 
   /* Property-panel subgroup card (light) */
   --hs-group-card-bg:      #ffffff;
@@ -143,6 +158,12 @@
   --color-hs-success:  var(--hs-success);
   --color-hs-danger:   var(--hs-danger);
   --color-hs-warning:  var(--hs-warning);
+
+  /* Kid-surface tokens */
+  --color-hs-kid:       var(--hs-kid);
+  --color-hs-kid-soft:  var(--hs-kid-soft);
+  --color-hs-kid-ring:  var(--hs-kid-ring);
+  --color-hs-kid-hover: var(--hs-kid-hover);
 
   /* Property-panel subgroup tokens */
   --color-hs-group-card-bg:     var(--hs-group-card-bg);

@@ -11,6 +11,7 @@ import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
+import PhoneSection from '@/components/editor/settings/PhoneSection';
 import AutomationSection from '@/components/editor/settings/AutomationSection';
 import SystemSection from '@/components/editor/settings/SystemSection';
 import NetworkSection from '@/components/editor/settings/NetworkSection';
@@ -137,6 +138,8 @@ export default function DefaultsPageContent({
     ),
 
     meals: <MealsSection />,
+
+    phone: <PhoneSection />,
 
     integrations: <IntegrationsSection />,
 

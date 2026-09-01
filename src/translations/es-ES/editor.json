@@ -243,7 +243,8 @@
         "system": "Sistema y actualizaciones",
         "displays": "Displays",
         "screen": "Pantalla",
-        "automation": "Automatización"
+        "automation": "Automatización",
+        "phone": "En tu móvil"
       },
       "groups": {
         "screen": "Pantalla",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Cargando ajustes de comidas…",
       "intro": {
-        "part1": "Ajustes compartidos del planificador de comidas. También aparecen en el cajón de ajustes de ",
-        "remoteLinkLabel": "Mando",
-        "part2": ". Los cambios desde cualquiera de los dos lados se sincronizan."
+        "text": "Ajustes compartidos del planificador de comidas. También aparecen en el mando familiar, y los cambios se mantienen sincronizados."
       },
       "status": {
         "loadFailed": "No se pudieron cargar los ajustes de comidas.",
@@ -1870,6 +1869,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Los perfiles y las reglas son por pantalla porque hacen referencia a las pantallas de cada una. Cambiar aquí también cambia la pantalla en la que trabaja el editor."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Valores predeterminados → En tu móvil",
+      "title": "En tu móvil",
+      "description": "Dos direcciones, las dos se abren en cualquier móvil o tableta de tu wifi. No hay que instalar nada.",
+      "open": "Abrir",
+      "chores": {
+        "heading": "Niños: marcar tareas",
+        "needsChoreChart": "Añade una tabla de tareas a alguna pantalla para activarlo."
+      },
+      "remote": {
+        "heading": "Padres: mando familiar"
+      },
+      "password": {
+        "label": "Pedir una contraseña para el mando familiar",
+        "checking": "Comprobando…",
+        "on": "Activada. La página de los niños sigue abierta igualmente.",
+        "off": "Desactivada. Cualquiera en tu wifi puede abrirlo.",
+        "setUpAction": "Configurar",
+        "manageAction": "Gestionar"
+      },
+      "print": {
+        "label": "Imprimir los códigos",
+        "description": "Pégalos en la nevera, junto a la pantalla.",
+        "action": "Imprimir",
+        "sheetTitle": "Home Screens en tu móvil"
+      }
     }
   },
   "backgroundPicker": {
@@ -2431,8 +2457,7 @@
       "accentColor": "Color de acento",
       "membersCount": "{count} miembros",
       "choresCount": "{count} tareas",
-      "editChoreChart": "Editar tareas",
-      "mobileHintPrefix": "Los miembros de la familia pueden marcar sus tareas desde el móvil en la pestaña Tareas en"
+      "editChoreChart": "Editar tareas"
     },
     "timezoneUseDisplay": "Usar el ajuste del display ({timezone})",
     "timezoneUseDisplayNoZone": "Usar el ajuste del display",
@@ -2708,8 +2733,7 @@
       "tapToComplete": "Tocar para completar (display)",
       "membersCount": "{count} miembros",
       "choresCount": "{count} tareas",
-      "editChoreChart": "Editar tareas",
-      "mobileHintPrefix": "Los miembros de la familia pueden marcar las tareas en la pantalla táctil o desde el móvil en la pestaña Tareas en"
+      "editChoreChart": "Editar tareas"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Predeterminado (de Ajustes)",
@@ -2731,13 +2755,12 @@
       "editMealPlanner": "Editar planificador de comidas",
       "mobileHintPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se comparten entre todos los módulos de comidas. Edítalos desde",
       "mobileHintSettingsLink": "Ajustes → Comidas",
-      "mobileHintSuffix": "o desde el",
-      "mobileHintEnd": "panel de ajustes.",
       "tapRecipeAction": "Tocar una comida abre la receta",
       "tapRecipeActionOff": "Desactivado",
       "tapRecipeActionQr": "Mostrar código QR",
       "tapRecipeActionIframe": "Abrir la receta en la pantalla",
-      "tapRecipeActionIframeHint": "Algunos sitios de recetas no permiten abrirse dentro de Home Screens y se ven en blanco. Si ocurre, toca «Mostrar código QR» en la vista de la receta."
+      "tapRecipeActionIframeHint": "Algunos sitios de recetas no permiten abrirse dentro de Home Screens y se ven en blanco. Si ocurre, toca «Mostrar código QR» en la vista de la receta.",
+      "mobileHintTail": "para que todos los módulos de comidas sigan sincronizados."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Predeterminado (Midnight)",
@@ -2766,7 +2789,6 @@
       "shuffleOrder": "Orden aleatorio",
       "kenBurnsEffect": "Efecto Ken Burns",
       "showClockOverlay": "Mostrar reloj superpuesto",
-      "mobileHintPrefix": "Sube fotos desde tu móvil en la pestaña Fotos en",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2940,7 +2962,6 @@
       "accentColor": "Color de acento",
       "sharedSettingsPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se gestionan desde",
       "sharedSettingsLink": "Ajustes → Comidas",
-      "sharedSettingsOr": "o",
       "sharedSettingsSuffix": "para que todos tus módulos de comidas estén sincronizados.",
       "savedMealsCount": "{count} comidas guardadas",
       "plannedCount": "{count} planificadas",
@@ -3875,6 +3896,44 @@
       "eventsToday": "Eventos de hoy",
       "busyNow": "Hay un evento en curso",
       "allDayToday": "Hoy hay un evento de todo el día"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Marcar tareas",
+        "audience": "Para los niños",
+        "description": "Las tareas de hoy y las recompensas. No se puede cambiar nada más."
+      },
+      "remote": {
+        "name": "Mando familiar",
+        "audience": "Para los padres",
+        "description": "Añadir tareas, planificar comidas, añadir fotos y controlar los displays."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Sin contraseña",
+      "chores": {
+        "chores": "Marcar tareas desde el móvil",
+        "remote": "Añadir y editar tareas desde el móvil"
+      },
+      "meals": {
+        "remote": "Planificar comidas desde el móvil"
+      },
+      "photos": {
+        "remote": "Añadir fotos desde el móvil"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Las tareas en el móvil",
+        "meals": "Las comidas en el móvil",
+        "photos": "Las fotos en el móvil"
+      },
+      "lede": "Escanea con la cámara del móvil o escribe la dirección. Funciona en cualquier dispositivo de tu wifi.",
+      "passwordHint": "Puedes pedir una contraseña en Ajustes, en el apartado Seguridad.",
+      "copyLink": "Copiar enlace",
+      "copied": "Copiado"
     }
   }
 }

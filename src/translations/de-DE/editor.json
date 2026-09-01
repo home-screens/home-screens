@@ -243,7 +243,8 @@
         "system": "System & Updates",
         "displays": "Displays",
         "screen": "Bildschirm",
-        "automation": "Automatisierung"
+        "automation": "Automatisierung",
+        "phone": "Auf dem Handy"
       },
       "groups": {
         "screen": "Bildschirm",
@@ -1102,9 +1103,7 @@
     "mealsPage": {
       "loading": "Mahlzeiten-Einstellungen werden geladen …",
       "intro": {
-        "part1": "Gemeinsame Einstellungen für den Essensplaner. Sie erscheinen auch in der Einstellungs-Schublade der ",
-        "remoteLinkLabel": "Fernsteuerung",
-        "part2": ". Bearbeitungen auf einer der Seiten bleiben überall synchron."
+        "text": "Gemeinsame Einstellungen für die Mahlzeitenplanung. Sie erscheinen auch in der Familien-Fernbedienung, und Änderungen bleiben überall gleich."
       },
       "status": {
         "loadFailed": "Mahlzeiten-Einstellungen konnten nicht geladen werden.",
@@ -1866,6 +1865,33 @@
         "optionLabel": "{name} ({id})",
         "help": "Profile und Regeln gelten je Display, weil sie die Screens des jeweiligen Displays referenzieren. Ein Wechsel hier ändert auch, an welchem Display der Editor arbeitet."
       }
+    },
+    "phonePage": {
+      "breadcrumb": "Standardwerte → Auf dem Handy",
+      "title": "Auf dem Handy",
+      "description": "Zwei Adressen, beide lassen sich auf jedem Handy oder Tablet im WLAN zu Hause öffnen. Nichts zu installieren.",
+      "open": "Öffnen",
+      "chores": {
+        "heading": "Kinder: Aufgaben abhaken",
+        "needsChoreChart": "Füge einer Ansicht eine Aufgabentafel hinzu, um das einzuschalten."
+      },
+      "remote": {
+        "heading": "Eltern: Familien-Fernbedienung"
+      },
+      "password": {
+        "label": "Passwort für die Familien-Fernbedienung verlangen",
+        "checking": "Wird geprüft …",
+        "on": "An. Die Kinderseite bleibt in beiden Fällen offen.",
+        "off": "Aus. Alle im WLAN können sie öffnen.",
+        "setUpAction": "Einrichten",
+        "manageAction": "Verwalten"
+      },
+      "print": {
+        "label": "Codes ausdrucken",
+        "description": "Hängt sie an den Kühlschrank neben das Display.",
+        "action": "Drucken",
+        "sheetTitle": "Home Screens auf dem Handy"
+      }
     }
   },
   "backgroundPicker": {
@@ -2426,8 +2452,7 @@
       "accentColor": "Akzentfarbe",
       "membersCount": "{count} Personen",
       "choresCount": "{count} Aufgaben",
-      "editChoreChart": "Aufgabenplan bearbeiten",
-      "mobileHintPrefix": "Familienmitglieder können Aufgaben vom Handy abhaken – über den Aufgaben-Tab unter"
+      "editChoreChart": "Aufgabenplan bearbeiten"
     },
     "timezoneUseDisplay": "Display-Einstellung verwenden ({timezone})",
     "timezoneUseDisplayNoZone": "Display-Einstellung verwenden",
@@ -2703,8 +2728,7 @@
       "tapToComplete": "Tippen zum Abhaken (Display)",
       "membersCount": "{count} Personen",
       "choresCount": "{count} Aufgaben",
-      "editChoreChart": "Aufgabenplan bearbeiten",
-      "mobileHintPrefix": "Familienmitglieder können Aufgaben am Touchscreen oder vom Handy aus abhaken – über den Aufgaben-Tab unter"
+      "editChoreChart": "Aufgabenplan bearbeiten"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standard (aus Einstellungen)",
@@ -2726,13 +2750,12 @@
       "editMealPlanner": "Mahlzeitenplaner bearbeiten",
       "mobileHintPrefix": "Mahlzeiten-Slots, Wochenbeginn, Zeitformat und Standard-Servierzeiten werden von allen Mahlzeiten-Modulen geteilt. Bearbeite sie unter",
       "mobileHintSettingsLink": "Einstellungen → Mahlzeiten",
-      "mobileHintSuffix": "oder im",
-      "mobileHintEnd": "Einstellungs-Bereich.",
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
       "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
-      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“."
+      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
+      "mobileHintTail": "damit alle Mahlzeiten-Module gleich bleiben."
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (Midnight)",
@@ -2761,7 +2784,6 @@
       "shuffleOrder": "Zufällige Reihenfolge",
       "kenBurnsEffect": "Ken-Burns-Effekt",
       "showClockOverlay": "Uhr-Überlagerung anzeigen",
-      "mobileHintPrefix": "Fotos vom Handy hochladen – über den Fotos-Tab unter",
       "sourceOneDrive": "OneDrive"
     },
     "garbage-day": {
@@ -2935,7 +2957,6 @@
       "accentColor": "Akzentfarbe",
       "sharedSettingsPrefix": "Mahlzeiten-Slots, Wochenbeginn, Zeitformat und Standard-Servierzeiten werden verwaltet unter",
       "sharedSettingsLink": "Einstellungen → Mahlzeiten",
-      "sharedSettingsOr": "oder",
       "sharedSettingsSuffix": "damit all deine Mahlzeiten-Module synchron bleiben.",
       "savedMealsCount": "{count} gespeicherte Mahlzeiten",
       "plannedCount": "{count} geplant",
@@ -3869,6 +3890,44 @@
       "eventsToday": "Termine heute",
       "busyNow": "Gerade läuft ein Termin",
       "allDayToday": "Heute steht ein ganztägiger Termin an"
+    }
+  },
+  "phoneSurfaces": {
+    "surfaces": {
+      "chores": {
+        "name": "Aufgaben abhaken",
+        "audience": "Für Kinder",
+        "description": "Die heutigen Aufgaben und Belohnungen. Mehr lässt sich hier nicht ändern."
+      },
+      "remote": {
+        "name": "Familien-Fernbedienung",
+        "audience": "Für Eltern",
+        "description": "Aufgaben anlegen, Mahlzeiten planen, Fotos hinzufügen und Displays steuern."
+      }
+    },
+    "chips": {
+      "choresSubtitle": "Kein Passwort nötig",
+      "chores": {
+        "chores": "Aufgaben am Handy abhaken",
+        "remote": "Aufgaben am Handy anlegen und bearbeiten"
+      },
+      "meals": {
+        "remote": "Mahlzeiten am Handy planen"
+      },
+      "photos": {
+        "remote": "Fotos am Handy hinzufügen"
+      }
+    },
+    "dialog": {
+      "title": {
+        "chores": "Aufgaben am Handy",
+        "meals": "Mahlzeiten am Handy",
+        "photos": "Fotos am Handy"
+      },
+      "lede": "Mit der Handykamera scannen oder die Adresse eintippen. Funktioniert auf jedem Gerät im WLAN zu Hause.",
+      "passwordHint": "Unter Einstellungen, Bereich Sicherheit, könnt ihr ein Passwort verlangen.",
+      "copyLink": "Link kopieren",
+      "copied": "Kopiert"
     }
   }
 }

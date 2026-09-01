@@ -15,6 +15,7 @@ import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
+import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
   ModuleInstance,
   FullscreenMealPlannerConfig,
@@ -141,8 +142,9 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
         <a href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
-        {t('configSections.fullscreen-meal-planner.mobileHintSuffix')} <span className="text-hs-text-muted">/remote</span> {t('configSections.fullscreen-meal-planner.mobileHintEnd')}
+        {t('configSections.fullscreen-meal-planner.mobileHintTail')}
       </p>
+      <PhoneSurfaceLinks context="meals" />
 
       {/* Modal */}
       {showModal && (
