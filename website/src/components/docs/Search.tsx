@@ -92,7 +92,7 @@ function useAutocomplete({
             {
               sourceId: 'documentation',
               getItems() {
-                return search(query, { limit: 5 })
+                return search(query, { limit: 8 })
               },
               getItemUrl({ item }) {
                 return item.url
@@ -164,7 +164,7 @@ function SearchResult({
   const sectionTitle = navigation.find((section) =>
     section.links.find((link) => link.href === result.url.split('#')[0]),
   )?.title
-  const hierarchy = [sectionTitle, result.pageTitle].filter(
+  const hierarchy = [sectionTitle, result.pageTitle, result.parentTitle].filter(
     (x): x is string => typeof x === 'string',
   )
 
@@ -184,6 +184,14 @@ function SearchResult({
       >
         <HighlightQuery text={result.title} query={query} />
       </div>
+      {result.snippet && (
+        <div
+          aria-hidden="true"
+          className="mt-0.5 line-clamp-2 text-xs text-slate-500 dark:text-slate-400"
+        >
+          <HighlightQuery text={result.snippet} query={query} />
+        </div>
+      )}
       {hierarchy.length > 0 && (
         <div
           id={`${id}-hierarchy`}
