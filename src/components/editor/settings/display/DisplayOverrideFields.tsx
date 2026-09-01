@@ -103,7 +103,7 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
                 label=""
                 value={value}
                 min={5}
-                max={120}
+                max={Math.max(600, value)}
                 step={5}
                 displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
                 onChange={onChange}

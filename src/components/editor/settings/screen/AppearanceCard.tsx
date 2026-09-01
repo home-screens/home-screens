@@ -63,8 +63,9 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
           label=""
           value={rotationInterval}
           min={5}
-          max={120}
+          max={Math.max(600, rotationInterval)}
           step={5}
+          displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: rotationInterval })}
           onChange={(v) => onChange({ rotationInterval: v })}
         />
         <FieldHelp>

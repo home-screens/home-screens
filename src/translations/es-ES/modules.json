@@ -359,6 +359,7 @@
     "noMealsPlanned": "No hay comidas planeadas",
     "noMealPlanned": "No hay comida planeada",
     "nothingPlanned": "Nada planeado",
+    "nothingPlannedThisWeek": "Nada planeado esta semana",
     "todaysMeals": "Comidas de hoy",
     "now": "ahora",
     "servingAt": "se sirve a las {time}",

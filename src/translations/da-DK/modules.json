@@ -359,6 +359,7 @@
     "noMealsPlanned": "Ingen måltider planlagt",
     "noMealPlanned": "Intet måltid planlagt",
     "nothingPlanned": "Intet planlagt",
+    "nothingPlannedThisWeek": "Intet planlagt i denne uge",
     "todaysMeals": "Dagens måltider",
     "now": "nu",
     "servingAt": "serveres kl. {time}",

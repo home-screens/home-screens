@@ -67,9 +67,21 @@ export interface SelectionActions {
 export interface ModuleActions {
   addModule: (screenId: string, type: ModuleType, position?: ModulePosition) => void;
   removeModule: (screenId: string, moduleId: string) => void;
+  /** Clone a module onto the same screen, one grid step down-right, selected. */
+  duplicateModule: (screenId: string, moduleId: string) => void;
   updateModule: (screenId: string, moduleId: string, updates: Partial<ModuleInstance>) => void;
   updateModuleStyle: (screenId: string, moduleId: string, style: Partial<ModuleStyle>) => void;
-  moveModule: (screenId: string, moduleId: string, position: ModulePosition) => void;
+  moveModule: (
+    screenId: string,
+    moduleId: string,
+    position: ModulePosition,
+    opts?: {
+      /** Drag drops set this so a module dropped onto another is raised above
+       *  it instead of vanishing underneath; typed X/Y edits and arrow nudges
+       *  leave deliberate layering alone. */
+      raiseOnOverlap?: boolean;
+    },
+  ) => void;
   resizeModule: (screenId: string, moduleId: string, size: ModuleSize) => void;
   /** Move a module to the front or back of its screen's stacking order. */
   reorderModule: (screenId: string, moduleId: string, to: 'front' | 'back') => void;
@@ -79,6 +91,8 @@ export interface ModuleActions {
 export interface ScreenActions {
   addScreen: () => void;
   removeScreen: (id: string) => void;
+  /** Clone a screen (fresh screen + module ids, "<name> copy") right after the original, selected. */
+  duplicateScreen: (id: string) => void;
   reorderScreens: (fromIndex: number, toIndex: number) => void;
   updateScreen: (id: string, updates: Partial<Screen>) => void;
 }

@@ -157,3 +157,13 @@ export function scaleModulesToFit(
     }),
   }));
 }
+
+/** Whether two modules' rectangles overlap (touching edges don't count). */
+export function modulesOverlap(a: ModuleInstance, b: ModuleInstance): boolean {
+  return (
+    a.position.x < b.position.x + b.size.w &&
+    b.position.x < a.position.x + a.size.w &&
+    a.position.y < b.position.y + b.size.h &&
+    b.position.y < a.position.y + a.size.h
+  );
+}

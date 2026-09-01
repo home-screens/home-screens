@@ -326,7 +326,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
 
 export default function PropertyPanel() {
   const t = useTranslate('editor');
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, updateModule, reorderModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, duplicateModule, updateModule, reorderModule } = useEditorStore();
   const pluginMap = usePluginStore((s) => s.plugins);
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -588,18 +588,20 @@ export default function PropertyPanel() {
             >
               {t('propertyPanel.actions.sendToBack')}
             </Button>
+            <Button onClick={() => duplicateModule(selectedScreenId, selectedModule.id)}>
+              {t('propertyPanel.actions.duplicate')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                if (await useConfirmStore.getState().confirm(t('propertyPanel.actions.confirmDelete'))) {
+                  removeModule(selectedScreenId, selectedModule.id);
+                }
+              }}
+            >
+              {t('propertyPanel.actions.delete')}
+            </Button>
           </div>
-          <Button
-            variant="danger"
-            className="w-full"
-            onClick={async () => {
-              if (await useConfirmStore.getState().confirm(t('propertyPanel.actions.confirmDelete'))) {
-                removeModule(selectedScreenId, selectedModule.id);
-              }
-            }}
-          >
-            {t('propertyPanel.actions.delete')}
-          </Button>
         </div>
 
       </div>

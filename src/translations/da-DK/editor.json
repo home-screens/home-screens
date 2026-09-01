@@ -135,6 +135,7 @@
       "enable": "Slå til",
       "disable": "Slå fra",
       "rename": "Omdøb",
+      "duplicate": "Duplikér",
       "delete": "Slet"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Fuld skærm",
+      "fullScreen": "Fuldskærmsvisninger (én pr. skærm)",
       "timeAndDate": "Tid og dato",
       "weatherAndEnvironment": "Vejr og miljø",
       "newsAndFinance": "Nyheder og økonomi",
@@ -2212,6 +2213,7 @@
     "actions": {
       "bringToFront": "Flyt forrest",
       "sendToBack": "Flyt bagerst",
+      "duplicate": "Duplikér",
       "delete": "Slet modul",
       "confirmDelete": "Vil du slette dette modul?"
     },
@@ -3800,7 +3802,12 @@
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Plugin fra fællesskabet",
     "howToAdd": "Klik eller træk over på skærmen",
-    "itemTooltip": "Klik for at tilføje, eller træk over på skærmen"
+    "itemTooltip": "Klik for at tilføje, eller træk over på skærmen",
+    "fullscreenGuard": {
+      "message": "Fuldskærmsmoduler fylder hele skærmen. Alt andet på denne skærm ville blive skjult bagved.",
+      "newScreen": "Tilføj på en ny skærm",
+      "addAnyway": "Tilføj her alligevel"
+    }
   },
   "backupReminder": {
     "message": {

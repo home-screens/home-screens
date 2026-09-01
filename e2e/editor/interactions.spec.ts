@@ -472,3 +472,192 @@ test.describe('per-screen rotation duration', () => {
     await expect(page.getByText('0s', { exact: true })).toBeHidden();
   });
 });
+
+test.describe('drop layering', () => {
+  test('dropping a module onto a larger one raises it above instead of hiding it', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [
+        textModule('SMALL', { id: 'small', position: { x: 0, y: 0 }, size: { w: 200, h: 200 }, zIndex: 1 }),
+        textModule('BIG', { id: 'big', position: { x: 400, y: 600 }, size: { w: 600, h: 600 }, zIndex: 2 }),
+      ])],
+    }));
+    await openEditor(page);
+
+    const scale = await canvasScale(page);
+    await dragModuleBy(page, 'small', Math.round(500 * scale), Math.round(700 * scale));
+
+    await pollConfig(request, (c) => {
+      const mods = c.screens[0].modules;
+      return mods.find((m) => m.id === 'small')!.zIndex > mods.find((m) => m.id === 'big')!.zIndex;
+    }).then((p) => p.toBe(true));
+  });
+
+  test('alignment guides appear mid-drag when an edge lines up with a neighbour, and the drop matches', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [
+        textModule('SMALL', { id: 'small', position: { x: 0, y: 0 }, size: { w: 200, h: 200 }, zIndex: 1 }),
+        textModule('BIG', { id: 'big', position: { x: 400, y: 600 }, size: { w: 600, h: 600 }, zIndex: 2 }),
+      ])],
+    }));
+    await openEditor(page);
+
+    const scale = await canvasScale(page);
+    const box = (await page.locator('[data-module-id="small"]').boundingBox())!;
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    // Drag so the module's left edge lands ~4 canvas px from BIG's left edge
+    // (x=400) — inside the 8px alignment threshold, but clear of BIG's rows
+    // vertically so only the x guide can fire.
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx + 396 * scale, cy + 100 * scale, { steps: 15 });
+
+    // The pink guide line renders while the drag is aligned.
+    await expect(page.locator('[data-testid="editor-canvas"] .bg-pink-500')).toBeVisible();
+
+    const saved = page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
+    await page.mouse.up();
+    await saved;
+
+    // The drop snapped to the aligned edge, not the 20px grid.
+    await pollConfig(request, (c) => c.screens[0].modules.find((m) => m.id === 'small')!.position.x).then((p) => p.toBe(400));
+  });
+});
+
+test.describe('canvas keyboard shortcuts', () => {
+  async function seedOneModule(request: APIRequestContext) {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [
+        textModule('KEYED', { id: 'keyed', position: { x: 100, y: 100 }, size: { w: 200, h: 200 } }),
+      ])],
+    }));
+  }
+
+  test('arrow keys nudge by 1px, Shift-arrow by one grid step', async ({ page, request }) => {
+    await seedOneModule(request);
+    await openEditor(page);
+    await page.locator('[data-module-id="keyed"]').click();
+
+    await page.keyboard.press('ArrowRight');
+    await pollConfig(request, (c) => c.screens[0].modules[0].position.x).then((p) => p.toBe(101));
+
+    await page.keyboard.press('Shift+ArrowDown');
+    await pollConfig(request, (c) => c.screens[0].modules[0].position.y).then((p) => p.toBe(120));
+  });
+
+  test('Delete asks for confirmation, then removes the selected module', async ({ page, request }) => {
+    await seedOneModule(request);
+    await openEditor(page);
+    await page.locator('[data-module-id="keyed"]').click();
+
+    await page.keyboard.press('Delete');
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click();
+
+    await pollConfig(request, (c) => c.screens[0].modules.length).then((p) => p.toBe(0));
+  });
+
+  test('Escape clears the selection', async ({ page, request }) => {
+    await seedOneModule(request);
+    await openEditor(page);
+    await page.locator('[data-module-id="keyed"]').click();
+    await expect(page.locator('[data-testid="selection-overlay"]')).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-testid="selection-overlay"]')).toHaveCount(0);
+  });
+
+  test('Cmd/Ctrl+D duplicates the selected module one grid step away', async ({ page, request }) => {
+    await seedOneModule(request);
+    await openEditor(page);
+    await page.locator('[data-module-id="keyed"]').click();
+
+    await page.keyboard.press('ControlOrMeta+d');
+
+    await pollConfig(request, (c) => c.screens[0].modules.length).then((p) => p.toBe(2));
+    const config = await getConfig(request);
+    const copy = config.screens[0].modules[1];
+    expect(copy.position).toEqual({ x: 120, y: 120 });
+    expect(copy.id).not.toBe('keyed');
+  });
+});
+
+test.describe('duplicate actions', () => {
+  test('the property panel Duplicate button clones the module', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [
+        textModule('CLONE ME', { id: 'orig', position: { x: 100, y: 100 }, size: { w: 300, h: 150 } }),
+      ])],
+    }));
+    await openEditor(page);
+    await page.locator('[data-module-id="orig"]').click();
+
+    await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens[0].modules.length).then((p) => p.toBe(2));
+    await expect(page.locator('[data-module-type="text"]')).toHaveCount(2);
+  });
+
+  test('the screen tab context menu duplicates the screen with fresh ids', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('a', 'Kitchen', [textModule('ON KITCHEN', { id: 'mod-a' })])],
+    }));
+    await openEditor(page);
+
+    await page.locator('span.max-w-32', { hasText: 'Kitchen' }).click({ button: 'right' });
+    await page.getByRole('button', { name: 'Duplicate', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    const config = await getConfig(request);
+    expect(config.screens[1].name).toBe('Kitchen copy');
+    expect(config.screens[1].id).not.toBe('a');
+    expect(config.screens[1].modules[0].id).not.toBe('mod-a');
+    expect(config.screens[1].modules[0].config.content).toBe('ON KITCHEN');
+  });
+});
+
+test.describe('full-screen module guard', () => {
+  test('adding a full-screen module to a busy screen offers a new screen', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [textModule('BUSY')])],
+    }));
+    await openEditor(page);
+
+    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
+    await page.getByTestId('palette-fullscreen-photo').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText('Full-screen modules take over the whole screen', { exact: false })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Add to a new screen' }).click();
+
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    const config = await getConfig(request);
+    expect(config.screens[0].modules.map((m) => m.type)).toEqual(['text']);
+    expect(config.screens[1].modules.map((m) => m.type)).toEqual(['fullscreen-photo']);
+  });
+
+  test('"Add it here anyway" places it on the current screen', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [textModule('BUSY')])],
+    }));
+    await openEditor(page);
+
+    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
+    await page.getByTestId('palette-fullscreen-photo').click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Add it here anyway' }).click();
+
+    await pollConfig(request, (c) => c.screens[0].modules.map((m) => m.type)).then((p) => p.toEqual(['text', 'fullscreen-photo']));
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));
+  });
+
+  test('an empty screen takes a full-screen module without asking', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'S1', [])],
+    }));
+    await openEditor(page);
+
+    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
+    await page.getByTestId('palette-fullscreen-photo').click();
+
+    await pollConfig(request, (c) => c.screens[0].modules.map((m) => m.type)).then((p) => p.toEqual(['fullscreen-photo']));
+  });
+});

@@ -135,6 +135,7 @@
       "enable": "Inschakelen",
       "disable": "Uitschakelen",
       "rename": "Hernoemen",
+      "duplicate": "Dupliceren",
       "delete": "Verwijderen"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Volledig scherm",
+      "fullScreen": "Schermvullende weergaven (één per scherm)",
       "timeAndDate": "Tijd & datum",
       "weatherAndEnvironment": "Weer & omgeving",
       "newsAndFinance": "Nieuws & financiën",
@@ -2212,6 +2213,7 @@
     "actions": {
       "bringToFront": "Naar voren",
       "sendToBack": "Naar achteren",
+      "duplicate": "Dupliceren",
       "delete": "Module verwijderen",
       "confirmDelete": "Deze module verwijderen?"
     },
@@ -3800,7 +3802,12 @@
     "pluginBadge": "Plug-in",
     "communityPluginTooltip": "Community-plug-in",
     "howToAdd": "Klik of sleep naar het scherm",
-    "itemTooltip": "Klik om toe te voegen, of sleep naar het scherm"
+    "itemTooltip": "Klik om toe te voegen, of sleep naar het scherm",
+    "fullscreenGuard": {
+      "message": "Schermvullende modules nemen het hele scherm in beslag. Al het andere op dit scherm zou erachter verborgen worden.",
+      "newScreen": "Toevoegen op een nieuw scherm",
+      "addAnyway": "Toch hier toevoegen"
+    }
   },
   "backupReminder": {
     "message": {

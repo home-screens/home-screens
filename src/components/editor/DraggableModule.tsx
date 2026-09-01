@@ -208,6 +208,20 @@ export default function DraggableModule({
           <ModulePreview mod={mod} source={dataSource} />
         </div>
       </div>
+      {/* Full-screen modules get a tinted frame and a centred name — their
+          unconfigured preview is often a plain dark card, and without this a
+          fillsCanvas drop looks like nothing happened while the real wall
+          now shows only this module. */}
+      {definition?.fillsCanvas && (
+        <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-white/25 bg-white/[0.04] flex items-center justify-center">
+          <span
+            className="px-2.5 py-1 rounded-md bg-black/55 text-white/90 font-medium"
+            style={{ fontSize: Math.max(11, 14 * scale) }}
+          >
+            {labelText}
+          </span>
+        </div>
+      )}
       {/* Type label overlay */}
       <div
         className="absolute top-0 left-0 px-1.5 py-0.5 bg-black/50 rounded-br text-white"

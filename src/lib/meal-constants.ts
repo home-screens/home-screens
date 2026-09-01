@@ -288,6 +288,50 @@ export function resolveMealWithEntry(
   return { meal, planned };
 }
 
+export interface NextPlannedMeal {
+  meal: SavedMeal;
+  slot: MealSlotType;
+  /** YYYY-MM-DD of the day the meal is planned for. */
+  date: string;
+  /** 0 = today, 1 = tomorrow, … */
+  dayOffset: number;
+  context: 'now' | 'upcoming' | 'tomorrow' | 'future';
+}
+
+/**
+ * Walk forward from the current hour to the first slot that actually has a
+ * meal planned — today's remaining slots first, then up to a week ahead.
+ * Both the small meal-planner card and the fullscreen Next Meal view resolve
+ * through this, so the two can never disagree about what's next. Returns
+ * null only when nothing is planned in the coming week.
+ */
+export function getNextPlannedMeal(
+  todayISO: string,
+  hour: number,
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+  slots: MealSlotType[],
+): NextPlannedMeal | null {
+  const activeOrder = SLOT_ORDER.filter((s) => slots.includes(s));
+  if (activeOrder.length === 0) return null;
+  const base = new Date(todayISO + 'T12:00:00');
+  for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + dayOffset);
+    const date = toISODate(d);
+    for (const slot of activeOrder) {
+      if (dayOffset === 0 && hour >= SLOT_WINDOWS[slot].end) continue;
+      const meal = resolveMeal(date, slot, plan, savedMeals);
+      if (!meal) continue;
+      const context = dayOffset === 0
+        ? (hour >= SLOT_WINDOWS[slot].start ? 'now' : 'upcoming')
+        : dayOffset === 1 ? 'tomorrow' : 'future';
+      return { meal, slot, date, dayOffset, context };
+    }
+  }
+  return null;
+}
+
 /** Copy entries from one week to another, preserving day-of-week position */
 export function copyWeekEntries(
   plan: PlannedMeal[],

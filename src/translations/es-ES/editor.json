@@ -135,6 +135,7 @@
       "enable": "Activar",
       "disable": "Desactivar",
       "rename": "Renombrar",
+      "duplicate": "Duplicar",
       "delete": "Eliminar"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Pantalla completa",
+      "fullScreen": "Vistas de pantalla completa (una por pantalla)",
       "timeAndDate": "Hora y fecha",
       "weatherAndEnvironment": "Tiempo y entorno",
       "newsAndFinance": "Noticias y finanzas",
@@ -2216,6 +2217,7 @@
     "actions": {
       "bringToFront": "Al frente",
       "sendToBack": "Al fondo",
+      "duplicate": "Duplicar",
       "delete": "Eliminar módulo",
       "confirmDelete": "¿Eliminar este módulo?"
     },
@@ -3805,7 +3807,12 @@
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Plugin de la comunidad",
     "howToAdd": "Haz clic o arrastra a la pantalla",
-    "itemTooltip": "Haz clic para añadir, o arrastra a la pantalla"
+    "itemTooltip": "Haz clic para añadir, o arrastra a la pantalla",
+    "fullscreenGuard": {
+      "message": "Los módulos de pantalla completa ocupan toda la pantalla. Todo lo demás de esta pantalla quedaría oculto detrás.",
+      "newScreen": "Añadir en una pantalla nueva",
+      "addAnyway": "Añadir aquí de todos modos"
+    }
   },
   "backupReminder": {
     "message": {

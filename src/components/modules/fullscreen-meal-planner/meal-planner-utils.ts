@@ -1,5 +1,5 @@
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { SLOT_ORDER, SLOT_WINDOWS, resolveMeal, DIFFICULTY_COLORS, toISODate } from '@/lib/meal-constants';
+import { DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import type { RecipeTapMode } from '../shared/MealTapTarget';
 
 export interface MealPlannerViewProps {
@@ -29,46 +29,6 @@ export interface MealPlannerViewProps {
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {
   if (!difficulty) return undefined;
   return DIFFICULTY_COLORS[difficulty];
-}
-
-export function getNextMeal(
-  now: Date,
-  planArr: PlannedMeal[],
-  meals: SavedMeal[],
-  slots: MealSlotType[],
-): { meal: SavedMeal; slot: MealSlotType; context: 'now' | 'upcoming' | 'tomorrow'; date: string } | null {
-  const hour = now.getHours();
-  const todayISO = toISODate(now);
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  const tomorrowISO = toISODate(tomorrow);
-  const activeOrder = SLOT_ORDER.filter((s) => slots.includes(s));
-  if (activeOrder.length === 0) return null;
-
-  // Currently in a slot window
-  for (const s of activeOrder) {
-    const w = SLOT_WINDOWS[s];
-    if (hour >= w.start && hour < w.end) {
-      const meal = resolveMeal(todayISO, s, planArr, meals);
-      if (meal) return { meal, slot: s, context: 'now', date: todayISO };
-    }
-  }
-
-  // Next upcoming slot today
-  for (const s of activeOrder) {
-    if (hour < SLOT_WINDOWS[s].start) {
-      const meal = resolveMeal(todayISO, s, planArr, meals);
-      if (meal) return { meal, slot: s, context: 'upcoming', date: todayISO };
-    }
-  }
-
-  // First slot tomorrow
-  for (const s of activeOrder) {
-    const meal = resolveMeal(tomorrowISO, s, planArr, meals);
-    if (meal) return { meal, slot: s, context: 'tomorrow', date: tomorrowISO };
-  }
-
-  return null;
 }
 
 export function countPlanned(

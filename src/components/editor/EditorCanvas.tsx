@@ -4,7 +4,8 @@ import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
-import { GRID_SIZE, snapToGrid } from '@/lib/constants';
+import { GRID_SIZE } from '@/lib/constants';
+import { resolveDragPosition, type AlignmentGuide } from '@/lib/alignment-guides';
 import { getLocation } from '@/lib/location';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { useTZClock } from '@/hooks/useTZClock';
@@ -82,46 +83,50 @@ function GridOverlay({ scale }: { scale: number }) {
 function DragGhost({
   mod,
   scale,
-  deltaX,
-  deltaY,
-  displayWidth,
-  displayHeight,
-  snap,
+  x,
+  y,
+  guides,
   t,
 }: {
   mod: ModuleInstance;
   scale: number;
-  deltaX: number;
-  deltaY: number;
-  displayWidth: number;
-  displayHeight: number;
-  snap: boolean;
+  x: number;
+  y: number;
+  guides: AlignmentGuide[];
   t: TranslateFn;
 }) {
-  const rawX = mod.position.x + deltaX / scale;
-  const rawY = mod.position.y + deltaY / scale;
-  const clampedX = Math.max(0, Math.min(displayWidth - mod.size.w, rawX));
-  const clampedY = Math.max(0, Math.min(displayHeight - mod.size.h, rawY));
-  const snappedX = snap ? snapToGrid(clampedX) : Math.round(clampedX);
-  const snappedY = snap ? snapToGrid(clampedY) : Math.round(clampedY);
-
   return (
-    <div
-      className="absolute border-2 border-hs-accent border-dashed rounded pointer-events-none"
-      style={{
-        left: snappedX * scale,
-        top: snappedY * scale,
-        width: mod.size.w * scale,
-        height: mod.size.h * scale,
-        zIndex: 9999,
-        backgroundColor: 'var(--hs-accent-soft)',
-      }}
-      aria-label={t('canvas.ghostCoordinatesAriaLabel', { x: snappedX, y: snappedY })}
-    >
-      <div className="absolute -top-5 left-0 text-[10px] text-hs-accent-hover whitespace-nowrap font-mono">
-        {snappedX}, {snappedY}
+    <>
+      {/* Alignment guides: a line across the canvas for each neighbour edge
+          or center the ghost is currently snapped to. */}
+      {guides.map((g) => (
+        <div
+          key={`${g.axis}-${g.value}`}
+          className="absolute pointer-events-none bg-pink-500"
+          style={
+            g.axis === 'x'
+              ? { left: g.value * scale - 0.5, top: 0, width: 1, height: '100%', zIndex: 9998 }
+              : { top: g.value * scale - 0.5, left: 0, height: 1, width: '100%', zIndex: 9998 }
+          }
+        />
+      ))}
+      <div
+        className="absolute border-2 border-hs-accent border-dashed rounded pointer-events-none"
+        style={{
+          left: x * scale,
+          top: y * scale,
+          width: mod.size.w * scale,
+          height: mod.size.h * scale,
+          zIndex: 9999,
+          backgroundColor: 'var(--hs-accent-soft)',
+        }}
+        aria-label={t('canvas.ghostCoordinatesAriaLabel', { x, y })}
+      >
+        <div className="absolute -top-5 left-0 text-[10px] text-hs-accent-hover whitespace-nowrap font-mono">
+          {x}, {y}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -364,18 +369,28 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               })()}
               {dragState && (() => {
                 const mod = currentScreen.modules.find((m) => m.id === dragState.moduleId);
-                return mod ? (
+                if (!mod) return null;
+                const dragScale = scaleAtDragStartRef.current;
+                // Same resolver the drop handler uses, so the ghost previews
+                // exactly where the module will land (incl. alignment snap).
+                const { x, y, guides } = resolveDragPosition(
+                  mod.size,
+                  mod.position.x + dragState.deltaX / dragScale,
+                  mod.position.y + dragState.deltaY / dragScale,
+                  currentScreen.modules.filter((m) => m.id !== mod.id),
+                  { width: displayWidth, height: displayHeight },
+                  snapEnabled,
+                );
+                return (
                   <DragGhost
                     mod={mod}
-                    scale={scaleAtDragStartRef.current}
-                    deltaX={dragState.deltaX}
-                    deltaY={dragState.deltaY}
-                    displayWidth={displayWidth}
-                    displayHeight={displayHeight}
-                    snap={snapEnabled}
+                    scale={dragScale}
+                    x={x}
+                    y={y}
+                    guides={guides}
                     t={t}
                   />
-                ) : null;
+                );
               })()}
             </PageBackgroundProvider>
           </div>

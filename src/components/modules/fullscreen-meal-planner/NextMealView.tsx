@@ -1,14 +1,15 @@
-import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
-import { useTranslate } from '@/i18n';
+import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal, toISODate } from '@/lib/meal-constants';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { getNextMeal, getDifficultyColor } from './meal-planner-utils';
+import { getDifficultyColor } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
 export default function NextMealView({
   settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
-  const next = getNextMeal(now, plan, savedMeals, slots);
+  const locale = useFormattingLocale();
+  const next = getNextPlannedMeal(toISODate(now), now.getHours(), plan, savedMeals, slots);
 
   if (!next) {
     return (
@@ -33,7 +34,10 @@ export default function NextMealView({
     upcoming:  { color: '#6366f1', bg: 'rgba(99, 102, 241, 0.12)', label: t('fullscreen-meal-planner.nextMealLabels.comingUp'), icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
     tomorrow:  { color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', label: t('fullscreen-meal-planner.nextMealLabels.tomorrow'), icon: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13h-2v6l5.25 3.15.75-1.23-4-2.42V7z' },
   };
-  const ctx = contextStyles[context] ?? contextStyles.now;
+  // Meals further out than tomorrow are badged with their weekday name.
+  const ctx = context === 'future'
+    ? { ...contextStyles.tomorrow, label: formatDateSync(new Date(date + 'T12:00:00'), 'EEEE', { locale }) }
+    : contextStyles[context] ?? contextStyles.now;
 
   return (
     <div style={{

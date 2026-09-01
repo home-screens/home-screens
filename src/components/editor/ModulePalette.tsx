@@ -8,6 +8,7 @@ import { getModulesByCategory, categorySlug } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
+import { useGuardedAddModule } from '@/hooks/useGuardedAddModule';
 import { useTranslate } from '@/i18n';
 
 /** Mirrors the PointerSensor activation constraint in the editor page. */
@@ -32,9 +33,10 @@ function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinitio
   // DndContext, so `listeners` carries no onKeyDown to clash with the
   // keyboard path here.
   const pressRef = useRef<{ x: number; y: number } | null>(null);
+  const guardedAdd = useGuardedAddModule();
   const addHere = () => {
-    const { selectedScreenId, addModule } = useEditorStore.getState();
-    if (selectedScreenId) addModule(selectedScreenId, definition.type);
+    const { selectedScreenId } = useEditorStore.getState();
+    if (selectedScreenId) void guardedAdd(selectedScreenId, definition.type);
   };
 
   return (

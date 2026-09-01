@@ -135,6 +135,7 @@
       "enable": "Activer",
       "disable": "Désactiver",
       "rename": "Renommer",
+      "duplicate": "Dupliquer",
       "delete": "Supprimer"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Plein écran",
+      "fullScreen": "Vues plein écran (une par écran)",
       "timeAndDate": "Heure et date",
       "weatherAndEnvironment": "Météo et environnement",
       "newsAndFinance": "Actualités et finance",
@@ -2216,6 +2217,7 @@
     "actions": {
       "bringToFront": "Premier plan",
       "sendToBack": "Arrière-plan",
+      "duplicate": "Dupliquer",
       "delete": "Supprimer le module",
       "confirmDelete": "Supprimer ce module ?"
     },
@@ -3805,7 +3807,12 @@
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Plugin communautaire",
     "howToAdd": "Cliquez ou faites glisser sur l'écran",
-    "itemTooltip": "Cliquez pour ajouter, ou faites glisser sur l'écran"
+    "itemTooltip": "Cliquez pour ajouter, ou faites glisser sur l'écran",
+    "fullscreenGuard": {
+      "message": "Les modules plein écran occupent tout l’écran. Tout le reste de cet écran serait masqué derrière.",
+      "newScreen": "Ajouter sur un nouvel écran",
+      "addAnyway": "Ajouter ici quand même"
+    }
   },
   "backupReminder": {
     "message": {

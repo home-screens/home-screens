@@ -7,16 +7,22 @@ import { useTranslate } from '@/i18n';
 import Button from './Button';
 
 export default function ConfirmModal() {
-  const { open, options, isAlert, respond } = useConfirmStore();
+  const { open, options, isAlert, choices, respond, respondChoice } = useConfirmStore();
   const tCore = useTranslate('core');
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!open) return;
+      if (choices) {
+        // A multi-way question has no safe Enter default — only Escape
+        // (dismiss without doing anything) is bound.
+        if (e.key === 'Escape') respondChoice(null);
+        return;
+      }
       if (e.key === 'Escape') respond(false);
       if (e.key === 'Enter') respond(true);
     },
-    [open, respond],
+    [open, choices, respond, respondChoice],
   );
 
   useEffect(() => {
@@ -41,15 +47,35 @@ export default function ConfirmModal() {
         <div className="px-5 py-4">
           <p className="text-sm text-hs-text-secondary leading-relaxed">{options.message}</p>
         </div>
-        <div className="flex items-center justify-end gap-2 px-5 pb-4">
-          {!isAlert && (
-            <Button variant="secondary" size="sm" onClick={() => respond(false)}>
-              {options.cancelLabel ?? tCore('actions.cancel')}
-            </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2 px-5 pb-4">
+          {choices ? (
+            <>
+              <Button variant="secondary" size="sm" onClick={() => respondChoice(null)}>
+                {tCore('actions.cancel')}
+              </Button>
+              {choices.map((choice) => (
+                <Button
+                  key={choice.value}
+                  variant={choice.variant ?? 'secondary'}
+                  size="sm"
+                  onClick={() => respondChoice(choice.value)}
+                >
+                  {choice.label}
+                </Button>
+              ))}
+            </>
+          ) : (
+            <>
+              {!isAlert && (
+                <Button variant="secondary" size="sm" onClick={() => respond(false)}>
+                  {options.cancelLabel ?? tCore('actions.cancel')}
+                </Button>
+              )}
+              <Button variant={variant} size="sm" onClick={() => respond(true)}>
+                {options.confirmLabel ?? tCore('actions.confirm')}
+              </Button>
+            </>
           )}
-          <Button variant={variant} size="sm" onClick={() => respond(true)}>
-            {options.confirmLabel ?? tCore('actions.confirm')}
-          </Button>
         </div>
       </div>
     </div>

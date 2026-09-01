@@ -1,7 +1,7 @@
 'use client';
 
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
-import type { MemberStats, WeekDayData } from '../types';
+import { todayStr, type MemberStats, type WeekDayData } from '../types';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -76,7 +76,10 @@ export function StarChartView({ config, data }: StarChartViewProps) {
                   </td>
                   {weekData.map((day) => {
                     const earned = day.memberStars[member.id];
-                    const isPast = !day.isToday && new Date(day.date) < new Date();
+                    // ISO string compare in local terms — `new Date('YYYY-MM-DD')`
+                    // parses as UTC midnight, which marked tomorrow as missed
+                    // every evening west of Greenwich.
+                    const isPast = day.date < todayStr();
                     return (
                       <td
                         key={day.date}

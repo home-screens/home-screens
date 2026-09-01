@@ -135,6 +135,7 @@
       "enable": "Enable",
       "disable": "Disable",
       "rename": "Rename",
+      "duplicate": "Duplicate",
       "delete": "Delete"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Full Screen",
+      "fullScreen": "Full-screen views (one per screen)",
       "timeAndDate": "Time & Date",
       "weatherAndEnvironment": "Weather & Environment",
       "newsAndFinance": "News & Finance",
@@ -2212,6 +2213,7 @@
     "actions": {
       "bringToFront": "Bring to Front",
       "sendToBack": "Send to Back",
+      "duplicate": "Duplicate",
       "delete": "Delete Module",
       "confirmDelete": "Delete this module?"
     },
@@ -3800,7 +3802,12 @@
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Community plugin",
     "howToAdd": "Click or drag onto the screen",
-    "itemTooltip": "Click to add, or drag onto the screen"
+    "itemTooltip": "Click to add, or drag onto the screen",
+    "fullscreenGuard": {
+      "message": "Full-screen modules take over the whole screen. Everything else on this screen would be hidden behind it.",
+      "newScreen": "Add to a new screen",
+      "addAnyway": "Add it here anyway"
+    }
   },
   "backupReminder": {
     "message": {

@@ -266,6 +266,125 @@ describe('editor store', () => {
     });
   });
 
+  describe('moveModule raiseOnOverlap', () => {
+    function overlapConfig() {
+      const config = makeConfig();
+      config.screens[0].modules = [
+        { id: 'mod-under', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+        { id: 'mod-over', type: 'text', position: { x: 0, y: 0 }, size: { w: 600, h: 600 }, zIndex: 2, config: {}, style: { ...DEFAULT_MODULE_STYLE } },
+      ];
+      return config;
+    }
+
+    it('raises a dropped module above the module now covering it', () => {
+      const store = useEditorStore;
+      store.setState({ config: overlapConfig() });
+
+      // mod-under dropped onto mod-over (still overlapping) with the flag.
+      store.getState().moveModule('screen-1', 'mod-under', { x: 100, y: 100 }, { raiseOnOverlap: true });
+
+      const mods = store.getState().config!.screens[0].modules;
+      const under = mods.find((m) => m.id === 'mod-under')!;
+      const over = mods.find((m) => m.id === 'mod-over')!;
+      expect(under.zIndex).toBeGreaterThan(over.zIndex);
+    });
+
+    it('leaves layering alone without the flag (typed X/Y, arrow nudge)', () => {
+      const store = useEditorStore;
+      store.setState({ config: overlapConfig() });
+
+      store.getState().moveModule('screen-1', 'mod-under', { x: 100, y: 100 });
+
+      const mods = store.getState().config!.screens[0].modules;
+      expect(mods.find((m) => m.id === 'mod-under')!.zIndex).toBe(1);
+      expect(mods.find((m) => m.id === 'mod-over')!.zIndex).toBe(2);
+    });
+
+    it('does not raise when the drop overlaps nothing above it', () => {
+      const store = useEditorStore;
+      store.setState({ config: overlapConfig() });
+
+      // Move clear of mod-over entirely.
+      store.getState().moveModule('screen-1', 'mod-over', { x: 0, y: 1200 }, { raiseOnOverlap: true });
+
+      const mods = store.getState().config!.screens[0].modules;
+      expect(mods.find((m) => m.id === 'mod-under')!.zIndex).toBe(1);
+      expect(mods.find((m) => m.id === 'mod-over')!.zIndex).toBe(2);
+    });
+  });
+
+  describe('duplicateModule', () => {
+    it('clones the module one grid step away and selects the copy', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 40, y: 60 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: { view: 'digital' }, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config, selectedModuleId: 'mod-1' });
+
+      store.getState().duplicateModule('screen-1', 'mod-1');
+
+      const mods = store.getState().config!.screens[0].modules;
+      expect(mods).toHaveLength(2);
+      const copy = mods[1];
+      expect(copy.id).not.toBe('mod-1');
+      expect(copy.type).toBe('clock');
+      expect(copy.position).toEqual({ x: 60, y: 80 });
+      expect(copy.config).toEqual({ view: 'digital' });
+      expect(copy.config).not.toBe(mods[0].config);
+      expect(copy.zIndex).toBeGreaterThan(mods[0].zIndex);
+      expect(store.getState().selectedModuleId).toBe(copy.id);
+    });
+
+    it('clamps the copy inside the canvas', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.settings.displayTransform = '90';
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 680, y: 1720 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE },
+      }];
+      store.setState({ config });
+
+      store.getState().duplicateModule('screen-1', 'mod-1');
+
+      const copy = store.getState().config!.screens[0].modules[1];
+      expect(copy.position).toEqual({ x: 680, y: 1720 });
+    });
+  });
+
+  describe('duplicateScreen', () => {
+    it('inserts a deep copy with fresh ids right after the original and selects it', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens = [
+        {
+          id: 'screen-1', name: 'Kitchen', backgroundImage: '/bg.jpg',
+          modules: [{ id: 'mod-1', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: { view: 'digital' }, style: { ...DEFAULT_MODULE_STYLE } }],
+        },
+        { id: 'screen-2', name: 'Screen 2', backgroundImage: '', modules: [] },
+      ];
+      store.setState({ config, selectedScreenId: 'screen-1' });
+
+      store.getState().duplicateScreen('screen-1');
+
+      const screens = store.getState().config!.screens;
+      expect(screens).toHaveLength(3);
+      const copy = screens[1];
+      expect(copy.id).not.toBe('screen-1');
+      expect(copy.name).toBe('Kitchen copy');
+      expect(copy.backgroundImage).toBe('/bg.jpg');
+      expect(copy.modules).toHaveLength(1);
+      expect(copy.modules[0].id).not.toBe('mod-1');
+      expect(copy.modules[0].config).toEqual({ view: 'digital' });
+      expect(copy.modules[0].config).not.toBe(screens[0].modules[0].config);
+      expect(screens[2].id).toBe('screen-2');
+      expect(store.getState().selectedScreenId).toBe(copy.id);
+      expect(store.getState().selectedModuleId).toBeNull();
+    });
+  });
+
   describe('resizeModule', () => {
     it('updates module size', () => {
       const store = useEditorStore;

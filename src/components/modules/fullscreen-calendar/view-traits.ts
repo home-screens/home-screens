@@ -53,10 +53,18 @@ export interface ViewTraits {
   legendWindow(ctx: ViewWindowCtx): { start: Date; end: Date };
 }
 
-/** "March 2 – 8, 2026" for the week containing today. */
+/** "March 2 – 8, 2026" for the week containing today; both month names when
+ *  the week crosses a month ("August 30 – September 5, 2026"), both full
+ *  dates when it crosses a year. */
 function weekRangeTitle(today: Date, weekStartsOn: 0 | 1, locale: string): string {
   const weekStart = startOfWeek(today, { weekStartsOn });
   const weekEnd = endOfWeek(today, { weekStartsOn });
+  if (weekStart.getFullYear() !== weekEnd.getFullYear()) {
+    return `${formatDateSync(weekStart, 'MMMM d, yyyy', { locale })} – ${formatDateSync(weekEnd, 'MMMM d, yyyy', { locale })}`;
+  }
+  if (weekStart.getMonth() !== weekEnd.getMonth()) {
+    return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'MMMM d, yyyy', { locale })}`;
+  }
   return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
 }
 

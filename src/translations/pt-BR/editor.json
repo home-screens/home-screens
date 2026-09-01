@@ -135,6 +135,7 @@
       "enable": "Ativar",
       "disable": "Desativar",
       "rename": "Renomear",
+      "duplicate": "Duplicar",
       "delete": "Excluir"
     }
   },
@@ -163,7 +164,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Tela cheia",
+      "fullScreen": "Visualizações em tela cheia (uma por tela)",
       "timeAndDate": "Hora e data",
       "weatherAndEnvironment": "Tempo e ambiente",
       "newsAndFinance": "Notícias e finanças",
@@ -2216,6 +2217,7 @@
     "actions": {
       "bringToFront": "Para a frente",
       "sendToBack": "Para trás",
+      "duplicate": "Duplicar",
       "delete": "Excluir módulo",
       "confirmDelete": "Excluir este módulo?"
     },
@@ -3805,7 +3807,12 @@
     "pluginBadge": "Plug-in",
     "communityPluginTooltip": "Plug-in da comunidade",
     "howToAdd": "Clique ou arraste para a tela",
-    "itemTooltip": "Clique para adicionar, ou arraste para a tela"
+    "itemTooltip": "Clique para adicionar, ou arraste para a tela",
+    "fullscreenGuard": {
+      "message": "Módulos de tela cheia ocupam a tela inteira. Todo o resto desta tela ficaria escondido atrás dele.",
+      "newScreen": "Adicionar em uma nova tela",
+      "addAnyway": "Adicionar aqui mesmo assim"
+    }
   },
   "backupReminder": {
     "message": {

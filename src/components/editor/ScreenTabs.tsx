@@ -31,7 +31,7 @@ import ScreenTab from './ScreenTab';
 export default function ScreenTabs() {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const { config, selectedDisplayId, selectedScreenId, selectScreen, addScreen, removeScreen, reorderScreens, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectScreen, addScreen, removeScreen, duplicateScreen, reorderScreens, updateScreen } = useEditorStore();
   // Screen operations target the currently-selected display's screens.
   // In legacy single-display mode this resolves to the global screen pool.
   const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -301,6 +301,15 @@ export default function ScreenTabs() {
             }}
           >
             {t('screenTabs.contextMenu.rename')}
+          </button>
+          <button
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
+            onClick={() => {
+              duplicateScreen(contextMenu.screenId);
+              setContextMenu(null);
+            }}
+          >
+            {t('screenTabs.contextMenu.duplicate')}
           </button>
           {screens.length > 1 && (
             <button

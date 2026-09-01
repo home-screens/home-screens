@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getOrderedDays, resolveMeal, getActiveSlot } from '@/lib/meal-constants';
-import { getNextMealSlot } from '../types';
+import { getOrderedDays, resolveMeal, getActiveSlot, getNextPlannedMeal } from '@/lib/meal-constants';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -124,54 +123,60 @@ describe('getActiveSlot', () => {
   });
 });
 
-// ── getNextMealSlot ──────────────────────────────────────────────────
+// ── getNextPlannedMeal ───────────────────────────────────────────────
 
-describe('getNextMealSlot', () => {
-  it('returns current slot as "now" when inside a window', () => {
-    const result = getNextMealSlot(7, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'now' });
+describe('getNextPlannedMeal', () => {
+  const spaghetti = meal('m1', 'Spaghetti');
+  const pancakes = meal('m2', 'Pancakes');
+
+  it('returns the current slot as "now" when its meal is planned and the window is active', () => {
+    const plan = [planned('2026-09-01', 'breakfast', 'm1')];
+    const result = getNextPlannedMeal('2026-09-01', 7, plan, [spaghetti], ALL_SLOTS);
+    expect(result).toMatchObject({ slot: 'breakfast', date: '2026-09-01', dayOffset: 0, context: 'now' });
+    expect(result?.meal.name).toBe('Spaghetti');
   });
 
-  it('returns next upcoming slot as "comingUp" between windows', () => {
-    // At 4am, before any window starts
-    const result = getNextMealSlot(4, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'comingUp' });
+  it('skips an empty active slot and finds a later slot today as "upcoming"', () => {
+    // 9:40 PM pattern from the audit, shifted: at 9am with nothing at breakfast
+    // but dinner planned, the card must say dinner, not "nothing planned".
+    const plan = [planned('2026-09-01', 'dinner', 'm1')];
+    const result = getNextPlannedMeal('2026-09-01', 9, plan, [spaghetti], ALL_SLOTS);
+    expect(result).toMatchObject({ slot: 'dinner', dayOffset: 0, context: 'upcoming' });
   });
 
-  it('wraps to tomorrow when all windows have passed', () => {
-    const result = getNextMealSlot(22, ALL_SLOTS);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 1, labelKey: 'tomorrow' });
+  it('walks past an empty tomorrow-breakfast to tomorrow lunch', () => {
+    // Late evening, tomorrow has lunch and dinner planned but no breakfast.
+    const plan = [
+      planned('2026-09-02', 'lunch', 'm1'),
+      planned('2026-09-02', 'dinner', 'm2'),
+    ];
+    const result = getNextPlannedMeal('2026-09-01', 21, plan, [spaghetti, pancakes], ALL_SLOTS);
+    expect(result).toMatchObject({ slot: 'lunch', date: '2026-09-02', dayOffset: 1, context: 'tomorrow' });
   });
 
-  it('returns "now" at exact window start boundary', () => {
-    expect(getNextMealSlot(10, ALL_SLOTS).labelKey).toBe('now');
-    expect(getNextMealSlot(10, ALL_SLOTS).slot).toBe('lunch');
+  it('labels meals beyond tomorrow as "future"', () => {
+    const plan = [planned('2026-09-04', 'dinner', 'm1')];
+    const result = getNextPlannedMeal('2026-09-01', 12, plan, [spaghetti], ALL_SLOTS);
+    expect(result).toMatchObject({ slot: 'dinner', date: '2026-09-04', dayOffset: 3, context: 'future' });
   });
 
-  it('agrees with getActiveSlot at boundary hours', () => {
-    for (const hour of [5, 10, 14, 17]) {
-      const active = getActiveSlot(hour, ALL_SLOTS);
-      const next = getNextMealSlot(hour, ALL_SLOTS);
-      // When a slot is active, getNextMealSlot should show it as "now"
-      expect(next.slot).toBe(active);
-      expect(next.labelKey).toBe('now');
-    }
+  it('ignores slots whose window already ended today', () => {
+    // Breakfast planned today but it is 3pm — today\'s breakfast is over.
+    const plan = [planned('2026-09-01', 'breakfast', 'm1')];
+    expect(getNextPlannedMeal('2026-09-01', 15, plan, [spaghetti], ALL_SLOTS)).toBeNull();
   });
 
-  it('skips disabled slots', () => {
-    // At 15:00, snack disabled — next is dinner "comingUp"
-    const result = getNextMealSlot(15, STANDARD_SLOTS);
-    expect(result).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'comingUp' });
+  it('ignores disabled slots', () => {
+    const plan = [planned('2026-09-01', 'snack', 'm1')];
+    expect(getNextPlannedMeal('2026-09-01', 12, plan, [spaghetti], STANDARD_SLOTS)).toBeNull();
   });
 
-  it('handles solo dinner correctly', () => {
-    expect(getNextMealSlot(5, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'comingUp' });
-    expect(getNextMealSlot(18, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 0, labelKey: 'now' });
-    expect(getNextMealSlot(22, ['dinner'])).toEqual({ slot: 'dinner', dayOffset: 1, labelKey: 'tomorrow' });
+  it('returns null when nothing is planned in the coming week', () => {
+    const plan = [planned('2026-09-09', 'dinner', 'm1')]; // 8 days out
+    expect(getNextPlannedMeal('2026-09-01', 12, plan, [spaghetti], ALL_SLOTS)).toBeNull();
   });
 
-  it('returns fallback for empty slots', () => {
-    const result = getNextMealSlot(12, []);
-    expect(result).toEqual({ slot: 'breakfast', dayOffset: 0, labelKey: 'next' });
+  it('returns null for an empty slot list', () => {
+    expect(getNextPlannedMeal('2026-09-01', 12, [], [], [])).toBeNull();
   });
 });

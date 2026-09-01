@@ -84,7 +84,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
               >
                 <span>{meta.icon}</span>
                 <span>{t(`chore-chart.timeOfDay.${section}`)}</span>
-                {sectionDone && isPast && <span style={{ marginLeft: 'auto' }}>&check;</span>}
+                {sectionDone && isPast && <span style={{ marginLeft: 'auto' }}>{'✓'}</span>}
               </div>
 
               {/* Chore rows */}

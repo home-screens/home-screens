@@ -16,6 +16,9 @@ import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
+import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';
+import { useGuardedAddModule } from '@/hooks/useGuardedAddModule';
+import { resolveDragPosition } from '@/lib/alignment-guides';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, MIN_EDITOR_WIDTH, snapToGrid } from '@/lib/constants';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
@@ -40,12 +43,13 @@ export default function EditorPage() {
     selectedDisplayId,
     selectedScreenId,
     loadConfig,
-    addModule,
     moveModule,
   } = useEditorStore();
+  const addModule = useGuardedAddModule();
 
   const { isDirty, isSaving, saveError, saveConfig } = useAutoSave();
   useUndoRedoShortcuts();
+  useCanvasKeyboardShortcuts();
 
   const [activePaletteType, setActivePaletteType] = useState<string | null>(null);
   const [showPluginStore, setShowPluginStore] = useState(false);
@@ -150,7 +154,7 @@ export default function EditorPage() {
         const rawY = (pointerY - canvasRect.top) / scale - defaultSize.h / 2;
         const dropX = align(Math.max(0, Math.min(displayW - defaultSize.w, rawX)));
         const dropY = align(Math.max(0, Math.min(displayH - defaultSize.h, rawY)));
-        addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
+        void addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
       } else if (data?.source === 'canvas') {
         const moduleId = data.moduleId as string;
         const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -171,9 +175,17 @@ export default function EditorPage() {
           : delta.y;
         const rawX = mod.position.x + movedX / scale;
         const rawY = mod.position.y + movedY / scale;
-        const newX = align(Math.max(0, Math.min(displayW - mod.size.w, rawX)));
-        const newY = align(Math.max(0, Math.min(displayH - mod.size.h, rawY)));
-        moveModule(selectedScreenId, moduleId, { x: newX, y: newY });
+        // Same resolver as the drag ghost (grid snap + neighbour alignment),
+        // so the module lands exactly where the ghost showed it.
+        const { x, y } = resolveDragPosition(
+          mod.size,
+          rawX,
+          rawY,
+          (screen?.modules ?? []).filter((m) => m.id !== moduleId),
+          { width: displayW, height: displayH },
+          snap,
+        );
+        moveModule(selectedScreenId, moduleId, { x, y }, { raiseOnOverlap: true });
       }
     },
     [selectedScreenId, selectedDisplayId, config, addModule, moveModule],
