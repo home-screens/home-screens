@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
 import type { LayoutExport } from '@/types/layout-export';
@@ -277,7 +278,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     // wrong. The caller turns this into "restored, but couldn't reload".
     const configRes = await editorFetch('/api/config');
     if (!configRes.ok) throw new Error(`HTTP ${configRes.status}`);
-    importConfig(JSON.stringify(await configRes.json()));
+    // The revision comes along so the follow-up save is not refused as a
+    // conflict with the restore itself.
+    importConfig(JSON.stringify(await configRes.json()), configRes.headers.get(CONFIG_REVISION_HEADER));
     onSettingsImported();
   }, [importConfig, onSettingsImported, t]);
 

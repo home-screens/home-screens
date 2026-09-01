@@ -58,6 +58,7 @@ export default function DraggableModule({
   mod,
   scale,
   onSelect,
+  onContextMenu,
   dataSource,
   now,
   verdictStates,
@@ -68,6 +69,8 @@ export default function DraggableModule({
   /** `movedSinceDown` is true when the click is the tail of a drag, so the
    *  canvas selects the dragged module instead of cycling the overlap stack. */
   onSelect: (e: React.MouseEvent, movedSinceDown: boolean) => void;
+  /** Right-click: the canvas opens the module menu at the pointer. */
+  onContextMenu?: (e: React.MouseEvent) => void;
   /** Normalized preview data for the module component (see `toEditorSource`). */
   dataSource: ModuleDataSource;
   now: Date;
@@ -167,6 +170,12 @@ export default function DraggableModule({
         const down = pointerDownPos.current;
         const moved = down ? Math.hypot(e.clientX - down.x, e.clientY - down.y) > 4 : false;
         onSelect(e, moved);
+      }}
+      onContextMenu={(e) => {
+        if (!onContextMenu) return;
+        e.preventDefault();
+        e.stopPropagation();
+        onContextMenu(e);
       }}
       className={`absolute ${isDragging ? 'opacity-60' : ''}`}
       style={{

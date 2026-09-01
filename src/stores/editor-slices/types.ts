@@ -35,6 +35,27 @@ export interface EditorCoreState extends EditorSelection {
   isDirty: boolean;
   isSaving: boolean;
   saveError: string | null;
+  /** Why the last save failed, so the toolbar can say something useful. */
+  saveErrorKind: SaveErrorKind | null;
+  /**
+   * The config's revision as the hub last handed it to us (GET header, or the
+   * PUT response). Sent back on every save so the hub can refuse to overwrite
+   * a config that changed under us. Null until the first load.
+   */
+  configRevision: string | null;
+  /**
+   * Set when a save was refused because the config changed somewhere else
+   * (another editor, a phone, a remote profile switch). Auto-save stays off
+   * until the user picks a side via `resolveSaveConflict`.
+   */
+  saveConflict: SaveConflict | null;
+  /**
+   * Bumped whenever the whole config is replaced from outside the editing
+   * session (load, restore/import, "load their changes"), as opposed to
+   * mutated by an edit. Forms that hold their own copy of settings re-hydrate
+   * on it; an ordinary save or profile switch must not wipe their edits.
+   */
+  configGeneration: number;
   /** Internal: deferred promise representing a queued re-save. When
    * `saveConfig()` is called while a previous save is still in flight,
    * the caller awaits this so its `await saveConfig()` resolves only
@@ -51,10 +72,27 @@ export interface EditorCoreState extends EditorSelection {
   _lastHistoryActionKey: string;
 }
 
+export type SaveErrorKind = 'validation' | 'network' | 'server' | 'conflict';
+
+export interface SaveConflict {
+  /** The config as it is on the hub now. */
+  theirs: ScreenConfiguration;
+  /** Its revision, so "keep mine" can overwrite exactly that version. */
+  revision: string;
+}
+
 export interface ConfigActions {
   loadConfig: () => Promise<void>;
   saveConfig: () => Promise<void>;
-  importConfig: (json: string) => void;
+  /**
+   * Settle a `saveConflict`. 'theirs' replaces the in-memory config with the
+   * hub's (the local version goes on the undo stack); 'mine' re-saves over
+   * the hub's version.
+   */
+  resolveSaveConflict: (choice: 'theirs' | 'mine') => Promise<void>;
+  /** `revision` is the hub's revision of exactly this config (a restore's
+   *  read-back), so the next save is not refused as a conflict. */
+  importConfig: (json: string, revision?: string | null) => void;
 }
 
 export interface SelectionActions {

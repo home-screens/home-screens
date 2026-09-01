@@ -25,6 +25,11 @@ interface UseDisplayControlParams {
   clearPause?: () => void;
   /** Multi-display routing key (undefined = legacy single-display mode). */
   displayId?: string;
+  /**
+   * False for an editor preview window: no command polling and no status
+   * reports, so the preview never drains or impersonates the real display.
+   */
+  hubTransport?: boolean;
 }
 
 export function useDisplayControl({
@@ -41,6 +46,7 @@ export function useDisplayControl({
   resetRotation,
   clearPause,
   displayId,
+  hubTransport = true,
 }: UseDisplayControlParams) {
   const {
     displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness,
@@ -126,6 +132,7 @@ export function useDisplayControl({
       showAlert,
     },
     displayId,
+    hubTransport,
   );
 
   useStatusReporter(
@@ -136,6 +143,7 @@ export function useDisplayControl({
     activeProfile,
     displayState,
     displayId,
+    hubTransport,
   );
 
   // `wake`/`forceSleep` are exposed for display rules with the `wake`/`sleep`

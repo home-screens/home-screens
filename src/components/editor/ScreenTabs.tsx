@@ -20,6 +20,7 @@ import { useTabScroll } from '@/hooks/useTabScroll';
 import { useSortableSensors } from '@/hooks/useDndSensors';
 import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
@@ -72,6 +73,7 @@ export default function ScreenTabs() {
     setContextMenu(null);
   }, []);
   useOutsidePointerDown(addMenuPos !== null || contextMenu !== null, [addBtnRef, addMenuRef, contextMenuRef], closeMenus);
+  useEscapeKey(closeMenus, addMenuPos !== null || contextMenu !== null);
 
   // A context menu belongs to a screen on the display it was opened for;
   // switching displays (screen search, the display switcher) invalidates it.
@@ -222,6 +224,7 @@ export default function ScreenTabs() {
       {addMenuPos && (
         <div
           ref={addMenuRef}
+          role="menu"
           className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ top: addMenuPos.top, right: addMenuPos.right }}
         >
@@ -255,13 +258,34 @@ export default function ScreenTabs() {
         </div>
       )}
 
-      {/* Right-click context menu */}
+      {/* Right-click / "…" context menu. Rename first: it is what the pencil
+          this menu replaced looked like it would do. */}
       {contextMenu && (
         <div
           ref={contextMenuRef}
+          role="menu"
           className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
+          <button
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
+            onClick={() => {
+              beginEditing(contextMenu.screenId, screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
+              setContextMenu(null);
+            }}
+          >
+            {t('screenTabs.contextMenu.rename')}
+          </button>
+          <button
+            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
+            onClick={() => {
+              duplicateScreen(contextMenu.screenId);
+              setContextMenu(null);
+            }}
+          >
+            {t('screenTabs.contextMenu.duplicate')}
+          </button>
+          <div className="my-1 border-t border-hs-border-strong/60" />
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card disabled:text-hs-text-faint disabled:cursor-default"
             disabled={contextScreenIndex <= 0}
@@ -299,42 +323,26 @@ export default function ScreenTabs() {
               ? t('screenTabs.contextMenu.enable')
               : t('screenTabs.contextMenu.disable')}
           </button>
-          <div className="my-1 border-t border-hs-border-strong/60" />
-          <button
-            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
-            onClick={() => {
-              beginEditing(contextMenu.screenId, screens.find((s) => s.id === contextMenu.screenId)?.name ?? '');
-              setContextMenu(null);
-            }}
-          >
-            {t('screenTabs.contextMenu.rename')}
-          </button>
-          <button
-            className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
-            onClick={() => {
-              duplicateScreen(contextMenu.screenId);
-              setContextMenu(null);
-            }}
-          >
-            {t('screenTabs.contextMenu.duplicate')}
-          </button>
           {screens.length > 1 && (
-            <button
-              className="w-full px-3 py-1.5 text-left text-sm text-hs-danger hover:bg-hs-card"
-              onClick={async () => {
-                const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name ?? '';
-                setContextMenu(null);
-                if (await useConfirmStore.getState().confirm({
-                  message: t('screenTabs.removeConfirmMessage', { name: screenName }),
-                  confirmLabel: tCore('actions.delete'),
-                  variant: 'danger',
-                })) {
-                  removeScreen(contextMenu.screenId);
-                }
-              }}
-            >
-              {t('screenTabs.contextMenu.delete')}
-            </button>
+            <>
+              <div className="my-1 border-t border-hs-border-strong/60" />
+              <button
+                className="w-full px-3 py-1.5 text-left text-sm text-hs-danger hover:bg-hs-card"
+                onClick={async () => {
+                  const screenName = screens.find((s) => s.id === contextMenu.screenId)?.name ?? '';
+                  setContextMenu(null);
+                  if (await useConfirmStore.getState().confirm({
+                    message: t('screenTabs.removeConfirmMessage', { name: screenName }),
+                    confirmLabel: tCore('actions.delete'),
+                    variant: 'danger',
+                  })) {
+                    removeScreen(contextMenu.screenId);
+                  }
+                }}
+              >
+                {t('screenTabs.contextMenu.delete')}
+              </button>
+            </>
           )}
         </div>
       )}

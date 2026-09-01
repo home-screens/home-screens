@@ -3050,4 +3050,126 @@ describe('editor store', () => {
       expect(display.profiles![0].screenIds).toEqual(['k-s2']);
     });
   });
+
+  describe('save conflicts', () => {
+    let fetchMock: ReturnType<typeof vi.fn>;
+    const REV = 'X-Config-Revision';
+
+    function response(init: { ok: boolean; status: number; revision?: string; body?: unknown }) {
+      return {
+        ok: init.ok,
+        status: init.status,
+        headers: { get: (name: string) => (name === REV ? init.revision ?? null : null) },
+        json: async () => init.body,
+      };
+    }
+
+    beforeEach(() => {
+      fetchMock = vi.fn();
+      vi.stubGlobal('fetch', fetchMock);
+      useEditorStore.setState({
+        config: makeConfig(),
+        configRevision: 'rev-1',
+        isDirty: true,
+        isSaving: false,
+        saveError: null,
+        saveErrorKind: null,
+        saveConflict: null,
+        _past: [],
+        _future: [],
+      });
+    });
+
+    it('sends the loaded revision and stores the one the hub answers with', async () => {
+      fetchMock.mockResolvedValue(response({ ok: true, status: 200, revision: 'rev-2' }));
+
+      await useEditorStore.getState().saveConfig();
+
+      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect((init.headers as Record<string, string>)[REV]).toBe('rev-1');
+      expect(useEditorStore.getState().configRevision).toBe('rev-2');
+      expect(useEditorStore.getState().isDirty).toBe(false);
+    });
+
+    it('a 409 parks the hub\'s config in saveConflict and keeps the edit dirty', async () => {
+      const theirs = makeConfig({ screens: [{ id: 'theirs', name: 'Theirs', backgroundImage: '', modules: [] }] });
+      fetchMock.mockResolvedValue(response({ ok: false, status: 409, revision: 'rev-9', body: { error: 'changed', config: theirs } }));
+
+      await expect(useEditorStore.getState().saveConfig()).rejects.toThrow();
+
+      const state = useEditorStore.getState();
+      expect(state.isDirty).toBe(true);
+      expect(state.saveErrorKind).toBe('conflict');
+      expect(state.saveConflict?.revision).toBe('rev-9');
+      expect(state.saveConflict?.theirs.screens[0].id).toBe('theirs');
+      // Our own revision is untouched: "keep mine" decides what to overwrite.
+      expect(state.configRevision).toBe('rev-1');
+    });
+
+    it("'keep mine' re-saves over exactly the version the hub showed", async () => {
+      const theirs = makeConfig();
+      useEditorStore.setState({ saveConflict: { theirs, revision: 'rev-9' }, saveError: 'x', saveErrorKind: 'conflict' });
+      fetchMock.mockResolvedValue(response({ ok: true, status: 200, revision: 'rev-10' }));
+
+      await useEditorStore.getState().resolveSaveConflict('mine');
+
+      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect((init.headers as Record<string, string>)[REV]).toBe('rev-9');
+      const state = useEditorStore.getState();
+      expect(state.saveConflict).toBeNull();
+      expect(state.saveError).toBeNull();
+      expect(state.configRevision).toBe('rev-10');
+      expect(state.isDirty).toBe(false);
+    });
+
+    it('a save while a conflict is pending is a no-op, not another refused PUT', async () => {
+      useEditorStore.setState({ saveConflict: { theirs: makeConfig(), revision: 'rev-9' } });
+      await useEditorStore.getState().saveConfig();
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(useEditorStore.getState().saveConflict?.revision).toBe('rev-9');
+    });
+
+    it('a save that lands clears a conflict left behind by an earlier refusal', async () => {
+      // A coalesced re-save with the adopted revision succeeds after the
+      // refused save's catch re-set saveConflict; the banner must not stay up.
+      useEditorStore.setState({ saveConflict: null });
+      fetchMock.mockResolvedValue(response({ ok: true, status: 200, revision: 'rev-2' }));
+      const save = useEditorStore.getState().saveConfig();
+      useEditorStore.setState({ saveConflict: { theirs: makeConfig(), revision: 'rev-9' } });
+      await save;
+      expect(useEditorStore.getState().saveConflict).toBeNull();
+    });
+
+    it('importConfig adopts the revision it is given and bumps the generation', () => {
+      const before = useEditorStore.getState().configGeneration;
+      useEditorStore.getState().importConfig(JSON.stringify(makeConfig()), 'rev-restore');
+      const state = useEditorStore.getState();
+      expect(state.configRevision).toBe('rev-restore');
+      expect(state.configGeneration).toBe(before + 1);
+      expect(state.saveConflict).toBeNull();
+    });
+
+    it("'load theirs' swaps in the hub's config, clean, with mine one undo away", async () => {
+      const mine = useEditorStore.getState().config!;
+      const generationBefore = useEditorStore.getState().configGeneration;
+      const theirs = makeConfig({ screens: [{ id: 'theirs', name: 'Theirs', backgroundImage: '', modules: [] }] });
+      useEditorStore.setState({ saveConflict: { theirs, revision: 'rev-9' }, saveError: 'x', saveErrorKind: 'conflict', selectedScreenId: mine.screens[0].id, selectedModuleId: 'm' });
+
+      await useEditorStore.getState().resolveSaveConflict('theirs');
+
+      const state = useEditorStore.getState();
+      expect(state.config).toBe(theirs);
+      expect(state.configRevision).toBe('rev-9');
+      expect(state.isDirty).toBe(false);
+      expect(state.saveConflict).toBeNull();
+      expect(state.selectedScreenId).toBe('theirs');
+      expect(state.selectedModuleId).toBeNull();
+      expect(state.configGeneration).toBe(generationBefore + 1);
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      useEditorStore.getState().undo();
+      expect(useEditorStore.getState().config).toEqual(mine);
+      expect(useEditorStore.getState().isDirty).toBe(true);
+    });
+  });
 });

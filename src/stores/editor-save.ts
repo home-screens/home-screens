@@ -117,6 +117,7 @@ export interface MutationBaseState extends EditorSelection {
 export interface MutationResultBase {
   isDirty: true;
   saveError: null;
+  saveErrorKind: null;
   _past: HistoryEntry[];
   _future: HistoryEntry[];
   _lastHistoryTime: number;
@@ -168,6 +169,7 @@ export function applyMutation<P extends object>(
   return {
     isDirty: true,
     saveError: null,
+    saveErrorKind: null,
     _past: newPast,
     _future: [],
     _lastHistoryTime: now,
@@ -185,6 +187,7 @@ export interface HistoryStepResult {
   next: HistoryEntry & {
     isDirty: true;
     saveError: null;
+    saveErrorKind: null;
     _past: HistoryEntry[];
     _future: HistoryEntry[];
     _lastHistoryTime: 0;
@@ -219,6 +222,7 @@ export function applyHistoryStep(
       selectedModuleId: entry.selectedModuleId,
       isDirty: true,
       saveError: null,
+    saveErrorKind: null,
       _past: direction === 'undo' ? remainingSource : trimmedOpposite,
       _future: direction === 'undo' ? trimmedOpposite : remainingSource,
       _lastHistoryTime: 0,

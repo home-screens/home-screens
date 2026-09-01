@@ -3,12 +3,17 @@
 import { useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Clock } from 'lucide-react';
+import { Clock, MoreHorizontal, X } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { Screen } from '@/types/config';
 
+/** Fingers and trackpads alike: every control on a tab is a 24px square. */
+const TAB_CONTROL = 'flex h-6 w-6 shrink-0 items-center justify-center rounded text-hs-text-faint transition-colors hover:bg-hs-hover';
+
 function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
   if (ms === 0) {
+    // A screen that never rotates on its own says so in a word; "0s" read
+    // as a warning about a broken duration.
     return (
       <span
         className="ml-1 text-[9px] font-semibold tracking-wide text-hs-warning bg-hs-warning/15 border border-hs-warning/35 rounded-full px-1.5 py-[1px]"
@@ -107,7 +112,7 @@ export default function ScreenTab({
         if (isDisabled) parts.push(t('screenTabs.disabledTooltip'));
         return parts.join(' · ');
       })()}
-      className={`flex shrink-0 items-center gap-1 rounded-t-md px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+      className={`group flex shrink-0 items-center gap-1 rounded-t-md py-1 pl-3 pr-1.5 text-sm cursor-pointer transition-colors ${
         isSelected
           ? 'bg-hs-card text-hs-text-primary'
           : 'bg-hs-panel text-hs-text-muted hover:text-hs-text-body'
@@ -143,32 +148,42 @@ export default function ScreenTab({
             />
           )}
           {isDisabled && (
-            <span className="ml-0.5 text-[10px] text-hs-text-faint" aria-label={t('screenTabs.disabledIndicatorAriaLabel')}>
-              ⊘
+            <span
+              className="ml-1 text-[9px] font-semibold tracking-wide text-hs-text-faint bg-hs-card border border-hs-border-strong rounded-full px-1.5 py-[1px] line-through decoration-hs-text-faint/60"
+              aria-label={t('screenTabs.disabledIndicatorAriaLabel')}
+            >
+              {t('screenTabs.disabledBadge')}
             </span>
           )}
           {isSelected && (
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onContextMenu(e);
               }}
-              className="ml-1 text-xs text-hs-text-faint hover:text-hs-text-body"
+              className={`ml-0.5 ${TAB_CONTROL} hover:text-hs-text-body`}
               title={t('screenTabs.screenOptionsTitle')}
               aria-label={t('screenTabs.screenOptionsAriaLabel', { name: screen.name })}
             >
-              &#9998;
+              <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
           )}
         </>
       )}
+      {/* Delete is only offered where it can be seen coming: on the active
+          tab, or once the pointer is already on the tab. */}
       {canDelete && !isEditing && (
         <button
+          type="button"
           onClick={onDelete}
-          className="ml-1 text-xs text-hs-text-faint hover:text-hs-danger"
+          className={`${TAB_CONTROL} hover:text-hs-danger ${
+            isSelected ? '' : 'opacity-0 focus-visible:opacity-100 group-hover:opacity-100'
+          }`}
+          title={t('screenTabs.deleteTabAriaLabel', { name: screen.name })}
           aria-label={t('screenTabs.deleteTabAriaLabel', { name: screen.name })}
         >
-          x
+          <X className="h-3.5 w-3.5" />
         </button>
       )}
     </div>

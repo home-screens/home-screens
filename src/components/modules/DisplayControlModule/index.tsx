@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DisplayControlConfig } from '@/types/config';
-import { dispatchDisplayCommand } from '@/lib/display-dispatch';
+import { dispatchDisplayCommand as dispatchToHub } from '@/lib/display-dispatch';
+import { useModuleSurface } from '@/components/modules/module-surface';
 import { useDisplayId } from '@/hooks/useDisplayId';
 import { resolveInitialTarget } from './resolveInitialTarget';
 import { BarLayout } from './BarLayout';
@@ -28,6 +29,13 @@ export default function DisplayControlModule({
 }: DisplayControlModuleProps) {
   const urlDisplayId = useDisplayId();
   const renderDisplayId = renderDisplayIdProp ?? urlDisplayId;
+  // Only the kiosk itself sends commands. An editor preview window stands
+  // in for the display but a tap there must not sleep the real panel.
+  const surface = useModuleSurface();
+  const dispatchDisplayCommand = useCallback<typeof dispatchToHub>(
+    (...args) => (surface === 'display' ? dispatchToHub(...args) : Promise.resolve()),
+    [surface],
+  );
   const isLegacyMode = availableDisplays.length === 0;
 
   const [currentTarget, setCurrentTarget] = useState<string | undefined>(() =>
@@ -72,7 +80,7 @@ export default function DisplayControlModule({
         state.timer = null;
       }, 200);
     },
-    [currentTarget],
+    [currentTarget, dispatchDisplayCommand],
   );
 
   const onPrev = useCallback(() => dispatchDebounced('prev-screen'), [dispatchDebounced]);
@@ -80,11 +88,11 @@ export default function DisplayControlModule({
 
   const onSleep = useCallback(() => {
     void dispatchDisplayCommand(currentTarget, 'sleep');
-  }, [currentTarget]);
+  }, [currentTarget, dispatchDisplayCommand]);
 
   const onBrightness = useCallback((pct: number) => {
     void dispatchDisplayCommand(currentTarget, 'brightness', { value: pct });
-  }, [currentTarget]);
+  }, [currentTarget, dispatchDisplayCommand]);
 
   const layoutProps: LayoutProps = {
     currentTarget,

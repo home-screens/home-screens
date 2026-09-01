@@ -10,6 +10,33 @@ import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
  * by getConfig is a separate client, so read-back still hits the real server).
  */
 
+test('the Settings button still opens Settings while a save is failing', async ({ page, request }) => {
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('screen-1', 'S1', [textModule('EDIT ME', { id: 'em' })])],
+  }));
+  await page.route('**/api/config', async (route) => {
+    if (route.request().method() === 'PUT') {
+      return route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'boom' }) });
+    }
+    return route.continue();
+  });
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+
+  const placed = page.locator('[data-module-id="em"]');
+  const box = (await placed.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 120, { steps: 15 });
+  await page.mouse.up();
+  await expect(page.getByRole('alert').getByText("Couldn't save", { exact: true })).toBeVisible();
+
+  // Used to await a save that throws, so router.push never ran and the button
+  // looked dead. The store (with the unsaved edit) survives the navigation.
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await expect(page).toHaveURL(/\/editor\/settings/);
+});
+
 test('a failed save surfaces the alert + Retry, and retrying recovers', async ({ page, request }) => {
   await putConfig(request, baseConfig({
     screens: [makeScreen('screen-1', 'S1', [textModule('EDIT ME', { id: 'em' })])],
@@ -39,12 +66,14 @@ test('a failed save surfaces the alert + Retry, and retrying recovers', async ({
   await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 120, { steps: 15 });
   await page.mouse.up();
 
-  // Error state: an aria-live alert reading "Save failed", plus a Retry button.
+  // Error state: an aria-live alert reading "Couldn't save" with the reason in
+  // plain words beside it (not in a hover tooltip), plus a Retry button.
   // (isDirty stays set on failure, so autosave keeps retrying and the alert
   // persists until a save succeeds.)
   const alert = page.getByRole('alert');
   await expect(alert).toBeVisible();
-  await expect(alert.getByText('Save failed')).toBeVisible();
+  await expect(alert.getByText("Couldn't save", { exact: true })).toBeVisible();
+  await expect(alert.getByText("The hub couldn't save the layout.")).toBeVisible();
   const retry = page.getByRole('button', { name: 'Retry' });
   await expect(retry).toBeVisible();
 

@@ -136,3 +136,18 @@ export function resolveAccent(config: { accentColor?: string }): {
     : {};
   return { accentColor, hasAccent, gradientStyle };
 }
+
+/**
+ * Past this many screens the display's pagination dots collapse to a
+ * "7 / 24" counter with arrows. Shared with the editor's dots guide.
+ */
+export const MAX_PAGINATION_DOTS = 10;
+/** Pagination dot geometry, in display pixels, shared by the kiosk's
+ *  PaginationDots and the editor's DotsGuide so a restyle cannot strand the
+ *  guide: dot diameter, finger target per dot, gap between targets, distance
+ *  of the row from the bottom edge, and the compact `‹ n / N ›` footprint. */
+export const PAGINATION_DOT_PX = 10;
+export const PAGINATION_HIT_PX = 44;
+export const PAGINATION_GAP_PX = 8;
+export const PAGINATION_BOTTOM_PX = 16;
+export const PAGINATION_COMPACT_W_PX = 158;

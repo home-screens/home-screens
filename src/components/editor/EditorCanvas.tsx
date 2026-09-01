@@ -1,24 +1,34 @@
 'use client';
 
-import { useRef, useEffect, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
-import { GRID_SIZE } from '@/lib/constants';
+import {
+  GRID_SIZE,
+  MAX_PAGINATION_DOTS,
+  PAGINATION_DOT_PX,
+  PAGINATION_HIT_PX,
+  PAGINATION_GAP_PX,
+  PAGINATION_BOTTOM_PX,
+  PAGINATION_COMPACT_W_PX,
+} from '@/lib/constants';
 import { resolveDragPosition, type AlignmentGuide } from '@/lib/alignment-guides';
 import { getLocation } from '@/lib/location';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
-import { useCanvasBaseScale } from '@/hooks/useCanvasBaseScale';
+import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvasBaseScale';
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
-import { isScreenEmpty } from '@/lib/display-filter';
+import { isScreenEmpty, getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
+import { resolveProfileScreens } from '@/lib/schedule';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
+import ModuleContextMenu, { type ModuleMenuState } from './ModuleContextMenu';
 import SelectionOverlay from './SelectionOverlay';
 import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
 import CanvasToolbar from './CanvasToolbar';
@@ -52,6 +62,50 @@ function EmptyScreenPlaceholder({ scale, screenId, t }: { scale: number; screenI
           className="inline-flex items-center gap-1.5"
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Where the display draws its pagination dots (geometry shared with
+ * PaginationDots via lib/constants), so nobody parks a progress bar or a QR
+ * code under them. Drawn in canvas pixels on the assumption that the kiosk
+ * runs at the display's native resolution, above the modules because overlap
+ * is the thing it exists to show. No label: it would take canvas room of its
+ * own. The dot shapes carry a tooltip instead and are the only part that
+ * takes the pointer.
+ */
+function DotsGuide({ screenCount, scale, t }: { screenCount: number; scale: number; t: TranslateFn }) {
+  const compact = screenCount > MAX_PAGINATION_DOTS;
+  const title = t('canvas.dotsGuide');
+  return (
+    <div
+      data-testid="dots-guide"
+      className="absolute inset-x-0 flex items-center justify-center pointer-events-none"
+      style={{ bottom: PAGINATION_BOTTOM_PX * scale, height: PAGINATION_HIT_PX * scale, gap: PAGINATION_GAP_PX * scale, zIndex: 9990 }}
+      aria-hidden
+    >
+      {compact ? (
+        <span
+          className="pointer-events-auto rounded-full border border-dashed border-white/30"
+          style={{ width: PAGINATION_COMPACT_W_PX * scale, height: PAGINATION_HIT_PX * scale }}
+          title={title}
+        />
+      ) : (
+        Array.from({ length: screenCount }, (_, i) => (
+          <span
+            key={i}
+            className="flex items-center justify-center"
+            style={{ width: PAGINATION_HIT_PX * scale, height: PAGINATION_HIT_PX * scale }}
+          >
+            <span
+              className="pointer-events-auto rounded-full border border-white/40 bg-white/15"
+              style={{ width: PAGINATION_DOT_PX * scale, height: PAGINATION_DOT_PX * scale }}
+              title={title}
+            />
+          </span>
+        ))
+      )}
     </div>
   );
 }
@@ -201,7 +255,10 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     ),
     [previewSettings, previewData, displaysForPicker],
   );
-  const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
+  const activeScreens = useMemo(
+    () => (config ? getActiveScreens(config, selectedDisplayId) : []),
+    [config, selectedDisplayId],
+  );
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
 
   // Live shared-state snapshot for the condition badges. Poll only while
@@ -246,6 +303,21 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     swallowNextCanvasClickRef.current = true;
   }, []);
 
+  // Module right-click menu. Closed whenever the screen changes underneath it.
+  const [moduleMenu, setModuleMenu] = useState<ModuleMenuState | null>(null);
+  useEffect(() => { setModuleMenu(null); }, [selectedScreenId, selectedDisplayId]);
+
+  // The display only draws pagination dots when more than one screen rotates,
+  // and what rotates is the active profile's slice of the enabled screens —
+  // the same resolution the kiosk runs (schedule windows aside).
+  const rotatingScreenCount = useMemo(() => {
+    if (!config) return 0;
+    const enabled = activeScreens.filter((s) => s.enabled !== false);
+    const display = selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined;
+    const profiles = display ? getDisplayProfiles(display, config.profiles) : config.profiles;
+    return resolveProfileScreens(enabled, profiles, getActiveProfileId(config, selectedDisplayId), now).length;
+  }, [config, activeScreens, selectedDisplayId, now]);
+
   if (!currentScreen) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-hs-text-faint">
@@ -258,23 +330,28 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const canvasW = displayWidth * effectiveScale;
   const canvasH = displayHeight * effectiveScale;
 
-  // Click-through selection. DOM hit-testing only ever reaches the topmost
-  // module, which would make anything sent behind a covering module (worst
-  // case: a fillsCanvas module) permanently unselectable. Instead, resolve
-  // the click geometrically: first click selects the topmost module under
-  // the cursor; clicking again in the same spot cycles to the next one
-  // beneath it, wrapping around. A drag's trailing click keeps the dragged
-  // module selected instead of cycling away from it.
+  const toCanvasPoint = (e: React.MouseEvent) => {
+    const rect = innerCanvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return { x: (e.clientX - rect.left) / effectiveScale, y: (e.clientY - rect.top) / effectiveScale };
+  };
+
+  // A plain click selects what was clicked, and clicking a selected module
+  // again keeps it selected. DOM hit-testing only ever reaches the topmost
+  // module, which would make anything behind a covering module (worst case:
+  // a fillsCanvas module) unreachable, so Alt/Option+click resolves the
+  // click geometrically and cycles through everything under the cursor,
+  // wrapping around; the right-click menu's "select behind" is the same
+  // thing for people who never learn the modifier. A drag's trailing click
+  // keeps the dragged module selected.
   const handleModuleClick = (clickedId: string, e: React.MouseEvent, movedSinceDown: boolean) => {
-    const canvasEl = innerCanvasRef.current;
-    if (movedSinceDown || !canvasEl || !currentScreen) {
+    const point = !movedSinceDown && e.altKey && currentScreen ? toCanvasPoint(e) : null;
+    if (!point) {
       selectModule(clickedId);
       return;
     }
-    const rect = canvasEl.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / effectiveScale;
-    const y = (e.clientY - rect.top) / effectiveScale;
-    const hits = stackOrder(currentScreen.modules)
+    const { x, y } = point;
+    const hits = stackOrder(currentScreen!.modules)
       .filter((m) =>
         x >= m.position.x && x <= m.position.x + m.size.w &&
         y >= m.position.y && y <= m.position.y + m.size.h,
@@ -288,23 +365,46 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     selectModule(idx === -1 ? hits[0].id : hits[(idx + 1) % hits.length].id);
   };
 
+  const handleModuleContextMenu = (moduleId: string, e: React.MouseEvent) => {
+    const point = toCanvasPoint(e);
+    if (!point) return;
+    selectModule(moduleId);
+    setModuleMenu({ moduleId, x: e.clientX, y: e.clientY, canvasX: point.x, canvasY: point.y });
+  };
+
   return (
     <div className="relative flex-1 flex flex-col overflow-hidden bg-hs-canvas">
-      {/* Scrollable canvas area */}
+      {/* Scrollable canvas area. A click anywhere in it that no module
+          claimed — the grey workspace around the frame as much as an empty
+          patch inside it — clears the selection, so the screen settings are
+          never more than one click away. */}
       <div
         ref={scrollRef}
+        data-testid="editor-workspace"
         className="flex-1"
         style={{ overflow: isDragging && userZoom <= 1 ? 'hidden' : 'auto', scrollbarGutter: 'stable' }}
+        onMouseDownCapture={() => {
+          swallowNextCanvasClickRef.current = false;
+        }}
+        onClick={() => {
+          if (swallowNextCanvasClickRef.current) {
+            swallowNextCanvasClickRef.current = false;
+            return;
+          }
+          selectModule(null);
+        }}
       >
         {/* Spacer: centers canvas when it fits, expands when zoomed in.
             width: max-content is what makes the expansion symmetric: a block's
             width never grows to fit content (its height does), so an oversized
             canvas used to overflow the spacer leftward under justify-center —
             negative-direction overflow the scroll container can't reach,
-            hiding the canvas's left edge at scrollLeft 0. */}
+            hiding the canvas's left edge at scrollLeft 0. The extra bottom
+            padding keeps the frame's bottom edge clear of the floating
+            toolbar (matched by useCanvasBaseScale's reserve). */}
         <div
           className="flex items-center justify-center"
-          style={{ width: 'max-content', minWidth: '100%', minHeight: '100%', padding: 16 }}
+          style={{ width: 'max-content', minWidth: '100%', minHeight: '100%', padding: 16, paddingBottom: 16 + CANVAS_TOOLBAR_RESERVE_PX }}
         >
           {/* Frame uses hardcoded dark colors to mimic the actual display appearance */}
           <div
@@ -323,16 +423,6 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               // they can't compete with editor chrome outside the canvas.
               isolation: 'isolate',
             }}
-            onMouseDownCapture={() => {
-              swallowNextCanvasClickRef.current = false;
-            }}
-            onClick={() => {
-              if (swallowNextCanvasClickRef.current) {
-                swallowNextCanvasClickRef.current = false;
-                return;
-              }
-              selectModule(null);
-            }}
           >
             <PageBackgroundProvider>
               <CanvasBackground
@@ -348,12 +438,16 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   mod={mod}
                   scale={effectiveScale}
                   onSelect={(e, movedSinceDown) => handleModuleClick(mod.id, e, movedSinceDown)}
+                  onContextMenu={(e) => handleModuleContextMenu(mod.id, e)}
                   dataSource={previewSource}
                   now={now}
                   verdictStates={verdictStates}
                   source={liveState.source}
                 />
               ))}
+              {rotatingScreenCount > 1 && (
+                <DotsGuide screenCount={rotatingScreenCount} scale={effectiveScale} t={t} />
+              )}
               {(() => {
                 const sel = currentScreen.modules.find((m) => m.id === selectedModuleId);
                 return sel ? (
@@ -396,6 +490,15 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           </div>
         </div>
       </div>
+
+      {moduleMenu && selectedScreenId && (
+        <ModuleContextMenu
+          menu={moduleMenu}
+          screenId={selectedScreenId}
+          modules={currentScreen.modules}
+          onClose={() => setModuleMenu(null)}
+        />
+      )}
 
       <CanvasToolbar
         t={t}

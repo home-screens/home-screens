@@ -27,6 +27,8 @@ vi.mock('@/hooks/useFetchData', () => ({
 // failure cooldown instead of loading. The store only reads `.ok` and awaits
 // `.blob()`, which is all these fakes implement.
 let tileResponder: (url: string) => number | 'hang' = () => 200;
+// Hung tile requests, releasable mid-test as successes.
+let hungTiles: Array<() => void> = [];
 let tileNow = 0;
 let tileBlobSeq = 0;
 const tileFetches: string[] = [];
@@ -45,7 +47,11 @@ vi.mock('../rain-map-preload', async (importOriginal) => {
         const u = String(url);
         tileFetches.push(u);
         const status = tileResponder(u);
-        if (status === 'hang') return new Promise(() => {});
+        if (status === 'hang') {
+          return new Promise((resolve) => {
+            hungTiles.push(() => resolve({ ok: true, status: 200, blob: async () => new Blob(['png']) }));
+          });
+        }
         return status === 200
           ? { ok: true, status, blob: async () => new Blob(['png']) }
           : { ok: false, status };
@@ -114,12 +120,17 @@ function ui(overrides?: Partial<RainMapConfig>) {
 describe('RainMapModule tile pipeline', () => {
   beforeEach(() => {
     tileResponder = () => 200;
+    hungTiles = [];
     tileNow = 0;
     tileFetches.length = 0;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     cleanup();
+    // The store is shared across tests and caps in-flight requests, so a test
+    // that leaves tiles hanging would wedge every later test's queue.
+    hungTiles.splice(0).forEach((release) => release());
+    for (let i = 0; i < 10; i++) await Promise.resolve();
     vi.useRealTimers();
     mockData = null;
   });
@@ -315,5 +326,37 @@ describe('RainMapModule tile pipeline', () => {
       (img) => (img as HTMLImageElement).src,
     );
     expect(after).toEqual(before);
+  });
+  it('plays a cold start as one forward sweep, parking until the next frame lands', async () => {
+    vi.useFakeTimers();
+    // Frames 1 and 2 load at once; frame 3 is still on its way. The loop must
+    // step 1 → 2 and then hold on 2 (not wrap back to 1) until 3 arrives, and
+    // only start looping once every frame has settled.
+    tileResponder = (u) => (u.includes('/v2/radar/8300/') ? 'hang' : 200);
+    mockData = makeData([8100, 8200, 8300]);
+    render(ui({ animationSpeedMs: 500, extraDelayLastFrameMs: 500 }));
+    await flush();
+    const currentDot = () =>
+      [...document.querySelectorAll('[data-testid="rain-map-timeline"] .rounded-full')].findIndex(
+        (el) => (el as HTMLElement).style.width === '8px',
+      );
+    expect(currentDot()).toBe(0);
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+    expect(currentDot()).toBe(1);
+
+    // Parked: neither the frame tempo nor the end-of-loop hold moves it.
+    await act(async () => { await vi.advanceTimersByTimeAsync(3_000); });
+    expect(currentDot()).toBe(1);
+
+    // Frame 3 lands (the four hung tiles resolve and the rest load at once):
+    // the sweep continues, then the loop wraps.
+    tileResponder = () => 200;
+    await act(async () => { hungTiles.splice(0).forEach((release) => release()); });
+    await flush();
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+    expect(currentDot()).toBe(2);
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+    expect(currentDot()).toBe(0);
   });
 });

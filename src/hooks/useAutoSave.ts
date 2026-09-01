@@ -12,6 +12,7 @@ export function useAutoSave() {
   const isSaving = useEditorStore((s) => s.isSaving);
   const saveConfig = useEditorStore((s) => s.saveConfig);
   const saveError = useEditorStore((s) => s.saveError);
+  const saveConflict = useEditorStore((s) => s.saveConflict);
 
   // A transiently invalid config (e.g. a just-added visibility condition
   // whose key hasn't been typed yet) is an expected editing state, not a
@@ -23,12 +24,13 @@ export function useAutoSave() {
     [config],
   );
 
-  // Auto-save: debounce 800ms after last change
+  // Auto-save: debounce 800ms after last change. Held while a save conflict
+  // is waiting on the user — retrying would just be refused again.
   useEffect(() => {
-    if (!isDirty || isSaving || isInvalid) return;
+    if (!isDirty || isSaving || isInvalid || saveConflict) return;
     const timer = setTimeout(() => saveConfig().catch(() => {}), AUTO_SAVE_DELAY);
     return () => clearTimeout(timer);
-  }, [config, isDirty, isSaving, isInvalid, saveConfig]);
+  }, [config, isDirty, isSaving, isInvalid, saveConflict, saveConfig]);
 
   // Prevent navigating away with unsaved changes
   useEffect(() => {

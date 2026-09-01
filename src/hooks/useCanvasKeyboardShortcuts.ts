@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { GRID_SIZE } from '@/lib/constants';
-import { isDialogOpen, isTypingTarget } from '@/lib/editor-keyboard';
+import { isDialogOpen, isMenuOpen, isTypingTarget } from '@/lib/editor-keyboard';
 import { useTranslate } from '@/i18n';
 
 const ARROW_DELTAS: Record<string, readonly [number, number]> = {
@@ -18,15 +18,15 @@ const ARROW_DELTAS: Record<string, readonly [number, number]> = {
  * Canvas keyboard shortcuts for the selected module: arrow nudge (1px, Shift
  * for one grid step), Delete/Backspace through the usual confirm, Escape to
  * deselect, Cmd/Ctrl+D to duplicate. Inert while typing in a field or while
- * any dialog is open, so a modal's own Escape/Delete never leaks through to
- * the canvas.
+ * any dialog or context menu is open, so a modal's or menu's own Escape/Delete
+ * never leaks through to the canvas.
  */
 export function useCanvasKeyboardShortcuts() {
   const t = useTranslate('editor');
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (isTypingTarget(e.target) || isDialogOpen()) return;
+      if (isTypingTarget(e.target) || isDialogOpen() || isMenuOpen()) return;
 
       const store = useEditorStore.getState();
       const { selectedScreenId, selectedModuleId } = store;

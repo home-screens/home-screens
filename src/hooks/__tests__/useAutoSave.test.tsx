@@ -50,7 +50,20 @@ describe('useAutoSave validity gate', () => {
     cleanup();
     vi.useRealTimers();
     vi.unstubAllGlobals();
-    useEditorStore.setState({ config: null, isDirty: false, isSaving: false, saveError: null });
+    useEditorStore.setState({ config: null, isDirty: false, isSaving: false, saveError: null, saveConflict: null });
+  });
+
+  it('holds auto-save while a save conflict waits on the user', async () => {
+    const config = makeConfig();
+    useEditorStore.setState({
+      config, isDirty: true, isSaving: false, saveError: null,
+      saveConflict: { theirs: makeConfig(), revision: 'rev-9' },
+    });
+    renderHook(() => useAutoSave());
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(2_000); });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('does not attempt a save while the config is transiently invalid', async () => {

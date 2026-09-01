@@ -36,6 +36,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { setDisplayToken } from '@/lib/display-fetch';
+import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 
 interface ScreenRotatorProps {
@@ -57,9 +58,20 @@ interface ScreenRotatorProps {
    * Empty array = legacy single-display mode (no display registry).
    */
   initialDisplays?: DisplayDescriptor[];
+  /**
+   * Start on this screen instead of the first one (`?screen=<id>`). If the
+   * screen exists but is out of the rotation (disabled, off-profile, off-
+   * schedule) it is still shown, pinned, until the first navigation.
+   */
+  initialScreenId?: string;
+  /**
+   * Editor preview (`?preview=1`): rotation held, sleep schedule ignored, no
+   * command polling or status reports. What the Preview button opens.
+   */
+  preview?: boolean;
 }
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
@@ -80,6 +92,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const [currentIndex, setCurrentIndex] = useState(0);
   // Bumped on manual navigation to reset the auto-rotation timer
   const [rotationEpoch, setRotationEpoch] = useState(0);
+  // The requested start screen, consumed by the first screen-set effect that
+  // finds it in the rotation. While it is not in the rotation (disabled,
+  // off-profile) it is rendered pinned instead — a preview of the screen
+  // being edited must show that screen, whatever the rotation thinks.
+  const startScreenRef = useRef<string | null>(initialScreenId ?? null);
+  const [pinnedScreenId, setPinnedScreenId] = useState<string | null>(initialScreenId ?? null);
   // Shared data needs all screens (for weather provider detection), not just active profile screens
   const sharedData = useSharedDisplayData(allScreens, settings);
 
@@ -147,8 +165,15 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     releaseActiveTakeover,
     wakeRequest,
     sleepRequest,
-  } = useDisplayRules(rules, allScreens, settings.timezone);
-  const renderedScreen = takeoverScreen ?? currentScreen;
+  // A preview window runs no rules: a sleep rule would black it out and a
+  // showScreen takeover would swap out the screen being previewed.
+  } = useDisplayRules(preview ? undefined : rules, allScreens, settings.timezone);
+  // A pinned start screen only matters while it is outside the rotation;
+  // once the rotation contains it, currentIndex already points at it.
+  const pinnedScreen = pinnedScreenId && !screens.some((s) => s.id === pinnedScreenId)
+    ? allScreens.find((s) => s.id === pinnedScreenId) ?? null
+    : null;
+  const renderedScreen = takeoverScreen ?? pinnedScreen ?? currentScreen;
 
   // Poll background rotation for the profile-visible screens plus, while a
   // takeover pins a screen excluded from normal rotation (the feature's
@@ -179,23 +204,35 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const safeIndexRef = useRef(safeIndex);
   useEffect(() => { safeIndexRef.current = safeIndex; }, [safeIndex]);
 
+  // Any navigation also forgets the requested start screen (see
+  // startScreenRef): both the pin and the "land here when the rotation next
+  // includes it" intent, so a later profile switch cannot yank the display
+  // back to it.
+  const forgetStartScreen = useCallback(() => {
+    startScreenRef.current = null;
+    setPinnedScreenId(null);
+  }, []);
+
   const goToScreen = useCallback((index: number) => {
     releaseActiveTakeover();
+    forgetStartScreen();
     const direction = index < safeIndexRef.current ? 'backward' : 'forward';
     transition(() => { setCurrentIndex(index); }, direction);
-  }, [releaseActiveTakeover, transition]);
+  }, [releaseActiveTakeover, forgetStartScreen, transition]);
 
   const nextScreen = useCallback(() => {
     releaseActiveTakeover();
+    forgetStartScreen();
     if (screens.length <= 1) return;
     transition(() => { setCurrentIndex((prev) => (prev + 1) % screens.length); });
-  }, [screens.length, releaseActiveTakeover, transition]);
+  }, [screens.length, releaseActiveTakeover, forgetStartScreen, transition]);
 
   const prevScreen = useCallback(() => {
     releaseActiveTakeover();
+    forgetStartScreen();
     if (screens.length <= 1) return;
     transition(() => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); }, 'backward');
-  }, [screens.length, releaseActiveTakeover, transition]);
+  }, [screens.length, releaseActiveTakeover, forgetStartScreen, transition]);
 
   const resetRotation = useCallback(() => {
     setRotationEpoch((e) => e + 1);
@@ -230,7 +267,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Status reports name the takeover screen when one is pinned, so the
   // editor's "currently showing" readout stays truthful during a rule firing.
   const { displayState, dimOpacity, wake, forceSleep } = useDisplayControl({
-    sleep: settings.sleep,
+    // A preview window ignores the sleep schedule: it exists to show a
+    // screen, and a black rectangle at 10 PM reads as "it's broken".
+    sleep: preview ? undefined : settings.sleep,
     timezone: settings.timezone,
     screenIndex: safeIndex,
     screenId: renderedScreen?.id ?? '',
@@ -243,6 +282,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     resetRotation,
     clearPause,
     displayId,
+    hubTransport: !preview,
   });
 
   // interactionHeld gates both the swipe gesture below and the rotation
@@ -370,8 +410,28 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Reset currentIndex when the active screen set changes (handles both length
   // changes and same-length profile switches with different screens). No
   // animation — this is a hard reset. usePauseRotation clears pause on the
-  // same key.
+  // same key. The first set that contains the requested start screen lands
+  // on it instead of screen 1 (and unpins it); until then it stays pinned.
+  //
+  // Keyed by the last screenKey handled: React Strict Mode (dev) runs mount
+  // effects twice, and a second run for the same key must not treat the
+  // just-consumed start screen as "gone" and reset to screen 1.
+  const screensRef = useRef(screens);
+  screensRef.current = screens;
+  const handledScreenKeyRef = useRef<string | null>(null);
   useEffect(() => {
+    if (handledScreenKeyRef.current === screenKey) return;
+    handledScreenKeyRef.current = screenKey;
+    const start = startScreenRef.current;
+    if (start) {
+      const index = screensRef.current.findIndex((s) => s.id === start);
+      if (index !== -1) {
+        startScreenRef.current = null;
+        setPinnedScreenId(null);
+        setCurrentIndex(index);
+        return;
+      }
+    }
     setCurrentIndex(0);
   }, [screenKey]);
 
@@ -423,7 +483,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
-    // FIVE ways a kiosk sits frozen on one screen, all of which look identical
+    // SIX ways a kiosk sits frozen on one screen, all of which look identical
     // from across the room. Start here when debugging "it stopped rotating":
     //   1. screens.length <= 1  — only one screen resolves for the active
     //      profile/schedule, so there is nothing to rotate to
@@ -434,11 +494,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     //      the overlay's own auto-dismiss timers bound this
     //   5. takeoverScreen  — a display rule is pinning a screen. currentIndex
     //      is untouched, so rotation resumes exactly where it was on release
+    //   6. preview  — an editor preview window (?preview=1); held on purpose
     // Unsticking paths: dot taps, remote/voice commands, and (unless
     // swipeEnabled is off or the display is dimmed/asleep) a horizontal
     // flick anywhere on the touchscreen — states 3-5 all yield to any of
     // them.
-    active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld && !takeoverScreen,
+    active: screens.length > 1 && displayState !== 'asleep' && !paused && !interactionHeld && !takeoverScreen && !preview,
     resetKey: rotationEpoch,
   });
 
@@ -467,7 +528,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // alerts, timers) stay mounted, so a blank display still honours its sleep
   // schedule, a remote sleep command still blacks the panel, and an urgent
   // alert still shows.
-  const showHint = !takeoverScreen && (screens.length === 0 || screens.every(isScreenEmpty));
+  const showHint = !takeoverScreen && !pinnedScreen && (screens.length === 0 || screens.every(isScreenEmpty));
 
   // While an urgent alert bar is up, the whole canvas is pushed down under it
   // and scaled to what is left, so the bar covers nothing — the clock stays
@@ -513,7 +574,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             transition: 'transform 300ms ease',
           }}
         >
-          <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+          {/* The preview surface keeps tappable modules (display-control)
+              from commanding the real kiosk this window is standing in for. */}
+          <ModuleSurfaceProvider value={preview ? 'preview' : 'display'}>
+            <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+          </ModuleSurfaceProvider>
         </div>
       )}
 
@@ -532,7 +597,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       <PaginationDots
         screens={screens}
         activeIndex={safeIndex}
-        paused={paused}
+        paused={paused || preview}
         onDotClick={handleDotClick}
       />
 

@@ -6,6 +6,8 @@ import { useTranslate } from '@/i18n';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '@/lib/theme';
 import type { SaveStatus } from '@/hooks/useSettingsAutosave';
+import { useEditorStore } from '@/stores/editor-store';
+import { SaveConflictNotice } from '@/components/editor/SaveStatus';
 
 interface SettingsHeaderProps {
   onBack: () => void;
@@ -40,7 +42,10 @@ export default function SettingsHeader({
   // failures don't disappear just because local state said "Saved".
   const isActivelySaving = saving || storeIsSaving;
   const hasFailure = saveMessage === 'failed' || !!storeSaveError;
-  const statusIndicator = isActivelySaving ? (
+  const hasConflict = useEditorStore((s) => s.saveConflict !== null);
+  const statusIndicator = hasConflict ? (
+    <SaveConflictNotice />
+  ) : isActivelySaving ? (
     <span className="text-xs text-hs-text-muted flex items-center gap-1.5">
       <span className="inline-block w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse" />
       {tCore('status.saving')}

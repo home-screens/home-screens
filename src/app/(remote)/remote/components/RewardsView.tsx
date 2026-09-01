@@ -109,23 +109,30 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
    * `res.ok` check treated a 500 as success: a saved reward vanished on
    * reload, and a deleted one came back. These are surfaces children use, so
    * phantom state here is the worst place for it.
+   *
+   * `force` is for deletes: the hub refuses an empty list (409) as a guard
+   * against a buggy client wiping the data, but deleting the only reward is
+   * exactly that list and the person just confirmed it. After a failure the
+   * real state is fetched back so the page never shows a phantom.
    */
-  const persistRewards = async (updated: RewardDefinition[], snapshot: RewardsData | null) => {
+  const persistRewards = async (updated: RewardDefinition[], snapshot: RewardsData | null, force = false) => {
     setSaveError(false);
     try {
       const res = await editorFetch('/api/rewards/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewards: updated }),
+        body: JSON.stringify({ rewards: updated, ...(force ? { force: true } : {}) }),
       });
       if (!res.ok) {
         setData(snapshot);
         setSaveError(true);
+        await fetchData();
       }
     } catch (err) {
       if (isSessionExpired(err)) return;
       setData(snapshot);
       setSaveError(true);
+      await fetchData();
     }
   };
 
@@ -145,7 +152,7 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
     const updated = (data?.rewards ?? []).filter((r) => r.id !== id);
     setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [] }));
     setEditingReward(null);
-    await persistRewards(updated, snapshot);
+    await persistRewards(updated, snapshot, true);
   };
 
   const handleAdjust = async (memberId: string, amount: number) => {

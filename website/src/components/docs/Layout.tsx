@@ -45,16 +45,16 @@ function Header() {
           : 'dark:bg-transparent',
       )}
     >
-      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="mr-6 flex lg:hidden">
+      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-8 px-4 sm:px-6 lg:px-8">
+        <div className="mr-6 flex xl:hidden">
           <MobileNavigation />
         </div>
-        <div className="flex items-center gap-12">
+        <div className="flex items-center gap-8">
           <Link href="/" aria-label="Home page">
             <DocsLogomark className="h-9 w-9 lg:hidden" />
             <DocsLogo className="hidden lg:flex" />
           </Link>
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="hidden xl:flex items-center gap-6">
             {siteNavLinks.map((link) => (
               <Link
                 key={link.href}

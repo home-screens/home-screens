@@ -25,7 +25,7 @@ import PluginConfigRenderer from './PluginConfigRenderer';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import PluginSecretsSection from './PluginSecretsSection';
 import PluginAuthSection from './PluginAuthSection';
-import { MousePointerClick } from 'lucide-react';
+import { MousePointerClick, ChevronLeft } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import LabeledField from '@/components/ui/LabeledField';
@@ -326,7 +326,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
 
 export default function PropertyPanel() {
   const t = useTranslate('editor');
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, removeModule, duplicateModule, updateModule, reorderModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, removeModule, duplicateModule, updateModule, reorderModule } = useEditorStore();
   const pluginMap = usePluginStore((s) => s.plugins);
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -368,6 +368,16 @@ export default function PropertyPanel() {
     <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
       <div className="space-y-5">
         <div>
+          {/* The screen's own settings live behind "nothing selected"; this
+              is the way there that doesn't need an empty pixel to click. */}
+          <button
+            type="button"
+            onClick={() => selectModule(null)}
+            className="mb-2 -ml-1 flex items-center gap-0.5 rounded px-1 py-0.5 text-xs text-hs-text-muted hover:bg-hs-hover hover:text-hs-text-body"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            {t('propertyPanel.screenSettingsLink')}
+          </button>
           <h3 className="text-sm font-semibold text-hs-text-body mb-3">
             {t('propertyPanel.moduleHeading', { name: moduleLabel })}
           </h3>

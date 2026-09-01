@@ -242,8 +242,11 @@ export default function RainMapModule({
   // Queue every frame in display order, then animate over the frames whose
   // tiles have settled. The store paces requests far slower than the animation
   // runs, so a cold start would otherwise cycle through mostly empty frames
-  // for over a minute; instead the loop grows as frames arrive and never
-  // shows a frame it has not loaded.
+  // for over a minute; instead the loop never shows a frame it has not loaded.
+  // Until every frame has settled the loop only moves forward, parking on
+  // the newest loaded frame until the next one lands, so a cold start plays
+  // one progressive sweep (1, 2, 3, ...) rather than restarting from the
+  // first frame each time a new one arrives. Once all frames are in it loops.
   useEffect(() => {
     const perFrame = frames.map(frameUrls);
     if (!perFrame.length || !perFrame[0].length || !data?.host) return;
@@ -255,18 +258,22 @@ export default function RainMapModule({
 
     let cancelled = false;
     let started = false;
-    // True while the loop is holding on the only ready frame.
+    // True while the loop is holding on the newest ready frame.
     let parked = false;
     const ready = new Set<number>();
     indexRef.current = 0;
     setDisplayIndex(0);
 
     // Next ready frame after `current` in display order, or `current` itself
-    // while it is the only one.
+    // while there is none. Wrapping back to the start is allowed only once
+    // every frame has settled (the first sweep is forward-only).
     function nextReady(current: number): number {
+      const canWrap = ready.size === perFrame.length;
       for (let step = 1; step < perFrame.length; step++) {
-        const candidate = (current + step) % perFrame.length;
-        if (ready.has(candidate)) return candidate;
+        const candidate = current + step;
+        if (candidate >= perFrame.length && !canWrap) break;
+        const index = candidate % perFrame.length;
+        if (ready.has(index)) return index;
       }
       return current;
     }
@@ -303,8 +310,8 @@ export default function RainMapModule({
           setDisplayIndex(i);
           scheduleNext();
         } else if (parked) {
-          // A second frame arrived: move on at animation tempo instead of
-          // waiting out the end-of-loop hold.
+          // The frame the loop was waiting on arrived: move on at animation
+          // tempo instead of waiting out the end-of-loop hold.
           clearTimeout(timerRef.current);
           scheduleNext();
         }
@@ -427,25 +434,29 @@ export default function RainMapModule({
         </div>
 
         {showTimeline && frames.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10" data-testid="rain-map-timeline">
             {frames.map((frame, i) => {
               const isNowcast = i >= pastCount;
               const isCurrent = i === displayIndex;
               return (
-                <div
-                  key={frame.time}
-                  className="rounded-full transition-all duration-200"
-                  style={{
-                    width: isCurrent ? 8 : 5,
-                    height: isCurrent ? 8 : 5,
-                    backgroundColor: isCurrent
-                      ? '#ffffff'
-                      : isNowcast
-                        ? 'rgba(74, 222, 128, 0.6)'
-                        : 'rgba(255, 255, 255, 0.35)',
-                    boxShadow: isCurrent ? '0 0 4px rgba(255,255,255,0.5)' : 'none',
-                  }}
-                />
+                // Every dot sits in a fixed 8px box so the active dot growing
+                // never shifts the row (the dots used to bounce on each frame).
+                <div key={frame.time} className="flex items-center justify-center" style={{ width: 8, height: 8 }}>
+                  <div
+                    className="rounded-full"
+                    style={{
+                      width: isCurrent ? 8 : 5,
+                      height: isCurrent ? 8 : 5,
+                      backgroundColor: isCurrent
+                        ? '#ffffff'
+                        : isNowcast
+                          ? 'rgba(74, 222, 128, 0.6)'
+                          : 'rgba(255, 255, 255, 0.35)',
+                      boxShadow: isCurrent ? '0 0 4px rgba(255,255,255,0.5)' : 'none',
+                      transition: 'background-color 200ms, box-shadow 200ms',
+                    }}
+                  />
+                </div>
               );
             })}
           </div>

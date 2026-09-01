@@ -132,13 +132,15 @@ function withDisplayParam(url: string, displayId: string | undefined): string {
  * also registers it in the hub's `knownDisplays` set (so it shows up in
  * the editor's "Unadopted Displays" section before being formally added).
  */
-export function useDisplayCommands(handlers: CommandHandlers, displayId?: string) {
+export function useDisplayCommands(handlers: CommandHandlers, displayId?: string, enabled = true) {
   const handlersRef = useRef(handlers);
   useEffect(() => {
     handlersRef.current = handlers;
   });
 
   useEffect(() => {
+    // An editor preview window must not drain the real display's queue.
+    if (!enabled) return;
     let mounted = true;
 
     async function poll() {
@@ -236,7 +238,7 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
       mounted = false;
       clearInterval(id);
     };
-  }, [displayId]);
+  }, [displayId, enabled]);
 }
 
 /**
@@ -254,6 +256,7 @@ export function useStatusReporter(
   activeProfile: string | undefined | null,
   displayState: string,
   displayId?: string,
+  enabled = true,
 ) {
   const valuesRef = useRef({
     currentScreenIndex,
@@ -281,19 +284,24 @@ export function useStatusReporter(
   // key (not just the index) because a rule takeover swaps the rendered
   // screen without touching the rotation index — the editor's "currently
   // showing" readout must reflect the takeover, not wait for the 30s beat.
+  //
+  // `enabled` is false for an editor preview window, which must not report
+  // as (or over) the real display.
   const prevKeyRef = useRef('');
   useEffect(() => {
+    if (!enabled) return;
     const key = `${currentScreenIndex}:${currentScreenId}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}`;
     if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
     reportStatus(valuesRef.current);
-  }, [currentScreenIndex, currentScreenId, screenCount, displayState, activeProfile, displayId]);
+  }, [currentScreenIndex, currentScreenId, screenCount, displayState, activeProfile, displayId, enabled]);
 
   // Periodic report every 30s for freshness
   useEffect(() => {
+    if (!enabled) return;
     const id = setInterval(() => reportStatus(valuesRef.current), 30_000);
     return () => clearInterval(id);
-  }, []);
+  }, [enabled]);
 
   // Re-report when the shared-state bus changes so the editor's live-value
   // hints (visibility conditions) stay fresh, throttled to one POST per
@@ -303,6 +311,7 @@ export function useStatusReporter(
   // producer would multiply the full-payload heartbeat ~6x for data nobody
   // is reading, and the snapshot just rides the 30s heartbeat instead.
   useEffect(() => {
+    if (!enabled) return;
     let lastReport = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
     // Both the bus and the provider-health store feed the same throttled
@@ -331,7 +340,7 @@ export function useStatusReporter(
       unsubscribeHealth();
       if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [enabled]);
 }
 
 const SHARED_STATE_REPORT_THROTTLE_MS = 5_000;

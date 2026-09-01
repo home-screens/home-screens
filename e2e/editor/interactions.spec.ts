@@ -460,16 +460,17 @@ test.describe('per-screen rotation duration', () => {
     await expect(page.getByText('45s', { exact: true })).toBeVisible();
 
     // Zero = sticky (manual advance only): the panel shows a Sticky badge and
-    // the tab badge switches to 0s.
+    // the tab badge switches to "Stays" (not "0s", which read as a broken
+    // duration in warning colour).
     await seconds.fill('0');
     await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBe(0));
     await expect(page.getByText('Sticky', { exact: true })).toBeVisible();
-    await expect(page.getByText('0s', { exact: true })).toBeVisible();
+    await expect(page.getByText('Stays', { exact: true })).toBeVisible();
 
     // Reset clears the override back to inheriting the default.
     await page.getByRole('button', { name: 'Reset', exact: true }).click();
     await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBeUndefined());
-    await expect(page.getByText('0s', { exact: true })).toBeHidden();
+    await expect(page.getByText('Stays', { exact: true })).toBeHidden();
   });
 });
 

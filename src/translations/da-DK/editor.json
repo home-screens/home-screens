@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Indstillinger",
       "previewButton": "Forhåndsvis",
-      "retryButton": "Prøv igen"
+      "retryButton": "Prøv igen",
+      "unsaved": "Ugemte ændringer…",
+      "couldntSave": "Kunne ikke gemme",
+      "reasonNetwork": "Hubben kan ikke nås. Tjek netværket, og prøv igen.",
+      "reasonServer": "Hubben kunne ikke gemme layoutet.",
+      "changedElsewhere": "Ændret et andet sted",
+      "changedElsewhereHint": "Dette layout blev ændret fra en anden editor eller en telefon. Genindlæs for at se det.",
+      "reloadButton": "Genindlæs",
+      "previewTitle": "Åbn denne skærm i et vindue formet som displayet",
+      "conflict": {
+        "title": "Dette layout blev ændret et andet sted.",
+        "hint": "Nogen gemte fra en anden editor eller en telefon, mens du redigerede. Indlæs deres ændringer, eller behold dine og overskriv deres.",
+        "loadTheirs": "Indlæs deres ændringer",
+        "keepMine": "Behold mine"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Denne skærm er tom",
       "body": "Træk et modul herover fra listen til venstre, eller start fra en skabelon.",
       "chooseTemplate": "Vælg en skabelon"
+    },
+    "dotsGuide": "Skærmprikkerne vises her",
+    "moduleMenu": {
+      "selectBehind": "Vælg modulet bagved",
+      "hide": "Skjul på displayet",
+      "show": "Vis på displayet"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "fastlåst — skift kun manuelt",
+    "stickyTooltip": "bliver — skifter ikke af sig selv; kræver et tryk eller fjernbetjeningen",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "planlagt",
     "disabledTooltip": "slået fra — vises ikke på displayet",
     "disabledIndicatorAriaLabel": "Slået fra",
-    "stickyBadge": "0s",
+    "disabledBadge": "Fra",
+    "stickyBadge": "Bliver",
     "screenOptionsTitle": "Indstillinger for skærm",
     "screenOptionsAriaLabel": "Indstillinger for {name}",
     "deleteTabAriaLabel": "Slet {name}",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Fuldskærmsvisninger (én pr. skærm)",
+      "fullScreen": "Fuldskærmsvisninger",
       "timeAndDate": "Tid og dato",
       "weatherAndEnvironment": "Vejr og miljø",
       "newsAndFinance": "Nyheder og økonomi",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Dækker vejr- og kortnøgler, Google, iCloud, Immich, OneDrive, plugin-logins og din editor-adgangskode.",
         "protectLabel": "Beskyt dem med en adgangskode",
         "plaintextWarning": "Alle, der åbner denne fil, kan bruge dine konti. Gem den et privat sted.",
-        "needsEditorPassword": "Vælg først en editor-adgangskode under Sikkerhed. Uden den kan alle på dit netværk læse nøglerne i din sikkerhedskopi."
+        "needsEditorPassword": "Vælg først en editor-adgangskode under Sikkerhed. Uden den kan alle på dit netværk læse nøglerne i din sikkerhedskopi, når denne funktion er slået til."
       },
       "backupReminder": {
         "heading": "Påmindelse om sikkerhedskopi",
@@ -2251,7 +2272,8 @@
       "backgroundProviderLabel": "Kør skjult i baggrunden",
       "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten.",
       "backgroundProviderObsoleteHint": "Dette plugin deler nu sine data automatisk. Denne skjulte kopi er ikke længere nødvendig og kan slettes."
-    }
+    },
+    "screenSettingsLink": "Skærmindstillinger"
   },
   "upgradeModal": {
     "titleUpgrade": "Opdaterer til {tag}",

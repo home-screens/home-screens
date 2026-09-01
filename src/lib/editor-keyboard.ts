@@ -18,3 +18,9 @@ export function isTypingTarget(target: EventTarget | null): boolean {
 export function isDialogOpen(): boolean {
   return document.querySelector('[role="dialog"], [aria-modal="true"]') !== null;
 }
+
+/** True while a context menu is open. A menu owns Escape (and the arrow
+ *  keys) for as long as it is up, so the canvas must not also act on them. */
+export function isMenuOpen(): boolean {
+  return document.querySelector('[role="menu"]') !== null;
+}

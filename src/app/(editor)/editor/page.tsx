@@ -11,7 +11,6 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { Check, AlertCircle } from 'lucide-react';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -31,13 +30,13 @@ import EditorCanvas from '@/components/editor/EditorCanvas';
 import PropertyPanel from '@/components/editor/PropertyPanel';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import PluginStorePanel from '@/components/editor/PluginStorePanel';
+import SaveStatus from '@/components/editor/SaveStatus';
 import PhoneHandoff from '@/components/PhoneHandoff';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 
 export default function EditorPage() {
   const t = useTranslate('editor');
-  const tCore = useTranslate('core');
   const {
     config,
     selectedDisplayId,
@@ -47,7 +46,7 @@ export default function EditorPage() {
   } = useEditorStore();
   const addModule = useGuardedAddModule();
 
-  const { isDirty, isSaving, saveError, saveConfig } = useAutoSave();
+  const { isDirty, saveConfig } = useAutoSave();
   useUndoRedoShortcuts();
   useCanvasKeyboardShortcuts();
 
@@ -242,7 +241,10 @@ export default function EditorPage() {
             <Button
               variant="secondary"
               onClick={async () => {
-                if (isDirty) await saveConfig();
+                // A failing save must not make this button dead: the store
+                // (and its unsaved edits) survives the client-side navigation,
+                // and the toolbar has already said why the save failed.
+                if (isDirty) await saveConfig().catch(() => {});
                 router.push('/editor/settings');
               }}
             >
@@ -250,33 +252,21 @@ export default function EditorPage() {
             </Button>
             <Button
               variant="secondary"
+              title={t('page.toolbar.previewTitle')}
               onClick={() => {
-                const displays = config?.displays ?? [];
+                if (!config) return;
+                // Open the screen being edited, rotation held, in a new tab —
+                // not screen 1 of the display after a 30s wait.
+                const displays = config.displays ?? [];
                 const active = displays.find((d) => d.id === selectedDisplayId) ?? displays[0];
-                const url = active ? `/display/${active.id}` : '/display';
-                window.open(url, '_blank');
+                const params = new URLSearchParams({ preview: '1' });
+                if (selectedScreenId) params.set('screen', selectedScreenId);
+                window.open(`${active ? `/display/${active.id}` : '/display'}?${params}`, '_blank');
               }}
             >
               {t('page.toolbar.previewButton')}
             </Button>
-            <div className="min-w-24 flex items-center justify-end gap-1.5" aria-live="polite">
-              {saveError ? (
-                <span role="alert" className="flex items-center gap-1.5" title={saveError ?? undefined}>
-                  <AlertCircle className="w-3.5 h-3.5 text-hs-danger" />
-                  <span className="text-xs text-hs-danger">{t('common.saveFailed')}</span>
-                  <Button variant="secondary" size="sm" onClick={saveConfig}>
-                    {t('page.toolbar.retryButton')}
-                  </Button>
-                </span>
-              ) : isSaving ? (
-                <span className="text-xs text-hs-text-faint">{tCore('status.saving')}</span>
-              ) : !isDirty ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-hs-success" />
-                  <span className="text-xs text-hs-success">{t('common.saved')}</span>
-                </>
-              ) : null}
-            </div>
+            <SaveStatus />
           </div>
         </div>
 

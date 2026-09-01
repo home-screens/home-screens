@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Ajustes",
       "previewButton": "Vista previa",
-      "retryButton": "Reintentar"
+      "retryButton": "Reintentar",
+      "unsaved": "Cambios sin guardar…",
+      "couldntSave": "No se pudo guardar",
+      "reasonNetwork": "No se puede conectar con el hub. Revisa la red y vuelve a intentarlo.",
+      "reasonServer": "El hub no pudo guardar el diseño.",
+      "changedElsewhere": "Cambiado en otro sitio",
+      "changedElsewhereHint": "Este diseño se cambió desde otro editor o un teléfono. Recarga para verlo.",
+      "reloadButton": "Recargar",
+      "previewTitle": "Abrir esta pantalla en una ventana con la forma del display",
+      "conflict": {
+        "title": "Este diseño se cambió en otro sitio.",
+        "hint": "Alguien guardó desde otro editor o un teléfono mientras editabas. Carga sus cambios, o conserva los tuyos y sobrescribe los suyos.",
+        "loadTheirs": "Cargar sus cambios",
+        "keepMine": "Conservar los míos"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Esta pantalla está vacía",
       "body": "Arrastra aquí un módulo de la lista de la izquierda, o empieza desde una plantilla.",
       "chooseTemplate": "Elegir una plantilla"
+    },
+    "dotsGuide": "Los puntos de pantalla aparecen aquí",
+    "moduleMenu": {
+      "selectBehind": "Seleccionar el módulo de detrás",
+      "hide": "Ocultar en pantalla",
+      "show": "Mostrar en pantalla"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "fija — solo avance manual",
+    "stickyTooltip": "fija — no avanza sola; necesita un toque o el mando",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "programada",
     "disabledTooltip": "desactivada — no se muestra en el display",
     "disabledIndicatorAriaLabel": "Desactivada",
-    "stickyBadge": "0 s",
+    "disabledBadge": "Apagada",
+    "stickyBadge": "Fija",
     "screenOptionsTitle": "Opciones de la pantalla",
     "screenOptionsAriaLabel": "Opciones de {name}",
     "deleteTabAriaLabel": "Eliminar {name}",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Vistas de pantalla completa (una por pantalla)",
+      "fullScreen": "Vistas de pantalla completa",
       "timeAndDate": "Hora y fecha",
       "weatherAndEnvironment": "Tiempo y entorno",
       "newsAndFinance": "Noticias y finanzas",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Incluye las claves de tiempo y mapas, Google, iCloud, Immich, OneDrive, los inicios de sesión de los plugins y la contraseña del editor.",
         "protectLabel": "Protegerlas con una contraseña",
         "plaintextWarning": "Cualquiera que abra este archivo puede usar tus cuentas. Guárdalo en un sitio privado.",
-        "needsEditorPassword": "Primero establece una contraseña del editor, en Seguridad. Sin ella, cualquiera en tu red podría leer las claves de tu copia."
+        "needsEditorPassword": "Primero establece una contraseña del editor, en Seguridad. Sin ella, cualquiera en tu red podría leer las claves de tu copia con esta función activada."
       },
       "backupReminder": {
         "heading": "Recordatorio de copia",
@@ -2255,7 +2276,8 @@
       "backgroundProviderLabel": "Ejecutar oculto en segundo plano",
       "backgroundProviderHelp": "Proporciona estados a otros módulos. Esta copia nunca aparece en pantalla; para mostrar también el widget, añade una segunda copia sin este ajuste.",
       "backgroundProviderObsoleteHint": "Este plugin ahora comparte sus datos automáticamente. Esta copia oculta ya no es necesaria y puede eliminarse."
-    }
+    },
+    "screenSettingsLink": "Ajustes de la pantalla"
   },
   "upgradeModal": {
     "titleUpgrade": "Actualizando a {tag}",

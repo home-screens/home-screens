@@ -80,7 +80,7 @@ export function MobileNavigation() {
       <Dialog
         open={isOpen}
         onClose={() => close()}
-        className="fixed inset-0 z-50 flex items-start overflow-y-auto bg-slate-900/50 pr-10 backdrop-blur-sm lg:hidden"
+        className="fixed inset-0 z-50 flex items-start overflow-y-auto bg-slate-900/50 pr-10 backdrop-blur-sm xl:hidden"
         aria-label="Navigation"
       >
         <DialogPanel className="min-h-full w-full max-w-xs bg-white px-4 pt-5 pb-12 sm:px-6 dark:bg-slate-900">
@@ -111,8 +111,8 @@ export function MobileNavigation() {
               ))}
             </ul>
           </nav>
-          <div className="my-4 border-t border-slate-200 dark:border-slate-700" />
-          <Navigation className="px-1" onLinkClick={onLinkClick} />
+          <div className="my-4 border-t border-slate-200 lg:hidden dark:border-slate-700" />
+          <Navigation className="px-1 lg:hidden" onLinkClick={onLinkClick} />
         </DialogPanel>
       </Dialog>
     </>

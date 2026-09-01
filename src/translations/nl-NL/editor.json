@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Instellingen",
       "previewButton": "Voorbeeld",
-      "retryButton": "Opnieuw proberen"
+      "retryButton": "Opnieuw proberen",
+      "unsaved": "Niet-opgeslagen wijzigingen…",
+      "couldntSave": "Opslaan mislukt",
+      "reasonNetwork": "De hub is niet bereikbaar. Controleer het netwerk en probeer het opnieuw.",
+      "reasonServer": "De hub kon de lay-out niet opslaan.",
+      "changedElsewhere": "Elders gewijzigd",
+      "changedElsewhereHint": "Deze lay-out is gewijzigd vanuit een andere editor of een telefoon. Laad opnieuw om het te zien.",
+      "reloadButton": "Opnieuw laden",
+      "previewTitle": "Dit scherm openen in een venster in de vorm van de display",
+      "conflict": {
+        "title": "Deze lay-out is elders gewijzigd.",
+        "hint": "Iemand heeft opgeslagen vanuit een andere editor of een telefoon terwijl jij aan het bewerken was. Laad die wijzigingen, of houd de jouwe en overschrijf de andere.",
+        "loadTheirs": "Hun wijzigingen laden",
+        "keepMine": "De mijne houden"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Dit scherm is leeg",
       "body": "Sleep hier een module naartoe uit de lijst links, of begin met een sjabloon.",
       "chooseTemplate": "Kies een sjabloon"
+    },
+    "dotsGuide": "Hier verschijnen de schermstippen",
+    "moduleMenu": {
+      "selectBehind": "Module erachter selecteren",
+      "hide": "Verbergen op display",
+      "show": "Tonen op display"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "vast — alleen handmatig wisselen",
+    "stickyTooltip": "blijft — wisselt niet vanzelf; heeft een tik of de afstandsbediening nodig",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "gepland",
     "disabledTooltip": "uitgeschakeld — niet getoond op display",
     "disabledIndicatorAriaLabel": "Uitgeschakeld",
-    "stickyBadge": "0s",
+    "disabledBadge": "Uit",
+    "stickyBadge": "Blijft",
     "screenOptionsTitle": "Schermopties",
     "screenOptionsAriaLabel": "Opties voor {name}",
     "deleteTabAriaLabel": "{name} verwijderen",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Schermvullende weergaven (één per scherm)",
+      "fullScreen": "Schermvullende weergaven",
       "timeAndDate": "Tijd & datum",
       "weatherAndEnvironment": "Weer & omgeving",
       "newsAndFinance": "Nieuws & financiën",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Bevat weer- en kaartsleutels, Google, iCloud, Immich, OneDrive, plugin-logins en je editorwachtwoord.",
         "protectLabel": "Beveiligen met een wachtwoord",
         "plaintextWarning": "Iedereen die dit bestand opent, kan je accounts gebruiken. Bewaar het op een privéplek.",
-        "needsEditorPassword": "Stel eerst een editorwachtwoord in, bij Beveiliging. Zonder wachtwoord kan iedereen in je netwerk de sleutels in je back-up lezen."
+        "needsEditorPassword": "Stel eerst een editorwachtwoord in, bij Beveiliging. Zonder wachtwoord kan iedereen in je netwerk de sleutels in je back-up lezen als deze functie is ingeschakeld."
       },
       "backupReminder": {
         "heading": "Back-upherinnering",
@@ -2251,7 +2272,8 @@
       "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
       "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen.",
       "backgroundProviderObsoleteHint": "Deze plugin deelt zijn gegevens nu automatisch. Deze verborgen kopie is niet meer nodig en kan worden verwijderd."
-    }
+    },
+    "screenSettingsLink": "Scherminstellingen"
   },
   "upgradeModal": {
     "titleUpgrade": "Upgraden naar {tag}",

@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import type { ScreenConfiguration } from '@/types/config';
 import { CONFIG_FILE_PATH } from './constants';
 import { createJsonStore } from './json-store';
@@ -95,6 +96,17 @@ export async function readConfig(): Promise<ScreenConfiguration> {
   }
 
   return config;
+}
+
+/**
+ * Content hash of a config, as served by `GET /api/config`. Computed from the
+ * object the caller is about to serialize, so two reads of the same file (or
+ * a read and the body just written) agree byte for byte. Hashing rather than
+ * a stored counter means every writer (the editor's PUT, a remote profile
+ * switch through `updateConfigAtomic`, a restore) bumps it for free.
+ */
+export function configRevision(config: ScreenConfiguration): string {
+  return createHash('sha1').update(JSON.stringify(config)).digest('hex').slice(0, 16);
 }
 
 export async function writeConfig(config: ScreenConfiguration): Promise<void> {

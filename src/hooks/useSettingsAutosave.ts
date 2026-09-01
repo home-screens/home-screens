@@ -64,12 +64,34 @@ export function useSettingsAutosave({
   // Imports re-sync via DataSection's onSettingsImported callback.
   // Profile actions that mutate config.settings (e.g. setActiveProfile) must NOT wipe unsaved form edits.
   const settingsInitRef = useRef(false);
+  // Declared here (used by the re-hydrate effect below); documented with the
+  // auto-save infrastructure further down.
+  const userDirtyRef = useRef(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (settings && !settingsInitRef.current) {
       settingsInitRef.current = true;
       setState(toFormState(settings));
     }
   }, [settings]);
+
+  // Re-hydrate whenever the whole config is replaced from outside this
+  // session — a reload, a restore, or "Load their changes" after a save
+  // conflict. Without this the form keeps the pre-conflict values and the
+  // next keystroke writes every field of it over the version the user just
+  // chose to keep. Keyed on the store's generation counter, not on
+  // `settings` identity, so an ordinary save or profile switch (which also
+  // change `settings`) never wipes unsaved edits.
+  const configGeneration = useEditorStore((s) => s.configGeneration);
+  const seenGenerationRef = useRef(configGeneration);
+  useEffect(() => {
+    if (seenGenerationRef.current === configGeneration) return;
+    seenGenerationRef.current = configGeneration;
+    if (!settingsInitRef.current) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    userDirtyRef.current = false;
+    setState(toFormState(useEditorStore.getState().config?.settings));
+  }, [configGeneration]);
 
   // Auto-save infrastructure.
   //
@@ -90,8 +112,6 @@ export function useSettingsAutosave({
   // the auto-save callback to re-capture on every render — the timer
   // fires once and reads the latest state at the moment it runs,
   // regardless of how many renders happened in between.
-  const userDirtyRef = useRef(false);
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestStateRef = useRef(state);
   useEffect(() => {
     latestStateRef.current = state;
@@ -138,6 +158,8 @@ export function useSettingsAutosave({
 
   useEffect(() => {
     if (!settingsInitRef.current || !userDirtyRef.current) return;
+    // Held while a save conflict waits on the user, like useAutoSave.
+    if (useEditorStore.getState().saveConflict) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(async () => {
       setSaving(true);

@@ -3,6 +3,7 @@ import { getDisplayToken } from '@/lib/auth';
 import { filterConfigForDisplay, findMainDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import DisplayNotFound from '@/components/display/DisplayNotFound';
+import { parseDisplaySearchParams, type DisplaySearchParams } from '@/lib/display-search-params';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,8 +22,12 @@ export const dynamic = 'force-dynamic';
  *   redirect target opens another, causing both to drain the same command
  *   queue and silently swallow remote-control commands.
  */
-export default async function DisplayPage() {
-  const [config, displayToken] = await Promise.all([readConfig(), getDisplayToken()]);
+export default async function DisplayPage({
+  searchParams,
+}: {
+  searchParams: Promise<DisplaySearchParams>;
+}) {
+  const [config, displayToken, preview] = await Promise.all([readConfig(), getDisplayToken(), searchParams.then(parseDisplaySearchParams)]);
 
   const availableDisplays = config.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
 
@@ -42,6 +47,7 @@ export default async function DisplayPage() {
           displayToken={displayToken}
           displayId={target.id}
           initialDisplays={availableDisplays}
+          {...preview}
         />
       </div>
     );
@@ -56,6 +62,7 @@ export default async function DisplayPage() {
         rules={config.rules}
         displayToken={displayToken}
         initialDisplays={availableDisplays}
+        {...preview}
       />
     </div>
   );

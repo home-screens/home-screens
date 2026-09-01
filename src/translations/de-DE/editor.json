@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Einstellungen",
       "previewButton": "Vorschau",
-      "retryButton": "Erneut versuchen"
+      "retryButton": "Erneut versuchen",
+      "unsaved": "Ungespeicherte Änderungen …",
+      "couldntSave": "Speichern fehlgeschlagen",
+      "reasonNetwork": "Der Hub ist nicht erreichbar. Prüfe das Netzwerk und versuche es erneut.",
+      "reasonServer": "Der Hub konnte das Layout nicht speichern.",
+      "changedElsewhere": "Woanders geändert",
+      "changedElsewhereHint": "Dieses Layout wurde in einem anderen Editor oder am Handy geändert. Neu laden, um es zu sehen.",
+      "reloadButton": "Neu laden",
+      "previewTitle": "Diesen Screen in einem Fenster in Display-Form öffnen",
+      "conflict": {
+        "title": "Dieses Layout wurde woanders geändert.",
+        "hint": "Jemand hat aus einem anderen Editor oder vom Handy gespeichert, während du bearbeitet hast. Lade die Änderungen oder behalte deine und überschreibe sie.",
+        "loadTheirs": "Änderungen laden",
+        "keepMine": "Meine behalten"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Dieser Bildschirm ist leer",
       "body": "Ziehe ein Modul aus der Liste links hierher oder starte mit einer Vorlage.",
       "chooseTemplate": "Vorlage wählen"
+    },
+    "dotsGuide": "Hier erscheinen die Screen-Punkte",
+    "moduleMenu": {
+      "selectBehind": "Modul dahinter auswählen",
+      "hide": "Auf dem Display ausblenden",
+      "show": "Auf dem Display anzeigen"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "fix – nur manueller Wechsel",
+    "stickyTooltip": "bleibt – wechselt nicht von selbst; braucht ein Tippen oder die Fernbedienung",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "geplant",
     "disabledTooltip": "deaktiviert – wird auf dem Display nicht angezeigt",
     "disabledIndicatorAriaLabel": "Deaktiviert",
-    "stickyBadge": "0 s",
+    "disabledBadge": "Aus",
+    "stickyBadge": "Bleibt",
     "screenOptionsTitle": "Screen-Optionen",
     "screenOptionsAriaLabel": "Optionen für {name}",
     "deleteTabAriaLabel": "{name} löschen",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Vollbild-Ansichten (eine pro Bildschirm)",
+      "fullScreen": "Vollbild-Ansichten",
       "timeAndDate": "Zeit & Datum",
       "weatherAndEnvironment": "Wetter & Umwelt",
       "newsAndFinance": "Nachrichten & Finanzen",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Umfasst Wetter- und Kartenschlüssel, Google, iCloud, Immich, OneDrive, Plugin-Logins und dein Editor-Passwort.",
         "protectLabel": "Mit einem Passwort schützen",
         "plaintextWarning": "Wer diese Datei öffnet, kann deine Konten nutzen. Bewahre sie an einem privaten Ort auf.",
-        "needsEditorPassword": "Lege zuerst unter Sicherheit ein Editor-Passwort fest. Ohne eines könnte jeder in deinem Netzwerk die Schlüssel in deinem Backup lesen."
+        "needsEditorPassword": "Lege zuerst unter Sicherheit ein Editor-Passwort fest. Ohne eines könnte jeder in deinem Netzwerk die Schlüssel in deinem Backup lesen, wenn diese Funktion aktiviert ist."
       },
       "backupReminder": {
         "heading": "Backup-Erinnerung",
@@ -2251,7 +2272,8 @@
       "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
       "backgroundProviderHelp": "Stellt anderen Modulen Zustandswerte bereit. Diese Kopie erscheint nie auf dem Display — um das Widget auch anzuzeigen, eine zweite Kopie ohne diese Einstellung hinzufügen.",
       "backgroundProviderObsoleteHint": "Dieses Plugin teilt seine Daten jetzt automatisch. Diese versteckte Kopie wird nicht mehr benötigt und kann gelöscht werden."
-    }
+    },
+    "screenSettingsLink": "Screen-Einstellungen"
   },
   "upgradeModal": {
     "titleUpgrade": "Aktualisierung auf {tag}",

@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Configurações",
       "previewButton": "Pré-visualizar",
-      "retryButton": "Tentar novamente"
+      "retryButton": "Tentar novamente",
+      "unsaved": "Alterações não salvas…",
+      "couldntSave": "Não foi possível salvar",
+      "reasonNetwork": "Não foi possível alcançar o hub. Verifique a rede e tente novamente.",
+      "reasonServer": "O hub não conseguiu salvar o layout.",
+      "changedElsewhere": "Alterado em outro lugar",
+      "changedElsewhereHint": "Este layout foi alterado em outro editor ou celular. Recarregue para vê-lo.",
+      "reloadButton": "Recarregar",
+      "previewTitle": "Abrir esta tela em uma janela no formato do display",
+      "conflict": {
+        "title": "Este layout foi alterado em outro lugar.",
+        "hint": "Alguém salvou de outro editor ou celular enquanto você editava. Carregue as alterações dessa pessoa, ou mantenha as suas e sobrescreva as dela.",
+        "loadTheirs": "Carregar as alterações",
+        "keepMine": "Manter as minhas"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Esta tela está vazia",
       "body": "Arraste um módulo da lista à esquerda para cá, ou comece com um modelo.",
       "chooseTemplate": "Escolher um modelo"
+    },
+    "dotsGuide": "Os pontos de tela aparecem aqui",
+    "moduleMenu": {
+      "selectBehind": "Selecionar o módulo de trás",
+      "hide": "Ocultar no display",
+      "show": "Mostrar no display"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "fixa — apenas avanço manual",
+    "stickyTooltip": "fica — não avança sozinha; precisa de um toque ou do controle remoto",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "agendada",
     "disabledTooltip": "desativada — não é mostrada na tela",
     "disabledIndicatorAriaLabel": "Desativada",
-    "stickyBadge": "0s",
+    "disabledBadge": "Desligada",
+    "stickyBadge": "Fica",
     "screenOptionsTitle": "Opções da tela",
     "screenOptionsAriaLabel": "Opções de {name}",
     "deleteTabAriaLabel": "Excluir {name}",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Visualizações em tela cheia (uma por tela)",
+      "fullScreen": "Visualizações em tela cheia",
       "timeAndDate": "Hora e data",
       "weatherAndEnvironment": "Tempo e ambiente",
       "newsAndFinance": "Notícias e finanças",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Abrange chaves de clima e mapas, Google, iCloud, Immich, OneDrive, logins de plugins e a senha do editor.",
         "protectLabel": "Proteger com uma senha",
         "plaintextWarning": "Qualquer pessoa que abrir este arquivo pode usar suas contas. Guarde-o em um lugar privado.",
-        "needsEditorPassword": "Defina antes uma senha do editor, em Segurança. Sem ela, qualquer pessoa na sua rede poderia ler as chaves do seu backup."
+        "needsEditorPassword": "Defina antes uma senha do editor, em Segurança. Sem ela, qualquer pessoa na sua rede poderia ler as chaves do seu backup com este recurso ativado."
       },
       "backupReminder": {
         "heading": "Lembrete de backup",
@@ -2255,7 +2276,8 @@
       "backgroundProviderLabel": "Executar oculto em segundo plano",
       "backgroundProviderHelp": "Fornece estados a outros módulos. Esta cópia nunca aparece na tela — para também mostrar o widget, adicione uma segunda cópia sem esta configuração.",
       "backgroundProviderObsoleteHint": "Este plugin agora compartilha seus dados automaticamente. Esta cópia oculta não é mais necessária e pode ser excluída."
-    }
+    },
+    "screenSettingsLink": "Configurações da tela"
   },
   "upgradeModal": {
     "titleUpgrade": "Atualizando para {tag}",

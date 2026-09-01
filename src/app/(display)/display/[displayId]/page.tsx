@@ -3,6 +3,7 @@ import { getDisplayToken } from '@/lib/auth';
 import { filterConfigForDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import DisplayNotFound from '@/components/display/DisplayNotFound';
+import { parseDisplaySearchParams, type DisplaySearchParams } from '@/lib/display-search-params';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,11 +24,13 @@ export const dynamic = 'force-dynamic';
  */
 export default async function DisplayPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ displayId: string }>;
+  searchParams: Promise<DisplaySearchParams>;
 }) {
   const { displayId } = await params;
-  const [config, displayToken] = await Promise.all([readConfig(), getDisplayToken()]);
+  const [config, displayToken, preview] = await Promise.all([readConfig(), getDisplayToken(), searchParams.then(parseDisplaySearchParams)]);
 
   const filtered = filterConfigForDisplay(config, displayId);
   if (!filtered) {
@@ -46,6 +49,7 @@ export default async function DisplayPage({
         displayToken={displayToken}
         displayId={displayId}
         initialDisplays={availableDisplays}
+        {...preview}
       />
     </div>
   );

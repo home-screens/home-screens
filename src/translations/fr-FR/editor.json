@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Paramètres",
       "previewButton": "Aperçu",
-      "retryButton": "Réessayer"
+      "retryButton": "Réessayer",
+      "unsaved": "Modifications non enregistrées…",
+      "couldntSave": "Enregistrement impossible",
+      "reasonNetwork": "Le hub est injoignable. Vérifiez le réseau, puis réessayez.",
+      "reasonServer": "Le hub n'a pas pu enregistrer la mise en page.",
+      "changedElsewhere": "Modifié ailleurs",
+      "changedElsewhereHint": "Cette mise en page a été modifiée depuis un autre éditeur ou un téléphone. Rechargez pour la voir.",
+      "reloadButton": "Recharger",
+      "previewTitle": "Ouvrir cet écran dans une fenêtre à la forme de l'affichage",
+      "conflict": {
+        "title": "Cette mise en page a été modifiée ailleurs.",
+        "hint": "Quelqu'un a enregistré depuis un autre éditeur ou un téléphone pendant que vous modifiiez. Chargez ses modifications, ou gardez les vôtres et écrasez les siennes.",
+        "loadTheirs": "Charger leurs modifications",
+        "keepMine": "Garder les miennes"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "Cet écran est vide",
       "body": "Faites glisser un module ici depuis la liste de gauche, ou partez d'un modèle.",
       "chooseTemplate": "Choisir un modèle"
+    },
+    "dotsGuide": "Les points d'écran apparaissent ici",
+    "moduleMenu": {
+      "selectBehind": "Sélectionner le module derrière",
+      "hide": "Masquer sur l'écran",
+      "show": "Afficher sur l'écran"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "épinglé — avance manuelle uniquement",
+    "stickyTooltip": "fixe — n'avance pas tout seul ; il faut un appui ou la télécommande",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "planifié",
     "disabledTooltip": "désactivé — non affiché",
     "disabledIndicatorAriaLabel": "Désactivé",
-    "stickyBadge": "0 s",
+    "disabledBadge": "Inactif",
+    "stickyBadge": "Fixe",
     "screenOptionsTitle": "Options de l'écran",
     "screenOptionsAriaLabel": "Options pour {name}",
     "deleteTabAriaLabel": "Supprimer {name}",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Vues plein écran (une par écran)",
+      "fullScreen": "Vues plein écran",
       "timeAndDate": "Heure et date",
       "weatherAndEnvironment": "Météo et environnement",
       "newsAndFinance": "Actualités et finance",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Couvre les clés météo et cartes, Google, iCloud, Immich, OneDrive, les connexions des extensions et votre mot de passe de l'éditeur.",
         "protectLabel": "Les protéger par un mot de passe",
         "plaintextWarning": "Toute personne qui ouvre ce fichier peut utiliser vos comptes. Gardez-le dans un endroit privé.",
-        "needsEditorPassword": "Définissez d'abord un mot de passe d'éditeur, dans Sécurité. Sans lui, toute personne sur votre réseau pourrait lire les clés de votre sauvegarde."
+        "needsEditorPassword": "Définissez d'abord un mot de passe d'éditeur, dans Sécurité. Sans lui, toute personne sur votre réseau pourrait lire les clés de votre sauvegarde si cette option est activée."
       },
       "backupReminder": {
         "heading": "Rappel de sauvegarde",
@@ -2255,7 +2276,8 @@
       "backgroundProviderLabel": "Exécuter masqué en arrière-plan",
       "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage.",
       "backgroundProviderObsoleteHint": "Ce plugin partage désormais ses données automatiquement. Cette copie masquée n’est plus nécessaire et peut être supprimée."
-    }
+    },
+    "screenSettingsLink": "Réglages de l'écran"
   },
   "upgradeModal": {
     "titleUpgrade": "Mise à niveau vers {tag}",

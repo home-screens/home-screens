@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { withAuth } from '@/lib/api-utils';
-import { updateConfigAtomic } from '@/lib/config';
+import { updateConfigAtomic, configRevision } from '@/lib/config';
+import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
 import { migrateConfigModules } from '@/lib/plugin-config-migration';
 
@@ -44,7 +45,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   }
 
   let changed = false;
-  await updateConfigAtomic((current) => {
+  const result = await updateConfigAtomic((current) => {
     changed = migrateConfigModules(current, manifest, oldVersion);
     // `updateConfigAtomic` skips the disk write when the mutator returns the
     // reference it was given, so a mutated-in-place config MUST come back as a
@@ -53,5 +54,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     return changed ? { ...current } : current;
   });
 
-  return NextResponse.json({ ok: true, changed });
+  // The revision after the write, so the editor can move onto it instead of
+  // tripping a save conflict against its own plugin update.
+  return NextResponse.json({ ok: true, changed }, { headers: { [CONFIG_REVISION_HEADER]: configRevision(result) } });
 }, 'Failed to migrate plugin config');

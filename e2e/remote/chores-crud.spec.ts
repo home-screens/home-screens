@@ -572,14 +572,14 @@ test('admin deletes a reward through the reward form and it round-trips', async 
     members: [{ id: 'm-rd', name: 'Nina', emoji: '🐼', color: '#3b82f6' }],
     chores: [],
   });
-  // Seed a second reward so the post-delete list stays non-empty — the data
-  // route refuses an empty-array overwrite (guardEmptyOverwrite) without force,
-  // and RewardsView never sends force.
+  // The only reward: deleting it empties the list, which the data route
+  // refuses (guardEmptyOverwrite, 409) unless the client sends force. A
+  // confirmed delete does, so the last reward can actually be deleted —
+  // it used to bounce with "Failed to save. Please try again."
   await request.put('/api/rewards/data', {
     data: {
       rewards: [
         { id: 'rw-del', name: 'Bike Ride', emoji: 'lucide:bike', cost: 4, description: '', memberIds: [], enabled: true },
-        { id: 'rw-keep', name: 'Board Game', emoji: 'lucide:puzzle', cost: 6, description: '', memberIds: [], enabled: true },
       ],
     },
   });

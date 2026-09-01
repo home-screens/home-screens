@@ -66,7 +66,21 @@
       "pluginsButton": "Plugins",
       "settingsButton": "Settings",
       "previewButton": "Preview",
-      "retryButton": "Retry"
+      "retryButton": "Retry",
+      "unsaved": "Unsaved changes…",
+      "couldntSave": "Couldn't save",
+      "reasonNetwork": "Can't reach the hub. Check the network, then retry.",
+      "reasonServer": "The hub couldn't save the layout.",
+      "changedElsewhere": "Changed somewhere else",
+      "changedElsewhereHint": "This layout was changed from another editor or phone. Reload to see it.",
+      "reloadButton": "Reload",
+      "previewTitle": "Open this screen in a window shaped like the display",
+      "conflict": {
+        "title": "This layout was changed somewhere else.",
+        "hint": "Someone saved from another editor or phone while you were editing. Load their changes, or keep yours and overwrite theirs.",
+        "loadTheirs": "Load their changes",
+        "keepMine": "Keep mine"
+      }
     }
   },
   "canvas": {
@@ -89,6 +103,12 @@
       "title": "This screen is empty",
       "body": "Drag a module here from the list on the left, or start from a template.",
       "chooseTemplate": "Choose a template"
+    },
+    "dotsGuide": "Screen dots show here",
+    "moduleMenu": {
+      "selectBehind": "Select the module behind",
+      "hide": "Hide on display",
+      "show": "Show on display"
     }
   },
   "draggableModule": {
@@ -108,12 +128,13 @@
     "optionWithDimensions": "{name} ({width}×{height})"
   },
   "screenTabs": {
-    "stickyTooltip": "sticky — manual advance only",
+    "stickyTooltip": "stays — doesn't rotate on its own; needs a tap or the remote",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "scheduled",
     "disabledTooltip": "disabled — not shown on display",
     "disabledIndicatorAriaLabel": "Disabled",
-    "stickyBadge": "0s",
+    "disabledBadge": "Off",
+    "stickyBadge": "Stays",
     "screenOptionsTitle": "Screen options",
     "screenOptionsAriaLabel": "Options for {name}",
     "deleteTabAriaLabel": "Delete {name}",
@@ -181,7 +202,7 @@
   },
   "registry": {
     "categories": {
-      "fullScreen": "Full-screen views (one per screen)",
+      "fullScreen": "Full-Screen Views",
       "timeAndDate": "Time & Date",
       "weatherAndEnvironment": "Weather & Environment",
       "newsAndFinance": "News & Finance",
@@ -474,7 +495,7 @@
         "includeCredentialsHelp": "Covers weather and map keys, Google, iCloud, Immich, OneDrive, plugin logins, and your editor password.",
         "protectLabel": "Protect them with a password",
         "plaintextWarning": "Anyone who opens this file can use your accounts. Keep it somewhere private.",
-        "needsEditorPassword": "Set an editor password first, under Security. Without one, anyone on your network could read the keys in your backup."
+        "needsEditorPassword": "Set an editor password first, under Security. Without one, anyone on your network could read the keys in your backup with this feature enabled."
       },
       "backupReminder": {
         "heading": "Backup Reminder",
@@ -2251,7 +2272,8 @@
       "backgroundProviderLabel": "Run hidden in the background",
       "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen - to also show the widget, add a second copy without this setting.",
       "backgroundProviderObsoleteHint": "This plugin now shares its data automatically. This hidden copy is no longer needed and can be deleted."
-    }
+    },
+    "screenSettingsLink": "Screen settings"
   },
   "upgradeModal": {
     "titleUpgrade": "Upgrading to {tag}",

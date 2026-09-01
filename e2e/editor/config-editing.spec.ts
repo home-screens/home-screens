@@ -368,9 +368,11 @@ test('shared: Send to Back reorders overlapping modules and persists zIndex', as
   await expect(page.getByRole('button', { name: 'Bring to Front' })).toBeEnabled();
 });
 
-test('shared: clicking an overlap repeatedly cycles selection to buried modules', async ({ page, request }) => {
+test('shared: Alt+click on an overlap cycles selection to buried modules; a plain click never does', async ({ page, request }) => {
   // "above" fully covers "below" where they overlap; a plain DOM click can
-  // only ever reach "above", so the second click must cycle geometrically.
+  // only ever reach "above", so Alt+click cycles geometrically. A plain
+  // repeated click keeps the selection (clicking a selected module used to
+  // jump to whatever was behind it).
   const below = { ...buildModuleInstance('text', { content: 'BELOW' }), id: 'text-below' };
   const above = { ...buildModuleInstance('text', { content: 'ABOVE' }), id: 'text-above', position: { x: 40, y: 40 } };
   await putConfig(request, baseConfig({
@@ -387,8 +389,12 @@ test('shared: clicking an overlap repeatedly cycles selection to buried modules'
   await aboveEl.click({ position: { x: 5, y: 5 } });
   await expect(overlay).toHaveAttribute('data-selected-module', 'text-above');
 
-  // Same spot again: selection cycles to the covered module underneath.
+  // Same spot again: still "above".
   await aboveEl.click({ position: { x: 5, y: 5 } });
+  await expect(overlay).toHaveAttribute('data-selected-module', 'text-above');
+
+  // Alt+click cycles to the covered module underneath.
+  await aboveEl.click({ position: { x: 5, y: 5 }, modifiers: ['Alt'] });
   await expect(overlay).toHaveAttribute('data-selected-module', 'text-below');
 });
 

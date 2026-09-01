@@ -2,10 +2,11 @@
  * Rate-bounded radar tile store.
  *
  * All radar tile network flows through this store — the rendered <img> tags
- * only ever point at cached object URLs. Four rules keep a weeks-long kiosk
- * mount inside RainViewer's limits (500 requests/min per IP with a 300/min
- * burst; one animation window is 13+ frames x 25 tiles = 325+ requests, more
- * than both):
+ * only ever point at cached object URLs. RainViewer publishes no numeric rate
+ * limit (its docs only say the API is free for personal use and that abuse
+ * gets an IP blocked), but its tile servers do answer 429 when a client
+ * bursts, and one animation window is 13+ frames x 25 tiles = 325+ requests.
+ * Four rules keep a weeks-long kiosk mount polite:
  * - A single issuance queue meters dispatches through a token bucket: a small
  *   burst (enough for the first frame to appear at once) and then one token
  *   per `spacingMs`, so the sustained rate is bounded no matter how fast the
@@ -60,12 +61,12 @@ export interface TileStoreDeps {
   createObjectURL?: (blob: Blob) => string;
   revokeObjectURL?: (url: string) => void;
   now?: () => number;
-  /** Sustained spacing between dispatched tile requests. Default 250ms (≤240/min). */
+  /** Sustained spacing between dispatched tile requests. Default 200ms (≤300/min). */
   spacingMs?: number;
   /**
    * How many requests may go out at once before spacing applies. Default 40:
-   * more than one 25-tile frame so the first frame appears immediately, while
-   * the first minute stays under RainViewer's 300/min burst (40 + 240).
+   * more than one 25-tile frame so the first frame appears immediately
+   * (340 requests in the first minute: 40 + 300).
    */
   burstSize?: number;
   /** How long a failed (non-429) tile waits before it may be retried. Default 90s. */
@@ -90,7 +91,7 @@ export interface TileStoreDeps {
   maxEntries?: number;
 }
 
-const DEFAULT_SPACING_MS = 250;
+const DEFAULT_SPACING_MS = 200;
 const DEFAULT_BURST_SIZE = 40;
 const DEFAULT_COOLDOWN_MS = 90_000;
 const DEFAULT_PAUSE_MS = 20_000;

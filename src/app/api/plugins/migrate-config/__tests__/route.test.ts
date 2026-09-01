@@ -14,7 +14,10 @@ vi.mock('@/lib/plugin-utils', async (importOriginal) => {
   return { ...actual, getPluginManifest: vi.fn() };
 });
 
-vi.mock('@/lib/config', () => ({ updateConfigAtomic: vi.fn() }));
+vi.mock('@/lib/config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/config')>();
+  return { ...actual, updateConfigAtomic: vi.fn() };
+});
 
 import { getPluginManifest } from '@/lib/plugin-utils';
 import { updateConfigAtomic } from '@/lib/config';

@@ -132,8 +132,11 @@ function SettingsPageContent() {
   }, [router]);
 
   function handleBack() {
-    // Reload config in case it was modified by system restore
-    loadConfig();
+    // Reload config in case it was modified by system restore — but never
+    // over edits that haven't reached the hub yet (a save that is failing or
+    // still queued), which a reload would silently throw away.
+    const { isDirty, isSaving } = useEditorStore.getState();
+    if (!isDirty && !isSaving) loadConfig();
     router.push('/editor');
   }
 
