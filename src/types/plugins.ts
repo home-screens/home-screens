@@ -381,7 +381,7 @@ export interface HsSdk {
   }) => ReactNode;
 
   // ── Hooks ─────────────────────────────────────────────────────────
-  useFetchData: typeof import('@/hooks/useFetchData').useFetchData;
+  useFetchData: <T>(url: string, refreshMs: number) => [T | null, string | null, number | null];
 
   // ── Utilities ─────────────────────────────────────────────────────
   displayCache: {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { ChoreMember, ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
+import type { FetchError } from '@/lib/fetch-error';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
 import { choresUrl, choresDataUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -61,7 +62,7 @@ interface ChoreDataState {
   weekData: WeekDayData[];
   recentRedemptions: RewardRedemption[];
   isLoading: boolean;
-  error: string | null;
+  error: FetchError | null;
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
 }
 

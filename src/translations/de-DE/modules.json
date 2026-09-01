@@ -259,7 +259,6 @@
     "weatherAlerts": "Wetterwarnungen",
     "alertCount": "({count})",
     "noActiveAlerts": "Keine aktiven Warnungen",
-    "alertDataRequires": "Warnungen erfordern Pirate Weather oder NOAA",
     "alertSeverityExpires": "{severity} · Läuft ab {expires}",
     "noWeatherData": "Keine Wetterdaten",
     "noForecastData": "Keine Vorhersagedaten",
@@ -270,7 +269,6 @@
     "stoppingInMin": "Hört in {minutes} Min auf",
     "precipitationForNextHour": "Niederschlag für die nächste Stunde",
     "startingInMin": "Beginnt in {minutes} Min",
-    "minutelyDataRequires": "Minütliche Daten erfordern Pirate Weather",
     "tableHeaders": {
       "day": "Tag",
       "temp": "Temp",
@@ -291,7 +289,10 @@
       "Moderate": "Mäßig",
       "Minor": "Gering",
       "Unknown": "Unbekannt"
-    }
+    },
+    "loading": "Vorhersage wird geladen…",
+    "notUpdating": "Wetter wird nicht aktualisiert",
+    "notAvailableForSource": "Bei deiner Wetterquelle nicht verfügbar"
   },
   "air-quality": {
     "loading": "Luftqualität wird geladen…",
@@ -350,9 +351,7 @@
   "rain-map": {
     "loading": "Regenkarte wird geladen…",
     "noRadarData": "Keine Radardaten verfügbar",
-    "now": "Jetzt",
-    "minutesAgo": "vor {minutes} Min",
-    "minutesAhead": "+{minutes} Min"
+    "now": "Jetzt"
   },
   "meal-planner": {
     "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
@@ -634,7 +633,8 @@
     "noRoutes": "Keine Routen eingerichtet",
     "loading": "Verkehr wird geladen…",
     "unitMin": "Min.",
-    "mockNotice": "Beispieldaten — Verkehrs-API-Schlüssel in den Einstellungen hinzufügen"
+    "mockNotice": "Beispielwerte, bis ein Verkehrsschlüssel hinzugefügt wird",
+    "needsKey": "Verkehr braucht einen Google-Maps- oder TomTom-Schlüssel"
   },
   "fullscreen-photo": {
     "noPhotoSelected": "Kein Foto ausgewählt",
@@ -808,7 +808,17 @@
     "locationNotConfigured": "Standort nicht konfiguriert",
     "pluginNotAvailable": "Plug-in nicht verfügbar: {name}",
     "moduleFailed": "Dieses Element konnte nicht angezeigt werden.",
-    "setLocationLink": "Standort festlegen"
+    "setLocationLink": "Standort festlegen",
+    "notUpdating": "Wird gerade nicht aktualisiert",
+    "setup": {
+      "needsKey": "Noch kein {service}-Schlüssel",
+      "keyNotWorking": "Der {service}-Schlüssel funktioniert nicht",
+      "notConnected": "{service} ist noch nicht verbunden",
+      "needsSetup": "Braucht noch etwas Einrichtung",
+      "finishInEditor": "Einrichtung im Editor abschließen",
+      "openSettings": "API-Schlüssel öffnen",
+      "openWeatherSettings": "Wettereinstellungen öffnen"
+    }
   },
   "event-detail": {
     "close": "Schließen",

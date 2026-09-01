@@ -259,7 +259,6 @@
     "weatherAlerts": "Weerwaarschuwingen",
     "alertCount": "({count})",
     "noActiveAlerts": "Geen actieve waarschuwingen",
-    "alertDataRequires": "Waarschuwingen vereisen Pirate Weather of NOAA",
     "alertSeverityExpires": "{severity} · Verloopt {expires}",
     "noWeatherData": "Geen weergegevens",
     "noForecastData": "Geen verwachtingsgegevens",
@@ -270,7 +269,6 @@
     "stoppingInMin": "Stopt over {minutes} min",
     "precipitationForNextHour": "Neerslag voor het komende uur",
     "startingInMin": "Begint over {minutes} min",
-    "minutelyDataRequires": "Minuutgegevens vereisen Pirate Weather",
     "tableHeaders": {
       "day": "Dag",
       "temp": "Temp",
@@ -291,7 +289,10 @@
       "Moderate": "Matig",
       "Minor": "Gering",
       "Unknown": "Onbekend"
-    }
+    },
+    "loading": "Voorspelling ophalen…",
+    "notUpdating": "Het weer wordt niet bijgewerkt",
+    "notAvailableForSource": "Niet beschikbaar bij jouw weerbron"
   },
   "air-quality": {
     "loading": "Luchtkwaliteit laden…",
@@ -350,9 +351,7 @@
   "rain-map": {
     "loading": "Regenkaart laden…",
     "noRadarData": "Geen radargegevens beschikbaar",
-    "now": "Nu",
-    "minutesAgo": "{minutes} min geleden",
-    "minutesAhead": "+{minutes} min"
+    "now": "Nu"
   },
   "meal-planner": {
     "noMealsPlannedYet": "Nog geen maaltijden gepland",
@@ -634,7 +633,8 @@
     "noRoutes": "Geen routes ingesteld",
     "loading": "Verkeer laden…",
     "unitMin": "min",
-    "mockNotice": "Voorbeeldgegevens — voeg een verkeers-API-sleutel toe in Instellingen"
+    "mockNotice": "Voorbeeldcijfers tot er een verkeerssleutel is toegevoegd",
+    "needsKey": "Verkeer heeft een Google Maps- of TomTom-sleutel nodig"
   },
   "fullscreen-photo": {
     "noPhotoSelected": "Geen foto geselecteerd",
@@ -808,7 +808,17 @@
     "locationNotConfigured": "Locatie niet ingesteld",
     "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
     "moduleFailed": "Dit onderdeel kon niet worden getoond.",
-    "setLocationLink": "Locatie instellen"
+    "setLocationLink": "Locatie instellen",
+    "notUpdating": "Wordt nu niet bijgewerkt",
+    "setup": {
+      "needsKey": "Nog geen {service}-sleutel",
+      "keyNotWorking": "De {service}-sleutel werkt niet",
+      "notConnected": "{service} is nog niet verbonden",
+      "needsSetup": "Nog even instellen",
+      "finishInEditor": "Rond het instellen af in de editor",
+      "openSettings": "API-sleutels openen",
+      "openWeatherSettings": "Weerinstellingen openen"
+    }
   },
   "event-detail": {
     "close": "Sluiten",

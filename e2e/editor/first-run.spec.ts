@@ -174,12 +174,23 @@ test.describe('location-dependent modules', () => {
     await page.locator(`[data-module-id="${weather.id}"]`).click();
     const row = page.getByTestId('weather-api-key-row');
     await expect(row.getByText('This weather provider needs an API key.')).toBeVisible();
+    // Weather provider keys live on the Weather page, not under API keys.
     await expect(row.getByRole('link', { name: 'Add API key' }))
-      .toHaveAttribute('href', '/editor/settings?section=defaults&page=integrations');
+      .toHaveAttribute('href', '/editor/settings?section=defaults&page=weather');
   });
 });
 
 test.describe('settings landing', () => {
+  test('a deep link into Settings does not spend the one-time Location landing', async ({ page, request }) => {
+    await putConfig(request, EMPTY_INSTALL());
+    // The checklist's "Open the phone view" link is a deep link, not a bare URL.
+    await page.goto('/editor/settings?section=defaults&page=phone');
+    await expect(page.getByRole('heading', { name: 'On your phone' })).toBeVisible();
+    await page.goto('/editor/settings');
+    await page.waitForURL(/section=defaults&page=location/);
+    await expect(page.getByRole('heading', { name: 'Location & language' })).toBeVisible();
+  });
+
   test('a bare /editor/settings lands on Location while the location is unset', async ({ page, request }) => {
     await putConfig(request, EMPTY_INSTALL());
     await page.goto('/editor/settings');

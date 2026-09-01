@@ -131,8 +131,8 @@ describe('RainMapModule tile pipeline', () => {
 
     const imgs = document.querySelectorAll('img[src^="blob:"]');
     expect(imgs).toHaveLength(TILES_PER_FRAME);
-    // Base map tiles keep their direct CDN srcs.
-    expect(document.querySelectorAll('img[src*="basemaps.cartocdn.com"]')).toHaveLength(
+    // Base map tiles keep their direct OSM srcs.
+    expect(document.querySelectorAll('img[src*="tile.openstreetmap.org"]')).toHaveLength(
       TILES_PER_FRAME,
     );
   });

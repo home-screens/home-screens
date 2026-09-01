@@ -69,7 +69,7 @@ describe('useFetchData', () => {
 
     fail = true;
     window.dispatchEvent(new CustomEvent('displaycache:invalidate', { detail: '/api/x' }));
-    await waitFor(() => expect(result.current[1]).toBe('boom'));
+    await waitFor(() => expect(result.current[1]).toEqual({ kind: 'transient', message: 'boom' }));
 
     expect(result.current[0]).toEqual({ ok: 1 });
   });

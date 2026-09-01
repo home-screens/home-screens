@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { fetchKeyedWeatherJSON } from './fetch';
+import { SetupError } from '@/lib/api-utils';
 import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
 import { average } from './daily';
 import { msToWindUnit } from './units';
@@ -114,7 +115,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
   private forecastPromise?: Promise<OWMForecastResponse>;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new Error('OpenWeatherMap API key is not configured. Add it in Settings → Weather.');
+    if (!apiKey) throw new SetupError('OpenWeatherMap API key is not configured. Add it in Settings > API keys.', 'key', 'OpenWeatherMap', 'weather');
     this.apiKey = apiKey;
   }
 
@@ -126,7 +127,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
    */
   private fetchForecast(lat: number, lon: number, units: string): Promise<OWMForecastResponse> {
     if (!this.forecastPromise) {
-      this.forecastPromise = fetchWeatherJSON<OWMForecastResponse>(
+      this.forecastPromise = fetchKeyedWeatherJSON<OWMForecastResponse>(
         `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`,
         'OpenWeatherMap',
       );
@@ -136,7 +137,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
     const [currentData, forecastData] = await Promise.all([
-      fetchWeatherJSON<OWMCurrentResponse>(
+      fetchKeyedWeatherJSON<OWMCurrentResponse>(
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${this.apiKey}`,
         'OpenWeatherMap',
       ),

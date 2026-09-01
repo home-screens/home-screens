@@ -10,6 +10,8 @@ import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/deri
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
+import { readFetchError, setupError, type FetchError } from '@/lib/fetch-error';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 
 const log = logger('preview-data');
 
@@ -32,6 +34,7 @@ const PROVIDER_KEY_MAP: Record<string, string> = {
 export function usePreviewData(): PreviewData {
   const [previewData, setPreviewData] = useState<PreviewData>({
     weatherByProvider: {},
+    weatherErrors: {},
     calendarEvents: null,
     calendarSourceStatus: null,
   });
@@ -73,10 +76,22 @@ export function usePreviewData(): PreviewData {
     }, REFETCH_DEBOUNCE_MS);
 
     async function fetchPreviewData(signal: AbortSignal) {
+      const errors: Record<string, FetchError> = {};
+      // Keyed providers without a key are never fetched (the route would only
+      // answer 400), so the preview says so itself: the same setup card the
+      // wall shows, here with a link to where the key goes.
+      for (const p of ALL_PROVIDERS) {
+        if (!providers!.includes(p) && !NO_KEY_NEEDED.has(p)) {
+          errors[p] = setupError('key', weatherProviderName(p), { page: 'weather' });
+        }
+      }
       const results = await Promise.allSettled(
         providers!.map(async (p) => {
           const res = await editorFetch(`/api/weather?provider=${p}`, { signal });
-          if (!res.ok) return null;
+          if (!res.ok) {
+            errors[p] = await readFetchError(res, `API error ${res.status}`);
+            return null;
+          }
           const data = await res.json();
           return { provider: p, hourly: data.hourly ?? null, forecast: data.forecast ?? null, minutely: data.minutely ?? null, alerts: data.alerts ?? null };
         }),
@@ -95,7 +110,7 @@ export function usePreviewData(): PreviewData {
           };
         }
       }
-      setPreviewData((prev) => ({ ...prev, weatherByProvider: byProvider }));
+      setPreviewData((prev) => ({ ...prev, weatherByProvider: byProvider, weatherErrors: errors }));
     }
 
     return () => {

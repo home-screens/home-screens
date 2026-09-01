@@ -112,7 +112,7 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
   {
     type: 'rain-map', name: 'zoom', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { zoom: 8 },
-    expect: child('img[src*="dark_all/8/"]'),
+    expect: child('img[src*="openstreetmap.org/8/"]'),
   },
   // colorScheme is the radar tile URL color segment (default 2 → set 4). The
   // module renders tiles as blob URLs, so URL-encoded fields are asserted
@@ -164,18 +164,18 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
   {
     type: 'rain-map', name: 'hide-timestamp', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { showTimestamp: false },
-    expect: async (mod) => { await child('img[src*="cartocdn"]')(mod); await count('.font-mono', 0)(mod); },
+    expect: async (mod) => { await child('img[src*="tile.openstreetmap.org"]')(mod); await count('.font-mono', 0)(mod); },
   },
   // showTimeline toggles the animated timeline dots (default on, needs >1 frame).
   {
     type: 'rain-map', name: 'hide-timeline', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { showTimeline: false },
-    expect: async (mod) => { await child('img[src*="cartocdn"]')(mod); await count('.rounded-full.transition-all', 0)(mod); },
+    expect: async (mod) => { await child('img[src*="tile.openstreetmap.org"]')(mod); await count('.rounded-full.transition-all', 0)(mod); },
   },
   // latitude/longitude recenter the tile grid; assert the base tile x/y for London.
   {
     type: 'rain-map', name: 'lat-lon', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { latitude: 51.5, longitude: -0.12 },
-    expect: child('img[src*="dark_all/6/31/21"]'),
+    expect: child('img[src*="openstreetmap.org/6/31/21"]'),
   },
 ];

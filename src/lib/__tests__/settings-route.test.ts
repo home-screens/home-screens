@@ -335,7 +335,8 @@ describe('DefaultsRoute page↔panel correlation', () => {
 
 describe('resolveSettingsRoute landingPage', () => {
   it('lands a bare URL on the landing page and rewrites the URL to name it', () => {
-    const { route, redirectedQuery } = resolveSettingsRoute('', { landingPage: 'location' });
+    const { route, redirectedQuery, landingApplied } = resolveSettingsRoute('', { landingPage: 'location' });
+    expect(landingApplied).toBe(true);
     expect(route).toEqual({ kind: 'defaults', page: 'location' });
     expect(redirectedQuery).toBe('section=defaults&page=location');
   });

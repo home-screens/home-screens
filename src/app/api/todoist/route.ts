@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody, SetupError } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
 import { logger } from '@/lib/logger';
 
@@ -120,7 +120,10 @@ async function fetchTodoistList(
     });
     if (!res.ok) {
       const text = await res.text().catch(() => '');
-      throw new Error(`Todoist API ${endpoint} returned ${res.status}: ${text}`);
+      const message = `Todoist API ${endpoint} returned ${res.status}: ${text}`;
+      // A rejected token is something the household can fix, not an outage.
+      if (res.status === 401 || res.status === 403) throw new SetupError(message, 'invalidKey', 'Todoist');
+      throw new Error(message);
     }
     const json = await res.json();
 

@@ -16,6 +16,7 @@ import { INPUT_CLASS, NESTED_INPUT_CLASS } from '@/components/ui/input-classes';
 
 // Hooks & Utilities
 import { useFetchData } from '@/hooks/useFetchData';
+import { TEXT_OPACITY } from '@/lib/constants';
 import { displayCache } from '@/lib/display-cache';
 import { getHostSettings } from '@/lib/plugin-host-settings';
 import { pluginEventBus } from '@/lib/plugin-events';
@@ -60,9 +61,10 @@ const BUILT_IN_NAMESPACE_SET: ReadonlySet<string> = new Set<string>(
  */
 function PluginLoadingState({ loading, error, children }: { loading?: boolean; error?: string; children: React.ReactNode }) {
   if (error) {
+    // Muted, not red: the wall is read by people who cannot act on it.
     return (
       <div className="flex items-center justify-center h-full px-4">
-        <p className="text-center text-sm text-hs-danger/80">{error}</p>
+        <p className="text-center text-sm" style={{ opacity: TEXT_OPACITY.dim }}>{error}</p>
       </div>
     );
   }
@@ -74,6 +76,16 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
     );
   }
   return <>{children}</>;
+}
+
+/**
+ * SDK wrapper around the host `useFetchData`: plugins were written against a
+ * string error (and render it straight into JSX), so the classified host
+ * error is flattened back to its message here.
+ */
+function usePluginFetchData<T>(url: string, refreshMs: number): [T | null, string | null, number | null] {
+  const [data, error, updatedAt] = useFetchData<T>(url, refreshMs);
+  return [data, error?.message ?? null, updatedAt];
 }
 
 /**
@@ -133,7 +145,7 @@ export default function PluginGlobals() {
       ModuleLoadingState: PluginLoadingState,
 
       // Hooks
-      useFetchData,
+      useFetchData: usePluginFetchData,
 
       // Utilities
       displayCache: {

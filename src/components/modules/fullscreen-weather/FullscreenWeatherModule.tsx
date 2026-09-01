@@ -9,6 +9,9 @@ import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/f
 import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { LocationRequired } from '../LocationRequired';
+import { ModuleSetupState } from '../ModuleStates';
+import { useLoadingStalled } from '@/hooks/useLoadingStalled';
+import type { FetchError } from '@/lib/fetch-error';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
 import {
@@ -31,6 +34,8 @@ interface FullscreenWeatherModuleProps {
   forecast?: ForecastDay[];
   minutely?: MinutelyPrecip[];
   alerts?: WeatherAlert[];
+  /** Set by buildModuleProps only while there is no payload and the fetch failed. */
+  weatherError?: FetchError;
   units?: 'metric' | 'imperial';
   timezone?: string;
   locationMissing?: boolean;
@@ -48,6 +53,9 @@ const DROP_LIGHT = 'rgba(71,85,105,.62)';
 const DROP_DARK = 'rgba(196,220,255,.88)';
 
 const DAY_MS = 86_400_000;
+
+/** How long to promise a forecast before admitting it is not arriving. */
+const WEATHER_STALL_MS = 20_000;
 
 /**
  * How the fit correction is split between type and structure.
@@ -69,6 +77,7 @@ export default function FullscreenWeatherModule({
   forecast: rawForecast,
   minutely: rawMinutely,
   alerts: rawAlerts,
+  weatherError,
   units = 'imperial',
   timezone,
   locationMissing,
@@ -87,6 +96,9 @@ export default function FullscreenWeatherModule({
   // would be shifted twice on any Pi whose OS zone differs from the display's.
   const now = useRealClock(60_000);
 
+  // No payload yet (props absent) vs a provider that answered with nothing.
+  const waiting = rawHourly === undefined && rawForecast === undefined && !locationMissing;
+  const stalled = useLoadingStalled(waiting && !weatherError, WEATHER_STALL_MS);
   const hourly = useMemo(() => rawHourly ?? [], [rawHourly]);
   const forecast = useMemo(() => rawForecast ?? [], [rawForecast]);
   const minutely = useMemo(() => rawMinutely ?? [], [rawMinutely]);
@@ -180,6 +192,9 @@ export default function FullscreenWeatherModule({
   if (locationMissing) {
     return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
   }
+  if (waiting && weatherError?.kind === 'setup') {
+    return <ModuleSetupState style={style} error={weatherError} />;
+  }
 
   const viewProps: WeatherViewProps = {
     config, scale, hourly, forecast, minutely, alerts, units, now, timezone,
@@ -255,8 +270,8 @@ export default function FullscreenWeatherModule({
         overflow: 'hidden',
       }}>
         {!hasData ? (
-          <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: theme.textMuted, fontSize: s * 2.2 }}>
-            {t('fullscreen-weather.loading')}
+          <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: theme.textMuted, fontSize: s * 2.2 }} aria-live="polite">
+            {waiting && (weatherError || stalled) ? t('weather.notUpdating') : t('fullscreen-weather.loading')}
           </div>
         ) : config.view === 'almanac' ? (
           <AlmanacView {...viewProps} />

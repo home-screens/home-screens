@@ -457,17 +457,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // screen is empty" says nothing about it. And the provider layers stay
   // mounted either way — a rule keyed on plugin state can only ever fire if
   // the producer is running, watermark or not.
-  if (!takeoverScreen && (screens.length === 0 || screens.every(isScreenEmpty))) {
-    return (
-      <>
-        {settings.setupHintEnabled === false
-          ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
-          : <EmptyDisplayHint />}
-        <BackgroundProviderLayer screens={allScreens} settings={settings} sharedData={sharedData} />
-        <PluginServiceLayer screens={allScreens} rules={rules} />
-      </>
-    );
-  }
+  //
+  // The hint replaces only the ScreenRenderer: the overlays below (sleep,
+  // alerts, timers) stay mounted, so a blank display still honours its sleep
+  // schedule, a remote sleep command still blacks the panel, and an urgent
+  // alert still shows.
+  const showHint = !takeoverScreen && (screens.length === 0 || screens.every(isScreenEmpty));
 
   return (
     <div ref={cursorRef} style={{
@@ -480,14 +475,20 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       // because the ScreenRenderer's layout box (1920x1080) is larger than the
       // viewport, and overflow: hidden clips the layout box before transform.
       // With transformOrigin: top left on the renderer, we position it manually.
-      paddingTop: viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
-      paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
+      paddingTop: !showHint && viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
+      paddingLeft: !showHint && viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
       boxSizing: 'border-box',
     }}>
       {/* renderedScreen is the takeover screen while a rule is firing,
           resolved from the display's full screen list (an alert screen may
           be deliberately excluded from normal rotation). */}
-      <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+      {showHint || !renderedScreen ? (
+        settings.setupHintEnabled === false
+          ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
+          : <EmptyDisplayHint />
+      ) : (
+        <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+      )}
 
       {/* Sibling of ScreenRenderer inside the stable outer div, so state
           producers persist across screen rotation. Uses allScreens (not the

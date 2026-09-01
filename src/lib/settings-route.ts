@@ -285,6 +285,8 @@ export interface SettingsRouteResolution {
   route: SettingsRoute;
   /** When defined, the page should `router.replace(?{redirectedQuery})`. */
   redirectedQuery?: string;
+  /** True when a bare URL was sent to the non-default `landingPage`. */
+  landingApplied?: boolean;
 }
 
 export interface ResolveSettingsRouteOptions {
@@ -321,6 +323,7 @@ export function resolveSettingsRoute(
         from: params,
         highlight: params.get('highlight') ?? undefined,
       }).slice(1),
+      landingApplied: true,
     };
   }
 

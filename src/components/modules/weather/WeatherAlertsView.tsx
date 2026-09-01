@@ -34,7 +34,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, timezone }: 
         <div className="flex-1 flex flex-col items-center justify-center gap-2">
           <ShieldCheck size="2.5em" style={{ opacity: TEXT_OPACITY.tertiary }} aria-hidden="true" />
           <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
-            {alerts !== undefined ? t('weather.noActiveAlerts') : t('weather.alertDataRequires')}
+            {alerts !== undefined ? t('weather.noActiveAlerts') : t('weather.notAvailableForSource')}
           </p>
         </div>
       ) : (

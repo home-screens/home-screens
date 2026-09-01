@@ -20,6 +20,7 @@ import { createTZDate } from '@/lib/timezone';
 import { useFormattingLocale } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarEvent } from '@/types/config';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
+import type { FetchError } from '@/lib/fetch-error';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
 export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings): SharedDisplayData {
@@ -70,15 +71,30 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   const weatherUrl = (provider: string) =>
     neededProviders.has(provider) ? `/api/weather?${baseParams}&provider=${provider}${cacheBust}` : '';
 
-  const [owmData] = useFetchData(weatherUrl('openweathermap'), WEATHER_REFRESH_MS);
-  const [wapiData] = useFetchData(weatherUrl('weatherapi'), WEATHER_REFRESH_MS);
-  const [pirateData] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
-  const [noaaData] = useFetchData(weatherUrl('noaa'), WEATHER_REFRESH_MS);
-  const [openMeteoData] = useFetchData(weatherUrl('open-meteo'), WEATHER_REFRESH_MS);
-  const [yrData] = useFetchData(weatherUrl('yr'), WEATHER_REFRESH_MS);
-  const [smhiData] = useFetchData(weatherUrl('smhi'), WEATHER_REFRESH_MS);
-  const [metofficeData] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
-  const [envcanadaData] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
+  const [owmData, owmError] = useFetchData(weatherUrl('openweathermap'), WEATHER_REFRESH_MS);
+  const [wapiData, wapiError] = useFetchData(weatherUrl('weatherapi'), WEATHER_REFRESH_MS);
+  const [pirateData, pirateError] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
+  const [noaaData, noaaError] = useFetchData(weatherUrl('noaa'), WEATHER_REFRESH_MS);
+  const [openMeteoData, openMeteoError] = useFetchData(weatherUrl('open-meteo'), WEATHER_REFRESH_MS);
+  const [yrData, yrError] = useFetchData(weatherUrl('yr'), WEATHER_REFRESH_MS);
+  const [smhiData, smhiError] = useFetchData(weatherUrl('smhi'), WEATHER_REFRESH_MS);
+  const [metofficeData, metofficeError] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
+  const [envcanadaData, envcanadaError] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
+
+  // Failing providers, so a weather module with no payload can say why
+  // (setup card for a missing key, quiet "not updating" for an outage)
+  // instead of "No weather data" forever. Only failing entries are kept, so
+  // a healthy display builds the same object every render.
+  const weatherErrors = useMemo(() => {
+    const errors: Partial<Record<string, FetchError>> = {};
+    const entries: Array<[string, FetchError | null]> = [
+      ['openweathermap', owmError], ['weatherapi', wapiError], ['pirateweather', pirateError],
+      ['noaa', noaaError], ['open-meteo', openMeteoError], ['yr', yrError], ['smhi', smhiError],
+      ['metoffice', metofficeError], ['envcanada', envcanadaError],
+    ];
+    for (const [provider, error] of entries) if (error) errors[provider] = error;
+    return errors;
+  }, [owmError, wapiError, pirateError, noaaError, openMeteoError, yrError, smhiError, metofficeError, envcanadaError]);
 
   // Resolve which provider's data represents the global weather state for the event bus
   const globalWeatherData = useMemo(() => {
@@ -127,9 +143,10 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   // Failure ≠ empty: the calendar modules must distinguish "the fetch is
   // failing" (keep last-good events, badge them as saved) from "the calendar
   // is genuinely empty", so the fetch status rides along with the payload.
+  const calendarErrorMessage = calendarError?.message ?? null;
   const calendarStatus = useMemo(
-    () => ({ error: calendarError, updatedAt: calendarUpdatedAt }),
-    [calendarError, calendarUpdatedAt],
+    () => ({ error: calendarErrorMessage, updatedAt: calendarUpdatedAt }),
+    [calendarErrorMessage, calendarUpdatedAt],
   );
 
   // Publish calendar facts to the shared-state bus (see calendar-state.ts).
@@ -168,7 +185,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.
   return useMemo(
-    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData, calendarStatus }),
-    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, calendarData, calendarStatus],
+    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, weatherErrors, calendarData, calendarStatus }),
+    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, weatherErrors, calendarData, calendarStatus],
   );
 }

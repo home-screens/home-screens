@@ -75,7 +75,10 @@ describe('GET /api/onedrive/photos', () => {
 
   it('maps a dead grant to 401 and a missing folder to 404', async () => {
     mockListPhotos.mockRejectedValue(new OneDriveError('Not connected to OneDrive', 401));
-    expect((await GET(photosReq('?folderId=f'))).status).toBe(401);
+    const dead = await GET(photosReq('?folderId=f'));
+    expect(dead.status).toBe(401);
+    // The display renders this as a "OneDrive isn't connected yet" setup card.
+    expect(await dead.json()).toMatchObject({ code: 'setup', setup: { needs: 'connection', service: 'OneDrive' } });
 
     mockListPhotos.mockRejectedValue(new OneDriveError('Folder not found', 404));
     expect((await GET(photosReq('?folderId=f'))).status).toBe(404);

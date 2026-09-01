@@ -38,6 +38,7 @@ const emptyShared = (): SharedDisplayData => ({
   smhiData: null,
   metofficeData: null,
   envcanadaData: null,
+  weatherErrors: {},
   calendarData: null,
   calendarStatus: { error: null, updatedAt: null },
 });
@@ -62,7 +63,7 @@ const previewSettings: PreviewSettings = {
 };
 
 const previewData: PreviewData = {
-  weatherByProvider: { weatherapi: WEATHER_PAYLOAD },
+  weatherErrors: {}, weatherByProvider: { weatherapi: WEATHER_PAYLOAD },
   calendarEvents: EVENTS,
   calendarSourceStatus: null,
 };
@@ -94,7 +95,7 @@ describe('adapter equivalence', () => {
     const shared = { ...emptyShared(), noaaData: WEATHER_PAYLOAD };
     const fromDisplay = buildModuleProps(mod, toDisplaySource(displaySettings, LOCATION, shared));
     const fromEditor = buildModuleProps(mod, toEditorSource(previewSettings, {
-      weatherByProvider: { noaa: WEATHER_PAYLOAD },
+      weatherErrors: {}, weatherByProvider: { noaa: WEATHER_PAYLOAD },
       calendarEvents: null,
       calendarSourceStatus: null,
     }));
@@ -134,7 +135,7 @@ describe('buildModuleProps', () => {
 
   it('omits events rather than passing null when no calendar data has arrived', () => {
     const props = buildModuleProps(instance('calendar'), toEditorSource(previewSettings, {
-      weatherByProvider: {},
+      weatherErrors: {}, weatherByProvider: {},
       calendarEvents: null,
       calendarSourceStatus: null,
     }));
@@ -146,7 +147,7 @@ describe('buildModuleProps', () => {
     // too; only the whole-fetch status (calendarStatus) is display-only.
     const failing = [{ id: 'ics-1', name: 'Cozi', ok: false, error: 'Could not reach the link', fetchedAt: null }];
     const props = buildModuleProps(instance('calendar'), toEditorSource(previewSettings, {
-      weatherByProvider: {},
+      weatherErrors: {}, weatherByProvider: {},
       calendarEvents: [],
       calendarSourceStatus: failing,
     }));
@@ -190,8 +191,18 @@ describe('toEditorSource', () => {
     expect(source.weather.payloadFor('pirateweather')).toEqual(WEATHER_PAYLOAD);
   });
 
+  it('never borrows the global payload for a provider that has actually failed', () => {
+    const error = { kind: 'setup' as const, message: 'no key', setup: { needs: 'key' as const, service: 'OpenWeatherMap' } };
+    const source = toEditorSource(previewSettings, { ...previewData, weatherErrors: { openweathermap: error } });
+    expect(source.weather.payloadFor('openweathermap')).toBeNull();
+    expect(source.weather.errorFor('openweathermap')).toEqual(error);
+    // The global provider's own failure is not attributed to other providers.
+    const globalFailed = toEditorSource(previewSettings, { weatherErrors: { weatherapi: error }, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
+    expect(globalFailed.weather.errorFor('open-meteo')).toBeNull();
+  });
+
   it('supplies safe defaults before the config has loaded', () => {
-    const source = toEditorSource(null, { weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
+    const source = toEditorSource(null, { weatherErrors: {}, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
     expect(source.location).toBeNull();
     expect(source.weather.units).toBe('imperial');
     expect(source.weather.globalProvider).toBe('weatherapi');
@@ -235,7 +246,7 @@ describe('timeFormat threading', () => {
   });
 
   it('toEditorSource reads the preview settings snapshot', () => {
-    const source = toEditorSource({ ...previewSettings, timeFormat: '24h' }, { weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
+    const source = toEditorSource({ ...previewSettings, timeFormat: '24h' }, { weatherErrors: {}, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
     expect(source.timeFormat).toBe('24h');
   });
 });

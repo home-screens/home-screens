@@ -259,7 +259,6 @@
     "weatherAlerts": "Vejrvarsler",
     "alertCount": "({count})",
     "noActiveAlerts": "Ingen aktive varsler",
-    "alertDataRequires": "Varseldata kræver Pirate Weather eller NOAA",
     "alertSeverityExpires": "{severity} · Udløber {expires}",
     "noWeatherData": "Ingen vejrdata",
     "noForecastData": "Ingen prognosedata",
@@ -270,7 +269,6 @@
     "stoppingInMin": "Stopper om {minutes} min",
     "precipitationForNextHour": "Nedbør den næste time",
     "startingInMin": "Begynder om {minutes} min",
-    "minutelyDataRequires": "Minutdata kræver Pirate Weather",
     "tableHeaders": {
       "day": "Dag",
       "temp": "Temp",
@@ -291,7 +289,10 @@
       "Moderate": "Moderat",
       "Minor": "Mindre",
       "Unknown": "Ukendt"
-    }
+    },
+    "loading": "Henter vejrudsigten…",
+    "notUpdating": "Vejret opdaterer ikke",
+    "notAvailableForSource": "Ikke tilgængeligt fra din vejrkilde"
   },
   "air-quality": {
     "loading": "Indlæser luftkvalitet…",
@@ -350,9 +351,7 @@
   "rain-map": {
     "loading": "Indlæser regnkort…",
     "noRadarData": "Ingen radardata tilgængelige",
-    "now": "Nu",
-    "minutesAgo": "for {minutes} m siden",
-    "minutesAhead": "+{minutes}m"
+    "now": "Nu"
   },
   "meal-planner": {
     "noMealsPlannedYet": "Ingen måltider planlagt endnu",
@@ -634,7 +633,8 @@
     "noRoutes": "Ingen ruter oprettet",
     "loading": "Indlæser trafik…",
     "unitMin": "min",
-    "mockNotice": "Eksempeldata — tilføj en trafik-API-nøgle under Indstillinger"
+    "mockNotice": "Eksempeltal, indtil der tilføjes en trafiknøgle",
+    "needsKey": "Trafik kræver en Google Maps- eller TomTom-nøgle"
   },
   "fullscreen-photo": {
     "noPhotoSelected": "Intet billede valgt",
@@ -808,7 +808,17 @@
     "locationNotConfigured": "Placering ikke angivet",
     "pluginNotAvailable": "Plugin ikke tilgængeligt: {name}",
     "moduleFailed": "Dette element kunne ikke vises.",
-    "setLocationLink": "Angiv din placering"
+    "setLocationLink": "Angiv din placering",
+    "notUpdating": "Opdaterer ikke lige nu",
+    "setup": {
+      "needsKey": "Ingen {service}-nøgle endnu",
+      "keyNotWorking": "{service}-nøglen virker ikke",
+      "notConnected": "{service} er ikke forbundet endnu",
+      "needsSetup": "Mangler lidt opsætning",
+      "finishInEditor": "Gør opsætningen færdig i editoren",
+      "openSettings": "Åbn API-nøgler",
+      "openWeatherSettings": "Åbn vejrindstillinger"
+    }
   },
   "event-detail": {
     "close": "Luk",

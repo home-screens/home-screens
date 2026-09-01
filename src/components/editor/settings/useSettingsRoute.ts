@@ -13,6 +13,8 @@ interface SettingsRouteState {
    * what the URL resolved to.
    */
   panel: SettingsPanelId | undefined;
+  /** A bare URL landed on the caller's `landingPage` this render. */
+  landingApplied: boolean;
 }
 
 /**
@@ -34,7 +36,7 @@ export function useSettingsRoute(landingPage: DefaultPageId = 'screen'): Setting
   // The `redirectedQuery` field tells the effect below whether the URL bar
   // needs to be rewritten to the canonical shape (including the bare-URL
   // landing page, which is rewritten to name the page explicitly).
-  const { route, redirectedQuery } = useMemo(
+  const { route, redirectedQuery, landingApplied } = useMemo(
     () => resolveSettingsRoute(searchParams?.toString() ?? '', { landingPage }),
     [searchParams, landingPage],
   );
@@ -59,5 +61,6 @@ export function useSettingsRoute(landingPage: DefaultPageId = 'screen'): Setting
   return {
     route,
     panel: route.kind === 'defaults' ? route.panel : undefined,
+    landingApplied: landingApplied === true,
   };
 }

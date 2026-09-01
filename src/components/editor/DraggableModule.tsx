@@ -7,6 +7,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
+import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { useTranslate } from '@/i18n';
 import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
@@ -45,9 +46,11 @@ const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: Module
   // A plugin that throws while rendering must not take the editor down with it
   // and discard unsaved config edits.
   return (
-    <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-      <Component config={mod.config} style={mod.style} {...extraProps} />
-    </ModuleErrorBoundary>
+    <ModuleSurfaceProvider value="editor">
+      <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+        <Component config={mod.config} style={mod.style} {...extraProps} />
+      </ModuleErrorBoundary>
+    </ModuleSurfaceProvider>
   );
 });
 

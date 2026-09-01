@@ -130,7 +130,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         <div className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs" data-testid="weather-api-key-row">
           <p className="text-hs-text-body">{t('configSections.weather.apiKeyMissing')}</p>
           <a
-            href={settingsPath({ kind: 'defaults', page: 'integrations' })}
+            href={settingsPath({ kind: 'defaults', page: 'weather' })}
             className="mt-1 inline-block font-medium text-hs-accent hover:underline"
           >
             {t('configSections.weather.addApiKey')}

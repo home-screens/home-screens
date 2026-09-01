@@ -4,13 +4,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
+import { readFetchError, sameFetchError, transientError, type FetchError } from '@/lib/fetch-error';
+import { logger } from '@/lib/logger';
+
+const log = logger('fetch-data');
 
 /**
  * Fetch + poll a display data URL. Returns [data, error, updatedAt].
  *
  * `data` keeps the last successful payload across failed refreshes (a Wi-Fi
  * blip must never blank a module); `error` is set while the latest attempt
- * failed, so consumers can mark the kept data as stale; `updatedAt` is when
+ * failed, so consumers can mark the kept data as stale. It is classified
+ * (see `FetchError`): `setup` when the route says the household still has to
+ * add a key or connect a service, `transient` for everything else, so the
+ * wall can render a setup card for one and stay quiet for the other.
+ * `updatedAt` is when
  * the kept data was last successfully fetched (cache restores carry the
  * cache's original fetch time).
  *
@@ -18,10 +26,10 @@ import { displayFetch } from '@/lib/display-fetch';
  * restored from the display cache when that URL has one) so a module never
  * renders the new request's shape against the old request's data.
  */
-export function useFetchData<T>(url: string, refreshMs: number): [T | null, string | null, number | null] {
+export function useFetchData<T>(url: string, refreshMs: number): [T | null, FetchError | null, number | null] {
   const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FetchError | null>(null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const lastUrl = useRef(url);
 
@@ -48,21 +56,25 @@ export function useFetchData<T>(url: string, refreshMs: number): [T | null, stri
           setUpdatedAt(Date.now());
           displayCache.set(url, json, refreshMs);
         } else {
-          let msg = `API error ${res.status}`;
-          try {
-            const body = await res.json();
-            if (body.error) msg = body.error;
-            if (body.detail) msg = `${msg}: ${body.detail}`;
-          } catch {
-            // use default message
-          }
-          setError(msg);
+          fail(await readFetchError(res, `API error ${res.status}`));
         }
       } catch {
         // Don't set error state for intentional aborts (unmount / URL change)
         if (controller.signal.aborted) return;
-        setError(t('errors.fetchFailed'));
+        fail(transientError(t('errors.fetchFailed')));
       }
+    }
+
+    // The wall never prints the developer-facing message, so it is logged
+    // here (once per distinct failure, not per poll). The same identity
+    // check keeps a repeated failure from re-rendering the whole display:
+    // an unchanged error keeps its previous state object.
+    function fail(next: FetchError) {
+      setError((prev) => {
+        if (sameFetchError(prev, next)) return prev;
+        log.warn(`${url}: ${next.message}`);
+        return next;
+      });
     }
 
     // Re-fetch immediately when this URL's cache is invalidated

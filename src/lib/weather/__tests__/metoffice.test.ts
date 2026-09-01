@@ -62,7 +62,7 @@ describe('MetOfficeProvider', () => {
   });
 
   it('throws when constructed without an API key', () => {
-    expect(() => new MetOfficeProvider()).toThrow(/requires an API key/i);
+    expect(() => new MetOfficeProvider()).toThrow(/API key/i);
   });
 
   it('getHourly converts units, maps the code icon, and derives hPa from Pascals', async () => {

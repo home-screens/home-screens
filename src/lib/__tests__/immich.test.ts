@@ -5,7 +5,8 @@ vi.mock('../secrets', () => ({
   getSecret: vi.fn(),
 }));
 
-vi.mock('../api-utils', () => ({
+vi.mock('../api-utils', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../api-utils')>()),
   fetchWithTimeout: vi.fn(),
 }));
 

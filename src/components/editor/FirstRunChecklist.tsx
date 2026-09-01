@@ -47,7 +47,9 @@ export default function FirstRunChecklist() {
   // never pay an /api/auth/status round-trip for a component that renders
   // nothing.
   const screens = config ? getActiveScreens(config, selectedDisplayId) : [];
-  const needed = !dismissed && config != null && screens.every(isScreenEmpty);
+  // `every` is vacuously true for a display with no screens at all (a
+  // freshly added secondary display), which is not a fresh install.
+  const needed = !dismissed && config != null && screens.length > 0 && screens.every(isScreenEmpty);
 
   useEffect(() => {
     if (!needed) return;

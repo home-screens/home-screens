@@ -46,7 +46,7 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize }: W
       {minutely === undefined ? (
         <div className="flex-1 flex items-center justify-center">
           <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
-            {t('weather.minutelyDataRequires')}
+            {t('weather.notAvailableForSource')}
           </p>
         </div>
       ) : data.length > 0 ? (

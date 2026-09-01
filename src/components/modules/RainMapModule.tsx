@@ -8,7 +8,7 @@ import { radarTileStore } from './rain-map-preload';
 import { useFetchData } from '@/hooks/useFetchData';
 import { LocationRequired } from './LocationRequired';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { RainFrame, RainViewerResponse } from '@/lib/rain-map-types';
 
@@ -117,24 +117,33 @@ function useDebouncedRadarWindow(inputs: RadarWindowInputs, ms: number): RadarWi
   return debounced;
 }
 
-const BASE_TILE_URLS: Record<string, string> = {
-  dark: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png',
-  standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-};
+// Both styles come from the OpenStreetMap tile server, which needs no key.
+// Carto's dark basemap used to be the dark style; it now watermarks every
+// tile with "API KEY REQUIRED" for keyless callers, so the dark style is the
+// standard OSM tile with a CSS dark filter over the base layer instead
+// (the radar layer sits above it, unfiltered).
+const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+/** Inverts the light OSM cartography into a dark map with muted colours. */
+const DARK_TILE_FILTER = 'invert(1) hue-rotate(180deg) brightness(0.72) contrast(1.05) saturate(0.55)';
 
 // Background colors that match each map theme's dominant tile color,
 // so any gap from a slow-loading tile is invisible.
 const MAP_BG: Record<string, string> = {
-  dark: '#090909',
+  dark: '#151515',
   standard: '#f2efe9',
 };
 
-function formatFrameTime(unixTime: number, t: TranslateFn): string {
-  const now = Date.now() / 1000;
-  const diffMin = Math.round((unixTime - now) / 60);
-  if (Math.abs(diffMin) <= 1) return t('rain-map.now');
-  if (diffMin < 0) return t('rain-map.minutesAgo', { minutes: Math.abs(diffMin) });
-  return t('rain-map.minutesAhead', { minutes: diffMin });
+/** Within this window of the frame time the overlay just says "Now". */
+const FRAME_NOW_WINDOW_S = 90;
+
+function formatFrameTime(unixTime: number, t: TranslateFn, locale: string): string {
+  const nowMs = Date.now();
+  if (Math.abs(unixTime * 1000 - nowMs) <= FRAME_NOW_WINDOW_S * 1000) return t('rain-map.now');
+  // Minute granularity on purpose: RainViewer's past frames are 10 minutes
+  // apart over ~2 hours, and "1 hr. ago" for three frames in a row says
+  // nothing about which one is showing.
+  return formatRelativeTime(nowMs, unixTime * 1000, { locale, numeric: 'always', style: 'short', unit: 'minute' });
 }
 
 export default function RainMapModule({
@@ -145,12 +154,20 @@ export default function RainMapModule({
   locationSettingsHref,
 }: RainMapModuleProps) {
   const t = useTranslate('modules');
-  // The module's own coordinates win; the household location is the
-  // fallback. With neither there is nothing sensible to centre on, and the
-  // gate below says so rather than silently showing New York.
-  const hasCoords = !!(config.latitude && config.longitude) || (latitude != null && longitude != null);
-  const lat = config.latitude || latitude || 0;
-  const lon = config.longitude || longitude || 0;
+  const locale = useFormattingLocale();
+  // The module's own coordinate pair wins when both are set (the config
+  // section stores 0 for a blank field, so a lone latitude is not a
+  // location); otherwise the household location. Resolved as a pair, never
+  // per axis, so the map can never be centred on a latitude from one place
+  // and a longitude from another. With neither there is nothing sensible to
+  // centre on, and the gate below says so rather than silently showing
+  // New York.
+  const ownCoords = config.latitude && config.longitude ? { lat: config.latitude, lon: config.longitude } : null;
+  const householdCoords = latitude != null && longitude != null ? { lat: latitude, lon: longitude } : null;
+  const center = ownCoords ?? householdCoords;
+  const hasCoords = center != null;
+  const lat = center?.lat ?? 0;
+  const lon = center?.lon ?? 0;
   const zoom = config.zoom ?? 6;
   const animationSpeedMs = Math.max(500, config.animationSpeedMs ?? 500);
   const extraDelayLastFrameMs = config.extraDelayLastFrameMs ?? 2000;
@@ -313,7 +330,7 @@ export default function RainMapModule({
 
   const currentFrame = frames[displayIndex];
   if (!currentFrame) return null;
-  const baseUrl = BASE_TILE_URLS[mapStyle] ?? BASE_TILE_URLS.dark;
+  const isDark = mapStyle !== 'standard';
   const pastCount = data.radar.past?.length ?? 0;
 
   return (
@@ -335,7 +352,7 @@ export default function RainMapModule({
           {tileGrid.tiles.map((tile) => (
             <img
               key={`base-${tile.x}-${tile.y}`}
-              src={baseUrl
+              src={OSM_TILE_URL
                 .replace('{z}', String(zoom))
                 .replace('{x}', String(tile.x))
                 .replace('{y}', String(tile.y))}
@@ -346,6 +363,7 @@ export default function RainMapModule({
                 height: TILE_SIZE,
                 left: tile.px,
                 top: tile.py,
+                filter: isDark ? DARK_TILE_FILTER : undefined,
               }}
               draggable={false}
             />
@@ -397,9 +415,16 @@ export default function RainMapModule({
 
         {showTimestamp && (
           <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded z-10 font-mono">
-            {formatFrameTime(currentFrame.time, t)}
+            {formatFrameTime(currentFrame.time, t, locale)}
           </div>
         )}
+
+        <div
+          className="absolute bottom-1 right-1.5 z-10 text-white pointer-events-none"
+          style={{ fontSize: 9, opacity: 0.55, textShadow: '0 0 3px rgba(0,0,0,0.9)' }}
+        >
+          © OpenStreetMap
+        </div>
 
         {showTimeline && frames.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">

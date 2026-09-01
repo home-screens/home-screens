@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/api-utils';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,7 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
     const secretKey = secretKeyMap[provider];
     let apiKey: string | undefined;
     if (secretKey) {
-      const result = await requireSecret(secretKey, provider);
+      const result = await requireSecret(secretKey, weatherProviderName(provider), 'weather');
       if (result instanceof NextResponse) return result;
       apiKey = result;
     }

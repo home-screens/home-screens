@@ -1,5 +1,5 @@
 import { getSecret } from './secrets';
-import { fetchWithTimeout, type FetchRetryOptions } from './api-utils';
+import { fetchWithTimeout, SetupError, type FetchRetryOptions } from './api-utils';
 
 // -- Types matching Immich API response shapes --
 
@@ -78,7 +78,7 @@ export async function immichFetch(
   init?: FetchRetryOptions,
 ): Promise<Response> {
   const cfg = await getImmichConfig();
-  if (!cfg) throw new Error('Immich not configured');
+  if (!cfg) throw new SetupError('Immich not configured', 'connection', 'Immich');
   return fetchWithTimeout(`${cfg.url}${path}`, {
     ...init,
     headers: { 'x-api-key': cfg.apiKey, ...init?.headers },

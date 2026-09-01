@@ -30,6 +30,23 @@ interface NumberFormatOpts extends Intl.NumberFormatOptions {
 interface RelativeTimeOpts {
   locale: string;
   numeric?: 'always' | 'auto';
+  style?: 'long' | 'short' | 'narrow';
+  /** Force one unit instead of picking the largest that fits ("70 min. ago"). */
+  unit?: Intl.RelativeTimeFormatUnit;
+}
+
+// Intl.RelativeTimeFormat construction is expensive enough to matter on a
+// Pi when a label re-renders on an animation loop, so formatters are kept
+// per (locale, numeric, style).
+const RTF_CACHE = new Map<string, Intl.RelativeTimeFormat>();
+function relativeTimeFormatter(locale: string, numeric: 'always' | 'auto', style: 'long' | 'short' | 'narrow'): Intl.RelativeTimeFormat {
+  const key = `${locale}|${numeric}|${style}`;
+  let rtf = RTF_CACHE.get(key);
+  if (!rtf) {
+    rtf = new Intl.RelativeTimeFormat(locale, { numeric, style });
+    RTF_CACHE.set(key, rtf);
+  }
+  return rtf;
 }
 
 const LOCALE_CACHE = new Map<string, DateFnsLocale>();
@@ -193,7 +210,7 @@ export function formatRelativeTime(
   const toMs = typeof to === 'number' ? to : to.getTime();
   const deltaSec = Math.round((toMs - fromMs) / 1000);
 
-  const rtf = new Intl.RelativeTimeFormat(opts.locale, { numeric: opts.numeric ?? 'auto' });
+  const rtf = relativeTimeFormatter(opts.locale, opts.numeric ?? 'auto', opts.style ?? 'long');
   const abs = Math.abs(deltaSec);
 
   // Threshold table — picks the largest sensible unit. Numbers come from
@@ -205,6 +222,11 @@ export function formatRelativeTime(
   const week = 7 * day;
   const month = 30 * day;
   const year = 365 * day;
+
+  if (opts.unit) {
+    const per: Record<string, number> = { second: sec, seconds: sec, minute: min, minutes: min, hour, hours: hour, day, days: day, week, weeks: week, month, months: month, year, years: year, quarter: 3 * month, quarters: 3 * month };
+    return rtf.format(Math.round(deltaSec / (per[opts.unit] ?? sec)), opts.unit);
+  }
 
   if (abs < min) return rtf.format(Math.round(deltaSec / sec), 'second');
   if (abs < hour) return rtf.format(Math.round(deltaSec / min), 'minute');

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { SetupNeed, SetupErrorBody, SetupPage } from '@/lib/fetch-error';
 import { readConfig } from '@/lib/config';
 import { requireSession, requireDisplayAuth, getMediaTokenSecret } from '@/lib/auth';
 import { verifyMediaToken } from '@/lib/media-token';
@@ -29,9 +30,44 @@ export function errorResponse(
   fallbackMessage: string,
   status = 500,
 ): NextResponse {
+  if (error instanceof SetupError) {
+    log.warn(fallbackMessage, error.message);
+    return setupErrorResponse(error.message, error.needs, error.service, error.page);
+  }
   const detail = error instanceof Error ? error.message : undefined;
   log.error(fallbackMessage, error);
   return NextResponse.json({ error: fallbackMessage, detail }, { status });
+}
+
+/**
+ * A failure the household can fix in the editor (missing or rejected API key,
+ * a service that was never connected), as opposed to an upstream outage.
+ * `errorResponse` turns it into a 400 carrying `code: 'setup'`, which the
+ * display renders as a calm setup card instead of red developer text.
+ */
+export class SetupError extends Error {
+  constructor(
+    message: string,
+    public readonly needs: SetupNeed,
+    public readonly service: string,
+    /** Defaults page that holds the missing field; API keys unless said otherwise. */
+    public readonly page?: SetupPage,
+  ) {
+    super(message);
+    this.name = 'SetupError';
+  }
+}
+
+export function setupErrorResponse(
+  message: string,
+  needs: SetupNeed,
+  service: string,
+  page?: SetupPage,
+  /** 400 by default; routes whose callers key off 401 for "reconnect" keep it. */
+  status = 400,
+): NextResponse {
+  const body: SetupErrorBody = { error: message, code: 'setup', setup: { needs, service, ...(page ? { page } : {}) } };
+  return NextResponse.json(body, { status });
 }
 
 /**
@@ -612,12 +648,15 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
 export async function requireSecret(
   key: SecretKey,
   serviceName: string,
+  page?: SetupPage,
 ): Promise<string | NextResponse> {
   const value = await getSecret(key);
   if (!value) {
-    return NextResponse.json(
-      { error: `No ${serviceName} API key configured. Add it in Settings > Integrations.` },
-      { status: 400 },
+    return setupErrorResponse(
+      `No ${serviceName} API key configured. Add it in Settings > ${page === 'weather' ? 'Weather' : 'API keys'}.`,
+      'key',
+      serviceName,
+      page,
     );
   }
   return value;

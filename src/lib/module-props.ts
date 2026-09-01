@@ -1,6 +1,7 @@
 import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { settingsPath } from './settings-route';
+import type { FetchError } from './fetch-error';
 
 /**
  * Raw per-provider weather payloads plus the calendar payload, fetched once by
@@ -18,6 +19,8 @@ export interface SharedDisplayData {
   smhiData: unknown;
   metofficeData: unknown;
   envcanadaData: unknown;
+  /** Providers whose latest fetch failed, keyed by provider id. */
+  weatherErrors: Partial<Record<string, FetchError>>;
   calendarData: unknown;
   calendarStatus: CalendarFetchStatus;
 }
@@ -66,6 +69,8 @@ interface ProviderWeatherData {
 /** Editor-side fetched preview payloads (see `usePreviewData`). */
 export interface PreviewData {
   weatherByProvider: Record<string, ProviderWeatherData>;
+  /** Providers the preview could not fetch (no key yet, route error), keyed by provider id. */
+  weatherErrors: Record<string, FetchError>;
   calendarEvents: unknown[] | null;
   /** Per-source health from the same payload, so the preview badges saved rows like the kiosk. */
   calendarSourceStatus: CalendarSourceStatus[] | null;
@@ -100,6 +105,8 @@ export interface ModuleDataSource {
     globalProvider: string;
     units: 'metric' | 'imperial';
     payloadFor(provider: string): WeatherPayload | null;
+    /** Why `payloadFor` is null for this provider, when the surface knows. */
+    errorFor(provider: string): FetchError | null;
   };
   calendarEvents: unknown[] | null;
   /** null = surface has no fetch-health signal (editor preview). */
@@ -180,12 +187,19 @@ export function buildModuleProps(
 
   if (needsWeather) {
     if (!source.location) props.locationMissing = true;
-    const payload = source.weather.payloadFor(resolveProvider(mod, source.weather.globalProvider));
+    const provider = resolveProvider(mod, source.weather.globalProvider);
+    const payload = source.weather.payloadFor(provider);
     if (payload) {
       props.hourly = payload.hourly ?? [];
       props.forecast = payload.forecast ?? [];
       props.minutely = payload.minutely ?? undefined;
       props.alerts = payload.alerts ?? undefined;
+    } else {
+      // Presence semantic again: only while there is no payload AND the
+      // fetch has failed, so a module can tell "still loading" (no props)
+      // from "waiting on setup" / "not updating" (this prop).
+      const error = source.weather.errorFor(provider);
+      if (error) props.weatherError = error;
     }
     props.units = source.weather.units;
     // The "show location" header needs the geocoded name (coordinates as
@@ -250,6 +264,7 @@ export function toDisplaySource(
       units: settings.weather.units,
       payloadFor: (provider) =>
         (sharedData[PROVIDER_KEY[provider]] as WeatherPayload | null | undefined) ?? null,
+      errorFor: (provider) => sharedData.weatherErrors[provider] ?? null,
     },
     calendarEvents: extractCalendarEvents(calendarData),
     calendarStatus: sharedData.calendarStatus,
@@ -285,8 +300,14 @@ export function toEditorSource(
     weather: {
       globalProvider,
       units: settings?.units ?? 'imperial',
+      // A provider that has actually failed (no key, rejected key) must show
+      // the same setup card here as on the wall, not borrow another
+      // provider's forecast; the global fallback only covers "still fetching".
       payloadFor: (provider) =>
-        previewData.weatherByProvider[provider] ?? previewData.weatherByProvider[globalProvider] ?? null,
+        previewData.weatherByProvider[provider]
+          ?? (previewData.weatherErrors[provider] ? null : previewData.weatherByProvider[globalProvider])
+          ?? null,
+      errorFor: (provider) => previewData.weatherErrors[provider] ?? null,
     },
     calendarEvents: previewData.calendarEvents,
     // The editor preview has no display fetch loop to report on (null reads

@@ -1,9 +1,9 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { fetchKeyedWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
-import { createTTLCache } from '../api-utils';
+import { createTTLCache, SetupError } from '../api-utils';
 import { logger } from '@/lib/logger';
 
 const log = logger('metoffice');
@@ -170,7 +170,7 @@ export class MetOfficeProvider implements WeatherProvider {
   private apiKey: string;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new Error('Met Office requires an API key');
+    if (!apiKey) throw new SetupError('Met Office API key is not configured. Add it in Settings > API keys.', 'key', 'Met Office', 'weather');
     this.apiKey = apiKey;
   }
 
@@ -224,7 +224,7 @@ export class MetOfficeProvider implements WeatherProvider {
       `?latitude=${latStr}&longitude=${lonStr}` +
       `&excludeParameterMetadata=true&includeLocationName=false`;
 
-    const promise = fetchWeatherJSON<MetOfficeResponse>(url, 'Met Office', {
+    const promise = fetchKeyedWeatherJSON<MetOfficeResponse>(url, 'Met Office', {
       headers: { apikey: this.apiKey, Accept: 'application/json' },
     })
       .then((data) => {

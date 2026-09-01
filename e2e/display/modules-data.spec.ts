@@ -252,6 +252,106 @@ for (const r of RESILIENCE_NO_CRASH) {
   }
 }
 
+/**
+ * Failure copy on the wall. A route that says the household still has to add
+ * a key (`code: 'setup'`) renders the calm setup card; an upstream failure
+ * renders a quiet "not updating" line. Neither ever prints the route's own
+ * message, an HTTP status, or the words "API key".
+ */
+const SETUP_BODY = {
+  error: 'No OpenWeatherMap API key configured. Add it in Settings > Integrations.',
+  code: 'setup',
+  setup: { needs: 'key', service: 'OpenWeatherMap' },
+};
+
+test('a setup error renders the setup card, never the route message', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { 'air-quality': { status: 400, body: SETUP_BODY } } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('air-quality')])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('air-quality');
+  await expect(mod.getByTestId('module-setup-state')).toBeVisible();
+  await expect(mod).toContainText('No OpenWeatherMap key yet');
+  await expect(mod).toContainText('Finish setup in the editor');
+  await expect(mod).not.toContainText('Settings > Integrations');
+  await expect(mod).not.toContainText('API key');
+});
+
+test('an upstream 500 renders a quiet not-updating line without the status code', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { todoist: { status: 500, body: { error: 'Failed to fetch Todoist data', detail: 'Todoist API /tasks returned 502' } } } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('todoist')])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('todoist');
+  await expect(mod.getByTestId('module-not-updating')).toBeVisible();
+  await expect(mod).toContainText('Not updating right now');
+  await expect(mod).not.toContainText('500');
+  await expect(mod).not.toContainText('502');
+  await expect(mod).not.toContainText('Failed to fetch');
+});
+
+test('traffic sample numbers never reach the wall', async ({ page, request }) => {
+  await stubModuleData(page, {
+    overrides: {
+      traffic: {
+        routes: [{ label: 'Home to Work', durationMinutes: 22, durationInTrafficMinutes: 28, delayMinutes: 6 }],
+        mock: true,
+        note: 'Add a Google Maps or TomTom API key in Settings > Integrations for real traffic data',
+      },
+    },
+  });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('traffic', { routes: [{ label: 'Home to Work', origin: 'A', destination: 'B' }] })])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('traffic');
+  await expect(mod.getByTestId('module-setup-state')).toBeVisible();
+  await expect(mod).toContainText('Traffic needs a Google Maps or TomTom key');
+  await expect(mod).not.toContainText('28');
+  await expect(mod).not.toContainText('Home to Work');
+});
+
+for (const type of ['weather', 'fullscreen-weather'] as const) {
+  test(`${type} with a missing provider key renders the setup card instead of waiting forever`, async ({ page, request }) => {
+    await stubModuleData(page, {
+      overrides: {
+        weather: {
+          status: 400,
+          body: { error: 'No WeatherAPI API key configured.', code: 'setup', setup: { needs: 'key', service: 'WeatherAPI' } },
+        },
+      },
+    });
+    const cfg = baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance(type)])],
+      settings: matrixSettings(),
+    });
+    const display = await renderOnDisplay(page, request, cfg);
+    const mod = display.module(type);
+    await expect(mod.getByTestId('module-setup-state')).toBeVisible();
+    await expect(mod).toContainText('No WeatherAPI key yet');
+    await expect(mod).not.toContainText('No weather data');
+    await expect(mod).not.toContainText('Getting the forecast');
+  });
+}
+
+test('weather with a failing provider says it is not updating instead of "No weather data"', async ({ page, request }) => {
+  await stubModuleData(page, { overrides: { weather: { status: 502, body: { error: 'Failed to fetch weather' } } } });
+  const cfg = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('weather')])],
+    settings: matrixSettings(),
+  });
+  const display = await renderOnDisplay(page, request, cfg);
+  const mod = display.module('weather');
+  await expect(mod).toContainText('Weather is not updating');
+  await expect(mod).not.toContainText('No weather data');
+  await expect(mod).not.toContainText('502');
+});
+
 test('fullscreen-calendar marks a failing source: legend ring, named pill, saved rows', async ({ page, request }) => {
   await stubModuleData(page, { overrides: { calendar: sourceStatusBody() } });
   const cfg = baseConfig({

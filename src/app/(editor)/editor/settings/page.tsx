@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
@@ -42,22 +42,31 @@ const LOCATION_LANDING_SEEN_KEY = 'hs-settings-location-landing-seen';
 
 /**
  * `'location'` exactly once per browser while the location is unset, else
- * `'screen'`. Decided when the config first arrives and held for the rest of
- * the mount, so entering coordinates on the page does not flip the landing
+ * `'screen'`. Decided synchronously the render the config first arrives (so
+ * no Screen page paints before the rewrite) and held for the rest of the
+ * mount, so entering coordinates on the page does not flip the landing
  * choice under the user's feet.
+ *
+ * Only reads here. The once-per-browser flag is written by
+ * `markLocationLandingSeen` when the landing actually applied: a deep link
+ * into Settings (`?page=phone` from the checklist) must not spend it.
  */
 function useLocationLanding(locationUnset: boolean): DefaultPageId {
-  const [page, setPage] = useState<DefaultPageId | null>(null);
-  useEffect(() => {
-    if (page !== null || !locationUnset) return;
+  const decided = useRef<DefaultPageId | null>(null);
+  if (decided.current === null && locationUnset && typeof window !== 'undefined') {
     let seen = true;
     try {
       seen = localStorage.getItem(LOCATION_LANDING_SEEN_KEY) === '1';
-      if (!seen) localStorage.setItem(LOCATION_LANDING_SEEN_KEY, '1');
     } catch { /* private mode: treat as seen */ }
-    setPage(seen ? 'screen' : 'location');
-  }, [page, locationUnset]);
-  return page ?? 'screen';
+    decided.current = seen ? 'screen' : 'location';
+  }
+  return decided.current ?? 'screen';
+}
+
+function markLocationLandingSeen(): void {
+  try {
+    localStorage.setItem(LOCATION_LANDING_SEEN_KEY, '1');
+  } catch { /* private mode */ }
 }
 
 function SettingsPageContent() {
@@ -85,7 +94,10 @@ function SettingsPageContent() {
   // config has loaded the page renders its loading state, so the landing
   // choice is made before anything paints.
   const landingPage = useLocationLanding(settings != null && getLocation(settings) == null);
-  const { route, panel } = useSettingsRoute(landingPage);
+  const { route, panel, landingApplied } = useSettingsRoute(landingPage);
+  useEffect(() => {
+    if (landingApplied && landingPage === 'location') markLocationLandingSeen();
+  }, [landingApplied, landingPage]);
   useSettingsHighlight();
 
   // Load config on mount (handles hard refresh / direct URL visit)

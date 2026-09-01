@@ -1,5 +1,6 @@
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { fetchKeyedWeatherJSON } from './fetch';
+import { SetupError } from '@/lib/api-utils';
 import { PIRATE_ICON_MAP, FALLBACK_ICON } from './icons';
 
 // ── Pirate Weather API response types ────────────────────────────────
@@ -64,7 +65,7 @@ export class PirateWeatherProvider implements WeatherProvider {
   private fetchPromise: Promise<PWResponse> | null = null;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new Error('Pirate Weather API key is not configured. Add it in Settings → Weather.');
+    if (!apiKey) throw new SetupError('Pirate Weather API key is not configured. Add it in Settings > API keys.', 'key', 'Pirate Weather', 'weather');
     this.apiKey = apiKey;
   }
 
@@ -78,7 +79,7 @@ export class PirateWeatherProvider implements WeatherProvider {
   private async _doFetch(lat: number, lon: number, units: string): Promise<PWResponse> {
     const pwUnits = units === 'imperial' ? 'us' : 'ca';
     const url = `https://api.pirateweather.net/forecast/${this.apiKey}/${lat},${lon}?units=${pwUnits}&version=2`;
-    return fetchWeatherJSON<PWResponse>(url, 'Pirate Weather');
+    return fetchKeyedWeatherJSON<PWResponse>(url, 'Pirate Weather');
   }
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {

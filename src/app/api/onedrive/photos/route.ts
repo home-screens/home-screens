@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth, setupErrorResponse } from '@/lib/api-utils';
 import { listPhotos, onedrivePhotoListCache, OneDriveError } from '@/lib/onedrive';
 import { isOneDriveItemId } from '@/lib/onedrive-shared';
 import type { MediaListItem } from '@/types/config';
@@ -39,6 +39,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json(items);
   } catch (error) {
     if (error instanceof OneDriveError) {
+      if (error.status === 401) return setupErrorResponse(error.message, 'connection', 'OneDrive', undefined, 401);
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
     throw error;

@@ -259,7 +259,6 @@
     "weatherAlerts": "Avisos meteorológicos",
     "alertCount": "({count})",
     "noActiveAlerts": "Sin avisos activos",
-    "alertDataRequires": "Los avisos requieren Pirate Weather o NOAA",
     "alertSeverityExpires": "{severity} · Caduca {expires}",
     "noWeatherData": "Sin datos meteorológicos",
     "noForecastData": "Sin datos de previsión",
@@ -270,7 +269,6 @@
     "stoppingInMin": "Para en {minutes} min",
     "precipitationForNextHour": "Precipitación para la próxima hora",
     "startingInMin": "Empieza en {minutes} min",
-    "minutelyDataRequires": "Los datos por minuto requieren Pirate Weather",
     "tableHeaders": {
       "day": "Día",
       "temp": "Temp",
@@ -291,7 +289,10 @@
       "Moderate": "Moderado",
       "Minor": "Leve",
       "Unknown": "Desconocido"
-    }
+    },
+    "loading": "Obteniendo la previsión…",
+    "notUpdating": "El tiempo no se está actualizando",
+    "notAvailableForSource": "No disponible con tu fuente meteorológica"
   },
   "air-quality": {
     "loading": "Cargando calidad del aire…",
@@ -350,9 +351,7 @@
   "rain-map": {
     "loading": "Cargando mapa de lluvia…",
     "noRadarData": "No hay datos de radar disponibles",
-    "now": "Ahora",
-    "minutesAgo": "hace {minutes} min",
-    "minutesAhead": "+{minutes} min"
+    "now": "Ahora"
   },
   "meal-planner": {
     "noMealsPlannedYet": "Aún no hay comidas planeadas",
@@ -634,7 +633,8 @@
     "noRoutes": "No hay rutas configuradas",
     "loading": "Cargando tráfico…",
     "unitMin": "min",
-    "mockNotice": "Datos de ejemplo — añade una clave de API de tráfico en Ajustes"
+    "mockNotice": "Cifras de ejemplo hasta que añadas una clave de tráfico",
+    "needsKey": "El tráfico necesita una clave de Google Maps o TomTom"
   },
   "fullscreen-photo": {
     "noPhotoSelected": "No hay foto seleccionada",
@@ -813,7 +813,17 @@
     "locationNotConfigured": "Ubicación no configurada",
     "pluginNotAvailable": "Complemento no disponible: {name}",
     "moduleFailed": "No se pudo mostrar este elemento.",
-    "setLocationLink": "Indicar tu ubicación"
+    "setLocationLink": "Indicar tu ubicación",
+    "notUpdating": "Sin actualizar ahora mismo",
+    "setup": {
+      "needsKey": "Aún no hay clave de {service}",
+      "keyNotWorking": "La clave de {service} no funciona",
+      "notConnected": "{service} aún no está conectado",
+      "needsSetup": "Falta un poco de configuración",
+      "finishInEditor": "Termina la configuración en el editor",
+      "openSettings": "Abrir claves de API",
+      "openWeatherSettings": "Abrir ajustes del tiempo"
+    }
   },
   "event-detail": {
     "close": "Cerrar",

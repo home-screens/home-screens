@@ -2,7 +2,8 @@
 
 import type { TrafficConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { ModuleEmptyState, moduleGate } from './ModuleStates';
+import { ModuleEmptyState, ModuleSetupState, moduleGate } from './ModuleStates';
+import { useModuleSurface } from './module-surface';
 import { useFetchData } from '@/hooks/useFetchData';
 import { trafficUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -37,6 +38,7 @@ function delayColor(delayMinutes: number): string {
 
 export default function TrafficModule({ config, style }: TrafficModuleProps) {
   const t = useTranslate('modules');
+  const surface = useModuleSurface();
   const routes = config.routes ?? [];
   const [data, error] = useFetchData<TrafficData>(trafficUrl(config) ?? '', config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
@@ -46,6 +48,13 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('traffic.loading') });
   if (gate) return gate;
+
+  // Without a traffic key the route answers with made-up minutes. Those are
+  // fine as a shape preview in the editor, but confident fake numbers on the
+  // wall are worse than an empty box: the wall gets the setup card instead.
+  if (data?.mock && surface === 'display') {
+    return <ModuleSetupState style={style} message={t('traffic.needsKey')} />;
+  }
 
   return (
     <ModuleWrapper style={style}>

@@ -35,7 +35,7 @@ describe('createWeatherProvider', () => {
   });
 
   it('throws when Met Office is created without an API key', () => {
-    expect(() => createWeatherProvider('metoffice')).toThrow(/requires an API key/);
+    expect(() => createWeatherProvider('metoffice')).toThrow(/API key/);
   });
 
   it('creates Environment Canada provider', () => {

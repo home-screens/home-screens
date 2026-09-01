@@ -259,7 +259,6 @@
     "weatherAlerts": "Weather Alerts",
     "alertCount": "({count})",
     "noActiveAlerts": "No active alerts",
-    "alertDataRequires": "Alert data requires Pirate Weather or NOAA",
     "alertSeverityExpires": "{severity} · Expires {expires}",
     "noWeatherData": "No weather data",
     "noForecastData": "No forecast data",
@@ -270,7 +269,6 @@
     "stoppingInMin": "Stopping in {minutes} min",
     "precipitationForNextHour": "Precipitation for the next hour",
     "startingInMin": "Starting in {minutes} min",
-    "minutelyDataRequires": "Minutely data requires Pirate Weather",
     "tableHeaders": {
       "day": "Day",
       "temp": "Temp",
@@ -291,7 +289,10 @@
       "Moderate": "Moderate",
       "Minor": "Minor",
       "Unknown": "Unknown"
-    }
+    },
+    "loading": "Getting the forecast…",
+    "notUpdating": "Weather is not updating",
+    "notAvailableForSource": "Not available from your weather source"
   },
   "air-quality": {
     "loading": "Loading air quality…",
@@ -350,9 +351,7 @@
   "rain-map": {
     "loading": "Loading rain map…",
     "noRadarData": "No radar data available",
-    "now": "Now",
-    "minutesAgo": "{minutes}m ago",
-    "minutesAhead": "+{minutes}m"
+    "now": "Now"
   },
   "meal-planner": {
     "noMealsPlannedYet": "No meals planned yet",
@@ -634,7 +633,8 @@
     "noRoutes": "No routes configured",
     "loading": "Loading traffic…",
     "unitMin": "min",
-    "mockNotice": "Sample data — add a traffic API key in Settings"
+    "mockNotice": "Sample numbers until a traffic key is added",
+    "needsKey": "Traffic needs a Google Maps or TomTom key"
   },
   "fullscreen-photo": {
     "noPhotoSelected": "No photo selected",
@@ -808,7 +808,17 @@
     "locationNotConfigured": "Location not configured",
     "pluginNotAvailable": "Plugin not available: {name}",
     "moduleFailed": "This item could not be shown.",
-    "setLocationLink": "Set your location"
+    "setLocationLink": "Set your location",
+    "notUpdating": "Not updating right now",
+    "setup": {
+      "needsKey": "No {service} key yet",
+      "keyNotWorking": "The {service} key isn't working",
+      "notConnected": "{service} isn't connected yet",
+      "needsSetup": "Needs a little setup",
+      "finishInEditor": "Finish setup in the editor",
+      "openSettings": "Open API keys",
+      "openWeatherSettings": "Open weather settings"
+    }
   },
   "event-detail": {
     "close": "Close",
