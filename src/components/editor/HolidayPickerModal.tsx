@@ -43,7 +43,6 @@ export default function HolidayPickerModal({
 
   useEscapeKey(onClose);
 
-  // Fetch available countries on mount
   useEffect(() => {
     async function load() {
       try {
@@ -60,7 +59,7 @@ export default function HolidayPickerModal({
     load();
   }, [t]);
 
-  // Fetch holidays when country changes (with stale-response guard)
+  // stale-response guard
   const tokenRef = useRef(0);
   const fetchHolidays = useCallback(async (code: string) => {
     const token = ++tokenRef.current;
@@ -69,7 +68,6 @@ export default function HolidayPickerModal({
     setError(null);
     try {
       const year = new Date().getFullYear();
-      // Fetch current year and next year
       const [res1, res2] = await Promise.all([
         editorFetch(`/api/holidays?country=${code}&year=${year}`),
         editorFetch(`/api/holidays?country=${code}&year=${year + 1}`),
@@ -92,7 +90,6 @@ export default function HolidayPickerModal({
       const unique = Array.from(seen.values()).sort((a, b) => a.start.localeCompare(b.start));
       setHolidays(unique);
 
-      // Pre-check holidays already in events list
       const existingNames = new Set(
         existingEvents
           .filter((e) => e.source === 'holiday')
@@ -154,12 +151,9 @@ export default function HolidayPickerModal({
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      {/* Modal */}
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-md flex flex-col" style={{ maxHeight: '80vh' }}>
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
           <h2 className="text-sm font-semibold text-hs-text-primary">{t('holidayPickerModal.title')}</h2>
           <button
@@ -171,7 +165,6 @@ export default function HolidayPickerModal({
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Country selector */}
           <label className="flex flex-col gap-1">
@@ -236,7 +229,6 @@ export default function HolidayPickerModal({
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
           <Button size="sm" variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button size="sm" onClick={handleConfirm} disabled={selectedIds.size === 0}>

@@ -40,18 +40,16 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   const todayISO = toISODate(now);
   const currentHour = now.getHours();
 
-  // Fetch meal data from API (same source as fullscreen)
   const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['meal-planner']?.ttlMs ?? 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
-  // Settings now come from the shared meals.json (edited via /remote), not per-module config
+  // Settings live in the shared meals.json, edited via /remote.
   const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
   // Effective serving-time format: an explicit meal override wins, else the
   // household global. Resolved once here so every view renders consistently.
   const globalTimeFormat = mealData?.globalTimeFormat === '24h' ? '24h' : '12h';
   const timeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
 
-  // Filter plan to current week
   const { start: weekStart, end: weekEnd } = useMemo(
     () => getWeekRange(new Date(todayISO + 'T12:00:00'), settings.weekStartDay),
     [todayISO, settings.weekStartDay],

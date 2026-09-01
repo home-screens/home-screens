@@ -24,16 +24,12 @@ import {
   buildChoreRows,
 } from './helpers';
 
-// ─── Props ───
-
 interface FullscreenChoreChartModuleProps {
   config: FullscreenChoreChartConfig;
   style: ModuleStyle;
   fullscreenTheme?: string;
   timezone?: string;
 }
-
-// ─── Component ───
 
 export default function FullscreenChoreChartModule({
   config,
@@ -68,7 +64,6 @@ export default function FullscreenChoreChartModule({
   const tzNow = createTZDate(timezone);
   const currentTod = getCurrentTimeOfDay(tzNow.getHours());
 
-  // Toast state for completion feedback
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const toastIdRef = useRef(0);
   const toastsRef = useRef(toasts);
@@ -88,7 +83,6 @@ export default function FullscreenChoreChartModule({
     for (const r of recentRedemptions) {
       if (seenRedemptionIds.current.has(r.id)) continue;
       seenRedemptionIds.current.add(r.id);
-      // Find member color
       const member = members.find((m) => m.id === r.memberId);
       const id = `redeem-${r.id}`;
       setToasts((prev) => [...prev.slice(-2), {
@@ -221,7 +215,6 @@ export default function FullscreenChoreChartModule({
         />
       ) : (
         <>
-      {/* ── Header + Members ── */}
       {isLandscape ? (
         <div style={{ display: 'flex', alignItems: 'stretch', padding: `${s * 1}px ${pad}px`, gap: s * 1.4, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: s * 1.4, borderRight: '1px solid var(--fcc-border-sub)', minWidth: s * 12 }}>
@@ -313,7 +306,6 @@ export default function FullscreenChoreChartModule({
         </>
       )}
 
-      {/* ── Chore Content ── */}
       {isLandscape ? (
         <div style={{ flex: 1, display: 'flex', gap: 1, background: 'var(--fcc-surface)', minHeight: 0, overflow: 'hidden' }}>
           {displayTods.length === 0 ? (
@@ -353,7 +345,6 @@ export default function FullscreenChoreChartModule({
         </div>
       )}
 
-      {/* ── Star Chart + Footer ── */}
       <div style={{
         flexShrink: 0,
         padding: `${s * 0.8}px ${pad}px ${s * 1.2}px`,

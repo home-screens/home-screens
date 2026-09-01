@@ -14,7 +14,6 @@ export default function MenuBoardView({
   const dateStr = formatDateSync(now, 'EEEE, MMMM d', { locale });
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
-  // Only show slots that have a meal planned
   const courses = activeOrder
     .map((sl) => {
       const { meal, planned } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);

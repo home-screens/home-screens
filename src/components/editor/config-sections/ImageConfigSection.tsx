@@ -20,7 +20,6 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
   const { config: c, set } = useModuleConfig<{ src?: string; objectFit?: string; alt?: string }>(mod, screenId);
   const [tab, setTab] = useState<'url' | 'library'>(() => {
-    // Default to library tab if src is a local serve URL
     const src = (c.src as string) || '';
     return src.startsWith('/api/backgrounds/serve') ? 'library' : 'url';
   });

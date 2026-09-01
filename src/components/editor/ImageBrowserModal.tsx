@@ -129,7 +129,6 @@ export default function ImageBrowserModal({
     const original = photoCacheRef.current.get(photo.id);
     if (!original) return;
 
-    // Download image locally via POST /api/unsplash
     const res = await editorFetch('/api/unsplash', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -142,7 +141,6 @@ export default function ImageBrowserModal({
     if (!res.ok) throw new Error(t('imageBrowsers.errors.saveImage'));
     const data = await res.json();
     if (data.path) {
-      // The Unsplash save wrote a new file into the library.
       displayCache.invalidateByPrefix('/api/backgrounds');
       onSelectImage?.(data.path);
       onClose();
@@ -166,7 +164,6 @@ export default function ImageBrowserModal({
       ? t('imageBrowserModal.allMedia')
       : t('imageBrowserModal.allPhotos');
 
-  // Build a tree structure for directories
   const rootDirs = lib.directories.filter(
     (d) => d.path !== '' && !d.path.includes('/'),
   );
@@ -182,15 +179,12 @@ export default function ImageBrowserModal({
 
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
 
-      {/* Modal */}
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-3xl h-[85vh] flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-hs-border-strong">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-hs-text-primary">
@@ -228,7 +222,6 @@ export default function ImageBrowserModal({
           </button>
         </div>
 
-        {/* Body */}
         {tab === 'local' ? (
           <div className="flex flex-1 min-h-0">
             {/* Sidebar — Directory Tree */}
@@ -292,7 +285,6 @@ export default function ImageBrowserModal({
           </div>
         )}
 
-        {/* Footer — only show for local tab */}
         {tab === 'local' && (
           <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-hs-border-strong">
             <Button size="sm" onClick={onClose}>

@@ -22,7 +22,6 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   const data = useChoreData(config);
   const t = useTranslate('modules');
 
-  // Empty state — no members
   if (data.members.length === 0) {
     return (
       <ModuleWrapper style={style}>
@@ -37,7 +36,6 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     );
   }
 
-  // Empty state — no chores
   if (data.chores.length === 0) {
     return (
       <ModuleWrapper style={style}>

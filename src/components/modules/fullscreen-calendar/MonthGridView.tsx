@@ -26,7 +26,6 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const { scrollRef, containerH } = useContainerHeight();
 
-  // Build calendar grid cells
   const { cells, weekCount } = useMemo(() => {
     const monthStart = startOfMonth(today);
     const monthEnd = endOfMonth(today);
@@ -91,7 +90,6 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
           // the outer two when it starts Sunday
           const isWeekend = weekStartsOn === 1 ? dow >= 5 : (dow === 0 || dow === 6);
 
-          // Week number column
           const showWeekNum = showWeekNumbers && dow === 0;
 
           const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));

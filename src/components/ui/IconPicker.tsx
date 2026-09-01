@@ -138,16 +138,12 @@ function IconPickerModal({ selectedName, onClose, onPick }: IconPickerModalProps
   useEscapeKey(onClose);
 
   const filtered = useMemo(() => {
-    // The kind-filter predicate matches against the icon's full `styles[]`
-    // array — not just `kind`. The postinstall script tags every dual-style
-    // icon with `kind='solid'` (priority order: brands > solid > regular),
-    // so filtering by `i.kind === 'regular'` would always be empty even
-    // though ~170 icons ship in the regular woff2. Checking `styles` lets
-    // those icons show up under the "Regular" pill.
-    //
-    // Curated entries that haven't been merged with the manifest yet may
-    // lack a `styles` array — fall back to `[i.kind]` so they still match
-    // the user's filter during the brief pre-fetch window.
+    // The kind-filter predicate matches the icon's full `styles[]` array, not just
+    // `kind`, because the postinstall script tags every dual-style icon with
+    // `kind='solid'` (priority order: brands > solid > regular) — filtering by
+    // `i.kind === 'regular'` would miss the ~170 icons that ship in the regular
+    // woff2. Curated entries not yet merged with the manifest may lack a `styles`
+    // array, so this falls back to `[i.kind]` for those during the pre-fetch window.
     const matchesKind = (i: FaIconEntry) => {
       if (kindFilter === 'all') return true;
       const styles = i.styles ?? [i.kind];

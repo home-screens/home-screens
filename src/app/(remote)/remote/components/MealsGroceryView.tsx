@@ -73,7 +73,6 @@ export default function MealsGroceryView({
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      {/* Header stats */}
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-body)' }}>
@@ -100,7 +99,6 @@ export default function MealsGroceryView({
               : t('mealsGrocery.shareButton')}
           </button>
         </div>
-        {/* Progress bar */}
         <div style={{ height: 6, background: 'var(--hs-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
           <div
             style={{
@@ -117,7 +115,6 @@ export default function MealsGroceryView({
         </div>
       </div>
 
-      {/* Empty state */}
       {groceryStats.total === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
           <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
@@ -129,13 +126,11 @@ export default function MealsGroceryView({
         </div>
       )}
 
-      {/* Category groups */}
       {Array.from(groceryList.entries()).map(([catKey, { items }]) => {
         const catChecked = items.filter((i) => i.checked).length;
         const categoryLabel = tCore(`meal.grocery.categoryLabels.${catKey}`);
         return (
         <div key={catKey} style={{ marginBottom: 20 }}>
-          {/* Category header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             {GROCERY_CATEGORY_ICONS[catKey] && (
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hs-text-faint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -160,7 +155,6 @@ export default function MealsGroceryView({
             </span>
           </div>
 
-          {/* Items */}
           {items.map((item) => (
             <button
               key={item.name}
@@ -185,7 +179,6 @@ export default function MealsGroceryView({
                 WebkitTapHighlightColor: 'transparent',
               }}
             >
-              {/* Checkbox */}
               <div
                 style={{
                   width: 22,
@@ -205,7 +198,6 @@ export default function MealsGroceryView({
                 )}
               </div>
 
-              {/* Name */}
               <span
                 style={{
                   flex: 1,
@@ -218,7 +210,6 @@ export default function MealsGroceryView({
                 {item.name}
               </span>
 
-              {/* Amount */}
               {item.amount && (
                 <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
                   {item.amount}

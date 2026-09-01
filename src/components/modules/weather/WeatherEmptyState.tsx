@@ -7,7 +7,6 @@ interface WeatherEmptyStateProps {
   message?: string;
 }
 
-/** Placeholder shown when weather/forecast data is unavailable. */
 export function WeatherEmptyState({ message }: WeatherEmptyStateProps) {
   const t = useTranslate('modules');
   const text = message ?? t('weather.noWeatherData');

@@ -285,7 +285,6 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
         />
       )}
 
-      {/* Confirm redeem sheet */}
       {redeemTarget && (() => {
         const cost = redeemTarget.reward.cost;
         const remaining = Math.max(0, balance - cost);
@@ -316,7 +315,6 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
         );
       })()}
 
-      {/* Reward form overlay */}
       {editingReward !== null && (
         <RewardFormOverlay
           reward={editingReward === 'new' ? null : editingReward}
@@ -353,7 +351,6 @@ function RedeemSection({
 }) {
   return (
     <>
-      {/* Member pills */}
       <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
         {members.map((member) => {
           const isActive = member.id === selectedMemberId;
@@ -391,7 +388,6 @@ function RedeemSection({
         })}
       </div>
 
-      {/* Balance card */}
       <div
         style={{
           display: 'flex',
@@ -428,7 +424,6 @@ function RedeemSection({
         </div>
       </div>
 
-      {/* Available Rewards */}
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
         {t('rewardsView.redeem.availableHeading')}

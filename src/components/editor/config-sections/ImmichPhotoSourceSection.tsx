@@ -52,11 +52,9 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
     [previewData],
   );
 
-  // Use album assetCount when available, otherwise null
   const selectedAlbum = albums.find((a) => a.id === albumId);
   const photoCount = selectedAlbum ? selectedAlbum.assetCount : null;
 
-  // Validate connection
   const checkConnection = useCallback(async () => {
     setChecking(true);
     try {

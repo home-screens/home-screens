@@ -19,10 +19,10 @@ import type { ModuleInstance, ClockView, WorldClockZone, ElapsedFormat, ElapsedP
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
 const SAMPLE_ELAPSED_MS =
-  50 * 24 * 60 * 60 * 1000 + // days
-  20 * 60 * 60 * 1000 + // hours
-  13 * 60 * 1000 + // minutes
-  42 * 1000; // seconds
+  50 * 24 * 60 * 60 * 1000 +
+  20 * 60 * 60 * 1000 +
+  13 * 60 * 1000 +
+  42 * 1000;
 
 // Shared across every timezone picker in the app — see `src/lib/timezone.ts`.
 
@@ -145,7 +145,6 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const elapsedPrecisionVal = c.elapsedPrecision ?? 'auto';
   const elapsedPreview = formatElapsed(SAMPLE_ELAPSED_MS, elapsedFormatVal, elapsedPrecisionVal, formattingLocale);
 
-  // Filter out already-selected timezones from the dropdown
   const availableZones = useMemo(
     () => COMMON_TIMEZONES.filter((tz) => !worldZones.some((wz) => wz.timezone === tz.value)),
     [worldZones],

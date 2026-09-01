@@ -49,16 +49,14 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     // and the modules render LocationRequired anyway, so don't start any
     // provider poll loops — an empty set makes every weatherUrl() below ''.
     if (!hasLocation) return needed;
-    // Always fetch global-provider weather for the event bus
+    // for the event bus
     needed.add(globalProvider);
     for (const screen of screens) {
       for (const mod of screen.modules) {
         if (!isModuleEnabled(mod)) continue;
-        // Fetch weather for built-in weather modules
         if (mod.type === 'weather') {
           needed.add(resolveProvider(mod, globalProvider));
         }
-        // Also fetch for plugins that declare a weather data requirement
         const def = getModuleDefinition(mod.type);
         if (def?.dataRequirements?.includes('weather')) {
           needed.add(resolveProvider(mod, globalProvider));

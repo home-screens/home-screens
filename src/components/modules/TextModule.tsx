@@ -42,10 +42,6 @@ function resolveRevealAnimation(rotationEnabled: boolean | undefined, reveal: st
   return undefined;
 }
 
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
-
 export default function TextModule({ config, style, timezone }: TextModuleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);

@@ -23,9 +23,6 @@ interface ParsedClockTime {
 
 /**
  * Parse a Date into display-ready clock values.
- *
- * @param format24h - Whether to use 24-hour format
- * @param now - The current Date
  */
 export function parseClockTime(format24h: boolean, now: Date): ParsedClockTime {
   const hours = now.getHours();
@@ -60,8 +57,6 @@ export function getDateInfoValues(now: Date): DateInfoValues {
 /**
  * Build the info-parts array (week number, day of year) used by clock and date views.
  *
- * @param config - Object with showWeekNumber and showDayOfYear flags
- * @param now - The current Date
  * @returns Array of info strings like "Week 12", "Day 85"
  */
 export function buildInfoParts(

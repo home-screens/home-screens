@@ -43,7 +43,6 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
   const diffMs = realNow.getTime() - refDate!.getTime();
   const countUp = config.countUp ?? true;
 
-  // Determine display logic
   // countUp=true: show time since reference (positive diff = time elapsed, negative diff = hasn't started)
   // countUp=false: show time until reference (negative diff = time remaining, positive diff = already passed)
   const isExpected = countUp ? diffMs >= 0 : diffMs <= 0;

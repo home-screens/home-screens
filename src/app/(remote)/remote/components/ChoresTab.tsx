@@ -305,7 +305,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
 
   return (
     <div>
-      {/* Day header */}
       <div style={{ padding: '12px 0 4px' }}>
         <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>{dayName}</div>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)' }}>{t('choresTab.header')}</h2>
@@ -424,7 +423,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         </div>
       ) : (
         <>
-          {/* Day history strip */}
           <ChoreHistoryNav
             viewingDate={viewingDate}
             realToday={realToday}
@@ -440,7 +438,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
             <ChoreHistoryBanner viewingDate={viewingDate} realToday={realToday} canEdit={canEdit} />
           )}
 
-          {/* Member pills */}
           <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
             {members.map((member) => {
               const isActive = member.id === selectedMemberId;
@@ -487,7 +484,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
             })}
           </div>
 
-          {/* Progress */}
           <div style={{ padding: '0 0 12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
@@ -510,7 +506,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
             </div>
           </div>
 
-          {/* Chore list */}
           <div style={{ paddingBottom: 80 }}>
             {myAssignments.length === 0 && (
               <div style={{ textAlign: 'center', padding: '48px 0' }}>
@@ -528,7 +523,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
 
               return (
                 <div key={section} style={{ marginBottom: 16 }}>
-                  {/* Section header */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0' }}>
                     <TodIcon size={16} color={isCurrent ? accentColor : 'var(--hs-text-faint)'} strokeWidth={2} />
                     <span
@@ -547,7 +541,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                     )}
                   </div>
 
-                  {/* Chore cards */}
                   {items.map((assignment) => {
                     const key = completionKey(assignment.choreId, selectedMemberId, viewingDate);
                     return (

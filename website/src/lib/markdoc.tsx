@@ -129,7 +129,6 @@ export function renderMarkdoc(collection: string, slug: string) {
   }
 }
 
-/** Build the Next `metadata` export from a page's `nextjs.metadata` frontmatter. */
 export function metadataFor(collection: string, slug: string) {
   return readFrontmatter(collection, slug).nextjs?.metadata ?? {}
 }

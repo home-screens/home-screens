@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import React from 'react';
 
-// ── Hoisted shared mocks ───────────────────────────────────────────────
 const mocks = vi.hoisted(() => ({
   shouldShow: false as boolean,
   latestVersion: null as string | null,
@@ -51,7 +50,6 @@ vi.mock('@/lib/editor-fetch', () => ({
   editorFetch: vi.fn(),
 }));
 
-// ── Import component + real translations ───────────────────────────────
 import UpdateAvailableToast from '../UpdateAvailableToast';
 import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';

@@ -130,7 +130,6 @@ export async function fetchICalEvents(
         return fail("The link isn't a valid web address", 'linkInvalid');
       }
 
-      // Fetch the ICS data
       const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
       if (!res.ok) {
         log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
@@ -155,7 +154,6 @@ export async function fetchICalEvents(
     },
   );
 
-  // Sort by start time
   events.sort((a, b) => compareEventStarts(a.start, b.start));
   return { events, results };
 }

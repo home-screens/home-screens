@@ -274,7 +274,6 @@ export default function ChoresManageView({
         })}
       </div>
 
-      {/* Member List */}
       {section === 'members' && (
         <div>
           {members.length === 0 && (
@@ -380,7 +379,6 @@ export default function ChoresManageView({
         </div>
       )}
 
-      {/* Chore List */}
       {section === 'chores' && (
         <div>
           {chores.length === 0 && (

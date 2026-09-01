@@ -19,14 +19,9 @@ interface ColorPickerProps {
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /**
- * Hex and rgb()/rgba() only — the notations every renderer downstream can
- * actually read. A DOM probe used to accept anything CSS parses, so `gold` or
- * `hsl(50 90% 60%)` could be stored; the modules that tint a color or pick
- * readable ink for a fill can't parse those, and silently fell back to an
- * opaque fill with white text — today's date rendered as the least legible
- * cell on the grid. The swatch still offers every color; only the typed form
- * is narrowed. Parsing instead of probing also drops the server/client
- * divergence the probe had (no `document` during SSR).
+ * Hex and rgb()/rgba() only — the only forms the tint/contrast helpers
+ * downstream can parse; parsing (not a DOM color probe) also avoids
+ * SSR/client divergence.
  */
 function isSupportedColor(input: string): boolean {
   return parseCssColorToRgb(input) !== null;

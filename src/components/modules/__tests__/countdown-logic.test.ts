@@ -10,7 +10,6 @@ describe('getTimeRemaining', () => {
   });
 
   it('returns correct days/hours/minutes/seconds for a future date', () => {
-    // Fix "now" to a known instant
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
 
@@ -109,7 +108,6 @@ describe('getTimeRemaining', () => {
 
   it('respects timezone parameter for naive date strings', () => {
     vi.useFakeTimers();
-    // Set "now" to a known UTC instant
     vi.setSystemTime(new Date('2025-06-15T18:00:00Z'));
 
     // "2025-06-15T14:00:00" intended as New York time (UTC-4 in June)

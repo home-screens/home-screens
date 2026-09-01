@@ -68,11 +68,8 @@ export default function MealPlannerModal({
   const [pendingMeal, setPendingMeal] = useState<SavedMeal | null>(null);
   // Grocery checked state lives here so it survives tab switches
   const [groceryChecked, setGroceryChecked] = useState<Set<string>>(() => new Set());
-  // Toast notification
   const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  // ── Week navigation ──
 
   const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => {
     const { start } = getWeekRange(new Date(), weekStartDay);
@@ -87,7 +84,6 @@ export default function MealPlannerModal({
   const todayISO = toISODate(new Date());
   const isCurrentWeek = viewedWeekDates.includes(todayISO);
 
-  // Filter plan to viewed week for grid display
   const weekPlan = useMemo(
     () => filterPlanToWeek(plan, viewedWeekDates[0], viewedWeekDates[6]),
     [plan, viewedWeekDates],
@@ -116,8 +112,6 @@ export default function MealPlannerModal({
     return () => { if (toastTimerRef.current) clearTimeout(toastTimerRef.current); };
   }, []);
 
-  // ── Meal selection ──
-
   const selectMeal = useCallback((id: string) => {
     setSelectedMealId(id);
     setSidebarTab('detail');
@@ -125,8 +119,6 @@ export default function MealPlannerModal({
 
   // Include pending meal in the list passed to children
   const allMeals = pendingMeal ? [...savedMeals, pendingMeal] : savedMeals;
-
-  // ── Meal CRUD ──
 
   const addMeal = useCallback(() => {
     const id = uuid();
@@ -158,7 +150,6 @@ export default function MealPlannerModal({
 
   const deleteMeal = useCallback((id: string) => {
     if (pendingMeal && id === pendingMeal.id) {
-      // Discard unsaved new meal
       setPendingMeal(null);
       setSelectedMealId(null);
       setSidebarTab('library');
@@ -194,8 +185,6 @@ export default function MealPlannerModal({
       ),
     });
   }, [savedMeals, pendingMeal, onUpdate]);
-
-  // ── Plan actions (all multi-week safe) ──
 
   const setSlotMeal = useCallback((date: string, slot: MealSlotType, mealId: string) => {
     const existing = plan.find((p) => p.date === date && p.slot === slot);
@@ -262,15 +251,12 @@ export default function MealPlannerModal({
     });
   }, [plan, weekPlan, viewedWeekDates, onUpdate, showToast, t]);
 
-  // Check if previous week has entries
   const hasPreviousWeekEntries = useMemo(() => {
     const prevStart = new Date(viewingWeekStart);
     prevStart.setDate(prevStart.getDate() - 7);
     const prevWeekDates = getWeekDatesForRange(toISODate(prevStart), weekStartDay);
     return filterPlanToWeek(plan, prevWeekDates[0], prevWeekDates[6]).length > 0;
   }, [plan, viewingWeekStart, weekStartDay]);
-
-  // ── Picker ──
 
   const openPicker = useCallback((date: string, slot: MealSlotType) => {
     setPickerTarget({ date, slot });
@@ -279,8 +265,6 @@ export default function MealPlannerModal({
   const closePicker = useCallback(() => {
     setPickerTarget(null);
   }, []);
-
-  // ── Grocery check toggle ──
 
   const toggleGroceryItem = useCallback((key: string) => {
     setGroceryChecked((prev) => {
@@ -291,13 +275,9 @@ export default function MealPlannerModal({
     });
   }, []);
 
-  // ── Resolve selected meal ──
-
   const selectedMeal = selectedMealId
     ? allMeals.find((m) => m.id === selectedMealId) ?? null
     : null;
-
-  // ── Render ──
 
   return (
     <CRUDModalShell

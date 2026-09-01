@@ -145,7 +145,7 @@ The display can rotate through multiple screens automatically.
 
 ### Adding a Screen
 
-Click the **+** button in the Screen Tabs and choose **Blank Screen** to start from scratch, or **From Template…** to start from a pre-built layout. Each screen has its own set of modules and background.
+Click the **+** button in the Screen Tabs and choose **Blank Screen** to start from scratch, **From Template…** to start from a pre-built layout, or **From File…** to bring in a layout someone shared with you (or one you exported earlier) as new screens on the current display. Importing this way only adds screens; the ones you already have are left alone. Each screen has its own set of modules and background.
 
 ### Enabling and Disabling a Screen
 

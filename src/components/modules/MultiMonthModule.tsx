@@ -193,10 +193,8 @@ function MonthGrid({
         </span>
       </div>
 
-      {/* Thin separator line */}
       <div className="shrink-0" suppressHydrationWarning style={{ height: '1px', background: DIVIDER.visible, marginBottom: '0.35em', ...labelStyle }} />
 
-      {/* Day-of-week headers */}
       <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1px' }} className="shrink-0">
         {showWeekNumbers && <div />}
         {headers.map((d, i) => {
@@ -220,7 +218,6 @@ function MonthGrid({
         })}
       </div>
 
-      {/* Day rows */}
       {Array.from({ length: WEEKS_PER_GRID }, (_, row) => {
         const rowCells = cells.slice(row * 7, row * 7 + 7);
         // With adjacent days hidden, a trailing row of nothing but next-month

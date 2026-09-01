@@ -85,7 +85,6 @@ export default function MealsTab() {
 
       <MealsSubNav subView={subView} setSubView={setSubView} weekLabel={weekLabel} />
 
-      {/* Week navigation (shown for week/plan/grocery views) */}
       {(subView === 'week' || subView === 'plan' || subView === 'grocery') && (
         <MealsWeekNav
           weekLabel={weekLabel}
@@ -161,7 +160,6 @@ export default function MealsTab() {
         />
       )}
 
-      {/* Confirmation dialog */}
       {confirmAction && (
         <ConfirmSheet
           title={confirmAction.title}
@@ -172,7 +170,6 @@ export default function MealsTab() {
         />
       )}
 
-      {/* Settings sheet */}
       {showSettings && (
         <MealsSettingsSheet
           settings={settings}
@@ -182,7 +179,6 @@ export default function MealsTab() {
         />
       )}
 
-      {/* Save error toast */}
       {saveError && !form.editingMeal && (
         <div
           style={{

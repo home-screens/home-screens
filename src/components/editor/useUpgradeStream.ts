@@ -40,8 +40,7 @@ export function getStepState(
   const stepIdx = steps.indexOf(step);
   const activeIdx = steps.indexOf(activeStep);
 
-  // Only mark steps as done if they were actually visited (fixes rollback
-  // showing all steps green even when preflight/fetch/migrate were skipped)
+  // Only mark steps done if actually visited — unvisited steps must not show as complete.
   if (done) return visitedSteps.has(step) ? 'done' : 'pending';
 
   // If activeStep is not in the visible steps list (e.g. internal-only steps
@@ -262,9 +261,7 @@ export function useUpgradeStream(
   // Per-step accumulated log output
   const [stepLogs, setStepLogs] = useState<Record<string, string>>({});
 
-  // Track whether any real (non-terminal) step has been received from the server.
-  // Guards against the stale 'complete' or 'idle' initial state from subscribeToEvents
-  // closing the SSE before the upgrade has actually started.
+  // Guards against a stale 'complete'/'idle' event closing the SSE early.
   const hasSeenRealStep = useRef(false);
 
   const progressRef = useRef(progress);

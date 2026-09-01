@@ -60,8 +60,6 @@ function compactMatch(match: CalendarEventMatch): CalendarEventMatch {
   return out;
 }
 
-// ─── Rule card shell ───
-
 function RuleCard({ index, total, onMove, onRemove, children }: {
   index: number;
   total: number;
@@ -99,8 +97,6 @@ function MatchesEverythingNote({ children }: { children: ReactNode }) {
 function isEmptyMatch(match: CalendarEventMatch | undefined): boolean {
   return !match || Object.keys(match).length === 0;
 }
-
-// ─── Event match fields (shared by event rules and "has a matching event") ───
 
 type TriState = 'any' | 'yes' | 'no';
 function triOf(value: boolean | undefined): TriState {
@@ -206,8 +202,6 @@ function EventMatchFields({ match, availableSources, onChange }: {
   );
 }
 
-// ─── Event rule ───
-
 function EventRuleFields({ rule, availableSources, onChange }: {
   rule: CalendarEventRule;
   availableSources: CalendarSource[];
@@ -265,8 +259,6 @@ function EventRuleFields({ rule, availableSources, onChange }: {
     </>
   );
 }
-
-// ─── Day rule ───
 
 type DayBgMode = 'none' | 'auto' | 'color';
 function bgModeOf(background: string | undefined): DayBgMode {
@@ -408,8 +400,6 @@ function DayRuleFields({ rule, availableSources, onChange }: {
     </>
   );
 }
-
-// ─── Lists ───
 
 export function CalendarRulesEditor({ eventRules, dayRules, availableSources, onChange }: {
   eventRules: CalendarEventRule[] | undefined;

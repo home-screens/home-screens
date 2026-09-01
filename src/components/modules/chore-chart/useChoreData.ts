@@ -86,11 +86,9 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   // override window just long enough for the next poll to catch up.
   const rewardsOverrideUntil = useRef<number>(0);
 
-  // Members and chores from shared data file
   const members = useMemo(() => fetchedChoreData?.members ?? [], [fetchedChoreData]);
   const chores = useMemo(() => fetchedChoreData?.chores ?? [], [fetchedChoreData]);
 
-  // Sync fetched data → local state (polls and initial load)
   useEffect(() => {
     if (fetchedCompletions) setCompletions(fetchedCompletions.completions ?? []);
   }, [fetchedCompletions]);
@@ -105,7 +103,6 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const isLoading = (!fetchedCompletions && !completionsError) || !fetchedChoreData;
   const error = completionsError;
 
-  // Build completion set for fast lookup
   const completionSet = useMemo(() => {
     const set = new Set<string>();
     for (const c of completions) {
@@ -114,7 +111,6 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     return set;
   }, [completions]);
 
-  // Resolve today's assignments
   const todayAssignments = useMemo(
     () => resolveAssignmentsFor(chores, members, todayStr(), completionSet),
     [chores, members, completionSet],
@@ -181,7 +177,6 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     return days;
   }, [members, chores, completionSet, config.weekStartDay, dayNames]);
 
-  // Toggle completion
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
     const today = todayStr();
     let snapshot: ChoreCompletion[] = [];
@@ -226,12 +221,10 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         log.warn(data.warning);
       }
     } catch {
-      // Revert optimistic update on error
       setCompletions(snapshot);
     }
   }, [choreChartTtl]);
 
-  // Recent redemptions (last 5 minutes) for display toasts
   const recentRedemptions = useMemo(() => {
     const list = rewards?.redemptions;
     if (!list || list.length === 0) return [];

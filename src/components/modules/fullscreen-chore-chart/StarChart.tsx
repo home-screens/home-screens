@@ -25,7 +25,6 @@ export default function StarChart({ chartHeight, weekData, members }: StarChartP
         {t('fullscreen-chore-chart.thisWeek')}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: `${nameWidth}px repeat(7, 1fr)`, gap: 1, alignItems: 'center' }}>
-        {/* Day headers */}
         <div />
         {weekData.map((day) => {
           const [y, m, d] = day.date.split('-').map(Number);
@@ -36,7 +35,6 @@ export default function StarChart({ chartHeight, weekData, members }: StarChartP
             </div>
           );
         })}
-        {/* Member rows */}
         {members.map((member) => (
           <React.Fragment key={member.id}>
             <div style={{ fontSize: labelSize, fontWeight: 500, color: 'var(--fcc-text-2)' }}>

@@ -147,7 +147,6 @@ export function importLayout(
       .filter((id): id is string => !!id),
   }));
 
-  // Build result config
   const screens =
     mode === 'replace' ? newScreens : [...existingConfig.screens, ...newScreens];
 

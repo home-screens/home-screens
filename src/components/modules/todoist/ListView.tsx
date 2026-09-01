@@ -13,8 +13,6 @@ import {
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 
-// ─── Task Row ───
-
 export function TaskRow({
   task,
   config,
@@ -174,8 +172,6 @@ export function TaskRow({
     </>
   );
 }
-
-// ─── List View ───
 
 export default function ListView({
   tasks,

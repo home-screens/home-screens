@@ -125,7 +125,6 @@ export function verifySession(cookie: string, cookieSecret: string, sessionEpoch
     return null;
   }
 
-  // Decode payload
   let payload: SessionPayload;
   try {
     payload = JSON.parse(Buffer.from(payloadStr, 'base64url').toString());
@@ -133,7 +132,6 @@ export function verifySession(cookie: string, cookieSecret: string, sessionEpoch
     return null;
   }
 
-  // Check expiry
   if (!payload.exp || Date.now() > payload.exp * 1000) return null;
 
   // Check session epoch — reject sessions issued before the current epoch
@@ -288,7 +286,6 @@ export async function requireSession(request: Request): Promise<void> {
     });
   }
 
-  // Extract cookie from request headers
   const cookieHeader = request.headers.get('cookie') ?? '';
   const match = cookieHeader.match(/(?:^|;\s*)hs-session=([^;]+)/);
   const token = match?.[1];

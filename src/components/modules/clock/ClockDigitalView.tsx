@@ -36,12 +36,12 @@ function Segment({ active, color, style }: { active: boolean; color: string; sty
 function SevenSegmentDigit({ digit, size, color }: { digit: string; size: number; color: string }) {
   const segments = SEGMENT_MAP[digit] || SEGMENT_MAP['0'];
 
-  const w = size * 0.6;         // digit width
-  const h = size;               // digit height
+  const w = size * 0.6;
+  const h = size;
   const t = Math.max(size * 0.08, 3); // segment thickness
-  const gap = t * 0.4;         // gap from edges
-  const segLen = w - gap * 2 - t;    // horizontal segment length
-  const vSegLen = (h - t * 3) / 2 - gap; // vertical segment length
+  const gap = t * 0.4;
+  const segLen = w - gap * 2 - t;
+  const vSegLen = (h - t * 3) / 2 - gap;
 
   // Segment positions: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
   const segmentStyles: React.CSSProperties[] = [

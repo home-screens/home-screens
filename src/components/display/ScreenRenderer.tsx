@@ -151,7 +151,6 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
       {visibleModules.map((mod) => {
         const Component = getModuleComponent(mod.type);
 
-        // Show placeholder for unavailable plugin modules
         if (!Component) {
           if (mod.type.startsWith('plugin:')) {
             return (

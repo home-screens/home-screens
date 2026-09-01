@@ -49,7 +49,6 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
           <WeatherEmptyState message={t('weather.noForecastData')} />
         ) : (
           <div className="flex items-center gap-[0.5em]">
-            {/* Today - large */}
             <div className="flex flex-col items-center shrink-0">
               <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, dayLabels)}</span>
               <div className="flex items-center gap-[0.2em]">
@@ -70,7 +69,6 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
               </div>
             </div>
 
-            {/* Divider */}
             <div className="self-stretch w-px opacity-30 bg-current shrink-0" />
 
             {/* Upcoming days. No flex-wrap: a wrapped day used to land outside the

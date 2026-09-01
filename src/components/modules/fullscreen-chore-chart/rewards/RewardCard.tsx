@@ -49,12 +49,10 @@ export default function RewardCard({ reward, canAfford, onRedeem, scale }: Rewar
         textAlign: 'center',
       }}
     >
-      {/* Icon */}
       <div style={{ lineHeight: 1 }}>
         <ChoreIcon value={reward.emoji} size={Math.round(emojiFontSize)} color="var(--fcc-accent)" />
       </div>
 
-      {/* Name */}
       <div
         style={{
           fontSize: nameFontSize,
@@ -66,7 +64,6 @@ export default function RewardCard({ reward, canAfford, onRedeem, scale }: Rewar
         {reward.name}
       </div>
 
-      {/* Description */}
       {reward.description && (
         <div
           style={{
@@ -79,7 +76,6 @@ export default function RewardCard({ reward, canAfford, onRedeem, scale }: Rewar
         </div>
       )}
 
-      {/* Cost */}
       <div
         style={{
           fontSize: costFontSize,

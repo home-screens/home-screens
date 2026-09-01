@@ -210,7 +210,6 @@ export default function UpgradeModal({
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4">
       <div className="bg-hs-panel border border-hs-border-strong rounded-2xl w-full max-w-[880px] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="px-6 py-4 border-b border-hs-border-strong flex items-center gap-4 flex-shrink-0">
           <div className="w-10 h-10 rounded-[10px] bg-hs-accent-soft border border-hs-accent-ring flex items-center justify-center text-hs-accent-hover flex-shrink-0">
             <HeaderIcon size={18} />
@@ -341,7 +340,6 @@ export default function UpgradeModal({
           </div>
         )}
 
-        {/* Footer */}
         <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-t border-hs-border-strong flex-shrink-0">
           {!done && !failed && (
             <>

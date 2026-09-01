@@ -33,7 +33,7 @@ import {
 
 interface IconDef {
   component: LucideIcon;
-  defaultColor: string;  // default badge color when no color is provided
+  defaultColor: string;
 }
 
 const ICON_MAP: Record<string, IconDef> = {
@@ -205,10 +205,10 @@ export function toLucideValue(name: string): string {
 
 interface ChoreIconProps {
   value: string;             // "lucide:icon-name" or legacy emoji
-  size?: number;             // container size in px
-  color?: string;            // override badge color (falls back to icon's default)
+  size?: number;
+  color?: string;
   className?: string;
-  bare?: boolean;            // if true, render icon without badge background
+  bare?: boolean;
 }
 
 export default function ChoreIcon({ value, size = 24, color, className, bare }: ChoreIconProps) {

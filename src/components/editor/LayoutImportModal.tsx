@@ -146,7 +146,6 @@ export default function LayoutImportModal({
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button variant="primary" onClick={handleImport}>

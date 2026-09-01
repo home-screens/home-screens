@@ -12,7 +12,7 @@
  *   2. Poll `getConsoleLog` every 500 ms for up to 5 s so displays that are
  *      actually online have a chance to upload their buffer.
  *   3. Gather all other inputs in parallel.
- *   4. Hand everything to `composeDiagnosticsBundle` (T10) and stream the
+ *   4. Hand everything to `composeDiagnosticsBundle` and stream the
  *      resulting archive straight to the client.
  */
 

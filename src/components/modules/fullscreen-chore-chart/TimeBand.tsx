@@ -5,8 +5,6 @@ import { useTranslate } from '@/i18n';
 import ChoreRowItem from './ChoreRowItem';
 import { TOD_ICONS, type ChoreRow, type ToggleParams } from './helpers';
 
-// ─── TimeBandHeader (shared between portrait TimeBand and landscape columns) ───
-
 interface TimeBandHeaderProps {
   tod: ChoreTimeOfDay;
   fontSize: number;
@@ -44,8 +42,6 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
     </div>
   );
 }
-
-// ─── TimeBand ───
 
 interface TimeBandProps {
   tod: ChoreTimeOfDay;

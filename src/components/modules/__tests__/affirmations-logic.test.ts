@@ -261,7 +261,6 @@ describe('mergeEntries (category filtering)', () => {
   });
 
   it('always includes custom entries regardless of category filter', () => {
-    // Select only "gratitude" as category
     const customEntries = [
       { text: 'My custom affirmation' },
       { text: 'Another one', attribution: 'Me' },

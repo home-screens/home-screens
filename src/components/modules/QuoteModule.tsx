@@ -31,7 +31,6 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
     >
       {({ accentColor, hasAccent }) => (
         <>
-          {/* Large decorative quotation mark */}
           <span
             className="absolute top-2 left-4 font-serif pointer-events-none select-none"
             style={{ fontSize: '5em', color: hasAccent ? accentColor : 'rgba(255,255,255,0.08)', opacity: hasAccent ? 0.10 : 1 }}

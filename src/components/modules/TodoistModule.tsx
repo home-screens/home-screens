@@ -116,7 +116,6 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col h-full">
-        {/* Header */}
         <div className="flex items-center justify-between mb-1">
           {showTitle && (
             <h2 className="font-semibold" style={{ fontSize: '1.1em' }}>
@@ -136,14 +135,12 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
           </MetadataText>
         </div>
 
-        {/* Subtle divider under header */}
         {viewMode !== 'focus' && (
           <div className="mb-3">
             <div className="w-full h-px" style={{ backgroundColor: DIVIDER.default }} />
           </div>
         )}
 
-        {/* Content */}
         {tasks.length === 0 ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">

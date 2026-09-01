@@ -10,14 +10,10 @@ interface ShapeModuleProps {
   style: ModuleStyle;
 }
 
-// ---------------------------------------------------------------------------
-// Shared SVG <defs> builders
-//
 // Every shape view shares the same fill model: a solid color OR a linear
 // gradient that's rendered as an SVG <linearGradient>. Glow and grid views
 // build their own gradient/pattern defs inline because their shape doesn't
 // match the linear case.
-// ---------------------------------------------------------------------------
 
 function gradientCoords(angleDeg: number) {
   // Convert CSS-style angle (0° = up, 90° = right) into SVG userSpaceOnUse
@@ -132,9 +128,6 @@ function LineGradientDef({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 /** Stroke dash pattern for solid / dashed / dotted lines. */
 function dashArray(lineStyle: ShapeConfig['lineStyle'], thickness: number): string | undefined {
@@ -212,12 +205,8 @@ function buildZigzagPath(amplitude: number, frequency: number): string {
   return cmds.join(' ');
 }
 
-// ---------------------------------------------------------------------------
-// View renderers
-//
 // Each view returns either a self-contained <svg> or a wrapped element. The
 // wrapper handles centering and absolute positioning at the module bounds.
-// ---------------------------------------------------------------------------
 
 interface ViewProps {
   config: ShapeConfig;
@@ -793,10 +782,6 @@ function FrameView({ config, fillId }: ViewProps) {
     </svg>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main module
-// ---------------------------------------------------------------------------
 
 export default function ShapeModule({ config, style }: ShapeModuleProps) {
   // Per-instance ID prefix so multiple shape modules on the same screen don't

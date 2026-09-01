@@ -18,10 +18,6 @@ import { formatMealTime, getSlotTimePresets } from '@/lib/meal-constants';
  *   3. editing — popover overlay below the chip with native time input,
  *                slot-aware presets, and clear button
  *
- * Used in:
- *   - Editor MealPlannerModal WeekGrid (when assigning meals)
- *   - /remote MealsPlanView and MealsWeekView (when planning from phone)
- *
  * Visual: inline styles only — works inside both Tailwind and non-Tailwind contexts.
  */
 
@@ -110,7 +106,6 @@ export default function MealTimeChip({
   const inputRef = useRef<HTMLInputElement>(null);
   const colors = VARIANT_COLORS[variant];
 
-  // Close popover on outside click
   useEffect(() => {
     if (!isEditing) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -126,7 +121,6 @@ export default function MealTimeChip({
     };
   }, [isEditing]);
 
-  // Close on escape, focus input on open
   useEffect(() => {
     if (!isEditing) return;
     const handleEsc = (e: KeyboardEvent) => {
@@ -235,8 +229,6 @@ export default function MealTimeChip({
     </button>
   );
 
-  // Anchor styles based on `align` prop — popover sits *below* the chip and
-  // either grows right (left-anchored) or grows left (right-anchored)
   const popoverPositionStyle: React.CSSProperties = align === 'right'
     ? { right: 0, top: 'calc(100% + 4px)' }
     : { left: 0, top: 'calc(100% + 4px)' };
@@ -274,7 +266,6 @@ export default function MealTimeChip({
           role="dialog"
           aria-label={t('mealTimeChip.setMealTime')}
         >
-          {/* Native time input */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <input
               ref={inputRef}
@@ -327,7 +318,6 @@ export default function MealTimeChip({
             )}
           </div>
 
-          {/* Quick presets */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
             {presets.map((preset) => {
               const isSelected = preset === value;

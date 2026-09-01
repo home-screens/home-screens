@@ -19,10 +19,6 @@ interface AffirmationsModuleProps {
   latitude?: number;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 // Map of category enum → translation key. Resolve via `t(CATEGORY_LABEL_KEYS[category])`
 // at the call site. The built-in affirmation `text` strings ship per-locale
 // (./affirmations-content/), resolved via `getAffirmationsForLocale`.
@@ -60,9 +56,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// ---------------------------------------------------------------------------
-// Content selection hook — smart shuffled rotation with context scoring
-// ---------------------------------------------------------------------------
 
 function useAffirmationRotation(
   entries: Entry[],
@@ -142,9 +135,6 @@ function useAffirmationRotation(
   return { entry, key: safeIndex };
 }
 
-// ---------------------------------------------------------------------------
-// View components
-// ---------------------------------------------------------------------------
 
 function ElegantView({ entry, accentColor, showCategory, t }: { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn }) {
   return (
@@ -239,10 +229,6 @@ function TypewriterView({ entry, accentColor, showCategory, t }: { entry: Entry;
   );
 }
 
-// ---------------------------------------------------------------------------
-// View component map
-// ---------------------------------------------------------------------------
-
 type ViewProps = { entry: Entry; accentColor: string; showCategory: boolean; t: TranslateFn };
 
 const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> = {
@@ -251,10 +237,6 @@ const VIEW_COMPONENTS: Record<AffirmationsView, React.ComponentType<ViewProps>> 
   minimal: MinimalView,
   typewriter: TypewriterView,
 };
-
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
 
 export default function AffirmationsModule({ config, style, timezone, latitude }: AffirmationsModuleProps) {
   const t = useTranslate('modules');

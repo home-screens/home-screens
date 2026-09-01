@@ -12,9 +12,9 @@ import type { SleepSettings } from '@/types/config';
  * alarm) doesn't flash the screen and black out ~10s later. Explicit wakes
  * (touch, remote wake, remote navigation, remote brightness) get their own
  * configurable hold — `wakeHoldMinutes`, default DEFAULT_WAKE_HOLD_MINUTES —
- * armed only when the wake lands inside a schedule window (issue #26:
- * without it, the remote wake button "only lasts a couple seconds"
- * overnight). Holds are monotonic: a shorter wake never truncates a standing
+ * armed only when the wake lands inside a schedule window — without it, the
+ * remote wake button "only lasts a couple seconds" overnight. Holds are
+ * monotonic: a shorter wake never truncates a standing
  * longer hold; only an explicit sleep cancels.
  */
 
@@ -72,7 +72,7 @@ describe('useSleepManager rule-wake hold', () => {
     act(() => { result.current.wake(); });
     expect(result.current.displayState).toBe('active');
 
-    // The next ticks must NOT re-sleep it — this is the issue #26 fix.
+    // The next ticks must NOT re-sleep it.
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
     expect(result.current.displayState).toBe('active');
 

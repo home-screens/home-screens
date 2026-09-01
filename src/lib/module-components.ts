@@ -66,7 +66,6 @@ export function getModuleComponent(type: ModuleType): ComponentType<Record<strin
   if (type in builtinComponents) {
     return builtinComponents[type as BuiltinModuleType];
   }
-  // Check plugin store for plugin:* types
   if (type.startsWith('plugin:')) {
     return usePluginStore.getState().plugins.get(type)?.component;
   }

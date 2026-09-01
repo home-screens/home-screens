@@ -140,9 +140,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   return (
     <ModuleWrapper style={{ ...style, padding: 0 }}>
       <div className="relative w-full h-full" style={{ borderRadius: `${style.borderRadius}px`, overflow: 'hidden' }}>
-        {/* Layer 0 */}
         {renderLayer(0)}
-        {/* Layer 1 */}
         {renderLayer(1)}
       </div>
     </ModuleWrapper>

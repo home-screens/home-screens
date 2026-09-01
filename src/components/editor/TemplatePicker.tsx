@@ -52,7 +52,6 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
           <h2 className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
           <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary">
@@ -135,7 +134,6 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-t border-hs-border-strong px-5 py-3 flex justify-end">
           <Button variant="secondary" onClick={onClose}>{tCore('actions.close')}</Button>
         </div>

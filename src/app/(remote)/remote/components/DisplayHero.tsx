@@ -30,7 +30,6 @@ export default function DisplayHero({ status, isConnected, lastUpdated }: Displa
 
   return (
     <div className="mx-5 mt-1 p-5 bg-hs-card border border-hs-border-strong rounded-[14px] relative overflow-hidden">
-      {/* Subtle top gradient line */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-hs-accent/30 to-transparent" />
 
       <div className="flex items-center justify-between mb-4">

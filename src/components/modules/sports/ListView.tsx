@@ -13,7 +13,6 @@ export function ListView({ games }: { games: Game[] }) {
             key={game.id}
             className="flex items-center gap-2 py-1 border-b border-white/5 last:border-0"
           >
-            {/* League badge */}
             <span
               className="font-bold uppercase tracking-wider text-white/30 shrink-0"
               style={{ fontSize: '0.55em', width: '2em' }}
@@ -21,7 +20,6 @@ export function ListView({ games }: { games: Game[] }) {
               {game.league}
             </span>
 
-            {/* Away team */}
             <div className="flex items-center gap-1 min-w-0" style={{ width: '35%' }}>
               <TeamLogo src={game.awayTeamLogo} alt={game.awayTeamAbbr} size={16} />
               <span
@@ -42,7 +40,6 @@ export function ListView({ games }: { games: Game[] }) {
               @
             </span>
 
-            {/* Home team */}
             <div className="flex items-center gap-1 min-w-0" style={{ width: '35%' }}>
               <TeamLogo src={game.homeTeamLogo} alt={game.homeTeamAbbr} size={16} />
               <span
@@ -59,7 +56,6 @@ export function ListView({ games }: { games: Game[] }) {
               </span>
             </div>
 
-            {/* Status */}
             <div className="shrink-0 ml-auto">
               <GameStatus
                 state={game.state}

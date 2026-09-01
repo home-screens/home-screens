@@ -34,7 +34,6 @@ export async function getInstalledPlugins(): Promise<InstalledPluginsFile> {
   try {
     const stat = await fs.stat(installedStore.filePath);
     const mtime = stat.mtimeMs;
-    // Return cached if file hasn't changed
     if (installedCache && installedCache.mtime === mtime) {
       return installedCache.data;
     }
@@ -470,7 +469,6 @@ export async function registerDevPlugin(manifest: PluginManifest): Promise<void>
   const safeId = sanitizePluginId(manifest.id);
   const dir = pluginDir(safeId);
 
-  // Write manifest to disk
   await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(
     path.join(dir, 'manifest.json'),
@@ -639,7 +637,6 @@ export function validateManifest(manifest: unknown): string | null {
   if (typeof m.category !== 'string' || !m.category) {
     return '"category" is required and must be a non-empty string.';
   }
-  // Validate optional secrets array
   if (m.secrets !== undefined) {
     if (!Array.isArray(m.secrets)) {
       return '"secrets" must be an array.';
@@ -659,13 +656,11 @@ export function validateManifest(manifest: unknown): string | null {
       }
     }
   }
-  // Validate optional allowedDomains array
   if (m.allowedDomains !== undefined) {
     if (!Array.isArray(m.allowedDomains) || !m.allowedDomains.every((d: unknown) => typeof d === 'string')) {
       return '"allowedDomains" must be an array of strings.';
     }
   }
-  // Validate optional auth adapter declaration
   if (m.auth !== undefined) {
     const authError = validateAuthConfig(m);
     if (authError) return authError;

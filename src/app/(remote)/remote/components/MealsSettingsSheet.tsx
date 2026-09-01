@@ -48,7 +48,6 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
       role="dialog"
       aria-label={t('mealsSettings.ariaLabel')}
     >
-      {/* Backdrop */}
       <div
         onClick={onClose}
         style={{
@@ -58,7 +57,6 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
         }}
       />
 
-      {/* Sheet */}
       <div
         style={{
           position: 'relative',
@@ -70,12 +68,10 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
           boxShadow: '0 -8px 40px rgba(0, 0, 0, 0.5)',
         }}
       >
-        {/* Drag handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
         </div>
 
-        {/* Header */}
         <div
           style={{
             display: 'flex',
@@ -109,7 +105,6 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
           </button>
         </div>
 
-        {/* Body */}
         <div style={{ overflow: 'auto', padding: '16px 16px 80px', flex: 1 }}>
           <MealsSettingsSlotsSection
             enabledSlots={draft.enabledSlots}
@@ -135,7 +130,6 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
           />
         </div>
 
-        {/* Footer — sticky save bar */}
         <div
           style={{
             position: 'absolute',

@@ -126,7 +126,6 @@ export default function MealFormOverlay({
       onBack={() => setEditingMeal(null)}
       footer={footer}
     >
-      {/* Name */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.nameLabel')}</div>
         <input
@@ -140,7 +139,6 @@ export default function MealFormOverlay({
         />
       </div>
 
-      {/* Emoji picker */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.emojiLabel')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
@@ -169,7 +167,6 @@ export default function MealFormOverlay({
         </div>
       </div>
 
-      {/* Prep time + Cook time */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
           <div style={LABEL_STYLE}>{t('mealForm.prepTimeLabel')}</div>
@@ -193,7 +190,6 @@ export default function MealFormOverlay({
         </div>
       </div>
 
-      {/* Servings + Difficulty */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
         <div>
           <div style={LABEL_STYLE}>{t('mealForm.servingsLabel')}</div>
@@ -237,7 +233,6 @@ export default function MealFormOverlay({
         </div>
       </div>
 
-      {/* Tags */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.tagsLabel')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -271,7 +266,6 @@ export default function MealFormOverlay({
         </div>
       </div>
 
-      {/* Ingredients */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.ingredientsLabel')}</div>
         {formIngredients.map((ing: MealIngredient, idx: number) => (
@@ -362,7 +356,6 @@ export default function MealFormOverlay({
         </button>
       </div>
 
-      {/* Recipe URL */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.recipeUrlLabel')}</div>
         <input
@@ -374,7 +367,6 @@ export default function MealFormOverlay({
         />
       </div>
 
-      {/* Notes */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.notesLabel')}</div>
         <textarea
@@ -390,7 +382,6 @@ export default function MealFormOverlay({
         />
       </div>
 
-      {/* Rating */}
       <div style={{ marginBottom: 24 }}>
         <div style={LABEL_STYLE}>{t('mealForm.ratingLabel')}</div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -419,7 +410,6 @@ export default function MealFormOverlay({
         </div>
       </div>
 
-      {/* Favorite */}
       <button
         onClick={() => setFormFavorite(!formFavorite)}
         style={{

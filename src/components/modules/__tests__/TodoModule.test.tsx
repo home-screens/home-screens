@@ -24,7 +24,6 @@ vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: (url: string) => [url ? mockTodoState : null, null],
 }));
 
-// Control the toggle POST.
 const displayFetch = vi.fn();
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: (...args: unknown[]) => displayFetch(...args),

@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 // next/font/google downloads every family from fonts.gstatic.com during the
 // build. CI builds once per E2E shard, so that was dozens of requests to
 // Google per run, and one 404 from their CDN failed the whole build with
-// errors that read like a code defect (2026-08-14). The bytes served to the
+// errors that read like a code defect. The bytes served to the
 // browser are identical — next/font/google was already self-hosting these in
 // the build output — so this only changes where the files come from.
 //

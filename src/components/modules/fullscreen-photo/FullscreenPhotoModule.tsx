@@ -192,7 +192,6 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // current pass completes instead of re-dealing mid-slideshow.
   const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl);
 
-  // Dual-layer crossfade state
   const [activeLayer, setActiveLayer] = useState(0);
   const [sources, setSources] = useState<[MediaListItem | null, MediaListItem | null]>([null, null]);
   const prevIndexRef = useRef(photoIndex);
@@ -216,14 +215,12 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
   }, [photoIndex, files, isSinglePhoto]);
 
-  // Theme
   const themeId = config.theme ?? fullscreenTheme ?? 'midnight';
   const theme = getThemeTokens(themeId);
   // The empty/loading screens are the only frames the theme paints; they
   // carry its atmosphere layer like every other fullscreen module.
   const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
 
-  // Single photo mode — render directly, no fetch or rotation needed
   if (isSinglePhoto) {
     if (!config.file) {
       // Mode is set but no photo chosen yet
@@ -263,7 +260,6 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     );
   }
 
-  // Empty state
   if (data !== null && items.length === 0) {
     return (
       <div
@@ -292,7 +288,6 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     );
   }
 
-  // Loading state
   if (data === null) {
     return (
       <div

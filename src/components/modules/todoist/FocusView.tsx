@@ -20,7 +20,6 @@ export default function FocusView({
   onComplete?: (taskId: string) => void;
 }) {
   const tr = useTranslate('modules');
-  // Show only today + overdue tasks
   const focusTasks = useMemo(() => {
     return allTasks.filter((t) => {
       if (!t.due) return false;
@@ -41,9 +40,7 @@ export default function FocusView({
 
   const totalToday = today.length + overdue.length;
 
-  // Estimate how much of today's work is done based on time of day
-  // (Todoist API only returns active tasks, so we can't see completed ones)
-  // Show the remaining count as the metric instead
+  // Todoist's API only returns active tasks, so completed-today can't be counted — show remaining count instead.
   const tree = buildTaskTree(focusTasks);
 
   return (

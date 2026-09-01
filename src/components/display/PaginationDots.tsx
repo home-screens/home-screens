@@ -116,7 +116,6 @@ export default function PaginationDots({
         </div>
       </div>
 
-      {/* Keyframes for the pause label fade-in */}
       {paused && (
         <style>{`
           @keyframes pause-fade-in {

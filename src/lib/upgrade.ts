@@ -642,7 +642,6 @@ async function runGitUpgrade(targetTag: string): Promise<void> {
 }
 
 export async function runRollback(targetTag: string): Promise<void> {
-  // Check if the target version has a tarball
   const useTarball = await hasReleaseTarball(targetTag);
 
   if (useTarball) {

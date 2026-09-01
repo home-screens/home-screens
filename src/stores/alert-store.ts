@@ -57,7 +57,6 @@ export const useAlertStore = create<AlertState>((set, get) => ({
       alerts: [...state.alerts, newAlert],
     }));
 
-    // Auto-dismiss after duration (if > 0)
     if (duration > 0) {
       const handle = setTimeout(() => {
         timers.delete(id);
@@ -68,13 +67,11 @@ export const useAlertStore = create<AlertState>((set, get) => ({
   },
 
   dismissAlert: (id) => {
-    // Clear any pending auto-dismiss timer
     const handle = timers.get(id);
     if (handle !== undefined) {
       clearTimeout(handle);
       timers.delete(id);
     }
-    // Only update state if the alert actually exists
     if (!get().alerts.some((a) => a.id === id)) return;
     set((state) => ({
       alerts: state.alerts.filter((a) => a.id !== id),
@@ -82,7 +79,6 @@ export const useAlertStore = create<AlertState>((set, get) => ({
   },
 
   clearAlerts: () => {
-    // Clear all pending timers
     for (const handle of timers.values()) {
       clearTimeout(handle);
     }

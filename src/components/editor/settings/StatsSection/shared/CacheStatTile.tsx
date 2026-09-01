@@ -1,7 +1,5 @@
-/** Mini cache stat tile. Label left, value right, always on one line. The
- * explicit `gap-2` keeps them apart at narrow widths (pre-fix they butted
- * right up against each other) and `truncate` on the label means it loses
- * characters before the value ever wraps. */
+/** Mini cache stat tile. `gap-2` keeps label and value apart at narrow widths;
+ * `truncate` on the label means it loses characters before the value wraps. */
 export function CacheStatTile({ label, value, tone = 'neutral' }: {
   label: string;
   value: string;

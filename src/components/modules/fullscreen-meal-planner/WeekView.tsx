@@ -17,7 +17,6 @@ export default function WeekView({
   const weekDates = getWeekDatesForRange(start, weekStartDay);
   const todayISO = toISODate(now);
 
-  // Compute display range
   const weekStartDate = new Date(weekDates[0] + 'T12:00:00');
   const weekEndDate = new Date(weekDates[6] + 'T12:00:00');
   const formatShort = (d: Date) => formatDateSync(d, 'MMM d', { locale });

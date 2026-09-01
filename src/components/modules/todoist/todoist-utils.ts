@@ -3,8 +3,6 @@ import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n/types';
 
-// ─── Types ───
-
 export interface TodoistTask {
   id: string;
   content: string;
@@ -69,8 +67,6 @@ export interface TaskNode {
   children: TaskNode[];
 }
 
-// ─── Constants ───
-
 export const PRIORITY_COLORS: Record<number, string> = {
   4: '#d1453b', // P1 urgent
   3: '#eb8909', // P2 high
@@ -114,8 +110,6 @@ const DATE_GROUP_ORDER: DateGroupKey[] = [
   'upcoming',
   'noDate',
 ];
-
-// ─── Date Helpers ───
 
 function startOfDay(d: Date): Date {
   const r = new Date(d);
@@ -202,20 +196,16 @@ export function getDueDateGroup(due: TodoistTask['due'], now: Date): DateGroupKe
   return 'upcoming';
 }
 
-// ─── Sorting & Filtering ───
-
 export function filterTasks(
   tasks: TodoistTask[],
   config: TodoistConfig,
 ): TodoistTask[] {
   let filtered = tasks;
 
-  // Filter out subtasks if hidden
   if (!config.showSubtasks) {
     filtered = filtered.filter((t) => !t.parentId);
   }
 
-  // Filter by project
   if (config.projectFilter) {
     const names = config.projectFilter.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     if (names.length > 0) {
@@ -223,7 +213,6 @@ export function filterTasks(
     }
   }
 
-  // Filter by label
   if (config.labelFilter) {
     const names = config.labelFilter.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     if (names.length > 0) {
@@ -233,7 +222,6 @@ export function filterTasks(
     }
   }
 
-  // Filter tasks without due dates
   if (!config.showNoDueDate) {
     filtered = filtered.filter((t) => t.due !== null);
   }
@@ -352,8 +340,6 @@ export function groupTasks(
   return order.map((k) => map.get(k)!);
 }
 
-// ─── Subtask Tree ───
-
 export function buildTaskTree(tasks: TodoistTask[]): TaskNode[] {
   const taskMap = new Map(tasks.map((t) => [t.id, t]));
   const roots: TaskNode[] = [];
@@ -369,7 +355,6 @@ export function buildTaskTree(tasks: TodoistTask[]): TaskNode[] {
     }
   }
 
-  // Attach children
   function attachChildren(node: TaskNode) {
     node.children = childrenMap.get(node.task.id) ?? [];
     node.children.forEach(attachChildren);

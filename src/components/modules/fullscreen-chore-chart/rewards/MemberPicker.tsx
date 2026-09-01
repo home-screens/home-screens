@@ -62,7 +62,6 @@ export default function MemberPicker({
               outline: 'none',
             }}
           >
-            {/* Avatar */}
             <div
               style={{
                 width: avatarSize,
@@ -81,7 +80,6 @@ export default function MemberPicker({
               {member.name.charAt(0).toUpperCase()}
             </div>
 
-            {/* Name */}
             <div
               style={{
                 fontSize: nameFontSize,
@@ -93,7 +91,6 @@ export default function MemberPicker({
               {member.name}
             </div>
 
-            {/* Balance */}
             <div
               style={{
                 fontSize: balanceFontSize,

@@ -2,8 +2,6 @@ import { Sunrise, Sun, Sunset, Clock } from 'lucide-react';
 import type { ChoreTimeOfDay } from '@/types/config';
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
 
-// ─── Types ───
-
 export interface ChoreRow {
   choreId: string;
   choreName: string;
@@ -22,8 +20,6 @@ export interface ToggleParams {
   wasCompleted: boolean;
 }
 
-// ─── Constants ───
-
 export const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
   afternoon: Sun,
@@ -32,8 +28,6 @@ export const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 };
 
 export const TOD_ORDER: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
-
-// ─── Helpers ───
 
 export function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
   return h > w ? 'portrait' : 'landscape';

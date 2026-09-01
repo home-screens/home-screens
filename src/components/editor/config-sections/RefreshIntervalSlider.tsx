@@ -7,15 +7,12 @@ import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 type RefreshUnit = 'seconds' | 'minutes';
 
 interface RefreshIntervalSliderProps {
-  /** Current `refreshIntervalMs` from module config (undefined = use the default). */
   value: number | undefined;
-  /** Called with the new interval in milliseconds. */
   onChange: (ms: number) => void;
   /** FETCH_KEY_REGISTRY key whose `ttlMs` supplies the default when unset. */
   fetchKey: string;
   /** Fallback default in ms if the registry has no entry for `fetchKey`. */
   fallbackMs: number;
-  /** Whether the slider shows and steps in seconds or minutes. */
   unit: RefreshUnit;
   min: number;
   max: number;

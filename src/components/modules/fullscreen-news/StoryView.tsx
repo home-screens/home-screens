@@ -113,7 +113,6 @@ export default function StoryView({ item, index, ctx }: { item: NewsDisplayItem;
         )}
       </div>
 
-      {/* Text block */}
       <div className="absolute flex flex-col min-h-0" style={bodyStyle}>
         <SourceMeta item={item} ctx={ctx} size={s * 2.4} />
         <h2

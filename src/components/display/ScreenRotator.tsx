@@ -57,8 +57,6 @@ interface ScreenRotatorProps {
   initialDisplays?: DisplayDescriptor[];
 }
 
-// ---- Main component ----
-
 export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
@@ -69,7 +67,6 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   usePluginStore((s) => s.plugins.size);
   const cursorRef = useIdleCursor(settings.cursorHideSeconds ?? 3);
 
-  // Load plugins on mount
   useEffect(() => { loadPlugins('display'); }, [loadPlugins]);
 
   // Install the console ring buffer so the `dump-console-log` command
@@ -337,7 +334,6 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     forceSleep();
   }, [sleepRequest, forceSleep]);
 
-  // Subscribe to plugin navigate events
   useEffect(() => {
     return pluginEventBus.on((event) => {
       if (event.type !== 'navigate') return;

@@ -163,7 +163,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-hs-text-primary">{t('photosTab.header')}</h2>
         <button
@@ -174,7 +173,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </button>
       </div>
 
-      {/* New folder input */}
       {showNewFolder && (
         <div className="flex gap-2">
           <input
@@ -196,7 +194,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </div>
       )}
 
-      {/* Directory pills */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
         <button
           onClick={() => setSelectedDir('')}
@@ -228,7 +225,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           ))}
       </div>
 
-      {/* Success toast */}
       {successMsg && (
         <div className="flex items-center gap-2 px-3 py-2 bg-hs-success/10 border border-hs-success/30 rounded-lg text-sm text-hs-success">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 flex-shrink-0">
@@ -238,7 +234,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </div>
       )}
 
-      {/* Error banner */}
       {error && (
         <div className="flex items-start gap-2 px-3 py-2 bg-hs-danger/10 border border-hs-danger/20 rounded-lg text-sm text-hs-danger">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 flex-shrink-0 mt-0.5">
@@ -253,7 +248,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </div>
       )}
 
-      {/* Upload button */}
       <div>
         <input
           ref={fileInputRef}
@@ -288,7 +282,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </label>
       </div>
 
-      {/* Photo grid */}
       {loadingImages ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-6 h-6 border-2 border-hs-border-strong border-t-hs-text-secondary rounded-full animate-spin" />
@@ -311,7 +304,6 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
                 loading="lazy"
                 className="w-full h-full object-cover rounded-lg"
               />
-              {/* Delete button */}
               {confirmDelete === img ? (
                 <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center gap-2">
                   <span className="text-xs text-hs-text-secondary">{t('photosTab.deletePrompt')}</span>

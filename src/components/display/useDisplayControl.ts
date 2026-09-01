@@ -44,7 +44,7 @@ export function useDisplayControl({
   const { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness } =
     useSleepManager(sleep, timezone);
 
-  // Remote navigation implies wake when the content is hidden (issue #26):
+  // Remote navigation implies wake when the content is hidden:
   // changing screens on a sleeping display otherwise "works" invisibly under
   // the opaque overlay, and a schedule-dimmed display is nearly as dark. Same
   // precedent as rule takeovers and remote timer starts — an explicit remote

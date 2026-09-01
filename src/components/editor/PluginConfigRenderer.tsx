@@ -47,7 +47,6 @@ export function PluginSchemaFields({
 }) {
   if (!schema?.properties) return null;
 
-  // Group fields by ui:group
   const entries = Object.entries(schema.properties);
   const groups = new Map<string, [string, PluginConfigProperty][]>();
   const ungrouped: [string, PluginConfigProperty][] = [];

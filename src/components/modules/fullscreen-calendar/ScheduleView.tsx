@@ -31,7 +31,6 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   const overlapMode = config.eventOverlap ?? 'columns';
   const wrapTitles = config.wrapEventTitles === true;
 
-  // Business hours for visual differentiation
   const businessStart = 8;
   const businessEnd = 18;
 
@@ -70,7 +69,6 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
     ? events.filter(ev => !ev.allDay && isEventOnDay(ev, today, timezone) && eventHoursOnDay(ev, today, timezone).endHour <= hourStart).length
     : 0;
 
-  // Fit grid exactly to container — no scrolling on kiosk display
   const gutterWidth = scale.bu * 4.5;
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 5.5 : 4.5);
   const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;

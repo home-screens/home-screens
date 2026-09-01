@@ -34,7 +34,6 @@ export default function RedeemConfirm({
   const t = useTranslate('modules');
 
   return (
-    /* Full-screen scrim */
     <div
       onClick={onCancel}
       style={{
@@ -47,7 +46,6 @@ export default function RedeemConfirm({
         zIndex: 100,
       }}
     >
-      {/* Dialog */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
@@ -64,12 +62,10 @@ export default function RedeemConfirm({
           textAlign: 'center',
         }}
       >
-        {/* Icon */}
         <div style={{ lineHeight: 1 }}>
           <ChoreIcon value={reward.emoji} size={Math.round(emojiFontSize)} color="var(--fcc-accent)" />
         </div>
 
-        {/* Title */}
         <div
           style={{
             fontSize: titleFontSize,
@@ -81,7 +77,6 @@ export default function RedeemConfirm({
           {t('fullscreen-chore-chart.rewardsStore.confirmTitle')}
         </div>
 
-        {/* Subtitle */}
         <div
           style={{
             fontSize: subtitleFontSize,
@@ -98,7 +93,6 @@ export default function RedeemConfirm({
           </div>
         )}
 
-        {/* Buttons */}
         <div
           style={{
             display: 'flex',
@@ -106,7 +100,6 @@ export default function RedeemConfirm({
             marginTop: scale * 0.4,
           }}
         >
-          {/* Cancel */}
           <button
             onClick={onCancel}
             style={{
@@ -124,7 +117,6 @@ export default function RedeemConfirm({
             {t('fullscreen-chore-chart.rewardsStore.confirmCancel')}
           </button>
 
-          {/* Confirm */}
           <button
             onClick={onConfirm}
             style={{

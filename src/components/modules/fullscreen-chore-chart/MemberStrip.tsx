@@ -3,8 +3,6 @@ import type { MemberStats } from '@/components/modules/chore-chart/types';
 import { Flame } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 
-// ─── MemberChip (internal) ───
-
 interface MemberChipProps {
   member: ChoreMember;
   stats: MemberStats | undefined;
@@ -70,8 +68,6 @@ function MemberChip({ member, stats, chipHeight, showStreaks, showPoints, minWid
     </div>
   );
 }
-
-// ─── MemberStrip ───
 
 interface MemberStripProps {
   members: ChoreMember[];

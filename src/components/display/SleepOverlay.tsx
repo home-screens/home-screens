@@ -37,7 +37,6 @@ export default function SleepOverlay({
         viewTransitionName: 'sleep-overlay',
       } as React.CSSProperties}
     >
-      {/* Black overlay — opacity controls dimming level */}
       <div
         style={{
           position: 'absolute',
@@ -48,7 +47,6 @@ export default function SleepOverlay({
         }}
       />
 
-      {/* Screensaver content (above the dim overlay) */}
       {showScreensaver && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
           <Screensaver mode={screensaverMode} timezone={timezone} />

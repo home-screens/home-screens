@@ -179,13 +179,13 @@ A fresh install does not ship coordinates: `settings.weather.latitude` and `long
 
 ### API Routes
 
-API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 116 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
+API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 117 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
 
 | Category | Routes | Purpose |
 |---|---|---|
 | **Auth** | `auth/login`, `auth/logout`, `auth/status`, `auth/password`, `auth/display-token`, `auth/revoke-sessions`, `auth/google`, `auth/ip-allowlist` | Authentication, session management, display token, IP allowlist |
 | **System** | `system/status`, `system/version`, `system/build-id`, `system/changelog`, `system/power`, `system/upgrade`, `system/rollback`, `system/backups`, `system/update-notification` | Server management and deployment |
-| **Config** | `config`, `secrets`, `backup`, `backup/reminder` | Read/write config, manage API keys, config backups |
+| **Config** | `config`, `secrets`, `backup`, `backup/credentials`, `backup/reminder` | Read/write config, manage API keys, config backups |
 | **Weather** | `weather`, `rain-map` | Weather data ({% $stats.weatherProviderCount %} providers) and rain radar tiles |
 | **Calendar** | `calendar`, `calendar/status`, `calendars`, `icloud/accounts`, `icloud/calendars`, `holidays` | Google Calendar events and per-source health, iCloud CalDAV accounts and calendars, holiday feeds |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `standings`, `todoist`, `air-quality`, `traffic`, `nasa` | External data proxies |

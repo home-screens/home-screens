@@ -260,12 +260,10 @@ export default function FullscreenCalendarModule({
     return buildLegend(events, window, timezone, t('calendar.publicHolidays'));
   }, [legendPlacement, events, timezone, today, t, traits, config, scale.width]);
 
-  // Current weather from hourly data
   const currentTemp = hourly?.[0]?.temp;
   const weatherIconId = hourly?.[0]?.icon;
   const tempUnit = units === 'metric' ? '\u00B0C' : '\u00B0F';
 
-  // Resolve weather Lucide icon
   const WeatherIcon = weatherIconId ? getWeatherIcon(weatherIconId, 'outline') : null;
 
   const ViewIcon = traits.icon;

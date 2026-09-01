@@ -8,7 +8,6 @@ interface UseScreenRotationTimerArgs {
    * `0` means sticky — the timer will not be scheduled.
    */
   durationMs: number;
-  /** Called when the duration elapses. */
   onAdvance: () => void;
   /**
    * Whether rotation should tick at all. Set to `false` when the display

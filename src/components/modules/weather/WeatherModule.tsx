@@ -93,8 +93,6 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
     );
   }
 
-  // Hide the entire module when alerts view has no active alerts
-  // Only hide when alerts is defined (data loaded from a supported provider)
   if (view === 'alerts' && config.hideWhenNoAlerts && alerts !== undefined) {
     const now = Math.floor(Date.now() / 1000);
     const activeAlerts = alerts.filter((a) => a.expires > now);

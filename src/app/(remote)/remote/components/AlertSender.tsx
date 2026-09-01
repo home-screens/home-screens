@@ -77,7 +77,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 ${
           open ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -86,19 +85,16 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
         aria-hidden="true"
       />
 
-      {/* Sheet */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-[101] bg-hs-panel rounded-t-[20px] max-h-[85dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
       >
-        {/* Handle */}
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-white/[0.15]" />
         </div>
 
-        {/* Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <h2 className="text-lg font-bold text-hs-text-primary">{t('alertSender.title')}</h2>
           <button
@@ -113,7 +109,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
         </div>
 
         <div className="px-5 pb-6 space-y-4">
-          {/* Type selector */}
           <div className="flex gap-2">
             {ALERT_TYPES.map((opt) => (
               <button
@@ -130,7 +125,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             ))}
           </div>
 
-          {/* Title */}
           <div>
             <label htmlFor="alert-title" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.titleLabel')}</label>
             <input
@@ -143,7 +137,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             />
           </div>
 
-          {/* Message */}
           <div>
             <label htmlFor="alert-message" className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.messageLabel')}</label>
             <textarea
@@ -156,7 +149,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             />
           </div>
 
-          {/* Duration */}
           <div>
             <span className="block text-xs font-medium text-hs-text-faint mb-1.5">{t('alertSender.durationLabel')}</span>
             <div className="flex gap-2 overflow-x-auto scrollbar-none">
@@ -176,7 +168,6 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             </div>
           </div>
 
-          {/* Send */}
           <button
             onClick={send}
             disabled={!canSend}

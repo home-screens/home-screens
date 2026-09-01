@@ -15,22 +15,13 @@ import type { InstalledPlugin } from '@/types/plugins';
 const TELEMETRY_FILE = 'data/telemetry.json';
 const BEACON_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
 const BEACON_TIMEOUT_MS = 5_000;
-// v2 (2026-04-08) — added multi-display fields: displayCount, displays[],
-// hasOwnedProfiles, hasSettingsOverride. sleepEnabled and alertsEnabled
-// semantics widened to "any rendered surface will actually use this",
-// evaluated against per-display effective settings.
-// v3 (2026-04-19) — removed hasLegacyScreenIds and hasOwnedScreens. Both
-// tracked migration progress for a refactor that is now complete; every
-// DisplayNode owns its `screens` list by type definition.
-// v3 (2026-04-19) — DisplayNode.screenIds and DisplayNode.profileIds were
-// removed from the schema. `hasLegacyScreenIds` (both on the beacon and each
-// per-display entry) is gone because the legacy shape no longer exists.
-// v4 (2026-07-10) — added plugins[]: id + version + enabled per installed
-// plugin. Marketplace-sourced plugins report their registry ID (a public
-// vocabulary, not user-authored); external side-loaded plugins report the
-// literal id 'external' so user-chosen identifiers and tarball URLs never
-// reach the wire. moduleTypes still collapses plugin:* to a single 'plugin'
-// bucket for on-screen placement counts.
+// sleepEnabled and alertsEnabled reflect "any rendered surface will actually
+// use this", evaluated against per-display effective settings. Marketplace
+// plugins report their registry ID (a public vocabulary, not user-authored);
+// external side-loaded plugins report the literal id 'external' so
+// user-chosen identifiers and tarball URLs never reach the wire.
+// moduleTypes collapses plugin:* to a single 'plugin' bucket for on-screen
+// placement counts.
 const BEACON_VERSION = 4;
 
 const TELEMETRY_ENDPOINT = 'https://home-screens-telemetry.agent462.workers.dev/beacon';

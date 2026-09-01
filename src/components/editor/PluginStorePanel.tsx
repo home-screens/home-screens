@@ -188,7 +188,6 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
   return (
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('settings.pluginStorePanel.title')}>
       <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
           <h2 className="text-lg font-semibold text-hs-text-primary">{t('settings.pluginStorePanel.title')}</h2>
           <button type="button" onClick={onClose} aria-label={t('modal.closeAriaLabel')} className="p-1 rounded hover:bg-hs-card">
@@ -1002,7 +1001,6 @@ function InstallConfirmModal({
           </p>
         )}
 
-        {/* Actions */}
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="secondary" size="sm" onClick={onCancel} disabled={isWorking}>
             {tCore('actions.cancel')}

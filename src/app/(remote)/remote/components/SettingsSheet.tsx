@@ -216,7 +216,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
 
   return (
     <>
-      {/* Overlay */}
       <div
         className={`fixed inset-0 z-[100] bg-black/50 transition-opacity duration-300 ${
           open ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -225,19 +224,16 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
         aria-hidden="true"
       />
 
-      {/* Sheet */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-[101] bg-hs-panel rounded-t-[20px] max-h-[70dvh] overflow-y-auto transition-transform duration-300 pb-[env(safe-area-inset-bottom)] ${
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
       >
-        {/* Handle */}
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
         </div>
 
-        {/* Sheet Header */}
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
           <h2 className="text-lg font-bold text-hs-text-primary">{t('settingsSheet.title')}</h2>
           <button
@@ -251,7 +247,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           </button>
         </div>
 
-        {/* System Info */}
         <div className="px-5 pb-5">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.system.heading')}</h3>
 
@@ -275,7 +270,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           ) : null}
         </div>
 
-        {/* Theme */}
         <div className="px-5 pb-5">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.theme.heading')}</h3>
           <div className="flex gap-2">
@@ -295,7 +289,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           </div>
         </div>
 
-        {/* Data */}
         <div className="px-5 pb-5">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.data.heading')}</h3>
           <button
@@ -375,7 +368,6 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           />
         </div>
 
-        {/* Power */}
         <div className="px-5 pb-6">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-1">{t('settingsSheet.power.heading')}</h3>
 

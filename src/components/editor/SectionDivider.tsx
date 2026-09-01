@@ -1,16 +1,6 @@
 'use client';
 
-/**
- * Visual break between stacked property-panel sections (e.g. between
- * "Screen settings" and "Background", or between module AccordionSections).
- *
- * Rendered as two line segments framing three small centered dots — a
- * classic typographic section break (───── ··· ─────). Deliberately
- * composed rather than a single rule so it reads as intentional section
- * structure, not a container edge.
- *
- * Reusable anywhere two stacked sections need a visible separator.
- */
+/** Rule-dots-rule divider between stacked property-panel sections. */
 export default function SectionDivider() {
   return (
     <div

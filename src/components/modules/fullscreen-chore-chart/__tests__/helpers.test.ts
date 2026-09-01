@@ -9,10 +9,6 @@ import {
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
 import type { ChoreDefinition } from '@/types/config';
 
-// ---------------------------------------------------------------------------
-// Helper to build test fixtures
-// ---------------------------------------------------------------------------
-
 function makeChore(overrides: Partial<ChoreDefinition> & { id: string; name: string }): ChoreDefinition {
   return {
     emoji: '',
@@ -34,9 +30,6 @@ function makeAssignment(
   return { chore, memberId, isCompleted };
 }
 
-// ---------------------------------------------------------------------------
-// getOrientation
-// ---------------------------------------------------------------------------
 describe('getOrientation', () => {
   it('returns portrait when height > width', () => {
     expect(getOrientation(1080, 1920)).toBe('portrait');
@@ -51,9 +44,6 @@ describe('getOrientation', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// getUniqueInitials
-// ---------------------------------------------------------------------------
 describe('getUniqueInitials', () => {
   it('uses single characters when all first letters are unique', () => {
     const members = [
@@ -116,9 +106,6 @@ describe('getUniqueInitials', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// getCurrentTimeOfDay
-// ---------------------------------------------------------------------------
 describe('getCurrentTimeOfDay', () => {
   it('returns morning for hours 0-11', () => {
     expect(getCurrentTimeOfDay(0)).toBe('morning');
@@ -143,18 +130,12 @@ describe('getCurrentTimeOfDay', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// TOD_ORDER
-// ---------------------------------------------------------------------------
 describe('TOD_ORDER', () => {
   it('defines the correct ordering', () => {
     expect(TOD_ORDER).toEqual(['morning', 'afternoon', 'evening', 'anytime']);
   });
 });
 
-// ---------------------------------------------------------------------------
-// buildChoreRows
-// ---------------------------------------------------------------------------
 describe('buildChoreRows', () => {
   it('deduplicates a chore assigned to multiple members into one row', () => {
     const chore = makeChore({ id: 'dishes', name: 'Dishes', timeOfDay: 'evening' });

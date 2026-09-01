@@ -27,7 +27,6 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
 
   const { slot, dayOffset, labelKey } = getNextMealSlot(currentHour, slots);
   const label = t(`meal-planner.nextMealLabels.${labelKey}`);
-  // Compute the ISO date for the target day
   const targetDate = new Date(todayISO + 'T12:00:00');
   targetDate.setDate(targetDate.getDate() + dayOffset);
   const mealDate = toISODate(targetDate);

@@ -28,7 +28,6 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
 
-  // Short slot labels for column headers
   const slotLabel = (s: MealSlotType) => t(`meal-planner.slotShort.${s}`);
 
   return (

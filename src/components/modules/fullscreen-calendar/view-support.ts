@@ -17,7 +17,6 @@ import type { FullscreenEventStyle } from '@/lib/fullscreen-themes';
  * module — so there is no import cycle between the parent and its views.
  */
 
-// Re-export CalendarEvent from central types for view imports
 export type { CalendarEvent } from '@/types/config';
 
 export interface CalendarScale {

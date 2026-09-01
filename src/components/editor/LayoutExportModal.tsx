@@ -127,7 +127,6 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>{tCore('actions.cancel')}</Button>
           <Button variant="primary" onClick={handleExport} disabled={selectedScreenIds.size === 0}>

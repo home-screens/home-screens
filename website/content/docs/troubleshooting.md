@@ -65,6 +65,10 @@ If your display shows nothing or a white screen:
 4. **Open the browser console** — If you can access the display directly, press `F12` to open dev tools and check the Console tab for JavaScript errors.
 5. **Verify the URL** — Make sure the browser is pointing to `http://localhost:3000/display` (or your configured host and port).
 
+{% callout type="note" title="A dark screen with faint text is not a fault" %}
+A display that has no screens to show yet paints a faint line naming the address to open in a browser to set it up. You'll see it on a freshly flashed Pi before you've built anything, and also if every screen on that display happens to be switched off. Build a screen and it goes away on its own. If you'd rather an empty display stayed completely dark, switch off **Show setup hint** under **Settings > Screen > Rotation & appearance**; each display can override it on its own **Overrides** tab.
+{% /callout %}
+
 ---
 
 ## Modules not updating

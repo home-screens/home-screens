@@ -60,8 +60,6 @@ export function ChangeColor({ value, children }: { value: number; children: Reac
   );
 }
 
-// ── Sparkline ──
-
 /**
  * Map a value to its y coordinate in the 0..32 viewBox: 2-unit padding band
  * inside the box, with a flat domain (min === max) landing on the mid-line
@@ -183,8 +181,6 @@ export function Sparkline({ points, positive, scale, xs, widthEm, fillWidth, sha
   );
 }
 
-// ── Shared item shape for cards/ticker views ──
-
 /** Which chart(s) the cards view draws */
 export type SparklineMode = 'day' | 'week' | 'both';
 /** 'classic' keeps the plain line; 'shaded' adds backdrop + tint + xs scaling */
@@ -209,8 +205,6 @@ export interface FinancialItem {
   weekHighlightFromX?: number;
   weekDayBoundaries?: number[];
 }
-
-// ── Cards View ──
 
 /** Shared cards view — grid of FinancialCards. Equal grid tracks (not
  * flex-wrap) so cards on different rows stay column-aligned regardless
@@ -253,8 +247,6 @@ export function FinancialCardsView({
   );
 }
 
-// ── Ticker View ──
-
 /** Shared ticker view — horizontal scrolling marquee */
 export function FinancialTickerView({ items, speed }: { items: FinancialItem[]; speed: number }) {
   const locale = useFormattingLocale();
@@ -274,8 +266,6 @@ export function FinancialTickerView({ items, speed }: { items: FinancialItem[]; 
     </TickerMarquee>
   );
 }
-
-// ── Table View ──
 
 export interface TableColumn<T> {
   header: string;
@@ -328,8 +318,6 @@ export function FinancialTableView<T>({ items, columns, scale, itemKey }: Financ
     </div>
   );
 }
-
-// ── Compact View ──
 
 export interface CompactRow {
   key: string;

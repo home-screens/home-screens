@@ -11,5 +11,5 @@ export const siteNavLinks = [
   { label: 'Changelog', href: '/changelog' },
 ];
 
-/** Community Discord, linked from the marketing header, docs header, and footer. */
+/** Community Discord invite link. */
 export const DISCORD_INVITE_URL = 'https://discord.gg/KafmFuSNU';

@@ -605,11 +605,8 @@ describe('proxy — auth enabled: Bearer token and query token passthrough', () 
   });
 
   it('redirects /editor even with Bearer token (editor requires cookie)', () => {
-    // Bearer tokens don't help for page routes — only API routes
     const result = proxy(makeRequest('/editor', { authorization: 'Bearer tok' }));
-    // The proxy checks isProtectedRoute first, then credentials. /editor is a page route
-    // and gets past the credential check, but since it's not /api/ it goes to redirect logic.
-    // Actually, with our change, Bearer passes through before the redirect check.
+    // Bearer tokens pass through for page routes too.
     expect(isPassThrough(result)).toBe(true);
   });
 });

@@ -40,7 +40,6 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
   const totalAssigned = todayAssignments.length;
   const totalDone = todayAssignments.filter((a) => a.isCompleted).length;
 
-  // Group assignments by time of day
   const byTime = new Map<ChoreTimeOfDay, ResolvedAssignment[]>();
   for (const section of TIME_SECTIONS) {
     byTime.set(section, []);

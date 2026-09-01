@@ -24,10 +24,8 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <StandingsHeader league={group.league} groupName={group.name} total={groups.length} current={index} />
 
-      {/* Team rows */}
       <div className="flex-1 overflow-hidden">
         {entries.map((entry) => {
           const barWidth = maxWinPct > 0 ? (entry.winPct / maxWinPct) * 100 : 0;
@@ -45,12 +43,10 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
               clincherClassName="text-emerald-400/70 ml-1"
               clincherStyle={{ fontSize: '0.8em' }}
             >
-              {/* Record */}
               <span className="text-white/60 tabular-nums shrink-0 relative" style={{ fontSize: '0.7em' }}>
                 {formatRecord(entry, group.league)}
               </span>
 
-              {/* Points (for NHL/soccer) */}
               {entry.points !== undefined && (
                 <span className="text-white/80 tabular-nums font-semibold shrink-0 relative" style={{ fontSize: '0.7em', width: '2em', textAlign: 'right' }}>
                   {entry.points}

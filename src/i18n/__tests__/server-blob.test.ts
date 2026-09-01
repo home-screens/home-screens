@@ -19,12 +19,12 @@ describe('buildLocaleBlob', () => {
   });
 
   it('falls back through the locale chain for missing namespaces', async () => {
-    // de-DE ships only `core`, `modules`, `editor` in Task 2 — a missing
+    // de-DE currently ships only `core`, `modules`, `editor` — a missing
     // weather/remote namespace should fall back to en-US, NOT return an
     // empty dict, so the display still shows something usable.
     const blob = await buildLocaleBlob('de-DE', ['core', 'weather']);
     expect(blob.core.today).toBe('Heute');
-    // weather.json is empty `{}` for both en-US and de-DE in Task 2 — the
+    // weather.json is currently empty `{}` for both en-US and de-DE — the
     // important assertion is that the field is present at all (a valid
     // empty Dictionary), not that it has any keys.
     expect(typeof blob.weather).toBe('object');

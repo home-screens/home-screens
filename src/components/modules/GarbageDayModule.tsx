@@ -113,7 +113,6 @@ function getNextCollectionText(
   return dayNames[scheduleDay];
 }
 
-// Trash can icon
 function TrashIcon({ active, color }: { active: boolean; color: string }) {
   return (
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: active ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>

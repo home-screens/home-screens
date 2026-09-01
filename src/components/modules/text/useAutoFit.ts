@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import type { RefObject } from 'react';
 
-// Auto-fit: scale content to fill container.
-
 export interface AutoFitResult {
   scale: number;
   measuredWidth: number;

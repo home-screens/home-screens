@@ -10,7 +10,6 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize }: W
   const data = (minutely ?? []).slice(0, 60);
   const maxIntensity = Math.max(...data.map((m) => m.intensity), 0.5);
 
-  // Determine summary text
   const hasRain = data.some((m) => m.intensity > 0);
   const firstRainIdx = data.findIndex((m) => m.intensity > 0);
   const firstDryIdx = hasRain && data[0]?.intensity > 0
@@ -26,7 +25,6 @@ export default function WeatherPrecipitationView({ minutely, scaledFontSize }: W
     summary = t('weather.startingInMin', { minutes: firstRainIdx });
   }
 
-  // Color by precip type
   function barColor(type?: string): string {
     if (type === 'snow') return 'rgba(200, 220, 255, 0.9)';
     if (type === 'sleet' || type === 'ice') return 'rgba(180, 200, 220, 0.7)';

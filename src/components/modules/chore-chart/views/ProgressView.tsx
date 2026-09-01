@@ -62,7 +62,6 @@ export function ProgressView({ config, data }: ProgressViewProps) {
   const showPoints = config.showPoints;
   const t = useTranslate('modules');
 
-  // Overall stats
   let totalCompleted = 0;
   let totalAssigned = 0;
   let bestStreak = { name: '', streak: 0 };

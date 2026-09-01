@@ -29,7 +29,6 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
   const [saving, setSaving] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch photos when album changes
   const fetchPhotos = useCallback(async () => {
     setIsLoading(true);
     setError(null);

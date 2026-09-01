@@ -69,7 +69,6 @@ export default function ChoreFormOverlay({
         title={isEdit ? t('choresManage.choreForm.titleEdit') : t('choresManage.choreForm.titleNew')}
         onBack={onBack}
       >
-        {/* Name */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>{t('choresManage.choreForm.nameLabel')}</div>
           <input
@@ -83,7 +82,6 @@ export default function ChoreFormOverlay({
           />
         </div>
 
-        {/* Icon */}
         <IconPicker
           value={emoji}
           onChange={setEmoji}
@@ -92,7 +90,6 @@ export default function ChoreFormOverlay({
           variant="mobile"
         />
 
-        {/* Points & Frequency */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
             <div style={LABEL_STYLE}>{t('choresManage.choreForm.ticketsLabel')}</div>
@@ -119,7 +116,6 @@ export default function ChoreFormOverlay({
           </div>
         </div>
 
-        {/* Time of Day */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>{t('choresManage.choreForm.timeOfDayLabel')}</div>
           <select
@@ -186,7 +182,6 @@ export default function ChoreFormOverlay({
               )}
             </div>
 
-            {/* Assignees */}
             <div style={{ marginBottom: 24 }}>
               <div style={LABEL_STYLE}>{t('choresManage.choreForm.assignToLabel')}</div>
               <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
@@ -260,7 +255,6 @@ export default function ChoreFormOverlay({
         {rotation === 'schedule' && (
           <div style={{ marginBottom: 24 }}>
             <div style={LABEL_STYLE}>{t('choresManage.choreForm.weeklyScheduleLabel')}</div>
-            {/* Day headers */}
             <div style={{ display: 'flex', gap: 4, marginBottom: 4, paddingLeft: 70 }}>
               {[0, 1, 2, 3, 4, 5, 6].map((d) => (
                 <div key={d} style={{ width: 32, textAlign: 'center', fontSize: 10, fontWeight: 600, color: 'var(--hs-text-faint)', letterSpacing: '0.04em' }}>
@@ -268,7 +262,6 @@ export default function ChoreFormOverlay({
                 </div>
               ))}
             </div>
-            {/* Member rows */}
             <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--hs-border)' }}>
               {scheduleMembers.map((memberId, i) => {
                 const member = members.find((m) => m.id === memberId);
@@ -331,7 +324,6 @@ export default function ChoreFormOverlay({
                 );
               })}
             </div>
-            {/* Add member buttons */}
             {unscheduledMembers.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                 {unscheduledMembers.map((m) => (
@@ -353,7 +345,6 @@ export default function ChoreFormOverlay({
                 ))}
               </div>
             )}
-            {/* Coverage summary */}
             <div style={{ marginTop: 10, fontSize: 11, color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <span>{t('choresManage.choreForm.coverageLabel', { covered: scheduleDays.length })}</span>
               {scheduleDays.length < 7 && (
@@ -370,7 +361,6 @@ export default function ChoreFormOverlay({
           </div>
         )}
 
-        {/* Rotation */}
         {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
           <div style={{ marginBottom: 24 }}>
             <div style={LABEL_STYLE}>{t('choresManage.choreForm.rotationLabel')}</div>
@@ -391,14 +381,12 @@ export default function ChoreFormOverlay({
           </div>
         )}
 
-        {/* Validation hint */}
         {validationHintKind && (
           <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
             {tEditor(`choreChartModal.choreForm.validation.${validationHintKind}`)}
           </p>
         )}
 
-        {/* Save */}
         <button
           className="press-btn"
           onClick={handleSubmit}
@@ -423,7 +411,6 @@ export default function ChoreFormOverlay({
             : t('choresManage.choreForm.addSubmit')}
         </button>
 
-        {/* Delete */}
         {isEdit && onDelete && (
           <button
             className="press-scale"

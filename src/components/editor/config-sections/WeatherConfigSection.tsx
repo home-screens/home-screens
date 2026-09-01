@@ -82,11 +82,9 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     return providers;
   }, [secrets, secretsLoading, secretsError, hasStatus]);
 
-  // Resolve effective provider for capability gating
   const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'openweathermap');
   const caps = PROVIDER_CAPS[effectiveProvider] ?? {};
 
-  // Filter views to only those supported by the current provider
   const availableViews = ALL_WEATHER_VIEWS.filter((v) => {
     const req = VIEW_REQUIRES[v.value];
     return !req || caps[req];
@@ -101,7 +99,6 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     if (viewIncompatible) set({ view: 'hourly' });
   }, [viewIncompatible, set]);
 
-  // Filter providers: when a capability-specific view is selected, only show compatible providers
   const viewRequirement = VIEW_REQUIRES[view];
   const filteredProviders = viewRequirement
     ? configuredProviders.filter((p) => PROVIDER_CAPS[p]?.[viewRequirement])

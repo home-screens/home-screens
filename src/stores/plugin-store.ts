@@ -107,7 +107,6 @@ export const usePluginStore = create<PluginState>((set, get) => ({
     set((state) => {
       const plugins = new Map(state.plugins);
       plugins.set(moduleType, { component, manifest, configSection, stateProvider, searchStateKeys });
-      // Clear any prior error for this plugin
       const errors = new Map(state.errors);
       errors.delete(manifest.id);
       return { plugins, errors };

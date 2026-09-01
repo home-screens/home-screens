@@ -56,7 +56,6 @@ export function ScoreboardView({ games }: { games: Game[] }) {
 
   return (
     <div className="flex flex-col justify-center h-full gap-3 px-4">
-      {/* League + broadcast */}
       <div className="flex items-center justify-between">
         <span
           className="font-semibold tracking-widest uppercase text-white/40"
@@ -71,7 +70,6 @@ export function ScoreboardView({ games }: { games: Game[] }) {
         )}
       </div>
 
-      {/* Away team */}
       <TeamRow
         logo={game.awayTeamLogo}
         abbr={game.awayTeamAbbr}
@@ -83,7 +81,6 @@ export function ScoreboardView({ games }: { games: Game[] }) {
 
       <div className="h-px bg-white/10" />
 
-      {/* Home team */}
       <TeamRow
         logo={game.homeTeamLogo}
         abbr={game.homeTeamAbbr}
@@ -93,7 +90,6 @@ export function ScoreboardView({ games }: { games: Game[] }) {
         color={game.homeTeamColor}
       />
 
-      {/* Status + pagination */}
       <div className="flex items-center justify-between">
         <GameStatus
           state={game.state}

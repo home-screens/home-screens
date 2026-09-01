@@ -903,7 +903,6 @@ export default function ChoreChartModal({
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
   const [choreSearch, setChoreSearch] = useState('');
 
-  // Fetch shared chore data on mount
   useEffect(() => {
     editorFetch('/api/chores/data')
       .then((res) => {

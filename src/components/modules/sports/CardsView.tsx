@@ -7,7 +7,6 @@ function GameCard({ game }: { game: Game }) {
 
   return (
     <div className="bg-white/5 rounded-lg p-2.5 flex flex-col gap-1.5">
-      {/* Header: league + status */}
       <div className="flex items-center justify-between" style={{ fontSize: '0.6em' }}>
         <span className="font-semibold tracking-wider uppercase text-white/40">
           {game.league}
@@ -22,7 +21,6 @@ function GameCard({ game }: { game: Game }) {
         />
       </div>
 
-      {/* Away team */}
       <div className="flex items-center gap-2">
         <TeamLogo src={game.awayTeamLogo} alt={game.awayTeamAbbr} size={20} />
         <span
@@ -39,7 +37,6 @@ function GameCard({ game }: { game: Game }) {
         </span>
       </div>
 
-      {/* Home team */}
       <div className="flex items-center gap-2">
         <TeamLogo src={game.homeTeamLogo} alt={game.homeTeamAbbr} size={20} />
         <span

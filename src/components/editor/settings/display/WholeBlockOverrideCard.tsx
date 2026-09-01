@@ -16,7 +16,6 @@ interface WholeBlockOverrideCardProps {
   defaultsLabel: string;
   /** Banner copy — section-specific (Sleep mentions dim-time exception). */
   infoCopy: ReactNode;
-  /** Whether this display has forked the settings block. */
   isForked: boolean;
   /** Seed the override from current defaults. */
   onFork: () => void;

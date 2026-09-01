@@ -8,7 +8,7 @@ import type { SleepSettings } from '@/types/config';
 /**
  * `idleDimEnabled: false` turns off the inactivity dim/sleep machinery while
  * leaving the schedules fully in charge — the "sleep overnight, full
- * brightness all day" configuration from issue #26. Absent means true, because
+ * brightness all day" configuration. Absent means true, because
  * every config saved before the field existed had idle dimming on.
  */
 const SCHEDULE_ONLY: SleepSettings = {

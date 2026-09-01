@@ -14,13 +14,10 @@ interface WifiConnectModalProps {
   network: WifiNetwork | null;
   /** SSID override for hidden networks */
   hiddenSsid?: string;
-  /** Available WiFi interfaces */
   wifiInterfaces: NetworkInterface[];
-  /** Pre-selected interface */
   selectedIface: string;
   /** Called on successful connection (with optional rollbackId for mgmt interface) */
   onConnected: (rollbackId?: string) => void;
-  /** Called when the modal should close */
   onClose: () => void;
   /** Called when a management interface warning is returned */
   onManagementWarning: (warning: string, retryWithConfirm: () => void) => void;

@@ -33,7 +33,6 @@ export default function BalanceBanner({ balance, memberName, scale }: BalanceBan
         boxShadow: 'var(--fcc-card-shadow)',
       }}
     >
-      {/* Left: label + balance */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: scale * 0.2 }}>
         <div
           style={{
@@ -67,7 +66,6 @@ export default function BalanceBanner({ balance, memberName, scale }: BalanceBan
         </div>
       </div>
 
-      {/* Right: star */}
       <div
         style={{
           fontSize: starFontSize,

@@ -12,7 +12,6 @@ interface UsePauseRotationOptions {
   pauseEnabled: boolean | undefined;
   /** `settings.pauseTimeoutSeconds`; 0 means stay paused indefinitely. */
   pauseTimeoutSeconds: number | undefined;
-  /** Index of the screen currently showing. */
   activeIndex: number;
   /** Identity of the resolved screen set; a change is a hard reset. */
   screenKey: string;

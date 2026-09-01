@@ -157,7 +157,6 @@ function SunArcView({
         viewBox={`0 0 ${w} ${h}`}
         style={{ width: '100%', flex: '1 1 auto', minHeight: 0 }}
       >
-        {/* Glow gradient for the sun */}
         <defs>
           <radialGradient id={sunGlowId}>
             <stop offset="0%" stopColor={isDaytime ? '#fbbf24' : '#f97316'} stopOpacity="0.6" />
@@ -165,7 +164,6 @@ function SunArcView({
           </radialGradient>
         </defs>
 
-        {/* Horizon line */}
         <line
           x1={cx - rx - 10}
           y1={horizonY}
@@ -176,7 +174,6 @@ function SunArcView({
           strokeWidth="1"
         />
 
-        {/* Arc path (dashed) */}
         <path
           d={`M ${arcStartX} ${horizonY} A ${rx} ${ry} 0 0 1 ${arcEndX} ${horizonY}`}
           fill="none"
@@ -186,7 +183,6 @@ function SunArcView({
           strokeDasharray="4 4"
         />
 
-        {/* Traversed arc segment (solid, up to current sun position) */}
         {isDaytime && (
           <path
             d={`M ${arcStartX} ${horizonY} A ${rx} ${ry} 0 0 1 ${sunPos.x} ${sunPos.y}`}
@@ -197,7 +193,6 @@ function SunArcView({
           />
         )}
 
-        {/* Golden hour marker */}
         {showGoldenHour && goldenProgress >= 0 && goldenProgress <= 1 && (() => {
           const gp = arcPoint(goldenProgress, cx, horizonY, rx, ry);
           return (
@@ -217,7 +212,6 @@ function SunArcView({
           );
         })()}
 
-        {/* Noon tick at peak */}
         <line
           x1={noonPos.x}
           y1={noonPos.y - 4}
@@ -238,12 +232,10 @@ function SunArcView({
           {t('sunrise-sunset.noon')}
         </text>
 
-        {/* Sun glow */}
         {isDaytime && (
           <circle cx={sunPos.x} cy={sunPos.y} r={glowRadius} fill={`url(#${sunGlowId})`} />
         )}
 
-        {/* Sun circle */}
         <circle
           cx={isDaytime ? sunPos.x : cx}
           cy={isDaytime ? sunPos.y : horizonY + 14}
@@ -252,7 +244,6 @@ function SunArcView({
           fillOpacity={isDaytime ? 1 : NIGHT_SUN_OPACITY}
         />
 
-        {/* Sunrise label (left) */}
         <text
           x={arcStartX}
           y={horizonY + 14}
@@ -274,7 +265,6 @@ function SunArcView({
           {t('sunrise-sunset.riseShort')}
         </text>
 
-        {/* Sunset label (right) */}
         <text
           x={arcEndX}
           y={horizonY + 14}
@@ -340,7 +330,6 @@ function DefaultView({
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ gap: '0.6em' }}>
       <div className="flex items-center justify-center w-full" style={{ gap: '1.5em' }}>
-        {/* Sunrise */}
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↑</span>
           <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
@@ -351,7 +340,6 @@ function DefaultView({
           </span>
         </div>
 
-        {/* Sunset */}
         <div className="flex flex-col items-center" style={{ gap: '0.15em' }}>
           <span style={{ fontSize: '1.4em' }}>↓</span>
           <span className="uppercase tracking-widest" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
@@ -589,7 +577,6 @@ function CircleView({
           </radialGradient>
         </defs>
 
-        {/* base ring keeps the dial shape where no segment covers it */}
         <circle cx={CIRCLE.cx} cy={CIRCLE.cy} r={CIRCLE_R} fill="none" stroke="currentColor" strokeOpacity="0.12" strokeWidth="8" />
 
         {skyRing ?? (

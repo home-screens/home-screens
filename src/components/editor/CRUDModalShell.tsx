@@ -38,7 +38,6 @@ export default function CRUDModalShell({
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       <div ref={trapRef} className={`relative bg-hs-panel border border-hs-border-strong rounded-xl w-full ${maxWidth} h-[85vh] flex flex-col`}>
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-hs-border-strong">
           <div className="flex items-center gap-3">
             {icon}
@@ -58,10 +57,8 @@ export default function CRUDModalShell({
           )}
         </div>
 
-        {/* Body */}
         {children}
 
-        {/* Footer */}
         {!hideFooter && (
           <div className="flex items-center justify-end px-5 py-3 border-t border-hs-border-strong">
             <Button size="sm" variant="primary" onClick={onClose}>

@@ -311,7 +311,6 @@ export default function RainMapModule({
         className="relative w-full h-full overflow-hidden rounded-lg"
         style={{ backgroundColor: MAP_BG[mapStyle] ?? MAP_BG.dark }}
       >
-        {/* Base map tiles */}
         <div
           className="absolute"
           style={{
@@ -380,20 +379,17 @@ export default function RainMapModule({
           })}
         </div>
 
-        {/* Center marker dot */}
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white border-2 border-gray-800 z-10"
           style={{ boxShadow: '0 0 4px rgba(0,0,0,0.6)' }}
         />
 
-        {/* Timestamp */}
         {showTimestamp && (
           <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded z-10 font-mono">
             {formatFrameTime(currentFrame.time, t)}
           </div>
         )}
 
-        {/* Timeline dots */}
         {showTimeline && frames.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
             {frames.map((frame, i) => {

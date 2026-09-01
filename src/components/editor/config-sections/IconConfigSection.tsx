@@ -57,7 +57,7 @@ export function IconConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   // Restrict the Style dropdown to options the currently-selected icon
   // actually ships in. Picking `house` (solid+regular) and then flipping
   // style to "Brands" would otherwise render `fa-brands fa-house` against
-  // a woff2 with no glyph for that codepoint — Codex caught this gap.
+  // a woff2 with no glyph for that codepoint.
   // No icon selected yet → fall back to the full set so the dropdown is
   // never empty.
   const supportedStyles = c.iconName ? getFaIconStyles(c.iconName) : undefined;

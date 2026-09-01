@@ -20,7 +20,6 @@ function DriftingClock({ timezone }: { timezone?: string }) {
   const velocityRef = useRef({ dx: 0.3, dy: 0.2 });
   const locale = useFormattingLocale();
 
-  // Update clock every second
   useEffect(() => {
     function tick() {
       const now = new Date();

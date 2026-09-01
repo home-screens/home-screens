@@ -26,7 +26,6 @@ export function CompactView({ config, data }: CompactViewProps) {
   const allowTouch = config.allowDisplayComplete;
   const t = useTranslate('modules');
 
-  // Filter to today's chores
   const todayChores = chores.filter(
     (c) => choreAppliesToday(c, dayOfWeek, today),
   );

@@ -268,7 +268,7 @@ describe('ICS + Google Calendar merging', () => {
   it('returns every event inside a widened grid window; no user setting trims the fetch', async () => {
     // A month grid draws whatever its window holds. The old per-user "max
     // events" once scaled into this fetch and silently cut a busy family's
-    // month grid to the nearest few days (issue #21 and the Cozi report).
+    // month grid to the nearest few days.
     mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }));
 
     const events = Array.from({ length: 300 }, (_, i) =>

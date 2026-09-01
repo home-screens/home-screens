@@ -109,10 +109,8 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <StandingsHeader league={group.league} groupName={group.name} total={groups.length} current={index} />
 
-      {/* Column headers */}
       <div className="flex items-center gap-1.5 px-2 pb-1" style={{ paddingLeft: 'calc(0.5rem + 3px)' }}>
         <span style={{ width: '1.2em', fontSize: '0.6em' }} className="text-white/25 text-right shrink-0">#</span>
         <div style={{ width: 18 }} className="shrink-0" />
@@ -128,7 +126,6 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
         ))}
       </div>
 
-      {/* Team rows */}
       <div className="flex-1 overflow-hidden">
         {entries.map((entry) => {
           const barWidth = maxWinPct > 0 ? (entry.winPct / maxWinPct) * 100 : 0;

@@ -172,7 +172,6 @@ export function RewardsStoreView({
         color: 'var(--fcc-text)',
       }}
     >
-      {/* Header */}
       <div
         style={{
           flexShrink: 0,
@@ -229,7 +228,6 @@ export function RewardsStoreView({
         )}
       </div>
 
-      {/* Member Picker */}
       <div
         style={{
           flexShrink: 0,
@@ -246,7 +244,6 @@ export function RewardsStoreView({
         />
       </div>
 
-      {/* Balance Banner */}
       {selectedMember && (
         <div
           style={{
@@ -263,7 +260,6 @@ export function RewardsStoreView({
         </div>
       )}
 
-      {/* Rewards Grid — scrollable */}
       <div
         style={{
           flex: 1,
@@ -305,7 +301,6 @@ export function RewardsStoreView({
           </div>
         )}
 
-        {/* Redemption History */}
         {memberRedemptions.length > 0 && (
           <div style={{ marginTop: scale * 1.5, paddingTop: scale * 1, borderTop: '1px solid var(--fcc-border-sub)' }}>
             <div style={{ fontSize: scale * 0.85, fontWeight: 700, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: scale * 0.6 }}>
@@ -339,7 +334,6 @@ export function RewardsStoreView({
         )}
       </div>
 
-      {/* Redeem Confirmation Overlay */}
       {confirmingReward && selectedMember && (
         <RedeemConfirm
           reward={confirmingReward}

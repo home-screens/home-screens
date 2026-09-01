@@ -107,7 +107,6 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   const gutterWidth = scale.bu * 5.5;
   const overlapMode = config.eventOverlap ?? 'columns';
 
-  // Fit grid exactly to container — no scrolling on kiosk display
   const baseHourHeight = scale.bu * (config.density === 'cozy' ? 6.5 : 5.5);
   const hourHeight = containerH > 0 ? containerH / totalHours : baseHourHeight;
   const gridHeight = totalHours * hourHeight;

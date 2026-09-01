@@ -18,8 +18,6 @@ import type { CalendarConfig, CalendarEvent, CalendarGridTheme, ModuleStyle } fr
 import { withAlpha, type EventDisplayStyle } from './support';
 import { EventCard } from './EventCard';
 
-// ─── Shared grid pieces (week / month / multi-week) ───
-
 /** Gutter for the month and multi-week grids: 2px, double the week grid's
  *  1px, because their cells are short and need more air to separate. The
  *  same value must reach every grid of a view (header row included) or the
@@ -117,8 +115,6 @@ export function DayCellEvents({ events, maxPerCell, textColor, accentColor, even
     </div>
   );
 }
-
-// ─── Month + Multi-Week Grid Views ───
 
 interface GridViewProps {
   events: CalendarEvent[];

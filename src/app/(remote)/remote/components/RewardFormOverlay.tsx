@@ -108,7 +108,6 @@ export default function RewardFormOverlay({
           </div>
         }
       >
-        {/* Icon */}
         <IconPicker
           value={emoji}
           onChange={setEmoji}
@@ -117,7 +116,6 @@ export default function RewardFormOverlay({
           variant="mobile"
         />
 
-        {/* Name */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>{t('rewardForm.nameLabel')}</div>
           <input
@@ -130,7 +128,6 @@ export default function RewardFormOverlay({
           />
         </div>
 
-        {/* Cost + Enabled grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
           <div>
             <div style={LABEL_STYLE}>{t('rewardForm.ticketCostLabel')}</div>
@@ -187,7 +184,6 @@ export default function RewardFormOverlay({
           </div>
         </div>
 
-        {/* Description */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>{t('rewardForm.descriptionLabel')}</div>
           <input
@@ -199,7 +195,6 @@ export default function RewardFormOverlay({
           />
         </div>
 
-        {/* Available To */}
         <div style={{ marginBottom: 24 }}>
           <div style={LABEL_STYLE}>{t('rewardForm.availableToLabel')}</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>

@@ -35,7 +35,6 @@ export function WeekView({ events, config, style, today, now, accentColor, event
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="grid gap-px mb-1" style={{ gridTemplateColumns: gridTemplate }}>
         {showWeekNumbers && (
           <div className="flex items-center justify-center px-1">
@@ -70,7 +69,6 @@ export function WeekView({ events, config, style, today, now, accentColor, event
         })}
       </div>
 
-      {/* Event grid */}
       <div className="grid gap-px flex-1 overflow-hidden" style={{ gridTemplateColumns: gridTemplate }}>
         {showWeekNumbers && (
           <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize={0.6} />

@@ -61,7 +61,6 @@ export default function MealsPlanView({
   const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
   return (
     <div style={{ paddingBottom: 80 }}>
-      {/* Quick actions */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button
           onClick={suggestRandom}
@@ -167,14 +166,12 @@ export default function MealsPlanView({
         </div>
       )}
 
-      {/* Days grid */}
       {weekDates.map(({ date, dayIndex }) => {
         const isToday = date === todayISO;
         const dayLabel = dayNamesFull[dayIndex];
 
         return (
           <div key={date} style={{ marginBottom: 20 }}>
-            {/* Day label */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
                 {dayLabel}
@@ -283,7 +280,6 @@ export default function MealsPlanView({
         );
       })}
 
-      {/* Meal picker overlay */}
       {pickingSlot && (
         <div
           style={{
@@ -298,7 +294,6 @@ export default function MealsPlanView({
             justifyContent: 'flex-end',
           }}
         >
-          {/* Backdrop */}
           <div
             onClick={() => setPickingSlot(null)}
             style={{
@@ -307,7 +302,6 @@ export default function MealsPlanView({
               background: 'rgba(0,0,0,0.6)',
             }}
           />
-          {/* Picker panel */}
           <div
             style={{
               position: 'relative',
@@ -319,15 +313,12 @@ export default function MealsPlanView({
               boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
             }}
           >
-            {/* Drag handle */}
             <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
             </div>
-            {/* Title */}
             <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)', padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)' }}>
               {t('mealsPlan.picker.title')}
             </div>
-            {/* Scrollable list */}
             <div style={{ overflow: 'auto', padding: '8px 16px', flex: 1, scrollbarWidth: 'none' as const }}>
               {savedMeals.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--hs-text-faint)', fontSize: 13 }}>
@@ -364,7 +355,6 @@ export default function MealsPlanView({
                 ))
               )}
             </div>
-            {/* Remove Meal button */}
             <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)' }}>
               <button
                 onClick={() => {

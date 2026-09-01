@@ -15,9 +15,8 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
     ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
     : null;
 
-  // Inline localized version of `buildInfoParts` — the helper in
-  // `src/lib/date-info.ts` is out of scope for Task 2 and still hard-codes
-  // English labels. The views in scope build their own translated label here.
+  // Inline localized version of buildInfoParts: date-info.ts still hard-codes
+  // English labels, so this view builds its own translated label.
   const { weekNumber, dayOfYear } = getDateInfoValues(now);
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);

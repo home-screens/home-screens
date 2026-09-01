@@ -91,20 +91,10 @@ export interface LatestImageRelease {
   releaseUrl: string;
 }
 
-// Tags whose GitHub release actually publishes a `home-screens-<tag>.img.xz`
-// SD card image. Checked in rather than derived: the site is a static export
-// with no network at build time, and there is no rule to derive it from. The
-// history is genuinely irregular — v1.4.0 shipped no image while the v1.4.1
-// patch did — so guessing from the version number produces a 404 download link
-// on the first step of the recommended install path.
-//
-// When a release publishes an image, add its tag here. Until then the site
-// links to the newest release that really has one, which is stale but works.
-//
-// This cuts both ways: remove a tag when its image is withdrawn. v1.9.0 and
-// v1.10.0 both published images that were never added here, and both were
-// later deleted for shipping a kiosk that never started, so the entries they
-// never had would now be 404s on the first step of the install path.
+// Tags whose GitHub release actually publishes a `home-screens-<tag>.img.xz` image.
+// Checked in rather than derived: no way to tell from the version number alone,
+// and this repo is a static export with no network at build time. Add a tag here
+// when a release ships an image; remove it if the image is later withdrawn.
 const IMAGE_RELEASE_TAGS = new Set([
   'v1.11.0',
   'v1.8.0',

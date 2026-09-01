@@ -24,8 +24,7 @@ export default function ConfirmSheet({
 }) {
   // Defaults route through `core.actions` so callers don't need to translate
   // them locally. Callers that want a custom label (e.g. "Delete Member",
-  // "Redeem — 3 tickets") still pass `confirmLabel` explicitly. Mirrors the
-  // ConfirmModal pattern from 6.4c.ii.
+  // "Redeem — 3 tickets") still pass `confirmLabel` explicitly.
   const tCore = useTranslate('core');
   const resolvedConfirmLabel = confirmLabel ?? tCore('actions.confirm');
   const resolvedCancelLabel = cancelLabel ?? tCore('actions.cancel');

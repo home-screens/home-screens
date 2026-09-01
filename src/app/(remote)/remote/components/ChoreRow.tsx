@@ -104,14 +104,12 @@ export default function ChoreRow({
     <>
       {checkbox}
 
-      {/* Icon */}
       {assignment.choreEmoji && (
         <span style={{ flexShrink: 0 }}>
           <ChoreIcon value={assignment.choreEmoji} size={20} color={done ? 'var(--hs-text-faint)' : 'var(--hs-text-muted)'} />
         </span>
       )}
 
-      {/* Name */}
       <span
         style={{
           flex: 1,
@@ -124,7 +122,6 @@ export default function ChoreRow({
         {assignment.choreName}
       </span>
 
-      {/* Points */}
       {showPoints && assignment.points > 0 && (
         <span
           style={{

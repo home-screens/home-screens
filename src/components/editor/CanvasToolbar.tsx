@@ -18,7 +18,6 @@ interface CanvasToolbarProps {
   onResetZoom: () => void;
 }
 
-/** Floating bottom toolbar: undo/redo, snap toggle, and zoom controls. */
 export default function CanvasToolbar({
   t,
   canUndo,
@@ -34,7 +33,6 @@ export default function CanvasToolbar({
 }: CanvasToolbarProps) {
   return (
     <div className="absolute bottom-3 left-1/2 z-50 flex -translate-x-1/2 items-center gap-0.5 rounded-lg border border-hs-border-strong bg-hs-panel/90 px-1 py-0.5 backdrop-blur-sm">
-      {/* Undo / Redo */}
       <button
         onClick={onUndo}
         disabled={!canUndo}
@@ -56,7 +54,6 @@ export default function CanvasToolbar({
 
       <div className="mx-0.5 h-4 w-px bg-hs-card" />
 
-      {/* Snap toggle */}
       <button
         onClick={onToggleSnap}
         className={`rounded p-1.5 transition-colors ${
@@ -73,7 +70,6 @@ export default function CanvasToolbar({
 
       <div className="mx-0.5 h-4 w-px bg-hs-card" />
 
-      {/* Zoom controls */}
       <button
         onClick={onZoomOut}
         disabled={userZoom <= MIN_ZOOM}

@@ -22,7 +22,6 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
     [plan, meals, checkedItems],
   );
 
-  // Compute totals
   let total = 0;
   let checked = 0;
   for (const [, group] of groceryMap) {

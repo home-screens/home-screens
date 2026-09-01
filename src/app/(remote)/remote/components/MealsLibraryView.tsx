@@ -47,7 +47,6 @@ export default function MealsLibraryView({
   const tCore = useTranslate('core');
   return (
     <div style={{ paddingBottom: 80 }}>
-      {/* Search input */}
       <input
         type="text"
         placeholder={t('mealsTab.library.searchPlaceholder')}
@@ -59,7 +58,6 @@ export default function MealsLibraryView({
         }}
       />
 
-      {/* Filter pills */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' as const, paddingBottom: 12 }}>
         {LIBRARY_FILTERS.map((tag) => {
           const isActive = filterTag === tag;
@@ -91,7 +89,6 @@ export default function MealsLibraryView({
         })}
       </div>
 
-      {/* Meal list */}
       {filteredMeals.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
           <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
@@ -123,10 +120,8 @@ export default function MealsLibraryView({
               fontFamily: 'inherit',
             }}
           >
-            {/* Emoji */}
             <span style={{ fontSize: 32, flexShrink: 0 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
 
-            {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)', marginBottom: 4 }}>
                 {meal.name}
@@ -155,7 +150,6 @@ export default function MealsLibraryView({
               )}
             </div>
 
-            {/* Favorite */}
             <span
               onClick={(e) => {
                 e.stopPropagation();
@@ -186,7 +180,6 @@ export default function MealsLibraryView({
         ))
       )}
 
-      {/* FAB */}
       <button
         onClick={openNewMealForm}
         aria-label={t('mealsTab.library.fabAriaLabel')}
@@ -214,7 +207,6 @@ export default function MealsLibraryView({
         +
       </button>
 
-      {/* ── Meal form overlay ── */}
       {form.editingMeal !== null && (
         <MealFormOverlay
           form={form}

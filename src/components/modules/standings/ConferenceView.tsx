@@ -29,14 +29,12 @@ function ConferenceColumn({
 
   return (
     <div className="flex-1 min-w-0">
-      {/* Conference header */}
       <div className="px-1.5 pb-1 mb-1 border-b border-white/10">
         <span className="text-white/50 font-medium" style={{ fontSize: '0.65em' }}>
           {group.name}
         </span>
       </div>
 
-      {/* Team rows */}
       {entries.map((entry) => (
         <StandingsTeamRow
           key={entry.teamAbbr}
@@ -77,7 +75,6 @@ export function ConferenceView({ groups, teamsToShow, showPlayoffLine, rotationI
 
   return (
     <div className="flex flex-col h-full">
-      {/* League header */}
       <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10">
         <span
           className="font-semibold tracking-widest uppercase text-white/40"
@@ -88,7 +85,6 @@ export function ConferenceView({ groups, teamsToShow, showPlayoffLine, rotationI
         <PaginationDots total={pairs.length} current={index} />
       </div>
 
-      {/* Side-by-side conferences */}
       <div className="flex gap-2 flex-1 overflow-hidden">
         {pair.map((group) => (
           <ConferenceColumn

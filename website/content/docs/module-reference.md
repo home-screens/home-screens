@@ -147,6 +147,7 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `showDifficulty` | boolean | `false` | Show difficulty indicator |
 | `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
+| `showTitle` | boolean | `true` | Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu") |
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
 
@@ -296,6 +297,7 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
 | `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
 | `gridTheme` | string | `"banner"` | Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
+| `gridDayLabelScale` | number | `1` | Week/multi-week/month grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell |
 | `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
@@ -422,6 +424,7 @@ Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), 
 | `hideWhenNoAlerts` | boolean | `false` | Hide the alerts view when there are no active alerts |
 | `showLocation` | boolean | `false` | Show a place-name header above the view |
 | `locationLabel` | string | — | Custom text for the location header. Empty falls back to the geocoded place name, then to the formatted coordinates |
+| `showTitle` | boolean | `true` | Show the "Forecast" / "Hourly Forecast" heading (hourly, daily, and table views) |
 
 **View details:**
 
@@ -528,6 +531,7 @@ Feeds are a list. Each entry is `{ "id", "url", "label"?, "color"?, "homeNetwork
 | `tickerSpeed` | number | `5` | Seconds per story in the ticker view |
 | `tickerSeparator` | string | `"dot"` | Glyph between ticker stories: `dot`, `pipe`, or `slash` |
 | `accentColor` | string | — | List bullet, "Just in" pill, and new-story dot colour (optional) |
+| `showTitle` | boolean | `true` | Show the built-in header (headline and list views) |
 
 ### Stock Ticker
 
@@ -637,6 +641,7 @@ Historical events that happened on today's date. Fetches from two data sources �
 | `showDividers` | boolean | `true` | Show decorative dividers |
 | `sourceMuffinLabs` | boolean | `true` | Enable MuffinLabs data source |
 | `sourceWikipedia` | boolean | `true` | Enable Wikipedia "On This Day" data source |
+| `showTitle` | boolean | `true` | Show the "On This Day" header. Turning it off hides the divider under it too |
 
 ---
 
@@ -652,6 +657,7 @@ A checklist with completable items.
 | `items` | array | `[]` | Items with `id`, `text`, and `completed` fields |
 | `accentColor` | string | `"#000000"` | Accent color for checkboxes, strikethrough, and progress indicator |
 | `interactive` | boolean | `false` | Render items as tap targets on the display so anyone at the kiosk can check or uncheck them. Taps are stored separately from the editor's item list, so an editor save never wipes them, and every display showing the same list stays in sync (within about 5 seconds). |
+| `showTitle` | boolean | `true` | Show the title text. The done count stays either way |
 
 Items can be added, edited, and checked off in the editor. With `interactive` on, they can also be checked off directly on a touchscreen display.
 
@@ -675,6 +681,7 @@ Displays tasks from the Todoist API with filtering, grouping, and multiple view 
 | `refreshIntervalMs` | number | `60000` | How often to fetch tasks (1 min) |
 | `allowComplete` | boolean | `false` | Show a tappable circle on each task. Tapping marks the task complete in Todoist (optimistic, with cache invalidation so the task disappears immediately). When off, the priority bar is shown instead. |
 | `title` | string | `"Todoist"` | Module header title |
+| `showTitle` | boolean | `true` | Show the title text. The task count stays either way |
 
 Requires a Todoist API token in settings. Markdown formatting in task content and descriptions (links, bold, italic, code, images) is stripped before rendering so kiosks don't show raw `[Watch](url)` syntax.
 
@@ -723,6 +730,7 @@ Trash and recycling collection schedule. Highlights when collection day is appro
 | `customColor` | string | `"#fbbf24"` | Custom icon color |
 | `customLabel` | string | `"Yard Waste"` | Label for the custom collection type |
 | `highlightMode` | string | `"day-before"` | When to highlight: `day-of` or `day-before` |
+| `showTitle` | boolean | `true` | Show the built-in "Collection Schedule" header |
 
 Supports up to 3 collection types: trash, recycling, and a customizable third type (e.g. yard waste, compost). Each type can run on its own weekly or biweekly schedule.
 
@@ -760,6 +768,7 @@ A meal planning module for organizing daily meals across configurable slots (bre
 | `showTags` | boolean | `true` | Show meal tags |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
+| `showTitle` | boolean | `true` | Show the "Today's Meals" label in the today view |
 
 **Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding — the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
 
@@ -786,6 +795,7 @@ A chore tracking module for families or housemates. Assign chores to members wit
 | `showTimeOfDay` | boolean | `true` | Show time-of-day labels (morning, afternoon, evening) |
 | `allowDisplayComplete` | boolean | `true` | Allow marking chores complete from the display view |
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
+| `showTitle` | boolean | `true` | Show the built-in view title ("Family Chores", "Star Chart", and so on) |
 
 **Members and chores are shared household data**, not module options. They live in `data/chores.json` and are edited from the editor's **Edit chore chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week.
 
@@ -1094,6 +1104,7 @@ Shows estimated travel times for configured routes.
 |---|---|---|---|
 | `routes` | array | `[]` | Routes, each with `label`, `origin`, and `destination` |
 | `refreshIntervalMs` | number | `300000` | Refresh interval (5 min) |
+| `showTitle` | boolean | `true` | Show the built-in "Traffic" header |
 
 Supports Google Routes API or TomTom as providers. Origins and destinations are address strings.
 

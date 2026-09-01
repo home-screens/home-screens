@@ -151,7 +151,6 @@ export default function ChoreHistoryNav({
 
   return (
     <div>
-      {/* Month row */}
       <div
         style={{
           display: 'flex',
@@ -236,7 +235,6 @@ export default function ChoreHistoryNav({
         </div>
       </div>
 
-      {/* Day strip */}
       <div
         ref={stripRef}
         className="scrollbar-none"

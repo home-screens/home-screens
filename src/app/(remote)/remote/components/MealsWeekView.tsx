@@ -52,7 +52,6 @@ export default function MealsWeekView({
 
         return (
           <div key={date} style={{ marginBottom: 16 }}>
-            {/* Day header */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
                 {dayLabel}
@@ -77,7 +76,6 @@ export default function MealsWeekView({
               )}
             </div>
 
-            {/* Meal slots */}
             {enabledSlotsOrdered.map((slot: MealSlotType) => {
               const { planned, meal } = getMealForSlot(date, slot);
               const hasMeal = !!(meal || planned?.customText);

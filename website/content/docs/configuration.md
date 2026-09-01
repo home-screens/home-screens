@@ -154,6 +154,8 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   pauseEnabled?: boolean          // Allow double-tap on pagination dot to pause rotation (default true)
   pauseTimeoutSeconds?: number    // Auto-resume after this many seconds (0 = never, default 300)
   swipeEnabled?: boolean          // Flick left/right on the touchscreen to change screens (default true)
+  setupHintEnabled?: boolean      // Show the faint setup watermark naming the editor address on a
+                                  // display with no screens to show (default true)
 
   backupReminder?: {
     enabled: boolean              // Show a reminder when backup is overdue (default true)
@@ -205,7 +207,6 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   icalSources: ICalSource[]        // iCal/ICS feed sources
   icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
   people?: CalendarPerson[]        // Household list; powers the family grid and free time views
-  maxEvents: number                // Max events to display
   daysAhead: number                // Days to look ahead
   holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
   hideDeclined?: boolean           // Google only: skip events the signed-in account declined
@@ -454,6 +455,7 @@ Like `screens`, the `profiles` field is owned by the display: owned profile `scr
   pauseEnabled?: boolean
   pauseTimeoutSeconds?: number
   swipeEnabled?: boolean
+  setupHintEnabled?: boolean
 }
 ```
 
@@ -678,7 +680,7 @@ In the editor you pick a resolution and an orientation separately: four presets,
 
 ## Config Migrations
 
-Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load. The current schema version is **5**.
+Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load. The current schema version is **10**.
 
 Migration runs when the config is read and the result is written back to disk automatically, so `version` in `data/config.json` updates itself the first time newer code reads an older config. If a migration fails, the un-migrated config is returned as-is rather than falling back to defaults, so a bad upgrade can never quietly replace your setup with an empty one.
 
@@ -727,25 +729,24 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 5,
+  "version": 10,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,
     "displayHeight": 1920,
-    "latitude": 44.7133,
-    "longitude": -93.4227,
-    "timezone": "America/Chicago",
+    "latitude": 40.0150,
+    "longitude": -105.2705,
+    "timezone": "America/Denver",
     "weather": {
       "provider": "pirateweather",
-      "latitude": 44.7133,
-      "longitude": -93.4227,
+      "latitude": 40.0150,
+      "longitude": -105.2705,
       "units": "imperial"
     },
     "calendar": {
       "googleCalendarId": "",
       "googleCalendarIds": ["primary"],
       "icalSources": [],
-      "maxEvents": 10,
       "daysAhead": 7
     }
   },

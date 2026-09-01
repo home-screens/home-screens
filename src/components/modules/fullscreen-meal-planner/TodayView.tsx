@@ -37,10 +37,8 @@ export default function TodayView({
   const { meal: heroMeal, planned: heroPlanned } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
 
-  // Other meals (non-hero)
   const otherSlots = activeOrder.filter((sl) => sl !== heroSlot);
 
-  // Determine if a slot is past
   const isSlotPast = (sl: typeof SLOT_ORDER[number]) => {
     const w = SLOT_WINDOWS[sl];
     return currentHour >= w.end;

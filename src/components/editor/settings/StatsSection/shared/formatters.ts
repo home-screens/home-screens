@@ -8,7 +8,7 @@ export function formatBytes(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[i]}`;
 }
 
-/** Split a byte count into "20.3" and "GB" so we can style the unit separately. */
+// so the unit can be styled separately from the value
 export function splitBytes(bytes: number): { value: string; unit: string } {
   if (bytes <= 0) return { value: '0', unit: 'B' };
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -23,7 +23,6 @@ export function formatDuration(ms: number): string {
   return `${Math.round(s / 60)}m`;
 }
 
-/** Shorten API URL for display: /api/weather?lat=40.7... → /api/weather */
 export function shortenUrl(url: string): string {
   const qIndex = url.indexOf('?');
   return qIndex >= 0 ? url.slice(0, qIndex) : url;

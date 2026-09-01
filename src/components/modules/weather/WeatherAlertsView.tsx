@@ -16,7 +16,6 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
 export default function WeatherAlertsView({ alerts, scaledFontSize, timezone }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
-  // Filter to non-expired alerts
   const now = Math.floor(Date.now() / 1000);
   const active = (alerts ?? []).filter((a) => a.expires > now);
 
