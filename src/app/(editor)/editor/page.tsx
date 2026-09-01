@@ -16,8 +16,9 @@ import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/
 import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
-import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, snapToGrid } from '@/lib/constants';
+import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, MIN_EDITOR_WIDTH, snapToGrid } from '@/lib/constants';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import type { ModuleType } from '@/types/config';
 
 import ScreenTabs from '@/components/editor/ScreenTabs';
@@ -27,10 +28,9 @@ import EditorCanvas from '@/components/editor/EditorCanvas';
 import PropertyPanel from '@/components/editor/PropertyPanel';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import PluginStorePanel from '@/components/editor/PluginStorePanel';
+import PhoneHandoff from '@/components/PhoneHandoff';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
-
-const MIN_EDITOR_WIDTH = 768;
 
 export default function EditorPage() {
   const t = useTranslate('editor');
@@ -188,8 +188,13 @@ export default function EditorPage() {
   }
 
   if (tooNarrow) {
+    // A phone is the most common way to land here. Hand off to the surfaces
+    // built for it, and make the editor address easy to carry to a laptop.
+    // /chores is only offered once a chore chart is on a screen (the same
+    // gate as the remote's Chores tab).
+    const hasChoreChart = resolveChoreModuleConfig(config) !== null;
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-3 px-6 text-center bg-hs-body">
+      <div className="h-screen overflow-y-auto flex flex-col items-center justify-center gap-3 px-6 py-8 text-center bg-hs-body" data-testid="editor-too-narrow">
         <HomeScreensLogo />
         <p className="text-hs-text-secondary text-sm">
           {t('page.tooNarrowMessage', { minWidth: MIN_EDITOR_WIDTH })}
@@ -197,6 +202,9 @@ export default function EditorPage() {
         <p className="text-hs-text-faint text-xs">
           {t('page.tooNarrowHint')}
         </p>
+        <div className="mt-4 w-full flex justify-center">
+          <PhoneHandoff showChores={hasChoreChart} />
+        </div>
       </div>
     );
   }

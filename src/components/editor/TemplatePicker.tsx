@@ -9,6 +9,7 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
+import ModalPortal from '@/components/ui/ModalPortal';
 
 interface TemplatePickerProps {
   onSelect: (layout: LayoutExport) => void;
@@ -50,6 +51,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
   };
 
   return (
+    <ModalPortal>
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
@@ -139,5 +141,6 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

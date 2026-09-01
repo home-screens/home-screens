@@ -1,5 +1,5 @@
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
-import { pruneDanglingScreenRefs } from '@/lib/display-filter';
+import { pruneDanglingScreenRefs, isScreenEmpty } from '@/lib/display-filter';
 import {
   getActiveScreens,
   getActiveDimensions,
@@ -78,7 +78,20 @@ export function createLayoutSlice(
             displayHeight: dims.height,
           },
         };
-        const updated = importLayoutCore(layout, tempConfig, options);
+        const imported = importLayoutCore(layout, tempConfig, options);
+        // The empty screen the user chose "start from a template" on is
+        // replaced by the imported screens rather than left blank beside
+        // them. Only dropped while it is still empty: a screen that picked
+        // up modules in the meantime is kept.
+        const droppedEmptyId = options.mode === 'add'
+          && options.replaceEmptyScreenId
+          && imported.screens.some((s) => s.id === options.replaceEmptyScreenId && isScreenEmpty(s))
+          && imported.screens.length > 1
+          ? options.replaceEmptyScreenId
+          : null;
+        const updated = droppedEmptyId
+          ? { ...imported, screens: imported.screens.filter((s) => s.id !== droppedEmptyId) }
+          : imported;
 
         // Apply the screen changes back to the active container, and carry
         // any applyVisual settings/profile changes forward on the root config.
@@ -144,9 +157,12 @@ export function createLayoutSlice(
         // rules untouched, so any `showScreen` rule still points at a now-gone
         // screen id — which `validateDisplayRules` rejects, making the config
         // unsaveable. Blank those targets the same way a screen deletion does,
-        // reusing `pruneDanglingScreenRefs` per removed id (add mode removes
-        // nothing, so it's skipped entirely).
+        // reusing `pruneDanglingScreenRefs` per removed id. Add mode removes
+        // nothing except the replaced empty screen, pruned the same way.
         let pruned = merged;
+        if (droppedEmptyId) {
+          pruned = pruneDanglingScreenRefs(pruned, droppedEmptyId, selectedDisplayId);
+        }
         if (options.mode === 'replace') {
           const newIds = new Set(updated.screens.map((s) => s.id));
           for (const removedId of existingIds) {

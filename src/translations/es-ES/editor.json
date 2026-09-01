@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Acercar",
     "zoomPercent": "{percent}%",
     "fitTitle": "Ajustar a la pantalla (Cmd+0)",
-    "fitAriaLabel": "Ajustar a la pantalla"
+    "fitAriaLabel": "Ajustar a la pantalla",
+    "emptyScreen": {
+      "title": "Esta pantalla está vacía",
+      "body": "Arrastra aquí un módulo de la lista de la izquierda, o empieza desde una plantilla.",
+      "chooseTemplate": "Elegir una plantilla"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Programado — activo ahora",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Detectada: {name} (vía IP)",
         "detectedCoords": "Detectada: {lat}, {lon}",
         "detectFailed": "Error: no se pudo detectar la ubicación"
-      }
+      },
+      "queryLabel": "Tu ciudad o código postal"
     },
     "calendarPage": {
       "google": {
@@ -3509,7 +3515,9 @@
         "smhi": "SMHI (gratis, solo nórdicos)",
         "metoffice": "UK Met Office (Reino Unido)",
         "envcanada": "Environment Canada (solo Canadá)"
-      }
+      },
+      "apiKeyMissing": "Este proveedor del tiempo necesita una clave API.",
+      "addApiKey": "Añadir clave API"
     },
     "word-of-day": {
       "showDividers": "Mostrar separadores"
@@ -3659,6 +3667,11 @@
       "signInDeclined": "Se canceló el inicio de sesión",
       "signInExpired": "Ese código caducó. Vuelve a iniciar sesión.",
       "signInFailed": "El inicio de sesión no funcionó. Comprueba el ID de aplicación e inténtalo de nuevo."
+    },
+    "locationRow": {
+      "set": "Ubicación: {name}",
+      "notSet": "Este módulo necesita tu ubicación.",
+      "setUp": "Indicar tu ubicación"
     }
   },
   "imageBrowsers": {
@@ -3790,7 +3803,9 @@
     "searchPlaceholder": "Buscar módulos…",
     "noResults": "No se encontraron módulos",
     "pluginBadge": "Plugin",
-    "communityPluginTooltip": "Plugin de la comunidad"
+    "communityPluginTooltip": "Plugin de la comunidad",
+    "howToAdd": "Haz clic o arrastra a la pantalla",
+    "itemTooltip": "Haz clic para añadir, o arrastra a la pantalla"
   },
   "backupReminder": {
     "message": {
@@ -3934,6 +3949,21 @@
       "passwordHint": "Puedes pedir una contraseña en Ajustes, en el apartado Seguridad.",
       "copyLink": "Copiar enlace",
       "copied": "Copiado"
+    }
+  },
+  "firstRun": {
+    "heading": "Primeros pasos",
+    "intro": "Cuatro pasos rápidos para tener una pantalla funcionando.",
+    "dismiss": "Ocultar esta lista",
+    "steps": {
+      "template": "Elige una plantilla o añade módulos a tu primera pantalla",
+      "templateButton": "Elegir una plantilla",
+      "location": "Indica tu ubicación",
+      "locationLink": "Abrir Ubicación e idioma",
+      "phone": "Ábrelo en tu móvil",
+      "phoneLink": "Ver las direcciones para el móvil",
+      "password": "Pon una contraseña",
+      "passwordLink": "Abrir Seguridad"
     }
   }
 }

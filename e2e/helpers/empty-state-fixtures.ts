@@ -71,6 +71,18 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Location not configured'),
   },
   {
+    // The route needs the household location; without one the module says so
+    // instead of surfacing the route's error string.
+    type: 'air-quality', name: 'missing-location', kind: 'network-free', noLocation: true,
+    expect: showsCopy('Location not configured'),
+  },
+  {
+    // No module coordinates and no household location: nothing to centre on.
+    type: 'rain-map', name: 'missing-location', kind: 'network-free', noLocation: true,
+    config: { latitude: 0, longitude: 0 },
+    expect: showsCopy('Location not configured'),
+  },
+  {
     type: 'sunrise-sunset', name: 'missing-location', kind: 'network-free', noLocation: true,
     expect: showsCopy('Location not configured'),
   },

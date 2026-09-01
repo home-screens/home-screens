@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
@@ -8,7 +8,8 @@ import SettingsSidebar from '@/components/editor/settings/SettingsSidebar';
 import SettingsHeader from '@/components/editor/settings/SettingsHeader';
 import DefaultsPageContent from '@/components/editor/settings/DefaultsPageContent';
 import PerDisplayPage from '@/components/editor/settings/display/PerDisplayPage';
-import { settingsHref } from '@/lib/settings-route';
+import { settingsHref, type DefaultPageId } from '@/lib/settings-route';
+import { getLocation } from '@/lib/location';
 import DisplaysIndexPage from '@/components/editor/settings/DisplaysIndexPage';
 import OrientationChangeModal from '@/components/editor/settings/OrientationChangeModal';
 import UpgradeModal from '@/components/editor/UpgradeModal';
@@ -37,6 +38,28 @@ export default function SettingsPage() {
   );
 }
 
+const LOCATION_LANDING_SEEN_KEY = 'hs-settings-location-landing-seen';
+
+/**
+ * `'location'` exactly once per browser while the location is unset, else
+ * `'screen'`. Decided when the config first arrives and held for the rest of
+ * the mount, so entering coordinates on the page does not flip the landing
+ * choice under the user's feet.
+ */
+function useLocationLanding(locationUnset: boolean): DefaultPageId {
+  const [page, setPage] = useState<DefaultPageId | null>(null);
+  useEffect(() => {
+    if (page !== null || !locationUnset) return;
+    let seen = true;
+    try {
+      seen = localStorage.getItem(LOCATION_LANDING_SEEN_KEY) === '1';
+      if (!seen) localStorage.setItem(LOCATION_LANDING_SEEN_KEY, '1');
+    } catch { /* private mode: treat as seen */ }
+    setPage(seen ? 'screen' : 'location');
+  }, [page, locationUnset]);
+  return page ?? 'screen';
+}
+
 function SettingsPageContent() {
   const router = useRouter();
   const tCore = useTranslate('core');
@@ -53,8 +76,16 @@ function SettingsPageContent() {
   const settings = config?.settings;
 
   // The URL is the single source of truth for content routing — the hook
-  // resolves it and canonicalizes the query string.
-  const { route, panel } = useSettingsRoute();
+  // resolves it and canonicalizes the query string. A bare `/editor/settings`
+  // lands on Location the first time this browser opens Settings while the
+  // household location is unset: it is the first thing weather, sunrise,
+  // moon phase and the rest need, and nothing else in the app links to it.
+  // Once only — a household with no location-dependent modules is shown
+  // the page once and then lands on Screen like everyone else. Until the
+  // config has loaded the page renders its loading state, so the landing
+  // choice is made before anything paints.
+  const landingPage = useLocationLanding(settings != null && getLocation(settings) == null);
+  const { route, panel } = useSettingsRoute(landingPage);
   useSettingsHighlight();
 
   // Load config on mount (handles hard refresh / direct URL visit)

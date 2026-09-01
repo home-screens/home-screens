@@ -63,8 +63,19 @@ import ScreenRotator from '../ScreenRotator';
 const DOOR = 'plugin:ha:door';
 const PANIC = 'plugin:ha:panic';
 
+// Each screen carries one module: a display whose screens are all empty
+// shows the setup watermark instead of rotating, and this test is about
+// rotation. ScreenRenderer is mocked, so the module is never rendered.
 function screenOf(id: string): Screen {
-  return { id, name: id, backgroundImage: '', modules: [] };
+  return {
+    id,
+    name: id,
+    backgroundImage: '',
+    modules: [{
+      id: `${id}-text`, type: 'text', position: { x: 0, y: 0 }, size: { w: 100, h: 100 }, zIndex: 1,
+      config: { content: id }, style: {} as Screen['modules'][number]['style'],
+    }],
+  };
 }
 
 // 'alert' lives in the display's full screen list but is excluded from the

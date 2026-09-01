@@ -604,8 +604,14 @@
     "noGames": "Ingen kampe fundet"
   },
   "stock-ticker": {
-    "chartCaptions": { "day": "1-dag", "week": "5-dage" },
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartCaptions": {
+      "day": "1-dag",
+      "week": "5-dage"
+    },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Indlæser…",
     "empty": "Ingen aktiedata",
     "headers": {
@@ -801,7 +807,8 @@
   "common": {
     "locationNotConfigured": "Placering ikke angivet",
     "pluginNotAvailable": "Plugin ikke tilgængeligt: {name}",
-    "moduleFailed": "Dette element kunne ikke vises."
+    "moduleFailed": "Dette element kunne ikke vises.",
+    "setLocationLink": "Angiv din placering"
   },
   "event-detail": {
     "close": "Luk",

@@ -34,6 +34,7 @@ interface FullscreenWeatherModuleProps {
   units?: 'metric' | 'imperial';
   timezone?: string;
   locationMissing?: boolean;
+  locationSettingsHref?: string;
   locationName?: string;
   latitude?: number;
   longitude?: number;
@@ -71,6 +72,7 @@ export default function FullscreenWeatherModule({
   units = 'imperial',
   timezone,
   locationMissing,
+  locationSettingsHref,
   locationName,
   latitude,
   longitude,
@@ -176,7 +178,7 @@ export default function FullscreenWeatherModule({
   ) ?? '';
 
   if (locationMissing) {
-    return <LocationRequired style={style} />;
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
   }
 
   const viewProps: WeatherViewProps = {

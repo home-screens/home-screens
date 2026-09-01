@@ -83,7 +83,7 @@ Insert the microSD card into your Pi and power it on. **What you'll see:**
 1. **Black screen** for 30–90 seconds while the Pi initializes
 2. **Raspberry Pi rainbow splash** briefly
 3. **Brief console text** while the filesystem expands and WiFi connects
-4. **Home Screens starts rotating** — you're done booting
+4. **A "Nothing here yet" screen with the hub's address** — you're done booting. A new install has no screens designed yet, so the display shows the address to open on a phone or laptop instead of a blank panel. Once you add your first screen in the editor, the display starts rotating.
 
 Total time: 2–3 minutes. If the screen is still black after 5 minutes, see [First boot troubleshooting](/docs/troubleshooting#first-boot).
 
@@ -102,11 +102,13 @@ From any Mac, Linux, or Windows machine on the same network, open a terminal and
 ping home-screens.local
 ```
 
-That gives you the IP address. Then open the editor from any phone or laptop:
+That gives you the IP address. It is also printed on the display itself until you build your first screen. Open it from any phone or laptop:
 
 ```
-http://home-screens.local:3000/editor
+http://home-screens.local:3000
 ```
+
+A laptop lands in the editor. A phone gets a short menu instead: the family remote, the kids' chores page, and the editor address to send to a laptop (the editor needs a wide screen).
 
 If `home-screens.local` doesn't resolve (some routers don't support mDNS), check your router's admin page for a device named `home-screens` and use that IP instead.
 

@@ -332,3 +332,37 @@ describe('DefaultsRoute page↔panel correlation', () => {
     expect([crossPage, untabbed, ok, pageOnly].length).toBe(4);
   });
 });
+
+describe('resolveSettingsRoute landingPage', () => {
+  it('lands a bare URL on the landing page and rewrites the URL to name it', () => {
+    const { route, redirectedQuery } = resolveSettingsRoute('', { landingPage: 'location' });
+    expect(route).toEqual({ kind: 'defaults', page: 'location' });
+    expect(redirectedQuery).toBe('section=defaults&page=location');
+  });
+
+  it('is a no-op for the default landing page', () => {
+    expect(resolveSettingsRoute('', { landingPage: 'screen' })).toEqual({
+      route: { kind: 'defaults', page: 'screen' },
+    });
+    expect(resolveSettingsRoute('')).toEqual({ route: { kind: 'defaults', page: 'screen' } });
+  });
+
+  it('never overrides an explicit routing param', () => {
+    const cases = [
+      'section=defaults&page=system',
+      'page=calendar',
+      'section=displays',
+      'section=display&id=kitchen',
+      'section=defaults',
+    ];
+    for (const query of cases) {
+      const { route } = resolveSettingsRoute(query, { landingPage: 'location' });
+      expect(route).not.toEqual({ kind: 'defaults', page: 'location' });
+    }
+  });
+
+  it('keeps foreign params and a highlight through the landing rewrite', () => {
+    const { redirectedQuery } = resolveSettingsRoute('utm=x&highlight=location.latitude', { landingPage: 'location' });
+    expect(redirectedQuery).toBe('utm=x&section=defaults&page=location&highlight=location.latitude');
+  });
+});

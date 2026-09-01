@@ -5,8 +5,8 @@ import { useTranslate } from '@/i18n';
 import { UI_MONO_STACK, UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
- * What a display shows when it resolves zero screens — none configured yet,
- * or every screen disabled.
+ * What a display shows when it has nothing to render — no screens configured,
+ * every screen disabled, or (the fresh-install case) screens with no modules.
  *
  * The state this exists for is the first five minutes of a new install: a Pi
  * boots into chromium, the config has no screens, and the panel is a black
@@ -14,7 +14,9 @@ import { UI_MONO_STACK, UI_SANS_STACK } from '@/lib/font-registry';
  * address, because that is the one fact the person standing in front of the
  * display cannot look up — they don't yet know whether the hub answers to a
  * hostname, an IP, or which port. `window.location.origin` is exactly the URL
- * this kiosk is already talking to, so it is always right.
+ * this kiosk is already talking to, so it is always right. The bare origin is
+ * printed rather than `/editor`: `/` lands a laptop on the editor and a phone
+ * on the launcher, and it is the shortest thing to type from across a room.
  *
  * Deliberately a watermark, not a UI: nothing here is brighter than a third
  * of white on black, there are no buttons, and `settings.setupHintEnabled:
@@ -88,7 +90,7 @@ export default function EmptyDisplayHint() {
             wordBreak: 'break-all',
           }}
         >
-          {`${origin}/editor`}
+          {origin}
         </div>
       )}
 

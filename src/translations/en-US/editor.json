@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Zoom in",
     "zoomPercent": "{percent}%",
     "fitTitle": "Fit to screen (Cmd+0)",
-    "fitAriaLabel": "Fit to screen"
+    "fitAriaLabel": "Fit to screen",
+    "emptyScreen": {
+      "title": "This screen is empty",
+      "body": "Drag a module here from the list on the left, or start from a template.",
+      "chooseTemplate": "Choose a template"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Scheduled — currently active",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Detected: {name} (via IP)",
         "detectedCoords": "Detected: {lat}, {lon}",
         "detectFailed": "Error: Could not detect location"
-      }
+      },
+      "queryLabel": "Your town or zip code"
     },
     "calendarPage": {
       "google": {
@@ -3504,7 +3510,9 @@
         "smhi": "SMHI (free, Nordic only)",
         "metoffice": "UK Met Office (UK focus)",
         "envcanada": "Environment Canada (Canada only)"
-      }
+      },
+      "apiKeyMissing": "This weather provider needs an API key.",
+      "addApiKey": "Add API key"
     },
     "word-of-day": {
       "showDividers": "Show Dividers"
@@ -3654,6 +3662,11 @@
       "signInDeclined": "Sign-in was cancelled",
       "signInExpired": "That code expired. Start sign-in again.",
       "signInFailed": "Sign-in did not work. Check the Application ID and try again."
+    },
+    "locationRow": {
+      "set": "Location: {name}",
+      "notSet": "This module needs your location.",
+      "setUp": "Set your location"
     }
   },
   "imageBrowsers": {
@@ -3785,7 +3798,9 @@
     "searchPlaceholder": "Search modules…",
     "noResults": "No modules found",
     "pluginBadge": "Plugin",
-    "communityPluginTooltip": "Community plugin"
+    "communityPluginTooltip": "Community plugin",
+    "howToAdd": "Click or drag onto the screen",
+    "itemTooltip": "Click to add, or drag onto the screen"
   },
   "backupReminder": {
     "message": {
@@ -3928,6 +3943,21 @@
       "passwordHint": "You can ask for a password in Settings, under Security.",
       "copyLink": "Copy link",
       "copied": "Copied"
+    }
+  },
+  "firstRun": {
+    "heading": "Getting started",
+    "intro": "Four quick steps to a working display.",
+    "dismiss": "Hide this checklist",
+    "steps": {
+      "template": "Pick a template or add modules to your first screen",
+      "templateButton": "Choose a template",
+      "location": "Set your location",
+      "locationLink": "Open Location & language",
+      "phone": "Open it on your phone",
+      "phoneLink": "See the phone addresses",
+      "password": "Set a password",
+      "passwordLink": "Open Security"
     }
   }
 }

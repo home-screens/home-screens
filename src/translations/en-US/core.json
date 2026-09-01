@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "No screens yet",
+    "headline": "Nothing here yet",
     "body": "Open the editor on another device to build your first screen.",
     "hideHint": "Hide this in Settings → Screen"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} done · {left} to go",
     "quickNameSeconds": "{seconds} second timer",
     "quickNameClock": "{time} timer"
+  },
+  "launcher": {
+    "heading": "Where do you want to go?",
+    "remote": {
+      "title": "Family remote",
+      "body": "Chores, meals, timers, and the displays"
+    },
+    "chores": {
+      "title": "Kids' chores",
+      "body": "Check off today's chores"
+    },
+    "display": {
+      "title": "Display",
+      "body": "See what the wall shows"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Design your screens. Works best on a laptop or desktop."
+    },
+    "editorAddressHint": "Open this address on a laptop to design your screens:",
+    "editorAddressLabel": "Editor address",
+    "copy": "Copy",
+    "copied": "Copied",
+    "openEditor": "Open the editor"
   }
 }

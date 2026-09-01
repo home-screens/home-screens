@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Zoom ind",
     "zoomPercent": "{percent}%",
     "fitTitle": "Tilpas til skærm (Cmd+0)",
-    "fitAriaLabel": "Tilpas til skærm"
+    "fitAriaLabel": "Tilpas til skærm",
+    "emptyScreen": {
+      "title": "Denne skærm er tom",
+      "body": "Træk et modul herover fra listen til venstre, eller start fra en skabelon.",
+      "chooseTemplate": "Vælg en skabelon"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Planlagt — aktiv lige nu",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Fundet: {name} (via IP)",
         "detectedCoords": "Fundet: {lat}, {lon}",
         "detectFailed": "Fejl: Kunne ikke finde placeringen"
-      }
+      },
+      "queryLabel": "Din by eller dit postnummer"
     },
     "calendarPage": {
       "google": {
@@ -3504,7 +3510,9 @@
         "smhi": "SMHI (gratis, kun Norden)",
         "metoffice": "UK Met Office (fokus på Storbritannien)",
         "envcanada": "Environment Canada (kun Canada)"
-      }
+      },
+      "apiKeyMissing": "Denne vejrtjeneste har brug for en API-nøgle.",
+      "addApiKey": "Tilføj API-nøgle"
     },
     "word-of-day": {
       "showDividers": "Vis skillelinjer"
@@ -3654,6 +3662,11 @@
       "signInDeclined": "Login blev annulleret",
       "signInExpired": "Koden udløb. Start login igen.",
       "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen."
+    },
+    "locationRow": {
+      "set": "Placering: {name}",
+      "notSet": "Dette modul har brug for din placering.",
+      "setUp": "Angiv din placering"
     }
   },
   "imageBrowsers": {
@@ -3785,7 +3798,9 @@
     "searchPlaceholder": "Søg efter moduler…",
     "noResults": "Ingen moduler fundet",
     "pluginBadge": "Plugin",
-    "communityPluginTooltip": "Plugin fra fællesskabet"
+    "communityPluginTooltip": "Plugin fra fællesskabet",
+    "howToAdd": "Klik eller træk over på skærmen",
+    "itemTooltip": "Klik for at tilføje, eller træk over på skærmen"
   },
   "backupReminder": {
     "message": {
@@ -3928,6 +3943,21 @@
       "passwordHint": "I kan bede om en adgangskode under Indstillinger, i Sikkerhed.",
       "copyLink": "Kopiér link",
       "copied": "Kopieret"
+    }
+  },
+  "firstRun": {
+    "heading": "Kom godt i gang",
+    "intro": "Fire hurtige trin til en skærm der virker.",
+    "dismiss": "Skjul denne tjekliste",
+    "steps": {
+      "template": "Vælg en skabelon eller tilføj moduler til din første skærm",
+      "templateButton": "Vælg en skabelon",
+      "location": "Angiv din placering",
+      "locationLink": "Åbn Placering og sprog",
+      "phone": "Åbn den på din telefon",
+      "phoneLink": "Se adresserne til telefonen",
+      "password": "Vælg en adgangskode",
+      "passwordLink": "Åbn Sikkerhed"
     }
   }
 }

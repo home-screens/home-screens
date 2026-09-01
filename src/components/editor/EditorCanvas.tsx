@@ -15,12 +15,45 @@ import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
+import { isScreenEmpty } from '@/lib/display-filter';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
 import SelectionOverlay from './SelectionOverlay';
 import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
 import CanvasToolbar from './CanvasToolbar';
+import StartFromTemplateButton from './StartFromTemplateButton';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
+
+/**
+ * What an empty screen shows inside the display frame. The first editor visit
+ * on a fresh install is exactly this: a dark rectangle with no hint that the
+ * list on the left is draggable or that the rectangle is the TV. Sized in
+ * canvas pixels and scaled with the frame so it reads the same at any zoom.
+ * Text is click-through (the canvas click still clears the selection); only
+ * the button takes the pointer.
+ */
+function EmptyScreenPlaceholder({ scale, screenId, t }: { scale: number; screenId: string; t: TranslateFn }) {
+  return (
+    <div
+      data-testid="empty-screen-placeholder"
+      className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none"
+      style={{ padding: 80 * scale, gap: 18 * scale }}
+    >
+      <LayoutDashboard style={{ width: 96 * scale, height: 96 * scale }} strokeWidth={1.25} className="text-white/25" />
+      <p className="text-white/80 font-medium" style={{ fontSize: 44 * scale }}>{t('canvas.emptyScreen.title')}</p>
+      <p className="text-white/50" style={{ fontSize: 30 * scale, maxWidth: 760 * scale, lineHeight: 1.4 }}>
+        {t('canvas.emptyScreen.body')}
+      </p>
+      <div className="pointer-events-auto" style={{ marginTop: 10 * scale }}>
+        <StartFromTemplateButton
+          replaceEmptyScreenId={screenId}
+          label={t('canvas.emptyScreen.chooseTemplate')}
+          className="inline-flex items-center gap-1.5"
+        />
+      </div>
+    </div>
+  );
+}
 
 function GridOverlay({ scale }: { scale: number }) {
   const scaledGrid = GRID_SIZE * scale;
@@ -301,6 +334,9 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                 screenBackground={activeBackground || currentScreen.backgroundImage}
               />
               {snapEnabled && <GridOverlay scale={effectiveScale} />}
+              {isScreenEmpty(currentScreen) && (
+                <EmptyScreenPlaceholder scale={effectiveScale} screenId={currentScreen.id} t={t} />
+              )}
               {currentScreen.modules.map((mod) => (
                 <DraggableModule
                   key={mod.id}

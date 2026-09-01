@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Nenhuma tela ainda",
+    "headline": "Ainda não há nada aqui",
     "body": "Abra o editor em outro dispositivo para criar sua primeira tela.",
     "hideHint": "Oculte isto em Configurações → Tela"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} feitos · {left} restantes",
     "quickNameSeconds": "Timer de {seconds} segundos",
     "quickNameClock": "Timer de {time}"
+  },
+  "launcher": {
+    "heading": "Para onde você quer ir?",
+    "remote": {
+      "title": "Controle da família",
+      "body": "Tarefas, refeições, timers e as telas"
+    },
+    "chores": {
+      "title": "Tarefas das crianças",
+      "body": "Marcar as tarefas de hoje"
+    },
+    "display": {
+      "title": "Tela",
+      "body": "Ver o que a parede está mostrando"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Monte suas telas. Funciona melhor em um notebook ou computador."
+    },
+    "editorAddressHint": "Abra este endereço em um notebook para montar suas telas:",
+    "editorAddressLabel": "Endereço do editor",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "openEditor": "Abrir o editor"
   }
 }

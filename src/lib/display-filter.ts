@@ -107,6 +107,19 @@ export function findMainDisplay(displays: DisplayNode[] | undefined): DisplayNod
 }
 
 /**
+ * A screen with nothing to show: no modules AND no background of its own.
+ * A wallpaper-only screen (a background image or an enabled background
+ * rotation, zero modules) is deliberate content, not an empty screen, so it
+ * must neither trip the display's setup watermark nor be treated as a blank
+ * slate by the editor.
+ */
+export function isScreenEmpty(screen: Pick<Screen, 'modules' | 'backgroundImage' | 'backgroundRotation'>): boolean {
+  return screen.modules.length === 0
+    && !screen.backgroundImage
+    && !(screen.backgroundRotation?.enabled);
+}
+
+/**
  * Pick the effective screen list for a display. Always returns the display's
  * owned `screens` array — every display owns its own screens.
  *

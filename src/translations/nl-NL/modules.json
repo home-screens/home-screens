@@ -604,8 +604,14 @@
     "noGames": "Geen wedstrijden gevonden"
   },
   "stock-ticker": {
-    "chartCaptions": { "day": "1-dag", "week": "5-dagen" },
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartCaptions": {
+      "day": "1-dag",
+      "week": "5-dagen"
+    },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Laden…",
     "empty": "Geen aandelengegevens",
     "headers": {
@@ -801,7 +807,8 @@
   "common": {
     "locationNotConfigured": "Locatie niet ingesteld",
     "pluginNotAvailable": "Plug-in niet beschikbaar: {name}",
-    "moduleFailed": "Dit onderdeel kon niet worden getoond."
+    "moduleFailed": "Dit onderdeel kon niet worden getoond.",
+    "setLocationLink": "Locatie instellen"
   },
   "event-detail": {
     "close": "Sluiten",

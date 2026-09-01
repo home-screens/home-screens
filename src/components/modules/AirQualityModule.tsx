@@ -4,6 +4,7 @@ import { Wind } from 'lucide-react';
 import type { AirQualityConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
+import { LocationRequired } from './LocationRequired';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -13,6 +14,9 @@ import { ContentCard } from './shared/ContentCard';
 interface AirQualityModuleProps {
   config: AirQualityConfig;
   style: ModuleStyle;
+  latitude?: number;
+  longitude?: number;
+  locationSettingsHref?: string;
 }
 
 interface AirQualityData {
@@ -71,12 +75,20 @@ function PollutantBar({ label, value, unit, threshold, color }: {
   );
 }
 
-export default function AirQualityModule({ config, style }: AirQualityModuleProps) {
+export default function AirQualityModule({ config, style, latitude, longitude, locationSettingsHref }: AirQualityModuleProps) {
   const t = useTranslate('modules');
+  // The route reads the household location itself; without one it can only
+  // answer with an error string, so say what is missing in plain words
+  // instead (the fetch is skipped while the location is unset).
+  const hasLocation = latitude != null && longitude != null;
   const [data, error] = useFetchData<AirQualityData>(
-    airQualityUrl(),
+    hasLocation ? airQualityUrl() : '',
     config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
   );
+
+  if (!hasLocation) {
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
+  }
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('air-quality.loading') });
   if (gate || !data) return gate;

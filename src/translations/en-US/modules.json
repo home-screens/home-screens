@@ -604,8 +604,14 @@
     "noGames": "No games found"
   },
   "stock-ticker": {
-    "chartCaptions": { "day": "1-day", "week": "5-days" },
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartCaptions": {
+      "day": "1-day",
+      "week": "5-days"
+    },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Loading…",
     "empty": "No stock data",
     "headers": {
@@ -801,7 +807,8 @@
   "common": {
     "locationNotConfigured": "Location not configured",
     "pluginNotAvailable": "Plugin not available: {name}",
-    "moduleFailed": "This item could not be shown."
+    "moduleFailed": "This item could not be shown.",
+    "setLocationLink": "Set your location"
   },
   "event-detail": {
     "close": "Close",

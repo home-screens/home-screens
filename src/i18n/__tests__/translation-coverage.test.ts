@@ -282,6 +282,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    'core|launcher.editor.title',
     'editor|configSections.financial.symbolLabel',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
@@ -294,6 +295,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|fullscreen-calendar.pm',
   ]),
   'de-DE': new Set([
+    'core|launcher.editor.title',
+    'core|launcher.display.title',
     'core|actions.name',
     'core|meal.tags.meal-prep',
     'core|meal.tags.vegan',
@@ -352,6 +355,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.routineName',
   ]),
   'es-ES': new Set([
+    'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
@@ -546,6 +550,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.stepMinutes',
   ]),
   'nl-NL': new Set([
+    'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
@@ -670,6 +675,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.title',
   ]),
   'pt-BR': new Set([
+    'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',

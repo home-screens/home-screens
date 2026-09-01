@@ -12,6 +12,7 @@ import {
   updateScreenModulesInConfig,
 } from '@/lib/editor-multi-display';
 import { scaleModulesToFit, reorderModuleZ, appendOnTop } from '@/lib/module-utils';
+import { findFreePosition } from '@/lib/free-position';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import type { EditorGet, ModuleActions, MutateConfig } from './types';
 
@@ -46,15 +47,23 @@ export function createModuleSlice(
         const preset = defaultPresetForLocale(cfg?.settings?.locale);
         moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
       }
+      const size = fillsCanvas ? { w: dims.width, h: dims.height } : { ...def.defaultSize };
+      // No drop point (palette click / Enter) — take the next free spot on the
+      // target screen so the new module never lands hidden under another one.
+      const resolvedPosition = fillsCanvas
+        ? { x: 0, y: 0 }
+        : position ?? findFreePosition(
+            (cfg ? getActiveScreens(cfg, state.selectedDisplayId) : []).find((s) => s.id === screenId)?.modules ?? [],
+            size,
+            dims,
+          );
       // zIndex is assigned by appendOnTop against the target screen's modules
       // inside the mutation, so it is computed from the same list it lands in.
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
         id: uuidv4(),
         type,
-        position: fillsCanvas ? { x: 0, y: 0 } : (position ?? { x: 100, y: 100 }),
-        size: fillsCanvas
-          ? { w: dims.width, h: dims.height }
-          : { ...def.defaultSize },
+        position: resolvedPosition,
+        size,
         config: moduleConfig,
         style: { ...defaultStyle, ...moduleDefaultStyle },
       };

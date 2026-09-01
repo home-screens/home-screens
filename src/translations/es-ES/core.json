@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Aún no hay pantallas",
+    "headline": "Aún no hay nada aquí",
     "body": "Abre el editor en otro dispositivo para crear tu primera pantalla.",
     "hideHint": "Oculta esto en Ajustes → Pantalla"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} hechos · {left} por hacer",
     "quickNameSeconds": "Temporizador de {seconds} segundos",
     "quickNameClock": "Temporizador de {time}"
+  },
+  "launcher": {
+    "heading": "¿A dónde quieres ir?",
+    "remote": {
+      "title": "Mando familiar",
+      "body": "Tareas, comidas, temporizadores y las pantallas"
+    },
+    "chores": {
+      "title": "Tareas de los niños",
+      "body": "Marcar las tareas de hoy"
+    },
+    "display": {
+      "title": "Pantalla",
+      "body": "Ver lo que muestra la pared"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Diseña tus pantallas. Funciona mejor en un portátil o un ordenador."
+    },
+    "editorAddressHint": "Abre esta dirección en un portátil para diseñar tus pantallas:",
+    "editorAddressLabel": "Dirección del editor",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "openEditor": "Abrir el editor"
   }
 }

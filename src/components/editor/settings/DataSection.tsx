@@ -12,7 +12,7 @@ import Toggle from '@/components/ui/Toggle';
 import LayoutExportModal from '@/components/editor/LayoutExportModal';
 import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
-import TemplatePicker from '@/components/editor/TemplatePicker';
+import TemplateFlow from '@/components/editor/TemplateFlow';
 import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
 import { useTranslate } from '@/i18n';
 import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
@@ -51,7 +51,7 @@ interface RestoreStatus {
 
 export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const t = useTranslate('editor');
-  const { importConfig, config, updateSettings, saveConfig } = useEditorStore();
+  const { importConfig, config, updateSettings, saveConfig, selectedScreenId } = useEditorStore();
 
   const intervalOptions = useMemo(
     () => [
@@ -411,11 +411,6 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     }
   }, [pendingRestore, postBackupAndReload, t]);
 
-  const handleTemplateSelect = (layout: LayoutExport) => {
-    setShowTemplatePicker(false);
-    setImportLayout(layout);
-  };
-
   return (
     <>
       <div className="space-y-6">
@@ -674,12 +669,11 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           onClose={() => setImportLayout(null)}
         />
       )}
-      {showTemplatePicker && (
-        <TemplatePicker
-          onSelect={handleTemplateSelect}
-          onClose={() => setShowTemplatePicker(false)}
-        />
-      )}
+      <TemplateFlow
+        open={showTemplatePicker}
+        onClose={() => setShowTemplatePicker(false)}
+        replaceEmptyScreenId={selectedScreenId ?? undefined}
+      />
       {showExportPasswordModal && (
         <BackupPasswordModal
           mode="set"

@@ -14,6 +14,13 @@ import { getLocation } from '@/lib/location';
 import { formatCoords } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherConfig, WeatherView, WeatherIconSet, WeatherProviderOption } from '@/types/config';
+import { settingsPath } from '@/lib/settings-route';
+import { WEATHER_PROVIDERS } from '@/components/editor/settings/weather/providers';
+
+/** Providers that cannot run without an API key, from the one provider table. */
+const KEYED_PROVIDER_IDS: ReadonlySet<string> = new Set(
+  WEATHER_PROVIDERS.filter((p) => p.secretKey !== null).map((p) => p.id),
+);
 
 // Provider capabilities — controls which toggles and views are visible
 const PROVIDER_CAPS: Record<string, { minutely?: boolean; alerts?: boolean; pressure?: boolean; visibility?: boolean; dewPoint?: boolean; uv?: boolean }> = {
@@ -84,6 +91,13 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'openweathermap');
   const caps = PROVIDER_CAPS[effectiveProvider] ?? {};
+  // A keyed provider with no key renders nothing but "No weather data" on the
+  // wall, and nothing in the editor says why. Surface it here, next to the
+  // module, with a link to where the key goes. Only judged once a real
+  // secret status has landed, so a slow first fetch never flashes a warning.
+  const apiKeyMissing = hasStatus && !secretsLoading
+    && KEYED_PROVIDER_IDS.has(effectiveProvider)
+    && !configuredProviders.includes(effectiveProvider);
 
   const availableViews = ALL_WEATHER_VIEWS.filter((v) => {
     const req = VIEW_REQUIRES[v.value];
@@ -112,6 +126,17 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <>
+      {apiKeyMissing && (
+        <div className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs" data-testid="weather-api-key-row">
+          <p className="text-hs-text-body">{t('configSections.weather.apiKeyMissing')}</p>
+          <a
+            href={settingsPath({ kind: 'defaults', page: 'integrations' })}
+            className="mt-1 inline-block font-medium text-hs-accent hover:underline"
+          >
+            {t('configSections.weather.addApiKey')}
+          </a>
+        </div>
+      )}
       <ViewSelect
         value={view}
         onChange={(v) => set({ view: v })}

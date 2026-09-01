@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Inzoomen",
     "zoomPercent": "{percent}%",
     "fitTitle": "Passend op scherm (Cmd+0)",
-    "fitAriaLabel": "Passend op scherm"
+    "fitAriaLabel": "Passend op scherm",
+    "emptyScreen": {
+      "title": "Dit scherm is leeg",
+      "body": "Sleep hier een module naartoe uit de lijst links, of begin met een sjabloon.",
+      "chooseTemplate": "Kies een sjabloon"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Gepland — momenteel actief",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Gedetecteerd: {name} (via IP)",
         "detectedCoords": "Gedetecteerd: {lat}, {lon}",
         "detectFailed": "Fout: locatie kon niet worden gedetecteerd"
-      }
+      },
+      "queryLabel": "Je plaats of postcode"
     },
     "calendarPage": {
       "google": {
@@ -3504,7 +3510,9 @@
         "smhi": "SMHI (gratis, alleen Scandinavië)",
         "metoffice": "UK Met Office (gericht op VK)",
         "envcanada": "Environment Canada (alleen Canada)"
-      }
+      },
+      "apiKeyMissing": "Deze weerdienst heeft een API-sleutel nodig.",
+      "addApiKey": "API-sleutel toevoegen"
     },
     "word-of-day": {
       "showDividers": "Scheidingslijnen tonen"
@@ -3654,6 +3662,11 @@
       "signInDeclined": "Inloggen is geannuleerd",
       "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
       "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
+    },
+    "locationRow": {
+      "set": "Locatie: {name}",
+      "notSet": "Deze module heeft je locatie nodig.",
+      "setUp": "Locatie instellen"
     }
   },
   "imageBrowsers": {
@@ -3785,7 +3798,9 @@
     "searchPlaceholder": "Modules zoeken…",
     "noResults": "Geen modules gevonden",
     "pluginBadge": "Plug-in",
-    "communityPluginTooltip": "Community-plug-in"
+    "communityPluginTooltip": "Community-plug-in",
+    "howToAdd": "Klik of sleep naar het scherm",
+    "itemTooltip": "Klik om toe te voegen, of sleep naar het scherm"
   },
   "backupReminder": {
     "message": {
@@ -3928,6 +3943,21 @@
       "passwordHint": "Je kunt om een wachtwoord vragen bij Instellingen, onder Beveiliging.",
       "copyLink": "Link kopiëren",
       "copied": "Gekopieerd"
+    }
+  },
+  "firstRun": {
+    "heading": "Aan de slag",
+    "intro": "Vier korte stappen naar een werkend scherm.",
+    "dismiss": "Deze checklist verbergen",
+    "steps": {
+      "template": "Kies een sjabloon of voeg modules toe aan je eerste scherm",
+      "templateButton": "Kies een sjabloon",
+      "location": "Stel je locatie in",
+      "locationLink": "Locatie & taal openen",
+      "phone": "Open het op je telefoon",
+      "phoneLink": "Bekijk de adressen voor je telefoon",
+      "password": "Stel een wachtwoord in",
+      "passwordLink": "Beveiliging openen"
     }
   }
 }

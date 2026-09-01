@@ -1,5 +1,6 @@
 import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { settingsPath } from './settings-route';
 
 /**
  * Raw per-provider weather payloads plus the calendar payload, fetched once by
@@ -80,6 +81,13 @@ export interface PreviewData {
  * display and silently forgotten in the editor preview (or vice versa).
  */
 export interface ModuleDataSource {
+  /**
+   * Which surface is rendering. The only behavioural difference today: a
+   * module whose location is missing gets a `locationSettingsHref` in the
+   * editor so its empty state can link to the Location page — on the wall
+   * there is nothing to click, so the text stays plain.
+   */
+  surface: 'display' | 'editor';
   timezone?: string;
   fullscreenTheme?: string;
   /** Household 12/24-hour preference (GlobalSettings.timeFormat). */
@@ -138,7 +146,11 @@ export function buildModuleProps(
   };
 
   const def = getModuleDefinition(mod.type);
-  if (def?.dataRequirements?.includes('location') && source.location) {
+  const needsLocation = !!def?.dataRequirements?.includes('location');
+  const needsWeather = !!def?.dataRequirements?.includes('weather');
+  // Weather-bound modules get coordinates too: their location header falls
+  // back to them, and the fullscreen views compute sun times from them.
+  if ((needsLocation || needsWeather) && source.location) {
     props.latitude = source.location.lat;
     props.longitude = source.location.lon;
   }
@@ -166,7 +178,6 @@ export function buildModuleProps(
     props.people = source.calendarPeople;
   }
 
-  const needsWeather = mod.type === 'weather' || def?.dataRequirements?.includes('weather');
   if (needsWeather) {
     if (!source.location) props.locationMissing = true;
     const payload = source.weather.payloadFor(resolveProvider(mod, source.weather.globalProvider));
@@ -177,18 +188,20 @@ export function buildModuleProps(
       props.alerts = payload.alerts ?? undefined;
     }
     props.units = source.weather.units;
-    // Weather doesn't declare the `location` data requirement (it reads weather
-    // through the shared fetch, not coordinates), but the "show location" header
-    // needs both the geocoded name and a coordinate fallback.
+    // The "show location" header needs the geocoded name (coordinates as
+    // its fallback were injected above).
     props.locationName = source.locationName;
-    if (source.location) {
-      props.latitude = source.location.lat;
-      props.longitude = source.location.lon;
-    }
   }
 
   if (mod.type === 'display-control') {
     props.availableDisplays = source.availableDisplays;
+  }
+
+  // Editor preview of a location-dependent module with no location: the
+  // empty state becomes a link to the Location page. The display never gets
+  // this prop, so the same component renders plain text on the wall.
+  if (source.surface === 'editor' && !source.location && (needsLocation || needsWeather) && !def?.locationOptional) {
+    props.locationSettingsHref = settingsPath({ kind: 'defaults', page: 'location' });
   }
 
   return props;
@@ -226,6 +239,7 @@ export function toDisplaySource(
 ): ModuleDataSource {
   const calendarData = sharedData.calendarData;
   return {
+    surface: 'display',
     timezone: settings.timezone,
     fullscreenTheme: settings.fullscreenTheme,
     timeFormat: settings.timeFormat,
@@ -260,6 +274,7 @@ export function toEditorSource(
 ): ModuleDataSource {
   const globalProvider = settings?.globalProvider ?? 'weatherapi';
   return {
+    surface: 'editor',
     timezone: settings?.timezone,
     fullscreenTheme: settings?.fullscreenTheme,
     timeFormat: settings?.timeFormat,

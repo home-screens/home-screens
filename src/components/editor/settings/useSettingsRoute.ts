@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { resolveSettingsRoute, type SettingsPanelId, type SettingsRoute } from '@/lib/settings-route';
+import { resolveSettingsRoute, type DefaultPageId, type SettingsPanelId, type SettingsRoute } from '@/lib/settings-route';
 
 interface SettingsRouteState {
   /** The resolved route — content branches key off its `kind`. */
@@ -27,15 +27,16 @@ interface SettingsRouteState {
  * `window`. This hook is the client half: it resolves the route and flushes
  * the canonical query string back into the URL bar.
  */
-export function useSettingsRoute(): SettingsRouteState {
+export function useSettingsRoute(landingPage: DefaultPageId = 'screen'): SettingsRouteState {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // The `redirectedQuery` field tells the effect below whether the URL bar
-  // needs to be rewritten to the canonical shape.
+  // needs to be rewritten to the canonical shape (including the bare-URL
+  // landing page, which is rewritten to name the page explicitly).
   const { route, redirectedQuery } = useMemo(
-    () => resolveSettingsRoute(searchParams?.toString() ?? ''),
-    [searchParams],
+    () => resolveSettingsRoute(searchParams?.toString() ?? '', { landingPage }),
+    [searchParams, landingPage],
   );
 
   // One-shot URL canonicalization. The pure helper above already
@@ -51,9 +52,9 @@ export function useSettingsRoute(): SettingsRouteState {
   // params added after it was taken.
   useEffect(() => {
     if (!redirectedQuery) return;
-    const { redirectedQuery: fresh } = resolveSettingsRoute(window.location.search);
+    const { redirectedQuery: fresh } = resolveSettingsRoute(window.location.search, { landingPage });
     if (fresh) router.replace(`?${fresh}`);
-  }, [redirectedQuery, router]);
+  }, [redirectedQuery, router, landingPage]);
 
   return {
     route,

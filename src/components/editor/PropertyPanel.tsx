@@ -10,6 +10,8 @@ import Button from '@/components/ui/Button';
 import BackgroundPicker from '@/components/editor/BackgroundPicker';
 import ScreenSettingsSection from './ScreenSettingsSection';
 import SectionDivider from './SectionDivider';
+import FirstRunChecklist from './FirstRunChecklist';
+import { LocationStatusRow } from './config-sections/LocationStatusRow';
 import PropertyGroup from './PropertyGroup';
 import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import VisibilityConditionsSection from '@/components/editor/VisibilityConditionsSection';
@@ -334,6 +336,7 @@ export default function PropertyPanel() {
   if (!selectedModule || !selectedScreenId || !currentScreen) {
     return (
       <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
+        <FirstRunChecklist />
         <div className="flex flex-col items-center gap-2 py-6 text-hs-text-faint mb-5">
           <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
           <p className="text-sm">{t('propertyPanel.emptyState')}</p>
@@ -384,6 +387,12 @@ export default function PropertyPanel() {
           <AccordionSection title={t('propertyPanel.sections.style')} defaultOpen={false}>
             <StyleSection mod={selectedModule} screenId={selectedScreenId} t={t} />
           </AccordionSection>
+        )}
+
+        {/* One place, driven by the registry, so a location-bound module
+            (built-in or plugin) cannot forget to say what it needs. */}
+        {moduleDef?.dataRequirements?.some((r) => r === 'location' || r === 'weather') && !moduleDef.locationOptional && (
+          <LocationStatusRow mod={selectedModule} />
         )}
 
         {BuiltinConfigSection && (

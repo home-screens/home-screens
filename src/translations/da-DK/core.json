@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Ingen skærme endnu",
+    "headline": "Der er ikke noget her endnu",
     "body": "Åbn editoren på en anden enhed for at bygge din første skærm.",
     "hideHint": "Skjul dette under Indstillinger → Skærm"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} klaret · {left} tilbage",
     "quickNameSeconds": "{seconds} sekunders timer",
     "quickNameClock": "{time}-timer"
+  },
+  "launcher": {
+    "heading": "Hvor vil du hen?",
+    "remote": {
+      "title": "Familiefjernbetjening",
+      "body": "Pligter, måltider, timere og skærmene"
+    },
+    "chores": {
+      "title": "Børnenes pligter",
+      "body": "Sæt kryds ved dagens pligter"
+    },
+    "display": {
+      "title": "Skærm",
+      "body": "Se hvad væggen viser"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Byg dine skærme. Fungerer bedst på en bærbar eller stationær computer."
+    },
+    "editorAddressHint": "Åbn denne adresse på en computer for at bygge dine skærme:",
+    "editorAddressLabel": "Editorens adresse",
+    "copy": "Kopiér",
+    "copied": "Kopieret",
+    "openEditor": "Åbn editoren"
   }
 }

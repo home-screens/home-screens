@@ -6,6 +6,7 @@ import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { radarTileStore } from './rain-map-preload';
 import { useFetchData } from '@/hooks/useFetchData';
+import { LocationRequired } from './LocationRequired';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -16,6 +17,7 @@ interface RainMapModuleProps {
   style: ModuleStyle;
   latitude?: number;
   longitude?: number;
+  locationSettingsHref?: string;
 }
 
 // ── Tile math (standard Web Mercator) ──
@@ -140,10 +142,15 @@ export default function RainMapModule({
   style,
   latitude,
   longitude,
+  locationSettingsHref,
 }: RainMapModuleProps) {
   const t = useTranslate('modules');
-  const lat = config.latitude || latitude || 40;
-  const lon = config.longitude || longitude || -74;
+  // The module's own coordinates win; the household location is the
+  // fallback. With neither there is nothing sensible to centre on, and the
+  // gate below says so rather than silently showing New York.
+  const hasCoords = !!(config.latitude && config.longitude) || (latitude != null && longitude != null);
+  const lat = config.latitude || latitude || 0;
+  const lon = config.longitude || longitude || 0;
   const zoom = config.zoom ?? 6;
   const animationSpeedMs = Math.max(500, config.animationSpeedMs ?? 500);
   const extraDelayLastFrameMs = config.extraDelayLastFrameMs ?? 2000;
@@ -156,7 +163,8 @@ export default function RainMapModule({
   const colorScheme = config.colorScheme ?? 2;
   const refreshMs = config.refreshIntervalMs ?? DEFAULT_REFRESH_MS;
 
-  const [data, error] = useFetchData<RainViewerResponse>(rainMapUrl(), refreshMs);
+  // '' skips the fetch while there is nothing to centre the radar on.
+  const [data, error] = useFetchData<RainViewerResponse>(hasCoords ? rainMapUrl() : '', refreshMs);
 
   const [displayIndex, setDisplayIndex] = useState(0);
   const indexRef = useRef(0);
@@ -298,6 +306,9 @@ export default function RainMapModule({
     loadingMessage: t('rain-map.loading'),
     empty: !frames.length && t('rain-map.noRadarData'),
   });
+  if (!hasCoords) {
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
+  }
   if (gate || !data) return gate;
 
   const currentFrame = frames[displayIndex];

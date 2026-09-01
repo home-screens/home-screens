@@ -54,9 +54,6 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     for (const screen of screens) {
       for (const mod of screen.modules) {
         if (!isModuleEnabled(mod)) continue;
-        if (mod.type === 'weather') {
-          needed.add(resolveProvider(mod, globalProvider));
-        }
         const def = getModuleDefinition(mod.type);
         if (def?.dataRequirements?.includes('weather')) {
           needed.add(resolveProvider(mod, globalProvider));

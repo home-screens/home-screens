@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ChevronRight, Puzzle } from 'lucide-react';
 import { getModulesByCategory, categorySlug } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
 import { usePluginStore } from '@/stores/plugin-store';
+import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+
+/** Mirrors the PointerSensor activation constraint in the editor page. */
+const DRAG_ACTIVATION_DISTANCE = 5;
 
 function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinition; displayLabel: string }) {
   const t = useTranslate('editor');
@@ -17,12 +21,42 @@ function PaletteItem({ definition, displayLabel }: { definition: ModuleDefinitio
   });
   const isPlugin = definition.type.startsWith('plugin:');
 
+  // A plain click (or Enter/Space) adds the module at the next free spot on
+  // the selected screen; dragging still places it exactly. The PointerSensor
+  // only activates after 5px of movement, so a click never starts a drag. A
+  // drag that starts and is released back over the item still yields a
+  // browser click, so the click path ignores any press that travelled past
+  // the activation distance (recorded in the capture phase, the same pattern
+  // DraggableModule uses, so dnd-kit's own onPointerDown listener is left
+  // alone). Only the pointer sensor is registered on the editor's
+  // DndContext, so `listeners` carries no onKeyDown to clash with the
+  // keyboard path here.
+  const pressRef = useRef<{ x: number; y: number } | null>(null);
+  const addHere = () => {
+    const { selectedScreenId, addModule } = useEditorStore.getState();
+    if (selectedScreenId) addModule(selectedScreenId, definition.type);
+  };
+
   return (
     <div
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      onPointerDownCapture={(e) => { pressRef.current = { x: e.clientX, y: e.clientY }; }}
+      onClick={(e) => {
+        const press = pressRef.current;
+        pressRef.current = null;
+        if (press && Math.hypot(e.clientX - press.x, e.clientY - press.y) >= DRAG_ACTIVATION_DISTANCE) return;
+        addHere();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          addHere();
+        }
+      }}
       data-testid={`palette-${definition.type}`}
+      title={t('modulePalette.itemTooltip')}
       className={`flex items-center gap-3 px-3 py-2 rounded-lg bg-hs-card border border-hs-border-strong cursor-grab hover:border-hs-accent/40 transition-colors ${
         isDragging ? 'opacity-50' : ''
       }`}
@@ -142,9 +176,12 @@ export default function ModulePalette() {
   return (
     <div className="w-56 flex-shrink-0 bg-hs-panel border-r border-hs-border-strong flex flex-col overflow-hidden">
       <div className="p-3 pb-2 flex flex-col gap-2">
-        <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider">
-          {t('modulePalette.modulesHeading')}
-        </h3>
+        <div>
+          <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider">
+            {t('modulePalette.modulesHeading')}
+          </h3>
+          <p className="text-[11px] text-hs-text-faint mt-0.5">{t('modulePalette.howToAdd')}</p>
+        </div>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-hs-text-faint" />
           <input

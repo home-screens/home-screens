@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Zoom avant",
     "zoomPercent": "{percent} %",
     "fitTitle": "Ajuster à l'écran (Cmd+0)",
-    "fitAriaLabel": "Ajuster à l'écran"
+    "fitAriaLabel": "Ajuster à l'écran",
+    "emptyScreen": {
+      "title": "Cet écran est vide",
+      "body": "Faites glisser un module ici depuis la liste de gauche, ou partez d'un modèle.",
+      "chooseTemplate": "Choisir un modèle"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Planifié — actuellement actif",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Détecté : {name} (par IP)",
         "detectedCoords": "Détecté : {lat}, {lon}",
         "detectFailed": "Erreur : impossible de détecter le lieu"
-      }
+      },
+      "queryLabel": "Votre ville ou code postal"
     },
     "calendarPage": {
       "google": {
@@ -3509,7 +3515,9 @@
         "smhi": "SMHI (gratuit, pays nordiques)",
         "metoffice": "UK Met Office (Royaume-Uni)",
         "envcanada": "Environment Canada (Canada uniquement)"
-      }
+      },
+      "apiKeyMissing": "Ce service météo a besoin d'une clé API.",
+      "addApiKey": "Ajouter une clé API"
     },
     "word-of-day": {
       "showDividers": "Afficher les séparateurs"
@@ -3659,6 +3667,11 @@
       "signInDeclined": "La connexion a été annulée",
       "signInExpired": "Ce code a expiré. Relancez la connexion.",
       "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez."
+    },
+    "locationRow": {
+      "set": "Lieu : {name}",
+      "notSet": "Ce module a besoin de votre lieu.",
+      "setUp": "Indiquer votre lieu"
     }
   },
   "imageBrowsers": {
@@ -3790,7 +3803,9 @@
     "searchPlaceholder": "Rechercher des modules…",
     "noResults": "Aucun module trouvé",
     "pluginBadge": "Plugin",
-    "communityPluginTooltip": "Plugin communautaire"
+    "communityPluginTooltip": "Plugin communautaire",
+    "howToAdd": "Cliquez ou faites glisser sur l'écran",
+    "itemTooltip": "Cliquez pour ajouter, ou faites glisser sur l'écran"
   },
   "backupReminder": {
     "message": {
@@ -3934,6 +3949,21 @@
       "passwordHint": "Vous pouvez demander un mot de passe dans Réglages, section Sécurité.",
       "copyLink": "Copier le lien",
       "copied": "Copié"
+    }
+  },
+  "firstRun": {
+    "heading": "Premiers pas",
+    "intro": "Quatre étapes rapides pour un affichage qui fonctionne.",
+    "dismiss": "Masquer cette liste",
+    "steps": {
+      "template": "Choisissez un modèle ou ajoutez des modules à votre premier écran",
+      "templateButton": "Choisir un modèle",
+      "location": "Indiquez votre lieu",
+      "locationLink": "Ouvrir Lieu et langue",
+      "phone": "Ouvrez-le sur votre téléphone",
+      "phoneLink": "Voir les adresses pour le téléphone",
+      "password": "Définissez un mot de passe",
+      "passwordLink": "Ouvrir Sécurité"
     }
   }
 }

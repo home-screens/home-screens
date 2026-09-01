@@ -4,16 +4,20 @@ import { useState } from 'react';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
+import ModalPortal from '@/components/ui/ModalPortal';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 
 interface LayoutImportModalProps {
   layout: LayoutExport;
   onClose: () => void;
+  /** Empty screen this import replaces (the "start from a template" flow). */
+  replaceEmptyScreenId?: string;
 }
 
 export default function LayoutImportModal({
   layout,
   onClose,
+  replaceEmptyScreenId,
 }: LayoutImportModalProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
@@ -39,7 +43,7 @@ export default function LayoutImportModal({
   const handleImport = async () => {
     setError(null);
     try {
-      importLayoutAction(layout, { mode: 'add', applyVisual });
+      importLayoutAction(layout, { mode: 'add', applyVisual, replaceEmptyScreenId });
       await saveConfig();
       onClose();
     } catch {
@@ -59,6 +63,7 @@ export default function LayoutImportModal({
       : t('layoutImportModal.moduleCountPlural', { count: metadata.moduleCount });
 
   return (
+    <ModalPortal>
     <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-hs-text-primary mb-1">{t('layoutImportModal.title')}</h2>
@@ -154,5 +159,6 @@ export default function LayoutImportModal({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

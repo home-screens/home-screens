@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Aumentar zoom",
     "zoomPercent": "{percent}%",
     "fitTitle": "Ajustar à tela (Cmd+0)",
-    "fitAriaLabel": "Ajustar à tela"
+    "fitAriaLabel": "Ajustar à tela",
+    "emptyScreen": {
+      "title": "Esta tela está vazia",
+      "body": "Arraste um módulo da lista à esquerda para cá, ou comece com um modelo.",
+      "chooseTemplate": "Escolher um modelo"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Agendado — atualmente ativo",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Detectado: {name} (via IP)",
         "detectedCoords": "Detectado: {lat}, {lon}",
         "detectFailed": "Erro: não foi possível detectar a localização"
-      }
+      },
+      "queryLabel": "Sua cidade ou CEP"
     },
     "calendarPage": {
       "google": {
@@ -3509,7 +3515,9 @@
         "smhi": "SMHI (gratuito, apenas países nórdicos)",
         "metoffice": "UK Met Office (foco no Reino Unido)",
         "envcanada": "Environment Canada (apenas Canadá)"
-      }
+      },
+      "apiKeyMissing": "Este serviço de previsão do tempo precisa de uma chave de API.",
+      "addApiKey": "Adicionar chave de API"
     },
     "word-of-day": {
       "showDividers": "Mostrar divisores"
@@ -3659,6 +3667,11 @@
       "signInDeclined": "O login foi cancelado",
       "signInExpired": "Esse código expirou. Comece o login novamente.",
       "signInFailed": "O login não funcionou. Confira o ID do aplicativo e tente de novo."
+    },
+    "locationRow": {
+      "set": "Localização: {name}",
+      "notSet": "Este módulo precisa da sua localização.",
+      "setUp": "Definir sua localização"
     }
   },
   "imageBrowsers": {
@@ -3790,7 +3803,9 @@
     "searchPlaceholder": "Pesquisar módulos…",
     "noResults": "Nenhum módulo encontrado",
     "pluginBadge": "Plug-in",
-    "communityPluginTooltip": "Plug-in da comunidade"
+    "communityPluginTooltip": "Plug-in da comunidade",
+    "howToAdd": "Clique ou arraste para a tela",
+    "itemTooltip": "Clique para adicionar, ou arraste para a tela"
   },
   "backupReminder": {
     "message": {
@@ -3934,6 +3949,21 @@
       "passwordHint": "Você pode pedir uma senha em Configurações, na parte de Segurança.",
       "copyLink": "Copiar link",
       "copied": "Copiado"
+    }
+  },
+  "firstRun": {
+    "heading": "Primeiros passos",
+    "intro": "Quatro passos rápidos para uma tela funcionando.",
+    "dismiss": "Ocultar esta lista",
+    "steps": {
+      "template": "Escolha um modelo ou adicione módulos à sua primeira tela",
+      "templateButton": "Escolher um modelo",
+      "location": "Defina sua localização",
+      "locationLink": "Abrir Localização e idioma",
+      "phone": "Abra no seu celular",
+      "phoneLink": "Ver os endereços para o celular",
+      "password": "Defina uma senha",
+      "passwordLink": "Abrir Segurança"
     }
   }
 }

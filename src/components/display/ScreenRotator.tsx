@@ -5,6 +5,7 @@ import type { Screen, GlobalSettings, Profile, DisplayRule } from '@/types/confi
 import ScreenRenderer from './ScreenRenderer';
 import BackgroundProviderLayer from './BackgroundProviderLayer';
 import EmptyDisplayHint from './EmptyDisplayHint';
+import { isScreenEmpty } from '@/lib/display-filter';
 import PluginServiceLayer from './PluginServiceLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
@@ -442,14 +443,30 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     setRotationEpoch((e) => e + 1);
   }, [safeIndex]);
 
-  // Zero resolved screens — nothing configured yet, or every screen disabled.
-  // The setup watermark points at this hub's own editor URL; `setupHintEnabled:
-  // false` (global, or overridden for this display) leaves the panel black.
-  if (screens.length === 0) {
-    if (settings.setupHintEnabled === false) {
-      return <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />;
-    }
-    return <EmptyDisplayHint />;
+  // Nothing to show — no screens resolve (none configured, or every one
+  // disabled), or every resolved screen is empty (no modules and no
+  // background of its own). The second case is what a fresh install looks
+  // like: the seed config ships one screen with no modules, so without this
+  // branch the first thing a new Pi shows is a black rectangle that reads as
+  // a failed install. The setup watermark prints this hub's own address;
+  // `setupHintEnabled: false` (global, or overridden for this display)
+  // leaves the panel black instead.
+  //
+  // A rule takeover wins over the watermark: an alert screen pinned by a
+  // `showScreen` rule is usually excluded from rotation, so "every rotating
+  // screen is empty" says nothing about it. And the provider layers stay
+  // mounted either way — a rule keyed on plugin state can only ever fire if
+  // the producer is running, watermark or not.
+  if (!takeoverScreen && (screens.length === 0 || screens.every(isScreenEmpty))) {
+    return (
+      <>
+        {settings.setupHintEnabled === false
+          ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
+          : <EmptyDisplayHint />}
+        <BackgroundProviderLayer screens={allScreens} settings={settings} sharedData={sharedData} />
+        <PluginServiceLayer screens={allScreens} rules={rules} />
+      </>
+    );
   }
 
   return (

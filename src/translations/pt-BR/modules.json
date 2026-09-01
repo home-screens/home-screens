@@ -604,8 +604,14 @@
     "noGames": "Nenhum jogo encontrado"
   },
   "stock-ticker": {
-    "chartCaptions": { "day": "1-dia", "week": "5-dias" },
-    "chartLabels": { "day": "1D", "week": "5D" },
+    "chartCaptions": {
+      "day": "1-dia",
+      "week": "5-dias"
+    },
+    "chartLabels": {
+      "day": "1D",
+      "week": "5D"
+    },
     "loading": "Carregando…",
     "empty": "Sem dados de ações",
     "headers": {
@@ -806,7 +812,8 @@
   "common": {
     "locationNotConfigured": "Local não configurado",
     "pluginNotAvailable": "Plug-in indisponível: {name}",
-    "moduleFailed": "Não foi possível mostrar este item."
+    "moduleFailed": "Não foi possível mostrar este item.",
+    "setLocationLink": "Definir sua localização"
   },
   "event-detail": {
     "close": "Fechar",

@@ -6,6 +6,7 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate } from '@/i18n';
 import { resolveWeatherLocationLabel } from './location-label';
+import { EditorSettingsLink } from '../EditorSettingsLink';
 import ModuleWrapper from '../ModuleWrapper';
 import WeatherCurrentView from './WeatherCurrentView';
 import WeatherHourlyView from './WeatherHourlyView';
@@ -26,6 +27,8 @@ interface WeatherModuleProps {
   units?: 'metric' | 'imperial';
   timezone?: string;
   locationMissing?: boolean;
+  /** Editor only: where the "set your location" text links (see buildModuleProps). */
+  locationSettingsHref?: string;
   /** Geocoded place name from settings; the fallback when no custom label is set. */
   locationName?: string;
   /** Last-resort label source when the location was entered as raw coordinates. */
@@ -71,7 +74,7 @@ const VIEW_COMPONENTS = {
   alerts: WeatherAlertsView,
 };
 
-export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, locationMissing, locationName, latitude, longitude }: WeatherModuleProps) {
+export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, locationMissing, locationSettingsHref, locationName, latitude, longitude }: WeatherModuleProps) {
   const view = config.view ?? 'hourly';
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
@@ -87,7 +90,17 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
       <ModuleWrapper style={style}>
         <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center gap-1">
           <p style={{ fontSize: `${scaledFontSize}px`, opacity: TEXT_OPACITY.secondary }}>{t('weather.locationNotSet')}</p>
-          <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>{t('weather.setLocationInSettings')}</p>
+          {locationSettingsHref ? (
+            // Editor preview: the hint is the link.
+            <EditorSettingsLink
+              href={locationSettingsHref}
+              style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.secondary }}
+            >
+              {t('weather.setLocationInSettings')}
+            </EditorSettingsLink>
+          ) : (
+            <p style={{ fontSize: `${scaledFontSize * 0.7}px`, opacity: TEXT_OPACITY.tertiary }}>{t('weather.setLocationInSettings')}</p>
+          )}
         </div>
       </ModuleWrapper>
     );

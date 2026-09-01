@@ -220,8 +220,8 @@ export function validPanelFor(
  *      `page` or `panel` param is parsed the same way — a hand-trimmed
  *      `?page=screen&panel=sleep` or a miscased `?section=Defaults&page=X`
  *      renders the intended page instead of silently losing it.
- *   4. Unknown / missing params land on `defaults/screen`, the
- *      first-visit landing page.
+ *   4. Unknown / missing params land on `defaults/screen`. (A bare URL can
+ *      instead land on the caller's `landingPage` — see resolveSettingsRoute.)
  */
 export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   const section = params.get('section');
@@ -269,9 +269,12 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
  * a `?panel=` the page does not own, an unknown subtab coerced to
  * `overview`, a `section` that dispatched nowhere. The rewrite normalizes
  * those params to the resolved route, which can mean adding the canonical
- * `section`/`page` alongside a stale param; a URL carrying no settings
- * params at all (including bare `/editor/settings`) is never rewritten.
- * Returns `redirectedQuery: undefined` when no rewrite is needed.
+ * `section`/`page` alongside a stale param. A URL carrying no settings params
+ * at all (including bare `/editor/settings`) is never rewritten, with one
+ * exception: when the caller's `landingPage` is not `screen`, the bare URL
+ * resolves to that page AND is rewritten to name it, so the choice is fixed
+ * in the URL for the rest of the visit. Returns `redirectedQuery: undefined`
+ * when no rewrite is needed.
  *
  * The page component uses this from a `useEffect` that calls
  * `router.replace(redirectedQuery)` when defined — but the resolution
@@ -284,10 +287,43 @@ export interface SettingsRouteResolution {
   redirectedQuery?: string;
 }
 
-export function resolveSettingsRoute(queryString: string): SettingsRouteResolution {
+export interface ResolveSettingsRouteOptions {
+  /**
+   * Where a bare `/editor/settings` (no routing params at all) lands. Defaults
+   * to `screen`. The settings page passes `location` the first time a
+   * browser opens Settings while the household location is unset, because
+   * that is the one thing every new install has to fill in and nothing else
+   * in the app links to it. Any routing param (`section`, `page`, `panel`,
+   * `id`, `subtab`) wins over this, and when it applies the URL is rewritten
+   * to name the page, so a later change in the caller's choice (the user
+   * just set the location) cannot yank the page out from under them.
+   */
+  landingPage?: DefaultPageId;
+}
+
+/** The params that name a route; `highlight` alone does not. */
+const ROUTING_PARAMS = ['section', 'page', 'panel', 'id', 'subtab'] as const;
+
+export function resolveSettingsRoute(
+  queryString: string,
+  options?: ResolveSettingsRouteOptions,
+): SettingsRouteResolution {
   // Tolerate leading "?" so callers can pass `window.location.search` raw.
   const trimmed = queryString.startsWith('?') ? queryString.slice(1) : queryString;
   const params = new URLSearchParams(trimmed);
+
+  const landingPage = options?.landingPage ?? 'screen';
+  if (landingPage !== 'screen' && !ROUTING_PARAMS.some((p) => params.has(p))) {
+    const route: SettingsRoute = { kind: 'defaults', page: landingPage };
+    return {
+      route,
+      redirectedQuery: settingsHref(route, {
+        from: params,
+        highlight: params.get('highlight') ?? undefined,
+      }).slice(1),
+    };
+  }
+
   const route = parseSettingsRoute(params);
 
   // The rewrite target is built by settingsHref — the one serializer of the

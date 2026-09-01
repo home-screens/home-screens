@@ -71,6 +71,13 @@ export const SHARED_STATE_INTEREST_TTL_MS = 3 * SHARED_STATE_POLL_MS;
 // Grid snap size (in display pixels)
 export const GRID_SIZE = 20;
 
+/**
+ * Narrowest viewport the drag-and-drop editor works at. Below it `/editor`
+ * shows the phone hand-off screen and `/` shows the launcher instead of
+ * redirecting to the editor.
+ */
+export const MIN_EDITOR_WIDTH = 768;
+
 export function snapToGrid(value: number): number {
   return Math.round(value / GRID_SIZE) * GRID_SIZE;
 }

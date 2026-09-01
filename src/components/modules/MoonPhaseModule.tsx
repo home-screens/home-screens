@@ -15,6 +15,7 @@ interface MoonPhaseModuleProps {
   config: MoonPhaseConfig;
   style: ModuleStyle;
   latitude?: number;
+  locationSettingsHref?: string;
   longitude?: number;
   timezone?: string;
 }
@@ -76,7 +77,7 @@ function MoonVisual({ phase }: { phase: number }) {
   );
 }
 
-export default function MoonPhaseModule({ config, style, latitude, longitude, timezone }: MoonPhaseModuleProps) {
+export default function MoonPhaseModule({ config, style, latitude, longitude, timezone, locationSettingsHref }: MoonPhaseModuleProps) {
   // Real instant, NOT the shifted TZ clock: getMoonIllumination/getMoonTimes
   // take true UTC instants; the shifted clock could resolve to the adjacent
   // lunar day. `timezone` is only for formatting the rise/set labels.
@@ -84,7 +85,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
   const t = useTranslate('modules');
 
   if (latitude == null || longitude == null) {
-    return <LocationRequired style={style} />;
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
   }
 
   const illumination = SunCalc.getMoonIllumination(now);

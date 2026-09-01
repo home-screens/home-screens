@@ -18,6 +18,7 @@ interface SunriseSunsetModuleProps {
   style: ModuleStyle;
   latitude?: number;
   longitude?: number;
+  locationSettingsHref?: string;
   timezone?: string;
 }
 
@@ -708,7 +709,7 @@ function CircleView({
   );
 }
 
-export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone }: SunriseSunsetModuleProps) {
+export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone, locationSettingsHref }: SunriseSunsetModuleProps) {
   // Real instant, NOT the shifted TZ clock: SunCalc returns true UTC instants,
   // so the arc position / isDaytime comparison and the solar-day selection
   // must use a true epoch too. `timezone` is only for formatting the labels.
@@ -717,7 +718,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
   const locale = useFormattingLocale();
 
   if (latitude == null || longitude == null) {
-    return <LocationRequired style={style} />;
+    return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
   }
 
   const times = SunCalc.getTimes(now, latitude, longitude);

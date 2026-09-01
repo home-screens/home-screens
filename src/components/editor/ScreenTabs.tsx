@@ -22,7 +22,7 @@ import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
-import TemplatePicker from './TemplatePicker';
+import TemplateFlow from './TemplateFlow';
 import ScreenTab from './ScreenTab';
 
 
@@ -83,11 +83,6 @@ export default function ScreenTabs() {
     setExportScreenId(screenId);
     setShowExportModal(true);
     setContextMenu(null);
-  };
-
-  const handleTemplateSelect = (layout: LayoutExport) => {
-    setShowTemplatePicker(false);
-    setImportLayout(layout);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -353,12 +348,14 @@ export default function ScreenTabs() {
           onClose={() => setImportLayout(null)}
         />
       )}
-      {showTemplatePicker && (
-        <TemplatePicker
-          onSelect={handleTemplateSelect}
-          onClose={() => setShowTemplatePicker(false)}
-        />
-      )}
+      {/* The screen being looked at is replaced if it is still empty, so
+          "add a screen from a template" on a blank screen does not leave the
+          blank one in rotation. */}
+      <TemplateFlow
+        open={showTemplatePicker}
+        onClose={() => setShowTemplatePicker(false)}
+        replaceEmptyScreenId={selectedScreenId ?? undefined}
+      />
     </>
   );
 }

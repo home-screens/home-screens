@@ -84,7 +84,12 @@
     "zoomInAriaLabel": "Vergrößern",
     "zoomPercent": "{percent} %",
     "fitTitle": "An Bildschirm anpassen (Cmd+0)",
-    "fitAriaLabel": "An Bildschirm anpassen"
+    "fitAriaLabel": "An Bildschirm anpassen",
+    "emptyScreen": {
+      "title": "Dieser Bildschirm ist leer",
+      "body": "Ziehe ein Modul aus der Liste links hierher oder starte mit einer Vorlage.",
+      "chooseTemplate": "Vorlage wählen"
+    }
   },
   "draggableModule": {
     "scheduledActiveTitle": "Geplant – derzeit aktiv",
@@ -314,7 +319,8 @@
         "detectedViaIp": "Erkannt: {name} (über IP)",
         "detectedCoords": "Erkannt: {lat}, {lon}",
         "detectFailed": "Fehler: Standort konnte nicht erkannt werden"
-      }
+      },
+      "queryLabel": "Dein Ort oder deine Postleitzahl"
     },
     "calendarPage": {
       "google": {
@@ -3504,7 +3510,9 @@
         "smhi": "SMHI (kostenlos, nur Nordeuropa)",
         "metoffice": "UK Met Office (Schwerpunkt UK)",
         "envcanada": "Environment Canada (nur Kanada)"
-      }
+      },
+      "apiKeyMissing": "Dieser Wetterdienst braucht einen API-Schlüssel.",
+      "addApiKey": "API-Schlüssel hinzufügen"
     },
     "word-of-day": {
       "showDividers": "Trennlinien anzeigen"
@@ -3654,6 +3662,11 @@
       "signInDeclined": "Anmeldung wurde abgebrochen",
       "signInExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut.",
       "signInFailed": "Anmeldung hat nicht funktioniert. Prüfe die Application ID und versuche es erneut."
+    },
+    "locationRow": {
+      "set": "Standort: {name}",
+      "notSet": "Dieses Modul braucht deinen Standort.",
+      "setUp": "Standort festlegen"
     }
   },
   "imageBrowsers": {
@@ -3785,7 +3798,9 @@
     "searchPlaceholder": "Module suchen…",
     "noResults": "Keine Module gefunden",
     "pluginBadge": "Plug-in",
-    "communityPluginTooltip": "Community-Plug-in"
+    "communityPluginTooltip": "Community-Plug-in",
+    "howToAdd": "Anklicken oder auf den Bildschirm ziehen",
+    "itemTooltip": "Zum Hinzufügen anklicken oder auf den Bildschirm ziehen"
   },
   "backupReminder": {
     "message": {
@@ -3928,6 +3943,21 @@
       "passwordHint": "Unter Einstellungen, Bereich Sicherheit, könnt ihr ein Passwort verlangen.",
       "copyLink": "Link kopieren",
       "copied": "Kopiert"
+    }
+  },
+  "firstRun": {
+    "heading": "Erste Schritte",
+    "intro": "Vier kurze Schritte bis zum fertigen Display.",
+    "dismiss": "Diese Checkliste ausblenden",
+    "steps": {
+      "template": "Wähle eine Vorlage oder füge Module zu deinem ersten Bildschirm hinzu",
+      "templateButton": "Vorlage wählen",
+      "location": "Lege deinen Standort fest",
+      "locationLink": "Standort & Sprache öffnen",
+      "phone": "Öffne es auf deinem Handy",
+      "phoneLink": "Adressen fürs Handy anzeigen",
+      "password": "Lege ein Passwort fest",
+      "passwordLink": "Sicherheit öffnen"
     }
   }
 }

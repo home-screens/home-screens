@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { hasValidLocation } from '@/lib/location';
 
 const log = logger('location');
 
@@ -34,6 +35,7 @@ export default function LocationSection({ values, onChange }: Props) {
   const t = useTranslate('editor');
   const tzFieldId = useId();
   const tzHelpId = useId();
+  const queryFieldId = useId();
 
   const [locationQuery, setLocationQuery] = useState('');
   const [locationStatus, setLocationStatus] = useState<LocationStatus | null>(null);
@@ -169,6 +171,42 @@ export default function LocationSection({ values, onChange }: Props) {
           {t('settings.locationPage.description')}
         </p>
 
+        <div className="space-y-2" data-field-id="location.query">
+          <label htmlFor={queryFieldId} className="text-xs text-hs-text-muted">
+            {t('settings.locationPage.queryLabel')}
+          </label>
+          <div className="flex gap-2">
+            <input
+              id={queryFieldId}
+              type="text"
+              value={locationQuery}
+              onChange={(e) => setLocationQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && lookupLocation()}
+              placeholder={t('settings.locationPage.queryPlaceholder')}
+              className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
+            />
+            <Button variant="secondary" size="sm" onClick={lookupLocation}>
+              {t('settings.locationPage.lookUpButton')}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={detectLocation}>
+              {t('settings.locationPage.detectButton')}
+            </Button>
+          </div>
+          <p
+            className={`text-xs ${!locationStatus ? 'sr-only' : locationStatus.kind === 'error' ? 'text-hs-danger' : 'text-hs-success'}`}
+            aria-live="polite"
+            role={locationStatus?.kind === 'error' ? 'alert' : undefined}
+          >
+            {locationStatus?.message ?? ''}
+          </p>
+          {lat.trim() !== '' && lon.trim() !== '' && hasValidLocation(Number(lat), Number(lon)) && (
+            <p className="text-xs text-hs-text-faint">
+              {locationName ? `${locationName}: ` : ''}
+              {lat}, {lon}
+            </p>
+          )}
+        </div>
+
         <div className="rounded-md bg-hs-card border border-hs-border-strong px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1">
           <div>
             <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.locationPage.browserLabel')}</span>
@@ -208,38 +246,6 @@ export default function LocationSection({ values, onChange }: Props) {
           <p id={tzHelpId} className="text-xs text-hs-text-faint mt-1">
             {t('settings.locationPage.timezoneHelp')}
           </p>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && lookupLocation()}
-              placeholder={t('settings.locationPage.queryPlaceholder')}
-              className="flex-1 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
-            />
-            <Button variant="secondary" size="sm" onClick={lookupLocation}>
-              {t('settings.locationPage.lookUpButton')}
-            </Button>
-            <Button variant="secondary" size="sm" onClick={detectLocation}>
-              {t('settings.locationPage.detectButton')}
-            </Button>
-          </div>
-          <p
-            className={`text-xs ${!locationStatus ? 'sr-only' : locationStatus.kind === 'error' ? 'text-hs-danger' : 'text-hs-success'}`}
-            aria-live="polite"
-            role={locationStatus?.kind === 'error' ? 'alert' : undefined}
-          >
-            {locationStatus?.message ?? ''}
-          </p>
-          {(lat && lon) && (
-            <p className="text-xs text-hs-text-faint">
-              {locationName ? `${locationName}: ` : ''}
-              {lat}, {lon}
-            </p>
-          )}
         </div>
 
         <details className="text-xs">

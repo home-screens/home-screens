@@ -604,8 +604,14 @@
     "noGames": "Aucun match trouvé"
   },
   "stock-ticker": {
-    "chartCaptions": { "day": "1-jour", "week": "5-jours" },
-    "chartLabels": { "day": "1J", "week": "5J" },
+    "chartCaptions": {
+      "day": "1-jour",
+      "week": "5-jours"
+    },
+    "chartLabels": {
+      "day": "1J",
+      "week": "5J"
+    },
     "loading": "Chargement…",
     "empty": "Aucune donnée boursière",
     "headers": {
@@ -806,7 +812,8 @@
   "common": {
     "locationNotConfigured": "Emplacement non configuré",
     "pluginNotAvailable": "Plug-in non disponible : {name}",
-    "moduleFailed": "Cet élément n’a pas pu être affiché."
+    "moduleFailed": "Cet élément n’a pas pu être affiché.",
+    "setLocationLink": "Indiquer votre lieu"
   },
   "event-detail": {
     "close": "Fermer",

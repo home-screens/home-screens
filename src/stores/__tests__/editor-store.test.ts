@@ -60,7 +60,8 @@ describe('editor store', () => {
       const screen = state.config!.screens[0];
       expect(screen.modules).toHaveLength(1);
       expect(screen.modules[0].type).toBe('clock');
-      expect(screen.modules[0].position).toEqual({ x: 100, y: 100 });
+      // No drop point: the first free grid spot, one inset in from the corner.
+      expect(screen.modules[0].position).toEqual({ x: 40, y: 40 });
       expect(screen.modules[0].style).toEqual(DEFAULT_MODULE_STYLE);
       expect(state.isDirty).toBe(true);
       expect(state.selectedModuleId).toBe(screen.modules[0].id);

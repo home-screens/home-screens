@@ -239,7 +239,7 @@ test.describe('screen management', () => {
     await pollConfig(request, (c) => c.screens.map((s) => s.id)).then((p) => p.toEqual(['a']));
   });
 
-  test('adding a template-seeded screen appends its content and persists', async ({ page, request }) => {
+  test('a template chosen while on an empty screen replaces it and persists', async ({ page, request }) => {
     await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Screen 1', [])] }));
     await openEditor(page);
 
@@ -252,12 +252,26 @@ test.describe('screen management', () => {
     await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
     await page.getByRole('button', { name: 'Import', exact: true }).click();
 
-    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
-    // The imported screen carries the template's clock module.
+    // The blank "Screen 1" the user was looking at is replaced, not kept
+    // beside the imported screen (the same rule every template entry point
+    // follows), and the imported screen carries the template's clock module.
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));
     await pollConfig(
       request,
       (c) => c.screens.some((s) => s.modules.some((m) => m.type === 'clock')),
     ).then((p) => p.toBe(true));
+  });
+
+  test('adding a template-seeded screen beside a screen with content appends it', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    await openEditor(page);
+
+    await page.getByRole('button', { name: 'Add screen' }).click();
+    await page.getByRole('button', { name: /From Template/ }).click();
+    await page.getByRole('button', { name: /Minimal Clock/ }).click();
+    await page.getByRole('button', { name: 'Import', exact: true }).click();
+
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
   });
 });
 

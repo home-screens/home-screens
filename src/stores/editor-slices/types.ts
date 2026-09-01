@@ -114,7 +114,16 @@ export interface DisplayActions {
 
 export interface LayoutActions {
   exportLayout: (options?: { screenIds?: string[]; name?: string; description?: string }) => void;
-  importLayoutAction: (layout: LayoutExport, options: { mode: 'add' | 'replace'; applyVisual?: boolean }) => void;
+  importLayoutAction: (layout: LayoutExport, options: {
+    mode: 'add' | 'replace';
+    applyVisual?: boolean;
+    /**
+     * Add mode only: a screen that is empty when the import lands is dropped
+     * in the same mutation, so "start this empty screen from a template"
+     * does not leave the blank screen behind in the rotation.
+     */
+    replaceEmptyScreenId?: string;
+  }) => void;
 }
 
 export interface HistoryActions {

@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Nog geen schermen",
+    "headline": "Hier is nog niets",
     "body": "Open de editor op een ander apparaat om je eerste scherm te maken.",
     "hideHint": "Verberg dit via Instellingen → Scherm"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} gedaan · {left} te gaan",
     "quickNameSeconds": "Timer van {seconds} seconden",
     "quickNameClock": "Timer van {time}"
+  },
+  "launcher": {
+    "heading": "Waar wil je heen?",
+    "remote": {
+      "title": "Gezinsafstandsbediening",
+      "body": "Klusjes, maaltijden, timers en de schermen"
+    },
+    "chores": {
+      "title": "Klusjes van de kinderen",
+      "body": "De klusjes van vandaag afvinken"
+    },
+    "display": {
+      "title": "Scherm",
+      "body": "Zien wat er aan de muur staat"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Ontwerp je schermen. Werkt het beste op een laptop of computer."
+    },
+    "editorAddressHint": "Open dit adres op een laptop om je schermen te ontwerpen:",
+    "editorAddressLabel": "Adres van de editor",
+    "copy": "Kopiëren",
+    "copied": "Gekopieerd",
+    "openEditor": "Editor openen"
   }
 }

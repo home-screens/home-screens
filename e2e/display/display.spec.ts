@@ -103,15 +103,36 @@ test('the display picks up config changes without a reload', async ({ page, requ
   await expect(page.getByText('AFTER UPDATE')).toBeVisible({ timeout: 9000 });
 });
 
-test('empty screens list shows the setup watermark, with this hub\'s editor URL', async ({ page, request }) => {
+test('empty screens list shows the setup watermark, with this hub\'s address', async ({ page, request }) => {
   await putConfig(request, baseConfig({ screens: [] }));
   await page.goto('/display');
   const hint = page.getByTestId('empty-display-hint');
   await expect(hint).toBeVisible();
-  await expect(hint.getByText('No screens yet')).toBeVisible();
-  // The URL is the one fact the person in front of a blank Pi cannot look up,
-  // so assert it resolves to this hub's own origin rather than a placeholder.
-  await expect(hint.getByText(`${new URL(page.url()).origin}/editor`)).toBeVisible();
+  await expect(hint.getByText('Nothing here yet')).toBeVisible();
+  // The address is the one fact the person in front of a blank Pi cannot look
+  // up, so assert it resolves to this hub's own origin rather than a
+  // placeholder. The bare origin is printed: `/` lands a laptop on the editor
+  // and a phone on the launcher.
+  await expect(hint.getByText(new URL(page.url()).origin, { exact: true })).toBeVisible();
+});
+
+test('screens with no modules show the setup watermark too (the fresh-install shape)', async ({ page, request }) => {
+  // DEFAULT_CONFIG seeds one empty "Screen 1"; a brand-new Pi must not boot
+  // to a black rectangle just because the screen list is non-empty.
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('default', 'Screen 1', []), makeScreen('two', 'Screen 2', [])],
+  }));
+  await page.goto('/display');
+  await expect(page.getByTestId('empty-display-hint')).toBeVisible();
+});
+
+test('one screen with content is enough to hide the watermark', async ({ page, request }) => {
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('empty', 'Empty', []), makeScreen('full', 'Full', [textModule('REAL CONTENT')])],
+    settings: { rotationIntervalMs: 60_000 },
+  }));
+  await page.goto('/display');
+  await expect(page.getByTestId('empty-display-hint')).toBeHidden();
 });
 
 test('setupHintEnabled:false leaves an empty display black', async ({ page, request }) => {

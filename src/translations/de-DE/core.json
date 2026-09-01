@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Noch keine Bildschirme",
+    "headline": "Hier ist noch nichts",
     "body": "Öffne den Editor auf einem anderen Gerät, um deinen ersten Bildschirm zu gestalten.",
     "hideHint": "Ausblenden unter Einstellungen → Bildschirm"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} geschafft · {left} übrig",
     "quickNameSeconds": "{seconds}-Sekunden-Timer",
     "quickNameClock": "{time}-Timer"
+  },
+  "launcher": {
+    "heading": "Wohin möchtest du?",
+    "remote": {
+      "title": "Familien-Fernbedienung",
+      "body": "Aufgaben, Mahlzeiten, Timer und die Displays"
+    },
+    "chores": {
+      "title": "Aufgaben der Kinder",
+      "body": "Die heutigen Aufgaben abhaken"
+    },
+    "display": {
+      "title": "Display",
+      "body": "Zeigt, was an der Wand zu sehen ist"
+    },
+    "editor": {
+      "title": "Editor",
+      "body": "Gestalte deine Bildschirme. Am besten am Laptop oder Desktop."
+    },
+    "editorAddressHint": "Öffne diese Adresse auf einem Laptop, um deine Bildschirme zu gestalten:",
+    "editorAddressLabel": "Adresse des Editors",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "openEditor": "Editor öffnen"
   }
 }

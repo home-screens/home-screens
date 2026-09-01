@@ -118,6 +118,13 @@ export interface ModuleDefinition {
    * built-in calendar module types).
    */
   dataRequirements?: import('@/types/plugins').PluginDataRequirement[];
+  /**
+   * The module lists 'location' in `dataRequirements` but renders fine
+   * without one (affirmations only reads the hemisphere for its season
+   * words). Skips the editor's "this module needs your location" row and
+   * the empty-state link; coordinates are still injected when known.
+   */
+  locationOptional?: boolean;
 }
 
 const registry = new Map<ModuleType, ModuleDefinition>();
@@ -575,6 +582,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTitle: true,
     },
     defaultSize: { w: 600, h: 300 },
+    // 'location' so the editor knows the module is location-bound (status
+    // row, empty-state link) and coordinates ride the shared props.
+    dataRequirements: ['weather', 'location'],
   },
   {
     type: 'moon-phase',
@@ -614,6 +624,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       refreshIntervalMs: FETCH_KEY_REGISTRY['air-quality']?.ttlMs ?? 300_000,
     },
     defaultSize: { w: 350, h: 250 },
+    dataRequirements: ['location'],
   },
   {
     type: 'rain-map',
@@ -888,6 +899,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     },
     defaultSize: { w: 500, h: 200 },
     dataRequirements: ['location'],
+    locationOptional: true,
   },
   {
     type: 'meal-planner',

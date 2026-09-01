@@ -38,7 +38,7 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Aucun écran pour l'instant",
+    "headline": "Rien ici pour l'instant",
     "body": "Ouvre l'éditeur sur un autre appareil pour créer ton premier écran.",
     "hideHint": "Masquer ceci dans Paramètres → Écran"
   },
@@ -156,5 +156,29 @@
     "progressWords": "{done} faites · {left} à faire",
     "quickNameSeconds": "Minuteur de {seconds} secondes",
     "quickNameClock": "Minuteur de {time}"
+  },
+  "launcher": {
+    "heading": "Où voulez-vous aller ?",
+    "remote": {
+      "title": "Télécommande familiale",
+      "body": "Tâches, repas, minuteurs et écrans"
+    },
+    "chores": {
+      "title": "Tâches des enfants",
+      "body": "Cocher les tâches du jour"
+    },
+    "display": {
+      "title": "Affichage",
+      "body": "Voir ce que montre le mur"
+    },
+    "editor": {
+      "title": "Éditeur",
+      "body": "Composez vos écrans. Plus pratique sur un ordinateur."
+    },
+    "editorAddressHint": "Ouvrez cette adresse sur un ordinateur pour composer vos écrans :",
+    "editorAddressLabel": "Adresse de l'éditeur",
+    "copy": "Copier",
+    "copied": "Copié",
+    "openEditor": "Ouvrir l'éditeur"
   }
 }
