@@ -64,7 +64,7 @@ export default function LayoutImportModal({
 
   return (
     <ModalPortal>
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('layoutImportModal.title')}>
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-hs-text-primary mb-1">{t('layoutImportModal.title')}</h2>
         {metadata.description && (

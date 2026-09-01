@@ -15,6 +15,7 @@ import { resolveLucideIcon } from './lucide-resolver';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
+import type { TranslateFn } from '@/i18n/types';
 
 type ModuleCategory =
   | 'Full Screen'
@@ -195,6 +196,20 @@ export function unregisterModule(type: ModuleType): void {
 
 export function getModuleDefinition(type: ModuleType): ModuleDefinition | undefined {
   return registry.get(type);
+}
+
+/**
+ * The user-facing name of a module type, the same everywhere it is shown
+ * (palette, canvas, property panel, templates, search). Built-ins resolve
+ * through the `editor.registry.types.*` dictionary; plugin modules keep their
+ * manifest label verbatim (translated by the plugin author or intentionally
+ * English). Anything unregistered (a plugin that failed to load) falls back
+ * to the raw type so it is still identifiable.
+ */
+export function resolveModuleLabel(type: ModuleType, t: TranslateFn): string {
+  const def = registry.get(type);
+  if (type.startsWith('plugin:')) return def?.label || type;
+  return def ? t(`registry.types.${type}`) : type;
 }
 
 /** @internal */

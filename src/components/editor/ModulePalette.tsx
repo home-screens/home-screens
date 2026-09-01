@@ -4,7 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Search, ChevronRight, Puzzle } from 'lucide-react';
-import { getModulesByCategory, categorySlug } from '@/lib/module-registry';
+import { getModulesByCategory, categorySlug, resolveModuleLabel } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
@@ -148,7 +148,7 @@ export default function ModulePalette() {
       const categoryLabel = slug ? t(`registry.categories.${slug}`) : category;
       const resolved: ResolvedModule[] = modules.map((m) => ({
         ...m,
-        displayLabel: m.type.startsWith('plugin:') ? m.label : t(`registry.types.${m.type}`),
+        displayLabel: resolveModuleLabel(m.type, t),
       }));
       groups.push({ category, categoryLabel, modules: resolved });
     }

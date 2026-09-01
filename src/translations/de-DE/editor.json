@@ -139,6 +139,23 @@
       "delete": "Löschen"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Bildschirm oder Modul finden",
+    "buttonTitle": "Bildschirm oder Modul finden ({shortcut})",
+    "placeholder": "Bildschirm oder Modul finden…",
+    "hint": "Gib einen Bildschirmnamen ein oder ein Modul wie Wetter, Aufgabenplan oder Foto.",
+    "noResults": "Kein Bildschirm hat ein Modul oder einen Namen, der zu „{query}“ passt.",
+    "currentScreenTag": "dieser Bildschirm",
+    "resultCount": {
+      "one": "{count} Bildschirm",
+      "other": "{count} Bildschirme"
+    },
+    "keys": {
+      "escape": "esc",
+      "move": "bewegen",
+      "go": "öffnen"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Screen-Einstellungen",
     "moduleCountSingular": "{count} Modul",

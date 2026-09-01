@@ -65,7 +65,7 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('layoutExportModal.title')}>
       <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
         <h2 className="text-lg font-semibold text-hs-text-primary mb-4">{t('layoutExportModal.title')}</h2>
 

@@ -19,7 +19,7 @@ import { isStateProducerType } from '@/lib/provided-state-keys';
 import { stackExtremes } from '@/lib/module-utils';
 import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
@@ -362,9 +362,7 @@ export default function PropertyPanel() {
 
   const moduleDef = getModuleDefinition(selectedModule.type);
   const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
-  const moduleLabel = isPlugin
-    ? (pluginDef?.label ?? (selectedModule.type.charAt(0).toUpperCase() + selectedModule.type.slice(1)))
-    : t(`registry.types.${selectedModule.type}`);
+  const moduleLabel = resolveModuleLabel(selectedModule.type, t);
 
   return (
     <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">

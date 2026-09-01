@@ -139,6 +139,23 @@
       "delete": "Slet"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Find en skærm eller et modul",
+    "buttonTitle": "Find en skærm eller et modul ({shortcut})",
+    "placeholder": "Find en skærm eller et modul…",
+    "hint": "Skriv et skærmnavn eller et modul som vejr, pligtskema eller foto.",
+    "noResults": "Ingen skærme har et modul eller navn, der matcher ”{query}”.",
+    "currentScreenTag": "denne skærm",
+    "resultCount": {
+      "one": "{count} skærm",
+      "other": "{count} skærme"
+    },
+    "keys": {
+      "escape": "esc",
+      "move": "flyt",
+      "go": "åbn"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Skærmindstillinger",
     "moduleCountSingular": "{count} modul",

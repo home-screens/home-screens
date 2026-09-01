@@ -2,18 +2,12 @@
 
 import { useEffect } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
+import { isTypingTarget } from '@/lib/editor-keyboard';
 
 export function useUndoRedoShortcuts() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
-        return;
-      }
+      if (isTypingTarget(e.target)) return;
 
       const isMod = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();

@@ -150,7 +150,7 @@ export default function HolidayPickerModal({
         : t('holidayPickerModal.addCountPlural', { count: selectedIds.size });
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={t('holidayPickerModal.title')}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-md flex flex-col" style={{ maxHeight: '80vh' }}>

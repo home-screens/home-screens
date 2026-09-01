@@ -20,7 +20,7 @@ import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';
 import { useGuardedAddModule } from '@/hooks/useGuardedAddModule';
 import { resolveDragPosition } from '@/lib/alignment-guides';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, MIN_EDITOR_WIDTH, snapToGrid } from '@/lib/constants';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import type { ModuleType } from '@/types/config';
 
@@ -291,13 +291,7 @@ export default function EditorPage() {
         {activePaletteType && (() => {
           const def = getModuleDefinition(activePaletteType as ModuleType);
           if (!def) return null;
-          // Mirror ModulePalette: built-in module types resolve through the
-          // editor.registry.types.* dictionary; plugin-registered modules
-          // keep their manifest-supplied label verbatim (translated by the
-          // plugin author or intentionally English).
-          const label = activePaletteType.startsWith('plugin:')
-            ? def.label
-            : t(`registry.types.${activePaletteType}`);
+          const label = resolveModuleLabel(activePaletteType as ModuleType, t);
           return (
             <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-hs-card border border-hs-accent shadow-lg shadow-hs-accent/20 cursor-grabbing">
               <def.icon className="w-5 h-5 text-hs-accent-hover" />

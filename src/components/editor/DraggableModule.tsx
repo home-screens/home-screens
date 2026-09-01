@@ -4,7 +4,7 @@ import { memo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Clock, PowerOff, Eye, EyeOff } from 'lucide-react';
 import { usePluginStore } from '@/stores/plugin-store';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { resolveModuleLabel } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
@@ -86,11 +86,7 @@ export default function DraggableModule({
 
   const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
 
-  const isPluginModule = mod.type.startsWith('plugin:');
-  const definition = getModuleDefinition(mod.type);
-  const labelText = isPluginModule
-    ? (definition?.label || mod.type)
-    : t(`registry.types.${mod.type}`);
+  const labelText = resolveModuleLabel(mod.type, t);
 
   // Status badges stack right-to-left in the top-right corner; each entry
   // occupies one fixed-width slot so any combination lines up.

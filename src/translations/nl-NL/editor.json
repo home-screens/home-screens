@@ -139,6 +139,23 @@
       "delete": "Verwijderen"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Een scherm of module zoeken",
+    "buttonTitle": "Een scherm of module zoeken ({shortcut})",
+    "placeholder": "Een scherm of module zoeken…",
+    "hint": "Typ een schermnaam of een module zoals weer, klusjeskaart of foto.",
+    "noResults": "Geen enkel scherm heeft een module of naam die overeenkomt met “{query}”.",
+    "currentScreenTag": "dit scherm",
+    "resultCount": {
+      "one": "{count} scherm",
+      "other": "{count} schermen"
+    },
+    "keys": {
+      "escape": "esc",
+      "move": "verplaatsen",
+      "go": "openen"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Scherminstellingen",
     "moduleCountSingular": "{count} module",

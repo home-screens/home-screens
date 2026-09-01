@@ -15,7 +15,7 @@ import {
   buildPreviewRuns,
 } from '@/lib/state-key-suggestions';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { resolveModuleLabel } from '@/lib/module-registry';
 import { collectKeyReferences, type StateKeyReference } from '@/lib/state-demand';
 import { pluginDisplayName, pluginIdFromStateKey } from '@/lib/provider-health-hint';
 import { useTranslate, useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
@@ -78,9 +78,7 @@ export function referenceLabel(ref: StateKeyReference, t: TranslateFn): string {
   if (ref.kind === 'rule') {
     return t('settings.sharedStatePage.ruleRefLabel', { name: ref.ruleName });
   }
-  const moduleLabel = ref.moduleType.startsWith('plugin:')
-    ? getModuleDefinition(ref.moduleType as ModuleType)?.label || ref.moduleType
-    : t(`registry.types.${ref.moduleType}`);
+  const moduleLabel = resolveModuleLabel(ref.moduleType as ModuleType, t);
   return `${moduleLabel} · ${ref.screenName}`;
 }
 

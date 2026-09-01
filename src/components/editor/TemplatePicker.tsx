@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { TEMPLATE_CATALOG, TEMPLATE_CATEGORIES, loadTemplate, getDisplayOrientation } from '@/lib/templates';
 import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
@@ -52,7 +52,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
 
   return (
     <ModalPortal>
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={tEditor('templatePicker.title')}>
       <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
           <h2 className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
@@ -109,9 +109,7 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
                     const def = getModuleDefinition(type);
                     if (!def) return null;
                     const Icon = def.icon;
-                    const titleText = type.startsWith('plugin:')
-                      ? def.label
-                      : tEditor(`registry.types.${type}`);
+                    const titleText = resolveModuleLabel(type, tEditor);
                     return (
                       <div
                         key={type}

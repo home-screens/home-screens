@@ -8,6 +8,7 @@ import {
   getModulesByCategory,
   registerPluginModule,
   unregisterModule,
+  resolveModuleLabel,
 } from '@/lib/module-registry';
 import type { ModuleType, BuiltinModuleType } from '@/types/config';
 
@@ -594,5 +595,33 @@ describe('registerPluginModule — providesState namespacing', () => {
     });
     const def = getModuleDefinition('plugin:my-widget' as ModuleType)!;
     expect(() => def.deriveProvidedKeys!({})).toThrow('plugin bug');
+  });
+});
+
+describe('resolveModuleLabel', () => {
+  const t = (key: string) => `translated:${key}`;
+
+  it('translates built-in types through the registry dictionary key', () => {
+    expect(resolveModuleLabel('clock', t)).toBe('translated:registry.types.clock');
+  });
+
+  it('keeps a registered plugin label verbatim', () => {
+    registerPluginModule({
+      id: 'acme',
+      name: 'Acme Widget',
+      version: '1.0.0',
+      moduleType: 'acme-widget',
+      category: 'Personal',
+    } as unknown as import('@/types/plugins').PluginManifest);
+    try {
+      expect(resolveModuleLabel('plugin:acme-widget' as ModuleType, t)).toBe('Acme Widget');
+    } finally {
+      unregisterModule('plugin:acme-widget' as ModuleType);
+    }
+  });
+
+  it('falls back to the raw type for anything unregistered', () => {
+    expect(resolveModuleLabel('plugin:acme:missing' as ModuleType, t)).toBe('plugin:acme:missing');
+    expect(resolveModuleLabel('not-a-module' as ModuleType, t)).toBe('not-a-module');
   });
 });

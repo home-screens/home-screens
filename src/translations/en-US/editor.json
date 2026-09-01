@@ -139,6 +139,23 @@
       "delete": "Delete"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Find a screen or module",
+    "buttonTitle": "Find a screen or module ({shortcut})",
+    "placeholder": "Find a screen or module…",
+    "hint": "Type a screen name, or a module like weather, chore chart, or photo.",
+    "noResults": "No screens have a module or name matching “{query}”.",
+    "currentScreenTag": "this screen",
+    "resultCount": {
+      "one": "{count} screen",
+      "other": "{count} screens"
+    },
+    "keys": {
+      "escape": "esc",
+      "move": "move",
+      "go": "go"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Screen settings",
     "moduleCountSingular": "{count} module",

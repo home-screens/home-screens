@@ -139,6 +139,23 @@
       "delete": "Supprimer"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Trouver un écran ou un module",
+    "buttonTitle": "Trouver un écran ou un module ({shortcut})",
+    "placeholder": "Trouver un écran ou un module…",
+    "hint": "Saisissez un nom d’écran ou un module comme météo, tableau des tâches ou photo.",
+    "noResults": "Aucun écran n’a de module ou de nom correspondant à « {query} ».",
+    "currentScreenTag": "cet écran",
+    "resultCount": {
+      "one": "{count} écran",
+      "other": "{count} écrans"
+    },
+    "keys": {
+      "escape": "échap",
+      "move": "déplacer",
+      "go": "ouvrir"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Paramètres de l'écran",
     "moduleCountSingular": "{count} module",

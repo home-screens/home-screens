@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { GRID_SIZE } from '@/lib/constants';
+import { isDialogOpen, isTypingTarget } from '@/lib/editor-keyboard';
 import { useTranslate } from '@/i18n';
 
 const ARROW_DELTAS: Record<string, readonly [number, number]> = {
@@ -25,16 +26,7 @@ export function useCanvasKeyboardShortcuts() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
-        return;
-      }
-      if (document.querySelector('[role="dialog"], [aria-modal="true"]')) return;
+      if (isTypingTarget(e.target) || isDialogOpen()) return;
 
       const store = useEditorStore.getState();
       const { selectedScreenId, selectedModuleId } = store;

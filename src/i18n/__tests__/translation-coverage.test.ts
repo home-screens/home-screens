@@ -122,6 +122,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|screenSettings.inheritsHintValue',
   'editor|screenTabs.secondsSuffix',
   'editor|screenTabs.stickyBadge',
+  // Keyboard key cap shown in the screen search popover; "esc" is the printed key name everywhere.
+  'editor|screenSearch.keys.escape',
   'editor|settings.automationPage.displayPicker.optionLabel',
   'editor|settings.backlinkBanner.multiDisplayLabel',
   'editor|settings.calendarPage.google.googleCloudConsoleLink',

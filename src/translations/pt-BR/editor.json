@@ -139,6 +139,23 @@
       "delete": "Excluir"
     }
   },
+  "screenSearch": {
+    "buttonAriaLabel": "Encontrar uma tela ou módulo",
+    "buttonTitle": "Encontrar uma tela ou módulo ({shortcut})",
+    "placeholder": "Encontrar uma tela ou módulo…",
+    "hint": "Digite o nome de uma tela ou um módulo como clima, quadro de tarefas ou foto.",
+    "noResults": "Nenhuma tela tem um módulo ou nome que corresponda a “{query}”.",
+    "currentScreenTag": "esta tela",
+    "resultCount": {
+      "one": "{count} tela",
+      "other": "{count} telas"
+    },
+    "keys": {
+      "escape": "esc",
+      "move": "mover",
+      "go": "abrir"
+    }
+  },
   "screenSettings": {
     "sectionTitle": "Configurações da tela",
     "moduleCountSingular": "{count} módulo",

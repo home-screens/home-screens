@@ -19,11 +19,13 @@ import { useTabRename } from '@/hooks/useTabRename';
 import { useTabScroll } from '@/hooks/useTabScroll';
 import { useSortableSensors } from '@/hooks/useDndSensors';
 import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
+import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import type { LayoutExport } from '@/types/layout-export';
 import LayoutExportModal from './LayoutExportModal';
 import LayoutImportModal from './LayoutImportModal';
 import TemplateFlow from './TemplateFlow';
 import ScreenTab from './ScreenTab';
+import ScreenSearch from './ScreenSearch';
 
 
 /* ─── Main component ────────────────────────── */
@@ -41,7 +43,9 @@ export default function ScreenTabs() {
   // Dropdown & context menu state
   const [addMenuPos, setAddMenuPos] = useState<{ top: number; right: number } | null>(null);
   const addBtnRef = useRef<HTMLButtonElement>(null);
+  const addMenuRef = useRef<HTMLDivElement>(null);
   const [contextMenu, setContextMenu] = useState<{ screenId: string; x: number; y: number } | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // Modal state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -61,16 +65,19 @@ export default function ScreenTabs() {
   // DnD sensors — 8px distance constraint prevents drag from interfering with click/scroll
   const sensors = useSortableSensors(8);
 
-  // Close dropdowns on outside click
+  // Close dropdowns on any press outside them (capture phase, so a sibling
+  // popover's own click handling can never leave a menu stranded open).
+  const closeMenus = useCallback(() => {
+    setAddMenuPos(null);
+    setContextMenu(null);
+  }, []);
+  useOutsidePointerDown(addMenuPos !== null || contextMenu !== null, [addBtnRef, addMenuRef, contextMenuRef], closeMenus);
+
+  // A context menu belongs to a screen on the display it was opened for;
+  // switching displays (screen search, the display switcher) invalidates it.
   useEffect(() => {
-    if (!addMenuPos && !contextMenu) return;
-    const handler = () => {
-      setAddMenuPos(null);
-      setContextMenu(null);
-    };
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
-  }, [addMenuPos, contextMenu]);
+    closeMenus();
+  }, [selectedDisplayId, closeMenus]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent, screenId: string) => {
     e.preventDefault();
@@ -193,8 +200,7 @@ export default function ScreenTabs() {
             ref={addBtnRef}
             aria-label={t('screenTabs.addScreenAriaLabel')}
             className="flex items-center gap-0.5 rounded-md bg-hs-card px-2 py-1 text-xs font-medium text-hs-text-body transition-colors hover:bg-hs-hover"
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={() => {
               if (addMenuPos) {
                 setAddMenuPos(null);
               } else {
@@ -209,14 +215,15 @@ export default function ScreenTabs() {
             <ChevronDown className="w-3 h-3" />
           </button>
         </div>
+        <ScreenSearch />
       </div>
 
       {/* Add screen dropdown — fixed position to escape overflow-hidden parents */}
       {addMenuPos && (
         <div
+          ref={addMenuRef}
           className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ top: addMenuPos.top, right: addMenuPos.right }}
-          onClick={(e) => e.stopPropagation()}
         >
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card"
@@ -251,9 +258,9 @@ export default function ScreenTabs() {
       {/* Right-click context menu */}
       {contextMenu && (
         <div
+          ref={contextMenuRef}
           className="fixed z-50 w-44 rounded-lg border border-hs-border-strong bg-hs-panel py-1 shadow-xl"
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
         >
           <button
             className="w-full px-3 py-1.5 text-left text-sm text-hs-text-body hover:bg-hs-card disabled:text-hs-text-faint disabled:cursor-default"
