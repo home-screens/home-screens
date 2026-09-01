@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Fjernbetjening",
-    "settingsAriaLabel": "Indstillinger"
+    "settingsAriaLabel": "Indstillinger",
+    "hubConnected": "Forbundet til Home Screens",
+    "hubDisconnected": "Kan ikke nå Home Screens"
   },
   "connectionBanner": {
     "unreachable": "Skærm utilgængelig — tjek at skærmen er tændt og tilsluttet"
@@ -28,10 +30,14 @@
     "stateActive": "Aktiv",
     "stateDimmed": "Deaktiveret",
     "stateAsleep": "Slumrer",
+    "stateOffline": "Offline",
     "updatedTimeAgo": "Opdateret {ago}",
+    "lastSeenTimeAgo": "Sidst set {ago}",
     "screenIndex": "Skærm {current} af {total}",
     "waiting": "Venter på skærm…",
-    "unreachable": "Skærm er ikke tilgængelig"
+    "unreachable": "Skærm er ikke tilgængelig",
+    "notConnectedTitle": "Skærmen har ikke oprettet forbindelse endnu",
+    "notConnectedHint": "Tjek at den er tændt, eller gør opsætningen færdig i editoren under Pr. display."
   },
   "screenControls": {
     "prevAriaLabel": "Forrige skærm",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Der er ikke tilføjet pligter endnu",
       "description": "Skift til Administrér for at tilføje familiemedlemmer og pligter.",
+      "kidTitle": "Ingen pligter endnu",
+      "kidDescription": "Bed en voksen tilføje pligter fra sin telefon.",
       "setUpButton": "Tilføj pligter"
     },
     "warningDismissAriaLabel": "Ignorér advarsel",

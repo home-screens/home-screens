@@ -58,6 +58,11 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
   const [status, setStatus] = useState<DisplayStatus | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  // True once the hub answers 404 for this display: it exists in the
+  // registry but has never posted a heartbeat. Distinct from "waiting for
+  // the first poll" (status null, neverConnected false) so the hero can say
+  // "hasn't connected yet" instead of waiting forever.
+  const [neverConnected, setNeverConnected] = useState(false);
   const failuresRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
   const burstTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -72,12 +77,14 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
         const data: DisplayStatus = await res.json();
         setStatus(data);
         setLastUpdated(new Date());
+        setNeverConnected(false);
         failuresRef.current = 0;
         setIsConnected(true);
       } else if (res.status === 404) {
         failuresRef.current = 0;
         setIsConnected(true);
         setStatus(null);
+        setNeverConnected(true);
       }
     } catch (e) {
       // 401 already triggered a /login redirect; don't count it as a network
@@ -93,6 +100,7 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
     // show stale data from the previous target.
     setStatus(null);
     setLastUpdated(null);
+    setNeverConnected(false);
     poll();
     intervalRef.current = setInterval(poll, pollMs);
     return () => {
@@ -112,5 +120,5 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
     }, 10_000);
   }, [poll, pollMs]);
 
-  return { status, isConnected, lastUpdated, nudge };
+  return { status, isConnected, lastUpdated, neverConnected, nudge };
 }

@@ -90,7 +90,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   // null in multi-display mode and blanks out the hero panel.
   const statusPollTarget =
     displayTarget === 'all' ? initialData.displays[0]?.id : displayTarget;
-  const { status, isConnected, lastUpdated, nudge } = useRemoteStatus(5_000, statusPollTarget);
+  const { status, isConnected, lastUpdated, neverConnected, nudge } = useRemoteStatus(5_000, statusPollTarget);
   const backup = useBackupReminder({
     enabled: initialData.backupReminder.enabled,
     intervalDays: initialData.backupReminder.intervalDays,
@@ -218,7 +218,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
               onDismiss={backup.handleDismiss}
             />
             <DisplayPicker />
-            <DisplayHero status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} />
+            <DisplayHero status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} neverConnected={neverConnected} />
             {showSingleDisplayControls && <ScreenNav status={effectiveStatus} onNav={handleNav} />}
             <QuickActions isAsleep={isAsleep} onSleepWake={handleSleepWake} onAlertOpen={() => setAlertOpen(true)} />
             <BrightnessCard />

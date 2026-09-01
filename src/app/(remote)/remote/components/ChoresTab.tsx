@@ -389,7 +389,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
 
       {subView === 'rewards' ? (
         <RewardsView members={members} accentColor={accentColor} isAdmin={isAdmin} />
-      ) : subView === 'manage' ? (
+      ) : subView === 'manage' && isAdmin ? (
         <ChoresManageView
           members={members}
           chores={chores}
@@ -400,10 +400,13 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         /* Empty state */
         <div style={{ textAlign: 'center', padding: '48px 16px' }}>
           <Settings size={40} color="var(--hs-border-strong)" style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>{t('choresTab.empty.title')}</p>
-          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
-            {t('choresTab.empty.description')}
+          <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
+            {t(isAdmin ? 'choresTab.empty.title' : 'choresTab.empty.kidTitle')}
           </p>
+          <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
+            {t(isAdmin ? 'choresTab.empty.description' : 'choresTab.empty.kidDescription')}
+          </p>
+          {isAdmin && (
           <button
             onClick={() => setSubView('manage')}
             style={{
@@ -420,6 +423,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           >
             {t('choresTab.empty.setUpButton')}
           </button>
+          )}
         </div>
       ) : (
         <>

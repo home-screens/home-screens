@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Controle remoto",
-    "settingsAriaLabel": "Configurações"
+    "settingsAriaLabel": "Configurações",
+    "hubConnected": "Conectado ao Home Screens",
+    "hubDisconnected": "Não foi possível conectar ao Home Screens"
   },
   "connectionBanner": {
     "unreachable": "Tela inacessível — verifique se o dispositivo está ligado e conectado"
@@ -28,10 +30,14 @@
     "stateActive": "Ativa",
     "stateDimmed": "Esmaecida",
     "stateAsleep": "Dormindo",
+    "stateOffline": "Off-line",
     "updatedTimeAgo": "Atualizada {ago}",
+    "lastSeenTimeAgo": "Vista pela última vez {ago}",
     "screenIndex": "Tela {current} de {total}",
     "waiting": "Aguardando a tela…",
-    "unreachable": "Tela inacessível"
+    "unreachable": "Tela inacessível",
+    "notConnectedTitle": "Esta tela ainda não se conectou",
+    "notConnectedHint": "Verifique se ela está ligada, ou termine a configuração no editor, em Por tela."
   },
   "screenControls": {
     "prevAriaLabel": "Tela anterior",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Nenhuma tarefa configurada ainda",
       "description": "Vá em Gerenciar para adicionar membros da família e tarefas.",
+      "kidTitle": "Nenhuma tarefa ainda",
+      "kidDescription": "Peça a um adulto para adicionar tarefas pelo celular.",
       "setUpButton": "Configurar tarefas"
     },
     "warningDismissAriaLabel": "Dispensar aviso",

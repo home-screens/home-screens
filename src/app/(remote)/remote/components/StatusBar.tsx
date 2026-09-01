@@ -12,13 +12,19 @@ export default function StatusBar({ isConnected, onSettingsOpen }: HeaderProps) 
   return (
     <header className="flex items-center justify-between px-5 pt-4 pb-3">
       <div className="flex items-center gap-2.5">
+        {/* Hub reachability only — a green dot does NOT mean any display is on.
+            Display liveness is the hero's job (Offline / last seen). */}
         <span
+          title={t(isConnected ? 'statusBar.hubConnected' : 'statusBar.hubDisconnected')}
           className={`w-2 h-2 rounded-full shrink-0 ${
             isConnected
               ? 'bg-hs-success shadow-[0_0_8px_rgba(34,197,94,0.4)]'
               : 'bg-hs-danger shadow-[0_0_8px_rgba(239,68,68,0.4)]'
           }`}
         />
+        <span className="sr-only">
+          {t(isConnected ? 'statusBar.hubConnected' : 'statusBar.hubDisconnected')}
+        </span>
         <h1 className="text-xl font-bold tracking-tight text-hs-text-primary">{t('statusBar.title')}</h1>
       </div>
 

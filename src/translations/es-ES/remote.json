@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Mando",
-    "settingsAriaLabel": "Ajustes"
+    "settingsAriaLabel": "Ajustes",
+    "hubConnected": "Conectado a Home Screens",
+    "hubDisconnected": "No se puede conectar con Home Screens"
   },
   "connectionBanner": {
     "unreachable": "Display inalcanzable — comprueba que el dispositivo esté encendido y conectado"
@@ -28,10 +30,14 @@
     "stateActive": "Activo",
     "stateDimmed": "Atenuado",
     "stateAsleep": "Dormido",
+    "stateOffline": "Sin conexión",
     "updatedTimeAgo": "Actualizado {ago}",
+    "lastSeenTimeAgo": "Visto por última vez {ago}",
     "screenIndex": "Pantalla {current} de {total}",
     "waiting": "Esperando al display…",
-    "unreachable": "Display inalcanzable"
+    "unreachable": "Display inalcanzable",
+    "notConnectedTitle": "Este display aún no se ha conectado",
+    "notConnectedHint": "Comprueba que está encendido, o termina de configurarlo en el editor, en Por display."
   },
   "screenControls": {
     "prevAriaLabel": "Pantalla anterior",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Aún no hay tareas",
       "description": "Cambia a Gestionar para añadir miembros y tareas.",
+      "kidTitle": "Aún no hay tareas",
+      "kidDescription": "Pídele a una persona mayor que añada tareas desde su teléfono.",
       "setUpButton": "Configurar tareas"
     },
     "warningDismissAriaLabel": "Descartar aviso",

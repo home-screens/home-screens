@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Remote",
-    "settingsAriaLabel": "Settings"
+    "settingsAriaLabel": "Settings",
+    "hubConnected": "Connected to Home Screens",
+    "hubDisconnected": "Can't reach Home Screens"
   },
   "connectionBanner": {
     "unreachable": "Display unreachable — check that the device is on and connected"
@@ -28,10 +30,14 @@
     "stateActive": "Active",
     "stateDimmed": "Dimmed",
     "stateAsleep": "Asleep",
+    "stateOffline": "Offline",
     "updatedTimeAgo": "Updated {ago}",
+    "lastSeenTimeAgo": "Last seen {ago}",
     "screenIndex": "Screen {current} of {total}",
     "waiting": "Waiting for display…",
-    "unreachable": "Display unreachable"
+    "unreachable": "Display unreachable",
+    "notConnectedTitle": "This display hasn't connected yet",
+    "notConnectedHint": "Make sure it's turned on, or finish setting it up in the editor under Per display."
   },
   "screenControls": {
     "prevAriaLabel": "Previous screen",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "No chores set up yet",
       "description": "Switch to Manage to add family members and chores.",
+      "kidTitle": "No chores yet",
+      "kidDescription": "Ask a grown-up to add chores from their phone.",
       "setUpButton": "Set Up Chores"
     },
     "warningDismissAriaLabel": "Dismiss warning",

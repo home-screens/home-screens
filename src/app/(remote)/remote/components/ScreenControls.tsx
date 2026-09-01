@@ -3,6 +3,9 @@
 import type { DisplayStatus } from '@/lib/display-commands';
 import { useTranslate } from '@/i18n';
 
+/** Above this many screens the per-screen dots are hidden (they overflow a phone). */
+const MAX_DOTS = 12;
+
 interface ScreenNavProps {
   status: DisplayStatus | null;
   onNav: (direction: 'next' | 'prev') => void;
@@ -26,8 +29,11 @@ export default function ScreenNav({ status, onNav }: ScreenNavProps) {
         </svg>
       </button>
 
-      <div className="flex-1 flex justify-center gap-2">
-        {Array.from({ length: screenCount }, (_, i) => (
+      {/* The dot strip must never widen the page: `min-w-0 overflow-hidden`
+          keeps it inside the viewport, and past MAX_DOTS the dots are dropped
+          entirely — the hero already says "Screen X of Y". */}
+      <div className="flex-1 min-w-0 overflow-hidden flex justify-center gap-2">
+        {screenCount <= MAX_DOTS && Array.from({ length: screenCount }, (_, i) => (
           <div
             key={i}
             className={`h-2 rounded-full transition-all duration-200 ${

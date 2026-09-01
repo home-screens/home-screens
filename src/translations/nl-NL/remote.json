@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Afstandsbediening",
-    "settingsAriaLabel": "Instellingen"
+    "settingsAriaLabel": "Instellingen",
+    "hubConnected": "Verbonden met Home Screens",
+    "hubDisconnected": "Kan Home Screens niet bereiken"
   },
   "connectionBanner": {
     "unreachable": "Display niet bereikbaar — controleer of het apparaat aan en verbonden is"
@@ -28,10 +30,14 @@
     "stateActive": "Actief",
     "stateDimmed": "Gedimd",
     "stateAsleep": "Slaapt",
+    "stateOffline": "Offline",
     "updatedTimeAgo": "Bijgewerkt {ago}",
+    "lastSeenTimeAgo": "Laatst gezien {ago}",
     "screenIndex": "Scherm {current} van {total}",
     "waiting": "Wachten op display…",
-    "unreachable": "Display niet bereikbaar"
+    "unreachable": "Display niet bereikbaar",
+    "notConnectedTitle": "Dit display heeft nog geen verbinding gemaakt",
+    "notConnectedHint": "Controleer of het aanstaat, of maak de installatie af in de editor onder Per display."
   },
   "screenControls": {
     "prevAriaLabel": "Vorig scherm",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Nog geen klusjes ingesteld",
       "description": "Ga naar Beheren om gezinsleden en klusjes toe te voegen.",
+      "kidTitle": "Nog geen klusjes",
+      "kidDescription": "Vraag een volwassene om klusjes toe te voegen via de telefoon.",
       "setUpButton": "Klusjes instellen"
     },
     "warningDismissAriaLabel": "Waarschuwing sluiten",

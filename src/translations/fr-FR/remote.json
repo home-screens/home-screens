@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Télécommande",
-    "settingsAriaLabel": "Paramètres"
+    "settingsAriaLabel": "Paramètres",
+    "hubConnected": "Connecté à Home Screens",
+    "hubDisconnected": "Home Screens est injoignable"
   },
   "connectionBanner": {
     "unreachable": "Affichage injoignable — vérifie que l'appareil est allumé et connecté"
@@ -28,10 +30,14 @@
     "stateActive": "Actif",
     "stateDimmed": "Atténué",
     "stateAsleep": "En veille",
+    "stateOffline": "Hors ligne",
     "updatedTimeAgo": "Mis à jour {ago}",
+    "lastSeenTimeAgo": "Vu pour la dernière fois {ago}",
     "screenIndex": "Écran {current} sur {total}",
     "waiting": "En attente de l'affichage…",
-    "unreachable": "Affichage injoignable"
+    "unreachable": "Affichage injoignable",
+    "notConnectedTitle": "Cet affichage ne s’est pas encore connecté",
+    "notConnectedHint": "Vérifie qu’il est allumé, ou termine sa configuration dans l’éditeur, section « Par affichage »."
   },
   "screenControls": {
     "prevAriaLabel": "Écran précédent",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Aucune tâche pour l'instant",
       "description": "Va dans « Gérer » pour ajouter des membres de la famille et des tâches.",
+      "kidTitle": "Aucune tâche pour l’instant",
+      "kidDescription": "Demande à un grand d’ajouter des tâches depuis son téléphone.",
       "setUpButton": "Configurer les tâches"
     },
     "warningDismissAriaLabel": "Fermer l'avertissement",

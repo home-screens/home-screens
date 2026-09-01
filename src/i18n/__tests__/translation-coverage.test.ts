@@ -293,6 +293,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|clock.pm',
     'modules|fullscreen-calendar.am',
     'modules|fullscreen-calendar.pm',
+    // "Offline" is the standard word in Danish.
+    'remote|displayHero.stateOffline',
   ]),
   'de-DE': new Set([
     'core|launcher.editor.title',
@@ -348,6 +350,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresManage.choreForm.nameLabel',
     'remote|choresManage.choreForm.ticketsLabel',
     'remote|choresManage.memberForm.nameLabel',
+    // "Offline" is the standard word in German.
+    'remote|displayHero.stateOffline',
     'remote|mealForm.ingredientNamePlaceholder',
     'remote|mealsTab.subNav.plan',
     'remote|rewardForm.nameLabel',
@@ -659,6 +663,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresManage.choreForm.ticketsLabel',
     'remote|choresTab.ticketCountPlural',
     'remote|choresTab.ticketCountSingular',
+    // "Offline" is the standard word in Dutch.
+    'remote|displayHero.stateOffline',
     'remote|mealsTab.library.filters.comfort',
     'remote|mealsTab.subNav.plan',
     'remote|rewardsView.ticketCountPlural',

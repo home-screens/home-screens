@@ -8,7 +8,9 @@
   },
   "statusBar": {
     "title": "Fernsteuerung",
-    "settingsAriaLabel": "Einstellungen"
+    "settingsAriaLabel": "Einstellungen",
+    "hubConnected": "Mit Home Screens verbunden",
+    "hubDisconnected": "Home Screens ist nicht erreichbar"
   },
   "connectionBanner": {
     "unreachable": "Display nicht erreichbar — prüfe, ob das Gerät an und verbunden ist"
@@ -28,10 +30,14 @@
     "stateActive": "Aktiv",
     "stateDimmed": "Gedimmt",
     "stateAsleep": "Schläft",
+    "stateOffline": "Offline",
     "updatedTimeAgo": "Aktualisiert {ago}",
+    "lastSeenTimeAgo": "Zuletzt gesehen {ago}",
     "screenIndex": "Bildschirm {current} von {total}",
     "waiting": "Warte auf Display …",
-    "unreachable": "Display nicht erreichbar"
+    "unreachable": "Display nicht erreichbar",
+    "notConnectedTitle": "Dieses Display hat sich noch nicht verbunden",
+    "notConnectedHint": "Stelle sicher, dass es eingeschaltet ist, oder richte es im Editor unter „Pro Display“ fertig ein."
   },
   "screenControls": {
     "prevAriaLabel": "Vorheriger Bildschirm",
@@ -67,6 +73,8 @@
     "empty": {
       "title": "Noch keine Aufgaben",
       "description": "Wechsle zu „Verwalten“, um Familienmitglieder und Aufgaben hinzuzufügen.",
+      "kidTitle": "Noch keine Aufgaben",
+      "kidDescription": "Bitte einen Erwachsenen, Aufgaben am Handy hinzuzufügen.",
       "setUpButton": "Aufgaben einrichten"
     },
     "warningDismissAriaLabel": "Hinweis schließen",
