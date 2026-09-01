@@ -7,6 +7,7 @@ import { TOD_ICONS, type ChoreRow, type ToggleParams } from './helpers';
 
 interface TimeBandHeaderProps {
   tod: ChoreTimeOfDay;
+  /** Label size. The icon is drawn 1.1× this. */
   fontSize: number;
   currentTod: ChoreTimeOfDay | null;
   style?: React.CSSProperties;
@@ -20,20 +21,21 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
 
   return (
     <div
+      data-testid="fcc-band-header"
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: fontSize * 0.4,
+        gap: fontSize * 0.45,
         ...style,
       }}
     >
       <TodIcon size={fontSize * 1.1} color={headerColor} strokeWidth={2} />
       <span
         style={{
-          fontSize: fontSize * 0.8,
+          fontSize,
           fontWeight: 700,
           textTransform: 'uppercase',
-          letterSpacing: '0.1em',
+          letterSpacing: '0.12em',
           color: headerColor,
         }}
       >
@@ -46,8 +48,17 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
 interface TimeBandProps {
   tod: ChoreTimeOfDay;
   rows: ChoreRow[];
+  /** Chore-name size for the rows. */
   fontSize: number;
   dotSize: number;
+  /** Fit-rule row height; see FullscreenChoreChartModule. */
+  rowHeight: number;
+  /** Fit-rule header band height (label sits at its bottom edge). */
+  headerHeight: number;
+  /** Header label size, fixed by the fit rule rather than derived from the row. */
+  headerFontSize: number;
+  /** Width each row has; see ChoreRowItem.rowWidth. */
+  rowWidth: number;
   showHeader: boolean;
   showPoints: boolean;
   currentTod: ChoreTimeOfDay | null;
@@ -62,6 +73,10 @@ export default function TimeBand({
   rows,
   fontSize,
   dotSize,
+  rowHeight,
+  headerHeight,
+  headerFontSize,
+  rowWidth,
   showHeader,
   showPoints,
   currentTod,
@@ -71,13 +86,18 @@ export default function TimeBand({
   onToggle,
 }: TimeBandProps) {
   return (
-    <div>
+    <div style={{ flexShrink: 0 }}>
       {showHeader && (
         <TimeBandHeader
           tod={tod}
-          fontSize={fontSize}
+          fontSize={headerFontSize}
           currentTod={currentTod}
-          style={{ padding: `${fontSize * 0.6}px ${fontSize * 0.3}px ${fontSize * 0.3}px` }}
+          style={{
+            height: headerHeight,
+            boxSizing: 'border-box',
+            alignItems: 'flex-end',
+            padding: `0 ${fontSize * 0.3}px ${headerFontSize * 0.3}px`,
+          }}
         />
       )}
       {rows.map((row, i) => (
@@ -86,6 +106,9 @@ export default function TimeBand({
           row={row}
           fontSize={fontSize}
           dotSize={dotSize}
+          rowHeight={rowHeight}
+          rowWidth={rowWidth}
+          // A header sits flush on its first row, so the pair reads as one block.
           isFirst={i === 0}
           showPoints={showPoints}
           memberMap={memberMap}

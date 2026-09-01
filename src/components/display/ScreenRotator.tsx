@@ -9,6 +9,7 @@ import { isScreenEmpty } from '@/lib/display-filter';
 import PluginServiceLayer from './PluginServiceLayer';
 import SleepOverlay from './SleepOverlay';
 import AlertOverlay from './AlertOverlay';
+import { useAlertStore } from '@/stores/alert-store';
 import TimerOverlay from './TimerOverlay';
 import NetworkIndicator from './NetworkIndicator';
 import PaginationDots from './PaginationDots';
@@ -401,6 +402,10 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   displayStateRef.current = displayState;
   useEffect(() => {
     function onClickCapture(e: MouseEvent) {
+      // Alert controls are never module content: an urgent alert wakes the
+      // display itself, and the tap on its Dismiss button seconds later must
+      // land, not be eaten as the "wake tap".
+      if (e.target instanceof Element && e.target.closest('[data-alert-control]')) return;
       if (displayStateRef.current !== 'active' || Date.now() < wakeGuardUntilRef.current) {
         e.stopPropagation();
         e.preventDefault();
@@ -464,6 +469,16 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // alert still shows.
   const showHint = !takeoverScreen && (screens.length === 0 || screens.every(isScreenEmpty));
 
+  // While an urgent alert bar is up, the whole canvas is pushed down under it
+  // and scaled to what is left, so the bar covers nothing — the clock stays
+  // readable through a tornado warning. One transform on the renderer's
+  // wrapper: modules never relayout. Only the canvas moves; the dots and the
+  // sleep/timer overlays keep their places.
+  const urgentInset = useAlertStore((s) => s.urgentInsetPx);
+  const canvasPush = urgentInset > 0 && viewportSize.h > 0
+    ? `translateY(${urgentInset}px) scale(${Math.max(0.3, (viewportSize.h - urgentInset) / viewportSize.h)})`
+    : 'none';
+
   return (
     <div ref={cursorRef} style={{
       position: 'relative',
@@ -471,13 +486,6 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       height: '100vh',
       overflow: 'hidden',
       backgroundColor: '#000',
-      // Center the scaled renderer using padding — flex centering doesn't work
-      // because the ScreenRenderer's layout box (1920x1080) is larger than the
-      // viewport, and overflow: hidden clips the layout box before transform.
-      // With transformOrigin: top left on the renderer, we position it manually.
-      paddingTop: !showHint && viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
-      paddingLeft: !showHint && viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
-      boxSizing: 'border-box',
     }}>
       {/* renderedScreen is the takeover screen while a rule is firing,
           resolved from the display's full screen list (an alert screen may
@@ -487,7 +495,26 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
           : <EmptyDisplayHint />
       ) : (
-        <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+        <div
+          data-testid="display-canvas"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            // Center the scaled renderer using padding — flex centering doesn't
+            // work because the ScreenRenderer's layout box (1920x1080) is larger
+            // than the viewport, and overflow: hidden clips the layout box before
+            // transform. With transformOrigin: top left on the renderer, we
+            // position it manually.
+            paddingTop: viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
+            paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
+            boxSizing: 'border-box',
+            transform: canvasPush,
+            transformOrigin: 'top center',
+            transition: 'transform 300ms ease',
+          }}
+        >
+          <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+        </div>
       )}
 
       {/* Sibling of ScreenRenderer inside the stable outer div, so state

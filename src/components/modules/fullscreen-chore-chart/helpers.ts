@@ -101,3 +101,37 @@ export function buildChoreRows(assignments: ResolvedAssignment[]): Map<ChoreTime
   }
   return groups;
 }
+
+/** Chore rows never shrink below this on the standard 1080-wide kiosk (28px names). */
+export const ROW_HEIGHT_FLOOR = 56;
+/** Tallest row at `medium`; `typographySize` multiplies it. */
+export const ROW_HEIGHT_CAP = 120;
+/** A time-of-day header band costs this fraction of a row. */
+export const HEADER_ROW_UNITS = 0.55;
+
+export interface FitRowHeightInput {
+  /** Height available to the chore list, in px. */
+  listHeight: number;
+  /** Chore rows to lay out (the tallest column in landscape). */
+  chores: number;
+  /** Time-of-day header bands to lay out alongside them. */
+  headers: number;
+  /** Canvas scale: 1 on a 1080-wide panel. */
+  k: number;
+  /** `typographySize` multiplier; raises the cap, never the floor. */
+  typoMul: number;
+}
+
+/**
+ * The fit rule behind the fullscreen chore board: rows share the list height
+ * equally, capped by `typographySize` and floored so a 24-chore day scrolls
+ * instead of going unreadable. Everything inside a row (name, icon, dots) is
+ * a fraction of this value, so the whole board grows and shrinks together.
+ */
+export function fitRowHeight({ listHeight, chores, headers, k, typoMul }: FitRowHeightInput): number {
+  const floor = ROW_HEIGHT_FLOOR * k;
+  const cap = ROW_HEIGHT_CAP * k * typoMul;
+  const units = chores + HEADER_ROW_UNITS * headers;
+  if (units <= 0 || listHeight <= 0) return cap;
+  return Math.max(floor, Math.min(cap, listHeight / units));
+}

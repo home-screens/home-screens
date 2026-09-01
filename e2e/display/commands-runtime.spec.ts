@@ -325,6 +325,38 @@ test('alert renders its title and message; clear-alerts removes it', async ({ pa
   await expect(page.getByText('E2E ALERT BODY')).toHaveCount(0);
 });
 
+test('an urgent alert wakes a sleeping display and it sleeps again when dismissed; a routine alert waits', async ({ page, request }) => {
+  const id = 'cmd-alert-wake';
+  await openDisplay(
+    page,
+    request,
+    // Sleep disabled: only the remote sleep command blacks the display out,
+    // so nothing automatic can wake or re-sleep it under the test.
+    displayConfig(id, [makeScreen('s', 'S', [textModule('ALERT WAKE SCREEN')])]),
+    id,
+  );
+
+  await sendCommand(request, id, 'sleep');
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+
+  // A routine alert must not light a bedroom at 2 AM: it is dropped, not
+  // queued for whoever touches the panel in the morning.
+  await sendCommand(request, id, 'alert', { type: 'info', title: 'ROUTINE WHILE ASLEEP', message: 'body', duration: 0 });
+  await page.waitForTimeout(4500);
+  await expect(page.getByText('ROUTINE WHILE ASLEEP')).toHaveCount(0);
+  await expect(page.locator(OVERLAY)).toBeVisible();
+
+  // An urgent alert wakes the display and shows as the full-width bar.
+  await sendCommand(request, id, 'alert', { type: 'urgent', title: 'SMOKE DETECTED', message: 'Basement smoke alarm' });
+  await expect(page.getByTestId('alert-urgent')).toBeVisible({ timeout: 8000 });
+  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+
+  // Dismissing the bar puts the display back to sleep.
+  await page.getByTestId('alert-dismiss').first().click();
+  await expect(page.getByTestId('alert-urgent')).toHaveCount(0);
+  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+});
+
 test('an alert with a short duration renders then auto-dismisses without a clear-alerts command', async ({ page, request }) => {
   const id = 'cmd-alert-timeout';
   await openDisplay(

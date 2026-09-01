@@ -79,7 +79,28 @@ interface UseSleepManagerResult {
   wakeIfHidden: () => void;
   forceSleep: () => void;
   setRemoteBrightness: (value: number) => void;
+  /**
+   * Wake for an urgent alert. Remembers how the display was (asleep, dimmed,
+   * a remote brightness) and holds it awake until `releaseAlertWake` puts it
+   * back — a smoke alarm at 2 AM must light the panel, and dismissing it must
+   * not leave a bedroom display bright all night.
+   */
+  wakeForAlert: () => void;
+  /** Undo `wakeForAlert` once the last urgent alert is gone. No-op otherwise. */
+  releaseAlertWake: () => void;
+  /**
+   * The current state read synchronously (the same ref `wakeIfHidden` uses),
+   * for callers running inside the command drain where React state is stale.
+   */
+  getDisplayState: () => DisplayState;
 }
+
+/**
+ * How long an urgent alert holds the display awake. Urgent alerts are
+ * persistent by default, so this is a backstop for one nobody dismisses, not
+ * the normal end of the wake — `releaseAlertWake` is.
+ */
+export const ALERT_WAKE_HOLD_MS = 12 * 60 * 60_000;
 
 export function useSleepManager(
   sleep?: SleepSettings,
@@ -192,6 +213,65 @@ export function useSleepManager(
     applyBrightnessOverride(null);
     applyDisplayState('asleep');
   }, [applyBrightnessOverride, applyDisplayState]);
+
+  // What `wakeForAlert` found, so `releaseAlertWake` can put it back. Null
+  // while no alert wake is standing; a second urgent alert during one keeps
+  // the first snapshot (the display was already awake for the first).
+  const alertWakeRef = useRef<{ priorState: DisplayState; priorBrightness: number | null; priorHold: number } | null>(null);
+
+  const wakeForAlert = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    if (!alertWakeRef.current) {
+      alertWakeRef.current = {
+        priorState: displayStateRef.current,
+        priorBrightness: brightnessOverrideRef.current,
+        priorHold: wakeHoldUntilRef.current,
+      };
+    }
+    raiseWakeHold(Date.now() + ALERT_WAKE_HOLD_MS);
+    applyBrightnessOverride(null);
+    applyDisplayState('active');
+  }, [applyBrightnessOverride, applyDisplayState]);
+
+  const releaseAlertWake = useCallback(() => {
+    const saved = alertWakeRef.current;
+    if (!saved) return;
+    alertWakeRef.current = null;
+    // Drop the alert hold, keeping whatever hold stood before it.
+    wakeHoldUntilRef.current = saved.priorHold;
+    if (saved.priorState === 'active') return;
+
+    const { sleep: s, timezone: tz } = scheduleRef.current;
+    const tzNow = createTZDate(tz);
+    const inSleepWindow = !!s?.enabled && !!s.schedule && isInScheduleWindow(s.schedule, tzNow);
+    const inDimWindow = !!s?.enabled && !!s.dimSchedule && isInScheduleWindow(s.dimSchedule, tzNow);
+
+    if (saved.priorState === 'asleep') {
+      // Inside a sleep window the next 10s tick re-asserts sleep on its own
+      // now that the hold is gone. Outside one the sleep was explicit (remote
+      // command, rule, brightness 0) and nothing would ever re-sleep it.
+      if (inSleepWindow) return;
+      lastActivityRef.current = 0;
+      wakeHoldUntilRef.current = 0;
+      applyBrightnessOverride(null);
+      applyDisplayState('asleep');
+      return;
+    }
+
+    // Dimmed: a remote-set partial brightness comes back as it was; a dim
+    // window re-asserts on the next tick; an idle dim is restored directly.
+    if (saved.priorBrightness !== null) {
+      applyBrightnessOverride(saved.priorBrightness);
+      applyDisplayState('dimmed');
+      return;
+    }
+    if (inDimWindow) return;
+    lastActivityRef.current = 0;
+    applyBrightnessOverride(null);
+    applyDisplayState('dimmed');
+  }, [applyBrightnessOverride, applyDisplayState]);
+
+  const getDisplayState = useCallback(() => displayStateRef.current, []);
 
   const setRemoteBrightness = useCallback((value: number) => {
     const clamped = Math.max(0, Math.min(100, value));
@@ -399,5 +479,5 @@ export function useSleepManager(
     }
   })();
 
-  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness };
+  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness, wakeForAlert, releaseAlertWake, getDisplayState };
 }

@@ -10,7 +10,7 @@ import { snapshotConsoleBuffer } from '@/lib/console-buffer';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore } from '@/lib/provider-health-store';
 import type { BrowserStats } from '@/lib/hardware-stats';
-import { useAlertStore } from '@/stores/alert-store';
+import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
 import type { AlertType } from '@/types/config';
 
@@ -26,6 +26,12 @@ export interface CommandHandlers {
   sleepOverride: (minutes: number) => void;
   setBrightness: (value: number) => void;
   reload: () => void;
+  /**
+   * Show an alert. Owned by useDisplayControl rather than written straight
+   * into the alert store so it can wake a sleeping display for an urgent one
+   * and drop a routine one that arrives while asleep.
+   */
+  showAlert: (alert: Omit<DisplayAlert, 'id'>) => void;
 }
 
 /** Extract the Chromium version from a UA string, or null if not Chromium. */
@@ -185,13 +191,14 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
             case 'alert': {
               const p = cmd.payload;
               if (p && (p.title || p.message)) {
-                useAlertStore.getState().showAlert({
+                handlersRef.current.showAlert({
                   type: (p.type as AlertType) ?? 'info',
                   title: (p.title as string) ?? '',
                   message: (p.message as string) ?? '',
                   duration: typeof p.duration === 'number' ? p.duration : undefined,
                   icon: typeof p.icon === 'string' ? p.icon : undefined,
                   dismissible: typeof p.dismissible === 'boolean' ? p.dismissible : undefined,
+                  wake: typeof p.wake === 'boolean' ? p.wake : undefined,
                 });
               }
               break;

@@ -180,5 +180,8 @@
     "copy": "Copiar",
     "copied": "Copiado",
     "openEditor": "Abrir el editor"
+  },
+  "alerts": {
+    "dismiss": "Descartar"
   }
 }

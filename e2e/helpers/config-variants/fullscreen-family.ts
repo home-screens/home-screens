@@ -29,12 +29,54 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
   // ===== fullscreen-chore-chart (seed: chores → member "Avery", daily "Feed the
   // dog" with timeOfDay "anytime"; default view 'chores') =====
   {
-    // StarChart renders a 7-column day grid; its first day header follows weekStartDay.
+    // The week grid (weekProgress 'grid') renders a 7-column day grid; its
+    // first day header follows weekStartDay.
     type: 'fullscreen-chore-chart', name: 'week-start-sunday', kind: 'local-data', seed: 'chores',
-    config: { view: 'chores', weekStartDay: 'sunday' },
+    config: { view: 'chores', weekStartDay: 'sunday', weekProgress: 'grid' },
     expect: async (mod) => {
       await has('Feed the dog')(mod);
-      await expect(mod.locator('[style*="repeat(7"] > div').nth(1)).toContainText('Sun');
+      await expect(mod.locator('[data-testid="fcc-week-grid"] [style*="repeat(7"] > div').nth(1)).toContainText('Sun');
+    },
+  },
+  {
+    // weekProgress 'chips' (the default) draws the week's stars inside each member chip.
+    type: 'fullscreen-chore-chart', name: 'week-progress-chips', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', weekProgress: 'chips' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod.locator('[data-testid="fcc-chip-stars"]').first()).toBeVisible();
+      await expect(mod.locator('[data-testid="fcc-week-grid"]')).toHaveCount(0);
+      await expect(mod.locator('[data-testid="fcc-week-strip"]')).toHaveCount(0);
+    },
+  },
+  {
+    // weekProgress 'strip' replaces the per-member grid with one household cell per day.
+    type: 'fullscreen-chore-chart', name: 'week-progress-strip', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', weekProgress: 'strip' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod.locator('[data-testid="fcc-week-strip"]')).toBeVisible();
+      await expect(mod.locator('[data-testid="fcc-chip-stars"]')).toHaveCount(0);
+    },
+  },
+  {
+    // weekProgress 'grid' keeps the per-member star grid under the list.
+    type: 'fullscreen-chore-chart', name: 'week-progress-grid', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', weekProgress: 'grid' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod.locator('[data-testid="fcc-week-grid"]')).toBeVisible();
+      await expect(mod.locator('[data-testid="fcc-chip-stars"]')).toHaveCount(0);
+    },
+  },
+  {
+    // weekProgress 'off' renders no week block anywhere.
+    type: 'fullscreen-chore-chart', name: 'week-progress-off', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', weekProgress: 'off' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod).not.toContainText('This Week');
+      await expect(mod.locator('[data-testid="fcc-chip-stars"]')).toHaveCount(0);
     },
   },
   {

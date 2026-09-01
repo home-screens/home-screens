@@ -11,7 +11,7 @@ import {
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars, PrecipLegendHeader } from './weather-parts';
-import { FIT_MEASURE_ATTR } from './useFitScale';
+import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 
 /**
  * The flagship view, in two arrangements of the same parts.

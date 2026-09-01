@@ -1,14 +1,20 @@
 import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal, toISODate } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { getDifficultyColor } from './meal-planner-utils';
+import { getDifficultyColor, px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 
+/**
+ * The one-glance answer to "when's lunch?" from across the room: a badge,
+ * the slot and time, a very large emoji and the dish name. Sizes are
+ * authored canvas pixels at 1080 wide / `medium` (see `px`).
+ */
 export default function NextMealView({
   settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
+  const P = (n: number) => px(s, n);
   const next = getNextPlannedMeal(toISODate(now), now.getHours(), plan, savedMeals, slots);
 
   if (!next) {
@@ -16,10 +22,10 @@ export default function NextMealView({
       <div style={{
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', height: '100%', fontFamily: bodyFont,
-        gap: s * 1, color: 'var(--fmp-text-3)',
+        gap: P(30), color: 'var(--fmp-text-3)', padding: pad, textAlign: 'center' as const,
       }}>
-        <span style={{ fontSize: s * 3, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-        <span style={{ fontSize: s * 1.2, fontWeight: 500 }}>{t('fullscreen-meal-planner.noUpcomingMeals')}</span>
+        <span style={{ fontSize: P(200), lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
+        <span style={{ fontSize: P(48), fontFamily: headerFont, lineHeight: 1.1 }}>{t('fullscreen-meal-planner.noUpcomingMeals')}</span>
       </div>
     );
   }
@@ -39,36 +45,42 @@ export default function NextMealView({
     ? { ...contextStyles.tomorrow, label: formatDateSync(new Date(date + 'T12:00:00'), 'EEEE', { locale }) }
     : contextStyles[context] ?? contextStyles.now;
 
+  const pillStyle: React.CSSProperties = {
+    fontSize: P(30), color: 'var(--fmp-text-3)',
+    background: 'var(--fmp-border-sub)', padding: `${P(10)}px ${P(24)}px`,
+    borderRadius: P(14),
+  };
+
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', height: '100%', fontFamily: bodyFont,
-      padding: pad, gap: s * 0.8,
+      padding: pad, gap: P(28), textAlign: 'center' as const,
     }}>
       {/* Context badge */}
       <span style={{
-        fontSize: s * 0.7, fontWeight: 700, textTransform: 'uppercase' as const,
-        letterSpacing: '0.12em', color: ctx.color, background: ctx.bg,
-        padding: `${s * 0.2}px ${s * 0.8}px`, borderRadius: s * 0.4,
-        display: 'inline-flex', alignItems: 'center', gap: s * 0.3,
+        fontSize: P(36), fontWeight: 700, textTransform: 'uppercase' as const,
+        letterSpacing: '0.14em', color: ctx.color, background: ctx.bg,
+        padding: `${P(14)}px ${P(34)}px`, borderRadius: P(16),
+        display: 'inline-flex', alignItems: 'center', gap: P(14),
       }}>
-        <svg width={s * 0.8} height={s * 0.8} viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+        <svg width={P(36)} height={P(36)} viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
           <path d={ctx.icon} />
         </svg>
         {ctx.label}
       </span>
 
       {/* Slot label + serving time */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: s * 0.6 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: P(18) }}>
         <span style={{
-          fontSize: s * 0.8, fontWeight: 600, textTransform: 'uppercase' as const,
-          letterSpacing: '0.1em', color: 'var(--fmp-text-3)',
+          fontSize: P(40), fontWeight: 600, textTransform: 'uppercase' as const,
+          letterSpacing: '0.12em', color: 'var(--fmp-text-3)',
         }}>
           {t(getMealSlotLabelKey(slot))}
         </span>
         {time && (
           <span style={{
-            fontSize: s * 0.8, fontWeight: 700, color: 'var(--fmp-accent)',
+            fontSize: P(40), fontWeight: 700, color: 'var(--fmp-accent)',
             fontVariantNumeric: 'tabular-nums',
           }}>
             {formatMealTime(time, timeFormat)}
@@ -82,18 +94,18 @@ export default function NextMealView({
         mode={recipeTapMode}
         style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          gap: s * 0.8, maxWidth: '100%',
+          gap: P(28), maxWidth: '100%',
         }}
       >
         {showEmoji && meal.emoji && (
-          <span style={{ fontSize: s * 5.5, lineHeight: 1, margin: `${s * 0.5}px 0` }}>
+          <span style={{ fontSize: P(380), lineHeight: 1, margin: `${P(20)}px 0` }}>
             {meal.emoji}
           </span>
         )}
         <span style={{
-          fontFamily: headerFont, fontSize: s * 2.5, fontWeight: 400,
-          color: 'var(--fmp-text)', textAlign: 'center' as const,
-          lineHeight: 1.2,
+          fontFamily: headerFont, fontSize: P(112), fontWeight: 400,
+          color: 'var(--fmp-text)', lineHeight: 1.05, letterSpacing: '-0.01em',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden',
         }}>
           {meal.name}
         </span>
@@ -102,24 +114,18 @@ export default function NextMealView({
       {/* Notes */}
       {meal.notes && (
         <span style={{
-          fontSize: s * 0.85, fontStyle: 'italic', color: 'var(--fmp-text-2)',
-          textAlign: 'center' as const, maxWidth: '80%',
+          fontSize: P(36), fontStyle: 'italic', color: 'var(--fmp-text-2)',
+          maxWidth: '80%', lineHeight: 1.3,
         }}>
           {meal.notes}
         </span>
       )}
 
-      {/* Meta pills */}
-      {(showPrepTime || showDifficulty) && (meal.prepTime || meal.difficulty) && (
-        <div style={{
-          display: 'flex', gap: s * 0.5, marginTop: s * 0.3,
-        }}>
+      {/* Meta pills and tags share one row, like the today hero. */}
+      {((showPrepTime && meal.prepTime) || (showDifficulty && meal.difficulty) || (showTags && meal.tags && meal.tags.length > 0)) && (
+        <div style={{ display: 'flex', flexWrap: 'wrap' as const, justifyContent: 'center', gap: P(16) }}>
           {showPrepTime && meal.prepTime && (
-            <span style={{
-              fontSize: s * 0.7, color: 'var(--fmp-text-3)',
-              background: 'var(--fmp-border-sub)', padding: `${s * 0.15}px ${s * 0.6}px`,
-              borderRadius: s * 0.3,
-            }}>
+            <span style={pillStyle}>
               &#9201; {t('fullscreen-meal-planner.prepTimeMin', { minutes: meal.prepTime })}
             </span>
           )}
@@ -127,32 +133,16 @@ export default function NextMealView({
             const dc = getDifficultyColor(meal.difficulty);
             return (
               <span style={{
-                fontSize: s * 0.7,
+                ...pillStyle,
                 color: dc ?? 'var(--fmp-text-3)',
-                background: 'var(--fmp-border-sub)',
                 border: dc ? `1px solid ${dc}40` : undefined,
-                padding: `${s * 0.15}px ${s * 0.6}px`,
-                borderRadius: s * 0.3,
               }}>
                 {meal.difficulty}
               </span>
             );
           })()}
-        </div>
-      )}
-
-      {/* Tags */}
-      {showTags && meal.tags && meal.tags.length > 0 && (
-        <div style={{
-          display: 'flex', flexWrap: 'wrap' as const, gap: s * 0.4,
-          justifyContent: 'center', marginTop: s * 0.3,
-        }}>
-          {meal.tags.map((tag) => (
-            <span key={tag} style={{
-              fontSize: s * 0.6, color: 'var(--fmp-text-2)',
-              background: 'var(--fmp-border-sub)', padding: `${s * 0.1}px ${s * 0.5}px`,
-              borderRadius: s * 0.3,
-            }}>
+          {showTags && meal.tags?.map((tag) => (
+            <span key={tag} style={pillStyle}>
               {tag}
             </span>
           ))}

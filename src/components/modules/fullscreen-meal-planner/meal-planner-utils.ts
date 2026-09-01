@@ -24,6 +24,21 @@ export interface MealPlannerViewProps {
   headerFont: string;
   bodyFont: string;
   recipeTapMode: RecipeTapMode;
+  /** Canvas is wider than tall; the today and menu-board views re-flow. */
+  landscape: boolean;
+}
+
+/**
+ * Reference width the today / menu-board / next-meal views are authored
+ * against. `s` is 10.8 at 1080 wide and `medium` type, so `px(s, n)` renders
+ * `n` canvas pixels there and scales with canvas size, typographySize and the
+ * fit factor exactly as every other `s`-multiple does.
+ */
+const REF_S = 10.8;
+
+/** `n` authored canvas pixels expressed in the module's scale unit. */
+export function px(s: number, n: number): number {
+  return (s * n) / REF_S;
 }
 
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {

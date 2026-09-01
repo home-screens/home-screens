@@ -180,5 +180,8 @@
     "copy": "Kopiér",
     "copied": "Kopieret",
     "openEditor": "Åbn editoren"
+  },
+  "alerts": {
+    "dismiss": "Afvis"
   }
 }

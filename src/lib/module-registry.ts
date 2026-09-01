@@ -322,13 +322,16 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       view: 'chores',
       showRewardsButton: false,
       weekStartDay: 'monday',
+      weekProgress: 'chips',
       showPoints: true,
       showStreaks: true,
       showTimeOfDay: true,
       allowDisplayComplete: true,
       darkMode: true,
       density: 'cozy',
-      typographySize: 'medium',
+      // The chore list sizes itself to the panel; this only caps how tall a
+      // row may grow on a light day, so the wall default is generous.
+      typographySize: 'extra-large',
       // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
       accentColor: '',
     },

@@ -20,7 +20,7 @@ import {
   type WeatherScale, type WeatherViewProps, type SunTimes,
 } from './weather-view-utils';
 import ConditionParticles from './ConditionParticles';
-import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from './useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
 import PanoramaView from './PanoramaView';
 import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';

@@ -19,6 +19,7 @@ import type {
   ModuleInstance,
   FullscreenChoreChartConfig,
   FullscreenChoreChartView,
+  FullscreenChoreChartWeekProgress,
 } from '@/types/config';
 
 type Config = Partial<FullscreenChoreChartConfig>;
@@ -42,6 +43,13 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     { value: 'cozy', label: t('configSections.fullscreen-chore-chart.densityCozy') },
     { value: 'snug', label: t('configSections.fullscreen-chore-chart.densitySnug') },
   ] as const;
+
+  const WEEK_PROGRESS_OPTIONS: { value: FullscreenChoreChartWeekProgress; label: string }[] = [
+    { value: 'chips', label: t('configSections.fullscreen-chore-chart.weekProgressChips') },
+    { value: 'strip', label: t('configSections.fullscreen-chore-chart.weekProgressStrip') },
+    { value: 'grid', label: t('configSections.fullscreen-chore-chart.weekProgressGrid') },
+    { value: 'off', label: t('configSections.fullscreen-chore-chart.weekProgressOff') },
+  ];
 
   const WEEK_START_OPTIONS = [
     { value: 'sunday', label: tCore('days.sunday') },
@@ -105,7 +113,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {/* Typography Size */}
       <LabeledSelect
         label={t('configSections.fullscreen-chore-chart.typographySize')}
-        value={c.typographySize ?? 'medium'}
+        value={c.typographySize ?? 'extra-large'}
         onChange={(v) => set({ typographySize: v })}
         options={typographySizeOptions}
       />
@@ -127,6 +135,14 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
             value={c.weekStartDay ?? 'monday'}
             onChange={(v) => set({ weekStartDay: v })}
             options={WEEK_START_OPTIONS}
+          />
+
+          {/* Week stars */}
+          <LabeledSelect
+            label={t('configSections.fullscreen-chore-chart.weekProgress')}
+            value={c.weekProgress ?? 'chips'}
+            onChange={(v) => set({ weekProgress: v })}
+            options={WEEK_PROGRESS_OPTIONS}
           />
 
           {/* Display Toggles */}

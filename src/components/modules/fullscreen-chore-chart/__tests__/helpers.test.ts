@@ -4,6 +4,7 @@ import {
   getUniqueInitials,
   getCurrentTimeOfDay,
   buildChoreRows,
+  fitRowHeight,
   TOD_ORDER,
 } from '../helpers';
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
@@ -204,5 +205,28 @@ describe('buildChoreRows', () => {
 
     const result = buildChoreRows(assignments);
     expect(result.get('evening')).toHaveLength(2);
+  });
+});
+
+describe('fitRowHeight', () => {
+  it('shares the list height equally between rows and header bands', () => {
+    // 9 chores + 3 headers on a 1400px list: 1400 / (9 + 3 × 0.55) ≈ 131px,
+    // under the extra-large cap of 120 × 1.35 = 162px.
+    const r = fitRowHeight({ listHeight: 1400, chores: 9, headers: 3, k: 1, typoMul: 1.35 });
+    expect(r).toBeCloseTo(1400 / 10.65, 3);
+  });
+
+  it('caps a light day at typographySize and floors a heavy one', () => {
+    expect(fitRowHeight({ listHeight: 1400, chores: 2, headers: 1, k: 1, typoMul: 1.35 })).toBe(162);
+    expect(fitRowHeight({ listHeight: 1400, chores: 40, headers: 4, k: 1, typoMul: 1.35 })).toBe(56);
+  });
+
+  it('scales floor and cap with the canvas but only the cap with typographySize', () => {
+    expect(fitRowHeight({ listHeight: 10_000, chores: 1, headers: 0, k: 0.5, typoMul: 2 })).toBe(120);
+    expect(fitRowHeight({ listHeight: 10, chores: 40, headers: 0, k: 0.5, typoMul: 2 })).toBe(28);
+  });
+
+  it('returns the cap before the list has been measured', () => {
+    expect(fitRowHeight({ listHeight: 0, chores: 9, headers: 3, k: 1, typoMul: 1 })).toBe(120);
   });
 });

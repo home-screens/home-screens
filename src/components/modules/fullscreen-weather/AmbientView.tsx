@@ -3,7 +3,7 @@
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
 import { TopBar, AlertBand } from './weather-parts';
-import { FIT_MEASURE_ATTR } from './useFitScale';
+import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 
 /**
  * Read-from-across-the-room minimal. Temperature, condition, one supporting

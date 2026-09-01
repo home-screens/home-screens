@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import type { SleepSettings } from '@/types/config';
 import { useSleepManager } from '@/hooks/useSleepManager';
 import { useDisplayCommands, useStatusReporter } from '@/hooks/useDisplayCommands';
+import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
 
 interface UseDisplayControlParams {
   sleep: SleepSettings | undefined;
@@ -41,8 +42,10 @@ export function useDisplayControl({
   clearPause,
   displayId,
 }: UseDisplayControlParams) {
-  const { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness } =
-    useSleepManager(sleep, timezone);
+  const {
+    displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness,
+    wakeForAlert, releaseAlertWake, getDisplayState,
+  } = useSleepManager(sleep, timezone);
 
   // Remote navigation implies wake when the content is hidden:
   // changing screens on a sleeping display otherwise "works" invisibly under
@@ -83,6 +86,33 @@ export function useDisplayControl({
     wake({ holdMs: minutes * 60_000 });
   }, [wake]);
 
+  // Alerts route through here, not straight into the store, because sleep is
+  // the case they exist for: HA users wire smoke/CO/weather warnings for the
+  // night, when the panel is black. An urgent alert (or one sent with
+  // `wake: true`) wakes the display and holds it; a routine one that arrives
+  // while asleep is dropped, so "Dinner at 6" never greets someone at 6 AM.
+  const showAlert = useCallback((alert: Omit<DisplayAlert, 'id'>) => {
+    const wakes = alert.type === 'urgent' || alert.wake === true;
+    if (!wakes && getDisplayState() === 'asleep') return;
+    const store = useAlertStore.getState();
+    // Alerts switched off in settings: nothing is shown, so nothing may wake
+    // the display either (a wake with no alert would never be released).
+    if (!store.enabled) return;
+    store.showAlert(alert);
+    if (wakes) wakeForAlert();
+  }, [getDisplayState, wakeForAlert]);
+
+  // The alert wake ends with the last urgent alert — dismissed, expired, or
+  // cleared by clear-alerts — however it went. Subscribing to the store is
+  // the one place that sees all three.
+  useEffect(() => {
+    const hasUrgent = (alerts: DisplayAlert[]) => alerts.some((a) => a.type === 'urgent' || a.wake === true);
+    return useAlertStore.subscribe((state, prev) => {
+      if (state.alerts === prev.alerts) return;
+      if (hasUrgent(prev.alerts) && !hasUrgent(state.alerts)) releaseAlertWake();
+    });
+  }, [releaseAlertWake]);
+
   useDisplayCommands(
     {
       wake,
@@ -93,6 +123,7 @@ export function useDisplayControl({
       sleepOverride,
       setBrightness: setRemoteBrightness,
       reload,
+      showAlert,
     },
     displayId,
   );

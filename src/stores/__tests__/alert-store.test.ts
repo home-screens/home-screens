@@ -132,8 +132,9 @@ describe('auto-dismiss', () => {
 
 describe('dismissAlert', () => {
   it('removes alert by id', () => {
-    store().showAlert({ type: 'urgent', title: 'A', message: '' });
-    store().showAlert({ type: 'urgent', title: 'B', message: '' });
+    // Two persistent banners (a second urgent would replace the first).
+    store().showAlert({ type: 'warning', title: 'A', message: '', duration: 0 });
+    store().showAlert({ type: 'warning', title: 'B', message: '', duration: 0 });
     const idA = store().alerts[0].id;
 
     store().dismissAlert(idA);
@@ -153,7 +154,7 @@ describe('dismissAlert', () => {
 
 describe('clearAlerts', () => {
   it('removes all alerts', () => {
-    store().showAlert({ type: 'urgent', title: 'A', message: '' });
+    store().showAlert({ type: 'warning', title: 'A', message: '', duration: 0 });
     store().showAlert({ type: 'urgent', title: 'B', message: '' });
     expect(store().alerts).toHaveLength(2);
 
@@ -203,5 +204,54 @@ describe('configure', () => {
     expect(store().position).toBe('bottom');
     expect(store().enabled).toBe(false);
     expect(store().defaultDuration).toBe(15_000);
+  });
+});
+
+describe('urgent alerts', () => {
+  it('a newer urgent alert replaces the older one instead of stacking', () => {
+    store().showAlert({ type: 'urgent', title: 'First', message: '' });
+    store().showAlert({ type: 'info', title: 'Routine', message: '', duration: 0 });
+    store().showAlert({ type: 'urgent', title: 'Second', message: '' });
+    const titles = store().alerts.map((a) => a.title);
+    expect(titles).toEqual(['Routine', 'Second']);
+  });
+
+  it('clears the replaced urgent alert’s timer', () => {
+    store().showAlert({ type: 'urgent', title: 'First', message: '', duration: 1000 });
+    store().showAlert({ type: 'urgent', title: 'Second', message: '' });
+    vi.advanceTimersByTime(1500);
+    expect(store().alerts.map((a) => a.title)).toEqual(['Second']);
+  });
+
+  it('carries the wake flag through', () => {
+    store().showAlert({ type: 'warning', title: 'Bus', message: '', wake: true });
+    expect(store().alerts[0].wake).toBe(true);
+  });
+});
+
+describe('splitAlerts', () => {
+  it('separates the urgent bar from the banners and caps only the banners', async () => {
+    const { splitAlerts } = await import('@/stores/alert-store');
+    const mk = (type: 'info' | 'warning' | 'urgent', title: string) => ({ id: title, type, title, message: '' });
+    const { urgent, banners } = splitAlerts([mk('info', 'a'), mk('urgent', 'U'), mk('info', 'b'), mk('warning', 'c')], 2);
+    expect(urgent?.title).toBe('U');
+    expect(banners.map((b) => b.title)).toEqual(['b', 'c']);
+  });
+
+  it('returns no urgent when none is present', async () => {
+    const { splitAlerts } = await import('@/stores/alert-store');
+    expect(splitAlerts([], 3)).toEqual({ urgent: null, banners: [] });
+  });
+});
+
+describe('setUrgentInset', () => {
+  it('stores the rounded height and ignores no-op writes', () => {
+    store().setUrgentInset(185.6);
+    expect(store().urgentInsetPx).toBe(186);
+    const before = useAlertStore.getState();
+    store().setUrgentInset(186.2);
+    expect(useAlertStore.getState()).toBe(before);
+    store().setUrgentInset(-5);
+    expect(store().urgentInsetPx).toBe(0);
   });
 });

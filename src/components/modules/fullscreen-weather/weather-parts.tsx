@@ -5,7 +5,7 @@ import { MapPin, Droplet, Wind } from 'lucide-react';
 import type { ForecastDay } from '@/lib/weather';
 import { windUnitLabel } from '@/lib/weather/units';
 import type { WeatherViewProps, WeekRange } from './weather-view-utils';
-import { FIT_MEASURE_ATTR } from './useFitScale';
+import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import {
   alertTone, cachedFormat, weekRange,
   CARD_PAD_X_U, CARD_PAD_Y_U, DAILY_RAIN_SHOWN_PCT, MIN_BAR_PCT,

@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, act } from '@testing-library/react';
 import { useRef } from 'react';
-import { useFitScale, FIT_FACTOR_ATTR, FIT_MEASURE_ATTR } from '../useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR, FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 
 /**
  * The fit loop bisects for the largest scale factor that still fits the canvas,

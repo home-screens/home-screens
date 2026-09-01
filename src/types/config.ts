@@ -1830,10 +1830,21 @@ export interface ChoreChartConfig {
 
 export type FullscreenChoreChartView = 'chores' | 'rewards-store';
 
+/**
+ * How the week's stars are shown on the fullscreen chore board.
+ * - `chips` seven small stars inside each member chip (default)
+ * - `strip` one aggregate cell per day for the whole household
+ * - `grid`  the per-member star grid at the bottom
+ * - `off`   nothing; every spare pixel goes to the chore list
+ */
+export type FullscreenChoreChartWeekProgress = 'chips' | 'strip' | 'grid' | 'off';
+
 export interface FullscreenChoreChartConfig {
   view: FullscreenChoreChartView;
   showRewardsButton: boolean;
   weekStartDay: WeekStartDay;
+  /** Where the week's stars render. Omitted = `chips`. */
+  weekProgress?: FullscreenChoreChartWeekProgress;
   showPoints: boolean;
   showStreaks: boolean;
   showTimeOfDay: boolean;

@@ -408,6 +408,8 @@ async function handleAlert(
     duration: body.duration,
     icon: body.icon,
     dismissible: body.dismissible,
+    // Wake a sleeping display for a non-urgent alert (urgent always wakes).
+    wake: typeof body.wake === 'boolean' ? body.wake : undefined,
   });
   return NextResponse.json({ ok: true, command: 'alert' });
 }
