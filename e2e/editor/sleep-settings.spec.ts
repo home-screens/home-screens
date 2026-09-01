@@ -156,8 +156,8 @@ test.describe('per-display sleep override', () => {
       .poll(async () => (await displaySettings(request, 'kitchen')).sleep?.idleDimEnabled)
       .toBe(false);
 
-    // The Defaults › Sleep backlink banner now lists the kitchen display.
-    await page.goto('/editor/settings?section=defaults&page=screen');
+    // The Defaults › Screen › Sleep tab's backlink banner now lists the kitchen display.
+    await page.goto('/editor/settings?section=defaults&page=screen&panel=sleep');
     await expect(page.locator('a[href*="section=display&id=kitchen"]')).toBeVisible();
 
     // Back on the subtab, the form is now editable: change the screensaver mode.
@@ -191,13 +191,27 @@ test.describe('per-display sleep override', () => {
     };
     await putConfig(request, config);
 
-    await page.goto('/editor/settings?section=defaults&page=screen');
+    await page.goto('/editor/settings?section=defaults&page=screen&panel=sleep');
 
     // The banner renders the overriding display's name and a link back to it.
     const banner = page.getByText('Kitchen', { exact: false });
     await expect(banner.first()).toBeVisible();
     await expect(page.locator('a[href*="section=display&id=kitchen"]')).toBeVisible();
-    // Both sleep + screensaver keys are present → the banner reports "2 fields".
-    await expect(page.getByText('2 fields')).toBeVisible();
+    // sleep + screensaver are one override to the user, named after the card
+    // that forks them, never "2 fields".
+    // (The tab button carries the same label, so match the banner's emphasis.)
+    await expect(page.locator('strong', { hasText: 'Sleep & dimming' })).toBeVisible();
+    await expect(page.getByText('2 fields')).toHaveCount(0);
+
+    // The banner follows the tab: nothing on Rotation & appearance is overridden.
+    await page.getByTestId('screen-tab-appearance').click();
+    await expect(page.locator('a[href*="section=display&id=kitchen"]')).toHaveCount(0);
+
+    // The per-display pages count it once too.
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
+    await expect(page.getByText('1 display override', { exact: false })).toBeVisible();
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
+    await expect(page.getByText('Sleep & dimming overridden')).toBeVisible();
+    await expect(page.getByText('Screensaver overridden')).toHaveCount(0);
   });
 });

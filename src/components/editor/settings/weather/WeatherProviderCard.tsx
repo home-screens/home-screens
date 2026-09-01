@@ -5,7 +5,8 @@ import { Globe, CloudSun, Cloud, Compass, Flag, Sunrise, Wind, Umbrella, Leaf } 
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import IntegrationCard from '../shared/IntegrationCard';
-import SecretField from '../shared/SecretField';
+import SecretField, { type SecretCheck } from '../shared/SecretField';
+import type { WeatherKeyCheck } from '@/app/api/weather/check-key/route';
 import { getProviderStatus, type WeatherProvider, type WeatherProviderId, type ProviderStatusType } from './providers';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
@@ -34,10 +35,20 @@ interface Props {
 
 // Discriminated union — pairs a translated label with a kind so CSS branching
 // stays off the message text. `kind: 'idle'` is rendered when no test has run.
+// `detail` is the raw upstream text, shown behind a disclosure so the
+// sentence stays readable.
 type TestStatus =
   | { kind: 'success'; message: string }
   | { kind: 'info'; message: string }
-  | { kind: 'error'; message: string };
+  | { kind: 'error'; message: string; detail?: string };
+
+/** Shape of an /api/weather failure body (see `errorResponse` / `setupErrorResponse`). */
+interface WeatherErrorBody {
+  error?: string;
+  detail?: string;
+  code?: string;
+  setup?: { needs?: string };
+}
 
 function translateProviderStatus(type: ProviderStatusType, t: TranslateFn): string {
   switch (type) {
@@ -74,6 +85,30 @@ export default function WeatherProviderCard({
   const { type } = getProviderStatus(isDefault, keyConfigured, isFree);
   const label = translateProviderStatus(type, t);
   const canUse = isFree || keyConfigured;
+
+  /**
+   * Try the typed key against the provider before it is saved. A rejection
+   * stays in the form with "Save anyway" (a brand-new OpenWeatherMap key
+   * can take a while to activate); an outage is reported as no verdict.
+   */
+  async function validateKey(value: string): Promise<SecretCheck> {
+    const res = await editorFetch('/api/weather/check-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: provider.id, key: value }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const verdict: WeatherKeyCheck = await res.json();
+    if (verdict.ok) return { ok: true };
+    return {
+      ok: false,
+      message: verdict.reason === 'rejected'
+        ? t('settings.weatherPage.providerCard.keyCheck.rejected', { provider: provider.name })
+        : t('settings.weatherPage.providerCard.keyCheck.unreachable', { provider: provider.name }),
+      detail: verdict.detail,
+      allowAnyway: true,
+    };
+  }
 
   const cardStatusType: 'connected' | 'partial' | 'none' =
     type === 'default-ready' ||
@@ -117,16 +152,17 @@ export default function WeatherProviderCard({
           });
         }
       } else {
-        const err = await res.json();
-        const msg = err.detail
-          ? t('settings.weatherPage.providerCard.testStatus.errorWithDetail', {
-              error: err.error,
-              detail: err.detail,
-            })
-          : t('settings.weatherPage.providerCard.testStatus.errorOnly', {
-              error: err.error,
-            });
-        setTestStatus({ kind: 'error', message: msg });
+        const err: WeatherErrorBody = await res.json().catch(() => ({}));
+        // A rejected saved key is a setup problem with one fix; anything
+        // else is "couldn't get weather" with the raw text behind Details.
+        const rejectedKey = err.code === 'setup' && err.setup?.needs === 'invalidKey';
+        setTestStatus({
+          kind: 'error',
+          message: rejectedKey
+            ? t('settings.weatherPage.providerCard.testStatus.rejectedKey', { provider: provider.name })
+            : t('settings.weatherPage.providerCard.testStatus.failedPlain', { provider: provider.name }),
+          detail: [err.error, err.detail].filter((part): part is string => typeof part === 'string' && part.length > 0).join(': ') || undefined,
+        });
       }
     } catch (e) {
       setTestStatus({
@@ -167,6 +203,8 @@ export default function WeatherProviderCard({
             helpText={provider.keyHintKey ? t(provider.keyHintKey) : ''}
             status={keyConfigured}
             onSaved={onSecretSaved}
+            validate={validateKey}
+            checkingLabel={t('settings.weatherPage.providerCard.keyCheck.checking')}
           />
         </div>
       )}
@@ -193,6 +231,7 @@ export default function WeatherProviderCard({
         </Button>
         {testStatus && (
           <span
+            data-testid={`weather-test-${provider.id}`}
             className={`text-xs ${
               testStatus.kind === 'success'
                 ? 'text-hs-success'
@@ -202,6 +241,12 @@ export default function WeatherProviderCard({
             }`}
           >
             {testStatus.message}
+            {testStatus.kind === 'error' && testStatus.detail && (
+              <details className="mt-1 text-hs-text-faint">
+                <summary className="cursor-pointer">{t('settings.shared.secretField.detailsToggle')}</summary>
+                <pre className="mt-1 whitespace-pre-wrap break-all font-mono text-[11px]">{testStatus.detail}</pre>
+              </details>
+            )}
           </span>
         )}
       </div>

@@ -294,11 +294,11 @@
       "singleDisplayPart3": " em {pageLabel}. ",
       "singleDisplayPart5": " para ver ou limpar suas substituições.",
       "singleDisplayCurrentlyOverrides": " atualmente substitui ",
-      "singleFieldCount": "{count} campo",
-      "multiFieldCount": "{count} campos",
+      "multiFieldCount": "{count} configurações",
       "openDisplayLink": "Abrir {name}",
       "multiDisplayLabel": "{count} telas",
-      "multiDisplayCurrentlyOverride": " atualmente substituem campos em {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " atualmente substituem campos em {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Posição, tamanho e duração padrão para a sobreposição de avisos em cada tela. Uma tela específica pode substituir todo o bloco de avisos a partir da sua própria página."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Funcionando! Temperatura atual: {temp}°",
           "connectedNoData": "Conectado, mas nenhum dado retornado",
-          "errorWithDetail": "Erro: {error}: {detail}",
-          "errorOnly": "Erro: {error}",
           "failed": "Falhou: {message}",
-          "unknownError": "Erro desconhecido"
+          "unknownError": "Erro desconhecido",
+          "rejectedKey": "{provider} recusou a chave salva. Remova-a e cole de novo.",
+          "failedPlain": "Não foi possível obter o tempo de {provider}."
         },
         "status": {
           "defaultReady": "Padrão · Pronto",
@@ -559,6 +559,11 @@
           "ready": "Pronto",
           "configured": "Configurado",
           "needsSetup": "Precisa de configuração"
+        },
+        "keyCheck": {
+          "checking": "Verificando a chave…",
+          "rejected": "{provider} recusou esta chave. Confira se você copiou a chave inteira. Uma chave recém-criada pode levar um tempo para começar a funcionar.",
+          "unreachable": "Não foi possível contatar {provider} para verificar a chave."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Grátis · só Canadá · sem chave",
           "helperText": "Não requer chave de API. Fornecido pela Environment and Climate Change Canada, a fonte oficial de previsão dentro do Canadá. O Home Screens escolhe a estação canadense mais próxima entre cerca de 844 cidades com base na sua latitude/longitude; locais a mais de 200 km de qualquer cidade canadense são rejeitados. Para testar, tente Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Seu provedor de tempo padrão ({provider}) precisa de uma chave de API, então os módulos de tempo não têm nada para mostrar. Adicione uma chave abaixo ou mude para o Open-Meteo, que não precisa de chave.",
+        "useOpenMeteo": "Usar Open-Meteo"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Mensagem de configuração",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
-          "sleep": "Agenda de suspensão",
-          "screensaver": "Protetor de tela",
+          "sleep": "Suspensão e escurecimento",
           "alerts": "Sobreposição de avisos"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} substituições de tela",
           "activeForDisplay": " ativa(s) para {name}.",
           "clearAllButton": "Limpar substituições da tela",
-          "clearAllTitle": "Redefine todos os campos desta subaba para o padrão. Substituições de Suspensão e Avisos não são afetadas."
+          "clearAllTitle": "Volta cada substituição desta página ao padrão."
         }
       },
       "sleep": {
-        "label": "Agenda de suspensão",
+        "label": "Suspensão e escurecimento",
         "defaultsLabel": "Padrões → Tela",
-        "infoPart1": "A suspensão é substituída como bloco inteiro; não dá para substituir campos individuais como o tempo de escurecimento. O padrão fica em ",
+        "infoPart1": "Suspensão e escurecimento são substituídos juntos. Ative a substituição para mudar qualquer um deles nesta tela. O padrão fica em ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Sobreposição de avisos",
         "defaultsLabel": "Padrões → Tela",
-        "infoPart1": "Os avisos são substituídos como bloco inteiro. O padrão fica em ",
+        "infoPart1": "As configurações de alerta são substituídas juntas. Ative a substituição para mudar qualquer uma delas nesta tela. O padrão fica em ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Remover",
         "savingButton": "…",
         "saveButton": "Salvar",
-        "savedSuccess": "Salvo com sucesso"
+        "savedSuccess": "Salvo com sucesso",
+        "checkingButton": "Verificando…",
+        "detailsToggle": "Detalhes",
+        "saveAnyway": "Salvar mesmo assim"
       }
     },
     "localBackgrounds": {
@@ -3788,7 +3799,11 @@
       "feedNamePlaceholder": "Nome do feed",
       "newFeedNamePlaceholder": "Nome do feed (ex.: Trabalho, Esportes)",
       "addFeed": "+ Adicionar feed",
-      "helpText": "Adicione URLs de feeds ICS/iCal do Google Calendar, Apple Calendar, Outlook, Nextcloud ou qualquer serviço que forneça feeds .ics."
+      "helpText": "Adicione URLs de feeds ICS/iCal do Google Calendar, Apple Calendar, Outlook, Nextcloud ou qualquer serviço que forneça feeds .ics.",
+      "checking": "Verificando o link…",
+      "checkFailedHint": "Confira se o link termina em .ics ou começa com webcal://",
+      "addAnyway": "Adicionar mesmo assim",
+      "checkUnavailable": "Não deu para verificar o link agora"
     },
     "orientation": {
       "title": "Alguns módulos podem ficar fora da tela",

@@ -17,8 +17,11 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
  * than guessed strings — see the per-test notes where behavior diverged.
  */
 
-test('Defaults › Calendar: adding an iCal feed persists', async ({ page, request }) => {
+test('Defaults › Calendar: adding an iCal feed checks the link, then persists with a badge', async ({ page, request }) => {
   await putConfig(request, baseConfig());
+  // Add probes the link server-side (POST /api/calendar/check) before saving;
+  // stub the probe at the browser boundary so no real fetch leaves the sandbox.
+  await page.route('**/api/calendar/check', (route) => route.fulfill({ json: { ok: true, eventCount: 3 } }));
   await page.goto('/editor/settings?section=defaults&page=calendar');
 
   // ICalFeedManager keeps the fields behind a "+ Add Feed" reveal, and the
@@ -35,6 +38,36 @@ test('Defaults › Calendar: adding an iCal feed persists', async ({ page, reque
   await expect
     .poll(async () => (await getConfig(request)).settings.calendar.icalSources?.length ?? 0)
     .toBeGreaterThan(0);
+  // The checked link gets its "Updated" badge at once, not after the next display fetch.
+  await expect(page.getByTestId('ical-feed-block').locator('[data-source-health="ok"]')).toContainText('Updated');
+});
+
+test('Defaults › Calendar: a link that is not a calendar stays in the form with the reason', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.route('**/api/calendar/check', (route) =>
+    route.fulfill({ json: { ok: false, error: 'Could not reach the link (HTTP 404)', messageKey: 'linkHttpError', messageParams: { status: 404 } } }),
+  );
+  await page.goto('/editor/settings?section=defaults&page=calendar');
+  await page.getByRole('button', { name: '+ Add Feed' }).click();
+  await page.getByPlaceholder('Feed name (e.g. Work, Sports)').fill('Soccer');
+  await page.getByPlaceholder('https://example.com/calendar.ics').fill('https://example.com/not-a-calendar');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+
+  // Inline, plain-language, and nothing saved.
+  const check = page.getByTestId('ical-link-check');
+  await expect(check).toContainText('Could not reach the link (HTTP 404)');
+  await expect(check).toContainText('Check the link ends in .ics or starts with webcal://');
+  await expect(page.getByPlaceholder('https://example.com/calendar.ics')).toHaveValue('https://example.com/not-a-calendar');
+  expect((await getConfig(request)).settings.calendar.icalSources ?? []).toHaveLength(0);
+
+  // The escape hatch for a feed that is only down right now.
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'Add anyway' }).click();
+  });
+  await expect
+    .poll(async () => (await getConfig(request)).settings.calendar.icalSources?.length ?? 0)
+    .toBe(1);
+  await expect(check).toHaveCount(0);
 });
 
 test('Defaults › Integrations renders without error', async ({ page, request }) => {

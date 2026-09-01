@@ -294,11 +294,11 @@
       "singleDisplayPart3": " auf {pageLabel}. ",
       "singleDisplayPart5": ", um Überschreibungen anzuzeigen oder zurückzusetzen.",
       "singleDisplayCurrentlyOverrides": " überschreibt aktuell ",
-      "singleFieldCount": "{count} Feld",
-      "multiFieldCount": "{count} Felder",
+      "multiFieldCount": "{count} Einstellungen",
       "openDisplayLink": "{name} öffnen",
       "multiDisplayLabel": "{count} Displays",
-      "multiDisplayCurrentlyOverride": " überschreiben aktuell Felder auf {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " überschreiben aktuell Felder auf {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Standard-Position, -Größe und -Dauer für das Hinweis-Overlay auf jedem Display. Ein bestimmtes Display kann den gesamten Hinweisblock von seiner eigenen Seite aus überschreiben."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Funktioniert! Aktuelle Temperatur: {temp}°",
           "connectedNoData": "Verbunden, aber keine Daten erhalten",
-          "errorWithDetail": "Fehler: {error}: {detail}",
-          "errorOnly": "Fehler: {error}",
           "failed": "Fehlgeschlagen: {message}",
-          "unknownError": "Unbekannter Fehler"
+          "unknownError": "Unbekannter Fehler",
+          "rejectedKey": "{provider} hat den gespeicherten Schlüssel abgelehnt. Entferne ihn und füge ihn erneut ein.",
+          "failedPlain": "Von {provider} konnte kein Wetter geladen werden."
         },
         "status": {
           "defaultReady": "Standard · Bereit",
@@ -559,6 +559,11 @@
           "ready": "Bereit",
           "configured": "Konfiguriert",
           "needsSetup": "Einrichtung nötig"
+        },
+        "keyCheck": {
+          "checking": "Schlüssel wird geprüft…",
+          "rejected": "{provider} hat diesen Schlüssel abgelehnt. Prüfe, ob du den ganzen Schlüssel kopiert hast. Ein ganz neuer Schlüssel braucht manchmal eine Weile, bis er funktioniert.",
+          "unreachable": "{provider} war zum Prüfen des Schlüssels nicht erreichbar."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Kostenlos · nur Kanada · kein Schlüssel",
           "helperText": "Kein API-Schlüssel erforderlich. Bereitgestellt von Environment and Climate Change Canada, der maßgeblichen Vorhersagequelle in Kanada. Home Screens wählt die nächstgelegene von rund 844 kanadischen Stadtstationen anhand deiner Breite/Länge; Standorte mehr als 200 km von einer kanadischen Stadt entfernt werden abgelehnt. Zum Testen z. B. Toronto (43.6532, -79.3832) oder Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Dein Standard-Wetterdienst ({provider}) braucht einen API-Schlüssel, deshalb zeigen die Wetter-Module nichts an. Füge unten einen Schlüssel hinzu oder wechsle zu Open-Meteo, das keinen Schlüssel braucht.",
+        "useOpenMeteo": "Open-Meteo verwenden"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Einrichtungshinweis",
           "cursorHideSeconds": "Mauszeiger ausblenden",
           "fullscreenTheme": "Design",
-          "sleep": "Schlafzeitplan",
-          "screensaver": "Bildschirmschoner",
+          "sleep": "Schlafen & Dimmen",
           "alerts": "Hinweis-Overlay"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} Anzeige-Überschreibungen",
           "activeForDisplay": " aktiv für {name}.",
           "clearAllButton": "Anzeige-Überschreibungen löschen",
-          "clearAllTitle": "Setzt jedes Feld in diesem Tab auf den Standard zurück. Schlaf- und Hinweis-Überschreibungen bleiben unberührt."
+          "clearAllTitle": "Setzt jede Überschreibung auf dieser Seite auf die Vorgabe zurück."
         }
       },
       "sleep": {
-        "label": "Schlafzeitplan",
+        "label": "Schlafen & Dimmen",
         "defaultsLabel": "Standardwerte → Bildschirm",
-        "infoPart1": "Schlaf wird als ganzer Block überschrieben; einzelne Felder wie die Dimmzeit lassen sich nicht separat überschreiben. Der Standard liegt unter ",
+        "infoPart1": "Schlafen und Dimmen werden gemeinsam überschrieben. Schalte die Überschreibung ein, um eine dieser Einstellungen für dieses Display zu ändern. Die Vorgabe liegt unter ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Hinweis-Overlay",
         "defaultsLabel": "Standardwerte → Bildschirm",
-        "infoPart1": "Hinweise werden als ganzer Block überschrieben. Der Standard liegt unter ",
+        "infoPart1": "Die Hinweis-Einstellungen werden gemeinsam überschrieben. Schalte die Überschreibung ein, um eine davon für dieses Display zu ändern. Die Vorgabe liegt unter ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Entfernen",
         "savingButton": "…",
         "saveButton": "Speichern",
-        "savedSuccess": "Erfolgreich gespeichert"
+        "savedSuccess": "Erfolgreich gespeichert",
+        "checkingButton": "Wird geprüft…",
+        "detailsToggle": "Details",
+        "saveAnyway": "Trotzdem speichern"
       }
     },
     "localBackgrounds": {
@@ -3783,7 +3794,11 @@
       "feedNamePlaceholder": "Feed-Name",
       "newFeedNamePlaceholder": "Feed-Name (z. B. Arbeit, Sport)",
       "addFeed": "+ Feed hinzufügen",
-      "helpText": "Füge ICS-/iCal-Feed-URLs aus Google Calendar, Apple Calendar, Outlook, Nextcloud oder einem anderen Dienst hinzu, der .ics-Feeds bereitstellt."
+      "helpText": "Füge ICS-/iCal-Feed-URLs aus Google Calendar, Apple Calendar, Outlook, Nextcloud oder einem anderen Dienst hinzu, der .ics-Feeds bereitstellt.",
+      "checking": "Link wird geprüft…",
+      "checkFailedHint": "Prüfe, ob der Link auf .ics endet oder mit webcal:// beginnt",
+      "addAnyway": "Trotzdem hinzufügen",
+      "checkUnavailable": "Der Link konnte gerade nicht geprüft werden"
     },
     "orientation": {
       "title": "Module könnten außerhalb des Bildschirms liegen",

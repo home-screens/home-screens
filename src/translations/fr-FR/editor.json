@@ -294,11 +294,11 @@
       "singleDisplayPart3": " sur {pageLabel}. ",
       "singleDisplayPart5": " pour voir ou supprimer ses surcharges.",
       "singleDisplayCurrentlyOverrides": " remplace actuellement ",
-      "singleFieldCount": "{count} champ",
-      "multiFieldCount": "{count} champs",
+      "multiFieldCount": "{count} réglages",
       "openDisplayLink": "Ouvrir {name}",
       "multiDisplayLabel": "{count} affichages",
-      "multiDisplayCurrentlyOverride": " remplacent actuellement des champs sur {pageLabel} : "
+      "multiDisplayCurrentlyOverride": " remplacent actuellement des champs sur {pageLabel} : ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Position, taille et durée par défaut de la superposition d'alerte sur tous les affichages. Un affichage spécifique peut remplacer tout le bloc d'alertes depuis sa propre page."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Fonctionne ! Temp. actuelle : {temp}°",
           "connectedNoData": "Connecté mais aucune donnée renvoyée",
-          "errorWithDetail": "Erreur : {error} : {detail}",
-          "errorOnly": "Erreur : {error}",
           "failed": "Échec : {message}",
-          "unknownError": "Erreur inconnue"
+          "unknownError": "Erreur inconnue",
+          "rejectedKey": "{provider} a refusé la clé enregistrée. Supprime-la et colle-la à nouveau.",
+          "failedPlain": "Impossible de récupérer la météo depuis {provider}."
         },
         "status": {
           "defaultReady": "Par défaut · Prêt",
@@ -559,6 +559,11 @@
           "ready": "Prêt",
           "configured": "Configuré",
           "needsSetup": "Configuration requise"
+        },
+        "keyCheck": {
+          "checking": "Vérification de la clé…",
+          "rejected": "{provider} a refusé cette clé. Vérifie que tu as copié la clé en entier. Une clé toute neuve peut mettre un moment avant de fonctionner.",
+          "unreachable": "Impossible de joindre {provider} pour vérifier la clé."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Gratuit · Canada uniquement · sans clé",
           "helperText": "Aucune clé API requise. Fourni par Environnement et Changement climatique Canada, la source de prévisions de référence au Canada. Home Screens choisit le site le plus proche parmi environ 844 villes selon ta latitude/longitude ; les lieux à plus de 200 km de toute ville canadienne sont rejetés. Pour tester, essaie Toronto (43.6532, -79.3832) ou Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Ton service météo par défaut ({provider}) a besoin d’une clé API, donc les modules météo n’ont rien à afficher. Ajoute une clé ci-dessous ou passe à Open-Meteo, qui n’a pas besoin de clé.",
+        "useOpenMeteo": "Utiliser Open-Meteo"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Message de configuration",
           "cursorHideSeconds": "Masquer le curseur",
           "fullscreenTheme": "Thème",
-          "sleep": "Calendrier de veille",
-          "screensaver": "Économiseur d'écran",
+          "sleep": "Veille et atténuation",
           "alerts": "Superposition d'alerte"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} surcharges d'affichage",
           "activeForDisplay": " actives pour {name}.",
           "clearAllButton": "Effacer les surcharges d'affichage",
-          "clearAllTitle": "Réinitialise tous les champs de cet onglet à leur valeur par défaut. Les surcharges Veille et Alertes ne sont pas affectées."
+          "clearAllTitle": "Remet chaque remplacement de cette page à sa valeur par défaut."
         }
       },
       "sleep": {
-        "label": "Calendrier de veille",
+        "label": "Veille et atténuation",
         "defaultsLabel": "Valeurs par défaut → Écran",
-        "infoPart1": "La veille est remplacée comme un bloc entier ; tu ne peux pas remplacer des champs individuels comme l'heure d'atténuation. La valeur par défaut se trouve dans ",
+        "infoPart1": "La veille et l’atténuation sont remplacées ensemble. Active le remplacement pour modifier l’un de ces réglages sur cet écran. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposition d'alerte",
         "defaultsLabel": "Valeurs par défaut → Écran",
-        "infoPart1": "Les alertes sont remplacées comme un bloc entier. La valeur par défaut se trouve dans ",
+        "infoPart1": "Les réglages d’alerte sont remplacés ensemble. Active le remplacement pour modifier l’un d’eux sur cet écran. La valeur par défaut se trouve dans ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Supprimer",
         "savingButton": "…",
         "saveButton": "Enregistrer",
-        "savedSuccess": "Enregistré avec succès"
+        "savedSuccess": "Enregistré avec succès",
+        "checkingButton": "Vérification…",
+        "detailsToggle": "Détails",
+        "saveAnyway": "Enregistrer quand même"
       }
     },
     "localBackgrounds": {
@@ -3788,7 +3799,11 @@
       "feedNamePlaceholder": "Nom du flux",
       "newFeedNamePlaceholder": "Nom du flux (ex. Travail, Sport)",
       "addFeed": "+ Ajouter un flux",
-      "helpText": "Ajoute des URL de flux ICS/iCal depuis Google Calendar, Apple Calendar, Outlook, Nextcloud ou tout service qui fournit des flux .ics."
+      "helpText": "Ajoute des URL de flux ICS/iCal depuis Google Calendar, Apple Calendar, Outlook, Nextcloud ou tout service qui fournit des flux .ics.",
+      "checking": "Vérification du lien…",
+      "checkFailedHint": "Vérifie que le lien se termine par .ics ou commence par webcal://",
+      "addAnyway": "Ajouter quand même",
+      "checkUnavailable": "Impossible de vérifier le lien pour le moment"
     },
     "orientation": {
       "title": "Des modules risquent d'être hors écran",

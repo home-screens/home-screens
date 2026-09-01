@@ -1,4 +1,5 @@
 import type { DisplayNodeSettings, ScreenConfiguration } from '@/types/config';
+import { overrideUnitOf } from '@/lib/display-override-fields';
 
 /**
  * Summary of which fields a single display overrides relative to the
@@ -15,7 +16,9 @@ import type { DisplayNodeSettings, ScreenConfiguration } from '@/types/config';
 export interface DisplayOverrideSummary {
   displayId: string;
   displayName: string;
-  /** The subset of `fields` actually present on this display's overrides. */
+  /** The subset of `fields` present on this display's overrides, with the
+   *  fields of one override unit (sleep + screensaver) collapsed to the
+   *  unit's name so counts and lists match what the user clicked. */
   overriddenFields: (keyof DisplayNodeSettings)[];
 }
 
@@ -58,7 +61,8 @@ export function findDisplaysOverridingFields(
       // "the display has an override for this field" without tying the
       // semantics to the reset implementation detail.
       if (field in settings) {
-        overriddenFields.push(field);
+        const unit = overrideUnitOf(field);
+        if (!overriddenFields.includes(unit)) overriddenFields.push(unit);
       }
     }
     if (overriddenFields.length > 0) {

@@ -40,7 +40,7 @@ export default function CalendarSection({ values, onChange }: Props) {
   const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
-  const health = useCalendarSourceHealth();
+  const { health, recordSourceHealth } = useCalendarSourceHealth();
 
   // Track auth errors from useGoogleCalendars separately so they show in the right place
   const [authError, setAuthError] = useState<string | null>(null);
@@ -350,7 +350,7 @@ export default function CalendarSection({ values, onChange }: Props) {
 
         <ICloudCalendarManager icloudSources={icloudSources} onChange={onChange} health={health} />
 
-        <ICalFeedManager icalSources={icalSources} onChange={onChange} health={health} />
+        <ICalFeedManager icalSources={icalSources} onChange={onChange} health={health} onSourceChecked={recordSourceHealth} />
 
         <SourceBlock title={t('settings.calendarPage.holidays.heading')} right={holidayCountry ? <SourceHealthBadge status={health.get('holidays')} /> : undefined}>
           <div className="space-y-2" data-field-id="calendar.holidayCountry">

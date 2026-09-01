@@ -294,11 +294,11 @@
       "singleDisplayPart3": " en {pageLabel}. ",
       "singleDisplayPart5": " para verlas o quitarlas.",
       "singleDisplayCurrentlyOverrides": " anula actualmente ",
-      "singleFieldCount": "{count} campo",
-      "multiFieldCount": "{count} campos",
+      "multiFieldCount": "{count} ajustes",
       "openDisplayLink": "Abrir {name}",
       "multiDisplayLabel": "{count} displays",
-      "multiDisplayCurrentlyOverride": " anulan actualmente campos en {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " anulan actualmente campos en {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Posición, tamaño y duración predeterminados de la superposición de avisos en cada display. Un display concreto puede anular todo el bloque de avisos desde su propia página."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "¡Funciona! Temp. actual: {temp}°",
           "connectedNoData": "Conectado pero sin datos",
-          "errorWithDetail": "Error: {error}: {detail}",
-          "errorOnly": "Error: {error}",
           "failed": "Falló: {message}",
-          "unknownError": "Error desconocido"
+          "unknownError": "Error desconocido",
+          "rejectedKey": "{provider} ha rechazado la clave guardada. Quítala y pégala de nuevo.",
+          "failedPlain": "No se ha podido obtener el tiempo de {provider}."
         },
         "status": {
           "defaultReady": "Predeterminado · Listo",
@@ -559,6 +559,11 @@
           "ready": "Listo",
           "configured": "Configurado",
           "needsSetup": "Falta configurar"
+        },
+        "keyCheck": {
+          "checking": "Comprobando la clave…",
+          "rejected": "{provider} ha rechazado esta clave. Comprueba que has copiado la clave completa. Una clave recién creada puede tardar un rato en funcionar.",
+          "unreachable": "No se ha podido contactar con {provider} para comprobar la clave."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Gratis · solo Canadá · sin clave",
           "helperText": "No requiere clave de API. Proporcionado por Environment and Climate Change Canada, la fuente oficial de previsión dentro de Canadá. Home Screens elige el más cercano de unos 844 sitios urbanos a tu latitud/longitud; las ubicaciones a más de 200 km de cualquier ciudad canadiense se rechazan. Para probar, usa Toronto (43.6532, -79.3832) o Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Tu proveedor del tiempo predeterminado ({provider}) necesita una clave API, así que los módulos del tiempo no tienen nada que mostrar. Añade una clave abajo o cambia a Open-Meteo, que no necesita clave.",
+        "useOpenMeteo": "Usar Open-Meteo"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Mensaje de configuración",
           "cursorHideSeconds": "Ocultar cursor",
           "fullscreenTheme": "Tema",
-          "sleep": "Programa de suspensión",
-          "screensaver": "Salvapantallas",
+          "sleep": "Suspensión y atenuación",
           "alerts": "Superposición de avisos"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} anulaciones de display",
           "activeForDisplay": " activas para {name}.",
           "clearAllButton": "Quitar anulaciones del display",
-          "clearAllTitle": "Restablece cada campo de esta subpestaña a su valor predeterminado. Las anulaciones de Suspensión y Avisos no se ven afectadas."
+          "clearAllTitle": "Devuelve cada anulación de esta página a su valor predeterminado."
         }
       },
       "sleep": {
-        "label": "Programa de suspensión",
+        "label": "Suspensión y atenuación",
         "defaultsLabel": "Valores predeterminados → Pantalla",
-        "infoPart1": "La suspensión se anula como bloque entero; no puedes bifurcar campos individuales como la hora de atenuación. El valor predeterminado vive en ",
+        "infoPart1": "La suspensión y la atenuación se anulan juntas. Activa la anulación para cambiar cualquiera de ellas en esta pantalla. El valor predeterminado está en ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Superposición de avisos",
         "defaultsLabel": "Valores predeterminados → Pantalla",
-        "infoPart1": "Los avisos se anulan como bloque entero. El valor predeterminado vive en ",
+        "infoPart1": "Los ajustes de alertas se anulan juntos. Activa la anulación para cambiar cualquiera de ellos en esta pantalla. El valor predeterminado está en ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Quitar",
         "savingButton": "…",
         "saveButton": "Guardar",
-        "savedSuccess": "Guardado correctamente"
+        "savedSuccess": "Guardado correctamente",
+        "checkingButton": "Comprobando…",
+        "detailsToggle": "Detalles",
+        "saveAnyway": "Guardar de todos modos"
       }
     },
     "localBackgrounds": {
@@ -3788,7 +3799,11 @@
       "feedNamePlaceholder": "Nombre del feed",
       "newFeedNamePlaceholder": "Nombre del feed (p. ej. Trabajo, Deportes)",
       "addFeed": "+ Añadir feed",
-      "helpText": "Añade URLs de feeds ICS/iCal de Google Calendar, Apple Calendar, Outlook, Nextcloud o cualquier servicio que proporcione feeds .ics."
+      "helpText": "Añade URLs de feeds ICS/iCal de Google Calendar, Apple Calendar, Outlook, Nextcloud o cualquier servicio que proporcione feeds .ics.",
+      "checking": "Comprobando el enlace…",
+      "checkFailedHint": "Comprueba que el enlace termina en .ics o empieza por webcal://",
+      "addAnyway": "Añadir de todos modos",
+      "checkUnavailable": "No se ha podido comprobar el enlace ahora mismo"
     },
     "orientation": {
       "title": "Puede que haya módulos fuera de la pantalla",

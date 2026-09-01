@@ -39,3 +39,17 @@ export const DISPLAY_OVERRIDE_FIELDS = [
 export const SLEEP_OVERRIDE_FIELDS = ['sleep', 'screensaver'] as const satisfies readonly (keyof DisplayNodeSettings)[];
 
 export const ALERT_OVERRIDE_FIELDS = ['alerts'] as const satisfies readonly (keyof DisplayNodeSettings)[];
+
+/**
+ * Fields that one card forks and resets together, so they are one override
+ * to the user. The sleep card writes `sleep` and `screensaver` in the same
+ * click; counting them as two ("2 display overrides active", two chips)
+ * makes the override model look untrustworthy. The first field of a unit
+ * names it everywhere overrides are counted or listed.
+ */
+const OVERRIDE_UNITS: readonly (readonly (keyof DisplayNodeSettings)[])[] = [SLEEP_OVERRIDE_FIELDS];
+
+/** The field that stands for `field` in override counts and lists (itself unless it belongs to a unit). */
+export function overrideUnitOf(field: keyof DisplayNodeSettings): keyof DisplayNodeSettings {
+  return OVERRIDE_UNITS.find((unit) => unit.includes(field))?.[0] ?? field;
+}

@@ -294,11 +294,11 @@
       "singleDisplayPart3": " op {pageLabel}. ",
       "singleDisplayPart5": " om de overrides te bekijken of te verwijderen.",
       "singleDisplayCurrentlyOverrides": " overschrijft momenteel ",
-      "singleFieldCount": "{count} veld",
-      "multiFieldCount": "{count} velden",
+      "multiFieldCount": "{count} instellingen",
       "openDisplayLink": "{name} openen",
       "multiDisplayLabel": "{count} displays",
-      "multiDisplayCurrentlyOverride": " overschrijven momenteel velden op {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " overschrijven momenteel velden op {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Standaardpositie, -grootte en -duur voor de meldingsoverlay op elk display. Een specifiek display kan het hele meldingenblok overschrijven via zijn eigen pagina."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Werkt! Huidige temp: {temp}°",
           "connectedNoData": "Verbonden, maar geen gegevens ontvangen",
-          "errorWithDetail": "Fout: {error}: {detail}",
-          "errorOnly": "Fout: {error}",
           "failed": "Mislukt: {message}",
-          "unknownError": "Onbekende fout"
+          "unknownError": "Onbekende fout",
+          "rejectedKey": "{provider} heeft de opgeslagen sleutel geweigerd. Verwijder hem en plak hem opnieuw.",
+          "failedPlain": "Kon geen weer ophalen van {provider}."
         },
         "status": {
           "defaultReady": "Standaard · Klaar",
@@ -559,6 +559,11 @@
           "ready": "Klaar",
           "configured": "Geconfigureerd",
           "needsSetup": "Instellen vereist"
+        },
+        "keyCheck": {
+          "checking": "Sleutel controleren…",
+          "rejected": "{provider} heeft deze sleutel geweigerd. Controleer of je de hele sleutel hebt gekopieerd. Een gloednieuwe sleutel kan even duren voordat hij werkt.",
+          "unreachable": "{provider} was niet bereikbaar om de sleutel te controleren."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Gratis · alleen Canada · geen sleutel",
           "helperText": "Geen API-sleutel vereist. Geleverd door Environment and Climate Change Canada, de gezaghebbende voorspellingsbron in Canada. Home Screens kiest het dichtstbijzijnde van zo'n 844 stadslocaties op basis van je breedte/lengte; locaties verder dan 200 km van een Canadese stad worden afgewezen. Gebruik om te testen Toronto (43.6532, -79.3832) of Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Je standaard weerdienst ({provider}) heeft een API-sleutel nodig, dus de weermodules hebben niets om te laten zien. Voeg hieronder een sleutel toe of stap over op Open-Meteo, dat geen sleutel nodig heeft.",
+        "useOpenMeteo": "Open-Meteo gebruiken"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Installatiebericht",
           "cursorHideSeconds": "Cursor verbergen",
           "fullscreenTheme": "Thema",
-          "sleep": "Slaapschema",
-          "screensaver": "Screensaver",
+          "sleep": "Slapen & dimmen",
           "alerts": "Meldingsoverlay"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} display-overrides",
           "activeForDisplay": " actief voor {name}.",
           "clearAllButton": "Display-overrides wissen",
-          "clearAllTitle": "Zet elk veld op deze subtab terug naar de standaard. Slaap- en meldingsoverrides worden niet beïnvloed."
+          "clearAllTitle": "Zet elke overschrijving op deze pagina terug naar de standaard."
         }
       },
       "sleep": {
-        "label": "Slaapschema",
+        "label": "Slapen & dimmen",
         "defaultsLabel": "Standaardwaarden → Scherm",
-        "infoPart1": "Slapen wordt als één blok overschreven; je kunt niet afzonderlijke velden zoals dimtijd splitsen. De standaard staat op ",
+        "infoPart1": "Slapen en dimmen worden samen overschreven. Zet de overschrijving aan om een van deze instellingen voor dit scherm te wijzigen. De standaard staat op ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Meldingsoverlay",
         "defaultsLabel": "Standaardwaarden → Scherm",
-        "infoPart1": "Meldingen worden als één blok overschreven. De standaard staat op ",
+        "infoPart1": "De melding-instellingen worden samen overschreven. Zet de overschrijving aan om er een voor dit scherm te wijzigen. De standaard staat op ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Verwijderen",
         "savingButton": "…",
         "saveButton": "Opslaan",
-        "savedSuccess": "Succesvol opgeslagen"
+        "savedSuccess": "Succesvol opgeslagen",
+        "checkingButton": "Controleren…",
+        "detailsToggle": "Details",
+        "saveAnyway": "Toch opslaan"
       }
     },
     "localBackgrounds": {
@@ -3783,7 +3794,11 @@
       "feedNamePlaceholder": "Feednaam",
       "newFeedNamePlaceholder": "Feednaam (bv. Werk, Sport)",
       "addFeed": "+ Feed toevoegen",
-      "helpText": "Voeg ICS/iCal-feed-URL's toe vanuit Google Calendar, Apple Calendar, Outlook, Nextcloud of een andere dienst die .ics-feeds aanbiedt."
+      "helpText": "Voeg ICS/iCal-feed-URL's toe vanuit Google Calendar, Apple Calendar, Outlook, Nextcloud of een andere dienst die .ics-feeds aanbiedt.",
+      "checking": "Link controleren…",
+      "checkFailedHint": "Controleer of de link eindigt op .ics of begint met webcal://",
+      "addAnyway": "Toch toevoegen",
+      "checkUnavailable": "De link kon nu niet worden gecontroleerd"
     },
     "orientation": {
       "title": "Modules kunnen buiten beeld vallen",

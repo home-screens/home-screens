@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useCalendarFetchQuery } from '../useCalendarFetchQuery';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
@@ -72,9 +72,16 @@ export type SourceHealthMap = Map<string, CalendarSourceStatus>;
  * latest status any display fetch already computed, so opening settings
  * never triggers an upstream calendar fetch of its own; only when nothing
  * has been fetched this process does it fall back to one regular fetch.
+ *
+ * `recordSourceHealth` lets a source that was just checked in the editor
+ * (an iCal link probed before saving) show its badge immediately instead of
+ * waiting for the next display fetch to report it.
  */
-export function useCalendarSourceHealth(): SourceHealthMap {
+export function useCalendarSourceHealth(): { health: SourceHealthMap; recordSourceHealth: (status: CalendarSourceStatus) => void } {
   const [health, setHealth] = useState<SourceHealthMap>(() => new Map());
+  const recordSourceHealth = useCallback((status: CalendarSourceStatus) => {
+    setHealth((prev) => new Map(prev).set(status.id, status));
+  }, []);
   // Widest window any display on the hub renders, for the cold-start fallback
   // below. Scoped to every display, not the selected one: this fetch seeds a
   // process-wide map, so it has to cover whatever the busiest grid draws.
@@ -112,7 +119,7 @@ export function useCalendarSourceHealth(): SourceHealthMap {
     // stops firing as soon as any fetch has happened this process.
   }, [calendarQuery]);
 
-  return health;
+  return { health, recordSourceHealth };
 }
 
 /** Green "Updated 4 minutes ago" or amber "Not updating"; nothing while unknown. */

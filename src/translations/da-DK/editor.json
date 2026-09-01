@@ -294,11 +294,11 @@
       "singleDisplayPart3": " på {pageLabel}. ",
       "singleDisplayPart5": " for at se eller fjerne dens tilsidesættelser.",
       "singleDisplayCurrentlyOverrides": " tilsidesætter i øjeblikket ",
-      "singleFieldCount": "{count} felt",
-      "multiFieldCount": "{count} felter",
+      "multiFieldCount": "{count} indstillinger",
       "openDisplayLink": "Åbn {name}",
       "multiDisplayLabel": "{count} displays",
-      "multiDisplayCurrentlyOverride": " tilsidesætter i øjeblikket felter på {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " tilsidesætter i øjeblikket felter på {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Standardplacering, -størrelse og -varighed for beskedoverlejringen på alle displays. Et bestemt display kan tilsidesætte hele beskedblokken fra sin egen side."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Virker! Aktuel temperatur: {temp}°",
           "connectedNoData": "Forbundet, men der kom ingen data",
-          "errorWithDetail": "Fejl: {error}: {detail}",
-          "errorOnly": "Fejl: {error}",
           "failed": "Mislykkedes: {message}",
-          "unknownError": "Ukendt fejl"
+          "unknownError": "Ukendt fejl",
+          "rejectedKey": "{provider} afviste den gemte nøgle. Fjern den, og indsæt den igen.",
+          "failedPlain": "Kunne ikke hente vejret fra {provider}."
         },
         "status": {
           "defaultReady": "Standard · Klar",
@@ -559,6 +559,11 @@
           "ready": "Klar",
           "configured": "Konfigureret",
           "needsSetup": "Skal sættes op"
+        },
+        "keyCheck": {
+          "checking": "Tjekker nøglen…",
+          "rejected": "{provider} afviste denne nøgle. Tjek, at du har kopieret hele nøglen. En helt ny nøgle kan tage lidt tid, før den virker.",
+          "unreachable": "Kunne ikke nå {provider} for at tjekke nøglen."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Gratis · kun Canada · ingen nøgle",
           "helperText": "Ingen API-nøgle nødvendig. Leveres af Environment and Climate Change Canada, den officielle prognosekilde i Canada. Home Screens vælger det nærmeste af ca. 844 bysteder ud fra dine koordinater; placeringer mere end 200 km fra en canadisk by afvises. Til test kan du prøve Toronto (43.6532, -79.3832) eller Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Din standard-vejrtjeneste ({provider}) kræver en API-nøgle, så vejrmodulerne har intet at vise. Tilføj en nøgle nedenfor, eller skift til Open-Meteo, som ikke kræver nogen nøgle.",
+        "useOpenMeteo": "Brug Open-Meteo"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Opsætningsbesked",
           "cursorHideSeconds": "Skjul markøren",
           "fullscreenTheme": "Tema",
-          "sleep": "Plan for slumring",
-          "screensaver": "Pauseskærm",
+          "sleep": "Slumring & dæmpning",
           "alerts": "Beskeder på skærmen"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} tilsidesættelser for displayet",
           "activeForDisplay": " aktiv for {name}.",
           "clearAllButton": "Ryd displayets tilsidesættelser",
-          "clearAllTitle": "Nulstil alle felter på denne fane til standard. Tilsidesættelser for slumring og beskeder påvirkes ikke."
+          "clearAllTitle": "Nulstiller hver tilsidesættelse på denne side til standarden."
         }
       },
       "sleep": {
-        "label": "Plan for slumring",
+        "label": "Slumring & dæmpning",
         "defaultsLabel": "Standarder → Skærm",
-        "infoPart1": "Slumring tilsidesættes som én samlet blok; du kan ikke ændre enkelte felter som dæmpningstid hver for sig. Standarden findes under ",
+        "infoPart1": "Slumring og dæmpning tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for denne skærm. Standarden ligger under ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Beskeder på skærmen",
         "defaultsLabel": "Standarder → Skærm",
-        "infoPart1": "Beskeder tilsidesættes som én samlet blok. Standarden findes under ",
+        "infoPart1": "Indstillingerne for beskeder tilsidesættes sammen. Slå tilsidesættelsen til for at ændre en af dem for denne skærm. Standarden ligger under ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Fjern",
         "savingButton": "…",
         "saveButton": "Gem",
-        "savedSuccess": "Gemt"
+        "savedSuccess": "Gemt",
+        "checkingButton": "Tjekker…",
+        "detailsToggle": "Detaljer",
+        "saveAnyway": "Gem alligevel"
       }
     },
     "localBackgrounds": {
@@ -3783,7 +3794,11 @@
       "feedNamePlaceholder": "Navn på feed",
       "newFeedNamePlaceholder": "Navn på feed (fx Arbejde, Sport)",
       "addFeed": "+ Tilføj feed",
-      "helpText": "Tilføj URL'er til ICS-/iCal-feeds fra Google Kalender, Apple Kalender, Outlook, Nextcloud eller enhver tjeneste, der tilbyder .ics-feeds."
+      "helpText": "Tilføj URL'er til ICS-/iCal-feeds fra Google Kalender, Apple Kalender, Outlook, Nextcloud eller enhver tjeneste, der tilbyder .ics-feeds.",
+      "checking": "Tjekker linket…",
+      "checkFailedHint": "Tjek, at linket slutter på .ics eller starter med webcal://",
+      "addAnyway": "Tilføj alligevel",
+      "checkUnavailable": "Linket kunne ikke tjekkes lige nu"
     },
     "orientation": {
       "title": "Nogle moduler havner måske uden for skærmen",

@@ -4,7 +4,22 @@ import Link from 'next/link';
 import { Info } from 'lucide-react';
 import type { DisplayOverrideSummary } from '@/lib/display-defaults-backlinks';
 import { settingsHref } from '@/lib/settings-route';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
+
+/** Name up to this many overrides outright; past it, fall back to a count. */
+const MAX_NAMED_FIELDS = 3;
+
+/**
+ * "Sleep & dimming" / "Rotation interval, Theme" — the same labels the
+ * per-display Overview chips use, so a banner and the page it links to
+ * call an override by one name. Long lists collapse to "{n} settings".
+ */
+function describeFields(fields: readonly string[], t: TranslateFn): string {
+  if (fields.length > MAX_NAMED_FIELDS) return t('settings.backlinkBanner.multiFieldCount', { count: fields.length });
+  return fields
+    .map((field) => tOrFallback(t, `settings.perDisplayPage.overview.fieldLabels.${field}`, field))
+    .join(t('settings.backlinkBanner.fieldSeparator'));
+}
 
 /**
  * Banner rendered at the top of every `Defaults → X` page that lists which
@@ -66,11 +81,7 @@ function SingleDisplayLine({
   t: TranslateFn;
 }) {
   const { displayId, displayName, overriddenFields } = summary;
-  const fieldCount = overriddenFields.length;
-  const fieldText =
-    fieldCount === 1
-      ? t('settings.backlinkBanner.singleFieldCount', { count: fieldCount })
-      : t('settings.backlinkBanner.multiFieldCount', { count: fieldCount });
+  const fieldText = describeFields(overriddenFields, t);
   return (
     <>
       <strong className="text-hs-text-primary">{displayName}</strong>

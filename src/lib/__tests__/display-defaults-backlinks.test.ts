@@ -143,6 +143,25 @@ describe('findDisplaysOverridingFields', () => {
     expect(result[0].overriddenFields).toEqual(['sleep']);
   });
 
+  it('counts sleep + screensaver as the one override the sleep card creates', () => {
+    // The per-display sleep card forks both keys in one click, so the banner,
+    // the Overview chips and the Overrides footer must all report one
+    // override named after the unit, not two.
+    const config = makeConfig({
+      displays: [
+        makeDisplay('kitchen', {
+          sleep: { enabled: true, dimAfterMinutes: 5, sleepAfterMinutes: 30, dimBrightness: 20 },
+          screensaver: { mode: 'clock' },
+        }),
+      ],
+    });
+    const result = findDisplaysOverridingFields(config, ['rotationIntervalMs', 'sleep', 'screensaver', 'alerts']);
+    expect(result).toHaveLength(1);
+    expect(result[0].overriddenFields).toEqual(['sleep']);
+    // Asking about the second half alone still resolves to the unit's name.
+    expect(findDisplaysOverridingFields(config, ['screensaver'])[0].overriddenFields).toEqual(['sleep']);
+  });
+
   it('returns an empty array when the field list itself is empty', () => {
     // No fields to query → there's nothing to count, so the helper should
     // short-circuit even on a config full of overrides. Prevents an

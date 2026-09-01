@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SCREEN_PANEL_IDS } from '@/lib/settings-route';
 import { useNavigateToPanel } from '@/components/editor/settings/useNavigateToPanel';
-import type { ScreenConfiguration } from '@/types/config';
+import type { DisplayNodeSettings, ScreenConfiguration } from '@/types/config';
 import { findDisplaysOverridingFields } from '@/lib/display-defaults-backlinks';
 import {
   ALERT_OVERRIDE_FIELDS,
@@ -62,6 +62,13 @@ function panelForHighlight(highlight: string | null): ScreenPanel {
   return 'appearance';
 }
 
+/** Which card's override fields each tab owns, for the backlink banner. */
+const PANEL_OVERRIDE_FIELDS: Record<ScreenPanel, readonly (keyof DisplayNodeSettings)[]> = {
+  appearance: DISPLAY_OVERRIDE_FIELDS,
+  sleep: SLEEP_OVERRIDE_FIELDS,
+  alerts: ALERT_OVERRIDE_FIELDS,
+};
+
 interface ScreenSectionProps {
   /** The full config — needed for the backlink banner scan and to decide whether canvas controls render. */
   config: ScreenConfiguration;
@@ -85,9 +92,8 @@ interface ScreenSectionProps {
  *
  * Every per-display override (rendered on the per-display Overrides
  * subtab) links its help text back here, and this page in turn renders a
- * `DefaultsBacklinkBanner` listing which displays currently override its
- * fields — the union of the display, sleep, and alert field lists, so
- * one banner covers all three cards.
+ * `DefaultsBacklinkBanner` naming which displays currently override the
+ * fields of the card on the active tab.
  *
  * Canvas controls (orientation/resolution/flip) only render in
  * single-display installs because that's the only mode where the global
@@ -120,20 +126,15 @@ export default function ScreenSection({
 
   const navigateToPanel = useNavigateToPanel('screen');
 
-  // Scan displays for overrides only when `config` changes. Without the
-  // memo this runs on every keystroke into the form (which updates
-  // the values/onChange identities), and for a ≤64-display install
-  // that's cheap but wasteful — the scan is pure over config. The three
-  // field lists are unioned so the banner reports overrides from any of
-  // the cards below.
+  // Scan displays for overrides only when `config` or the tab changes.
+  // Without the memo this runs on every keystroke into the form (which
+  // updates the values/onChange identities), and for a ≤64-display install
+  // that's cheap but wasteful — the scan is pure over config. Each tab
+  // reports only its own card's fields, so the banner names what is
+  // overridden on the tab being looked at and stays quiet elsewhere.
   const overrides = useMemo(
-    () =>
-      findDisplaysOverridingFields(config, [
-        ...DISPLAY_OVERRIDE_FIELDS,
-        ...SLEEP_OVERRIDE_FIELDS,
-        ...ALERT_OVERRIDE_FIELDS,
-      ]),
-    [config],
+    () => findDisplaysOverridingFields(config, PANEL_OVERRIDE_FIELDS[panel]),
+    [config, panel],
   );
   const isMultiDisplay = (config.displays?.length ?? 0) > 0;
 
@@ -171,8 +172,8 @@ export default function ScreenSection({
     >
 
       {/* Tab bar — same visual pattern as AutomationSection and
-          PerDisplayPage. The backlink banner above stays visible on every
-          tab since it reports the union of all three field groups. */}
+          PerDisplayPage. The backlink banner above follows the tab: it
+          names the overrides of this tab's card and hides otherwise. */}
       <div className="flex items-center border-b border-hs-border mb-5">
         {SCREEN_PANELS.map((p) => (
           <button
@@ -209,8 +210,8 @@ export default function ScreenSection({
       )}
 
       {/* Sleep & dimming — formerly the Defaults → Sleep page. Whole-block
-          overridable per display, so the backlink banner above already
-          covers it via SLEEP_OVERRIDE_FIELDS. */}
+          overridable per display; the banner above reports it on this tab
+          via SLEEP_OVERRIDE_FIELDS. */}
       {panel === 'sleep' && (
         <div>
           <p className="text-xs text-hs-text-faint mb-3">

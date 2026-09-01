@@ -354,6 +354,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresManage.memberForm.nameLabel',
     // "Offline" is the standard word in German.
     'remote|displayHero.stateOffline',
+    // "Details" is the standard word in German.
+    'editor|settings.shared.secretField.detailsToggle',
     'remote|mealForm.ingredientNamePlaceholder',
     'remote|mealsTab.subNav.plan',
     'remote|rewardForm.nameLabel',
@@ -394,8 +396,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.statsSection.sourceReporter',
     'editor|settings.systemPage.changelog.heading',
     'editor|settings.weatherPage.imperialOption',
-    'editor|settings.weatherPage.providerCard.testStatus.errorOnly',
-    'editor|settings.weatherPage.providerCard.testStatus.errorWithDetail',
     'modules|chore-chart.iconLabels.chef-hat',
     'modules|chore-chart.ticketsCount',
     'modules|clock.am',
@@ -615,7 +615,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.perDisplayPage.display.canvasHeading',
     'editor|settings.perDisplayPage.display.perDisplayBadge',
     'editor|settings.perDisplayPage.header.subtabs.overrides',
-    'editor|settings.perDisplayPage.overview.fieldLabels.screensaver',
     'editor|settings.perDisplayPage.overview.transitionLabels.blur',
     'editor|settings.perDisplayPage.overview.transitionLabels.crossfade',
     'editor|settings.pluginAuth.garmin.mfaPlaceholder',
@@ -667,6 +666,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresTab.ticketCountSingular',
     // "Offline" is the standard word in Dutch.
     'remote|displayHero.stateOffline',
+    // "Details" is the standard word in Dutch.
+    'editor|settings.shared.secretField.detailsToggle',
     'remote|mealsTab.library.filters.comfort',
     'remote|mealsTab.subNav.plan',
     'remote|rewardsView.ticketCountPlural',

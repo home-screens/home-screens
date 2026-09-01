@@ -25,6 +25,12 @@ export default function WeatherSection({ values, onChange }: Props) {
 
   const hasLocation = parseFloat(lat) !== 0 || parseFloat(lon) !== 0;
 
+  // The default provider is what every weather module uses unless it picks
+  // its own; a keyed default with no key means the wall shows setup cards.
+  // Say so at the top of the page and offer the free provider in one click.
+  const defaultProvider = WEATHER_PROVIDERS.find((p) => p.id === provider);
+  const defaultNeedsKey = !loading && !!defaultProvider?.secretKey && !status[defaultProvider.secretKey];
+
   return (
     <section>
       {/* Header */}
@@ -72,6 +78,22 @@ export default function WeatherSection({ values, onChange }: Props) {
           <p className="text-xs text-hs-warning">
             {t('settings.weatherPage.locationWarning')}
           </p>
+        </div>
+      )}
+
+      {/* Default provider has no key: weather modules are blank until fixed */}
+      {defaultNeedsKey && defaultProvider && (
+        <div data-testid="weather-default-needs-key" className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2.5 mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="text-xs text-hs-warning flex-1 min-w-[16rem]">
+            {t('settings.weatherPage.defaultNeedsKey.message', { provider: defaultProvider.name })}
+          </p>
+          <button
+            type="button"
+            onClick={() => onChange({ provider: 'open-meteo' })}
+            className="text-xs font-medium px-2.5 py-1 rounded-md text-hs-text-primary bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
+          >
+            {t('settings.weatherPage.defaultNeedsKey.useOpenMeteo')}
+          </button>
         </div>
       )}
 

@@ -32,6 +32,19 @@ export type SecretKey =
 
 export type SecretStatus = Partial<Record<SecretKey, boolean>>;
 
+/** Verdict of a pre-save check on the typed value. */
+export type SecretCheck =
+  | { ok: true }
+  | {
+      ok: false;
+      /** Plain-language reason shown in the form. */
+      message: string;
+      /** Raw upstream text, behind a "Details" disclosure. */
+      detail?: string;
+      /** Offer "Save anyway" (a provider that could not be reached, a key that may not be active yet). */
+      allowAnyway: boolean;
+    };
+
 interface Props {
   label: string;
   secretKey: SecretKey;
@@ -39,6 +52,10 @@ interface Props {
   helpText: string;
   status: boolean;
   onSaved: () => void;
+  /** Try the value against its service before saving; a failed check keeps the value in the form. */
+  validate?: (value: string) => Promise<SecretCheck>;
+  /** Shown in place of the Save button while `validate` runs. */
+  checkingLabel?: string;
 }
 
 export default function SecretField({
@@ -48,16 +65,34 @@ export default function SecretField({
   helpText,
   status,
   onSaved,
+  validate,
+  checkingLabel,
 }: Props) {
   const t = useTranslate('editor');
   const [value, setValue] = useState('');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'checking' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [check, setCheck] = useState<Extract<SecretCheck, { ok: false }> | null>(null);
 
-  async function handleSave() {
+  async function handleSave(skipCheck = false) {
     if (!value.trim()) return;
-    setSaveStatus('saving');
     setErrorMsg('');
+    setCheck(null);
+    if (validate && !skipCheck) {
+      setSaveStatus('checking');
+      let verdict: SecretCheck;
+      try {
+        verdict = await validate(value.trim());
+      } catch {
+        verdict = { ok: false, message: t('common.networkError'), allowAnyway: true };
+      }
+      if (!verdict.ok) {
+        setSaveStatus('idle');
+        setCheck(verdict);
+        return;
+      }
+    }
+    setSaveStatus('saving');
     try {
       const res = await editorFetch('/api/secrets', {
         method: 'PUT',
@@ -113,21 +148,43 @@ export default function SecretField({
         <input
           type="password"
           value={value}
-          onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); }}
+          onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); setCheck(null); }}
           placeholder={placeholder}
           className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
         <Button
           variant="secondary"
           size="sm"
-          onClick={handleSave}
-          disabled={!value.trim() || saveStatus === 'saving'}
+          onClick={() => handleSave()}
+          disabled={!value.trim() || saveStatus === 'saving' || saveStatus === 'checking'}
         >
           {saveStatus === 'saving'
             ? t('settings.shared.secretField.savingButton')
-            : t('settings.shared.secretField.saveButton')}
+            : saveStatus === 'checking'
+              ? (checkingLabel ?? t('settings.shared.secretField.checkingButton'))
+              : t('settings.shared.secretField.saveButton')}
         </Button>
       </div>
+      {check && (
+        <div data-testid={`secret-check-${secretKey}`} className="mt-1.5 rounded-md bg-hs-warning/10 border border-hs-warning/30 px-2.5 py-2 text-xs text-hs-warning space-y-1">
+          <p className="font-medium">{check.message}</p>
+          {check.detail && (
+            <details className="text-hs-warning/80">
+              <summary className="cursor-pointer">{t('settings.shared.secretField.detailsToggle')}</summary>
+              <pre className="mt-1 whitespace-pre-wrap break-all font-mono text-[11px]">{check.detail}</pre>
+            </details>
+          )}
+          {check.allowAnyway && (
+            <button
+              type="button"
+              onClick={() => handleSave(true)}
+              className="text-xs font-medium underline decoration-dashed underline-offset-2 hover:text-hs-text-primary"
+            >
+              {t('settings.shared.secretField.saveAnyway')}
+            </button>
+          )}
+        </div>
+      )}
       {saveStatus === 'saved' && (
         <span className="text-xs text-hs-success">
           {t('settings.shared.secretField.savedSuccess')}

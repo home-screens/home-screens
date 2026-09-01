@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { uuid } from '@/lib/uuid';
-import type { ICalSource } from '@/types/config';
+import { editorFetch } from '@/lib/editor-fetch';
+import type { ICalCheckResult } from '@/lib/ical-calendar';
+import type { CalendarSourceStatus, ICalSource } from '@/types/config';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
@@ -17,21 +19,40 @@ interface ICalFeedManagerProps {
   onChange: (updates: { icalSources: ICalSource[] }) => void;
   /** Per-source health keyed by ICalSource id, for the badge on each feed row. */
   health?: SourceHealthMap;
+  /** Called with the outcome of the pre-save link check so the new row gets a badge at once. */
+  onSourceChecked?: (status: CalendarSourceStatus) => void;
 }
 
-export default function ICalFeedManager({ icalSources, onChange, health }: ICalFeedManagerProps) {
+/** What the Add form knows about the link it is about to save. */
+type LinkCheck =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  // `message` is the localized reason; `unverified` means the check itself
+  // could not run (hub offline, session gone), not that the link is bad.
+  | { state: 'failed'; message: string; unverified: boolean };
+
+export default function ICalFeedManager({ icalSources, onChange, health, onSourceChecked }: ICalFeedManagerProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newFeedName, setNewFeedName] = useState('');
   const [newFeedUrl, setNewFeedUrl] = useState('');
+  const [linkCheck, setLinkCheck] = useState<LinkCheck>({ state: 'idle' });
   const [newFeedColor, setNewFeedColor] = useState(() => {
     const usedColors = new Set(icalSources.map(s => s.color));
     return ICAL_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? ICAL_COLOR_PALETTE[0];
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  function addICalSource() {
+  function closeAddForm() {
+    setNewFeedName('');
+    setNewFeedUrl('');
+    setLinkCheck({ state: 'idle' });
+    setShowAddForm(false);
+  }
+
+  /** Save the feed; `status` seeds its health badge when the link was checked. */
+  function addICalSource(status?: CalendarSourceStatus) {
     if (!newFeedName.trim() || !newFeedUrl.trim()) return;
     const newSource: ICalSource = {
       id: uuid(),
@@ -42,12 +63,43 @@ export default function ICalFeedManager({ icalSources, onChange, health }: ICalF
       enabled: true,
     };
     onChange({ icalSources: [...icalSources, newSource] });
-    setNewFeedName('');
-    setNewFeedUrl('');
-    setShowAddForm(false);
+    if (status) onSourceChecked?.({ ...status, id: newSource.id, name: newSource.name });
+    closeAddForm();
     // Auto-pick next unused color
     const usedColors = new Set([...icalSources.map(s => s.color), newFeedColor]);
     setNewFeedColor(ICAL_COLOR_PALETTE.find(c => !usedColors.has(c)) ?? ICAL_COLOR_PALETTE[0]);
+  }
+
+  /**
+   * Probe the link the way the display will fetch it before saving. A bad
+   * paste (a portal login page, a link missing .ics) stays in the form with
+   * the reason; a link that checks out is saved with a fresh "Updated" badge.
+   */
+  async function checkAndAdd() {
+    if (!newFeedName.trim() || !newFeedUrl.trim() || linkCheck.state === 'checking') return;
+    setLinkCheck({ state: 'checking' });
+    let result: ICalCheckResult;
+    try {
+      const res = await editorFetch('/api/calendar/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: newFeedUrl.trim() }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      result = await res.json();
+    } catch {
+      setLinkCheck({ state: 'failed', message: t('modals.icalFeeds.checkUnavailable'), unverified: true });
+      return;
+    }
+    if (result.ok) {
+      addICalSource({ id: '', ok: true, fetchedAt: Date.now() });
+      return;
+    }
+    setLinkCheck({
+      state: 'failed',
+      message: t(`settings.calendarPage.health.errors.${result.messageKey}`, result.messageParams),
+      unverified: false,
+    });
   }
 
   function removeICalSource(id: string) {
@@ -157,10 +209,16 @@ export default function ICalFeedManager({ icalSources, onChange, health }: ICalF
             <input
               type="text"
               value={newFeedUrl}
-              onChange={(e) => setNewFeedUrl(e.target.value)}
+              onChange={(e) => { setNewFeedUrl(e.target.value); setLinkCheck({ state: 'idle' }); }}
               className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
               placeholder="https://example.com/calendar.ics"
             />
+            {linkCheck.state === 'failed' && (
+              <div data-testid="ical-link-check" className="rounded-md bg-hs-warning/10 border border-hs-warning/30 px-2.5 py-2 text-xs text-hs-warning space-y-0.5">
+                <p className="font-medium">{linkCheck.message}</p>
+                {!linkCheck.unverified && <p className="text-hs-warning/80">{t('modals.icalFeeds.checkFailedHint')}</p>}
+              </div>
+            )}
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
               {ICAL_COLOR_PALETTE.map((color) => (
@@ -176,10 +234,20 @@ export default function ICalFeedManager({ icalSources, onChange, health }: ICalF
               ))}
             </div>
             <div className="flex items-center gap-2 pt-1">
-              <Button variant="primary" size="sm" onClick={addICalSource} disabled={!newFeedName.trim() || !newFeedUrl.trim()}>
-                {tCore('actions.add')}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={checkAndAdd}
+                disabled={!newFeedName.trim() || !newFeedUrl.trim() || linkCheck.state === 'checking'}
+              >
+                {linkCheck.state === 'checking' ? t('modals.icalFeeds.checking') : tCore('actions.add')}
               </Button>
-              <Button variant="secondary" size="sm" onClick={() => { setShowAddForm(false); setNewFeedName(''); setNewFeedUrl(''); }}>
+              {linkCheck.state === 'failed' && (
+                <Button variant="secondary" size="sm" onClick={() => addICalSource()}>
+                  {t('modals.icalFeeds.addAnyway')}
+                </Button>
+              )}
+              <Button variant="secondary" size="sm" onClick={closeAddForm}>
                 {tCore('actions.cancel')}
               </Button>
             </div>

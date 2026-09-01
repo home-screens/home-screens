@@ -23,6 +23,67 @@ test('Defaults › Weather: switching units persists to the shared config', asyn
     .toBe('metric');
 });
 
+test.describe('Defaults › Weather providers', () => {
+  test('a rejected key stays in the form with the reason; Save anyway still saves', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    // The key is tried against the provider server-side (POST
+    // /api/weather/check-key) before it is saved; stub the probe so no real
+    // upstream call fires.
+    await page.route('**/api/weather/check-key', (route) =>
+      route.fulfill({ json: { ok: false, reason: 'rejected', provider: 'WeatherAPI', detail: 'WeatherAPI API error 401: {"error":{"code":2006,"message":"API key is invalid."}}' } }),
+    );
+    await page.goto('/editor/settings?section=defaults&page=weather');
+
+    const card = page.locator('[data-field-id="weather.provider.weatherapi"]');
+    await card.getByPlaceholder(/./).fill('not-a-real-key');
+    await card.getByRole('button', { name: 'Save', exact: true }).click();
+
+    const check = page.getByTestId('secret-check-weatherapi_key');
+    await expect(check).toContainText('WeatherAPI.com rejected this key');
+    // The raw provider text sits behind a disclosure rather than in the sentence.
+    await expect(check.locator('summary')).toHaveText('Details');
+    await expect(check).toContainText('API key is invalid');
+    expect((await (await request.get('/api/secrets')).json()).weatherapi_key).toBeFalsy();
+
+    // A brand-new key can be rejected until it activates, so saving is still possible.
+    await check.getByRole('button', { name: 'Save anyway' }).click();
+    await expect(card.getByText('Saved successfully')).toBeVisible();
+    await expect.poll(async () => (await (await request.get('/api/secrets')).json()).weatherapi_key).toBe(true);
+  });
+
+  test('a key the provider accepts saves without a detour', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    await page.route('**/api/weather/check-key', (route) => route.fulfill({ json: { ok: true } }));
+    await page.goto('/editor/settings?section=defaults&page=weather');
+
+    const card = page.locator('[data-field-id="weather.provider.openweathermap"]');
+    // Only the default provider's card starts open.
+    await card.getByRole('button', { name: /OpenWeatherMap/ }).click();
+    await card.getByPlaceholder(/./).fill('a-real-key');
+    await card.getByRole('button', { name: 'Save', exact: true }).click();
+    await expect(card.getByText('Saved successfully')).toBeVisible();
+    await expect(page.getByTestId('secret-check-openweathermap_key')).toHaveCount(0);
+    await expect.poll(async () => (await (await request.get('/api/secrets')).json()).openweathermap_key).toBe(true);
+  });
+
+  test('a keyed default provider with no key is called out at the top, with a one-click switch', async ({ page, request }) => {
+    const config = baseConfig();
+    config.settings.weather.provider = 'pirateweather';
+    await putConfig(request, config);
+    await page.goto('/editor/settings?section=defaults&page=weather');
+
+    const notice = page.getByTestId('weather-default-needs-key');
+    await expect(notice).toContainText('Pirate Weather');
+    await expect(notice).toContainText('needs an API key');
+
+    await notice.getByRole('button', { name: 'Use Open-Meteo' }).click();
+    await expect
+      .poll(async () => (await getConfig(request)).settings.weather.provider)
+      .toBe('open-meteo');
+    await expect(notice).toHaveCount(0);
+  });
+});
+
 test.describe('Defaults › Location', () => {
   test('looking up a place persists lat/lon', async ({ page, request }) => {
     await putConfig(request, baseConfig()); // settings.latitude/longitude start at 0

@@ -91,6 +91,63 @@ export function parseICSEvents(
   return events;
 }
 
+type SourceOutcome = { events: CalendarEvent[]; results: SourceFetchResult[] };
+
+/**
+ * Fetch and parse one ICS feed into events within [from, to). Never
+ * rejects on a bad feed: an unusable link, an HTTP error, or a document that
+ * is not a calendar becomes a failing `results` entry with plain-language
+ * wording (and an i18n `messageKey`). Network failures inside
+ * `fetchWithTimeout` still reject; callers map those to `linkUnreachable`.
+ */
+export async function fetchICalSource(source: ICalSource, from: Date, to: Date): Promise<SourceOutcome> {
+  const fail = (error: string, messageKey: string, messageParams?: Record<string, string | number>): SourceOutcome =>
+    ({ events: [], results: [{ id: source.id, name: source.name, ok: false, error, messageKey, messageParams }] });
+
+  // Validate URL scheme — normalize webcal:// to https://
+  let fetchUrl = source.url;
+  let parsed: URL;
+  try {
+    parsed = new URL(fetchUrl);
+  } catch {
+    log.warn(`Invalid URL for source "${source.name}" (${source.id})`);
+    return fail("The link isn't a valid web address", 'linkInvalid');
+  }
+  if (parsed.protocol === 'webcal:') {
+    fetchUrl = fetchUrl.replace(/^webcal:/i, 'https:');
+    parsed = new URL(fetchUrl);
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    log.warn(`Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
+    return fail("The link isn't a valid web address", 'linkInvalid');
+  }
+
+  const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
+  if (!res.ok) {
+    log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
+    return fail(`Could not reach the link (HTTP ${res.status})`, 'linkHttpError', { status: res.status });
+  }
+  const icsText = await res.text();
+
+  // A login page or an HTML 200 from a portal is the usual wrong paste; the
+  // parser would quietly find no components in it, so require the calendar
+  // envelope before parsing.
+  if (!/^\s*BEGIN:VCALENDAR/im.test(icsText)) {
+    log.warn(`Source "${source.name}" (${source.id}) did not return a calendar document`);
+    return fail("The link didn't return a readable calendar", 'linkUnreadable');
+  }
+
+  // Parse and process ICS — wrapped in try/catch so a malformed feed
+  // is logged and treated as a failing source
+  try {
+    const parsedEvents = parseICSEvents(icsText, source, from, to);
+    return { events: parsedEvents, results: [{ id: source.id, name: source.name, ok: true }] };
+  } catch (err) {
+    log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
+    return fail("The link didn't return a readable calendar", 'linkUnreadable');
+  }
+}
+
 /**
  * Fetch and parse ICS/iCal feeds, returning events in the same CalendarEvent
  * format as Google Calendar plus a per-source outcome. Handles recurring
@@ -108,45 +165,7 @@ export async function fetchICalEvents(
 
   const { events, results } = await settleSourceFetches(
     sources,
-    async (source) => {
-      const fail = (error: string, messageKey: string, messageParams?: Record<string, string | number>): { events: CalendarEvent[]; results: SourceFetchResult[] } =>
-        ({ events: [], results: [{ id: source.id, name: source.name, ok: false, error, messageKey, messageParams }] });
-
-      // Validate URL scheme — normalize webcal:// to https://
-      let fetchUrl = source.url;
-      let parsed: URL;
-      try {
-        parsed = new URL(fetchUrl);
-      } catch {
-        log.warn(`Invalid URL for source "${source.name}" (${source.id})`);
-        return fail("The link isn't a valid web address", 'linkInvalid');
-      }
-      if (parsed.protocol === 'webcal:') {
-        fetchUrl = fetchUrl.replace(/^webcal:/i, 'https:');
-        parsed = new URL(fetchUrl);
-      }
-      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-        log.warn(`Rejected non-HTTP URL for source "${source.name}" (${source.id})`);
-        return fail("The link isn't a valid web address", 'linkInvalid');
-      }
-
-      const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
-      if (!res.ok) {
-        log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
-        return fail(`Could not reach the link (HTTP ${res.status})`, 'linkHttpError', { status: res.status });
-      }
-      const icsText = await res.text();
-
-      // Parse and process ICS — wrapped in try/catch so a malformed feed
-      // is logged and treated as a failing source
-      try {
-        const parsedEvents = parseICSEvents(icsText, source, from, to);
-        return { events: parsedEvents, results: [{ id: source.id, name: source.name, ok: true }] };
-      } catch (err) {
-        log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
-        return fail("The link didn't return a readable calendar", 'linkUnreadable');
-      }
-    },
+    (source) => fetchICalSource(source, from, to),
     (source, reason) => {
       // Unexpected rejections (e.g. fetchWithTimeout network errors)
       log.warn('Source fetch rejected', reason);
@@ -156,6 +175,38 @@ export async function fetchICalEvents(
 
   events.sort((a, b) => compareEventStarts(a.start, b.start));
   return { events, results };
+}
+
+/** Outcome of probing a feed link before it is saved. */
+export type ICalCheckResult =
+  | { ok: true; eventCount: number }
+  | { ok: false; error: string; messageKey: string; messageParams?: Record<string, string | number> };
+
+/**
+ * Probe a feed link the way the display will fetch it, before the editor
+ * saves it: same URL rules, same HTTP fetch, same parser. Counts the events
+ * in the coming year so the editor can tell an empty calendar from a broken
+ * link. Never rejects.
+ */
+export async function checkICalUrl(url: string): Promise<ICalCheckResult> {
+  const from = new Date();
+  const to = new Date(from);
+  to.setFullYear(to.getFullYear() + 1);
+  const probe: ICalSource = { id: 'check', type: 'ical', name: 'check', url, color: '', enabled: true };
+  try {
+    const { events, results } = await fetchICalSource(probe, from, to);
+    const result = results[0];
+    if (result?.ok) return { ok: true, eventCount: events.length };
+    return {
+      ok: false,
+      error: result?.error ?? 'Could not reach the link',
+      messageKey: result?.messageKey ?? 'linkUnreachable',
+      ...(result?.messageParams ? { messageParams: result.messageParams } : {}),
+    };
+  } catch (err) {
+    log.warn('Feed check failed', err);
+    return { ok: false, error: 'Could not reach the link', messageKey: 'linkUnreachable' };
+  }
 }
 
 /** Compute a fallback end date when DTEND is missing. */

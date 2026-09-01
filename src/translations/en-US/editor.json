@@ -294,11 +294,11 @@
       "singleDisplayPart3": " on {pageLabel}. ",
       "singleDisplayPart5": " to see or clear its overrides.",
       "singleDisplayCurrentlyOverrides": " currently overrides ",
-      "singleFieldCount": "{count} field",
-      "multiFieldCount": "{count} fields",
+      "multiFieldCount": "{count} settings",
       "openDisplayLink": "Open {name}",
       "multiDisplayLabel": "{count} displays",
-      "multiDisplayCurrentlyOverride": " currently override fields on {pageLabel}: "
+      "multiDisplayCurrentlyOverride": " currently override fields on {pageLabel}: ",
+      "fieldSeparator": ", "
     },
     "defaultAlertsPage": {
       "description": "Default position, size, and duration for the alert overlay on every display. A specific display can override the whole alerts block from its own page."
@@ -547,10 +547,10 @@
         "testStatus": {
           "success": "Working! Current temp: {temp}°",
           "connectedNoData": "Connected but no data returned",
-          "errorWithDetail": "Error: {error}: {detail}",
-          "errorOnly": "Error: {error}",
           "failed": "Failed: {message}",
-          "unknownError": "Unknown error"
+          "unknownError": "Unknown error",
+          "rejectedKey": "{provider} rejected the saved key. Remove it and paste it again.",
+          "failedPlain": "Couldn't get weather from {provider}."
         },
         "status": {
           "defaultReady": "Default · Ready",
@@ -559,6 +559,11 @@
           "ready": "Ready",
           "configured": "Configured",
           "needsSetup": "Needs setup"
+        },
+        "keyCheck": {
+          "checking": "Checking key…",
+          "rejected": "{provider} rejected this key. Check you copied the whole key. A brand-new key can take a while to start working.",
+          "unreachable": "Couldn't reach {provider} to check the key."
         }
       },
       "providers": {
@@ -602,6 +607,10 @@
           "tagline": "Free · Canada only · no key",
           "helperText": "No API key required. Provided by Environment and Climate Change Canada, the authoritative forecast source inside Canada. Home Screens picks the nearest of ~844 city sites to your latitude/longitude; locations more than 200 km from any Canadian city are rejected. To test, try Toronto (43.6532, -79.3832) or Vancouver (49.2827, -123.1207)."
         }
+      },
+      "defaultNeedsKey": {
+        "message": "Your default weather provider ({provider}) needs an API key, so weather modules have nothing to show. Add a key below, or switch to Open-Meteo, which needs no key.",
+        "useOpenMeteo": "Use Open-Meteo"
       }
     },
     "defaultDisplayPage": {
@@ -709,8 +718,7 @@
           "setupHintEnabled": "Setup message",
           "cursorHideSeconds": "Hide cursor",
           "fullscreenTheme": "Theme",
-          "sleep": "Sleep schedule",
-          "screensaver": "Screensaver",
+          "sleep": "Sleep & dimming",
           "alerts": "Alert overlay"
         },
         "chipValues": {
@@ -776,19 +784,19 @@
           "overrideCountPlural": "{count} display overrides",
           "activeForDisplay": " active for {name}.",
           "clearAllButton": "Clear display overrides",
-          "clearAllTitle": "Reset every field on this subtab to its default. Sleep and Alerts overrides are unaffected."
+          "clearAllTitle": "Reset every override on this page to its default."
         }
       },
       "sleep": {
-        "label": "Sleep schedule",
+        "label": "Sleep & dimming",
         "defaultsLabel": "Defaults → Screen",
-        "infoPart1": "Sleep is overridden as a whole block; you can't fork individual fields like dim time. The default lives on ",
+        "infoPart1": "Sleep and dimming are overridden together. Turn on the override to change any of them for this display. The default lives on ",
         "infoPart2": "."
       },
       "alerts": {
         "label": "Alert overlay",
         "defaultsLabel": "Defaults → Screen",
-        "infoPart1": "Alerts is overridden as a whole block. The default lives on ",
+        "infoPart1": "Alert settings are overridden together. Turn on the override to change any of them for this display. The default lives on ",
         "infoPart2": "."
       },
       "wholeBlockOverride": {
@@ -1514,7 +1522,10 @@
         "removeButton": "Remove",
         "savingButton": "…",
         "saveButton": "Save",
-        "savedSuccess": "Saved successfully"
+        "savedSuccess": "Saved successfully",
+        "checkingButton": "Checking…",
+        "detailsToggle": "Details",
+        "saveAnyway": "Save anyway"
       }
     },
     "localBackgrounds": {
@@ -3783,7 +3794,11 @@
       "feedNamePlaceholder": "Feed name",
       "newFeedNamePlaceholder": "Feed name (e.g. Work, Sports)",
       "addFeed": "+ Add Feed",
-      "helpText": "Add ICS/iCal feed URLs from Google Calendar, Apple Calendar, Outlook, Nextcloud, or any service that provides .ics feeds."
+      "helpText": "Add ICS/iCal feed URLs from Google Calendar, Apple Calendar, Outlook, Nextcloud, or any service that provides .ics feeds.",
+      "checking": "Checking the link…",
+      "checkFailedHint": "Check the link ends in .ics or starts with webcal://",
+      "addAnyway": "Add anyway",
+      "checkUnavailable": "Couldn't check the link right now"
     },
     "orientation": {
       "title": "Modules may be off-screen",
