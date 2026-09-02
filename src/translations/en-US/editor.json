@@ -340,10 +340,10 @@
       "serverLabel": "Server",
       "timezoneLabel": "Timezone",
       "timezoneSystemDefault": "System default ({timezone})",
-      "timezoneHelp": "Override the server's OS timezone for clock, greeting, and other time-based modules.",
+      "timezoneHelp": "Usually the same as your town. Change this only if the clocks look wrong.",
       "queryPlaceholder": "Zip code or city name",
       "lookUpButton": "Look up",
-      "detectButton": "Detect",
+      "detectButton": "Use my internet location",
       "editCoordinates": "Edit coordinates manually",
       "latitudeLabel": "Latitude",
       "longitudeLabel": "Longitude",
@@ -360,7 +360,11 @@
         "detectedCoords": "Detected: {lat}, {lon}",
         "detectFailed": "Error: Could not detect location"
       },
-      "queryLabel": "Your town or zip code"
+      "queryLabel": "Your town or zip code",
+      "clockCheck": {
+        "summary": "Clock check",
+        "description": "Compare this browser's clock with the clock on the device running Home Screens. If they disagree, the timezone above is the thing to change."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": " header. If Home Screens is exposed directly to the internet without a trusted reverse proxy, this setting can be spoofed."
         }
       },
-      "forgotPasswordPart1": "Forgot your password? Delete ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " on the device to reset.",
       "modal": {
         "setTitle": "Set Password",
         "changeTitle": "Change Password",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Password set! Authentication is now enabled.",
         "passwordChanged": "Password changed. All other sessions have been invalidated.",
         "authDisabled": "Authentication disabled."
-      }
+      },
+      "forgotPasswordHint": "Forgot the password? On the device, run {command}. Deleting the file {file} in the Home Screens folder clears it too."
     },
     "shared": {
       "secretField": {

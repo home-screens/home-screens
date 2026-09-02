@@ -250,7 +250,7 @@ Pick one provider as your default; keys are entered on the provider's own card, 
 
 **The editor has no password until you set one**, so until then anyone on your home network can open it and change your screens. Set a password in **Settings > Security** to require a sign-in. It covers the editor and the phone remote at `/remote`; the kids' chore view at `/chores` deliberately stays open. The display signs in on its own using an auto-generated display token.
 
-The same page has an IP allowlist, so you can let displays on trusted networks skip the sign-in, or block everything outside those networks entirely. If you forget the password, delete `data/auth.json` on the Pi and set a new one.
+The same page has an IP allowlist, so you can let displays on trusted networks skip the sign-in, or block everything outside those networks entirely. If you forget the password, run `home-screens-reset-password` on the Pi and set a new one. The `/login` page spells this out too, so nobody has to find this page while locked out.
 
 ## System Management
 

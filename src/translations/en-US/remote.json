@@ -632,5 +632,20 @@
     "profileCleared": "{name} is showing all screens",
     "profileFailed": "Couldn't switch the profile on {name}",
     "hubBack": "Home Screens is back"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "No chore chart yet",
+      "body": "Chores show up here once a chore chart is on one of your screens."
+    },
+    "meals": {
+      "title": "No meal planner yet",
+      "body": "Meal plans show up here once a meal planner is on one of your screens."
+    },
+    "photos": {
+      "title": "No photo slideshow yet",
+      "body": "Photos show up here once a photo slideshow is on one of your screens."
+    },
+    "howTo": "Add one from a computer: open {url} and put it on a screen."
   }
 }

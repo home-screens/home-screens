@@ -632,5 +632,20 @@
     "profileCleared": "{name} affiche toutes les pages",
     "profileFailed": "Impossible de changer le profil sur {name}",
     "hubBack": "Home Screens est de retour"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Pas encore de tableau de tâches",
+      "body": "Les tâches apparaîtront ici dès qu'un tableau de tâches sera sur l'un de vos écrans."
+    },
+    "meals": {
+      "title": "Pas encore de planificateur de repas",
+      "body": "Les repas apparaîtront ici dès qu'un planificateur de repas sera sur l'un de vos écrans."
+    },
+    "photos": {
+      "title": "Pas encore de diaporama",
+      "body": "Les photos apparaîtront ici dès qu'un diaporama sera sur l'un de vos écrans."
+    },
+    "howTo": "Ajoutez-le depuis un ordinateur : ouvrez {url} et posez-le sur un écran."
   }
 }

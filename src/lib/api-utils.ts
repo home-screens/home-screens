@@ -409,6 +409,16 @@ export function createRateLimiter(maxAttempts: number, windowMs: number) {
     clear(ip: string): void {
       attempts.delete(ip);
     },
+    /**
+     * Milliseconds until `ip` may try again, or 0 when it isn't limited.
+     * The login page turns this into "wait 15 minutes" — a bare "try again
+     * later" leaves someone refreshing a page that will not let them in.
+     */
+    retryAfterMs(ip: string): number {
+      const entry = attempts.get(ip);
+      if (!entry || entry.count < maxAttempts) return 0;
+      return Math.max(0, entry.resetAt - Date.now());
+    },
   };
 }
 

@@ -632,5 +632,20 @@
     "profileCleared": "{name} zeigt alle Bildschirme",
     "profileFailed": "Das Profil auf {name} konnte nicht gewechselt werden",
     "hubBack": "Home Screens ist wieder da"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Noch keine Aufgabentafel",
+      "body": "Aufgaben erscheinen hier, sobald eine Aufgabentafel auf einem deiner Bildschirme liegt."
+    },
+    "meals": {
+      "title": "Noch kein Essensplan",
+      "body": "Essenspläne erscheinen hier, sobald ein Essensplaner auf einem deiner Bildschirme liegt."
+    },
+    "photos": {
+      "title": "Noch keine Diashow",
+      "body": "Fotos erscheinen hier, sobald eine Diashow auf einem deiner Bildschirme liegt."
+    },
+    "howTo": "Füge sie am Computer hinzu: Öffne {url} und lege sie auf einen Bildschirm."
   }
 }

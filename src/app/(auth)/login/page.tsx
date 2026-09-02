@@ -5,6 +5,34 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslate } from '@/i18n';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
+import { RESET_COMMAND, AUTH_FILE } from '@/lib/password-reset';
+
+/**
+ * Turn a login failure into a sentence in the reader's language.
+ *
+ * The route's `error` field is an English string meant for non-browser
+ * callers; rendering it here left one red line of English in the middle of an
+ * otherwise fully translated page. `code` is the contract the page reads, and
+ * a rate-limited answer carries the wait so the message can say how long
+ * rather than "later" — someone who has just been locked out and then types
+ * the right password would otherwise read "too many attempts" and conclude
+ * their password is wrong.
+ */
+function messageForFailure(
+  data: { code?: unknown; retryAfterSeconds?: unknown; error?: unknown },
+  t: ReturnType<typeof useTranslate>,
+): string {
+  if (data.code === 'invalid_password') return t('login.errors.wrongPassword');
+  if (data.code === 'rate_limited') {
+    const seconds = typeof data.retryAfterSeconds === 'number' ? data.retryAfterSeconds : 0;
+    // Round up, and never say "0 minutes": under a minute still reads as 1.
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return t('login.errors.tooManyTries', { count: minutes });
+  }
+  return typeof data.error === 'string' && data.error
+    ? data.error
+    : t('login.loginFailed');
+}
 
 function LoginForm() {
   const t = useTranslate('core');
@@ -64,7 +92,7 @@ function LoginForm() {
       }
 
       const data = await res.json();
-      setError(data.error || t('login.loginFailed'));
+      setError(messageForFailure(data, t));
       setPassword('');
     } catch {
       setError(t('login.unreachable'));
@@ -82,7 +110,9 @@ function LoginForm() {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center px-4">
+    // Scrolls in its own right: the auth layout clips at the viewport, and the
+    // reset-password panel below can push the card past the fold on a phone.
+    <div className="h-screen overflow-y-auto flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <HomeScreensLogo className="mb-4" />
@@ -135,6 +165,29 @@ function LoginForm() {
             {loading ? t('login.signingIn') : t('login.unlock')}
           </button>
         </form>}
+
+        {/* Recovery lives here rather than only on the Security page, which is
+            behind the very password this explains how to clear. */}
+        {!ipRestricted && (
+          <details className="mt-6">
+            <summary className="text-xs text-hs-text-secondary hover:text-hs-text-muted transition-colors cursor-pointer text-center">
+              {t('login.forgotPassword.link')}
+            </summary>
+            <div className="mt-3 rounded-lg bg-hs-card border border-hs-border-strong px-4 py-3 space-y-2">
+              <p className="text-sm font-medium text-hs-text-body">
+                {t('login.forgotPassword.title')}
+              </p>
+              <p className="text-xs text-hs-text-muted">{t('login.forgotPassword.body')}</p>
+              <code className="block text-xs text-hs-text-body bg-hs-input rounded px-2 py-1.5 break-all">
+                {RESET_COMMAND}
+              </code>
+              <p className="text-xs text-hs-text-faint">
+                {t('login.forgotPassword.fallback', { file: AUTH_FILE })}
+              </p>
+              <p className="text-xs text-hs-text-faint">{t('login.forgotPassword.after')}</p>
+            </div>
+          </details>
+        )}
 
         <div className="text-center mt-6">
           <Link

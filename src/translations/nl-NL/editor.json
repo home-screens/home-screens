@@ -340,10 +340,10 @@
       "serverLabel": "Server",
       "timezoneLabel": "Tijdzone",
       "timezoneSystemDefault": "Systeemstandaard ({timezone})",
-      "timezoneHelp": "Overschrijft de tijdzone van het besturingssysteem voor klok, begroeting en andere tijdgebaseerde modules.",
+      "timezoneHelp": "Meestal dezelfde als die van je plaats. Verander dit alleen als de klokken er verkeerd uitzien.",
       "queryPlaceholder": "Postcode of plaatsnaam",
       "lookUpButton": "Opzoeken",
-      "detectButton": "Detecteren",
+      "detectButton": "Mijn locatie opzoeken",
       "editCoordinates": "Coördinaten handmatig bewerken",
       "latitudeLabel": "Breedtegraad",
       "longitudeLabel": "Lengtegraad",
@@ -360,7 +360,11 @@
         "detectedCoords": "Gedetecteerd: {lat}, {lon}",
         "detectFailed": "Fout: locatie kon niet worden gedetecteerd"
       },
-      "queryLabel": "Je plaats of postcode"
+      "queryLabel": "Je plaats of postcode",
+      "clockCheck": {
+        "summary": "Klokken vergelijken",
+        "description": "Vergelijk de klok in deze browser met de klok op het apparaat waarop Home Screens draait. Komen ze niet overeen, pas dan de tijdzone hierboven aan."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": "-header. Als Home Screens direct aan internet wordt blootgesteld zonder vertrouwde reverse proxy, kan deze instelling worden vervalst."
         }
       },
-      "forgotPasswordPart1": "Wachtwoord vergeten? Verwijder ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " op het apparaat om te resetten.",
       "modal": {
         "setTitle": "Wachtwoord instellen",
         "changeTitle": "Wachtwoord wijzigen",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Wachtwoord ingesteld! Authenticatie is nu ingeschakeld.",
         "passwordChanged": "Wachtwoord gewijzigd. Alle andere sessies zijn ongeldig gemaakt.",
         "authDisabled": "Authenticatie uitgeschakeld."
-      }
+      },
+      "forgotPasswordHint": "Wachtwoord vergeten? Voer op het apparaat {command} uit. Het bestand {file} in de Home Screens-map verwijderen wist het ook."
     },
     "shared": {
       "secretField": {

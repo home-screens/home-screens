@@ -35,6 +35,7 @@ import ChoresTab from './components/ChoresTab';
 import TimersTab from './components/TimersTab';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
+import TabNotSetUp from './components/TabNotSetUp';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
@@ -392,28 +393,32 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
         ) : activeTab === 'chores' ? (
           <>
             <div className="px-4 pb-8 pt-4">
-              <ChoresTab config={initialData.choreConfig!} choreData={initialData.choreData} isAdmin />
+              {hasChores
+                ? <ChoresTab config={initialData.choreConfig!} choreData={initialData.choreData} isAdmin />
+                : <TabNotSetUp kind="chores" />}
             </div>
             <div className="h-20" />
           </>
         ) : activeTab === 'meals' ? (
           <>
             <div className="px-4 pb-8 pt-4">
-              <MealsTab />
+              {hasMeals ? <MealsTab /> : <TabNotSetUp kind="meals" />}
             </div>
             <div className="h-20" />
           </>
         ) : activeTab === 'photos' ? (
           <>
             <div className="px-4 pb-8 pt-4">
-              <PhotosTab directory={initialData.photoDirectory} />
+              {hasPhotos
+                ? <PhotosTab directory={initialData.photoDirectory} />
+                : <TabNotSetUp kind="photos" />}
             </div>
             <div className="h-20" />
           </>
         ) : null}
 
         <RemoteToast />
-        <BottomTabBar activeTab={activeTab} onChange={setActiveTab} hasChores={hasChores} hasMeals={hasMeals} hasPhotos={hasPhotos} />
+        <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
       </div>
     </DisplayTargetContext.Provider>
   );

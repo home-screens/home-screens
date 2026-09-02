@@ -74,7 +74,21 @@
     "loading": "Cargando…",
     "backToDisplay": "Volver a la pantalla",
     "loginFailed": "Error al iniciar sesión",
-    "unreachable": "No se puede contactar con el servidor"
+    "unreachable": "No se puede contactar con el servidor",
+    "errors": {
+      "wrongPassword": "Esa contraseña no es correcta.",
+      "tooManyTries": {
+        "one": "Demasiados intentos. Espera {count} minuto y vuelve a probar.",
+        "other": "Demasiados intentos. Espera {count} minutos y vuelve a probar."
+      }
+    },
+    "forgotPassword": {
+      "link": "¿Has olvidado la contraseña?",
+      "title": "Restablecer la contraseña",
+      "body": "Quien configuró este dispositivo puede borrar la contraseña. En el propio dispositivo (con un teclado conectado) o por SSH, ejecuta:",
+      "fallback": "Si ese comando no existe, borrar el archivo {file} de la carpeta de Home Screens hace lo mismo.",
+      "after": "Después Home Screens se abre sin contraseña y puedes poner una nueva en los ajustes."
+    }
   },
   "errors": {
     "fetchFailed": "Error al cargar los datos",

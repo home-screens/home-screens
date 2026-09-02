@@ -632,5 +632,20 @@
     "profileCleared": "{name} viser alle sider",
     "profileFailed": "Kunne ikke skifte profil på {name}",
     "hubBack": "Home Screens er tilbage"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Der er ikke noget pligtskema endnu",
+      "body": "Pligter dukker op her, så snart der er et pligtskema på en af dine skærme."
+    },
+    "meals": {
+      "title": "Der er ikke nogen madplan endnu",
+      "body": "Måltider dukker op her, så snart der er en madplanlægger på en af dine skærme."
+    },
+    "photos": {
+      "title": "Der er ikke noget billedshow endnu",
+      "body": "Billeder dukker op her, så snart der er et billedshow på en af dine skærme."
+    },
+    "howTo": "Tilføj det fra en computer: åbn {url}, og læg det på en skærm."
   }
 }

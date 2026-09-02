@@ -1,6 +1,6 @@
 'use client';
 
-import type { WeatherConfig, WeatherView, ModuleStyle } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type WeatherConfig, type WeatherView, type ModuleStyle, type TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
@@ -31,6 +31,9 @@ interface WeatherModuleProps {
   weatherError?: FetchError;
   units?: 'metric' | 'imperial';
   timezone?: string;
+  /** Household 12/24-hour preference (GlobalSettings.timeFormat), supplied by
+   *  buildModuleProps to every module. */
+  timeFormat?: TimeFormat;
   locationMissing?: boolean;
   /** Editor only: where the "set your location" text links (see buildModuleProps). */
   locationSettingsHref?: string;
@@ -82,7 +85,7 @@ const VIEW_COMPONENTS = {
   alerts: WeatherAlertsView,
 };
 
-export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
+export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat = DEFAULT_TIME_FORMAT, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
   const view = config.view ?? 'hourly';
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
@@ -172,6 +175,7 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
             alerts={alerts}
             units={units}
             timezone={timezone}
+            timeFormat={timeFormat}
             scaledFontSize={viewFontSize}
           />
         </div>

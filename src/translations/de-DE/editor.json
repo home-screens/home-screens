@@ -340,10 +340,10 @@
       "serverLabel": "Server",
       "timezoneLabel": "Zeitzone",
       "timezoneSystemDefault": "Systemstandard ({timezone})",
-      "timezoneHelp": "Überschreibt die Betriebssystem-Zeitzone des Servers für Uhr, Begrüßung und andere zeitbasierte Module.",
+      "timezoneHelp": "Normalerweise dieselbe wie an deinem Ort. Ändere sie nur, wenn die Uhren falsch aussehen.",
       "queryPlaceholder": "Postleitzahl oder Ortsname",
       "lookUpButton": "Suchen",
-      "detectButton": "Erkennen",
+      "detectButton": "Standort automatisch ermitteln",
       "editCoordinates": "Koordinaten manuell bearbeiten",
       "latitudeLabel": "Breitengrad",
       "longitudeLabel": "Längengrad",
@@ -360,7 +360,11 @@
         "detectedCoords": "Erkannt: {lat}, {lon}",
         "detectFailed": "Fehler: Standort konnte nicht erkannt werden"
       },
-      "queryLabel": "Dein Ort oder deine Postleitzahl"
+      "queryLabel": "Dein Ort oder deine Postleitzahl",
+      "clockCheck": {
+        "summary": "Uhren vergleichen",
+        "description": "Vergleiche die Uhr in diesem Browser mit der Uhr auf dem Gerät, auf dem Home Screens läuft. Wenn sie nicht übereinstimmen, ändere die Zeitzone oben."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": "-Header. Wenn Home Screens ohne vertrauenswürdigen Reverse-Proxy direkt im Internet steht, kann diese Einstellung manipuliert werden."
         }
       },
-      "forgotPasswordPart1": "Passwort vergessen? Lösche ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " auf dem Gerät, um es zurückzusetzen.",
       "modal": {
         "setTitle": "Passwort festlegen",
         "changeTitle": "Passwort ändern",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Passwort festgelegt! Die Anmeldung ist jetzt aktiviert.",
         "passwordChanged": "Passwort geändert. Alle anderen Sitzungen wurden ungültig.",
         "authDisabled": "Anmeldung deaktiviert."
-      }
+      },
+      "forgotPasswordHint": "Passwort vergessen? Führe am Gerät {command} aus. Auch das Löschen der Datei {file} im Home-Screens-Ordner setzt es zurück."
     },
     "shared": {
       "secretField": {

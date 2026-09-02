@@ -141,7 +141,7 @@ test('the display page still renders when signed out', async ({ page }) => {
   expect(page.url()).toContain('/display');
 });
 
-test('wrong password stays on login with a 401', async ({ page }) => {
+test('wrong password stays on login and says so in plain words', async ({ page }) => {
   await page.goto('/login');
   const rejected = page.waitForResponse(
     (r) => r.url().includes('/api/auth/login') && r.status() === 401,
@@ -150,6 +150,16 @@ test('wrong password stays on login with a 401', async ({ page }) => {
   await page.locator('input[type="password"]').press('Enter');
   await rejected;
   expect(page.url()).toContain('/login');
+  // Translated client-side from the response `code`, not the route's English
+  // `error` string.
+  await expect(page.getByText("That password isn't right.")).toBeVisible();
+});
+
+test('login offers a way back in when the password is forgotten', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByText('Forgot the password?').click();
+  await expect(page.getByText('home-screens-reset-password')).toBeVisible();
+  await expect(page.getByText(/data\/auth\.json/)).toBeVisible();
 });
 
 test('correct password lands in the editor with a session cookie', async ({ page, context }) => {
@@ -201,12 +211,18 @@ test('login rate limiter returns 429 after repeated failures (must run last)', a
   // this worker's server and would otherwise be 429'd here (the limiter's 15min
   // window has no in-band reset once tripped).
   const headers = { 'x-forwarded-for': '203.0.113.7' };
-  let sawTooMany = false;
-  for (let i = 0; i < 8; i++) {
+  let limited: { code?: string; retryAfterSeconds?: number } | null = null;
+  // The allowance is 10 tries; loop past it so the test does not encode the
+  // exact number, only that a wall exists and says how long it lasts.
+  for (let i = 0; i < 14; i++) {
     const res = await ctx.post('/api/auth/login', { headers, data: { password: 'definitely-wrong' } });
-    if (res.status() === 429) { sawTooMany = true; break; }
+    if (res.status() === 429) { limited = await res.json(); break; }
     expect(res.status()).toBe(401);
   }
-  expect(sawTooMany).toBe(true);
+  expect(limited).not.toBeNull();
+  // The login page needs both to render "wait 15 minutes" in the household's
+  // own language rather than the route's English string.
+  expect(limited?.code).toBe('rate_limited');
+  expect(limited?.retryAfterSeconds).toBeGreaterThan(0);
   await ctx.dispose();
 });

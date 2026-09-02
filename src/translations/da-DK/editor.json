@@ -340,10 +340,10 @@
       "serverLabel": "Server",
       "timezoneLabel": "Tidszone",
       "timezoneSystemDefault": "Systemstandard ({timezone})",
-      "timezoneHelp": "Tilsidesæt serverens tidszone for ur, hilsen og andre tidsbaserede moduler.",
+      "timezoneHelp": "Normalt den samme som din by. Ret den kun, hvis urene ser forkerte ud.",
       "queryPlaceholder": "Postnummer eller bynavn",
       "lookUpButton": "Slå op",
-      "detectButton": "Find",
+      "detectButton": "Find min placering",
       "editCoordinates": "Indtast koordinater manuelt",
       "latitudeLabel": "Breddegrad",
       "longitudeLabel": "Længdegrad",
@@ -360,7 +360,11 @@
         "detectedCoords": "Fundet: {lat}, {lon}",
         "detectFailed": "Fejl: Kunne ikke finde placeringen"
       },
-      "queryLabel": "Din by eller dit postnummer"
+      "queryLabel": "Din by eller dit postnummer",
+      "clockCheck": {
+        "summary": "Tjek urene",
+        "description": "Sammenlign uret i denne browser med uret på den enhed, der kører Home Screens. Passer de ikke sammen, så ret tidszonen ovenfor."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": "-headeren. Er Home Screens tilgængelig direkte fra internettet uden en betroet reverse proxy, kan denne indstilling snydes."
         }
       },
-      "forgotPasswordPart1": "Har du glemt din adgangskode? Slet ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " på enheden for at nulstille.",
       "modal": {
         "setTitle": "Vælg adgangskode",
         "changeTitle": "Skift adgangskode",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Adgangskoden er gemt! Login er nu slået til.",
         "passwordChanged": "Adgangskoden er skiftet. Alle andre er logget ud.",
         "authDisabled": "Login er slået fra."
-      }
+      },
+      "forgotPasswordHint": "Glemt kodeordet? Kør {command} på enheden. At slette filen {file} i Home Screens-mappen rydder det også."
     },
     "shared": {
       "secretField": {

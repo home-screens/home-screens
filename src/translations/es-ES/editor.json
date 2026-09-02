@@ -340,10 +340,10 @@
       "serverLabel": "Servidor",
       "timezoneLabel": "Zona horaria",
       "timezoneSystemDefault": "Predeterminada del sistema ({timezone})",
-      "timezoneHelp": "Sobrescribe la zona horaria del sistema operativo del servidor para el reloj, el saludo y otros módulos basados en la hora.",
+      "timezoneHelp": "Normalmente es la misma que la de tu ciudad. Cámbiala solo si los relojes se ven mal.",
       "queryPlaceholder": "Código postal o nombre de la ciudad",
       "lookUpButton": "Buscar",
-      "detectButton": "Detectar",
+      "detectButton": "Detectar mi ubicación",
       "editCoordinates": "Editar las coordenadas manualmente",
       "latitudeLabel": "Latitud",
       "longitudeLabel": "Longitud",
@@ -360,7 +360,11 @@
         "detectedCoords": "Detectada: {lat}, {lon}",
         "detectFailed": "Error: no se pudo detectar la ubicación"
       },
-      "queryLabel": "Tu ciudad o código postal"
+      "queryLabel": "Tu ciudad o código postal",
+      "clockCheck": {
+        "summary": "Comprobar los relojes",
+        "description": "Compara el reloj de este navegador con el del dispositivo donde se ejecuta Home Screens. Si no coinciden, cambia la zona horaria de arriba."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": ". Si Home Screens está expuesto directamente a internet sin un proxy inverso de confianza, este ajuste se puede falsificar."
         }
       },
-      "forgotPasswordPart1": "¿Has olvidado la contraseña? Elimina ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " en el dispositivo para restablecerla.",
       "modal": {
         "setTitle": "Definir contraseña",
         "changeTitle": "Cambiar contraseña",
@@ -1541,7 +1542,8 @@
         "passwordSet": "¡Contraseña definida! La autenticación está ahora activada.",
         "passwordChanged": "Contraseña cambiada. Las demás sesiones han sido invalidadas.",
         "authDisabled": "Autenticación desactivada."
-      }
+      },
+      "forgotPasswordHint": "¿Has olvidado la contraseña? En el dispositivo, ejecuta {command}. Borrar el archivo {file} de la carpeta de Home Screens también la elimina."
     },
     "shared": {
       "secretField": {

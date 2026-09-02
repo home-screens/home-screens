@@ -340,10 +340,10 @@
       "serverLabel": "Serveur",
       "timezoneLabel": "Fuseau horaire",
       "timezoneSystemDefault": "Par défaut du système ({timezone})",
-      "timezoneHelp": "Remplace le fuseau horaire de l'OS du serveur pour l'horloge, la salutation et les autres modules basés sur l'heure.",
+      "timezoneHelp": "Généralement le même que celui de votre ville. Ne le changez que si les horloges semblent fausses.",
       "queryPlaceholder": "Code postal ou nom de ville",
       "lookUpButton": "Rechercher",
-      "detectButton": "Détecter",
+      "detectButton": "Détecter ma position",
       "editCoordinates": "Modifier les coordonnées manuellement",
       "latitudeLabel": "Latitude",
       "longitudeLabel": "Longitude",
@@ -360,7 +360,11 @@
         "detectedCoords": "Détecté : {lat}, {lon}",
         "detectFailed": "Erreur : impossible de détecter le lieu"
       },
-      "queryLabel": "Votre ville ou code postal"
+      "queryLabel": "Votre ville ou code postal",
+      "clockCheck": {
+        "summary": "Vérifier les horloges",
+        "description": "Comparez l'horloge de ce navigateur avec celle de l'appareil qui fait tourner Home Screens. Si elles diffèrent, changez le fuseau horaire ci-dessus."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": ". Si Home Screens est exposé directement à Internet sans reverse proxy de confiance, ce paramètre peut être falsifié."
         }
       },
-      "forgotPasswordPart1": "Mot de passe oublié ? Supprime ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " sur l'appareil pour réinitialiser.",
       "modal": {
         "setTitle": "Définir un mot de passe",
         "changeTitle": "Changer le mot de passe",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Mot de passe défini ! L'authentification est maintenant activée.",
         "passwordChanged": "Mot de passe changé. Toutes les autres sessions ont été invalidées.",
         "authDisabled": "Authentification désactivée."
-      }
+      },
+      "forgotPasswordHint": "Mot de passe oublié ? Sur l'appareil, lancez {command}. Supprimer le fichier {file} dans le dossier Home Screens l'efface aussi."
     },
     "shared": {
       "secretField": {

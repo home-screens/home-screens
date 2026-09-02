@@ -74,7 +74,21 @@
     "loading": "Wird geladen…",
     "backToDisplay": "Zurück zum Display",
     "loginFailed": "Anmeldung fehlgeschlagen",
-    "unreachable": "Server nicht erreichbar"
+    "unreachable": "Server nicht erreichbar",
+    "errors": {
+      "wrongPassword": "Dieses Passwort stimmt nicht.",
+      "tooManyTries": {
+        "one": "Zu viele Versuche. Warte {count} Minute und versuche es dann noch einmal.",
+        "other": "Zu viele Versuche. Warte {count} Minuten und versuche es dann noch einmal."
+      }
+    },
+    "forgotPassword": {
+      "link": "Passwort vergessen?",
+      "title": "Passwort zurücksetzen",
+      "body": "Wer dieses Gerät eingerichtet hat, kann das Passwort löschen. Führe direkt am Gerät (mit angeschlossener Tastatur) oder über SSH aus:",
+      "fallback": "Falls es diesen Befehl nicht gibt: Die Datei {file} im Home-Screens-Ordner zu löschen bewirkt dasselbe.",
+      "after": "Home Screens öffnet sich danach ohne Passwort, und du kannst in den Einstellungen ein neues festlegen."
+    }
   },
   "errors": {
     "fetchFailed": "Daten konnten nicht geladen werden",

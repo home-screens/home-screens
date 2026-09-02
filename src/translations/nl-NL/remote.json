@@ -632,5 +632,20 @@
     "profileCleared": "{name} toont alle pagina's",
     "profileFailed": "Het profiel op {name} kon niet worden gewisseld",
     "hubBack": "Home Screens is er weer"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Nog geen klusjeskaart",
+      "body": "Klusjes verschijnen hier zodra er een klusjeskaart op een van je schermen staat."
+    },
+    "meals": {
+      "title": "Nog geen maaltijdplanner",
+      "body": "Maaltijden verschijnen hier zodra er een maaltijdplanner op een van je schermen staat."
+    },
+    "photos": {
+      "title": "Nog geen fotoreeks",
+      "body": "Foto's verschijnen hier zodra er een fotoreeks op een van je schermen staat."
+    },
+    "howTo": "Voeg er een toe vanaf een computer: open {url} en zet hem op een scherm."
   }
 }

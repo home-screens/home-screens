@@ -10,6 +10,15 @@ import { hasValidLocation } from '@/lib/location';
 
 const log = logger('location');
 
+// No `hour12`: this is a diagnostic readout, so each locale gets its own
+// convention rather than a hardcoded "9:32:52 PM" under German copy. Same
+// reasoning as `/api/time`.
+const CLOCK_CHECK_FORMAT: Intl.DateTimeFormatOptions = {
+  hour: 'numeric',
+  minute: '2-digit',
+  second: '2-digit',
+};
+
 interface LocationSettings {
   lat: string;
   lon: string;
@@ -207,25 +216,6 @@ export default function LocationSection({ values, onChange }: Props) {
           )}
         </div>
 
-        <div className="rounded-md bg-hs-card border border-hs-border-strong px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1">
-          <div>
-            <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.locationPage.browserLabel')}</span>
-            <p className="text-sm text-hs-text-body tabular-nums">
-              {browserTime.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}
-            </p>
-            <p className="text-[10px] text-hs-text-faint">{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
-          </div>
-          <div>
-            <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.locationPage.serverLabel')}</span>
-            <p className="text-sm text-hs-text-body tabular-nums">
-              {serverInfo
-                ? new Date(browserTime.getTime() + serverInfo.offsetMs).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZone: serverInfo.timezone })
-                : <span className="text-hs-text-faint">...</span>}
-            </p>
-            <p className="text-[10px] text-hs-text-faint">{serverInfo?.timezone ?? ''}</p>
-          </div>
-        </div>
-
         <div className="block" data-field-id="location.timezone">
           <label htmlFor={tzFieldId} className="text-xs text-hs-text-muted">
             {t('settings.locationPage.timezoneLabel')}
@@ -247,6 +237,36 @@ export default function LocationSection({ values, onChange }: Props) {
             {t('settings.locationPage.timezoneHelp')}
           </p>
         </div>
+
+        {/* Diagnostic, not a setting: folded away so the page opens on the two
+            things people came for (their town, then their timezone). Only
+            worth expanding when a clock on the wall looks wrong. */}
+        <details className="text-xs">
+          <summary className="text-hs-text-faint cursor-pointer hover:text-hs-text-muted">
+            {t('settings.locationPage.clockCheck.summary')}
+          </summary>
+          <p className="text-xs text-hs-text-faint mt-2">
+            {t('settings.locationPage.clockCheck.description')}
+          </p>
+          <div className="rounded-md bg-hs-card border border-hs-border-strong px-3 py-2.5 grid grid-cols-2 gap-x-4 gap-y-1 mt-2">
+            <div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.locationPage.browserLabel')}</span>
+              <p className="text-sm text-hs-text-body tabular-nums">
+                {browserTime.toLocaleTimeString(locale, CLOCK_CHECK_FORMAT)}
+              </p>
+              <p className="text-[10px] text-hs-text-faint">{Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
+            </div>
+            <div>
+              <span className="text-[10px] uppercase tracking-wider text-hs-text-faint">{t('settings.locationPage.serverLabel')}</span>
+              <p className="text-sm text-hs-text-body tabular-nums">
+                {serverInfo
+                  ? new Date(browserTime.getTime() + serverInfo.offsetMs).toLocaleTimeString(locale, { ...CLOCK_CHECK_FORMAT, timeZone: serverInfo.timezone })
+                  : <span className="text-hs-text-faint">...</span>}
+              </p>
+              <p className="text-[10px] text-hs-text-faint">{serverInfo?.timezone ?? ''}</p>
+            </div>
+          </div>
+        </details>
 
         <details className="text-xs">
           <summary className="text-hs-text-faint cursor-pointer hover:text-hs-text-muted">

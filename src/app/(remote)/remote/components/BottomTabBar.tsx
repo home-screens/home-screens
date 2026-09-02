@@ -41,20 +41,16 @@ const PHOTOS_TAB: Tab = {
 interface BottomTabBarProps {
   activeTab: string;
   onChange: (tab: string) => void;
-  hasChores?: boolean;
-  hasMeals?: boolean;
-  hasPhotos?: boolean;
 }
 
-export default function BottomTabBar({ activeTab, onChange, hasChores, hasMeals, hasPhotos }: BottomTabBarProps) {
+// Every tab, always. Chores/Meals/Photos used to be hidden until the matching
+// module existed, which made a fresh install look like those features were not
+// included; each one now opens on a TabNotSetUp panel explaining the gap.
+const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, MEALS_TAB, PHOTOS_TAB];
+
+export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps) {
   const t = useTranslate('remote');
-  // Timers is always present — it's the invocation surface for display
-  // timers and needs no module or config to exist, so the bar always has
-  // at least Control + Timers.
-  const tabs: Tab[] = [CONTROL_TAB, TIMERS_TAB];
-  if (hasChores) tabs.push(CHORES_TAB);
-  if (hasMeals) tabs.push(MEALS_TAB);
-  if (hasPhotos) tabs.push(PHOTOS_TAB);
+  const tabs = TABS;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">

@@ -9,7 +9,7 @@ import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherHourlyView({ config, hourly, forecast, timezone, scaledFontSize }: WeatherViewProps) {
+export default function WeatherHourlyView({ config, hourly, forecast, timezone, timeFormat, scaledFontSize }: WeatherViewProps) {
   const hours = hourly.slice(0, config.hoursToShow);
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
@@ -58,7 +58,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
                   <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
                     {new Date(hour.time).toLocaleTimeString(locale, {
                       hour: 'numeric',
-                      hour12: true,
+                      hour12: timeFormat !== '24h',
                       ...(timezone ? { timeZone: timezone } : {}),
                     })}
                   </span>

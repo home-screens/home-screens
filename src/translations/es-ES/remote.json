@@ -632,5 +632,20 @@
     "profileCleared": "{name} muestra todas las páginas",
     "profileFailed": "No se pudo cambiar el perfil en {name}",
     "hubBack": "Home Screens ha vuelto"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Aún no hay tabla de tareas",
+      "body": "Las tareas aparecerán aquí en cuanto haya una tabla de tareas en alguna de tus pantallas."
+    },
+    "meals": {
+      "title": "Aún no hay planificador de comidas",
+      "body": "Las comidas aparecerán aquí en cuanto haya un planificador de comidas en alguna de tus pantallas."
+    },
+    "photos": {
+      "title": "Aún no hay pase de fotos",
+      "body": "Las fotos aparecerán aquí en cuanto haya un pase de fotos en alguna de tus pantallas."
+    },
+    "howTo": "Añádelo desde un ordenador: abre {url} y ponlo en una pantalla."
   }
 }

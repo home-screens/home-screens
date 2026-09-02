@@ -508,6 +508,14 @@ cd "${APP_DIR}"
 # --- Step 4: Create data directory ---
 mkdir -p data
 
+# Password-reset helper. Installed as a plain command so the person who set
+# the Pi up can clear a forgotten editor password without being told to hand-
+# edit a JSON file. /login points at this name.
+if [ -f "${APP_DIR}/scripts/reset-password.sh" ]; then
+  sudo install -m 0755 "${APP_DIR}/scripts/reset-password.sh" \
+    /usr/local/bin/home-screens-reset-password
+fi
+
 # --- Step 4b: Port configuration ---
 if [ -n "${REQUESTED_PORT}" ]; then
   echo "${REQUESTED_PORT}" > data/port.conf

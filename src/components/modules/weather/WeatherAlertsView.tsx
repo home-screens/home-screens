@@ -13,7 +13,7 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
   Unknown: { bg: 'rgba(115, 115, 115, 0.15)', border: 'rgba(115, 115, 115, 0.5)', icon: 'text-neutral-400' },
 };
 
-export default function WeatherAlertsView({ alerts, scaledFontSize, timezone }: WeatherViewProps) {
+export default function WeatherAlertsView({ alerts, scaledFontSize, timezone, timeFormat }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   const now = Math.floor(Date.now() / 1000);
@@ -47,7 +47,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, timezone }: 
               day: 'numeric',
               hour: 'numeric',
               minute: '2-digit',
-              hour12: true,
+              hour12: timeFormat !== '24h',
               ...(timezone ? { timeZone: timezone } : {}),
             });
             const severityLabel = t(`weather.severity.${alert.severity}`);

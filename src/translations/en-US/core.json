@@ -74,7 +74,21 @@
     "loading": "Loading…",
     "backToDisplay": "Back to display",
     "loginFailed": "Login failed",
-    "unreachable": "Unable to reach server"
+    "unreachable": "Unable to reach server",
+    "errors": {
+      "wrongPassword": "That password isn't right.",
+      "tooManyTries": {
+        "one": "Too many tries. Wait {count} minute, then try again.",
+        "other": "Too many tries. Wait {count} minutes, then try again."
+      }
+    },
+    "forgotPassword": {
+      "link": "Forgot the password?",
+      "title": "Resetting the password",
+      "body": "Whoever set this device up can clear the password. On the device (plug in a keyboard) or over SSH, run:",
+      "fallback": "If that command isn't there, deleting the file {file} in the Home Screens folder does the same thing.",
+      "after": "Home Screens then opens without a password, and you can set a new one in Settings."
+    }
   },
   "errors": {
     "fetchFailed": "Failed to fetch data",

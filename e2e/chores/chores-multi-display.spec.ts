@@ -61,12 +61,16 @@ test('/chores finds a chore chart that lives only on a non-inherited display', a
   await expect(page.getByText('Avery')).toBeVisible();
 });
 
-test('/remote shows the Chores tab for a chore chart on a non-inherited display', async ({ page, request }) => {
+test('/remote finds a chore chart on a non-inherited display', async ({ page, request }) => {
   await putConfig(request, displayOwnedConfig());
 
   await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
 
-  await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeVisible();
+  // The tab is always on the bar now, so the real assertion is that it opens on
+  // the household's chores rather than the "no chore chart yet" panel.
+  await expect(page.getByText('No chore chart yet')).toBeHidden();
+  await expect(page.getByText('Feed the dog')).toBeVisible();
 });
 
 test('/chores shows the empty state when no display has a chore chart, even if the frozen pool does', async ({ page, request }) => {

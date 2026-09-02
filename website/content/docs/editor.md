@@ -312,7 +312,7 @@ The editor has no password until you set one. Once set, it covers the editor and
 - **Change Password** invalidates every other session. **Revoke All Sessions** does the same without changing the password.
 - **Remember Me** on the login page gives a 90-day session instead of the default 30.
 - **Display Token** can be revealed, copied, or regenerated — regenerating requires the display to reload.
-- **Forgot the password?** Delete `data/auth.json` on the device and set a new one.
+- **Forgot the password?** Run `home-screens-reset-password` on the device and set a new one. The same advice is on the `/login` page, which is where you actually are when you are locked out.
 
 #### IP Allowlist
 

@@ -10,6 +10,7 @@ import SessionRevocation from './SessionRevocation';
 import DisplayTokenPanel from './DisplayTokenPanel';
 import IpAllowlistPanel from './IpAllowlistPanel';
 import { logger } from '@/lib/logger';
+import { RESET_COMMAND, AUTH_FILE } from '@/lib/password-reset';
 
 const log = logger('security');
 
@@ -141,12 +142,13 @@ export default function SecuritySection() {
 
         {status?.authEnabled && <IpAllowlistPanel initial={ipInitial} />}
 
+        {/* Same advice /login carries, worded the same way: this page is the
+            one you cannot reach once you are locked out. */}
         <p className="text-xs text-hs-text-faint">
-          {t('settings.securityPage.forgotPasswordPart1')}
-          <code className="text-hs-text-faint">
-            {t('settings.securityPage.forgotPasswordCode')}
-          </code>
-          {t('settings.securityPage.forgotPasswordPart2')}
+          {t('settings.securityPage.forgotPasswordHint', {
+            command: RESET_COMMAND,
+            file: AUTH_FILE,
+          })}
         </p>
       </div>
 

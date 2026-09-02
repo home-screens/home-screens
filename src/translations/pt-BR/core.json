@@ -74,7 +74,21 @@
     "loading": "Carregando…",
     "backToDisplay": "Voltar para a tela",
     "loginFailed": "Falha ao entrar",
-    "unreachable": "Não foi possível alcançar o servidor"
+    "unreachable": "Não foi possível alcançar o servidor",
+    "errors": {
+      "wrongPassword": "Essa senha não está certa.",
+      "tooManyTries": {
+        "one": "Muitas tentativas. Espere {count} minuto e tente de novo.",
+        "other": "Muitas tentativas. Espere {count} minutos e tente de novo."
+      }
+    },
+    "forgotPassword": {
+      "link": "Esqueceu a senha?",
+      "title": "Redefinir a senha",
+      "body": "Quem configurou este aparelho pode apagar a senha. No próprio aparelho (com um teclado ligado) ou por SSH, rode:",
+      "fallback": "Se esse comando não existir, apagar o arquivo {file} na pasta do Home Screens faz a mesma coisa.",
+      "after": "Depois o Home Screens abre sem senha, e você pode definir uma nova nas configurações."
+    }
   },
   "errors": {
     "fetchFailed": "Falha ao carregar dados",

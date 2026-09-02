@@ -74,7 +74,21 @@
     "loading": "Chargement…",
     "backToDisplay": "Retour à l'affichage",
     "loginFailed": "Échec de la connexion",
-    "unreachable": "Impossible de joindre le serveur"
+    "unreachable": "Impossible de joindre le serveur",
+    "errors": {
+      "wrongPassword": "Ce mot de passe n'est pas le bon.",
+      "tooManyTries": {
+        "one": "Trop d'essais. Attendez {count} minute, puis réessayez.",
+        "other": "Trop d'essais. Attendez {count} minutes, puis réessayez."
+      }
+    },
+    "forgotPassword": {
+      "link": "Mot de passe oublié ?",
+      "title": "Réinitialiser le mot de passe",
+      "body": "La personne qui a installé cet appareil peut effacer le mot de passe. Sur l'appareil (avec un clavier branché) ou via SSH, lancez :",
+      "fallback": "Si cette commande n'existe pas, supprimer le fichier {file} dans le dossier Home Screens fait la même chose.",
+      "after": "Home Screens s'ouvre ensuite sans mot de passe, et vous pouvez en définir un nouveau dans les réglages."
+    }
   },
   "errors": {
     "fetchFailed": "Échec du chargement des données",

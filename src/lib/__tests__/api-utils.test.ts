@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, publicErrorResponse, createTTLCache, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
+import { errorResponse, publicErrorResponse, createTTLCache, createRateLimiter, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/config', () => ({
@@ -1500,5 +1500,34 @@ describe('fetchWithRetry', () => {
     await assertion;
     // Only the first fetch was made; the abort cancelled the delay before retry
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('createRateLimiter retryAfterMs', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('is zero while the caller still has attempts left', () => {
+    const limiter = createRateLimiter(3, 60_000);
+    limiter.recordFailure('ip');
+    limiter.recordFailure('ip');
+    expect(limiter.isLimited('ip')).toBe(false);
+    expect(limiter.retryAfterMs('ip')).toBe(0);
+  });
+
+  it('reports the remaining window once limited, and counts down', () => {
+    vi.useFakeTimers();
+    const limiter = createRateLimiter(2, 60_000);
+    limiter.recordFailure('ip');
+    limiter.recordFailure('ip');
+    expect(limiter.isLimited('ip')).toBe(true);
+    expect(limiter.retryAfterMs('ip')).toBe(60_000);
+
+    vi.advanceTimersByTime(45_000);
+    expect(limiter.retryAfterMs('ip')).toBe(15_000);
+  });
+
+  it('is zero for an IP that never failed', () => {
+    const limiter = createRateLimiter(2, 60_000);
+    expect(limiter.retryAfterMs('stranger')).toBe(0);
   });
 });

@@ -228,8 +228,15 @@ sudo reboot
 ### Forgot Password
 
 ```bash
+home-screens-reset-password
+```
+
+Home Screens then opens without a password, and a new one can be set in
+Settings > Security. On installs that predate the command, deleting the file
+does the same thing:
+
+```bash
 rm /opt/home-screens/current/data/auth.json
-sudo systemctl restart home-screens
 ```
 
 ## Documentation

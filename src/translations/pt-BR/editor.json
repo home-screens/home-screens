@@ -340,10 +340,10 @@
       "serverLabel": "Servidor",
       "timezoneLabel": "Fuso horário",
       "timezoneSystemDefault": "Padrão do sistema ({timezone})",
-      "timezoneHelp": "Substitui o fuso horário do sistema operacional do servidor para relógio, saudação e outros módulos baseados em hora.",
+      "timezoneHelp": "Normalmente é o mesmo da sua cidade. Mude só se os relógios parecerem errados.",
       "queryPlaceholder": "CEP ou nome da cidade",
       "lookUpButton": "Buscar",
-      "detectButton": "Detectar",
+      "detectButton": "Detectar minha localização",
       "editCoordinates": "Editar coordenadas manualmente",
       "latitudeLabel": "Latitude",
       "longitudeLabel": "Longitude",
@@ -360,7 +360,11 @@
         "detectedCoords": "Detectado: {lat}, {lon}",
         "detectFailed": "Erro: não foi possível detectar a localização"
       },
-      "queryLabel": "Sua cidade ou CEP"
+      "queryLabel": "Sua cidade ou CEP",
+      "clockCheck": {
+        "summary": "Conferir os relógios",
+        "description": "Compare o relógio deste navegador com o do aparelho que roda o Home Screens. Se não baterem, mude o fuso horário acima."
+      }
     },
     "calendarPage": {
       "google": {
@@ -1512,9 +1516,6 @@
           "part2": ". Se o Home Screens estiver exposto diretamente à internet sem um proxy reverso confiável, esta configuração pode ser falsificada."
         }
       },
-      "forgotPasswordPart1": "Esqueceu sua senha? Exclua ",
-      "forgotPasswordCode": "data/auth.json",
-      "forgotPasswordPart2": " no dispositivo para redefinir.",
       "modal": {
         "setTitle": "Definir senha",
         "changeTitle": "Alterar senha",
@@ -1541,7 +1542,8 @@
         "passwordSet": "Senha definida! A autenticação agora está ativada.",
         "passwordChanged": "Senha alterada. Todas as outras sessões foram invalidadas.",
         "authDisabled": "Autenticação desativada."
-      }
+      },
+      "forgotPasswordHint": "Esqueceu a senha? No aparelho, rode {command}. Apagar o arquivo {file} na pasta do Home Screens também limpa a senha."
     },
     "shared": {
       "secretField": {

@@ -632,5 +632,20 @@
     "profileCleared": "{name} está mostrando todas as páginas",
     "profileFailed": "Não foi possível trocar o perfil em {name}",
     "hubBack": "O Home Screens voltou"
+  },
+  "tabNotSetUp": {
+    "chores": {
+      "title": "Ainda não há quadro de tarefas",
+      "body": "As tarefas aparecem aqui assim que houver um quadro de tarefas em alguma das suas telas."
+    },
+    "meals": {
+      "title": "Ainda não há planejador de refeições",
+      "body": "As refeições aparecem aqui assim que houver um planejador de refeições em alguma das suas telas."
+    },
+    "photos": {
+      "title": "Ainda não há apresentação de fotos",
+      "body": "As fotos aparecem aqui assim que houver uma apresentação de fotos em alguma das suas telas."
+    },
+    "howTo": "Adicione a partir de um computador: abra {url} e coloque em uma tela."
   }
 }

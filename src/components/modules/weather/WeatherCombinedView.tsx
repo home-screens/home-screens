@@ -12,7 +12,7 @@ import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
+export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, timeFormat, scaledFontSize }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -79,7 +79,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
                   <span style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.dim }}>
                     {new Date(hour.time).toLocaleTimeString(locale, {
                       hour: 'numeric',
-                      hour12: true,
+                      hour12: timeFormat !== '24h',
                       ...(timezone ? { timeZone: timezone } : {}),
                     })}
                   </span>

@@ -72,17 +72,20 @@ test.afterEach(async ({ sandboxDir }) => {
   createdFolders.length = 0;
 });
 
-test('the Photos tab is gated on a full-screen photo module', async ({ page, request }) => {
-  // A chore module alone renders the bottom bar (Control + Chores) but no Photos.
+test('the Photos tab explains itself until a full-screen photo module exists', async ({ page, request }) => {
+  // A chore module alone: the Photos tab is still on the bar, but opening it
+  // says why it is empty instead of showing an upload surface with nowhere to
+  // appear.
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'Screen One', [choreChartModule()])] }));
   await page.goto('/remote');
   // `exact` matters on the tab locators: the Settings sheet (rendered but
   // off-screen) carries "Download config, chores, meals & rewards", which a
   // substring match picks up as a second "Chores" button.
   await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Photos', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Photos', exact: true }).click();
+  await expect(page.getByText('No photo slideshow yet')).toBeVisible();
 
-  // Adding a full-screen photo module surfaces the Photos tab.
+  // Adding a full-screen photo module turns the tab into the real surface.
   await putConfig(request, photoConfig());
   await page.reload();
   const photosTab = page.getByRole('button', { name: 'Photos', exact: true });

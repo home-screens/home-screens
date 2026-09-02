@@ -105,21 +105,31 @@ test('next-screen button enqueues a next command', async ({ page, request }) => 
     .toContain('next-screen');
 });
 
-test('tab bar is hidden without chore/meal/photo modules', async ({ page }) => {
+test('family tabs stay on the bar without their modules and explain the gap', async ({ page }) => {
   await page.goto('/remote');
   await expect(page.getByRole('button', { name: 'Sleep Display' })).toBeVisible();
   // exact match: the backup action's accessible name contains the word "chores"
   // ("Download config, chores, meals & rewards"), so a substring match would
   // false-positive. The real tab-bar button is aria-label="Chores".
-  await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeHidden();
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await expect(page.getByText('No chore chart yet')).toBeVisible();
+  // The way out is named, not implied.
+  await expect(page.getByText('/editor')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Meals', exact: true }).click();
+  await expect(page.getByText('No meal planner yet')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Photos', exact: true }).click();
+  await expect(page.getByText('No photo slideshow yet')).toBeVisible();
 });
 
-test('chores tab appears when a chore-chart module exists', async ({ page, request }) => {
+test('chores tab shows the real chart once a chore-chart module exists', async ({ page, request }) => {
   await putConfig(request, baseConfig({
     screens: [makeScreen('s1', 'S1', [choreChartModule()])],
   }));
   await page.goto('/remote');
-  await expect(page.getByRole('button', { name: 'Chores', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await expect(page.getByText('No chore chart yet')).toBeHidden();
 });
 
 test('the wake button appears for an asleep display and dispatches a wake command', async ({ page, request }) => {

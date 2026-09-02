@@ -387,3 +387,29 @@ test('calendar module marks a failing source: banner and saved row suffix', asyn
   await expect(mod.locator('[data-event-id="bad-1"]').first()).toContainText('saved');
   await expect(mod.locator('[data-event-id="ok-1"]').first()).not.toContainText('saved');
 });
+
+/**
+ * Hour labels on the wall follow the household 12/24-hour setting, the same
+ * one the clock reads. They used to be hardcoded to 12-hour, so a German
+ * household saw "10 PM 11 PM 12 AM" under a clock reading "22:00".
+ */
+test('weather hourly labels follow the household clock setting', async ({ page, request }) => {
+  await stubModuleData(page);
+  // Fixed timezone so the fixture's 13:00Z lands on a known wall hour.
+  const settings = { ...matrixSettings(), timezone: 'UTC' };
+
+  const twelve = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('weather', { view: 'hourly' })])],
+    settings: { ...settings, timeFormat: '12h' },
+  });
+  let display = await renderOnDisplay(page, request, twelve);
+  await expect(display.module('weather')).toContainText('1 PM');
+
+  const twentyFour = baseConfig({
+    screens: [makeScreen('s1', 'S1', [buildModuleInstance('weather', { view: 'hourly' })])],
+    settings: { ...settings, timeFormat: '24h' },
+  });
+  display = await renderOnDisplay(page, request, twentyFour);
+  await expect(display.module('weather')).toContainText('13');
+  await expect(display.module('weather')).not.toContainText('PM');
+});

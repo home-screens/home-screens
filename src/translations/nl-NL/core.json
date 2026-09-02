@@ -74,7 +74,21 @@
     "loading": "Laden…",
     "backToDisplay": "Terug naar display",
     "loginFailed": "Aanmelden mislukt",
-    "unreachable": "Server niet bereikbaar"
+    "unreachable": "Server niet bereikbaar",
+    "errors": {
+      "wrongPassword": "Dat wachtwoord klopt niet.",
+      "tooManyTries": {
+        "one": "Te veel pogingen. Wacht {count} minuut en probeer het dan opnieuw.",
+        "other": "Te veel pogingen. Wacht {count} minuten en probeer het dan opnieuw."
+      }
+    },
+    "forgotPassword": {
+      "link": "Wachtwoord vergeten?",
+      "title": "Wachtwoord opnieuw instellen",
+      "body": "Wie dit apparaat heeft ingesteld, kan het wachtwoord wissen. Voer op het apparaat zelf (met een toetsenbord eraan) of via SSH uit:",
+      "fallback": "Bestaat die opdracht niet, dan doet het verwijderen van het bestand {file} in de Home Screens-map hetzelfde.",
+      "after": "Home Screens opent daarna zonder wachtwoord en je kunt in de instellingen een nieuw wachtwoord kiezen."
+    }
   },
   "errors": {
     "fetchFailed": "Gegevens konden niet worden geladen",

@@ -74,7 +74,21 @@
     "loading": "Henter…",
     "backToDisplay": "Tilbage til skærm",
     "loginFailed": "Logind fejlede",
-    "unreachable": "Kan ikke oprette forbindelse til serveren"
+    "unreachable": "Kan ikke oprette forbindelse til serveren",
+    "errors": {
+      "wrongPassword": "Det kodeord passer ikke.",
+      "tooManyTries": {
+        "one": "For mange forsøg. Vent {count} minut, og prøv så igen.",
+        "other": "For mange forsøg. Vent {count} minutter, og prøv så igen."
+      }
+    },
+    "forgotPassword": {
+      "link": "Glemt kodeordet?",
+      "title": "Nulstil kodeordet",
+      "body": "Den, der satte enheden op, kan slette kodeordet. Kør på selve enheden (med et tastatur i) eller over SSH:",
+      "fallback": "Findes den kommando ikke, gør det det samme at slette filen {file} i Home Screens-mappen.",
+      "after": "Derefter åbner Home Screens uden kodeord, og du kan vælge et nyt under indstillinger."
+    }
   },
   "errors": {
     "fetchFailed": "Hentning af data fejlede",

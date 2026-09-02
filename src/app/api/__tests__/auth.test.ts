@@ -62,6 +62,11 @@ const statusRoute = await import('@/app/api/auth/status/route');
 const logoutRoute = await import('@/app/api/auth/logout/route');
 const displayTokenRoute = await import('@/app/api/auth/display-token/route');
 
+// Mirrors the login route's limiter. Deliberately generous: the password gets
+// typed on a phone keyboard, and a handful of typos must not lock a household
+// out of its own hub.
+const LOGIN_MAX_ATTEMPTS = 10;
+
 /* ─── Helpers ────────────────────────────────── */
 
 function makePostRequest(
@@ -135,6 +140,7 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(401);
     expect(json.error).toBe('Invalid password');
+    expect(json.code).toBe('invalid_password');
   });
 
   it('returns 400 when password is missing', async () => {
@@ -184,11 +190,10 @@ describe('POST /api/auth/login', () => {
     expect(json.error).toBe('Auth state invalid');
   });
 
-  it('rate-limits after 5 failed attempts from the same IP', async () => {
+  it('rate-limits after the allowed number of failed attempts from one IP', async () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
 
-    // Make 5 failed attempts
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < LOGIN_MAX_ATTEMPTS; i++) {
       const res = await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
           'x-hs-client-ip': '10.0.0.99',
@@ -197,7 +202,7 @@ describe('POST /api/auth/login', () => {
       expect(res.status).toBe(401);
     }
 
-    // 6th attempt should be rate-limited (returns 429 before even checking password)
+    // One more attempt is rate-limited (429 before even checking the password)
     const res = await loginRoute.POST(
       makePostRequest('/api/auth/login', { password: 'wrong' }, {
         'x-hs-client-ip': '10.0.0.99',
@@ -207,16 +212,21 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(429);
     expect(json.error).toMatch(/Too many failed attempts/);
-    // verifyPassword should not be called on a rate-limited request
-    // (5 calls from the loop, none for the 6th)
-    expect(verifyPassword).toHaveBeenCalledTimes(5);
+    // The login page renders `code` + `retryAfterSeconds`, not `error`, so the
+    // red line is in the reader's language and can name the wait.
+    expect(json.code).toBe('rate_limited');
+    expect(json.retryAfterSeconds).toBeGreaterThan(0);
+    expect(json.retryAfterSeconds).toBeLessThanOrEqual(15 * 60);
+    expect(res.headers.get('Retry-After')).toBe(String(json.retryAfterSeconds));
+    // verifyPassword is not called on a rate-limited request
+    expect(verifyPassword).toHaveBeenCalledTimes(LOGIN_MAX_ATTEMPTS);
   });
 
   it('rate limit does not affect different IPs', async () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
 
     // Exhaust rate limit for IP 10.0.0.50
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < LOGIN_MAX_ATTEMPTS; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
           'x-hs-client-ip': '10.0.0.50',
@@ -272,9 +282,9 @@ describe('POST /api/auth/login', () => {
     );
     expect(successRes.status).toBe(200);
 
-    // After success, 5 more failures should be required to trigger rate limit
+    // After success, the full allowance is required again to trigger the limit
     vi.mocked(verifyPassword).mockResolvedValue(false);
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < LOGIN_MAX_ATTEMPTS; i++) {
       const res = await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
           'x-hs-client-ip': '10.0.0.200',
@@ -296,7 +306,7 @@ describe('POST /api/auth/login', () => {
     vi.mocked(verifyPassword).mockResolvedValue(false);
 
     // Exhaust rate limit
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < LOGIN_MAX_ATTEMPTS; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
           'x-hs-client-ip': '10.0.0.77',
@@ -321,7 +331,7 @@ describe('POST /api/auth/login', () => {
     // Without a server-stamped x-hs-client-ip, every caller lands in one
     // shared 'unknown' bucket no matter what X-Forwarded-For claims.
     // Exhaust it while varying the spoofed header each attempt.
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < LOGIN_MAX_ATTEMPTS; i++) {
       await loginRoute.POST(
         makePostRequest('/api/auth/login', { password: 'wrong' }, {
           'x-forwarded-for': `1.2.3.${i}`,
