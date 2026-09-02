@@ -5,6 +5,7 @@ import { parseDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { ModuleEmptyBody } from '../ModuleStates';
 import { formatElapsed } from './elapsed-format';
 import type { ClockViewProps } from './types';
 
@@ -29,14 +30,9 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
     return (
       <div
         ref={containerRef}
-        className="w-full h-full flex flex-col items-center justify-center"
+        className="w-full h-full"
       >
-        <div
-          className="tracking-wide"
-          style={{ fontSize: scaledFontSize * 1.1, opacity: TEXT_OPACITY.tertiary }}
-        >
-          {t('clock.elapsed.setReferenceTime')}
-        </div>
+        <ModuleEmptyBody type="clock" message={t('clock.elapsed.setReferenceTime')} />
       </div>
     );
   }

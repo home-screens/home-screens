@@ -50,6 +50,12 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
         </div>
       </div>
 
+      <Toggle
+        label={t('configSections.display-control.compact')}
+        checked={c.compact === true}
+        onChange={(v) => set({ compact: v })}
+      />
+
       <LabeledField label={t('configSections.display-control.defaultTarget')}>
         <select
           value={c.defaultTarget}
@@ -61,7 +67,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
           {!legacy && <option value="all">{t('configSections.display-control.targetAll')}</option>}
           {displays.map((d) => (
             <option key={d.id} value={d.id}>
-              {d.name}
+              {d.name.trim() || d.id}
             </option>
           ))}
         </select>
@@ -74,7 +80,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
 
       <Toggle
         label={t('configSections.display-control.allowRetargeting')}
-        checked={!legacy && (c.allowRetargeting ?? false)}
+        checked={!legacy && c.allowRetargeting === true}
         disabled={legacy}
         onChange={(v) => set({ allowRetargeting: v })}
       />

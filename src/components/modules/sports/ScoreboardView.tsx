@@ -2,7 +2,7 @@
 
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import type { Game } from '@/lib/espn';
-import { TeamLogo, isWinner, formatScore, GameStatus } from './shared';
+import { TeamLogo, isWinner, formatScore, GameStatus, type KickoffFn } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
 
 function TeamRow({
@@ -48,7 +48,7 @@ function TeamRow({
   );
 }
 
-export function ScoreboardView({ games }: { games: Game[] }) {
+export function ScoreboardView({ games, kickoff }: { games: Game[]; kickoff: KickoffFn }) {
   const index = useRotatingIndex(games.length, 10000);
   const game = games[index];
 
@@ -93,7 +93,7 @@ export function ScoreboardView({ games }: { games: Game[] }) {
       <div className="flex items-center justify-between">
         <GameStatus
           state={game.state}
-          shortDetail={game.shortDetail}
+          kickoff={kickoff(game)}
           status={game.status}
           fontSize="0.7em"
           gap="gap-1.5"

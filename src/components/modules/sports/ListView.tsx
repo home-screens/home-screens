@@ -1,7 +1,7 @@
 import type { Game } from '@/lib/espn';
-import { TeamLogo, isWinner, formatScore, GameStatus } from './shared';
+import { TeamLogo, isWinner, formatScore, GameStatus, type KickoffFn } from './shared';
 
-export function ListView({ games }: { games: Game[] }) {
+export function ListView({ games, kickoff }: { games: Game[]; kickoff: KickoffFn }) {
   return (
     <div className="flex flex-col justify-center h-full w-full gap-0.5 px-2 overflow-hidden">
       {games.map((game) => {
@@ -59,7 +59,7 @@ export function ListView({ games }: { games: Game[] }) {
             <div className="shrink-0 ml-auto">
               <GameStatus
                 state={game.state}
-                shortDetail={game.shortDetail}
+                kickoff={kickoff(game)}
                 status={game.status}
                 dotSize="w-1 h-1"
                 fontSize="0.55em"

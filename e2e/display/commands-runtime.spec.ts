@@ -162,7 +162,7 @@ test('sleep blacks out the display; wake restores content and resumes a paused r
   // which screen we're parked on (rotation may have advanced once before the
   // tap landed, so read it dynamically rather than assuming ALPHA).
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
   const parkedOnAlpha = await page.getByText('SLEEP SCREEN ALPHA', { exact: true }).isVisible();
 
   // Sleep → the full-screen dim overlay appears (opacity animates to 1).
@@ -174,7 +174,7 @@ test('sleep blacks out the display; wake restores content and resumes a paused r
   // (ScreenRotator), and auto-rotation resumes onto the other screen.
   await sendCommand(request, id, 'wake');
   await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
-  await expect(page.getByText('PAUSED')).toHaveCount(0);
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
   const resumedText = parkedOnAlpha ? 'SLEEP SCREEN BRAVO' : 'SLEEP SCREEN ALPHA';
   await expect(page.getByText(resumedText, { exact: true })).toBeVisible({ timeout: 8000 });
 });

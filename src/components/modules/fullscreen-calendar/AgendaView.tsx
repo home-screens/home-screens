@@ -155,7 +155,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
             return (
               <div
                 key={`${ev.id}-${date.toDateString()}`}
-                className="fsc-event-block"
+                className="fsc-event-block fsc-tap-row"
                 data-event-id={ev.id}
                 role="article"
                 aria-label={eventAriaLabel(t, ev, { allDay: true })}
@@ -215,7 +215,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           return (
             <div
               key={`${ev.id}-${date.toDateString()}`}
-              className="fsc-event-block"
+              className="fsc-event-block fsc-tap-row"
               data-event-id={ev.id}
               role="article"
               aria-label={ariaLabel}

@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Rien ici pour l'instant",
-    "body": "Ouvre l'éditeur sur un autre appareil pour créer ton premier écran.",
-    "hideHint": "Masquer ceci dans Paramètres → Écran"
+    "headline": "Rien sur cet écran pour l'instant",
+    "body": "Sur un téléphone ou un ordinateur connecté à ton Wi-Fi, ouvre",
+    "hideHint": "Tu préfères un écran vide ? Paramètres › Écran › Afficher cette astuce"
+  },
+  "pagination": {
+    "paused": "En pause",
+    "resumesIn": "Reprend dans {time} · touche pour reprendre",
+    "tapToResume": "touche pour reprendre",
+    "minutes": "{count} min",
+    "seconds": "{count} s"
   },
   "displayNotFound": {
     "notRegistered": "Affichage non enregistré",

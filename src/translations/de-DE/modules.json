@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Uhr",
     "am": "vorm.",
     "pm": "nachm.",
     "weekShort": "Woche",
@@ -17,7 +18,7 @@
       "afterDusk": "nach Einbruch der Dunkelheit"
     },
     "elapsed": {
-      "setReferenceTime": "Bezugszeit festlegen",
+      "setReferenceTime": "Wähle im Editor eine Startzeit, dann läuft der Zähler hier",
       "since": "seit {label}",
       "until": "bis {label}",
       "notYet": "noch nicht",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "Noch keine Countdowns. Lege einen im Editor an.",
+    "name": "Countdown",
+    "noEvents": "Füge im Editor ein Datum hinzu, dann startet der Countdown hier",
     "noUpcoming": "Keine bevorstehenden Ereignisse",
     "agoSuffix": "(vergangen)",
     "todayBang": "Heute!",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} weitere",
     "fromTime": "Ab {time}",
     "untilTime": "Bis {time}",
-    "savedFrom": "Gespeichert um {time}",
-    "savedEvents": "Gespeicherte Termine werden angezeigt",
     "cantLoadEvents": "Termine können gerade nicht geladen werden",
     "weekOf": "Woche vom {date}",
     "legendLabel": "Kalenderquellen",
     "publicHolidays": "Feiertage",
     "sourceNotUpdating": "{name} wird seit {time} nicht aktualisiert",
     "sourceNotUpdatingNoTime": "{name} wird nicht aktualisiert",
+    "sourcesNotUpdating": "Einige Kalender werden nicht aktualisiert",
+    "notUpdatingSince": "Seit {time} nicht aktualisiert",
+    "signInAgain": "Der Kalender muss sich neu anmelden",
+    "signInAgainHint": "Öffne Einstellungen › Kalender an einem Computer und verbinde Google Kalender.",
+    "noSourcesYet": "Noch keine Kalender ausgewählt",
+    "noSourcesYetHint": "Wähle unter Einstellungen › Kalender aus, welche Kalender angezeigt werden.",
     "savedShort": "gespeichert",
     "holiday": "Feiertag",
     "birthday": "Geburtstag",
@@ -180,8 +186,6 @@
     },
     "fromTime": "Ab {time}",
     "untilTime": "Bis {time}",
-    "savedFrom": "Gespeichert um {time}",
-    "savedEvents": "Gespeicherte Termine werden angezeigt",
     "cantLoadEvents": "Termine können gerade nicht geladen werden",
     "weekOf": "Woche vom {date}",
     "holiday": "Feiertag",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Spielstände werden geladen…",
-    "noGames": "Keine Spiele gefunden"
+    "noGames": "Keine Spiele gefunden",
+    "today": "Heute",
+    "tomorrow": "Morgen"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "Keine Tabelle verfügbar"
   },
   "todo": {
+    "name": "Aufgabenliste",
     "defaultTitle": "Aufgaben",
-    "noTasksYet": "Noch keine Aufgaben"
+    "noTasksYet": "Füge im Editor Aufgaben hinzu, dann erscheinen sie hier",
+    "tapHint": "Tippe auf ein Kästchen, um es abzuhaken"
   },
   "traffic": {
+    "name": "Verkehr & Pendelwege",
     "sectionTitle": "Verkehr",
-    "noRoutes": "Keine Routen eingerichtet",
+    "noRoutes": "Füge im Editor eine Route hinzu, dann erscheinen die Fahrzeiten hier",
     "loading": "Verkehr wird geladen…",
     "unitMin": "Min.",
     "mockNotice": "Beispielwerte, bis ein Verkehrsschlüssel hinzugefügt wird",
     "needsKey": "Verkehr braucht einen Google-Maps- oder TomTom-Schlüssel"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "oder wähle einen Ordner im Editor",
     "noPhotoSelected": "Kein Foto ausgewählt",
     "noPhotoSelectedHint": "Wähle ein Foto im Editor-Bereich aus.",
     "noPhotosYet": "Noch keine Fotos",
-    "noPhotosYetHint": "Lade Fotos von deinem Telefon über den Fotos-Tab unter /remote hoch oder wähle einen Ordner im Editor.",
+    "noPhotosYetHint": "Füge Fotos von deinem Telefon hinzu unter",
     "noPhotosYetHintICloud": "Prüfe den Album-Link im Editor und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist.",
     "noPhotosYetHintOneDrive": "Prüfe den OneDrive-Ordner im Editor."
   },
@@ -696,9 +706,10 @@
     }
   },
   "news": {
+    "name": "Nachrichten-Schlagzeilen",
     "loading": "Nachrichten werden geladen…",
     "empty": "Keine Schlagzeilen",
-    "noFeeds": "Füge im Editor einen Nachrichten-Feed hinzu",
+    "noFeeds": "Füge im Editor einen Nachrichten-Feed hinzu, dann erscheinen die Schlagzeilen hier",
     "allUnavailable": "Nachrichten sind gerade nicht verfügbar",
     "header": "Nachrichten",
     "localNews": "Lokale Nachrichten",
@@ -731,7 +742,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "Keine Affirmationen konfiguriert",
+    "name": "Affirmationen",
+    "noEntries": "Wähle im Editor eine Kategorie, dann erscheinen die Affirmationen hier",
     "categories": {
       "affirmations": "Affirmation",
       "compliments": "Kompliment",
@@ -803,24 +815,32 @@
     "emptyOneDrive": "Noch keine Fotos. Prüfe den OneDrive-Ordner im Editor."
   },
   "video": {
+    "name": "Video",
     "loading": "Video wird geladen…",
-    "empty": "Wähle ein Video aus",
+    "empty": "Wähle im Editor ein Video aus, dann läuft es hier",
     "unavailable": "Dieses Video ist nicht mehr verfügbar"
   },
   "icon": {
-    "empty": "Kein Symbol ausgewählt"
+    "name": "Symbol",
+    "empty": "Wähle im Editor ein Symbol aus, dann erscheint es hier"
   },
   "sticky-note": {
-    "empty": "Kein Inhalt"
+    "name": "Notizzettel",
+    "empty": "Schreibe im Editor eine Notiz, dann erscheint sie hier"
   },
   "iframe": {
-    "noUrl": "Keine URL festgelegt",
+    "name": "Web-Einbettung",
+    "noUrl": "Füge im Editor eine Webadresse hinzu, dann erscheint die Seite hier",
     "embeddedTitle": "Eingebetteter Inhalt"
   },
+  "image": {
+    "name": "Bild",
+    "empty": "Wähle im Editor ein Bild aus, dann erscheint es hier"
+  },
   "qr-code": {
-    "scanToConnect": "Zum Verbinden scannen",
-    "configureWifi": "WLAN-Netzwerk konfigurieren",
-    "configureData": "QR-Daten konfigurieren"
+    "name": "QR-Code",
+    "empty": "Füge im Editor einen Link oder dein WLAN hinzu, dann erscheint es hier",
+    "scanToConnect": "Zum Verbinden scannen"
   },
   "display-control": {
     "prev": "Zurück",
@@ -830,7 +850,18 @@
     "brightness": "Helligkeit",
     "closeBrightness": "Helligkeit schließen",
     "ariaPrev": "Vorheriger Bildschirm",
-    "ariaNext": "Nächster Bildschirm"
+    "ariaNext": "Nächster Bildschirm",
+    "holdSub": "1 Sekunde halten",
+    "holdShort": "halten",
+    "keepHolding": "Weiter halten zum Schlafen",
+    "wake": "Aufwecken",
+    "wakeSub": "Bildschirm wieder an",
+    "controls": "Steuert",
+    "thisDisplay": "Dieses Display",
+    "thisDisplayTag": "dieses Display",
+    "allDisplays": "Alle Displays",
+    "brightnessValue": "Helligkeit {percent} %",
+    "brightnessUnknown": "Helligkeit, noch nicht gemeldet"
   },
   "common": {
     "locationNotConfigured": "Standort nicht konfiguriert",

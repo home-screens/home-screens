@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Der er ikke noget her endnu",
-    "body": "Åbn editoren på en anden enhed for at bygge din første skærm.",
-    "hideHint": "Skjul dette under Indstillinger → Skærm"
+    "headline": "Der er ikke noget på denne skærm endnu",
+    "body": "Åbn på en telefon eller computer på dit hjemme-wi-fi",
+    "hideHint": "Vil du hellere have en tom skærm? Indstillinger › Skærm › Vis dette tip"
+  },
+  "pagination": {
+    "paused": "Sat på pause",
+    "resumesIn": "Fortsætter om {time} · tryk for at fortsætte nu",
+    "tapToResume": "tryk for at fortsætte",
+    "minutes": "{count} min",
+    "seconds": "{count} sek."
   },
   "displayNotFound": {
     "notRegistered": "Skærm ikke registreret",

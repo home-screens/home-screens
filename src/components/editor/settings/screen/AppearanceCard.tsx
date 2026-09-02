@@ -33,6 +33,7 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
     pauseTimeoutSeconds,
     swipeEnabled,
     setupHintEnabled,
+    showRotationProgress,
   } = values;
 
   // TRANSITION_OPTIONS is exported and consumed by multiple call sites
@@ -116,6 +117,18 @@ export default function AppearanceCard({ values, onChange }: AppearanceCardProps
         />
         <FieldHelp>
           {t('settings.defaultDisplayPage.fields.swipeEnabledHelp')}
+        </FieldHelp>
+      </FieldRow>
+
+      <FieldRow fieldId="display.showRotationProgress">
+        <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationProgressLabel')}</FieldLabel>
+        <Toggle
+          label={t('settings.defaultDisplayPage.fields.rotationProgressToggle')}
+          checked={showRotationProgress}
+          onChange={(v) => onChange({ showRotationProgress: v })}
+        />
+        <FieldHelp>
+          {t('settings.defaultDisplayPage.fields.rotationProgressHelp')}
         </FieldHelp>
       </FieldRow>
 

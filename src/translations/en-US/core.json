@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Nothing here yet",
-    "body": "Open the editor on another device to build your first screen.",
-    "hideHint": "Hide this in Settings → Screen"
+    "headline": "Nothing on this screen yet",
+    "body": "On a phone or computer on your home Wi-Fi, open",
+    "hideHint": "Want a blank screen instead? Settings › Screen › Show this hint"
+  },
+  "pagination": {
+    "paused": "Paused",
+    "resumesIn": "Resumes in {time} · tap to resume now",
+    "tapToResume": "tap to resume",
+    "minutes": "{count} min",
+    "seconds": "{count} sec"
   },
   "displayNotFound": {
     "notRegistered": "Display Not Registered",

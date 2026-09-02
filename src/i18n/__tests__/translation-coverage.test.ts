@@ -32,6 +32,9 @@ import { getAllModuleDefinitions } from '@/lib/module-registry';
 const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // The product name, rendered as the watermark's eyebrow on an empty display.
   'core|emptyDisplay.eyebrow',
+  // Unit abbreviations on the paused pill's countdown ("4 min", "45 s").
+  'core|pagination.minutes',
+  'core|pagination.seconds',
   'core|meal.tags.snack',
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',
@@ -299,6 +302,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|clock.pm',
     'modules|fullscreen-calendar.am',
     'modules|fullscreen-calendar.pm',
+    'modules|video.name',
     // "Offline" is the standard word in Danish.
     'remote|displayHero.stateOffline',
   ]),
@@ -350,8 +354,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|chore-chart.iconLabels.puzzle',
     'modules|chore-chart.iconLabels.sticker',
     'modules|chore-chart.iconLabels.ticket',
+    'modules|countdown.name',
     'modules|meal-planner.slotShort.snack',
     'modules|meal-planner.slots.snack',
+    'modules|video.name',
     'modules|weather.tableHeaders.wind',
     'remote|alertSender.titlePlaceholder',
     'remote|backupReminder.backupButton',
@@ -520,6 +526,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|affirmations.categories.affirmations',
     'modules|affirmations.categories.compliments',
     'modules|affirmations.categories.gratitude',
+    'modules|affirmations.name',
     'modules|chore-chart.iconLabels.badge-check',
     'modules|chore-chart.iconLabels.chef-hat',
     'modules|chore-chart.iconLabels.crown',
@@ -540,6 +547,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|fullscreen-chore-chart.ticketCount',
     'modules|fullscreen-chore-chart.tickets',
     'modules|fullscreen-chore-chart.ticketsCount',
+    'modules|image.name',
     'remote|alertSender.messageLabel',
     'remote|alertSender.typeUrgent',
     'remote|choresManage.choreForm.dateLabel',
@@ -667,6 +675,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|weather.highLow',
     'modules|weather.tableHeaders.wind',
     'modules|year-progress.week',
+    'modules|video.name',
     'remote|choresManage.choreForm.ticketsLabel',
     'remote|choresTab.ticketCountPlural',
     'remote|choresTab.ticketCountSingular',

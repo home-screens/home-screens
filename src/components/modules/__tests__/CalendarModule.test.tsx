@@ -978,3 +978,86 @@ describe('gridDayLabelScale sizes the date furniture only', () => {
     expect(dayNames(junk.container)[0].style.fontSize).toBe('0.6em');
   });
 });
+
+// ─── Feed health: not-updating badge, setup cards, tap chevrons ───
+
+describe('CalendarModule feed health', () => {
+  const upcoming = [events[2]];
+  const HOUR = 60 * 60 * 1000;
+
+  it('badges kept events quietly with the time of the last good refresh', () => {
+    const { getByRole, queryByTestId } = render(
+      <Wrapper>
+        <CalendarModule config={makeConfig()} style={style} events={upcoming}
+          calendarStatus={{ error: 'boom', updatedAt: NOW.getTime() - 3 * HOUR }} />
+      </Wrapper>,
+    );
+    const badge = getByRole('status');
+    expect(badge.textContent).toBe('Not updating since 9:00 AM');
+    expect(badge.hasAttribute('data-loud')).toBe(false);
+    expect(queryByTestId('calendar-stale-edge')).toBeNull();
+  });
+
+  it('gets loud with a tinted card edge once the refresh has failed for a day', () => {
+    const { getByRole, getByTestId, queryByText } = render(
+      <Wrapper>
+        <CalendarModule config={makeConfig()} style={style} events={upcoming}
+          calendarStatus={{ error: 'boom', updatedAt: NOW.getTime() - 25 * HOUR }} />
+      </Wrapper>,
+    );
+    const badge = getByRole('status');
+    expect(badge.textContent).toBe('Not updating since yesterday, 11:00 AM');
+    expect(badge.hasAttribute('data-loud')).toBe(true);
+    expect(getByTestId('calendar-stale-edge')).not.toBeNull();
+    // The kept events stay on screen behind the badge.
+    expect(queryByText('Tomorrow Planning')).not.toBeNull();
+  });
+
+  it('shows the no-calendars card instead of an empty day when nothing is picked', () => {
+    const { getByTestId, getByText } = render(
+      <Wrapper><CalendarModule config={makeConfig()} style={style} calendarSetup="noSources" /></Wrapper>,
+    );
+    expect(getByTestId('calendar-setup-card').getAttribute('data-setup')).toBe('noSources');
+    expect(getByText('No calendars picked yet')).not.toBeNull();
+    expect(getByText('Choose which calendars to show in Settings › Calendar.')).not.toBeNull();
+  });
+
+  it('shows the sign-in card instead of saved events when every source needs a Google sign-in', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <Wrapper>
+        <CalendarModule config={makeConfig()} style={style} events={upcoming}
+          sourceStatus={[{ id: 'g1', name: 'family', ok: false, messageKey: 'googleNotSignedIn', fetchedAt: null }]} />
+      </Wrapper>,
+    );
+    expect(getByTestId('calendar-setup-card').getAttribute('data-setup')).toBe('signIn');
+    expect(getByText('Calendar needs to sign in again')).not.toBeNull();
+    expect(queryByText('Tomorrow Planning')).toBeNull();
+  });
+
+  it('names a single failing source and keeps live events when another source still updates', () => {
+    const { getByRole, queryByText, queryByTestId } = render(
+      <Wrapper>
+        <CalendarModule config={makeConfig()} style={style} events={upcoming}
+          sourceStatus={[
+            { id: 'ok', name: 'Family', ok: true, fetchedAt: NOW.getTime() },
+            { id: 'school', name: 'School', ok: false, fetchedAt: NOW.getTime() - 2 * HOUR },
+          ]} />
+      </Wrapper>,
+    );
+    expect(getByRole('status').textContent).toBe('School not updating since 10:00 AM');
+    expect(queryByTestId('calendar-setup-card')).toBeNull();
+    expect(queryByText('Tomorrow Planning')).not.toBeNull();
+  });
+
+  it('draws a chevron on event rows only when tapping opens a detail', () => {
+    const plain = render(
+      <Wrapper><CalendarModule config={makeConfig()} style={style} events={upcoming} /></Wrapper>,
+    );
+    expect(plain.queryByTestId('event-chevron')).toBeNull();
+    plain.unmount();
+    const tappable = render(
+      <Wrapper><CalendarModule config={makeConfig({ eventTapDetails: true })} style={style} events={upcoming} /></Wrapper>,
+    );
+    expect(tappable.getAllByTestId('event-chevron')).toHaveLength(1);
+  });
+});

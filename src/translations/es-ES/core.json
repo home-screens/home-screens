@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Aún no hay nada aquí",
-    "body": "Abre el editor en otro dispositivo para crear tu primera pantalla.",
-    "hideHint": "Oculta esto en Ajustes → Pantalla"
+    "headline": "Aún no hay nada en esta pantalla",
+    "body": "En un móvil u ordenador conectado a tu wifi, abre",
+    "hideHint": "¿Prefieres una pantalla en blanco? Ajustes › Pantalla › Mostrar este aviso"
+  },
+  "pagination": {
+    "paused": "En pausa",
+    "resumesIn": "Continúa en {time} · toca para continuar",
+    "tapToResume": "toca para continuar",
+    "minutes": "{count} min",
+    "seconds": "{count} s"
   },
   "displayNotFound": {
     "notRegistered": "Pantalla no registrada",

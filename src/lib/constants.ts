@@ -151,3 +151,17 @@ export const PAGINATION_HIT_PX = 44;
 export const PAGINATION_GAP_PX = 8;
 export const PAGINATION_BOTTOM_PX = 16;
 export const PAGINATION_COMPACT_W_PX = 158;
+/** The thin progress line under the active dot: width and height in display
+ *  pixels. Fills over the current screen's dwell (see PaginationDots). */
+export const PAGINATION_PROGRESS_W_PX = 200;
+export const PAGINATION_PROGRESS_H_PX = 3;
+
+/**
+ * Floor for a per-screen rotation duration override. Below this a news or
+ * weather screen can change before its data has finished loading. The editor
+ * clamps what it saves and `resolveScreenDuration` clamps what it reads, so a
+ * config written before the floor existed can't go under it either. Sticky
+ * screens (0) are not durations and are left alone; the global
+ * `rotationIntervalMs` default is not clamped.
+ */
+export const MIN_SCREEN_DURATION_MS = 10_000;

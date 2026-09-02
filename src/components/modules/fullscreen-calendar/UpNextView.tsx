@@ -210,7 +210,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failin
   const saved = ev.sourceId != null && failingSourceIds?.has(ev.sourceId);
   return (
     <div
-      className="fsc-event-block"
+      className="fsc-event-block fsc-tap-row"
       data-event-id={ev.id}
       role="article"
       aria-label={eventAriaLabel(t, ev, { startLabel, endLabel })}
@@ -288,7 +288,7 @@ function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
   const ariaLabel = eventAriaLabel(t, ev, { startLabel, endLabel, allDay });
   return (
     <div
-      className="fsc-event-block"
+      className="fsc-event-block fsc-tap-row"
       data-event-id={ev.id}
       role="article"
       aria-label={ariaLabel}

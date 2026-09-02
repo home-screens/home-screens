@@ -22,6 +22,8 @@ export interface EventDisplayStyle {
   timezone?: string;
   /** Sources whose feed is failing; list rows add a "saved" time suffix. */
   failingSourceIds?: ReadonlySet<string>;
+  /** Tapping a row opens its detail overlay; list rows show a chevron so it reads as tappable. */
+  tapDetails?: boolean;
 }
 
 /** Accent color at a given alpha. ColorPicker's text input accepts any CSS

@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Klok",
     "am": "AM",
     "pm": "PM",
     "weekShort": "Week",
@@ -17,7 +18,7 @@
       "afterDusk": "na zonsondergang"
     },
     "elapsed": {
-      "setReferenceTime": "Stel een referentietijd in",
+      "setReferenceTime": "Kies in de editor een starttijd, dan begint de teller hier",
       "since": "sinds {label}",
       "until": "tot {label}",
       "notYet": "nog niet",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "Nog geen aftellingen. Voeg er een toe in de editor.",
+    "name": "Aftellen",
+    "noEvents": "Voeg in de editor een datum toe, dan begint het aftellen hier",
     "noUpcoming": "Geen aankomende gebeurtenissen",
     "agoSuffix": "(geleden)",
     "todayBang": "Vandaag!",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} meer",
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
-    "savedFrom": "Opgeslagen om {time}",
-    "savedEvents": "Opgeslagen afspraken worden getoond",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "weekOf": "Week van {date}",
     "legendLabel": "Kalenderbronnen",
     "publicHolidays": "Officiële feestdagen",
     "sourceNotUpdating": "{name} wordt sinds {time} niet bijgewerkt",
     "sourceNotUpdatingNoTime": "{name} wordt niet bijgewerkt",
+    "sourcesNotUpdating": "Sommige agenda's worden niet bijgewerkt",
+    "notUpdatingSince": "Niet bijgewerkt sinds {time}",
+    "signInAgain": "De agenda moet opnieuw inloggen",
+    "signInAgainHint": "Open Instellingen › Agenda op een computer en verbind Google Agenda.",
+    "noSourcesYet": "Nog geen agenda's gekozen",
+    "noSourcesYetHint": "Kies in Instellingen › Agenda welke agenda's je wilt zien.",
     "savedShort": "opgeslagen",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
@@ -180,8 +186,6 @@
     },
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
-    "savedFrom": "Opgeslagen om {time}",
-    "savedEvents": "Opgeslagen afspraken worden getoond",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "weekOf": "Week van {date}",
     "holiday": "Feestdag",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Uitslagen laden…",
-    "noGames": "Geen wedstrijden gevonden"
+    "noGames": "Geen wedstrijden gevonden",
+    "today": "Vandaag",
+    "tomorrow": "Morgen"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "Geen stand beschikbaar"
   },
   "todo": {
+    "name": "Takenlijst",
     "defaultTitle": "Taken",
-    "noTasksYet": "Nog geen taken"
+    "noTasksYet": "Voeg in de editor taken toe, dan verschijnen ze hier",
+    "tapHint": "Tik op een vakje om het af te vinken"
   },
   "traffic": {
+    "name": "Verkeer / Forenzen",
     "sectionTitle": "Verkeer",
-    "noRoutes": "Geen routes ingesteld",
+    "noRoutes": "Voeg in de editor een route toe, dan verschijnen de reistijden hier",
     "loading": "Verkeer laden…",
     "unitMin": "min",
     "mockNotice": "Voorbeeldcijfers tot er een verkeerssleutel is toegevoegd",
     "needsKey": "Verkeer heeft een Google Maps- of TomTom-sleutel nodig"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "of kies een map in de editor",
     "noPhotoSelected": "Geen foto geselecteerd",
     "noPhotoSelectedHint": "Kies een foto in het editorpaneel.",
     "noPhotosYet": "Nog geen foto's",
-    "noPhotosYetHint": "Upload foto's vanaf je telefoon via het tabblad Foto's op /remote, of kies een map in de editor.",
+    "noPhotosYetHint": "Voeg foto's toe vanaf je telefoon op",
     "noPhotosYetHintICloud": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album.",
     "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor."
   },
@@ -696,9 +706,10 @@
     }
   },
   "news": {
+    "name": "Nieuwskoppen",
     "loading": "Nieuws laden…",
     "empty": "Geen koppen",
-    "noFeeds": "Voeg in de editor een nieuwsfeed toe",
+    "noFeeds": "Voeg in de editor een nieuwsfeed toe, dan verschijnen de koppen hier",
     "allUnavailable": "Nieuws is nu niet beschikbaar",
     "header": "Nieuws",
     "localNews": "Lokaal nieuws",
@@ -731,7 +742,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "Geen affirmaties geconfigureerd",
+    "name": "Affirmaties",
+    "noEntries": "Kies in de editor een categorie, dan verschijnen de affirmaties hier",
     "categories": {
       "affirmations": "Affirmatie",
       "compliments": "Compliment",
@@ -803,24 +815,32 @@
     "emptyOneDrive": "Nog geen foto's. Controleer de OneDrive-map in de editor."
   },
   "video": {
+    "name": "Video",
     "loading": "Video laden…",
-    "empty": "Kies een video om af te spelen",
+    "empty": "Kies in de editor een video, dan speelt die hier af",
     "unavailable": "Deze video is niet meer beschikbaar"
   },
   "icon": {
-    "empty": "Geen pictogram geselecteerd"
+    "name": "Pictogram",
+    "empty": "Kies in de editor een pictogram, dan verschijnt het hier"
   },
   "sticky-note": {
-    "empty": "Geen inhoud"
+    "name": "Memo",
+    "empty": "Schrijf in de editor een notitie, dan verschijnt die hier"
   },
   "iframe": {
-    "noUrl": "Geen URL ingesteld",
+    "name": "Webinsluiting",
+    "noUrl": "Voeg in de editor een webadres toe, dan verschijnt de pagina hier",
     "embeddedTitle": "Ingesloten inhoud"
   },
+  "image": {
+    "name": "Afbeelding",
+    "empty": "Kies in de editor een afbeelding, dan verschijnt die hier"
+  },
   "qr-code": {
-    "scanToConnect": "Scan om verbinding te maken",
-    "configureWifi": "Wifi-netwerk instellen",
-    "configureData": "QR-gegevens instellen"
+    "name": "QR-code",
+    "empty": "Voeg in de editor een link of je wifi toe, dan verschijnt die hier",
+    "scanToConnect": "Scan om verbinding te maken"
   },
   "display-control": {
     "prev": "Vorige",
@@ -830,7 +850,18 @@
     "brightness": "Helderheid",
     "closeBrightness": "Helderheid sluiten",
     "ariaPrev": "Vorig scherm",
-    "ariaNext": "Volgend scherm"
+    "ariaNext": "Volgend scherm",
+    "holdSub": "1 seconde vasthouden",
+    "holdShort": "vasthouden",
+    "keepHolding": "Blijf vasthouden om te slapen",
+    "wake": "Wakker maken",
+    "wakeSub": "scherm weer aan",
+    "controls": "Bedient",
+    "thisDisplay": "Dit display",
+    "thisDisplayTag": "dit display",
+    "allDisplays": "Alle displays",
+    "brightnessValue": "Helderheid {percent}%",
+    "brightnessUnknown": "Helderheid, nog niet gemeld"
   },
   "common": {
     "locationNotConfigured": "Locatie niet ingesteld",

@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Ur",
     "am": "AM",
     "pm": "PM",
     "weekShort": "Uge",
@@ -17,7 +18,7 @@
       "afterDusk": "efter mørkets frembrud"
     },
     "elapsed": {
-      "setReferenceTime": "Angiv et referencetidspunkt",
+      "setReferenceTime": "Vælg et starttidspunkt i editoren, så starter tælleren her",
       "since": "siden {label}",
       "until": "til {label}",
       "notYet": "endnu ikke",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "Ingen nedtællinger endnu. Tilføj en i editoren.",
+    "name": "Nedtælling",
+    "noEvents": "Tilføj en dato i editoren, så starter nedtællingen her",
     "noUpcoming": "Ingen kommende begivenheder",
     "agoSuffix": "(siden)",
     "unitDays": "dage",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} mere",
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
-    "savedFrom": "Gemt kl. {time}",
-    "savedEvents": "Viser gemte begivenheder",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "weekOf": "Ugen fra {date}",
     "legendLabel": "Kalenderkilder",
     "publicHolidays": "Helligdage",
     "sourceNotUpdating": "{name} er ikke opdateret siden {time}",
     "sourceNotUpdatingNoTime": "{name} opdateres ikke",
+    "sourcesNotUpdating": "Nogle kalendere opdateres ikke",
+    "notUpdatingSince": "Ikke opdateret siden {time}",
+    "signInAgain": "Kalenderen skal logge ind igen",
+    "signInAgainHint": "Åbn Indstillinger › Kalender på en computer, og forbind Google Kalender.",
+    "noSourcesYet": "Ingen kalendere valgt endnu",
+    "noSourcesYetHint": "Vælg hvilke kalendere der skal vises under Indstillinger › Kalender.",
     "savedShort": "gemt",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
@@ -180,8 +186,6 @@
     },
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
-    "savedFrom": "Gemt kl. {time}",
-    "savedEvents": "Viser gemte begivenheder",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "weekOf": "Ugen fra {date}",
     "holiday": "Helligdag",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Indlæser resultater…",
-    "noGames": "Ingen kampe fundet"
+    "noGames": "Ingen kampe fundet",
+    "today": "I dag",
+    "tomorrow": "I morgen"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "Ingen stilling tilgængelig"
   },
   "todo": {
+    "name": "Huskeliste",
     "defaultTitle": "Huskeliste",
-    "noTasksYet": "Ingen opgaver endnu"
+    "noTasksYet": "Tilføj opgaver i editoren, så vises de her",
+    "tapHint": "Tryk på en boks for at sætte flueben"
   },
   "traffic": {
+    "name": "Trafik / pendling",
     "sectionTitle": "Trafik",
-    "noRoutes": "Ingen ruter oprettet",
+    "noRoutes": "Tilføj en rute i editoren, så vises køretiderne her",
     "loading": "Indlæser trafik…",
     "unitMin": "min",
     "mockNotice": "Eksempeltal, indtil der tilføjes en trafiknøgle",
     "needsKey": "Trafik kræver en Google Maps- eller TomTom-nøgle"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "eller vælg en mappe i editoren",
     "noPhotoSelected": "Intet billede valgt",
     "noPhotoSelectedHint": "Vælg et billede i editorpanelet.",
     "noPhotosYet": "Ingen billeder endnu",
-    "noPhotosYetHint": "Upload billeder fra din telefon under fanen Billeder på /remote, eller vælg en mappe i editoren.",
+    "noPhotosYetHint": "Tilføj billeder fra din telefon på",
     "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet.",
     "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren."
   },
@@ -696,9 +706,10 @@
     }
   },
   "news": {
+    "name": "Nyhedsoverskrifter",
     "loading": "Indlæser nyheder…",
     "empty": "Ingen overskrifter",
-    "noFeeds": "Tilføj et nyhedsfeed i editoren",
+    "noFeeds": "Tilføj et nyhedsfeed i editoren, så vises overskrifterne her",
     "allUnavailable": "Nyheder er ikke tilgængelige lige nu",
     "header": "Nyheder",
     "localNews": "Lokale nyheder",
@@ -731,7 +742,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "Der er ikke tilføjet bekræftelser",
+    "name": "Bekræftelser",
+    "noEntries": "Vælg en kategori i editoren, så vises bekræftelserne her",
     "categories": {
       "affirmations": "Bekræftelse",
       "compliments": "Kompliment",
@@ -803,24 +815,32 @@
     "emptyOneDrive": "Endnu ingen billeder. Tjek OneDrive-mappen i editoren."
   },
   "video": {
+    "name": "Video",
     "loading": "Indlæser video…",
-    "empty": "Vælg en video at afspille",
+    "empty": "Vælg en video i editoren, så afspilles den her",
     "unavailable": "Denne video er ikke længere tilgængelig"
   },
   "icon": {
-    "empty": "Intet ikon valgt"
+    "name": "Ikon",
+    "empty": "Vælg et ikon i editoren, så vises det her"
   },
   "sticky-note": {
-    "empty": "Noten er tom"
+    "name": "Note",
+    "empty": "Skriv en note i editoren, så vises den her"
   },
   "iframe": {
-    "noUrl": "Ingen URL angivet",
+    "name": "Webindhold",
+    "noUrl": "Tilføj en webadresse i editoren, så vises siden her",
     "embeddedTitle": "Indlejret indhold"
   },
+  "image": {
+    "name": "Billede",
+    "empty": "Vælg et billede i editoren, så vises det her"
+  },
   "qr-code": {
-    "scanToConnect": "Scan for at forbinde",
-    "configureWifi": "Konfigurér WiFi-netværk",
-    "configureData": "Konfigurér QR-data"
+    "name": "QR-kode",
+    "empty": "Tilføj et link eller dit wi-fi i editoren, så vises det her",
+    "scanToConnect": "Scan for at forbinde"
   },
   "display-control": {
     "prev": "Forrige",
@@ -830,7 +850,18 @@
     "brightness": "Lysstyrke",
     "closeBrightness": "Luk lysstyrke",
     "ariaPrev": "Forrige skærm",
-    "ariaNext": "Næste skærm"
+    "ariaNext": "Næste skærm",
+    "holdSub": "hold inde i 1 sekund",
+    "holdShort": "hold inde",
+    "keepHolding": "Bliv ved med at holde for at slumre",
+    "wake": "Væk",
+    "wakeSub": "skærmen tændes igen",
+    "controls": "Styrer",
+    "thisDisplay": "Dette display",
+    "thisDisplayTag": "dette display",
+    "allDisplays": "Alle displays",
+    "brightnessValue": "Lysstyrke {percent} %",
+    "brightnessUnknown": "Lysstyrke, ikke meldt endnu"
   },
   "common": {
     "locationNotConfigured": "Placering ikke angivet",

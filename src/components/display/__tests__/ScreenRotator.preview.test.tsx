@@ -33,6 +33,9 @@ vi.mock('../useLiveConfig', () => ({
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
+vi.mock('../useBootWarmup', () => ({ useBootWarmup: () => {} }));
+// PaginationDots translates its paused pill; no locale blob is loaded here.
+vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
 vi.mock('../useBackgroundRotation', () => ({ useBackgroundRotation: () => ({}) }));
 const useDisplayCommands = vi.fn();
 const useStatusReporter = vi.fn();
@@ -141,7 +144,7 @@ describe('ScreenRotator start screen and preview mode', () => {
     expect(rendered()).toBe('weather');
     act(() => { vi.advanceTimersByTime(5000); });
     expect(rendered()).toBe('weather');
-    expect(dom.getByText('PAUSED')).toBeTruthy();
+    expect(dom.getByTestId('pause-pill')).toBeTruthy();
 
     // Third arg of useDisplayCommands / last arg of useStatusReporter is `enabled`.
     expect(useDisplayCommands).toHaveBeenCalled();

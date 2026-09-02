@@ -10,7 +10,8 @@ import { CalendarLegend } from './shared/CalendarLegend';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { isEventUpcoming, listViewCutoff, clampWeeksToShow, isGridView, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildLegend, viewDayWindow, type LegendSource } from '@/lib/calendar-legend';
-import { calendarStaleStatus, useFailingSources } from './shared/useFailingSources';
+import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
+import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarConfig, type CalendarEvent, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
@@ -31,6 +32,8 @@ interface CalendarModuleProps {
   calendarStatus?: CalendarFetchStatus;
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
+  /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
+  calendarSetup?: CalendarSetupNeed;
 }
 
 // Stable fallback so the memoized pipeline below doesn't see a fresh array
@@ -53,7 +56,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   month: GridView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus, calendarSetup }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
@@ -98,11 +101,9 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone]);
   const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
-  // Legend ring, named stale banner, and per-row "saved" suffixes all key
+  // Legend ring, not-updating badge, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).
-  const { failingSources, failingSourceIds, soloFailingName, soloFailingSince } = useFailingSources({
-    sourceStatus, sourceFilter, timezone, timeFormat: resolvedTimeFormat, locale, today, t,
-  });
+  const { failingSources, failingSourceIds, hasLiveSource } = useFailingSources({ sourceStatus, sourceFilter });
   // Legend rows come from the events the current view actually draws — the
   // shared fetch window is wider than any single view, so scope to the
   // view's day range first (agenda has no day bound beyond the upcoming
@@ -126,6 +127,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const gridEventPillBackground = config.gridEventPillBackground;
   // Stable identity across clock ticks so the memoized EventCard's shallow
   // compare holds; only a real settings change produces a new object.
+  // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
+  // The module renders light-on-dark over a photo background with no theme
+  // system, so the overlay uses the Charcoal tokens.
+  const tapDetails = config.eventTapDetails === true;
   const eventStyle = useMemo<EventDisplayStyle>(() => {
     const gridStyle = gridEventStyle === 'colored' ? 'colored' : 'classic';
     return {
@@ -134,25 +139,37 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       pillBackground: gridStyle === 'colored' && gridEventPillBackground === true,
       timezone,
       failingSourceIds,
+      tapDetails,
     };
-  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone, failingSourceIds]);
-
-  // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
-  // The module renders light-on-dark over a photo background with no theme
-  // system, so the overlay uses the Charcoal tokens.
-  const tapDetails = config.eventTapDetails === true;
+  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone, failingSourceIds, tapDetails]);
   const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
 
   // Failure ≠ empty: while the shared calendar fetch is failing, kept
-  // events get a quiet "saved" line; per-source outages name the failing
-  // source. Only a failure with NO successful fetch ever renders the
-  // "can't load" message (see calendarStaleStatus).
-  const { neverLoaded, statusText } = calendarStaleStatus({
-    calendarStatus, failingSources, soloFailingName, soloFailingSince,
-    timezone, timeFormat: resolvedTimeFormat, locale, today, t, ns: 'calendar',
+  // events get a "not updating since" badge (loud after a day); per-source
+  // outages name the failing source; setup problems get the setup card.
+  // Only a failure with NO successful fetch ever renders the "can't load"
+  // message (see calendarStatusView).
+  const status = calendarStatusView({
+    calendarSetup, calendarStatus, failingSources, hasLiveSource,
+    timezone, timeFormat: resolvedTimeFormat, locale, now, today, t,
   });
 
-  if (neverLoaded) {
+  if (status.kind === 'setup') {
+    return (
+      <ModuleWrapper style={style}>
+        <CalendarSetupCard
+          title={status.title}
+          hint={status.hint}
+          setup={status.setup}
+          titleSize="1em"
+          hintSize="0.75em"
+          iconSize="1.8em"
+        />
+      </ModuleWrapper>
+    );
+  }
+
+  if (status.kind === 'cantLoad') {
     return (
       <ModuleWrapper style={style}>
         <div className="flex items-center justify-center h-full">
@@ -165,15 +182,32 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   return (
     <ModuleWrapper style={style}>
       <div
-        className="h-full flex flex-col"
+        className="h-full flex flex-col relative"
         data-tap-events={tapDetails ? '' : undefined}
         onClick={onRootClick}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
-        {statusText && (
-          <div className="flex items-center gap-1.5 shrink-0" role="status" style={{ fontSize: '0.6em', marginBottom: 4 }}>
-            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: '#d9a441' }} aria-hidden="true" />
-            <span style={{ color: '#d9a441', fontWeight: 600 }}>{statusText}</span>
+        {status.kind === 'badge' && status.loud && (
+          // Tinted card edge for a day-old outage: drawn from the content
+          // box out to the card's own edge so it follows the corner radius.
+          <div
+            aria-hidden="true"
+            data-testid="calendar-stale-edge"
+            className="absolute pointer-events-none"
+            style={{ inset: -style.padding, borderRadius: style.borderRadius, boxShadow: 'inset 0 0 0 2px rgba(245,185,66,0.55)' }}
+          />
+        )}
+        {status.kind === 'badge' && (
+          <div
+            className="flex items-center gap-1.5 shrink-0 self-start"
+            role="status"
+            data-loud={status.loud ? '' : undefined}
+            style={status.loud
+              ? { fontSize: '0.7em', marginBottom: 6, padding: '0.3em 0.7em', borderRadius: '0.5em', backgroundColor: 'rgba(245,185,66,0.14)' }
+              : { fontSize: '0.6em', marginBottom: 4 }}
+          >
+            <span className="rounded-full shrink-0" style={{ width: '0.7em', height: '0.7em', backgroundColor: status.loud ? '#f5b942' : '#d9a441' }} aria-hidden="true" />
+            <span style={{ color: status.loud ? '#f5b942' : '#d9a441', fontWeight: 600 }}>{status.text}</span>
           </div>
         )}
         {legendPlacement === 'header' && (

@@ -55,7 +55,6 @@ async function fetchLeague(league: string): Promise<Game[]> {
       awayRecord: (awayRecords?.[0]?.summary as string) ?? '',
       status: (statusType?.description as string) ?? 'Scheduled',
       detail: (statusType?.detail as string) ?? '',
-      shortDetail: (statusType?.shortDetail as string) ?? '',
       state: ((statusType?.state as string) ?? 'pre') as 'pre' | 'in' | 'post',
       startTime: (event.date as string) ?? '',
       broadcast: broadcastNames?.join(', ') ?? '',

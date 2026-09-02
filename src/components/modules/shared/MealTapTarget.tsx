@@ -99,6 +99,13 @@ export function MealTapTarget({ meal, mode, className, style, children }: MealTa
         }}
       >
         {children}
+        <span
+          aria-hidden="true"
+          data-testid="meal-chevron"
+          style={{ fontSize: '1.1em', lineHeight: 1, opacity: 0.4, marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }}
+        >
+          ›
+        </span>
       </button>
       {overlay && (
         <Suspense fallback={null}>

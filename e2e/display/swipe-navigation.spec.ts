@@ -166,12 +166,12 @@ test('a flick while paused navigates and resumes rotation', async ({ page, reque
   await expect(page.getByText(A, { exact: true })).toBeVisible();
 
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 
   // Navigating away clears pause — same contract as tapping another dot.
   await flick(page, { x: 800, y: 1400 }, { x: 300, y: 1400 });
   await expect(page.getByText(B, { exact: true })).toBeVisible();
-  await expect(page.getByText('PAUSED')).toHaveCount(0);
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
 });
 
 /**
@@ -320,9 +320,9 @@ test('a flick resets the rotation timer (the new screen gets a full dwell)', asy
  */
 test.describe('data-swipe-ignore surfaces', () => {
   /**
-   * The chips row only renders in multi-display mode with retargeting on
-   * (PanelLayout: `allowRetargeting && !isLegacyMode`), so this needs a
-   * displays registry and a per-display route. Screen A of the `swipectl`
+   * The target picker (a "Controls [name]" pill) only renders in multi-display
+   * mode with retargeting on (PanelLayout: `allowRetargeting && !isLegacyMode`),
+   * so this needs a displays registry and a per-display route. Screen A of the `swipectl`
    * display carries the widget at y 700-1080, leaving y≈1500 clear for the
    * control flicks.
    */
@@ -356,7 +356,7 @@ test.describe('data-swipe-ignore surfaces', () => {
     await expect(page.getByText(A, { exact: true })).toBeVisible();
 
     const chips = display.module('display-control').locator('[data-swipe-ignore]');
-    await expect(chips.getByRole('button', { name: 'Swipe Sib', exact: true })).toBeVisible();
+    await expect(chips.getByRole('button', { name: 'Swipe Ctl', exact: true })).toBeVisible();
     const box = (await chips.boundingBox())!;
     const y = box.y + box.height / 2;
     await flick(page, { x: box.x + box.width * 0.9, y }, { x: box.x + box.width * 0.9 - 400, y });
@@ -415,7 +415,7 @@ test.describe('data-swipe-ignore surfaces', () => {
     await expect(page.getByText(A, { exact: true })).toBeVisible();
 
     const chips = display.module('display-control').locator('[data-swipe-ignore]');
-    await expect(chips.getByRole('button', { name: 'Swipe Sib', exact: true })).toBeVisible();
+    await expect(chips.getByRole('button', { name: 'Swipe Ctl', exact: true })).toBeVisible();
     const box = (await chips.boundingBox())!;
     const ignored = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 

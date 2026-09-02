@@ -25,6 +25,33 @@ describe('useScreenRotationTimer', () => {
     expect(onAdvance).toHaveBeenCalledTimes(1);
   });
 
+  it('reports when the dwell was armed, keeps it while paused, and clears it for sticky', () => {
+    vi.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+    const onAdvance = vi.fn();
+    const { result, rerender } = renderHook(
+      ({ durationMs, active, resetKey }) =>
+        useScreenRotationTimer({ durationMs, onAdvance, active, resetKey }),
+      { initialProps: { durationMs: 5000, active: true, resetKey: 0 } },
+    );
+    const armedAt = Date.now();
+    expect(result.current).toBe(armedAt);
+
+    // Pause: the timer is cleared but the start is kept so the progress line
+    // freezes in place instead of vanishing.
+    vi.advanceTimersByTime(2000);
+    rerender({ durationMs: 5000, active: false, resetKey: 0 });
+    expect(result.current).toBe(armedAt);
+
+    // Resume re-arms a full dwell from now.
+    vi.advanceTimersByTime(1000);
+    rerender({ durationMs: 5000, active: true, resetKey: 0 });
+    expect(result.current).toBe(armedAt + 3000);
+
+    // Sticky: nothing is armed.
+    rerender({ durationMs: 0, active: true, resetKey: 1 });
+    expect(result.current).toBeNull();
+  });
+
   it('does not fire when durationMs is 0 (sticky)', () => {
     const onAdvance = vi.fn();
     renderHook(() =>

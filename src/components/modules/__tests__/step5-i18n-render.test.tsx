@@ -108,7 +108,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('en-US', <TodoModule config={emptyTodoConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('No tasks yet');
+      expect(container.textContent).toContain('Add tasks in the editor and they show up here');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
 
@@ -116,7 +116,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('de-DE', <TodoModule config={emptyTodoConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('Noch keine Aufgaben');
+      expect(container.textContent).toContain('Füge im Editor Aufgaben hinzu, dann erscheinen sie hier');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
   });
@@ -152,7 +152,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('en-US', <TrafficModule config={noRoutesTrafficConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('No routes configured');
+      expect(container.textContent).toContain('Add a route in the editor and drive times show here');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
 
@@ -160,7 +160,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('de-DE', <TrafficModule config={noRoutesTrafficConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('Keine Routen eingerichtet');
+      expect(container.textContent).toContain('Füge im Editor eine Route hinzu, dann erscheinen die Fahrzeiten hier');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
   });

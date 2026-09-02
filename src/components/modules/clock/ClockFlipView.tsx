@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
+import { fitFactor, flipRowWidth } from './fit-width';
 import type { ClockViewProps } from './types';
 
 const FLIP_DURATION = 500; // ms
@@ -148,13 +149,18 @@ function FlipColon({ size, accentColor }: { size: number; accentColor: string })
   );
 }
 
-export default function ClockFlipView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockFlipView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
   // Flip cards always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
 
   const accent = config.accentColor || 'rgba(255, 255, 255, 0.5)';
-  const cardSize = scaledFontSize * 3.5;
+  // Shrink the cards when the row is wider than the box; the height-derived
+  // size stays the ceiling.
+  const baseCardSize = scaledFontSize * 3.5;
+  const cards = config.showSeconds ? 6 : 4;
+  const colons = config.showSeconds ? 2 : 1;
+  const cardSize = baseCardSize * fitFactor(flipRowWidth(baseCardSize, cards, colons), boxWidth);
   const gap = Math.max(cardSize * 0.04, 2);
   const animate = config.animateFlip !== false;
 

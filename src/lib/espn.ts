@@ -59,8 +59,8 @@ export interface Game {
   awayRecord: string;
   status: string;
   detail: string;
-  shortDetail: string;
   state: 'pre' | 'in' | 'post';
+  /** ISO kickoff instant from ESPN (`event.date`); the display formats it in its own timezone. */
   startTime: string;
   broadcast: string;
 }

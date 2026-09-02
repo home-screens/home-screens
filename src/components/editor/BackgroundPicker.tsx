@@ -109,6 +109,24 @@ export default function BackgroundPicker() {
     [t],
   );
 
+  // Is the screen's own background file still on the hub? Checked when the
+  // panel opens and whenever the path changes (one HEAD request). Only local
+  // paths: a remote URL can't be checked from here without CORS trouble, and
+  // a network hiccup is not a missing file, so errors are not flagged.
+  const backgroundPath = currentScreen?.backgroundImage ?? '';
+  const [missingPath, setMissingPath] = useState<string | null>(null);
+  useEffect(() => {
+    if (!backgroundPath || !backgroundPath.startsWith('/')) {
+      setMissingPath(null);
+      return;
+    }
+    let cancelled = false;
+    editorFetch(backgroundPath, { method: 'HEAD' })
+      .then((res) => { if (!cancelled) setMissingPath(res.ok ? null : backgroundPath); })
+      .catch(() => { if (!cancelled) setMissingPath(null); });
+    return () => { cancelled = true; };
+  }, [backgroundPath]);
+
   if (!currentScreen || !selectedScreenId) return null;
 
   const rotationEnabled = currentScreen?.backgroundRotation?.enabled ?? false;
@@ -241,6 +259,33 @@ export default function BackgroundPicker() {
             </PropertyGroup>
           )}
         </>
+      )}
+
+      {missingPath && (
+        <div className="rounded-md border border-hs-danger/40 bg-hs-danger/10 px-2.5 py-2 space-y-1.5" data-testid="background-missing">
+          <div className="text-[10px] text-hs-text-faint">{t('backgroundPicker.missing.label')}</div>
+          <div className="font-mono text-[11px] text-hs-text-body break-all">{missingPath}</div>
+          <p className="text-[11px] text-hs-danger flex gap-1.5">
+            <span aria-hidden="true">⚠</span>
+            <span>{t('backgroundPicker.missing.note')}</span>
+          </p>
+          <div className="flex gap-2 pt-0.5">
+            <button
+              type="button"
+              onClick={() => setTab('local')}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-body bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
+            >
+              {t('backgroundPicker.missing.pickAnother')}
+            </button>
+            <button
+              type="button"
+              onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
+              className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-body bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
+            >
+              {t('backgroundPicker.missing.useSolid')}
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="flex gap-1 bg-hs-card rounded-md p-0.5">

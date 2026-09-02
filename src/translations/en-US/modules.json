@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Clock",
     "am": "AM",
     "pm": "PM",
     "weekShort": "Week",
@@ -17,7 +18,7 @@
       "afterDusk": "after dusk"
     },
     "elapsed": {
-      "setReferenceTime": "Set a reference time",
+      "setReferenceTime": "Pick a start time in the editor and the counter starts here",
       "since": "since {label}",
       "until": "until {label}",
       "notYet": "not yet",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "No countdowns yet. Add one in the editor.",
+    "name": "Countdown",
+    "noEvents": "Add a date in the editor and the countdown starts here",
     "noUpcoming": "No upcoming events",
     "agoSuffix": "(ago)",
     "todayBang": "Today!",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} more",
     "fromTime": "From {time}",
     "untilTime": "Until {time}",
-    "savedFrom": "Saved from {time}",
-    "savedEvents": "Showing saved events",
     "cantLoadEvents": "Can't load events right now",
     "weekOf": "Week of {date}",
     "legendLabel": "Calendar sources",
     "publicHolidays": "Public Holidays",
     "sourceNotUpdating": "{name} not updating since {time}",
     "sourceNotUpdatingNoTime": "{name} not updating",
+    "sourcesNotUpdating": "Some calendars aren't updating",
+    "notUpdatingSince": "Not updating since {time}",
+    "signInAgain": "Calendar needs to sign in again",
+    "signInAgainHint": "Open Settings › Calendar on a computer and connect Google Calendar.",
+    "noSourcesYet": "No calendars picked yet",
+    "noSourcesYetHint": "Choose which calendars to show in Settings › Calendar.",
     "savedShort": "saved",
     "holiday": "Holiday",
     "birthday": "Birthday",
@@ -180,8 +186,6 @@
     },
     "fromTime": "From {time}",
     "untilTime": "Until {time}",
-    "savedFrom": "Saved from {time}",
-    "savedEvents": "Showing saved events",
     "cantLoadEvents": "Can't load events right now",
     "weekOf": "Week of {date}",
     "holiday": "Holiday",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Loading scores…",
-    "noGames": "No games found"
+    "noGames": "No games found",
+    "today": "Today",
+    "tomorrow": "Tomorrow"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "No standings available"
   },
   "todo": {
+    "name": "To-Do List",
     "defaultTitle": "To Do",
-    "noTasksYet": "No tasks yet"
+    "noTasksYet": "Add tasks in the editor and they show up here",
+    "tapHint": "Tap a box to check it off"
   },
   "traffic": {
+    "name": "Traffic / Commute",
     "sectionTitle": "Traffic",
-    "noRoutes": "No routes configured",
+    "noRoutes": "Add a route in the editor and drive times show here",
     "loading": "Loading traffic…",
     "unitMin": "min",
     "mockNotice": "Sample numbers until a traffic key is added",
     "needsKey": "Traffic needs a Google Maps or TomTom key"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "or pick a folder in the editor",
     "noPhotoSelected": "No photo selected",
     "noPhotoSelectedHint": "Choose a photo in the editor panel.",
     "noPhotosYet": "No photos yet",
-    "noPhotosYetHint": "Upload photos from your phone using the Photos tab at /remote, or choose a folder in the editor.",
+    "noPhotosYetHint": "Add photos from your phone at",
     "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on.",
     "noPhotosYetHintOneDrive": "Check the OneDrive folder in the editor."
   },
@@ -696,9 +706,10 @@
     }
   },
   "news": {
+    "name": "News Headlines",
     "loading": "Loading news…",
     "empty": "No headlines",
-    "noFeeds": "Add a news feed in the editor",
+    "noFeeds": "Add a news feed in the editor and headlines show here",
     "allUnavailable": "News is not available right now",
     "header": "News",
     "localNews": "Local news",
@@ -731,7 +742,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "No affirmations configured",
+    "name": "Affirmations",
+    "noEntries": "Pick a category in the editor and affirmations show here",
     "categories": {
       "affirmations": "Affirmation",
       "compliments": "Compliment",
@@ -803,34 +815,53 @@
     "emptyOneDrive": "No photos yet. Check the OneDrive folder in the editor."
   },
   "video": {
+    "name": "Video",
     "loading": "Loading video…",
-    "empty": "Choose a video to play",
+    "empty": "Pick a video in the editor and it plays here",
     "unavailable": "This video isn't available anymore"
   },
   "icon": {
-    "empty": "No icon selected"
+    "name": "Icon",
+    "empty": "Pick an icon in the editor and it shows here"
   },
   "sticky-note": {
-    "empty": "No note content"
+    "name": "Sticky Note",
+    "empty": "Write a note in the editor and it shows here"
   },
   "iframe": {
-    "noUrl": "No URL set",
+    "name": "Web Embed",
+    "noUrl": "Add a web address in the editor and the page shows here",
     "embeddedTitle": "Embedded content"
   },
+  "image": {
+    "name": "Image",
+    "empty": "Pick a picture in the editor and it shows here"
+  },
   "qr-code": {
-    "scanToConnect": "Scan to connect",
-    "configureWifi": "Configure WiFi network",
-    "configureData": "Configure QR data"
+    "name": "QR code",
+    "empty": "Add a link or your Wi-Fi in the editor and it shows here",
+    "scanToConnect": "Scan to connect"
   },
   "display-control": {
-    "prev": "Prev",
+    "prev": "Previous",
     "next": "Next",
     "sleep": "Sleep",
     "sleepHoldHint": "Sleep (hold to confirm)",
     "brightness": "Brightness",
     "closeBrightness": "Close brightness",
     "ariaPrev": "Previous screen",
-    "ariaNext": "Next screen"
+    "ariaNext": "Next screen",
+    "holdSub": "hold for 1 second",
+    "holdShort": "hold",
+    "keepHolding": "Keep holding to sleep",
+    "wake": "Wake",
+    "wakeSub": "screen back on",
+    "controls": "Controls",
+    "thisDisplay": "This display",
+    "thisDisplayTag": "this display",
+    "allDisplays": "All displays",
+    "brightnessValue": "Brightness {percent}%",
+    "brightnessUnknown": "Brightness, not reported yet"
   },
   "common": {
     "locationNotConfigured": "Location not configured",

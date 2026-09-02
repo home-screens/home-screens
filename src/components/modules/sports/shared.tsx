@@ -1,5 +1,8 @@
 export { TeamLogo } from '../shared/TeamLogo';
 
+/** Formats a scheduled game's kickoff for the display (null = no usable instant). */
+export type KickoffFn = (game: { startTime: string }) => string | null;
+
 export function isWinner(
   game: { state: string; homeScore: number; awayScore: number },
   side: 'home' | 'away',
@@ -12,9 +15,14 @@ export function formatScore(game: { state: string }, score: number): string {
   return game.state === 'pre' ? '–' : String(score);
 }
 
+/**
+ * Status slot of a game row. Scheduled games show the kickoff label the
+ * module formatted in the display's timezone (see kickoff.ts); in-progress
+ * and final games keep ESPN's status word (clock / "Final").
+ */
 export function GameStatus({
   state,
-  shortDetail,
+  kickoff,
   status,
   dotSize = 'w-1.5 h-1.5',
   fontSize,
@@ -24,7 +32,7 @@ export function GameStatus({
   preColor = 'text-white/60',
 }: {
   state: string;
-  shortDetail?: string;
+  kickoff?: string | null;
   status: string;
   dotSize?: string;
   fontSize?: string;
@@ -47,7 +55,7 @@ export function GameStatus({
               : preColor
         }
       >
-        {shortDetail || status}
+        {(state === 'pre' && kickoff) || status}
       </span>
     </div>
   );

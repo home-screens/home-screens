@@ -3,7 +3,8 @@ import { Settings2 } from 'lucide-react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { settingsPath } from '@/lib/settings-route';
 import type { FetchError } from '@/lib/fetch-error';
-import type { ModuleStyle } from '@/types/config';
+import type { ModuleStyle, ModuleType } from '@/types/config';
+import { getModuleDefinition } from '@/lib/module-registry';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from './ModuleWrapper';
 import { EditorSettingsLink } from './EditorSettingsLink';
@@ -120,12 +121,45 @@ export function ModuleLoadingState({ style, message, error }: { style: ModuleSty
   );
 }
 
-export function ModuleEmptyState({ style, message }: { style: ModuleStyle; message: string }) {
+/**
+ * The body of an empty state, without the card. Pass `type` for a module
+ * that has nothing configured yet: it then renders the one placeholder shape
+ * every unconfigured module shares (a muted icon, the module's name, and one
+ * plain line saying what to add), so a fresh module reads as "waiting for
+ * setup" rather than a broken box. Without `type` it is a single muted line,
+ * for data-driven empties ("No headlines") that already have context.
+ *
+ * Views that render inside their module's own card (the clock's elapsed
+ * view) use this directly; everything else goes through `ModuleEmptyState`.
+ */
+export function ModuleEmptyBody({ type, message }: { type?: ModuleType; message: string }) {
+  const t = useTranslate('modules');
+  const def = type ? getModuleDefinition(type) : undefined;
+  const Icon = def?.icon;
+  // The wall loads only the modules namespace, so the palette's translated
+  // label (editor namespace) is mirrored as `<type>.name`; the registry
+  // label covers a type that has no entry yet.
+  const nameKey = `${type}.name`;
+  const translated = type ? t(nameKey) : '';
+  const name = def ? (translated === nameKey ? def.label : translated) : '';
+  return (
+    <div
+      data-testid="module-empty-state"
+      className="flex flex-col items-center justify-center h-full px-4 text-center"
+      style={{ gap: '0.5em' }}
+    >
+      {Icon && <Icon size="3.25em" strokeWidth={1.4} style={{ opacity: TEXT_OPACITY.tertiary }} aria-hidden="true" />}
+      {name && <p style={{ fontSize: '1.5em', fontWeight: 600, lineHeight: 1.2, opacity: TEXT_OPACITY.heading }}>{name}</p>}
+      <p style={{ fontSize: type ? '1.2em' : undefined, lineHeight: 1.35, opacity: TEXT_OPACITY.dim }}>{message}</p>
+    </div>
+  );
+}
+
+/** `ModuleEmptyBody` inside the module card. */
+export function ModuleEmptyState({ style, type, message }: { style: ModuleStyle; type?: ModuleType; message: string }) {
   return (
     <ModuleWrapper style={style}>
-      <div className="flex items-center justify-center h-full">
-        <p className="text-center" style={{ opacity: TEXT_OPACITY.dim }}>{message}</p>
-      </div>
+      <ModuleEmptyBody type={type} message={message} />
     </ModuleWrapper>
   );
 }

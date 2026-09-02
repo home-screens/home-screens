@@ -5,7 +5,7 @@ import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 /**
  * The toolbar's Preview button opens the screen being edited, not the
  * display's first screen: `/display?screen=<id>&preview=1` in a new tab. On
- * the display side `?preview=1` holds rotation (the PAUSED label says so) —
+ * the display side `?preview=1` holds rotation (the paused pill says so) —
  * see e2e/display/pagination.spec.ts for the rest.
  */
 test('Preview opens the selected screen, rotation held, in a new tab', async ({ page, request }) => {
@@ -31,5 +31,5 @@ test('Preview opens the selected screen, rotation held, in a new tab', async ({ 
   expect(url.searchParams.get('preview')).toBe('1');
 
   await expect(popup.getByText('PREVIEW SCREEN B', { exact: true })).toBeVisible();
-  await expect(popup.getByText('PAUSED', { exact: true })).toBeVisible();
+  await expect(popup.getByTestId('pause-pill')).toBeVisible();
 });

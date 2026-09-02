@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
@@ -112,6 +112,24 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   // Fetch API-served images through displayFetch so the Bearer token is used
   // (plain <img> tags don't carry Authorization headers)
   const backgroundImage = useAuthImage(rawBackground || undefined) || '';
+  // A background file that is gone from the hub must not leave Chromium's
+  // broken-image glyph in the corner of the wall: the img hides itself and
+  // the solid background shows. Keyed by source so a new path gets its try.
+  const [failedBackground, setFailedBackground] = useState<string | null>(null);
+  const showBackgroundImage = !!backgroundImage && failedBackground !== backgroundImage;
+  // The display route is server-rendered, so the img is in the HTML before
+  // React hydrates and a 404 can fire its error before onError is attached.
+  // After mount, an img that is complete with no pixels is probed again with
+  // a listener in place; a real failure re-fires from the browser cache.
+  const backgroundImgRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    const img = backgroundImgRef.current;
+    if (!img || !img.complete || img.naturalWidth > 0) return;
+    const probe = new Image();
+    probe.onerror = () => setFailedBackground(backgroundImage);
+    probe.src = backgroundImage;
+    return () => { probe.onerror = null; };
+  }, [backgroundImage]);
 
   const source = toDisplaySource(settings, getLocation(settings), sharedData, availableDisplays);
 
@@ -133,10 +151,12 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         isolation: 'isolate',
       }}
     >
-      {backgroundImage && (
+      {showBackgroundImage && (
         <img
+          ref={backgroundImgRef}
           src={backgroundImage}
           alt=""
+          onError={() => setFailedBackground(backgroundImage)}
           style={{
             position: 'absolute',
             inset: 0,

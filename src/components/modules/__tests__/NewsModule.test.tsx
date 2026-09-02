@@ -68,7 +68,7 @@ describe('NewsModule', () => {
   it('asks for a feed when none is configured', () => {
     mockResponse = response();
     renderNews({ feeds: [] });
-    expect(screen.getByText('Add a news feed in the editor')).toBeTruthy();
+    expect(screen.getByText('Add a news feed in the editor and headlines show here')).toBeTruthy();
   });
 
   it('list view renders every story with source, age, and the unavailable footer', () => {

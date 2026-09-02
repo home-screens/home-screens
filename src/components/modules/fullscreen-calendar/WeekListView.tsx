@@ -286,7 +286,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
 
   return (
     <div
-      className="fsc-event-block"
+      className="fsc-event-block fsc-tap-row"
       data-event-id={event.id}
       role="article"
       aria-label={ariaLabel}

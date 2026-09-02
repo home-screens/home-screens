@@ -251,3 +251,77 @@ describe('TodoModule', () => {
     expect(firstSpan.style.textDecoration).toBe('none');
   });
 });
+
+// ─── Touch treatment: 38px tap checkbox, pressed state, one-time hint ───
+
+/** jsdom's localStorage is non-functional under this setup; stub an in-memory one. */
+function makeLocalStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    getItem: (k: string) => store.get(k) ?? null,
+    setItem: (k: string, v: string) => { store.set(k, String(v)); },
+    removeItem: (k: string) => { store.delete(k); },
+    clear: () => store.clear(),
+    key: (i: number) => [...store.keys()][i] ?? null,
+    get length() { return store.size; },
+  } as Storage;
+}
+
+describe('TodoModule touch treatment', () => {
+  beforeEach(() => {
+    vi.stubGlobal('localStorage', makeLocalStorage());
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('static lists keep the small check glyph; interactive lists get the tap checkbox', () => {
+    const plain = render(<TodoModule config={makeConfig()} style={style} />, { wrapper: Wrapper });
+    expect(plain.queryAllByTestId('tap-checkbox')).toHaveLength(0);
+    expect(plain.queryByTestId('todo-tap-hint')).toBeNull();
+    plain.unmount();
+
+    const { getAllByTestId } = renderInteractive();
+    const boxes = getAllByTestId('tap-checkbox');
+    expect(boxes).toHaveLength(2);
+    expect(boxes[0].style.width).toBe('38px');
+    expect(boxes[0].hasAttribute('data-checked')).toBe(false);
+    expect(boxes[1].hasAttribute('data-checked')).toBe(true);
+    // The authored black accent is swapped for a visible fill on the checked box.
+    expect(boxes[1].style.backgroundColor).toBe('rgb(59, 130, 246)');
+  });
+
+  it('marks the row and box pressed while the toggle request is in flight', async () => {
+    let settle: (value: Response) => void = () => {};
+    displayFetch.mockReturnValue(new Promise<Response>((resolve) => { settle = resolve; }));
+    const { getByRole, getAllByTestId } = renderInteractive();
+    const row = getByRole('button', { name: /Take out trash/ });
+    fireEvent.click(row);
+    expect(row.hasAttribute('data-pressed')).toBe(true);
+    expect(getAllByTestId('tap-checkbox')[0].hasAttribute('data-pressed')).toBe(true);
+
+    await act(async () => {
+      settle({ ok: true, json: async () => ({ completed: { i1: true } }) } as unknown as Response);
+    });
+    await waitFor(() => expect(row.hasAttribute('data-pressed')).toBe(false));
+    expect(getAllByTestId('tap-checkbox')[0].hasAttribute('data-checked')).toBe(true);
+  });
+
+  it('shows the tap hint once per display and never again', () => {
+    const first = renderInteractive();
+    expect(first.getByTestId('todo-tap-hint').textContent).toBe('Tap a box to check it off');
+    expect(localStorage.getItem('hs:todo-tap-hint-seen')).toBe('1');
+    first.unmount();
+
+    const second = renderInteractive();
+    expect(second.queryByTestId('todo-tap-hint')).toBeNull();
+  });
+
+  it('dismisses the hint on the first tap', () => {
+    displayFetch.mockReturnValue(new Promise(() => {}));
+    const { getByRole, queryByTestId } = renderInteractive();
+    expect(queryByTestId('todo-tap-hint')).not.toBeNull();
+    fireEvent.click(getByRole('button', { name: /Take out trash/ }));
+    expect(queryByTestId('todo-tap-hint')).toBeNull();
+  });
+});

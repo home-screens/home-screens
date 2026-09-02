@@ -13,8 +13,10 @@ import type { ModuleInstance } from '@/types/config';
  * rotation while the current screen is still on-screen. We prove this at the
  * network boundary: a `news` module lives on the *next* screen, and every
  * `/api/news` request is counted. Because only the current screen mounts
- * (ScreenRotator mounts one screen at a time), the *only* way `/api/news` can
- * fire while screen one is visible is the prefetch timer.
+ * (ScreenRotator mounts one screen at a time), the only ways `/api/news` can
+ * fire while screen one is visible are the prefetch timer and the one-off
+ * boot warm-up (`useBootWarmup`, ~400ms after mount) — both share
+ * `displayCache`, so between them a URL is fetched once.
  *
  * We use `news` (not weather) deliberately: weather is absent from
  * FETCH_KEY_REGISTRY (src/lib/fetch-keys.ts) and is never prefetched, whereas
@@ -86,7 +88,9 @@ test('prefetches the next screen while the current screen is still visible', asy
 
   // When rotation lands on screen two, its news module reuses the prefetched
   // (fresh) cache entry and issues no second request — the count stays at one.
-  await expect(page.getByText('SCREEN TWO')).toBeVisible({ timeout: 6000 });
+  // The boot warm-up can fire the request within the first second, so the
+  // wait here spans the whole rotation window rather than the old 5s gap.
+  await expect(page.getByText('SCREEN TWO')).toBeVisible({ timeout: DURATION_MS + 4000 });
   expect(news.timestamps.length).toBe(1);
   expect(news.externalHits).toEqual([]);
 });
@@ -115,7 +119,7 @@ test('does not prefetch a disabled module on the next screen', async ({ page, re
   expect(news.externalHits).toEqual([]);
 });
 
-test('a sticky current screen (rotationDurationMs: 0) prefetches nothing', async ({ page, request }) => {
+test('a sticky current screen (rotationDurationMs: 0) schedules no next-screen prefetch', async ({ page, request }) => {
   await putConfig(request, baseConfig({
     screens: [
       // Sticky: resolveScreenDuration returns 0, so the hook returns early
@@ -130,12 +134,15 @@ test('a sticky current screen (rotationDurationMs: 0) prefetches nothing', async
   await page.goto('/display');
   await expect(page.getByText('STICKY SCREEN')).toBeVisible();
 
-  // A non-sticky screen would have prefetched by now; a sticky one never does,
-  // and never advances, so the news module on screen two stays unmounted.
+  // The boot warm-up (useBootWarmup) fetches screen two's news once, ~400ms
+  // after mount, whatever the current screen's duration — a tap can still
+  // land there. What a sticky screen must NOT do is arm the next-screen
+  // prefetch, or advance: past the prefetch moment the count is still the
+  // single warm-up request and screen two never mounted.
   await page.waitForTimeout(PREFETCH_LEAD_MS + 1000);
   await expect(page.getByText('STICKY SCREEN')).toBeVisible();
   await expect(page.getByText('NEVER SHOWN')).toBeHidden();
-  expect(news.timestamps).toEqual([]);
+  expect(news.timestamps.length).toBeLessThanOrEqual(1);
   expect(news.externalHits).toEqual([]);
 });
 

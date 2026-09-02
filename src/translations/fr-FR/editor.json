@@ -185,6 +185,7 @@
     "secondsUnit": "s",
     "stickyBadge": "Épinglé",
     "stickyHint": "0 = rester sur cet écran (avance manuelle uniquement).",
+    "minDurationWarning": "En dessous de {seconds} secondes, l'écran risque de changer avant que les actualités et la météo aient fini de charger. Enregistré à {seconds}.",
     "inheritsHintBefore": "Hérite de la valeur par défaut : ",
     "inheritsHintValue": "{seconds} s",
     "inheritsHintAfter": ".",
@@ -424,6 +425,7 @@
         "errors": {
           "googleCalendarFailed": "Impossible de charger cet agenda depuis Google",
           "googleUnreachable": "Google Agenda est injoignable",
+          "googleNotSignedIn": "Google Agenda doit se reconnecter",
           "holidaysFailed": "Impossible de charger la liste des jours fériés",
           "icloudBirthdaysFailed": "Impossible de charger les anniversaires depuis iCloud",
           "icloudCalendarFailed": "Impossible de charger ce calendrier depuis iCloud",
@@ -671,6 +673,9 @@
         "setupHintLabel": "Message de configuration sur les affichages vides",
         "setupHintToggle": "Activé",
         "setupHintHelp": "Quand un affichage n'a aucun écran à montrer, il affiche un message discret avec l'adresse de cet éditeur. Désactive cette option pour laisser un affichage vide entièrement noir.",
+        "rotationProgressLabel": "Ligne de progression sous les points d'écran",
+        "rotationProgressToggle": "Activé",
+        "rotationProgressHelp": "Une fine ligne sous le point actif se remplit à mesure que le temps de l'écran s'écoule, pour distinguer de loin un écran long d'un écran bloqué.",
         "transitionEffectLabel": "Effet de transition",
         "transitionEffectHelp": "Style d'animation lors du passage d'un écran à l'autre. Le flou peut solliciter le GPU sur les appareils peu puissants.",
         "transitionDurationLabel": "Durée de la transition",
@@ -1955,6 +1960,12 @@
     }
   },
   "backgroundPicker": {
+    "missing": {
+      "label": "Image de fond",
+      "note": "Cette image n'est plus sur le hub, l'écran affiche donc la couleur unie à la place. Choisis-en une autre ou retire-la.",
+      "pickAnother": "Choisir une image",
+      "useSolid": "Garder la couleur unie"
+    },
     "title": "Arrière-plan",
     "statusGroup": "État",
     "autoRotate": "Rotation auto",
@@ -2649,7 +2660,8 @@
       "targetSelf": "Cet affichage (self)",
       "targetAll": "Tous les affichages",
       "legacyHint": "Un seul affichage enregistré — la cible est verrouillée sur celui-ci.",
-      "allowRetargeting": "Autoriser l'utilisateur à changer de cible à l'exécution"
+      "allowRetargeting": "Autoriser l'utilisateur à changer de cible à l'exécution",
+      "compact": "Icônes seulement, sans texte"
     },
     "financial": {
       "viewCards": "Cartes",

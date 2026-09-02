@@ -17,7 +17,7 @@ import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugi
  * Selectors are anchored to the component's real accessibility contract:
  *   - each dot is a <button>; the active one carries aria-current="true",
  *   - an inactive dot's aria-label is `Go to screen ${n}: ${name}`,
- *   - the paused state renders a visible "PAUSED" text label.
+ *   - the paused state renders the paused pill (data-testid="pause-pill").
  *
  * Timing is the subject of several assertions, so durations are kept short and
  * every timing claim is proven with a bounded negative wait ("did not advance
@@ -93,11 +93,11 @@ test('double-tapping the active dot pauses rotation; double-tapping again resume
   // First double-tap pauses (the two synthetic clicks land inside the 300ms
   // double-tap window ScreenRotator checks in handleDotClick).
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 
   // Second double-tap on the same (still-active) dot resumes.
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toHaveCount(0);
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
 });
 
 // ---------------------------------------------------------------------------
@@ -112,11 +112,11 @@ test('a paused rotator auto-resumes after pauseTimeoutSeconds', async ({ page, r
   await expect(page.getByText(A, { exact: true })).toBeVisible();
 
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 
-  // The 2s auto-resume timer clears pause on its own; PAUSED disappears well
+  // The 2s auto-resume timer clears pause on its own; the pill disappears well
   // within the generous timeout.
-  await expect(page.getByText('PAUSED')).toHaveCount(0, { timeout: 6000 });
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0, { timeout: 6000 });
 });
 
 test('pauseTimeoutSeconds:0 keeps the rotator paused past a normal timeout window', async ({ page, request }) => {
@@ -127,12 +127,12 @@ test('pauseTimeoutSeconds:0 keeps the rotator paused past a normal timeout windo
   await expect(page.getByText(A, { exact: true })).toBeVisible();
 
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 
   // 0 means "stay paused indefinitely" — no auto-resume timer is armed. Hold
   // past a window that a small non-zero timeout would have resumed within.
   await page.waitForTimeout(3000);
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 });
 
 test('pauseEnabled:false makes double-tapping the active dot a no-op', async ({ page, request }) => {
@@ -146,7 +146,7 @@ test('pauseEnabled:false makes double-tapping the active dot a no-op', async ({ 
   // double-tap collapses to same-index navigation with no visible effect.
   await page.locator('button[aria-current="true"]').dblclick();
   await page.waitForTimeout(500);
-  await expect(page.getByText('PAUSED')).toHaveCount(0);
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
   // Still parked on the same screen.
   await expect(page.getByText(A, { exact: true })).toBeVisible();
 });
@@ -244,7 +244,7 @@ test('activating a profile mid-session resets the rotator to the first screen an
   await page.getByRole('button', { name: 'Go to screen 2: B' }).click();
   await expect(page.getByText(B, { exact: true })).toBeVisible();
   await page.locator('button[aria-current="true"]').dblclick();
-  await expect(page.getByText('PAUSED')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toBeVisible();
 
   // Activate the profile mid-session. useLiveConfig picks up the PUT within its
   // 3s poll; the resolved screen set becomes [A, B] — a different screenKey,
@@ -253,7 +253,7 @@ test('activating a profile mid-session resets the rotator to the first screen an
   await putConfig(request, config);
 
   await expect(page.getByText(A, { exact: true })).toBeVisible({ timeout: 9000 });
-  await expect(page.getByText('PAUSED')).toHaveCount(0);
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
   // C is no longer in the active set, so it never mounts.
   await expect(page.getByText(C, { exact: true })).toHaveCount(0);
 });

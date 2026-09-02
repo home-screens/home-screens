@@ -6,55 +6,65 @@ import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
+import { BUTTON_CLASS, BrightnessIcon, ButtonWords, ControlButton, NextIcon, PrevIcon, SleepIcon, WakeIcon } from './controls';
 
+const ICON = 28;
+
+/** One row of word-and-icon buttons; Brightness opens a popover above the row. */
 export function BarLayout(props: LayoutProps) {
   const t = useTranslate('modules');
-  const { allowRetargeting, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, onPrev, onNext, onSleep, onBrightness } = props;
+  const {
+    allowRetargeting, compact, isLegacyMode, availableDisplays, currentTarget, setCurrentTarget, selfId,
+    brightness, onPrev, onNext, onSleep, onWake, onBrightness,
+  } = props;
   const [brightnessOpen, setBrightnessOpen] = useState(false);
-  const [brightness, setBrightness] = useState(50);
-
   const showPicker = allowRetargeting && !isLegacyMode;
 
   return (
-    <div className="h-full w-full flex items-center gap-3 px-4">
+    <div className="h-full w-full flex items-stretch gap-3 px-4 py-3" data-layout="bar">
       {showPicker && (
-        <TargetPicker
-          mode="dropdown"
-          value={currentTarget ?? 'all'}
-          onChange={(v) => setCurrentTarget(v)}
-          options={availableDisplays}
-        />
+        <div className="flex items-center">
+          <TargetPicker
+            value={currentTarget}
+            onChange={(v) => setCurrentTarget(v)}
+            options={availableDisplays}
+            selfId={selfId}
+          />
+        </div>
       )}
-      {showPicker && <div className="w-px h-8 bg-hs-border-strong" />}
+      {showPicker && <div className="w-px self-center h-10 bg-hs-border-strong" />}
 
-      <IconButton ariaLabel={t('display-control.ariaPrev')} onClick={onPrev}>
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 19l-7-7 7-7" /></svg>
-      </IconButton>
-      <IconButton ariaLabel={t('display-control.ariaNext')} onClick={onNext}>
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5l7 7-7 7" /></svg>
-      </IconButton>
-
-      <div className="w-px h-8 bg-hs-border-strong" />
+      <ControlButton compact={compact} row className="flex-1" label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon={<PrevIcon size={ICON} />} onClick={onPrev} />
+      <ControlButton compact={compact} row className="flex-1" label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon={<NextIcon size={ICON} />} onClick={onNext} />
 
       <HoldConfirmButton
         ariaLabel={t('display-control.sleepHoldHint')}
+        hint={t('display-control.keepHolding')}
         onConfirm={onSleep}
-        className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted"
+        className={`${BUTTON_CLASS} flex-1`}
+        contentClassName="flex h-full w-full items-center justify-center gap-3"
       >
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+        <SleepIcon size={ICON} />
+        {!compact && <ButtonWords row label={t('display-control.sleep')} sub={t('display-control.holdShort')} />}
       </HoldConfirmButton>
 
-      <div className="relative">
-        <IconButton ariaLabel={t('display-control.brightness')} onClick={() => setBrightnessOpen((v) => !v)}>
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /></svg>
-        </IconButton>
+      <ControlButton compact={compact} row className="flex-1" label={t('display-control.wake')} icon={<WakeIcon size={ICON} />} onClick={onWake} />
+
+      <div className="relative flex flex-1">
+        <ControlButton
+          compact={compact}
+          row
+          className="flex-1"
+          label={t('display-control.brightness')}
+          sub={brightness === null ? '–' : `${brightness}%`}
+          icon={<BrightnessIcon size={ICON} />}
+          onClick={() => setBrightnessOpen((v) => !v)}
+        />
         {brightnessOpen && (
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-20">
             <BrightnessPopover
               initial={brightness}
-              label={t('display-control.brightness')}
               onCommit={(v) => {
-                setBrightness(v);
                 onBrightness(v);
                 setBrightnessOpen(false);
               }}
@@ -63,21 +73,6 @@ export function BarLayout(props: LayoutProps) {
           </div>
         )}
       </div>
-
-      <div className="flex-1" />
     </div>
-  );
-}
-
-function IconButton({ children, onClick, ariaLabel }: { children: React.ReactNode; onClick: () => void; ariaLabel: string }) {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      onClick={onClick}
-      className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center transition-transform active:scale-95"
-    >
-      {children}
-    </button>
   );
 }

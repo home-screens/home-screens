@@ -68,7 +68,7 @@ describe('VideoModule source resolution', () => {
 
   it('shows the empty state when nothing is configured', () => {
     const { getByText } = renderModule(makeConfig({ file: '' }), true);
-    expect(getByText('Choose a video to play')).toBeTruthy();
+    expect(getByText('Pick a video in the editor and it plays here')).toBeTruthy();
   });
 
   it('shows the unavailable state when the file is gone from the library', () => {

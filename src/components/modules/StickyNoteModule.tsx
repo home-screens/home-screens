@@ -16,7 +16,7 @@ export default function StickyNoteModule({ config, style }: StickyNoteModuleProp
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
 
   if (!config.content?.trim()) {
-    return <ModuleEmptyState style={style} message={t('sticky-note.empty')} />;
+    return <ModuleEmptyState style={style} type="sticky-note" message={t('sticky-note.empty')} />;
   }
 
   const noteColor = config.noteColor ?? '#fef08a';

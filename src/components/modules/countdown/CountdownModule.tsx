@@ -62,7 +62,7 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
 
   if (events.length === 0) {
-    return <ModuleEmptyState style={style} message={t('countdown.noEvents')} />;
+    return <ModuleEmptyState style={style} type="countdown" message={t('countdown.noEvents')} />;
   }
 
   return (

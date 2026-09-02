@@ -185,6 +185,7 @@
     "secondsUnit": "sec",
     "stickyBadge": "Sticky",
     "stickyHint": "0 = stay on this screen (manual advance only).",
+    "minDurationWarning": "Shorter than {seconds} seconds and the screen may change before its news and weather finish loading. Saved as {seconds}.",
     "inheritsHintBefore": "Inherits the default: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",
@@ -424,6 +425,7 @@
         "errors": {
           "googleCalendarFailed": "Couldn't load this calendar from Google",
           "googleUnreachable": "Couldn't reach Google Calendar",
+          "googleNotSignedIn": "Google Calendar needs to sign in again",
           "holidaysFailed": "Couldn't load the holiday list",
           "icloudBirthdaysFailed": "Couldn't load birthdays from iCloud",
           "icloudCalendarFailed": "Couldn't load this calendar from iCloud",
@@ -671,6 +673,9 @@
         "setupHintLabel": "Setup message on empty displays",
         "setupHintToggle": "Enabled",
         "setupHintHelp": "When a display has no screens to show, it shows a faint message with the address of this editor. Turn this off to leave an empty display completely black.",
+        "rotationProgressLabel": "Progress line under the screen dots",
+        "rotationProgressToggle": "Enabled",
+        "rotationProgressHelp": "A thin line under the active dot fills up as the screen's time runs out, so a long screen and a stuck one look different from across the room.",
         "transitionEffectLabel": "Transition effect",
         "transitionEffectHelp": "Animation style when cycling between screens. Blur may be GPU-intensive on low-power devices.",
         "transitionDurationLabel": "Transition duration",
@@ -1951,6 +1956,12 @@
     }
   },
   "backgroundPicker": {
+    "missing": {
+      "label": "Background image",
+      "note": "This picture isn't on the hub anymore, so the screen shows the solid color instead. Pick another one or remove it.",
+      "pickAnother": "Pick a picture",
+      "useSolid": "Use the solid color"
+    },
     "title": "Background",
     "statusGroup": "Status",
     "autoRotate": "Auto-rotate",
@@ -2644,7 +2655,8 @@
       "targetSelf": "This display (self)",
       "targetAll": "All displays",
       "legacyHint": "Only one display registered — target is locked to this display.",
-      "allowRetargeting": "Allow user to change target at runtime"
+      "allowRetargeting": "Allow user to change target at runtime",
+      "compact": "Icons only, no words"
     },
     "financial": {
       "viewCards": "Cards",

@@ -37,7 +37,7 @@ export default function IconModule({ config, style }: IconModuleProps) {
   const iconClass = buildIconClass(config.iconName ?? '', config.style ?? 'solid');
 
   if (!iconClass) {
-    return <ModuleEmptyState style={style} message={t('icon.empty')} />;
+    return <ModuleEmptyState style={style} type="icon" message={t('icon.empty')} />;
   }
 
   const rotation = config.rotation ?? 0;

@@ -3,6 +3,7 @@
 import type { ClockConfig, ClockView, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useContainerWidth } from './useContainerWidth';
 import ModuleWrapper from '../ModuleWrapper';
 import ClockClassicView from './ClockClassicView';
 import ClockDigitalView from './ClockDigitalView';
@@ -88,6 +89,7 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
   const now = useTZClock(timezone, interval);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
+  const boxWidth = useContainerWidth(containerRef, view);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? ClockClassicView;
 
@@ -98,6 +100,7 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
         now={now}
         scaledFontSize={scaledFontSize}
         containerRef={containerRef}
+        boxWidth={boxWidth}
         timezone={timezone}
       />
     </ModuleWrapper>

@@ -1,59 +1,40 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslate } from '@/i18n';
 
 export interface TargetPickerProps {
-  mode: 'chips' | 'dropdown';
-  value: string;
+  /** Current dispatch target: a display id, 'all', or undefined (this display, id unknown). */
+  value: string | undefined;
   onChange: (v: string) => void;
+  /** Registered displays, in registry order. */
   options: Array<{ id: string; name: string }>;
+  /** The display this module renders on; marked "this display" in the list. */
+  selfId?: string;
+  /** Lets the layout dim its buttons while the list is open. */
+  onOpenChange?: (open: boolean) => void;
 }
 
-const ALL_OPTION = { id: 'all', name: 'All' } as const;
+export const ALL_TARGET = 'all';
 
-export function TargetPicker({ mode, value, onChange, options }: TargetPickerProps) {
-  const allOptions = [ALL_OPTION, ...options];
-  if (mode === 'chips') {
-    return (
-      // data-swipe-ignore: the chip row scrolls sideways — a drag across it
-      // must never trigger screen navigation.
-      <div className="flex gap-1.5 overflow-x-auto pb-1" data-swipe-ignore>
-        {allOptions.map((opt) => {
-          const active = opt.id === value;
-          return (
-            <button
-              key={opt.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(opt.id)}
-              className={`shrink-0 px-3.5 min-h-[40px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
-                active
-                  ? 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/25'
-                  : 'bg-hs-card text-hs-text-muted border-hs-border-strong'
-              }`}
-            >
-              {opt.name}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-  return <DropdownTargetPicker value={value} onChange={onChange} allOptions={allOptions} />;
+/** A display's friendly name, or its id when it was never given one. */
+export function displayLabel(d: { id: string; name: string }): string {
+  return d.name.trim() || d.id;
 }
 
-function DropdownTargetPicker({
-  value,
-  onChange,
-  allOptions,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  allOptions: Array<{ id: string; name: string }>;
-}) {
+/**
+ * "Controls [Kitchen ⌄]" with a popover list of friendly display names, this
+ * display marked, and "All displays" last. A custom list rather than a native
+ * select so it renders at wall size and can be styled like the buttons.
+ */
+export function TargetPicker({ value, onChange, options, selfId, onOpenChange }: TargetPickerProps) {
+  const t = useTranslate('modules');
   const [open, setOpen] = useState(false);
-  const selected = allOptions.find((o) => o.id === value) ?? allOptions[0];
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,41 +45,68 @@ function DropdownTargetPicker({
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [open]);
 
+  const selectedLabel = value === ALL_TARGET
+    ? t('display-control.allDisplays')
+    : (() => {
+        const match = options.find((o) => o.id === value);
+        return match ? displayLabel(match) : t('display-control.thisDisplay');
+      })();
+
+  const choose = (id: string) => {
+    onChange(id);
+    setOpen(false);
+  };
+
   return (
-    <div ref={ref} className="relative inline-block">
+    // data-swipe-ignore: a drag inside the list must never turn into screen navigation.
+    <div ref={ref} className="relative flex items-center gap-3 text-[20px] text-hs-text-muted" data-swipe-ignore>
+      <span>{t('display-control.controls')}</span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="px-3 h-10 rounded-xl bg-hs-card border border-hs-border-strong flex items-center gap-2 text-sm font-medium text-hs-text-muted"
+        className="flex items-center gap-3 rounded-xl border border-hs-border-strong bg-hs-card px-4 py-2 text-[22px] font-medium text-hs-text-primary transition-transform active:scale-[0.98]"
       >
-        <span>{selected.name}</span>
-        <svg className="w-3 h-3 text-hs-text-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <span>{selectedLabel}</span>
+        <svg aria-hidden="true" className="h-5 w-5 text-hs-text-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute top-full left-0 mt-1 min-w-[160px] rounded-xl bg-hs-card border border-hs-border-strong shadow-lg overflow-hidden z-10"
+          className="absolute left-0 top-full z-20 mt-2 max-h-[360px] min-w-[300px] overflow-y-auto rounded-2xl border border-hs-border-strong bg-hs-card p-2 shadow-2xl"
         >
-          {allOptions.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                onChange(opt.id);
-                setOpen(false);
-              }}
-              className={`block w-full text-left px-3 py-2 text-sm ${
-                opt.id === value ? 'text-hs-accent-hover bg-hs-accent-soft' : 'text-hs-text-muted hover:bg-hs-hover'
-              }`}
-            >
-              {opt.name}
-            </button>
-          ))}
+          {options.map((opt) => {
+            const active = opt.id === value || (value === undefined && opt.id === selfId);
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                role="menuitem"
+                onClick={() => choose(opt.id)}
+                className={`flex w-full items-center justify-between gap-4 rounded-xl px-4 py-3 text-left text-[22px] ${
+                  active ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
+                }`}
+              >
+                <span>{displayLabel(opt)}</span>
+                {opt.id === selfId && (
+                  <span className="text-[20px] text-hs-text-muted">{t('display-control.thisDisplayTag')}</span>
+                )}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => choose(ALL_TARGET)}
+            className={`flex w-full items-center rounded-xl px-4 py-3 text-left text-[22px] ${
+              value === ALL_TARGET ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
+            }`}
+          >
+            {t('display-control.allDisplays')}
+          </button>
         </div>
       )}
     </div>

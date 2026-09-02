@@ -168,7 +168,6 @@ describe('sports API route', () => {
           awayRecord: '',
           status: 'Final',
           detail: '',
-          shortDetail: '',
           state: 'pre',
           startTime: '2024-03-01T19:30Z',
           broadcast: '',

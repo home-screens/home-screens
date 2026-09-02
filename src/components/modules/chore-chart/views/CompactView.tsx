@@ -7,6 +7,8 @@ import { partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
+import { TapCheckbox, TAP_CHECKBOX_SIZE } from '../../shared/TapCheckbox';
+import { usePressedKey } from '../../shared/usePressedKey';
 
 interface CompactViewProps {
   config: ChoreChartConfig;
@@ -27,6 +29,8 @@ interface CompactViewProps {
 /** Width of one member checkbox column, in em. */
 const COLUMN_EM = 1.8;
 const COLUMN_GAP = 8;
+/** Column width in px when the boxes are tappable: the 38px box plus breathing room. */
+const TOUCH_COLUMN_PX = TAP_CHECKBOX_SIZE + 8;
 /** The chore name keeps at least this share of the row; past it the member
  *  columns collapse into one "done/total" cell per chore. */
 const MAX_COLUMNS_SHARE = 0.45;
@@ -37,6 +41,9 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   const dayOfWeek = new Date().getDay();
   const allowTouch = config.allowDisplayComplete;
   const t = useTranslate('modules');
+  const [pressedKey, press] = usePressedKey();
+  // Tappable boxes are fixed-size touch targets; read-only glyphs scale with the text.
+  const columnWidth: string | number = allowTouch ? TOUCH_COLUMN_PX : `${COLUMN_EM}em`;
 
   const todayChores = chores.filter(
     (c) => choreAppliesToday(c, dayOfWeek, today),
@@ -45,7 +52,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   // parent or a kid on their day off is noise.
   const { active } = partitionMembers(members, memberStats);
   const activeIds = new Set(active.map((m) => m.id));
-  const columnsWidth = active.length * (COLUMN_EM * fontSize + COLUMN_GAP);
+  const columnsWidth = active.length * ((allowTouch ? TOUCH_COLUMN_PX : COLUMN_EM * fontSize) + COLUMN_GAP);
   const aggregate = width > 0 && columnsWidth > width * MAX_COLUMNS_SHARE;
 
   const totals = active.reduce(
@@ -58,16 +65,19 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
 
   const checkbox = (chore: ChoreDefinition, member: ChoreMember) => {
     const done = completionSet.has(completionKey(chore.id, member.id, today));
+    const key = `${chore.id}:${member.id}`;
     return (
       <button
         key={member.id}
         type="button"
-        onClick={allowTouch ? () => toggleComplete(chore.id, member.id) : undefined}
+        onClick={allowTouch ? () => { void press(key, () => toggleComplete(chore.id, member.id)); } : undefined}
         disabled={!allowTouch}
         aria-label={`${chore.name}: ${member.name}`}
-        style={{ width: `${COLUMN_EM}em`, textAlign: 'center', cursor: allowTouch ? 'pointer' : 'default', background: 'none', border: 'none', color: 'inherit', padding: 0, fontSize: '1.2em' }}
+        aria-pressed={allowTouch ? done : undefined}
+        className={allowTouch ? 'flex items-center justify-center shrink-0' : undefined}
+        style={{ width: columnWidth, textAlign: 'center', cursor: allowTouch ? 'pointer' : 'default', background: 'none', border: 'none', color: 'inherit', padding: 0, fontSize: allowTouch ? undefined : '1.2em', minHeight: allowTouch ? TOUCH_COLUMN_PX : undefined }}
       >
-        {done ? '✅' : '☐'}
+        {allowTouch ? <TapCheckbox checked={done} pressed={pressedKey === key} color={member.color} /> : (done ? '✅' : '☐')}
       </button>
     );
   };
@@ -81,7 +91,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
         )}
         <div className="flex-1" />
         {!aggregate && active.map((m) => (
-          <span key={m.id} title={m.name} className="flex items-center justify-center" style={{ width: `${COLUMN_EM}em` }}>
+          <span key={m.id} title={m.name} className="flex items-center justify-center" style={{ width: columnWidth }}>
             {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>}
           </span>
         ))}
@@ -111,7 +121,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
                 assignees.length === 1 ? checkbox(chore, assignees[0]) : (() => {
                   const done = assignees.filter((m) => completionSet.has(completionKey(chore.id, m.id, today))).length;
                   return done === assignees.length ? (
-                    <span data-testid="chore-compact-aggregate" style={{ width: `${COLUMN_EM}em`, textAlign: 'center', fontSize: '1.2em' }}>{'✅'}</span>
+                    <span data-testid="chore-compact-aggregate" style={{ width: columnWidth, textAlign: 'center', fontSize: '1.2em' }}>{'✅'}</span>
                   ) : (
                     <span
                       data-testid="chore-compact-aggregate"
@@ -125,7 +135,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
                 active.map((member) => {
                   if (!activeIds.has(member.id) || !assignees.some((m) => m.id === member.id)) {
                     return (
-                      <span key={member.id} style={{ width: `${COLUMN_EM}em`, textAlign: 'center', opacity: 0.2 }}>
+                      <span key={member.id} style={{ width: columnWidth, textAlign: 'center', opacity: 0.2 }}>
                         &middot;
                       </span>
                     );
@@ -148,7 +158,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
           ) : active.map((m) => {
             const stats = memberStats.get(m.id);
             return (
-              <span key={m.id} style={{ width: `${COLUMN_EM / 0.7}em`, textAlign: 'center', fontSize: '0.95em', fontVariantNumeric: 'tabular-nums' }}>
+              <span key={m.id} style={{ width: allowTouch ? TOUCH_COLUMN_PX : `${COLUMN_EM / 0.7}em`, textAlign: 'center', fontSize: '0.95em', fontVariantNumeric: 'tabular-nums' }}>
                 {stats ? `${stats.completed}/${stats.total}` : '—'}
               </span>
             );

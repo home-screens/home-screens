@@ -21,6 +21,7 @@ vi.mock('googleapis', () => ({
 }));
 
 import { fetchCalendarEvents } from '../google-calendar';
+import { SetupError } from '@/lib/api-utils';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 
@@ -64,10 +65,12 @@ describe('fetchCalendarEvents', () => {
     vi.clearAllMocks();
   });
 
-  it('throws when not authenticated', async () => {
+  it('throws a SetupError when not authenticated', async () => {
     mockGetAuth.mockResolvedValue(null);
-    await expect(fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31'))
-      .rejects.toThrow('Not authenticated');
+    const err = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(SetupError);
+    expect((err as SetupError).needs).toBe('connection');
+    expect((err as Error).message).toMatch(/Not authenticated/);
   });
 
   it('fetches events and returns CalendarEvent objects', async () => {

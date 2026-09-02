@@ -699,9 +699,9 @@ test.describe('todo toggle', () => {
  * display-control command surface. The touch widget (DisplayControlModule) fires
  * hub commands through `dispatchDisplayCommand` (src/lib/display-dispatch.ts) at a
  * resolved target: `self` → the display it renders on, `all` → broadcast, or a
- * specific slug. Every layout (panel/pad/bar) exposes exactly four controls —
- * Prev, Next, a hold-to-confirm Sleep, and a Brightness slider (verified against
- * PanelLayout/PadLayout/BarLayout). There is NO direct screen-jump/goto-screen or
+ * specific slug. Every layout (panel/pad/bar) exposes five controls —
+ * Prev, Next, a hold-to-confirm Sleep, Wake, and a Brightness slider (verified
+ * against PanelLayout/PadLayout/BarLayout). There is NO direct screen-jump/goto-screen or
  * pause control anywhere in the component, so those (guessed in the task plan)
  * are intentionally not exercised.
  *
@@ -848,10 +848,12 @@ test.describe('display-control command surface', () => {
       page, request, baseConfig({ displays: [controller, alpha, beta] }), '/display/rctl',
     );
 
-    // The picker (chips) is present in multi-display mode; chips are labeled by
-    // display name. Retarget from the render display (R Ctl) to R Beta, then tap Next.
+    // The picker is present in multi-display mode; its pill reads the render
+    // display's name and opens a list of display names. Retarget from the
+    // render display (R Ctl) to R Beta, then tap Next.
     const mod = display.module('display-control');
-    await mod.getByRole('button', { name: 'R Beta', exact: true }).click();
+    await mod.getByRole('button', { name: 'R Ctl', exact: true }).click();
+    await mod.getByRole('menuitem', { name: 'R Beta', exact: true }).click();
     await mod.getByRole('button', { name: 'Next screen' }).click();
 
     await expect.poll(() => drainTypes(request, 'rbeta'), { timeout: 6000 }).toContain('next-screen');

@@ -7,6 +7,8 @@ import { balanceRows, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
+import { TapCheckbox } from '../../shared/TapCheckbox';
+import { usePressedKey } from '../../shared/usePressedKey';
 
 interface BoardViewProps {
   config: ChoreChartConfig;
@@ -66,6 +68,7 @@ function MemberColumn({ member, stats, showPoints, children }: MemberColumnProps
 export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
   const { todayAssignments, members, memberStats, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
+  const [pressedKey, press] = usePressedKey();
   const t = useTranslate('modules');
 
   // Members with no chores at all this week are not on the board. A member
@@ -122,9 +125,10 @@ export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
                         <button
                           key={chore.id}
                           type="button"
-                          onClick={allowTouch ? () => toggleComplete(chore.id, member.id) : undefined}
+                          onClick={allowTouch ? () => { void press(`${chore.id}:${member.id}`, () => toggleComplete(chore.id, member.id)); } : undefined}
                           disabled={!allowTouch}
-                          className="w-full text-left rounded-md transition-all flex items-start gap-1.5"
+                          aria-pressed={allowTouch ? isCompleted : undefined}
+                          className={`w-full text-left rounded-md transition-all flex gap-1.5 ${allowTouch ? 'items-center' : 'items-start'}`}
                           style={{
                             padding: '0.3em 0.4em',
                             fontSize: '0.8em',
@@ -137,7 +141,11 @@ export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
                             color: 'inherit',
                           }}
                         >
-                          <span className="shrink-0" style={{ fontSize: '1.15em', lineHeight: 1.1 }}>{isCompleted ? '✅' : '☐'}</span>
+                          {allowTouch ? (
+                            <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${member.id}`} color={member.color} />
+                          ) : (
+                            <span className="shrink-0" style={{ fontSize: '1.15em', lineHeight: 1.1 }}>{isCompleted ? '✅' : '☐'}</span>
+                          )}
                           {chore.emoji && <span className="shrink-0 flex items-center" style={{ height: '1.25em' }}><ChoreIcon value={chore.emoji} size={16} color="currentColor" /></span>}
                           {/* Two lines at most: a long chore name ellipsises instead of
                               stacking one word per line in a narrow column. */}

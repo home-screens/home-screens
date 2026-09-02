@@ -8,7 +8,11 @@ import { useMediaRotation } from '@/hooks/useRotatingIndex';
 import { useAuthImage } from '@/components/display/useAuthImage';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
-import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
+import { useOrigin } from '@/hooks/useOrigin';
+import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
+import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { QRCodeSVG } from 'qrcode.react';
 import VideoLayer from '../shared/VideoLayer';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
@@ -99,6 +103,56 @@ function SlideLayer({
       className="absolute inset-0 w-full h-full"
       style={{ ...transitionStyle, ...kenBurnsStyle }}
     />
+  );
+}
+
+// ── Empty state ──────────────────────────────
+
+function PhotoFrameIcon({ color }: { color: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke={color} style={{ width: 110, height: 110 }} aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+    </svg>
+  );
+}
+
+/**
+ * The wall's "no photos yet" screen. Sized for the 1080x1920 canvas in plain
+ * px (the canvas is scaled as a whole in the editor, so vw would lie there):
+ * readable from the couch, with the hub's real /remote address in a pill and
+ * a QR code a phone can scan. Cloud sources get their own hint instead: their
+ * fix is in the editor, not on a phone.
+ */
+function NoPhotosYet({ theme, t, cloudHint }: { theme: FullscreenThemeTokens; t: TranslateFn; cloudHint: string | null }) {
+  const origin = useOrigin();
+  const url = phoneSurfaceUrl('remote', origin);
+  return (
+    <div className="flex flex-col items-center text-center" style={{ gap: 24, padding: '0 80px', color: theme.textMuted }}>
+      <PhotoFrameIcon color={theme.textMuted} />
+      <p style={{ fontSize: 52, fontWeight: 600, lineHeight: 1.15, color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
+      {cloudHint ? (
+        <p style={{ fontSize: 30, lineHeight: 1.35, maxWidth: 760 }}>{cloudHint}</p>
+      ) : (
+        <>
+          <p style={{ fontSize: 30, lineHeight: 1.35 }}>{t('fullscreen-photo.noPhotosYetHint')}</p>
+          <code
+            data-testid="fullscreen-photo-remote-url"
+            className="font-mono break-all"
+            style={{ fontSize: 34, padding: '14px 30px', borderRadius: 999, background: theme.surface, color: theme.text, maxWidth: '100%' }}
+          >
+            {phoneSurfaceLabel('remote', origin)}
+          </code>
+          {/* A QR of a bare path is useless, so it waits for the origin. Always
+              dark on white: that scans under every theme. */}
+          {origin && (
+            <div style={{ background: '#fff', padding: 16, borderRadius: 16, marginTop: 10, lineHeight: 0 }}>
+              <QRCodeSVG value={url} size={260} fgColor="#111111" bgColor="#ffffff" />
+            </div>
+          )}
+          <p style={{ fontSize: 24, marginTop: 8 }}>{t('fullscreen-photo.noPhotosYetFolderHint')}</p>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -261,29 +315,19 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   }
 
   if (data !== null && items.length === 0) {
+    // An empty iCloud album usually means a bad link or the album's public
+    // website being off; an empty OneDrive folder points back at the
+    // editor's folder picker — say so instead of phone-upload advice.
+    const cloudHint = config.source === 'icloud' ? t('fullscreen-photo.noPhotosYetHintICloud')
+      : config.source === 'onedrive' ? t('fullscreen-photo.noPhotosYetHintOneDrive')
+        : null;
     return (
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
         style={{ ...themeGround, color: theme.textSecondary }}
       >
-        <div className="text-center space-y-3">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 mx-auto opacity-30">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-          </svg>
-          <p className="text-lg font-medium" style={{ color: theme.text }}>{t('fullscreen-photo.noPhotosYet')}</p>
-          <p className="text-sm max-w-xs mx-auto" style={{ color: theme.textMuted }}>
-            {/* An empty iCloud album usually means a bad link or the album's
-                public website being off; an empty OneDrive folder points
-                back at the editor's folder picker — say so instead of
-                upload advice. */}
-            {t(
-              config.source === 'icloud' ? 'fullscreen-photo.noPhotosYetHintICloud'
-                : config.source === 'onedrive' ? 'fullscreen-photo.noPhotosYetHintOneDrive'
-                  : 'fullscreen-photo.noPhotosYetHint',
-            )}
-          </p>
-        </div>
+        <NoPhotosYet theme={theme} t={t} cloudHint={cloudHint} />
       </div>
     );
   }

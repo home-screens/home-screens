@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { BrightnessSlider } from './controls';
 
 export interface BrightnessPopoverProps {
-  initial: number; // 0..100
+  /** Reported brightness 0..100, or null while nothing has been reported. */
+  initial: number | null;
   onCommit: (value: number) => void;
   onDismiss: () => void;
-  /** Translated label shown in the popover header and as the slider's aria-label. */
-  label?: string;
 }
 
-export function BrightnessPopover({ initial, onCommit, onDismiss, label = 'Brightness' }: BrightnessPopoverProps) {
-  const [value, setValue] = useState(clamp(initial));
+/** The brightness slider in a small card, for the bar layout. */
+export function BrightnessPopover({ initial, onCommit, onDismiss }: BrightnessPopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,27 +27,14 @@ export function BrightnessPopover({ initial, onCommit, onDismiss, label = 'Brigh
   return (
     <div
       ref={ref}
-      className="rounded-xl bg-hs-card border border-hs-border-strong shadow-lg p-3 w-[220px]"
+      className="w-[360px] rounded-2xl border border-hs-border-strong bg-hs-card p-5 shadow-2xl"
     >
-      <div className="flex justify-between text-xs mb-1">
-        <span className="uppercase tracking-wider text-hs-text-muted">{label}</span>
-        <span className="font-mono text-hs-text-faint">{value}%</span>
-      </div>
-      <input
-        aria-label={label}
-        type="range"
-        min={0}
-        max={100}
-        value={value}
-        onChange={(e) => setValue(Number(e.target.value))}
-        onPointerUp={() => onCommit(value)}
-        className="w-full h-3 accent-hs-accent"
-      />
+      <BrightnessSlider value={clamp(initial)} onCommit={onCommit} />
     </div>
   );
 }
 
-function clamp(n: number): number {
-  if (!Number.isFinite(n)) return 50;
+function clamp(n: number | null): number | null {
+  if (n === null || !Number.isFinite(n)) return null;
   return Math.max(0, Math.min(100, Math.round(n)));
 }

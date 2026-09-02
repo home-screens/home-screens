@@ -29,6 +29,16 @@ const STATIC_BG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAE
 // Distinct non-/api/ paths the stubbed rotate endpoint hands back per screen.
 const ROTATED_A = '/e2e-rotated/photo-a.jpg';
 const ROTATED_B = '/e2e-rotated/photo-b.jpg';
+// 1x1 PNG served for the rotated paths: a background whose file is missing
+// hides itself (audit 39 item 75), so the paths must actually resolve.
+const ROTATED_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/e2e-rotated/*', (route) => route.fulfill({ status: 200, contentType: 'image/png', body: ROTATED_PNG }));
+});
 
 function rotatingScreen(id: string, name: string, label: string, query: string) {
   return makeScreen(id, name, [textModule(label)], {

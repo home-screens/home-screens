@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
+import { MIN_SCREEN_DURATION_MS } from '@/lib/constants';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
@@ -15,10 +16,16 @@ import { ScreenScheduleSection } from './ScreenScheduleSection';
  * the per-display Settings > OverrideRow pattern, but without a Defaults-page
  * link: this override is per-screen against the global, not per-display
  * against a Defaults page.
+ *
+ * A positive duration is held to MIN_SCREEN_DURATION_MS: the field accepts
+ * what is typed (a draft), a warning explains, and the saved value is clamped.
+ * Zero (sticky) is not a duration and is saved as-is.
  */
 export default function ScreenSettingsSection() {
   const t = useTranslate('editor');
   const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
+  // What the input shows while it has focus; null shows the saved value.
+  const [draft, setDraft] = useState<string | null>(null);
 
   const screen = useMemo(() => {
     if (!config || !selectedScreenId) return null;
@@ -32,6 +39,10 @@ export default function ScreenSettingsSection() {
   const overrideMs = screen.rotationDurationMs;
   const isOverridden = overrideMs !== undefined;
   const isSticky = isOverridden && overrideMs === 0;
+  const minSeconds = MIN_SCREEN_DURATION_MS / 1000;
+  const savedSeconds = Math.round((overrideMs ?? 0) / 1000);
+  const draftSeconds = draft !== null ? Number(draft) : savedSeconds;
+  const belowFloor = Number.isFinite(draftSeconds) && draftSeconds > 0 && draftSeconds < minSeconds;
 
   const moduleCount = screen.modules?.length ?? 0;
 
@@ -46,12 +57,14 @@ export default function ScreenSettingsSection() {
   };
 
   const handleChangeSeconds = (secondsText: string) => {
+    setDraft(secondsText);
     // Ignore empty input so clearing the field mid-edit doesn't silently
     // flip the screen into sticky mode (Number('') === 0).
     if (secondsText.trim() === '') return;
     const n = Number(secondsText);
     if (!Number.isFinite(n) || n < 0) return;
-    updateScreen(screen.id, { rotationDurationMs: Math.round(n * 1000) });
+    const ms = n === 0 ? 0 : Math.max(Math.round(n * 1000), MIN_SCREEN_DURATION_MS);
+    updateScreen(screen.id, { rotationDurationMs: ms });
   };
 
   return (
@@ -99,9 +112,10 @@ export default function ScreenSettingsSection() {
                   min={0}
                   max={86400}
                   step={1}
-                  value={Math.round((overrideMs ?? 0) / 1000)}
+                  value={draft ?? savedSeconds}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
-                  className="pl-2 pr-1 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body w-24"
+                  onBlur={() => setDraft(null)}
+                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-24 ${belowFloor ? 'border-hs-warning' : 'border-hs-border-strong'}`}
                 />
                 <span className="text-xs text-hs-text-muted">{t('screenSettings.secondsUnit')}</span>
                 {isSticky && (
@@ -110,6 +124,12 @@ export default function ScreenSettingsSection() {
                   </span>
                 )}
               </div>
+              {belowFloor && (
+                <p className="text-[11px] text-hs-warning mt-2 flex gap-1.5" data-testid="screen-duration-floor-warning">
+                  <span aria-hidden="true">⚠</span>
+                  <span>{t('screenSettings.minDurationWarning', { seconds: minSeconds })}</span>
+                </p>
+              )}
               <p className="text-[11px] text-hs-text-faint mt-2">
                 {t('screenSettings.stickyHint')}
               </p>

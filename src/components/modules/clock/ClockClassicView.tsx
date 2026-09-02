@@ -3,9 +3,10 @@
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { fitFactor, timeLineWidth } from './fit-width';
 import type { ClockViewProps } from './types';
 
-export default function ClockClassicView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockClassicView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
@@ -23,6 +24,15 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
   if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);
   const infoStr = infoParts.length > 0 ? infoParts.join(' · ') : null;
 
+  // Shrink everything together when the box is narrower than the time line;
+  // the height-derived size stays the ceiling.
+  const timeStr = config.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+  const factor = fitFactor(
+    timeLineWidth(timeStr, scaledFontSize * 3, 0.025, ampm ? { text: ampm, scale: 0.4, marginEm: 0.15 } : null),
+    boxWidth,
+  );
+  const s = scaledFontSize * factor;
+
   return (
     <div
       ref={containerRef}
@@ -39,8 +49,8 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
       `}</style>
 
       <div
-        className="font-light tracking-wide tabular-nums"
-        style={{ fontSize: scaledFontSize * 3, lineHeight: 1.1 }}
+        className="font-light tracking-wide tabular-nums whitespace-nowrap"
+        style={{ fontSize: s * 3, lineHeight: 1.1 }}
         suppressHydrationWarning
       >
         {config.showSeconds ? (
@@ -65,7 +75,7 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
       {dateStr && (
         <div
           className="mt-2 tracking-wide"
-          style={{ fontSize: scaledFontSize * 1.125, opacity: TEXT_OPACITY.secondary }}
+          style={{ fontSize: s * 1.125, opacity: TEXT_OPACITY.secondary }}
           suppressHydrationWarning
         >
           {dateStr}
@@ -75,7 +85,7 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
       {infoStr && (
         <div
           className="mt-1 tracking-wider uppercase"
-          style={{ fontSize: scaledFontSize * 0.85, opacity: TEXT_OPACITY.tertiary }}
+          style={{ fontSize: s * 0.85, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoStr}

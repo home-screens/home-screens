@@ -8,7 +8,7 @@ import {
   type PreviewSettings,
   type SharedDisplayData,
 } from '../module-props';
-import type { ModuleType } from '@/types/config';
+import type { CalendarSettings, ModuleType } from '@/types/config';
 
 /**
  * The display and the editor canvas render the same module components from
@@ -43,11 +43,14 @@ const emptyShared = (): SharedDisplayData => ({
   calendarStatus: { error: null, updatedAt: null },
 });
 
+const CALENDAR_SETTINGS = { googleCalendarIds: ['family@example.com'] } as CalendarSettings;
+
 const displaySettings = {
   timezone: 'America/Chicago',
   fullscreenTheme: 'midnight',
   locationName: 'Prior Lake, MN',
   weather: { provider: 'weatherapi', units: 'imperial' as const },
+  calendar: CALENDAR_SETTINGS,
 };
 
 const previewSettings: PreviewSettings = {
@@ -60,6 +63,7 @@ const previewSettings: PreviewSettings = {
   fullscreenTheme: 'midnight',
   timeFormat: undefined,
   calendarPeople: undefined,
+  calendarConfigured: true,
 };
 
 const previewData: PreviewData = {
@@ -153,6 +157,17 @@ describe('buildModuleProps', () => {
     }));
     expect(props.sourceStatus).toEqual(failing);
     expect(props).not.toHaveProperty('calendarStatus');
+  });
+
+  it('flags a calendar module with nothing configured on both surfaces, never on a configured one', () => {
+    const unconfiguredDisplay = toDisplaySource({ ...displaySettings, calendar: undefined }, LOCATION, emptyShared());
+    const unconfiguredEditor = toEditorSource({ ...previewSettings, calendarConfigured: false }, previewData);
+    expect(buildModuleProps(instance('calendar'), unconfiguredDisplay).calendarSetup).toBe('noSources');
+    expect(buildModuleProps(instance('fullscreen-calendar'), unconfiguredEditor).calendarSetup).toBe('noSources');
+    expect(buildModuleProps(instance('calendar'), displaySource())).not.toHaveProperty('calendarSetup');
+    expect(buildModuleProps(instance('clock'), unconfiguredDisplay)).not.toHaveProperty('calendarSetup');
+    // Settings still loading in the editor is not "no calendars".
+    expect(buildModuleProps(instance('calendar'), toEditorSource(null, previewData))).not.toHaveProperty('calendarSetup');
   });
 
   it('gives display-control the registered displays', () => {

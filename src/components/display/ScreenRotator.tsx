@@ -19,6 +19,7 @@ import { useBackgroundRotation } from './useBackgroundRotation';
 import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
+import { useBootWarmup } from './useBootWarmup';
 import { useScreenRotationTimer } from './useScreenRotationTimer';
 import { usePauseRotation } from './usePauseRotation';
 import { useScreenTransition } from './useScreenTransition';
@@ -240,7 +241,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // All pause state and the double-tap gesture. Must run above
   // useDisplayControl, which consumes `clearPause` for its remote next/prev.
-  const { paused, handleDotClick, clearPause } = usePauseRotation({
+  const { paused, pausedUntil, handleDotClick, clearPause } = usePauseRotation({
     pauseEnabled: settings.pauseEnabled,
     pauseTimeoutSeconds: settings.pauseTimeoutSeconds,
     activeIndex: safeIndex,
@@ -266,7 +267,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // Status reports name the takeover screen when one is pinned, so the
   // editor's "currently showing" readout stays truthful during a rule firing.
-  const { displayState, dimOpacity, wake, forceSleep } = useDisplayControl({
+  const { displayState, dimOpacity, brightnessOverride, wake, forceSleep } = useDisplayControl({
     // A preview window ignores the sleep schedule: it exists to show a
     // screen, and a black rectangle at 10 PM reads as "it's broken".
     sleep: preview ? undefined : settings.sleep,
@@ -407,6 +408,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     takeoverScreen !== null,
   );
 
+  // Boot warm-up: every other screen's module data, one screen every 400ms,
+  // so the first pass of the rotation does not flash skeletons. Not in a
+  // preview window, which shows one screen and never rotates.
+  useBootWarmup(screens, screenKey, safeIndex, settings.timezone, !preview);
+
   // Reset currentIndex when the active screen set changes (handles both length
   // changes and same-length profile switches with different screens). No
   // animation — this is a hard reset. usePauseRotation clears pause on the
@@ -480,7 +486,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // rotationEpoch resets the timer after manual navigation or on current-screen changes.
   // interactionHeld pauses rotation while an overlay (e.g. an open recipe) is
   // being read; the overlay's own auto-dismiss timers bound the hold.
-  useScreenRotationTimer({
+  const dwellStartedAt = useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
     // SIX ways a kiosk sits frozen on one screen, all of which look identical
@@ -530,6 +536,31 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // alert still shows.
   const showHint = !takeoverScreen && !pinnedScreen && (screens.length === 0 || screens.every(isScreenEmpty));
 
+  // Which watermark: a true first boot (nothing was ever here) gets the
+  // address only; a display that showed real content before, or whose
+  // screens are all switched off, also gets the "want a blank screen
+  // instead?" line, because whoever emptied it knows the setting exists.
+  // "Showed content before" is remembered per display in this browser,
+  // since the config itself cannot tell a deleted screen from one that
+  // never existed.
+  const hadContentKey = `hs:had-content:${displayId ?? 'default'}`;
+  const [hadContentBefore, setHadContentBefore] = useState(false);
+  useEffect(() => {
+    try { setHadContentBefore(window.localStorage.getItem(hadContentKey) === '1'); } catch { /* storage blocked */ }
+  }, [hadContentKey]);
+  useEffect(() => {
+    if (showHint) return;
+    setHadContentBefore(true);
+    try { window.localStorage.setItem(hadContentKey, '1'); } catch { /* storage blocked */ }
+  }, [showHint, hadContentKey]);
+  const deliberatelyEmpty = hadContentBefore || (allScreens.length > 0 && enabledScreens.length === 0);
+
+  // The thin line under the active dot. Off in settings, or nothing armed
+  // (sticky screen, single screen), draws nothing.
+  const rotationProgress = (settings.showRotationProgress ?? true) && dwellStartedAt !== null && currentDuration > 0
+    ? { startedAt: dwellStartedAt, durationMs: currentDuration }
+    : null;
+
   // While an urgent alert bar is up, the whole canvas is pushed down under it
   // and scaled to what is left, so the bar covers nothing — the clock stays
   // readable through a tornado warning. One transform on the renderer's
@@ -554,7 +585,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {showHint || !renderedScreen ? (
         settings.setupHintEnabled === false
           ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
-          : <EmptyDisplayHint />
+          : <EmptyDisplayHint deliberatelyEmpty={deliberatelyEmpty} />
       ) : (
         <div
           data-testid="display-canvas"
@@ -599,6 +630,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
         activeIndex={safeIndex}
         paused={paused || preview}
         onDotClick={handleDotClick}
+        onResume={preview ? undefined : clearPause}
+        pausedUntil={pausedUntil}
+        progress={preview ? null : rotationProgress}
       />
 
       <NetworkIndicator displayState={displayState} scale={scale} />
@@ -616,6 +650,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       <SleepOverlay
         displayState={takeoverOverridesSleep ? 'active' : displayState}
         dimOpacity={takeoverOverridesSleep ? 0 : dimOpacity}
+        brightnessOverride={brightnessOverride}
         screensaver={settings.screensaver}
         timezone={settings.timezone}
       />

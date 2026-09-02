@@ -48,22 +48,24 @@ test('a sticky screen (rotationDurationMs: 0) never auto-advances', async ({ pag
 
 test.describe('per-screen rotation duration and enabled gates', () => {
   test('a non-zero per-screen rotationDurationMs advances well before the global default', async ({ page, request }) => {
-    // Screen A overrides to ~2s; the global default is 10s. resolveScreenDuration
-    // (src/lib/resolve-screen-duration.ts) resolves screen.rotationDurationMs first,
-    // so A must advance to B on its own 2s clock. Asserting B appears within 6s
-    // proves the override took precedence: it advanced well before the 10s global
-    // would have fired, and it is not sticky. Margins are generous (real event ~2s,
-    // 4s of slack, comfortably under 10s) — no exact timing is asserted.
+    // Screen A overrides to 2s, which resolveScreenDuration
+    // (src/lib/resolve-screen-duration.ts) holds to the 10s floor
+    // (MIN_SCREEN_DURATION_MS); the global default is 60s. A must advance to B
+    // on its own clock: asserting B appears within 16s proves the override took
+    // precedence (well before the 60s global) and that the floor applied (not
+    // before ~10s). Margins are generous — no exact timing is asserted.
     await putConfig(request, baseConfig({
       screens: [
         makeScreen('fast', 'Fast', [textModule('FAST SCREEN')], { rotationDurationMs: 2000 }),
         makeScreen('slow', 'Slow', [textModule('SLOW SCREEN')]),
       ],
-      settings: { rotationIntervalMs: 10000 },
+      settings: { rotationIntervalMs: 60000 },
     }));
     await page.goto('/display');
     await expect(page.getByText('FAST SCREEN')).toBeVisible();
-    await expect(page.getByText('SLOW SCREEN')).toBeVisible({ timeout: 6000 });
+    await page.waitForTimeout(8000);
+    await expect(page.getByText('FAST SCREEN')).toBeVisible();
+    await expect(page.getByText('SLOW SCREEN')).toBeVisible({ timeout: 8000 });
   });
 
   test('a screen with enabled:false is skipped in rotation', async ({ page, request }) => {
@@ -108,7 +110,7 @@ test('empty screens list shows the setup watermark, with this hub\'s address', a
   await page.goto('/display');
   const hint = page.getByTestId('empty-display-hint');
   await expect(hint).toBeVisible();
-  await expect(hint.getByText('Nothing here yet')).toBeVisible();
+  await expect(hint.getByText('Nothing on this screen yet')).toBeVisible();
   // The address is the one fact the person in front of a blank Pi cannot look
   // up, so assert it resolves to this hub's own origin rather than a
   // placeholder. The bare origin is printed: `/` lands a laptop on the editor
@@ -286,11 +288,12 @@ test.describe('useLiveConfig reload paths', () => {
     }));
 
     // /display renders the `main` display inline; its display-control picker
-    // shows a chip per registered display (plus the built-in "All").
+    // pill reads this display's name and opens a list of every registered
+    // display (plus "All displays" last).
     await page.goto('/display');
-    await expect(page.getByRole('button', { name: 'Main' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'All' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Kitchen' })).toBeHidden();
+    await page.getByRole('button', { name: 'Main', exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: 'All displays' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Kitchen' })).toBeHidden();
 
     // Add a second display to config.displays. useLiveConfig's /api/config poll
     // picks up the changed JSON, re-runs setDisplays, and threads the new list
@@ -303,8 +306,8 @@ test.describe('useLiveConfig reload paths', () => {
     });
     await putConfig(request, cfg);
 
-    await expect(page.getByRole('button', { name: 'Kitchen' })).toBeVisible({ timeout: 9000 });
-    // The original chip is still present — the registry grew, it didn't reset.
-    await expect(page.getByRole('button', { name: 'Main' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Kitchen' })).toBeVisible({ timeout: 9000 });
+    // The original entry is still present — the registry grew, it didn't reset.
+    await expect(page.getByRole('menuitem', { name: /^Main/ })).toBeVisible();
   });
 });

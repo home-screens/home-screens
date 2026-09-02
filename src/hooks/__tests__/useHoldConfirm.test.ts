@@ -89,4 +89,20 @@ describe('useHoldConfirm (timing logic)', () => {
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
   });
+
+  it('stop() reports a short tap only while a hold was still in progress', () => {
+    const timer = useHoldConfirm._createHoldTimer({ durationMs: 1000, onConfirm: vi.fn(), onProgress: vi.fn() });
+
+    // Nothing running: a stray release is not a short tap.
+    expect(timer.stop()).toBe(false);
+
+    timer.start();
+    vi.advanceTimersByTime(300);
+    expect(timer.stop()).toBe(true);
+
+    // A completed hold is not a short tap either.
+    timer.start();
+    vi.advanceTimersByTime(1000);
+    expect(timer.stop()).toBe(false);
+  });
 });

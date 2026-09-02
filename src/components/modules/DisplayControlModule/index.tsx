@@ -6,6 +6,7 @@ import { dispatchDisplayCommand as dispatchToHub } from '@/lib/display-dispatch'
 import { useModuleSurface } from '@/components/modules/module-surface';
 import { useDisplayId } from '@/hooks/useDisplayId';
 import { resolveInitialTarget } from './resolveInitialTarget';
+import { useTargetBrightness } from './useTargetBrightness';
 import { BarLayout } from './BarLayout';
 import { PadLayout } from './PadLayout';
 import { PanelLayout } from './PanelLayout';
@@ -43,8 +44,8 @@ export default function DisplayControlModule({
   );
 
   // Re-resolve when the currently-targeted display is removed from the registry
-  // mid-session; otherwise the picker silently falls back to "All" in dropdown
-  // mode while commands continue dispatching to the removed slug.
+  // mid-session; otherwise the picker silently shows a display that no longer
+  // exists while commands continue dispatching to the removed slug.
   useEffect(() => {
     if (
       currentTarget !== undefined &&
@@ -54,6 +55,13 @@ export default function DisplayControlModule({
       setCurrentTarget(resolveInitialTarget(config.defaultTarget, renderDisplayId, availableDisplays));
     }
   }, [availableDisplays, currentTarget, config.defaultTarget, renderDisplayId]);
+
+  const { value: brightness, markSent } = useTargetBrightness({
+    target: currentTarget,
+    selfId: renderDisplayId,
+    availableDisplays,
+    live: surface === 'display',
+  });
 
   // 200ms trailing-edge debounce on rapid prev/next taps (spec edge case E6).
   // Collapses button-mashing into a single command so the queue doesn't flood.
@@ -90,19 +98,28 @@ export default function DisplayControlModule({
     void dispatchDisplayCommand(currentTarget, 'sleep');
   }, [currentTarget, dispatchDisplayCommand]);
 
-  const onBrightness = useCallback((pct: number) => {
-    void dispatchDisplayCommand(currentTarget, 'brightness', { value: pct });
+  const onWake = useCallback(() => {
+    void dispatchDisplayCommand(currentTarget, 'wake');
   }, [currentTarget, dispatchDisplayCommand]);
+
+  const onBrightness = useCallback((pct: number) => {
+    markSent(pct);
+    void dispatchDisplayCommand(currentTarget, 'brightness', { value: pct });
+  }, [currentTarget, dispatchDisplayCommand, markSent]);
 
   const layoutProps: LayoutProps = {
     currentTarget,
     setCurrentTarget,
+    selfId: renderDisplayId,
     allowRetargeting: config.allowRetargeting,
+    compact: config.compact === true,
     availableDisplays,
     isLegacyMode,
+    brightness,
     onPrev,
     onNext,
     onSleep,
+    onWake,
     onBrightness,
   };
 

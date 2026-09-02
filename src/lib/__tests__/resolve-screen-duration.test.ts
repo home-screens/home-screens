@@ -37,8 +37,22 @@ describe('resolveScreenDuration', () => {
   });
 
   it('returns the screen value when positive', () => {
+    const screen = makeScreen({ rotationDurationMs: 15_000 });
+    const settings = makeSettings(30_000);
+    expect(resolveScreenDuration(screen, settings)).toBe(15_000);
+  });
+
+  it('holds a positive override to the 10 second floor', () => {
+    // A config saved before the floor existed: 5s would change the screen
+    // before its news and weather finish loading.
     const screen = makeScreen({ rotationDurationMs: 5_000 });
     const settings = makeSettings(30_000);
+    expect(resolveScreenDuration(screen, settings)).toBe(10_000);
+  });
+
+  it('does not clamp the global default', () => {
+    const screen = makeScreen();
+    const settings = makeSettings(5_000);
     expect(resolveScreenDuration(screen, settings)).toBe(5_000);
   });
 

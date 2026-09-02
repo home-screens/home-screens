@@ -62,7 +62,7 @@ export default function VideoModule({ config, style, screenId, moduleId }: Video
 
   const notConfigured = config.source === 'url' ? !config.url : !config.file;
   if (notConfigured) {
-    return <ModuleEmptyState style={style} message={t('video.empty')} />;
+    return <ModuleEmptyState style={style} type="video" message={t('video.empty')} />;
   }
 
   if (youTubeId) {

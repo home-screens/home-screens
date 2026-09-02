@@ -7,6 +7,8 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
+import { TapCheckbox } from '../../shared/TapCheckbox';
+import { usePressedKey } from '../../shared/usePressedKey';
 
 interface TodayViewProps {
   config: ChoreChartConfig;
@@ -24,6 +26,7 @@ const TIME_SECTIONS: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'any
 export function TodayView({ config, data, timezone }: TodayViewProps) {
   const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
+  const [pressedKey, press] = usePressedKey();
   const accentColor = config.accentColor ?? '#f59e0b';
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -100,8 +103,9 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
                     <button
                       key={`${chore.id}-${memberId}`}
                       type="button"
-                      onClick={allowTouch ? () => toggleComplete(chore.id, memberId) : undefined}
+                      onClick={allowTouch ? () => { void press(`${chore.id}:${memberId}`, () => toggleComplete(chore.id, memberId)); } : undefined}
                       disabled={!allowTouch}
+                      aria-pressed={allowTouch ? isCompleted : undefined}
                       className="w-full flex items-center gap-2 transition-all"
                       style={{
                         padding: '0.5em 0.6em',
@@ -127,9 +131,13 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
                           <ChoreIcon value={member.emoji} size={16} color={member.color} />
                         </span>
                       )}
-                      <span style={{ fontSize: '1.3em' }}>
-                        {isCompleted ? '\u2705' : '\u2610'}
-                      </span>
+                      {allowTouch ? (
+                        <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${memberId}`} color={member?.color ?? accentColor} />
+                      ) : (
+                        <span style={{ fontSize: '1.3em' }}>
+                          {isCompleted ? '\u2705' : '\u2610'}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

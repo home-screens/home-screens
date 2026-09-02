@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Horloge",
     "am": "AM",
     "pm": "PM",
     "weekShort": "Sem.",
@@ -17,7 +18,7 @@
       "afterDusk": "après le crépuscule"
     },
     "elapsed": {
-      "setReferenceTime": "Définir une heure de référence",
+      "setReferenceTime": "Choisis une heure de départ dans l'éditeur et le compteur démarrera ici",
       "since": "depuis {label}",
       "until": "jusqu'à {label}",
       "notYet": "pas encore",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "Aucun compte à rebours pour l'instant. Ajoute-en un dans l'éditeur.",
+    "name": "Compte à rebours",
+    "noEvents": "Ajoute une date dans l'éditeur et le compte à rebours démarrera ici",
     "noUpcoming": "Aucun événement à venir",
     "agoSuffix": "(passé)",
     "todayBang": "Aujourd'hui !",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} de plus",
     "fromTime": "À partir de {time}",
     "untilTime": "Jusqu'à {time}",
-    "savedFrom": "Enregistré à {time}",
-    "savedEvents": "Affichage des événements enregistrés",
     "cantLoadEvents": "Impossible de charger les événements pour le moment",
     "weekOf": "Semaine du {date}",
     "legendLabel": "Sources du calendrier",
     "publicHolidays": "Jours fériés",
     "sourceNotUpdating": "{name} ne se met plus à jour depuis {time}",
     "sourceNotUpdatingNoTime": "{name} ne se met plus à jour",
+    "sourcesNotUpdating": "Certains calendriers ne se mettent plus à jour",
+    "notUpdatingSince": "Plus de mise à jour depuis {time}",
+    "signInAgain": "Le calendrier doit se reconnecter",
+    "signInAgainHint": "Ouvrez Réglages › Calendrier sur un ordinateur et connectez Google Agenda.",
+    "noSourcesYet": "Aucun calendrier choisi pour l'instant",
+    "noSourcesYetHint": "Choisissez les calendriers à afficher dans Réglages › Calendrier.",
     "savedShort": "enregistré",
     "holiday": "Jour férié",
     "birthday": "Anniversaire",
@@ -180,8 +186,6 @@
     },
     "fromTime": "À partir de {time}",
     "untilTime": "Jusqu'à {time}",
-    "savedFrom": "Enregistré à {time}",
-    "savedEvents": "Affichage des événements enregistrés",
     "cantLoadEvents": "Impossible de charger les événements pour le moment",
     "weekOf": "Semaine du {date}",
     "holiday": "Jour férié",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Chargement des scores…",
-    "noGames": "Aucun match trouvé"
+    "noGames": "Aucun match trouvé",
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "Aucun classement disponible"
   },
   "todo": {
+    "name": "Liste de tâches",
     "defaultTitle": "À faire",
-    "noTasksYet": "Aucune tâche pour l'instant"
+    "noTasksYet": "Ajoute des tâches dans l'éditeur et elles apparaîtront ici",
+    "tapHint": "Touchez une case pour la cocher"
   },
   "traffic": {
+    "name": "Trafic / trajet",
     "sectionTitle": "Trafic",
-    "noRoutes": "Aucun itinéraire configuré",
+    "noRoutes": "Ajoute un trajet dans l'éditeur et les temps de route s'afficheront ici",
     "loading": "Chargement du trafic…",
     "unitMin": "min",
     "mockNotice": "Valeurs d'exemple jusqu'à l'ajout d'une clé trafic",
     "needsKey": "Le trafic a besoin d'une clé Google Maps ou TomTom"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "ou choisis un dossier dans l'éditeur",
     "noPhotoSelected": "Aucune photo sélectionnée",
     "noPhotoSelectedHint": "Choisis une photo dans le panneau de l'éditeur.",
     "noPhotosYet": "Aucune photo pour l'instant",
-    "noPhotosYetHint": "Téléverse des photos depuis ton téléphone via l'onglet Photos sur /remote, ou choisis un dossier dans l'éditeur.",
+    "noPhotosYetHint": "Ajoute des photos depuis ton téléphone sur",
     "noPhotosYetHintICloud": "Vérifiez le lien de l'album dans l'éditeur et assurez-vous que « Site web public » est activé pour l'album.",
     "noPhotosYetHintOneDrive": "Vérifiez le dossier OneDrive dans l'éditeur."
   },
@@ -697,9 +707,10 @@
     }
   },
   "news": {
+    "name": "Titres d'actualité",
     "loading": "Chargement des actualités…",
     "empty": "Aucun titre",
-    "noFeeds": "Ajoute un flux d'actualités dans l'éditeur",
+    "noFeeds": "Ajoute un flux d'actualités dans l'éditeur et les titres s'afficheront ici",
     "allUnavailable": "Les actualités ne sont pas disponibles pour le moment",
     "header": "Actualités",
     "localNews": "Actualités locales",
@@ -732,7 +743,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "Aucune affirmation configurée",
+    "name": "Affirmations",
+    "noEntries": "Choisis une catégorie dans l'éditeur et les affirmations s'afficheront ici",
     "categories": {
       "affirmations": "Affirmation",
       "compliments": "Compliment",
@@ -808,34 +820,53 @@
     "emptyOneDrive": "Pas encore de photos. Vérifiez le dossier OneDrive dans l'éditeur."
   },
   "video": {
+    "name": "Vidéo",
     "loading": "Chargement de la vidéo…",
-    "empty": "Choisissez une vidéo à lire",
+    "empty": "Choisis une vidéo dans l'éditeur et elle sera lue ici",
     "unavailable": "Cette vidéo n'est plus disponible"
   },
   "icon": {
-    "empty": "Aucune icône sélectionnée"
+    "name": "Icône",
+    "empty": "Choisis une icône dans l'éditeur et elle s'affichera ici"
   },
   "sticky-note": {
-    "empty": "Aucun contenu"
+    "name": "Note autocollante",
+    "empty": "Écris une note dans l'éditeur et elle s'affichera ici"
   },
   "iframe": {
-    "noUrl": "Aucune URL définie",
+    "name": "Intégration web",
+    "noUrl": "Ajoute une adresse web dans l'éditeur et la page s'affichera ici",
     "embeddedTitle": "Contenu intégré"
   },
+  "image": {
+    "name": "Image",
+    "empty": "Choisis une image dans l'éditeur et elle s'affichera ici"
+  },
   "qr-code": {
-    "scanToConnect": "Scannez pour vous connecter",
-    "configureWifi": "Configurer le réseau Wi-Fi",
-    "configureData": "Configurer les données du QR"
+    "name": "Code QR",
+    "empty": "Ajoute un lien ou ton Wi-Fi dans l'éditeur et il s'affichera ici",
+    "scanToConnect": "Scannez pour vous connecter"
   },
   "display-control": {
-    "prev": "Préc.",
-    "next": "Suiv.",
+    "prev": "Précédent",
+    "next": "Suivant",
     "sleep": "Veille",
     "sleepHoldHint": "Veille (maintenir pour confirmer)",
     "brightness": "Luminosité",
     "closeBrightness": "Fermer la luminosité",
     "ariaPrev": "Écran précédent",
-    "ariaNext": "Écran suivant"
+    "ariaNext": "Écran suivant",
+    "holdSub": "maintenir 1 seconde",
+    "holdShort": "maintenir",
+    "keepHolding": "Maintenez pour mettre en veille",
+    "wake": "Réveiller",
+    "wakeSub": "rallume l'écran",
+    "controls": "Contrôle",
+    "thisDisplay": "Cet affichage",
+    "thisDisplayTag": "cet affichage",
+    "allDisplays": "Tous les affichages",
+    "brightnessValue": "Luminosité {percent} %",
+    "brightnessUnknown": "Luminosité, pas encore signalée"
   },
   "common": {
     "locationNotConfigured": "Emplacement non configuré",

@@ -50,7 +50,7 @@ export function useDisplayControl({
 }: UseDisplayControlParams) {
   const {
     displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness,
-    wakeForAlert, releaseAlertWake, getDisplayState, brightness,
+    wakeForAlert, releaseAlertWake, getDisplayState, brightness, brightnessOverride,
   } = useSleepManager(sleep, timezone);
 
   // Remote navigation implies wake when the content is hidden:
@@ -152,5 +152,5 @@ export function useDisplayControl({
   // or wakes the display identically to the remote button (both hold off a
   // scheduled sleep window: rules via RULE_WAKE_HOLD_MS, plain wakes via the
   // configured wakeHoldMinutes).
-  return { displayState, dimOpacity, wake, forceSleep };
+  return { displayState, dimOpacity, brightnessOverride, wake, forceSleep };
 }

@@ -185,6 +185,7 @@
     "secondsUnit": "seg",
     "stickyBadge": "Fixa",
     "stickyHint": "0 = permanecer nesta tela (apenas avanço manual).",
+    "minDurationWarning": "Com menos de {seconds} segundos, a tela pode mudar antes de as notícias e o clima terminarem de carregar. Salvo como {seconds}.",
     "inheritsHintBefore": "Herda do padrão: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",
@@ -424,6 +425,7 @@
         "errors": {
           "googleCalendarFailed": "Não foi possível carregar esta agenda do Google",
           "googleUnreachable": "Não foi possível acessar o Google Agenda",
+          "googleNotSignedIn": "O Google Agenda precisa entrar de novo",
           "holidaysFailed": "Não foi possível carregar a lista de feriados",
           "icloudBirthdaysFailed": "Não foi possível carregar os aniversários do iCloud",
           "icloudCalendarFailed": "Não foi possível carregar esta agenda do iCloud",
@@ -671,6 +673,9 @@
         "setupHintLabel": "Mensagem de configuração em telas vazias",
         "setupHintToggle": "Ativado",
         "setupHintHelp": "Quando uma tela não tem nada para mostrar, aparece uma mensagem discreta com o endereço deste editor. Desative isto para deixar uma tela vazia totalmente preta.",
+        "rotationProgressLabel": "Linha de progresso sob os pontos de tela",
+        "rotationProgressToggle": "Ativado",
+        "rotationProgressHelp": "Uma linha fina sob o ponto ativo vai se preenchendo enquanto o tempo da tela passa, para distinguir de longe uma tela demorada de uma travada.",
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Estilo de animação ao alternar entre telas. Desfoque pode exigir muito da GPU em dispositivos mais fracos.",
         "transitionDurationLabel": "Duração da transição",
@@ -1955,6 +1960,12 @@
     }
   },
   "backgroundPicker": {
+    "missing": {
+      "label": "Imagem de fundo",
+      "note": "Esta imagem não está mais no hub, então a tela mostra a cor sólida no lugar. Escolha outra ou remova-a.",
+      "pickAnother": "Escolher uma imagem",
+      "useSolid": "Usar a cor sólida"
+    },
     "title": "Plano de fundo",
     "statusGroup": "Status",
     "autoRotate": "Rotação automática",
@@ -2649,7 +2660,8 @@
       "targetSelf": "Esta tela (própria)",
       "targetAll": "Todas as telas",
       "legacyHint": "Apenas uma tela registrada — o destino fica fixado nesta tela.",
-      "allowRetargeting": "Permitir que o usuário altere o destino em tempo de execução"
+      "allowRetargeting": "Permitir que o usuário altere o destino em tempo de execução",
+      "compact": "Só ícones, sem texto"
     },
     "financial": {
       "viewCards": "Cartões",

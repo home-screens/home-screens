@@ -369,6 +369,12 @@ export interface GlobalSettings {
    * to keep an intentionally-blank display genuinely blank.
    */
   setupHintEnabled?: boolean;
+  /**
+   * Draw a thin line under the active pagination dot that fills over the
+   * current screen's dwell, so a long screen and a stuck one look different
+   * from across the room. Default true.
+   */
+  showRotationProgress?: boolean;
   backupReminder?: BackupReminderSettings;
   updateNotification?: UpdateNotificationSettings;
   /** BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US". */
@@ -1746,6 +1752,8 @@ export interface DisplayControlConfig {
   defaultTarget: 'all' | 'self' | string;
   /** When false, the in-module picker is hidden even in multi-display mode. */
   allowRetargeting: boolean;
+  /** Icons only, no words on the buttons. */
+  compact: boolean;
 }
 
 // Chore chart module config

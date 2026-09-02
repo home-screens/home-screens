@@ -1,5 +1,6 @@
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
+import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarPerson, type CalendarSettings, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
+import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import { settingsPath } from './settings-route';
 import type { FetchError } from './fetch-error';
 
@@ -57,6 +58,8 @@ export interface PreviewSettings {
   timeFormat: TimeFormat | undefined;
   /** Settings > Calendar > People, for the per-person calendar views. */
   calendarPeople: CalendarPerson[] | undefined;
+  /** Whether Settings > Calendar names anything to fetch (see `hasAnyCalendarSource`). */
+  calendarConfigured: boolean;
 }
 
 interface ProviderWeatherData {
@@ -115,6 +118,12 @@ export interface ModuleDataSource {
   calendarSourceStatus: CalendarSourceStatus[] | null;
   /** Household people (Settings > Calendar); null when none are set up. */
   calendarPeople: CalendarPerson[] | null;
+  /**
+   * False when Settings > Calendar names nothing to fetch. The shared fetch
+   * never starts in that case, so without this flag a calendar module could
+   * not tell "no calendars picked yet" from "still loading".
+   */
+  calendarConfigured: boolean;
   availableDisplays: Array<{ id: string; name: string }>;
 }
 
@@ -165,6 +174,11 @@ export function buildModuleProps(
   const needsCalendar = mod.type === 'calendar' || def?.dataRequirements?.includes('calendar');
   if (needsCalendar && source.calendarEvents) {
     props.events = source.calendarEvents;
+  }
+  // Presence semantic: attached only while nothing is configured, so a
+  // household with calendars builds the same props as before.
+  if (needsCalendar && !source.calendarConfigured) {
+    props.calendarSetup = 'noSources';
   }
   // Attached only while the fetch is actually failing — that IS the
   // semantic: a healthy display and the editor preview (which has no fetch
@@ -245,7 +259,7 @@ export function toDisplaySource(
     timeFormat?: TimeFormat;
     locationName?: string;
     weather: { provider: string; units: 'metric' | 'imperial' };
-    calendar?: { people?: CalendarPerson[] };
+    calendar?: CalendarSettings;
   },
   location: { lat: number; lon: number } | null,
   sharedData: SharedDisplayData,
@@ -275,6 +289,7 @@ export function toDisplaySource(
       ? ((calendarData as Record<string, unknown>).sourceStatus as CalendarSourceStatus[] | undefined) ?? null
       : null,
     calendarPeople: settings.calendar?.people ?? null,
+    calendarConfigured: hasAnyCalendarSource(settings.calendar),
     availableDisplays,
   };
 }
@@ -318,6 +333,9 @@ export function toEditorSource(
     calendarStatus: null,
     calendarSourceStatus: previewData.calendarSourceStatus,
     calendarPeople: settings?.calendarPeople ?? null,
+    // No settings yet means the editor is still loading, not that the
+    // household has no calendars: never flash the setup card over that.
+    calendarConfigured: settings ? settings.calendarConfigured : true,
     availableDisplays: displays,
   };
 }

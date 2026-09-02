@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Ainda não há nada aqui",
-    "body": "Abra o editor em outro dispositivo para criar sua primeira tela.",
-    "hideHint": "Oculte isto em Configurações → Tela"
+    "headline": "Ainda não há nada nesta tela",
+    "body": "No celular ou computador conectado ao seu Wi-Fi, abra",
+    "hideHint": "Prefere uma tela em branco? Configurações › Tela › Mostrar esta dica"
+  },
+  "pagination": {
+    "paused": "Pausado",
+    "resumesIn": "Continua em {time} · toque para continuar agora",
+    "tapToResume": "toque para continuar",
+    "minutes": "{count} min",
+    "seconds": "{count} s"
   },
   "displayNotFound": {
     "notRegistered": "Tela não registrada",

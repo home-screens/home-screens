@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 export interface UseHoldConfirmOptions {
   durationMs: number;
   onConfirm: () => void;
+  /** How long `releasedEarly` stays true after a short tap. */
+  earlyHintMs?: number;
 }
 
 export interface UseHoldConfirmResult {
@@ -10,6 +12,11 @@ export interface UseHoldConfirmResult {
   progress: number;
   /** Whether a hold is currently in progress. */
   isHolding: boolean;
+  /**
+   * True for a moment after the finger lifted before the hold completed, so
+   * the button can say "keep holding" instead of silently doing nothing.
+   */
+  releasedEarly: boolean;
   onPointerDown: () => void;
   onPointerUp: () => void;
   onPointerCancel: () => void;
@@ -25,7 +32,9 @@ interface HoldTimerOptions {
 
 interface HoldTimer {
   start: () => void;
-  stop: () => void;
+  /** Release. Returns true when a hold was still in progress (a short tap). */
+  stop: () => boolean;
+  /** Browser took the pointer away (scroll, palm): reset without reporting a short tap. */
   cancel: () => void;
 }
 
@@ -84,7 +93,9 @@ function createHoldTimer({ durationMs, onConfirm, onProgress }: HoldTimerOptions
       completionId = setTimeout(complete, durationMs);
     },
     stop() {
+      const interrupted = startTime !== null && !fired;
       cleanup(true);
+      return interrupted;
     },
     cancel() {
       cleanup(true);
@@ -102,9 +113,14 @@ function createHoldTimer({ durationMs, onConfirm, onProgress }: HoldTimerOptions
  * release + re-press cycle.
  */
 export function useHoldConfirm(options: UseHoldConfirmOptions): UseHoldConfirmResult {
-  const { durationMs, onConfirm } = options;
+  const { durationMs, onConfirm, earlyHintMs = 1500 } = options;
   const [progress, setProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
+  const [releasedEarly, setReleasedEarly] = useState(false);
+  const hintTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+  }, []);
 
   // Keep stable refs so the timer callbacks don't go stale
   const onConfirmRef = useRef(onConfirm);
@@ -138,12 +154,20 @@ export function useHoldConfirm(options: UseHoldConfirmOptions): UseHoldConfirmRe
   }, []);
 
   const onPointerUp = useCallback(() => {
-    timerRef.current?.stop();
+    if (!timerRef.current?.stop()) return;
+    setReleasedEarly(true);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => {
+      hintTimerRef.current = null;
+      setReleasedEarly(false);
+    }, earlyHintMs);
+  }, [earlyHintMs]);
+
+  const onPointerCancel = useCallback(() => {
+    timerRef.current?.cancel();
   }, []);
 
-  const onPointerCancel = onPointerUp;
-
-  return { progress, isHolding, onPointerDown, onPointerUp, onPointerCancel };
+  return { progress, isHolding, releasedEarly, onPointerDown, onPointerUp, onPointerCancel };
 }
 
 // Expose timing core for unit tests (node env, no React renderer available)

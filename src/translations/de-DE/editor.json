@@ -185,6 +185,7 @@
     "secondsUnit": "Sek.",
     "stickyBadge": "Fix",
     "stickyHint": "0 = auf diesem Screen bleiben (nur manueller Wechsel).",
+    "minDurationWarning": "Unter {seconds} Sekunden wechselt der Bildschirm womöglich, bevor Nachrichten und Wetter fertig geladen sind. Gespeichert als {seconds}.",
     "inheritsHintBefore": "Übernimmt die Standardeinstellung: ",
     "inheritsHintValue": "{seconds} s",
     "inheritsHintAfter": ".",
@@ -424,6 +425,7 @@
         "errors": {
           "googleCalendarFailed": "Dieser Kalender konnte nicht von Google geladen werden",
           "googleUnreachable": "Google Kalender ist nicht erreichbar",
+          "googleNotSignedIn": "Google Kalender muss sich neu anmelden",
           "holidaysFailed": "Die Feiertagsliste konnte nicht geladen werden",
           "icloudBirthdaysFailed": "Geburtstage konnten nicht von iCloud geladen werden",
           "icloudCalendarFailed": "Dieser Kalender konnte nicht von iCloud geladen werden",
@@ -671,6 +673,9 @@
         "setupHintLabel": "Einrichtungshinweis auf leeren Displays",
         "setupHintToggle": "Aktiviert",
         "setupHintHelp": "Wenn ein Display keine Bildschirme anzeigen kann, erscheint ein schwacher Hinweis mit der Adresse dieses Editors. Schalte das aus, damit ein leeres Display völlig schwarz bleibt.",
+        "rotationProgressLabel": "Fortschrittslinie unter den Bildschirmpunkten",
+        "rotationProgressToggle": "Aktiviert",
+        "rotationProgressHelp": "Eine dünne Linie unter dem aktiven Punkt füllt sich, während die Zeit des Bildschirms abläuft. So sieht man auch von weitem, ob ein Bildschirm nur lange dauert oder hängt.",
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Animationsstil beim Wechsel zwischen Bildschirmen. „Unschärfe“ kann auf leistungsschwachen Geräten GPU-intensiv sein.",
         "transitionDurationLabel": "Übergangsdauer",
@@ -1951,6 +1956,12 @@
     }
   },
   "backgroundPicker": {
+    "missing": {
+      "label": "Hintergrundbild",
+      "note": "Dieses Bild ist nicht mehr auf dem Hub, deshalb zeigt der Bildschirm stattdessen die einfarbige Fläche. Wähle ein anderes oder entferne es.",
+      "pickAnother": "Bild auswählen",
+      "useSolid": "Einfarbig lassen"
+    },
     "title": "Hintergrund",
     "statusGroup": "Status",
     "autoRotate": "Automatisch wechseln",
@@ -2644,7 +2655,8 @@
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",
       "legacyHint": "Nur ein Display registriert – Ziel ist auf dieses Display festgelegt.",
-      "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern"
+      "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
+      "compact": "Nur Symbole, keine Wörter"
     },
     "financial": {
       "viewCards": "Karten",

@@ -38,6 +38,7 @@ import { fetchICloudEvents } from '@/lib/caldav-calendar';
 import { listICloudAccounts } from '@/lib/icloud-accounts';
 import { readConfig } from '@/lib/config';
 import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
+import { SetupError } from '@/lib/api-utils';
 
 const mockFetchGoogle = vi.mocked(fetchCalendarEvents);
 const mockFetchICal = vi.mocked(fetchICalEvents);
@@ -915,5 +916,57 @@ describe('per-source status', () => {
     expect(second.events.map((e: CalendarEvent) => e.title)).toEqual(['School Play']);
     expect(second.sourceStatus[0]).toMatchObject({ id: 'school', ok: false });
     expect(second.sourceStatus[0].fetchedAt).toBeGreaterThan(0);
+  });
+});
+
+describe('Google sign-in classification', () => {
+  const NOT_SIGNED_IN = new SetupError('Not authenticated with Google', 'connection', 'Google Calendar');
+
+  it('returns a 200 with per-source sign-in statuses when Google is the only source and needs to sign in', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['family@gmail.com', 'kids@gmail.com'] }));
+    mockFetchGoogle.mockRejectedValue(NOT_SIGNED_IN);
+
+    const res = await GET(makeRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.events).toEqual([]);
+    expect(body.sourceStatus).toHaveLength(2);
+    for (const status of body.sourceStatus) {
+      expect(status).toMatchObject({ ok: false, messageKey: 'googleNotSignedIn' });
+    }
+    expect(body.sourceStatus[0].name).toBe('family');
+  });
+
+  it('keeps the outage key for a Google failure that is not a sign-in problem', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
+      googleCalendarIds: ['primary'],
+      icalSources: [
+        { id: 'ics-1', type: 'ical', name: 'ICS', url: 'https://example.com/cal.ics', color: '#ff0000', enabled: true },
+      ],
+    }));
+    mockFetchGoogle.mockRejectedValue(new Error('socket hang up'));
+    mockFetchICal.mockResolvedValue({ events: [makeEvent('i1', '2026-03-13T10:00:00Z')], results: [{ id: 'ics-1', name: 'ICS', ok: true }] });
+
+    const res = await GET(makeRequest());
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    const google = body.sourceStatus.find((s: { id: string }) => s.id === 'primary');
+    expect(google).toMatchObject({ ok: false, messageKey: 'googleUnreachable' });
+  });
+
+  it('still returns an error when a sign-in problem sits next to another failing source', async () => {
+    mockReadConfig.mockResolvedValue(makeConfig({
+      googleCalendarIds: ['primary'],
+      icalSources: [
+        { id: 'ics-1', type: 'ical', name: 'ICS', url: 'https://example.com/cal.ics', color: '#ff0000', enabled: true },
+      ],
+    }));
+    mockFetchGoogle.mockRejectedValue(NOT_SIGNED_IN);
+    mockFetchICal.mockRejectedValue(new Error('ICS feed down'));
+
+    const res = await GET(makeRequest());
+    expect(res.status).toBe(500);
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { digitalRowWidth, fitFactor } from './fit-width';
 import type { ClockViewProps } from './types';
 
 // Seven-segment digit map: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
@@ -111,17 +112,22 @@ function Colon({ size, color }: { size: number; color: string }) {
   );
 }
 
-export default function ClockDigitalView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockDigitalView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
   // Seven-segment display always needs 2-digit hours
   const hStr = String(h).padStart(2, '0');
 
   const color = config.accentColor || '#22d3ee';
-  const digitSize = scaledFontSize * 3.2;
 
   const digits = config.showSeconds
     ? [hStr[0], hStr[1], ':', mStr[0], mStr[1], ':', sStr[0], sStr[1]]
     : [hStr[0], hStr[1], ':', mStr[0], mStr[1]];
+  // Shrink the row when it is wider than the box; the height-derived size
+  // stays the ceiling.
+  const baseDigitSize = scaledFontSize * 3.2;
+  const digitCount = config.showSeconds ? 6 : 4;
+  const colonCount = config.showSeconds ? 2 : 1;
+  const digitSize = baseDigitSize * fitFactor(digitalRowWidth(baseDigitSize, digitCount, colonCount), boxWidth);
 
   return (
     <div

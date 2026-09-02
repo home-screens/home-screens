@@ -31,6 +31,7 @@ import DraggableModule from './DraggableModule';
 import ModuleContextMenu, { type ModuleMenuState } from './ModuleContextMenu';
 import SelectionOverlay from './SelectionOverlay';
 import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
+import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import CanvasToolbar from './CanvasToolbar';
 import StartFromTemplateButton from './StartFromTemplateButton';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
@@ -237,6 +238,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       fullscreenTheme: settings.fullscreenTheme,
       timeFormat: settings.timeFormat,
       calendarPeople: settings.calendar?.people,
+      calendarConfigured: hasAnyCalendarSource(settings.calendar),
     };
   }, [settings]);
 
@@ -521,11 +523,15 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 function CanvasBackground({ screenBackground }: { screenBackground: string | undefined }) {
   const { overrideBackground } = usePageBackground();
   const bg = overrideBackground || screenBackground;
-  if (!bg) return null;
+  // A missing file falls back to the solid color, the same as on the wall;
+  // the screen settings panel is where the missing path is reported.
+  const [broken, setBroken] = useState<string | null>(null);
+  if (!bg || broken === bg) return null;
   return (
     <img
       src={bg}
       alt=""
+      onError={() => setBroken(bg)}
       className="absolute inset-0 w-full h-full object-cover"
     />
   );

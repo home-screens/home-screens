@@ -48,6 +48,9 @@ vi.mock('../useLiveConfig', () => ({
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
+vi.mock('../useBootWarmup', () => ({ useBootWarmup: () => {} }));
+// PaginationDots translates its paused pill; no locale blob is loaded here.
+vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
 vi.mock('../useBackgroundRotation', () => ({ useBackgroundRotation: () => ({}) }));
 vi.mock('@/hooks/useDisplayCommands', () => ({
   useDisplayCommands: () => {},

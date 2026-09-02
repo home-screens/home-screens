@@ -1,5 +1,6 @@
 {
   "clock": {
+    "name": "Relógio",
     "am": "AM",
     "pm": "PM",
     "weekShort": "Semana",
@@ -17,7 +18,7 @@
       "afterDusk": "após o anoitecer"
     },
     "elapsed": {
-      "setReferenceTime": "Definir horário de referência",
+      "setReferenceTime": "Escolha um horário de início no editor e o contador começa aqui",
       "since": "desde {label}",
       "until": "até {label}",
       "notYet": "ainda não",
@@ -86,7 +87,8 @@
     }
   },
   "countdown": {
-    "noEvents": "Nenhuma contagem regressiva ainda. Adicione uma no editor.",
+    "name": "Contagem regressiva",
+    "noEvents": "Adicione uma data no editor e a contagem regressiva começa aqui",
     "noUpcoming": "Nenhum evento próximo",
     "agoSuffix": "(passou)",
     "todayBang": "Hoje!",
@@ -126,14 +128,18 @@
     "moreCount": "+{count} mais",
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",
-    "savedFrom": "Salvo às {time}",
-    "savedEvents": "Mostrando eventos salvos",
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
     "weekOf": "Semana de {date}",
     "legendLabel": "Fontes do calendário",
     "publicHolidays": "Feriados nacionais",
     "sourceNotUpdating": "{name} sem atualizar desde {time}",
     "sourceNotUpdatingNoTime": "{name} sem atualizar",
+    "sourcesNotUpdating": "Alguns calendários não estão atualizando",
+    "notUpdatingSince": "Sem atualizar desde {time}",
+    "signInAgain": "O calendário precisa entrar de novo",
+    "signInAgainHint": "Abra Configurações › Calendário em um computador e conecte o Google Agenda.",
+    "noSourcesYet": "Nenhum calendário escolhido ainda",
+    "noSourcesYetHint": "Escolha quais calendários mostrar em Configurações › Calendário.",
     "savedShort": "salvo",
     "holiday": "Feriado",
     "birthday": "Aniversário",
@@ -180,8 +186,6 @@
     },
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",
-    "savedFrom": "Salvo às {time}",
-    "savedEvents": "Mostrando eventos salvos",
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
     "weekOf": "Semana de {date}",
     "holiday": "Feriado",
@@ -628,7 +632,9 @@
   },
   "sports": {
     "loading": "Carregando placares…",
-    "noGames": "Nenhum jogo encontrado"
+    "noGames": "Nenhum jogo encontrado",
+    "today": "Hoje",
+    "tomorrow": "Amanhã"
   },
   "stock-ticker": {
     "chartCaptions": {
@@ -653,22 +659,26 @@
     "noStandings": "Nenhuma classificação disponível"
   },
   "todo": {
+    "name": "Lista de tarefas",
     "defaultTitle": "Tarefas",
-    "noTasksYet": "Nenhuma tarefa ainda"
+    "noTasksYet": "Adicione tarefas no editor e elas aparecem aqui",
+    "tapHint": "Toque em uma caixa para marcar"
   },
   "traffic": {
+    "name": "Trânsito / Trajeto",
     "sectionTitle": "Trânsito",
-    "noRoutes": "Nenhuma rota configurada",
+    "noRoutes": "Adicione uma rota no editor e os tempos de viagem aparecem aqui",
     "loading": "Carregando trânsito…",
     "unitMin": "min",
     "mockNotice": "Números de exemplo até adicionar uma chave de trânsito",
     "needsKey": "O trânsito precisa de uma chave do Google Maps ou TomTom"
   },
   "fullscreen-photo": {
+    "noPhotosYetFolderHint": "ou escolha uma pasta no editor",
     "noPhotoSelected": "Nenhuma foto selecionada",
     "noPhotoSelectedHint": "Escolha uma foto no painel do editor.",
     "noPhotosYet": "Nenhuma foto ainda",
-    "noPhotosYetHint": "Envie fotos do seu celular pela aba Fotos em /remote, ou escolha uma pasta no editor.",
+    "noPhotosYetHint": "Adicione fotos do seu celular em",
     "noPhotosYetHintICloud": "Verifique o link do álbum no editor e confira se o \"Site público\" do álbum está ativado.",
     "noPhotosYetHintOneDrive": "Verifique a pasta do OneDrive no editor."
   },
@@ -697,9 +707,10 @@
     }
   },
   "news": {
+    "name": "Manchetes",
     "loading": "Carregando notícias…",
     "empty": "Sem manchetes",
-    "noFeeds": "Adicione um feed de notícias no editor",
+    "noFeeds": "Adicione um feed de notícias no editor e as manchetes aparecem aqui",
     "allUnavailable": "As notícias não estão disponíveis agora",
     "header": "Notícias",
     "localNews": "Notícias locais",
@@ -732,7 +743,8 @@
     }
   },
   "affirmations": {
-    "noEntries": "Nenhuma afirmação configurada",
+    "name": "Afirmações",
+    "noEntries": "Escolha uma categoria no editor e as afirmações aparecem aqui",
     "categories": {
       "affirmations": "Afirmação",
       "compliments": "Elogio",
@@ -808,34 +820,53 @@
     "emptyOneDrive": "Ainda não há fotos. Verifique a pasta do OneDrive no editor."
   },
   "video": {
+    "name": "Vídeo",
     "loading": "Carregando vídeo…",
-    "empty": "Escolha um vídeo para reproduzir",
+    "empty": "Escolha um vídeo no editor e ele toca aqui",
     "unavailable": "Este vídeo não está mais disponível"
   },
   "icon": {
-    "empty": "Nenhum ícone selecionado"
+    "name": "Ícone",
+    "empty": "Escolha um ícone no editor e ele aparece aqui"
   },
   "sticky-note": {
-    "empty": "Sem conteúdo"
+    "name": "Nota adesiva",
+    "empty": "Escreva uma nota no editor e ela aparece aqui"
   },
   "iframe": {
-    "noUrl": "Nenhum URL definido",
+    "name": "Incorporação web",
+    "noUrl": "Adicione um endereço web no editor e a página aparece aqui",
     "embeddedTitle": "Conteúdo incorporado"
   },
+  "image": {
+    "name": "Imagem",
+    "empty": "Escolha uma imagem no editor e ela aparece aqui"
+  },
   "qr-code": {
-    "scanToConnect": "Escaneie para conectar",
-    "configureWifi": "Configurar rede Wi-Fi",
-    "configureData": "Configurar dados do QR"
+    "name": "QR Code",
+    "empty": "Adicione um link ou seu Wi-Fi no editor e ele aparece aqui",
+    "scanToConnect": "Escaneie para conectar"
   },
   "display-control": {
-    "prev": "Ant.",
-    "next": "Próx.",
+    "prev": "Anterior",
+    "next": "Próxima",
     "sleep": "Suspender",
     "sleepHoldHint": "Suspender (segure para confirmar)",
     "brightness": "Brilho",
     "closeBrightness": "Fechar brilho",
     "ariaPrev": "Tela anterior",
-    "ariaNext": "Próxima tela"
+    "ariaNext": "Próxima tela",
+    "holdSub": "segure por 1 segundo",
+    "holdShort": "segurar",
+    "keepHolding": "Continue segurando para suspender",
+    "wake": "Acordar",
+    "wakeSub": "liga a tela de novo",
+    "controls": "Controla",
+    "thisDisplay": "Esta tela",
+    "thisDisplayTag": "esta tela",
+    "allDisplays": "Todas as telas",
+    "brightnessValue": "Brilho {percent}%",
+    "brightnessUnknown": "Brilho, ainda não informado"
   },
   "common": {
     "locationNotConfigured": "Local não configurado",

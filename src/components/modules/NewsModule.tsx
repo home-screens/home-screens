@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import type { NewsConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
-import { moduleGate } from './ModuleStates';
+import { ModuleEmptyState, moduleGate } from './ModuleStates';
 import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useNewsFeeds } from '@/hooks/useNewsFeeds';
 import { useModuleCommand } from '@/hooks/useModuleCommand';
@@ -62,12 +62,15 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   });
 
   const hasFeeds = Array.isArray(config.feeds) && config.feeds.some((f) => f?.url?.trim());
+  if (!hasFeeds) {
+    return <ModuleEmptyState style={style} type="news" message={t('news.noFeeds')} />;
+  }
   const gate = moduleGate({
     style,
-    data: hasFeeds ? data : { feeds: [] },
+    data,
     error,
     loadingMessage: t('news.loading'),
-    empty: !hasFeeds ? t('news.noFeeds') : allFailed ? t('news.allUnavailable') : items.length === 0 && t('news.empty'),
+    empty: allFailed ? t('news.allUnavailable') : items.length === 0 && t('news.empty'),
   });
   if (gate) return gate;
 

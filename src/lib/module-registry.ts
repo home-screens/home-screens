@@ -477,7 +477,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       elapsedFormat: 'units',
       elapsedPrecision: 'auto',
     },
-    defaultSize: { w: 400, h: 200 },
+    defaultSize: { w: 640, h: 280 },
   },
   {
     type: 'calendar',
@@ -509,7 +509,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       dimPastEvents: false,
       showNowRule: false,
     },
-    defaultSize: { w: 500, h: 600 },
+    defaultSize: { w: 540, h: 340 },
   },
   {
     type: 'countdown',
@@ -524,7 +524,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       format: 'flip',
       precision: 'auto',
     },
-    defaultSize: { w: 500, h: 500 },
+    defaultSize: { w: 380, h: 360 },
   },
   {
     type: 'date',
@@ -540,7 +540,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showDayOfYear: false,
       accentColor: '#22d3ee',
     },
-    defaultSize: { w: 400, h: 200 },
+    defaultSize: { w: 380, h: 280 },
   },
   {
     type: 'year-progress',
@@ -600,7 +600,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showLocation: false,
       showTitle: true,
     },
-    defaultSize: { w: 600, h: 300 },
+    defaultSize: { w: 640, h: 360 },
     // 'location' so the editor knows the module is location-bound (status
     // row, empty-state link) and coordinates ride the shared props.
     dataRequirements: ['weather', 'location'],
@@ -702,7 +702,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       preserveOrder: false,
       tapAction: 'qr',
     },
-    defaultSize: { w: 500, h: 400 },
+    defaultSize: { w: 540, h: 420 },
   },
   {
     type: 'stock-ticker',
@@ -745,7 +745,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       leagues: ['nba', 'nfl'],
       refreshIntervalMs: FETCH_KEY_REGISTRY['sports']?.ttlMs ?? 60_000,
     },
-    defaultSize: { w: 500, h: 300 },
+    defaultSize: { w: 480, h: 340 },
   },
   {
     type: 'standings',
@@ -829,7 +829,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '#000000',
       interactive: false,
     },
-    defaultSize: { w: 350, h: 400 },
+    defaultSize: { w: 440, h: 420 },
   },
   {
     type: 'sticky-note',
@@ -875,7 +875,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       title: 'Todoist',
       showTitle: true,
     },
-    defaultSize: { w: 400, h: 550 },
+    defaultSize: { w: 440, h: 420 },
   },
   {
     type: 'garbage-day',
@@ -987,7 +987,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       objectFit: 'cover',
       alt: '',
     },
-    defaultSize: { w: 400, h: 300 },
+    defaultSize: { w: 540, h: 360 },
   },
   {
     type: 'video',
@@ -1002,7 +1002,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       muted: true,
       loop: true,
     },
-    defaultSize: { w: 500, h: 400 },
+    defaultSize: { w: 540, h: 360 },
     defaultStyle: { padding: 0 },
   },
   {
@@ -1055,7 +1055,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       sandbox: 'allow-scripts allow-forms allow-popups',
       title: '',
     },
-    defaultSize: { w: 500, h: 400 },
+    defaultSize: { w: 540, h: 360 },
     defaultStyle: { padding: 0 },
   },
   {
@@ -1142,9 +1142,13 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       layout: 'panel',
       defaultTarget: 'self',
-      allowRetargeting: true,
+      // Off by default: a kid tapping Sleep on the kitchen panel should only
+      // sleep the kitchen panel. The editor turns the target row on.
+      allowRetargeting: false,
+      compact: false,
     },
-    defaultSize: { w: 680, h: 320 },
+    // Four word-and-icon buttons in a 2x2 grid plus the brightness slider.
+    defaultSize: { w: 680, h: 480 },
   },
 
   // -- Travel --

@@ -1,5 +1,6 @@
 import { google, type calendar_v3 } from 'googleapis';
 import { getAuthenticatedClient } from '@/lib/google-auth';
+import { SetupError } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
@@ -23,7 +24,10 @@ export async function fetchCalendarEvents(
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const auth = await getAuthenticatedClient();
   if (!auth) {
-    throw new Error('Not authenticated with Google. Sign in from the editor settings.');
+    // A missing, expired, or revoked sign-in is something the household fixes
+    // in the editor, not an outage: typed so the calendar route can tell the
+    // display to show its sign-in card instead of aging saved events.
+    throw new SetupError('Not authenticated with Google. Sign in from the editor settings.', 'connection', 'Google Calendar');
   }
 
   const calendar = google.calendar({ version: 'v3', auth });

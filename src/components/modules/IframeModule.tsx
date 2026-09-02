@@ -3,9 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslate } from '@/i18n';
 import { validateSandbox, validateIframeUrl } from '@/lib/iframe-validation';
-import { TEXT_OPACITY } from '@/lib/constants';
 import type { IframeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { ModuleEmptyState } from './ModuleStates';
 
 interface IframeModuleProps {
   config: IframeConfig;
@@ -43,13 +43,7 @@ export default function IframeModule({ config, style }: IframeModuleProps) {
   }, [config.sandboxEnabled, config.sandbox]);
 
   if (!config.url || urlError) {
-    return (
-      <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
-          {urlError ?? t('iframe.noUrl')}
-        </div>
-      </ModuleWrapper>
-    );
+    return <ModuleEmptyState style={style} type="iframe" message={urlError ?? t('iframe.noUrl')} />;
   }
 
   // Build the src with a cache-busting param for refreshes.

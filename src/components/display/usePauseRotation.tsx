@@ -50,12 +50,19 @@ export function usePauseRotation({
   goToScreen,
 }: UsePauseRotationOptions): {
   paused: boolean;
+  /**
+   * Epoch ms at which the auto-resume fires, or null: not paused, or
+   * `pauseTimeoutSeconds` is 0 (stays paused until someone resumes it). The
+   * paused pill counts down to this.
+   */
+  pausedUntil: number | null;
   /** Tap handler for pagination dot `index`. */
   handleDotClick: (index: number) => void;
   /** Force-resume. Used by remote/plugin navigation, which bypasses the dots. */
   clearPause: () => void;
 } {
   const [paused, setPaused] = useState(false);
+  const [pausedUntil, setPausedUntil] = useState<number | null>(null);
   const lastDotTapRef = useRef(0);
 
   const clearPause = useCallback(() => setPaused(false), []);
@@ -75,9 +82,16 @@ export function usePauseRotation({
 
   // Auto-resume, so a forgotten pause self-heals.
   useEffect(() => {
-    if (!paused) return;
+    if (!paused) {
+      setPausedUntil(null);
+      return;
+    }
     const timeout = pauseTimeoutSeconds ?? DEFAULT_PAUSE_TIMEOUT_S;
-    if (timeout === 0) return; // 0 means stay paused indefinitely
+    if (timeout === 0) {
+      setPausedUntil(null); // 0 means stay paused indefinitely
+      return;
+    }
+    setPausedUntil(Date.now() + timeout * 1000);
     const timer = setTimeout(() => setPaused(false), timeout * 1000);
     return () => clearTimeout(timer);
   }, [paused, pauseTimeoutSeconds]);
@@ -101,5 +115,5 @@ export function usePauseRotation({
     [activeIndex, pauseEnabled, goToScreen],
   );
 
-  return { paused, handleDotClick, clearPause };
+  return { paused, pausedUntil, handleDotClick, clearPause };
 }

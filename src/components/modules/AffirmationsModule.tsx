@@ -6,6 +6,7 @@ import type { AffirmationsConfig, AffirmationsCategory, AffirmationsView, Module
 import { useTZClock } from '@/hooks/useTZClock';
 import { useEventBus } from '@/hooks/useEventBus';
 import ModuleWrapper from './ModuleWrapper';
+import { ModuleEmptyState } from './ModuleStates';
 import { getAffirmationsForLocale, type AffirmationEntry as Entry } from './affirmations-data';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
@@ -271,13 +272,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
 
   if (!result) {
-    return (
-      <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full" style={{ opacity: TEXT_OPACITY.dim }}>
-          <p style={{ fontSize: '0.9em' }}>{t('affirmations.noEntries')}</p>
-        </div>
-      </ModuleWrapper>
-    );
+    return <ModuleEmptyState style={style} type="affirmations" message={t('affirmations.noEntries')} />;
   }
 
   const { entry, key } = result;

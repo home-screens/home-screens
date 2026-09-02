@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
-import { cachedProxyRoute, errorResponse } from '@/lib/api-utils';
+import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { CALENDAR_FETCH_MAX_EVENTS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
@@ -10,6 +10,9 @@ import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } fr
 import { logger } from '@/lib/logger';
 
 const log = logger('calendar');
+
+/** Per-source `messageKey` for a Google calendar whose sign-in is missing or expired. */
+const GOOGLE_NOT_SIGNED_IN = 'googleNotSignedIn';
 
 /** The `/api/calendar` payload: merged events plus per-source health. */
 interface CalendarPayload {
@@ -115,10 +118,11 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     // One shape for every family: fetch, substitute saved events on BOTH the
     // success and failure paths (withSavedEvents must run on both — that
     // invariant lives here rather than in four hand-written copies), and on
-    // a family-level throw (auth, network) fail every source in it.
+    // a family-level throw (auth, network) fail every source in it. The
+    // thrown error reaches `failAll` so a family can classify it.
     const runFamily = async (
       fetchFamily: () => Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }>,
-      failAll: () => SourceFetchResult[],
+      failAll: (error: unknown) => SourceFetchResult[],
       logMessage: string,
     ): Promise<FamilyOutcome> => {
       try {
@@ -126,7 +130,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
         return { events: withSavedEvents(events, results, windowStart, windowEnd), results, ok: results.some((r) => r.ok) };
       } catch (error) {
         log.error(logMessage, error);
-        const failed = failAll();
+        const failed = failAll(error);
         return { events: withSavedEvents([], failed, windowStart, windowEnd), results: failed, ok: false };
       }
     };
@@ -135,9 +139,17 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
       !calendarIds.length ? NO_FAMILY : runFamily(
         () => fetchCalendarEvents(calendarIds, timeMin, timeMax, hideDeclined),
         // The email local part stands in for the calendar name the API would
-        // have supplied, matching the editor's own fallback.
-        () => calendarIds.map((id): SourceFetchResult =>
-          ({ id, name: id.includes('@') ? id.split('@')[0] : undefined, ok: false, error: "Couldn't reach Google Calendar", messageKey: 'googleUnreachable' })),
+        // have supplied, matching the editor's own fallback. A missing or
+        // expired sign-in (SetupError) gets its own key so the display can
+        // show the sign-in card instead of an outage badge.
+        (error) => calendarIds.map((id): SourceFetchResult => ({
+          id,
+          name: id.includes('@') ? id.split('@')[0] : undefined,
+          ok: false,
+          ...(error instanceof SetupError
+            ? { error: 'Google Calendar needs to sign in again', messageKey: GOOGLE_NOT_SIGNED_IN }
+            : { error: "Couldn't reach Google Calendar", messageKey: 'googleUnreachable' }),
+        })),
         'Google Calendar fetch failed',
       ),
       !icalSources.length ? NO_FAMILY : runFamily(
@@ -175,11 +187,15 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     // the saved events, return an error instead of caching empty —
     // useFetchData keeps the last-good body on a failed response. When saved
     // events exist, the 200 payload is the richer answer: accurate per-source
-    // statuses plus the kept rows the display badges as "saved".
+    // statuses plus the kept rows the display badges as not updating. A
+    // sign-in problem is the other exception: the display needs the
+    // per-source statuses to show its sign-in card, and a kept last-good
+    // body would hide the problem behind aging events.
     if (!google.ok && !ical.ok && !icloud.ok && !holidays.ok) {
       const anySaved =
         google.events.length || ical.events.length || icloud.events.length || holidays.events.length;
-      if (!anySaved) {
+      const needsSignIn = sourceResults.length > 0 && sourceResults.every((r) => r.messageKey === GOOGLE_NOT_SIGNED_IN);
+      if (!anySaved && !needsSignIn) {
         return errorResponse(null, 'Failed to fetch calendar events') as NextResponse;
       }
     }

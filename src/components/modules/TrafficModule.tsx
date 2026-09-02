@@ -43,7 +43,7 @@ export default function TrafficModule({ config, style }: TrafficModuleProps) {
   const [data, error] = useFetchData<TrafficData>(trafficUrl(config) ?? '', config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   if (routes.length === 0) {
-    return <ModuleEmptyState style={style} message={t('traffic.noRoutes')} />;
+    return <ModuleEmptyState style={style} type="traffic" message={t('traffic.noRoutes')} />;
   }
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('traffic.loading') });

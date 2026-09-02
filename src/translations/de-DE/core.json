@@ -38,9 +38,16 @@
   },
   "emptyDisplay": {
     "eyebrow": "Home Screens",
-    "headline": "Hier ist noch nichts",
-    "body": "Öffne den Editor auf einem anderen Gerät, um deinen ersten Bildschirm zu gestalten.",
-    "hideHint": "Ausblenden unter Einstellungen → Bildschirm"
+    "headline": "Auf diesem Bildschirm ist noch nichts",
+    "body": "Öffne auf einem Handy oder Computer in deinem WLAN",
+    "hideHint": "Lieber ein leerer Bildschirm? Einstellungen › Bildschirm › Diesen Hinweis anzeigen"
+  },
+  "pagination": {
+    "paused": "Pausiert",
+    "resumesIn": "Geht in {time} weiter · zum Fortsetzen tippen",
+    "tapToResume": "zum Fortsetzen tippen",
+    "minutes": "{count} Min.",
+    "seconds": "{count} Sek."
   },
   "displayNotFound": {
     "notRegistered": "Display nicht registriert",

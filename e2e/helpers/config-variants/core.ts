@@ -388,12 +388,21 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   {
     type: 'display-control', name: 'layout-bar', kind: 'network-free',
     config: { layout: 'bar' },
-    expect: async (mod) => { await child('.items-center.gap-3.px-4')(mod); await child('button.rounded-full')(mod); },
+    expect: async (mod) => { await child('[data-layout="bar"]')(mod); await has('Previous')(mod); },
   },
   {
     type: 'display-control', name: 'layout-pad', kind: 'network-free',
     config: { layout: 'pad' },
-    expect: child('.grid-cols-2'),
+    expect: async (mod) => { await child('[data-layout="pad"]')(mod); await child('.grid-cols-2')(mod); },
+  },
+  // Icons only: the buttons keep their aria-labels but lose their words.
+  {
+    type: 'display-control', name: 'compact', kind: 'network-free',
+    config: { compact: true },
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label="Previous screen"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label="Previous screen"]')).toHaveText('');
+    },
   },
 
   // ================= NETWORKED =================

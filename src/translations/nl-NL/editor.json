@@ -185,6 +185,7 @@
     "secondsUnit": "sec",
     "stickyBadge": "Vast",
     "stickyHint": "0 = blijf op dit scherm (alleen handmatig wisselen).",
+    "minDurationWarning": "Korter dan {seconds} seconden en het scherm kan al wisselen voordat nieuws en weer klaar zijn met laden. Opgeslagen als {seconds}.",
     "inheritsHintBefore": "Neemt de standaard over: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",
@@ -424,6 +425,7 @@
         "errors": {
           "googleCalendarFailed": "Deze agenda kon niet uit Google worden geladen",
           "googleUnreachable": "Google Agenda is niet bereikbaar",
+          "googleNotSignedIn": "Google Agenda moet opnieuw inloggen",
           "holidaysFailed": "De feestdagenlijst kon niet worden geladen",
           "icloudBirthdaysFailed": "Verjaardagen konden niet uit iCloud worden geladen",
           "icloudCalendarFailed": "Deze agenda kon niet uit iCloud worden geladen",
@@ -671,6 +673,9 @@
         "setupHintLabel": "Installatiebericht op lege displays",
         "setupHintToggle": "Ingeschakeld",
         "setupHintHelp": "Als een display geen schermen heeft om te tonen, verschijnt er een vaag bericht met het adres van deze editor. Zet dit uit om een leeg display helemaal zwart te laten.",
+        "rotationProgressLabel": "Voortgangslijn onder de schermstippen",
+        "rotationProgressToggle": "Ingeschakeld",
+        "rotationProgressHelp": "Een dun lijntje onder de actieve stip vult zich terwijl de tijd van het scherm afloopt, zodat je ook van een afstand een lang scherm van een vastgelopen scherm kunt onderscheiden.",
         "transitionEffectLabel": "Overgangseffect",
         "transitionEffectHelp": "Animatiestijl bij het wisselen tussen schermen. Blur kan zwaar zijn voor de GPU op apparaten met weinig vermogen.",
         "transitionDurationLabel": "Duur van de overgang",
@@ -1951,6 +1956,12 @@
     }
   },
   "backgroundPicker": {
+    "missing": {
+      "label": "Achtergrondafbeelding",
+      "note": "Deze afbeelding staat niet meer op de hub, dus het scherm toont in plaats daarvan de effen kleur. Kies een andere of verwijder hem.",
+      "pickAnother": "Kies een afbeelding",
+      "useSolid": "Effen kleur gebruiken"
+    },
     "title": "Achtergrond",
     "statusGroup": "Status",
     "autoRotate": "Automatisch wisselen",
@@ -2644,7 +2655,8 @@
       "targetSelf": "Dit display (zelf)",
       "targetAll": "Alle displays",
       "legacyHint": "Er is maar één display geregistreerd — het doel is vastgezet op dit display.",
-      "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen"
+      "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen",
+      "compact": "Alleen pictogrammen, geen tekst"
     },
     "financial": {
       "viewCards": "Kaarten",

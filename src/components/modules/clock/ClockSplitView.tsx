@@ -3,13 +3,14 @@
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { fitFactor, splitRowWidth } from './fit-width';
 import type { ClockViewProps } from './types';
 
 /**
  * Split clock — time on the left, date and info on the right,
  * separated by a hairline vertical divider.
  */
-export default function ClockSplitView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockSplitView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
@@ -29,9 +30,28 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
   if (config.showWeekNumber) infoParts.push({ label: t('clock.weekShort'), value: String(weekNumber) });
   if (config.showDayOfYear) infoParts.push({ label: t('clock.dayShort'), value: String(dayOfYear) });
 
-  const timeFontSize = scaledFontSize * 2.8;
-  const dateFontSize = scaledFontSize * 1.0;
-  const infoFontSize = scaledFontSize * 0.8;
+  // Shrink the whole row together when the box is narrower than time,
+  // divider and date side by side; the height-derived size stays the ceiling.
+  const factor = fitFactor(
+    splitRowWidth(
+      { text: timeStr, fontSize: scaledFontSize * 2.8, letterSpacingEm: 0.025 },
+      scaledFontSize * 1.4,
+      [
+        ...(dateStr ? [{ text: dateStr, fontSize: scaledFontSize * 1.0 }] : []),
+        ...infoParts.map((part) => ({
+          text: `${part.label} ${part.value}`.toUpperCase(),
+          fontSize: scaledFontSize * 0.8,
+          letterSpacingEm: 0.025,
+        })),
+      ],
+    ),
+    boxWidth,
+  );
+  const s = scaledFontSize * factor;
+
+  const timeFontSize = s * 2.8;
+  const dateFontSize = s * 1.0;
+  const infoFontSize = s * 0.8;
   const dividerHeight = timeFontSize * 1.1;
 
   return (
@@ -39,11 +59,11 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
       ref={containerRef}
       className="w-full h-full flex items-center justify-center"
     >
-      <div className="flex items-center" style={{ gap: scaledFontSize * 1.4 }}>
+      <div className="flex items-center" style={{ gap: s * 1.4 }}>
         {/* Left: Time */}
         <div className="flex flex-col items-end">
           <div
-            className="tabular-nums font-light tracking-wide"
+            className="tabular-nums font-light tracking-wide whitespace-nowrap"
             style={{ fontSize: timeFontSize, lineHeight: 1 }}
             suppressHydrationWarning
           >
@@ -52,7 +72,7 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
           {ampm && (
             <div
               className="uppercase tracking-widest font-light"
-              style={{ fontSize: scaledFontSize * 0.7, marginTop: 2, opacity: TEXT_OPACITY.tertiary }}
+              style={{ fontSize: s * 0.7, marginTop: 2, opacity: TEXT_OPACITY.tertiary }}
               suppressHydrationWarning
             >
               {ampm}
@@ -71,7 +91,7 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
         />
 
         {/* Right: Date and info */}
-        <div className="flex flex-col justify-center" style={{ gap: scaledFontSize * 0.35 }}>
+        <div className="flex flex-col justify-center" style={{ gap: s * 0.35 }}>
           {dateStr && (
             <div
               className="font-light"
@@ -83,7 +103,7 @@ export default function ClockSplitView({ config, now, scaledFontSize, containerR
           )}
 
           {infoParts.length > 0 && (
-            <div className="flex flex-col" style={{ gap: scaledFontSize * 0.15 }}>
+            <div className="flex flex-col" style={{ gap: s * 0.15 }}>
               {infoParts.map((part) => (
                 <div
                   key={part.label}

@@ -99,6 +99,14 @@ interface UseSleepManagerResult {
    * status heartbeat so the remote's slider starts where the wall actually is.
    */
   brightness: number;
+  /**
+   * The standing remote/Display Control brightness (1-99), or null. While
+   * set, `displayState` is 'dimmed' but the dim is a deliberate brightness
+   * choice, not an idle or scheduled dim: content is shown at that level and
+   * nothing (no screensaver) is drawn over it. SleepOverlay reads this to
+   * keep the screensaver on the idle and schedule paths only.
+   */
+  brightnessOverride: number | null;
 }
 
 /**
@@ -487,5 +495,5 @@ export function useSleepManager(
 
   const brightness = Math.round((1 - dimOpacity) * 100);
 
-  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness, wakeForAlert, releaseAlertWake, getDisplayState, brightness };
+  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness, wakeForAlert, releaseAlertWake, getDisplayState, brightness, brightnessOverride };
 }

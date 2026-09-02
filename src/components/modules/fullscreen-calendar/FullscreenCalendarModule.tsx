@@ -33,7 +33,8 @@ import { UpNextView } from './UpNextView';
 import { FreeTimeView } from './FreeTimeView';
 import { EventDetailOverlay } from '../shared/EventDetailOverlay';
 import { CalendarLegend } from '../shared/CalendarLegend';
-import { calendarStaleStatus, useFailingSources } from '../shared/useFailingSources';
+import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from '../shared/useFailingSources';
+import { CalendarSetupCard } from '../shared/CalendarSetupCard';
 import { useEventTapDetail } from '../shared/useEventTapDetail';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
@@ -168,6 +169,8 @@ interface FullscreenCalendarModuleProps {
   calendarStatus?: CalendarFetchStatus;
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
+  /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
+  calendarSetup?: CalendarSetupNeed;
   /** Attached only while Settings > Calendar > People is non-empty (see buildModuleProps). */
   people?: CalendarPerson[];
 }
@@ -185,6 +188,7 @@ export default function FullscreenCalendarModule({
   fullscreenTheme,
   calendarStatus,
   sourceStatus,
+  calendarSetup,
   people,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
@@ -201,8 +205,8 @@ export default function FullscreenCalendarModule({
 
   // Legend ring, named header pill, and per-row "saved" suffix all key off
   // this shared derivation (see useFailingSources).
-  const { failingSources, failingSourceIds, soloFailingName, soloFailingSince } = useFailingSources({
-    sourceStatus, sourceFilter: config.sourceFilter, timezone, timeFormat, locale, today, t,
+  const { failingSources, failingSourceIds, hasLiveSource } = useFailingSources({
+    sourceStatus, sourceFilter: config.sourceFilter,
   });
 
   // The 60s tick only changes the selection when the agenda cutoff applies
@@ -300,16 +304,19 @@ export default function FullscreenCalendarModule({
     || (wantsExtras && hasExtras(extras, weekDates));
   const isLoading = loading && !hasContent;
 
-  // Failure \u2260 empty: while the shared calendar fetch is failing, the events
-  // on screen are the kept last-good payload \u2014 badge them as saved rather
-  // than live. Only a failure with NO successful fetch ever (updatedAt null)
-  // renders the "can't load" state: last-good data whose visible window
-  // happens to be empty (an agenda after the day's last event) is a normal
-  // empty day, not an outage.
-  const { neverLoaded, statusText } = calendarStaleStatus({
-    calendarStatus, failingSources, soloFailingName, soloFailingSince,
-    timezone, timeFormat, locale, today, t, ns: 'fullscreen-calendar',
+  // Failure ≠ empty: while the shared calendar fetch is failing, the events
+  // on screen are the kept last-good payload — badge them as not updating
+  // rather than live (loud after a day). Setup problems (nothing picked,
+  // Google sign-in expired) show the setup card instead of aging events.
+  // Only a failure with NO successful fetch ever (updatedAt null) renders
+  // the "can't load" state: last-good data whose visible window happens to
+  // be empty (an agenda after the day's last event) is a normal empty day,
+  // not an outage.
+  const status = calendarStatusView({
+    calendarSetup, calendarStatus, failingSources, hasLiveSource,
+    timezone, timeFormat, locale, now, today, t,
   });
+  const neverLoaded = status.kind === 'cantLoad';
 
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   const tapDetails = config.eventTapDetails === true;
@@ -379,20 +386,22 @@ export default function FullscreenCalendarModule({
           {headerTitle}
         </h1>
         <div style={{ flex: 1 }} />
-        {statusText ? (
-          // The saved-events / source-outage pill takes the weather pill's
-          // slot so the header element count never changes; calm amber, no
-          // "error" language (wording shared via calendarStaleStatus).
+        {status.kind === 'badge' ? (
+          // The not-updating pill takes the weather pill's slot so the
+          // header element count never changes; calm amber, no "error"
+          // language (wording shared via calendarStatusView). 24px on a
+          // 1080-wide wall, filled when the outage is a day old.
           <span
-            className="fsc-stale-pill"
+            className={status.loud ? 'fsc-stale-pill fsc-stale-pill-loud' : 'fsc-stale-pill'}
+            data-loud={status.loud ? '' : undefined}
             style={{
-              fontSize: `${scale.bu * 1.1 * scale.typoMul}px`,
-              color: scale.isDark ? '#d9a441' : '#92642c',
+              fontSize: `${scale.bu * 1.5 * scale.typoMul}px`,
+              color: scale.isDark ? (status.loud ? '#f5b942' : '#d9a441') : '#92642c',
             }}
             role="status"
           >
             <span className="fsc-stale-dot" aria-hidden="true" />
-            {statusText}
+            {status.text}
           </span>
         ) : weatherPlacement === 'header' && currentTemp != null && (
           <span
@@ -425,7 +434,19 @@ export default function FullscreenCalendarModule({
 
       {/* View area */}
       <div className="fsc-content" style={{ flex: 1, minHeight: 0 }}>
-        {isLoading ? (
+        {status.kind === 'setup' ? (
+          <CalendarSetupCard
+            title={status.title}
+            hint={status.hint}
+            setup={status.setup}
+            titleSize={scale.bu * 2.2 * scale.typoMul}
+            hintSize={scale.bu * 1.6 * scale.typoMul}
+            iconSize={scale.bu * 6}
+            color="var(--cal-text-primary)"
+            hintColor="var(--cal-text-secondary)"
+            style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
+          />
+        ) : isLoading ? (
           <SkeletonLoading scale={scale} />
         ) : neverLoaded || !hasContent ? (
           // A fetch that has never succeeded is an outage even when the view
@@ -592,11 +613,16 @@ const cssTokens = `
   font-weight: 600;
   white-space: nowrap;
 }
+.fsc-stale-pill-loud {
+  background: rgba(245,185,66,0.18);
+  border-color: rgba(245,185,66,0.6);
+  padding: 4px 14px;
+}
 .fsc-stale-dot {
   width: 0.55em;
   height: 0.55em;
   border-radius: 50%;
-  background: #d9a441;
+  background: currentColor;
   flex-shrink: 0;
 }
 .fsc-view-badge {
@@ -620,6 +646,24 @@ const cssTokens = `
 /* Tap-to-open event details enabled */
 .fsc-root[data-tap-events] .fsc-event-block {
   cursor: pointer;
+}
+/* List rows that open a detail overlay get a chevron at the right edge, only
+   while tapping does something (data-tap-events). Inline padding wins over a
+   stylesheet, so the room for it is forced. */
+.fsc-root[data-tap-events] .fsc-tap-row {
+  position: relative;
+  padding-right: 1.6em !important;
+}
+.fsc-root[data-tap-events] .fsc-tap-row::after {
+  content: '›';
+  position: absolute;
+  right: 0.55em;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+  line-height: 1;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* Hide scrollbars — kiosk display, no manual scroll */

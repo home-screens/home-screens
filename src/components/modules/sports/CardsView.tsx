@@ -1,7 +1,7 @@
 import type { Game } from '@/lib/espn';
-import { TeamLogo, isWinner, formatScore, GameStatus } from './shared';
+import { TeamLogo, isWinner, formatScore, GameStatus, type KickoffFn } from './shared';
 
-function GameCard({ game }: { game: Game }) {
+function GameCard({ game, kickoff }: { game: Game; kickoff: KickoffFn }) {
   const awayWins = isWinner(game, 'away');
   const homeWins = isWinner(game, 'home');
 
@@ -13,7 +13,7 @@ function GameCard({ game }: { game: Game }) {
         </span>
         <GameStatus
           state={game.state}
-          shortDetail={game.shortDetail}
+          kickoff={kickoff(game)}
           status={game.status}
           dotSize="w-1 h-1"
           postColor="text-white/35"
@@ -56,11 +56,11 @@ function GameCard({ game }: { game: Game }) {
   );
 }
 
-export function CardsView({ games }: { games: Game[] }) {
+export function CardsView({ games, kickoff }: { games: Game[]; kickoff: KickoffFn }) {
   return (
     <div className="grid grid-cols-2 gap-2 h-full w-full content-center p-2 overflow-hidden">
       {games.map((game) => (
-        <GameCard key={game.id} game={game} />
+        <GameCard key={game.id} game={game} kickoff={kickoff} />
       ))}
     </div>
   );

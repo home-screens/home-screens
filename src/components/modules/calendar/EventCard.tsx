@@ -39,7 +39,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
   /** Daily view only: currently running, ringed via showNowRule. */
   live?: boolean;
 }) {
-  const { timeFormat, gridStyle, pillBackground, timezone } = eventStyle;
+  const { timeFormat, gridStyle, pillBackground, timezone, tapDetails } = eventStyle;
   const isAllDay = isAllDayEvent(event);
   // Classic compact pills render only the dot and title — return before
   // parsing dates, since grid views mount hundreds of these per render.
@@ -166,6 +166,11 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
           </p>
         )}
       </div>
+      {tapDetails && (
+        // Rows that open a detail overlay say so: a muted chevron at the
+        // right edge, only when a tap actually opens something.
+        <span aria-hidden="true" data-testid="event-chevron" className="shrink-0 self-center" style={{ fontSize: '1.2em', lineHeight: 1, opacity: 0.4 }}>›</span>
+      )}
     </ContentCard>
   );
 });

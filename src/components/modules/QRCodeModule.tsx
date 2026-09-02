@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { QRCodeConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+import { ModuleEmptyState } from './ModuleStates';
 import { buildWifiString } from '@/lib/wifi-qr';
 
 interface QRCodeModuleProps {
@@ -24,45 +25,41 @@ export default function QRCodeModule({ config, style }: QRCodeModuleProps) {
 
   const hasData = mode === 'wifi' ? !!(config.ssid) : !!config.data;
 
+  if (!hasData) {
+    return <ModuleEmptyState style={style} type="qr-code" message={t('qr-code.empty')} />;
+  }
+
   return (
     <ModuleWrapper style={style}>
       <div className="flex flex-col items-center justify-center h-full w-full gap-2">
-        {hasData ? (
-          <>
-            <QRCodeSVG
-              value={qrData}
-              fgColor={fgColor}
-              bgColor={bgColor}
-              style={{ width: '80%', height: '80%', maxWidth: '100%', maxHeight: '100%' }}
-            />
-            {mode === 'wifi' ? (
-              <div className="flex flex-col items-center gap-0.5">
-                {(config.showNetworkName ?? true) && config.ssid && (
-                  <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>
-                    <WifiIcon /> {config.ssid}
-                  </span>
-                )}
-                {(config.showPassword ?? true) && config.password && config.authType !== 'nopass' && (
-                  <span className="text-center font-mono" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
-                    {config.password}
-                  </span>
-                )}
-                {!(config.showNetworkName ?? true) && !(config.showPassword ?? true) && (
-                  <span className="text-center" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
-                    {t('qr-code.scanToConnect')}
-                  </span>
-                )}
-              </div>
-            ) : (
-              config.label && (
-                <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>{config.label}</span>
-              )
+        <QRCodeSVG
+          value={qrData}
+          fgColor={fgColor}
+          bgColor={bgColor}
+          style={{ width: '80%', height: '80%', maxWidth: '100%', maxHeight: '100%' }}
+        />
+        {mode === 'wifi' ? (
+          <div className="flex flex-col items-center gap-0.5">
+            {(config.showNetworkName ?? true) && config.ssid && (
+              <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>
+                <WifiIcon /> {config.ssid}
+              </span>
             )}
-          </>
+            {(config.showPassword ?? true) && config.password && config.authType !== 'nopass' && (
+              <span className="text-center font-mono" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
+                {config.password}
+              </span>
+            )}
+            {!(config.showNetworkName ?? true) && !(config.showPassword ?? true) && (
+              <span className="text-center" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
+                {t('qr-code.scanToConnect')}
+              </span>
+            )}
+          </div>
         ) : (
-          <span style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.dim }}>
-            {mode === 'wifi' ? t('qr-code.configureWifi') : t('qr-code.configureData')}
-          </span>
+          config.label && (
+            <span className="text-center" style={{ fontSize: '0.875em', opacity: TEXT_OPACITY.heading }}>{config.label}</span>
+          )
         )}
       </div>
     </ModuleWrapper>

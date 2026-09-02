@@ -36,35 +36,69 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
   {
     type: 'countdown', name: 'no-events', kind: 'network-free',
     config: { events: [], view: 'all' },
-    expect: showsCopy('No countdowns yet'),
+    expect: showsCopy('Add a date in the editor and the countdown starts here'),
+  },
+  {
+    // The elapsed view with no start time set; the other clock views always
+    // have something to draw.
+    type: 'clock', name: 'no-start-time', kind: 'network-free',
+    config: { view: 'elapsed', referenceTime: '' },
+    expect: showsCopy('Pick a start time in the editor and the counter starts here'),
+  },
+  {
+    type: 'qr-code', name: 'no-data', kind: 'network-free',
+    config: { mode: 'custom', data: '' },
+    expect: showsCopy('Add a link or your Wi-Fi in the editor and it shows here'),
+  },
+  {
+    type: 'iframe', name: 'no-url', kind: 'network-free',
+    config: { url: '' },
+    expect: showsCopy('Add a web address in the editor and the page shows here'),
+  },
+  {
+    type: 'image', name: 'no-source', kind: 'network-free',
+    config: { src: '' },
+    expect: showsCopy('Pick a picture in the editor and it shows here'),
+  },
+  {
+    // Every category off and no custom entries: nothing to rotate.
+    type: 'affirmations', name: 'no-entries', kind: 'network-free',
+    config: { categories: [], customEntries: [] },
+    expect: showsCopy('Pick a category in the editor and affirmations show here'),
+  },
+  {
+    // The config-level gate: with no feed there is nothing to fetch.
+    type: 'news', name: 'no-feeds', kind: 'network-free',
+    config: { feeds: [] },
+    expect: showsCopy('Add a news feed in the editor and headlines show here'),
   },
   {
     type: 'todo', name: 'no-items', kind: 'network-free',
     config: { title: 'E2E TODO', items: [] },
-    expect: showsCopy('No tasks yet'),
+    expect: showsCopy('Add tasks in the editor and they show up here'),
   },
   {
     type: 'sticky-note', name: 'empty-content', kind: 'network-free',
     config: { content: '' },
-    expect: showsCopy('No note content'),
+    expect: showsCopy('Write a note in the editor and it shows here'),
   },
   {
     type: 'icon', name: 'no-icon', kind: 'network-free',
     config: { iconName: '' },
-    expect: showsCopy('No icon selected'),
+    expect: showsCopy('Pick an icon in the editor and it shows here'),
   },
   {
     // The config-level `routes: []` gate — distinct from the already-tested
     // empty-response path (the module never fetches when no routes exist).
     type: 'traffic', name: 'no-routes', kind: 'network-free',
     config: { routes: [] },
-    expect: showsCopy('No routes configured'),
+    expect: showsCopy('Add a route in the editor and drive times show here'),
   },
   {
     // No file chosen (file source, empty path) — the module never fetches.
     type: 'video', name: 'not-configured', kind: 'network-free',
     config: { source: 'file', file: '' },
-    expect: showsCopy('Choose a video to play'),
+    expect: showsCopy('Pick a video in the editor and it plays here'),
   },
   {
     type: 'moon-phase', name: 'missing-location', kind: 'network-free', noLocation: true,

@@ -7,6 +7,8 @@ import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
+import { TapCheckbox, TAP_CHECKBOX_ACCENT } from './shared/TapCheckbox';
+import { usePressedKey } from './shared/usePressedKey';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate } from '@/i18n';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -18,6 +20,37 @@ import { todoStateUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 /** Poll interval for runtime completion state — sourced from the shared
  *  registry so prefetch and the hook stay in lockstep. */
 const TODO_STATE_TTL_MS = FETCH_KEY_REGISTRY['todo']?.ttlMs ?? 5_000;
+
+/** localStorage flag: the "tap a box" hint has been shown on this display. */
+const TAP_HINT_SEEN_KEY = 'hs:todo-tap-hint-seen';
+const TAP_HINT_SHOW_MS = 4_000;
+const TAP_HINT_FADE_MS = 1_200;
+
+/**
+ * One-time hint for a tappable list: shown on the first interactive render
+ * of this display, fades after a few seconds, and never comes back (a flag
+ * in localStorage, so a Chromium restart doesn't replay it). Dismissed early
+ * by the first tap. Storage can be unavailable (private mode, blocked site
+ * data); every access is guarded and the hint simply stays off.
+ */
+function useTapHint(enabled: boolean): { phase: 'hidden' | 'shown' | 'fading'; dismiss: () => void } {
+  const [phase, setPhase] = useState<'hidden' | 'shown' | 'fading'>('hidden');
+  useEffect(() => {
+    if (!enabled) return;
+    try {
+      if (localStorage.getItem(TAP_HINT_SEEN_KEY)) return;
+      localStorage.setItem(TAP_HINT_SEEN_KEY, '1');
+    } catch {
+      return;
+    }
+    setPhase('shown');
+    const fade = setTimeout(() => setPhase('fading'), TAP_HINT_SHOW_MS);
+    const hide = setTimeout(() => setPhase('hidden'), TAP_HINT_SHOW_MS + TAP_HINT_FADE_MS);
+    return () => { clearTimeout(fade); clearTimeout(hide); };
+  }, [enabled]);
+  const dismiss = useCallback(() => setPhase('hidden'), []);
+  return { phase, dismiss };
+}
 
 interface TodoModuleProps {
   config: TodoConfig;
@@ -43,12 +76,23 @@ function CheckIcon({ done, color }: { done: boolean; color: string }) {
   );
 }
 
-/** Shared row contents (checkbox + label) so the static <li> and the
- *  interactive <button> render identically. */
-function TodoRow({ item, accentColor }: { item: TodoItem; accentColor: string }) {
+/** Row contents (checkbox + label). The static <li> keeps the small check
+ *  glyph; the interactive <button> draws the shared 38px tap checkbox so a
+ *  list that can be tapped looks different from one that can't. */
+function TodoRow({ item, accentColor, tappable, pressed }: { item: TodoItem; accentColor: string; tappable?: boolean; pressed?: boolean }) {
   return (
     <>
-      <CheckIcon done={item.completed} color={accentColor} />
+      {tappable ? (
+        // The authored default accent is black, which reads as a hole on a
+        // dark card once the box is filled; the mockup's blue stands in.
+        <TapCheckbox
+          checked={item.completed}
+          pressed={pressed}
+          color={accentColor.toLowerCase() === '#000000' ? TAP_CHECKBOX_ACCENT : accentColor}
+        />
+      ) : (
+        <CheckIcon done={item.completed} color={accentColor} />
+      )}
       <span
         className="line-clamp-2"
         style={{
@@ -98,6 +142,9 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
   // toggle request in flight; polls skip these so a response that predates the
   // tap can't flash the old value back (the old flicker).
   const { run: runToggle, pending: pendingRef } = useOptimisticMutation();
+  // Which row's tap is in flight (pressed checkbox), and the one-time hint.
+  const [pressedId, press] = usePressedKey();
+  const tapHint = useTapHint(interactive);
   // After a successful toggle we hold server-confirmed local state for one poll
   // interval. `GET /api/todo/state` is a plain read, NOT serialized with the
   // toggle's atomic write, so a poll that read the file *before* our write
@@ -145,7 +192,8 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
 
   const toggle = useCallback(
     (itemId: string) => {
-      void runToggle(itemId, {
+      tapHint.dismiss();
+      void press(itemId, () => runToggle(itemId, {
         apply: () => {
           const authored = authoredMapRef.current[itemId] ?? false;
           // Optimistic flip — read the current effective value (override, else
@@ -180,13 +228,13 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
         rollback: () => {
           setOverrides((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
         },
-      });
+      }));
     },
-    [displayId, screenId, moduleId, runToggle],
+    [displayId, screenId, moduleId, runToggle, press, tapHint],
   );
 
   if (items.length === 0) {
-    return <ModuleEmptyState style={style} message={t('todo.noTasksYet')} />;
+    return <ModuleEmptyState style={style} type="todo" message={t('todo.noTasksYet')} />;
   }
 
   const doneCount = items.filter((i) => i.completed).length;
@@ -194,7 +242,7 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
 
   return (
     <ModuleWrapper style={style}>
-      <div ref={containerRef} className="flex flex-col h-full" style={{ fontSize: `${scaledFontSize}px` }}>
+      <div ref={containerRef} className="flex flex-col h-full relative" style={{ fontSize: `${scaledFontSize}px` }}>
         <div className="flex items-baseline justify-between mb-3">
           {config.showTitle !== false && (
             <h2 className="font-semibold" style={{ fontSize: '1.25em' }}>
@@ -211,16 +259,27 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
             const opacity = item.completed ? TEXT_OPACITY.tertiary : TEXT_OPACITY.primary;
 
             if (interactive) {
+              const pressed = pressedId === item.id;
               return (
                 <li key={item.id} style={{ borderBottom }}>
                   <button
                     type="button"
                     onClick={() => toggle(item.id)}
                     aria-pressed={item.completed}
-                    className="flex items-start gap-2 w-full text-left py-2.5 cursor-pointer select-none active:opacity-60 transition-opacity"
-                    style={{ minHeight: 44, opacity, touchAction: 'pan-y' }}
+                    data-pressed={pressed ? '' : undefined}
+                    className="flex items-center gap-3 w-full text-left py-2 cursor-pointer select-none transition-colors rounded-lg"
+                    style={{
+                      minHeight: 48,
+                      opacity,
+                      touchAction: 'pan-y',
+                      // The pressed row tints while its tap is in flight.
+                      backgroundColor: pressed ? 'rgba(255,255,255,0.06)' : undefined,
+                      margin: pressed ? '0 -0.5em' : undefined,
+                      padding: pressed ? '0.5em 0.5em' : undefined,
+                      width: pressed ? 'calc(100% + 1em)' : undefined,
+                    }}
                   >
-                    <TodoRow item={item} accentColor={accentColor} />
+                    <TodoRow item={item} accentColor={accentColor} tappable pressed={pressed} />
                   </button>
                 </li>
               );
@@ -237,6 +296,25 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
             );
           })}
         </ul>
+        {interactive && tapHint.phase !== 'hidden' && (
+          <div
+            data-testid="todo-tap-hint"
+            role="status"
+            className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full font-semibold pointer-events-none"
+            style={{
+              bottom: '0.4em',
+              fontSize: '0.8em',
+              padding: '0.45em 1.1em',
+              color: '#111',
+              backgroundColor: 'rgba(255,255,255,0.92)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+              opacity: tapHint.phase === 'fading' ? 0 : 1,
+              transition: `opacity ${TAP_HINT_FADE_MS}ms ease`,
+            }}
+          >
+            {t('todo.tapHint')}
+          </div>
+        )}
       </div>
     </ModuleWrapper>
   );
