@@ -19,7 +19,7 @@
     "refreshSeconds": "Vernieuwen (seconden)",
     "refresh": "Vernieuwen",
     "theme": "Thema",
-    "density": "Dichtheid",
+    "density": "Ruimte",
     "objectFit": "Objectaanpassing",
     "objectFitCover": "Bedekken",
     "objectFitContain": "Passend",
@@ -80,7 +80,8 @@
         "hint": "Iemand heeft opgeslagen vanuit een andere editor of een telefoon terwijl jij aan het bewerken was. Laad die wijzigingen, of houd de jouwe en overschrijf de andere.",
         "loadTheirs": "Hun wijzigingen laden",
         "keepMine": "De mijne houden"
-      }
+      },
+      "savedToDisplay": "Opgeslagen op {name}"
     }
   },
   "canvas": {
@@ -109,7 +110,15 @@
       "selectBehind": "Module erachter selecteren",
       "hide": "Verbergen op display",
       "show": "Tonen op display"
-    }
+    },
+    "emptyDisplay": {
+      "title": "Het display {name} heeft nog geen schermen",
+      "body": "Een scherm is één pagina in de rotatie. Begin met een leeg scherm, of kopieer wat er al op een ander display staat.",
+      "addScreen": "Scherm toevoegen",
+      "copyFrom": "Schermen kopiëren van {name}"
+    },
+    "zoomFit": "Passend",
+    "zoomHint": "Ctrl+scrollen om te zoomen, scrollen om te verschuiven"
   },
   "draggableModule": {
     "scheduledActiveTitle": "Gepland — momenteel actief",
@@ -120,12 +129,24 @@
     "conditionMetTitle": "Voorwaarden voldaan — nu zichtbaar op het scherm",
     "conditionUnmetTitle": "Voorwaarden niet voldaan — nu verborgen op het scherm",
     "conditionMetTitleEditor": "Voorwaarden voldaan, zou nu zichtbaar zijn",
-    "conditionUnmetTitleEditor": "Voorwaarden niet voldaan, zou nu verborgen zijn"
+    "conditionUnmetTitleEditor": "Voorwaarden niet voldaan, zou nu verborgen zijn",
+    "status": {
+      "hidden": "Verborgen",
+      "hiddenDetail": "Uitgezet, dus dit komt nooit op het display. Zet het weer aan bij Zichtbaarheid.",
+      "scheduledActiveDetail": "{summary} Nu te zien op het display.",
+      "scheduledInactiveDetail": "{summary} Nu niet te zien op het display.",
+      "conditionOnKey": "Wacht op {key}",
+      "conditionNoKey": "Wacht op een live-waarde",
+      "background": "Draait op de achtergrond"
+    }
   },
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
     "label": "Welk display bewerk je nu op dit canvas?",
-    "optionWithDimensions": "{name} ({width}×{height})"
+    "optionWithDimensions": "{name} ({width}×{height})",
+    "onNow": "nu aan",
+    "lastSeen": "laatst gezien {time}",
+    "addDisplay": "Display toevoegen"
   },
   "screenTabs": {
     "stickyTooltip": "blijft — wisselt niet vanzelf; heeft een tik of de afstandsbediening nodig",
@@ -181,25 +202,37 @@
     "sectionTitle": "Scherminstellingen",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "durationLabel": "Duur",
-    "secondsUnit": "sec",
+    "durationLabel": "Hoe lang dit scherm te zien is",
+    "secondsUnit": "seconden",
     "stickyBadge": "Vast",
-    "stickyHint": "0 = blijf op dit scherm (alleen handmatig wisselen).",
+    "stickyHint": "Zet dit op 0 om op dit scherm te blijven tot iemand erop tikt of de afstandsbediening gebruikt.",
     "shortDurationWarning": "Korter dan {seconds} seconden en het scherm kan al wisselen voordat nieuws en weer klaar zijn met laden.",
-    "inheritsHintBefore": "Neemt de standaard over: ",
-    "inheritsHintValue": "{seconds}s",
-    "inheritsHintAfter": ".",
-    "overrideButton": "Overschrijven",
-    "resetButton": "Herstellen"
+    "inheritsHintBefore": "Staat ",
+    "inheritsHintValue": "{seconds} seconden",
+    "inheritsHintAfter": " in beeld, net als je andere schermen.",
+    "overrideButton": "Een andere tijd gebruiken",
+    "resetButton": "Terug naar de gewone tijd"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
-    "enableLabel": "Schema inschakelen",
+    "enableLabel": "Alleen op bepaalde tijden tonen",
     "timeWindowTitle": "Tijdvenster",
     "fromLabel": "Van",
     "untilLabel": "Tot",
     "behaviorTitle": "Gedrag",
-    "invertLabel": "Omkeren (verbergen tijdens venster)"
+    "invertLabel": "Juist verbergen tijdens deze uren",
+    "invertNeedsWindow": "Stel eerst een tijd in bij Van en Tot.",
+    "summary": {
+      "shows": "Zichtbaar {when}.",
+      "hides": "Verborgen {when}. De rest van de tijd wel zichtbaar.",
+      "short": "{days}, {time}",
+      "everyDay": "elke dag",
+      "weekdays": "ma t/m vr",
+      "weekends": "za en zo",
+      "allDay": "de hele dag",
+      "window": "{start} tot {end}"
+    },
+    "allDayHint": "Laat ze allebei leeg om de hele dag te tonen."
   },
   "registry": {
     "categories": {
@@ -258,6 +291,98 @@
       "shape": "Vorm & scheidingslijn",
       "display-control": "Displaybediening",
       "traffic": "Verkeer / Forenzen"
+    },
+    "descriptions": {
+      "fullscreen-calendar": "Je hele week of maand, schermvullend",
+      "fullscreen-chore-chart": "De klusjes van iedereen, schermvullend",
+      "fullscreen-meal-planner": "Het avondeten van deze week, schermvullend",
+      "fullscreen-photo": "Je foto's, schermvullend",
+      "fullscreen-news": "Nieuwskoppen, schermvullend",
+      "fullscreen-weather": "De weersverwachting, schermvullend",
+      "clock": "De tijd, in achttien verschillende stijlen",
+      "calendar": "Je volgende afspraken in een lijst",
+      "countdown": "Dagen tot een verjaardag, reis of grote dag",
+      "date": "Alleen de datum van vandaag",
+      "year-progress": "Hoeveel van het jaar, de maand of de dag voorbij is",
+      "multi-month": "Twee of meer maanden in één oogopslag",
+      "weather": "Nu en de komende uren of dagen",
+      "moon-phase": "De maan van vanavond en wanneer hij vol is",
+      "sunrise-sunset": "Wanneer de zon opkomt en ondergaat",
+      "air-quality": "Hoe schoon de lucht buiten is",
+      "rain-map": "Een live radarkaart van regen in de buurt",
+      "news": "Nieuwskoppen van de sites die je volgt",
+      "stock-ticker": "Koersen van de bedrijven die je volgt",
+      "crypto": "Koersen van de munten die je volgt",
+      "sports": "Uitslagen en wedstrijden van je clubs",
+      "standings": "Ranglijsten van je clubs",
+      "dad-joke": "Elke dag een nieuwe flauwe mop",
+      "quote": "Een gedachte voor vandaag",
+      "word-of-day": "Een nieuw woord en wat het betekent",
+      "history": "Wat er jaren geleden op deze dag gebeurde",
+      "todo": "Een lijst die je op het display kunt afvinken",
+      "sticky-note": "Een kort briefje in je eigen woorden",
+      "greeting": "Een groet die met de dag meeverandert",
+      "todoist": "Je Todoist-taken aan de muur",
+      "garbage-day": "Welke bak buiten moet, en wanneer",
+      "affirmations": "Een lieve gedachte om de dag mee te beginnen",
+      "meal-planner": "Wat er deze week op tafel komt",
+      "chore-chart": "Wie vandaag wat te doen heeft",
+      "text": "Elke tekst die je wilt, opgemaakt zoals jij wilt",
+      "image": "Eén foto die jij kiest",
+      "video": "Een video op herhaling, uit een bestand of van YouTube",
+      "photo-slideshow": "Familiefoto's op herhaling",
+      "qr-code": "Een code die mensen met hun telefoon kunnen scannen",
+      "iframe": "Elke webpagina, in een kader",
+      "icon": "Eén symbool, zoals een hartje of een auto",
+      "shape": "Lijnen en blokken om dingen te scheiden",
+      "display-control": "Knoppen om met een tik te wekken, te laten slapen of van scherm te wisselen",
+      "traffic": "Hoe lang de rit naar werk of school duurt"
+    },
+    "keywords": {
+      "fullscreen-calendar": "agenda kalender afspraken evenementen week maand gezin",
+      "fullscreen-chore-chart": "klusjes taken kinderen sterren huishouden gezin",
+      "fullscreen-meal-planner": "eten avondeten maaltijden recepten boodschappen week",
+      "fullscreen-photo": "fotos foto's herinneringen album diavoorstelling slideshow",
+      "fullscreen-news": "nieuws koppen artikelen rss",
+      "fullscreen-weather": "weer temperatuur regen verwachting warm koud",
+      "clock": "tijd klok uren minuten analoog digitaal",
+      "calendar": "agenda kalender afspraken evenementen ical google",
+      "countdown": "aftellen verjaardag vakantie kerst jubileum dagen",
+      "date": "datum dag maand jaar vandaag",
+      "year-progress": "voortgang balk procent jaar maand dag",
+      "multi-month": "maanden jaarplanner overzicht kalender raster",
+      "weather": "weer temperatuur regen verwachting sneeuw wind",
+      "moon-phase": "maan volle maan maanstand nacht hemel",
+      "sunrise-sunset": "zon zonsopgang zonsondergang daglicht schemering gouden uur",
+      "air-quality": "luchtkwaliteit fijnstof pollen hooikoorts smog allergie aqi",
+      "rain-map": "buienradar regenradar neerslag storm kaart",
+      "news": "nieuws koppen artikelen rss feed",
+      "stock-ticker": "aandelen beurs koersen geld ticker",
+      "crypto": "bitcoin ethereum crypto munten koersen",
+      "sports": "sport voetbal uitslagen wedstrijden clubs hockey",
+      "standings": "stand ranglijst klassement competitie clubs",
+      "dad-joke": "mop grap flauw lachen kinderen",
+      "quote": "citaat spreuk wijsheid inspiratie motivatie",
+      "word-of-day": "woord woordenschat betekenis leren kinderen",
+      "history": "geschiedenis verleden vandaag feiten jubileum",
+      "todo": "taken todo lijstje afvinken boodschappen",
+      "sticky-note": "memo briefje notitie herinnering post-it",
+      "greeting": "begroeting welkom hallo goedemorgen gezin",
+      "todoist": "taken todoist lijstje klusjes",
+      "garbage-day": "afval vuilnis container bak gft papier pmd ophaaldag",
+      "affirmations": "affirmaties positief compliment aanmoediging kinderen",
+      "meal-planner": "eten avondeten maaltijden recepten boodschappen",
+      "chore-chart": "klusjes taken kinderen sterren huishouden afval",
+      "text": "tekst woorden titel kop bericht label",
+      "image": "afbeelding foto plaatje logo kunst",
+      "video": "video filmpje film clip youtube herhalen",
+      "photo-slideshow": "fotos foto's slideshow diavoorstelling herinneringen album immich icloud",
+      "qr-code": "qr code scannen link wifi telefoon",
+      "iframe": "website webpagina insluiten url browser",
+      "icon": "pictogram icoon symbool logo",
+      "shape": "lijn vorm scheidingslijn kader blok rand",
+      "display-control": "aanraken knoppen slapen wekken helderheid volgend scherm",
+      "traffic": "verkeer file reistijd route werk school woon-werk"
     }
   },
   "settings": {
@@ -414,7 +539,7 @@
       "holidays": {
         "heading": "Officiële feestdagen",
         "none": "Geen",
-        "help": "Toon officiële feestdagen op kalenderwidgets. Gegevens van Nager.Date."
+        "help": "Toon officiële feestdagen op kalendermodules. Gegevens van Nager.Date."
       },
       "shared": {
         "daysAheadLabel": "Dagen vooruit"
@@ -559,7 +684,7 @@
     },
     "weatherPage": {
       "heading": "Weer",
-      "description": "Configureer een van de onderstaande weeraanbieders. Individuele weerwidgets kunnen elke geconfigureerde aanbieder kiezen; één wordt als standaard gebruikt.",
+      "description": "Stel hieronder een of meer weerbronnen in. Elke weermodule kan zelf een ingestelde bron kiezen; één daarvan wordt de standaard.",
       "unitsLabel": "Eenheden",
       "imperialOption": "Imperiaal (°F, mph)",
       "metricOption": "Metriek (°C, km/u)",
@@ -939,7 +1064,7 @@
         "webClientSecretHelp": "Het clientgeheim van de webtoepassing-referentie hierboven.",
         "mapsKeyLabel": "Maps API-sleutel",
         "mapsKeyPlaceholder": "Plak je Google Maps API-sleutel",
-        "mapsKeyHelp": "Optioneel, voor de verkeer/forenzen-widget. Schakel de Routes API in binnen hetzelfde Cloud Console-project."
+        "mapsKeyHelp": "Optioneel, voor de module Verkeer / Forenzen. Zet de Routes API aan in hetzelfde Cloud Console-project."
       },
       "immich": {
         "name": "Immich",
@@ -1416,7 +1541,7 @@
       "noReportHint": "Dit scherm heeft nog geen waarden gemeld. Waarden verschijnen hier zodra het scherm aanstaat en iets publiceert.",
       "editorValuesHint": "Live waarden uit deze editor. Zet het scherm aan om te zien wat het werkelijk meldt.",
       "offlineSinceHint": "Het scherm heeft sinds {time} niets gemeld. De rijen tonen de laatst ontvangen waarden.",
-      "emptyHint": "Nog niets hier. Waarden verschijnen vanzelf zodra iets ze gebruikt, zoals een voorwaarde op een widget of een live-waarde in een Tekst-widget. Er is niets vooraf in te stellen.",
+      "emptyHint": "Hier staat nog niets. Waarden verschijnen vanzelf zodra iets ze gebruikt, zoals een voorwaarde op een module of een live-waarde in een Tekst-module. Je hoeft vooraf niets in te stellen.",
       "neverPublished": "Nooit gepubliceerd",
       "neverPublishedDetail": "Niets op het scherm publiceert deze sleutel; alles wat hem gebruikt volgt de instelling 'Voordat gegevens aankomen'.",
       "unreferencedLabel": "Niets gebruikt deze sleutel.",
@@ -1974,11 +2099,13 @@
     "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
     "sources": {
       "nasaApod": "NASA-foto van de dag",
-      "icloud": "Gedeeld iCloud-album"
+      "icloud": "Gedeeld iCloud-album",
+      "unsplash": "Unsplash",
+      "immich": "Immich"
     },
     "tabs": {
       "nasa": "NASA",
-      "local": "Lokaal"
+      "local": "Achtergronden"
     },
     "intervals": {
       "minutes": "{count} minuten",
@@ -1996,7 +2123,21 @@
     "icloud": {
       "albumLabel": "Albumlink",
       "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier."
-    }
+    },
+    "needsKey": "Heeft een gratis sleutel nodig",
+    "starterHeading": "Achtergronden die bij Home Screens zitten",
+    "starters": {
+      "midnight": "Middernacht",
+      "dusk": "Schemering",
+      "forest": "Bos",
+      "deep-blue": "Diepblauw",
+      "charcoal": "Antraciet",
+      "sunrise": "Zonsopgang",
+      "plum": "Pruimpaars",
+      "aurora": "Noorderlicht"
+    },
+    "yourPicturesHeading": "Je eigen foto's",
+    "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron."
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",
@@ -2240,7 +2381,7 @@
       "text": "Tekst",
       "positionAndSize": "Positie & grootte",
       "style": "Stijl",
-      "config": "Configuratie",
+      "config": "Instellingen van de module",
       "settings": "Instellingen",
       "secrets": "Geheimen",
       "credentials": "Inloggegevens",
@@ -2259,7 +2400,7 @@
       "padding": "Opvulling",
       "borderWidth": "Randdikte",
       "opacity": "Doorzichtigheid",
-      "backdropBlur": "Achtergrondblur",
+      "backdropBlur": "Matglas",
       "shadowSize": "Schaduwgrootte",
       "background": "Achtergrond",
       "borderColor": "Randkleur",
@@ -2268,9 +2409,12 @@
       "fontWeight": "Lettergewicht",
       "fontWeightDefault": "Standaard",
       "fontWeightReset": "Terugzetten op standaard",
-      "title": "Kaarttitel",
+      "title": "Titel",
       "titleFontSize": "Titelgrootte",
-      "titleOwnTitleHint": "Deze widget toont ook een eigen titel, dus er kunnen er twee verschijnen. Zet ‘Titel tonen’ uit in de instellingen om alleen deze te houden."
+      "titleModeOwn": "De eigen titel van de module",
+      "titleModeCustom": "Mijn eigen woorden",
+      "titleModeNone": "Geen titel",
+      "titleWords": "Titeltekst"
     },
     "actions": {
       "bringToFront": "Naar voren",
@@ -2281,12 +2425,16 @@
     },
     "visibility": {
       "enabledLabel": "Tonen op display",
-      "enabledHelp": "Wanneer uitgeschakeld, wordt deze module uitgesloten van het live-display en prefetch, maar blijft in de editor zodat je hem weer kunt inschakelen.",
+      "enabledHelp": "Staat dit uit, dan komt de module nooit op het display. Hij blijft hier staan zodat je hem weer aan kunt zetten.",
       "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
-      "backgroundProviderHelp": "Levert statuswaarden aan andere modules. Deze kopie verschijnt nooit op het scherm — voeg een tweede kopie zonder deze instelling toe om de widget ook te tonen.",
+      "backgroundProviderHelp": "Levert waarden aan andere modules. Deze kopie komt nooit op het scherm; wil je de module ook laten zien, voeg dan een tweede kopie toe zonder deze instelling.",
       "backgroundProviderObsoleteHint": "Deze plugin deelt zijn gegevens nu automatisch. Deze verborgen kopie is niet meer nodig en kan worden verwijderd."
     },
-    "screenSettingsLink": "Scherminstellingen"
+    "screenSettingsLink": "Scherminstellingen",
+    "whatIsThis": "Wat is dit?",
+    "editingDisplay": "Je bewerkt",
+    "collapseTitle": "Instellingenpaneel verbergen",
+    "expandTitle": "Instellingenpaneel tonen"
   },
   "upgradeModal": {
     "titleUpgrade": "Upgraden naar {tag}",
@@ -2357,14 +2505,17 @@
     "screenCountPlural": "{count} schermen",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "countsLine": "{screens}, {modules}",
-    "sourceLine": "Bron: {width} x {height}",
-    "dimensionWarning": "Deze lay-out is ontworpen voor {sourceWidth}x{sourceHeight} maar je display is {currentWidth}x{currentHeight}. Modules worden automatisch geschaald maar moeten misschien worden bijgesteld.",
-    "applyVisualLabel": "Visuele instellingen toepassen",
-    "visualSummary": "Rotatie: {seconds}s",
-    "visualSummaryWithTransition": "Rotatie: {seconds}s, overgang: {transition}",
+    "countsLine": "{screens}, {modules} in totaal",
+    "sourceLine": "Gemaakt voor een display van {width} x {height}",
+    "dimensionWarning": "Gemaakt voor een display van {sourceWidth} x {sourceHeight}, en dat van jou is {currentWidth} x {currentHeight}. Alles wordt passend gemaakt, dus een paar dingen moet je daarna misschien nog verschuiven.",
+    "applyVisualLabel": "Ook de tijden van deze lay-out gebruiken",
+    "visualSummary": "Elk scherm is {seconds} seconden te zien.",
+    "visualSummaryWithTransition": "Elk scherm is {seconds} seconden te zien, met een {transition} tussen de schermen.",
     "saveError": "Opslaan mislukt. Controleer je verbinding en probeer opnieuw.",
-    "importButton": "Importeren"
+    "importButton": "Deze schermen toevoegen",
+    "savedAt": "Opgeslagen {date}",
+    "screenPillSingular": "{name} met {count} module",
+    "screenPillPlural": "{name} met {count} modules"
   },
   "layoutImport": {
     "alerts": {
@@ -2602,7 +2753,8 @@
       "precisionDaysHours": "Dagen + uren",
       "precisionDaysHoursMinutes": "Dagen + uren + minuten",
       "precisionDaysHoursMinutesSeconds": "Dagen + uren + minuten + seconden",
-      "timezone": "Tijdzone"
+      "timezone": "Tijdzone",
+      "customExamplesHeading": "Een paar voorbeelden om over te nemen:"
     },
     "countdown": {
       "viewAll": "Alle evenementen (gestapeld)",
@@ -2705,8 +2857,8 @@
       "viewMonthGrid": "Maandraster",
       "viewDayTimeline": "Dagtijdlijn",
       "viewAgenda": "Agenda",
-      "densityCozy": "Ruim (lezen op afstand)",
-      "densitySnug": "Krap (meer evenementen)",
+      "densityCozy": "Ruim (beter leesbaar van een afstand)",
+      "densitySnug": "Krap (er past meer in)",
       "typographySmall": "Klein",
       "typographyMedium": "Middel",
       "typographyLarge": "Groot",
@@ -3505,7 +3657,7 @@
       "stateTokenPreview": "Live voorbeeld"
     },
     "todo": {
-      "title": "Titel",
+      "title": "Naam van de lijst",
       "defaultTitle": "Te doen",
       "items": "Items",
       "newItemText": "Nieuw item",
@@ -3517,7 +3669,7 @@
       "connected": "Verbonden",
       "notConfigured": "Niet geconfigureerd.",
       "settingsIntegrationsLink": "Instellingen → Integraties",
-      "title": "Titel",
+      "title": "Naam van de lijst",
       "viewMode": "Weergavemodus",
       "groupByLabel": "Groeperen op",
       "sortByLabel": "Sorteren op",
@@ -3562,7 +3714,7 @@
       "showLocation": "Locatie tonen",
       "locationLabel": "Locatienaam",
       "iconStyle": "Pictogramstijl",
-      "dataProvider": "Dataleverancier",
+      "dataProvider": "Weerbron",
       "hoursToShow": "Aantal uren tonen",
       "daysToShow": "Aantal dagen tonen",
       "feelsLike": "Gevoelstemperatuur",
@@ -3589,7 +3741,7 @@
         "alerts": "Weerwaarschuwingen"
       },
       "providers": {
-        "global": "Algemene standaard",
+        "global": "Zoals in Instellingen",
         "openweathermap": "OpenWeatherMap",
         "weatherapi": "WeatherAPI",
         "pirateweather": "Pirate Weather",
@@ -3696,7 +3848,7 @@
       "themeDefault": "Standaard (uit Instellingen)",
       "typographySize": "Tekstgrootte",
       "densityCozy": "Ruim",
-      "densitySnug": "Compact",
+      "densitySnug": "Krap",
       "skyLayer": "Achtergrondkleur",
       "skyAuto": "Volg het weer",
       "skyOff": "Uit (eenvoudig thema)",
@@ -3892,13 +4044,10 @@
     "noResults": "Geen modules gevonden",
     "pluginBadge": "Plug-in",
     "communityPluginTooltip": "Community-plug-in",
-    "howToAdd": "Klik of sleep naar het scherm",
-    "itemTooltip": "Klik om toe te voegen, of sleep naar het scherm",
-    "fullscreenGuard": {
-      "message": "Schermvullende modules nemen het hele scherm in beslag. Al het andere op dit scherm zou erachter verborgen worden.",
-      "newScreen": "Toevoegen op een nieuw scherm",
-      "addAnyway": "Toch hier toevoegen"
-    }
+    "howToAdd": "Sleep het naar het scherm",
+    "itemTooltip": "Sleep het naar het scherm",
+    "collapseTitle": "Modulelijst verbergen",
+    "expandTitle": "Modulelijst tonen"
   },
   "backupReminder": {
     "message": {

@@ -1,7 +1,6 @@
 'use client';
 
 import Button from '@/components/ui/Button';
-import Toggle from '@/components/ui/Toggle';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useIndexListEditor } from '@/hooks/useListEditor';
@@ -24,7 +23,6 @@ export function TrafficConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <div className="space-y-2">
-      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <RefreshIntervalSlider
         value={c.refreshIntervalMs}
         onChange={(ms) => set({ refreshIntervalMs: ms })}

@@ -47,8 +47,8 @@ test.describe('layout export / import / templates (Data settings page)', () => {
       path.join(__dirname, '..', 'fixtures', 'layout-sample.json'),
     );
 
-    // FileReader validates + opens LayoutImportModal; its "Import" persists.
-    await page.getByRole('button', { name: 'Import', exact: true }).click();
+    // FileReader validates + opens LayoutImportModal; confirming persists.
+    await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
     await expect
       .poll(async () => (await getConfig(request)).screens.map((s) => s.name))
@@ -67,7 +67,7 @@ test.describe('layout export / import / templates (Data settings page)', () => {
     await page.getByRole('button', { name: /Family Dashboard/ }).click();
 
     // The picked template opens the same LayoutImportModal; confirm to apply.
-    await page.getByRole('button', { name: 'Import', exact: true }).click();
+    await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
     await expect
       .poll(async () => (await getConfig(request)).screens.length)
@@ -90,7 +90,7 @@ test.describe('PropertyPanel empty-state pickers', () => {
     // Toggle the schedule on, then set a start time. The label reads "From"
     // (not "Start time" — the plan draft was wrong), and the input is
     // type="time", so `.fill('08:00')` is stored verbatim.
-    await page.getByRole('switch', { name: 'Enable Schedule' }).click();
+    await page.getByRole('switch', { name: 'Only show at certain times' }).click();
     await page.getByLabel('From', { exact: true }).fill('08:00');
     await page.getByLabel('From', { exact: true }).blur();
 

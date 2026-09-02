@@ -6,6 +6,7 @@ import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import { STARTER_BACKGROUNDS } from '@/lib/starter-backgrounds';
 import { logger } from '@/lib/logger';
 
 const log = logger('backgrounds');
@@ -103,27 +104,51 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
 
   if (!currentScreen) return null;
 
+  // Picking any background turns rotation off: a rotating screen would paint
+  // over the choice within the hour, which reads as "it didn't save".
+  const pick = (backgroundImage: string) => {
+    const updates: Record<string, unknown> = { backgroundImage };
+    if (currentScreen?.backgroundRotation?.enabled) {
+      updates.backgroundRotation = { ...currentScreen.backgroundRotation, enabled: false };
+    }
+    updateScreen(selectedScreenId, updates);
+  };
+
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
+      <p className="text-[10px] text-hs-text-faint">{t('backgroundPicker.starterHeading')}</p>
+      <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
-          className={`aspect-[9/16] rounded border text-xs text-hs-text-faint ${
+          className={`aspect-[9/16] rounded border text-[10px] text-hs-text-faint ${
             !currentScreen.backgroundImage ? 'border-hs-accent' : 'border-hs-border-strong'
           }`}
         >
           {t('settings.localBackgrounds.none')}
         </button>
+        {STARTER_BACKGROUNDS.map((bg) => (
+          <button
+            key={bg.id}
+            onClick={() => pick(bg.path)}
+            title={t(`backgroundPicker.starters.${bg.id}`)}
+            data-testid={`starter-background-${bg.id}`}
+            className={`relative aspect-[9/16] w-full overflow-hidden rounded border ${
+              currentScreen.backgroundImage === bg.path ? 'border-hs-accent' : 'border-hs-border-strong'
+            }`}
+            style={{ backgroundImage: bg.swatch }}
+          >
+            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-0.5 text-[9px] leading-tight text-white">
+              {t(`backgroundPicker.starters.${bg.id}`)}
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[10px] text-hs-text-faint">{t('backgroundPicker.yourPicturesHeading')}</p>
+      <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         {localBackgrounds.map((bg) => (
           <div key={bg} className="relative group">
             <button
-              onClick={() => {
-                const updates: Record<string, unknown> = { backgroundImage: bg };
-                if (currentScreen?.backgroundRotation?.enabled) {
-                  updates.backgroundRotation = { ...currentScreen.backgroundRotation, enabled: false };
-                }
-                updateScreen(selectedScreenId, updates);
-              }}
+              onClick={() => pick(bg)}
               className={`aspect-[9/16] w-full rounded border overflow-hidden ${
                 currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
               }`}

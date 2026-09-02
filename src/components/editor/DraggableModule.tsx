@@ -1,15 +1,16 @@
 'use client';
 
-import { memo, useRef } from 'react';
+import { memo, useMemo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Clock, PowerOff, Eye, EyeOff } from 'lucide-react';
 import { usePluginStore } from '@/stores/plugin-store';
 import { resolveModuleLabel } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
-import { useTranslate } from '@/i18n';
-import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { useEditorStore } from '@/stores/editor-store';
+import { isModuleEnabled } from '@/lib/schedule';
+import { describeModuleStatus, STATUS_BADGE_CLASS } from '@/lib/module-status';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { buildModuleProps, type ModuleDataSource } from '@/lib/module-props';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
@@ -82,6 +83,8 @@ export default function DraggableModule({
   source?: SharedStateSource | null;
 }) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `module-${mod.id}`,
     data: { source: 'canvas', moduleId: mod.id },
@@ -92,69 +95,18 @@ export default function DraggableModule({
   const labelText = resolveModuleLabel(mod.type, t);
 
   // Status badges stack right-to-left in the top-right corner; each entry
-  // occupies one fixed-width slot so any combination lines up.
+  // occupies one fixed-width slot so any combination lines up. The wording
+  // comes from the shared describer, so the corner icon, the chip below and
+  // the property panel can never disagree about the same module.
   const iconSize = Math.max(8, 10 * scale);
   const badgeStep = Math.max(12, 14 * scale) + 2;
-  const badges: { key: string; className: string; title: string; icon: typeof Clock; data?: Record<string, string> }[] = [];
-  if (!isModuleEnabled(mod)) {
-    badges.push({
-      key: 'disabled',
-      className: 'bg-red-700/70 text-red-100',
-      title: t('draggableModule.disabledTitle'),
-      icon: PowerOff,
-    });
-  } else {
-    if (mod.schedule) {
-      badges.push({
-        key: 'schedule',
-        className: isModuleVisible(mod.schedule, now)
-          ? 'bg-hs-accent/70 text-white'
-          : 'bg-amber-600/70 text-amber-200',
-        title: isModuleVisible(mod.schedule, now)
-          ? t('draggableModule.scheduledActiveTitle')
-          : t('draggableModule.scheduledInactiveTitle'),
-        icon: Clock,
-      });
-    }
-    // Live pass/fail tint from the display's last-reported snapshot (the
-    // same evaluateVisibility the display runs). Neutral when no fresh
-    // snapshot exists — display offline must never read as a stale verdict.
-    if ((mod.visibility?.conditions?.length ?? 0) > 0) {
-      // `now` is the TZ-shifted clock already used for the schedule badge above.
-      // Omitting it made evaluateVisibility fall back to `new Date()` in the
-      // browser's zone, so a `time` condition could disagree with both the
-      // property panel and the display whenever the editor's zone differs from
-      // the configured display timezone.
-      const verdict = verdictStates
-        ? (evaluateVisibility(mod.visibility, verdictStates, now) ? 'met' : 'unmet')
-        : null;
-      badges.push({
-        key: 'condition',
-        data: { 'data-condition-badge': verdict ?? 'neutral' },
-        className:
-          verdict === 'met'
-            ? 'bg-hs-accent/70 text-white'
-            : verdict === 'unmet'
-              ? 'bg-amber-600/70 text-amber-200'
-              : 'bg-slate-600/70 text-slate-200',
-        title:
-          verdict === 'met'
-            ? t(source === 'editor' ? 'draggableModule.conditionMetTitleEditor' : 'draggableModule.conditionMetTitle')
-            : verdict === 'unmet'
-              ? t(source === 'editor' ? 'draggableModule.conditionUnmetTitleEditor' : 'draggableModule.conditionUnmetTitle')
-              : t('draggableModule.conditionGatedTitle'),
-        icon: verdict === 'unmet' ? EyeOff : Eye,
-      });
-    }
-  }
-  if (mod.backgroundProvider) {
-    badges.push({
-      key: 'backgroundProvider',
-      className: 'bg-amber-600/70 text-amber-100',
-      title: t('draggableModule.backgroundProviderTitle'),
-      icon: EyeOff,
-    });
-  }
+  // date-fns-backed; the canvas re-renders every module on every clock tick
+  // and shared-state poll, so this must not redo the formatting work when
+  // nothing about THIS module's status actually changed.
+  const statuses = useMemo(
+    () => describeModuleStatus(mod, { t, now, formattingLocale, timeFormat, verdictStates, source }),
+    [mod, t, now, formattingLocale, timeFormat, verdictStates, source],
+  );
 
   return (
     <div
@@ -221,19 +173,21 @@ export default function DraggableModule({
         {labelText}
       </div>
       {/* Status badges (disabled / schedule / condition / background provider) */}
-      {badges.map((badge, i) => (
+      {statuses.map((status, i) => (
         <div
-          key={badge.key}
-          {...badge.data}
-          className={`absolute top-0 p-0.5 rounded-bl ${badge.className}`}
+          key={status.key}
+          {...(status.key === 'condition'
+            ? { 'data-condition-badge': status.tone === 'active' ? 'met' : status.tone === 'waiting' ? 'unmet' : 'neutral' }
+            : {})}
+          className={`absolute top-0 p-0.5 rounded-bl ${STATUS_BADGE_CLASS[status.tone]}`}
           style={{
             right: i * badgeStep,
             // The badge in the corner slot hugs the module's rounded corner.
             borderTopRightRadius: i === 0 ? mod.style.borderRadius * scale : undefined,
           }}
-          title={badge.title}
+          title={status.detail}
         >
-          <badge.icon style={{ width: iconSize, height: iconSize }} />
+          <status.icon style={{ width: iconSize, height: iconSize }} />
         </div>
       ))}
     </div>

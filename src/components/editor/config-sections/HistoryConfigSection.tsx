@@ -32,7 +32,6 @@ export function HistoryConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         max={1440}
         step={5}
       />
-      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <Toggle label={t('configSections.history.showDividers')} checked={c.showDividers !== false} onChange={(v) => set({ showDividers: v })} />
       <AccentColorPicker
         value={c.accentColor ?? '#000000'}

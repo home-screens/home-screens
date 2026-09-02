@@ -91,6 +91,31 @@ export function createScreenSlice(
       syncEditorUrl({ screen: copy.id });
     },
 
+    copyScreensFromDisplay: (sourceDisplayId) => {
+      const { config, selectedDisplayId } = get();
+      if (!config || !selectedDisplayId || sourceDisplayId === selectedDisplayId) return;
+      const source = config.displays?.find((d) => d.id === sourceDisplayId);
+      if (!source || source.screens.length === 0) return;
+      // Fresh ids throughout, exactly as duplicateScreen does: two displays
+      // sharing a screen id would make profiles, rules and per-module state
+      // (todo taps, selection) collide across displays.
+      const copies: Screen[] = structuredClone(source.screens).map((screen) => ({
+        ...screen,
+        id: uuidv4(),
+        modules: screen.modules.map((m) => ({ ...m, id: uuidv4() })),
+      }));
+      mutateConfig((cfg) => ({
+        config: withActiveScreens(
+          cfg,
+          selectedDisplayId,
+          [...getActiveScreens(cfg, selectedDisplayId), ...copies],
+        ),
+        selectedScreenId: copies[0].id,
+        selectedModuleId: null,
+      }));
+      syncEditorUrl({ screen: copies[0].id });
+    },
+
     reorderScreens: (fromIndex: number, toIndex: number) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({

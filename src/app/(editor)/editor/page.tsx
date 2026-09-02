@@ -16,7 +16,6 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
 import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';
-import { useGuardedAddModule } from '@/hooks/useGuardedAddModule';
 import { resolveDragPosition } from '@/lib/alignment-guides';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, MIN_EDITOR_WIDTH, snapToGrid } from '@/lib/constants';
 import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
@@ -24,6 +23,7 @@ import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import type { ModuleType } from '@/types/config';
 
 import ScreenTabs from '@/components/editor/ScreenTabs';
+import { useSidePanelCollapse } from '@/hooks/useSidePanelCollapse';
 import DisplaySwitcher from '@/components/editor/DisplaySwitcher';
 import ModulePalette from '@/components/editor/ModulePalette';
 import EditorCanvas from '@/components/editor/EditorCanvas';
@@ -41,10 +41,12 @@ export default function EditorPage() {
     config,
     selectedDisplayId,
     selectedScreenId,
+    selectedModuleId,
     loadConfig,
     moveModule,
+    addModule,
   } = useEditorStore();
-  const addModule = useGuardedAddModule();
+
 
   const { isDirty, saveConfig } = useAutoSave();
   useUndoRedoShortcuts();
@@ -153,7 +155,7 @@ export default function EditorPage() {
         const rawY = (pointerY - canvasRect.top) / scale - defaultSize.h / 2;
         const dropX = align(Math.max(0, Math.min(displayW - defaultSize.w, rawX)));
         const dropY = align(Math.max(0, Math.min(displayH - defaultSize.h, rawY)));
-        void addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
+        addModule(selectedScreenId, data.moduleType as ModuleType, { x: dropX, y: dropY });
       } else if (data?.source === 'canvas') {
         const moduleId = data.moduleId as string;
         const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
@@ -189,6 +191,18 @@ export default function EditorPage() {
     },
     [selectedScreenId, selectedDisplayId, config, addModule, moveModule],
   );
+
+  // Side panels are 512px of a 1280px window; on a small laptop that is most
+  // of the canvas. Collapsing is remembered per side.
+  const [paletteCollapsed, setPaletteCollapsed] = useSidePanelCollapse('palette');
+  const [panelCollapsed, setPanelCollapsed] = useSidePanelCollapse('panel');
+  const [focusCategory, setFocusCategory] = useState<string | undefined>();
+
+  // Selecting a module re-opens the settings panel: the alternative is
+  // clicking a module and nothing appearing to happen.
+  useEffect(() => {
+    if (selectedModuleId) setPanelCollapsed(false);
+  }, [selectedModuleId, setPanelCollapsed]);
 
   if (!config || pluginLoading) {
     return (
@@ -272,9 +286,21 @@ export default function EditorPage() {
 
         {/* Main area */}
         <div className="flex flex-1 overflow-hidden">
-          <ModulePalette />
+          <ModulePalette
+            collapsed={paletteCollapsed}
+            focusCategory={focusCategory}
+            onExpand={(category) => {
+              setFocusCategory(category);
+              setPaletteCollapsed(false);
+            }}
+            onCollapse={() => setPaletteCollapsed(true)}
+          />
           <EditorCanvas onScaleChange={handleScaleChange} canvasRef={canvasElRef} />
-          <PropertyPanel />
+          <PropertyPanel
+            collapsed={panelCollapsed}
+            onExpand={() => setPanelCollapsed(false)}
+            onCollapse={() => setPanelCollapsed(true)}
+          />
         </div>
       </div>
       <DragOverlay dropAnimation={null}>

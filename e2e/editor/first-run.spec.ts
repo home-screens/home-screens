@@ -3,12 +3,13 @@ import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance, MATRIX_LOCATION } from '../helpers/module-fixtures';
 import { stubModuleData } from '../helpers/stubs';
+import { dragPaletteToCanvas } from '../helpers/editor';
 import type { Page } from '@playwright/test';
 
 /**
  * The first ten minutes in the editor: an empty screen must explain itself,
- * the palette must work with a click, the template catalog must be one click
- * away, and a location-dependent module must lead to the Location page.
+ * a module must land where it is dragged, the template catalog must be one
+ * click away, and a location-dependent module must lead to the Location page.
  */
 
 const EMPTY_INSTALL = () => baseConfig({ screens: [makeScreen('default', 'Screen 1', [])] });
@@ -26,8 +27,8 @@ test.describe('empty screen', () => {
     await expect(placeholder).toBeVisible();
     await expect(placeholder.getByText('This screen is empty')).toBeVisible();
 
-    // A click on a palette item is enough to add it (no drag needed).
-    await page.getByTestId('palette-clock').click();
+    // Modules are placed by dragging them onto the screen.
+    await dragPaletteToCanvas(page, 'clock');
     await expect(placeholder).toBeHidden();
     await expect(page.locator('[data-module-id]')).toHaveCount(1);
   });
@@ -38,9 +39,9 @@ test.describe('empty screen', () => {
     await page.getByTestId('empty-screen-placeholder').getByRole('button', { name: 'Choose a template' }).click();
     await expect(page.getByRole('heading', { name: 'Templates' })).toBeVisible();
     await page.getByRole('button', { name: /Minimal Clock/ }).click();
-    await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Import layout' })).toBeVisible();
     const saved = page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
-    await page.getByRole('button', { name: 'Import', exact: true }).click();
+    await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
     await saved;
 
     const config = await getConfig(request);
@@ -51,17 +52,20 @@ test.describe('empty screen', () => {
   });
 });
 
-test.describe('palette click-to-add', () => {
-  test('adds each click at the next free spot, never on top of the previous module', async ({ page, request }) => {
+test.describe('palette drag-to-add', () => {
+  test('a keyboard add lands at the next free spot, never on top of the previous module', async ({ page, request }) => {
     await putConfig(request, EMPTY_INSTALL());
     await openEditor(page);
     const saved = () => page.waitForResponse((r) => r.url().includes('/api/config') && r.request().method() === 'PUT' && r.ok());
 
+    // Enter on a focused palette item is the keyboard equivalent of a drag
+    // (drag-and-drop is mouse-only), and it is what places at the next free
+    // spot rather than at a pointer position.
     let wait = saved();
-    await page.getByTestId('palette-clock').click();
+    await page.getByTestId('palette-clock').press('Enter');
     await wait;
     wait = saved();
-    await page.getByTestId('palette-clock').click();
+    await page.getByTestId('palette-clock').press('Enter');
     await wait;
 
     const config = await getConfig(request);

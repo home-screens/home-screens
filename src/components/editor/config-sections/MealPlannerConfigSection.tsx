@@ -72,9 +72,6 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         checked={c.showTags ?? true}
         onChange={(v) => set({ showTags: v })}
       />
-      {view === 'today' && (
-        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
-      )}
 
       {/* Tap-to-open recipe */}
       <LabeledSelect

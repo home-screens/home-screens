@@ -46,6 +46,14 @@ export default function SaveStatus() {
   const saveConfig = useEditorStore((s) => s.saveConfig);
   const loadConfig = useEditorStore((s) => s.loadConfig);
   const remoteChanged = useRemoteConfigWatch();
+  // With more than one display registered, "Saved" alone never said which
+  // display the edit landed on — the two displays' screens are both called
+  // "Screen 1".
+  const displayName = useEditorStore((s) => {
+    const displays = s.config?.displays ?? [];
+    if (displays.length < 2) return null;
+    return (displays.find((d) => d.id === s.selectedDisplayId) ?? displays[0]).name;
+  });
 
   let body: React.ReactNode;
   if (saveConflict) {
@@ -86,7 +94,9 @@ export default function SaveStatus() {
     body = (
       <>
         <Check className="w-3.5 h-3.5 text-hs-success" />
-        <span className="text-xs text-hs-success">{t('common.saved')}</span>
+        <span className="text-xs text-hs-success">
+          {displayName ? t('page.toolbar.savedToDisplay', { name: displayName }) : t('common.saved')}
+        </span>
       </>
     );
   }

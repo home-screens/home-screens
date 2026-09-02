@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
-import ModalPortal from '@/components/ui/ModalPortal';
+import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 
 interface LayoutImportModalProps {
@@ -12,12 +12,19 @@ interface LayoutImportModalProps {
   onClose: () => void;
   /** Empty screen this import replaces (the "start from a template" flow). */
   replaceEmptyScreenId?: string;
+  /**
+   * Where the layout came from. A built-in template's `exportedAt` is a build
+   * artefact, so it is not shown; a file someone exported carries a date that
+   * means something to them.
+   */
+  source?: 'template' | 'file';
 }
 
 export default function LayoutImportModal({
   layout,
   onClose,
   replaceEmptyScreenId,
+  source = 'file',
 }: LayoutImportModalProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
@@ -51,7 +58,12 @@ export default function LayoutImportModal({
     }
   };
 
-  const exportedAtLabel = new Date(metadata.exportedAt).toLocaleDateString(formattingLocale);
+  const exportedAtLabel =
+    source === 'template'
+      ? null
+      : t('layoutImportModal.savedAt', {
+          date: new Date(metadata.exportedAt).toLocaleDateString(formattingLocale),
+        });
 
   const screenCountLabel =
     metadata.screenCount === 1
@@ -63,10 +75,12 @@ export default function LayoutImportModal({
       : t('layoutImportModal.moduleCountPlural', { count: metadata.moduleCount });
 
   return (
-    <ModalPortal>
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('layoutImportModal.title')}>
-      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1">{t('layoutImportModal.title')}</h2>
+    <ModalFrame labelledBy="layout-import-title" onClose={onClose} className="w-full max-w-md">
+      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <div className="mb-1 flex items-center gap-2">
+          <h2 id="layout-import-title" className="text-lg font-semibold text-hs-text-primary">{t('layoutImportModal.title')}</h2>
+          <span className="ml-auto"><EscHint /></span>
+        </div>
         {metadata.description && (
           <p className="text-xs text-hs-text-faint mb-3">{metadata.description}</p>
         )}
@@ -75,9 +89,9 @@ export default function LayoutImportModal({
         <div className="rounded-lg bg-hs-card/60 border border-hs-border-strong p-3 mb-4 space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-hs-text-body">{metadata.name}</span>
-            <span className="text-xs text-hs-text-faint">
-              {exportedAtLabel}
-            </span>
+            {exportedAtLabel && (
+              <span className="text-xs text-hs-text-faint">{exportedAtLabel}</span>
+            )}
           </div>
           <div className="text-xs text-hs-text-muted space-y-0.5">
             <p>
@@ -86,12 +100,16 @@ export default function LayoutImportModal({
                 modules: moduleCountLabel,
               })}
             </p>
-            <p>
-              {t('layoutImportModal.sourceLine', {
-                width: metadata.sourceDisplay.width,
-                height: metadata.sourceDisplay.height,
-              })}
-            </p>
+            {/* The resolution only matters when it isn't yours; the warning
+                below says what will happen to the modules. */}
+            {dimensionMismatch && (
+              <p>
+                {t('layoutImportModal.sourceLine', {
+                  width: metadata.sourceDisplay.width,
+                  height: metadata.sourceDisplay.height,
+                })}
+              </p>
+            )}
           </div>
           {/* Screen list */}
           <div className="flex flex-wrap gap-1 mt-1">
@@ -100,8 +118,9 @@ export default function LayoutImportModal({
                 key={s.id}
                 className="inline-flex items-center gap-1 rounded-full bg-hs-card/60 px-2 py-0.5 text-xs text-hs-text-secondary"
               >
-                {s.name}
-                <span className="text-hs-text-faint">{s.modules.length}</span>
+                {s.modules.length === 1
+                  ? t('layoutImportModal.screenPillSingular', { name: s.name, count: s.modules.length })
+                  : t('layoutImportModal.screenPillPlural', { name: s.name, count: s.modules.length })}
               </span>
             ))}
           </div>
@@ -158,7 +177,6 @@ export default function LayoutImportModal({
           </Button>
         </div>
       </div>
-    </div>
-    </ModalPortal>
+    </ModalFrame>
   );
 }

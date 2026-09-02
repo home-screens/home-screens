@@ -3,6 +3,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { dragPaletteToCanvas } from '../helpers/editor';
 
 async function openEditor(page: Page): Promise<void> {
   await page.goto('/editor');
@@ -249,8 +250,8 @@ test.describe('screen management', () => {
     // Template picker → pick the single-clock template → import modal → Import.
     await expect(page.getByRole('heading', { name: 'Templates' })).toBeVisible();
     await page.getByRole('button', { name: /Minimal Clock/ }).click();
-    await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
-    await page.getByRole('button', { name: 'Import', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Import layout' })).toBeVisible();
+    await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
     // The blank "Screen 1" the user was looking at is replaced, not kept
     // beside the imported screen (the same rule every template entry point
@@ -269,7 +270,7 @@ test.describe('screen management', () => {
     await page.getByRole('button', { name: 'Add screen' }).click();
     await page.getByRole('button', { name: /From Template/ }).click();
     await page.getByRole('button', { name: /Minimal Clock/ }).click();
-    await page.getByRole('button', { name: 'Import', exact: true }).click();
+    await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
     await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
   });
@@ -310,46 +311,46 @@ test.describe('canvas toolbar', () => {
   test('zoom in / out / fit change the zoom level', async ({ page }) => {
     await openEditor(page);
 
-    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('Fit');
     const startWidth = (await page.getByTestId('editor-canvas').boundingBox())!.width;
 
     // Steps walk the fixed zoom ladder: 100 → 125 → 150.
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('125%');
     await page.getByRole('button', { name: 'Zoom in' }).click();
-    await expect(page.getByText('150%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('150%');
 
     // The canvas actually grew with the zoom, not just the label.
     await expect
       .poll(async () => (await page.getByTestId('editor-canvas').boundingBox())!.width)
       .toBeGreaterThan(startWidth);
 
-    // Fit (reset) only appears once zoom leaves 100%; it returns to 100%.
+    // Fit (reset) only appears once the zoom leaves the fit scale.
     await page.getByRole('button', { name: 'Fit to screen' }).click();
-    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('Fit');
 
     // Zoom out steps down the ladder: 100 → 75.
     await page.getByRole('button', { name: 'Zoom out' }).click();
-    await expect(page.getByText('75%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('75%');
   });
 
   test('ctrl+wheel steps the zoom ladder by sign', async ({ page }) => {
     await openEditor(page);
-    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('Fit');
 
     // Wheel away from you (negative deltaY) zooms in one stop per notch.
     await wheelNotch(page, -100);
-    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('125%');
     await wheelNotch(page, -100);
-    await expect(page.getByText('150%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('150%');
 
     // Positive deltaY zooms back out.
     await wheelNotch(page, 120);
-    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('125%');
 
     // deltaY of exactly 0 (some devices emit these with ctrl held) is ignored.
     await wheelNotch(page, 0);
-    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('125%');
 
     // A wheel without ctrl scrolls; it must not step the zoom.
     await page.evaluate(() => {
@@ -357,27 +358,27 @@ test.describe('canvas toolbar', () => {
         new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true }),
       );
     });
-    await expect(page.getByText('125%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('125%');
   });
 
   test('a fast flick of wheel notches advances one stop per notch', async ({ page }) => {
     await openEditor(page);
-    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('Fit');
 
     // Three quick notches — spaced above the stream window but far faster
     // than the stream throttle. Every notch must land: 100 → 125 → 150 → 200.
     await wheelNotch(page, -100, 3);
-    await expect(page.getByText('200%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('200%');
   });
 
   test('wheel zoom clamps at both ladder ends and disables the matching button', async ({ page }) => {
     await openEditor(page);
-    await expect(page.getByText('100%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('Fit');
 
     // Walk to the bottom of the ladder (100 → 20 is 6 stops) with extra
     // notches beyond it — the clamp must hold at 20%.
     await wheelNotch(page, 100, 8);
-    await expect(page.getByText('20%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('20%');
     await expect(page.getByRole('button', { name: 'Zoom out' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Zoom in' })).toBeEnabled();
 
@@ -385,11 +386,11 @@ test.describe('canvas toolbar', () => {
     // (The stream-throttle variant of this — suppressed steps must not arm
     // the throttle — is unit-tested with a fake clock.)
     await wheelNotch(page, -100);
-    await expect(page.getByText('25%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('25%');
 
     // Walk to the top (25 → 400 is 10 stops) with extra notches beyond it.
     await wheelNotch(page, -100, 12);
-    await expect(page.getByText('400%', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('canvas-zoom-readout')).toHaveText('400%');
     await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Zoom out' })).toBeEnabled();
   });
@@ -451,7 +452,7 @@ test.describe('per-screen rotation duration', () => {
 
     // With a screen (and no module) selected, the property panel shows the
     // Screen settings section defaulting to "inherits the global default".
-    await page.getByRole('button', { name: 'Override', exact: true }).click();
+    await page.getByRole('button', { name: 'Use a different time', exact: true }).click();
 
     // Enter a concrete duration → persists as milliseconds; the tab badges it.
     const seconds = page.locator('#screen-rotation-duration');
@@ -476,7 +477,7 @@ test.describe('per-screen rotation duration', () => {
     await expect(page.getByText('Stays', { exact: true })).toBeVisible();
 
     // Reset clears the override back to inheriting the default.
-    await page.getByRole('button', { name: 'Reset', exact: true }).click();
+    await page.getByRole('button', { name: 'Back to the usual', exact: true }).click();
     await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBeUndefined());
     await expect(page.getByText('Stays', { exact: true })).toBeHidden();
   });
@@ -624,49 +625,19 @@ test.describe('duplicate actions', () => {
   });
 });
 
-test.describe('full-screen module guard', () => {
-  test('adding a full-screen module to a busy screen offers a new screen', async ({ page, request }) => {
-    await putConfig(request, baseConfig({
-      screens: [makeScreen('screen-1', 'S1', [textModule('BUSY')])],
-    }));
-    await openEditor(page);
+test('a full-screen module can be added straight onto a busy screen', async ({ page, request }) => {
+  // It covers what is already there on the wall, which is what "full-screen"
+  // means; the editor does not ask first.
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('screen-1', 'S1', [textModule('BUSY')])],
+  }));
+  await openEditor(page);
 
-    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
-    await page.getByTestId('palette-fullscreen-photo').click();
+  await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
+  await dragPaletteToCanvas(page, 'fullscreen-photo');
 
-    const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText('Full-screen modules take over the whole screen', { exact: false })).toBeVisible();
-    await dialog.getByRole('button', { name: 'Add to a new screen' }).click();
-
-    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
-    const config = await getConfig(request);
-    expect(config.screens[0].modules.map((m) => m.type)).toEqual(['text']);
-    expect(config.screens[1].modules.map((m) => m.type)).toEqual(['fullscreen-photo']);
-  });
-
-  test('"Add it here anyway" places it on the current screen', async ({ page, request }) => {
-    await putConfig(request, baseConfig({
-      screens: [makeScreen('screen-1', 'S1', [textModule('BUSY')])],
-    }));
-    await openEditor(page);
-
-    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
-    await page.getByTestId('palette-fullscreen-photo').click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Add it here anyway' }).click();
-
-    await pollConfig(request, (c) => c.screens[0].modules.map((m) => m.type)).then((p) => p.toEqual(['text', 'fullscreen-photo']));
-    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));
-  });
-
-  test('an empty screen takes a full-screen module without asking', async ({ page, request }) => {
-    await putConfig(request, baseConfig({
-      screens: [makeScreen('screen-1', 'S1', [])],
-    }));
-    await openEditor(page);
-
-    await page.getByPlaceholder('Search modules…').fill('Full-Screen Photo');
-    await page.getByTestId('palette-fullscreen-photo').click();
-
-    await pollConfig(request, (c) => c.screens[0].modules.map((m) => m.type)).then((p) => p.toEqual(['fullscreen-photo']));
-  });
+  await pollConfig(request, (c) => c.screens[0].modules.map((m) => m.type))
+    .then((p) => p.toEqual(['text', 'fullscreen-photo']));
+  await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });

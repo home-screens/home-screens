@@ -131,6 +131,8 @@ export interface ScreenActions {
   removeScreen: (id: string) => void;
   /** Clone a screen (fresh screen + module ids, "<name> copy") right after the original, selected. */
   duplicateScreen: (id: string) => void;
+  /** Clone every screen of another display onto the active one, with new ids. */
+  copyScreensFromDisplay: (sourceDisplayId: string) => void;
   reorderScreens: (fromIndex: number, toIndex: number) => void;
   updateScreen: (id: string, updates: Partial<Screen>) => void;
 }

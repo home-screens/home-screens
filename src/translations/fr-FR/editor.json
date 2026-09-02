@@ -19,7 +19,7 @@
     "refreshSeconds": "Actualisation (secondes)",
     "refresh": "Actualiser",
     "theme": "Thème",
-    "density": "Densité",
+    "density": "Espacement",
     "objectFit": "Ajustement",
     "objectFitCover": "Couvrir",
     "objectFitContain": "Contenir",
@@ -80,7 +80,8 @@
         "hint": "Quelqu'un a enregistré depuis un autre éditeur ou un téléphone pendant que vous modifiiez. Chargez ses modifications, ou gardez les vôtres et écrasez les siennes.",
         "loadTheirs": "Charger leurs modifications",
         "keepMine": "Garder les miennes"
-      }
+      },
+      "savedToDisplay": "Enregistré sur {name}"
     }
   },
   "canvas": {
@@ -109,7 +110,15 @@
       "selectBehind": "Sélectionner le module derrière",
       "hide": "Masquer sur l'écran",
       "show": "Afficher sur l'écran"
-    }
+    },
+    "emptyDisplay": {
+      "title": "L'affichage {name} n'a encore aucun écran",
+      "body": "Un écran, c'est une page de la rotation. Commencez par un écran vide, ou copiez ce qui existe déjà sur un autre affichage.",
+      "addScreen": "Ajouter un écran",
+      "copyFrom": "Copier les écrans de {name}"
+    },
+    "zoomFit": "Ajuster",
+    "zoomHint": "Ctrl + molette pour zoomer, molette pour vous déplacer"
   },
   "draggableModule": {
     "scheduledActiveTitle": "Planifié — actuellement actif",
@@ -120,12 +129,24 @@
     "conditionMetTitle": "Conditions remplies — affiché sur l'écran en ce moment",
     "conditionUnmetTitle": "Conditions non remplies — masqué sur l'écran en ce moment",
     "conditionMetTitleEditor": "Conditions remplies, serait affiché en ce moment",
-    "conditionUnmetTitleEditor": "Conditions non remplies, serait masqué en ce moment"
+    "conditionUnmetTitleEditor": "Conditions non remplies, serait masqué en ce moment",
+    "status": {
+      "hidden": "Masqué",
+      "hiddenDetail": "Désactivé : il n'apparaît jamais sur l'affichage. Réactivez-le dans Visibilité.",
+      "scheduledActiveDetail": "{summary} Il est affiché en ce moment.",
+      "scheduledInactiveDetail": "{summary} Il n'est pas au mur en ce moment.",
+      "conditionOnKey": "En attente de {key}",
+      "conditionNoKey": "En attente d'une valeur en direct",
+      "background": "Tourne en arrière-plan"
+    }
   },
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
     "label": "Quel affichage ce canevas est-il en train de modifier ?",
-    "optionWithDimensions": "{name} ({width}×{height})"
+    "optionWithDimensions": "{name} ({width}×{height})",
+    "onNow": "allumé",
+    "lastSeen": "vu {time}",
+    "addDisplay": "Ajouter un affichage"
   },
   "screenTabs": {
     "stickyTooltip": "fixe — n'avance pas tout seul ; il faut un appui ou la télécommande",
@@ -181,25 +202,37 @@
     "sectionTitle": "Paramètres de l'écran",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "durationLabel": "Durée",
-    "secondsUnit": "s",
+    "durationLabel": "Durée d'affichage de cet écran",
+    "secondsUnit": "secondes",
     "stickyBadge": "Épinglé",
-    "stickyHint": "0 = rester sur cet écran (avance manuelle uniquement).",
+    "stickyHint": "Mettez 0 pour rester sur cet écran jusqu'à ce que quelqu'un le touche ou utilise la télécommande.",
     "shortDurationWarning": "En dessous de {seconds} secondes, l'écran risque de changer avant que les actualités et la météo aient fini de charger.",
-    "inheritsHintBefore": "Hérite de la valeur par défaut : ",
-    "inheritsHintValue": "{seconds} s",
-    "inheritsHintAfter": ".",
-    "overrideButton": "Remplacer",
-    "resetButton": "Réinitialiser"
+    "inheritsHintBefore": "S'affiche pendant ",
+    "inheritsHintValue": "{seconds} secondes",
+    "inheritsHintAfter": ", comme vos autres écrans.",
+    "overrideButton": "Choisir une autre durée",
+    "resetButton": "Revenir à la durée habituelle"
   },
   "scheduleEditor": {
     "statusTitle": "État",
-    "enableLabel": "Activer la planification",
+    "enableLabel": "N'afficher qu'à certaines heures",
     "timeWindowTitle": "Plage horaire",
     "fromLabel": "De",
     "untilLabel": "Jusqu'à",
     "behaviorTitle": "Comportement",
-    "invertLabel": "Inverser (masquer pendant la plage)"
+    "invertLabel": "Masquer pendant ces heures au lieu de l'afficher",
+    "invertNeedsWindow": "Renseignez d'abord une heure de début et une heure de fin.",
+    "summary": {
+      "shows": "Affiché {when}.",
+      "hides": "Masqué {when}. Affiché le reste du temps.",
+      "short": "{days}, {time}",
+      "everyDay": "tous les jours",
+      "weekdays": "du lundi au vendredi",
+      "weekends": "le samedi et le dimanche",
+      "allDay": "toute la journée",
+      "window": "de {start} à {end}"
+    },
+    "allDayHint": "Laissez les deux vides pour un affichage toute la journée."
   },
   "registry": {
     "categories": {
@@ -258,6 +291,98 @@
       "shape": "Forme et séparateur",
       "display-control": "Contrôle de l'affichage",
       "traffic": "Trafic / trajet"
+    },
+    "descriptions": {
+      "fullscreen-calendar": "Toute votre semaine ou votre mois, en plein écran",
+      "fullscreen-chore-chart": "Les tâches de toute la famille, en plein écran",
+      "fullscreen-meal-planner": "Les dîners de la semaine, en plein écran",
+      "fullscreen-photo": "Vos photos, en plein écran",
+      "fullscreen-news": "Les titres de l'actualité, en plein écran",
+      "fullscreen-weather": "Les prévisions météo, en plein écran",
+      "clock": "L'heure, avec dix-huit styles au choix",
+      "calendar": "Vos prochains rendez-vous en liste",
+      "countdown": "Les jours restants avant un anniversaire, un voyage ou un grand jour",
+      "date": "La date du jour, et rien d'autre",
+      "year-progress": "La part de l'année, du mois ou du jour déjà écoulée",
+      "multi-month": "Deux mois ou plus d'un seul coup d'œil",
+      "weather": "Le temps qu'il fait et les heures ou les jours à venir",
+      "moon-phase": "La lune de ce soir et la date de la pleine lune",
+      "sunrise-sunset": "L'heure du lever et du coucher du soleil",
+      "air-quality": "La qualité de l'air dehors",
+      "rain-map": "Une carte radar de la pluie autour de chez vous",
+      "news": "Les titres des sites que vous suivez",
+      "stock-ticker": "Le cours des actions que vous suivez",
+      "crypto": "Le cours des cryptos que vous suivez",
+      "sports": "Les scores et les matchs de vos équipes",
+      "standings": "Les classements des championnats de vos équipes",
+      "dad-joke": "Chaque jour, une nouvelle blague à faire soupirer",
+      "quote": "Une pensée pour la journée",
+      "word-of-day": "Un nouveau mot et ce qu'il veut dire",
+      "history": "Ce qui s'est passé à cette date, il y a des années",
+      "todo": "Une liste à cocher directement depuis le mur",
+      "sticky-note": "Un petit message écrit avec vos mots à vous",
+      "greeting": "Un bonjour qui change au fil de la journée",
+      "todoist": "Vos tâches Todoist au mur",
+      "garbage-day": "Quelle poubelle sortir, et quand",
+      "affirmations": "Une pensée bienveillante pour commencer la journée",
+      "meal-planner": "Ce qu'on mange cette semaine",
+      "chore-chart": "Qui doit faire quoi aujourd'hui",
+      "text": "Le texte que vous voulez, mis en forme comme vous voulez",
+      "image": "Une image de votre choix",
+      "video": "Une vidéo en boucle, depuis un fichier ou YouTube",
+      "photo-slideshow": "Les photos de famille en boucle",
+      "qr-code": "Un code à scanner avec un téléphone",
+      "iframe": "N'importe quelle page web, dans un cadre",
+      "icon": "Un seul symbole, un cœur ou une voiture par exemple",
+      "shape": "Des traits et des blocs pour séparer les éléments",
+      "display-control": "Des boutons tactiles pour réveiller, mettre en veille ou changer d'écran",
+      "traffic": "Le temps de trajet jusqu'au travail ou à l'école"
+    },
+    "keywords": {
+      "fullscreen-calendar": "agenda calendrier evenements rendez-vous semaine mois famille",
+      "fullscreen-chore-chart": "taches corvees menage enfants etoiles famille",
+      "fullscreen-meal-planner": "repas diner menu recettes courses semaine",
+      "fullscreen-photo": "photos images souvenirs album diaporama",
+      "fullscreen-news": "actualites actu infos titres journal rss",
+      "fullscreen-weather": "meteo temperature pluie previsions chaud froid",
+      "clock": "heure horloge montre minutes analogique numerique",
+      "calendar": "agenda calendrier evenements rendez-vous ical google",
+      "countdown": "anniversaire vacances noel compte rebours jours restants",
+      "date": "jour mois annee date aujourd'hui",
+      "year-progress": "progression barre pourcentage annee mois jour",
+      "multi-month": "mois grille annee planning apercu",
+      "weather": "meteo temperature pluie neige vent previsions chaud froid",
+      "moon-phase": "lune pleine phases nuit ciel lunaire",
+      "sunrise-sunset": "soleil lever coucher aube crepuscule jour",
+      "air-quality": "pollution air qualite pollen allergie fumee",
+      "rain-map": "radar pluie orage precipitations carte",
+      "news": "actualites actu infos titres flux rss",
+      "stock-ticker": "bourse actions cours marche finance argent",
+      "crypto": "bitcoin ethereum crypto cours monnaie marche",
+      "sports": "sport scores matchs equipes foot football rugby hockey",
+      "standings": "classement championnat ligue tableau equipes",
+      "dad-joke": "blague humour drole rire enfants",
+      "quote": "citation pensee inspiration sagesse motivation",
+      "word-of-day": "vocabulaire dictionnaire mot definition enfants",
+      "history": "histoire ce jour anniversaire faits evenements",
+      "todo": "taches liste courses a faire checklist",
+      "sticky-note": "note pense-bete rappel message post-it",
+      "greeting": "bonjour bonsoir bienvenue salutation famille",
+      "todoist": "taches todoist liste checklist",
+      "garbage-day": "poubelle ordures dechets tri recyclage collecte ramassage bac",
+      "affirmations": "gentillesse bienveillance positif encouragement enfants",
+      "meal-planner": "repas diner menu recettes courses cuisine",
+      "chore-chart": "taches corvees menage enfants etoiles famille poubelle",
+      "text": "texte mots titre libelle message",
+      "image": "photo image logo illustration",
+      "video": "video film clip youtube boucle",
+      "photo-slideshow": "photos images souvenirs album diaporama immich icloud",
+      "qr-code": "qr code scanner lien wifi telephone",
+      "iframe": "site web page integration url navigateur",
+      "icon": "icone symbole pictogramme logo",
+      "shape": "trait ligne separateur bloc cadre bordure",
+      "display-control": "tactile boutons veille reveil luminosite ecran suivant",
+      "traffic": "trajet route circulation embouteillage bouchons travail ecole"
     }
   },
   "settings": {
@@ -414,7 +539,7 @@
       "holidays": {
         "heading": "Jours fériés",
         "none": "Aucun",
-        "help": "Affiche les jours fériés sur les widgets de calendrier. Données de Nager.Date."
+        "help": "Affiche les jours fériés sur les modules calendrier. Données fournies par Nager.Date."
       },
       "shared": {
         "daysAheadLabel": "Jours à l'avance"
@@ -559,7 +684,7 @@
     },
     "weatherPage": {
       "heading": "Météo",
-      "description": "Configure n'importe lequel des fournisseurs météo ci-dessous. Chaque widget météo peut choisir un fournisseur configuré ; un seul est utilisé par défaut.",
+      "description": "Configurez les sources météo de votre choix ci-dessous. Chaque module météo peut utiliser n'importe quelle source configurée ; l'une d'elles sert de source par défaut.",
       "unitsLabel": "Unités",
       "imperialOption": "Impérial (°F, mph)",
       "metricOption": "Métrique (°C, km/h)",
@@ -939,7 +1064,7 @@
         "webClientSecretHelp": "Le secret client de l'identifiant d'application Web ci-dessus.",
         "mapsKeyLabel": "Clé API Maps",
         "mapsKeyPlaceholder": "Colle ta clé API Google Maps",
-        "mapsKeyHelp": "Facultatif, pour le widget trafic/trajet. Active la Routes API dans le même projet de la console Cloud."
+        "mapsKeyHelp": "Facultatif, pour le module trafic / trajet. Activez la Routes API dans le même projet de la console Cloud."
       },
       "immich": {
         "name": "Immich",
@@ -1416,7 +1541,7 @@
       "noReportHint": "Cet écran n'a pas encore envoyé de valeurs. Elles apparaîtront ici dès que l'écran sera allumé et que quelque chose publiera.",
       "editorValuesHint": "Valeurs en direct de cet éditeur. Allumez l'écran pour voir ce qu'il envoie réellement.",
       "offlineSinceHint": "L'écran n'a rien envoyé depuis {time}. Les lignes montrent les dernières valeurs reçues.",
-      "emptyHint": "Rien ici pour l'instant. Les valeurs apparaissent d'elles-mêmes dès que quelque chose les utilise, comme une condition sur un widget ou une valeur en direct dans un widget Texte. Il n'y a rien à configurer à l'avance.",
+      "emptyHint": "Rien ici pour l'instant. Les valeurs apparaissent toutes seules dès que quelque chose les utilise, comme une condition sur un module ou une valeur en direct dans un module Texte. Il n'y a rien à préparer à l'avance.",
       "neverPublished": "Jamais publiée",
       "neverPublishedDetail": "Rien sur l'écran ne publie cette clé ; tout ce qui l'utilise suit son réglage « Avant l'arrivée des données ».",
       "unreferencedLabel": "Rien ne référence cette clé.",
@@ -1767,8 +1892,7 @@
       "entriesFill": "Remplissage",
       "evictions": {
         "one": "{count} éviction LRU",
-        "other": "{count} évictions LRU",
-        "many": "{count} évictions LRU"
+        "other": "{count} évictions LRU"
       },
       "cacheUrl": "URL",
       "cacheAge": "Âge",
@@ -1828,8 +1952,7 @@
       "heroNew": "Utiliser Home Screens sur plusieurs écrans",
       "heroExisting": {
         "one": "{count} écran dans ce foyer",
-        "other": "{count} écrans dans ce foyer",
-        "many": "{count} écrans dans ce foyer"
+        "other": "{count} écrans dans ce foyer"
       },
       "emptyDescriptionPrefix": "Pilotez plus d’un écran depuis ce Pi (un écran tactile de cuisine, un moniteur de chambre, un téléviseur de salon), chacun avec sa propre disposition, résolution et rotation. Ce Pi devient le hub et les sert tous ; les écrans secondaires peuvent être de petits Pi Zero exécutant ",
       "emptyDescriptionSuffix": ".",
@@ -1850,8 +1973,7 @@
       "unadoptedLabel": "écran non adopté",
       "unadoptedWaiting": {
         "one": "{count} écran non adopté en attente",
-        "other": "{count} écrans non adoptés en attente",
-        "many": "{count} écrans non adoptés en attente"
+        "other": "{count} écrans non adoptés en attente"
       },
       "unadoptedHintPrefix": "Ces Pis sont connectés au hub mais ne sont pas encore enregistrés. Cliquez sur ",
       "unadoptedHintSuffix": " pour leur attribuer des écrans.",
@@ -1870,8 +1992,7 @@
       "rotationNormal": "normale",
       "screenCount": {
         "one": "{count} écran",
-        "other": "{count} écrans",
-        "many": "{count} écrans"
+        "other": "{count} écrans"
       },
       "currentScreenLabel": "Affiche {name}",
       "multipleClientsCardHeading": "{count} clients distincts signalent cet écran",
@@ -1978,11 +2099,13 @@
     "nasaInfo": "La NASA publie une nouvelle image astronomique par jour. L'affichage vérifiera les mises à jour à l'intervalle choisi.",
     "sources": {
       "nasaApod": "Image du jour NASA",
-      "icloud": "Album partagé iCloud"
+      "icloud": "Album partagé iCloud",
+      "unsplash": "Unsplash",
+      "immich": "Immich"
     },
     "tabs": {
       "nasa": "NASA",
-      "local": "Local"
+      "local": "Arrière-plans"
     },
     "intervals": {
       "minutes": "{count} minutes",
@@ -2000,7 +2123,21 @@
     "icloud": {
       "albumLabel": "Lien de l'album",
       "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici."
-    }
+    },
+    "needsKey": "Nécessite une clé gratuite",
+    "starterHeading": "Les arrière-plans fournis avec Home Screens",
+    "starters": {
+      "midnight": "Minuit",
+      "dusk": "Crépuscule",
+      "forest": "Forêt",
+      "deep-blue": "Bleu profond",
+      "charcoal": "Anthracite",
+      "sunrise": "Lever de soleil",
+      "plum": "Prune",
+      "aurora": "Aurore boréale"
+    },
+    "yourPicturesHeading": "Vos propres images",
+    "sourceKeyMissing": "Cette source a besoin d'une clé API qui n'est pas encore configurée, l'écran garde donc sa dernière image. Ajoutez la clé dans les Paramètres, ou choisissez une autre source."
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",
@@ -2244,7 +2381,7 @@
       "text": "Texte",
       "positionAndSize": "Position et taille",
       "style": "Style",
-      "config": "Config",
+      "config": "Réglages du module",
       "settings": "Paramètres",
       "secrets": "Secrets",
       "credentials": "Identifiants",
@@ -2263,7 +2400,7 @@
       "padding": "Marge intérieure",
       "borderWidth": "Largeur de bordure",
       "opacity": "Opacité",
-      "backdropBlur": "Flou d'arrière-plan",
+      "backdropBlur": "Verre dépoli",
       "shadowSize": "Taille de l'ombre",
       "background": "Arrière-plan",
       "borderColor": "Couleur de bordure",
@@ -2272,9 +2409,12 @@
       "fontWeight": "Graisse",
       "fontWeightDefault": "Par défaut",
       "fontWeightReset": "Rétablir la valeur par défaut",
-      "title": "Titre de la carte",
+      "title": "Titre",
       "titleFontSize": "Taille du titre",
-      "titleOwnTitleHint": "Ce widget affiche aussi son propre titre, deux peuvent donc apparaître. Désactivez « Afficher le titre » dans ses réglages pour ne garder que celui-ci."
+      "titleModeOwn": "Le titre du module",
+      "titleModeCustom": "Mes propres mots",
+      "titleModeNone": "Aucun titre",
+      "titleWords": "Texte du titre"
     },
     "actions": {
       "bringToFront": "Premier plan",
@@ -2285,12 +2425,16 @@
     },
     "visibility": {
       "enabledLabel": "Afficher sur l'écran",
-      "enabledHelp": "Lorsque désactivé, ce module est exclu de l'affichage en direct et du préchargement, mais reste dans l'éditeur pour que vous puissiez le réactiver.",
+      "enabledHelp": "Quand c'est désactivé, le module n'apparaît jamais sur l'affichage. Il reste ici pour que vous puissiez le réactiver.",
       "backgroundProviderLabel": "Exécuter masqué en arrière-plan",
-      "backgroundProviderHelp": "Fournit des états aux autres modules. Cette copie n'apparaît jamais à l'écran — pour afficher aussi le widget, ajoutez une seconde copie sans ce réglage.",
+      "backgroundProviderHelp": "Fournit des valeurs aux autres modules. Cette copie n'apparaît jamais à l'écran ; pour afficher aussi le module, ajoutez-en une seconde sans ce réglage.",
       "backgroundProviderObsoleteHint": "Ce plugin partage désormais ses données automatiquement. Cette copie masquée n’est plus nécessaire et peut être supprimée."
     },
-    "screenSettingsLink": "Réglages de l'écran"
+    "screenSettingsLink": "Réglages de l'écran",
+    "whatIsThis": "Qu'est-ce que c'est ?",
+    "editingDisplay": "Vous modifiez",
+    "collapseTitle": "Masquer le panneau des réglages",
+    "expandTitle": "Afficher le panneau des réglages"
   },
   "upgradeModal": {
     "titleUpgrade": "Mise à niveau vers {tag}",
@@ -2361,14 +2505,17 @@
     "screenCountPlural": "{count} écrans",
     "moduleCountSingular": "{count} module",
     "moduleCountPlural": "{count} modules",
-    "countsLine": "{screens}, {modules}",
-    "sourceLine": "Source : {width} x {height}",
-    "dimensionWarning": "Cette mise en page a été conçue pour {sourceWidth}x{sourceHeight} mais ton affichage est en {currentWidth}x{currentHeight}. Les modules seront mis à l'échelle automatiquement mais peuvent nécessiter des ajustements.",
-    "applyVisualLabel": "Appliquer les paramètres visuels",
-    "visualSummary": "Rotation : {seconds} s",
-    "visualSummaryWithTransition": "Rotation : {seconds} s, transition : {transition}",
+    "countsLine": "{screens}, {modules} au total",
+    "sourceLine": "Conçue pour un affichage de {width} x {height}",
+    "dimensionWarning": "Conçue pour un affichage de {sourceWidth} x {sourceHeight}, alors que le vôtre fait {currentWidth} x {currentHeight}. Tout sera redimensionné pour s'adapter, et quelques éléments demanderont peut-être un petit ajustement ensuite.",
+    "applyVisualLabel": "Reprendre aussi les durées de cette mise en page",
+    "visualSummary": "Chaque écran s'affiche pendant {seconds} secondes.",
+    "visualSummaryWithTransition": "Chaque écran s'affiche pendant {seconds} secondes, avec un effet {transition} entre les écrans.",
     "saveError": "Échec de l'enregistrement. Vérifie ta connexion et réessaie.",
-    "importButton": "Importer"
+    "importButton": "Ajouter ces écrans",
+    "savedAt": "Enregistrée le {date}",
+    "screenPillSingular": "{name} · {count} module",
+    "screenPillPlural": "{name} · {count} modules"
   },
   "layoutImport": {
     "alerts": {
@@ -2420,8 +2567,7 @@
     "loadingCatalog": "Chargement du catalogue complet…",
     "iconCount": {
       "one": "{count} icône",
-      "other": "{count} icônes",
-      "many": "{count} icônes"
+      "other": "{count} icônes"
     },
     "noMatch": "Aucune icône ne correspond à « {query} ». Essaie un autre mot-clé.",
     "moreResults": "+{count} de plus — affine ta recherche pour les voir.",
@@ -2607,7 +2753,8 @@
       "precisionDaysHours": "Jours + heures",
       "precisionDaysHoursMinutes": "Jours + heures + minutes",
       "precisionDaysHoursMinutesSeconds": "Jours + heures + minutes + secondes",
-      "timezone": "Fuseau horaire"
+      "timezone": "Fuseau horaire",
+      "customExamplesHeading": "Quelques exemples à copier :"
     },
     "countdown": {
       "viewAll": "Tous les événements (empilés)",
@@ -2710,8 +2857,8 @@
       "viewMonthGrid": "Grille mensuelle",
       "viewDayTimeline": "Chronologie du jour",
       "viewAgenda": "Agenda",
-      "densityCozy": "Aéré (lecture à distance)",
-      "densitySnug": "Serré (plus d'événements)",
+      "densityCozy": "Aéré (plus lisible de loin)",
+      "densitySnug": "Serré (plus de contenu)",
       "typographySmall": "Petit",
       "typographyMedium": "Moyen",
       "typographyLarge": "Grand",
@@ -2720,7 +2867,7 @@
       "typography3xLarge": "3X grand",
       "typography4xLarge": "4X grand",
       "view": "Vue",
-      "typographySize": "Taille de la typographie",
+      "typographySize": "Taille du texte",
       "themeDefault": "Par défaut (depuis les paramètres)",
       "accentColor": "Couleur d'accent",
       "dimPastEvents": "Atténuer les événements passés",
@@ -2812,7 +2959,7 @@
       "themeDefault": "Par défaut (depuis les paramètres)",
       "densityCozy": "Aéré",
       "densitySnug": "Serré",
-      "typographySize": "Taille de la typographie",
+      "typographySize": "Taille du texte",
       "accentColor": "Couleur d'accent",
       "weekStartsOn": "La semaine commence le",
       "weekProgress": "Étoiles de la semaine",
@@ -2841,7 +2988,7 @@
       "viewNextMeal": "Prochain repas",
       "densityCozy": "Aéré",
       "densitySnug": "Serré",
-      "typographySize": "Taille de la typographie",
+      "typographySize": "Taille du texte",
       "showEmoji": "Afficher les emojis",
       "showPrepTime": "Afficher le temps de préparation",
       "showTags": "Afficher les étiquettes",
@@ -3510,7 +3657,7 @@
       "stateTokenPreview": "Aperçu en direct"
     },
     "todo": {
-      "title": "Titre",
+      "title": "Nom de la liste",
       "defaultTitle": "À faire",
       "items": "Éléments",
       "newItemText": "Nouvel élément",
@@ -3522,7 +3669,7 @@
       "connected": "Connecté",
       "notConfigured": "Non configuré.",
       "settingsIntegrationsLink": "Paramètres → Intégrations",
-      "title": "Titre",
+      "title": "Nom de la liste",
       "viewMode": "Mode d'affichage",
       "groupByLabel": "Grouper par",
       "sortByLabel": "Trier par",
@@ -3567,7 +3714,7 @@
       "showLocation": "Afficher le lieu",
       "locationLabel": "Nom du lieu",
       "iconStyle": "Style d'icône",
-      "dataProvider": "Fournisseur de données",
+      "dataProvider": "Source météo",
       "hoursToShow": "Heures à afficher",
       "daysToShow": "Jours à afficher",
       "feelsLike": "Ressenti",
@@ -3594,7 +3741,7 @@
         "alerts": "Alertes météo"
       },
       "providers": {
-        "global": "Par défaut (global)",
+        "global": "Comme dans les Paramètres",
         "openweathermap": "OpenWeatherMap",
         "weatherapi": "WeatherAPI",
         "pirateweather": "Pirate Weather",
@@ -3701,7 +3848,7 @@
       "themeDefault": "Par défaut (Réglages)",
       "typographySize": "Taille du texte",
       "densityCozy": "Aéré",
-      "densitySnug": "Compact",
+      "densitySnug": "Serré",
       "skyLayer": "Teinte de fond",
       "skyAuto": "Suivre la météo",
       "skyOff": "Désactivée (thème simple)",
@@ -3897,19 +4044,15 @@
     "noResults": "Aucun module trouvé",
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Plugin communautaire",
-    "howToAdd": "Cliquez ou faites glisser sur l'écran",
-    "itemTooltip": "Cliquez pour ajouter, ou faites glisser sur l'écran",
-    "fullscreenGuard": {
-      "message": "Les modules plein écran occupent tout l’écran. Tout le reste de cet écran serait masqué derrière.",
-      "newScreen": "Ajouter sur un nouvel écran",
-      "addAnyway": "Ajouter ici quand même"
-    }
+    "howToAdd": "Faites-le glisser sur l'écran",
+    "itemTooltip": "Faites-le glisser sur l'écran",
+    "collapseTitle": "Masquer la liste des modules",
+    "expandTitle": "Afficher la liste des modules"
   },
   "backupReminder": {
     "message": {
       "one": "Vous n’avez pas effectué de sauvegarde depuis 1 jour.",
-      "other": "Vous n’avez pas effectué de sauvegarde depuis {count} jours.",
-      "many": "Vous n’avez pas effectué de sauvegarde depuis {count} jours."
+      "other": "Vous n’avez pas effectué de sauvegarde depuis {count} jours."
     },
     "downloading": "Téléchargement…",
     "backupNow": "Sauvegarder maintenant",

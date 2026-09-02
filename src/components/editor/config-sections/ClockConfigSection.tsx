@@ -18,6 +18,18 @@ import type { ModuleInstance, ClockView, WorldClockZone, ElapsedFormat, ElapsedP
 
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
+/** Three patterns that cover the shapes people ask for, shown with today's
+ *  date next to them so "EEEE" stops being a guess. */
+const CUSTOM_DATE_EXAMPLES = ['EEEE, MMMM d', 'EEE d MMM', 'd/M/yyyy'];
+
+function safeFormat(pattern: string, t: (key: string) => string): string {
+  try {
+    return format(new Date(), pattern);
+  } catch {
+    return t('configSections.clock.invalidFormat');
+  }
+}
+
 const SAMPLE_ELAPSED_MS =
   50 * 24 * 60 * 60 * 1000 +
   20 * 60 * 60 * 1000 +
@@ -229,6 +241,29 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             />
           )}
           <span className="text-xs text-hs-text-faint">{datePreview}</span>
+          {/* A pattern language with no legend is a dead end. Three worked
+              examples, rendered against today's date, are enough to get from
+              "what do I type" to a format that works. */}
+          {showCustomDate && (
+            <div className="mt-1 border-t border-hs-border pt-2" data-testid="clock-format-examples">
+              <p className="text-[11px] text-hs-text-faint mb-1">
+                {t('configSections.clock.customExamplesHeading')}
+              </p>
+              {CUSTOM_DATE_EXAMPLES.map((pattern) => (
+                <button
+                  key={pattern}
+                  type="button"
+                  onClick={() => set({ dateFormat: pattern })}
+                  className="flex w-full items-baseline gap-1.5 rounded px-1 py-0.5 text-left hover:bg-hs-hover transition-colors"
+                >
+                  <code className="font-mono text-[11px] text-hs-text-secondary">{pattern}</code>
+                  <span className="text-[11px] text-hs-text-faint">
+                    {safeFormat(pattern, t)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

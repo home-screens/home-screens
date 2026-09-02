@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
+import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 
 interface LayoutExportModalProps {
@@ -65,9 +66,12 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('layoutExportModal.title')}>
-      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-4">{t('layoutExportModal.title')}</h2>
+    <ModalFrame labelledBy="layout-export-title" onClose={onClose} className="w-full max-w-md">
+      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <div className="mb-4 flex items-center gap-2">
+          <h2 id="layout-export-title" className="text-lg font-semibold text-hs-text-primary">{t('layoutExportModal.title')}</h2>
+          <span className="ml-auto"><EscHint /></span>
+        </div>
 
         {/* Name */}
         <label className="block text-sm text-hs-text-muted mb-1">{t('layoutExportModal.nameLabel')}</label>
@@ -134,6 +138,6 @@ export default function LayoutExportModal({ onClose, preSelectedScreenId }: Layo
           </Button>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

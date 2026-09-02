@@ -44,7 +44,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|backgroundPicker.immich.personLabel',
   'editor|backgroundPicker.statusGroup',
   'editor|backgroundPicker.tabs.nasa',
+  // Brand names of the rotation sources, spelled the same everywhere.
+  'editor|backgroundPicker.sources.unsplash',
+  'editor|backgroundPicker.sources.immich',
   'editor|canvas.zoomPercent',
+  // "{days}, {time}" — punctuation around two interpolated fragments.
+  'editor|scheduleEditor.summary.short',
   'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
@@ -492,6 +497,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|layoutExportModal.moduleCountSingular',
     'editor|layoutImportModal.moduleCountPlural',
     'editor|layoutImportModal.moduleCountSingular',
+    'editor|layoutImportModal.screenPillPlural',
+    'editor|layoutImportModal.screenPillSingular',
     'editor|mealPlannerModal.detail.notesLabel',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|modulePalette.modulesHeading',

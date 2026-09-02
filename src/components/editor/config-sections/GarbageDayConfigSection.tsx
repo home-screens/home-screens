@@ -4,7 +4,6 @@ import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
-import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useTranslate } from '@/i18n';
@@ -85,7 +84,6 @@ export function GarbageDayConfigSection({ mod, screenId }: { mod: ModuleInstance
         onChange={(v) => set({ highlightMode: v })}
         options={HIGHLIGHT_OPTIONS}
       />
-      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
     </>
   );
 }

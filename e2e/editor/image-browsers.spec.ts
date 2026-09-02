@@ -81,9 +81,10 @@ test.describe('Background source browsers (PropertyPanel Background picker)', ()
     });
 
     await openBackgroundPicker(page, request);
+    // The picker opens on the backgrounds that ship with Home Screens; the
+    // Unsplash browser auto-runs its first category search once opened.
+    await page.getByTestId('background-tab-unsplash').click();
 
-    // Unsplash is the default source tab; its browser auto-runs the first
-    // category search on mount.
     const photo = page.getByRole('img', { name: 'Sunset Peak' });
     await expect(photo).toBeVisible();
     await autosaved(page, async () => { await photo.click(); });
@@ -101,6 +102,7 @@ test.describe('Background source browsers (PropertyPanel Background picker)', ()
     );
 
     await openBackgroundPicker(page, request);
+    await page.getByTestId('background-tab-unsplash').click();
 
     // ImageSearchBrowser swallows the thrown error into a plain message.
     await expect(page.getByText('Failed to load images')).toBeVisible();

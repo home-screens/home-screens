@@ -79,7 +79,6 @@ export function TodoistConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         value={c.title ?? 'Todoist'}
         onChange={(v) => set({ title: v })}
       />
-      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <LabeledSelect
         label={t('configSections.todoist.viewMode')}
         value={viewMode}

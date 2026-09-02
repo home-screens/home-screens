@@ -19,7 +19,7 @@
     "refreshSeconds": "Opdatér (sekunder)",
     "refresh": "Opdatér",
     "theme": "Tema",
-    "density": "Tæthed",
+    "density": "Afstand",
     "objectFit": "Tilpasning",
     "objectFitCover": "Udfyld",
     "objectFitContain": "Tilpas",
@@ -80,7 +80,8 @@
         "hint": "Nogen gemte fra en anden editor eller en telefon, mens du redigerede. Indlæs deres ændringer, eller behold dine og overskriv deres.",
         "loadTheirs": "Indlæs deres ændringer",
         "keepMine": "Behold mine"
-      }
+      },
+      "savedToDisplay": "Gemt til {name}"
     }
   },
   "canvas": {
@@ -109,7 +110,15 @@
       "selectBehind": "Vælg modulet bagved",
       "hide": "Skjul på displayet",
       "show": "Vis på displayet"
-    }
+    },
+    "emptyDisplay": {
+      "title": "Displayet {name} har endnu ingen skærme",
+      "body": "En skærm er én side i rotationen. Start med en tom, eller kopiér det, der allerede er på et andet display.",
+      "addScreen": "Tilføj en skærm",
+      "copyFrom": "Kopiér skærme fra {name}"
+    },
+    "zoomFit": "Tilpas",
+    "zoomHint": "Ctrl+rul for at zoome, rul for at flytte rundt"
   },
   "draggableModule": {
     "scheduledActiveTitle": "Planlagt — aktiv lige nu",
@@ -120,12 +129,24 @@
     "conditionMetTitle": "Betingelser opfyldt — vises på skærmen nu",
     "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu",
     "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
-    "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu"
+    "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu",
+    "status": {
+      "hidden": "Skjult",
+      "hiddenDetail": "Slået fra, så det aldrig vises på displayet. Slå det til igen under Synlighed.",
+      "scheduledActiveDetail": "{summary} Det vises lige nu.",
+      "scheduledInactiveDetail": "{summary} Det vises ikke på væggen lige nu.",
+      "conditionOnKey": "Venter på {key}",
+      "conditionNoKey": "Venter på en live-værdi",
+      "background": "Kører i baggrunden"
+    }
   },
   "displaySwitcher": {
     "title": "Hvilket display redigerer dette lærred? (Tilsidesatte indstillinger findes under Indstillinger → Pr. display.)",
     "label": "Hvilket display redigerer dette lærred?",
-    "optionWithDimensions": "{name} ({width}×{height})"
+    "optionWithDimensions": "{name} ({width}×{height})",
+    "onNow": "tændt lige nu",
+    "lastSeen": "sidst set {time}",
+    "addDisplay": "Tilføj et display"
   },
   "screenTabs": {
     "stickyTooltip": "bliver — skifter ikke af sig selv; kræver et tryk eller fjernbetjeningen",
@@ -181,25 +202,37 @@
     "sectionTitle": "Skærmindstillinger",
     "moduleCountSingular": "{count} modul",
     "moduleCountPlural": "{count} moduler",
-    "durationLabel": "Varighed",
-    "secondsUnit": "sek",
+    "durationLabel": "Hvor længe denne skærm vises",
+    "secondsUnit": "sekunder",
     "stickyBadge": "Fastlåst",
-    "stickyHint": "0 = bliv på denne skærm (skift kun manuelt).",
+    "stickyHint": "Sæt den til 0 for at blive på denne skærm, indtil nogen trykker på den eller bruger fjernbetjeningen.",
     "shortDurationWarning": "Under {seconds} sekunder kan skærmen skifte, før nyheder og vejr er færdige med at indlæse.",
-    "inheritsHintBefore": "Arver standarden: ",
-    "inheritsHintValue": "{seconds}s",
-    "inheritsHintAfter": ".",
-    "overrideButton": "Tilsidesæt",
-    "resetButton": "Nulstil"
+    "inheritsHintBefore": "Vises i ",
+    "inheritsHintValue": "{seconds} sekunder",
+    "inheritsHintAfter": ", ligesom dine andre skærme.",
+    "overrideButton": "Brug en anden tid",
+    "resetButton": "Tilbage til det sædvanlige"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
-    "enableLabel": "Slå tidsplan til",
+    "enableLabel": "Vis kun på bestemte tidspunkter",
     "timeWindowTitle": "Tidsrum",
     "fromLabel": "Fra",
     "untilLabel": "Til",
     "behaviorTitle": "Opførsel",
-    "invertLabel": "Vend om (skjul i tidsrummet)"
+    "invertLabel": "Skjul i stedet i dette tidsrum",
+    "invertNeedsWindow": "Angiv først et Fra- og et Til-tidspunkt.",
+    "summary": {
+      "shows": "Vises {when}.",
+      "hides": "Skjult {when}. Vises resten af tiden.",
+      "short": "{days}, {time}",
+      "everyDay": "hver dag",
+      "weekdays": "man. til fre.",
+      "weekends": "lør. og søn.",
+      "allDay": "hele dagen",
+      "window": "{start} til {end}"
+    },
+    "allDayHint": "Lad dem begge stå tomme for at vise hele dagen."
   },
   "registry": {
     "categories": {
@@ -258,6 +291,98 @@
       "shape": "Figur og skillelinje",
       "display-control": "Skærmstyring",
       "traffic": "Trafik / pendling"
+    },
+    "descriptions": {
+      "fullscreen-calendar": "Hele ugen eller måneden, så den fylder skærmen",
+      "fullscreen-chore-chart": "Alles pligter, så de fylder skærmen",
+      "fullscreen-meal-planner": "Ugens aftensmad, så den fylder skærmen",
+      "fullscreen-photo": "Dine billeder, så de fylder skærmen",
+      "fullscreen-news": "Overskrifter, så de fylder skærmen",
+      "fullscreen-weather": "Vejrudsigten, så den fylder skærmen",
+      "clock": "Klokken i atten forskellige stilarter",
+      "calendar": "Dine næste begivenheder i en liste",
+      "countdown": "Dage til en fødselsdag, en ferie eller den store dag",
+      "date": "Dagens dato helt for sig",
+      "year-progress": "Hvor meget af året, måneden eller dagen der er gået",
+      "multi-month": "To eller flere måneder på én gang",
+      "weather": "Lige nu og de næste timer eller dage",
+      "moon-phase": "Månen i nat, og hvornår den er fuld",
+      "sunrise-sunset": "Hvornår solen står op og går ned",
+      "air-quality": "Hvor ren luften er udenfor",
+      "rain-map": "Et live-radarkort over regn i nærheden",
+      "news": "Overskrifter fra de sider, du følger",
+      "stock-ticker": "Aktiekurser for de selskaber, du følger",
+      "crypto": "Kurser på de kryptovalutaer, du følger",
+      "sports": "Resultater og kampe for dine hold",
+      "standings": "Ligastillinger for dine hold",
+      "dad-joke": "En ny dårlig vittighed hver dag",
+      "quote": "En tanke til dagen",
+      "word-of-day": "Et nyt ord, og hvad det betyder",
+      "history": "Hvad der skete på denne dag for mange år siden",
+      "todo": "En liste, du kan krydse af fra væggen",
+      "sticky-note": "En kort besked med dine egne ord",
+      "greeting": "En hilsen, der skifter i løbet af dagen",
+      "todoist": "Dine Todoist-opgaver på væggen",
+      "garbage-day": "Hvilken spand der skal ud, og hvornår",
+      "affirmations": "En god tanke at starte dagen på",
+      "meal-planner": "Hvad der er til aftensmad i denne uge",
+      "chore-chart": "Hvem der skal lave hvad i dag",
+      "text": "Dine egne ord i lige den stil, du vil have",
+      "image": "Ét billede, som du selv vælger",
+      "video": "En video, der gentages, fra en fil eller YouTube",
+      "photo-slideshow": "Familiebilleder, der skifter ét efter ét",
+      "qr-code": "En kode, som folk kan scanne med telefonen",
+      "iframe": "En hvilken som helst webside i en boks",
+      "icon": "Ét symbol, for eksempel et hjerte eller en bil",
+      "shape": "Streger og felter til at dele tingene op med",
+      "display-control": "Knapper til at vække, slukke eller skifte skærm med et tryk",
+      "traffic": "Hvor lang tid turen til arbejde eller skole tager"
+    },
+    "keywords": {
+      "fullscreen-calendar": "kalender aftaler begivenheder uge måned familie",
+      "fullscreen-chore-chart": "børn pligter opgaver stjerner tjanser familie",
+      "fullscreen-meal-planner": "mad aftensmad madplan opskrifter indkøb uge",
+      "fullscreen-photo": "fotos billeder minder album diasshow slideshow billedshow",
+      "fullscreen-news": "nyheder artikler rss overskrifter",
+      "fullscreen-weather": "vejr vejrudsigt temperatur regn varmt koldt vind",
+      "clock": "ur klokken tid timer minutter analogt digitalt",
+      "calendar": "kalender aftaler begivenheder agenda ical google",
+      "countdown": "fødselsdag ferie jul bryllupsdag nedtælling dage til",
+      "date": "dato dag måned år i dag",
+      "year-progress": "procent bjælke fremdrift år måned dag årets gang",
+      "multi-month": "måneder årsoversigt årsplan kalender kvartal oversigt",
+      "weather": "vejr vejrudsigt temperatur regn varmt koldt sne vind",
+      "moon-phase": "måne fuldmåne nymåne nattehimmel astronomi",
+      "sunrise-sunset": "sol solopgang solnedgang dagslys skumring gylden time",
+      "air-quality": "luft luftforurening forurening aqi pollen røg allergi",
+      "rain-map": "radar regn byger nedbør kort",
+      "news": "nyheder artikler rss feed overskrifter",
+      "stock-ticker": "aktier børs kurser penge finans",
+      "crypto": "bitcoin ethereum krypto mønter penge marked",
+      "sports": "sport kampe resultater hold fodbold håndbold ishockey",
+      "standings": "liga tabel stilling rangliste point hold",
+      "dad-joke": "sjov humor grin vittighed joke børn",
+      "quote": "citat inspiration visdom motivation ordsprog",
+      "word-of-day": "ord ordforråd ordbog læring børn",
+      "history": "historie årsdag denne dag fakta fortid",
+      "todo": "opgaver huskeliste tjekliste indkøbsliste gøremål",
+      "sticky-note": "note besked huskeseddel seddel post-it",
+      "greeting": "velkommen hej hilsen god morgen godmorgen familie",
+      "todoist": "opgaver todoist tjekliste gøremål",
+      "garbage-day": "skrald affald skraldespand genbrug renovation tømning storskrald",
+      "affirmations": "venlighed positiv opmuntring ros børn",
+      "meal-planner": "mad aftensmad madplan opskrifter indkøb",
+      "chore-chart": "børn pligter opgaver stjerner tjanser familie skrald",
+      "text": "tekst ord overskrift besked titel skrift",
+      "image": "foto billede logo kunst",
+      "video": "video film klip youtube loop mp4",
+      "photo-slideshow": "fotos billeder minder album diasshow slideshow immich icloud",
+      "qr-code": "qr scan link wifi telefon kode",
+      "iframe": "hjemmeside webside indlejre url browser",
+      "icon": "ikon symbol logo tegn",
+      "shape": "streg skillelinje boks kant ramme figur",
+      "display-control": "tryk knapper tænd sluk vække lysstyrke skærm",
+      "traffic": "pendling køretur rute trafik arbejde skole"
     }
   },
   "settings": {
@@ -559,7 +684,7 @@
     },
     "weatherPage": {
       "heading": "Vejr",
-      "description": "Konfigurér en eller flere af vejrudbyderne herunder. Hvert vejrmodul kan bruge en hvilken som helst konfigureret udbyder; én bruges som standard.",
+      "description": "Sæt en eller flere af vejrtjenesterne herunder op. Hvert vejrmodul kan bruge en hvilken som helst af de opsatte tjenester; én bruges som standard.",
       "unitsLabel": "Enheder",
       "imperialOption": "Imperiale (°F, mph)",
       "metricOption": "Metriske (°C, km/t)",
@@ -1416,7 +1541,7 @@
       "noReportHint": "Denne skærm har endnu ikke rapporteret nogen værdier. Værdier vises her, når skærmen er tændt, og noget udgiver dem.",
       "editorValuesHint": "Live-værdier fra denne editor. Tænd skærmen for at se, hvad den faktisk rapporterer.",
       "offlineSinceHint": "Skærmen har ikke rapporteret siden {time}. Rækkerne viser de senest sendte værdier.",
-      "emptyHint": "Ingenting her endnu. Værdier dukker op af sig selv, når noget bruger dem, som en betingelse på en widget eller en live-værdi i en Tekst-widget. Der er ikke noget at sætte op på forhånd.",
+      "emptyHint": "Ingenting her endnu. Værdier dukker op af sig selv, når noget bruger dem, for eksempel en betingelse på et modul eller en live-værdi i et Tekst-modul. Der er ikke noget, du skal sætte op på forhånd.",
       "neverPublished": "Aldrig udgivet",
       "neverPublishedDetail": "Intet på skærmen udgiver denne nøgle, så alt der bruger den følger indstillingen 'Før data ankommer'.",
       "unreferencedLabel": "Intet refererer denne nøgle.",
@@ -1974,11 +2099,13 @@
     "nasaInfo": "NASA udgiver ét nyt astronomibillede om dagen. Skærmen tjekker for nye billeder med det valgte interval.",
     "sources": {
       "nasaApod": "NASA's dagens billede",
-      "icloud": "Delt iCloud-album"
+      "icloud": "Delt iCloud-album",
+      "unsplash": "Unsplash",
+      "immich": "Immich"
     },
     "tabs": {
       "nasa": "NASA",
-      "local": "Lokalt"
+      "local": "Baggrunde"
     },
     "intervals": {
       "minutes": "{count} minutter",
@@ -1996,7 +2123,21 @@
     "icloud": {
       "albumLabel": "Albumlink",
       "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her."
-    }
+    },
+    "needsKey": "Kræver en gratis nøgle",
+    "starterHeading": "Baggrunde, der følger med Home Screens",
+    "starters": {
+      "midnight": "Midnat",
+      "dusk": "Skumring",
+      "forest": "Skovbund",
+      "deep-blue": "Dybblå",
+      "charcoal": "Koksgrå",
+      "sunrise": "Solopgang",
+      "plum": "Blomme",
+      "aurora": "Nordlys"
+    },
+    "yourPicturesHeading": "Dine egne billeder",
+    "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde."
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",
@@ -2240,7 +2381,7 @@
       "text": "Tekst",
       "positionAndSize": "Placering og størrelse",
       "style": "Stil",
-      "config": "Opsætning",
+      "config": "Modulindstillinger",
       "settings": "Indstillinger",
       "secrets": "Nøgler",
       "credentials": "Loginoplysninger",
@@ -2259,7 +2400,7 @@
       "padding": "Indvendig afstand",
       "borderWidth": "Kantbredde",
       "opacity": "Gennemsigtighed",
-      "backdropBlur": "Sløring bagved",
+      "backdropBlur": "Frostet glas",
       "shadowSize": "Skyggestørrelse",
       "background": "Baggrund",
       "borderColor": "Kantfarve",
@@ -2268,9 +2409,12 @@
       "fontWeight": "Skrifttykkelse",
       "fontWeightDefault": "Standard",
       "fontWeightReset": "Nulstil til standard",
-      "title": "Korttitel",
+      "title": "Titel",
       "titleFontSize": "Titelstørrelse",
-      "titleOwnTitleHint": "Denne widget viser også sin egen titel, så der kan ses to. Slå ‘Vis titel’ fra i dens indstillinger for kun at beholde denne."
+      "titleModeOwn": "Modulets egen titel",
+      "titleModeCustom": "Mine egne ord",
+      "titleModeNone": "Ingen titel",
+      "titleWords": "Titeltekst"
     },
     "actions": {
       "bringToFront": "Flyt forrest",
@@ -2281,12 +2425,16 @@
     },
     "visibility": {
       "enabledLabel": "Vis på skærmen",
-      "enabledHelp": "Når det er slået fra, vises modulet ikke på skærmen og hentes ikke, men det bliver i editoren, så du kan slå det til igen.",
+      "enabledHelp": "Når den er slået fra, vises modulet aldrig på displayet. Det bliver stående her, så du kan slå det til igen.",
       "backgroundProviderLabel": "Kør skjult i baggrunden",
-      "backgroundProviderHelp": "Leverer tilstande til andre moduler. Denne kopi vises aldrig på skærmen — tilføj en ekstra kopi uden denne indstilling for også at vise widgetten.",
+      "backgroundProviderHelp": "Leverer værdier til andre moduler. Denne kopi vises aldrig på skærmen; vil du også vise modulet, så tilføj en kopi mere uden denne indstilling.",
       "backgroundProviderObsoleteHint": "Dette plugin deler nu sine data automatisk. Denne skjulte kopi er ikke længere nødvendig og kan slettes."
     },
-    "screenSettingsLink": "Skærmindstillinger"
+    "screenSettingsLink": "Skærmindstillinger",
+    "whatIsThis": "Hvad er det her?",
+    "editingDisplay": "Redigerer",
+    "collapseTitle": "Skjul indstillingspanelet",
+    "expandTitle": "Vis indstillingspanelet"
   },
   "upgradeModal": {
     "titleUpgrade": "Opdaterer til {tag}",
@@ -2357,14 +2505,17 @@
     "screenCountPlural": "{count} skærme",
     "moduleCountSingular": "{count} modul",
     "moduleCountPlural": "{count} moduler",
-    "countsLine": "{screens}, {modules}",
-    "sourceLine": "Kilde: {width} x {height}",
-    "dimensionWarning": "Dette layout er lavet til {sourceWidth}x{sourceHeight}, men din skærm er {currentWidth}x{currentHeight}. Modulerne skaleres automatisk, men skal måske justeres lidt.",
-    "applyVisualLabel": "Anvend visuelle indstillinger",
-    "visualSummary": "Skærmskift: {seconds} s",
-    "visualSummaryWithTransition": "Skærmskift: {seconds} s, overgang: {transition}",
+    "countsLine": "{screens}, {modules} i alt",
+    "sourceLine": "Lavet til et display på {width} x {height}",
+    "dimensionWarning": "Lavet til et display på {sourceWidth} x {sourceHeight}, og dit er {currentWidth} x {currentHeight}. Alt bliver skaleret, så det passer, og nogle ting skal måske lige rykkes bagefter.",
+    "applyVisualLabel": "Brug også dette layouts tider",
+    "visualSummary": "Hver skærm vises i {seconds} sekunder.",
+    "visualSummaryWithTransition": "Hver skærm vises i {seconds} sekunder med {transition} mellem skærmene.",
     "saveError": "Kunne ikke gemme. Tjek din forbindelse, og prøv igen.",
-    "importButton": "Importér"
+    "importButton": "Tilføj disse skærme",
+    "savedAt": "Gemt {date}",
+    "screenPillSingular": "{name} · {count} modul",
+    "screenPillPlural": "{name} · {count} moduler"
   },
   "layoutImport": {
     "alerts": {
@@ -2602,7 +2753,8 @@
       "precisionDaysHours": "Dage + timer",
       "precisionDaysHoursMinutes": "Dage + timer + minutter",
       "precisionDaysHoursMinutesSeconds": "Dage + timer + minutter + sekunder",
-      "timezone": "Tidszone"
+      "timezone": "Tidszone",
+      "customExamplesHeading": "Et par, du kan kopiere:"
     },
     "countdown": {
       "viewAll": "Alle begivenheder (stablet)",
@@ -2623,6 +2775,8 @@
       "precisionDaysHoursMinutesSeconds": "Dage + timer + minutter + sekunder",
       "defaultEventName": "Ny begivenhed",
       "showPastEvents": "Vis tidligere begivenheder",
+      "stayOnDay": "Bliv på dagen",
+      "stayOnDayHelp": "Når en begivenhed rammer nul, bliver den på skærmen resten af dagen, før den forsvinder.",
       "scalePercent": "Størrelse ({percent}%)",
       "events": "Begivenheder",
       "holidaysButton": "Helligdage…",
@@ -2632,9 +2786,7 @@
       "repeatYearly": "Gentag hvert år",
       "holidayRecurringInfo": "Gentages hvert år · {date}",
       "clear": "Ryd",
-      "setBackground": "Vælg baggrund…",
-      "stayOnDay": "Bliv på dagen",
-      "stayOnDayHelp": "Når en begivenhed rammer nul, bliver den på skærmen resten af dagen, før den forsvinder."
+      "setBackground": "Vælg baggrund…"
     },
     "dad-joke": {
       "showDividers": "Vis skillelinjer"
@@ -2705,8 +2857,8 @@
       "viewMonthGrid": "Månedsgitter",
       "viewDayTimeline": "Dagens tidslinje",
       "viewAgenda": "Agenda",
-      "densityCozy": "Luftig (læsning på afstand)",
-      "densitySnug": "Tæt (flere begivenheder)",
+      "densityCozy": "Luftig (nemmere at læse på afstand)",
+      "densitySnug": "Kompakt (der er plads til mere)",
       "typographySmall": "Lille",
       "typographyMedium": "Mellem",
       "typographyLarge": "Stor",
@@ -2715,7 +2867,7 @@
       "typography3xLarge": "3X Stor",
       "typography4xLarge": "4X Stor",
       "view": "Visning",
-      "typographySize": "Skriftstørrelse",
+      "typographySize": "Tekststørrelse",
       "themeDefault": "Standard (fra Indstillinger)",
       "accentColor": "Accentfarve",
       "dimPastEvents": "Dæmp tidligere begivenheder",
@@ -2806,8 +2958,8 @@
       "showRewardsButtonHelp": "Tilføjer en knap på pligttavlen, så børnene kan skifte til belønningsbutikken. Bedst på skærme med touch.",
       "themeDefault": "Standard (fra Indstillinger)",
       "densityCozy": "Luftig",
-      "densitySnug": "Tæt",
-      "typographySize": "Skriftstørrelse",
+      "densitySnug": "Kompakt",
+      "typographySize": "Tekststørrelse",
       "accentColor": "Accentfarve",
       "weekStartsOn": "Ugen starter",
       "weekProgress": "Ugens stjerner",
@@ -2835,8 +2987,8 @@
       "viewMenuBoard": "Menutavle",
       "viewNextMeal": "Næste måltid",
       "densityCozy": "Luftig",
-      "densitySnug": "Tæt",
-      "typographySize": "Skriftstørrelse",
+      "densitySnug": "Kompakt",
+      "typographySize": "Tekststørrelse",
       "showEmoji": "Vis emoji",
       "showPrepTime": "Vis forberedelsestid",
       "showTags": "Vis tags",
@@ -3505,7 +3657,7 @@
       "stateTokenPreview": "Live-forhåndsvisning"
     },
     "todo": {
-      "title": "Titel",
+      "title": "Listens navn",
       "defaultTitle": "Huskeliste",
       "items": "Punkter",
       "newItemText": "Nyt punkt",
@@ -3517,7 +3669,7 @@
       "connected": "Forbundet",
       "notConfigured": "Ikke konfigureret.",
       "settingsIntegrationsLink": "Indstillinger → Integrationer",
-      "title": "Titel",
+      "title": "Listens navn",
       "viewMode": "Visning",
       "groupByLabel": "Gruppér efter",
       "sortByLabel": "Sortér efter",
@@ -3562,7 +3714,7 @@
       "showLocation": "Vis placering",
       "locationLabel": "Navn på placering",
       "iconStyle": "Ikonstil",
-      "dataProvider": "Dataudbyder",
+      "dataProvider": "Vejrkilde",
       "hoursToShow": "Timer der vises",
       "daysToShow": "Dage der vises",
       "feelsLike": "Føles som",
@@ -3589,7 +3741,7 @@
         "alerts": "Vejrvarsler"
       },
       "providers": {
-        "global": "Global standard",
+        "global": "Samme som i Indstillinger",
         "openweathermap": "OpenWeatherMap",
         "weatherapi": "WeatherAPI",
         "pirateweather": "Pirate Weather",
@@ -3892,13 +4044,10 @@
     "noResults": "Ingen moduler fundet",
     "pluginBadge": "Plugin",
     "communityPluginTooltip": "Plugin fra fællesskabet",
-    "howToAdd": "Klik eller træk over på skærmen",
-    "itemTooltip": "Klik for at tilføje, eller træk over på skærmen",
-    "fullscreenGuard": {
-      "message": "Fuldskærmsmoduler fylder hele skærmen. Alt andet på denne skærm ville blive skjult bagved.",
-      "newScreen": "Tilføj på en ny skærm",
-      "addAnyway": "Tilføj her alligevel"
-    }
+    "howToAdd": "Træk det ind på skærmen",
+    "itemTooltip": "Træk det ind på skærmen",
+    "collapseTitle": "Skjul modullisten",
+    "expandTitle": "Vis modullisten"
   },
   "backupReminder": {
     "message": {

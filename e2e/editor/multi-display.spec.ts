@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext } from '@playwright/test';
 import { getConfig, postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { expectPainted, switchDisplay } from '../helpers/editor';
 import type { DisplayNode, ScreenConfiguration } from '@/types/config';
 
 /** Two registered displays (main + kitchen), each with one labelled text module. */
@@ -43,19 +44,33 @@ test.describe('display switcher', () => {
   });
 
   test('display switcher swaps the canvas to the selected display', async ({ page }) => {
-    const switcher = page.locator('#editor-display-switcher');
-    await expect(switcher).toBeAttached(); // rendered at opacity 0, so not "visible"
+    await expect(page.getByTestId('display-switcher')).toBeVisible();
     await expect(page.locator('[data-module-id="main-text"]')).toBeVisible();
 
-    await switcher.selectOption('kitchen');
+    await switchDisplay(page, 'Kitchen');
     await expect(page.locator('[data-module-id="kitchen-text"]')).toBeVisible();
     await expect(page.locator('[data-module-id="main-text"]')).toHaveCount(0);
   });
 
+  test('the switcher menu names every display and marks the one being edited', async ({ page }) => {
+    await page.getByTestId('display-switcher').click();
+    const menu = page.getByTestId('display-switcher-menu');
+    await expect(menu).toBeVisible();
+    // The toolbar has two overflow-hidden ancestors; an absolutely-positioned
+    // menu is clipped out of sight there while still passing toBeVisible.
+    await expectPainted(menu);
+    // Every registered display gets a row, with a way to add another.
+    await expect(menu.getByRole('menuitem', { name: /Main/ })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: /Kitchen/ })).toBeVisible();
+    await expect(menu.getByRole('menuitem', { name: 'Add a display' })).toBeVisible();
+    // Escape closes it like any other dismissable layer.
+    await page.keyboard.press('Escape');
+    await expect(menu).toHaveCount(0);
+  });
+
   test('editing screens on a non-active display persists to that display only', async ({ page, request }) => {
     // Switch the editor to Kitchen, then drop a module onto its canvas.
-    const switcher = page.locator('#editor-display-switcher');
-    await switcher.selectOption('kitchen');
+    await switchDisplay(page, 'Kitchen');
     await expect(page.locator('[data-module-id="kitchen-text"]')).toBeVisible();
 
     await page.getByPlaceholder('Search modules…').fill('text');

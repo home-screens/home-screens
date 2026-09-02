@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { X, Trash2, ToggleLeft, ToggleRight, AlertTriangle, CheckCircle, Code2, ExternalLink, FileText, Loader2, PackageSearch, Download, Settings2 } from 'lucide-react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 import PluginInstallPreview, { resolveRepoUrl } from '@/components/editor/PluginInstallPreview';
 import PluginReleaseNotesModal from '@/components/editor/PluginReleaseNotesModal';
 import BetaBadge from '@/components/editor/PluginBetaBadge';
@@ -183,16 +183,30 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
     return !!stable && compareSemver(stable.version, inst.version) < 0;
   });
 
-  const trapRef = useFocusTrap<HTMLDivElement>();
-
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={t('settings.pluginStorePanel.title')}>
-      <div ref={trapRef} className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
+    // Escape and the backdrop are suspended while an install or removal is in
+    // flight, so a stray keypress can't orphan a half-written plugin.
+    <ModalFrame
+      labelledBy="plugin-store-title"
+      onClose={onClose}
+      closable={!actionInProgress}
+      className="w-full max-w-2xl"
+    >
+      <div className="w-full h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-hs-text-primary">{t('settings.pluginStorePanel.title')}</h2>
-          <button type="button" onClick={onClose} aria-label={t('modal.closeAriaLabel')} className="p-1 rounded hover:bg-hs-card">
-            <X className="w-5 h-5 text-hs-text-muted" />
-          </button>
+          <h2 id="plugin-store-title" className="text-lg font-semibold text-hs-text-primary">{t('settings.pluginStorePanel.title')}</h2>
+          <div className="flex items-center gap-2">
+            <EscHint />
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={!!actionInProgress}
+              aria-label={t('modal.closeAriaLabel')}
+              className="p-1 rounded hover:bg-hs-card disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            >
+              <X className="w-5 h-5 text-hs-text-muted" />
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -322,7 +336,7 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
           onClose={() => setReleaseNotesPlugin(null)}
         />
       )}
-    </div>
+    </ModalFrame>
   );
 }
 

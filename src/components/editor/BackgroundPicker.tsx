@@ -8,6 +8,7 @@ import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
 import ImmichBrowser from './ImmichBrowser';
+import { Lock } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import Toggle from '@/components/ui/Toggle';
@@ -83,7 +84,10 @@ function ImmichRotationFields({ rotation, onChange }: {
 
 export default function BackgroundPicker() {
   const t = useTranslate('editor');
-  const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('unsplash');
+  // Opens on the backgrounds that ship with Home Screens. Unsplash used to be
+  // the default tab and dead-ended in "add a free API key", so the first thing
+  // anyone wants to change needed a signup first.
+  const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('local');
   const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
   const { status: secretStatus } = useSecretStatus();
   const hasUnsplashKey = !!secretStatus.unsplash_access_key;
@@ -130,6 +134,10 @@ export default function BackgroundPicker() {
   if (!currentScreen || !selectedScreenId) return null;
 
   const rotationEnabled = currentScreen?.backgroundRotation?.enabled ?? false;
+  const sourceKeyMissing =
+    (rotationSource === 'unsplash' && !hasUnsplashKey) ||
+    (rotationSource === 'nasa-apod' && !hasNasaKey) ||
+    (rotationSource === 'immich' && !hasImmichKey);
   // iCloud Shared Albums need no API key, so rotation is always offerable.
   const anySourceAvailable = true;
 
@@ -179,11 +187,29 @@ export default function BackgroundPicker() {
                     }}
                     className={rotationFieldClass}
                   >
-                    {hasUnsplashKey && <option value="unsplash">Unsplash</option>}
-                    {hasNasaKey && <option value="nasa-apod">{t('backgroundPicker.sources.nasaApod')}</option>}
-                    {hasImmichKey && <option value="immich">Immich</option>}
+                    {/* Every option the stored value could be, always. Rendering
+                        only the keyed ones made a stored `unsplash` display as
+                        whatever happened to be first — iCloud — while the
+                        Unsplash-only query field stayed visible underneath. */}
+                    {(hasUnsplashKey || rotationSource === 'unsplash') && (
+                      <option value="unsplash">{t('backgroundPicker.sources.unsplash')}</option>
+                    )}
+                    {(hasNasaKey || rotationSource === 'nasa-apod') && (
+                      <option value="nasa-apod">{t('backgroundPicker.sources.nasaApod')}</option>
+                    )}
+                    {(hasImmichKey || rotationSource === 'immich') && (
+                      <option value="immich">{t('backgroundPicker.sources.immich')}</option>
+                    )}
                     <option value="icloud">{t('backgroundPicker.sources.icloud')}</option>
                   </select>
+                  {sourceKeyMissing && (
+                    <span
+                      className="mt-1 block text-[10px] leading-relaxed text-hs-warning"
+                      data-testid="background-source-key-missing"
+                    >
+                      {t('backgroundPicker.sourceKeyMissing')}
+                    </span>
+                  )}
                 </label>
                 {rotationSource === 'unsplash' && (
                   <label className="block">
@@ -288,58 +314,58 @@ export default function BackgroundPicker() {
         </div>
       )}
 
-      <div className="flex gap-1 bg-hs-card rounded-md p-0.5">
-        <button
-          onClick={() => setTab('unsplash')}
-          className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'unsplash' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
-          }`}
-        >
-          Unsplash
-        </button>
-        <button
-          onClick={() => setTab('nasa')}
-          className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'nasa' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
-          }`}
-        >
-          {t('backgroundPicker.tabs.nasa')}
-        </button>
-        {hasImmichKey && (
+      {/* Two rows rather than one scrolling row: four tabs do not fit across a
+          288px panel, and a strip that scrolls sideways hid Immich behind an
+          edge nothing advertised. */}
+      <div className="grid grid-cols-2 gap-1 rounded-md bg-hs-card p-0.5">
+        {/* Backgrounds first: it is the only tab that always has something in
+            it. The others carry a lock until their key is set up, so a dead
+            end is visible before it is clicked. */}
+        {([
+          { id: 'local' as const, label: t('backgroundPicker.tabs.local'), locked: false },
+          { id: 'unsplash' as const, label: 'Unsplash', locked: !hasUnsplashKey },
+          { id: 'nasa' as const, label: t('backgroundPicker.tabs.nasa'), locked: !hasNasaKey },
+          { id: 'immich' as const, label: 'Immich', locked: !hasImmichKey },
+        ]).map((entry) => (
           <button
-            onClick={() => setTab('immich')}
-            className={`flex-1 text-xs py-1.5 rounded ${
-              tab === 'immich' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
+            key={entry.id}
+            onClick={() => setTab(entry.id)}
+            data-testid={`background-tab-${entry.id}`}
+            title={entry.locked ? t('backgroundPicker.needsKey') : undefined}
+            className={`flex items-center justify-center gap-1 truncate rounded px-2 py-1.5 text-xs ${
+              tab === entry.id
+                ? 'bg-hs-hover text-hs-text-primary'
+                : entry.locked
+                  ? 'text-hs-text-faint hover:text-hs-text-muted'
+                  : 'text-hs-text-muted hover:text-hs-text-secondary'
             }`}
           >
-            Immich
+            {entry.locked && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
+            {entry.label}
           </button>
-        )}
-        <button
-          onClick={() => setTab('local')}
-          className={`flex-1 text-xs py-1.5 rounded ${
-            tab === 'local' ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
-          }`}
-        >
-          {t('backgroundPicker.tabs.local')}
-        </button>
+        ))}
       </div>
 
-      {tab === 'unsplash' && (
-        <UnsplashBrowser selectedScreenId={selectedScreenId} hasUnsplashKey={hasUnsplashKey} />
-      )}
+      {/* One tab's contents can be much shorter than another's. Without a floor
+          the panel collapses on every switch, the scroll container clamps, and
+          the picker appears to jump back to the top of the settings panel. */}
+      <div className="min-h-96">
+        {tab === 'unsplash' && (
+          <UnsplashBrowser selectedScreenId={selectedScreenId} hasUnsplashKey={hasUnsplashKey} />
+        )}
 
-      {tab === 'nasa' && (
-        <NasaBrowser selectedScreenId={selectedScreenId} hasNasaKey={hasNasaKey} />
-      )}
+        {tab === 'nasa' && (
+          <NasaBrowser selectedScreenId={selectedScreenId} hasNasaKey={hasNasaKey} />
+        )}
 
-      {tab === 'immich' && (
-        <ImmichBrowser selectedScreenId={selectedScreenId} hasImmichKey={hasImmichKey} />
-      )}
+        {tab === 'immich' && (
+          <ImmichBrowser selectedScreenId={selectedScreenId} hasImmichKey={hasImmichKey} />
+        )}
 
-      {tab === 'local' && (
-        <LocalBackgrounds selectedScreenId={selectedScreenId} />
-      )}
+        {tab === 'local' && (
+          <LocalBackgrounds selectedScreenId={selectedScreenId} />
+        )}
+      </div>
     </AccordionSection>
   );
 }

@@ -3,13 +3,20 @@
 import { useState, useEffect } from 'react';
 import { createTZDate } from '@/lib/timezone';
 
-export function useTZClock(timezone: string | undefined, intervalMs = 60_000): Date {
+/**
+ * `enabled: false` freezes the returned value and skips the recurring
+ * interval entirely — for a caller that only needs `now` when something
+ * time-dependent is actually in view, so the rest of its tree doesn't
+ * re-render every tick for no reason.
+ */
+export function useTZClock(timezone: string | undefined, intervalMs = 60_000, enabled = true): Date {
   const [now, setNow] = useState(() => createTZDate(timezone));
   useEffect(() => {
+    if (!enabled) return;
     setNow(createTZDate(timezone));
     const interval = setInterval(() => setNow(createTZDate(timezone)), intervalMs);
     return () => clearInterval(interval);
-  }, [timezone, intervalMs]);
+  }, [timezone, intervalMs, enabled]);
   return now;
 }
 

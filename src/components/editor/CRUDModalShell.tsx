@@ -1,8 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
+import ModalFrame from '@/components/ui/ModalFrame';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 
@@ -13,6 +12,10 @@ interface CRUDModalShellProps {
   maxWidth?: string;
   headerActions?: ReactNode;
   hideFooter?: boolean;
+  /** Suspend Escape and backdrop-click while a save or other action is in
+   *  flight, so a stray keypress can't orphan it. Defaults to always closable,
+   *  matching every caller before this took a ModalFrame underneath. */
+  closable?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -24,24 +27,20 @@ export default function CRUDModalShell({
   maxWidth = 'max-w-4xl',
   headerActions,
   hideFooter,
+  closable = true,
   onClose,
   children,
 }: CRUDModalShellProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const trapRef = useFocusTrap<HTMLDivElement>();
-
-  useEscapeKey(onClose);
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div ref={trapRef} className={`relative bg-hs-panel border border-hs-border-strong rounded-xl w-full ${maxWidth} h-[85vh] flex flex-col`}>
+    <ModalFrame labelledBy="crud-modal-title" onClose={onClose} closable={closable} className={`w-full ${maxWidth}`}>
+      <div className="bg-hs-panel border border-hs-border-strong rounded-xl w-full h-[85vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-3 border-b border-hs-border-strong">
           <div className="flex items-center gap-3">
             {icon}
-            <h2 className="text-sm font-semibold text-hs-text-primary">{title}</h2>
+            <h2 id="crud-modal-title" className="text-sm font-semibold text-hs-text-primary">{title}</h2>
             {subtitle && (
               <span className="text-xs text-hs-text-muted">{subtitle}</span>
             )}
@@ -49,8 +48,9 @@ export default function CRUDModalShell({
           {headerActions ?? (
             <button
               onClick={onClose}
+              disabled={!closable}
               aria-label={tCore('actions.close')}
-              className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors"
+              className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             >
               &times;
             </button>
@@ -67,6 +67,6 @@ export default function CRUDModalShell({
           </div>
         )}
       </div>
-    </div>
+    </ModalFrame>
   );
 }

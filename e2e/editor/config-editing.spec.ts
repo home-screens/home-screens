@@ -684,13 +684,13 @@ test('quote: picking an accent color preset persists', async ({ page, request })
 // Covers todo, sticky-note, todoist, garbage-day, affirmations, meal-planner,
 // chore-chart.
 
-test('todo: editing Title persists', async ({ page, request }) => {
+test('todo: editing the list name persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('todo', {
     items: [{ id: 't1', text: 'E2E TASK', completed: false }],
   }));
 
   await autosaved(page, async () => {
-    await page.getByLabel('Title', { exact: true }).fill('MY TODOS');
+    await page.getByLabel('List name', { exact: true }).fill('MY TODOS');
   });
 
   expect((await moduleConfig(request, 'todo')).title).toBe('MY TODOS');
@@ -965,8 +965,14 @@ test('fullscreen-photo: switching Mode persists', async ({ page, request }) => {
 test('fullscreen-news: switching View persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-news'));
 
+  // getByLabel matches substrings, and this module renders real headlines —
+  // any story with "view" in it makes `getByLabel('View')` ambiguous. Target
+  // the select by an option only it carries, as the standings tests do.
+  const viewSelect = page
+    .locator('select')
+    .filter({ has: page.getByRole('option', { name: 'Front page', exact: true }) });
   await autosaved(page, async () => {
-    await page.getByLabel('View').selectOption('front-page');
+    await viewSelect.selectOption('front-page');
   });
 
   expect((await moduleConfig(request, 'fullscreen-news')).view).toBe('front-page');
@@ -990,13 +996,13 @@ function colorText(page: Page, label: string) {
 
 // ---- weather ----
 
-test('weather: swapping the Data Provider persists', async ({ page, request }) => {
+test('weather: swapping the weather source persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('weather'));
 
-  // The Data Provider select only renders once /api/secrets resolves (it always
+  // The weather source select only renders once /api/secrets resolves (it always
   // lists the no-key providers: noaa, open-meteo, yr, smhi, envcanada).
   await autosaved(page, async () => {
-    await page.getByLabel('Data Provider').selectOption('noaa');
+    await page.getByLabel('Weather source').selectOption('noaa');
   });
 
   expect((await moduleConfig(request, 'weather')).provider).toBe('noaa');
@@ -1352,6 +1358,7 @@ async function moduleInstance(request: APIRequestContext) {
     position: { x: number; y: number };
     size: { w: number; h: number };
     style: Record<string, unknown>;
+    config: Record<string, unknown>;
   };
 }
 
@@ -1445,6 +1452,19 @@ test.describe('PropertyPanel Style', () => {
     mod.style = { ...mod.style, backdropBlur: 0 };
     await selectModule(page, request, mod);
     await page.getByRole('button', { name: 'Style', exact: true }).click();
+  }
+
+  /**
+   * The title lives in Module settings behind a three-way picker (the module's
+   * own title / my own words / none), so every title test starts by asking for
+   * its own words.
+   */
+  async function selectTitledGreeting(page: Page, request: APIRequestContext) {
+    const mod = buildModuleInstance('greeting', { name: 'STYLE' });
+    mod.style = { ...mod.style, backdropBlur: 0 };
+    await selectModule(page, request, mod);
+    // Module settings is open by default; the picker is its first field.
+    await page.getByLabel('Title', { exact: true }).selectOption('custom');
   }
 
   /** The inner ModuleWrapper div — the sole descendant with an inline background-color. */
@@ -1588,16 +1608,16 @@ test.describe('PropertyPanel Style', () => {
     await expect(textMod.locator('strong', { hasText: 'bold' })).toHaveCSS('font-weight', '700');
   });
 
-  // ── Title strip (Style › Text) ────────────────────────────────────────────
+  // ── Title strip (Module settings › Title) ────────────────────────────────────────────
   // The strip renders inside ModuleWrapper (data-module-title), so these assert
   // the inner wrapper's inline style attribute for sizes (the exact pre-zoom
   // source, per the suite note above) and computed CSS for non-length props.
 
   test('title input persists and renders a centered strip on the card', async ({ page, request }) => {
-    await selectStyledGreeting(page, request);
+    await selectTitledGreeting(page, request);
 
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+      await page.getByLabel('Title words', { exact: true }).fill('Kitchen');
     });
 
     const inst = await moduleInstance(request);
@@ -1617,14 +1637,14 @@ test.describe('PropertyPanel Style', () => {
   });
 
   test('title size slider overrides the strip size and persists', async ({ page, request }) => {
-    await selectStyledGreeting(page, request);
+    await selectTitledGreeting(page, request);
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+      await page.getByLabel('Title words', { exact: true }).fill('Kitchen');
     });
 
     // End jumps the slider to its max (72) deterministically.
     await autosaved(page, async () => {
-      const slider = page.getByRole('slider', { name: 'Title Size' });
+      const slider = page.getByRole('slider', { name: 'Title size' });
       await slider.focus();
       await slider.press('End');
     });
@@ -1635,11 +1655,11 @@ test.describe('PropertyPanel Style', () => {
   });
 
   test('a long title stays on one line without changing the module footprint', async ({ page, request }) => {
-    await selectStyledGreeting(page, request);
+    await selectTitledGreeting(page, request);
     const before = (await page.locator('[data-module-id="greeting-1"]').boundingBox())!;
 
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('The Extremely Long Kitchen Information Title');
+      await page.getByLabel('Title words', { exact: true }).fill('The Extremely Long Kitchen Information Title');
     });
 
     const strip = page.locator('[data-module-id="greeting-1"] [data-module-title]');
@@ -1666,13 +1686,13 @@ test.describe('PropertyPanel Style', () => {
   });
 
   test('clearing the title removes the strip, the stored key, and the stored size', async ({ page, request }) => {
-    await selectStyledGreeting(page, request);
+    await selectTitledGreeting(page, request);
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+      await page.getByLabel('Title words', { exact: true }).fill('Kitchen');
     });
     await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]')).toHaveText('Kitchen');
     await autosaved(page, async () => {
-      const slider = page.getByRole('slider', { name: 'Title Size' });
+      const slider = page.getByRole('slider', { name: 'Title size' });
       await slider.focus();
       await slider.press('End');
     });
@@ -1681,7 +1701,7 @@ test.describe('PropertyPanel Style', () => {
     // Empty input omits the key entirely so configs stay clean — and takes
     // titleFontSize with it, so a title added later starts at the default.
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('');
+      await page.getByLabel('Title words', { exact: true }).fill('');
     });
     const style = (await moduleInstance(request)).style;
     expect(style.title).toBeUndefined();
@@ -1692,8 +1712,8 @@ test.describe('PropertyPanel Style', () => {
   test('titles persist trimmed on every keystroke; whitespace-only never persists', async ({ page, request }) => {
     // The trim happens in onChange (not onBlur), so a tab closed mid-edit can
     // never leave padding or a whitespace-only title behind in the config.
-    await selectStyledGreeting(page, request);
-    const input = page.getByLabel('Card Title', { exact: true });
+    await selectTitledGreeting(page, request);
+    const input = page.getByLabel('Title words', { exact: true });
 
     await autosaved(page, async () => {
       await input.fill('Kitchen   ');
@@ -1709,17 +1729,19 @@ test.describe('PropertyPanel Style', () => {
     expect((await moduleInstance(request)).style.title).toBeUndefined();
   });
 
-  test('the Title Size slider appears only with a title and resets to the fallback', async ({ page, request }) => {
+  test('the Title size slider appears only with a title and resets to the fallback', async ({ page, request }) => {
     await selectStyledGreeting(page, request);
-    // No title yet: no size slider, so titleFontSize can never be written
-    // before a title exists.
-    await expect(page.getByRole('slider', { name: 'Title Size' })).toHaveCount(0);
+    // Picker on "No title": no words field and no size slider, so
+    // titleFontSize can never be written before a title exists.
+    await expect(page.getByRole('slider', { name: 'Title size' })).toHaveCount(0);
+    await expect(page.getByLabel('Title words', { exact: true })).toHaveCount(0);
 
+    await page.getByLabel('Title', { exact: true }).selectOption('custom');
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Kitchen');
+      await page.getByLabel('Title words', { exact: true }).fill('Kitchen');
     });
     await autosaved(page, async () => {
-      const slider = page.getByRole('slider', { name: 'Title Size' });
+      const slider = page.getByRole('slider', { name: 'Title size' });
       await slider.focus();
       await slider.press('End');
     });
@@ -1738,21 +1760,58 @@ test.describe('PropertyPanel Style', () => {
     await selectModule(page, request, buildModuleInstance('display-control'));
     await page.getByRole('button', { name: 'Style', exact: true }).click();
 
-    // The strip could never render (no ModuleWrapper), so the fields are gone —
-    // while ordinary text styling stays available.
+    // The strip could never render (no ModuleWrapper), so the whole title
+    // control is gone — while ordinary text styling stays available.
     await expect(page.getByRole('slider', { name: 'Font Size' })).toBeVisible();
-    await expect(page.getByLabel('Card Title', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('slider', { name: 'Title Size' })).toHaveCount(0);
+    await expect(page.getByTestId('module-title-control')).toHaveCount(0);
+    await expect(page.getByLabel('Title words', { exact: true })).toHaveCount(0);
   });
 
-  test('modules with their own title show a hint under Card Title', async ({ page, request }) => {
+  test('only modules with a title of their own offer that option in the picker', async ({ page, request }) => {
+    // The picker is what makes two stacked titles unreachable: a module that
+    // has its own heading offers it as the default choice, one that doesn't
+    // can only be given words or left bare.
     await selectModule(page, request, buildModuleInstance('todo'));
-    await page.getByRole('button', { name: 'Style', exact: true }).click();
-    await expect(page.getByText('also shows its own title')).toBeVisible();
+    const todoPicker = page.getByLabel('Title', { exact: true });
+    await expect(todoPicker).toHaveValue('own');
+    await expect(todoPicker.getByRole('option')).toHaveText([
+      "The module's own title",
+      'My own words',
+      'No title',
+    ]);
 
-    // Modules without a built-in title get no hint.
     await selectStyledGreeting(page, request);
-    await expect(page.getByText('also shows its own title')).toHaveCount(0);
+    const greetingPicker = page.getByLabel('Title', { exact: true });
+    await expect(greetingPicker.getByRole('option')).toHaveText(['My own words', 'No title']);
+  });
+
+  test('picking the module\'s own title clears the card title and turns its heading back on', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('todo'));
+    const picker = page.getByLabel('Title', { exact: true });
+
+    await autosaved(page, async () => {
+      await picker.selectOption('custom');
+    });
+    await autosaved(page, async () => {
+      await page.getByLabel('Title words', { exact: true }).fill('Jobs');
+    });
+    let inst = await moduleInstance(request);
+    expect(inst.style.title).toBe('Jobs');
+    expect(inst.config.showTitle).toBe(false);
+
+    await autosaved(page, async () => {
+      await picker.selectOption('own');
+    });
+    inst = await moduleInstance(request);
+    expect(inst.style.title).toBeUndefined();
+    expect(inst.config.showTitle).toBeUndefined();
+
+    await autosaved(page, async () => {
+      await picker.selectOption('none');
+    });
+    inst = await moduleInstance(request);
+    expect(inst.style.title).toBeUndefined();
+    expect(inst.config.showTitle).toBe(false);
   });
 
   test('the strip carries its own inset on padding-0 media modules', async ({ page, request }) => {
@@ -1763,9 +1822,9 @@ test.describe('PropertyPanel Style', () => {
       alt: 'e2e',
     });
     await selectModule(page, request, mod);
-    await page.getByRole('button', { name: 'Style', exact: true }).click();
+    await page.getByLabel('Title', { exact: true }).selectOption('custom');
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Photo Frame');
+      await page.getByLabel('Title words', { exact: true }).fill('Photo Frame');
     });
 
     const strip = page.locator('[data-module-id="image-1"] [data-module-title]');
@@ -1773,9 +1832,9 @@ test.describe('PropertyPanel Style', () => {
     await expect(strip).toHaveAttribute('style', /padding:\s*16px 16px 8px/);
 
     // A padded card contributes its own gap, so its strip only pads below.
-    await selectStyledGreeting(page, request);
+    await selectTitledGreeting(page, request);
     await autosaved(page, async () => {
-      await page.getByLabel('Card Title', { exact: true }).fill('Padded');
+      await page.getByLabel('Title words', { exact: true }).fill('Padded');
     });
     await expect(page.locator('[data-module-id="greeting-1"] [data-module-title]'))
       .toHaveAttribute('style', /padding:\s*0(px)? 0(px)? 8px/);
@@ -1825,20 +1884,18 @@ test.describe('PropertyPanel Schedule (module level)', () => {
     // The module Schedule lives in its own collapsed accordion.
     await page.getByRole('button', { name: 'Schedule', exact: true }).click();
 
-    // Enabling seeds a weekday window (Mon–Fri = [1,2,3,4,5]); the day grid and
-    // time-window inputs appear only once enabled.
+    // Enabling seeds every day, all day — a no-op the user then narrows,
+    // rather than a silent Mon-Fri that hides weekend content.
     await autosaved(page, async () => {
-      await page.getByRole('switch', { name: 'Enable Schedule' }).click();
+      await page.getByRole('switch', { name: 'Only show at certain times' }).click();
     });
-    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([1, 2, 3, 4, 5]);
+    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([0, 1, 2, 3, 4, 5, 6]);
 
-    // Sunday (index 0) starts inactive; clicking its day button adds it. The
-    // editor sorts the result lexicographically, which for single digits is the
-    // numeric order [0,1,2,3,4,5].
+    // Clicking an active day removes it; the editor keeps the list sorted.
     await autosaved(page, async () => {
       await page.getByRole('button', { name: 'Sun', exact: true }).click();
     });
-    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([0, 1, 2, 3, 4, 5]);
+    await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([1, 2, 3, 4, 5, 6]);
 
     // The From/Until <input type="time"> fields commit on change (not blur).
     await autosaved(page, async () => {
@@ -1849,7 +1906,7 @@ test.describe('PropertyPanel Schedule (module level)', () => {
     });
 
     expect(await moduleSchedule(request)).toMatchObject({
-      daysOfWeek: [0, 1, 2, 3, 4, 5],
+      daysOfWeek: [1, 2, 3, 4, 5, 6],
       startTime: '06:30',
       endTime: '09:15',
     });

@@ -19,7 +19,7 @@
     "refreshSeconds": "Aktualisierung (Sekunden)",
     "refresh": "Aktualisieren",
     "theme": "Design",
-    "density": "Dichte",
+    "density": "Abstände",
     "objectFit": "Bildanpassung",
     "objectFitCover": "Ausfüllen",
     "objectFitContain": "Einpassen",
@@ -80,7 +80,8 @@
         "hint": "Jemand hat aus einem anderen Editor oder vom Handy gespeichert, während du bearbeitet hast. Lade die Änderungen oder behalte deine und überschreibe sie.",
         "loadTheirs": "Änderungen laden",
         "keepMine": "Meine behalten"
-      }
+      },
+      "savedToDisplay": "Auf {name} gespeichert"
     }
   },
   "canvas": {
@@ -109,7 +110,15 @@
       "selectBehind": "Modul dahinter auswählen",
       "hide": "Auf dem Display ausblenden",
       "show": "Auf dem Display anzeigen"
-    }
+    },
+    "emptyDisplay": {
+      "title": "Das Display {name} hat noch keine Bildschirme",
+      "body": "Ein Bildschirm ist eine Seite im Wechsel. Fang mit einem leeren an oder übernimm, was schon auf einem anderen Display ist.",
+      "addScreen": "Bildschirm hinzufügen",
+      "copyFrom": "Bildschirme von {name} übernehmen"
+    },
+    "zoomFit": "Anpassen",
+    "zoomHint": "Strg+Scrollen zum Zoomen, Scrollen zum Verschieben"
   },
   "draggableModule": {
     "scheduledActiveTitle": "Geplant – derzeit aktiv",
@@ -120,12 +129,24 @@
     "conditionMetTitle": "Bedingungen erfüllt — wird auf dem Display angezeigt",
     "conditionUnmetTitle": "Bedingungen nicht erfüllt — auf dem Display ausgeblendet",
     "conditionMetTitleEditor": "Bedingungen erfüllt, würde gerade angezeigt",
-    "conditionUnmetTitleEditor": "Bedingungen nicht erfüllt, würde gerade ausgeblendet"
+    "conditionUnmetTitleEditor": "Bedingungen nicht erfüllt, würde gerade ausgeblendet",
+    "status": {
+      "hidden": "Ausgeblendet",
+      "hiddenDetail": "Ausgeschaltet, erscheint also nie auf dem Display. Unter „Sichtbarkeit“ wieder einschalten.",
+      "scheduledActiveDetail": "{summary} Gerade ist es zu sehen.",
+      "scheduledInactiveDetail": "{summary} Gerade ist es nicht an der Wand.",
+      "conditionOnKey": "Wartet auf {key}",
+      "conditionNoKey": "Wartet auf einen Live-Wert",
+      "background": "Läuft im Hintergrund"
+    }
   },
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
     "label": "Welches Display bearbeitet diese Leinwand gerade?",
-    "optionWithDimensions": "{name} ({width}×{height})"
+    "optionWithDimensions": "{name} ({width}×{height})",
+    "onNow": "jetzt an",
+    "lastSeen": "zuletzt gesehen {time}",
+    "addDisplay": "Display hinzufügen"
   },
   "screenTabs": {
     "stickyTooltip": "bleibt – wechselt nicht von selbst; braucht ein Tippen oder die Fernbedienung",
@@ -181,25 +202,37 @@
     "sectionTitle": "Screen-Einstellungen",
     "moduleCountSingular": "{count} Modul",
     "moduleCountPlural": "{count} Module",
-    "durationLabel": "Dauer",
-    "secondsUnit": "Sek.",
+    "durationLabel": "Wie lange dieser Bildschirm zu sehen ist",
+    "secondsUnit": "Sekunden",
     "stickyBadge": "Fix",
-    "stickyHint": "0 = auf diesem Screen bleiben (nur manueller Wechsel).",
+    "stickyHint": "Stelle das auf 0, damit dieser Bildschirm bleibt, bis jemand ihn antippt oder die Fernbedienung benutzt.",
     "shortDurationWarning": "Unter {seconds} Sekunden wechselt der Bildschirm womöglich, bevor Nachrichten und Wetter fertig geladen sind.",
-    "inheritsHintBefore": "Übernimmt die Standardeinstellung: ",
-    "inheritsHintValue": "{seconds} s",
-    "inheritsHintAfter": ".",
-    "overrideButton": "Überschreiben",
-    "resetButton": "Zurücksetzen"
+    "inheritsHintBefore": "Wird ",
+    "inheritsHintValue": "{seconds} Sekunden",
+    "inheritsHintAfter": " lang gezeigt, genau wie deine anderen Bildschirme.",
+    "overrideButton": "Eine andere Zeit einstellen",
+    "resetButton": "Zurück zur üblichen Zeit"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
-    "enableLabel": "Zeitplan aktivieren",
+    "enableLabel": "Nur zu bestimmten Zeiten anzeigen",
     "timeWindowTitle": "Zeitfenster",
     "fromLabel": "Von",
     "untilLabel": "Bis",
     "behaviorTitle": "Verhalten",
-    "invertLabel": "Umkehren (während des Fensters ausblenden)"
+    "invertLabel": "In diesen Stunden stattdessen ausblenden",
+    "invertNeedsWindow": "Stelle zuerst eine Von- und eine Bis-Zeit ein.",
+    "summary": {
+      "shows": "Wird {when} angezeigt.",
+      "hides": "Wird {when} ausgeblendet. Sonst immer zu sehen.",
+      "short": "{days}, {time}",
+      "everyDay": "jeden Tag",
+      "weekdays": "Mo bis Fr",
+      "weekends": "Sa und So",
+      "allDay": "ganztägig",
+      "window": "{start} bis {end}"
+    },
+    "allDayHint": "Lass beide leer, damit es den ganzen Tag zu sehen ist."
   },
   "registry": {
     "categories": {
@@ -258,6 +291,98 @@
       "shape": "Form & Trenner",
       "display-control": "Anzeigesteuerung",
       "traffic": "Verkehr & Pendelwege"
+    },
+    "descriptions": {
+      "fullscreen-calendar": "Deine ganze Woche oder der ganze Monat, bildschirmfüllend",
+      "fullscreen-chore-chart": "Die Aufgaben von allen, bildschirmfüllend",
+      "fullscreen-meal-planner": "Das Abendessen dieser Woche, bildschirmfüllend",
+      "fullscreen-photo": "Deine Bilder, bildschirmfüllend",
+      "fullscreen-news": "Schlagzeilen, bildschirmfüllend",
+      "fullscreen-weather": "Die Vorhersage, bildschirmfüllend",
+      "clock": "Die Uhrzeit, in achtzehn verschiedenen Designs",
+      "calendar": "Deine nächsten Termine als Liste",
+      "countdown": "Tage bis zum Geburtstag, zur Reise oder zum großen Tag",
+      "date": "Nur das heutige Datum",
+      "year-progress": "Wie viel vom Jahr, Monat oder Tag schon vorbei ist",
+      "multi-month": "Zwei oder mehr Monate auf einen Blick",
+      "weather": "Jetzt gerade und die nächsten Stunden oder Tage",
+      "moon-phase": "Der Mond heute Nacht und wann er voll ist",
+      "sunrise-sunset": "Wann die Sonne aufgeht und wieder untergeht",
+      "air-quality": "Wie sauber die Luft draußen ist",
+      "rain-map": "Eine Live-Radarkarte vom Regen in der Nähe",
+      "news": "Schlagzeilen von den Seiten, denen du folgst",
+      "stock-ticker": "Aktienkurse der Firmen, die dich interessieren",
+      "crypto": "Kurse der Coins, die dich interessieren",
+      "sports": "Ergebnisse und Spieltermine deiner Teams",
+      "standings": "Ligatabellen für deine Teams",
+      "dad-joke": "Jeden Tag ein neuer flacher Witz",
+      "quote": "Ein Gedanke für den Tag",
+      "word-of-day": "Ein neues Wort und was es bedeutet",
+      "history": "Was an diesem Tag vor Jahren passiert ist",
+      "todo": "Eine Liste, die du an der Wand abhaken kannst",
+      "sticky-note": "Eine kurze Notiz in deinen eigenen Worten",
+      "greeting": "Eine Begrüßung, die sich im Lauf des Tages ändert",
+      "todoist": "Deine Todoist-Aufgaben an der Wand",
+      "garbage-day": "Welche Tonne rausmuss, und wann",
+      "affirmations": "Ein netter Gedanke für den Start in den Tag",
+      "meal-planner": "Was es diese Woche zum Abendessen gibt",
+      "chore-chart": "Wer heute was zu tun hat",
+      "text": "Beliebiger Text, gestaltet wie du magst",
+      "image": "Ein Bild, das du selbst aussuchst",
+      "video": "Ein Video in Dauerschleife, aus einer Datei oder von YouTube",
+      "photo-slideshow": "Familienbilder in Dauerschleife",
+      "qr-code": "Ein Code, den man mit dem Handy scannen kann",
+      "iframe": "Eine beliebige Webseite in einem Kasten",
+      "icon": "Ein einzelnes Symbol, etwa ein Herz oder ein Auto",
+      "shape": "Linien und Flächen zum Abtrennen",
+      "display-control": "Per Fingertipp aufwecken, schlafen legen oder Bildschirme wechseln",
+      "traffic": "Wie lange die Fahrt zur Arbeit oder zur Schule dauert"
+    },
+    "keywords": {
+      "fullscreen-calendar": "kalender termine agenda woche monat familie",
+      "fullscreen-chore-chart": "kinder aufgaben haushalt putzplan sterne pflichten familie",
+      "fullscreen-meal-planner": "essen abendessen essensplan speiseplan rezepte einkaufsliste woche",
+      "fullscreen-photo": "fotos bilder erinnerungen album diashow",
+      "fullscreen-news": "nachrichten schlagzeilen meldungen rss artikel",
+      "fullscreen-weather": "wetter temperatur regen vorhersage warm kalt",
+      "clock": "uhr uhrzeit zeit stunden minuten analog digital",
+      "calendar": "kalender termine agenda verabredungen ical google",
+      "countdown": "geburtstag urlaub ferien weihnachten jubilaeum jubiläum tage bis",
+      "date": "datum tag monat jahr heute",
+      "year-progress": "fortschritt balken prozent jahr monat tag",
+      "multi-month": "monate jahresplaner uebersicht übersicht raster kalender",
+      "weather": "wetter temperatur regen schnee wind vorhersage",
+      "moon-phase": "mond vollmond mondphase nacht himmel",
+      "sunrise-sunset": "sonnenaufgang sonnenuntergang daemmerung dämmerung tageslicht sonne",
+      "air-quality": "luft feinstaub pollen smog allergie aqi",
+      "rain-map": "regenradar radar niederschlag unwetter karte",
+      "news": "nachrichten schlagzeilen rss feed artikel",
+      "stock-ticker": "aktien boerse börse kurse dax geld finanzen",
+      "crypto": "bitcoin ethereum krypto coins kurse geld",
+      "sports": "sport ergebnisse spiele fussball fußball bundesliga verein",
+      "standings": "tabelle liga rangliste bundesliga platzierung teams",
+      "dad-joke": "witz witze flachwitz lustig humor lachen kinder",
+      "quote": "zitat spruch weisheit motivation inspiration",
+      "word-of-day": "wort vokabel woerterbuch wörterbuch lernen kinder",
+      "history": "geschichte jahrestag historie fakten heute vor jahren",
+      "todo": "aufgaben liste checkliste einkaufsliste erledigen",
+      "sticky-note": "notiz zettel merkzettel nachricht post-it",
+      "greeting": "begruessung begrüßung hallo guten morgen willkommen familie",
+      "todoist": "aufgaben todoist checkliste liste",
+      "garbage-day": "muell müll abfall tonne restmuell biotonne gelber sack",
+      "affirmations": "affirmation ermutigung positiv freundlich motivation kinder",
+      "meal-planner": "essen abendessen essensplan speiseplan rezepte einkaufsliste",
+      "chore-chart": "kinder aufgaben haushalt putzplan sterne pflichten familie muell",
+      "text": "text worte beschriftung ueberschrift überschrift titel nachricht",
+      "image": "bild foto logo grafik",
+      "video": "video film clip youtube schleife",
+      "photo-slideshow": "fotos bilder diashow album erinnerungen immich icloud",
+      "qr-code": "qr code scannen link wlan handy",
+      "iframe": "webseite website einbetten seite url browser",
+      "icon": "symbol icon zeichen piktogramm logo",
+      "shape": "linie trenner strich kasten rahmen form",
+      "display-control": "touch tippen knoepfe knöpfe aufwecken schlafen helligkeit bildschirm",
+      "traffic": "verkehr pendeln fahrt route stau arbeit schule"
     }
   },
   "settings": {
@@ -414,7 +539,7 @@
       "holidays": {
         "heading": "Gesetzliche Feiertage",
         "none": "Keine",
-        "help": "Gesetzliche Feiertage in Kalender-Widgets anzeigen. Daten von Nager.Date."
+        "help": "Gesetzliche Feiertage in Kalender-Modulen anzeigen. Daten von Nager.Date."
       },
       "shared": {
         "daysAheadLabel": "Tage im Voraus"
@@ -559,7 +684,7 @@
     },
     "weatherPage": {
       "heading": "Wetter",
-      "description": "Konfiguriere einen der untenstehenden Wetteranbieter. Einzelne Wetter-Widgets können jeden konfigurierten Anbieter wählen; einer wird als Standard verwendet.",
+      "description": "Richte unten einen oder mehrere Wetteranbieter ein. Einzelne Wetter-Module können jeden eingerichteten Anbieter auswählen; einer davon wird als Standard verwendet.",
       "unitsLabel": "Einheiten",
       "imperialOption": "Imperial (°F, mph)",
       "metricOption": "Metrisch (°C, km/h)",
@@ -939,7 +1064,7 @@
         "webClientSecretHelp": "Das Client-Geheimnis aus dem Webanwendungs-Zugangsdatenpaar oben.",
         "mapsKeyLabel": "Maps-API-Schlüssel",
         "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
-        "mapsKeyHelp": "Optional, für das Verkehrs-/Pendel-Widget. Aktiviere die Routes API im selben Cloud-Console-Projekt."
+        "mapsKeyHelp": "Optional, für das Verkehrs-/Pendel-Modul. Aktiviere die Routes API im selben Cloud-Console-Projekt."
       },
       "immich": {
         "name": "Immich",
@@ -1416,7 +1541,7 @@
       "noReportHint": "Dieses Display hat noch keine Werte gemeldet. Werte erscheinen hier, sobald das Display läuft und etwas veröffentlicht.",
       "editorValuesHint": "Live-Werte aus diesem Editor. Schalte das Display ein, um zu sehen, was es tatsächlich meldet.",
       "offlineSinceHint": "Das Display hat sich seit {time} nicht gemeldet. Die Zeilen zeigen die zuletzt gesendeten Werte.",
-      "emptyHint": "Noch nichts hier. Werte erscheinen von selbst, sobald etwas sie nutzt, etwa eine Bedingung an einem Widget oder ein Live-Wert in einem Text-Widget. Es muss nichts im Voraus eingerichtet werden.",
+      "emptyHint": "Noch nichts hier. Werte erscheinen von selbst, sobald etwas sie nutzt, etwa eine Bedingung an einem Modul oder ein Live-Wert in einem Text-Modul. Es muss nichts im Voraus eingerichtet werden.",
       "neverPublished": "Nie veröffentlicht",
       "neverPublishedDetail": "Nichts auf dem Display veröffentlicht diesen Schlüssel; alles, was ihn nutzt, folgt der Einstellung 'Bevor Daten ankommen'.",
       "unreferencedLabel": "Nichts referenziert diesen Schlüssel.",
@@ -1974,11 +2099,13 @@
     "nasaInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Das Display prüft im gewählten Intervall auf Updates.",
     "sources": {
       "nasaApod": "NASA-Bild des Tages",
-      "icloud": "Geteiltes iCloud-Album"
+      "icloud": "Geteiltes iCloud-Album",
+      "unsplash": "Unsplash",
+      "immich": "Immich"
     },
     "tabs": {
       "nasa": "NASA",
-      "local": "Lokal"
+      "local": "Hintergründe"
     },
     "intervals": {
       "minutes": "{count} Minuten",
@@ -1996,7 +2123,21 @@
     "icloud": {
       "albumLabel": "Album-Link",
       "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein."
-    }
+    },
+    "needsKey": "Braucht einen kostenlosen Schlüssel",
+    "starterHeading": "Hintergründe, die bei Home Screens dabei sind",
+    "starters": {
+      "midnight": "Mitternacht",
+      "dusk": "Abenddämmerung",
+      "forest": "Wald",
+      "deep-blue": "Tiefblau",
+      "charcoal": "Anthrazit",
+      "sunrise": "Sonnenaufgang",
+      "plum": "Pflaume",
+      "aurora": "Polarlicht"
+    },
+    "yourPicturesHeading": "Deine eigenen Bilder",
+    "sourceKeyMissing": "Für diese Quelle fehlt ein API-Schlüssel, deshalb behält der Bildschirm sein letztes Bild. Trage den Schlüssel in den Einstellungen ein oder wähle eine andere Quelle."
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",
@@ -2240,7 +2381,7 @@
       "text": "Text",
       "positionAndSize": "Position & Größe",
       "style": "Stil",
-      "config": "Konfiguration",
+      "config": "Modul-Einstellungen",
       "settings": "Einstellungen",
       "secrets": "Geheimnisse",
       "credentials": "Anmeldedaten",
@@ -2259,7 +2400,7 @@
       "padding": "Innenabstand",
       "borderWidth": "Rahmenbreite",
       "opacity": "Deckkraft",
-      "backdropBlur": "Hintergrund-Unschärfe",
+      "backdropBlur": "Milchglas",
       "shadowSize": "Schattengröße",
       "background": "Hintergrund",
       "borderColor": "Rahmenfarbe",
@@ -2268,9 +2409,12 @@
       "fontWeight": "Schriftstärke",
       "fontWeightDefault": "Standard",
       "fontWeightReset": "Auf Standard zurücksetzen",
-      "title": "Kartentitel",
+      "title": "Titel",
       "titleFontSize": "Titelgröße",
-      "titleOwnTitleHint": "Dieses Widget zeigt auch einen eigenen Titel, es können also zwei erscheinen. Schalte „Titel anzeigen“ in seinen Einstellungen aus, um nur diesen zu behalten."
+      "titleModeOwn": "Titel des Moduls",
+      "titleModeCustom": "Meine eigenen Worte",
+      "titleModeNone": "Kein Titel",
+      "titleWords": "Titeltext"
     },
     "actions": {
       "bringToFront": "Nach vorn",
@@ -2281,12 +2425,16 @@
     },
     "visibility": {
       "enabledLabel": "Auf Display anzeigen",
-      "enabledHelp": "Wenn deaktiviert, wird dieses Modul vom Live-Display und Prefetch ausgeschlossen, bleibt aber im Editor erhalten, damit du es wieder aktivieren kannst.",
+      "enabledHelp": "Wenn das aus ist, erscheint das Modul nie auf dem Display. Es bleibt aber hier, damit du es wieder einschalten kannst.",
       "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
-      "backgroundProviderHelp": "Stellt anderen Modulen Zustandswerte bereit. Diese Kopie erscheint nie auf dem Display — um das Widget auch anzuzeigen, eine zweite Kopie ohne diese Einstellung hinzufügen.",
+      "backgroundProviderHelp": "Stellt anderen Modulen Werte bereit. Diese Kopie ist nie auf dem Bildschirm zu sehen. Soll das Modul auch angezeigt werden, füge eine zweite Kopie ohne diese Einstellung hinzu.",
       "backgroundProviderObsoleteHint": "Dieses Plugin teilt seine Daten jetzt automatisch. Diese versteckte Kopie wird nicht mehr benötigt und kann gelöscht werden."
     },
-    "screenSettingsLink": "Screen-Einstellungen"
+    "screenSettingsLink": "Screen-Einstellungen",
+    "whatIsThis": "Was ist das?",
+    "editingDisplay": "Bearbeitet wird",
+    "collapseTitle": "Einstellungsbereich ausblenden",
+    "expandTitle": "Einstellungsbereich anzeigen"
   },
   "upgradeModal": {
     "titleUpgrade": "Aktualisierung auf {tag}",
@@ -2357,14 +2505,17 @@
     "screenCountPlural": "{count} Bildschirme",
     "moduleCountSingular": "{count} Modul",
     "moduleCountPlural": "{count} Module",
-    "countsLine": "{screens}, {modules}",
-    "sourceLine": "Quelle: {width} x {height}",
-    "dimensionWarning": "Dieses Layout wurde für {sourceWidth}x{sourceHeight} entworfen, dein Display ist aber {currentWidth}x{currentHeight}. Module werden automatisch skaliert, eventuell musst du sie nachjustieren.",
-    "applyVisualLabel": "Visuelle Einstellungen übernehmen",
-    "visualSummary": "Rotation: {seconds}s",
-    "visualSummaryWithTransition": "Rotation: {seconds}s, Übergang: {transition}",
+    "countsLine": "{screens}, {modules} insgesamt",
+    "sourceLine": "Gemacht für ein Display mit {width} x {height}",
+    "dimensionWarning": "Gemacht für ein Display mit {sourceWidth} x {sourceHeight}, deines ist {currentWidth} x {currentHeight}. Alles wird passend skaliert, ein paar Sachen musst du danach vielleicht zurechtrücken.",
+    "applyVisualLabel": "Auch die Zeiten aus diesem Layout übernehmen",
+    "visualSummary": "Jeder Bildschirm ist {seconds} Sekunden lang zu sehen.",
+    "visualSummaryWithTransition": "Jeder Bildschirm ist {seconds} Sekunden lang zu sehen, mit dem Übergang {transition} dazwischen.",
     "saveError": "Speichern fehlgeschlagen – prüfe deine Verbindung und versuche es erneut.",
-    "importButton": "Importieren"
+    "importButton": "Diese Bildschirme hinzufügen",
+    "savedAt": "Gespeichert am {date}",
+    "screenPillSingular": "{name} · {count} Modul",
+    "screenPillPlural": "{name} · {count} Module"
   },
   "layoutImport": {
     "alerts": {
@@ -2602,7 +2753,8 @@
       "precisionDaysHours": "Tage + Stunden",
       "precisionDaysHoursMinutes": "Tage + Stunden + Minuten",
       "precisionDaysHoursMinutesSeconds": "Tage + Stunden + Minuten + Sekunden",
-      "timezone": "Zeitzone"
+      "timezone": "Zeitzone",
+      "customExamplesHeading": "Ein paar zum Übernehmen:"
     },
     "countdown": {
       "viewAll": "Alle Ereignisse (gestapelt)",
@@ -2705,8 +2857,8 @@
       "viewMonthGrid": "Monatsraster",
       "viewDayTimeline": "Tages-Zeitleiste",
       "viewAgenda": "Agenda",
-      "densityCozy": "Locker (gut lesbar aus der Ferne)",
-      "densitySnug": "Dicht (mehr Termine)",
+      "densityCozy": "Locker (aus der Ferne besser lesbar)",
+      "densitySnug": "Kompakt (passt mehr rein)",
       "typographySmall": "Klein",
       "typographyMedium": "Mittel",
       "typographyLarge": "Groß",
@@ -2715,7 +2867,7 @@
       "typography3xLarge": "3× groß",
       "typography4xLarge": "4× groß",
       "view": "Ansicht",
-      "typographySize": "Schriftgröße",
+      "typographySize": "Textgröße",
       "themeDefault": "Standard (aus Einstellungen)",
       "accentColor": "Akzentfarbe",
       "dimPastEvents": "Vergangene Termine abdunkeln",
@@ -2806,8 +2958,8 @@
       "showRewardsButtonHelp": "Fügt dem Aufgaben-Board eine Schaltfläche hinzu, mit der Kinder zum Belohnungs-Shop wechseln können. Ideal für Displays mit Touch.",
       "themeDefault": "Standard (aus Einstellungen)",
       "densityCozy": "Locker",
-      "densitySnug": "Dicht",
-      "typographySize": "Schriftgröße",
+      "densitySnug": "Kompakt",
+      "typographySize": "Textgröße",
       "accentColor": "Akzentfarbe",
       "weekStartsOn": "Woche beginnt am",
       "weekProgress": "Wochensterne",
@@ -2835,8 +2987,8 @@
       "viewMenuBoard": "Menütafel",
       "viewNextMeal": "Nächste Mahlzeit",
       "densityCozy": "Locker",
-      "densitySnug": "Dicht",
-      "typographySize": "Schriftgröße",
+      "densitySnug": "Kompakt",
+      "typographySize": "Textgröße",
       "showEmoji": "Emoji anzeigen",
       "showPrepTime": "Zubereitungszeit anzeigen",
       "showTags": "Tags anzeigen",
@@ -3505,7 +3657,7 @@
       "stateTokenPreview": "Live-Vorschau"
     },
     "todo": {
-      "title": "Titel",
+      "title": "Name der Liste",
       "defaultTitle": "Aufgaben",
       "items": "Einträge",
       "newItemText": "Neuer Eintrag",
@@ -3517,7 +3669,7 @@
       "connected": "Verbunden",
       "notConfigured": "Nicht konfiguriert.",
       "settingsIntegrationsLink": "Einstellungen → Integrationen",
-      "title": "Titel",
+      "title": "Name der Liste",
       "viewMode": "Ansicht",
       "groupByLabel": "Gruppieren nach",
       "sortByLabel": "Sortieren nach",
@@ -3562,7 +3714,7 @@
       "showLocation": "Standort anzeigen",
       "locationLabel": "Standortbezeichnung",
       "iconStyle": "Symbolstil",
-      "dataProvider": "Datenanbieter",
+      "dataProvider": "Wetterquelle",
       "hoursToShow": "Anzuzeigende Stunden",
       "daysToShow": "Anzuzeigende Tage",
       "feelsLike": "Gefühlt",
@@ -3589,7 +3741,7 @@
         "alerts": "Wetterwarnungen"
       },
       "providers": {
-        "global": "Globaler Standard",
+        "global": "Wie in den Einstellungen",
         "openweathermap": "OpenWeatherMap",
         "weatherapi": "WeatherAPI",
         "pirateweather": "Pirate Weather",
@@ -3694,8 +3846,8 @@
       "viewWeek": "Wochenausblick",
       "viewHourly": "Stunde für Stunde",
       "themeDefault": "Standard (aus Einstellungen)",
-      "typographySize": "Schriftgröße",
-      "densityCozy": "Luftig",
+      "typographySize": "Textgröße",
+      "densityCozy": "Locker",
       "densitySnug": "Kompakt",
       "skyLayer": "Hintergrundfarbe",
       "skyAuto": "Dem Wetter folgen",
@@ -3720,7 +3872,7 @@
       "rotateSeconds": "Meldung wechseln alle (Sekunden)",
       "maxItems": "Max. Meldungen",
       "showTime": "Uhrzeit anzeigen",
-      "typographySize": "Schriftgröße",
+      "typographySize": "Textgröße",
       "accentTheme": "Akzentfarbe folgt dem Design",
       "accentColor": "Akzentfarbe"
     },
@@ -3892,13 +4044,10 @@
     "noResults": "Keine Module gefunden",
     "pluginBadge": "Plug-in",
     "communityPluginTooltip": "Community-Plug-in",
-    "howToAdd": "Anklicken oder auf den Bildschirm ziehen",
-    "itemTooltip": "Zum Hinzufügen anklicken oder auf den Bildschirm ziehen",
-    "fullscreenGuard": {
-      "message": "Vollbild-Module nehmen den ganzen Bildschirm ein. Alles andere auf diesem Bildschirm wäre dahinter verborgen.",
-      "newScreen": "Auf neuem Bildschirm hinzufügen",
-      "addAnyway": "Trotzdem hier hinzufügen"
-    }
+    "howToAdd": "Auf den Bildschirm ziehen",
+    "itemTooltip": "Auf den Bildschirm ziehen",
+    "collapseTitle": "Modulliste ausblenden",
+    "expandTitle": "Modulliste anzeigen"
   },
   "backupReminder": {
     "message": {

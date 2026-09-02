@@ -55,8 +55,8 @@ test('exporting a screen subset downloads only those screens and re-imports them
   });
 
   // The import modal previews the incoming subset; confirm the add-mode merge.
-  await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
-  await page.getByRole('button', { name: 'Import', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Import layout' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
   // Add mode appends the one imported screen (deduped name) and leaves the
   // originals untouched — 4 screens total, two of them named for Alpha, and
@@ -105,8 +105,8 @@ test('the add-screen menu imports a single screen from a file without replacing 
     buffer: Buffer.from(JSON.stringify(singleScreenLayout)),
   });
 
-  await expect(page.getByRole('heading', { name: 'Import Layout' })).toBeVisible();
-  await page.getByRole('button', { name: 'Import', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Import layout' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add these screens', exact: true }).click();
 
   await expect.poll(async () => (await getConfig(request)).screens.length).toBe(3);
   const names = (await getConfig(request)).screens.map((s) => s.name);

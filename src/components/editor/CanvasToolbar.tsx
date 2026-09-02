@@ -79,8 +79,16 @@ export default function CanvasToolbar({
       >
         <ZoomOut className="h-3.5 w-3.5" />
       </button>
-      <span className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-hs-text-muted">
-        {t('canvas.zoomPercent', { percent: Math.round(userZoom * 100) })}
+      {/* 1.0 is "as big as the window allows", not "actual size" — reading
+          "100%" there made zooming in look like going past normal. */}
+      <span
+        className="min-w-[3.25rem] select-none text-center text-xs tabular-nums text-hs-text-muted"
+        title={t('canvas.zoomHint')}
+        data-testid="canvas-zoom-readout"
+      >
+        {userZoom === 1
+          ? t('canvas.zoomFit')
+          : t('canvas.zoomPercent', { percent: Math.round(userZoom * 100) })}
       </span>
       <button
         onClick={onZoomIn}

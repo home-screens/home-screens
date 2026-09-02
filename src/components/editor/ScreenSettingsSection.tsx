@@ -80,31 +80,30 @@ export default function ScreenSettingsSection() {
         </div>
 
         <PropertyGroup title={t('fields.rotation')} accent={1}>
-          <div className="flex items-center justify-between mb-2">
-            <label htmlFor="screen-rotation-duration" className="text-xs text-hs-text-muted">
-              {t('screenSettings.durationLabel')}
-            </label>
-            {isOverridden ? (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors"
-              >
-                {t('screenSettings.resetButton')}
-              </button>
-            ) : (
+          {/* Inheriting: the sentence IS the label, so there is no second copy
+              of it to squeeze a button against — both used to wrap. */}
+          {!isOverridden ? (
+            <>
+              <p className="text-xs text-hs-text-muted">
+                {t('screenSettings.inheritsHintBefore')}
+                <strong className="text-hs-text-secondary">
+                  {t('screenSettings.inheritsHintValue', { seconds: defaultSec })}
+                </strong>
+                {t('screenSettings.inheritsHintAfter')}
+              </p>
               <button
                 type="button"
                 onClick={handleOverride}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-muted bg-hs-card border border-hs-border-strong hover:text-hs-text-body hover:bg-hs-hover transition-colors"
+                className="mt-2 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-muted bg-hs-card border border-hs-border-strong hover:text-hs-text-body hover:bg-hs-hover transition-colors"
               >
                 {t('screenSettings.overrideButton')}
               </button>
-            )}
-          </div>
-
-          {isOverridden ? (
+            </>
+          ) : (
             <div>
+              <label htmlFor="screen-rotation-duration" className="block text-xs text-hs-text-muted mb-1.5">
+                {t('screenSettings.durationLabel')}
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   id="screen-rotation-duration"
@@ -115,7 +114,7 @@ export default function ScreenSettingsSection() {
                   value={draft ?? savedSeconds}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
                   onBlur={() => setDraft(null)}
-                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-24 ${tooShort ? 'border-hs-warning' : 'border-hs-border-strong'}`}
+                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-20 ${tooShort ? 'border-hs-warning' : 'border-hs-border-strong'}`}
                 />
                 <span className="text-xs text-hs-text-muted">{t('screenSettings.secondsUnit')}</span>
                 {isSticky && (
@@ -133,15 +132,14 @@ export default function ScreenSettingsSection() {
               <p className="text-[11px] text-hs-text-faint mt-2">
                 {t('screenSettings.stickyHint')}
               </p>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-2 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors"
+              >
+                {t('screenSettings.resetButton')}
+              </button>
             </div>
-          ) : (
-            <p className="text-[11px] text-hs-text-faint">
-              {t('screenSettings.inheritsHintBefore')}
-              <strong className="text-hs-text-secondary">
-                {t('screenSettings.inheritsHintValue', { seconds: defaultSec })}
-              </strong>
-              {t('screenSettings.inheritsHintAfter')}
-            </p>
           )}
         </PropertyGroup>
 

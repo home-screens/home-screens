@@ -32,6 +32,7 @@ export default function TemplateFlow({
     return (
       <LayoutImportModal
         layout={layout}
+        source="template"
         replaceEmptyScreenId={replaceEmptyScreenId}
         onClose={() => {
           setLayout(null);

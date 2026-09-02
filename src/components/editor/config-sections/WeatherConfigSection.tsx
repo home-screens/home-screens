@@ -157,9 +157,6 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           placeholder={automaticLabel}
         />
       )}
-      {(view === 'hourly' || view === 'daily' || view === 'table') && (
-        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
-      )}
       {view === 'alerts' && caps.alerts && (
         <Toggle label={t('configSections.weather.hideWhenNoAlerts')} checked={!!c.hideWhenNoAlerts} onChange={(v) => set({ hideWhenNoAlerts: v })} />
       )}

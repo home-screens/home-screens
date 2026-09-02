@@ -30,7 +30,6 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         value={(c.title as string) || t('configSections.todo.defaultTitle')}
         onChange={(v) => set({ title: v })}
       />
-      <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       <div className="flex items-center justify-between">
         <span className="text-xs text-hs-text-muted">{t('configSections.todo.items')}</span>
         <Button size="sm" onClick={addItem}>{tCore('actions.add')}</Button>

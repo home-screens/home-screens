@@ -144,11 +144,6 @@ export function NewsConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       <SectionHeading>{t('configSections.news.details')}</SectionHeading>
       {hasHeader && (
         <>
-          <Toggle
-            label={t('common.showTitle')}
-            checked={c.showTitle !== false}
-            onChange={(v) => set({ showTitle: v })}
-          />
           {c.showTitle !== false && (
             <LabeledInput
               label={t('configSections.news.headerText')}

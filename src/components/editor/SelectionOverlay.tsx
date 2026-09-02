@@ -3,6 +3,9 @@
 import { useRef, useCallback } from 'react';
 import { GRID_SIZE, snapToGrid } from '@/lib/constants';
 import { useEditorStore } from '@/stores/editor-store';
+import ModuleStatusChips from './ModuleStatusChips';
+import type { SharedStateEntry } from '@/lib/shared-state-types';
+import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
 
 /**
@@ -21,12 +24,19 @@ export default function SelectionOverlay({
   displayHeight,
   onResize,
   onResizeEnd,
+  now,
+  verdictStates,
+  statusSource,
 }: {
   mod: ModuleInstance;
   scale: number;
   displayWidth: number;
   displayHeight: number;
   onResize: (size: { w: number; h: number }) => void;
+  /** Clock and live shared state, for the status chip. */
+  now: Date;
+  verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
+  statusSource?: SharedStateSource | null;
   /** Fired when a resize drag finishes. The browser follows the gesture with
    *  a click — on the handle when released there, or on the canvas (the
    *  common ancestor of handle and release target) when released anywhere
@@ -99,6 +109,18 @@ export default function SelectionOverlay({
         onMouseDown={handleResizeStart}
         className="absolute bottom-0 right-0 w-3 h-3 bg-hs-accent cursor-se-resize rounded-tl pointer-events-auto"
       />
+      {/* Why this module is or isn't on the wall, in words rather than a 10px
+          glyph. Only the selected module carries it, so a busy screen doesn't
+          turn into a wall of labels. */}
+      <div className="absolute bottom-1 left-1 max-w-[calc(100%-1rem)]">
+        <ModuleStatusChips
+          mod={mod}
+          now={now}
+          verdictStates={verdictStates}
+          source={statusSource}
+          compact
+        />
+      </div>
     </div>
   );
 }

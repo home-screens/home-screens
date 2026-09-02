@@ -175,7 +175,7 @@ test.describe('screen search across displays', () => {
     await expect(result).toContainText('Hallway');
     await result.click();
 
-    await expect(page.locator('#editor-display-switcher')).toHaveValue('hall');
+    await expect(page.getByTestId('display-switcher')).toContainText('Hallway');
     await expect(activeTab(page)).toHaveText(/Clocks/);
     await expect(page.locator('[data-module-id="hall-clock"]')).toBeVisible();
     await expect(page).toHaveURL(/display=hall/);

@@ -97,6 +97,13 @@ export interface ModuleDefinition {
    * so producers must advertise them here.
    */
   providesState?: ProvidedStateKey[];
+  /**
+   * One plain sentence saying what the module is for. Built-ins resolve
+   * through the `editor.registry.descriptions.*` dictionary (see
+   * `resolveModuleDescription`); this field carries a plugin's manifest
+   * description, which the host cannot translate.
+   */
+  description?: string;
   /** For producers whose keys depend on instance config (e.g. an entity list). */
   deriveProvidedKeys?: (config: Record<string, unknown>) => ProvidedStateKey[];
   /**
@@ -181,6 +188,7 @@ export function registerPluginModule(
     defaultConfig: manifest.defaultConfig ?? {},
     defaultSize: manifest.defaultSize ?? { w: 400, h: 300 },
     defaultStyle: manifest.defaultStyle,
+    description: manifest.description,
     providesState,
     deriveProvidedKeys,
     hasStateProvider: Boolean(runtime?.hasStateProvider),
@@ -210,6 +218,29 @@ export function resolveModuleLabel(type: ModuleType, t: TranslateFn): string {
   const def = registry.get(type);
   if (type.startsWith('plugin:')) return def?.label || type;
   return def ? t(`registry.types.${type}`) : type;
+}
+
+/**
+ * One plain sentence saying what a module is for, shown under the module name
+ * in the property panel and as the palette's hover tooltip. Built-ins resolve
+ * through `editor.registry.descriptions.*`; plugins use their manifest
+ * description verbatim (the host has no translations for it).
+ */
+export function resolveModuleDescription(type: ModuleType, t: TranslateFn): string {
+  const def = registry.get(type);
+  if (!def) return '';
+  if (type.startsWith('plugin:')) return def.description ?? '';
+  return t(`registry.descriptions.${type}`);
+}
+
+/**
+ * Extra words the palette search matches on top of the name — the terms a
+ * parent actually types ("trash", "picture", "birthday"). Never rendered.
+ */
+export function resolveModuleKeywords(type: ModuleType, t: TranslateFn): string {
+  const def = registry.get(type);
+  if (!def || type.startsWith('plugin:')) return '';
+  return t(`registry.keywords.${type}`);
 }
 
 /** @internal */

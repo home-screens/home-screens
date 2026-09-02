@@ -2,7 +2,8 @@
 
 import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Monitor, Plus, Copy } from 'lucide-react';
+import Button from '@/components/ui/Button';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import {
   GRID_SIZE,
@@ -189,7 +190,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const t = useTranslate('editor');
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerCanvasRef = useRef<HTMLDivElement>(null);
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, resizeModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, resizeModule, addScreen, copyScreensFromDisplay } = useEditorStore();
   const previewData = usePreviewData();
 
   // In multi-display mode, the canvas renders at the currently-selected
@@ -262,6 +263,14 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     [config, selectedDisplayId],
   );
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
+  const activeDisplay = selectedDisplayId
+    ? config?.displays?.find((d) => d.id === selectedDisplayId)
+    : undefined;
+  // The first other display that actually has screens to copy — the offer is
+  // only useful when there is something on the other end of it.
+  const copySource = activeDisplay
+    ? config?.displays?.find((d) => d.id !== activeDisplay.id && d.screens.length > 0)
+    : undefined;
 
   // Live shared-state snapshot for the condition badges. Poll only while
   // something on this display is actually gated — the GET also arms the
@@ -321,6 +330,34 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   }, [config, activeScreens, selectedDisplayId, now]);
 
   if (!currentScreen) {
+    // A display with no screens at all is a different problem from "nothing
+    // selected": there is nothing to select, and the only way forward used to
+    // be a "+" at the far end of the toolbar.
+    if (activeScreens.length === 0 && activeDisplay) {
+      return (
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          <Monitor size={38} strokeWidth={1.5} className="text-hs-text-faint opacity-40" />
+          <p className="mt-3 text-sm text-hs-text-body">
+            {t('canvas.emptyDisplay.title', { name: activeDisplay.name })}
+          </p>
+          <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-hs-text-faint">
+            {t('canvas.emptyDisplay.body')}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Button variant="primary" size="sm" onClick={addScreen}>
+              <Plus className="h-3.5 w-3.5" />
+              {t('canvas.emptyDisplay.addScreen')}
+            </Button>
+            {copySource && (
+              <Button variant="secondary" size="sm" onClick={() => copyScreensFromDisplay(copySource.id)}>
+                <Copy className="h-3.5 w-3.5" />
+                {t('canvas.emptyDisplay.copyFrom', { name: copySource.name })}
+              </Button>
+            )}
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 text-hs-text-faint">
         <LayoutDashboard size={40} strokeWidth={1.5} className="opacity-30" />
@@ -460,6 +497,9 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                     displayHeight={displayHeight}
                     onResize={(size) => resizeModule(selectedScreenId!, sel.id, size)}
                     onResizeEnd={handleResizeEnd}
+                    now={now}
+                    verdictStates={verdictStates}
+                    statusSource={liveState.source}
                   />
                 ) : null;
               })()}

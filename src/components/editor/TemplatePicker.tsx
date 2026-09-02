@@ -9,7 +9,7 @@ import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
-import ModalPortal from '@/components/ui/ModalPortal';
+import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 
 interface TemplatePickerProps {
   onSelect: (layout: LayoutExport) => void;
@@ -51,14 +51,16 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
   };
 
   return (
-    <ModalPortal>
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={tEditor('templatePicker.title')}>
-      <div className="w-full max-w-2xl h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
+    <ModalFrame labelledBy="template-picker-title" onClose={onClose} className="w-full max-w-2xl">
+      <div className="w-full h-[80vh] rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl flex flex-col">
         <div className="flex items-center justify-between border-b border-hs-border-strong px-5 py-3.5">
-          <h2 className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
-          <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary">
-            <X className="w-5 h-5" />
-          </button>
+          <h2 id="template-picker-title" className="text-lg font-semibold text-hs-text-primary">{tEditor('templatePicker.title')}</h2>
+          <div className="flex items-center gap-2">
+            <EscHint />
+            <button onClick={onClose} className="text-hs-text-faint hover:text-hs-text-secondary" aria-label={tCore('actions.close')}>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Category tabs */}
@@ -138,7 +140,6 @@ export default function TemplatePicker({ onSelect, onClose }: TemplatePickerProp
           <Button variant="secondary" onClick={onClose}>{tCore('actions.close')}</Button>
         </div>
       </div>
-    </div>
-    </ModalPortal>
+    </ModalFrame>
   );
 }

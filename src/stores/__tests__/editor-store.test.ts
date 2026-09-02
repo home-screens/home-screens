@@ -385,6 +385,64 @@ describe('editor store', () => {
     });
   });
 
+  describe('copyScreensFromDisplay', () => {
+    /** Two displays: Kitchen has screens, Playroom is the empty one. */
+    function twoDisplays() {
+      const config = makeConfig();
+      config.displays = [
+        {
+          id: 'kitchen',
+          name: 'Kitchen',
+          screens: [
+            {
+              id: 'k-1', name: 'Morning', backgroundImage: '/bg.jpg',
+              modules: [{ id: 'k-mod', type: 'clock', position: { x: 0, y: 0 }, size: { w: 400, h: 200 }, zIndex: 1, config: { view: 'digital' }, style: { ...DEFAULT_MODULE_STYLE } }],
+            },
+            { id: 'k-2', name: 'Photos', backgroundImage: '', modules: [] },
+          ],
+        },
+        { id: 'playroom', name: 'Playroom', screens: [] },
+      ];
+      return config;
+    }
+
+    it('clones every screen onto the active display with fresh ids and selects the first', () => {
+      const store = useEditorStore;
+      store.setState({ config: twoDisplays(), selectedDisplayId: 'playroom', selectedScreenId: null });
+
+      store.getState().copyScreensFromDisplay('kitchen');
+
+      const displays = store.getState().config!.displays!;
+      const copied = displays.find((d) => d.id === 'playroom')!.screens;
+      expect(copied.map((s) => s.name)).toEqual(['Morning', 'Photos']);
+      // Fresh ids everywhere: two displays sharing a screen or module id would
+      // make profiles, rules and per-module state collide across displays.
+      expect(copied[0].id).not.toBe('k-1');
+      expect(copied[1].id).not.toBe('k-2');
+      expect(copied[0].modules[0].id).not.toBe('k-mod');
+      expect(copied[0].modules[0].config).toEqual({ view: 'digital' });
+      // A deep copy, so editing one display never edits the other.
+      const source = displays.find((d) => d.id === 'kitchen')!.screens;
+      expect(copied[0].modules[0].config).not.toBe(source[0].modules[0].config);
+      expect(source[0].id).toBe('k-1');
+      expect(store.getState().selectedScreenId).toBe(copied[0].id);
+      expect(store.getState().selectedModuleId).toBeNull();
+    });
+
+    it('does nothing when the source is the active display, is unknown, or has no screens', () => {
+      const store = useEditorStore;
+      for (const source of ['playroom', 'nope', 'empty']) {
+        const config = twoDisplays();
+        config.displays!.push({ id: 'empty', name: 'Empty', screens: [] });
+        store.setState({ config, selectedDisplayId: 'playroom', selectedScreenId: null });
+
+        store.getState().copyScreensFromDisplay(source);
+
+        expect(store.getState().config!.displays!.find((d) => d.id === 'playroom')!.screens).toEqual([]);
+      }
+    });
+  });
+
   describe('resizeModule', () => {
     it('updates module size', () => {
       const store = useEditorStore;
