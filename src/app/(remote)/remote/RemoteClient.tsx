@@ -315,107 +315,112 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   return (
     <DisplayTargetContext.Provider value={targetCtx}>
       <div className="min-h-dvh bg-hs-body text-hs-text-body">
-        {reconnecting ? (
-          <ConnectionBanner mode={reconnecting} />
-        ) : !isConnected ? (
-          <ConnectionBanner mode="unreachable" />
-        ) : null}
+        {/* Phone-first layout, but the remote is opened on tablets and laptops
+            too; without a cap the cards stretch to a 1400px ribbon. The tab bar
+            stays outside so it still spans the window. */}
+        <div className="mx-auto w-full max-w-[640px]">
+          {reconnecting ? (
+            <ConnectionBanner mode={reconnecting} />
+          ) : !isConnected ? (
+            <ConnectionBanner mode="unreachable" />
+          ) : null}
 
-        {activeTab === 'control' ? (
-          <>
-            <StatusBar isConnected={isConnected} onSettingsOpen={() => setSettingsOpen(true)} />
-            <UpdateAvailableBanner
-              shouldShow={updateNotif.shouldShow}
-              latestVersion={updateNotif.latestVersion}
-              onDismiss={updateNotif.handleDismiss}
-            />
-            <BackupReminderBanner
-              shouldShow={backup.shouldShow}
-              daysSinceBackup={backup.daysSinceBackup}
-              busy={backup.busy}
-              onBackup={backup.handleBackup}
-              onDismiss={backup.handleDismiss}
-            />
-            <DisplayPicker />
-            <DisplayHero
-              status={effectiveStatus}
-              isConnected={isConnected}
-              lastUpdated={lastUpdated}
-              neverConnected={neverConnected}
-              displayName={hasMultipleDisplays && !allMode ? targetName ?? undefined : undefined}
-              allEntries={allMode ? live : null}
-            />
-            {showSingleDisplayControls && (
-              <ScreenNav status={effectiveStatus} onNav={handleNav} disabled={controlsDisabled} />
-            )}
-            <QuickActions
-              isAsleep={isAsleep}
-              sleepPending={sleepPending.expected !== null}
-              disabled={controlsDisabled}
-              targetName={targetName}
-              onSleepWake={handleSleepWake}
-              onAlertOpen={() => setAlertOpen(true)}
-            />
-            <BrightnessCard
-              reportedValues={reportedBrightness}
-              disabled={controlsDisabled}
-              onSent={nudgeAllPolls}
-              onNoConfirm={noConfirmToast}
-            />
-            {showSingleDisplayControls && effectiveProfiles.length > 0 && (
-              <ProfileSwitcher
-                profiles={effectiveProfiles}
-                activeProfile={status?.activeProfile ?? effectiveInitialActiveProfile}
-                displayName={targetName ?? t('displayHero.theDisplay')}
+          {activeTab === 'control' ? (
+            <>
+              <StatusBar isConnected={isConnected} onSettingsOpen={() => setSettingsOpen(true)} />
+              <UpdateAvailableBanner
+                shouldShow={updateNotif.shouldShow}
+                latestVersion={updateNotif.latestVersion}
+                onDismiss={updateNotif.handleDismiss}
               />
-            )}
+              <BackupReminderBanner
+                shouldShow={backup.shouldShow}
+                daysSinceBackup={backup.daysSinceBackup}
+                busy={backup.busy}
+                onBackup={backup.handleBackup}
+                onDismiss={backup.handleDismiss}
+              />
+              <DisplayPicker />
+              <DisplayHero
+                status={effectiveStatus}
+                isConnected={isConnected}
+                lastUpdated={lastUpdated}
+                neverConnected={neverConnected}
+                displayName={hasMultipleDisplays && !allMode ? targetName ?? undefined : undefined}
+                allEntries={allMode ? live : null}
+              />
+              {showSingleDisplayControls && (
+                <ScreenNav status={effectiveStatus} onNav={handleNav} disabled={controlsDisabled} />
+              )}
+              <QuickActions
+                isAsleep={isAsleep}
+                sleepPending={sleepPending.expected !== null}
+                disabled={controlsDisabled}
+                targetName={targetName}
+                onSleepWake={handleSleepWake}
+                onAlertOpen={() => setAlertOpen(true)}
+              />
+              <BrightnessCard
+                reportedValues={reportedBrightness}
+                disabled={controlsDisabled}
+                onSent={nudgeAllPolls}
+                onNoConfirm={noConfirmToast}
+              />
+              {showSingleDisplayControls && effectiveProfiles.length > 0 && (
+                <ProfileSwitcher
+                  profiles={effectiveProfiles}
+                  activeProfile={status?.activeProfile ?? effectiveInitialActiveProfile}
+                  displayName={targetName ?? t('displayHero.theDisplay')}
+                />
+              )}
 
-            {/* Bottom spacer for fixed tab bar */}
-            <div className="h-20" />
+              {/* Bottom spacer for fixed tab bar */}
+              <div className="h-20" />
 
-            <AlertSender
-              open={alertOpen}
-              onClose={() => setAlertOpen(false)}
-              targetName={targetName}
-              activeAlerts={activeAlerts}
-              onSent={nudgeAllPolls}
-            />
-            <SettingsSheet
-              open={settingsOpen}
-              onClose={() => setSettingsOpen(false)}
-              onBackup={backup.handleBackup}
-              backupBusy={backup.busy}
-              onPowerAction={handlePowerAction}
-            />
-          </>
-        ) : activeTab === 'timers' ? (
-          <TimersTab />
-        ) : activeTab === 'chores' ? (
-          <>
-            <div className="px-4 pb-8 pt-4">
-              {hasChores
-                ? <ChoresTab config={initialData.choreConfig!} choreData={initialData.choreData} isAdmin />
-                : <TabNotSetUp kind="chores" />}
-            </div>
-            <div className="h-20" />
-          </>
-        ) : activeTab === 'meals' ? (
-          <>
-            <div className="px-4 pb-8 pt-4">
-              {hasMeals ? <MealsTab /> : <TabNotSetUp kind="meals" />}
-            </div>
-            <div className="h-20" />
-          </>
-        ) : activeTab === 'photos' ? (
-          <>
-            <div className="px-4 pb-8 pt-4">
-              {hasPhotos
-                ? <PhotosTab directory={initialData.photoDirectory} />
-                : <TabNotSetUp kind="photos" />}
-            </div>
-            <div className="h-20" />
-          </>
-        ) : null}
+              <AlertSender
+                open={alertOpen}
+                onClose={() => setAlertOpen(false)}
+                targetName={targetName}
+                activeAlerts={activeAlerts}
+                onSent={nudgeAllPolls}
+              />
+              <SettingsSheet
+                open={settingsOpen}
+                onClose={() => setSettingsOpen(false)}
+                onBackup={backup.handleBackup}
+                backupBusy={backup.busy}
+                onPowerAction={handlePowerAction}
+              />
+            </>
+          ) : activeTab === 'timers' ? (
+            <TimersTab />
+          ) : activeTab === 'chores' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                {hasChores
+                  ? <ChoresTab config={initialData.choreConfig!} choreData={initialData.choreData} isAdmin />
+                  : <TabNotSetUp kind="chores" />}
+              </div>
+              <div className="h-20" />
+            </>
+          ) : activeTab === 'meals' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                {hasMeals ? <MealsTab /> : <TabNotSetUp kind="meals" />}
+              </div>
+              <div className="h-20" />
+            </>
+          ) : activeTab === 'photos' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                {hasPhotos
+                  ? <PhotosTab directory={initialData.photoDirectory} />
+                  : <TabNotSetUp kind="photos" />}
+              </div>
+              <div className="h-20" />
+            </>
+          ) : null}
+        </div>
 
         <RemoteToast />
         <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />

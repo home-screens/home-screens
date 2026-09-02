@@ -133,8 +133,15 @@ export default function MealTimeChip({
 
   const presets = getSlotTimePresets(slot);
   const formattedValue = value ? formatMealTime(value, timeFormat) : '';
-  const padding = compact ? '2px 6px' : '3px 8px';
-  const fontSize = compact ? 10 : 11;
+  const padding = compact ? '2px 6px' : '6px 10px';
+  const fontSize = compact ? 10 : 12;
+  // The chip reads as a small label but is tapped with a thumb on the phone.
+  // Keep the painted box at 36px and stretch the hit box to 44 with a
+  // transparent overlay inside the button, so neighbouring rows keep their
+  // spacing while the target meets the touch minimum.
+  const hitAreaExtender = compact ? null : (
+    <span aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: -4, bottom: -4 }} />
+  );
 
   // ── Chip face (rendered in all three states; popover overlays it when editing) ──
   const chipButton = value ? (
@@ -147,9 +154,10 @@ export default function MealTimeChip({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
+        position: 'relative',
         gap: 4,
         padding,
-        minHeight: compact ? 22 : 26,
+        minHeight: compact ? 22 : 36,
         borderRadius: 5,
         border: `1px solid ${isEditing ? accentColor : colors.chipBorder}`,
         background: isEditing
@@ -180,6 +188,7 @@ export default function MealTimeChip({
         <polyline points="12 6 12 12 16 14" />
       </svg>
       <span>{formattedValue}</span>
+      {hitAreaExtender}
     </button>
   ) : (
     <button
@@ -191,9 +200,10 @@ export default function MealTimeChip({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
+        position: 'relative',
         gap: 3,
         padding,
-        minHeight: compact ? 22 : 26,
+        minHeight: compact ? 22 : 36,
         borderRadius: 5,
         border: `1px dashed ${isEditing ? accentColor : colors.chipBorder}`,
         background: isEditing
@@ -226,6 +236,7 @@ export default function MealTimeChip({
         <polyline points="12 6 12 12 16 14" />
       </svg>
       <span>{compact ? t('mealTimeChip.servingTime') : t('mealTimeChip.setTime')}</span>
+      {hitAreaExtender}
     </button>
   );
 

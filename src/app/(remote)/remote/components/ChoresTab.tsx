@@ -597,7 +597,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           {/* History banner — visible only when the user has navigated away from today */}
           {isViewingPast && (
             <div style={{ marginTop: 10 }}>
-              <ChoreHistoryBanner viewingDate={viewingDate} realToday={realToday} canEdit={canEdit} />
+              <ChoreHistoryBanner viewingDate={viewingDate} canEdit={canEdit} />
             </div>
           )}
 

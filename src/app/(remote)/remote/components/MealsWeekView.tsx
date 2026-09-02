@@ -60,7 +60,7 @@ export default function MealsWeekView({
               {isToday && (
                 <span
                   style={{
-                    fontSize: 9,
+                    fontSize: 12,
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: 4,

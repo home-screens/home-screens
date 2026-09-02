@@ -21,6 +21,7 @@ import { DayWeatherBadge } from './WeatherInline';
 import { eventAriaLabel } from './list-view-bits';
 import { useContainerHeight } from './shared-time-grid';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import { GlyphPrefix } from '@/components/ui/Glyph';
 
 interface CellEvent {
   ev: CalendarEvent;
@@ -317,7 +318,7 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
         </span>
       )}
       <span style={{ fontSize: fontSize * 0.95, fontWeight: 600, color: 'var(--cal-text-primary)', lineHeight: 1.15, ...clampStyle(wrapTitles) }}>
-        {glyph ? `${glyph} ` : ''}{event.title}
+        <GlyphPrefix value={glyph} />{event.title}
       </span>
     </div>
   );

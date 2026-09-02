@@ -14,6 +14,7 @@ import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
 import { EventWeatherLine } from './WeatherInline';
 import { EventProgressBar, eventAriaLabel } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 
 /**
  * The hallway view: one event rendered huge (what is next, or what is
@@ -94,7 +95,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
                   opacity: eventOpacity(ev, 1),
                 }}
               >
-                {glyph && <span aria-hidden="true">{glyph}</span>}
+                {glyph && <span aria-hidden="true"><Glyph value={glyph} /></span>}
                 <span>{ev.title}</span>
                 <span style={{ fontSize: fontSize * 0.9, color: 'var(--cal-text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {kind ?? t('fullscreen-calendar.allDay')}
@@ -244,7 +245,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failin
         color: 'var(--cal-text-primary)',
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word',
       }}>
-        {glyph ? `${glyph} ` : ''}{ev.title}
+        <GlyphPrefix value={glyph} />{ev.title}
       </div>
       <div style={{ marginTop: scale.bu * 2.2, fontSize: fontSize * 2.6, lineHeight: 1.35, color: 'var(--cal-text-secondary)' }}>
         <span style={{ color: 'var(--cal-text-primary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{startLabel} {'–'} {endLabel}</span>
@@ -305,7 +306,7 @@ function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
           {allDay ? t('fullscreen-calendar.allDay') : startLabel}
         </span>
         <span style={{ fontSize: fontSize * 2.5, fontWeight: 600, color: 'var(--cal-text-primary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {glyph ? `${glyph} ` : ''}{ev.title}
+          <GlyphPrefix value={glyph} />{ev.title}
         </span>
         {ev.location && (
           <span style={{ fontSize: fontSize * 1.6, color: 'var(--cal-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '28%' }}>

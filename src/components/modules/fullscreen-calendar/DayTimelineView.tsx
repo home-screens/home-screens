@@ -18,6 +18,7 @@ import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
+import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 
 
 // Tinted morning/afternoon/evening bands. Each zone spans [start, end) hours and
@@ -173,7 +174,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                 marginBottom: scale.bu * 0.2,
                 opacity: ev.opacity,
               }}>
-                {glyph ? `${glyph} ` : ''}{ev.title}
+                <GlyphPrefix value={glyph} />{ev.title}
                 {description && (
                   <div style={{
                     fontSize: fontSize * 0.75,
@@ -205,7 +206,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                 color: ev.calendarColor ?? '#EC4899',
                 marginBottom: scale.bu * 0.2,
               }}>
-                <span aria-hidden="true">{eventGlyph(ev)}</span>
+                <span aria-hidden="true"><Glyph value={eventGlyph(ev)} /></span>
                 <span>{ev.title} · {label}</span>
               </div>
             );
@@ -321,7 +322,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     fontWeight: 600,
                     color: 'var(--cal-text-primary)',
                   }}>
-                    {glyph ? `${glyph} ` : ''}{ev.title}
+                    <GlyphPrefix value={glyph} />{ev.title}
                   </div>
                   <div style={{
                     fontSize: fontSize * 0.8,

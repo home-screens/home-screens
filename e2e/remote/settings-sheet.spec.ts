@@ -192,14 +192,14 @@ test('restart-service confirms then POSTs to /api/system/power (reboot untouched
   await openSheet(page);
 
   // The row opens a confirm sheet that says what to expect; Cancel is inert.
-  await page.getByRole('button', { name: 'Restart Service' }).click();
+  await page.getByRole('button', { name: 'Restart Home Screens' }).click();
   await expect(page.getByText('Restart Home Screens?')).toBeVisible();
   await expect(page.getByText(/reconnects in about 20 seconds/)).toBeVisible();
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByText('Restart Home Screens?')).toBeHidden();
   expect(powerPosts.length).toBe(0);
 
-  await page.getByRole('button', { name: 'Restart Service' }).click();
+  await page.getByRole('button', { name: 'Restart Home Screens' }).click();
   await page.getByRole('button', { name: 'Restart', exact: true }).click();
 
   // Exactly one restart-service call, and reboot was never issued.

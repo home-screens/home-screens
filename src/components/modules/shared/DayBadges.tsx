@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 import type { DayBadge } from '@/lib/calendar-rules';
 import { pickPillTextColor } from '@/lib/calendar-color';
+import Glyph from '@/components/ui/Glyph';
 
 /**
  * Chip stack from day rules, rendered next to a day number in both calendar
@@ -19,7 +20,6 @@ export function DayBadges({ badges, style }: { badges: DayBadge[]; style?: CSSPr
       style={{ gap: '0.2em', minWidth: 0, ...style }}
     >
       {badges.map((badge, i) => {
-        const label = [badge.icon, badge.text].filter(Boolean).join(' ');
         const filled = Boolean(badge.color);
         return (
           <span
@@ -38,7 +38,12 @@ export function DayBadges({ badges, style }: { badges: DayBadge[]; style?: CSSPr
               textOverflow: 'ellipsis',
             }}
           >
-            {label}
+            {/* Gap rather than a joined string: the icon may be a Font Awesome
+                <i>, which can't be concatenated into a text label. */}
+            <span className="inline-flex items-center" style={{ gap: '0.3em' }}>
+              <Glyph value={badge.icon} />
+              {badge.text}
+            </span>
           </span>
         );
       })}

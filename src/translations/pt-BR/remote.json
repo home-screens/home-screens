@@ -69,8 +69,8 @@
     "noProfile": "Todas as páginas"
   },
   "displayPicker": {
-    "targeting": "Controles para",
-    "allLabel": "Todas"
+    "targeting": "Enviar para",
+    "allLabel": "Todas as telas"
   },
   "mobileColorPicker": {
     "colorLabel": "Cor",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (tudo pronto)",
     "history": {
-      "editingPrefix": "Editando ",
-      "editingDaysAgoSingular": " (1 dia atrás) — os tickets entram no saldo de hoje.",
-      "editingDaysAgoPlural": " (há {n} dias) — os tickets entram no saldo de hoje.",
-      "editingNote": " Observação: a lista de tarefas de hoje é mostrada para dias passados, então tarefas adicionadas recentemente podem parecer perdidas.",
-      "lockedMessage": "Peça a um adulto para adicionar tarefas que você perdeu."
+      "editingPrefix": "Você está marcando ",
+      "editingNote": "Esta é a lista de tarefas de hoje, então tarefas adicionadas há pouco podem parecer perdidas.",
+      "lockedMessage": "Peça a um adulto para adicionar tarefas que você perdeu.",
+      "editingSuffix": ". Os tíquetes continuam contando para hoje."
     },
     "progress": {
       "completion": "{done}/{total} concluídas",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Cancelar e fechar",
     "slots": {
       "heading": "Refeições",
-      "description": "Quais refeições você planeja? Afeta o editor e todos os módulos exibidos.",
+      "description": "Quais refeições você planeja? Isso muda o que a tela e o editor mostram.",
       "toggleAriaLabelEnabled": "{label}, ativada",
       "toggleAriaLabelDisabled": "{label}, desativada"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Formato de hora",
-      "description": "Aplica-se a toda exibição de refeições no kiosk e neste controle remoto.",
+      "description": "Usado em todos os lugares onde as refeições aparecem.",
       "twelveHourLabel": "12 horas",
       "twentyFourHourLabel": "24 horas",
-      "followLabel": "Seguir a configuração global"
+      "followLabel": "Igual ao relógio"
     },
     "defaultTimes": {
       "heading": "Horários padrão de refeição",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Resgatar",
-      "rewards": "Recompensas",
+      "rewards": "Editar a lista",
       "balances": "Saldos",
       "history": "Histórico"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "Sistema",
       "errorFailedToLoad": "Falha ao carregar",
-      "hostLabel": "Host",
+      "hostLabel": "Nome do dispositivo",
       "uptimeLabel": "Tempo ligado",
       "memoryLabel": "Memória",
       "diskLabel": "Disco"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Energia",
       "restartService": {
-        "label": "Reiniciar serviço",
-        "description": "Reiniciar o app Home Screens",
+        "label": "Reiniciar o Home Screens",
+        "description": "Resolve a maioria das falhas. Nada do que você configurou se perde.",
         "confirmTitle": "Reiniciar o Home Screens?",
         "confirmBody": "As telas ficam pretas por um instante e este controle reconecta em cerca de 20 segundos.",
         "confirmButton": "Reiniciar"
@@ -521,7 +520,6 @@
     "newFolderButton": "Nova pasta",
     "newFolderPlaceholder": "Nome da pasta",
     "createButton": "Criar",
-    "allPhotosTab": "Todas as fotos",
     "uploadingProgress": "Enviando {current} de {total}...",
     "uploadFailedFor": "Falha ao enviar {name}",
     "uploadFailed": "Falha ao enviar",
@@ -534,10 +532,13 @@
     "uploadButton": "Enviar fotos",
     "emptyTitle": "Nenhuma foto nesta pasta",
     "emptyHint": "Toque em Enviar fotos para adicionar imagens",
-    "deletePrompt": "Excluir?",
     "deletingButton": "Excluindo...",
     "deleteAriaLabel": "Excluir foto",
-    "dismissErrorAriaLabel": "Dispensar erro"
+    "dismissErrorAriaLabel": "Dispensar erro",
+    "mainFolderTab": "Pasta principal",
+    "deleteConfirmTitle": "Excluir esta foto?",
+    "deleteConfirmDescription": "Ela sai da tela e da biblioteca de fotos para sempre.",
+    "savedAsHint": "Será salvo como {name}"
   },
   "choresKidView": {
     "notConfigured": "Nenhuma tarefa ainda. Peça a um adulto para adicionar um quadro de tarefas à tela.",
@@ -595,7 +596,7 @@
     "retry": "Tentar de novo",
     "onAllDisplays": "Em todas as telas",
     "onDisplay": "Em {name}",
-    "showOn": "Mostrar em",
+    "showOn": "Enviar para",
     "allDisplays": "Todas as telas",
     "showOnNext": "Próximo timer em",
     "onDisplays": "Em {count} telas",

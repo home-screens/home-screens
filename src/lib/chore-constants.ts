@@ -15,6 +15,13 @@ export const CHORE_FREQUENCIES: { value: ChoreResetFrequency }[] = [
   { value: 'once' },
 ];
 
+/**
+ * Icon a brand-new chore starts with. Chores with no icon rendered as a grey
+ * "?" in the manage list, which read like something had gone wrong; the
+ * sparkle is a neutral stand-in that still looks like a chore.
+ */
+export const DEFAULT_CHORE_ICON = 'lucide:sparkles';
+
 export const CHORE_ROTATIONS: { value: ChoreRotation }[] = [
   { value: 'fixed' },
   { value: 'rotate-daily' },

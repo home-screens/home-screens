@@ -69,8 +69,8 @@
     "noProfile": "Toutes les pages"
   },
   "displayPicker": {
-    "targeting": "Commandes pour",
-    "allLabel": "Tous"
+    "targeting": "Envoyer à",
+    "allLabel": "Tous les écrans"
   },
   "mobileColorPicker": {
     "colorLabel": "Couleur",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (tout est fait)",
     "history": {
-      "editingPrefix": "Tu modifies ",
-      "editingDaysAgoSingular": " (il y a 1 jour) — les tickets sont ajoutés au compte d'aujourd'hui.",
-      "editingDaysAgoPlural": " (il y a {n} jours) — les tickets sont ajoutés au compte d'aujourd'hui.",
-      "editingNote": " Note : la liste des tâches d'aujourd'hui est affichée pour les jours passés, les tâches récemment ajoutées peuvent donc apparaître comme manquées.",
-      "lockedMessage": "Demande à un grand pour ajouter les tâches que tu as manquées."
+      "editingPrefix": "Vous cochez le ",
+      "editingNote": "La liste affichée est celle d'aujourd'hui : les tâches ajoutées récemment peuvent sembler oubliées.",
+      "lockedMessage": "Demande à un grand pour ajouter les tâches que tu as manquées.",
+      "editingSuffix": ". Les tickets comptent quand même pour aujourd'hui."
     },
     "progress": {
       "completion": "{done}/{total} terminées",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Annuler et fermer",
     "slots": {
       "heading": "Créneaux de repas",
-      "description": "Quels repas planifies-tu ? S'applique à l'éditeur et à tous les modules affichés.",
+      "description": "Quels repas planifiez-vous ? Cela change ce qu'affichent l'écran et l'éditeur.",
       "toggleAriaLabelEnabled": "{label}, activé",
       "toggleAriaLabelDisabled": "{label}, désactivé"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Format de l'heure",
-      "description": "S'applique à tous les affichages de repas sur le kiosk et sur cette télécommande.",
+      "description": "Utilisé partout où les repas sont affichés.",
       "twelveHourLabel": "12 h",
       "twentyFourHourLabel": "24 h",
-      "followLabel": "Suivre le réglage global"
+      "followLabel": "Comme l'horloge"
     },
     "defaultTimes": {
       "heading": "Heures de service par défaut",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Échanger",
-      "rewards": "Récompenses",
+      "rewards": "Modifier la liste",
       "balances": "Soldes",
       "history": "Historique"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "Système",
       "errorFailedToLoad": "Échec du chargement",
-      "hostLabel": "Hôte",
+      "hostLabel": "Nom de l'appareil",
       "uptimeLabel": "Temps de fonctionnement",
       "memoryLabel": "Mémoire",
       "diskLabel": "Disque"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Alimentation",
       "restartService": {
-        "label": "Redémarrer le service",
-        "description": "Redémarre l'application Home Screens",
+        "label": "Redémarrer Home Screens",
+        "description": "Corrige la plupart des soucis. Rien de ce que vous avez réglé n'est perdu.",
         "confirmTitle": "Redémarrer Home Screens ?",
         "confirmBody": "Les écrans s'éteignent un instant et cette télécommande se reconnecte dans environ 20 secondes.",
         "confirmButton": "Redémarrer"
@@ -521,7 +520,6 @@
     "newFolderButton": "Nouveau dossier",
     "newFolderPlaceholder": "Nom du dossier",
     "createButton": "Créer",
-    "allPhotosTab": "Toutes les photos",
     "uploadingProgress": "Téléversement {current} sur {total}…",
     "uploadFailedFor": "Échec du téléversement pour {name}",
     "uploadFailed": "Échec du téléversement",
@@ -534,10 +532,13 @@
     "uploadButton": "Téléverser des photos",
     "emptyTitle": "Aucune photo dans ce dossier",
     "emptyHint": "Appuie sur « Téléverser des photos » pour ajouter des images",
-    "deletePrompt": "Supprimer ?",
     "deletingButton": "Suppression…",
     "deleteAriaLabel": "Supprimer la photo",
-    "dismissErrorAriaLabel": "Fermer l'erreur"
+    "dismissErrorAriaLabel": "Fermer l'erreur",
+    "mainFolderTab": "Dossier principal",
+    "deleteConfirmTitle": "Supprimer cette photo ?",
+    "deleteConfirmDescription": "Elle disparaît de l'écran et définitivement de la bibliothèque de photos.",
+    "savedAsHint": "Sera enregistré sous {name}"
   },
   "choresKidView": {
     "notConfigured": "Aucune tâche pour l'instant. Demande à un grand d'ajouter un tableau de tâches à l'écran.",
@@ -595,7 +596,7 @@
     "retry": "Réessayer",
     "onAllDisplays": "Sur tous les écrans",
     "onDisplay": "Sur {name}",
-    "showOn": "Afficher sur",
+    "showOn": "Envoyer à",
     "allDisplays": "Tous les écrans",
     "showOnNext": "Prochain minuteur sur",
     "onDisplays": "Sur {count} écrans",

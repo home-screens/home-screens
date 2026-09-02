@@ -19,8 +19,8 @@ export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, j
         onClick={() => navigateWeek(-1)}
         aria-label={t('mealsTab.weekNav.prevAriaLabel')}
         style={{
-          width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
-          background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
+          width: 44, height: 44, borderRadius: 10, border: '1px solid var(--hs-border)',
+          background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 20, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
         }}
       >
@@ -33,8 +33,8 @@ export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, j
         onClick={() => navigateWeek(1)}
         aria-label={t('mealsTab.weekNav.nextAriaLabel')}
         style={{
-          width: 32, height: 32, borderRadius: 8, border: '1px solid var(--hs-border)',
-          background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 16, cursor: 'pointer',
+          width: 44, height: 44, borderRadius: 10, border: '1px solid var(--hs-border)',
+          background: 'transparent', color: 'var(--hs-text-muted)', fontSize: 20, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'inherit',
         }}
       >

@@ -23,6 +23,7 @@ import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, initialsOf } from '@/lib/calendar-people';
 import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
+import Glyph from '@/components/ui/Glyph';
 
 export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, extras }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -301,7 +302,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
       }}
     >
       {glyph ? (
-        <span aria-hidden="true" style={{ width: fontSize * 0.6, textAlign: 'center', flexShrink: 0, marginTop: fontSize * 0.3, fontSize: fontSize * 0.7 }}>{glyph}</span>
+        <span aria-hidden="true" style={{ width: fontSize * 0.6, textAlign: 'center', flexShrink: 0, marginTop: fontSize * 0.3, fontSize: fontSize * 0.7 }}><Glyph value={glyph} /></span>
       ) : (
         <div style={{
           width: fontSize * 0.6,

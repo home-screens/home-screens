@@ -69,8 +69,8 @@
     "noProfile": "All screens"
   },
   "displayPicker": {
-    "targeting": "Controls go to",
-    "allLabel": "All"
+    "targeting": "Send to",
+    "allLabel": "All displays"
   },
   "mobileColorPicker": {
     "colorLabel": "Color",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (all done)",
     "history": {
-      "editingPrefix": "Editing ",
-      "editingDaysAgoSingular": " (1 day ago) — tickets add to today's balance.",
-      "editingDaysAgoPlural": " ({n} days ago) — tickets add to today's balance.",
-      "editingNote": " Note: today's chore list is shown for past days, so chores added recently may appear missed.",
-      "lockedMessage": "Ask a grown-up to add chores you missed."
+      "editingPrefix": "You're checking off ",
+      "editingNote": "This shows today's chore list, so chores you added recently can look missed.",
+      "lockedMessage": "Ask a grown-up to add chores you missed.",
+      "editingSuffix": ". Tickets still count toward today."
     },
     "progress": {
       "completion": "{done}/{total} complete",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Cancel and close",
     "slots": {
       "heading": "Meal Slots",
-      "description": "Which meals do you plan? Affects the editor and all displayed modules.",
+      "description": "Which meals do you plan? This changes what the display and the editor show.",
       "toggleAriaLabelEnabled": "{label}, enabled",
       "toggleAriaLabelDisabled": "{label}, disabled"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Time Format",
-      "description": "Applies to every meal display across the kiosk and this remote.",
+      "description": "Used everywhere meals are shown.",
       "twelveHourLabel": "12-hour",
       "twentyFourHourLabel": "24-hour",
-      "followLabel": "Follow global setting"
+      "followLabel": "Same as the clock"
     },
     "defaultTimes": {
       "heading": "Default Serving Times",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Redeem",
-      "rewards": "Rewards",
+      "rewards": "Edit list",
       "balances": "Balances",
       "history": "History"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "System",
       "errorFailedToLoad": "Failed to load",
-      "hostLabel": "Host",
+      "hostLabel": "Device name",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Memory",
       "diskLabel": "Disk"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Power",
       "restartService": {
-        "label": "Restart Service",
-        "description": "Restart the Home Screens app",
+        "label": "Restart Home Screens",
+        "description": "Fixes most glitches. Nothing you set up is lost.",
         "confirmTitle": "Restart Home Screens?",
         "confirmBody": "The displays go blank for a moment and this remote reconnects in about 20 seconds.",
         "confirmButton": "Restart"
@@ -521,7 +520,6 @@
     "newFolderButton": "New Folder",
     "newFolderPlaceholder": "Folder name",
     "createButton": "Create",
-    "allPhotosTab": "All Photos",
     "uploadingProgress": "Uploading {current} of {total}...",
     "uploadFailedFor": "Upload failed for {name}",
     "uploadFailed": "Upload failed",
@@ -534,10 +532,13 @@
     "uploadButton": "Upload Photos",
     "emptyTitle": "No photos in this folder",
     "emptyHint": "Tap Upload Photos to add images",
-    "deletePrompt": "Delete?",
     "deletingButton": "Deleting...",
     "deleteAriaLabel": "Delete photo",
-    "dismissErrorAriaLabel": "Dismiss error"
+    "dismissErrorAriaLabel": "Dismiss error",
+    "mainFolderTab": "Main folder",
+    "deleteConfirmTitle": "Delete this photo?",
+    "deleteConfirmDescription": "It comes off the wall and out of the photo library for good.",
+    "savedAsHint": "Saved as {name}"
   },
   "choresKidView": {
     "notConfigured": "No chores yet. Ask a grown-up to add a chore chart to the display.",
@@ -595,7 +596,7 @@
     "retry": "Try again",
     "onAllDisplays": "On all displays",
     "onDisplay": "On {name}",
-    "showOn": "Show on",
+    "showOn": "Send to",
     "allDisplays": "All displays",
     "showOnNext": "Next timer shows on",
     "onDisplays": "On {count} displays",

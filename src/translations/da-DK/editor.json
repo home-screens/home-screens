@@ -2422,7 +2422,23 @@
     "moreResults": "+{count} mere — præcisér din søgning for at se dem.",
     "chooseIconPlaceholder": "Vælg et ikon…",
     "browse": "Gennemse",
-    "kindAll": "Alle"
+    "kindAll": "Alle",
+    "tabEmoji": "Emoji",
+    "tabFontAwesome": "Font Awesome",
+    "searchAllPlaceholder": "Søg efter ikoner på navn eller nøgleord…",
+    "removeIcon": "Fjern ikon",
+    "previewLabel": "På skærmen",
+    "emojiGroups": {
+      "popular": "Populære",
+      "people": "Mennesker",
+      "activities": "Sport og aktiviteter",
+      "food": "Mad og drikke",
+      "nature": "Natur og vejr",
+      "places": "Steder og rejser",
+      "things": "Ting",
+      "celebrations": "Fester",
+      "symbols": "Symboler"
+    }
   },
   "configSections": {
     "affirmations": {
@@ -3375,8 +3391,6 @@
       "decoration": "Udsmykning",
       "decorationColor": "Udsmykningens farve",
       "decorationThickness": "Udsmykningens tykkelse",
-      "emoji": "Emoji",
-      "clear": "Ryd",
       "emojiHint": "Vises før teksten",
       "markdown": "Markdown",
       "markdownHint": "**fed**   *kursiv*   ~~gennemstreget~~   `kode`   nye linjer → linjeskift",

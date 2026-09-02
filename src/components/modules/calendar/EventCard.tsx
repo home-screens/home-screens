@@ -14,6 +14,7 @@ import { ContentCard } from '../shared/ContentCard';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent } from '@/types/config';
 import type { EventDisplayStyle } from './support';
+import Glyph from '@/components/ui/Glyph';
 
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
@@ -51,7 +52,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       if (isAllDay) {
         return (
           <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor), opacity: event.opacity }}>
-            {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}>{glyph}</span>}
+            {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>}
             <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
           </div>
         );
@@ -73,7 +74,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
     return (
       <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)', opacity: event.opacity }}>
         {glyph ? (
-          <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}>{glyph}</span>
+          <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>
         ) : (
           <div
             className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -113,7 +114,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       }}
     >
       {glyph ? (
-        <span aria-hidden="true" className="shrink-0 text-center" style={{ width: 9, fontSize: '0.8em', lineHeight: 1, marginTop: 3 }}>{glyph}</span>
+        <span aria-hidden="true" className="shrink-0 text-center" style={{ width: 9, fontSize: '0.8em', lineHeight: 1, marginTop: 3 }}><Glyph value={glyph} /></span>
       ) : (
         <div
           className="w-0.5 rounded-full shrink-0 self-stretch"

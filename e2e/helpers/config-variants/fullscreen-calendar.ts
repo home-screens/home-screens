@@ -443,6 +443,22 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
     expect: async (mod) => { await expect(mod.locator('[data-day-badge]')).toHaveText('RULE BADGE'); },
   },
+  {
+    // A Font Awesome pick stores a `fa:<style>:<name>` token instead of a
+    // glyph. Both rule icons and day badges have to render it as the icon
+    // font's <i>, not print the token as text.
+    type: 'fullscreen-calendar', name: 'rule-icons-font-awesome', kind: 'networked', stubKey: 'calendar', stubBody: SOURCE_FILTER,
+    config: {
+      view: 'schedule', scheduleDaysToShow: 1,
+      eventRules: [{ id: 'r1', match: { text: 'keep' }, icon: 'fa:solid:futbol' }],
+      dayRules: [{ id: 'd1', match: { withEvents: 'any' }, badgeIcon: 'fa:regular:star', badgeText: 'RULE BADGE', badgeColor: '#f97316' }],
+    },
+    expect: async (mod) => {
+      await expect(mod.locator('i.fa-solid.fa-futbol').first()).toBeVisible();
+      await expect(mod.locator('[data-day-badge] i.fa-regular.fa-star')).toBeVisible();
+      await expect(mod).not.toContainText('fa:solid:futbol');
+    },
+  },
 
   // ================= SCHEDULE VIEW =================
 

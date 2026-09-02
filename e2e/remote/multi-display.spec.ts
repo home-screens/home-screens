@@ -34,11 +34,11 @@ async function drainEnvelope(
   return res.json();
 }
 
-test('the display picker lists every registered display plus All', async ({ page, request }) => {
+test('the display picker lists every registered display plus All displays', async ({ page, request }) => {
   await putConfig(request, multiDisplayConfig());
   await page.goto('/remote');
 
-  await expect(page.getByRole('button', { name: 'All', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'All displays', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Main', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Kitchen', exact: true })).toBeVisible();
 });
@@ -71,8 +71,8 @@ test('broadcasting with All fans a command out to every display', async ({ page,
   await drainTypes(request, 'kitchen');
   await drainTypes(request, 'main');
 
-  // 'All' is the default target when displays exist; click it to be explicit.
-  await page.getByRole('button', { name: 'All', exact: true }).click();
+  // 'All displays' is the default target when displays exist; click it to be explicit.
+  await page.getByRole('button', { name: 'All displays', exact: true }).click();
   const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
   await expect(sleepButton).toBeEnabled();
   await sleepButton.click();

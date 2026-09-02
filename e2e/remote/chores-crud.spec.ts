@@ -262,11 +262,9 @@ test('admin creates a reward and it round-trips to rewards.json', async ({ page,
   // Outer chores sub-nav → Rewards (unambiguous: RewardsView isn't mounted yet).
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
 
-  // The outer sub-nav and the inner rewards nav both expose a "Rewards" button.
-  // Scope to the inner nav by its "Balances" tab — a control unique to the
-  // inner nav — rather than relying on render order between two peer navs.
-  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
-  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+  // The inner rewards nav's own tab is "Edit list" — the outer sub-nav owns the
+  // word "Rewards", so no scoping dance is needed to tell them apart.
+  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
 
   await page.getByRole('button', { name: 'Add Reward' }).click();
   await page.getByPlaceholder('e.g. Extra Screen Time').fill('Ice Cream Trip');
@@ -398,8 +396,7 @@ test('the chore & reward management UI avoids developer jargon', async ({ page, 
 
   // Reward add form.
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
-  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
   await page.getByRole('button', { name: 'Add Reward' }).click();
   await expect(page.getByPlaceholder('e.g. Extra Screen Time')).toBeVisible();
   await expectNoJargon();
@@ -419,7 +416,9 @@ function yesterdayInfo() {
   const iso = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
   // Matches ChoreHistoryNav's tile format under the default en-US formatting locale.
   const label = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(y);
-  return { iso, label };
+  // The history banner uses the shorter month form ("Monday, Sep 1").
+  const bannerLabel = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).format(y);
+  return { iso, label, bannerLabel };
 }
 
 async function completionExists(
@@ -480,18 +479,18 @@ test('admin can backdate a completion on a past day and it persists', async ({ p
 
 test('admin sees the editing-a-past-day banner when viewing history', async ({ page, request }) => {
   await seedChores(request, BACKDATE_DATA);
-  const { label } = yesterdayInfo();
+  const { label, bannerLabel } = yesterdayInfo();
 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await page.getByRole('button', { name: `View ${label}` }).click();
 
   // The editable-day banner (role="status") names the day and explains that
-  // backdated tickets add to today's balance — not the kid lock notice.
-  const banner = page.getByRole('status').filter({ hasText: 'Editing' });
+  // backdated tickets still count toward today — not the kid lock notice.
+  const banner = page.getByRole('status').filter({ hasText: "You're checking off" });
   await expect(banner).toBeVisible();
-  await expect(banner).toContainText(label);
-  await expect(banner).toContainText("tickets add to today's balance");
+  await expect(banner).toContainText(bannerLabel);
+  await expect(banner).toContainText('Tickets still count toward today.');
   await expect(page.getByText('Ask a grown-up to add chores you missed.')).toHaveCount(0);
 });
 
@@ -545,8 +544,7 @@ test('admin edits a reward through the reward form and it round-trips', async ({
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
-  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
 
   // Tapping the reward row opens RewardFormOverlay in edit mode (name pre-filled).
   await page.getByRole('button', { name: /Movie Night/ }).click();
@@ -585,8 +583,7 @@ test('admin deletes a reward through the reward form and it round-trips', async 
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
-  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
 
   await page.getByRole('button', { name: /Bike Ride/ }).click();
   await page.getByRole('button', { name: 'Delete Reward' }).click(); // footer → ConfirmSheet
@@ -708,8 +705,7 @@ test('a failed reward save warns and drops the reward back out of the list', asy
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
-  const innerRewardsNav = page.getByRole('button', { name: 'Balances', exact: true }).locator('..');
-  await innerRewardsNav.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit list', exact: true }).click();
 
   const addReward = async (name: string, cost: string) => {
     await page.getByRole('button', { name: 'Add Reward' }).click();
@@ -754,6 +750,7 @@ test('member avatar and color picks persist through the member form', async ({ p
   // Avatar picker: the crown icon carries the visible label "Royal" and stores
   // as "lucide:crown". (Members render initials when no avatar is picked — the
   // no-emoji-in-assignee-dots convention — but an explicit avatar still persists.)
+  await page.getByRole('button', { name: /^Avatar:/ }).click(); // open the collapsed picker
   await page.getByRole('button', { name: 'Royal', exact: true }).click();
 
   // Color picker: the preset swatches carry no accessible name, so pick a known

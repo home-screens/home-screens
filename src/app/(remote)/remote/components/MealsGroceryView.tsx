@@ -82,8 +82,8 @@ export default function MealsGroceryView({
             onClick={handleShare}
             style={{
               padding: '6px 14px',
-              minHeight: 36,
-              fontSize: 12,
+              minHeight: 44,
+              fontSize: 13,
               fontWeight: 600,
               borderRadius: 8,
               border: '1px solid var(--hs-border)',

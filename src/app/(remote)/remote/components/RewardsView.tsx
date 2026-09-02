@@ -250,7 +250,11 @@ export default function RewardsView({
               fontSize: 13,
               fontWeight: innerView === v ? 600 : 500,
               color: innerView === v ? viewColors[v] : 'var(--hs-text-faint)',
-              paddingBottom: 4,
+              // The underline sits under a 17px word; the padding is what makes
+              // the tab a thumb-sized target without a taller-looking tab bar.
+              minHeight: 44,
+              paddingTop: 10,
+              paddingBottom: 8,
               cursor: 'pointer',
               background: 'none',
               borderTop: 'none',
@@ -710,14 +714,17 @@ function BalancesSection({
                 : t('rewardsView.ticketCountPlural', { n });
             })()}
           </div>
+          {/* Minus and plus sit a finger-width apart: side by side at 32px they
+              were one mis-tap away from taking a ticket instead of giving one. */}
           <button
             className="press-scale-xs"
             onClick={() => onAdjust(member.id, -1)}
             aria-label={t('rewardsView.balances.adjustDownAriaLabel', { name: member.name })}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 40,
+              height: 40,
+              marginRight: 8,
+              borderRadius: 10,
               border: '1px solid var(--hs-border)',
               background: 'var(--hs-bg-panel)',
               color: 'var(--hs-text-muted)',
@@ -734,9 +741,9 @@ function BalancesSection({
             onClick={() => onAdjust(member.id, 1)}
             aria-label={t('rewardsView.balances.adjustUpAriaLabel', { name: member.name })}
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
+              width: 40,
+              height: 40,
+              borderRadius: 10,
               border: '1px solid var(--hs-border)',
               background: 'var(--hs-bg-panel)',
               color: 'var(--hs-text-muted)',

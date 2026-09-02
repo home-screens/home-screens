@@ -14,6 +14,7 @@ import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import type { CalendarViewProps } from './view-support';
 import { useContainerHeight } from './shared-time-grid';
+import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 
 export function MonthGridView({ events, timezone, config, scale, today, now }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -198,7 +199,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       opacity: ev.opacity,
                       ...clampStyle(wrapTitles),
                     }}>
-                      {glyph ? `${glyph} ` : ''}{ev.title}
+                      <GlyphPrefix value={glyph} />{ev.title}
                     </div>
                   );
                 })}
@@ -220,7 +221,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       overflow: 'hidden',
                       opacity: eventOpacity(ev, 1),
                     }}>
-                      <span aria-hidden="true" style={{ fontSize: fontSize * 0.55, flexShrink: 0 }}>{eventGlyph(ev)}</span>
+                      <span aria-hidden="true" style={{ fontSize: fontSize * 0.55, flexShrink: 0 }}><Glyph value={eventGlyph(ev)} /></span>
                       <span style={{
                         fontSize: fontSize * 0.55,
                         fontWeight: 700,
@@ -249,7 +250,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now }: C
                       opacity: eventOpacity(ev, 1),
                     }}>
                       {glyph ? (
-                        <span aria-hidden="true" style={{ fontSize: fontSize * 0.5, lineHeight: 1, flexShrink: 0 }}>{glyph}</span>
+                        <span aria-hidden="true" style={{ fontSize: fontSize * 0.5, lineHeight: 1, flexShrink: 0 }}><Glyph value={glyph} /></span>
                       ) : scale.eventStyle === 'wash' ? (
                         // The source-color dot is the only calendar marker a
                         // bare `wash` pill has. Under the other styles the

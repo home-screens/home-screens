@@ -2427,7 +2427,23 @@
     "moreResults": "+{count} más — afina la búsqueda para verlos.",
     "chooseIconPlaceholder": "Elegir un icono…",
     "browse": "Explorar",
-    "kindAll": "Todos"
+    "kindAll": "Todos",
+    "tabEmoji": "Emoji",
+    "tabFontAwesome": "Font Awesome",
+    "searchAllPlaceholder": "Busca iconos por nombre o palabra clave…",
+    "removeIcon": "Quitar icono",
+    "previewLabel": "En la pantalla",
+    "emojiGroups": {
+      "popular": "Populares",
+      "people": "Personas",
+      "activities": "Deportes y actividades",
+      "food": "Comida y bebida",
+      "nature": "Naturaleza y clima",
+      "places": "Lugares y viajes",
+      "things": "Objetos",
+      "celebrations": "Celebraciones",
+      "symbols": "Símbolos"
+    }
   },
   "configSections": {
     "affirmations": {
@@ -3380,8 +3396,6 @@
       "decoration": "Decoración",
       "decorationColor": "Color de decoración",
       "decorationThickness": "Grosor de decoración",
-      "emoji": "Emoji",
-      "clear": "Borrar",
       "emojiHint": "Se muestra antes del texto",
       "markdown": "Markdown",
       "markdownHint": "**negrita**   *cursiva*   ~~tachado~~   `código`   saltos de línea → saltos de línea",

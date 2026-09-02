@@ -4,6 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
+import { sanitizeFolderName } from '@/lib/library-folder-name';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,11 +102,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     return NextResponse.json({ error: 'name is required' }, { status: 400 });
   }
 
-  // Sanitize directory name
-  const safeName = name
-    .replace(/[^a-zA-Z0-9._-]/g, '-')
-    .replace(/^\.+/, '')           // strip leading dots (blocks "." and "..")
-    .slice(0, 50);
+  const safeName = sanitizeFolderName(name);
 
   if (!safeName) {
     return NextResponse.json({ error: 'Invalid directory name' }, { status: 400 });

@@ -63,10 +63,15 @@ export default function FormOverlay({
         flexDirection: 'column',
         transform: visible ? 'translateY(0)' : 'translateY(100%)',
         transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+        // Same cap as the rest of the remote: a full-bleed form on a laptop
+        // puts the label and its field a screen-width apart.
+        alignItems: 'center',
       }}
     >
       <div
         style={{
+          width: '100%',
+          maxWidth: 640,
           display: 'flex',
           alignItems: 'center',
           padding: '12px 16px',
@@ -109,6 +114,8 @@ export default function FormOverlay({
       </div>
       <div
         style={{
+          width: '100%',
+          maxWidth: 640,
           flex: 1,
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
@@ -122,7 +129,7 @@ export default function FormOverlay({
         {children}
       </div>
       {footer && (
-        <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
+        <div style={{ width: '100%', maxWidth: 640, flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
           {footer}
         </div>
       )}

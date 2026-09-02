@@ -203,9 +203,12 @@ export default function MealsPlanView({
                     style={{
                       position: 'relative',
                       display: 'flex',
-                      alignItems: 'center',
+                      alignItems: 'stretch',
                       gap: 8,
-                      padding: '10px 12px',
+                      // Padding stays thin so the inner button can be the whole
+                      // row: the old 10px inset left only a 20px strip of
+                      // "+ Add meal" actually tappable.
+                      padding: '3px 12px',
                       minHeight: 50,
                       borderRadius: 10,
                       border: hasMeal ? `1px solid ${SLOT_META[slot].color}30` : '1px dashed var(--hs-border)',
@@ -224,7 +227,8 @@ export default function MealsPlanView({
                             gap: 8,
                             flex: 1,
                             minWidth: 0,
-                            padding: 0,
+                            minHeight: 44,
+                            padding: '4px 0',
                             border: 'none',
                             background: 'transparent',
                             color: 'inherit',
@@ -245,7 +249,7 @@ export default function MealsPlanView({
                             </div>
                           </div>
                         </button>
-                        <span style={{ flexShrink: 0 }}>
+                        <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
                           <MealTimeChip
                             value={time}
                             onChange={(tt) => setSlotTime(date, slot, tt)}
@@ -265,7 +269,8 @@ export default function MealsPlanView({
                           alignItems: 'center',
                           gap: 8,
                           flex: 1,
-                          padding: 0,
+                          minHeight: 44,
+                          padding: '4px 0',
                           border: 'none',
                           background: 'transparent',
                           color: 'inherit',
@@ -276,7 +281,7 @@ export default function MealsPlanView({
                       >
                         <div style={{ width: 3, height: 20, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.4, flexShrink: 0 }} />
                         <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>{slotLabel}</span>
-                        <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginLeft: 'auto' }}>{t('mealsPlan.slot.addMeal')}</span>
+                        <span style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginLeft: 'auto' }}>{t('mealsPlan.slot.addMeal')}</span>
                       </button>
                     )}
                   </div>

@@ -69,8 +69,8 @@
     "noProfile": "Alle sider"
   },
   "displayPicker": {
-    "targeting": "Styring gælder for",
-    "allLabel": "Alle"
+    "targeting": "Send til",
+    "allLabel": "Alle skærme"
   },
   "mobileColorPicker": {
     "colorLabel": "Farve",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (afsluttet)",
     "history": {
-      "editingPrefix": "Redigerer ",
-      "editingDaysAgoSingular": " (1 dag siden) — billetter tilføjet til balancen i dag.",
-      "editingDaysAgoPlural": " ({n} dage siden) — billetter tilføjet til balancen i dag.",
-      "editingNote": " Bemærk: Listen over pligter viser de seneste dages pligter. Pligter tilføjet for nyligt kan se ud som om de ikke tæller med.",
-      "lockedMessage": "Bed en voksen tilføje de pligter du mangler."
+      "editingPrefix": "Du sætter flueben for ",
+      "editingNote": "Her vises dagens opgaveliste, så opgaver du lige har tilføjet, kan se ud som om de blev sprunget over.",
+      "lockedMessage": "Bed en voksen tilføje de pligter du mangler.",
+      "editingSuffix": ". Billetter tæller stadig med i dag."
     },
     "progress": {
       "completion": "{done}/{total} afsluttet",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Annullér og luk",
     "slots": {
       "heading": "Måltider i planen",
-      "description": "Hvilke måltider planlægger I? Det gælder både i editoren og i alle viste moduler.",
+      "description": "Hvilke måltider planlægger du? Det ændrer, hvad skærmen og editoren viser.",
       "toggleAriaLabelEnabled": "{label}, slået til",
       "toggleAriaLabelDisabled": "{label}, slået fra"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Tidsformat",
-      "description": "Gælder for alle måltidsvisninger på skærmen og her på fjernbetjeningen.",
+      "description": "Bruges alle steder, hvor måltider vises.",
       "twelveHourLabel": "12-timer",
       "twentyFourHourLabel": "24-timer",
-      "followLabel": "Følg den globale indstilling"
+      "followLabel": "Som uret"
     },
     "defaultTimes": {
       "heading": "Standard serveringstider",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Indløs",
-      "rewards": "Belønninger",
+      "rewards": "Rediger listen",
       "balances": "Saldi",
       "history": "Historik"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "System",
       "errorFailedToLoad": "Indlæsning fejlede",
-      "hostLabel": "Vært",
+      "hostLabel": "Enhedsnavn",
       "uptimeLabel": "Oppetid",
       "memoryLabel": "Hukommelse",
       "diskLabel": "Harddisk"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Genstart",
       "restartService": {
-        "label": "Genstart applikation",
-        "description": "Genstart Home Screens applikationen",
+        "label": "Genstart Home Screens",
+        "description": "Løser de fleste hikke. Intet af det, du har sat op, går tabt.",
         "confirmTitle": "Genstart Home Screens?",
         "confirmBody": "Skærmene bliver sorte et øjeblik, og denne fjernbetjening forbinder igen om cirka 20 sekunder.",
         "confirmButton": "Genstart"
@@ -521,7 +520,6 @@
     "newFolderButton": "Ny mappe",
     "newFolderPlaceholder": "Mappenavn",
     "createButton": "Opret",
-    "allPhotosTab": "Alle billeder",
     "uploadingProgress": "Uploader {current} af {total}...",
     "uploadFailedFor": "Upload af {name} fejlede",
     "uploadFailed": "Upload fejlede",
@@ -534,10 +532,13 @@
     "uploadButton": "Upload billeder",
     "emptyTitle": "Ingen billeder i denne mappe",
     "emptyHint": "Tryk Upload billeder for at tilføje billeder",
-    "deletePrompt": "Slet?",
     "deletingButton": "Sletter...",
     "deleteAriaLabel": "Slet billede",
-    "dismissErrorAriaLabel": "Afvis fejl"
+    "dismissErrorAriaLabel": "Afvis fejl",
+    "mainFolderTab": "Hovedmappe",
+    "deleteConfirmTitle": "Slet dette foto?",
+    "deleteConfirmDescription": "Det forsvinder fra skærmen og ud af fotobiblioteket for altid.",
+    "savedAsHint": "Gemmes som {name}"
   },
   "choresKidView": {
     "notConfigured": "Ingen pligter endnu. Bed en voksen om at tilføje et pligtskema til skærmen.",
@@ -595,7 +596,7 @@
     "retry": "Prøv igen",
     "onAllDisplays": "På alle skærme",
     "onDisplay": "På {name}",
-    "showOn": "Vis på",
+    "showOn": "Send til",
     "allDisplays": "Alle skærme",
     "showOnNext": "Næste timer på",
     "onDisplays": "På {count} skærme",

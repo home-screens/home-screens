@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { deleteLibraryImage, type DirectoryInfo } from '@/lib/library-client';
+import { sanitizeFolderName } from '@/lib/library-folder-name';
 import { useTranslate } from '@/i18n';
+import ConfirmSheet from './ConfirmSheet';
 
 export default function PhotosTab({ directory: initialDirectory }: { directory: string }) {
   const t = useTranslate('remote');
@@ -57,6 +59,11 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
     }
     if (id === fetchIdRef.current) setLoadingImages(false);
   }, []);
+
+  const rootImageCount = directories.find((d) => d.path === '')?.imageCount ?? 0;
+  // Spaces and punctuation can't live in a directory name, so say up front
+  // what "Vacation 2026" is about to become instead of renaming it silently.
+  const savedFolderName = sanitizeFolderName(newFolderName.trim());
 
   useEffect(() => { fetchDirectories(); }, [fetchDirectories]);
   useEffect(() => { fetchImages(selectedDir); }, [selectedDir, fetchImages]);
@@ -194,16 +201,29 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
         </div>
       )}
 
+      {showNewFolder && savedFolderName && savedFolderName !== newFolderName.trim() && (
+        <p className="text-xs text-hs-text-faint">
+          {t('photosTab.savedAsHint', { name: savedFolderName })}
+        </p>
+      )}
+
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
+        {/* The root chip is a folder like any other, not an "everything" view:
+            it lists the photos sitting directly in the library and uploads
+            land there. Naming it "All photos" made an empty root read as a
+            broken library while the folder chips beside it showed counts. */}
         <button
           onClick={() => setSelectedDir('')}
-          className={`flex-shrink-0 px-3.5 py-2 text-sm rounded-full min-h-[44px] flex items-center transition-colors ${
+          className={`flex-shrink-0 px-3.5 py-2 text-sm rounded-full min-h-[44px] flex items-center gap-1.5 transition-colors ${
             selectedDir === ''
               ? 'bg-hs-accent text-white'
               : 'bg-hs-card text-hs-text-muted active:bg-hs-hover'
           }`}
         >
-          {t('photosTab.allPhotosTab')}
+          {t('photosTab.mainFolderTab')}
+          <span className={`text-xs ${selectedDir === '' ? 'text-hs-accent-hover' : 'text-hs-text-faint'}`}>
+            {rootImageCount}
+          </span>
         </button>
         {directories
           .filter((d) => d.path !== '')
@@ -297,52 +317,40 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
       ) : (
         <div className="grid grid-cols-3 gap-1.5">
           {images.map((img) => (
-            <div key={img} className="relative aspect-square group">
+            <div key={img} className="relative aspect-square">
               <img
                 src={img}
                 alt=""
                 loading="lazy"
                 className="w-full h-full object-cover rounded-lg"
               />
-              {confirmDelete === img ? (
-                <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center gap-2">
-                  <span className="text-xs text-hs-text-secondary">{t('photosTab.deletePrompt')}</span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleDeleteImage(img)}
-                      disabled={deletingImage === img}
-                      className="px-3 py-1.5 text-xs font-medium bg-hs-danger text-white rounded-md min-h-[36px] active:opacity-90"
-                    >
-                      {deletingImage === img ? t('photosTab.deletingButton') : tCore('actions.delete')}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(null)}
-                      className="px-3 py-1.5 text-xs font-medium bg-hs-card text-hs-text-secondary rounded-md min-h-[36px] active:bg-hs-hover"
-                    >
-                      {tCore('actions.cancel')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmDelete(img)}
-                  className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white/70 active:text-white opacity-0 group-active:opacity-100 transition-opacity"
-                  style={{ opacity: undefined }}
-                  aria-label={t('photosTab.deleteAriaLabel')}
-                  onPointerDown={(e) => {
-                    // Show delete button on touch
-                    const target = e.currentTarget;
-                    target.style.opacity = '1';
-                  }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                    <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 01.78.72l.5 6.5a.75.75 0 01-1.49.12l-.5-6.5a.75.75 0 01.71-.84zm3.62.72a.75.75 0 00-1.49-.12l-.5 6.5a.75.75 0 001.49.12l.5-6.5z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              )}
+              {/* Always visible: the badge used to be invisible until the tile
+                  was touched, so on a phone there was no sign a photo could be
+                  removed at all. The confirm is a sheet, not an inline prompt
+                  crammed into a 115px tile. */}
+              <button
+                onClick={() => setConfirmDelete(img)}
+                className="absolute top-1.5 right-1.5 w-8 h-8 flex items-center justify-center bg-black/65 rounded-full text-white/85 active:text-white active:bg-black/80 transition-colors"
+                aria-label={t('photosTab.deleteAriaLabel')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 01.78.72l.5 6.5a.75.75 0 01-1.49.12l-.5-6.5a.75.75 0 01.71-.84zm3.62.72a.75.75 0 00-1.49-.12l-.5 6.5a.75.75 0 001.49.12l.5-6.5z" clipRule="evenodd" />
+                </svg>
+              </button>
             </div>
           ))}
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmSheet
+          title={t('photosTab.deleteConfirmTitle')}
+          description={t('photosTab.deleteConfirmDescription')}
+          confirmLabel={deletingImage ? t('photosTab.deletingButton') : tCore('actions.delete')}
+          confirmColor="var(--hs-danger)"
+          onConfirm={() => handleDeleteImage(confirmDelete)}
+          onCancel={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import Button from '@/components/ui/Button';
 import ColorPicker from '@/components/ui/ColorPicker';
+import IconField from '@/components/ui/IconField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
@@ -240,20 +241,20 @@ function EventRuleFields({ rule, availableSources, onChange }: {
             displayValue={`${Math.round((rule.opacity ?? 1) * 100)}%`}
             onChange={(v) => patch({ opacity: v >= 100 ? undefined : v / 100 })}
           />
-          <div className="grid grid-cols-2 gap-1.5">
-            <LabeledInput
-              label={t(`${KEY}.icon`)}
-              value={rule.icon ?? ''}
-              onChange={(v) => patch({ icon: v || undefined })}
-              placeholder="⚽"
-            />
-            <LabeledInput
-              label={t(`${KEY}.renameTo`)}
-              value={rule.title ?? ''}
-              onChange={(v) => patch({ title: v || undefined })}
-              placeholder={t(`${KEY}.renamePlaceholder`)}
-            />
-          </div>
+          {/* Full width rather than paired: the icon picker's trigger needs
+              room for the picked icon's name, and "Show title as" wrapped to
+              two lines at half width. */}
+          <IconField
+            label={t(`${KEY}.icon`)}
+            value={rule.icon}
+            onChange={(v) => patch({ icon: v })}
+          />
+          <LabeledInput
+            label={t(`${KEY}.renameTo`)}
+            value={rule.title ?? ''}
+            onChange={(v) => patch({ title: v || undefined })}
+            placeholder={t(`${KEY}.renamePlaceholder`)}
+          />
         </div>
       )}
     </>
@@ -383,10 +384,8 @@ function DayRuleFields({ rule, availableSources, onChange }: {
       />
       {hasBadge && (
         <div className="flex flex-col gap-1.5">
-          <div className="grid grid-cols-2 gap-1.5">
-            <LabeledInput label={t(`${KEY}.badgeIcon`)} value={rule.badgeIcon ?? ''} onChange={(v) => patch({ badgeIcon: v || undefined })} placeholder="⭐" />
-            <LabeledInput label={t(`${KEY}.badgeText`)} value={rule.badgeText ?? ''} onChange={(v) => patch({ badgeText: v || undefined })} placeholder={t(`${KEY}.badgeTextPlaceholder`)} />
-          </div>
+          <IconField label={t(`${KEY}.badgeIcon`)} value={rule.badgeIcon} onChange={(v) => patch({ badgeIcon: v })} />
+          <LabeledInput label={t(`${KEY}.badgeText`)} value={rule.badgeText ?? ''} onChange={(v) => patch({ badgeText: v || undefined })} placeholder={t(`${KEY}.badgeTextPlaceholder`)} />
           <Toggle
             label={t(`${KEY}.badgeFilled`)}
             checked={rule.badgeColor != null}

@@ -18,6 +18,7 @@ import { useFormDirty } from '@/hooks/useFormDirty';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { useTranslate } from '@/i18n';
 import { buildChoreSummaryLine } from '@/components/modules/chore-chart/chore-form-presentation';
+import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 import MobileColorPicker from './MobileColorPicker';
 import FormOverlay from './FormOverlay';
 import ConfirmSheet from './ConfirmSheet';
@@ -442,11 +443,11 @@ export default function ChoresManageView({
                     background: 'var(--hs-bg-hover)',
                   }}
                 >
-                  {chore.emoji ? (
-                    <ChoreIcon value={chore.emoji} size={20} color="var(--hs-text-muted)" />
-                  ) : (
-                    <span style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>?</span>
-                  )}
+                  <ChoreIcon
+                    value={chore.emoji || DEFAULT_CHORE_ICON}
+                    size={20}
+                    color="var(--hs-text-muted)"
+                  />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>

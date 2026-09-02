@@ -69,8 +69,8 @@
     "noProfile": "Todas las páginas"
   },
   "displayPicker": {
-    "targeting": "Controles para",
-    "allLabel": "Todos"
+    "targeting": "Enviar a",
+    "allLabel": "Todas las pantallas"
   },
   "mobileColorPicker": {
     "colorLabel": "Color",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (todo listo)",
     "history": {
-      "editingPrefix": "Editando ",
-      "editingDaysAgoSingular": " (hace 1 día) — los tickets se suman al saldo de hoy.",
-      "editingDaysAgoPlural": " (hace {n} días) — los tickets se suman al saldo de hoy.",
-      "editingNote": " Nota: en días pasados se muestra la lista de tareas de hoy, así que las tareas añadidas hace poco pueden parecer perdidas.",
-      "lockedMessage": "Pídele a una persona mayor que añada las tareas que se te olvidaron."
+      "editingPrefix": "Estás marcando el ",
+      "editingNote": "Se muestra la lista de tareas de hoy, así que las tareas añadidas hace poco pueden parecer sin hacer.",
+      "lockedMessage": "Pídele a una persona mayor que añada las tareas que se te olvidaron.",
+      "editingSuffix": ". Los tickets cuentan igualmente para hoy."
     },
     "progress": {
       "completion": "{done}/{total} hechas",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Cancelar y cerrar",
     "slots": {
       "heading": "Comidas del día",
-      "description": "¿Qué comidas planificas? Afecta al editor y a todos los módulos mostrados.",
+      "description": "¿Qué comidas planificas? Esto cambia lo que muestran la pantalla y el editor.",
       "toggleAriaLabelEnabled": "{label}, activado",
       "toggleAriaLabelDisabled": "{label}, desactivado"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Formato de hora",
-      "description": "Se aplica a todas las comidas mostradas en el kiosk y en este mando.",
+      "description": "Se usa en todos los sitios donde se muestran las comidas.",
       "twelveHourLabel": "12 horas",
       "twentyFourHourLabel": "24 horas",
-      "followLabel": "Seguir el ajuste global"
+      "followLabel": "Igual que el reloj"
     },
     "defaultTimes": {
       "heading": "Horas por defecto para servir",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Canjear",
-      "rewards": "Premios",
+      "rewards": "Editar la lista",
       "balances": "Saldos",
       "history": "Historial"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "Sistema",
       "errorFailedToLoad": "Error al cargar",
-      "hostLabel": "Host",
+      "hostLabel": "Nombre del dispositivo",
       "uptimeLabel": "Tiempo activo",
       "memoryLabel": "Memoria",
       "diskLabel": "Disco"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Energía",
       "restartService": {
-        "label": "Reiniciar servicio",
-        "description": "Reinicia la app de Home Screens",
+        "label": "Reiniciar Home Screens",
+        "description": "Arregla casi todos los fallos. No se pierde nada de lo que has configurado.",
         "confirmTitle": "¿Reiniciar Home Screens?",
         "confirmBody": "Las pantallas se quedan en negro un momento y este mando se reconecta en unos 20 segundos.",
         "confirmButton": "Reiniciar"
@@ -521,7 +520,6 @@
     "newFolderButton": "Nueva carpeta",
     "newFolderPlaceholder": "Nombre de carpeta",
     "createButton": "Crear",
-    "allPhotosTab": "Todas las fotos",
     "uploadingProgress": "Subiendo {current} de {total}...",
     "uploadFailedFor": "Error al subir {name}",
     "uploadFailed": "Error al subir",
@@ -534,10 +532,13 @@
     "uploadButton": "Subir fotos",
     "emptyTitle": "No hay fotos en esta carpeta",
     "emptyHint": "Toca «Subir fotos» para añadir imágenes",
-    "deletePrompt": "¿Eliminar?",
     "deletingButton": "Eliminando...",
     "deleteAriaLabel": "Eliminar foto",
-    "dismissErrorAriaLabel": "Descartar error"
+    "dismissErrorAriaLabel": "Descartar error",
+    "mainFolderTab": "Carpeta principal",
+    "deleteConfirmTitle": "¿Eliminar esta foto?",
+    "deleteConfirmDescription": "Desaparece de la pantalla y de la biblioteca de fotos para siempre.",
+    "savedAsHint": "Se guardará como {name}"
   },
   "choresKidView": {
     "notConfigured": "Aún no hay tareas. Pídele a una persona mayor que añada una tabla de tareas a la pantalla.",
@@ -595,7 +596,7 @@
     "retry": "Reintentar",
     "onAllDisplays": "En todas las pantallas",
     "onDisplay": "En {name}",
-    "showOn": "Mostrar en",
+    "showOn": "Enviar a",
     "allDisplays": "Todas las pantallas",
     "showOnNext": "Próximo temporizador en",
     "onDisplays": "En {count} pantallas",

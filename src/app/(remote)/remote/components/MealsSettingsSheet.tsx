@@ -88,7 +88,7 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
             onClick={onClose}
             style={{
               minWidth: 44,
-              minHeight: 32,
+              minHeight: 44,
               padding: '4px 12px',
               fontSize: 13,
               fontWeight: 600,

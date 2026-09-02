@@ -30,7 +30,7 @@ export default function DisplayPicker() {
 
   return (
     <section className="mt-4 mx-5">
-      <div className="text-[11px] uppercase tracking-wider text-hs-text-faint mb-2">
+      <div className="text-[12px] uppercase tracking-wider text-hs-text-faint mb-2">
         {t('displayPicker.targeting')}
       </div>
       <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-1">
@@ -40,7 +40,7 @@ export default function DisplayPicker() {
             <button
               key={opt.value}
               onClick={() => setTarget(opt.value)}
-              className={`shrink-0 px-3.5 py-2 min-h-[40px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
+              className={`shrink-0 px-3.5 py-2 min-h-[44px] rounded-xl text-sm font-medium transition-all active:scale-[0.97] border ${
                 active
                   ? 'bg-hs-accent-soft text-hs-accent-hover border-hs-accent/25'
                   : 'bg-hs-card text-hs-text-muted border-hs-border-strong'

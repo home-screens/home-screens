@@ -2422,7 +2422,23 @@
     "moreResults": "+{count} meer — verfijn je zoekopdracht om ze te zien.",
     "chooseIconPlaceholder": "Kies een pictogram…",
     "browse": "Bladeren",
-    "kindAll": "Alles"
+    "kindAll": "Alles",
+    "tabEmoji": "Emoji",
+    "tabFontAwesome": "Font Awesome",
+    "searchAllPlaceholder": "Zoek iconen op naam of trefwoord…",
+    "removeIcon": "Icoon verwijderen",
+    "previewLabel": "Op het scherm",
+    "emojiGroups": {
+      "popular": "Populair",
+      "people": "Mensen",
+      "activities": "Sport en activiteiten",
+      "food": "Eten en drinken",
+      "nature": "Natuur en weer",
+      "places": "Plaatsen en reizen",
+      "things": "Spullen",
+      "celebrations": "Feesten",
+      "symbols": "Symbolen"
+    }
   },
   "configSections": {
     "affirmations": {
@@ -3375,8 +3391,6 @@
       "decoration": "Decoratie",
       "decorationColor": "Decoratiekleur",
       "decorationThickness": "Decoratiedikte",
-      "emoji": "Emoji",
-      "clear": "Wissen",
       "emojiHint": "Getoond vóór de tekst",
       "markdown": "Markdown",
       "markdownHint": "**vet**   *cursief*   ~~doorhalen~~   `code`   nieuwe regels → regelafbreking",

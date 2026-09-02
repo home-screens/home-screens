@@ -99,6 +99,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.weather.providers.weatherapi',
   'editor|displaySwitcher.optionWithDimensions',
   'editor|fields.rotation',
+  // A loanword in every shipped locale but French, and a brand name.
+  'editor|iconPicker.tabEmoji',
+  'editor|iconPicker.tabFontAwesome',
   'editor|imageBrowserModal.newFolderConfirm',
   'editor|imageBrowserModal.tabs.unsplash',
   'editor|imageBrowserModal.uploadMediaButton',

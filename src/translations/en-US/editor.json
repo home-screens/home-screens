@@ -2422,7 +2422,23 @@
     "moreResults": "+{count} more — refine your search to see them.",
     "chooseIconPlaceholder": "Choose an icon…",
     "browse": "Browse",
-    "kindAll": "All"
+    "kindAll": "All",
+    "tabEmoji": "Emoji",
+    "tabFontAwesome": "Font Awesome",
+    "searchAllPlaceholder": "Search icons by name or keyword…",
+    "removeIcon": "Remove icon",
+    "previewLabel": "On the wall",
+    "emojiGroups": {
+      "popular": "Popular",
+      "people": "People",
+      "activities": "Sports & activities",
+      "food": "Food & drink",
+      "nature": "Nature & weather",
+      "places": "Places & travel",
+      "things": "Things",
+      "celebrations": "Celebrations",
+      "symbols": "Symbols"
+    }
   },
   "configSections": {
     "affirmations": {
@@ -3375,8 +3391,6 @@
       "decoration": "Decoration",
       "decorationColor": "Decoration Color",
       "decorationThickness": "Decoration Thickness",
-      "emoji": "Emoji",
-      "clear": "Clear",
       "emojiHint": "Shown before the text",
       "markdown": "Markdown",
       "markdownHint": "**bold**   *italic*   ~~strike~~   `code`   newlines → line breaks",

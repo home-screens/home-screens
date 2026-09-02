@@ -296,13 +296,35 @@ test('fullscreen-calendar: adding an event rule persists', async ({ page, reques
     await page.getByRole('button', { name: 'Add an event rule' }).click();
   });
   const eventCard = page.locator('[data-rules-list="events"] [data-rule-card]').first();
+
+  // The icon field is a picker, not a text box: emoji and Font Awesome are
+  // two tabs over one search box, and each stores a different shape of value.
+  await eventCard.getByLabel('Icon', { exact: true }).click();
+  const picker = page.getByRole('dialog', { name: 'Choose an icon' });
   await autosaved(page, async () => {
-    await eventCard.getByLabel('Icon').fill('⚽');
+    await picker.getByRole('button', { name: 'soccer ball', exact: true }).click();
   });
 
   const eventRules = (await moduleConfig(request, 'fullscreen-calendar')).eventRules as Array<Record<string, unknown>>;
   expect(eventRules).toHaveLength(1);
   expect(eventRules[0].icon).toBe('⚽');
+
+  // A Font Awesome pick persists as a token, not a glyph.
+  await eventCard.getByLabel('Icon', { exact: true }).click();
+  await picker.getByRole('tab', { name: /Font Awesome/ }).click();
+  await picker.getByPlaceholder(/Search icons/).fill('futbol');
+  await autosaved(page, async () => {
+    await picker.getByTitle('futbol', { exact: true }).click();
+  });
+  expect(((await moduleConfig(request, 'fullscreen-calendar')).eventRules as Array<Record<string, unknown>>)[0].icon)
+    .toBe('fa:solid:futbol');
+
+  // Clearing from the field removes the key rather than storing an empty string.
+  await autosaved(page, async () => {
+    await eventCard.getByRole('button', { name: 'Remove icon' }).click();
+  });
+  expect(((await moduleConfig(request, 'fullscreen-calendar')).eventRules as Array<Record<string, unknown>>)[0].icon)
+    .toBeUndefined();
 });
 
 test('weather: toggling Feels Like persists', async ({ page, request }) => {

@@ -320,7 +320,7 @@ export default function ChoreHistoryNav({
             >
               <span
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: 'var(--hs-text-faint)',
                   fontWeight: 600,
                   textTransform: 'uppercase' as const,
@@ -343,7 +343,7 @@ export default function ChoreHistoryNav({
               {hasData && day.anyDone ? (
                 <span
                   style={{
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: 700,
                     color: fracColor,
                     fontVariantNumeric: 'tabular-nums' as const,
@@ -356,7 +356,7 @@ export default function ChoreHistoryNav({
                 </span>
               ) : (
                 // Keep vertical rhythm so all tiles are the same height.
-                <span style={{ fontSize: 10, lineHeight: 1, visibility: 'hidden' as const }}>0/0</span>
+                <span style={{ fontSize: 12, lineHeight: 1, visibility: 'hidden' as const }}>0/0</span>
               )}
               {isToday && !isSelected && (
                 <span

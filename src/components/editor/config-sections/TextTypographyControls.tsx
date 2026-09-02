@@ -3,6 +3,7 @@
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
+import IconField from '@/components/ui/IconField';
 import SectionHeading from '@/components/ui/SectionHeading';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
@@ -103,32 +104,11 @@ export function TextTypographyControls({ config: c, set }: ConfigControlsProps<T
       )}
 
       <div className="flex flex-col gap-0.5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-hs-text-muted">{t('configSections.text.emoji')}</span>
-          {c.icon && (
-            <button
-              type="button"
-              onClick={() => set({ icon: '' })}
-              className="text-[10px] text-hs-text-faint hover:text-hs-text-secondary"
-            >
-              {t('configSections.text.clear')}
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {['☀️', '🌙', '🏠', '❤️', '🎵', '🔥', '⭐', '✨', '🎯', '💡', '📌', '🚀', '👋', '☕', '🌿', '🎉'].map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => set({ icon: c.icon === e ? '' : e })}
-              className={`w-7 h-7 rounded text-sm flex items-center justify-center transition-colors ${
-                c.icon === e ? 'bg-hs-accent/40 ring-1 ring-hs-accent' : 'bg-hs-hover hover:bg-hs-card/50'
-              }`}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
+        <IconField
+          label={t('fields.icon')}
+          value={(c.icon as string) || undefined}
+          onChange={(v) => set({ icon: v ?? '' })}
+        />
         <span className="text-[10px] text-hs-text-faint">{t('configSections.text.emojiHint')}</span>
       </div>
     </>

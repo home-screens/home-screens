@@ -14,6 +14,7 @@ import { useAutoFit } from './text/useAutoFit';
 import MarqueeLayout from './text/MarqueeLayout';
 import { buildTextStyle } from './text/build-text-style';
 import { collectKeyframes, PER_CHAR_EFFECTS, PER_CHAR_MAX_LENGTH } from './text/keyframes';
+import Glyph from '@/components/ui/Glyph';
 
 interface TextModuleProps {
   config: TextConfig;
@@ -221,7 +222,7 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
 
   const iconEl = config.icon ? (
     <span style={{ flexShrink: 0, marginRight: isVerticalLayout ? 0 : '0.4em', marginBottom: isVerticalLayout ? '0.4em' : 0 }}>
-      {config.icon}
+      <Glyph value={config.icon} />
     </span>
   ) : null;
 

@@ -7,8 +7,10 @@ import { formatQuickName, formatRemaining } from '@/components/display/timer-vie
 import type { Routine, TimerView } from '@/types/timers';
 import { useDisplayTarget } from '../display-target';
 import { useTimersData } from '../hooks/useTimersData';
+import { DEFAULT_TIMER_SOUND } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
 import RoutineFormOverlay from './RoutineFormOverlay';
+import TimerViewThumb from './TimerViewThumb';
 
 /** Preset quick-timer lengths in seconds — short bursts matter to kids. */
 const QUICK_PRESETS_SEC = [30, 60, 120, 300, 600, 900];
@@ -27,7 +29,7 @@ export const TIMER_VIEW_LABEL_KEYS: Record<TimerView, string> = {
 
 /** Pill-toggle style shared by every chip on the timer surfaces (targets, views, sound, wait-for-tap). */
 export const timerChipClass = (active: boolean) =>
-  `px-3 min-h-[34px] rounded-full text-[12px] font-semibold border ${
+  `px-3 min-h-[40px] rounded-full text-[13px] font-semibold border ${
     active
       ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
       : 'bg-transparent border-hs-border-strong text-hs-text-faint'
@@ -42,7 +44,7 @@ export default function TimersTab() {
   const { displays, live: liveDisplays } = useDisplayTarget();
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
   const [quickView, setQuickView] = useState<TimerView>('face');
-  const [quickSound, setQuickSound] = useState(false);
+  const [quickSound, setQuickSound] = useState(DEFAULT_TIMER_SOUND);
   const [customMinutes, setCustomMinutes] = useState('');
   const [customSeconds, setCustomSeconds] = useState('');
 
@@ -304,8 +306,10 @@ export default function TimersTab() {
               <button
                 key={view}
                 onClick={() => setQuickView(view)}
-                className={timerChipClass(quickView === view)}
+                aria-pressed={quickView === view}
+                className={`${timerChipClass(quickView === view)} inline-flex items-center gap-1.5`}
               >
+                <TimerViewThumb view={view} />
                 {t(TIMER_VIEW_LABEL_KEYS[view])}
               </button>
             ))}

@@ -20,6 +20,7 @@ import type { CalendarEvent, CalendarViewProps } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, eventAriaLabel } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import Glyph from '@/components/ui/Glyph';
 
 interface DayGroupEvent {
   ev: CalendarEvent;
@@ -181,7 +182,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                   fontWeight: 600,
                   color: 'var(--cal-text-primary)',
                 }}>
-                  {glyph && <span aria-hidden="true">{glyph}</span>}
+                  {glyph && <span aria-hidden="true"><Glyph value={glyph} /></span>}
                   {ev.title}
                 </div>
                 {description && (
@@ -240,7 +241,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 fontWeight: 600,
                 color: 'var(--cal-text-primary)',
               }}>
-                {glyph && <span aria-hidden="true" style={{ fontSize: '0.8em' }}>{glyph}</span>}
+                {glyph && <span aria-hidden="true" style={{ fontSize: '0.8em' }}><Glyph value={glyph} /></span>}
                 {ev.title}
               </div>
               {ev.location && (

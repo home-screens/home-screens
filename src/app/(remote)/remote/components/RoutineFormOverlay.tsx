@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { uuid } from '@/lib/uuid';
-import { MAX_STEP_SEC, MIN_STEP_SEC } from '@/lib/timer-logic';
+import { DEFAULT_TIMER_SOUND, MAX_STEP_SEC, MIN_STEP_SEC } from '@/lib/timer-logic';
 import type { Routine, RoutineStep, TimerView } from '@/types/timers';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import { TIMER_VIEW_LABEL_KEYS, timerChipClass } from './TimersTab';
+import TimerViewThumb from './TimerViewThumb';
 
 const ROUTINE_EMOJI = ['🚀', '🌞', '🌙', '🪥', '👕', '🛏️', '🎒', '📚', '🧹', '🍽️', '🛁', '🧸', '⚽', '🎨', '🐶', '⏱️'];
 
@@ -60,7 +61,7 @@ export default function RoutineFormOverlay({
   const [name, setName] = useState(routine?.name ?? '');
   const [icon, setIcon] = useState(routine?.icon ?? '🚀');
   const [view, setView] = useState<TimerView>(routine?.view ?? 'ring');
-  const [sound, setSound] = useState(routine?.sound ?? true);
+  const [sound, setSound] = useState(routine?.sound ?? DEFAULT_TIMER_SOUND);
   const [steps, setSteps] = useState<Array<RoutineStep & { minutesText: string; secondsText: string }>>(
     (routine?.steps ?? [newStep()]).map((s) => ({
       ...s,
@@ -185,12 +186,13 @@ export default function RoutineFormOverlay({
                 key={v}
                 onClick={() => setView(v)}
                 aria-pressed={view === v}
-                className={`min-h-[44px] rounded-xl text-[13px] font-semibold border ${
+                className={`min-h-[44px] px-2 rounded-xl text-[13px] font-semibold border inline-flex items-center justify-center gap-2 ${
                   view === v
                     ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
                     : 'bg-hs-hover border-transparent text-hs-text-primary'
                 }`}
               >
+                <TimerViewThumb view={v} />
                 {t(TIMER_VIEW_LABEL_KEYS[v])}
               </button>
             ))}
@@ -203,7 +205,7 @@ export default function RoutineFormOverlay({
             <button
               onClick={() => setSound((v) => !v)}
               aria-pressed={sound}
-              className={`px-3 min-h-[38px] rounded-full text-[13px] font-semibold border ${
+              className={`px-3 min-h-[40px] rounded-full text-[13px] font-semibold border ${
                 sound
                   ? 'bg-hs-accent/15 border-hs-accent text-hs-accent'
                   : 'bg-transparent border-hs-border-strong text-hs-text-faint'

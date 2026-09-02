@@ -90,9 +90,9 @@ test('time format follows the global setting until overridden', async ({ page, r
   expect(data.globalTimeFormat).toBe('24h');
   expect(data.settings.timeFormat).toBeUndefined();
 
-  // The Follow global option is the selected one.
+  // The "same as the clock" option is the selected one.
   await openMealsSettings(page);
-  await expect(page.getByRole('button', { name: /Follow global/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: /Same as the clock/ })).toHaveAttribute('aria-pressed', 'true');
 
   // Picking 12-hour stores an explicit override that wins over the global.
   await page.getByRole('button', { name: '12-hour' }).click();

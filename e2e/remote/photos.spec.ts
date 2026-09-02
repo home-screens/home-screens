@@ -92,11 +92,11 @@ test('the Photos tab explains itself until a full-screen photo module exists', a
   await expect(photosTab).toBeVisible();
 
   // Opening it shows the Photos surface (header + directory pill + upload CTA).
-  // No empty-state assertion here: this opens the root ("All Photos"), which on
+  // No empty-state assertion here: this opens the root ("Main folder"), which on
   // the shared real directory may already hold images.
   await photosTab.click();
   await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'All Photos' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Main folder/ })).toBeVisible();
   // Exact match: in an empty folder the empty-state hint "Tap Upload Photos to
   // add images" also contains this text, so a substring match would be ambiguous.
   await expect(page.getByText('Upload Photos', { exact: true })).toBeVisible();
@@ -162,7 +162,7 @@ test('deleting a photo removes it from the grid and from disk', async ({ page, r
   const deleteButton = page.getByRole('button', { name: 'Delete photo' });
   await expect(deleteButton).toHaveCount(1);
   await deleteButton.click();
-  await expect(page.getByText('Delete?')).toBeVisible();
+  await expect(page.getByText('Delete this photo?')).toBeVisible();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
   // Confirmation toast, grid empties, and the file is gone from disk.

@@ -2422,7 +2422,23 @@
     "moreResults": "+{count} weitere — verfeinere die Suche, um sie zu sehen.",
     "chooseIconPlaceholder": "Symbol auswählen…",
     "browse": "Durchsuchen",
-    "kindAll": "Alle"
+    "kindAll": "Alle",
+    "tabEmoji": "Emoji",
+    "tabFontAwesome": "Font Awesome",
+    "searchAllPlaceholder": "Symbole nach Name oder Stichwort suchen…",
+    "removeIcon": "Symbol entfernen",
+    "previewLabel": "Auf dem Display",
+    "emojiGroups": {
+      "popular": "Beliebt",
+      "people": "Menschen",
+      "activities": "Sport & Aktivitäten",
+      "food": "Essen & Trinken",
+      "nature": "Natur & Wetter",
+      "places": "Orte & Reisen",
+      "things": "Dinge",
+      "celebrations": "Feiern",
+      "symbols": "Symbole"
+    }
   },
   "configSections": {
     "affirmations": {
@@ -3375,8 +3391,6 @@
       "decoration": "Verzierung",
       "decorationColor": "Verzierungsfarbe",
       "decorationThickness": "Verzierungsstärke",
-      "emoji": "Emoji",
-      "clear": "Löschen",
       "emojiHint": "Wird vor dem Text angezeigt",
       "markdown": "Markdown",
       "markdownHint": "**fett**   *kursiv*   ~~durchgestrichen~~   `Code`   Zeilenumbrüche → Umbrüche",

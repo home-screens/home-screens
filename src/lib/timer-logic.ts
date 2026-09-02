@@ -35,6 +35,13 @@ export const MIN_STEP_SEC = 5;
 export const MAX_STEP_SEC = 4 * 60 * 60;
 
 /**
+ * Whether a newly-created timer chimes when it finishes. Quick timers used to
+ * default to silence while routines defaulted to sound, so the same "Sound"
+ * chip started in opposite states on two screens of the same tab.
+ */
+export const DEFAULT_TIMER_SOUND = true;
+
+/**
  * Lazily materialize a session at `now`: advance past fully-elapsed
  * auto-advance steps, hold on an elapsed waitForTap step, flip to 'done'
  * past the last step, and expire finished sessions after the linger window.

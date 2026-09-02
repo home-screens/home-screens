@@ -69,8 +69,8 @@
     "noProfile": "Alle Bildschirme"
   },
   "displayPicker": {
-    "targeting": "Steuerung gilt für",
-    "allLabel": "Alle"
+    "targeting": "Senden an",
+    "allLabel": "Alle Displays"
   },
   "mobileColorPicker": {
     "colorLabel": "Farbe",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (alles geschafft)",
     "history": {
-      "editingPrefix": "Du bearbeitest ",
-      "editingDaysAgoSingular": " (vor 1 Tag) — Tickets werden zum heutigen Konto gezählt.",
-      "editingDaysAgoPlural": " (vor {n} Tagen) — Tickets werden zum heutigen Konto gezählt.",
-      "editingNote": " Hinweis: Für vergangene Tage wird die heutige Aufgabenliste gezeigt, neu hinzugefügte Aufgaben sehen daher verpasst aus.",
-      "lockedMessage": "Bitte einen Erwachsenen, verpasste Aufgaben nachzutragen."
+      "editingPrefix": "Du hakst ab: ",
+      "editingNote": "Gezeigt wird die heutige Aufgabenliste, neu hinzugefügte Aufgaben können also als verpasst erscheinen.",
+      "lockedMessage": "Bitte einen Erwachsenen, verpasste Aufgaben nachzutragen.",
+      "editingSuffix": ". Tickets zählen trotzdem für heute."
     },
     "progress": {
       "completion": "{done}/{total} geschafft",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Abbrechen und schließen",
     "slots": {
       "heading": "Mahlzeiten",
-      "description": "Welche Mahlzeiten planst du? Wirkt sich auf den Editor und alle angezeigten Module aus.",
+      "description": "Welche Mahlzeiten planst du? Das ändert, was auf dem Display und im Editor zu sehen ist.",
       "toggleAriaLabelEnabled": "{label}, aktiviert",
       "toggleAriaLabelDisabled": "{label}, deaktiviert"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Zeitformat",
-      "description": "Gilt für jede Mahlzeitenanzeige im Kiosk und in dieser Fernsteuerung.",
+      "description": "Gilt überall, wo Mahlzeiten angezeigt werden.",
       "twelveHourLabel": "12-Stunden",
       "twentyFourHourLabel": "24-Stunden",
-      "followLabel": "Globale Einstellung folgen"
+      "followLabel": "Wie die Uhr"
     },
     "defaultTimes": {
       "heading": "Standard-Essenszeiten",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Einlösen",
-      "rewards": "Belohnungen",
+      "rewards": "Liste bearbeiten",
       "balances": "Konten",
       "history": "Verlauf"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "System",
       "errorFailedToLoad": "Laden fehlgeschlagen",
-      "hostLabel": "Host",
+      "hostLabel": "Gerätename",
       "uptimeLabel": "Laufzeit",
       "memoryLabel": "Speicher",
       "diskLabel": "Festplatte"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Energie",
       "restartService": {
-        "label": "Dienst neu starten",
-        "description": "Die Home-Screens-App neu starten",
+        "label": "Home Screens neu starten",
+        "description": "Behebt die meisten Aussetzer. Nichts Eingerichtetes geht verloren.",
         "confirmTitle": "Home Screens neu starten?",
         "confirmBody": "Die Displays werden kurz schwarz, und diese Fernbedienung verbindet sich in etwa 20 Sekunden wieder.",
         "confirmButton": "Neu starten"
@@ -521,7 +520,6 @@
     "newFolderButton": "Neuer Ordner",
     "newFolderPlaceholder": "Ordnername",
     "createButton": "Erstellen",
-    "allPhotosTab": "Alle Fotos",
     "uploadingProgress": "Lädt hoch {current} von {total}…",
     "uploadFailedFor": "Hochladen fehlgeschlagen für {name}",
     "uploadFailed": "Hochladen fehlgeschlagen",
@@ -534,10 +532,13 @@
     "uploadButton": "Fotos hochladen",
     "emptyTitle": "Keine Fotos in diesem Ordner",
     "emptyHint": "Tippe auf „Fotos hochladen“, um Bilder hinzuzufügen",
-    "deletePrompt": "Löschen?",
     "deletingButton": "Lösche…",
     "deleteAriaLabel": "Foto löschen",
-    "dismissErrorAriaLabel": "Fehler schließen"
+    "dismissErrorAriaLabel": "Fehler schließen",
+    "mainFolderTab": "Hauptordner",
+    "deleteConfirmTitle": "Dieses Foto löschen?",
+    "deleteConfirmDescription": "Es verschwindet vom Display und endgültig aus der Fotobibliothek.",
+    "savedAsHint": "Wird gespeichert als {name}"
   },
   "choresKidView": {
     "notConfigured": "Noch keine Aufgaben. Bitte einen Erwachsenen, eine Aufgabentafel zum Display hinzuzufügen.",
@@ -595,7 +596,7 @@
     "retry": "Erneut versuchen",
     "onAllDisplays": "Auf allen Displays",
     "onDisplay": "Auf {name}",
-    "showOn": "Anzeigen auf",
+    "showOn": "Senden an",
     "allDisplays": "Alle Displays",
     "showOnNext": "Nächster Timer auf",
     "onDisplays": "Auf {count} Displays",

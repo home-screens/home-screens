@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -43,6 +44,11 @@ const MOBILE_LABEL_STYLE: CSSProperties = {
   letterSpacing: '0.04em',
 };
 
+/** Icon name behind a stored value ("lucide:broom" -> "broom"); '' for emoji/none. */
+function storedIconName(value: string): string {
+  return value.startsWith('lucide:') ? value.slice('lucide:'.length) : '';
+}
+
 function filterIcons(icons: string[], search: string, t: TranslateFn): string[] {
   if (!search) return icons;
   const q = search.toLowerCase();
@@ -56,84 +62,144 @@ function filterIcons(icons: string[], search: string, t: TranslateFn): string[] 
 export default function IconPicker({ value, onChange, icons, label, variant }: IconPickerProps) {
   const t = useTranslate('modules');
   const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
   const showSearch = icons.length > SEARCH_THRESHOLD[variant];
   const filtered = filterIcons(icons, search, t);
 
   if (variant === 'mobile') {
+    // Collapsed by default: a 60-icon grid pushed the fields that actually
+    // matter (tickets, who does it) two screens down. The row shows what is
+    // picked; opening it reveals the grid, and picking closes it again.
+    const currentName = storedIconName(value);
+    const currentDef = currentName ? getIconDef(currentName) : undefined;
+    const currentLabel = currentDef
+      ? t(`chore-chart.iconLabels.${currentName}`)
+      : value
+        ? value
+        : t('chore-chart.iconPicker.none');
+
     return (
       <div style={{ marginBottom: 24 }}>
         <div style={MOBILE_LABEL_STYLE}>{label}</div>
-        {showSearch && (
-          <input
-            type="text"
-            placeholder={t('chore-chart.iconPicker.filter')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={MOBILE_INPUT_STYLE}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label={`${label}: ${currentLabel}`}
+          style={{
+            width: '100%',
+            minHeight: 48,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 14px',
+            borderRadius: 12,
+            background: 'var(--hs-bg-input)',
+            border: `1px solid ${open ? 'var(--hs-border-strong)' : 'var(--hs-border)'}`,
+            color: 'var(--hs-text-primary)',
+            fontSize: 15,
+            fontFamily: 'inherit',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          {value ? (
+            <ChoreIcon value={value} size={22} />
+          ) : (
+            <span style={{ width: 22 }} aria-hidden />
+          )}
+          <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {currentLabel}
+          </span>
+          <ChevronDown
+            size={18}
+            aria-hidden
+            style={{
+              flexShrink: 0,
+              color: 'var(--hs-text-faint)',
+              transform: open ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.15s',
+            }}
           />
-        )}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
-          {filtered.map((name) => {
-            const def = getIconDef(name);
-            if (!def) return null;
-            const lucideVal = toLucideValue(name);
-            const isSelected = value === lucideVal;
-            const Icon = def.component;
-            return (
-              <button
-                key={name}
-                type="button"
-                className="press-scale-sm"
-                onClick={() => onChange(isSelected ? '' : lucideVal)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 2,
-                  padding: '8px 4px',
-                  minHeight: 48,
-                  borderRadius: 10,
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  background: isSelected ? 'var(--hs-bg-hover)' : 'var(--hs-bg-card)',
-                  color: def.defaultColor,
-                  outline: isSelected ? '2px solid var(--hs-text-primary)' : 'none',
-                  outlineOffset: 1,
-                }}
-              >
-                <Icon size={22} strokeWidth={1.75} />
+        </button>
+        {open && (
+          <div style={{ marginTop: 10 }}>
+            {showSearch && (
+              <input
+                type="text"
+                placeholder={t('chore-chart.iconPicker.filter')}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={MOBILE_INPUT_STYLE}
+              />
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+              {filtered.map((name) => {
+                const def = getIconDef(name);
+                if (!def) return null;
+                const lucideVal = toLucideValue(name);
+                const isSelected = value === lucideVal;
+                const Icon = def.component;
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    className="press-scale-sm"
+                    onClick={() => {
+                      onChange(isSelected ? '' : lucideVal);
+                      setOpen(false);
+                    }}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 2,
+                      padding: '8px 4px',
+                      minHeight: 48,
+                      borderRadius: 10,
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      background: isSelected ? 'var(--hs-bg-hover)' : 'var(--hs-bg-card)',
+                      color: def.defaultColor,
+                      outline: isSelected ? '2px solid var(--hs-text-primary)' : 'none',
+                      outlineOffset: 1,
+                    }}
+                  >
+                    <Icon size={22} strokeWidth={1.75} />
+                    <span
+                      style={{
+                        fontSize: 9,
+                        color: 'var(--hs-text-faint)',
+                        textAlign: 'center',
+                        lineHeight: 1.1,
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {t(`chore-chart.iconLabels.${name}`)}
+                    </span>
+                  </button>
+                );
+              })}
+              {search && filtered.length === 0 && (
                 <span
                   style={{
-                    fontSize: 9,
+                    fontSize: 12,
                     color: 'var(--hs-text-faint)',
-                    textAlign: 'center',
-                    lineHeight: 1.1,
-                    maxWidth: '100%',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    padding: '12px 0',
+                    gridColumn: '1 / -1',
                   }}
                 >
-                  {t(`chore-chart.iconLabels.${name}`)}
+                  {t('chore-chart.iconPicker.noMatch')}
                 </span>
-              </button>
-            );
-          })}
-          {search && filtered.length === 0 && (
-            <span
-              style={{
-                fontSize: 12,
-                color: 'var(--hs-text-faint)',
-                padding: '12px 0',
-                gridColumn: '1 / -1',
-              }}
-            >
-              {t('chore-chart.iconPicker.noMatch')}
-            </span>
-          )}
-        </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

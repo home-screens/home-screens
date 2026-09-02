@@ -69,8 +69,8 @@
     "noProfile": "Alle pagina's"
   },
   "displayPicker": {
-    "targeting": "Bediening voor",
-    "allLabel": "Alle"
+    "targeting": "Sturen naar",
+    "allLabel": "Alle schermen"
   },
   "mobileColorPicker": {
     "colorLabel": "Kleur",
@@ -94,11 +94,10 @@
     "memberAriaLabel": "{name}",
     "memberAriaLabelAllDone": "{name} (alles klaar)",
     "history": {
-      "editingPrefix": "Je bewerkt ",
-      "editingDaysAgoSingular": " (1 dag geleden) — tickets worden opgeteld bij het saldo van vandaag.",
-      "editingDaysAgoPlural": " ({n} dagen geleden) — tickets worden opgeteld bij het saldo van vandaag.",
-      "editingNote": " Let op: voor vorige dagen wordt de klusjeslijst van vandaag getoond, dus klusjes die je net hebt toegevoegd kunnen gemist lijken.",
-      "lockedMessage": "Vraag een volwassene om gemiste klusjes toe te voegen."
+      "editingPrefix": "Je vinkt af voor ",
+      "editingNote": "Dit toont de takenlijst van vandaag, dus taken die je pas hebt toegevoegd kunnen gemist lijken.",
+      "lockedMessage": "Vraag een volwassene om gemiste klusjes toe te voegen.",
+      "editingSuffix": ". Tickets tellen nog steeds mee voor vandaag."
     },
     "progress": {
       "completion": "{done}/{total} klaar",
@@ -334,7 +333,7 @@
     "cancelAriaLabel": "Annuleren en sluiten",
     "slots": {
       "heading": "Maaltijdmomenten",
-      "description": "Welke maaltijden plan je? Werkt door in de editor en alle weergegeven modules.",
+      "description": "Welke maaltijden plan je? Dit verandert wat het scherm en de editor laten zien.",
       "toggleAriaLabelEnabled": "{label}, ingeschakeld",
       "toggleAriaLabelDisabled": "{label}, uitgeschakeld"
     },
@@ -345,10 +344,10 @@
     },
     "timeFormat": {
       "heading": "Tijdformaat",
-      "description": "Geldt voor elke maaltijdweergave op de kiosk en deze afstandsbediening.",
+      "description": "Wordt overal gebruikt waar maaltijden worden getoond.",
       "twelveHourLabel": "12-uurs",
       "twentyFourHourLabel": "24-uurs",
-      "followLabel": "Algemene instelling volgen"
+      "followLabel": "Zoals de klok"
     },
     "defaultTimes": {
       "heading": "Standaard servertijden",
@@ -414,7 +413,7 @@
   "rewardsView": {
     "nav": {
       "redeem": "Inwisselen",
-      "rewards": "Beloningen",
+      "rewards": "Lijst bewerken",
       "balances": "Saldo's",
       "history": "Geschiedenis"
     },
@@ -466,7 +465,7 @@
     "system": {
       "heading": "Systeem",
       "errorFailedToLoad": "Laden mislukt",
-      "hostLabel": "Host",
+      "hostLabel": "Apparaatnaam",
       "uptimeLabel": "Uptime",
       "memoryLabel": "Geheugen",
       "diskLabel": "Schijf"
@@ -501,8 +500,8 @@
     "power": {
       "heading": "Stroom",
       "restartService": {
-        "label": "Service herstarten",
-        "description": "Herstart de Home Screens-app",
+        "label": "Home Screens opnieuw starten",
+        "description": "Lost de meeste haperingen op. Je instellingen blijven bewaard.",
         "confirmTitle": "Home Screens opnieuw starten?",
         "confirmBody": "De schermen gaan even op zwart en deze afstandsbediening verbindt over ongeveer 20 seconden opnieuw.",
         "confirmButton": "Opnieuw starten"
@@ -521,7 +520,6 @@
     "newFolderButton": "Nieuwe map",
     "newFolderPlaceholder": "Mapnaam",
     "createButton": "Maken",
-    "allPhotosTab": "Alle foto's",
     "uploadingProgress": "Uploaden {current} van {total}…",
     "uploadFailedFor": "Uploaden mislukt voor {name}",
     "uploadFailed": "Uploaden mislukt",
@@ -534,10 +532,13 @@
     "uploadButton": "Foto's uploaden",
     "emptyTitle": "Geen foto's in deze map",
     "emptyHint": "Tik op Foto's uploaden om afbeeldingen toe te voegen",
-    "deletePrompt": "Verwijderen?",
     "deletingButton": "Verwijderen…",
     "deleteAriaLabel": "Foto verwijderen",
-    "dismissErrorAriaLabel": "Fout sluiten"
+    "dismissErrorAriaLabel": "Fout sluiten",
+    "mainFolderTab": "Hoofdmap",
+    "deleteConfirmTitle": "Deze foto verwijderen?",
+    "deleteConfirmDescription": "Hij verdwijnt van het scherm en definitief uit de fotobibliotheek.",
+    "savedAsHint": "Wordt opgeslagen als {name}"
   },
   "choresKidView": {
     "notConfigured": "Nog geen klusjes. Vraag een volwassene om een klusjeskaart aan het scherm toe te voegen.",
@@ -595,7 +596,7 @@
     "retry": "Opnieuw proberen",
     "onAllDisplays": "Op alle schermen",
     "onDisplay": "Op {name}",
-    "showOn": "Tonen op",
+    "showOn": "Sturen naar",
     "allDisplays": "Alle schermen",
     "showOnNext": "Volgende timer op",
     "onDisplays": "Op {count} schermen",

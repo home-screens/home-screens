@@ -14,6 +14,7 @@ import {
   getChoreValidationHintKind,
   type ChoreValidationHintKind,
 } from './chore-form-presentation';
+import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 
 /**
  * Shared form state for chore and member forms.
@@ -92,7 +93,7 @@ export function useChoreForm(
   members: ChoreMember[],
 ): ChoreFormState {
   const [name, setName] = useState(initial?.name ?? '');
-  const [emoji, setEmoji] = useState(initial?.emoji ?? '');
+  const [emoji, setEmoji] = useState(initial?.emoji ?? DEFAULT_CHORE_ICON);
   const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
   const [frequency, setFrequency] = useState<ChoreResetFrequency>(initial?.frequency ?? 'daily');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6]);

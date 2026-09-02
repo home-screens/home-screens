@@ -19,6 +19,7 @@ import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/conf
 import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
+import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 
 export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -275,7 +276,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                           lineHeight: 1.3,
                           ...clampStyle(wrapTitles),
                         }}>
-                          {glyph ? `${glyph} ` : ''}{ev.title}
+                          <GlyphPrefix value={glyph} />{ev.title}
                         </div>
                         {height >= fontSize * 2 && (
                           <div style={{
@@ -433,7 +434,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       opacity: ev.opacity,
                     }}
                   >
-                    {glyph ? `${glyph} ` : ''}{ev.title}
+                    <GlyphPrefix value={glyph} />{ev.title}
                   </div>
                 );
               })}
@@ -460,7 +461,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
                       marginBottom: 1,
                     }}
                   >
-                    <span aria-hidden="true">{eventGlyph(ev)}</span>
+                    <span aria-hidden="true"><Glyph value={eventGlyph(ev)} /></span>
                     <span>{ev.title} {label}</span>
                   </div>
                 );
