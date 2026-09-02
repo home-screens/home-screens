@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
-import { MIN_SCREEN_DURATION_MS } from '@/lib/constants';
+import { SHORT_SCREEN_DURATION_MS } from '@/lib/constants';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
@@ -17,9 +17,9 @@ import { ScreenScheduleSection } from './ScreenScheduleSection';
  * link: this override is per-screen against the global, not per-display
  * against a Defaults page.
  *
- * A positive duration is held to MIN_SCREEN_DURATION_MS: the field accepts
- * what is typed (a draft), a warning explains, and the saved value is clamped.
- * Zero (sticky) is not a duration and is saved as-is.
+ * A duration under SHORT_SCREEN_DURATION_MS is saved as typed; a warning under
+ * the field explains that data may not finish loading in time. Zero (sticky)
+ * is not a duration and never warns.
  */
 export default function ScreenSettingsSection() {
   const t = useTranslate('editor');
@@ -39,10 +39,10 @@ export default function ScreenSettingsSection() {
   const overrideMs = screen.rotationDurationMs;
   const isOverridden = overrideMs !== undefined;
   const isSticky = isOverridden && overrideMs === 0;
-  const minSeconds = MIN_SCREEN_DURATION_MS / 1000;
+  const shortSeconds = SHORT_SCREEN_DURATION_MS / 1000;
   const savedSeconds = Math.round((overrideMs ?? 0) / 1000);
   const draftSeconds = draft !== null ? Number(draft) : savedSeconds;
-  const belowFloor = Number.isFinite(draftSeconds) && draftSeconds > 0 && draftSeconds < minSeconds;
+  const tooShort = Number.isFinite(draftSeconds) && draftSeconds > 0 && draftSeconds < shortSeconds;
 
   const moduleCount = screen.modules?.length ?? 0;
 
@@ -63,7 +63,7 @@ export default function ScreenSettingsSection() {
     if (secondsText.trim() === '') return;
     const n = Number(secondsText);
     if (!Number.isFinite(n) || n < 0) return;
-    const ms = n === 0 ? 0 : Math.max(Math.round(n * 1000), MIN_SCREEN_DURATION_MS);
+    const ms = Math.round(n * 1000);
     updateScreen(screen.id, { rotationDurationMs: ms });
   };
 
@@ -115,7 +115,7 @@ export default function ScreenSettingsSection() {
                   value={draft ?? savedSeconds}
                   onChange={(e) => handleChangeSeconds(e.target.value)}
                   onBlur={() => setDraft(null)}
-                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-24 ${belowFloor ? 'border-hs-warning' : 'border-hs-border-strong'}`}
+                  className={`pl-2 pr-1 py-1 text-xs bg-hs-input border rounded text-hs-text-body w-24 ${tooShort ? 'border-hs-warning' : 'border-hs-border-strong'}`}
                 />
                 <span className="text-xs text-hs-text-muted">{t('screenSettings.secondsUnit')}</span>
                 {isSticky && (
@@ -124,10 +124,10 @@ export default function ScreenSettingsSection() {
                   </span>
                 )}
               </div>
-              {belowFloor && (
-                <p className="text-[11px] text-hs-warning mt-2 flex gap-1.5" data-testid="screen-duration-floor-warning">
+              {tooShort && (
+                <p className="text-[11px] text-hs-warning mt-2 flex gap-1.5" data-testid="screen-duration-short-warning">
                   <span aria-hidden="true">⚠</span>
-                  <span>{t('screenSettings.minDurationWarning', { seconds: minSeconds })}</span>
+                  <span>{t('screenSettings.shortDurationWarning', { seconds: shortSeconds })}</span>
                 </p>
               )}
               <p className="text-[11px] text-hs-text-faint mt-2">

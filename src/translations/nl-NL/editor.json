@@ -185,7 +185,7 @@
     "secondsUnit": "sec",
     "stickyBadge": "Vast",
     "stickyHint": "0 = blijf op dit scherm (alleen handmatig wisselen).",
-    "minDurationWarning": "Korter dan {seconds} seconden en het scherm kan al wisselen voordat nieuws en weer klaar zijn met laden. Opgeslagen als {seconds}.",
+    "shortDurationWarning": "Korter dan {seconds} seconden en het scherm kan al wisselen voordat nieuws en weer klaar zijn met laden.",
     "inheritsHintBefore": "Neemt de standaard over: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",

@@ -185,7 +185,7 @@
     "secondsUnit": "sek",
     "stickyBadge": "Fastlåst",
     "stickyHint": "0 = bliv på denne skærm (skift kun manuelt).",
-    "minDurationWarning": "Under {seconds} sekunder kan skærmen skifte, før nyheder og vejr er færdige med at indlæse. Gemt som {seconds}.",
+    "shortDurationWarning": "Under {seconds} sekunder kan skærmen skifte, før nyheder og vejr er færdige med at indlæse.",
     "inheritsHintBefore": "Arver standarden: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",

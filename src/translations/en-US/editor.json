@@ -185,7 +185,7 @@
     "secondsUnit": "sec",
     "stickyBadge": "Sticky",
     "stickyHint": "0 = stay on this screen (manual advance only).",
-    "minDurationWarning": "Shorter than {seconds} seconds and the screen may change before its news and weather finish loading. Saved as {seconds}.",
+    "shortDurationWarning": "Shorter than {seconds} seconds and the screen may change before its news and weather finish loading.",
     "inheritsHintBefore": "Inherits the default: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",

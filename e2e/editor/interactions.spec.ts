@@ -459,6 +459,14 @@ test.describe('per-screen rotation duration', () => {
     await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBe(45000));
     await expect(page.getByText('45s', { exact: true })).toBeVisible();
 
+    // A short duration is a warning, not a floor: 5s persists as typed and the
+    // note under the field says the screen may change before its data loads.
+    await seconds.fill('5');
+    await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBe(5000));
+    await expect(page.getByTestId('screen-duration-short-warning')).toBeVisible();
+    await seconds.fill('45');
+    await expect(page.getByTestId('screen-duration-short-warning')).toBeHidden();
+
     // Zero = sticky (manual advance only): the panel shows a Sticky badge and
     // the tab badge switches to "Stays" (not "0s", which read as a broken
     // duration in warning colour).

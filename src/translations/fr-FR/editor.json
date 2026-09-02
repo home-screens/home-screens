@@ -185,7 +185,7 @@
     "secondsUnit": "s",
     "stickyBadge": "Épinglé",
     "stickyHint": "0 = rester sur cet écran (avance manuelle uniquement).",
-    "minDurationWarning": "En dessous de {seconds} secondes, l'écran risque de changer avant que les actualités et la météo aient fini de charger. Enregistré à {seconds}.",
+    "shortDurationWarning": "En dessous de {seconds} secondes, l'écran risque de changer avant que les actualités et la météo aient fini de charger.",
     "inheritsHintBefore": "Hérite de la valeur par défaut : ",
     "inheritsHintValue": "{seconds} s",
     "inheritsHintAfter": ".",

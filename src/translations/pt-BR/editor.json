@@ -185,7 +185,7 @@
     "secondsUnit": "seg",
     "stickyBadge": "Fixa",
     "stickyHint": "0 = permanecer nesta tela (apenas avanço manual).",
-    "minDurationWarning": "Com menos de {seconds} segundos, a tela pode mudar antes de as notícias e o clima terminarem de carregar. Salvo como {seconds}.",
+    "shortDurationWarning": "Com menos de {seconds} segundos, a tela pode mudar antes de as notícias e o clima terminarem de carregar.",
     "inheritsHintBefore": "Herda do padrão: ",
     "inheritsHintValue": "{seconds}s",
     "inheritsHintAfter": ".",

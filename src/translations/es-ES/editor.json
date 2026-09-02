@@ -185,7 +185,7 @@
     "secondsUnit": "s",
     "stickyBadge": "Fija",
     "stickyHint": "0 = quédate en esta pantalla (solo avance manual).",
-    "minDurationWarning": "Con menos de {seconds} segundos, la pantalla puede cambiar antes de que las noticias y el tiempo terminen de cargar. Guardado como {seconds}.",
+    "shortDurationWarning": "Con menos de {seconds} segundos, la pantalla puede cambiar antes de que las noticias y el tiempo terminen de cargar.",
     "inheritsHintBefore": "Hereda el valor predeterminado: ",
     "inheritsHintValue": "{seconds} s",
     "inheritsHintAfter": ".",

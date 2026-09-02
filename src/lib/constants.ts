@@ -157,11 +157,9 @@ export const PAGINATION_PROGRESS_W_PX = 200;
 export const PAGINATION_PROGRESS_H_PX = 3;
 
 /**
- * Floor for a per-screen rotation duration override. Below this a news or
- * weather screen can change before its data has finished loading. The editor
- * clamps what it saves and `resolveScreenDuration` clamps what it reads, so a
- * config written before the floor existed can't go under it either. Sticky
- * screens (0) are not durations and are left alone; the global
- * `rotationIntervalMs` default is not clamped.
+ * Below this a news or weather screen can change before its data has
+ * finished loading, so the editor's per-screen duration field shows a warning
+ * under it. Advisory only: whatever is typed is saved and used. Sticky
+ * screens (0) are not durations and never warn.
  */
-export const MIN_SCREEN_DURATION_MS = 10_000;
+export const SHORT_SCREEN_DURATION_MS = 10_000;

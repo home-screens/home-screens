@@ -185,7 +185,7 @@
     "secondsUnit": "Sek.",
     "stickyBadge": "Fix",
     "stickyHint": "0 = auf diesem Screen bleiben (nur manueller Wechsel).",
-    "minDurationWarning": "Unter {seconds} Sekunden wechselt der Bildschirm womöglich, bevor Nachrichten und Wetter fertig geladen sind. Gespeichert als {seconds}.",
+    "shortDurationWarning": "Unter {seconds} Sekunden wechselt der Bildschirm womöglich, bevor Nachrichten und Wetter fertig geladen sind.",
     "inheritsHintBefore": "Übernimmt die Standardeinstellung: ",
     "inheritsHintValue": "{seconds} s",
     "inheritsHintAfter": ".",

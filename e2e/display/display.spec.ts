@@ -48,24 +48,22 @@ test('a sticky screen (rotationDurationMs: 0) never auto-advances', async ({ pag
 
 test.describe('per-screen rotation duration and enabled gates', () => {
   test('a non-zero per-screen rotationDurationMs advances well before the global default', async ({ page, request }) => {
-    // Screen A overrides to 2s, which resolveScreenDuration
-    // (src/lib/resolve-screen-duration.ts) holds to the 10s floor
-    // (MIN_SCREEN_DURATION_MS); the global default is 60s. A must advance to B
-    // on its own clock: asserting B appears within 16s proves the override took
-    // precedence (well before the 60s global) and that the floor applied (not
-    // before ~10s). Margins are generous — no exact timing is asserted.
+    // Screen A overrides to ~2s; the global default is 10s. resolveScreenDuration
+    // (src/lib/resolve-screen-duration.ts) resolves screen.rotationDurationMs first,
+    // so A must advance to B on its own 2s clock. Asserting B appears within 6s
+    // proves the override took precedence: it advanced well before the 10s global
+    // would have fired, and it is not sticky. Short durations are allowed (the
+    // editor only warns). Margins are generous — no exact timing is asserted.
     await putConfig(request, baseConfig({
       screens: [
         makeScreen('fast', 'Fast', [textModule('FAST SCREEN')], { rotationDurationMs: 2000 }),
         makeScreen('slow', 'Slow', [textModule('SLOW SCREEN')]),
       ],
-      settings: { rotationIntervalMs: 60000 },
+      settings: { rotationIntervalMs: 10000 },
     }));
     await page.goto('/display');
     await expect(page.getByText('FAST SCREEN')).toBeVisible();
-    await page.waitForTimeout(8000);
-    await expect(page.getByText('FAST SCREEN')).toBeVisible();
-    await expect(page.getByText('SLOW SCREEN')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('SLOW SCREEN')).toBeVisible({ timeout: 6000 });
   });
 
   test('a screen with enabled:false is skipped in rotation', async ({ page, request }) => {
