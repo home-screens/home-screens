@@ -1838,6 +1838,12 @@ export type FullscreenChoreChartView = 'chores' | 'rewards-store';
  * - `off`   nothing; every spare pixel goes to the chore list
  */
 export type FullscreenChoreChartWeekProgress = 'chips' | 'strip' | 'grid' | 'off';
+/**
+ * How the fullscreen chore board groups its rows: by time of day (one row per
+ * chore, a dot per person) or by person (one section per member, a row per
+ * chore they have). Omitted = `by-time`.
+ */
+export type FullscreenChoreChartLayout = 'by-time' | 'by-person';
 
 export interface FullscreenChoreChartConfig {
   view: FullscreenChoreChartView;
@@ -1845,6 +1851,8 @@ export interface FullscreenChoreChartConfig {
   weekStartDay: WeekStartDay;
   /** Where the week's stars render. Omitted = `chips`. */
   weekProgress?: FullscreenChoreChartWeekProgress;
+  /** Row grouping. Omitted = `by-time`. */
+  layout?: FullscreenChoreChartLayout;
   showPoints: boolean;
   showStreaks: boolean;
   showTimeOfDay: boolean;

@@ -59,6 +59,8 @@ interface TimeBandProps {
   headerFontSize: number;
   /** Width each row has; see ChoreRowItem.rowWidth. */
   rowWidth: number;
+  /** Name under each dot; see ChoreRowItem.nameLabelSize. */
+  nameLabelSize?: number;
   showHeader: boolean;
   showPoints: boolean;
   currentTod: ChoreTimeOfDay | null;
@@ -77,6 +79,7 @@ export default function TimeBand({
   headerHeight,
   headerFontSize,
   rowWidth,
+  nameLabelSize = 0,
   showHeader,
   showPoints,
   currentTod,
@@ -108,6 +111,7 @@ export default function TimeBand({
           dotSize={dotSize}
           rowHeight={rowHeight}
           rowWidth={rowWidth}
+          nameLabelSize={nameLabelSize}
           // A header sits flush on its first row, so the pair reads as one block.
           isFirst={i === 0}
           showPoints={showPoints}

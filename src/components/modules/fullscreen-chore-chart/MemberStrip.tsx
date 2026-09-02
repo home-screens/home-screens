@@ -1,7 +1,9 @@
 import type { ChoreMember } from '@/types/config';
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
+import { balanceRows, fitPerRow } from '@/components/modules/chore-chart/layout';
 import { Flame, Star } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { useTranslate } from '@/i18n';
 
 /**
  * What the bottom line of a member chip shows.
@@ -103,7 +105,11 @@ function MemberChip({ member, stats, weekData, detail, c, showStreaks, showPoint
 }
 
 interface MemberStripProps {
+  /** Members with a chore today; each gets a chip. */
   members: ChoreMember[];
+  /** Members with chores on other days this week but none today: named in
+   *  one quiet line under the chips instead of a 0/0 card each. */
+  dayOff?: ChoreMember[];
   memberStats: Map<string, MemberStats>;
   weekData: WeekDayData[];
   detail: MemberChipDetail;
@@ -120,6 +126,7 @@ const MIN_CHIP_WIDTH = 300;
 
 export default function MemberStrip({
   members,
+  dayOff = [],
   memberStats,
   weekData,
   detail,
@@ -129,19 +136,18 @@ export default function MemberStrip({
   showPoints,
   availableWidth,
 }: MemberStripProps) {
+  const t = useTranslate('modules');
   // Never more than three across: past that the names stop being readable
-  // from the couch, which is the whole point of the wall chart.
-  const perRow = Math.max(1, Math.min(3, Math.floor((availableWidth + gap) / (MIN_CHIP_WIDTH * c + gap))));
-  const rowCount = Math.ceil(members.length / perRow);
-  // Balance the rows so a trailing row is never a lone chip.
-  const itemsPerRow = Math.ceil(members.length / Math.max(1, rowCount));
-  const rows: ChoreMember[][] = [];
-  for (let i = 0; i < members.length; i += itemsPerRow) rows.push(members.slice(i, i + itemsPerRow));
+  // from the couch, which is the whole point of the wall chart. Rows are
+  // balanced so seven members read 3 / 2 / 2, never a lone trailing chip.
+  const perRow = Math.min(3, fitPerRow(availableWidth, MIN_CHIP_WIDTH * c, gap, members.length));
+  const rows = balanceRows(members, perRow);
+  const columns = rows[0]?.length ?? 1;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap }}>
       {rows.map((row, ri) => (
-        <div key={ri} style={{ display: 'grid', gridTemplateColumns: `repeat(${itemsPerRow}, minmax(0, 1fr))`, gap }}>
+        <div key={ri} style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap }}>
           {row.map((member) => (
             <MemberChip
               key={member.id}
@@ -156,6 +162,14 @@ export default function MemberStrip({
           ))}
         </div>
       ))}
+      {dayOff.length > 0 && (
+        <div
+          data-testid="fcc-day-off"
+          style={{ fontSize: 20 * c, fontWeight: 500, color: 'var(--fcc-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', padding: `${2 * c}px ${6 * c}px 0` }}
+        >
+          {t('chore-chart.dayOffList', { names: dayOff.map((m) => m.name).join(', ') })}
+        </div>
+      )}
     </div>
   );
 }

@@ -25,6 +25,7 @@ import {
   isDayFullyComplete,
   resolveAssignmentsFor,
   computeWeeklyPoints,
+  countWeekAssignments,
   computeStreak,
   CHORE_HISTORY_DAYS,
   type ResolvedAssignment,
@@ -1038,5 +1039,25 @@ describe('computeStreak', () => {
     // Back-walk: Wed done (1), Tue skipped, Mon done (2), weekend/Fri skipped,
     // Thu 04-02 breaks. Past run = 2, plus today = 3.
     expect(computeStreak([sched], 'alice', '2026-04-09', set)).toBe(3);
+  });
+});
+
+describe('countWeekAssignments', () => {
+  const daily: ChoreDefinition = {
+    id: 'daily', name: 'Daily', emoji: '', points: 1, frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['kid'], rotation: 'fixed',
+  };
+  const weekend: ChoreDefinition = {
+    ...daily, id: 'weekend', name: 'Weekend', frequency: 'weekly', daysOfWeek: [0, 6],
+  };
+  // A Monday-start week: 2026-08-31 (Mon) .. 2026-09-06 (Sun).
+  const week = ['2026-08-31', '2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05', '2026-09-06'];
+
+  it('sums assignments across every day of the week', () => {
+    expect(countWeekAssignments([daily, weekend], 'kid', week)).toBe(7 + 2);
+  });
+
+  it('is zero for a member with no chores', () => {
+    expect(countWeekAssignments([daily, weekend], 'parent', week)).toBe(0);
   });
 });

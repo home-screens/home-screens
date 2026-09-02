@@ -13,8 +13,10 @@ interface WeekStripProps {
 
 /**
  * The household week strip (`weekProgress: 'strip'`): seven cells, each
- * "stars earned / members" for that day. An aggregate on purpose — one row
- * per member stops fitting past three kids, and this house has five.
+ * "stars earned / members with chores that day". An aggregate on purpose —
+ * one row per member stops fitting past three kids, and this house has five.
+ * The denominator counts only members who had something to do, so parents
+ * with no chores never drag a perfect day down to 3/5.
  */
 export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
   const t = useTranslate('modules');
@@ -32,6 +34,7 @@ export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
           const dayDate = new Date(y, (m ?? 1) - 1, d ?? 1);
           const future = todayIndex >= 0 && i > todayIndex;
           const earned = members.reduce((n, member) => n + (day.memberStars[member.id] ? 1 : 0), 0);
+          const assigned = members.reduce((n, member) => n + (day.memberAssigned[member.id] ? 1 : 0), 0);
           return (
             <div
               key={day.date}
@@ -49,10 +52,10 @@ export default function WeekStrip({ k, weekData, members }: WeekStripProps) {
                 {formatDateSync(dayDate, 'EEE', { locale })}
               </div>
               <div style={{ fontSize: 30 * k, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 4 * k, color: 'var(--fcc-text)' }}>
-                {future ? '–' : (
+                {future || assigned === 0 ? '–' : (
                   <>
                     {earned}
-                    <span style={{ fontSize: 18 * k, color: 'var(--fcc-text-3)', fontWeight: 600 }}>/{members.length}</span>
+                    <span style={{ fontSize: 18 * k, color: 'var(--fcc-text-3)', fontWeight: 600 }}>/{assigned}</span>
                   </>
                 )}
               </div>

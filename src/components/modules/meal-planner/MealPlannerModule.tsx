@@ -63,7 +63,7 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
     ? fullPlan.length > 0
     : plan.length > 0;
 
-  if (!hasMeals && view !== 'week') {
+  if (!hasMeals) {
     return (
       <ModuleWrapper style={style}>
         <FamilyEmptyState
@@ -77,7 +77,7 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} />}
       {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
       {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} currentHour={currentHour} recipeTapMode={recipeTapMode} />}
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}

@@ -6,6 +6,7 @@ import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
+import { partitionMembers, weekMembers } from '@/components/modules/chore-chart/layout';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreToast, { type ToastItem } from './ChoreToast';
@@ -13,6 +14,7 @@ import FamilyEmptyState from '../FamilyEmptyState';
 import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';
 import MemberStrip from './MemberStrip';
+import MemberBand, { MemberBandHeader } from './MemberBand';
 import StarChart from './StarChart';
 import WeekStrip from './WeekStrip';
 import { RewardsStoreView } from './RewardsStoreView';
@@ -21,10 +23,12 @@ import {
   type ToggleParams,
   TOD_ORDER,
   HEADER_ROW_UNITS,
+  MEMBER_HEADER_ROW_UNITS,
   getOrientation,
   getUniqueInitials,
   getCurrentTimeOfDay,
   buildChoreRows,
+  buildMemberRows,
   fitRowHeight,
 } from './helpers';
 
@@ -41,6 +45,10 @@ const REF_W = 1080;
 const MIN_DOT_PX = 44;
 /** Or grow past this on the standard kiosk. */
 const MAX_DOT_REF = 84;
+/** A name under a dot is never drawn smaller than this. */
+const MIN_NAME_LABEL_PX = 12;
+/** Or larger than this on the standard kiosk: past it five labelled dots eat the chore name. */
+const MAX_NAME_LABEL_REF = 18;
 
 /**
  * Content height of an element, tracked with ResizeObserver. The list box is
@@ -91,6 +99,12 @@ export default function FullscreenChoreChartModule({
 
   const { todayAssignments, memberStats, weekData, members, chores, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
+  const byPerson = (config.layout ?? 'by-time') === 'by-person';
+  // Who is on the chart: chips for people with chores today, one line for a
+  // day off, nothing for a parent with no chores this week (a 0/0 card and
+  // an empty star row said nothing).
+  const { active: activeMembers, dayOff: dayOffMembers } = useMemo(() => partitionMembers(members, memberStats), [members, memberStats]);
+  const chartedMembers = useMemo(() => weekMembers(members, memberStats), [members, memberStats]);
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
   // configured IANA timezone — used by `getCurrentTimeOfDay` which reads
   // `.getHours()`. `formatDateInTZ` further down takes a real UTC instant
@@ -207,14 +221,37 @@ export default function FullscreenChoreChartModule({
 
   const displayGroups = config.showTimeOfDay ? choreGroups : mergedGroups;
 
+  // By person: one section per member with a chore today, rows in time order.
+  const memberRows = useMemo(
+    () => buildMemberRows(activeMembers, todayAssignments, config.showTimeOfDay),
+    [activeMembers, todayAssignments, config.showTimeOfDay],
+  );
+  const sectionMembers = useMemo(() => activeMembers.filter((m) => memberRows.has(m.id)), [activeMembers, memberRows]);
+  const sectionCount = byPerson ? sectionMembers.length : displayTods.length;
+
   // ── The fit rule ──
   // Portrait stacks every band, so the list has to hold all rows and headers;
   // landscape gives each time-of-day its own column, so the tallest column
   // sets the row height and every column shares it.
   const [listRef, listHeight] = useMeasuredHeight();
+  const headerUnits = byPerson ? MEMBER_HEADER_ROW_UNITS : HEADER_ROW_UNITS;
   const { chores: fitChores, headers: fitHeaders } = useMemo(() => {
     let chores = 0;
     let headers = 0;
+    if (byPerson) {
+      if (isLandscape) {
+        for (const m of sectionMembers) {
+          const n = (memberRows.get(m.id) ?? []).length + MEMBER_HEADER_ROW_UNITS;
+          if (n > chores) chores = n;
+        }
+        return { chores, headers: 0 };
+      }
+      for (const m of sectionMembers) {
+        chores += (memberRows.get(m.id) ?? []).length;
+        headers += 1;
+      }
+      return { chores, headers };
+    }
     if (isLandscape) {
       for (const tod of displayTods) {
         const n = (displayGroups.get(tod) ?? []).length + (config.showTimeOfDay ? HEADER_ROW_UNITS : 0);
@@ -228,32 +265,51 @@ export default function FullscreenChoreChartModule({
       if (config.showTimeOfDay) headers += 1;
     }
     return { chores, headers };
-  }, [isLandscape, displayTods, displayGroups, config.showTimeOfDay]);
+  }, [byPerson, isLandscape, sectionMembers, memberRows, displayTods, displayGroups, config.showTimeOfDay]);
 
-  const rowHeight = fitRowHeight({ listHeight, chores: fitChores, headers: fitHeaders, k, typoMul });
-  const headerHeight = rowHeight * HEADER_ROW_UNITS;
+  const rowHeight = fitRowHeight({ listHeight, chores: fitChores, headers: fitHeaders, k, typoMul, headerUnits });
+  const headerHeight = rowHeight * headerUnits;
   // Landscape columns are narrow (a 1920 panel with four time-of-day columns
   // gives each ~480px), so a row stacks its name over its dots and splits the
   // height between the two lines instead of sharing one line.
-  const columnWidth = isLandscape ? (dims.w - pad * 2) / Math.max(1, displayTods.length) : dims.w;
+  const columnWidth = isLandscape ? (dims.w - pad * 2) / Math.max(1, sectionCount) : dims.w;
   const stackedRows = isLandscape && columnWidth < 900 * k;
   // What a row can use for icon, name and dots: the column minus its own padding.
   const rowWidth = isLandscape ? columnWidth - pad : dims.w - pad * 2;
-  const nameSize = rowHeight * (stackedRows ? 0.36 : 0.5);
+  // A narrow column sizes the name from its width (about 13 characters a
+  // line), never from the row height alone: a 52px name in a 440px column
+  // reads "Take the rec…" from anywhere in the room.
+  const nameSize = stackedRows ? Math.min(rowHeight * 0.36, columnWidth / 13) : rowHeight * 0.5;
   const dotSize = Math.max(MIN_DOT_PX, Math.min(MAX_DOT_REF * k, rowHeight * (stackedRows ? 0.42 : 0.62)));
   const bandLabelSize = 22 * k;
+  const memberBandNameSize = 28 * k;
+  // A name under each dot, when the fitted row leaves a readable line beneath
+  // the dot. Heavy days at the row floor keep bare dots; by person the
+  // section already names its owner.
+  const labelRoom = rowHeight - dotSize;
+  const fittedLabel = Math.min(labelRoom * 0.7, MAX_NAME_LABEL_REF * k);
+  const nameLabelSize = !byPerson && !stackedRows && fittedLabel >= MIN_NAME_LABEL_PX ? fittedLabel : 0;
   // Rows at the floor no longer fit: let the list scroll instead of clipping.
-  const listOverflows = listHeight > 0 && rowHeight * (fitChores + HEADER_ROW_UNITS * fitHeaders) > listHeight + 1;
+  const listOverflows = listHeight > 0 && rowHeight * (fitChores + headerUnits * fitHeaders) > listHeight + 1;
 
   const memberStripWidth = isLandscape ? dims.w * 0.65 : dims.w - pad * 2;
   const chipScale = isLandscape ? k * 0.75 : k;
   const chipDetail = weekProgress === 'chips' ? 'stars' : 'bar';
 
   const weekBottom = weekProgress === 'grid'
-    ? <StarChart k={k} weekData={weekData} members={members} />
+    ? <StarChart k={k} weekData={weekData} members={chartedMembers} />
     : weekProgress === 'strip'
-      ? <WeekStrip k={k} weekData={weekData} members={members} />
+      ? <WeekStrip k={k} weekData={weekData} members={chartedMembers} />
       : null;
+
+  const dayOffLine = dayOffMembers.length > 0 && (
+    <div
+      data-testid="fcc-day-off"
+      style={{ fontSize: 20 * k, fontWeight: 500, color: 'var(--fcc-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+    >
+      {t('chore-chart.dayOffList', { names: dayOffMembers.map((m) => m.name).join(', ') })}
+    </div>
+  );
 
   const footer = (config.showPoints || config.showStreaks) && (
     <div style={{
@@ -395,15 +451,29 @@ export default function FullscreenChoreChartModule({
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
               <div style={{ width: '100%' }}>
-                <MemberStrip members={members} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
+                {byPerson ? dayOffLine : (
+                  <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
+                )}
               </div>
             </div>
           </div>
 
           <div ref={listRef} style={{ flex: 1, display: 'flex', gap: 1, background: 'var(--fcc-surface)', minHeight: 0, overflow: 'hidden' }}>
-            {displayTods.length === 0 ? (
+            {sectionCount === 0 ? (
               <div style={{ flex: 1, display: 'flex', background: 'var(--fcc-bg)' }}>{emptyState}</div>
-            ) : displayTods.map((tod) => {
+            ) : byPerson ? sectionMembers.map((member) => {
+              const rows = memberRows.get(member.id) ?? [];
+              return (
+                <div key={member.id} data-testid="fcc-member-section" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--fcc-bg)', minWidth: 0 }}>
+                  <MemberBandHeader member={member} stats={memberStats.get(member.id)} height={headerHeight} fontSize={memberBandNameSize} showStreaks={config.showStreaks} showPoints={config.showPoints} weekData={weekData} detail={chipDetail} compact={stackedRows} style={{ padding: `0 ${pad * 0.5}px`, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }} />
+                  <div style={{ flex: 1, overflowY: listOverflows ? 'auto' : 'hidden', padding: `0 ${pad * 0.5}px`, scrollbarWidth: 'none', touchAction: 'pan-y' }}>
+                    {rows.map((row, i) => (
+                      <ChoreRowItem key={row.choreId} row={row} fontSize={nameSize} dotSize={dotSize} rowHeight={rowHeight} rowWidth={rowWidth} stacked={stackedRows} showInitials={false} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
+                    ))}
+                  </div>
+                </div>
+              );
+            }) : displayTods.map((tod) => {
               const rows = displayGroups.get(tod) ?? [];
               return (
                 <div key={tod} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--fcc-bg)', minWidth: 0 }}>
@@ -412,7 +482,7 @@ export default function FullscreenChoreChartModule({
                   )}
                   <div style={{ flex: 1, overflowY: listOverflows ? 'auto' : 'hidden', padding: `0 ${pad * 0.5}px`, scrollbarWidth: 'none', touchAction: 'pan-y' }}>
                     {rows.map((row, i) => (
-                      <ChoreRowItem key={row.choreId} row={row} fontSize={nameSize} dotSize={dotSize} rowHeight={rowHeight} rowWidth={rowWidth} stacked={stackedRows} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
+                      <ChoreRowItem key={row.choreId} row={row} fontSize={nameSize} dotSize={dotSize} rowHeight={rowHeight} rowWidth={rowWidth} stacked={stackedRows} nameLabelSize={nameLabelSize} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
                     ))}
                   </div>
                 </div>
@@ -452,9 +522,11 @@ export default function FullscreenChoreChartModule({
               <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: 5 * k, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
             </div>
           </div>
-          <div style={{ padding: `${24 * k}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
-            <MemberStrip members={members} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
-          </div>
+          {!byPerson && (
+            <div style={{ padding: `${24 * k}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
+              <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
+            </div>
+          )}
 
           {/* The list: every pixel between the chips and the week block. */}
           <div
@@ -467,14 +539,35 @@ export default function FullscreenChoreChartModule({
               flexDirection: 'column',
               // Rows at the cap leave slack; spread it between the bands
               // rather than pooling it at the bottom.
-              justifyContent: listOverflows || displayTods.length === 0 ? 'flex-start' : 'space-evenly',
+              justifyContent: listOverflows || sectionCount === 0 ? 'flex-start' : 'space-evenly',
               overflowY: listOverflows ? 'auto' : 'hidden',
               padding: `0 ${pad}px`,
               scrollbarWidth: 'none',
               touchAction: 'pan-y',
             }}
           >
-            {displayTods.map((tod) => (
+            {byPerson ? sectionMembers.map((member) => (
+              <MemberBand
+                key={member.id}
+                member={member}
+                stats={memberStats.get(member.id)}
+                rows={memberRows.get(member.id) ?? []}
+                fontSize={nameSize}
+                dotSize={dotSize}
+                rowHeight={rowHeight}
+                headerHeight={headerHeight}
+                headerFontSize={memberBandNameSize}
+                rowWidth={rowWidth}
+                showPoints={config.showPoints}
+                showStreaks={config.showStreaks}
+                weekData={weekData}
+                detail={chipDetail}
+                memberMap={memberMap}
+                initialsMap={initialsMap}
+                allowTouch={allowTouch}
+                onToggle={handleToggle}
+              />
+            )) : displayTods.map((tod) => (
               <TimeBand
                 key={tod}
                 tod={tod}
@@ -485,6 +578,7 @@ export default function FullscreenChoreChartModule({
                 headerHeight={headerHeight}
                 headerFontSize={bandLabelSize}
                 rowWidth={rowWidth}
+                nameLabelSize={nameLabelSize}
                 showHeader={config.showTimeOfDay}
                 showPoints={config.showPoints}
                 currentTod={currentTod}
@@ -494,7 +588,10 @@ export default function FullscreenChoreChartModule({
                 onToggle={handleToggle}
               />
             ))}
-            {displayTods.length === 0 && emptyState}
+            {byPerson && sectionCount > 0 && dayOffLine && (
+              <div style={{ flexShrink: 0, padding: `${12 * k}px ${nameSize * 0.3}px` }}>{dayOffLine}</div>
+            )}
+            {sectionCount === 0 && emptyState}
           </div>
 
           {weekBottom && (

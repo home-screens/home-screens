@@ -635,6 +635,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'chore-chart', key: 'weekStartDay', union: 'WeekStartDay' },
   { type: 'fullscreen-chore-chart', key: 'weekStartDay', union: 'WeekStartDay' },
   { type: 'fullscreen-chore-chart', key: 'weekProgress', union: 'FullscreenChoreChartWeekProgress' },
+  { type: 'fullscreen-chore-chart', key: 'layout', union: 'FullscreenChoreChartLayout' },
 ];
 
 /**

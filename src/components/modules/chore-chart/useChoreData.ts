@@ -19,8 +19,10 @@ import {
   resolveAssignmentsFor,
   computeWeeklyPoints,
   computeStreak,
+  countWeekAssignments,
   isDayFullyComplete,
 } from './types';
+import { choresAssignedTo } from '@/lib/chore-assignments';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
 import { logger } from '@/lib/logger';
@@ -144,6 +146,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         weeklyPoints,
         weeklyPointsTotal,
         rewardBalance: rewards?.balances?.[member.id] ?? 0,
+        weekAssigned: countWeekAssignments(chores, member.id, weekDates),
       });
     }
 
@@ -160,10 +163,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       const dayOfWeek = parseISO(date).getDay();
 
       const memberStars: Record<string, boolean> = {};
+      const memberAssigned: Record<string, boolean> = {};
 
       for (const member of members) {
         // A star is earned when ALL assigned chores for that day are completed
         memberStars[member.id] = isDayFullyComplete(chores, member.id, date, completionSet);
+        memberAssigned[member.id] = choresAssignedTo(chores, member.id, date).length > 0;
       }
 
       days.push({
@@ -172,6 +177,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         dayIndex: dayOfWeek,
         isToday: date === today,
         memberStars,
+        memberAssigned,
       });
     }
 

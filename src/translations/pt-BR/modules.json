@@ -419,6 +419,8 @@
     "chores": "Tarefas",
     "thisWeek": "Esta semana",
     "dayOff": "Dia de folga!",
+    "dayOffList": "Dia de folga: {names}",
+    "noChoresToday": "Sem tarefas hoje",
     "allDone": "Tudo pronto!",
     "doneLabel": "Feito:",
     "progressLabel": "Progresso:",

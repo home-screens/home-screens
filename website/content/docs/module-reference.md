@@ -112,9 +112,10 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | `view` | string | `"chores"` | Display mode: `chores` (daily chore board) or `rewards-store` (browse and redeem rewards) |
 | `showRewardsButton` | boolean | `false` | Show a toggle button in the chore board header to switch to the rewards store view |
 | `weekStartDay` | string | `"monday"` | First day of week: `sunday` or `monday` |
+| `layout` | string | `"by-time"` | Group chores by: `by-time` (one row per chore, a dot per person, with the person's name under each dot when the row has room) or `by-person` (one section per person with their own chores). By person works best for up to four people |
 | `showPoints` | boolean | `true` | Show ticket values for chores |
 | `showStreaks` | boolean | `true` | Show completion streaks |
-| `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening) |
+| `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening); by person, this only orders each person's chores |
 | `allowDisplayComplete` | boolean | `true` | Let anyone tap a chore on the display itself to mark it done |
 | `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `true` | Superseded by `theme` (see above). Kept so older configurations still render |
@@ -124,8 +125,9 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 
 **Layout details:**
 
-- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking.
-- **Landscape** — Top bar with date and member chips, three-column layout for morning/afternoon/evening, and a horizontal star chart in the footer.
+- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking. By person, the chips give way to one section per person.
+- **Landscape** — Top bar with date and member chips, one column per time of day (or per person), and a horizontal star chart in the footer.
+- Only people with a chore today get a chip. Someone with chores on another day of the week is named in a "Day off" line under the chips; someone with no chores at all this week is left off the chart.
 
 **Rewards store view:**
 

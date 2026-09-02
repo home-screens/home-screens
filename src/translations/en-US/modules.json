@@ -419,6 +419,8 @@
     "chores": "Chores",
     "thisWeek": "This Week",
     "dayOff": "Day off!",
+    "dayOffList": "Day off: {names}",
+    "noChoresToday": "No chores today",
     "allDone": "All done!",
     "doneLabel": "Done:",
     "progressLabel": "Progress:",

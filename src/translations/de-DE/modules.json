@@ -419,6 +419,8 @@
     "chores": "Aufgaben",
     "thisWeek": "Diese Woche",
     "dayOff": "Heute frei!",
+    "dayOffList": "Heute frei: {names}",
+    "noChoresToday": "Heute keine Aufgaben",
     "allDone": "Alles fertig!",
     "doneLabel": "Geschafft:",
     "progressLabel": "Fortschritt:",

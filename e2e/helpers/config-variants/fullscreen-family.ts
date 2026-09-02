@@ -80,6 +80,30 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // layout 'by-time' (the default) groups rows under time-of-day bands with
+    // a dot per person; no member section exists.
+    type: 'fullscreen-chore-chart', name: 'layout-by-time', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', layout: 'by-time' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod.locator('[data-testid="fcc-band-header"]').first()).toBeVisible();
+      await expect(mod.locator('[data-testid="fcc-member-section"]')).toHaveCount(0);
+    },
+  },
+  {
+    // layout 'by-person' gives each member a section headed by their name;
+    // the time-of-day bands and the member chip strip go away.
+    type: 'fullscreen-chore-chart', name: 'layout-by-person', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', layout: 'by-person' },
+    expect: async (mod) => {
+      await has('Feed the dog')(mod);
+      await expect(mod.locator('[data-testid="fcc-member-section"]')).toHaveCount(1);
+      await expect(mod.locator('[data-testid="fcc-member-band"]').first()).toContainText('Avery');
+      await expect(mod.locator('[data-testid="fcc-band-header"]')).toHaveCount(0);
+      await expect(mod.locator('[data-testid="fcc-member-chip"]')).toHaveCount(0);
+    },
+  },
+  {
     // showPoints gates the footer "Weekly tickets:" total.
     type: 'fullscreen-chore-chart', name: 'hide-points', kind: 'local-data', seed: 'chores',
     config: { view: 'chores', showPoints: false },

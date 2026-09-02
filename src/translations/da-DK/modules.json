@@ -419,6 +419,8 @@
     "chores": "Pligter",
     "thisWeek": "Denne uge",
     "dayOff": "Fridag!",
+    "dayOffList": "Fridag: {names}",
+    "noChoresToday": "Ingen pligter i dag",
     "allDone": "Alle pligter er klaret!",
     "doneLabel": "Klaret:",
     "progressLabel": "Fremgang:",

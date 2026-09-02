@@ -308,62 +308,25 @@ test('a flick resets the rotation timer (the new screen gets a full dwell)', asy
 /**
  * `[data-swipe-ignore]` opt-out (useSwipeNavigation): surfaces that scroll
  * sideways own the horizontal drag, so a gesture STARTING on one must never
- * navigate. Two host surfaces carry the attribute — the chore board's member
- * columns and the display-control target-picker chips — and each is reachable
- * on a real display, so both are exercised through the rendered kiosk rather
+ * navigate. One host surface carries the attribute — the display-control
+ * target-picker chips (the chore board's member columns used to, until the
+ * board started wrapping into rows instead of scrolling) — and it is reachable
+ * on a real display, so it is exercised through the rendered kiosk rather
  * than a synthetic DOM.
  *
- * Every case pairs the negative claim with a positive control flick on the
+ * The case pairs the negative claim with a positive control flick on the
  * background afterwards: without it, a broken selector or a mis-seeded config
  * would let the test pass by rendering nothing swipeable at all.
  */
 test.describe('data-swipe-ignore surfaces', () => {
   /**
-   * Screen A with a chore board big enough that its member columns (the
-   * `data-swipe-ignore` container) cover most of the screen's middle band,
-   * leaving y≈1500 clear for the control flick. `allowDisplayComplete: false`
-   * keeps a drag that lands as a click from toggling seeded chore state.
+   * The chips row only renders in multi-display mode with retargeting on
+   * (PanelLayout: `allowRetargeting && !isLegacyMode`), so this needs a
+   * displays registry and a per-display route. Screen A of the `swipectl`
+   * display carries the widget at y 700-1080, leaving y≈1500 clear for the
+   * control flicks.
    */
-  function boardScreens() {
-    const board: ModuleInstance = {
-      ...buildModuleInstance('chore-chart', { view: 'board', allowDisplayComplete: false }),
-      position: { x: 40, y: 300 },
-      size: { w: 1000, h: 900 },
-    };
-    const screens = threeScreens();
-    screens[0].modules.push(board);
-    return screens;
-  }
-
-  test('a drag starting on the chore board columns does not navigate', async ({ page, request }) => {
-    await seedChores(request);
-    const display = await renderOnDisplay(page, request, baseConfig({
-      screens: boardScreens(),
-      settings: { rotationIntervalMs: 3_600_000 },
-    }));
-    await expect(page.getByText(A, { exact: true })).toBeVisible();
-
-    const columns = display.module('chore-chart').locator('[data-swipe-ignore]');
-    await expect(columns).toBeVisible();
-    const box = (await columns.boundingBox())!;
-    const y = box.y + box.height / 2;
-    // A fast, long, leftward drag that begins inside the scroll container —
-    // the gesture a finger makes when scanning the columns sideways.
-    await flick(page, { x: box.x + box.width * 0.8, y }, { x: box.x + box.width * 0.8 - 500, y });
-    await page.waitForTimeout(500);
-    await expect(page.getByText(A, { exact: true })).toBeVisible();
-    await expect(page.getByText(B, { exact: true })).toHaveCount(0);
-
-    // Control: the identical flick started off the board still navigates, so
-    // the null result above is the opt-out and not a dead gesture pipeline.
-    await flick(page, { x: 800, y: 1500 }, { x: 300, y: 1500 });
-    await expect(page.getByText(B, { exact: true })).toBeVisible();
-  });
-
-  test('a drag starting on the display-control target chips does not navigate', async ({ page, request }) => {
-    // The chips row only renders in multi-display mode with retargeting on
-    // (PanelLayout: `allowRetargeting && !isLegacyMode`), so this needs a
-    // displays registry and a per-display route.
+  function chipDisplays() {
     const control: ModuleInstance = {
       ...buildModuleInstance('display-control', { layout: 'panel', defaultTarget: 'self', allowRetargeting: true }),
       position: { x: 140, y: 700 },
@@ -382,8 +345,12 @@ test.describe('data-swipe-ignore surfaces', () => {
       name: 'Swipe Sib',
       screens: [makeScreen('swipesib-s', 'Sib', [textModule('SWIPE SIBLING')])],
     };
+    return [controller, sibling];
+  }
+
+  test('a drag starting on the display-control target chips does not navigate', async ({ page, request }) => {
     const display = await renderOnDisplay(page, request, baseConfig({
-      displays: [controller, sibling],
+      displays: chipDisplays(),
       settings: { rotationIntervalMs: 3_600_000 },
     }), '/display/swipectl');
     await expect(page.getByText(A, { exact: true })).toBeVisible();
@@ -441,14 +408,15 @@ test.describe('data-swipe-ignore surfaces', () => {
   }
 
   test('a declined pointerdown clears the pending origin instead of leaving it to pair', async ({ page, request }) => {
-    await seedChores(request);
     const display = await renderOnDisplay(page, request, baseConfig({
-      screens: boardScreens(),
+      displays: chipDisplays(),
       settings: { rotationIntervalMs: 3_600_000 },
-    }));
+    }), '/display/swipectl');
     await expect(page.getByText(A, { exact: true })).toBeVisible();
 
-    const box = (await display.module('chore-chart').locator('[data-swipe-ignore]').boundingBox())!;
+    const chips = display.module('display-control').locator('[data-swipe-ignore]');
+    await expect(chips.getByRole('button', { name: 'Swipe Sib', exact: true })).toBeVisible();
+    const box = (await chips.boundingBox())!;
     const ignored = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 
     // The guard: an origin at x=900 is pending when the pointerdown on the

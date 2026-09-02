@@ -338,6 +338,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showRewardsButton: false,
       weekStartDay: 'monday',
       weekProgress: 'chips',
+      layout: 'by-time',
       showPoints: true,
       showStreaks: true,
       showTimeOfDay: true,

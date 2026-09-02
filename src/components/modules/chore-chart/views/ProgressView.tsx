@@ -2,6 +2,7 @@
 
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats } from '../types';
+import { balanceRows, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -12,7 +13,15 @@ interface ProgressViewProps {
     members: ChoreMember[];
     memberStats: Map<string, MemberStats>;
   };
+  /** Measured box width in px (0 until measured). */
+  width: number;
+  /** Module font size in px. */
+  fontSize: number;
 }
+
+/** A ring plus its name and fraction is about this wide, in em of the module font. */
+const RING_ITEM_EM = 5;
+const RING_GAP = 16;
 
 function ProgressRing({
   percentage,
@@ -56,7 +65,7 @@ function ProgressRing({
   );
 }
 
-export function ProgressView({ config, data }: ProgressViewProps) {
+export function ProgressView({ config, data, width, fontSize }: ProgressViewProps) {
   const { members, memberStats } = data;
   const showStreaks = config.showStreaks;
   const showPoints = config.showPoints;
@@ -83,8 +92,12 @@ export function ProgressView({ config, data }: ProgressViewProps) {
 
   const overallPct = totalAssigned > 0 ? Math.round((totalCompleted / totalAssigned) * 100) : 0;
 
-  // Size the rings based on member count
-  const ringSize = members.length <= 3 ? 80 : members.length <= 5 ? 60 : 50;
+  // Rings only for people with chores today: a 0% ring for a parent with no
+  // chores, or a kid on a day off, reads as a failure that never happened.
+  const { active, dayOff } = partitionMembers(members, memberStats);
+  const ringSize = active.length <= 3 ? 80 : active.length <= 5 ? 60 : 50;
+  const itemWidth = Math.max(ringSize, RING_ITEM_EM * fontSize);
+  const rows = balanceRows(active, fitPerRow(width, itemWidth, RING_GAP, active.length));
 
   return (
     <div className="flex flex-col h-full items-center" style={{ fontSize: 'inherit' }}>
@@ -95,40 +108,52 @@ export function ProgressView({ config, data }: ProgressViewProps) {
         </div>
       )}
 
-      {/* Progress rings */}
-      <div className="flex items-center justify-center gap-4 flex-wrap">
-        {members.map((member) => {
-          const stats = memberStats.get(member.id);
-          const pct = stats?.percentage ?? 0;
+      {/* Progress rings, in balanced rows */}
+      <div className="flex flex-col items-center" style={{ gap: RING_GAP * 0.75 }}>
+        {rows.map((row, ri) => (
+          <div key={ri} className="flex items-start justify-center" style={{ gap: RING_GAP }}>
+            {row.map((member) => {
+              const stats = memberStats.get(member.id);
+              const pct = stats?.percentage ?? 0;
 
-          return (
-            <div key={member.id} className="flex flex-col items-center gap-1">
-              <div className="relative">
-                <ProgressRing percentage={pct} color={member.color} size={ringSize} />
-                <div
-                  className="absolute inset-0 flex items-center justify-center"
-                  style={{ fontSize: `${ringSize * 0.22}px`, fontWeight: 700 }}
-                >
-                  {pct}%
+              return (
+                <div key={member.id} className="flex flex-col items-center gap-1 min-w-0" style={{ width: itemWidth }}>
+                  <div className="relative">
+                    <ProgressRing percentage={pct} color={member.color} size={ringSize} />
+                    <div
+                      className="absolute inset-0 flex items-center justify-center"
+                      style={{ fontSize: `${ringSize * 0.22}px`, fontWeight: 700 }}
+                    >
+                      {pct}%
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '1.1em' }} className="flex justify-center">
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
+                  </div>
+                  <div className="truncate max-w-full" title={member.name} style={{ fontSize: '0.65em', fontWeight: 600, color: member.color }}>
+                    {member.name}
+                  </div>
+                  <div style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
+                    {t('chore-chart.doneFraction', { done: stats?.completed ?? 0, total: stats?.total ?? 0 })}
+                  </div>
+                  {showStreaks && (stats?.streak ?? 0) >= 2 && (
+                    <div style={{ fontSize: '0.55em' }}>
+                      &#128293; {t('chore-chart.streakDays', { count: stats!.streak })}
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div style={{ fontSize: '1.1em' }} className="flex justify-center">
-                {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
-              </div>
-              <div style={{ fontSize: '0.65em', fontWeight: 600, color: member.color }}>
-                {member.name}
-              </div>
-              <div style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.dim }}>
-                {t('chore-chart.doneFraction', { done: stats?.completed ?? 0, total: stats?.total ?? 0 })}
-              </div>
-              {showStreaks && (stats?.streak ?? 0) >= 2 && (
-                <div style={{ fontSize: '0.55em' }}>
-                  &#128293; {t('chore-chart.streakDays', { count: stats!.streak })}
-                </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        ))}
+        {active.length === 0 && (
+          <div style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{t('chore-chart.noChoresToday')}</div>
+        )}
+        {dayOff.length > 0 && (
+          <div className="text-center" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
+            {t('chore-chart.dayOffList', { names: dayOff.map((m) => m.name).join(', ') })}
+          </div>
+        )}
       </div>
 
       {/* Weekly summary */}

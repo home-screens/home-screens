@@ -4,6 +4,7 @@ import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
+import FamilyEmptyState from '../FamilyEmptyState';
 
 export default function WeekView({
   settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode,
@@ -22,7 +23,15 @@ export default function WeekView({
   const formatShort = (d: Date) => formatDateSync(d, 'MMM d', { locale });
   const dateRange = `${formatShort(weekStartDate)} – ${formatShort(weekEndDate)}`;
 
-  const { filled, total, pct } = countPlanned(plan, weekDates.length * slots.length);
+  // Only slots the week actually uses get a column: with Snack on and one
+  // apple planned, three empty tiles per day said nothing. A week with no
+  // meals at all is one panel that says where meals are planned.
+  const usedSlots = useMemo(
+    () => slots.filter((slot) => weekDates.some((date) => resolveMealWithEntry(date, slot, plan, savedMeals).meal)),
+    [slots, weekDates, plan, savedMeals],
+  );
+  const weekEmpty = usedSlots.length === 0;
+  const { filled, total, pct } = countPlanned(plan, weekDates.length * usedSlots.length);
 
   const isPast = (date: string) => date < todayISO;
 
@@ -43,7 +52,19 @@ export default function WeekView({
         </div>
       </div>
 
+      {weekEmpty && (
+        <div data-testid="fmp-week-empty" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
+          <FamilyEmptyState
+            icon={<>&#127869;</>}
+            title={t('meal-planner.nothingPlannedThisWeek')}
+            hint={t('meal-planner.planFromPhoneHint')}
+            fontSize={s * 4}
+          />
+        </div>
+      )}
+
       {/* Day rows */}
+      {!weekEmpty && (
       <div className="fmp-scroll" style={{ flex: 1, minHeight: 0, padding: `0 ${pad}px`, display: 'flex', flexDirection: 'column', gap: s * 0.6 }}>
         {weekDates.map((date) => {
           const isToday = date === todayISO;
@@ -89,7 +110,7 @@ export default function WeekView({
 
               {/* Meal cards row */}
               <div style={{ display: 'flex', gap: s * 0.6 }}>
-                {slots.map((slot) => {
+                {usedSlots.map((slot) => {
                   const { meal, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
                   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                   const meta = SLOT_META[slot];
@@ -106,18 +127,21 @@ export default function WeekView({
                   );
 
                   if (!meal) {
+                    // Quiet: nothing on the wall is tappable, so a dashed
+                    // "+" box only looked like a button that never worked.
                     return (
-                      <div key={slot} style={{
+                      <div key={slot} data-testid="fmp-empty-slot" style={{
                         flex: 1, minWidth: 0,
-                        border: `1.5px dashed var(--fmp-border)`,
+                        border: `1px solid var(--fmp-border-sub)`,
                         borderRadius: s * 0.8,
                         padding: `${s * 0.6}px ${s * 0.5}px ${s * 1}px`,
                         display: 'flex', flexDirection: 'column' as const, alignItems: 'center',
                         justifyContent: 'center', gap: s * 0.4,
                         textAlign: 'center' as const,
+                        opacity: 0.55,
                       }}>
                         {slotLabel}
-                        <span style={{ color: 'var(--fmp-text-3)', fontSize: s * 1.6, fontWeight: 300, lineHeight: 1 }}>+</span>
+                        <span style={{ color: 'var(--fmp-text-3)', fontSize: s * 1.2, fontWeight: 400, lineHeight: 1 }}>&mdash;</span>
                       </div>
                     );
                   }
@@ -192,8 +216,10 @@ export default function WeekView({
           );
         })}
       </div>
+      )}
 
       {/* Footer */}
+      {!weekEmpty && (
       <div style={{
         padding: `${pad * 0.6}px ${pad}px ${pad}px`, flexShrink: 0,
         display: 'flex', alignItems: 'center', gap: s * 1,
@@ -211,6 +237,7 @@ export default function WeekView({
           }} />
         </div>
       </div>
+      )}
     </div>
   );
 }

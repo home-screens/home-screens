@@ -287,6 +287,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
     'core|launcher.editor.title',
+    // "Person" is the same word in this language.
+    'editor|configSections.fullscreen-chore-chart.layoutByPerson',
     'editor|configSections.financial.symbolLabel',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
@@ -302,6 +304,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   ]),
   'de-DE': new Set([
     'core|launcher.editor.title',
+    // "Person" is the same word in this language.
+    'editor|configSections.fullscreen-chore-chart.layoutByPerson',
     'core|launcher.display.title',
     'core|actions.name',
     'core|meal.tags.meal-prep',

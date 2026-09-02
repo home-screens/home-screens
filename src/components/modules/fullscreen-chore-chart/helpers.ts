@@ -1,6 +1,6 @@
 import { Sunrise, Sun, Sunset, Clock } from 'lucide-react';
-import type { ChoreTimeOfDay } from '@/types/config';
-import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
+import type { ChoreMember, ChoreTimeOfDay } from '@/types/config';
+import { sortChores, type ResolvedAssignment } from '@/components/modules/chore-chart/types';
 
 export interface ChoreRow {
   choreId: string;
@@ -102,12 +102,40 @@ export function buildChoreRows(assignments: ResolvedAssignment[]): Map<ChoreTime
   return groups;
 }
 
+/**
+ * The by-person layout: one section per member with a single-dot row per
+ * chore. Shared chores are not deduplicated here — "Marshall: dishes" is the
+ * whole point — so the row count is the assignment count.
+ */
+export function buildMemberRows(
+  members: ChoreMember[],
+  assignments: ResolvedAssignment[],
+  showTimeOfDay: boolean,
+): Map<string, ChoreRow[]> {
+  const rows = new Map<string, ChoreRow[]>();
+  for (const member of members) {
+    const mine = sortChores(assignments.filter((a) => a.memberId === member.id), showTimeOfDay);
+    if (mine.length === 0) continue;
+    rows.set(member.id, mine.map((a) => ({
+      choreId: a.chore.id,
+      choreName: a.chore.name,
+      choreEmoji: a.chore.emoji,
+      timeOfDay: a.chore.timeOfDay,
+      points: a.chore.points,
+      assignees: [{ memberId: a.memberId, isCompleted: a.isCompleted }],
+    })));
+  }
+  return rows;
+}
+
 /** Chore rows never shrink below this on the standard 1080-wide kiosk (28px names). */
 export const ROW_HEIGHT_FLOOR = 56;
 /** Tallest row at `medium`; `typographySize` multiplies it. */
 export const ROW_HEIGHT_CAP = 120;
 /** A time-of-day header band costs this fraction of a row. */
 export const HEADER_ROW_UNITS = 0.55;
+/** A member header band (avatar, name, fraction) costs this much of a row. */
+export const MEMBER_HEADER_ROW_UNITS = 1.1;
 
 export interface FitRowHeightInput {
   /** Height available to the chore list, in px. */
@@ -120,6 +148,8 @@ export interface FitRowHeightInput {
   k: number;
   /** `typographySize` multiplier; raises the cap, never the floor. */
   typoMul: number;
+  /** Row units one header costs; the time-of-day band unless told otherwise. */
+  headerUnits?: number;
 }
 
 /**
@@ -128,10 +158,10 @@ export interface FitRowHeightInput {
  * instead of going unreadable. Everything inside a row (name, icon, dots) is
  * a fraction of this value, so the whole board grows and shrinks together.
  */
-export function fitRowHeight({ listHeight, chores, headers, k, typoMul }: FitRowHeightInput): number {
+export function fitRowHeight({ listHeight, chores, headers, k, typoMul, headerUnits = HEADER_ROW_UNITS }: FitRowHeightInput): number {
   const floor = ROW_HEIGHT_FLOOR * k;
   const cap = ROW_HEIGHT_CAP * k * typoMul;
-  const units = chores + HEADER_ROW_UNITS * headers;
+  const units = chores + headerUnits * headers;
   if (units <= 0 || listHeight <= 0) return cap;
   return Math.max(floor, Math.min(cap, listHeight / units));
 }

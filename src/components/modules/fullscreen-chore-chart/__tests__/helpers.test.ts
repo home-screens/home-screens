@@ -4,11 +4,15 @@ import {
   getUniqueInitials,
   getCurrentTimeOfDay,
   buildChoreRows,
+  buildMemberRows,
   fitRowHeight,
   TOD_ORDER,
+  HEADER_ROW_UNITS,
+  MEMBER_HEADER_ROW_UNITS,
 } from '../helpers';
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
 import type { ChoreDefinition } from '@/types/config';
+import { fitStackedDots } from '../ChoreRowItem';
 
 function makeChore(overrides: Partial<ChoreDefinition> & { id: string; name: string }): ChoreDefinition {
   return {
@@ -228,5 +232,71 @@ describe('fitRowHeight', () => {
 
   it('returns the cap before the list has been measured', () => {
     expect(fitRowHeight({ listHeight: 0, chores: 9, headers: 3, k: 1, typoMul: 1 })).toBe(120);
+  });
+});
+
+describe('buildMemberRows', () => {
+  const members = [
+    { id: 'a', name: 'Ann', emoji: '', color: '#f00' },
+    { id: 'b', name: 'Ben', emoji: '', color: '#0f0' },
+    { id: 'c', name: 'Cal', emoji: '', color: '#00f' },
+  ];
+  const dishes = makeChore({ id: 'dishes', name: 'Dishes', timeOfDay: 'evening' });
+  const bed = makeChore({ id: 'bed', name: 'Make bed', timeOfDay: 'morning' });
+
+  it('gives each member their own rows and never merges a shared chore', () => {
+    const rows = buildMemberRows(members, [
+      makeAssignment(dishes, 'a'),
+      makeAssignment(dishes, 'b', true),
+      makeAssignment(bed, 'a'),
+    ], true);
+    expect([...rows.keys()]).toEqual(['a', 'b']);
+    expect(rows.get('a')!.map((r) => r.choreId)).toEqual(['bed', 'dishes']);
+    expect(rows.get('a')![0].assignees).toEqual([{ memberId: 'a', isCompleted: false }]);
+    expect(rows.get('b')![0].assignees).toEqual([{ memberId: 'b', isCompleted: true }]);
+  });
+
+  it('skips members with nothing today', () => {
+    const rows = buildMemberRows(members, [makeAssignment(bed, 'c')], true);
+    expect(rows.has('a')).toBe(false);
+    expect(rows.get('c')).toHaveLength(1);
+  });
+
+  it('sorts a member\'s rows by time of day only when asked', () => {
+    const rows = buildMemberRows(members, [makeAssignment(dishes, 'a'), makeAssignment(bed, 'a')], false);
+    expect(rows.get('a')!.map((r) => r.choreId)).toEqual(['dishes', 'bed']);
+  });
+});
+
+describe('fitRowHeight headerUnits', () => {
+  it('charges a member header more than a time-of-day band', () => {
+    const list = 1000;
+    const byTime = fitRowHeight({ listHeight: list, chores: 8, headers: 2, k: 1, typoMul: 1 });
+    const byPerson = fitRowHeight({ listHeight: list, chores: 8, headers: 2, k: 1, typoMul: 1, headerUnits: MEMBER_HEADER_ROW_UNITS });
+    expect(byTime).toBeCloseTo(list / (8 + 2 * HEADER_ROW_UNITS));
+    expect(byPerson).toBeCloseTo(list / (8 + 2 * MEMBER_HEADER_ROW_UNITS));
+    expect(byPerson).toBeLessThan(byTime);
+  });
+});
+
+describe('fitStackedDots', () => {
+  it('keeps the requested size when the row is not stacked or not measured', () => {
+    expect(fitStackedDots(64, 5, undefined, 40, true)).toBe(64);
+    expect(fitStackedDots(64, 5, 0, 40, true)).toBe(64);
+  });
+
+  it('keeps the requested size when the dots fit', () => {
+    expect(fitStackedDots(64, 2, 440, 40, true)).toBe(64);
+  });
+
+  it('shrinks five dots to share a narrow landscape column', () => {
+    // 440 - 24 (row padding) - 48 (icon indent) = 368px for 5 dots + 4 gaps.
+    const d = fitStackedDots(64, 5, 440, 40, true);
+    expect(d).toBeLessThan(64);
+    expect(d * 5 + Math.max(d * 0.2, 8) * 4).toBeLessThanOrEqual(368 + 0.01);
+  });
+
+  it('never drops below the readable floor', () => {
+    expect(fitStackedDots(64, 12, 200, 40, true)).toBe(28);
   });
 });

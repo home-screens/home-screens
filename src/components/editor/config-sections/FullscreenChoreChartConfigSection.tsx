@@ -20,6 +20,7 @@ import type {
   FullscreenChoreChartConfig,
   FullscreenChoreChartView,
   FullscreenChoreChartWeekProgress,
+  FullscreenChoreChartLayout,
 } from '@/types/config';
 
 type Config = Partial<FullscreenChoreChartConfig>;
@@ -55,6 +56,11 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     { value: 'sunday', label: tCore('days.sunday') },
     { value: 'monday', label: tCore('days.monday') },
   ] as const;
+
+  const LAYOUT_OPTIONS: { value: FullscreenChoreChartLayout; label: string }[] = [
+    { value: 'by-time', label: t('configSections.fullscreen-chore-chart.layoutByTime') },
+    { value: 'by-person', label: t('configSections.fullscreen-chore-chart.layoutByPerson') },
+  ];
 
   const [showModal, setShowModal] = useState(false);
   const { data: choreData, refetch: refetchCounts } = useEditorData<{ members?: unknown[]; chores?: unknown[] }>('/api/chores/data');
@@ -129,6 +135,17 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {/* ── Chore Board-only settings ── */}
       {isChoreBoard && (
         <>
+          {/* Row grouping */}
+          <LabeledSelect
+            label={t('configSections.fullscreen-chore-chart.layout')}
+            value={c.layout ?? 'by-time'}
+            onChange={(v) => set({ layout: v })}
+            options={LAYOUT_OPTIONS}
+          />
+          <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
+            {t('configSections.fullscreen-chore-chart.layoutHelp')}
+          </p>
+
           {/* Week Start */}
           <LabeledSelect
             label={t('configSections.fullscreen-chore-chart.weekStartsOn')}

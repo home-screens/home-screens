@@ -2,6 +2,7 @@
 
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
+import { useElementWidth } from '@/hooks/useElementWidth';
 import ModuleWrapper from '../ModuleWrapper';
 import FamilyEmptyState from '../FamilyEmptyState';
 import { useChoreData } from './useChoreData';
@@ -21,6 +22,10 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   const view = config.view ?? 'board';
   const data = useChoreData(config);
   const t = useTranslate('modules');
+  // The per-member views (board columns, compact checkbox columns, progress
+  // rings) lay themselves out from the box width and the module font size:
+  // a family of seven in a 500px card needs rows, not seven 70px columns.
+  const [frameRef, width] = useElementWidth();
 
   // Family data lives on the phone, not in the editor: the empty state sends
   // people to /remote and says which tab.
@@ -36,15 +41,17 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     );
   }
 
-  const viewProps = { config, data };
+  const viewProps = { config, data, width, fontSize: style.fontSize };
 
   return (
     <ModuleWrapper style={style}>
-      {view === 'board' && <BoardView {...viewProps} />}
-      {view === 'star-chart' && <StarChartView {...viewProps} />}
-      {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
-      {view === 'progress' && <ProgressView {...viewProps} />}
-      {view === 'compact' && <CompactView {...viewProps} />}
+      <div ref={frameRef} className="w-full h-full min-h-0">
+        {view === 'board' && <BoardView {...viewProps} />}
+        {view === 'star-chart' && <StarChartView {...viewProps} />}
+        {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
+        {view === 'progress' && <ProgressView {...viewProps} />}
+        {view === 'compact' && <CompactView {...viewProps} />}
+      </div>
     </ModuleWrapper>
   );
 }

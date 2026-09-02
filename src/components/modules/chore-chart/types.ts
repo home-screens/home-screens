@@ -27,6 +27,9 @@ export interface MemberStats {
   weeklyPoints: number;
   weeklyPointsTotal: number;
   rewardBalance: number;
+  /** Chore assignments across the whole week. Zero means the member is not
+   *  part of the chart this week at all (as opposed to a day off today). */
+  weekAssigned: number;
 }
 
 export interface WeekDayData {
@@ -35,6 +38,9 @@ export interface WeekDayData {
   dayIndex: number;
   isToday: boolean;
   memberStars: Record<string, boolean>; // memberId → earned star
+  /** memberId → had at least one chore that day. A star can only be earned
+   *  (or missed) on such a day; everyone else simply is not in the count. */
+  memberAssigned: Record<string, boolean>;
 }
 
 /** A single day in the chore history strip — date plus the day's earned/total fraction. */
@@ -252,6 +258,17 @@ export function computeWeeklyPoints(
     }
   }
   return { earned, total };
+}
+
+/** How many chore assignments a member has across `weekDates`. */
+export function countWeekAssignments(
+  chores: ChoreDefinition[],
+  memberId: string,
+  weekDates: string[],
+): number {
+  let n = 0;
+  for (const date of weekDates) n += choresAssignedTo(chores, memberId, date).length;
+  return n;
 }
 
 /** Consecutive days (ending today) on which a member completed all their

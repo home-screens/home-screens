@@ -419,6 +419,8 @@
     "chores": "Klusjes",
     "thisWeek": "Deze week",
     "dayOff": "Vandaag vrij!",
+    "dayOffList": "Vandaag vrij: {names}",
+    "noChoresToday": "Vandaag geen klusjes",
     "allDone": "Alles klaar!",
     "doneLabel": "Gedaan:",
     "progressLabel": "Voortgang:",
