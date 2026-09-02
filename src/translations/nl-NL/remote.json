@@ -96,15 +96,24 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Afvinken: {chore}",
     "choreAriaLabelCompleted": "Klaar: {chore}",
-    "saveFailed": "Opslaan mislukt. Probeer het opnieuw."
+    "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+    "holdToUncheckHint": "Houd ingedrukt om het vinkje weg te halen",
+    "celebration": "Goed gedaan, {name}!",
+    "dayToggle": {
+      "ariaLabel": "Welke dag wordt getoond",
+      "yesterday": "Gisteren",
+      "today": "Vandaag"
+    }
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Vorige maand",
-    "nextMonthAriaLabel": "Volgende maand",
     "jumpToTodayAriaLabel": "Naar vandaag",
-    "todayButton": "Vandaag",
+    "todayButton": "Terug naar vandaag",
     "tileAriaLabel": "{date} bekijken, {earned} van {total} kinderen hebben al hun klusjes gedaan",
-    "tileAriaLabelEmpty": "{date} bekijken, geen klusjes"
+    "tileAriaLabelEmpty": "{date} bekijken, geen klusjes",
+    "earlierButton": "Eerder",
+    "captionToday": "Tot nu toe vandaag: {earned} van {total} hebben al hun klusjes gedaan",
+    "captionPast": "{date}: {earned} van {total} hebben al hun klusjes gedaan",
+    "captionPastNone": "{date}: er is niets afgevinkt"
   },
   "choresManage": {
     "tabs": {
@@ -281,15 +290,16 @@
     },
     "slot": {
       "addMeal": "+ Maaltijd toevoegen",
-      "removeMealAriaLabel": "{meal} uit {slot} verwijderen",
       "planSlotAriaLabel": "{slot} plannen voor {day}",
-      "mealFallback": "maaltijd"
+      "mealFallback": "maaltijd",
+      "changeMealAriaLabel": "{meal} voor {slot} wijzigen"
     },
     "picker": {
       "title": "Kies een maaltijd",
       "emptyLibrary": "Geen maaltijden in de bibliotheek. Voeg er eerst een paar toe.",
       "prepTimeShort": "{minutes} min",
-      "removeMealButton": "Maaltijd verwijderen"
+      "removeMealButton": "Maaltijd verwijderen",
+      "subtitle": "{slot} · {day}"
     }
   },
   "mealsGrocery": {
@@ -402,7 +412,10 @@
       "confirmDescriptionSingular": "Hiermee wordt {cost} ticket van het saldo van {memberName} gebruikt. Over: {remaining}",
       "confirmDescriptionPlural": "Hiermee worden {cost} tickets van het saldo van {memberName} gebruikt. Over: {remaining}",
       "confirmLabelSingular": "Inwisselen — {cost} ticket",
-      "confirmLabelPlural": "Inwisselen — {cost} tickets"
+      "confirmLabelPlural": "Inwisselen — {cost} tickets",
+      "emptyKid": "Nog geen beloningen. Een volwassene kan ze toevoegen via de telefoon.",
+      "balanceLabelNamed": "tickets van {name}",
+      "switchHint": "Ben jij niet {name}? Kies je naam op het tabblad Vandaag."
     },
     "manage": {
       "heading": "Beloningen",
@@ -509,7 +522,8 @@
     "dismissErrorAriaLabel": "Fout sluiten"
   },
   "choresKidView": {
-    "notConfigured": "Geen klusjes ingesteld. Vraag een volwassene om een Klusjeskaart-module aan de editor toe te voegen om te beginnen."
+    "notConfigured": "Nog geen klusjes. Vraag een volwassene om een klusjeskaart aan het scherm toe te voegen.",
+    "grownUpsLink": "Volwassenen: open de gezinsafstandsbediening"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serveertijd {time}, klik om te wijzigen",
@@ -577,5 +591,13 @@
     "quickNameSeconds": "Timer van {seconds} seconden",
     "quickNameClock": "Timer van {time}",
     "secondsShort": "{seconds} sec"
+  },
+  "formOverlay": {
+    "discard": {
+      "title": "Wijzigingen weggooien?",
+      "description": "Je wijzigingen zijn nog niet opgeslagen.",
+      "confirmLabel": "Weggooien",
+      "keepEditing": "Verder bewerken"
+    }
   }
 }

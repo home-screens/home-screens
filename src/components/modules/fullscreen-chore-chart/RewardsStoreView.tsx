@@ -322,7 +322,7 @@ export function RewardsStoreView({
                     {r.rewardName}
                   </span>
                   <span style={{ fontSize: scale * 0.75, color: 'var(--fcc-accent)', fontWeight: 600 }}>
-                    {t('fullscreen-chore-chart.rewardsStore.redemptionCost', { cost: r.cost })}
+                    {t('fullscreen-chore-chart.rewardsStore.redemptionCost', { count: r.cost })}
                   </span>
                 </div>
                 <span style={{ fontSize: scale * 0.7, color: 'var(--fcc-text-3)', flexShrink: 0 }}>

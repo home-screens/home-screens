@@ -9,6 +9,7 @@ import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreToast, { type ToastItem } from './ChoreToast';
+import FamilyEmptyState from '../FamilyEmptyState';
 import ChoreRowItem from './ChoreRowItem';
 import TimeBand, { TimeBandHeader } from './TimeBand';
 import MemberStrip from './MemberStrip';
@@ -88,7 +89,7 @@ export default function FullscreenChoreChartModule({
   const pad = 40 * k * d;
   const weekProgress = config.weekProgress ?? 'chips';
 
-  const { todayAssignments, memberStats, weekData, members, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, chores, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   // `tzNow` is a "shifted" Date whose local-time methods reflect the
   // configured IANA timezone — used by `getCurrentTimeOfDay` which reads
@@ -268,10 +269,9 @@ export default function FullscreenChoreChartModule({
     }}>
       {config.showPoints && (
         <div>
-          {t('fullscreen-chore-chart.weeklyTickets')} <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
+          <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
             {t('fullscreen-chore-chart.weeklyTicketsValue', {
-              earned: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0),
-              total: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPointsTotal, 0),
+              count: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0),
             })}
           </span>
         </div>
@@ -316,7 +316,20 @@ export default function FullscreenChoreChartModule({
     </button>
   );
 
-  const emptyState = (
+  // "No chores today" is a day off. A household with no members or no chores
+  // at all is a fresh install, and that needs to say where chores come from,
+  // at a size that reads across the room.
+  const isUnset = members.length === 0 || chores.length === 0;
+  const emptyState = isUnset ? (
+    <div style={{ flex: 1, display: 'flex', color: 'var(--fcc-text-2)' }}>
+      <FamilyEmptyState
+        icon={<>&#128203;</>}
+        title={t(members.length === 0 ? 'chore-chart.noMembersYet' : 'chore-chart.noChoresYet')}
+        hint={t('chore-chart.setUpFromPhoneHint')}
+        fontSize={44 * k}
+      />
+    </div>
+  ) : (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fcc-text-2)', fontSize: 40 * k, textAlign: 'center' }}>
       {t('fullscreen-chore-chart.noChoresToday')}
     </div>

@@ -96,15 +96,24 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Marcar como hecha: {chore}",
     "choreAriaLabelCompleted": "Hecha: {chore}",
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "holdToUncheckHint": "Mantén pulsado para desmarcar",
+    "celebration": "¡Muy bien, {name}!",
+    "dayToggle": {
+      "ariaLabel": "Qué día mostrar",
+      "yesterday": "Ayer",
+      "today": "Hoy"
+    }
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Mes anterior",
-    "nextMonthAriaLabel": "Mes siguiente",
     "jumpToTodayAriaLabel": "Ir a hoy",
-    "todayButton": "Hoy",
+    "todayButton": "Volver a hoy",
     "tileAriaLabel": "Ver {date}, {earned} de {total} niños han hecho todas sus tareas",
-    "tileAriaLabelEmpty": "Ver {date}, sin tareas"
+    "tileAriaLabelEmpty": "Ver {date}, sin tareas",
+    "earlierButton": "Antes",
+    "captionToday": "Hoy por ahora: {earned} de {total} han terminado todas sus tareas",
+    "captionPast": "{date}: {earned} de {total} han terminado todas sus tareas",
+    "captionPastNone": "{date}: no se marcó nada"
   },
   "choresManage": {
     "tabs": {
@@ -281,15 +290,16 @@
     },
     "slot": {
       "addMeal": "+ Añadir comida",
-      "removeMealAriaLabel": "Quitar {meal} de {slot}",
       "planSlotAriaLabel": "Planificar {slot} para {day}",
-      "mealFallback": "comida"
+      "mealFallback": "comida",
+      "changeMealAriaLabel": "Cambiar {meal} de {slot}"
     },
     "picker": {
       "title": "Elige una comida",
       "emptyLibrary": "No hay comidas en la biblioteca. Añade alguna primero.",
       "prepTimeShort": "{minutes} min",
-      "removeMealButton": "Quitar comida"
+      "removeMealButton": "Quitar comida",
+      "subtitle": "{slot} · {day}"
     }
   },
   "mealsGrocery": {
@@ -402,7 +412,10 @@
       "confirmDescriptionSingular": "Se usará {cost} ticket del saldo de {memberName}. Quedan: {remaining}",
       "confirmDescriptionPlural": "Se usarán {cost} tickets del saldo de {memberName}. Quedan: {remaining}",
       "confirmLabelSingular": "Canjear — {cost} ticket",
-      "confirmLabelPlural": "Canjear — {cost} tickets"
+      "confirmLabelPlural": "Canjear — {cost} tickets",
+      "emptyKid": "Aún no hay premios. Una persona mayor puede añadirlos desde su teléfono.",
+      "balanceLabelNamed": "tickets de {name}",
+      "switchHint": "¿No eres {name}? Elige tu nombre en la pestaña Hoy."
     },
     "manage": {
       "heading": "Premios",
@@ -509,7 +522,8 @@
     "dismissErrorAriaLabel": "Descartar error"
   },
   "choresKidView": {
-    "notConfigured": "No hay tareas configuradas. Pídele a una persona mayor que añada un módulo de Tabla de tareas en el editor."
+    "notConfigured": "Aún no hay tareas. Pídele a una persona mayor que añada una tabla de tareas a la pantalla.",
+    "grownUpsLink": "Personas mayores: abrir el mando familiar"
   },
   "mealTimeChip": {
     "servingTimeAria": "Hora de servir {time}, haz clic para cambiar",
@@ -577,5 +591,13 @@
     "quickNameSeconds": "Temporizador de {seconds} segundos",
     "quickNameClock": "Temporizador de {time}",
     "secondsShort": "{seconds} s"
+  },
+  "formOverlay": {
+    "discard": {
+      "title": "¿Descartar los cambios?",
+      "description": "Tus cambios no se han guardado.",
+      "confirmLabel": "Descartar",
+      "keepEditing": "Seguir editando"
+    }
   }
 }

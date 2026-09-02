@@ -14,6 +14,7 @@ import {
 import ChoreIcon, { MEMBER_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useMemberForm } from '@/components/modules/chore-chart/form-hooks';
+import { useFormDirty } from '@/hooks/useFormDirty';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { useTranslate } from '@/i18n';
 import { buildChoreSummaryLine } from '@/components/modules/chore-chart/chore-form-presentation';
@@ -40,6 +41,7 @@ function MemberFormOverlay({
   const t = useTranslate('remote');
   const f = useMemberForm(initial);
   const { name, emoji, color, setName, setEmoji, setColor, canSave } = f;
+  const dirty = useFormDirty([name, emoji, color]);
   const [showConfirm, setShowConfirm] = useState(false);
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
@@ -65,6 +67,7 @@ function MemberFormOverlay({
     <>
       <FormOverlay
         title={isEdit ? t('choresManage.memberForm.titleEdit') : t('choresManage.memberForm.titleNew')}
+        dirty={dirty}
         onBack={onBack}
       >
         <div style={{ marginBottom: 24 }}>

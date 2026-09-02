@@ -204,7 +204,9 @@ The Chores tab has three sub-views, selectable via a segmented control: **Today*
 {% callout title="The /chores kid view" %}
 Alongside the `/remote` Chores tab, where a grown-up sets up chores, members, and rewards, Home Screens has a kid-friendly page at `http://<pi-ip>:3000/chores`.
 
-It shows the same **Today** view plus a trimmed **Rewards** view with just Redeem and History. Manage is hidden, and so are the screens for creating rewards and adjusting ticket balances. The 90-day history strip is there and a kid can look back at any day, but past days are read-only; only the `/remote` Chores tab can check something off for an earlier date.
+It shows the same **Today** view plus a trimmed **Rewards** view with just Redeem and History. Manage is hidden, and so are the screens for creating rewards and adjusting ticket balances. Instead of the grown-up history strip, kids get a **Yesterday / Today** toggle; yesterday is read-only, so only the `/remote` Chores tab can check something off for an earlier date.
+
+A few things are tuned for a shared kids' tablet: the page remembers which family member was picked last time it was opened on that device (and otherwise opens on the first person who has chores today), un-checking a finished chore takes a press-and-hold rather than a tap, and Redeem spends tickets only for the member picked on Today.
 
 The `/chores` page **stays open even when you have set a password**: anyone on your home network can open it and check off chores or spend tickets, with no login. That is deliberate, so bookmarking it on a kid's tablet gives them a simple "mark chores done and spend tickets" screen. It is worth knowing about before you hand your network password to a guest.
 {% /callout %}
@@ -213,7 +215,7 @@ The `/chores` page **stays open even when you have set a password**: anyone on y
 
 #### Member selection
 
-Colored pill buttons across the top show each family member (with emoji avatar). Tap a member to see their assigned chores for today. A progress bar shows the member's completion percentage.
+Colored pill buttons across the top show each family member (with emoji avatar). Tap a member to see their assigned chores for today. A progress bar shows the member's completion, with their current ticket balance beside it when ticket values are shown. On a tablet the members move into a column on the left with the chores beside them.
 
 #### Today's chores
 
@@ -224,12 +226,12 @@ Tapping a chore toggles its completion with an optimistic update -- the UI updat
 #### Completion tracking
 
 - A progress bar at the top shows how many of the selected member's chores are done
-- When all assigned chores are complete, a "All done!" message appears
+- Checking off the last chore of the day shows a short "Great job!" celebration, and "All done!" stays next to the progress count
 - The view automatically refreshes at midnight to show the new day's chores
 
 #### History and backdating
 
-Below today's chores, a **90-day history strip** lets an adult browse any of the last 90 days and check off chores the kid forgot to mark done at the time. Tap a day in the strip to swap the chore list to that day's view; today is always highlighted. The strip is read-only for the kid view — only the remote's Chores tab exposes backdating.
+Above today's chores, a **history strip** lets an adult browse back and check off chores the kid forgot to mark done at the time. It starts with the last two weeks; tap **Earlier** at the left end to reveal more, up to 90 days. Tap a day in the strip to swap the chore list to that day's view; today is always highlighted. Days when someone checked something off show a fraction, which is how many family members finished all of their chores that day out of how many had chores, and a caption under the strip spells the selected day out in words. Kids do not get the strip; the `/chores` page has a Yesterday / Today toggle instead, and yesterday is read-only there.
 
 Backdating a chore that carries points credits the member's reward balance just like a same-day completion, and **un-checking a past completion** exact-debits the points that were originally credited. If un-checking would drive the member's balance below zero (for example, because the points have already been spent on a reward), the remote shows a warning like "Alice's balance is now -10 — they'll need to earn 10 points before redeeming again" so you aren't silently erasing already-spent points.
 
@@ -245,7 +247,7 @@ In the Manage chore list, a scheduled chore shows a small **(schedule)** tag aft
 
 The Rewards sub-view provides a ticket-based reward system:
 
-- **Redeem** — select a member and browse available rewards; each reward has a ticket cost and members can only redeem if they have enough tickets
+- **Redeem** — select a member and browse available rewards; each reward has a ticket cost and members can only redeem if they have enough tickets. Rewards remembers the member picked on Today, so a kid who just checked off their chores sees their own tickets
 - **Rewards** — define rewards (name, emoji, ticket cost, description) and restrict them to specific members or make them available to all
 - **Balances** — view each member's current ticket balance with options for manual adjustments
 - **History** — chronological log of all redemptions

@@ -9,6 +9,7 @@ import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import FormOverlay from './FormOverlay';
+import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 
 interface RewardFormOverlayProps {
@@ -36,6 +37,7 @@ export default function RewardFormOverlay({
   const [memberIds, setMemberIds] = useState<string[]>(reward?.memberIds ?? []);
   const [enabled, setEnabled] = useState(reward?.enabled ?? true);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const dirty = useFormDirty([name, emoji, costStr, description, memberIds, enabled]);
 
   const isEveryone = memberIds.length === 0;
 
@@ -62,6 +64,7 @@ export default function RewardFormOverlay({
     <>
       <FormOverlay
         title={isEdit ? t('rewardForm.titleEdit') : t('rewardForm.titleAdd')}
+        dirty={dirty}
         onBack={onBack}
         footer={
           <div style={{ padding: '12px 16px' }}>

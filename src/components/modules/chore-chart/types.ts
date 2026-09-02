@@ -42,8 +42,14 @@ export interface DayEntry {
   date: string;       // YYYY-MM-DD
   dayOfWeek: number;  // 0–6
   dayOfMonth: number;
+  /** Members who finished every chore assigned to them that day. */
   earned: number;
+  /** Members who had at least one chore assigned that day. */
   total: number;
+  /** True when anyone checked anything off that day. The strip shows a
+   *  fraction only for such days, so the weeks before the household existed
+   *  (and days nobody used the app) stay quiet instead of reading 0/6. */
+  anyDone: boolean;
 }
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -196,13 +202,17 @@ export function computeDayEntries(
 
     let total = 0;
     let earned = 0;
+    let anyDone = false;
     for (const member of members) {
       const assigned = choresAssignedTo(chores, member.id, cursor);
       if (assigned.length === 0) continue; // vacation days aren't punished
       total += 1;
-      if (assigned.every((c) => isChoreComplete(completionSet, c.id, member.id, cursor))) {
-        earned += 1;
+      let allDone = true;
+      for (const c of assigned) {
+        if (isChoreComplete(completionSet, c.id, member.id, cursor)) anyDone = true;
+        else allDone = false;
       }
+      if (allDone) earned += 1;
     }
 
     list.push({
@@ -211,6 +221,7 @@ export function computeDayEntries(
       dayOfMonth: parsed.getDate(),
       earned,
       total,
+      anyDone,
     });
     cursor = addDaysISO(cursor, 1);
   }

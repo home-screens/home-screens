@@ -96,15 +96,24 @@
     "ticketCountPlural": "{n} tickets",
     "choreAriaLabelMarkComplete": "Mark complete: {chore}",
     "choreAriaLabelCompleted": "Completed: {chore}",
-    "saveFailed": "Failed to save. Please try again."
+    "saveFailed": "Failed to save. Please try again.",
+    "holdToUncheckHint": "Press and hold to un-check",
+    "celebration": "Great job, {name}!",
+    "dayToggle": {
+      "ariaLabel": "Which day to show",
+      "yesterday": "Yesterday",
+      "today": "Today"
+    }
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Previous month",
-    "nextMonthAriaLabel": "Next month",
     "jumpToTodayAriaLabel": "Jump to today",
-    "todayButton": "Today",
+    "todayButton": "Back to today",
     "tileAriaLabel": "View {date}, {earned} of {total} kids earned all their chores",
-    "tileAriaLabelEmpty": "View {date}, no chores"
+    "tileAriaLabelEmpty": "View {date}, no chores",
+    "earlierButton": "Earlier",
+    "captionToday": "So far today: {earned} of {total} finished all their chores",
+    "captionPast": "{date}: {earned} of {total} finished all their chores",
+    "captionPastNone": "{date}: nothing was checked off"
   },
   "choresManage": {
     "tabs": {
@@ -281,15 +290,16 @@
     },
     "slot": {
       "addMeal": "+ Add meal",
-      "removeMealAriaLabel": "Remove {meal} from {slot}",
       "planSlotAriaLabel": "Plan {slot} for {day}",
-      "mealFallback": "meal"
+      "mealFallback": "meal",
+      "changeMealAriaLabel": "Change {meal} for {slot}"
     },
     "picker": {
       "title": "Choose a Meal",
       "emptyLibrary": "No meals in library. Add some first.",
       "prepTimeShort": "{minutes}m",
-      "removeMealButton": "Remove Meal"
+      "removeMealButton": "Remove Meal",
+      "subtitle": "{slot} · {day}"
     }
   },
   "mealsGrocery": {
@@ -402,7 +412,10 @@
       "confirmDescriptionSingular": "This will use {cost} ticket from {memberName}'s balance. Remaining: {remaining}",
       "confirmDescriptionPlural": "This will use {cost} tickets from {memberName}'s balance. Remaining: {remaining}",
       "confirmLabelSingular": "Redeem — {cost} ticket",
-      "confirmLabelPlural": "Redeem — {cost} tickets"
+      "confirmLabelPlural": "Redeem — {cost} tickets",
+      "emptyKid": "No rewards yet. A grown-up can add some from their phone.",
+      "balanceLabelNamed": "tickets for {name}",
+      "switchHint": "Not {name}? Pick your name on the Today tab."
     },
     "manage": {
       "heading": "Rewards",
@@ -509,7 +522,8 @@
     "dismissErrorAriaLabel": "Dismiss error"
   },
   "choresKidView": {
-    "notConfigured": "No chores configured. Add a Chore Chart module in the editor to get started."
+    "notConfigured": "No chores yet. Ask a grown-up to add a chore chart to the display.",
+    "grownUpsLink": "Grown-ups: open the family remote"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serving time {time}, click to change",
@@ -577,5 +591,13 @@
     "quickNameSeconds": "{seconds} second timer",
     "quickNameClock": "{time} timer",
     "secondsShort": "{seconds} sec"
+  },
+  "formOverlay": {
+    "discard": {
+      "title": "Discard changes?",
+      "description": "Your edits haven't been saved.",
+      "confirmLabel": "Discard",
+      "keepEditing": "Keep editing"
+    }
   }
 }

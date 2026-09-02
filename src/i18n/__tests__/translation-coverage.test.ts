@@ -265,6 +265,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|mealForm.recipeUrlPlaceholder',
   'remote|mealForm.tagsLabel',
   'remote|mealsPlan.picker.prepTimeShort',
+  // "{slot} · {day}": pure interpolation, nothing to translate.
+  'remote|mealsPlan.picker.subtitle',
   'remote|mealsTab.weekView.prepTimeMin',
   'remote|settingsSheet.data.heading',
   'remote|settingsSheet.system.heading',

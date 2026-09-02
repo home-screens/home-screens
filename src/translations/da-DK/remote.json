@@ -96,15 +96,24 @@
     "ticketCountPlural": "{n} billetter",
     "choreAriaLabelMarkComplete": "Markér afsluttet: {chore}",
     "choreAriaLabelCompleted": "Afsluttet: {chore}",
-    "saveFailed": "Kunne ikke gemme. Prøv igen."
+    "saveFailed": "Kunne ikke gemme. Prøv igen.",
+    "holdToUncheckHint": "Hold nede for at fjerne fluebenet",
+    "celebration": "Godt gået, {name}!",
+    "dayToggle": {
+      "ariaLabel": "Hvilken dag der vises",
+      "yesterday": "I går",
+      "today": "I dag"
+    }
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Forrige måned",
-    "nextMonthAriaLabel": "Næste måned",
     "jumpToTodayAriaLabel": "Spring til i dag",
-    "todayButton": "I dag",
+    "todayButton": "Tilbage til i dag",
     "tileAriaLabel": "Vis {date}, {earned} af {total} børn har udført alle sine pligter",
-    "tileAriaLabelEmpty": "Vis {date}, ingen pligter"
+    "tileAriaLabelEmpty": "Vis {date}, ingen pligter",
+    "earlierButton": "Tidligere",
+    "captionToday": "Indtil nu i dag: {earned} af {total} har klaret alle deres pligter",
+    "captionPast": "{date}: {earned} af {total} har klaret alle deres pligter",
+    "captionPastNone": "{date}: intet blev krydset af"
   },
   "choresManage": {
     "tabs": {
@@ -281,15 +290,16 @@
     },
     "slot": {
       "addMeal": "+ Tilføj måltid",
-      "removeMealAriaLabel": "Fjern {meal} fra {slot}",
       "planSlotAriaLabel": "Planlæg {slot} til {day}",
-      "mealFallback": "måltid"
+      "mealFallback": "måltid",
+      "changeMealAriaLabel": "Skift {meal} for {slot}"
     },
     "picker": {
       "title": "Vælg et måltid",
       "emptyLibrary": "Ingen måltider i biblioteket. Tilføj nogle først.",
       "prepTimeShort": "{minutes}m",
-      "removeMealButton": "Fjern måltid"
+      "removeMealButton": "Fjern måltid",
+      "subtitle": "{slot} · {day}"
     }
   },
   "mealsGrocery": {
@@ -402,7 +412,10 @@
       "confirmDescriptionSingular": "Det bruger {cost} billet af {memberName}s saldo. Tilbage: {remaining}",
       "confirmDescriptionPlural": "Det bruger {cost} billetter af {memberName}s saldo. Tilbage: {remaining}",
       "confirmLabelSingular": "Indløs — {cost} billet",
-      "confirmLabelPlural": "Indløs — {cost} billetter"
+      "confirmLabelPlural": "Indløs — {cost} billetter",
+      "emptyKid": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
+      "balanceLabelNamed": "billetter til {name}",
+      "switchHint": "Er du ikke {name}? Vælg dit navn under I dag."
     },
     "manage": {
       "heading": "Belønninger",
@@ -509,7 +522,8 @@
     "dismissErrorAriaLabel": "Afvis fejl"
   },
   "choresKidView": {
-    "notConfigured": "Der er ikke sat pligter op endnu. Tilføj et Pligtskema-modul i editoren for at komme i gang."
+    "notConfigured": "Ingen pligter endnu. Bed en voksen om at tilføje et pligtskema til skærmen.",
+    "grownUpsLink": "Voksne: åbn familiefjernbetjeningen"
   },
   "mealTimeChip": {
     "servingTimeAria": "Serveringstide {time}, klik for at ændre",
@@ -577,5 +591,13 @@
     "quickNameSeconds": "{seconds} sekunders timer",
     "quickNameClock": "{time}-timer",
     "secondsShort": "{seconds} sek."
+  },
+  "formOverlay": {
+    "discard": {
+      "title": "Vil du kassere ændringerne?",
+      "description": "Dine ændringer er ikke gemt endnu.",
+      "confirmLabel": "Kassér",
+      "keepEditing": "Bliv ved med at redigere"
+    }
   }
 }

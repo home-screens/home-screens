@@ -59,6 +59,13 @@ export default function MealsPlanView({
   );
   // Use chronological slot order, but only the slots the household has enabled
   const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
+  // What the slot being picked for currently holds. A filled slot opens this
+  // same picker (tapping it used to clear the slot outright, the one silent
+  // delete in the app), so the picker marks the current meal and offers Remove
+  // only when there is something to remove.
+  const picked = pickingSlot ? getMealForSlot(pickingSlot.date, pickingSlot.slot) : null;
+  const pickedMealId = picked?.meal?.id ?? null;
+  const pickedHasMeal = !!(picked?.meal || picked?.planned?.customText);
   return (
     <div style={{ paddingBottom: 80 }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -210,7 +217,7 @@ export default function MealsPlanView({
                       <>
                         <button
                           type="button"
-                          onClick={() => clearSlot(date, slot)}
+                          onClick={() => setPickingSlot({ date, slot })}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -225,7 +232,7 @@ export default function MealsPlanView({
                             textAlign: 'left' as const,
                             fontFamily: 'inherit',
                           }}
-                          aria-label={t('mealsPlan.slot.removeMealAriaLabel', { meal: mealName, slot: slotLabel })}
+                          aria-label={t('mealsPlan.slot.changeMealAriaLabel', { meal: mealName, slot: slotLabel })}
                         >
                           <div style={{ width: 3, height: 28, borderRadius: 2, background: SLOT_META[slot].color, flexShrink: 0 }} />
                           {meal?.emoji && <span style={{ fontSize: 18, flexShrink: 0 }}>{meal.emoji}</span>}
@@ -316,8 +323,16 @@ export default function MealsPlanView({
             <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
               <div style={{ width: 36, height: 4, borderRadius: 2, background: 'var(--hs-text-faint)' }} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)', padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)' }}>
-              {t('mealsPlan.picker.title')}
+            <div style={{ padding: '8px 16px 10px', borderBottom: '1px solid var(--hs-border)' }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--hs-text-primary)' }}>
+                {t('mealsPlan.picker.title')}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
+                {t('mealsPlan.picker.subtitle', {
+                  slot: tModules(getMealSlotLabelKey(pickingSlot.slot)),
+                  day: dayNamesFull[weekDates.find((d) => d.date === pickingSlot.date)?.dayIndex ?? 0],
+                })}
+              </div>
             </div>
             <div style={{ overflow: 'auto', padding: '8px 16px', flex: 1, scrollbarWidth: 'none' as const }}>
               {savedMeals.length === 0 ? (
@@ -329,6 +344,7 @@ export default function MealsPlanView({
                   <button
                     key={meal.id}
                     onClick={() => assignMealToSlot(pickingSlot.date, pickingSlot.slot, meal.id)}
+                    aria-pressed={pickedMealId === meal.id}
                     style={{
                       width: '100%',
                       display: 'flex',
@@ -345,7 +361,12 @@ export default function MealsPlanView({
                     }}
                   >
                     <span style={{ fontSize: 24 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
-                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)' }}>{meal.name}</span>
+                    <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: pickedMealId === meal.id ? '#f59e0b' : 'var(--hs-text-primary)' }}>
+                      {meal.name}
+                    </span>
+                    {pickedMealId === meal.id && (
+                      <span aria-hidden="true" style={{ fontSize: 14, color: '#f59e0b', fontWeight: 700 }}>&#10003;</span>
+                    )}
                     {meal.prepTime ? (
                       <span style={{ fontSize: 11, color: 'var(--hs-text-faint)' }}>
                         {t('mealsPlan.picker.prepTimeShort', { minutes: meal.prepTime })}
@@ -355,6 +376,7 @@ export default function MealsPlanView({
                 ))
               )}
             </div>
+            {pickedHasMeal && (
             <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)' }}>
               <button
                 onClick={() => {
@@ -378,6 +400,7 @@ export default function MealsPlanView({
                 {t('mealsPlan.picker.removeMealButton')}
               </button>
             </div>
+            )}
           </div>
         </div>
       )}

@@ -1,9 +1,9 @@
 'use client';
 
-import { TEXT_OPACITY } from '@/lib/constants';
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
+import FamilyEmptyState from '../FamilyEmptyState';
 import { useChoreData } from './useChoreData';
 import { BoardView } from './views/BoardView';
 import { StarChartView } from './views/StarChartView';
@@ -22,30 +22,16 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   const data = useChoreData(config);
   const t = useTranslate('modules');
 
-  if (data.members.length === 0) {
+  // Family data lives on the phone, not in the editor: the empty state sends
+  // people to /remote and says which tab.
+  if (data.members.length === 0 || data.chores.length === 0) {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2">
-          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('chore-chart.addMembersToStart')}</p>
-          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            {t('chore-chart.openEditorToSetUp')}
-          </p>
-        </div>
-      </ModuleWrapper>
-    );
-  }
-
-  if (data.chores.length === 0) {
-    return (
-      <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2">
-          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#128203;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('chore-chart.noChoresConfigured')}</p>
-          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            {t('chore-chart.addChoresInEditor')}
-          </p>
-        </div>
+        <FamilyEmptyState
+          icon={<>&#128203;</>}
+          title={t(data.members.length === 0 ? 'chore-chart.noMembersYet' : 'chore-chart.noChoresYet')}
+          hint={t('chore-chart.setUpFromPhoneHint')}
+        />
       </ModuleWrapper>
     );
   }

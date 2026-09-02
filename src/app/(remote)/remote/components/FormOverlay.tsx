@@ -3,34 +3,53 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import ConfirmSheet from './ConfirmSheet';
 
 export default function FormOverlay({
   title,
   backLabel,
+  dirty = false,
   onBack,
   children,
   footer,
 }: {
   title: string;
   backLabel?: string;
+  /**
+   * True once the form holds edits that have not been saved. While dirty the
+   * back control reads "Cancel" and asks before throwing the edits away;
+   * people tap Back reflexively, and a chore with a schedule takes a minute
+   * to rebuild.
+   */
+  dirty?: boolean;
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
 }) {
   const tCore = useTranslate('core');
+  const t = useTranslate('remote');
   // Default the chevron-back label through `core.actions.back` so every
   // caller picks up the active locale without forwarding props.
-  const resolvedBackLabel = backLabel ?? tCore('actions.back');
+  const resolvedBackLabel = backLabel ?? (dirty ? tCore('actions.cancel') : tCore('actions.back'));
   const [visible, setVisible] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const exitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
     return () => clearTimeout(exitTimer.current);
   }, []);
 
-  const handleBack = () => {
+  const close = () => {
     setVisible(false);
     exitTimer.current = setTimeout(onBack, 250);
+  };
+
+  const handleBack = () => {
+    if (dirty) {
+      setConfirmDiscard(true);
+      return;
+    }
+    close();
   };
 
   return (
@@ -106,6 +125,20 @@ export default function FormOverlay({
         <div style={{ flexShrink: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', position: 'relative', zIndex: 1, borderTop: '1px solid var(--hs-border)' }}>
           {footer}
         </div>
+      )}
+
+      {confirmDiscard && (
+        <ConfirmSheet
+          title={t('formOverlay.discard.title')}
+          description={t('formOverlay.discard.description')}
+          confirmLabel={t('formOverlay.discard.confirmLabel')}
+          cancelLabel={t('formOverlay.discard.keepEditing')}
+          onConfirm={() => {
+            setConfirmDiscard(false);
+            close();
+          }}
+          onCancel={() => setConfirmDiscard(false)}
+        />
       )}
     </div>
   );

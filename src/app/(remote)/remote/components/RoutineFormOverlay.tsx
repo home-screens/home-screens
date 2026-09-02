@@ -7,6 +7,7 @@ import { uuid } from '@/lib/uuid';
 import { MAX_STEP_SEC, MIN_STEP_SEC } from '@/lib/timer-logic';
 import type { Routine, RoutineStep, TimerView } from '@/types/timers';
 import FormOverlay from './FormOverlay';
+import { useFormDirty } from '@/hooks/useFormDirty';
 import { TIMER_VIEW_LABEL_KEYS, timerChipClass } from './TimersTab';
 
 const ROUTINE_EMOJI = ['🚀', '🌞', '🌙', '🪥', '👕', '🛏️', '🎒', '📚', '🧹', '🍽️', '🛁', '🧸', '⚽', '🎨', '🐶', '⏱️'];
@@ -71,6 +72,7 @@ export default function RoutineFormOverlay({
   const [confirmDelete, setConfirmDelete] = useState(false);
   /** Step id whose emoji grid is open. */
   const [pickingIconFor, setPickingIconFor] = useState<string | null>(null);
+  const dirty = useFormDirty([name, icon, view, sound, steps]);
 
   const updateStep = (
     id: string,
@@ -115,6 +117,7 @@ export default function RoutineFormOverlay({
   return (
     <FormOverlay
       title={routine ? t('timers.editRoutine') : t('timers.newRoutine')}
+      dirty={dirty}
       onBack={onClose}
       footer={
         <div className="flex gap-2">

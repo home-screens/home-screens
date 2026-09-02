@@ -86,7 +86,7 @@
     }
   },
   "countdown": {
-    "noEvents": "Ingen nedtællinger oprettet",
+    "noEvents": "Ingen nedtællinger endnu. Tilføj en i editoren.",
     "noUpcoming": "Ingen kommende begivenheder",
     "agoSuffix": "(siden)",
     "unitDays": "dage",
@@ -355,7 +355,6 @@
   },
   "meal-planner": {
     "noMealsPlannedYet": "Ingen måltider planlagt endnu",
-    "addMealsInEditor": "Tilføj måltider i editoren",
     "noMealsPlanned": "Ingen måltider planlagt",
     "noMealPlanned": "Intet måltid planlagt",
     "nothingPlanned": "Intet planlagt",
@@ -387,7 +386,8 @@
     "tapToDismiss": "Tryk hvor som helst for at lukke",
     "openRecipeAria": "Åbn opskriften for {name}",
     "showQrInstead": "Vis QR-kode",
-    "closeRecipe": "Luk"
+    "closeRecipe": "Luk",
+    "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Ugens måltider",
@@ -418,22 +418,27 @@
     "starChart": "Stjerneskema",
     "chores": "Pligter",
     "thisWeek": "Denne uge",
-    "addMembersToStart": "Start med at tilføje familiemedlemmer",
-    "openEditorToSetUp": "Åbn editoren for at sætte dit pligtskema op",
-    "noChoresConfigured": "Der er ikke tilføjet pligter",
-    "addChoresInEditor": "Tilføj pligter i editoren",
     "dayOff": "Fridag!",
     "allDone": "Alle pligter er klaret!",
     "doneLabel": "Klaret:",
     "progressLabel": "Fremgang:",
     "doneFraction": "{done}/{total} klaret",
-    "streakDays": "{count} dage",
+    "streakDays": {
+      "one": "{count} dag",
+      "other": "{count} dage"
+    },
     "totalTickets": "Billetter i alt",
     "bestStreak": "Længste stime",
-    "bestStreakValue": "{name} ({count} dage)",
+    "bestStreakValue": {
+      "one": "{name} ({count} dag)",
+      "other": "{name} ({count} dage)"
+    },
     "todaysCompletion": "Klaret i dag",
     "rewardBalances": "Billetsaldi",
-    "ticketsCount": "{count} billetter",
+    "ticketsCount": {
+      "one": "{count} billet",
+      "other": "{count} billetter"
+    },
     "timeOfDay": {
       "morning": "Morgen",
       "afternoon": "Eftermiddag",
@@ -548,17 +553,25 @@
       "puzzle": "Puslespil",
       "sticker": "Klistermærke",
       "volleyball": "Sport"
-    }
+    },
+    "noMembersYet": "Ingen familiemedlemmer endnu",
+    "noChoresYet": "Ingen pligter endnu",
+    "setUpFromPhoneHint": "Tilføj familie og pligter fra en telefon: åbn {url} og tryk på Pligter"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belønninger",
     "complete": "Klaret",
     "noChoresToday": "Ingen pligter i dag",
-    "weeklyTickets": "Ugens billetter:",
-    "weeklyTicketsValue": "{earned} / {total}",
+    "weeklyTicketsValue": {
+      "one": "{count} billet denne uge",
+      "other": "{count} billetter denne uge"
+    },
     "bestStreakLabel": "Længste stime:",
-    "bestStreakValue": "{name} — {count} dage",
-    "bestStreakNone": "Ingen",
+    "bestStreakValue": {
+      "one": "{name}, {count} dag",
+      "other": "{name}, {count} dage"
+    },
+    "bestStreakNone": "ingen endnu",
     "thisWeek": "Denne uge",
     "tickets": "billetter",
     "ticketCount": "{count} billet",
@@ -584,15 +597,27 @@
       "title": "Belønninger",
       "subtitle": "Vælg noget godt",
       "backToChores": "← Pligter",
-      "noneAvailable": "Der er ingen belønninger endnu",
+      "noneAvailable": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
       "recentRedemptions": "Seneste indløsninger",
-      "redemptionCost": "−{cost} billetter",
+      "redemptionCost": {
+        "one": "−{count} billet",
+        "other": "−{count} billetter"
+      },
       "memberTickets": "{member}s billetter",
-      "balanceCount": "{count} billetter",
-      "rewardCost": "{count} billetter",
+      "balanceCount": {
+        "one": "{count} billet",
+        "other": "{count} billetter"
+      },
+      "rewardCost": {
+        "one": "{count} billet",
+        "other": "{count} billetter"
+      },
       "redeem": "Indløs",
       "confirmTitle": "Vil du bruge dine billetter?",
-      "confirmBody": "Bruge {member}s billetter på {reward}? ({count} billetter)",
+      "confirmBody": {
+        "one": "{member} bruger 1 billet på {reward}.",
+        "other": "{member} bruger {count} billetter på {reward}."
+      },
       "confirmCancel": "Annullér",
       "confirmYes": "Ja!",
       "errorGeneric": "Noget gik galt",

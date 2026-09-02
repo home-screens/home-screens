@@ -86,7 +86,7 @@
     }
   },
   "countdown": {
-    "noEvents": "No countdowns set",
+    "noEvents": "No countdowns yet. Add one in the editor.",
     "noUpcoming": "No upcoming events",
     "agoSuffix": "(ago)",
     "todayBang": "Today!",
@@ -355,7 +355,6 @@
   },
   "meal-planner": {
     "noMealsPlannedYet": "No meals planned yet",
-    "addMealsInEditor": "Add meals in the editor",
     "noMealsPlanned": "No meals planned",
     "noMealPlanned": "No meal planned",
     "nothingPlanned": "Nothing planned",
@@ -387,7 +386,8 @@
     "tapToDismiss": "Tap anywhere to close",
     "openRecipeAria": "Open recipe for {name}",
     "showQrInstead": "Show QR code",
-    "closeRecipe": "Close"
+    "closeRecipe": "Close",
+    "planFromPhoneHint": "Plan meals from a phone: open {url} and tap Meals"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",
@@ -418,22 +418,27 @@
     "starChart": "Star Chart",
     "chores": "Chores",
     "thisWeek": "This Week",
-    "addMembersToStart": "Add family members to get started",
-    "openEditorToSetUp": "Open the editor to set up your chore chart",
-    "noChoresConfigured": "No chores configured",
-    "addChoresInEditor": "Add some chores in the editor",
     "dayOff": "Day off!",
     "allDone": "All done!",
     "doneLabel": "Done:",
     "progressLabel": "Progress:",
     "doneFraction": "{done}/{total} done",
-    "streakDays": "{count} days",
+    "streakDays": {
+      "one": "{count} day",
+      "other": "{count} days"
+    },
     "totalTickets": "Total tickets",
     "bestStreak": "Best streak",
-    "bestStreakValue": "{name} ({count} days)",
+    "bestStreakValue": {
+      "one": "{name} ({count} day)",
+      "other": "{name} ({count} days)"
+    },
     "todaysCompletion": "Today's completion",
     "rewardBalances": "Reward balances",
-    "ticketsCount": "{count} tickets",
+    "ticketsCount": {
+      "one": "{count} ticket",
+      "other": "{count} tickets"
+    },
     "timeOfDay": {
       "morning": "Morning",
       "afternoon": "Afternoon",
@@ -548,17 +553,25 @@
       "puzzle": "Puzzle",
       "sticker": "Sticker",
       "volleyball": "Sports"
-    }
+    },
+    "noMembersYet": "No family members yet",
+    "noChoresYet": "No chores yet",
+    "setUpFromPhoneHint": "Add your family and chores from a phone: open {url} and tap Chores"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Rewards",
     "complete": "Complete",
     "noChoresToday": "No chores today",
-    "weeklyTickets": "Weekly tickets:",
-    "weeklyTicketsValue": "{earned} / {total}",
+    "weeklyTicketsValue": {
+      "one": "{count} ticket this week",
+      "other": "{count} tickets this week"
+    },
     "bestStreakLabel": "Best streak:",
-    "bestStreakValue": "{name} — {count} days",
-    "bestStreakNone": "None",
+    "bestStreakValue": {
+      "one": "{name}, {count} day",
+      "other": "{name}, {count} days"
+    },
+    "bestStreakNone": "none yet",
     "thisWeek": "This Week",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
@@ -584,15 +597,27 @@
       "title": "Rewards",
       "subtitle": "Pick something great",
       "backToChores": "← Chores",
-      "noneAvailable": "No rewards available yet",
+      "noneAvailable": "No rewards yet. A grown-up can add some from their phone.",
       "recentRedemptions": "Recent Redemptions",
-      "redemptionCost": "−{cost} tickets",
-      "memberTickets": "{member}'s Tickets",
-      "balanceCount": "{count} tickets",
-      "rewardCost": "{count} tickets",
+      "redemptionCost": {
+        "one": "−{count} ticket",
+        "other": "−{count} tickets"
+      },
+      "memberTickets": "Tickets for {member}",
+      "balanceCount": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
+      "rewardCost": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
       "redeem": "Redeem",
       "confirmTitle": "Spend your tickets?",
-      "confirmBody": "Spend {member}'s tickets on {reward}? ({count} tickets)",
+      "confirmBody": {
+        "one": "{member} will spend 1 ticket on {reward}.",
+        "other": "{member} will spend {count} tickets on {reward}."
+      },
       "confirmCancel": "Cancel",
       "confirmYes": "Yes!",
       "errorGeneric": "Something went wrong",

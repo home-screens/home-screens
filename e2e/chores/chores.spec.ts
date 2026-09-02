@@ -82,13 +82,14 @@ test('/chores shows the empty state when no chore module is configured', async (
   await page.goto('/chores');
   await expect(page.getByText('Feed the dog')).toBeHidden();
 
-  // With no chore module the page renders ChoresEmptyState, whose copy tells
-  // whoever set the display up how to enable chores. Pin the verbatim string
-  // (remote.choresKidView.notConfigured) — it's the only guidance a kid landing
-  // on an unconfigured /chores gets.
+  // With no chore module the page renders ChoresEmptyState. Pin the verbatim
+  // string (remote.choresKidView.notConfigured): a kid opens this page from a
+  // fridge QR code, so it has to speak to the kid and point the grown-up at
+  // the phone surface, not at "modules" and "the editor".
   await expect(
-    page.getByText('No chores configured. Add a Chore Chart module in the editor to get started.'),
+    page.getByText('No chores yet. Ask a grown-up to add a chore chart to the display.'),
   ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Grown-ups: open the family remote' })).toHaveAttribute('href', '/remote');
 });
 
 // ── Rewards on the kid surface ────────────────────────────────────────
@@ -226,11 +227,20 @@ test('kid unchecks a completed chore and the completion is removed', async ({ pa
   await posted;
   await expect(doneBtn).toBeVisible();
 
-  // Uncheck.
+  // A plain tap does not un-check in the kid view: it shows the hold hint and
+  // leaves the completion alone (un-checking a sibling's chore is the number
+  // one sibling-war button in a five-kid house).
+  await doneBtn.click();
+  await expect(page.getByText('Press and hold to un-check')).toBeVisible();
+  await expect(doneBtn).toBeVisible();
+  expect(await completionExists(request, 'c-uc', 'm-uc', today)).toBe(true);
+
+  // Press and hold un-checks. `delay` keeps the pointer down past the hold
+  // duration; the trailing click after the hold must not re-check it.
   posted = page.waitForResponse(
     (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
   );
-  await doneBtn.click();
+  await doneBtn.click({ delay: 1000 });
   await posted;
   await expect(markBtn).toBeVisible();
 
@@ -271,7 +281,7 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
     await expect(page.getByRole('button', { name: m.name, exact: true })).toBeVisible();
   }
 
-  // The first member is selected by default: only their chore shows.
+  // The first member with chores is selected by default: only their chore shows.
   await expect(page.getByText('Set the table')).toBeVisible();
   await expect(page.getByText('Sweep the floor')).toBeHidden();
 
@@ -280,9 +290,69 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
   await expect(page.getByText('Sweep the floor')).toBeVisible();
   await expect(page.getByText('Set the table')).toBeHidden();
 
-  // The day strip summarizes progress as an aggregate "N of 5 kids" fraction,
-  // not five separate per-member visuals.
+  // The pick is remembered on this device: a reload opens on Bram, not on
+  // whoever is first in the list.
+  await page.reload();
+  await expect(page.getByText('Sweep the floor')).toBeVisible();
+  await expect(page.getByText('Set the table')).toBeHidden();
+
+  // Kids get a Yesterday/Today toggle, not the 90-day strip.
+  await expect(page.getByRole('button', { name: 'Yesterday', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /View .*, /i })).toHaveCount(0);
+
+  // The grown-up strip on /remote summarizes progress as an aggregate
+  // "N of 5" fraction, not five separate per-member visuals.
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
   await expect(
     page.getByRole('button', { name: /of 5 kids earned all their chores/ }).first(),
   ).toBeVisible();
+});
+
+test('kid view opens on the first member who has chores today, not the first member', async ({ page, request }) => {
+  await request.put('/api/chores/data', {
+    data: {
+      members: [
+        { id: 'p1', name: 'Big Guns', emoji: '', color: '#94a3b8' }, // a grown-up, no chores
+        { id: 'k9', name: 'Tenley', emoji: '', color: '#f472b6' },
+      ],
+      chores: [{
+        id: 'kc9', name: 'Make the bed', emoji: '', points: 1, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['k9'], rotation: 'fixed',
+      }],
+    },
+  });
+  await page.goto('/chores');
+  await expect(page.getByText('Make the bed')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Tenley', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('finishing the last chore celebrates and the ticket balance shows on Today', async ({ page, request }) => {
+  await request.put('/api/chores/data', {
+    data: {
+      members: [{ id: 'm-cel', name: 'Wren', emoji: '', color: '#4ade80' }],
+      chores: [{
+        id: 'c-cel', name: 'Feed the cat', emoji: '', points: 2, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-cel'], rotation: 'fixed',
+      }],
+    },
+  });
+  const today = todayISO();
+  if (await completionExists(request, 'c-cel', 'm-cel', today)) {
+    await request.post('/api/chores', { data: { choreId: 'c-cel', memberId: 'm-cel', date: today } });
+  }
+  const before = ((await (await request.get('/api/rewards')).json()).balances as Record<string, number>)['m-cel'] ?? 0;
+
+  await page.goto('/chores');
+  const balanceChip = page.getByTestId('ticket-balance');
+  await expect(balanceChip).toContainText(`${before} ticket${before === 1 ? '' : 's'}`);
+
+  const posted = page.waitForResponse(
+    (r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok(),
+  );
+  await page.getByRole('button', { name: 'Mark complete: Feed the cat' }).click();
+  await posted;
+
+  await expect(page.getByText('Great job, Wren!')).toBeVisible();
+  await expect(balanceChip).toContainText(`${before + 2} tickets`);
 });

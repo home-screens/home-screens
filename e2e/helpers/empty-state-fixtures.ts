@@ -36,7 +36,7 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
   {
     type: 'countdown', name: 'no-events', kind: 'network-free',
     config: { events: [], view: 'all' },
-    expect: showsCopy('No countdowns set'),
+    expect: showsCopy('No countdowns yet'),
   },
   {
     type: 'todo', name: 'no-items', kind: 'network-free',
@@ -93,9 +93,13 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Location not configured'),
   },
   {
-    // Unseeded sandbox → no members → the "get started" empty state.
+    // Unseeded sandbox → no members → the setup empty state, which points at
+    // the phone (/remote), where family data is entered.
     type: 'chore-chart', name: 'no-members', kind: 'local-data',
-    expect: showsCopy('Add family members to get started'),
+    expect: async (mod) => {
+      await expect(mod).toContainText('No family members yet');
+      await expect(mod).toContainText('/remote and tap Chores');
+    },
   },
   {
     // Unseeded sandbox; the week view renders an empty grid, so the today view
@@ -112,8 +116,13 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('No meals planned for today'),
   },
   {
-    type: 'fullscreen-chore-chart', name: 'no-chores-today', kind: 'local-data',
+    // Unseeded sandbox → no members → the setup state, not "No chores today"
+    // (which on a fresh install would read as a day off).
+    type: 'fullscreen-chore-chart', name: 'no-members', kind: 'local-data',
     config: { view: 'chores' },
-    expect: showsCopy('No chores today'),
+    expect: async (mod) => {
+      await expect(mod).toContainText('No family members yet');
+      await expect(mod).toContainText('/remote and tap Chores');
+    },
   },
 ];

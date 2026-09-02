@@ -86,7 +86,7 @@
     }
   },
   "countdown": {
-    "noEvents": "Aucun compte à rebours défini",
+    "noEvents": "Aucun compte à rebours pour l'instant. Ajoute-en un dans l'éditeur.",
     "noUpcoming": "Aucun événement à venir",
     "agoSuffix": "(passé)",
     "todayBang": "Aujourd'hui !",
@@ -355,7 +355,6 @@
   },
   "meal-planner": {
     "noMealsPlannedYet": "Aucun repas prévu pour le moment",
-    "addMealsInEditor": "Ajoute des repas dans l'éditeur",
     "noMealsPlanned": "Aucun repas prévu",
     "noMealPlanned": "Aucun repas prévu",
     "nothingPlanned": "Rien de prévu",
@@ -387,7 +386,8 @@
     "tapToDismiss": "Touchez n'importe où pour fermer",
     "openRecipeAria": "Ouvrir la recette de {name}",
     "showQrInstead": "Afficher le code QR",
-    "closeRecipe": "Fermer"
+    "closeRecipe": "Fermer",
+    "planFromPhoneHint": "Planifie les repas depuis un téléphone : ouvre {url} et touche Repas"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Repas de la semaine",
@@ -418,22 +418,27 @@
     "starChart": "Tableau d'étoiles",
     "chores": "Tâches",
     "thisWeek": "Cette semaine",
-    "addMembersToStart": "Ajoute des membres de la famille pour commencer",
-    "openEditorToSetUp": "Ouvre l'éditeur pour configurer ton tableau de tâches",
-    "noChoresConfigured": "Aucune tâche configurée",
-    "addChoresInEditor": "Ajoute quelques tâches dans l'éditeur",
     "dayOff": "Jour de repos !",
     "allDone": "Tout est fait !",
     "doneLabel": "Fait :",
     "progressLabel": "Progression :",
     "doneFraction": "{done}/{total} fait",
-    "streakDays": "{count} jours",
+    "streakDays": {
+      "one": "{count} jour",
+      "other": "{count} jours"
+    },
     "totalTickets": "Tickets au total",
     "bestStreak": "Meilleure série",
-    "bestStreakValue": "{name} ({count} jours)",
+    "bestStreakValue": {
+      "one": "{name} ({count} jour)",
+      "other": "{name} ({count} jours)"
+    },
     "todaysCompletion": "Fait aujourd'hui",
     "rewardBalances": "Tickets restants",
-    "ticketsCount": "{count} tickets",
+    "ticketsCount": {
+      "one": "{count} ticket",
+      "other": "{count} tickets"
+    },
     "timeOfDay": {
       "morning": "Matin",
       "afternoon": "Après-midi",
@@ -548,17 +553,25 @@
       "puzzle": "Puzzle",
       "sticker": "Autocollant",
       "volleyball": "Sports"
-    }
+    },
+    "noMembersYet": "Aucun membre de la famille pour l'instant",
+    "noChoresYet": "Aucune tâche pour l'instant",
+    "setUpFromPhoneHint": "Ajoute ta famille et les tâches depuis un téléphone : ouvre {url} et touche Tâches"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Récompenses",
     "complete": "Fait",
     "noChoresToday": "Aucune tâche aujourd'hui",
-    "weeklyTickets": "Tickets cette semaine :",
-    "weeklyTicketsValue": "{earned} / {total}",
+    "weeklyTicketsValue": {
+      "one": "{count} ticket cette semaine",
+      "other": "{count} tickets cette semaine"
+    },
     "bestStreakLabel": "Meilleure série :",
-    "bestStreakValue": "{name} — {count} jours",
-    "bestStreakNone": "Aucune",
+    "bestStreakValue": {
+      "one": "{name}, {count} jour",
+      "other": "{name}, {count} jours"
+    },
+    "bestStreakNone": "aucune pour l’instant",
     "thisWeek": "Cette semaine",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
@@ -584,15 +597,27 @@
       "title": "Récompenses",
       "subtitle": "Choisis quelque chose de chouette",
       "backToChores": "← Tâches",
-      "noneAvailable": "Aucune récompense disponible pour l'instant",
+      "noneAvailable": "Aucune récompense pour l'instant. Un grand peut en ajouter depuis son téléphone.",
       "recentRedemptions": "Échanges récents",
-      "redemptionCost": "−{cost} tickets",
+      "redemptionCost": {
+        "one": "−{count} ticket",
+        "other": "−{count} tickets"
+      },
       "memberTickets": "Tickets de {member}",
-      "balanceCount": "{count} tickets",
-      "rewardCost": "{count} tickets",
+      "balanceCount": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
+      "rewardCost": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
       "redeem": "Échanger",
       "confirmTitle": "Dépenser tes tickets ?",
-      "confirmBody": "Dépenser les tickets de {member} pour {reward} ? ({count} tickets)",
+      "confirmBody": {
+        "one": "{member} va dépenser 1 ticket pour {reward}.",
+        "other": "{member} va dépenser {count} tickets pour {reward}."
+      },
       "confirmCancel": "Annuler",
       "confirmYes": "Oui !",
       "errorGeneric": "Quelque chose a mal tourné",

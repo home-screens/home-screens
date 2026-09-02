@@ -18,6 +18,7 @@ import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
+import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 
 export default function ChoreFormOverlay({
@@ -55,6 +56,9 @@ export default function ChoreFormOverlay({
     scheduleMembers, scheduleDays, unscheduledMembers,
     canSave, validationHintKind,
   } = f;
+  const dirty = useFormDirty([
+    name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay, assigneeIds, rotation, schedule,
+  ]);
   const [showConfirm, setShowConfirm] = useState(false);
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
@@ -67,6 +71,7 @@ export default function ChoreFormOverlay({
     <>
       <FormOverlay
         title={isEdit ? t('choresManage.choreForm.titleEdit') : t('choresManage.choreForm.titleNew')}
+        dirty={dirty}
         onBack={onBack}
       >
         <div style={{ marginBottom: 24 }}>

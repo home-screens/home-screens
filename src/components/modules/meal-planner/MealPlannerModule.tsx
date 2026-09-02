@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { TEXT_OPACITY } from '@/lib/constants';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleStyle, TimeFormat } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -9,6 +8,7 @@ import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS, resolveMealTimeFormat } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
+import FamilyEmptyState from '../FamilyEmptyState';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
@@ -66,13 +66,11 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   if (!hasMeals && view !== 'week') {
     return (
       <ModuleWrapper style={style}>
-        <div className="flex flex-col items-center justify-center h-full gap-2">
-          <span style={{ fontSize: '2em', opacity: TEXT_OPACITY.tertiary }}>&#127869;</span>
-          <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>{t('meal-planner.noMealsPlannedYet')}</p>
-          <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-            {t('meal-planner.addMealsInEditor')}
-          </p>
-        </div>
+        <FamilyEmptyState
+          icon={<>&#127869;</>}
+          title={t('meal-planner.noMealsPlannedYet')}
+          hint={t('meal-planner.planFromPhoneHint')}
+        />
       </ModuleWrapper>
     );
   }

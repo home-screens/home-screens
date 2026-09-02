@@ -23,17 +23,30 @@ interface RewardsViewProps {
   members: ChoreMember[];
   accentColor: string;
   isAdmin?: boolean;
+  /**
+   * Owned by ChoresTab and shared with the Today view, so the kid who just
+   * checked off their chores is the kid whose tickets show here. In the kid
+   * view this is also the only way to pick whose tickets get spent: Redeem
+   * shows no member picker of its own.
+   */
+  selectedMemberId: string;
+  onSelectMember: (id: string) => void;
 }
 
 type InnerView = 'redeem' | 'rewards' | 'balances' | 'history';
 
 // ── Component ────────────────────────────────────────────────────────
 
-export default function RewardsView({ members, accentColor, isAdmin = false }: RewardsViewProps) {
+export default function RewardsView({
+  members,
+  accentColor,
+  isAdmin = false,
+  selectedMemberId,
+  onSelectMember,
+}: RewardsViewProps) {
   const t = useTranslate('remote');
   const [data, setData] = useState<RewardsData | null>(null);
   const [innerView, setInnerView] = useState<InnerView>('redeem');
-  const [selectedMemberId, setSelectedMemberId] = useState(members[0]?.id ?? '');
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
   const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
@@ -259,7 +272,8 @@ export default function RewardsView({ members, accentColor, isAdmin = false }: R
           t={t}
           members={members}
           selectedMemberId={selectedMemberId}
-          onSelectMember={setSelectedMemberId}
+          onSelectMember={onSelectMember}
+          showMemberPicker={isAdmin}
           balance={balance}
           selectedColor={selectedColor}
           rewards={availableRewards}
@@ -342,6 +356,7 @@ function RedeemSection({
   members,
   selectedMemberId,
   onSelectMember,
+  showMemberPicker,
   balance,
   selectedColor,
   rewards,
@@ -351,14 +366,18 @@ function RedeemSection({
   members: ChoreMember[];
   selectedMemberId: string;
   onSelectMember: (id: string) => void;
+  /** Grown-ups pick any member here; kids spend only as the member picked on Today. */
+  showMemberPicker: boolean;
   balance: number;
   selectedColor: string;
   rewards: RewardDefinition[];
   onRedeem: (reward: RewardDefinition) => void;
 }) {
+  const selectedMember = members.find((m) => m.id === selectedMemberId);
   return (
     <>
-      <div style={{ display: 'flex', gap: 6, padding: '12px 0', overflowX: 'auto', scrollbarWidth: 'none' as const }}>
+      {showMemberPicker && (
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, padding: '12px 0' }}>
         {members.map((member) => {
           const isActive = member.id === selectedMemberId;
           return (
@@ -366,6 +385,7 @@ function RedeemSection({
               key={member.id}
               className="press-scale"
               onClick={() => onSelectMember(member.id)}
+              aria-pressed={isActive}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -380,20 +400,23 @@ function RedeemSection({
                 fontWeight: 500,
                 cursor: 'pointer',
                 flexShrink: 0,
-                whiteSpace: 'nowrap' as const,
+                maxWidth: '100%',
                 transition: 'all 0.15s',
               }}
             >
               {member.emoji ? (
-                <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} />
+                <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} />
+                </span>
               ) : (
-                <span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>
+                <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{member.name[0]}</span>
               )}
-              <span>{member.name}</span>
+              <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.name}</span>
             </button>
           );
         })}
       </div>
+      )}
 
       <div
         style={{
@@ -407,12 +430,14 @@ function RedeemSection({
           border: '1px solid var(--hs-bg-hover)',
         }}
       >
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1, color: selectedColor }}>
             {balance}
           </div>
           <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', fontWeight: 500, marginTop: 4 }}>
-            {t('rewardsView.redeem.balanceLabel')}
+            {showMemberPicker || !selectedMember
+              ? t('rewardsView.redeem.balanceLabel')
+              : t('rewardsView.redeem.balanceLabelNamed', { name: selectedMember.name })}
           </div>
         </div>
         <div
@@ -431,6 +456,12 @@ function RedeemSection({
         </div>
       </div>
 
+      {!showMemberPicker && selectedMember && (
+        <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '-6px 2px 14px', lineHeight: 1.4 }}>
+          {t('rewardsView.redeem.switchHint', { name: selectedMember.name })}
+        </p>
+      )}
+
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
         {t('rewardsView.redeem.availableHeading')}
@@ -438,7 +469,7 @@ function RedeemSection({
 
       {rewards.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
-          {t('rewardsView.redeem.empty')}
+          {t(showMemberPicker ? 'rewardsView.redeem.empty' : 'rewardsView.redeem.emptyKid')}
         </div>
       )}
 

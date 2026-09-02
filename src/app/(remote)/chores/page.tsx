@@ -18,9 +18,21 @@ export default async function ChoresPage() {
     return <ChoresEmptyState />;
   }
 
+  // Same 16px gutter /remote gives the tab, plus the phone's own safe areas so
+  // nothing sits under a rounded corner or the home indicator.
   return (
-    <div className="min-h-screen bg-hs-body">
-      <ChoresTab config={choreConfig} choreData={choreData} />
+    <div
+      className="min-h-screen bg-hs-body"
+      style={{
+        paddingLeft: 'max(16px, env(safe-area-inset-left))',
+        paddingRight: 'max(16px, env(safe-area-inset-right))',
+        paddingBottom: 'calc(32px + env(safe-area-inset-bottom))',
+        paddingTop: 'env(safe-area-inset-top)',
+      }}
+    >
+      <div className="mx-auto max-w-3xl">
+        <ChoresTab config={choreConfig} choreData={choreData} />
+      </div>
     </div>
   );
 }

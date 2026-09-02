@@ -348,16 +348,14 @@ test('kid cannot check off a chore on a past day', async ({ page, request }) => 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yISO = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-  // The history-strip tiles are labelled with this exact long-date format
-  // (weekday/month/day, no year) via the default en-US formatting locale.
-  const yLabel = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(yesterday);
 
   await page.goto('/chores');
   // Today the chore is an interactive toggle for the kid …
   await expect(page.getByRole('button', { name: 'Mark complete: Feed the dog' })).toBeVisible();
 
-  // … navigate to yesterday via the history day strip.
-  await page.getByRole('button', { name: `View ${yLabel}` }).click();
+  // … navigate to yesterday. Kids get a Yesterday/Today toggle instead of the
+  // grown-up 90-day strip.
+  await page.getByRole('button', { name: 'Yesterday', exact: true }).click();
 
   // The chore still renders, but as a read-only row (canEdit = !isViewingPast ||
   // isAdmin → false here), so no toggle button exists in either state.

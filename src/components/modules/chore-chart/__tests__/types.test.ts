@@ -760,6 +760,20 @@ describe('computeDayEntries', () => {
     expect(entries[0].total).toBe(1); // only alice counts
   });
 
+  it('flags anyDone only when at least one assigned chore was completed', () => {
+    const c1 = makeChore({ id: 'c1', assigneeIds: ['alice'] });
+    const c2 = makeChore({ id: 'c2', assigneeIds: ['alice'] });
+    // Nothing checked off: a day with chores but no activity stays quiet.
+    const none = computeDayEntries('2026-04-09', '2026-04-09', [alice, bob], [c1, c2], new Set());
+    expect(none[0].anyDone).toBe(false);
+    expect(none[0].total).toBe(1);
+    // One of two done: activity, but nobody finished everything.
+    const partial = new Set([completionKey('c1', 'alice', '2026-04-09')]);
+    const some = computeDayEntries('2026-04-09', '2026-04-09', [alice], [c1, c2], partial);
+    expect(some[0].anyDone).toBe(true);
+    expect(some[0].earned).toBe(0);
+  });
+
   it('skips a day entirely when no member has any assigned chores', () => {
     // No members assigned at all on this day -> total=0, earned=0
     const chore = makeChore({ id: 'c1', assigneeIds: ['alice'], daysOfWeek: [0] }); // Sunday only

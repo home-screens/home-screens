@@ -391,3 +391,37 @@ body {
   opacity: 0.7;
 }
 
+
+/* ── Small celebratory motions on the phone surfaces ──────────────────
+   `hs-pop-in` brings a banner in with a little overshoot (the "all done"
+   celebration on the chores Today view); `hs-pulse-once` makes a number
+   swell for a beat when it changes (the ticket balance ticking up). Both
+   are keyed on the value so React restarts them, and both stand down for
+   people who asked for reduced motion. */
+@keyframes hs-pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  60%  { opacity: 1; transform: translateY(0) scale(1.03); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes hs-pulse-once {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.hs-pop-in {
+  animation: hs-pop-in 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+.hs-pulse-once {
+  animation: hs-pulse-once 0.45s ease-out both;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-pop-in,
+  .hs-pulse-once {
+    animation: none;
+  }
+}

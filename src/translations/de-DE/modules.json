@@ -86,7 +86,7 @@
     }
   },
   "countdown": {
-    "noEvents": "Keine Countdowns festgelegt",
+    "noEvents": "Noch keine Countdowns. Lege einen im Editor an.",
     "noUpcoming": "Keine bevorstehenden Ereignisse",
     "agoSuffix": "(vergangen)",
     "todayBang": "Heute!",
@@ -355,7 +355,6 @@
   },
   "meal-planner": {
     "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
-    "addMealsInEditor": "Mahlzeiten im Editor hinzufügen",
     "noMealsPlanned": "Keine Mahlzeiten geplant",
     "noMealPlanned": "Keine Mahlzeit geplant",
     "nothingPlanned": "Nichts geplant",
@@ -387,7 +386,8 @@
     "tapToDismiss": "Zum Schließen irgendwo tippen",
     "openRecipeAria": "Rezept für {name} öffnen",
     "showQrInstead": "QR-Code anzeigen",
-    "closeRecipe": "Schließen"
+    "closeRecipe": "Schließen",
+    "planFromPhoneHint": "Plane Mahlzeiten am Handy: Öffne {url} und tippe auf Mahlzeiten"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Mahlzeiten diese Woche",
@@ -418,22 +418,27 @@
     "starChart": "Sterntafel",
     "chores": "Aufgaben",
     "thisWeek": "Diese Woche",
-    "addMembersToStart": "Füge Familienmitglieder hinzu, um loszulegen",
-    "openEditorToSetUp": "Öffne den Editor, um deine Aufgabentafel einzurichten",
-    "noChoresConfigured": "Noch keine Aufgaben",
-    "addChoresInEditor": "Füge im Editor ein paar Aufgaben hinzu",
     "dayOff": "Heute frei!",
     "allDone": "Alles fertig!",
     "doneLabel": "Geschafft:",
     "progressLabel": "Fortschritt:",
     "doneFraction": "{done}/{total} geschafft",
-    "streakDays": "{count} Tage",
+    "streakDays": {
+      "one": "{count} Tag",
+      "other": "{count} Tage"
+    },
     "totalTickets": "Tickets gesamt",
     "bestStreak": "Beste Serie",
-    "bestStreakValue": "{name} ({count} Tage)",
+    "bestStreakValue": {
+      "one": "{name} ({count} Tag)",
+      "other": "{name} ({count} Tage)"
+    },
     "todaysCompletion": "Heute geschafft",
     "rewardBalances": "Tickets übrig",
-    "ticketsCount": "{count} Tickets",
+    "ticketsCount": {
+      "one": "{count} Ticket",
+      "other": "{count} Tickets"
+    },
     "timeOfDay": {
       "morning": "Morgen",
       "afternoon": "Nachmittag",
@@ -548,17 +553,25 @@
       "puzzle": "Puzzle",
       "sticker": "Sticker",
       "volleyball": "Sport"
-    }
+    },
+    "noMembersYet": "Noch keine Familienmitglieder",
+    "noChoresYet": "Noch keine Aufgaben",
+    "setUpFromPhoneHint": "Füge Familie und Aufgaben am Handy hinzu: Öffne {url} und tippe auf Aufgaben"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belohnungen",
     "complete": "Geschafft",
     "noChoresToday": "Heute keine Aufgaben",
-    "weeklyTickets": "Tickets diese Woche:",
-    "weeklyTicketsValue": "{earned} / {total}",
+    "weeklyTicketsValue": {
+      "one": "{count} Ticket diese Woche",
+      "other": "{count} Tickets diese Woche"
+    },
     "bestStreakLabel": "Beste Serie:",
-    "bestStreakValue": "{name} — {count} Tage",
-    "bestStreakNone": "Keine",
+    "bestStreakValue": {
+      "one": "{name}, {count} Tag",
+      "other": "{name}, {count} Tage"
+    },
+    "bestStreakNone": "noch keine",
     "thisWeek": "Diese Woche",
     "tickets": "Tickets",
     "ticketCount": "{count} Ticket",
@@ -584,15 +597,27 @@
       "title": "Belohnungen",
       "subtitle": "Such dir was Schönes aus",
       "backToChores": "← Aufgaben",
-      "noneAvailable": "Noch keine Belohnungen",
+      "noneAvailable": "Noch keine Belohnungen. Ein Erwachsener kann welche am Handy hinzufügen.",
       "recentRedemptions": "Zuletzt eingelöst",
-      "redemptionCost": "−{cost} Tickets",
+      "redemptionCost": {
+        "one": "−{count} Ticket",
+        "other": "−{count} Tickets"
+      },
       "memberTickets": "Tickets von {member}",
-      "balanceCount": "{count} Tickets",
-      "rewardCost": "{count} Tickets",
+      "balanceCount": {
+        "one": "{count} Ticket",
+        "other": "{count} Tickets"
+      },
+      "rewardCost": {
+        "one": "{count} Ticket",
+        "other": "{count} Tickets"
+      },
       "redeem": "Einlösen",
       "confirmTitle": "Tickets ausgeben?",
-      "confirmBody": "Tickets von {member} für {reward} ausgeben? ({count} Tickets)",
+      "confirmBody": {
+        "one": "{member} gibt 1 Ticket für {reward} aus.",
+        "other": "{member} gibt {count} Tickets für {reward} aus."
+      },
       "confirmCancel": "Abbrechen",
       "confirmYes": "Ja!",
       "errorGeneric": "Etwas ist schiefgelaufen",

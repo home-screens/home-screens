@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Check, Lock } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { useHoldConfirm } from '@/hooks/useHoldConfirm';
 import { useTranslate } from '@/i18n';
 
 /** Minimal shape the row renders from — the parent's assignment carries more fields. */
@@ -19,11 +21,21 @@ interface ChoreRowProps {
   isToggling: boolean;
   /** True for kids viewing a past day: locked chip, non-interactive, not a button. */
   readOnly: boolean;
+  /**
+   * Kid view: un-checking a finished chore takes a press-and-hold instead of a
+   * tap. A tap is how a sibling "accidentally" undoes someone else's work; a
+   * hold is deliberate. Checking a chore off stays a single tap.
+   */
+  holdToUncheck?: boolean;
   /** Fill color for the completed checkbox (selected member's color, else accent). */
   checkedColor: string;
   showPoints: boolean;
   onToggle: () => void;
 }
+
+/** How long the hold takes. Long enough to be deliberate, short enough not to feel stuck. */
+export const UNCHECK_HOLD_MS = 700;
+const HINT_MS = 1800;
 
 /**
  * A single chore card in the Today list. The read-only branch (kids viewing a
@@ -34,12 +46,69 @@ export default function ChoreRow({
   assignment,
   isToggling,
   readOnly,
+  holdToUncheck = false,
   checkedColor,
   showPoints,
   onToggle,
 }: ChoreRowProps) {
   const t = useTranslate('remote');
   const done = assignment.isCompleted;
+  const holdMode = holdToUncheck && done && !readOnly;
+
+  // ── Press-and-hold to un-check ──
+  // `firedRef` tells pointerup whether the hold ran to completion (toggle
+  // already happened) or was released early (show the hint). The trailing
+  // click event that follows a completed hold has to be swallowed too:
+  // by then the row has re-rendered as "not done", and a click there would
+  // check the chore straight back off.
+  const firedRef = useRef(false);
+  const swallowClickRef = useRef(false);
+  const [hint, setHint] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(hintTimer.current), []);
+
+  const hold = useHoldConfirm({
+    durationMs: UNCHECK_HOLD_MS,
+    onConfirm: () => {
+      firedRef.current = true;
+      swallowClickRef.current = true;
+      setHint(false);
+      onToggle();
+    },
+  });
+
+  const showHint = () => {
+    setHint(true);
+    clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setHint(false), HINT_MS);
+  };
+
+  const handlePointerDown = () => {
+    // A new gesture: whatever the last one left behind no longer applies.
+    swallowClickRef.current = false;
+    if (!holdMode || isToggling) return;
+    firedRef.current = false;
+    hold.onPointerDown();
+  };
+  const handlePointerUp = () => {
+    if (!holdMode) return;
+    hold.onPointerUp();
+    if (!firedRef.current) showHint();
+  };
+  const handlePointerCancel = () => {
+    if (!holdMode) return;
+    hold.onPointerCancel();
+  };
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    if (swallowClickRef.current) {
+      swallowClickRef.current = false;
+      return;
+    }
+    // Keyboard activation (Enter/Space) arrives as a click with detail 0; a
+    // keyboard user cannot hold, so it toggles directly.
+    if (holdMode && e.detail !== 0) return;
+    onToggle();
+  };
 
   const rowStyle = {
     width: '100%',
@@ -56,6 +125,11 @@ export default function ChoreRow({
     color: 'inherit',
     textAlign: 'left' as const,
     opacity: isToggling ? 0.6 : 1,
+    // A long press must not open the browser's copy/share sheet.
+    userSelect: 'none' as const,
+    WebkitUserSelect: 'none' as const,
+    WebkitTouchCallout: 'none' as const,
+    touchAction: 'pan-y' as const,
   };
 
   const checkbox = readOnly ? (
@@ -84,6 +158,7 @@ export default function ChoreRow({
   ) : (
     <div
       style={{
+        position: 'relative',
         width: 28,
         height: 28,
         borderRadius: 8,
@@ -94,9 +169,24 @@ export default function ChoreRow({
         transition: 'all 0.15s',
         background: done ? checkedColor : 'transparent',
         border: done ? 'none' : '2px solid var(--hs-border-strong)',
+        overflow: 'hidden',
       }}
     >
-      {done && <Check size={16} color="white" strokeWidth={2.5} />}
+      {/* Hold progress: the fill drains from the checkbox as the hold runs. */}
+      {holdMode && hold.isHolding && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'var(--hs-bg-card)',
+            transformOrigin: 'bottom',
+            transform: `scaleY(${hold.progress})`,
+            opacity: 0.85,
+          }}
+        />
+      )}
+      {done && <Check size={16} color="white" strokeWidth={2.5} style={{ position: 'relative' }} />}
     </div>
   );
 
@@ -110,16 +200,22 @@ export default function ChoreRow({
         </span>
       )}
 
-      <span
-        style={{
-          flex: 1,
-          fontSize: 15,
-          fontWeight: 500,
-          textDecoration: done ? 'line-through' : 'none',
-          color: done ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
-        }}
-      >
-        {assignment.choreName}
+      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 500,
+            textDecoration: done ? 'line-through' : 'none',
+            color: done ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
+          }}
+        >
+          {assignment.choreName}
+        </span>
+        {hint && (
+          <span role="status" style={{ fontSize: 12, color: checkedColor, fontWeight: 500 }}>
+            {t('choresTab.holdToUncheckHint')}
+          </span>
+        )}
       </span>
 
       {showPoints && assignment.points > 0 && (
@@ -150,7 +246,12 @@ export default function ChoreRow({
   return (
     <button
       className="press-scale"
-      onClick={onToggle}
+      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerCancel}
+      onContextMenu={holdMode ? (e) => e.preventDefault() : undefined}
       disabled={isToggling}
       aria-label={
         done

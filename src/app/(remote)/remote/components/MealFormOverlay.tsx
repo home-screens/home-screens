@@ -7,6 +7,7 @@ import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/m
 import { GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
 import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
+import { useFormDirty } from '@/hooks/useFormDirty';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -57,6 +58,10 @@ export default function MealFormOverlay({
     setFormFavorite,
     nameInputRef,
   } = form;
+  const dirty = useFormDirty([
+    formName, formEmoji, formPrepTime, formCookTime, formServings, formDifficulty,
+    formTags, formIngredients, formRecipeUrl, formNotes, formRating, formFavorite,
+  ]);
 
   const saveLabel = saving
     ? t('mealForm.savingSubmit')
@@ -123,6 +128,7 @@ export default function MealFormOverlay({
   return (
     <FormOverlay
       title={editingMeal === 'new' ? t('mealForm.titleNew') : t('mealForm.titleEdit')}
+      dirty={dirty}
       onBack={() => setEditingMeal(null)}
       footer={footer}
     >

@@ -86,7 +86,7 @@
     }
   },
   "countdown": {
-    "noEvents": "Geen aftellingen ingesteld",
+    "noEvents": "Nog geen aftellingen. Voeg er een toe in de editor.",
     "noUpcoming": "Geen aankomende gebeurtenissen",
     "agoSuffix": "(geleden)",
     "todayBang": "Vandaag!",
@@ -355,7 +355,6 @@
   },
   "meal-planner": {
     "noMealsPlannedYet": "Nog geen maaltijden gepland",
-    "addMealsInEditor": "Voeg maaltijden toe in de editor",
     "noMealsPlanned": "Geen maaltijden gepland",
     "noMealPlanned": "Geen maaltijd gepland",
     "nothingPlanned": "Niets gepland",
@@ -387,7 +386,8 @@
     "tapToDismiss": "Tik ergens om te sluiten",
     "openRecipeAria": "Recept voor {name} openen",
     "showQrInstead": "QR-code tonen",
-    "closeRecipe": "Sluiten"
+    "closeRecipe": "Sluiten",
+    "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",
@@ -418,22 +418,27 @@
     "starChart": "Sterrenkaart",
     "chores": "Klusjes",
     "thisWeek": "Deze week",
-    "addMembersToStart": "Voeg gezinsleden toe om te beginnen",
-    "openEditorToSetUp": "Open de editor om je klusjeskaart in te stellen",
-    "noChoresConfigured": "Nog geen klusjes",
-    "addChoresInEditor": "Voeg klusjes toe in de editor",
     "dayOff": "Vandaag vrij!",
     "allDone": "Alles klaar!",
     "doneLabel": "Gedaan:",
     "progressLabel": "Voortgang:",
     "doneFraction": "{done}/{total} gedaan",
-    "streakDays": "{count} dagen",
+    "streakDays": {
+      "one": "{count} dag",
+      "other": "{count} dagen"
+    },
     "totalTickets": "Totaal aantal tickets",
     "bestStreak": "Beste reeks",
-    "bestStreakValue": "{name} ({count} dagen)",
+    "bestStreakValue": {
+      "one": "{name} ({count} dag)",
+      "other": "{name} ({count} dagen)"
+    },
     "todaysCompletion": "Vandaag gedaan",
     "rewardBalances": "Tickets over",
-    "ticketsCount": "{count} tickets",
+    "ticketsCount": {
+      "one": "{count} ticket",
+      "other": "{count} tickets"
+    },
     "timeOfDay": {
       "morning": "Ochtend",
       "afternoon": "Middag",
@@ -548,17 +553,25 @@
       "puzzle": "Puzzel",
       "sticker": "Sticker",
       "volleyball": "Sport"
-    }
+    },
+    "noMembersYet": "Nog geen gezinsleden",
+    "noChoresYet": "Nog geen klusjes",
+    "setUpFromPhoneHint": "Voeg je gezin en klusjes toe via een telefoon: open {url} en tik op Klusjes"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Beloningen",
     "complete": "Klaar",
     "noChoresToday": "Vandaag geen klusjes",
-    "weeklyTickets": "Tickets deze week:",
-    "weeklyTicketsValue": "{earned} / {total}",
+    "weeklyTicketsValue": {
+      "one": "{count} ticket deze week",
+      "other": "{count} tickets deze week"
+    },
     "bestStreakLabel": "Beste reeks:",
-    "bestStreakValue": "{name} — {count} dagen",
-    "bestStreakNone": "Geen",
+    "bestStreakValue": {
+      "one": "{name}, {count} dag",
+      "other": "{name}, {count} dagen"
+    },
+    "bestStreakNone": "nog geen",
     "thisWeek": "Deze week",
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
@@ -584,15 +597,27 @@
       "title": "Beloningen",
       "subtitle": "Kies iets leuks",
       "backToChores": "← Klusjes",
-      "noneAvailable": "Nog geen beloningen",
+      "noneAvailable": "Nog geen beloningen. Een volwassene kan ze toevoegen via de telefoon.",
       "recentRedemptions": "Onlangs ingewisseld",
-      "redemptionCost": "−{cost} tickets",
+      "redemptionCost": {
+        "one": "−{count} ticket",
+        "other": "−{count} tickets"
+      },
       "memberTickets": "Tickets van {member}",
-      "balanceCount": "{count} tickets",
-      "rewardCost": "{count} tickets",
+      "balanceCount": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
+      "rewardCost": {
+        "one": "{count} ticket",
+        "other": "{count} tickets"
+      },
       "redeem": "Inwisselen",
       "confirmTitle": "Tickets uitgeven?",
-      "confirmBody": "Tickets van {member} uitgeven aan {reward}? ({count} tickets)",
+      "confirmBody": {
+        "one": "{member} geeft 1 ticket uit aan {reward}.",
+        "other": "{member} geeft {count} tickets uit aan {reward}."
+      },
       "confirmCancel": "Annuleren",
       "confirmYes": "Ja!",
       "errorGeneric": "Er ging iets mis",

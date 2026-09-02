@@ -96,15 +96,24 @@
     "ticketCountPlural": "{n} Tickets",
     "choreAriaLabelMarkComplete": "Abhaken: {chore}",
     "choreAriaLabelCompleted": "Geschafft: {chore}",
-    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+    "holdToUncheckHint": "Gedrückt halten, um den Haken zu entfernen",
+    "celebration": "Super gemacht, {name}!",
+    "dayToggle": {
+      "ariaLabel": "Welcher Tag angezeigt wird",
+      "yesterday": "Gestern",
+      "today": "Heute"
+    }
   },
   "choreHistoryNav": {
-    "prevMonthAriaLabel": "Vorheriger Monat",
-    "nextMonthAriaLabel": "Nächster Monat",
     "jumpToTodayAriaLabel": "Zu heute springen",
-    "todayButton": "Heute",
+    "todayButton": "Zurück zu heute",
     "tileAriaLabel": "{date} ansehen, {earned} von {total} Kindern haben alles geschafft",
-    "tileAriaLabelEmpty": "{date} ansehen, keine Aufgaben"
+    "tileAriaLabelEmpty": "{date} ansehen, keine Aufgaben",
+    "earlierButton": "Früher",
+    "captionToday": "Bisher heute: {earned} von {total} haben alle Aufgaben geschafft",
+    "captionPast": "{date}: {earned} von {total} haben alle Aufgaben geschafft",
+    "captionPastNone": "{date}: nichts abgehakt"
   },
   "choresManage": {
     "tabs": {
@@ -281,15 +290,16 @@
     },
     "slot": {
       "addMeal": "+ Mahlzeit hinzufügen",
-      "removeMealAriaLabel": "{meal} aus {slot} entfernen",
       "planSlotAriaLabel": "{slot} für {day} planen",
-      "mealFallback": "Mahlzeit"
+      "mealFallback": "Mahlzeit",
+      "changeMealAriaLabel": "{meal} für {slot} ändern"
     },
     "picker": {
       "title": "Mahlzeit auswählen",
       "emptyLibrary": "Keine Mahlzeiten in der Bibliothek. Füge zuerst welche hinzu.",
       "prepTimeShort": "{minutes} Min.",
-      "removeMealButton": "Mahlzeit entfernen"
+      "removeMealButton": "Mahlzeit entfernen",
+      "subtitle": "{slot} · {day}"
     }
   },
   "mealsGrocery": {
@@ -402,7 +412,10 @@
       "confirmDescriptionSingular": "Damit wird {cost} Ticket von {memberName}s Konto abgezogen. Rest: {remaining}",
       "confirmDescriptionPlural": "Damit werden {cost} Tickets von {memberName}s Konto abgezogen. Rest: {remaining}",
       "confirmLabelSingular": "Einlösen — {cost} Ticket",
-      "confirmLabelPlural": "Einlösen — {cost} Tickets"
+      "confirmLabelPlural": "Einlösen — {cost} Tickets",
+      "emptyKid": "Noch keine Belohnungen. Ein Erwachsener kann welche am Handy hinzufügen.",
+      "balanceLabelNamed": "Tickets von {name}",
+      "switchHint": "Nicht {name}? Wähle deinen Namen im Tab „Heute“."
     },
     "manage": {
       "heading": "Belohnungen",
@@ -509,7 +522,8 @@
     "dismissErrorAriaLabel": "Fehler schließen"
   },
   "choresKidView": {
-    "notConfigured": "Noch keine Aufgaben eingerichtet. Bitte einen Erwachsenen, ein Aufgabentafel-Modul im Editor hinzuzufügen."
+    "notConfigured": "Noch keine Aufgaben. Bitte einen Erwachsenen, eine Aufgabentafel zum Display hinzuzufügen.",
+    "grownUpsLink": "Für Erwachsene: Familien-Fernbedienung öffnen"
   },
   "mealTimeChip": {
     "servingTimeAria": "Servierzeit {time}, zum Ändern klicken",
@@ -577,5 +591,13 @@
     "quickNameSeconds": "{seconds}-Sekunden-Timer",
     "quickNameClock": "{time}-Timer",
     "secondsShort": "{seconds} Sek."
+  },
+  "formOverlay": {
+    "discard": {
+      "title": "Änderungen verwerfen?",
+      "description": "Deine Änderungen wurden noch nicht gespeichert.",
+      "confirmLabel": "Verwerfen",
+      "keepEditing": "Weiter bearbeiten"
+    }
   }
 }
