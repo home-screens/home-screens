@@ -2,6 +2,25 @@
 
 import { createContext, useContext, type Dispatch, type SetStateAction } from 'react';
 import type { TimerTargets } from '@/types/timers';
+import type { DisplayApiEntry } from '@/lib/displays-api-types';
+
+/**
+ * What the hub last heard from one display, shaped for the remote's cards.
+ * Single-display installs get exactly one entry with `id: undefined` (the
+ * legacy `__default__` heartbeat slot); multi-display installs get one per
+ * registered display, refreshed by the status polls in RemoteClient.
+ */
+export interface DisplayLiveEntry {
+  /** Registry id; undefined for the legacy single display. */
+  id: string | undefined;
+  name: string;
+  status: NonNullable<DisplayApiEntry['status']> | null;
+  lastSeen: number | null;
+  /** The hub has never received a heartbeat from this display. */
+  neverConnected: boolean;
+  /** Last heartbeat is older than OFFLINE_AFTER_MS (see display-liveness). */
+  offline: boolean;
+}
 
 /**
  * Selected display target for the remote control.
@@ -28,6 +47,8 @@ export interface DisplayTargetContextType {
    */
   timerTargetIds: string[];
   setTimerTargetIds: Dispatch<SetStateAction<string[]>>;
+  /** Live heartbeat per display (see DisplayLiveEntry); read by the Timers tab to confirm pickup. */
+  live: DisplayLiveEntry[];
 }
 
 export const DisplayTargetContext = createContext<DisplayTargetContextType>({
@@ -36,6 +57,7 @@ export const DisplayTargetContext = createContext<DisplayTargetContextType>({
   displays: [],
   timerTargetIds: [],
   setTimerTargetIds: () => {},
+  live: [],
 });
 
 export function useDisplayTarget(): DisplayTargetContextType {

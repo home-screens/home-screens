@@ -567,3 +567,49 @@ test('the open kiosk tab posts a live heartbeat with real browser fields', async
   expect(status.reportedViewport.width).toBeGreaterThan(0);
   expect(status.reportedViewport.height).toBeGreaterThan(0);
 });
+
+test('the heartbeat reports brightness, the alert count and the timer session the tab is showing', async ({ page, request }) => {
+  const id = 'cmd-heartbeat-facts';
+  await openDisplay(
+    page,
+    request,
+    displayConfig(id, [makeScreen('a', 'A', [textModule('FACTS SCREEN')])], {
+      screensaver: { mode: 'off' },
+    }),
+    id,
+  );
+  const status = async () => {
+    const res = await request.get(`/api/display/status?display=${id}`);
+    return res.ok() ? res.json() : null;
+  };
+
+  // A fully lit, quiet display: 100%, no alerts, no timer.
+  await expect.poll(status, { timeout: 12000 }).toMatchObject({
+    brightness: 100,
+    activeAlerts: 0,
+    timerSessionId: null,
+  });
+
+  // The remote holds its slider at the sent value until this arrives, so a
+  // brightness command must be answered on the spot (not on the 30s beat).
+  await sendCommand(request, id, 'brightness', { value: 40 });
+  await expect.poll(status, { timeout: 8000 }).toMatchObject({ brightness: 40, displayState: 'dimmed' });
+
+  // An alert on screen bumps the count immediately; clear-alerts zeroes it.
+  await sendCommand(request, id, 'alert', { type: 'urgent', title: 'FACTS ALERT', message: '' });
+  await expect.poll(status, { timeout: 8000 }).toMatchObject({ activeAlerts: 1 });
+  await sendCommand(request, id, 'clear-alerts');
+  await expect.poll(status, { timeout: 8000 }).toMatchObject({ activeAlerts: 0 });
+
+  // A timer session the tab is showing rides the heartbeat as its id, and
+  // drops back to null once it is cancelled.
+  const start = await request.post('/api/timers/session', {
+    data: { action: 'start', kind: 'quick', durationSec: 600, targets: [id], view: 'face', sound: false },
+  });
+  expect(start.ok()).toBe(true);
+  const sessionId = (await start.json()).session.id as string;
+  await expect(page.getByTestId('timer-overlay')).toBeVisible({ timeout: 8000 });
+  await expect.poll(status, { timeout: 8000 }).toMatchObject({ timerSessionId: sessionId });
+  await request.post('/api/timers/session', { data: { action: 'cancel' } });
+  await expect.poll(status, { timeout: 8000 }).toMatchObject({ timerSessionId: null });
+});

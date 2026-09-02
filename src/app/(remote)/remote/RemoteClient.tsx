@@ -1,12 +1,20 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { ChoreChartConfig } from '@/types/config';
 import type { ChoreData } from '@/lib/chore-data';
-import { useRemoteStatus } from './hooks';
-import { DisplayTargetContext, withDisplayTarget, type DisplayTargetValue } from './display-target';
+import { useTranslate } from '@/i18n';
+import { useRemoteStatus, useAllDisplayStatuses, usePendingCommand } from './hooks';
+import {
+  DisplayTargetContext,
+  withDisplayTarget,
+  type DisplayLiveEntry,
+  type DisplayTargetValue,
+} from './display-target';
+import { CONFIRM_TIMEOUT_MS, isOfflineSince } from './display-liveness';
+import { showToast } from './remote-toast';
 import StatusBar from './components/StatusBar';
 import ConnectionBanner from './components/ConnectionBanner';
 import DisplayHero from './components/DisplayHero';
@@ -16,12 +24,13 @@ import BrightnessCard from './components/BrightnessCard';
 import ProfileSwitcher from './components/ProfileSwitcher';
 import DisplayPicker from './components/DisplayPicker';
 import AlertSender from './components/AlertSender';
-import SettingsSheet from './components/SettingsSheet';
+import SettingsSheet, { type PowerAction } from './components/SettingsSheet';
 import BackupReminderBanner from './components/BackupReminderBanner';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import BottomTabBar from './components/BottomTabBar';
+import RemoteToast from './components/RemoteToast';
 import ChoresTab from './components/ChoresTab';
 import TimersTab from './components/TimersTab';
 import MealsTab from './components/MealsTab';
@@ -58,7 +67,14 @@ interface RemoteInitialData {
   >;
 }
 
+/** How long the reconnecting banner may stand after a hub restart / reboot before giving up. */
+const RECONNECT_WINDOW_MS: Record<PowerAction, number> = {
+  'restart-service': 60_000,
+  reboot: 150_000,
+};
+
 export default function RemoteClient({ initialData }: { initialData: RemoteInitialData }) {
+  const t = useTranslate('remote');
   // Display targeting: 'all' broadcasts, a specific id targets one display,
   // and undefined falls back to legacy behaviour (no ?display= param at all).
   // Initialise to 'all' when displays exist so users see immediate feedback,
@@ -67,30 +83,24 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const [displayTarget, setDisplayTarget] = useState<DisplayTargetValue>(
     hasMultipleDisplays ? 'all' : undefined,
   );
+  const allMode = displayTarget === 'all';
   // Timers-tab "Show on" selection (empty = All). Held here, not in
   // TimersTab, because switching tabs unmounts TimersTab — a deliberate
   // selection must survive a detour through Chores and back.
   const [timerTargetIds, setTimerTargetIds] = useState<string[]>([]);
 
-  const targetCtx = useMemo(
-    () => ({
-      target: displayTarget,
-      setTarget: setDisplayTarget,
-      displays: initialData.displays,
-      timerTargetIds,
-      setTimerTargetIds,
-    }),
-    [displayTarget, initialData.displays, timerTargetIds],
-  );
-
   // Status poll picks up the per-display heartbeat when targeting a specific
-  // display. Status reports are stored per-display ID, so when the user picks
-  // "All" we read the first registered display's status as a representative
-  // sample — the alternative (reading the legacy `__default__` slot) returns
-  // null in multi-display mode and blanks out the hero panel.
-  const statusPollTarget =
-    displayTarget === 'all' ? initialData.displays[0]?.id : displayTarget;
-  const { status, isConnected, lastUpdated, neverConnected, nudge } = useRemoteStatus(5_000, statusPollTarget);
+  // display. Under "All" it follows the first registered display so hub
+  // reachability (and the fast nudge) keep working; the per-display picture
+  // for All mode comes from `useAllDisplayStatuses` below.
+  const statusPollTarget = allMode ? initialData.displays[0]?.id : displayTarget;
+  const { status, isConnected, lastUpdated, neverConnected, lastPollFailed, nudge } = useRemoteStatus(5_000, statusPollTarget);
+  const { entries: allEntries, nudge: nudgeAll } = useAllDisplayStatuses(hasMultipleDisplays);
+  const nudgeAllPolls = useCallback(() => {
+    nudge();
+    nudgeAll();
+  }, [nudge, nudgeAll]);
+
   const backup = useBackupReminder({
     enabled: initialData.backupReminder.enabled,
     intervalDays: initialData.backupReminder.intervalDays,
@@ -113,22 +123,105 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     setAlertOpen(false);
   }, [activeTab]);
 
-  // Optimistic overrides for instant feedback
-  const [optimistic, setOptimistic] = useState<{
-    displayState?: 'active' | 'asleep';
-    screenIndex?: number;
-  }>({});
-
-  // Clear optimistic overrides once real status catches up
-  useEffect(() => {
-    if (!status) return;
-    setOptimistic((prev) => {
-      const next = { ...prev };
-      if (prev.displayState && status.displayState === prev.displayState) delete next.displayState;
-      if (prev.screenIndex !== undefined && status.currentScreen.index === prev.screenIndex) delete next.screenIndex;
-      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
+  // One live entry per display the remote knows about (see DisplayLiveEntry).
+  // The targeted display's entry comes from the faster per-display poll so a
+  // nudge lands there first; the rest ride the registry poll.
+  const live: DisplayLiveEntry[] = useMemo(() => {
+    if (!hasMultipleDisplays) {
+      return [{
+        id: undefined,
+        name: t('displayHero.theDisplay'),
+        status,
+        lastSeen: status?.lastSeen ?? null,
+        neverConnected,
+        offline: isOfflineSince(status?.lastSeen),
+      }];
+    }
+    return initialData.displays.map((d) => {
+      if (d.id === statusPollTarget) {
+        return {
+          id: d.id,
+          name: d.name,
+          status,
+          lastSeen: status?.lastSeen ?? null,
+          neverConnected,
+          offline: isOfflineSince(status?.lastSeen),
+        };
+      }
+      const entry = allEntries?.find((e) => e.id === d.id);
+      return {
+        id: d.id,
+        name: d.name,
+        status: entry?.status ?? null,
+        lastSeen: entry?.lastSeen ?? null,
+        neverConnected: allEntries !== null && (!entry || entry.lastSeen === null),
+        offline: isOfflineSince(entry?.lastSeen),
+      };
     });
-  }, [status]);
+  }, [hasMultipleDisplays, initialData.displays, statusPollTarget, status, neverConnected, allEntries, t]);
+  const liveRef = useRef(live);
+  liveRef.current = live;
+
+  const targetCtx = useMemo(
+    () => ({
+      target: displayTarget,
+      setTarget: setDisplayTarget,
+      displays: initialData.displays,
+      timerTargetIds,
+      setTimerTargetIds,
+      live,
+    }),
+    [displayTarget, initialData.displays, timerTargetIds, live],
+  );
+
+  // The displays a command goes to, and the subset that can actually hear it.
+  const targetEntries = useMemo(
+    () => (allMode ? live : live.filter((e) => e.id === displayTarget)),
+    [allMode, live, displayTarget],
+  );
+  const onlineTargets = useMemo(
+    () => targetEntries.filter((e) => e.status !== null && !e.neverConnected && !e.offline),
+    [targetEntries],
+  );
+  const controlsDisabled = onlineTargets.length === 0;
+  const targetName = allMode ? null : (targetEntries[0]?.name ?? t('displayHero.theDisplay'));
+
+  // "Kitchen didn't respond" — names the online targets that never confirmed.
+  const noConfirmToast = useCallback(() => {
+    const current = liveRef.current;
+    const targets = allMode ? current : current.filter((e) => e.id === displayTarget);
+    const names = targets.filter((e) => e.status !== null && !e.offline).map((e) => e.name);
+    showToast(
+      t('feedback.noConfirm', { name: names.length > 0 ? names.join(', ') : t('displayHero.theDisplay') }),
+      'error',
+    );
+  }, [allMode, displayTarget, t]);
+
+  // ---- Sleep / wake: optimistic, confirmed by heartbeat, reverted on silence
+  const actualAsleep = onlineTargets.length > 0 && onlineTargets.every((e) => e.status!.displayState === 'asleep');
+  const sleepPending = usePendingCommand<'active' | 'asleep'>(CONFIRM_TIMEOUT_MS, noConfirmToast);
+  useEffect(() => {
+    if (sleepPending.expected === null) return;
+    if (onlineTargets.length > 0 && onlineTargets.every((e) => e.status!.displayState === sleepPending.expected)) {
+      sleepPending.settle();
+    }
+  }, [onlineTargets, sleepPending]);
+  const isAsleep = sleepPending.expected !== null ? sleepPending.expected === 'asleep' : actualAsleep;
+
+  const handleSleepWake = useCallback(() => {
+    const next = isAsleep ? 'active' : 'asleep';
+    sleepPending.start(next);
+    nudgeAllPolls();
+    const url = withDisplayTarget(`/api/display/${next === 'active' ? 'wake' : 'sleep'}`, displayTarget);
+    editorFetch(url).catch(() => {});
+  }, [isAsleep, sleepPending, nudgeAllPolls, displayTarget]);
+
+  // ---- Screen navigation (single display only): same confirm-or-revert
+  const navPending = usePendingCommand<number>(CONFIRM_TIMEOUT_MS, noConfirmToast);
+  useEffect(() => {
+    if (navPending.expected === null || !status) return;
+    if (status.currentScreen.index === navPending.expected) navPending.settle();
+  }, [status, navPending]);
 
   // Screens of the display whose status we are showing. The rotation index in
   // a heartbeat is relative to that display's own screen list, so resolving a
@@ -138,59 +231,80 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     (statusPollTarget ? initialData.displayScreens[statusPollTarget] : undefined) ??
     initialData.screens;
 
-  // Merge optimistic overrides into effective status
+  // Merge the pending overrides into the status the cards render
   const effectiveStatus: DisplayStatus | null = status
     ? {
         ...status,
-        displayState: optimistic.displayState ?? status.displayState,
+        displayState: sleepPending.expected ?? status.displayState,
         currentScreen:
-          optimistic.screenIndex !== undefined
+          navPending.expected !== null
             ? {
                 ...status.currentScreen,
-                index: optimistic.screenIndex,
-                name: targetScreens[optimistic.screenIndex]?.name ?? status.currentScreen.name,
+                index: navPending.expected,
+                name: targetScreens[navPending.expected]?.name ?? status.currentScreen.name,
               }
             : status.currentScreen,
       }
     : null;
 
   const handleNav = useCallback((direction: 'next' | 'prev') => {
-    nudge();
     if (!status) return;
     const count = status.screenCount;
-    const cur = optimistic.screenIndex ?? status.currentScreen.index;
+    const cur = navPending.expected ?? status.currentScreen.index;
     const next = direction === 'next' ? (cur + 1) % count : (cur - 1 + count) % count;
-    setOptimistic((prev) => ({ ...prev, screenIndex: next }));
+    navPending.start(next);
+    nudgeAllPolls();
     const url = withDisplayTarget(
       `/api/display/${direction === 'next' ? 'next-screen' : 'prev-screen'}`,
       displayTarget,
     );
     editorFetch(url).catch(() => {});
-  }, [nudge, status, optimistic.screenIndex, displayTarget]);
+  }, [status, navPending, nudgeAllPolls, displayTarget]);
 
-  const handleSleepWake = useCallback(() => {
+  // ---- Brightness and alerts read the same online-target picture
+  const reportedBrightness = useMemo(
+    () => onlineTargets.flatMap((e) => (typeof e.status?.brightness === 'number' ? [e.status.brightness] : [])),
+    [onlineTargets],
+  );
+  const activeAlerts = useMemo(() => {
+    const known = onlineTargets.flatMap((e) => (typeof e.status?.activeAlerts === 'number' ? [e.status.activeAlerts] : []));
+    return known.length > 0 ? known.reduce((sum, n) => sum + n, 0) : null;
+  }, [onlineTargets]);
+
+  // ---- Hub restart / reboot: expected silence, then "back"
+  const [reconnecting, setReconnecting] = useState<PowerAction | null>(null);
+  const sawOutageRef = useRef(false);
+  const handlePowerAction = useCallback((action: PowerAction) => {
+    sawOutageRef.current = false;
+    setReconnecting(action);
+    setSettingsOpen(false);
     nudge();
-    const isAsleep = (optimistic.displayState ?? status?.displayState) === 'asleep';
-    setOptimistic((prev) => ({ ...prev, displayState: isAsleep ? 'active' : 'asleep' }));
-    const url = withDisplayTarget(
-      `/api/display/${isAsleep ? 'wake' : 'sleep'}`,
-      displayTarget,
-    );
-    editorFetch(url).catch(() => {});
-  }, [nudge, status, optimistic.displayState, displayTarget]);
-
-  const isAsleep = (optimistic.displayState ?? effectiveStatus?.displayState) === 'asleep';
+  }, [nudge]);
+  useEffect(() => {
+    if (!reconnecting) return;
+    if (lastPollFailed) {
+      sawOutageRef.current = true;
+    } else if (sawOutageRef.current) {
+      setReconnecting(null);
+      showToast(t('feedback.hubBack'));
+    }
+  }, [lastPollFailed, reconnecting, t]);
+  useEffect(() => {
+    if (!reconnecting) return;
+    const timer = setTimeout(() => setReconnecting(null), RECONNECT_WINDOW_MS[reconnecting]);
+    return () => clearTimeout(timer);
+  }, [reconnecting]);
 
   // The screen picker only makes sense for a single display, since each
   // display can have a different screen set. Hide profile/screen-aware
   // controls when broadcasting.
-  const showSingleDisplayControls = displayTarget !== 'all';
+  const showSingleDisplayControls = !allMode;
 
   // When a specific display is targeted, show that display's resolved
   // profile pool (which may be owned or allowlist-restricted). The global
   // pool is only correct for the All/legacy case.
   const targetProfileData =
-    displayTarget && displayTarget !== 'all'
+    displayTarget && !allMode
       ? initialData.displayProfiles[displayTarget]
       : undefined;
   const effectiveProfiles = targetProfileData?.profiles ?? initialData.profiles;
@@ -200,7 +314,11 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   return (
     <DisplayTargetContext.Provider value={targetCtx}>
       <div className="min-h-dvh bg-hs-body text-hs-text-body">
-        {!isConnected && <ConnectionBanner />}
+        {reconnecting ? (
+          <ConnectionBanner mode={reconnecting} />
+        ) : !isConnected ? (
+          <ConnectionBanner mode="unreachable" />
+        ) : null}
 
         {activeTab === 'control' ? (
           <>
@@ -218,22 +336,56 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
               onDismiss={backup.handleDismiss}
             />
             <DisplayPicker />
-            <DisplayHero status={effectiveStatus} isConnected={isConnected} lastUpdated={lastUpdated} neverConnected={neverConnected} />
-            {showSingleDisplayControls && <ScreenNav status={effectiveStatus} onNav={handleNav} />}
-            <QuickActions isAsleep={isAsleep} onSleepWake={handleSleepWake} onAlertOpen={() => setAlertOpen(true)} />
-            <BrightnessCard />
+            <DisplayHero
+              status={effectiveStatus}
+              isConnected={isConnected}
+              lastUpdated={lastUpdated}
+              neverConnected={neverConnected}
+              displayName={hasMultipleDisplays && !allMode ? targetName ?? undefined : undefined}
+              allEntries={allMode ? live : null}
+            />
+            {showSingleDisplayControls && (
+              <ScreenNav status={effectiveStatus} onNav={handleNav} disabled={controlsDisabled} />
+            )}
+            <QuickActions
+              isAsleep={isAsleep}
+              sleepPending={sleepPending.expected !== null}
+              disabled={controlsDisabled}
+              targetName={targetName}
+              onSleepWake={handleSleepWake}
+              onAlertOpen={() => setAlertOpen(true)}
+            />
+            <BrightnessCard
+              reportedValues={reportedBrightness}
+              disabled={controlsDisabled}
+              onSent={nudgeAllPolls}
+              onNoConfirm={noConfirmToast}
+            />
             {showSingleDisplayControls && effectiveProfiles.length > 0 && (
               <ProfileSwitcher
                 profiles={effectiveProfiles}
                 activeProfile={status?.activeProfile ?? effectiveInitialActiveProfile}
+                displayName={targetName ?? t('displayHero.theDisplay')}
               />
             )}
 
             {/* Bottom spacer for fixed tab bar */}
             <div className="h-20" />
 
-            <AlertSender open={alertOpen} onClose={() => setAlertOpen(false)} />
-            <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onBackup={backup.handleBackup} backupBusy={backup.busy} />
+            <AlertSender
+              open={alertOpen}
+              onClose={() => setAlertOpen(false)}
+              targetName={targetName}
+              activeAlerts={activeAlerts}
+              onSent={nudgeAllPolls}
+            />
+            <SettingsSheet
+              open={settingsOpen}
+              onClose={() => setSettingsOpen(false)}
+              onBackup={backup.handleBackup}
+              backupBusy={backup.busy}
+              onPowerAction={handlePowerAction}
+            />
           </>
         ) : activeTab === 'timers' ? (
           <TimersTab />
@@ -260,6 +412,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           </>
         ) : null}
 
+        <RemoteToast />
         <BottomTabBar activeTab={activeTab} onChange={setActiveTab} hasChores={hasChores} hasMeals={hasMeals} hasPhotos={hasPhotos} />
       </div>
     </DisplayTargetContext.Provider>

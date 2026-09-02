@@ -50,7 +50,7 @@ export function useDisplayControl({
 }: UseDisplayControlParams) {
   const {
     displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness,
-    wakeForAlert, releaseAlertWake, getDisplayState,
+    wakeForAlert, releaseAlertWake, getDisplayState, brightness,
   } = useSleepManager(sleep, timezone);
 
   // Remote navigation implies wake when the content is hidden:
@@ -142,6 +142,7 @@ export function useDisplayControl({
     screenCount,
     activeProfile,
     displayState,
+    brightness,
     displayId,
     hubTransport,
   );

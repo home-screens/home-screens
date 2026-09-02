@@ -83,6 +83,10 @@ export const GET = withDisplayAuth(async (request) => {
               currentScreen: status.currentScreen,
               displayState: status.displayState,
               activeProfile: status.activeProfile,
+              screenCount: status.screenCount,
+              brightness: status.brightness,
+              timerSessionId: status.timerSessionId,
+              activeAlerts: status.activeAlerts,
             }
           : null,
         // Two fields lifted out of hwStats rather than the whole snapshot —

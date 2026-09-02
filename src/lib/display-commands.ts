@@ -79,6 +79,20 @@ export interface DisplayStatus {
   hwStats?: HardwareStats;
   /** Per-display browser info posted on the standard heartbeat. */
   browserStats?: BrowserStats;
+  /**
+   * Effective brightness the display is showing right now (0-100): a remote
+   * override, the dim level, 0 while asleep, 100 while fully active. The
+   * remote seeds its slider from this instead of guessing 100%.
+   */
+  brightness?: number;
+  /**
+   * Id of the timer session this display is currently showing full-screen,
+   * or null when none. Lets the remote say "Showing on Kitchen" instead of
+   * naming the target and hoping.
+   */
+  timerSessionId?: string | null;
+  /** Alerts currently on screen, so the remote can offer to clear them. */
+  activeAlerts?: number;
 }
 
 /** Sentinel queue key for displays that poll without an explicit `displayId`. */

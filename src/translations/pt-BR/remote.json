@@ -13,7 +13,9 @@
     "hubDisconnected": "Não foi possível conectar ao Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Tela inacessível — verifique se o dispositivo está ligado e conectado"
+    "unreachable": "Não foi possível conectar ao Home Screens. Confira se este celular está no Wi-Fi de casa e se a central está ligada.",
+    "restarting": "O Home Screens está reiniciando. Reconectando em cerca de 20 segundos…",
+    "rebooting": "O aparelho está reiniciando. Reconectando em cerca de um minuto…"
   },
   "backupReminder": {
     "daysAgoSingular": "Você não faz backup há {n} dia.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Atualização disponível: v{version}",
-    "dismissAriaLabel": "Dispensar"
+    "dismissAriaLabel": "Dispensar",
+    "hint": "Instale pelo editor em um computador, em Manutenção > Sistema e atualizações.",
+    "openEditor": "Abrir o editor"
   },
   "displayHero": {
     "stateActive": "Ativa",
@@ -37,7 +41,12 @@
     "waiting": "Aguardando a tela…",
     "unreachable": "Tela inacessível",
     "notConnectedTitle": "Esta tela ainda não se conectou",
-    "notConnectedHint": "Verifique se ela está ligada, ou termine a configuração no editor, em Por tela."
+    "notConnectedHint": "Verifique se ela está ligada, ou termine a configuração no editor, em Por tela.",
+    "theDisplay": "A tela",
+    "allHeading": "Todas as telas",
+    "rowNotConnected": "Ainda não conectou",
+    "pickOneHint": "Escolha uma tela para mudar a página ou o perfil dela.",
+    "controlsPaused": "Os controles ficam pausados até ela reconectar."
   },
   "screenControls": {
     "prevAriaLabel": "Tela anterior",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Acordar tela",
     "sleepDisplay": "Dormir tela",
-    "sendAlert": "Enviar aviso"
+    "sendAlert": "Enviar aviso",
+    "waitingFor": "Aguardando {name}…",
+    "waitingForAll": "Aguardando as telas…"
   },
   "brightnessCard": {
     "label": "Brilho",
-    "valueAriaLabel": "Brilho {percent}%"
+    "valueAriaLabel": "Brilho {percent}%",
+    "unknownAriaLabel": "Brilho, ainda não informado"
   },
   "profileSwitcher": {
-    "heading": "Perfis"
+    "heading": "Perfis",
+    "noProfile": "Todas as páginas"
   },
   "displayPicker": {
     "targeting": "Controles para",
@@ -392,7 +405,11 @@
     "sendButton": "Enviar aviso",
     "sendingButton": "Enviando…",
     "sentButton": "Enviado!",
-    "failedButton": "Falhou — tente novamente"
+    "failedButton": "Falhou — tente novamente",
+    "clearOnDisplay": "Limpar avisos em {name}",
+    "clearOnAll": "Limpar avisos em todas as telas",
+    "clearingButton": "Limpando…",
+    "showingNow": "({count} na tela agora)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Reiniciar serviço",
         "description": "Reiniciar o app Home Screens",
-        "confirmLabel": "Toque novamente para reiniciar"
+        "confirmTitle": "Reiniciar o Home Screens?",
+        "confirmBody": "As telas ficam pretas por um instante e este controle reconecta em cerca de 20 segundos.",
+        "confirmButton": "Reiniciar"
       },
       "reboot": {
         "label": "Reiniciar dispositivo",
         "description": "Reinicialização completa do sistema",
-        "confirmLabel": "Toque novamente para reiniciar"
+        "confirmTitle": "Reiniciar o aparelho?",
+        "confirmBody": "Tudo para enquanto ele reinicia. Este controle reconecta em cerca de um minuto.",
+        "confirmButton": "Reiniciar aparelho"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Enviado"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Segundos",
     "quickNameSeconds": "Timer de {seconds} segundos",
     "quickNameClock": "Timer de {time}",
-    "secondsShort": "{seconds} s"
+    "secondsShort": "{seconds} s",
+    "showingOn": "Aparecendo em {names}",
+    "showingOnDisplay": "Aparecendo na tela",
+    "waitingForDisplay": "Aguardando uma tela assumir…",
+    "notShowing": "Nenhuma tela está mostrando ainda. Confira se alguma tela está ligada."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Descartar",
       "keepEditing": "Continuar editando"
     }
+  },
+  "feedback": {
+    "alertSent": "Aviso enviado para {name}",
+    "alertSentAll": "Aviso enviado para todas as telas",
+    "alertsCleared": "Avisos limpos em {name}",
+    "alertsClearedAll": "Avisos limpos em todas as telas",
+    "noConfirm": "{name} não respondeu. Pode estar desligada ou sem conexão.",
+    "profileSwitched": "{name} mudou para {profile}",
+    "profileCleared": "{name} está mostrando todas as páginas",
+    "profileFailed": "Não foi possível trocar o perfil em {name}",
+    "hubBack": "O Home Screens voltou"
   }
 }

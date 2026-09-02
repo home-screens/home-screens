@@ -45,13 +45,17 @@ test('the display picker lists every registered display plus All', async ({ page
 
 test('selecting a display scopes commands to only that display queue', async ({ page, request }) => {
   await putConfig(request, multiDisplayConfig());
+  // Sleep/Wake is inert until the targeted display has reported in.
+  await postHeartbeat(request, { display: 'kitchen' });
   await page.goto('/remote');
   // Clear any leftover queue from a prior test in this worker.
   await drainTypes(request, 'kitchen');
   await drainTypes(request, 'main');
 
   await page.getByRole('button', { name: 'Kitchen', exact: true }).click();
-  await page.getByRole('button', { name: 'Sleep Display' }).click();
+  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  await expect(sleepButton).toBeEnabled();
+  await sleepButton.click();
 
   await expect.poll(() => drainTypes(request, 'kitchen'), { timeout: 5000 }).toContain('sleep');
   // main never received it (the poll above already drained kitchen).
@@ -60,13 +64,18 @@ test('selecting a display scopes commands to only that display queue', async ({ 
 
 test('broadcasting with All fans a command out to every display', async ({ page, request }) => {
   await putConfig(request, multiDisplayConfig());
+  // A broadcast needs at least one display the hub has heard from.
+  await postHeartbeat(request, { display: 'main' });
+  await postHeartbeat(request, { display: 'kitchen' });
   await page.goto('/remote');
   await drainTypes(request, 'kitchen');
   await drainTypes(request, 'main');
 
   // 'All' is the default target when displays exist; click it to be explicit.
   await page.getByRole('button', { name: 'All', exact: true }).click();
-  await page.getByRole('button', { name: 'Sleep Display' }).click();
+  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  await expect(sleepButton).toBeEnabled();
+  await sleepButton.click();
 
   await expect.poll(() => drainTypes(request, 'main'), { timeout: 5000 }).toContain('sleep');
   await expect.poll(() => drainTypes(request, 'kitchen'), { timeout: 5000 }).toContain('sleep');
@@ -173,6 +182,23 @@ test.describe('timer display targets', () => {
     await page.getByRole('button', { name: '30 sec', exact: true }).click();
     await expect.poll(() => sessionTargets(request), { timeout: 5000 }).toEqual(['kitchen']);
     await expect(page.getByText('On Kitchen')).toBeVisible();
+  });
+
+  test('the running card says which display actually picked the timer up', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/remote');
+    await page.getByRole('button', { name: 'Timers', exact: true }).click();
+    await page.getByRole('button', { name: '30 sec', exact: true }).click();
+
+    // Nothing has reported the session yet: the card waits rather than
+    // claiming "On all displays" as if that were an acknowledgement.
+    const ack = page.getByTestId('timer-ack');
+    await expect(ack).toHaveText('Waiting for a display to pick it up…');
+
+    const res = await request.get('/api/timers/session');
+    const sessionId = (await res.json()).session.id as string;
+    await postHeartbeat(request, { display: 'kitchen', timerSessionId: sessionId });
+    await expect(ack).toHaveText('Showing on Kitchen', { timeout: 10000 });
   });
 
   test('a chip selection survives switching tabs', async ({ page, request }) => {

@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { materializeSession } from '@/lib/timer-logic';
+import { setShowingTimerSession } from '@/lib/timer-presence';
 import type { MaterializedTimerSession, TimerSession } from '@/types/timers';
 import { NUDGE_FRACTION, TIMER_CANVAS_H, TIMER_CANVAS_W, formatQuickName } from './timer-views/shared';
 import { playTimerSound } from './timer-views/timer-sounds';
@@ -88,6 +89,14 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
     const id = setInterval(() => setNow(Date.now()), TICK_MS);
     return () => clearInterval(id);
   }, [tickingSessionId]);
+
+  // Tell the status heartbeat which session is on this screen (null when the
+  // takeover is down), so the remote can confirm a display picked it up.
+  const showingId = live && matches && live.status !== 'cancelled' ? live.id : null;
+  useEffect(() => {
+    setShowingTimerSession(showingId);
+  }, [showingId]);
+  useEffect(() => () => setShowingTimerSession(null), []);
 
   const step = live && live.status === 'running' ? live.steps[live.stepIndex] : undefined;
   const durMs = step ? step.durationSec * 1000 : 0;

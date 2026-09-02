@@ -13,7 +13,9 @@
     "hubDisconnected": "Home Screens est injoignable"
   },
   "connectionBanner": {
-    "unreachable": "Affichage injoignable — vérifie que l'appareil est allumé et connecté"
+    "unreachable": "Impossible de joindre Home Screens. Vérifie que ce téléphone est sur le Wi-Fi de la maison et que la centrale est allumée.",
+    "restarting": "Home Screens redémarre. Reconnexion dans environ 20 secondes…",
+    "rebooting": "L'appareil redémarre. Reconnexion dans environ une minute…"
   },
   "backupReminder": {
     "daysAgoSingular": "Tu n'as pas fait de sauvegarde depuis {n} jour.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Mise à jour disponible : v{version}",
-    "dismissAriaLabel": "Fermer"
+    "dismissAriaLabel": "Fermer",
+    "hint": "Installe-la depuis l'éditeur sur un ordinateur, dans Maintenance > Système et mises à jour.",
+    "openEditor": "Ouvrir l'éditeur"
   },
   "displayHero": {
     "stateActive": "Actif",
@@ -37,7 +41,12 @@
     "waiting": "En attente de l'affichage…",
     "unreachable": "Affichage injoignable",
     "notConnectedTitle": "Cet affichage ne s’est pas encore connecté",
-    "notConnectedHint": "Vérifie qu’il est allumé, ou termine sa configuration dans l’éditeur, section « Par affichage »."
+    "notConnectedHint": "Vérifie qu’il est allumé, ou termine sa configuration dans l’éditeur, section « Par affichage ».",
+    "theDisplay": "L'écran",
+    "allHeading": "Tous les écrans",
+    "rowNotConnected": "Pas encore connecté",
+    "pickOneHint": "Choisis un écran pour changer sa page ou son profil.",
+    "controlsPaused": "Les commandes sont en pause jusqu'à ce qu'il se reconnecte."
   },
   "screenControls": {
     "prevAriaLabel": "Écran précédent",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Réveiller l'affichage",
     "sleepDisplay": "Mettre en veille",
-    "sendAlert": "Envoyer une alerte"
+    "sendAlert": "Envoyer une alerte",
+    "waitingFor": "En attente de {name}…",
+    "waitingForAll": "En attente des écrans…"
   },
   "brightnessCard": {
     "label": "Luminosité",
-    "valueAriaLabel": "Luminosité {percent} %"
+    "valueAriaLabel": "Luminosité {percent} %",
+    "unknownAriaLabel": "Luminosité, pas encore signalée"
   },
   "profileSwitcher": {
-    "heading": "Profils"
+    "heading": "Profils",
+    "noProfile": "Toutes les pages"
   },
   "displayPicker": {
     "targeting": "Commandes pour",
@@ -392,7 +405,11 @@
     "sendButton": "Envoyer l'alerte",
     "sendingButton": "Envoi…",
     "sentButton": "Envoyée !",
-    "failedButton": "Échec — réessaie"
+    "failedButton": "Échec — réessaie",
+    "clearOnDisplay": "Effacer les alertes sur {name}",
+    "clearOnAll": "Effacer les alertes sur tous les écrans",
+    "clearingButton": "Effacement…",
+    "showingNow": "({count} affichées)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Redémarrer le service",
         "description": "Redémarre l'application Home Screens",
-        "confirmLabel": "Appuie à nouveau pour redémarrer"
+        "confirmTitle": "Redémarrer Home Screens ?",
+        "confirmBody": "Les écrans s'éteignent un instant et cette télécommande se reconnecte dans environ 20 secondes.",
+        "confirmButton": "Redémarrer"
       },
       "reboot": {
         "label": "Redémarrer l'appareil",
         "description": "Redémarrage complet du système",
-        "confirmLabel": "Appuie à nouveau pour redémarrer"
+        "confirmTitle": "Redémarrer l'appareil ?",
+        "confirmBody": "Tout s'arrête pendant le redémarrage. Cette télécommande se reconnecte dans environ une minute.",
+        "confirmButton": "Redémarrer l'appareil"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Envoyé"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Secondes",
     "quickNameSeconds": "Minuteur de {seconds} secondes",
     "quickNameClock": "Minuteur de {time}",
-    "secondsShort": "{seconds} s"
+    "secondsShort": "{seconds} s",
+    "showingOn": "Affiché sur {names}",
+    "showingOnDisplay": "Affiché sur l'écran",
+    "waitingForDisplay": "En attente qu'un écran le prenne…",
+    "notShowing": "Aucun écran ne l'affiche encore. Vérifie qu'un écran est allumé."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Abandonner",
       "keepEditing": "Continuer à modifier"
     }
+  },
+  "feedback": {
+    "alertSent": "Alerte envoyée à {name}",
+    "alertSentAll": "Alerte envoyée à tous les écrans",
+    "alertsCleared": "Alertes effacées sur {name}",
+    "alertsClearedAll": "Alertes effacées sur tous les écrans",
+    "noConfirm": "{name} n'a pas répondu. Il est peut-être éteint ou hors ligne.",
+    "profileSwitched": "{name} est passé à {profile}",
+    "profileCleared": "{name} affiche toutes les pages",
+    "profileFailed": "Impossible de changer le profil sur {name}",
+    "hubBack": "Home Screens est de retour"
   }
 }

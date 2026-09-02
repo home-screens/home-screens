@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
-import { putConfig } from '../helpers/api';
+import { postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig } from '../helpers/config-fixtures';
 import type { MaterializedTimerSession, Routine } from '@/types/timers';
 
@@ -117,6 +117,19 @@ test('a preset quick timer starts a session and shows the control card', async (
       return s && [s.kind, s.status, s.steps[0].durationSec];
     })
     .toEqual(['quick', 'running', 300]);
+});
+
+test('the running card confirms once the display reports the timer on screen', async ({ page, request }) => {
+  await startQuick(request);
+  const session = await getSession(request);
+  await openTimers(page);
+
+  const ack = page.getByTestId('timer-ack');
+  await expect(ack).toHaveText('Waiting for a display to pick it up…');
+
+  // The (single, legacy) display heartbeats with the session it is showing.
+  await postHeartbeat(request, { timerSessionId: session!.id });
+  await expect(ack).toHaveText('Showing on the display', { timeout: 10000 });
 });
 
 test('a custom minutes-and-seconds quick timer starts', async ({ page, request }) => {

@@ -93,6 +93,12 @@ interface UseSleepManagerResult {
    * for callers running inside the command drain where React state is stale.
    */
   getDisplayState: () => DisplayState;
+  /**
+   * Effective brightness 0-100 as a person sees it: a remote override, the
+   * configured dim level while dimmed, 0 asleep, 100 active. Reported in the
+   * status heartbeat so the remote's slider starts where the wall actually is.
+   */
+  brightness: number;
 }
 
 /**
@@ -479,5 +485,7 @@ export function useSleepManager(
     }
   })();
 
-  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness, wakeForAlert, releaseAlertWake, getDisplayState };
+  const brightness = Math.round((1 - dimOpacity) * 100);
+
+  return { displayState, dimOpacity, wake, wakeIfHidden, forceSleep, setRemoteBrightness, wakeForAlert, releaseAlertWake, getDisplayState, brightness };
 }

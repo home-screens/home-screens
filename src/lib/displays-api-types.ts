@@ -35,7 +35,15 @@ export interface DisplayApiEntry {
   lastSeen: number | null;
   reportedViewport?: ReportedViewport;
   viewportReports: ViewportReport[];
-  status: Pick<DisplayStatus, 'currentScreen' | 'displayState' | 'activeProfile'> | null;
+  /**
+   * Last-known heartbeat fields the editor and the family remote read.
+   * `screenCount` here is the rotation the display reported (profile-filtered),
+   * unlike the config-derived `screenCount` above.
+   */
+  status: Pick<
+    DisplayStatus,
+    'currentScreen' | 'displayState' | 'activeProfile' | 'screenCount' | 'brightness' | 'timerSessionId' | 'activeAlerts'
+  > | null;
   /**
    * The state of this Pi's local shell layer (kiosk launcher, splash,
    * reporter, systemd units), lifted out of `hwStats` so the poll payload

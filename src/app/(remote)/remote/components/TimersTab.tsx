@@ -15,6 +15,9 @@ const QUICK_PRESETS_SEC = [30, 60, 120, 300, 600, 900];
 
 const MAX_QUICK_SEC = 240 * 60;
 
+/** How long after a start the card says "waiting" before "no display is showing this". */
+const TIMER_ACK_GRACE_MS = 15_000;
+
 export const TIMER_VIEW_LABEL_KEYS: Record<TimerView, string> = {
   ring: 'timers.viewRing',
   face: 'timers.viewFace',
@@ -36,7 +39,7 @@ export default function TimersTab() {
     routines, routinesLoaded, routinesError, retryRoutines, live, error, setError,
     startRoutine, startQuick, control, saveRoutines, targetIds, setTargetIds,
   } = useTimersData();
-  const { displays } = useDisplayTarget();
+  const { displays, live: liveDisplays } = useDisplayTarget();
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
   const [quickView, setQuickView] = useState<TimerView>('face');
   const [quickSound, setQuickSound] = useState(false);
@@ -79,6 +82,27 @@ export default function TimersTab() {
     const ids = running.targets;
     if (ids.length > 1) return t('timers.onDisplays', { count: ids.length });
     return t('timers.onDisplay', { name: displays.find((d) => d.id === ids[0])?.name ?? ids[0] });
+  })();
+  // Acknowledgement, as distinct from the target above: which displays report
+  // this session on screen in their heartbeat. A display that is off never
+  // acks, and that is exactly what a parent standing in the hall needs to know.
+  const ackLabel = (() => {
+    if (!running) return null;
+    const showing = liveDisplays.filter((d) => d.status?.timerSessionId === running.id);
+    if (showing.length > 0) {
+      return {
+        tone: 'ok' as const,
+        text: displays.length > 0
+          ? t('timers.showingOn', { names: showing.map((d) => d.name).join(', ') })
+          : t('timers.showingOnDisplay'),
+      };
+    }
+    // Displays poll every few seconds and heartbeat on pickup; give them a
+    // moment before calling it out.
+    if (Date.now() - running.startedAt < TIMER_ACK_GRACE_MS) {
+      return { tone: 'waiting' as const, text: t('timers.waitingForDisplay') };
+    }
+    return { tone: 'missing' as const, text: t('timers.notShowing') };
   })();
   const step = running ? running.steps[running.stepIndex] : null;
   const effectiveNow = running?.pausedAt ?? Date.now();
@@ -135,6 +159,18 @@ export default function TimersTab() {
               {running.awaitingTap ? '0:00' : formatRemaining(remainingMs)}
             </div>
           </div>
+
+          {ackLabel && (
+            <div
+              data-testid="timer-ack"
+              data-tone={ackLabel.tone}
+              className={`mt-2 text-[12px] ${
+                ackLabel.tone === 'missing' ? 'text-hs-warning' : 'text-hs-text-faint'
+              }`}
+            >
+              {ackLabel.text}
+            </div>
+          )}
 
           <div className="mt-3 h-2 rounded-full bg-hs-hover overflow-hidden">
             <div

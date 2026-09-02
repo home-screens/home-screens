@@ -1,15 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { useCommand } from '../hooks';
-import { useDisplayTarget } from '../display-target';
+import { useDisplayTarget, withDisplayTarget } from '../display-target';
+import { showToast } from '../remote-toast';
 
 interface AlertSenderProps {
   open: boolean;
   onClose: () => void;
+  /** Display name for the confirmation toast; null when broadcasting to all. */
+  targetName: string | null;
+  /**
+   * Alerts the target display(s) report on screen right now, or null when
+   * unknown (no heartbeat yet). Drives the "Clear alerts" row: hidden count
+   * when unknown, inert at zero.
+   */
+  activeAlerts: number | null;
+  /** Fires after a command is sent, so the parent can speed up its status polls. */
+  onSent: () => void;
 }
+
+/** How long the green "Sent!" state holds before the sheet slides away. */
+const SENT_HOLD_MS = 900;
 
 // Type and duration options are static structural data; user-visible labels
 // are looked up from the `remote.alertSender.*` namespace inside the
@@ -28,14 +42,17 @@ const DURATIONS = [
   { labelKey: 'durationPersistent', value: 0 },
 ] as const;
 
-export default function AlertSender({ open, onClose }: AlertSenderProps) {
+export default function AlertSender({ open, onClose, targetName, activeAlerts, onSent }: AlertSenderProps) {
   const t = useTranslate('remote');
   const [type, setType] = useState<'info' | 'warning' | 'urgent'>('info');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [duration, setDuration] = useState(10000);
   const { state, execute } = useCommand();
+  const clear = useCommand();
   const { target } = useDisplayTarget();
+  const holdRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(holdRef.current), []);
 
   // Reset form when sheet closes
   useEffect(() => {
@@ -69,9 +86,36 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
       }),
     );
     if (res) {
-      setTitle('');
-      setMessage('');
+      onSent();
+      // Hold the sheet in its green "Sent!" state long enough to be seen —
+      // closing in the same tick made a successful send look like a dismiss.
+      clearTimeout(holdRef.current);
+      holdRef.current = setTimeout(() => {
+        setTitle('');
+        setMessage('');
+        onClose();
+        showToast(
+          targetName
+            ? t('feedback.alertSent', { name: targetName })
+            : t('feedback.alertSentAll'),
+        );
+      }, SENT_HOLD_MS);
+    }
+  };
+
+  // A persistent alert (or a mistaken one) can be taken down from here too —
+  // `clear-alerts` is the same command the editor's Alerts page dispatches.
+  const canClear = clear.state !== 'pending' && activeAlerts !== 0;
+  const clearAlerts = async () => {
+    const res = await clear.execute(() => editorFetch(withDisplayTarget('/api/display/clear-alerts', target), { method: 'POST' }));
+    if (res) {
+      onSent();
       onClose();
+      showToast(
+        targetName
+          ? t('feedback.alertsCleared', { name: targetName })
+          : t('feedback.alertsClearedAll'),
+      );
     }
   };
 
@@ -90,6 +134,10 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
+        // Slid off-screen is still "in the page" to assistive tech; take the
+        // closed sheet out of the tree so its controls can't be reached.
+        aria-hidden={!open}
+        inert={!open}
       >
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-white/[0.15]" />
@@ -180,6 +228,25 @@ export default function AlertSender({ open, onClose }: AlertSenderProps) {
             }`}
           >
             {state === 'pending' ? t('alertSender.sendingButton') : state === 'success' ? t('alertSender.sentButton') : state === 'error' ? t('alertSender.failedButton') : t('alertSender.sendButton')}
+          </button>
+
+          <button
+            onClick={clearAlerts}
+            disabled={!canClear}
+            className="w-full min-h-[44px] rounded-xl text-[13px] font-semibold text-hs-text-muted bg-hs-input border border-hs-border-strong transition-all active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
+          >
+            {clear.state === 'pending'
+              ? t('alertSender.clearingButton')
+              : clear.state === 'error'
+                ? t('alertSender.failedButton')
+                : targetName
+                  ? t('alertSender.clearOnDisplay', { name: targetName })
+                  : t('alertSender.clearOnAll')}
+            {activeAlerts !== null && activeAlerts > 0 && (
+              <span className="ml-1.5 text-hs-text-faint font-medium">
+                {t('alertSender.showingNow', { count: activeAlerts })}
+              </span>
+            )}
           </button>
         </div>
       </div>

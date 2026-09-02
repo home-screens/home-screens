@@ -11,6 +11,7 @@ import { sharedStateStore } from '@/lib/shared-state-store';
 import { providerHealthStore } from '@/lib/provider-health-store';
 import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
+import { getShowingTimerSession, subscribeTimerPresence } from '@/lib/timer-presence';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
 import type { AlertType } from '@/types/config';
 
@@ -255,6 +256,7 @@ export function useStatusReporter(
   screenCount: number,
   activeProfile: string | undefined | null,
   displayState: string,
+  brightness: number,
   displayId?: string,
   enabled = true,
 ) {
@@ -266,6 +268,7 @@ export function useStatusReporter(
     activeProfile,
     displayState,
     displayId,
+    brightness,
   });
 
   useEffect(() => {
@@ -277,6 +280,7 @@ export function useStatusReporter(
       activeProfile,
       displayState,
       displayId,
+      brightness,
     };
   });
 
@@ -287,14 +291,36 @@ export function useStatusReporter(
   //
   // `enabled` is false for an editor preview window, which must not report
   // as (or over) the real display.
+  //
+  // Brightness is part of the key too: the remote holds its slider at the
+  // value it sent until this display confirms it, so a brightness command
+  // must be answered on the spot rather than on the next 30s beat.
   const prevKeyRef = useRef('');
   useEffect(() => {
     if (!enabled) return;
-    const key = `${currentScreenIndex}:${currentScreenId}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}`;
+    const key = `${currentScreenIndex}:${currentScreenId}:${screenCount}:${displayState}:${activeProfile}:${displayId ?? ''}:${brightness}`;
     if (key === prevKeyRef.current) return;
     prevKeyRef.current = key;
     reportStatus(valuesRef.current);
-  }, [currentScreenIndex, currentScreenId, screenCount, displayState, activeProfile, displayId, enabled]);
+  }, [currentScreenIndex, currentScreenId, screenCount, displayState, activeProfile, displayId, enabled, brightness]);
+
+  // Same immediacy for the two facts the remote confirms against that live
+  // outside React props: the alert count (Send Alert / Clear alerts) and the
+  // timer session on screen ("Showing on Kitchen").
+  useEffect(() => {
+    if (!enabled) return;
+    let lastAlertCount = useAlertStore.getState().alerts.length;
+    const unsubscribeAlerts = useAlertStore.subscribe((state) => {
+      if (state.alerts.length === lastAlertCount) return;
+      lastAlertCount = state.alerts.length;
+      reportStatus(valuesRef.current);
+    });
+    const unsubscribeTimer = subscribeTimerPresence(() => reportStatus(valuesRef.current));
+    return () => {
+      unsubscribeAlerts();
+      unsubscribeTimer();
+    };
+  }, [enabled]);
 
   // Periodic report every 30s for freshness
   useEffect(() => {
@@ -353,6 +379,7 @@ function reportStatus(s: {
   activeProfile: string | undefined | null;
   displayState: string;
   displayId?: string;
+  brightness: number;
 }) {
   // Viewport is carried implicitly inside `browserStats` (viewportWidth /
   // viewportHeight). The server derives the per-client report from those
@@ -410,6 +437,9 @@ function reportStatus(s: {
       screenCount: s.screenCount,
       activeProfile: s.activeProfile ?? null,
       displayState: s.displayState,
+      brightness: s.brightness,
+      timerSessionId: getShowingTimerSession(),
+      activeAlerts: useAlertStore.getState().alerts.length,
       timestamp: Date.now(),
       cacheStats: displayCache.getStats(),
       clientId,

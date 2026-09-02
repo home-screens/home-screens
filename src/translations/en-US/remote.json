@@ -13,7 +13,9 @@
     "hubDisconnected": "Can't reach Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Display unreachable — check that the device is on and connected"
+    "unreachable": "Can't reach Home Screens. Check that this phone is on the home Wi-Fi and the hub is on.",
+    "restarting": "Home Screens is restarting. Reconnecting in about 20 seconds…",
+    "rebooting": "The device is rebooting. Reconnecting in about a minute…"
   },
   "backupReminder": {
     "daysAgoSingular": "You haven’t backed up in {n} day.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Update available: v{version}",
-    "dismissAriaLabel": "Dismiss"
+    "dismissAriaLabel": "Dismiss",
+    "hint": "Install it from the editor on a computer, under Maintenance > System & updates.",
+    "openEditor": "Open the editor"
   },
   "displayHero": {
     "stateActive": "Active",
@@ -37,7 +41,12 @@
     "waiting": "Waiting for display…",
     "unreachable": "Display unreachable",
     "notConnectedTitle": "This display hasn't connected yet",
-    "notConnectedHint": "Make sure it's turned on, or finish setting it up in the editor under Per display."
+    "notConnectedHint": "Make sure it's turned on, or finish setting it up in the editor under Per display.",
+    "theDisplay": "The display",
+    "allHeading": "All displays",
+    "rowNotConnected": "Hasn't connected yet",
+    "pickOneHint": "Pick one display to change its screen or profile.",
+    "controlsPaused": "Controls are paused until it reconnects."
   },
   "screenControls": {
     "prevAriaLabel": "Previous screen",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Wake Display",
     "sleepDisplay": "Sleep Display",
-    "sendAlert": "Send Alert"
+    "sendAlert": "Send Alert",
+    "waitingFor": "Waiting for {name}…",
+    "waitingForAll": "Waiting for the displays…"
   },
   "brightnessCard": {
     "label": "Brightness",
-    "valueAriaLabel": "Brightness {percent}%"
+    "valueAriaLabel": "Brightness {percent}%",
+    "unknownAriaLabel": "Brightness, not reported yet"
   },
   "profileSwitcher": {
-    "heading": "Profiles"
+    "heading": "Profiles",
+    "noProfile": "All screens"
   },
   "displayPicker": {
     "targeting": "Controls go to",
@@ -392,7 +405,11 @@
     "sendButton": "Send Alert",
     "sendingButton": "Sending…",
     "sentButton": "Sent!",
-    "failedButton": "Failed — try again"
+    "failedButton": "Failed — try again",
+    "clearOnDisplay": "Clear alerts on {name}",
+    "clearOnAll": "Clear alerts on every display",
+    "clearingButton": "Clearing…",
+    "showingNow": "({count} showing now)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Restart Service",
         "description": "Restart the Home Screens app",
-        "confirmLabel": "Tap again to restart"
+        "confirmTitle": "Restart Home Screens?",
+        "confirmBody": "The displays go blank for a moment and this remote reconnects in about 20 seconds.",
+        "confirmButton": "Restart"
       },
       "reboot": {
         "label": "Reboot Device",
         "description": "Full system restart",
-        "confirmLabel": "Tap again to reboot"
+        "confirmTitle": "Reboot the device?",
+        "confirmBody": "Everything stops while it reboots. This remote reconnects in about a minute.",
+        "confirmButton": "Reboot"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Sent"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Seconds",
     "quickNameSeconds": "{seconds} second timer",
     "quickNameClock": "{time} timer",
-    "secondsShort": "{seconds} sec"
+    "secondsShort": "{seconds} sec",
+    "showingOn": "Showing on {names}",
+    "showingOnDisplay": "Showing on the display",
+    "waitingForDisplay": "Waiting for a display to pick it up…",
+    "notShowing": "No display is showing this yet. Check that a display is on."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Discard",
       "keepEditing": "Keep editing"
     }
+  },
+  "feedback": {
+    "alertSent": "Alert sent to {name}",
+    "alertSentAll": "Alert sent to every display",
+    "alertsCleared": "Alerts cleared on {name}",
+    "alertsClearedAll": "Alerts cleared on every display",
+    "noConfirm": "{name} didn't respond. It may be off or offline.",
+    "profileSwitched": "{name} switched to {profile}",
+    "profileCleared": "{name} is showing all screens",
+    "profileFailed": "Couldn't switch the profile on {name}",
+    "hubBack": "Home Screens is back"
   }
 }

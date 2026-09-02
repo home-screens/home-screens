@@ -13,7 +13,9 @@
     "hubDisconnected": "Home Screens ist nicht erreichbar"
   },
   "connectionBanner": {
-    "unreachable": "Display nicht erreichbar — prüfe, ob das Gerät an und verbunden ist"
+    "unreachable": "Home Screens ist nicht erreichbar. Prüfe, ob dieses Handy im Heim-WLAN ist und die Zentrale läuft.",
+    "restarting": "Home Screens startet neu. Verbindung in etwa 20 Sekunden wieder da…",
+    "rebooting": "Das Gerät startet neu. Verbindung in etwa einer Minute wieder da…"
   },
   "backupReminder": {
     "daysAgoSingular": "Du hast seit {n} Tag kein Backup gemacht.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Update verfügbar: v{version}",
-    "dismissAriaLabel": "Schließen"
+    "dismissAriaLabel": "Schließen",
+    "hint": "Installiere es im Editor an einem Computer unter Wartung > System & Updates.",
+    "openEditor": "Editor öffnen"
   },
   "displayHero": {
     "stateActive": "Aktiv",
@@ -37,7 +41,12 @@
     "waiting": "Warte auf Display …",
     "unreachable": "Display nicht erreichbar",
     "notConnectedTitle": "Dieses Display hat sich noch nicht verbunden",
-    "notConnectedHint": "Stelle sicher, dass es eingeschaltet ist, oder richte es im Editor unter „Pro Display“ fertig ein."
+    "notConnectedHint": "Stelle sicher, dass es eingeschaltet ist, oder richte es im Editor unter „Pro Display“ fertig ein.",
+    "theDisplay": "Das Display",
+    "allHeading": "Alle Displays",
+    "rowNotConnected": "Noch nicht verbunden",
+    "pickOneHint": "Wähle ein Display, um dessen Bildschirm oder Profil zu ändern.",
+    "controlsPaused": "Die Steuerung pausiert, bis es wieder verbunden ist."
   },
   "screenControls": {
     "prevAriaLabel": "Vorheriger Bildschirm",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Display wecken",
     "sleepDisplay": "Display schlafen legen",
-    "sendAlert": "Hinweis senden"
+    "sendAlert": "Hinweis senden",
+    "waitingFor": "Warte auf {name}…",
+    "waitingForAll": "Warte auf die Displays…"
   },
   "brightnessCard": {
     "label": "Helligkeit",
-    "valueAriaLabel": "Helligkeit {percent} %"
+    "valueAriaLabel": "Helligkeit {percent} %",
+    "unknownAriaLabel": "Helligkeit, noch nicht gemeldet"
   },
   "profileSwitcher": {
-    "heading": "Profile"
+    "heading": "Profile",
+    "noProfile": "Alle Bildschirme"
   },
   "displayPicker": {
     "targeting": "Steuerung gilt für",
@@ -392,7 +405,11 @@
     "sendButton": "Hinweis senden",
     "sendingButton": "Sendet …",
     "sentButton": "Gesendet!",
-    "failedButton": "Fehlgeschlagen — erneut versuchen"
+    "failedButton": "Fehlgeschlagen — erneut versuchen",
+    "clearOnDisplay": "Meldungen auf {name} löschen",
+    "clearOnAll": "Meldungen auf allen Displays löschen",
+    "clearingButton": "Wird gelöscht…",
+    "showingNow": "({count} gerade sichtbar)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Dienst neu starten",
         "description": "Die Home-Screens-App neu starten",
-        "confirmLabel": "Erneut tippen zum Neustarten"
+        "confirmTitle": "Home Screens neu starten?",
+        "confirmBody": "Die Displays werden kurz schwarz, und diese Fernbedienung verbindet sich in etwa 20 Sekunden wieder.",
+        "confirmButton": "Neu starten"
       },
       "reboot": {
         "label": "Gerät neu starten",
         "description": "Vollständiger System-Neustart",
-        "confirmLabel": "Erneut tippen für Neustart"
+        "confirmTitle": "Gerät neu starten?",
+        "confirmBody": "Während des Neustarts steht alles still. Diese Fernbedienung verbindet sich in etwa einer Minute wieder.",
+        "confirmButton": "Neu starten"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Gesendet"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Sekunden",
     "quickNameSeconds": "{seconds}-Sekunden-Timer",
     "quickNameClock": "{time}-Timer",
-    "secondsShort": "{seconds} Sek."
+    "secondsShort": "{seconds} Sek.",
+    "showingOn": "Läuft auf {names}",
+    "showingOnDisplay": "Läuft auf dem Display",
+    "waitingForDisplay": "Warte, bis ein Display ihn übernimmt…",
+    "notShowing": "Noch kein Display zeigt ihn an. Prüfe, ob ein Display eingeschaltet ist."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Verwerfen",
       "keepEditing": "Weiter bearbeiten"
     }
+  },
+  "feedback": {
+    "alertSent": "Meldung an {name} gesendet",
+    "alertSentAll": "Meldung an alle Displays gesendet",
+    "alertsCleared": "Meldungen auf {name} gelöscht",
+    "alertsClearedAll": "Meldungen auf allen Displays gelöscht",
+    "noConfirm": "{name} hat nicht geantwortet. Vielleicht ist es aus oder offline.",
+    "profileSwitched": "{name} zeigt jetzt {profile}",
+    "profileCleared": "{name} zeigt alle Bildschirme",
+    "profileFailed": "Das Profil auf {name} konnte nicht gewechselt werden",
+    "hubBack": "Home Screens ist wieder da"
   }
 }

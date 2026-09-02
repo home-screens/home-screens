@@ -478,9 +478,27 @@ function parseStatusReport(
     browserStats: bodyBrowserStats,
     sharedState: bodySharedState,
     providerHealth: bodyProviderHealth,
-    ...statusPayload
+    brightness: bodyBrightness,
+    timerSessionId: bodyTimerSessionId,
+    activeAlerts: bodyActiveAlerts,
+    ...statusRest
   } = body as Record<string, unknown>;
   void _droppedHwStats;
+  // The remote seeds controls from these three, so a malformed value must
+  // read as "unknown" (field absent), never as a bogus number the slider
+  // would jump to.
+  const statusPayload: Record<string, unknown> = {
+    ...statusRest,
+    ...(typeof bodyBrightness === 'number' && Number.isFinite(bodyBrightness)
+      ? { brightness: Math.max(0, Math.min(100, Math.round(bodyBrightness))) }
+      : {}),
+    ...(bodyTimerSessionId === null || (typeof bodyTimerSessionId === 'string' && bodyTimerSessionId.length <= 128)
+      ? { timerSessionId: bodyTimerSessionId }
+      : {}),
+    ...(typeof bodyActiveAlerts === 'number' && Number.isInteger(bodyActiveAlerts) && bodyActiveAlerts >= 0
+      ? { activeAlerts: bodyActiveAlerts }
+      : {}),
+  };
   const rawDisplayId =
     typeof bodyDisplayId === 'string' ? bodyDisplayId : queryDisplayId;
   // Validate the body field too — `pickDisplayId` only validates the body

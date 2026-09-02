@@ -6,12 +6,21 @@ import { formatUptime } from '@/lib/time-format';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import type { SystemStats } from '@/lib/system-stats-types';
+import ConfirmSheet from './ConfirmSheet';
+
+export type PowerAction = 'restart-service' | 'reboot';
 
 interface SettingsSheetProps {
   open: boolean;
   onClose: () => void;
   onBackup: () => Promise<boolean>;
   backupBusy: boolean;
+  /**
+   * The user confirmed a restart or reboot of the hub and it was sent. The
+   * parent closes this sheet and shows the reconnecting state — the silence
+   * that follows is expected, not a lost connection.
+   */
+  onPowerAction: (action: PowerAction) => void;
 }
 
 function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {
@@ -27,82 +36,41 @@ function UsageBar({ used, total, label, color }: { used: number; total: number; 
   );
 }
 
-function ConfirmableAction({
+function PowerRow({
   label,
   description,
-  confirmLabel,
-  sentLabel,
-  onConfirm,
-  sheetOpen,
+  onClick,
   iconBg,
   iconColor,
   icon,
 }: {
   label: string;
   description: string;
-  confirmLabel: string;
-  sentLabel: string;
-  onConfirm: () => void;
+  onClick: () => void;
   iconBg: string;
   iconColor: string;
-  sheetOpen: boolean;
   icon: React.ReactNode;
 }) {
-  const [confirming, setConfirming] = useState(false);
-  const [executed, setExecuted] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  useEffect(() => () => clearTimeout(timerRef.current), []);
-
-  // Reset state when the sheet closes
-  useEffect(() => {
-    if (!sheetOpen) {
-      setConfirming(false);
-      setExecuted(false);
-      clearTimeout(timerRef.current);
-    }
-  }, [sheetOpen]);
-
-  const handleClick = () => {
-    if (executed) return;
-    if (confirming) {
-      clearTimeout(timerRef.current);
-      setConfirming(false);
-      setExecuted(true);
-      onConfirm();
-    } else {
-      setConfirming(true);
-      timerRef.current = setTimeout(() => setConfirming(false), 3000);
-    }
-  };
-
   return (
     <button
-      onClick={handleClick}
-      disabled={executed}
-      className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
+      onClick={onClick}
+      className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70"
     >
       <div className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-[15px] font-medium ${confirming ? 'text-hs-danger animate-pulse' : executed ? 'text-hs-text-faint' : 'text-hs-text-primary'}`}>
-          {executed ? sentLabel : confirming ? confirmLabel : label}
-        </div>
-        {!confirming && !executed && (
-          <div className="text-xs text-hs-text-faint mt-0.5">{description}</div>
-        )}
+        <div className="text-[15px] font-medium text-hs-text-primary">{label}</div>
+        <div className="text-xs text-hs-text-faint mt-0.5">{description}</div>
       </div>
-      {!confirming && !executed && (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-        </svg>
-      )}
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      </svg>
     </button>
   );
 }
 
-export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: SettingsSheetProps) {
+export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onPowerAction }: SettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const [stats, setStats] = useState<SystemStats | null>(null);
@@ -110,6 +78,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
   const [error, setError] = useState<string | null>(null);
   const [backupDone, setBackupDone] = useState(false);
   const [themeChoice, setTheme] = useState<ThemeChoice>('dark');
+  // Which power action is waiting on its confirm sheet, if any.
+  const [confirmPower, setConfirmPower] = useState<PowerAction | null>(null);
 
   // Restore state machine: idle → confirming → busy → done/invalid-file/restore-failed
   const [restoreState, setRestoreState] = useState<'idle' | 'confirming' | 'busy' | 'done' | 'done-without-keys' | 'invalid-file' | 'restore-failed'>('idle');
@@ -138,6 +108,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
     if (open && !loading) fetchStats();
     if (open) {
       setBackupDone(false);
+      setConfirmPower(null);
       setRestoreState('idle');
       restoreDataRef.current = null;
       clearTimeout(restoreTimerRef.current);
@@ -202,7 +173,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
     }
   };
 
-  const sendPower = async (action: 'restart-service' | 'reboot') => {
+  const sendPower = async (action: PowerAction) => {
+    setConfirmPower(null);
     try {
       await editorFetch('/api/system/power', {
         method: 'POST',
@@ -212,6 +184,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
     } catch {
       // Best-effort — the server may already be restarting
     }
+    onPowerAction(action);
   };
 
   return (
@@ -229,6 +202,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           open ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
+        // Slid off-screen is still "in the page" to assistive tech; take the
+        // closed sheet out of the tree so its controls can't be reached.
+        aria-hidden={!open}
+        inert={!open}
       >
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
@@ -372,13 +349,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-1">{t('settingsSheet.power.heading')}</h3>
 
           <div className="divide-y divide-hs-border">
-            <ConfirmableAction
+            <PowerRow
               label={t('settingsSheet.power.restartService.label')}
               description={t('settingsSheet.power.restartService.description')}
-              confirmLabel={t('settingsSheet.power.restartService.confirmLabel')}
-              sentLabel={t('settingsSheet.confirmable.sentLabel')}
-              onConfirm={() => sendPower('restart-service')}
-              sheetOpen={open}
+              onClick={() => setConfirmPower('restart-service')}
               iconBg="bg-hs-accent-soft"
               iconColor="text-hs-accent-hover"
               icon={
@@ -388,13 +362,10 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
               }
             />
 
-            <ConfirmableAction
+            <PowerRow
               label={t('settingsSheet.power.reboot.label')}
               description={t('settingsSheet.power.reboot.description')}
-              confirmLabel={t('settingsSheet.power.reboot.confirmLabel')}
-              sentLabel={t('settingsSheet.confirmable.sentLabel')}
-              onConfirm={() => sendPower('reboot')}
-              sheetOpen={open}
+              onClick={() => setConfirmPower('reboot')}
               iconBg="bg-hs-danger/[0.12]"
               iconColor="text-hs-danger"
               icon={
@@ -406,6 +377,18 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy }: S
           </div>
         </div>
       </div>
+
+      {confirmPower && (
+        <ConfirmSheet
+          zIndex={110}
+          title={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmTitle`)}
+          description={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmBody`)}
+          confirmLabel={t(`settingsSheet.power.${confirmPower === 'reboot' ? 'reboot' : 'restartService'}.confirmButton`)}
+          confirmColor={confirmPower === 'reboot' ? undefined : 'var(--hs-accent)'}
+          onConfirm={() => void sendPower(confirmPower)}
+          onCancel={() => setConfirmPower(null)}
+        />
+      )}
     </>
   );
 }

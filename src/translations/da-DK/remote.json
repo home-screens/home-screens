@@ -13,7 +13,9 @@
     "hubDisconnected": "Kan ikke nå Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Skærm utilgængelig — tjek at skærmen er tændt og tilsluttet"
+    "unreachable": "Kan ikke nå Home Screens. Tjek, at denne telefon er på hjemmets wi-fi, og at hubben er tændt.",
+    "restarting": "Home Screens genstarter. Forbinder igen om cirka 20 sekunder…",
+    "rebooting": "Enheden genstarter. Forbinder igen om cirka et minut…"
   },
   "backupReminder": {
     "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Opdatering tilgængelig: v{version}",
-    "dismissAriaLabel": "Afvis"
+    "dismissAriaLabel": "Afvis",
+    "hint": "Installer den fra editoren på en computer under Vedligeholdelse > System og opdateringer.",
+    "openEditor": "Åbn editoren"
   },
   "displayHero": {
     "stateActive": "Aktiv",
@@ -37,7 +41,12 @@
     "waiting": "Venter på skærm…",
     "unreachable": "Skærm er ikke tilgængelig",
     "notConnectedTitle": "Skærmen har ikke oprettet forbindelse endnu",
-    "notConnectedHint": "Tjek at den er tændt, eller gør opsætningen færdig i editoren under Pr. display."
+    "notConnectedHint": "Tjek at den er tændt, eller gør opsætningen færdig i editoren under Pr. display.",
+    "theDisplay": "Skærmen",
+    "allHeading": "Alle skærme",
+    "rowNotConnected": "Ikke forbundet endnu",
+    "pickOneHint": "Vælg én skærm for at skifte dens side eller profil.",
+    "controlsPaused": "Styringen holder pause, indtil den er forbundet igen."
   },
   "screenControls": {
     "prevAriaLabel": "Forrige skærm",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Væk skærm",
     "sleepDisplay": "Slumr skærm",
-    "sendAlert": "Send advarsel"
+    "sendAlert": "Send advarsel",
+    "waitingFor": "Venter på {name}…",
+    "waitingForAll": "Venter på skærmene…"
   },
   "brightnessCard": {
     "label": "Lysstyrke",
-    "valueAriaLabel": "Lysstyrke {percent}%"
+    "valueAriaLabel": "Lysstyrke {percent}%",
+    "unknownAriaLabel": "Lysstyrke, ikke meldt endnu"
   },
   "profileSwitcher": {
-    "heading": "Profiler"
+    "heading": "Profiler",
+    "noProfile": "Alle sider"
   },
   "displayPicker": {
     "targeting": "Styring gælder for",
@@ -392,7 +405,11 @@
     "sendButton": "Send besked",
     "sendingButton": "Sender…",
     "sentButton": "Sendt!",
-    "failedButton": "Fejlede — prøv igen"
+    "failedButton": "Fejlede — prøv igen",
+    "clearOnDisplay": "Ryd beskeder på {name}",
+    "clearOnAll": "Ryd beskeder på alle skærme",
+    "clearingButton": "Rydder…",
+    "showingNow": "({count} vises nu)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Genstart applikation",
         "description": "Genstart Home Screens applikationen",
-        "confirmLabel": "Bekræft for at genstarte"
+        "confirmTitle": "Genstart Home Screens?",
+        "confirmBody": "Skærmene bliver sorte et øjeblik, og denne fjernbetjening forbinder igen om cirka 20 sekunder.",
+        "confirmButton": "Genstart"
       },
       "reboot": {
         "label": "Genstart enhed",
         "description": "Genstart af hele systemet",
-        "confirmLabel": "Bekræft for at genstarte"
+        "confirmTitle": "Genstart enheden?",
+        "confirmBody": "Alt stopper, mens den genstarter. Denne fjernbetjening forbinder igen om cirka et minut.",
+        "confirmButton": "Genstart enheden"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Sendt"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Sekunder",
     "quickNameSeconds": "{seconds} sekunders timer",
     "quickNameClock": "{time}-timer",
-    "secondsShort": "{seconds} sek."
+    "secondsShort": "{seconds} sek.",
+    "showingOn": "Vises på {names}",
+    "showingOnDisplay": "Vises på skærmen",
+    "waitingForDisplay": "Venter på, at en skærm tager den…",
+    "notShowing": "Ingen skærm viser den endnu. Tjek, at en skærm er tændt."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Kassér",
       "keepEditing": "Bliv ved med at redigere"
     }
+  },
+  "feedback": {
+    "alertSent": "Besked sendt til {name}",
+    "alertSentAll": "Besked sendt til alle skærme",
+    "alertsCleared": "Beskeder ryddet på {name}",
+    "alertsClearedAll": "Beskeder ryddet på alle skærme",
+    "noConfirm": "{name} svarede ikke. Den er måske slukket eller offline.",
+    "profileSwitched": "{name} skiftede til {profile}",
+    "profileCleared": "{name} viser alle sider",
+    "profileFailed": "Kunne ikke skifte profil på {name}",
+    "hubBack": "Home Screens er tilbage"
   }
 }

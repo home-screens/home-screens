@@ -60,8 +60,15 @@ test.beforeEach(async ({ request }) => {
 });
 
 test('sleep button enqueues a sleep command for the display', async ({ page, request }) => {
+  // Controls stay inert until the display has reported in: a command to a
+  // display the hub has never heard from cannot be confirmed or reverted.
+  await postHeartbeat(request);
   await page.goto('/remote');
-  await page.getByRole('button', { name: 'Sleep Display' }).click();
+  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  await expect(sleepButton).toBeEnabled();
+  await sleepButton.click();
+  // The button flips optimistically and says who it is waiting on.
+  await expect(page.getByText('Waiting for The display…')).toBeVisible();
 
   // Poll the same queue the kiosk polls (legacy single-display key __default__)
   await expect
@@ -164,6 +171,8 @@ test('the brightness slider posts its value to the targeted display queue', asyn
   // Clear any leftover queue from a prior test in this worker.
   await drainCommands(request, 'bkit');
   await drainCommands(request, 'bmain');
+  // The slider is inert until the targeted display has reported in.
+  await postHeartbeat(request, { display: 'bkit', brightness: 100 });
   await page.goto('/remote');
 
   // Target one display so the brightness POST carries displayId: 'bkit'.
@@ -172,6 +181,7 @@ test('the brightness slider posts its value to the targeted display queue', asyn
   // Range inputs can't be filled directly; drive the native value setter and
   // dispatch the input event so React's onChange (and the debounced POST) fire.
   const slider = page.getByRole('slider');
+  await expect(slider).toBeEnabled();
   await slider.evaluate((el) => {
     const input = el as HTMLInputElement;
     const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
@@ -190,6 +200,66 @@ test('the brightness slider posts its value to the targeted display queue', asyn
   expect(brightness?.payload?.value).toBe(40);
   // The command scoped to bkit; the sibling display never received it.
   expect((await drainCommands(request, 'bmain')).map((c) => c.type)).not.toContain('brightness');
+});
+
+test('the brightness slider starts from what the display reports, or -- until it has', async ({ page, request }) => {
+  await putConfig(request, twoDisplays({ id: 'brkit', name: 'Level Kitchen' }, { id: 'brmain', name: 'Level Main' }));
+  // Kitchen last reported 40%; Main has never reported at all.
+  await postHeartbeat(request, { display: 'brkit', displayState: 'dimmed', brightness: 40 });
+  await page.goto('/remote');
+
+  await page.getByRole('button', { name: 'Level Kitchen', exact: true }).click();
+  await expect(page.getByTestId('brightness-value')).toHaveText('40%');
+  await expect(page.getByRole('slider')).toHaveValue('40');
+
+  await page.getByRole('button', { name: 'Level Main', exact: true }).click();
+  await expect(page.getByTestId('brightness-value')).toHaveText('--');
+  await expect(page.getByRole('slider')).toBeDisabled();
+});
+
+test('a sleep that no display confirms reverts and says the display did not respond', async ({ page, request }) => {
+  await putConfig(request, twoDisplays({ id: 'rvkit', name: 'Revert Kitchen' }, { id: 'rvmain', name: 'Revert Main' }));
+  await drainCommands(request, 'rvkit');
+  // A fresh heartbeat makes the display look reachable, but nothing drains
+  // its queue or reports back — exactly an unplugged Pi within its last minute.
+  await postHeartbeat(request, { display: 'rvkit' });
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Revert Kitchen', exact: true }).click();
+
+  const sleepButton = page.getByRole('button', { name: 'Sleep Display' });
+  await expect(sleepButton).toBeEnabled();
+  await sleepButton.click();
+  await expect(page.getByText('Waiting for Revert Kitchen…')).toBeVisible();
+
+  // After the confirm window the remote stops pretending: toast + Sleep is back.
+  const toast = page.getByTestId('remote-toast');
+  await expect(toast).toHaveText(/Revert Kitchen didn't respond/, { timeout: 15000 });
+  await expect(toast).toHaveAttribute('data-tone', 'error');
+  await expect(page.getByRole('button', { name: 'Sleep Display' })).toBeEnabled();
+  await expect(page.getByText('Waiting for Revert Kitchen…')).toHaveCount(0);
+});
+
+test('the hero names the targeted display, and All mode lists every display', async ({ page, request }) => {
+  await putConfig(request, twoDisplays({ id: 'heroa', name: 'Hero Alpha' }, { id: 'herob', name: 'Hero Beta' }));
+  await postHeartbeat(request, { display: 'heroa', screenCount: 2, currentIndex: 1 });
+  await postHeartbeat(request, { display: 'herob', screenCount: 1, currentIndex: 0, displayState: 'asleep' });
+  await page.goto('/remote');
+
+  // All (the default): one row per display, each with its own screen and state.
+  const all = page.getByTestId('display-hero-all');
+  await expect(all).toBeVisible();
+  await expect(all.getByText('Hero Alpha')).toBeVisible();
+  await expect(all.getByText('Hero Beta')).toBeVisible();
+  await expect(all.getByText('Screen 2 of 2')).toBeVisible();
+  await expect(all.getByText('Asleep', { exact: true })).toBeVisible();
+  await expect(all.getByText('Pick one display to change its screen or profile.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Next screen' })).toHaveCount(0);
+
+  // One display: the hero is prefixed with its name and the nav returns.
+  await page.getByRole('button', { name: 'Hero Alpha', exact: true }).click();
+  await expect(page.getByTestId('display-hero-name')).toHaveText('Hero Alpha');
+  await expect(page.getByTestId('display-hero-all')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Next screen' })).toBeEnabled();
 });
 
 test('sending an alert lands the payload on the targeted display queue only', async ({ page, request }) => {
@@ -224,6 +294,31 @@ test('sending an alert lands the payload on the targeted display queue only', as
     duration: 30000,
   });
   expect((await drainCommands(request, 'amain')).map((c) => c.type)).not.toContain('alert');
+
+  // The sheet holds its green Sent! state, then closes with a named toast.
+  // (The closed sheet is slid off-screen and aria-hidden, so the role query
+  // stops resolving it; a plain label query would still see the input.)
+  await expect(page.getByTestId('remote-toast')).toHaveText('Alert sent to Alert Kitchen');
+  await expect(page.getByRole('heading', { name: 'Send Alert' })).toBeHidden();
+});
+
+test('a persistent alert can be cleared from the phone', async ({ page, request }) => {
+  await putConfig(request, twoDisplays({ id: 'clkit', name: 'Clear Kitchen' }, { id: 'clmain', name: 'Clear Main' }));
+  await drainCommands(request, 'clkit');
+  // The display reports one alert on screen, so the row says so.
+  await postHeartbeat(request, { display: 'clkit', activeAlerts: 1 });
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Clear Kitchen', exact: true }).click();
+  await page.getByRole('button', { name: 'Send Alert', exact: true }).first().click();
+
+  const clearButton = page.getByRole('button', { name: /Clear alerts on Clear Kitchen/ });
+  await expect(clearButton).toContainText('(1 showing now)');
+  await clearButton.click();
+
+  await expect
+    .poll(async () => (await drainCommands(request, 'clkit')).map((c) => c.type), { timeout: 5000 })
+    .toContain('clear-alerts');
+  await expect(page.getByTestId('remote-toast')).toHaveText('Alerts cleared on Clear Kitchen');
 });
 
 test('the update-available banner shows, dismisses, and stays dismissed after reload', async ({ page, request }) => {
@@ -255,6 +350,9 @@ test('the update-available banner shows, dismisses, and stays dismissed after re
 
   await page.goto('/remote');
   await expect(page.getByText('Update available: v1.6.0')).toBeVisible();
+  // Updating is an editor task; the banner says so and points there.
+  await expect(page.getByText(/Install it from the editor on a computer/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Open the editor' })).toHaveAttribute('href', '/editor/settings?page=system');
 
   // Wait for the dismissal POST to land before reloading so the stubbed GET
   // returns the recorded version on the next mount.
@@ -299,10 +397,11 @@ test('aborting the status poll surfaces the disconnected banner', async ({ page,
   await page.route('**/api/display/status**', (route) => route.abort());
   await page.goto('/remote');
 
-  // "check that the device is on..." is unique to ConnectionBanner (DisplayHero
-  // also renders a bare "Display unreachable", and Next's route announcer is a
-  // second role="alert").
-  await expect(page.getByText(/check that the device is on/)).toBeVisible({ timeout: 20000 });
+  // The banner blames the hub connection, never a display (that is the hero's
+  // job). Next's route announcer is a second role="alert", so match the text.
+  const banner = page.getByTestId('connection-banner');
+  await expect(banner).toBeVisible({ timeout: 20000 });
+  await expect(banner).toHaveText(/Can't reach Home Screens\. Check that this phone is on the home Wi-Fi/);
 });
 
 test('the disconnected banner clears once the status poll recovers', async ({ page, request }) => {
@@ -314,8 +413,8 @@ test('the disconnected banner clears once the status poll recovers', async ({ pa
   let blocked = true;
   await page.route('**/api/display/status**', (route) => (blocked ? route.abort() : route.continue()));
   await page.goto('/remote');
-  await expect(page.getByText(/check that the device is on/)).toBeVisible({ timeout: 20000 });
+  await expect(page.getByTestId('connection-banner')).toBeVisible({ timeout: 20000 });
 
   blocked = false;
-  await expect(page.getByText(/check that the device is on/)).toBeHidden({ timeout: 15000 });
+  await expect(page.getByTestId('connection-banner')).toBeHidden({ timeout: 15000 });
 });

@@ -191,19 +191,45 @@ test('restart-service confirms then POSTs to /api/system/power (reboot untouched
   await page.goto('/remote');
   await openSheet(page);
 
-  // First tap arms confirmation; second tap fires the action.
+  // The row opens a confirm sheet that says what to expect; Cancel is inert.
   await page.getByRole('button', { name: 'Restart Service' }).click();
-  await expect(page.getByText('Tap again to restart')).toBeVisible();
-  await page.getByRole('button', { name: 'Tap again to restart' }).click();
+  await expect(page.getByText('Restart Home Screens?')).toBeVisible();
+  await expect(page.getByText(/reconnects in about 20 seconds/)).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByText('Restart Home Screens?')).toBeHidden();
+  expect(powerPosts.length).toBe(0);
 
-  // ConfirmableAction shows the sent state after firing.
-  await expect(page.getByText('Sent', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Restart Service' }).click();
+  await page.getByRole('button', { name: 'Restart', exact: true }).click();
 
   // Exactly one restart-service call, and reboot was never issued.
   await expect.poll(() => powerPosts.length).toBe(1);
   expect(powerPosts[0]?.action).toBe('restart-service');
   expect(powerPosts.some((p) => p?.action === 'reboot')).toBe(false);
 
-  // The reboot control is present but was never clicked (hardware exclusion).
-  await expect(page.getByRole('button', { name: 'Reboot Device' })).toBeVisible();
+  // The sheet closes and the silence that follows is announced as expected,
+  // not as a lost connection.
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeHidden();
+  const banner = page.getByTestId('connection-banner');
+  await expect(banner).toHaveAttribute('data-mode', 'restart-service');
+  await expect(banner).toHaveText(/Home Screens is restarting/);
+});
+
+test('reboot asks first and is never sent from a cancelled sheet', async ({ page }) => {
+  await stubStats(page);
+  const powerPosts: Array<{ action?: string }> = [];
+  await page.route('**/api/system/power', (route: Route) => {
+    powerPosts.push(route.request().postDataJSON());
+    return route.fulfill({ json: { ok: true } });
+  });
+
+  await page.goto('/remote');
+  await openSheet(page);
+  // The reboot control is present; it maps to a real `sudo reboot`, so the
+  // only tap made here is the one that backs out.
+  await page.getByRole('button', { name: 'Reboot Device' }).click();
+  await expect(page.getByText('Reboot the device?')).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(page.getByText('Reboot the device?')).toBeHidden();
+  expect(powerPosts.length).toBe(0);
 });

@@ -117,9 +117,22 @@ export function todayCalendarEvents() {
  */
 export async function postHeartbeat(
   request: APIRequestContext,
-  overrides: { screenCount?: number; currentIndex?: number; display?: string } = {},
+  overrides: {
+    screenCount?: number;
+    currentIndex?: number;
+    display?: string;
+    displayState?: 'active' | 'dimmed' | 'asleep';
+    /** Extra heartbeat facts the remote confirms against (see DisplayStatus). */
+    brightness?: number;
+    timerSessionId?: string | null;
+    activeAlerts?: number;
+    activeProfile?: string | null;
+  } = {},
 ): Promise<void> {
-  const { screenCount = 2, currentIndex = 0, display } = overrides;
+  const {
+    screenCount = 2, currentIndex = 0, display, displayState = 'active',
+    brightness, timerSessionId, activeAlerts, activeProfile = null,
+  } = overrides;
   // A specific `display` lands the heartbeat in that display's statusMap slot
   // (via ?display= and a matching body displayId); omit it for the legacy
   // __default__ slot the single-display remote polls.
@@ -129,9 +142,12 @@ export async function postHeartbeat(
       ...(display ? { displayId: display } : {}),
       currentScreen: { index: currentIndex, id: `screen-${currentIndex}`, name: `Screen ${currentIndex}` },
       screenCount,
-      activeProfile: null,
-      displayState: 'active',
+      activeProfile,
+      displayState,
       timestamp: Date.now(),
+      ...(brightness !== undefined ? { brightness } : {}),
+      ...(timerSessionId !== undefined ? { timerSessionId } : {}),
+      ...(activeAlerts !== undefined ? { activeAlerts } : {}),
     },
   });
   expect(res.ok()).toBe(true);

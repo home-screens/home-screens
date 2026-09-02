@@ -3,6 +3,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, cleanup } from '@testing-library/react';
 import { sharedStateStore } from '@/lib/shared-state-store';
+import { setShowingTimerSession, __resetTimerPresenceForTests } from '@/lib/timer-presence';
+import { useAlertStore } from '@/stores/alert-store';
 import { useStatusReporter, __resetSharedStateReportingForTests } from '../useDisplayCommands';
 
 /**
@@ -24,7 +26,7 @@ const { displayFetchMock } = vi.hoisted(() => ({
 vi.mock('@/lib/display-fetch', () => ({ displayFetch: displayFetchMock }));
 
 function renderReporter() {
-  return renderHook(() => useStatusReporter(0, 'screen-1', 'Screen 1', 3, null, 'active', 'kitchen'));
+  return renderHook(() => useStatusReporter(0, 'screen-1', 'Screen 1', 3, null, 'active', 100, 'kitchen'));
 }
 
 function statusBodies(): Array<Record<string, unknown>> {
@@ -145,5 +147,65 @@ describe('useStatusReporter shared-state re-reporting', () => {
     const bodies = statusBodies();
     expect(bodies.length).toBeGreaterThan(0);
     expect('sharedState' in bodies[0]).toBe(false);
+  });
+});
+
+/**
+ * The family remote confirms its commands against three heartbeat fields
+ * that live outside the reporter's props: brightness (a prop, part of the
+ * immediate-report key), the timer session on screen, and the alert count.
+ * Each must reach the hub on the spot, not on the next 30s beat.
+ */
+describe('useStatusReporter remote-confirmation fields', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    sharedStateStore.__resetForTests();
+    __resetSharedStateReportingForTests(false);
+    __resetTimerPresenceForTests();
+    useAlertStore.getState().clearAlerts();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+    displayFetchMock.mockClear();
+    useAlertStore.getState().clearAlerts();
+  });
+
+  it('carries brightness, the showing timer session and the alert count', () => {
+    setShowingTimerSession('sess-9');
+    useAlertStore.getState().showAlert({ type: 'info', title: 'Hi', message: '' });
+    renderHook(() => useStatusReporter(0, 'screen-1', 'Screen 1', 3, null, 'dimmed', 40, 'kitchen'));
+
+    const bodies = statusBodies();
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0].brightness).toBe(40);
+    expect(bodies[0].timerSessionId).toBe('sess-9');
+    expect(bodies[0].activeAlerts).toBe(1);
+  });
+
+  it('re-reports immediately when brightness changes', () => {
+    const { rerender } = renderHook(
+      ({ brightness }) => useStatusReporter(0, 'screen-1', 'Screen 1', 3, null, 'dimmed', brightness, 'kitchen'),
+      { initialProps: { brightness: 100 } },
+    );
+    displayFetchMock.mockClear();
+    rerender({ brightness: 40 });
+    const bodies = statusBodies();
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0].brightness).toBe(40);
+  });
+
+  it('re-reports immediately when a timer takes the screen or an alert appears', () => {
+    renderHook(() => useStatusReporter(0, 'screen-1', 'Screen 1', 3, null, 'active', 100, 'kitchen'));
+    displayFetchMock.mockClear();
+
+    act(() => setShowingTimerSession('sess-1'));
+    expect(statusBodies().map((b) => b.timerSessionId)).toEqual(['sess-1']);
+
+    act(() => useAlertStore.getState().showAlert({ type: 'warning', title: 'Dinner', message: '' }));
+    const bodies = statusBodies();
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1].activeAlerts).toBe(1);
   });
 });

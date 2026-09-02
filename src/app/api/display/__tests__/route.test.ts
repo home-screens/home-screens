@@ -813,6 +813,71 @@ describe('POST /api/display/status', () => {
     expect(res.status).toBe(400);
   });
 
+  // The remote seeds its slider, the timer card and the clear-alerts row from
+  // these; a malformed value must be dropped (unknown), never stored as-is.
+  it('stores brightness, timerSessionId and activeAlerts when well-formed', async () => {
+    const res = await POST(
+      makeRequest({
+        currentScreen: { index: 0, id: 's1', name: 'Main' },
+        screenCount: 2,
+        activeProfile: null,
+        displayState: 'dimmed',
+        timestamp: Date.now(),
+        brightness: 40,
+        timerSessionId: 'sess-1',
+        activeAlerts: 2,
+      }),
+      makeParams('status'),
+    );
+    expect(res.status).toBe(200);
+    const stored = vi.mocked(setDisplayStatus).mock.calls[0][0] as unknown as Record<string, unknown>;
+    expect(stored.brightness).toBe(40);
+    expect(stored.timerSessionId).toBe('sess-1');
+    expect(stored.activeAlerts).toBe(2);
+  });
+
+  it('keeps a null timerSessionId (nothing showing) and clamps brightness', async () => {
+    const res = await POST(
+      makeRequest({
+        currentScreen: { index: 0, id: 's1', name: 'Main' },
+        screenCount: 2,
+        activeProfile: null,
+        displayState: 'active',
+        timestamp: Date.now(),
+        brightness: 140,
+        timerSessionId: null,
+        activeAlerts: 0,
+      }),
+      makeParams('status'),
+    );
+    expect(res.status).toBe(200);
+    const stored = vi.mocked(setDisplayStatus).mock.calls[0][0] as unknown as Record<string, unknown>;
+    expect(stored.brightness).toBe(100);
+    expect(stored.timerSessionId).toBeNull();
+    expect(stored.activeAlerts).toBe(0);
+  });
+
+  it('drops malformed brightness, timerSessionId and activeAlerts instead of storing them', async () => {
+    const res = await POST(
+      makeRequest({
+        currentScreen: { index: 0, id: 's1', name: 'Main' },
+        screenCount: 2,
+        activeProfile: null,
+        displayState: 'active',
+        timestamp: Date.now(),
+        brightness: 'bright',
+        timerSessionId: { id: 'x' },
+        activeAlerts: -3,
+      }),
+      makeParams('status'),
+    );
+    expect(res.status).toBe(200);
+    const stored = vi.mocked(setDisplayStatus).mock.calls[0][0] as unknown as Record<string, unknown>;
+    expect('brightness' in stored).toBe(false);
+    expect('timerSessionId' in stored).toBe(false);
+    expect('activeAlerts' in stored).toBe(false);
+  });
+
   it('rejects non-object currentScreen', async () => {
     const res = await POST(
       makeRequest({ currentScreen: true, displayState: 'active', timestamp: 1 }),

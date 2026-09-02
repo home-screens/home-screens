@@ -31,6 +31,31 @@ test('the profile switcher activates a profile and persists it to config', async
     .toBe('p2');
 });
 
+test('the switcher offers All screens, never toggles off silently, and says what it did', async ({ page, request }) => {
+  await putConfig(request, profileConfig('p1'));
+  await page.goto('/remote');
+
+  // Scoped to the switcher: the confirmation toast is a button too, and its
+  // text names the profile.
+  const chips = page.getByTestId('profile-switcher');
+  const morning = chips.getByRole('button', { name: /Morning/ });
+  await expect(morning).toHaveAttribute('aria-pressed', 'true');
+  // Tapping the active chip is a no-op: no request, no silent "none".
+  await morning.click();
+  await expect(morning).toHaveAttribute('aria-pressed', 'true');
+  expect((await getConfig(request)).settings.activeProfile).toBe('p1');
+
+  await chips.getByRole('button', { name: 'Evening' }).click();
+  await expect(page.getByTestId('remote-toast')).toHaveText('The display switched to Evening');
+  await expect(chips.getByRole('button', { name: /Evening/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBe('p2');
+
+  // "All screens" is the explicit way to run with no profile.
+  await chips.getByRole('button', { name: 'All screens' }).click();
+  await expect(page.getByTestId('remote-toast')).toHaveText('The display is showing all screens');
+  await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBeUndefined();
+});
+
 test('the display resolves the active profile screens', async ({ page, request }) => {
   // p2 (Evening) is scoped to s2 only, so the display must show s2 and hide s1.
   await putConfig(request, profileConfig('p2'));

@@ -13,7 +13,9 @@
     "hubDisconnected": "Kan Home Screens niet bereiken"
   },
   "connectionBanner": {
-    "unreachable": "Display niet bereikbaar — controleer of het apparaat aan en verbonden is"
+    "unreachable": "Home Screens is niet bereikbaar. Controleer of deze telefoon op de thuis-wifi zit en of de hub aanstaat.",
+    "restarting": "Home Screens start opnieuw op. Over ongeveer 20 seconden weer verbonden…",
+    "rebooting": "Het apparaat start opnieuw op. Over ongeveer een minuut weer verbonden…"
   },
   "backupReminder": {
     "daysAgoSingular": "Je hebt al {n} dag geen back-up gemaakt.",
@@ -24,7 +26,9 @@
   },
   "updateAvailable": {
     "message": "Update beschikbaar: v{version}",
-    "dismissAriaLabel": "Sluiten"
+    "dismissAriaLabel": "Sluiten",
+    "hint": "Installeer hem via de editor op een computer, onder Onderhoud > Systeem & updates.",
+    "openEditor": "Editor openen"
   },
   "displayHero": {
     "stateActive": "Actief",
@@ -37,7 +41,12 @@
     "waiting": "Wachten op display…",
     "unreachable": "Display niet bereikbaar",
     "notConnectedTitle": "Dit display heeft nog geen verbinding gemaakt",
-    "notConnectedHint": "Controleer of het aanstaat, of maak de installatie af in de editor onder Per display."
+    "notConnectedHint": "Controleer of het aanstaat, of maak de installatie af in de editor onder Per display.",
+    "theDisplay": "Het scherm",
+    "allHeading": "Alle schermen",
+    "rowNotConnected": "Nog niet verbonden",
+    "pickOneHint": "Kies één scherm om de pagina of het profiel ervan te wijzigen.",
+    "controlsPaused": "De bediening staat stil tot het weer verbonden is."
   },
   "screenControls": {
     "prevAriaLabel": "Vorig scherm",
@@ -46,14 +55,18 @@
   "quickActions": {
     "wakeDisplay": "Display wekken",
     "sleepDisplay": "Display slapen",
-    "sendAlert": "Melding sturen"
+    "sendAlert": "Melding sturen",
+    "waitingFor": "Wachten op {name}…",
+    "waitingForAll": "Wachten op de schermen…"
   },
   "brightnessCard": {
     "label": "Helderheid",
-    "valueAriaLabel": "Helderheid {percent}%"
+    "valueAriaLabel": "Helderheid {percent}%",
+    "unknownAriaLabel": "Helderheid, nog niet gemeld"
   },
   "profileSwitcher": {
-    "heading": "Profielen"
+    "heading": "Profielen",
+    "noProfile": "Alle pagina's"
   },
   "displayPicker": {
     "targeting": "Bediening voor",
@@ -392,7 +405,11 @@
     "sendButton": "Melding sturen",
     "sendingButton": "Versturen…",
     "sentButton": "Verstuurd!",
-    "failedButton": "Mislukt — probeer opnieuw"
+    "failedButton": "Mislukt — probeer opnieuw",
+    "clearOnDisplay": "Meldingen wissen op {name}",
+    "clearOnAll": "Meldingen wissen op alle schermen",
+    "clearingButton": "Wissen…",
+    "showingNow": "({count} nu in beeld)"
   },
   "rewardsView": {
     "nav": {
@@ -486,16 +503,17 @@
       "restartService": {
         "label": "Service herstarten",
         "description": "Herstart de Home Screens-app",
-        "confirmLabel": "Tik nog eens om te herstarten"
+        "confirmTitle": "Home Screens opnieuw starten?",
+        "confirmBody": "De schermen gaan even op zwart en deze afstandsbediening verbindt over ongeveer 20 seconden opnieuw.",
+        "confirmButton": "Opnieuw starten"
       },
       "reboot": {
         "label": "Apparaat opnieuw opstarten",
         "description": "Volledige systeemherstart",
-        "confirmLabel": "Tik nog eens om opnieuw op te starten"
+        "confirmTitle": "Apparaat opnieuw opstarten?",
+        "confirmBody": "Alles stopt tijdens het opstarten. Deze afstandsbediening verbindt over ongeveer een minuut opnieuw.",
+        "confirmButton": "Opnieuw opstarten"
       }
-    },
-    "confirmable": {
-      "sentLabel": "Verstuurd"
     }
   },
   "photosTab": {
@@ -590,7 +608,11 @@
     "stepSeconds": "Seconden",
     "quickNameSeconds": "Timer van {seconds} seconden",
     "quickNameClock": "Timer van {time}",
-    "secondsShort": "{seconds} sec"
+    "secondsShort": "{seconds} sec",
+    "showingOn": "Te zien op {names}",
+    "showingOnDisplay": "Te zien op het scherm",
+    "waitingForDisplay": "Wachten tot een scherm hem oppakt…",
+    "notShowing": "Nog geen scherm laat hem zien. Controleer of er een scherm aanstaat."
   },
   "formOverlay": {
     "discard": {
@@ -599,5 +621,16 @@
       "confirmLabel": "Weggooien",
       "keepEditing": "Verder bewerken"
     }
+  },
+  "feedback": {
+    "alertSent": "Melding verstuurd naar {name}",
+    "alertSentAll": "Melding verstuurd naar alle schermen",
+    "alertsCleared": "Meldingen gewist op {name}",
+    "alertsClearedAll": "Meldingen gewist op alle schermen",
+    "noConfirm": "{name} reageerde niet. Misschien staat het uit of is het offline.",
+    "profileSwitched": "{name} staat nu op {profile}",
+    "profileCleared": "{name} toont alle pagina's",
+    "profileFailed": "Het profiel op {name} kon niet worden gewisseld",
+    "hubBack": "Home Screens is er weer"
   }
 }

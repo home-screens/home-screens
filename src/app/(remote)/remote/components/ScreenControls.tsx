@@ -9,18 +9,21 @@ const MAX_DOTS = 12;
 interface ScreenNavProps {
   status: DisplayStatus | null;
   onNav: (direction: 'next' | 'prev') => void;
+  /** The display is offline (or never connected): nothing would receive the command. */
+  disabled?: boolean;
 }
 
-export default function ScreenNav({ status, onNav }: ScreenNavProps) {
+export default function ScreenNav({ status, onNav, disabled = false }: ScreenNavProps) {
   const t = useTranslate('remote');
   const screenCount = status?.screenCount ?? 0;
   const currentIndex = status?.currentScreen.index ?? 0;
+  const inert = disabled || screenCount === 0;
 
   return (
     <div className="flex items-center gap-3 mx-5 mt-4">
       <button
         onClick={() => onNav('prev')}
-        disabled={screenCount === 0}
+        disabled={inert}
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
         aria-label={t('screenControls.prevAriaLabel')}
       >
@@ -47,7 +50,7 @@ export default function ScreenNav({ status, onNav }: ScreenNavProps) {
 
       <button
         onClick={() => onNav('next')}
-        disabled={screenCount === 0}
+        disabled={inert}
         className="w-12 h-12 rounded-full bg-hs-card border border-hs-border-strong text-hs-text-muted flex items-center justify-center shrink-0 transition-colors active:bg-hs-hover active:scale-95 disabled:opacity-40"
         aria-label={t('screenControls.nextAriaLabel')}
       >

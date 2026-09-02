@@ -22,6 +22,18 @@ export default function UpdateAvailableBanner({
         <div className="text-[13px] text-hs-warning">
           {t('updateAvailable.message', { version: latestVersion })}
         </div>
+        {/* Updating is an editor task (a computer on the home network); the
+            phone can only point the way. The editor's too-narrow page hands
+            a phone visitor the address to copy, so the link is still useful. */}
+        <div className="mt-1 text-xs text-hs-text-faint">
+          {t('updateAvailable.hint')}{' '}
+          <a
+            href="/editor/settings?page=system"
+            className="text-hs-accent-hover underline underline-offset-2"
+          >
+            {t('updateAvailable.openEditor')}
+          </a>
+        </div>
       </div>
       <button
         onClick={onDismiss}

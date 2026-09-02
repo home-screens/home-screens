@@ -12,6 +12,7 @@ export default function ConfirmSheet({
   icon,
   onConfirm,
   onCancel,
+  zIndex = 60,
 }: {
   title: string;
   description: string;
@@ -21,6 +22,8 @@ export default function ConfirmSheet({
   icon?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Raise above a bottom sheet (z 101) when confirming from inside one. */
+  zIndex?: number;
 }) {
   // Defaults route through `core.actions` so callers don't need to translate
   // them locally. Callers that want a custom label (e.g. "Delete Member",
@@ -34,7 +37,7 @@ export default function ConfirmSheet({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 60,
+        zIndex,
         background: 'rgba(0,0,0,0.6)',
         display: 'flex',
         alignItems: 'flex-end',
