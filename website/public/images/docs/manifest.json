@@ -1,0 +1,224 @@
+{
+  "editor-areas": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The editor with its five areas numbered: screens, modules, your screen, the settings panel, and the toolbar buttons.",
+    "viewport": "1440x900"
+  },
+  "editor-family-template": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The editor showing the Family Dashboard template: clock, greeting, weather, calendar and countdown.",
+    "viewport": "1440x900"
+  },
+  "editor-module-selected": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "A weather module selected on the canvas, with its settings open in the panel on the right.",
+    "viewport": "1440x900"
+  },
+  "editor-screen-tab-menu": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The menu that opens when you right-click a screen tab.",
+    "viewport": "1440x900"
+  },
+  "editor-empty-screen": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "A brand-new editor: the empty screen offers \"Choose a template\" and the panel on the right shows the first-run checklist.",
+    "viewport": "1440x900"
+  },
+  "editor-template-picker": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The template picker, opened from the empty screen.",
+    "viewport": "1440x900"
+  },
+  "editor-plugins": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Plugins browser with Home Assistant, Garmin and Strava available to install.",
+    "viewport": "1440x900"
+  },
+  "editor-marketing": {
+    "width": 2000,
+    "height": 1114,
+    "alt": "The Home Screens editor: modules on the left, the screen being designed in the middle, and the settings for the selected weather module on the right.",
+    "viewport": "1400x780"
+  },
+  "settings-screen": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "Settings, opened on the Screen page. The sidebar groups pages under Screen, Content, Automation and Maintenance.",
+    "viewport": "1440x900"
+  },
+  "settings-sleep": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Sleep & dimming tab of the Screen page, with the bright, dimmed and off timeline.",
+    "viewport": "1440x900"
+  },
+  "settings-location": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Location & language page, where you type your town or zip code.",
+    "viewport": "1440x900"
+  },
+  "settings-weather": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Weather page with one card per provider. Open-Meteo is ready without a key.",
+    "viewport": "1440x900"
+  },
+  "settings-calendar": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Calendar page: iCal feeds, Google sign-in and iCloud accounts.",
+    "viewport": "1440x900"
+  },
+  "settings-meals": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Meals page with the shared meal-planner settings.",
+    "viewport": "1440x900"
+  },
+  "settings-phone": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The On your phone page: the kids' chores link, the family remote link, and the password switch.",
+    "viewport": "1440x900"
+  },
+  "settings-api-keys": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The API keys page, one card per service.",
+    "viewport": "1440x900"
+  },
+  "settings-automation": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Automation page with its Profiles, Rules and Shared state tabs.",
+    "viewport": "1440x900"
+  },
+  "settings-security": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Security page, where you set a password.",
+    "viewport": "1440x900"
+  },
+  "settings-network": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Network page: WiFi, IP address and hostname.",
+    "viewport": "1440x900"
+  },
+  "settings-system": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The System & updates page, with the installed version and the update and roll back controls.",
+    "viewport": "1440x900"
+  },
+  "settings-backups": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Backups & data page.",
+    "viewport": "1440x900"
+  },
+  "settings-status": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The Status page, with the Diagnostics bundle button.",
+    "viewport": "1440x900"
+  },
+  "display-fresh": {
+    "width": 720,
+    "height": 1280,
+    "alt": "A brand-new display: a dark screen with the address to open in a browser and a QR code.",
+    "viewport": "1080x1920"
+  },
+  "display-family": {
+    "width": 720,
+    "height": 1280,
+    "alt": "The Family Dashboard template on the wall.",
+    "viewport": "1080x1920"
+  },
+  "display-chores": {
+    "width": 720,
+    "height": 1280,
+    "alt": "The Full-Screen Chore Chart on the wall: one column per child, today's chores, and the tickets each has earned.",
+    "viewport": "1080x1920"
+  },
+  "display-meals": {
+    "width": 720,
+    "height": 1280,
+    "alt": "The Full-Screen Meal Planner on the wall, showing the week's dinners.",
+    "viewport": "1080x1920"
+  },
+  "phone-launcher": {
+    "width": 780,
+    "height": 1688,
+    "alt": "Opening the Home Screens address on a phone: buttons for the family remote, the kids' chores and the display.",
+    "viewport": "390x844"
+  },
+  "remote-control": {
+    "width": 780,
+    "height": 1688,
+    "alt": "The family remote's Control tab: which screen is showing, brightness, wake and sleep.",
+    "viewport": "390x844"
+  },
+  "remote-chores": {
+    "width": 780,
+    "height": 1688,
+    "alt": "The family remote's Chores tab.",
+    "viewport": "390x844"
+  },
+  "remote-meals": {
+    "width": 780,
+    "height": 1688,
+    "alt": "The family remote's Meals tab with this week's dinners.",
+    "viewport": "390x844"
+  },
+  "remote-timers": {
+    "width": 780,
+    "height": 1688,
+    "alt": "The family remote's Timers tab.",
+    "viewport": "390x844"
+  },
+  "kid-view": {
+    "width": 780,
+    "height": 1688,
+    "alt": "The kids' chores page on a phone: pick your name and check off today's chores.",
+    "viewport": "390x844"
+  },
+  "editor-display-switcher": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The display switcher in the editor toolbar, open, listing Kitchen wall and Hallway.",
+    "viewport": "1440x900"
+  },
+  "settings-all-displays": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "The All displays page: one card per display, and a new display waiting to be added.",
+    "viewport": "1440x900"
+  },
+  "settings-per-display": {
+    "width": 1600,
+    "height": 1000,
+    "alt": "One display's own settings page, with Override and Reset to default on each row.",
+    "viewport": "1440x900"
+  },
+  "plugin-garmin-summary": {
+    "width": 1280,
+    "height": 840,
+    "alt": "The Garmin plugin's daily summary view: steps, sleep, Body Battery and the latest activity.",
+    "viewport": "static"
+  },
+  "plugin-strava-latest": {
+    "width": 1280,
+    "height": 840,
+    "alt": "The Strava plugin's latest activity view with a route map.",
+    "viewport": "static"
+  }
+}

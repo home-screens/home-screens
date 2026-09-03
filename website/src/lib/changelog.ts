@@ -84,6 +84,16 @@ export function getChangelog(): ChangelogEntry[] {
   return entries;
 }
 
+/**
+ * The newest stable release with notes on the site, as a `v1.2.3` tag. Rendered
+ * into the version badges at build time; the site used to fetch this from a
+ * worker on every page load for a string the build already had.
+ */
+export function getLatestStableVersion(): string {
+  const [latest] = getChangelog();
+  return latest ? latest.tag : 'v0.0.0';
+}
+
 export interface LatestImageRelease {
   tag: string;
   version: string;

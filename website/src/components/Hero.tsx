@@ -1,18 +1,19 @@
-'use client';
-
-import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Container } from '@/components/Container';
 import { DashboardShowcase } from '@/components/DashboardShowcase';
 import { Github } from 'lucide-react';
-import { useLatestVersion } from '@/hooks/useLatestVersion';
+import { Reveal } from '@/components/Reveal';
 import { MODULE_COUNT } from '@/lib/stats';
 
-const techStack = ['Next.js', 'React', 'Tailwind CSS', 'Raspberry Pi'];
+const facts = [
+  'Free and open source',
+  'Raspberry Pi 4 or 5 + any HDMI screen',
+  'About $90 if you are starting from scratch',
+];
 
-export function Hero() {
-  const version = useLatestVersion();
+export function Hero({ version }: { version: string }) {
 
   return (
     <section className="relative overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-28">
@@ -31,12 +32,7 @@ export function Hero() {
       <Container>
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-12">
           {/* Left column: text */}
-          <motion.div
-            className="lg:col-span-5"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <Reveal className="lg:col-span-5" y={20} immediate>
             <Badge color="cyan" className="mb-6">
               <span className="font-mono">{version}</span>
               <span className="mx-1.5 text-cyan-500/40">|</span>
@@ -55,11 +51,13 @@ export function Hero() {
               A self-hosted smart display that runs on a Raspberry Pi. {MODULE_COUNT} modules, a
               visual drag-and-drop editor, and zero cloud dependency.
             </p>
+            <p className="mt-3 max-w-lg text-base text-neutral-500">
+              Chores, calendar, meals, photos and weather, on a screen the whole
+              family can read from across the room.
+            </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Button href="https://github.com/home-screens/home-screens#quick-start">
-                Get Started
-              </Button>
+              <Button href="/docs/getting-started">Get Started</Button>
               <Button
                 href="https://github.com/home-screens/home-screens"
                 variant="outline"
@@ -69,29 +67,31 @@ export function Hero() {
               </Button>
             </div>
 
-            {/* Tech strip */}
-            <div className="mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-neutral-500">
-              <span className="uppercase tracking-wider">Built with</span>
-              {techStack.map((tech) => (
-                <span
-                  key={tech}
-                  className="rounded-md border border-[#222] bg-[#161616] px-2.5 py-1 font-mono text-neutral-400"
+            {/* The three facts a first-time visitor came for, plus the download */}
+            <ul className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-neutral-400">
+              {facts.map((fact) => (
+                <li
+                  key={fact}
+                  className="rounded-md border border-[#222] bg-[#161616] px-2.5 py-1"
                 >
-                  {tech}
-                </span>
+                  {fact}
+                </li>
               ))}
-            </div>
-          </motion.div>
+              <li>
+                <Link
+                  href="/docs/getting-started#download-and-flash"
+                  className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-300 transition-colors hover:bg-cyan-500/20"
+                >
+                  Download the image
+                </Link>
+              </li>
+            </ul>
+          </Reveal>
 
           {/* Right column: dashboard showcase */}
-          <motion.div
-            className="lg:col-span-7"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-          >
+          <Reveal className="lg:col-span-7" y={0} delay={0.15} immediate>
             <DashboardShowcase />
-          </motion.div>
+          </Reveal>
         </div>
       </Container>
     </section>

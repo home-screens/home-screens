@@ -1,7 +1,6 @@
 'use client';
 
-import { motion, useInView } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Activity,
   BatteryCharging,
@@ -14,6 +13,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
 import { Badge } from '@/components/ui/badge';
 
 const STRAVA_ORANGE = '#FC4C02';
@@ -40,21 +40,13 @@ const GARMIN_SHOTS: Shot[] = [
 ];
 
 export function FitnessPlugins() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
   return (
     <section className="relative overflow-hidden py-24">
       {/* Soft warm glow, mirroring the cyan one in the HA section */}
       <div className="absolute top-1/3 left-0 -z-10 h-[500px] w-[500px] -translate-x-1/3 rounded-full bg-orange-500/[0.04] blur-3xl" />
 
       <Container>
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal y={0} margin="-80px">
           <div className="max-w-2xl">
             <SectionHeader
               eyebrow={
@@ -142,7 +134,7 @@ export function FitnessPlugins() {
               repoUrl="https://github.com/home-screens/home-screens-plugin-garmin"
             />
           </div>
-        </motion.div>
+        </Reveal>
       </Container>
     </section>
   );

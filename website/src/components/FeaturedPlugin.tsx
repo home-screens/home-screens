@@ -1,7 +1,3 @@
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import {
   Lightbulb,
   Thermometer,
@@ -16,6 +12,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -41,22 +38,13 @@ const callouts = [
 ];
 
 export function FeaturedPlugin() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
   return (
     <section className="relative overflow-hidden py-24">
       {/* Soft cyan glow behind the mockup */}
       <div className="absolute top-1/2 right-0 -z-10 h-[500px] w-[500px] -translate-y-1/2 translate-x-1/4 rounded-full bg-cyan-500/[0.04] blur-3xl" />
 
       <Container>
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16"
-        >
+        <Reveal y={0} margin="-80px" className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left: text + callouts */}
           <div>
             <SectionHeader
@@ -101,18 +89,15 @@ export function FeaturedPlugin() {
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Button href="/docs/plugins">How plugins work</Button>
-              <Button
-                href="/docs/faq#does-it-work-with-home-assistant"
-                variant="outline"
-              >
-                Setup &amp; FAQ
+              <Button href="/docs/plugins#home-assistant" variant="outline">
+                Set it up
               </Button>
             </div>
           </div>
 
           {/* Right: Home Assistant entity card mockup */}
           <EntityGridMockup />
-        </motion.div>
+        </Reveal>
       </Container>
     </section>
   );

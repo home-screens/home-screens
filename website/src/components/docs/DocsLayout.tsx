@@ -22,7 +22,9 @@ export function DocsLayout({
     <>
       <DocsJsonLd title={title} />
       <div className="max-w-2xl min-w-0 flex-auto px-4 py-16 lg:max-w-none lg:pr-0 lg:pl-8 xl:px-16">
-        <article>
+        {/* Backstop: a wide table or code sample scrolls inside its own box
+            (see the Markdoc table node and Fence); nothing may pan the page. */}
+        <article className="overflow-x-hidden">
           <DocsHeader title={title} />
           <Prose>{children}</Prose>
         </article>

@@ -10,6 +10,7 @@ import { EditorExperience } from '@/components/EditorExperience';
 import { RemoteShowcase } from '@/components/RemoteShowcase';
 import { TemplatesGallery } from '@/components/TemplatesGallery';
 import { getGalleryTemplates } from '@/lib/templates';
+import { getLatestStableVersion } from '@/lib/changelog';
 import { HowItWorks } from '@/components/HowItWorks';
 import { OpenSourceCTA } from '@/components/OpenSourceCTA';
 import { Footer } from '@/components/Footer';
@@ -30,11 +31,12 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
+  const version = getLatestStableVersion();
   return (
     <>
       <Header />
       <main>
-        <Hero />
+        <Hero version={version} />
         <FeaturesBento />
         <ModuleShowcase />
         <FeaturedPlugin />
@@ -43,7 +45,7 @@ export default function Home() {
         <RemoteShowcase />
         <TemplatesGallery templates={getGalleryTemplates()} />
         <HowItWorks />
-        <OpenSourceCTA />
+        <OpenSourceCTA version={version} />
       </main>
       <Footer />
     </>

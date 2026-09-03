@@ -11,7 +11,7 @@ nextjs:
 Profiles let you show different screens at different times of day, on different days of the week, or on demand. Combined with module-level scheduling and sleep settings, you can fully automate what your display shows and when.
 
 {% callout type="note" %}
-**Running multi-display?** In multi-display mode profiles are scoped per display — each display owns its own profile list and `screenIds` reference that display's own screens, not a shared pool. See [Multi-display > Per-display profiles](/docs/multi-display#per-display-profiles) for the scoping rules.
+**Running multi-display?** In multi-display mode profiles are scoped per display, each display owns its own profile list and `screenIds` reference that display's own screens, not a shared pool. See [Multi-display > Per-display profiles](/docs/multi-display#profiles-per-display) for the scoping rules.
 {% /callout %}
 
 ---
@@ -57,14 +57,14 @@ Profiles are managed in the editor under **Settings > Automation > Profiles**.
 
 1. Open **Settings > Automation > Profiles**
 2. If you have more than one display, pick the one you're working on from the **Editing profiles for** dropdown at the top of the page. Profiles belong to a single display, and a new profile picks up that display's screens, so choosing the wrong one here builds the profile against the wrong screens. Switching displays here also switches which display the editor canvas is showing.
-3. Click **Add Profile** -- a new profile is created with all screens selected
+3. Click **Add a profile**; a new profile is created with all screens selected
 4. Give it a descriptive name (e.g. "Morning", "Weekend", "Office Hours")
 
 ### Selecting and ordering screens
 
 Expand a profile card to see the sortable screen list. Toggle screens on or off to control which ones are included, and drag them to set the order they rotate in on the display. A profile with no screens selected falls back to showing all screens.
 
-The screen order within a profile determines the rotation sequence — the display cycles through screens in the order you arrange them, not the order they appear in the editor tabs.
+The screen order within a profile determines the rotation sequence, the display cycles through screens in the order you arrange them, not the order they appear in the editor tabs.
 
 ### Renaming and deleting
 
@@ -262,7 +262,7 @@ Rotation pauses automatically when the display is asleep -- no point cycling thr
 
 ### Per-screen override (`rotationDurationMs`)
 
-Any individual screen can override the global rotation interval — useful for dinner-prep displays, guest-mode timers, or a hero screen that needs to linger. In the editor, select a screen tab, open the **Screen settings** panel (the right-hand property panel when no module is selected), and find **Duration** under **Rotation**. It starts out inheriting the global interval and shows what that interval currently is; click **Override** to start editing it, and **Reset** to go back to inheriting. Set the override to **0** to pin the screen indefinitely (no rotation until manually advanced).
+Any individual screen can override the global rotation interval, useful for dinner-prep displays, guest-mode timers, or a hero screen that needs to linger. In the editor, select a screen tab, open the **Screen settings** panel (the right-hand property panel when no module is selected), and find **Duration** under **Rotation**. It starts out inheriting the global interval and shows what that interval currently is; click **Override** to start editing it, and **Reset** to go back to inheriting. Set the override to **0** to pin the screen indefinitely (no rotation until manually advanced).
 
 ### Transition effects
 
@@ -271,7 +271,7 @@ Configure the animation between screens in **Settings > Screen > Rotation & appe
 | Effect | Description |
 |---|---|
 | **Fade** | Cross-dissolve between screens (default) |
-| **Slide** | Old screen slides out, new slides in — the direction follows the navigation (forward slides left, backward slides right) |
+| **Slide** | Old screen slides out, new slides in, the direction follows the navigation (forward slides left, backward slides right) |
 | **Slide Up** | Old screen slides up, new slides in from bottom (reversed when navigating backward) |
 | **Zoom** | Old screen zooms out, new zooms in |
 | **3D Flip** | Perspective flip between screens |
@@ -283,9 +283,7 @@ Transition duration is configurable from 0.3 to 2.0 seconds. All effects except 
 
 ### Manual navigation
 
-The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. On a touchscreen you can also **flick left or right anywhere on the display** to go to the next or previous screen (on by default; turn it off with **Swipe to change screens** in Settings > Screen). **Double-tap the active (highlighted) dot** to pause screen rotation — double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Screen) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
-
-If your kiosk runs a custom Chromium setup, adding the `--overscroll-history-navigation=0` flag keeps an edge swipe from triggering the browser's own back gesture. The display page also disables overscroll navigation at the document root, but the flag is the most dependable guard.
+The display shows pagination dots at the bottom when there are multiple screens. Click a dot to jump directly to that screen. On a touchscreen you can also **flick left or right anywhere on the display** to go to the next or previous screen (on by default; turn it off with **Swipe to change screens** in Settings > Screen). **Double-tap the active (highlighted) dot** to pause screen rotation, double-tap again to resume. An optional auto-resume timeout (configurable in Settings > Screen) resumes rotation after inactivity. Navigation is also available via the [remote display control API](/docs/api).
 
 ---
 

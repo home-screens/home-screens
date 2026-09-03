@@ -20,7 +20,7 @@ Under **Add a feed** you can:
 
 - **Pick a preset.** A curated list of publishers and sections (top stories, world, business, technology, science, sports, health, entertainment) for the display's language. Switch on *All languages* to browse every preset.
 - **Paste any feed link.** RSS, Atom, and JSON feeds all work, so that means almost every news site, blog, podcast, and newsletter. If a site has a feed link on its page, it will work here.
-- **Local news.** Adds a feed of stories about the place you set under **Settings > Location**. Change the location and the feed follows.
+- **Local news.** Adds a feed of stories about the place you set under **Settings > Location & language**. Change the location and the feed follows.
 - **Follow a topic.** Type a few words (your school district, a sports team, a company) and get a feed of stories that mention them.
 - **YouTube channel.** Paste a channel link and the module shows the channel's latest uploads, thumbnails included.
 - **Subreddit.** Type a subreddit name to follow its newest posts.
@@ -72,5 +72,13 @@ One broken feed never blanks the module: its stories are simply missing and a sm
 
 - **Not a feed.** The link is a normal web page. Look for an RSS or Atom link on the site, often in the footer.
 - **Blocked address.** The link points at a private or local address. Turn on **Home network** for that feed if it really is on your network.
-- **Set your location first.** The *Local news* feed needs a location under **Settings > Location**.
+- **Set your location first.** The *Local news* feed needs a location under **Settings > Location & language**.
 - **No response.** The site is down or slow; the module will try again on its next refresh.
+
+---
+
+## Next steps
+
+- [Modules](/docs/modules#news-and-finance): the other news and finance modules
+- [Editor](/docs/editor#module-scheduling): show the news only at breakfast
+- [Weather](/docs/weather): set the location the local news feed uses

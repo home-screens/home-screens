@@ -18,7 +18,7 @@ export function BlogList({
 
   return (
     <>
-      {categories.length > 1 && (
+      {posts.length > 5 && categories.length > 1 && (
         <div className="mx-auto mt-10 flex max-w-2xl flex-wrap justify-center gap-2 lg:max-w-none">
           <button
             onClick={() => setActive(null)}

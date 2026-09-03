@@ -25,6 +25,10 @@ const REFERENCE_PAGES = [
   '/docs/module-reference',
   '/docs/configuration',
   '/docs/development',
+  '/docs/plugin-development',
+  '/docs/raspberry-pi',
+  '/docs/networking',
+  '/docs/voice-control',
 ]
 
 /**

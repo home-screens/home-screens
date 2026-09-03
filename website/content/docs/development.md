@@ -53,10 +53,10 @@ The `@/` import prefix resolves to `src/` (tsconfig `paths`, mirrored in `vitest
 
 The app uses Next.js route groups to separate concerns:
 
-- `(display)` — no layout chrome, just the fullscreen display
-- `(editor)` — includes toolbar, sidebars, and editor controls
-- `(auth)` — login and authentication pages
-- `(remote)` — mobile remote control and chore tracking
+- `(display)`: no layout chrome, just the fullscreen display
+- `(editor)`: includes toolbar, sidebars, and editor controls
+- `(auth)`: login and authentication pages
+- `(remote)`: mobile remote control and chore tracking
 
 ### Module System
 
@@ -92,19 +92,19 @@ Each module requires eight pieces, plus an optional API route:
 1. React Component (`src/components/modules/MyModule.tsx`)
 2. ModuleType union member (`src/types/config.ts`)
 3. Config interface (`src/types/config.ts`)
-4. Registry entry (`src/lib/module-registry.ts`) — this is also where `defaultSize` lives
+4. Registry entry (`src/lib/module-registry.ts`), this is also where `defaultSize` lives
 5. Dynamic import (`src/lib/module-components.ts`)
 6. Config section component + a `CONFIG_SECTIONS` entry (`src/components/editor/config-sections/`, `PropertyPanel.tsx`)
 7. Translation keys in every shipped locale (`src/translations/<locale>/editor.json` and `modules.json`)
-8. E2E fixture rows (`e2e/helpers/`) — the `meta` coverage checks fail the suite for any module type without them
+8. E2E fixture rows (`e2e/helpers/`), the `meta` coverage checks fail the suite for any module type without them
 9. (Optional) API route (`src/app/api/*/route.ts`)
 
 Steps 1 through 9 are walked through in [Adding a New Module](#adding-a-new-module) below.
 
 ### State Management
 
-- **Editor** — Zustand store (`src/stores/editor-store.ts`) manages config, selection, and dirty state
-- **Display** — server-fetched config with client-side polling (no Zustand needed)
+- **Editor**: Zustand store (`src/stores/editor-store.ts`) manages config, selection, and dirty state
+- **Display**: server-fetched config with client-side polling (no Zustand needed)
 
 ### Data Flow
 
@@ -163,15 +163,15 @@ Weather data comes from a pluggable provider system in `src/lib/weather/`.
 
 The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`, and optionally `getMinutely` and `getAlerts`. {% $stats.weatherProviderCount %} implementations exist:
 
-- **OpenMeteoProvider** — free, no API key, global coverage; provides hourly and forecast data (the default)
-- **NOAAProvider** — free, no API key, US only; provides hourly, forecast, and alerts
-- **YrProvider** — free, no API key, global; provides hourly and forecast data (Norwegian Meteorological Institute)
-- **SMHIProvider** — free, no API key, Nordic coverage; provides hourly and forecast data (Swedish Meteorological and Hydrological Institute)
-- **EnvCanadaProvider** — free, no API key, Canadian cities; provides hourly and forecast data (ECCC citypage feeds)
-- **MetOfficeProvider** — **requires an API key** (free tier on the Met Office DataHub Site-Specific API), UK coverage; provides hourly and forecast data. The constructor throws when no key is configured.
-- **OpenWeatherMapProvider** — requires API key; provides hourly and forecast data
-- **WeatherAPIProvider** — requires API key; provides hourly and forecast data
-- **PirateWeatherProvider** — requires API key; provides hourly, forecast, minutely precipitation, and alerts (Dark Sky replacement)
+- **OpenMeteoProvider**: free, no API key, global coverage; provides hourly and forecast data (the default)
+- **NOAAProvider**: free, no API key, US only; provides hourly, forecast, and alerts
+- **YrProvider**: free, no API key, global; provides hourly and forecast data (Norwegian Meteorological Institute)
+- **SMHIProvider**: free, no API key, Nordic coverage; provides hourly and forecast data (Swedish Meteorological and Hydrological Institute)
+- **EnvCanadaProvider**: free, no API key, Canadian cities; provides hourly and forecast data (ECCC citypage feeds)
+- **MetOfficeProvider**: **requires an API key** (free tier on the Met Office DataHub Site-Specific API), UK coverage; provides hourly and forecast data. The constructor throws when no key is configured.
+- **OpenWeatherMapProvider**: requires API key; provides hourly and forecast data
+- **WeatherAPIProvider**: requires API key; provides hourly and forecast data
+- **PirateWeatherProvider**: requires API key; provides hourly, forecast, minutely precipitation, and alerts (Dark Sky replacement)
 
 The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. The key-less providers cover most use cases: Open-Meteo is the global default; NOAA, Yr.no, SMHI, and Environment Canada provide higher-accuracy regional forecasts within their coverage areas. The key-required providers (Met Office, OpenWeatherMap, WeatherAPI, and Pirate Weather) round out the options when a user wants a specific data source. Pirate Weather is the only one that provides minutely precipitation data.
 
@@ -190,7 +190,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Calendar** | `calendar`, `calendar/status`, `calendars`, `icloud/accounts`, `icloud/calendars`, `holidays` | Google Calendar events and per-source health, iCloud CalDAV accounts and calendars, holiday feeds |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `standings`, `todoist`, `air-quality`, `traffic`, `nasa` | External data proxies |
 | **Family data** | `chores`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/state`, `todo/toggle` | Local chore, reward, meal-plan, timer-routine, and interactive-todo state |
-| **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only spokes |
+| **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only Pis |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/migrate-config`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
 | **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | WiFi scan and connect, hostname, static IP, and connectivity checks |
 | **Photos** | `google-picker/auth`, `google-picker/session`, `google-picker/import`, `google-picker/status`, `immich/*`, `onedrive/*`, `icloud/photos`, `icloud/import` | Google Photos Picker import, Immich, OneDrive, and iCloud photo sources |
@@ -413,6 +413,19 @@ A new route needs test coverage of its own, or the `ROUTE_DECISIONS` ratchet fro
 `useLiveConfig` and `useAuthImage` live under `src/components/display/` rather than `src/hooks/`; everything else in the table is in `src/hooks/`.
 
 ## Setup
+
+Home Screens runs on any machine with Node.js 22 or newer, so you can try it on a laptop before buying a Pi, or develop on one.
+
+```bash
+git clone https://github.com/home-screens/home-screens.git
+cd home-screens
+npm install
+npm run dev        # development server
+# or
+npm run build && npm run start   # production build
+```
+
+Then open `http://localhost:3000/editor` to design screens and `http://localhost:3000/display` for the fullscreen view.
 
 The repo sets a minimum npm version, not an exact one. `package.json` declares `"engines": { "node": ">=22", "npm": ">=11.6.3" }` and `.npmrc` sets `engine-strict=true`, so an npm below that floor stops the install with an error instead of a warning. Any newer npm works as-is.
 

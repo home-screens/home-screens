@@ -1,12 +1,10 @@
-'use client';
-
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { Check, X, Minus, Github, Cloud, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Container } from '@/components/Container';
+import { Reveal } from '@/components/Reveal';
 import { MODULE_COUNT, WEATHER_PROVIDER_COUNT } from '@/lib/stats';
 
 type Cell =
@@ -35,7 +33,7 @@ const groups: Group[] = [
       {
         feature: 'Price',
         magicMirror: { kind: 'text', label: 'Free' },
-        dakboard: { kind: 'text', label: 'From $5/mo' },
+        dakboard: { kind: 'text', label: 'Free for 1 preset screen; from $5/mo' },
         homeScreens: { kind: 'text', label: 'Free' },
       },
       {
@@ -306,15 +304,10 @@ function StatusCell({ cell, highlight }: { cell: Cell; highlight?: boolean }) {
 }
 
 function ComparisonRow({ row, delay }: { row: Row; delay: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 6 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.3, delay }}
+    <Reveal
+      delay={delay}
+      y={6}
       className="grid grid-cols-[1.4fr_1fr_1fr_1.1fr] items-start gap-4 border-b border-[#1a1a1a] px-4 py-4 last:border-b-0 sm:px-6"
     >
       <div className="min-w-0">
@@ -334,7 +327,7 @@ function ComparisonRow({ row, delay }: { row: Row; delay: number }) {
       <div className="relative -mx-3 rounded-md bg-cyan-500/[0.04] px-3 py-0.5">
         <StatusCell cell={row.homeScreens} highlight />
       </div>
-    </motion.div>
+    </Reveal>
   );
 }
 
@@ -354,12 +347,7 @@ export function VsComparison() {
         <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/[0.04] blur-3xl" />
 
         <Container>
-          <motion.div
-            className="mx-auto max-w-3xl text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <Reveal className="mx-auto max-w-3xl text-center" y={20} immediate>
             <Badge color="cyan" className="mb-6">
               Comparison
             </Badge>
@@ -381,7 +369,7 @@ export function VsComparison() {
                 Try Home Screens
               </Button>
             </div>
-          </motion.div>
+          </Reveal>
         </Container>
       </section>
 
@@ -390,12 +378,9 @@ export function VsComparison() {
         <Container>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {positioning.map((item, i) => (
-              <motion.div
+              <Reveal
                 key={item.name}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.4, delay: i * 0.06 }}
+                delay={i * 0.06}
                 className={
                   item.accent === 'cyan'
                     ? 'rounded-xl border border-cyan-500/30 bg-cyan-500/[0.04] p-6'
@@ -422,7 +407,7 @@ export function VsComparison() {
                 <p className="mt-3 text-sm leading-relaxed text-neutral-400">
                   {item.copy}
                 </p>
-              </motion.div>
+              </Reveal>
             ))}
           </div>
         </Container>
@@ -478,7 +463,7 @@ export function VsComparison() {
           </div>
 
           <p className="mt-4 text-xs text-neutral-600">
-            Last reviewed April 2026. Competitor pricing and features change —
+            Last reviewed September 2026. Competitor pricing and features change —
             check their sites for the current state.
           </p>
         </Container>
@@ -515,8 +500,14 @@ export function VsComparison() {
               See it running on your own Pi
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-neutral-400">
-              One install script. No account. No cloud. Fifteen minutes from
-              blank SD card to a display the whole family will use.
+              No account. No cloud. About 10 minutes of hands-on work, and
+              around 30 from unboxing to a display the whole family will use.
+              You need a Raspberry Pi 4 or 5 and any HDMI screen, about $90
+              from scratch. See{' '}
+              <Link href="/docs/what-to-buy" className="text-cyan-400 hover:text-cyan-300">
+                what to buy
+              </Link>
+              .
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Button href="/docs/getting-started">Get Started</Button>
@@ -547,17 +538,8 @@ function TradeoffCard({
   delay: number;
 }) {
   const Icon = tradeoff.icon;
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 12 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay }}
-      className="rounded-xl border border-[#222] bg-[#161616] p-6"
-    >
+    <Reveal delay={delay} className="rounded-xl border border-[#222] bg-[#161616] p-6">
       <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#222] bg-[#0a0a0a]">
         <Icon className="h-4 w-4 text-cyan-400/70" />
       </div>
@@ -578,6 +560,6 @@ function TradeoffCard({
           </li>
         ))}
       </ul>
-    </motion.div>
+    </Reveal>
   );
 }

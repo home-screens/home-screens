@@ -22,7 +22,7 @@ export function Fence({
       theme={{ plain: {}, styles: [] }}
     >
       {({ className, style, tokens, getTokenProps }) => (
-        <pre className={className} style={style}>
+        <pre className={`${className} max-w-full overflow-x-auto`} style={style}>
           <code>
             {tokens.map((line, lineIndex) => (
               <Fragment key={lineIndex}>

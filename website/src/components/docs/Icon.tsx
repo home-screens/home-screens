@@ -1,8 +1,10 @@
 import { useId } from 'react'
 import clsx from 'clsx'
 
+import { HelpIcon } from '@/components/docs/icons/HelpIcon'
 import { InstallationIcon } from '@/components/docs/icons/InstallationIcon'
 import { LightbulbIcon } from '@/components/docs/icons/LightbulbIcon'
+import { PhoneIcon } from '@/components/docs/icons/PhoneIcon'
 import { PluginsIcon } from '@/components/docs/icons/PluginsIcon'
 import { PresetsIcon } from '@/components/docs/icons/PresetsIcon'
 import { ThemingIcon } from '@/components/docs/icons/ThemingIcon'
@@ -15,6 +17,8 @@ const icons = {
   theming: ThemingIcon,
   lightbulb: LightbulbIcon,
   warning: WarningIcon,
+  phone: PhoneIcon,
+  help: HelpIcon,
 }
 
 const iconStyles = {

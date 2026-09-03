@@ -1,9 +1,6 @@
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
 import type { GalleryTemplate } from '@/lib/templates';
 
 export function TemplatesGallery({
@@ -12,9 +9,6 @@ export function TemplatesGallery({
   // Read from the shipped layout files at build time; see @/lib/templates.
   templates: GalleryTemplate[];
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
-
   if (templates.length === 0) return null;
 
   return (
@@ -28,13 +22,7 @@ export function TemplatesGallery({
         </div>
       </Container>
 
-      <motion.div
-        ref={ref}
-        initial={{ opacity: 0 }}
-        animate={isInView ? { opacity: 1 } : {}}
-        transition={{ duration: 0.5 }}
-        className="flex gap-4 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-8 snap-x"
-      >
+      <Reveal y={0} margin="-60px" className="flex gap-4 overflow-x-auto px-4 pb-4 sm:px-6 lg:px-8 snap-x">
         {templates.map((t) => (
           <div
             key={t.id}
@@ -49,7 +37,7 @@ export function TemplatesGallery({
             <p className="mt-2 text-sm text-neutral-500">{t.description}</p>
           </div>
         ))}
-      </motion.div>
+      </Reveal>
     </section>
   );
 }

@@ -1,0 +1,303 @@
+# Home Screens, Assist custom sentences (English)
+# Pairs with packages/homescreens.yaml (the matching intent_script handlers).
+# Setup guide: https://homescreens.dev/docs/voice-control
+#
+# The `display` list at the bottom is yours to maintain: one row per
+# display, where `in` is what you say and `out` is the display ID from the
+# Home Screens editor. Sentences without a display name target every display.
+
+language: "en"
+
+intents:
+  HomeScreensWake:
+    data:
+      - sentences:
+          - "wake [up] the display[s]"
+          - "wake [up] the {display} display"
+          - "turn on the displays"
+          - "turn on the {display} display"
+
+  HomeScreensSleep:
+    data:
+      - sentences:
+          - "put the display[s] to sleep"
+          - "put the {display} display to sleep"
+          - "turn off the displays"
+          - "turn off the {display} display"
+
+  HomeScreensNextScreen:
+    data:
+      - sentences:
+          - "next screen"
+          - "next screen on the {display} display"
+          - "[go to the] next screen on the {display}"
+
+  HomeScreensPrevScreen:
+    data:
+      - sentences:
+          - "previous screen"
+          - "previous screen on the {display} display"
+          - "go back a screen [on the {display}]"
+
+  # {screen} is a wildcard matched by NAME against the target display's
+  # screens (case-insensitive), screens need speakable names in the editor
+  # for this to feel natural. On a multi-display install, say the display
+  # or set a default in the package's intent handler.
+  HomeScreensGotoScreen:
+    data:
+      - sentences:
+          - "show the {screen} [screen]"
+          - "show the {screen} [screen] on the {display} [display]"
+          - "(go|switch|jump) to the {screen} [screen]"
+          - "(go|switch|jump) to the {screen} [screen] on the {display} [display]"
+
+  HomeScreensSleepOverride:
+    data:
+      - sentences:
+          - "keep the display[s] (on|awake) [tonight]"
+          - "keep the {display} display (on|awake) [tonight]"
+          - "keep the display[s] (on|awake) for {minutes} minutes"
+          - "keep the {display} display (on|awake) for {minutes} minutes"
+          - "keep the display[s] (on|awake) for {hours} hour[s]"
+          - "keep the {display} display (on|awake) for {hours} hour[s]"
+          - "(don't|do not) let the display[s] sleep [tonight]"
+
+  HomeScreensBrightness:
+    data:
+      - sentences:
+          - "(dim|brighten) the display[s] to {brightness} [percent]"
+          - "(dim|brighten) the {display} display to {brightness} [percent]"
+          - "set the display brightness to {brightness} [percent]"
+          - "set the {display} display brightness to {brightness} [percent]"
+
+  HomeScreensAnnounce:
+    data:
+      - sentences:
+          - "tell everyone {message}"
+          - "announce {message}"
+
+  HomeScreensClearAlerts:
+    data:
+      - sentences:
+          - "clear the (announcements|alerts)"
+          - "clear the (announcements|alerts) on the {display} display"
+
+  HomeScreensSetMode:
+    data:
+      - sentences:
+          - "{mode} mode [on the displays]"
+          - "(set|switch) the (house|displays) to {mode} [mode]"
+          - "turn on {mode} mode"
+
+  HomeScreensGuestMode:
+    data:
+      - sentences:
+          - "turn {onoff} guest mode"
+          - "guest mode {onoff}"
+
+  HomeScreensMealQuery:
+    data:
+      - sentences:
+          - "(what's|what is) for {meal_slot} [{day}]"
+          - "(what's|what is) planned for {meal_slot} [{day}]"
+          - "what are we having for {meal_slot} [{day}]"
+
+  # {chore} and {member} are wildcards matched against the chore chart by
+  # name, chores and kids need speakable names for this to feel natural.
+  HomeScreensChoreDone:
+    data:
+      - sentences:
+          - "mark [the] {chore} [as] done for {member}"
+          - "check off [the] {chore} for {member}"
+          - "{member} finished [the] {chore}"
+          - "{member} did [the] {chore}"
+
+  HomeScreensChoreProgress:
+    data:
+      - sentences:
+          - "(did|has) {member} (done|finished|do|finish) (their|the|her|his) chores [today]"
+          - "how many chores has {member} (done|finished) [today]"
+          - "how is {member} doing on [(their|her|his)] chores [today]"
+
+  # Answers with the actual due chore names (hub-resolved). {chore_day}
+  # covers today and tomorrow, the package has one sensor per day.
+  HomeScreensChoreList:
+    data:
+      - sentences:
+          - "what chores does {member} have [left] [{chore_day}]"
+          - "which chores does {member} have [left] [{chore_day}]"
+          - "what does {member} have left [to do] [{chore_day}]"
+          - "what are {member}'s chores [{chore_day}]"
+          - "what is left for {member} [{chore_day}]"
+
+  HomeScreensRewardPoints:
+    data:
+      - sentences:
+          - "how many (points|tickets) does {member} have"
+          - "how many (points|tickets) has {member} earned"
+          - "(what's|what is) {member}'s (point|ticket) balance"
+
+  HomeScreensRewardAfford:
+    data:
+      - sentences:
+          - "what can {member} (get|buy|afford) [with (their|her|his) (points|tickets)]"
+          - "what rewards can {member} (get|afford)"
+
+  HomeScreensGroceryQuery:
+    data:
+      - sentences:
+          - "(what's|what is) on the (grocery|shopping) list"
+          - "what (groceries|food) do we need [to buy]"
+          - "read [me] the (grocery|shopping) list"
+
+  # {item} resolves case-insensitively against the hub's grocery list.
+  HomeScreensGroceryCheck:
+    data:
+      - sentences:
+          - "check off [the] {item} [from the (grocery|shopping) list]"
+          - "we (got|bought) [the] {item}"
+          - "mark [the] {item} [as] (bought|done)"
+
+  HomeScreensGroceryUncheck:
+    data:
+      - sentences:
+          - "put [the] {item} back on the [grocery] list"
+          - "uncheck [the] {item}"
+          - "we still need {item}"
+
+  HomeScreensMealWeek:
+    data:
+      - sentences:
+          - "(what's|what is) for {meal_slot} this week"
+          - "what {meal_slot}s (are|do we have) planned [this week]"
+
+  HomeScreensMealIngredients:
+    data:
+      - sentences:
+          - "what do (we|i) need for [the] {meal_slot} [{day}]"
+          - "what are the ingredients for [the] {meal_slot} [{day}]"
+          - "(what's|what is) in [the] {meal_slot} [{day}]"
+
+  HomeScreensChoreLaggards:
+    data:
+      - sentences:
+          - "who (hasn't|has not) (done|finished) [their] chores [today]"
+          - "who still has chores [to do] [today]"
+          - "who is behind on [their] chores [today]"
+
+  HomeScreensDisplayStatus:
+    data:
+      - sentences:
+          - "(what's|what is) [showing] on the {display} [display]"
+          - "(what's|what is) the {display} display showing"
+
+lists:
+  display:
+    values:
+      # One row per display. `in` = spoken name, `out` = display ID from the
+      # Home Screens editor (Settings > Per display). Examples:
+      - in: "kitchen"
+        out: "kitchen"
+      - in: "(living room|livingroom)"
+        out: "living-room"
+
+  brightness:
+    range:
+      from: 1
+      to: 100
+
+  # Spoken screen name for goto, matched against the display's screen list
+  # by the display itself.
+  screen:
+    wildcard: true
+
+  # Sleep-override durations. The hub caps a hold at 24 hours (1440 min).
+  minutes:
+    range:
+      from: 1
+      to: 1440
+
+  hours:
+    range:
+      from: 1
+      to: 24
+
+  # Must match input_select.display_mode's options exactly (lowercase , 
+  # these strings are what visibility conditions compare against).
+  mode:
+    values:
+      - in: "normal"
+        out: "normal"
+      - in: "cooking"
+        out: "cooking"
+      - in: "movie"
+        out: "movie"
+      - in: "party"
+        out: "party"
+      - in: "bedtime"
+        out: "bedtime"
+
+  onoff:
+    values:
+      - in: "on"
+        out: "on"
+      - in: "off"
+        out: "off"
+
+  message:
+    wildcard: true
+
+  meal_slot:
+    values:
+      - in: "breakfast"
+        out: "breakfast"
+      - in: "lunch"
+        out: "lunch"
+      - in: "(dinner|supper)"
+        out: "dinner"
+      - in: "[a] snack"
+        out: "snack"
+
+  # Offset in days from today ("0"/"1") or a weekday token ("w0" Monday …
+  # "w6" Sunday, Jinja weekday() numbering); the intent script does the
+  # date math either way.
+  day:
+    values:
+      - in: "(today|tonight|this morning)"
+        out: "0"
+      - in: "tomorrow"
+        out: "1"
+      - in: "[on] monday"
+        out: "w0"
+      - in: "[on] tuesday"
+        out: "w1"
+      - in: "[on] wednesday"
+        out: "w2"
+      - in: "[on] thursday"
+        out: "w3"
+      - in: "[on] friday"
+        out: "w4"
+      - in: "[on] saturday"
+        out: "w5"
+      - in: "[on] sunday"
+        out: "w6"
+
+  # Chore questions only cover today and tomorrow (one sensor per day).
+  chore_day:
+    values:
+      - in: "(today|tonight)"
+        out: "0"
+      - in: "tomorrow"
+        out: "1"
+
+  # Spoken grocery item, matched case-insensitively against the hub's list.
+  item:
+    wildcard: true
+
+  # Spoken chore and kid names, matched case-insensitively against the
+  # chore chart roster by the intent scripts.
+  chore:
+    wildcard: true
+
+  member:
+    wildcard: true

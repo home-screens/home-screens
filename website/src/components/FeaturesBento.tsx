@@ -1,7 +1,3 @@
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import {
   Puzzle, Monitor, CalendarClock, Layers, Shield,
   Paintbrush, CloudOff, CloudSun, ArrowUpCircle, Maximize, Languages,
@@ -9,6 +5,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
 import { LOCALE_COUNT, LOCALE_NATIVE_NAMES, WEATHER_PROVIDER_COUNT } from '@/lib/stats';
 
 interface Feature {
@@ -42,7 +39,7 @@ const featuresLeft: Feature[] = [
   {
     icon: Maximize,
     title: 'Fullscreen Modes',
-    description: 'Ambient calendar, chore chart, meal planner, and photo frame that fill the entire display.',
+    description: 'Calendar, weather, chore chart, meal planner, news and photo frame, each filling the entire display.',
   },
 ];
 
@@ -82,15 +79,9 @@ const featuresRight: Feature[] = [
 ];
 
 function FeatureRow({ feature, delay }: { feature: Feature; delay: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-40px' });
-
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 12 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.4, delay }}
+    <Reveal
+      delay={delay}
       className="flex gap-4 rounded-xl border border-[#222] bg-[#161616] p-4 transition-colors hover:border-cyan-500/30"
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#222] bg-[#0a0a0a]">
@@ -105,7 +96,7 @@ function FeatureRow({ feature, delay }: { feature: Feature; delay: number }) {
         </p>
         <p className="mt-0.5 text-sm text-neutral-500 leading-relaxed">{feature.description}</p>
       </div>
-    </motion.div>
+    </Reveal>
   );
 }
 

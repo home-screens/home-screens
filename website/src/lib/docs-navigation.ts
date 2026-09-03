@@ -1,36 +1,66 @@
+/**
+ * The docs sidebar, in the order a new household needs the pages. Prev/Next,
+ * the section eyebrow on each page, and the sitemap all read this array, so
+ * adding a page here is the whole registration.
+ *
+ * Every slug the app links to (docs, backgrounds, modules, module-reference,
+ * calendars, getting-started) must keep resolving; move content, not URLs.
+ */
 export const navigation = [
   {
-    title: 'Introduction',
+    title: 'Start here',
     links: [
-      { title: 'Getting started', href: '/docs' },
-      { title: 'Installation', href: '/docs/getting-started' },
-      { title: 'Raspberry Pi', href: '/docs/raspberry-pi' },
+      { title: 'Overview', href: '/docs' },
+      { title: 'What to buy', href: '/docs/what-to-buy' },
+      { title: 'Install', href: '/docs/getting-started' },
+      { title: 'Your first screen', href: '/docs/first-screen' },
+      { title: 'On your phone', href: '/docs/remote-control' },
     ],
   },
   {
-    title: 'Guides',
+    title: 'Set up your content',
+    links: [
+      { title: 'Weather', href: '/docs/weather' },
+      { title: 'Calendars', href: '/docs/calendars' },
+      { title: 'Chores and rewards', href: '/docs/chores' },
+      { title: 'Meals', href: '/docs/meals' },
+      { title: 'Photos and backgrounds', href: '/docs/backgrounds' },
+      { title: 'News', href: '/docs/news' },
+    ],
+  },
+  {
+    title: 'Customize',
     links: [
       { title: 'Editor', href: '/docs/editor' },
       { title: 'Modules', href: '/docs/modules' },
-      { title: 'Backgrounds', href: '/docs/backgrounds' },
-      { title: 'News feeds', href: '/docs/news' },
-      { title: 'Profiles & Scheduling', href: '/docs/profiles' },
-      { title: 'Remote Control', href: '/docs/remote-control' },
-      { title: 'Voice Control', href: '/docs/voice-control' },
+      { title: 'Profiles and schedules', href: '/docs/profiles' },
+      { title: 'Plugins', href: '/docs/plugins' },
+    ],
+  },
+  {
+    title: 'More displays',
+    links: [
       { title: 'Multi-display', href: '/docs/multi-display' },
-      { title: 'Networking', href: '/docs/networking' },
+    ],
+  },
+  {
+    title: 'Help',
+    links: [
       { title: 'Troubleshooting', href: '/docs/troubleshooting' },
+      { title: 'FAQ', href: '/docs/faq' },
     ],
   },
   {
     title: 'Reference',
     links: [
-      { title: 'API', href: '/docs/api' },
-      { title: 'Module Reference', href: '/docs/module-reference' },
+      { title: 'Raspberry Pi internals', href: '/docs/raspberry-pi' },
+      { title: 'Networking', href: '/docs/networking' },
       { title: 'Configuration', href: '/docs/configuration' },
-      { title: 'Plugins', href: '/docs/plugins' },
+      { title: 'Module reference', href: '/docs/module-reference' },
+      { title: 'API', href: '/docs/api' },
+      { title: 'Plugin development', href: '/docs/plugin-development' },
+      { title: 'Voice control', href: '/docs/voice-control' },
       { title: 'Development', href: '/docs/development' },
-      { title: 'FAQ', href: '/docs/faq' },
     ],
   },
 ]

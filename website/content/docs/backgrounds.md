@@ -1,14 +1,16 @@
 ---
-title: Backgrounds
+title: Photos and backgrounds
 nextjs:
   metadata:
-    title: Backgrounds
-    description: Customize screen backgrounds with uploads, Unsplash, NASA APOD, Immich, iCloud shared albums, and auto-rotation.
+    title: Photos and backgrounds
+    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, browse Unsplash and NASA, and rotate backgrounds on a schedule.
     alternates:
       canonical: /docs/backgrounds
 ---
 
-Each screen in Home Screens can have its own background image. You can upload your own photos, browse Unsplash, NASA, or Immich imagery directly from the editor, pull from an iCloud shared album, and optionally enable auto-rotation to keep things fresh.
+Each screen can have its own background, and your photos can fill a whole screen as a slideshow. Upload your own pictures, import them from Google Photos or an iCloud shared album, browse Unsplash and NASA from the editor, or let the background change on its own every few hours. {% .lead %}
+
+Photos and backgrounds share one library on the Pi. Anything you upload or import from a photo module is available as a background, and anything you set as a background can be shown by the **Photo Slideshow** and **Full-Screen Photo Viewer** modules. From a phone, the family remote's **Photos** tab uploads into the same library.
 
 {% callout type="note" title="Finding the Background section" %}
 The **Background** section appears in the editor's right sidebar only when no module is selected. If you can't find it, click an empty part of the canvas first to deselect whatever module you were editing. Every procedure on this page assumes you've done that.
@@ -18,7 +20,7 @@ The **Background** section appears in the editor's right sidebar only when no mo
 
 ## Setting a static background
 
-Every screen has a `backgroundImage` field that points to a locally stored image. To set a background in the editor:
+To set a background in the editor:
 
 1. Select the screen you want to customize using the **Screen Tabs** at the top
 2. Click an empty part of the canvas to deselect any module
@@ -26,7 +28,7 @@ Every screen has a `backgroundImage` field that points to a locally stored image
 4. Switch to the **Local** tab to see your uploaded images
 5. Click a thumbnail to apply it, or click **None** to remove the background
 
-The selected image fills the entire screen using CSS `cover` sizing, so it scales to fill the display without distortion.
+The picture fills the whole screen without being stretched; a landscape photo on a portrait wall is cropped at the sides.
 
 ---
 
@@ -38,7 +40,7 @@ The selected image fills the entire screen using CSS `cover` sizing, so it scale
 4. Click **Upload Background**
 5. Select an image file from your computer
 
-The image is saved to `public/backgrounds/` on the server and immediately available for use. Uploading an image automatically sets it as the current screen's background.
+The image is saved into your library on the Pi and set as the current screen's background straight away.
 
 The Upload Background button opens a file chooser; there is no drop zone to drag files onto. It offers image files only. Videos can be added to the same library from a photo or video module's media library browser, but they can't be used as a screen background.
 
@@ -46,15 +48,13 @@ The Upload Background button opens a file chooser; there is no drop zone to drag
 
 - **Maximum file size:** 10 MB per image, 200 MB per video
 - **Allowed types:** JPEG, PNG, WebP, GIF, AVIF images; MP4, WebM, MOV videos (used by the Video module and mixed-media slideshows)
-- Filenames are sanitized on upload — special characters are replaced with underscores
+- Filenames are sanitized on upload, special characters are replaced with underscores
 
 ---
 
-## Where background files live
+## Folders
 
-Backgrounds must sit **directly in `public/backgrounds/`** to appear in the editor's Local tab. The picker doesn't browse folders, so anything filed into a subdirectory disappears from it.
-
-Subdirectories still work for the photo modules' media library browser and for the [backgrounds API](/docs/api#backgrounds), which takes a `directory` parameter on upload, list, and delete.
+The background picker's Local tab shows the top level of your library only. Photos filed into a folder (an iCloud or Google Photos import, or a folder you made from the phone) are for the photo modules, which can point at any folder and everything inside it.
 
 ---
 
@@ -75,7 +75,7 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 3. Use the search bar or click a preset category (Nature, Mountains, Ocean, Forest, Sky, Space, City, Abstract, Flowers, Seasons)
 4. Click a photo to download it and set it as the screen background
 
-When you select a photo, it is downloaded from Unsplash at the `regular` resolution (1080px wide) and saved locally to `public/backgrounds/` as a JPEG. The display serves the local copy — there are no ongoing requests to Unsplash during display mode.
+When you select a photo it is downloaded once, at 1080 pixels wide, and saved into your library. The wall shows the local copy, so Unsplash is never contacted again for it.
 
 Unsplash searches default to **portrait orientation** to match the typical display layout.
 
@@ -126,7 +126,7 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 4. Click **Refresh** to load a new batch of photos
 5. Click a photo to download it and set it as the screen background
 
-When you select an Immich photo, the preview-quality image is downloaded through the server proxy, saved locally to `public/backgrounds/`, and set as a static background. If auto-rotation was enabled, it is automatically disabled so your choice is preserved.
+When you select an Immich photo, a display-sized copy is saved into your library and set as the background. If auto-rotation was on, it is switched off so your choice stays.
 
 The Immich browser shows a grid of 20 random photos from your library at a time.
 
@@ -134,7 +134,7 @@ The Immich browser shows a grid of 20 random photos from your library at a time.
 
 ## iCloud shared albums
 
-iCloud shared albums work without an Apple account or API key — all you need is the album's public link.
+iCloud shared albums work without an Apple account or API key, all you need is the album's public link.
 
 ### Getting a shared album link
 
@@ -144,14 +144,14 @@ iCloud shared albums work without an Apple account or API key — all you need i
 
 ### Using it
 
-- **As a rotation source** — deselect any module, open the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
-- **Importing into your library** — use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo slideshow, or Full-screen photo module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
+- **As a rotation source**: deselect any module, open the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
+- **Importing into your library**: use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo slideshow, or Full-screen photo module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
 
 ## Google Photos
 
-Google no longer lets apps read your photo library directly, but it does let you hand-pick photos to share — so Home Screens brings them in as an import. You choose photos in Google Photos itself, and they download into your library's `google-photos` folder as ordinary local files. After that, no Google connection is needed to display them: they keep working even if you disconnect. Re-running an import only downloads photos you haven't imported before.
+Google no longer lets apps read your photo library directly, but it does let you hand-pick photos to share, so Home Screens brings them in as an import. You choose photos in Google Photos itself, and they download into your library's `google-photos` folder as ordinary local files. After that, no Google connection is needed to display them: they keep working even if you disconnect. Re-running an import only downloads photos you haven't imported before.
 
 ### One-time setup
 
@@ -168,10 +168,10 @@ The redirect page at homescreens.dev is just a message board: after you approve 
 
 1. Select a Photo slideshow or Full-screen photo module and click **Import from Google Photos** (under the folder picker)
 2. The first time, click **Sign in with Google**, approve access, and paste the code you're given
-3. Click **Choose photos** — Google Photos opens with its own photo picker
+3. Click **Choose photos**: Google Photos opens with its own photo picker
 4. Pick the photos you want and confirm; the import starts on its own and shows progress as it saves
 
-When it finishes, the module automatically points at the `google-photos` folder. To add more photos later, run the import again and pick more — existing photos are skipped, new ones are added.
+When it finishes, the module automatically points at the `google-photos` folder. To add more photos later, run the import again and pick more, existing photos are skipped, new ones are added.
 
 Photos are saved as high-quality display-sized copies (up to 4096 pixels on the long edge), which keeps imports fast and light on the SD card. Imports are capped at 2000 photos at a time.
 
@@ -207,7 +207,7 @@ Unsplash, NASA, and Immich appear in the Source list only once their key is save
 
 ### How it works
 
-The display client polls the server every 60 seconds. The server maintains a cache (`data/background-cache.json`) that tracks when each screen last fetched a new background. When the configured interval has elapsed, the server fetches a new image from the selected source, saves it locally, and returns the new path.
+Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi fetches one from the source you picked, saves it into the library, and the wall switches to it.
 
 - **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
 - **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
@@ -218,11 +218,11 @@ If a fetch fails (network error, API limit), the previous background is kept unt
 
 ### Housekeeping
 
-Rotated images are saved into `public/backgrounds/` with a `rotation-` prefix, and tidied up automatically after each rotation: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and iCloud imports are never touched. If you see a rotated photo you want to keep for good, download it and upload it again as a regular background.
+Rotated images are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched. If a rotated photo is one you want to keep, pick it as a fixed background and it stays.
 
 ### Rotation and manual backgrounds
 
-When rotation is enabled, it overrides the static `backgroundImage` setting. If you manually select a new background (from Local, Unsplash browse, or NASA browse), rotation is automatically disabled for that screen so your choice is preserved.
+While rotation is on it replaces whatever fixed background the screen had. Picking a new background by hand (from Local, Unsplash or NASA) switches rotation off for that screen so your choice stays.
 
 ---
 
@@ -240,7 +240,7 @@ When rotation is enabled, it overrides the static `backgroundImage` setting. If 
 
 ### Recommended dimensions
 
-The display defaults to **1080 x 1920** pixels (portrait). For best results, use images that match or exceed your configured display resolution. Images are scaled with `cover` sizing, so landscape images will be cropped to fill a portrait display.
+The display defaults to **1080 x 1920** pixels (portrait). For best results, use images that match or exceed your display's resolution. Images are scaled to fill the screen, so a landscape image is cropped at the sides on a portrait display.
 
 | Display | Recommended Image Size |
 |---|---|
@@ -253,12 +253,8 @@ Portrait-oriented images work best for the default portrait display layout. Unsp
 
 ---
 
-## Background configuration in JSON
+## Next steps
 
-Backgrounds are stored per-screen on the `Screen` object: `backgroundImage` for a static image and `backgroundRotation` for the rotation settings. Field-by-field types are in the [Configuration reference](/docs/configuration#screen).
-
----
-
-## API reference
-
-Every backgrounds, Unsplash, and NASA endpoint is documented under [Backgrounds](/docs/api#backgrounds) in the API reference.
+- [Modules](/docs/modules#media-and-display): the Photo Slideshow and Full-Screen Photo Viewer
+- [On your phone](/docs/remote-control): uploading photos from the family remote
+- For developers: the per-screen fields are in the [Configuration reference](/docs/configuration#screen) and the endpoints under [Backgrounds](/docs/api#backgrounds) in the API reference

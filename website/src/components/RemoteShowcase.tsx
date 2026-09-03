@@ -1,10 +1,11 @@
 'use client';
 
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
+import { motion } from 'framer-motion';
 import { Smartphone, ClipboardCheck, UtensilsCrossed, SlidersHorizontal } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
+import shots from '../../public/images/docs/manifest.json';
 
 const features = [
   {
@@ -27,35 +28,20 @@ const features = [
   },
 ];
 
+// Renders from `npm run docs:shots` in the main repo: the same three tabs the
+// docs show, so the homepage never lags behind the app.
 const phones = [
-  {
-    src: '/images/remote-control.jpg',
-    alt: 'Remote control interface with screen navigation, brightness slider, and profile switching',
-    width: 347,
-    height: 750,
-    rotate: -6,
-    z: 1,
-  },
-  {
-    src: '/images/remote-chores.jpg',
-    alt: 'Chores tab showing family member progress and daily task checklist',
-    width: 338,
-    height: 750,
-    rotate: 0,
-    z: 3,
-  },
-  {
-    src: '/images/remote-meals.jpg',
-    alt: 'Meals tab showing weekly meal plan with emoji and prep times',
-    width: 354,
-    height: 750,
-    rotate: 6,
-    z: 2,
-  },
-];
+  { name: 'remote-control', rotate: -6, z: 1 },
+  { name: 'remote-chores', rotate: 0, z: 3 },
+  { name: 'remote-meals', rotate: 6, z: 2 },
+].map(({ name, rotate, z }) => {
+  const shot = shots[name as keyof typeof shots];
+  return { src: `/images/docs/${name}.jpg`, webp: `/images/docs/${name}.webp`, alt: shot.alt, width: shot.width, height: shot.height, rotate, z };
+});
 
 function PhoneFrame({
   src,
+  webp,
   alt,
   width,
   height,
@@ -64,6 +50,7 @@ function PhoneFrame({
   delay,
 }: {
   src: string;
+  webp: string;
   alt: string;
   width: number;
   height: number;
@@ -102,7 +89,7 @@ function PhoneFrame({
           {/* Notch */}
           <div className="absolute top-0 left-1/2 z-10 h-[14px] w-[60px] -translate-x-1/2 rounded-b-xl bg-black" />
           <picture>
-            <source srcSet={src.replace('.jpg', '.webp')} type="image/webp" />
+            <source srcSet={webp} type="image/webp" />
             <img
               src={src}
               alt={alt}
@@ -126,18 +113,10 @@ function PhoneFrame({
 }
 
 export function RemoteShowcase() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
   return (
     <section className="py-24 overflow-hidden">
       <Container>
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5 }}
-        >
+        <Reveal y={0} margin="-80px">
           {/* Header */}
           <div className="text-center">
             <SectionHeader
@@ -175,12 +154,9 @@ export function RemoteShowcase() {
           {/* Feature callouts */}
           <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {features.map(({ icon: Icon, title, description }, i) => (
-              <motion.div
+              <Reveal
                 key={title}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
+                delay={i * 0.08}
                 className="rounded-xl border border-[#222] bg-[#161616] p-5"
               >
                 <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg border border-[#222] bg-[#0a0a0a]">
@@ -190,10 +166,10 @@ export function RemoteShowcase() {
                 <p className="mt-1 text-sm leading-relaxed text-neutral-500">
                   {description}
                 </p>
-              </motion.div>
+              </Reveal>
             ))}
           </div>
-        </motion.div>
+        </Reveal>
       </Container>
     </section>
   );

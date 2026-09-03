@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -12,7 +10,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { motion } from 'framer-motion';
+import { Reveal } from '@/components/Reveal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Container } from '@/components/Container';
@@ -100,12 +98,7 @@ export function Changelog({
         <div className="absolute top-1/2 left-1/2 -z-10 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/[0.04] blur-3xl" />
 
         <Container>
-          <motion.div
-            className="mx-auto max-w-3xl text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          <Reveal className="mx-auto max-w-3xl text-center" y={20} immediate>
             <Badge color="cyan" className="mb-6">
               Changelog
             </Badge>
@@ -125,7 +118,7 @@ export function Changelog({
               </Button>
               <Button href="/docs/getting-started">Try Home Screens</Button>
             </div>
-          </motion.div>
+          </Reveal>
         </Container>
       </section>
 
@@ -170,15 +163,8 @@ export function Changelog({
               {/* Release cards */}
               <div className="space-y-8">
                 {entries.map((entry, entryIdx) => (
-                  <motion.article
-                    key={entry.tag}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{
-                      duration: 0.4,
-                      delay: Math.min(entryIdx * 0.06, 0.18),
-                    }}
+                  <Reveal key={entry.tag} y={16} margin="-80px" delay={Math.min(entryIdx * 0.06, 0.18)}>
+                  <article
                     id={entry.tag}
                     className="scroll-mt-24 rounded-2xl border border-[#222] bg-[#0f0f0f] p-6 sm:p-8"
                     aria-labelledby={`release-${entry.version}`}
@@ -255,7 +241,8 @@ export function Changelog({
                         },
                       )}
                     </div>
-                  </motion.article>
+                  </article>
+                  </Reveal>
                 ))}
               </div>
 

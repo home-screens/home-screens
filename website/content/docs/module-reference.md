@@ -3,12 +3,12 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 44 built-in Home Screens modules — clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 44 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
 
-Exhaustive per-module option tables for every built-in module. If you're new to the module system, start with the [Modules guide](/docs/modules) — this page assumes you already know which module you want and are looking for the exact field names.
+Exhaustive per-module option tables for every built-in module. If you're new to the module system, start with the [Modules guide](/docs/modules), this page assumes you already know which module you want and are looking for the exact field names.
 
 Home Screens includes {% $stats.moduleCount %} built-in modules organized into {% $stats.categoryCount %} categories. Each module can be dragged onto the canvas from the module palette in the editor.
 
@@ -18,7 +18,7 @@ Where a module has a `refreshIntervalMs` option, its default comes from that mod
 
 ## Full Screen
 
-These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag — position, size, and style controls are hidden in the editor since the module always occupies the full display area.
+These modules are designed to fill the entire display as ambient, always-on screens. They use the `fillsCanvas` flag, position, size, and style controls are hidden in the editor since the module always occupies the full display area.
 
 **Themes:** all five full-screen modules share one `theme` field with twelve color palettes: `linen`, `paper`, `mist`, `sandstone`, `vellum`, and `bloom` (light), `charcoal`, `midnight`, `slate`, `aurora`, `obsidian`, and `horizon` (dark). Leave `theme` unset to inherit the display-wide default from **Settings > Screen** (`fullscreenTheme`). Anything that isn't one of the twelve ids falls back to Linen.
 
@@ -28,25 +28,25 @@ The older `darkMode` boolean on Full-Screen Calendar and Full-Screen Chore Chart
 
 ### Full-Screen Calendar
 
-A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Pulls from any iCal feed, Google Calendar (via iCal URL or OAuth), or iCloud (app-specific password) — see [Calendar setup](/docs/getting-started#calendar-setup).
+A fullscreen ambient calendar display inspired by Skylight, designed to fill the entire screen. Automatically sizes to the display dimensions and pins to position (0,0). Pulls from any iCal feed, Google Calendar (via iCal URL or OAuth), or iCloud (app-specific password), see [Calendar setup](/docs/calendars).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, or `free-time` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | — | Accent color for event indicators and highlights. Leave empty to follow the theme's own accent; set a color to pin it |
+| `accentColor` | string |, | Accent color for event indicators and highlights. Leave empty to follow the theme's own accent; set a color to pin it |
 | `dimPastEvents` | boolean | `true` | Reduce opacity of past events |
 | `shadeWeekends` | boolean | `true` | Subtle background tint on weekend columns/rows |
 | `weatherPlacement` | string | `"header"` | Where weather appears: `off`, `header` (temperature pill at the top), `days` (daily forecast on day headers), `events` (forecast for each event's start time), or `days-and-events`. Day placement renders in the schedule, week list, and agenda views; event placement in week list and agenda. Views without that surface fall back to the header pill, so weather never disappears when switching views |
-| `showWeather` | boolean | — | Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header` |
+| `showWeather` | boolean |, | Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header` |
 | `showNowLine` | boolean | `true` | Show a line indicating the current time |
 | `showCountdown` | boolean | `false` | Week list and agenda views: show a "in 2 hours" style countdown next to upcoming events |
 | `countdownAllDay` | boolean | `false` | Also show day countdowns on all-day events (off by default so "in 0 days" noise never appears) |
 | `showProgressBar` | boolean | `false` | Week list and agenda views: show a progress bar on events happening right now |
-| `emptyDayText` | string | — | Custom wording for days with no events (for example "Free day!"); empty = the standard message |
-| `sourceFilter` | array | — | Calendar source IDs to display (empty = all) |
-| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
+| `emptyDayText` | string |, | Custom wording for days with no events (for example "Free day!"); empty = the standard message |
+| `sourceFilter` | array |, | Calendar source IDs to display (empty = all) |
+| `theme` | string |, | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `false` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `todayHighlightStyle` | string | `"full"` | How strongly today is highlighted: `full` (accent-tinted fill), `subtle` (faint background), `minimal` (marker only), or `off` |
 | `eventOverlap` | string | `"columns"` | How overlapping events are laid out in schedule and day timeline views: `columns` (side-by-side, with a "+N" indicator when events don't fit) or `stacked` (cascading overlap) |
@@ -83,23 +83,23 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `agendaShowFinishedToday` | boolean | `false` | Agenda view keeps events that already ended today on the list (dimmed) until midnight instead of dropping them as they end |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title in agenda view |
 | `agendaSeparators` | string | `"none"` | Boundary markers in agenda view: `none`, `weeks` (a "Week of" rule at each week start), or `weeks-and-months` (plus a month divider; the month marker wins when both land on the same day) |
-| `titleFilter` | object | — | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
+| `titleFilter` | object |, | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
 | `showLegend` | string | `"off"` | A color key naming each calendar the module is showing: `off`, `header`, or `footer` |
-| `eventRules` | array | — | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
-| `dayRules` | array | — | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
+| `eventRules` | array |, | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
+| `dayRules` | array |, | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
 
 In the schedule and day timeline views, descriptions only draw when the event block is tall enough to fit them, so short events show the title alone even with the toggle on.
 
 **View details:**
 
-- **schedule** — Multi-day time grid with events positioned by start/end time. Shows a "now" line and supports configurable hour range.
-- **week-list** — Day-by-day vertical list of the current week's events with collapsible past days.
-- **month-grid** — Traditional month calendar grid with event dots/names in each cell and today highlighted.
-- **day-timeline** — Single-day vertical timeline with event blocks, location details, and hour markers.
-- **agenda** — Scrollable list of upcoming events across multiple days, grouped by date.
-- **family-grid** — People as rows, the week as columns. Each person set up under **Settings > Calendar > People** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
-- **up-next** — The next event, big: title, time, place, countdown (or progress while it is running), then short lists for later today, earlier today, and tomorrow.
-- **free-time** — One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
+- **schedule**: Multi-day time grid with events positioned by start/end time. Shows a "now" line and supports configurable hour range.
+- **week-list**: Day-by-day vertical list of the current week's events with collapsible past days.
+- **month-grid**: Traditional month calendar grid with event dots/names in each cell and today highlighted.
+- **day-timeline**: Single-day vertical timeline with event blocks, location details, and hour markers.
+- **agenda**: Scrollable list of upcoming events across multiple days, grouped by date.
+- **family-grid**: People as rows, the week as columns. Each person set up under **Settings > Calendar > People** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
+- **up-next**: The next event, big: title, time, place, countdown (or progress while it is running), then short lists for later today, earlier today, and tomorrow.
+- **free-time**: One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
 
 **People:** the family grid and free time views read the household list under **Settings > Calendar > People**: a name, a color, and which calendars belong to each person. A calendar picked for nobody is shared.
 
@@ -117,16 +117,16 @@ A fullscreen ambient chore chart display designed to fill the entire screen. Rea
 | `showStreaks` | boolean | `true` | Show completion streaks |
 | `showTimeOfDay` | boolean | `true` | Group chores by time of day (morning, afternoon, evening); by person, this only orders each person's chores |
 | `allowDisplayComplete` | boolean | `true` | Let anyone tap a chore on the display itself to mark it done |
-| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
+| `theme` | string |, | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `darkMode` | boolean | `true` | Superseded by `theme` (see above). Kept so older configurations still render |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | — | Accent color for highlights and active time-of-day. Leave empty to follow the theme's own accent; set a color to pin it |
+| `accentColor` | string |, | Accent color for highlights and active time-of-day. Leave empty to follow the theme's own accent; set a color to pin it |
 
 **Layout details:**
 
-- **Portrait** — Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking. By person, the chips give way to one section per person.
-- **Landscape** — Top bar with date and member chips, one column per time of day (or per person), and a horizontal star chart in the footer.
+- **Portrait**: Header with date and completion percentage, horizontal member chips with progress bars, stacked time-of-day bands (morning/afternoon/evening/anytime), and a star chart grid at the bottom for weekly tracking. By person, the chips give way to one section per person.
+- **Landscape**: Top bar with date and member chips, one column per time of day (or per person), and a horizontal star chart in the footer.
 - Only people with a chore today get a chip. Someone with chores on another day of the week is named in a "Day off" line under the chips; someone with no chores at all this week is left off the chart.
 
 **Rewards store view:**
@@ -142,23 +142,23 @@ A fullscreen ambient meal planner display that shows the weekly meal schedule at
 | `view` | string | `"week"` | Display style: `week`, `today`, `menu-board`, or `next-meal` |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
-| `accentColor` | string | — | Accent color for highlights. Leave empty to follow the theme's own accent; set a color to pin it |
+| `accentColor` | string |, | Accent color for highlights. Leave empty to follow the theme's own accent; set a color to pin it |
 | `showPrepTime` | boolean | `true` | Show prep time in minutes |
 | `showTags` | boolean | `true` | Show meal tags |
 | `showEmoji` | boolean | `true` | Show meal emoji |
 | `showDifficulty` | boolean | `false` | Show difficulty indicator |
-| `theme` | string | — | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
+| `theme` | string |, | One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen |
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 | `showTitle` | boolean | `true` | Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu") |
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json` — edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** stored in `data/meals.json`: edit them once under `/remote` > Meals > Settings and every meal-planner module on every display picks up the change. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it.
 
 **View details:**
 
-- **week** — Full 7-day grid with meal cards organized by slot, today highlighted.
-- **today** — Focused view of today's meals with large cards and details.
-- **menu-board** — Restaurant-style board layout for displaying the week's menu.
-- **next-meal** — Large display of the next upcoming meal with context label.
+- **week**: Full 7-day grid with meal cards organized by slot, today highlighted.
+- **today**: Focused view of today's meals with large cards and details.
+- **menu-board**: Restaurant-style board layout for displaying the week's menu.
+- **next-meal**: Large display of the next upcoming meal with context label.
 
 ### Full-Screen Weather
 
@@ -181,7 +181,7 @@ The temperature curve draws however many hours your source returns, and its head
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `view` | string | `"panorama"` | `panorama`, `almanac`, `ambient`, `week`, or `hourly` |
-| `theme` | string | — | Full-screen palette; unset inherits the display default |
+| `theme` | string |, | Full-screen palette; unset inherits the display default |
 | `skyLayer` | string | `"auto"` | `auto` tints the background by conditions, `off` uses the plain theme background |
 | `animateConditions` | boolean | `true` | Falling rain and snow. Turn off if the display stutters on older hardware |
 | `showNowcast` | boolean | `true` | Next-hour rain strip (Panorama, Pirate Weather only) |
@@ -190,8 +190,8 @@ The temperature curve draws however many hours your source returns, and its head
 | `showRibbon` | boolean | `true` | Temperature curve (Panorama) |
 | `showStatRail` | boolean | `true` | Bottom stats row (Panorama) |
 | `daysToShow` | number | `7` | Days in the outlook list, 3–7 (Panorama and Week ahead) |
-| `locationLabel` | string | — | Overrides the place name shown in the header |
-| `accentColor` | string | — | Leave empty to let the accent follow the weather (amber for clear, blue for rain, violet for storms); set a colour to pin it |
+| `locationLabel` | string |, | Overrides the place name shown in the header |
+| `accentColor` | string |, | Leave empty to let the accent follow the weather (amber for clear, blue for rain, violet for storms); set a colour to pin it |
 | `density` | string | `"snug"` | `cozy` or `snug`. Controls padding, gaps, and chart heights |
 | `typographySize` | string | `"medium"` | Text size. Scales type only, so the layout keeps its proportions |
 
@@ -199,11 +199,11 @@ The temperature curve draws however many hours your source returns, and its head
 
 A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, a OneDrive folder, or an iCloud shared album (with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
 
-The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label — nothing stores a "mode" setting on the module itself.
+The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label, nothing stores a "mode" setting on the module itself.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `file` | string | — | Path to a single pinned photo. When set, the viewer shows this image statically and ignores `directory`/`intervalMs`/`transition`/`shuffle`. Shows a "No photo selected" empty state until chosen |
+| `file` | string |, | Path to a single pinned photo. When set, the viewer shows this image statically and ignores `directory`/`intervalMs`/`transition`/`shuffle`. Shows a "No photo selected" empty state until chosen |
 | `directory` | string | `""` | Path to local photo directory (slideshow mode) |
 | `intervalMs` | number | `30000` | Time between photos in milliseconds |
 | `transition` | string | `"fade"` | Transition effect: `fade`, `slide`, `zoom`, or `none` |
@@ -211,21 +211,21 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 | `shuffle` | boolean | `false` | Randomize photo order |
 | `showClock` | boolean | `true` | Show clock overlay on photos |
 | `kenBurns` | boolean | `false` | Enable Ken Burns (slow pan/zoom) effect |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album — no keys needed) |
-| `immichAlbumId` | string | — | Filter to a specific Immich album |
-| `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed) |
+| `immichAlbumId` | string |, | Filter to a specific Immich album |
+| `immichPersonId` | string |, | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
-| `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
-| `onedriveFolderId` | string | — | OneDrive folder to pull photos from (OneDrive source) |
-| `onedriveFolderName` | string | — | Folder name as shown in the editor — display only, the ID above is authoritative |
+| `icloudAlbumUrl` | string |, | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
+| `onedriveFolderId` | string |, | OneDrive folder to pull photos from (OneDrive source) |
+| `onedriveFolderName` | string |, | Folder name as shown in the editor, display only, the ID above is authoritative |
 | `onedriveCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
-| `theme` | string | — | Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
+| `theme` | string |, | Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too |
 
 {% callout type="note" title="Immich source" %}
-The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive — selecting one clears the other.
+The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive, selecting one clears the other.
 {% /callout %}
 
 {% callout type="note" title="OneDrive source" %}
@@ -251,7 +251,7 @@ The News Headlines feeds on the whole canvas: one story at a time with its photo
 | `typographySize` | string | `"medium"` | `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string | `""` | Progress bar and pill colour; empty follows the theme |
 | `maxAgeHours`, `blockedWords`, `requiredWords`, `preserveOrder`, `tapAction` | | | Same as News Headlines |
-| `theme` | string | — | One of the shared full-screen palettes (see [Themes](#full-screen) above); unset inherits the display default |
+| `theme` | string |, | One of the shared full-screen palettes (see [Themes](#full-screen) above); unset inherits the display default |
 
 ---
 
@@ -300,29 +300,29 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
 | `gridTheme` | string | `"banner"` | Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
 | `gridDayLabelScale` | number | `1` | Week/multi-week/month grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell |
-| `sourceFilter` | array | — | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
+| `sourceFilter` | array |, | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |
 | `showCountdown` | boolean | `false` | Daily and agenda views: show a "in 2 hours" style countdown next to upcoming events |
 | `showProgressBar` | boolean | `false` | Daily and agenda views: show a progress bar on events happening right now |
-| `emptyDayText` | string | — | Daily view: custom wording for days with no events (for example "Free day!") |
+| `emptyDayText` | string |, | Daily view: custom wording for days with no events (for example "Free day!") |
 | `agendaSeparators` | string | `"none"` | Agenda view boundary markers: `none`, `weeks`, or `weeks-and-months` |
 | `agendaShowFinishedToday` | boolean | `false` | Agenda view keeps events that already ended today on the list (dimmed) until midnight, and an event that spans several days (a trip, a race weekend) groups under today while it's still running instead of under the day it started |
 | `accentColor` | string | `"#3b82f6"` | Event indicator bar and today highlights |
 | `eventTapDetails` | boolean | `false` | On touch displays, tap an event to open a detail panel with its time, location, and description |
 | `eventTapStyle` | string | `"sheet"` | How the event detail opens: `sheet` (slides up from the bottom) or `card` (centered card) |
-| `titleFilter` | object | — | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
+| `titleFilter` | object |, | Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter |
 | `showLegend` | string | `"off"` | A color key naming each calendar the module is showing: `off`, `header`, or `footer` |
-| `eventRules` | array | — | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
-| `dayRules` | array | — | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
+| `eventRules` | array |, | Restyle or hide individual events by what they match. See [Event and day rules](#event-and-day-rules) below |
+| `dayRules` | array |, | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
 | `dimPastEvents` | boolean | `false` | Daily view: fade events in today's column that have already ended. Deliberately different from the Full-Screen Calendar's same-named option, which fades whole past days and defaults on |
 | `showNowRule` | boolean | `false` | Daily view: a thin accent rule between today's finished and upcoming events |
 
-Configure sources in **Settings > Calendar** — see [Calendar setup](/docs/getting-started#calendar-setup). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
+Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calendars). Supports multiple calendars with color-coding (native colors when using Google OAuth; manual per-feed color when using iCal URLs).
 
-**Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color — the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time — in both styles.
+**Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color, the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time, in both styles.
 
-**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid — a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar — and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker.
+**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker.
 
 ### Countdown
 
@@ -335,7 +335,7 @@ Counts down to one or more future events with visual progress rings.
 | `showPastEvents` | boolean | `false` | Continue showing events after they pass |
 | `stayUntilEndOfDay` | boolean | `false` | Keep an event that has reached zero on screen until the end of that day, so a birthday or anniversary stays up all day instead of vanishing at midnight |
 | `scale` | number | `1` | Visual scale factor (0.5–5.2). View-independent: the same value renders the same size in every view |
-| `holidayCountry` | string | — | ISO country code to auto-populate holiday countdowns (e.g. `"US"`) |
+| `holidayCountry` | string |, | ISO country code to auto-populate holiday countdowns (e.g. `"US"`) |
 | `format` | string | `"flip"` | How the numbers render: `flip` (animated flip cards), or one of the Clock elapsed text styles: `units`, `unitsUpper`, `unitsShort`, `colon`, `words`, `wordsTitle` |
 | `precision` | string | `"auto"` | Which units are shown: `auto`, `days`, `daysHours`, `daysHoursMinutes`, or `daysHoursMinutesSeconds`. `auto` shows days only when there is at least one, and always shows hours, minutes, and seconds. |
 
@@ -385,11 +385,11 @@ A dedicated date display module with multiple visual layouts and optional metada
 
 **View details:**
 
-- **full** — Large centered day number with month name and optional day name.
-- **minimal** — Compact single-line format with custom date formatting.
-- **stacked** — Vertically stacked layout with decorative divider lines.
-- **editorial** — Horizontal layout with large day number on left and details on right.
-- **banner** — Horizontal all-caps banner with elements separated by bullets.
+- **full**: Large centered day number with month name and optional day name.
+- **minimal**: Compact single-line format with custom date formatting.
+- **stacked**: Vertically stacked layout with decorative divider lines.
+- **editorial**: Horizontal layout with large day number on left and details on right.
+- **banner**: Horizontal all-caps banner with elements separated by bullets.
 
 ---
 
@@ -425,19 +425,19 @@ Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), 
 | `showDewPoint` | boolean | `false` | Show dew point temperature |
 | `hideWhenNoAlerts` | boolean | `false` | Hide the alerts view when there are no active alerts |
 | `showLocation` | boolean | `false` | Show a place-name header above the view |
-| `locationLabel` | string | — | Custom text for the location header. Empty falls back to the geocoded place name, then to the formatted coordinates |
+| `locationLabel` | string |, | Custom text for the location header. Empty falls back to the geocoded place name, then to the formatted coordinates |
 | `showTitle` | boolean | `true` | Show the "Forecast" / "Hourly Forecast" heading (hourly, daily, and table views) |
 
 **View details:**
 
-- **current** — Large current temperature with conditions, high/low, and optional stats.
-- **hourly** — Horizontal scrolling hourly forecast.
-- **daily** — Multi-day forecast with high/low temperatures.
-- **combined** — Current conditions with hourly and daily sections in one view.
-- **compact** — Minimal current temperature and icon, fits small spaces.
-- **table** — Tabular hourly data with columns for each stat.
-- **precipitation** — Minute-by-minute precipitation chart for the next 60 minutes. Requires Pirate Weather provider for minutely data.
-- **alerts** — Active weather alerts with severity levels. Needs a provider that publishes alerts: **Pirate Weather** or **NOAA** (US only, no API key needed). Other providers return no alerts.
+- **current**: Large current temperature with conditions, high/low, and optional stats.
+- **hourly**: Horizontal scrolling hourly forecast.
+- **daily**: Multi-day forecast with high/low temperatures.
+- **combined**: Current conditions with hourly and daily sections in one view.
+- **compact**: Minimal current temperature and icon, fits small spaces.
+- **table**: Tabular hourly data with columns for each stat.
+- **precipitation**: Minute-by-minute precipitation chart for the next 60 minutes. Requires Pirate Weather provider for minutely data.
+- **alerts**: Active weather alerts with severity levels. Needs a provider that publishes alerts: **Pirate Weather** or **NOAA** (US only, no API key needed). Other providers return no alerts.
 
 ### Moon Phase
 
@@ -518,7 +518,7 @@ Feeds are a list. Each entry is `{ "id", "url", "label"?, "color"?, "homeNetwork
 | `requiredWords` | string | `""` | Comma or newline separated words; only stories mentioning one of them show |
 | `preserveOrder` | boolean | `false` | Keep each feed's own order instead of sorting newest first |
 | `tapAction` | string | `"qr"` | What a tap does on a touch display: `qr` (a code that opens the story on your phone), `details` (the summary, with a small code), or `none` |
-| `title` | string | — | Header text; unset shows "News" in the display language |
+| `title` | string |, | Header text; unset shows "News" in the display language |
 | `showHeader` | boolean | `true` | Show the header strip (headline, list, and cards views) |
 | `showSource` | boolean | `true` | Show the feed name next to each story |
 | `showTimestamp` | boolean | `false` | Show how long ago each story was published |
@@ -532,7 +532,7 @@ Feeds are a list. Each entry is `{ "id", "url", "label"?, "color"?, "homeNetwork
 | `cardColumns` | number | `2` | Columns in the cards view (1 to 3); rows are however many fit |
 | `tickerSpeed` | number | `5` | Seconds per story in the ticker view |
 | `tickerSeparator` | string | `"dot"` | Glyph between ticker stories: `dot`, `pipe`, or `slash` |
-| `accentColor` | string | — | List bullet, "Just in" pill, and new-story dot colour (optional) |
+| `accentColor` | string |, | List bullet, "Just in" pill, and new-story dot colour (optional) |
 | `showTitle` | boolean | `true` | Show the built-in header (headline and list views) |
 
 ### Stock Ticker
@@ -595,9 +595,9 @@ League standings from the ESPN standings API with team logos and colors. Support
 
 **View details:**
 
-- **table** — Full standings table with W-L record, winning percentage, games back, streak, and more. Rotates through groups automatically.
-- **compact** — Condensed single-column layout showing team logo, abbreviation, and record. Rotates through groups.
-- **conference** — Side-by-side conference view showing two groups simultaneously with team rankings.
+- **table**: Full standings table with W-L record, winning percentage, games back, streak, and more. Rotates through groups automatically.
+- **compact**: Condensed single-column layout showing team logo, abbreviation, and record. Rotates through groups.
+- **conference**: Side-by-side conference view showing two groups simultaneously with team rankings.
 
 ---
 
@@ -633,7 +633,7 @@ Displays a vocabulary word with its part of speech and definition. Words come fr
 
 ### This Day in History
 
-Historical events that happened on today's date. Fetches from two data sources — Wikipedia "On This Day" and MuffinLabs — in parallel, deduplicates by year (preferring Wikipedia's richer text), and shuffles. Each source degrades gracefully if the other fails. Both sources return English text (the Wikipedia feed this module uses is English-only), and each contributes up to 10 events per day.
+Historical events that happened on today's date. Fetches from two data sources, Wikipedia "On This Day" and MuffinLabs, in parallel, deduplicates by year (preferring Wikipedia's richer text), and shuffles. Each source degrades gracefully if the other fails. Both sources return English text (the Wikipedia feed this module uses is English-only), and each contributes up to 10 events per day.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -689,9 +689,9 @@ Requires a Todoist API token in settings. Markdown formatting in task content an
 
 **View details:**
 
-- **list** — Grouped task list with priority bars, due date badges, project/label metadata, and subtask nesting.
-- **board** — Kanban-style columns (up to 3) grouped by the selected `groupBy` option.
-- **focus** — Shows only today's and overdue tasks with a count of remaining items.
+- **list**: Grouped task list with priority bars, due date badges, project/label metadata, and subtask nesting.
+- **board**: Kanban-style columns (up to 3) grouped by the selected `groupBy` option.
+- **focus**: Shows only today's and overdue tasks with a count of remaining items.
 
 ### Sticky Note
 
@@ -710,7 +710,7 @@ Displays a time-aware greeting (Good morning/afternoon/evening). When weather-aw
 |---|---|---|---|
 | `name` | string | `"Friend"` | Name to greet (e.g. "Good morning, Bryan") |
 | `accentColor` | string | `"#000000"` | Accent color for the greeting text |
-| `weatherAware` | boolean | `true` | Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it had before the event bus. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Greeting config section if location is missing. |
+| `weatherAware` | boolean | `true` | Show a contextual weather subtitle beneath the greeting. Set to `false` to keep the behavior it had before the event bus. Requires latitude/longitude configured in Settings > Weather, the editor surfaces a hint in the Greeting config section if location is missing. |
 
 ### Garbage Day
 
@@ -747,16 +747,16 @@ Displays rotating positive affirmations with multiple visual styles. Time-aware 
 | `rotationIntervalMs` | number | `15000` | How often to rotate to the next affirmation (15 sec) |
 | `showCategoryLabel` | boolean | `false` | Show the category label below the affirmation |
 | `timeAware` | boolean | `true` | Select affirmations based on time of day, day of week, and season |
-| `weatherAware` | boolean | `true` | Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Only takes effect while **Time-aware** is on, since the weather boost is part of the same scoring pass. Requires latitude/longitude configured in Settings > Weather — the editor surfaces a hint in the Affirmations config section if location is missing. |
+| `weatherAware` | boolean | `true` | Give entries tagged with a matching weather condition a +2 score boost. Non-matching entries are never hidden. Only takes effect while **Time-aware** is on, since the weather boost is part of the same scoring pass. Requires latitude/longitude configured in Settings > Weather, the editor surfaces a hint in the Affirmations config section if location is missing. |
 | `customEntries` | array | `[]` | Custom affirmations, each with `id`, `text`, and optional `attribution` |
 | `accentColor` | string | `"#a78bfa"` | Accent color for card/typewriter views |
 
 **View details:**
 
-- **elegant** — Large centered text with a subtle gradient backdrop.
-- **card** — Rounded card with accent-colored left border.
-- **minimal** — Simple text with no decoration.
-- **typewriter** — Typewriter-style animation that types out each affirmation.
+- **elegant**: Large centered text with a subtle gradient backdrop.
+- **card**: Rounded card with accent-colored left border.
+- **minimal**: Simple text with no decoration.
+- **typewriter**: Typewriter-style animation that types out each affirmation.
 
 ### Meal Planner
 
@@ -772,17 +772,17 @@ A meal planning module for organizing daily meals across configurable slots (bre
 | `tapRecipeAction` | string | `"off"` | What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page) |
 | `showTitle` | boolean | `true` | Show the "Today's Meals" label in the today view |
 
-**Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding — the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
+**Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding, the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
 
-Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings — every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
+Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings, every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
 **View details:**
 
-- **week** — Grid showing all 7 days and meal slots at a glance with today highlighted.
-- **today** — Vertical stack of slot cards for today with active slot highlighted.
-- **next-meal** — Large display of the next upcoming meal with context label (Now/Coming Up/Tomorrow).
-- **compact** — Two-column layout showing Today and Tomorrow side-by-side.
-- **list** — Full week listed vertically with day headers, showing only days with meals.
+- **week**: Grid showing all 7 days and meal slots at a glance with today highlighted.
+- **today**: Vertical stack of slot cards for today with active slot highlighted.
+- **next-meal**: Large display of the next upcoming meal with context label (Now/Coming Up/Tomorrow).
+- **compact**: Two-column layout showing Today and Tomorrow side-by-side.
+- **list**: Full week listed vertically with day headers, showing only days with meals.
 
 ### Chore Chart
 
@@ -803,22 +803,22 @@ A chore tracking module for families or housemates. Assign chores to members wit
 
 **View details:**
 
-- **board** — Kanban-style board grouping chores by status or member.
-- **star-chart** — Kid-friendly star chart showing earned tickets per member.
-- **today** — Today's chores only, grouped by time of day.
-- **progress** — Progress bars showing completion rates per member.
-- **compact** — Condensed view for small module sizes.
+- **board**: Kanban-style board grouping chores by status or member.
+- **star-chart**: Kid-friendly star chart showing earned tickets per member.
+- **today**: Today's chores only, grouped by time of day.
+- **progress**: Progress bars showing completion rates per member.
+- **compact**: Condensed view for small module sizes.
 
 **Rotation modes:**
 
 Each chore has a `rotation` field that controls how the `assigneeIds` list is resolved each day.
 
-- **fixed** — Everyone in `assigneeIds` is responsible for the chore every time it appears. Use this for chores a single person always owns.
-- **rotate-daily** — Cycles through `assigneeIds` one day at a time, so Alice handles it today, Bob handles it tomorrow, and so on.
-- **rotate-weekly** — Same as daily rotation but the handoff happens at the start of each week.
-- **schedule** — Per-day assignment via a `schedule` map of `memberId → number[]` (days-of-week, 0 = Sunday through 6 = Saturday). Lets you say "Alice on Mon/Wed, Bob on Tue/Thu, everyone on Fri–Sun" without creating separate chores. The editor and the remote both render a weekly grid UI for editing the schedule, and any day not covered by the schedule simply has no one assigned. A chore in schedule mode also shows a small **(schedule)** label in the board when resolved to a single assignee, so you can tell it apart from a fixed one-person chore at a glance.
+- **fixed**: Everyone in `assigneeIds` is responsible for the chore every time it appears. Use this for chores a single person always owns.
+- **rotate-daily**: Cycles through `assigneeIds` one day at a time, so Alice handles it today, Bob handles it tomorrow, and so on.
+- **rotate-weekly**: Same as daily rotation but the handoff happens at the start of each week.
+- **schedule**: Per-day assignment via a `schedule` map of `memberId → number[]` (days-of-week, 0 = Sunday through 6 = Saturday). Lets you say "Alice on Mon/Wed, Bob on Tue/Thu, everyone on Fri–Sun" without creating separate chores. The editor and the remote both render a weekly grid UI for editing the schedule, and any day not covered by the schedule simply has no one assigned. A chore in schedule mode also shows a small **(schedule)** label in the board when resolved to a single assignee, so you can tell it apart from a fixed one-person chore at a glance.
 
-Chore ticket values can be any non-negative integer — `0` is allowed and is useful for tracking routines that do not earn rewards.
+Chore ticket values can be any non-negative integer, `0` is allowed and is useful for tracking routines that do not earn rewards.
 
 ---
 
@@ -846,7 +846,7 @@ Rich text block with multiple display modes, effects, and styling options.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `fontFamily` | string | — | Font registry id overriding the module's Style font (see [Module Styling](#module-styling) for the list). Unset = use the Style font |
+| `fontFamily` | string |, | Font registry id overriding the module's Style font (see [Module Styling](#module-styling) for the list). Unset = use the Style font |
 | `italic` | boolean | `false` | Italicize the text |
 | `lineHeight` | number | `1.2` | Line height as a multiple of the font size |
 | `letterSpacing` | number | `0` | Letter spacing in pixels |
@@ -891,8 +891,8 @@ Rich text block with multiple display modes, effects, and styling options.
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `dropCap` | boolean | `false` | Enlarge the first letter as a drop cap |
-| `dropCapColor` | string | — | Drop cap color (falls back to `accentColor`, then the text color) |
-| `textBackground` | string | — | Color drawn directly behind the glyphs, separate from the module's own background |
+| `dropCapColor` | string |, | Drop cap color (falls back to `accentColor`, then the text color) |
+| `textBackground` | string |, | Color drawn directly behind the glyphs, separate from the module's own background |
 | `textBackgroundPadding` | number | `4` | Padding around that background in pixels |
 | `textBackgroundRadius` | number | `4` | Corner rounding of that background in pixels |
 | `showDividers` | boolean | `false` | Show decorative divider lines above and below the text |
@@ -900,24 +900,24 @@ Rich text block with multiple display modes, effects, and styling options.
 | `templateVariables` | boolean | `false` | Enable dynamic variables like `{{time}}` and `{{date}}` (see below) |
 
 **Text effects:**
-- **typewriter** — Types out the text character by character
-- **fade-in** — Fades the text in smoothly
-- **gradient-sweep** — Animated gradient sweep across the text
-- **glow** — Pulsing glow effect
-- **outline** — Hollow, stroked letters
-- **shadow** — Offset drop shadow behind the letters
-- **3d** — Layered letters for a raised, extruded look
-- **neon** — Neon-tube style glow with a bright core
-- **wave** — Letters ripple up and down one after another
-- **bounce** — Letters bounce in sequence
-- **shake** — Letters jitter in place
-- **color-cycle** — Letters cycle through `colorCyclePalette`
+- **typewriter**: Types out the text character by character
+- **fade-in**: Fades the text in smoothly
+- **gradient-sweep**: Animated gradient sweep across the text
+- **glow**: Pulsing glow effect
+- **outline**: Hollow, stroked letters
+- **shadow**: Offset drop shadow behind the letters
+- **3d**: Layered letters for a raised, extruded look
+- **neon**: Neon-tube style glow with a bright core
+- **wave**: Letters ripple up and down one after another
+- **bounce**: Letters bounce in sequence
+- **shake**: Letters jitter in place
+- **color-cycle**: Letters cycle through `colorCyclePalette`
 
 **Template variables:** When enabled, seven placeholders are replaced with live data: `{{time}}` (24-hour), `{{time12}}` (12-hour), `{{date}}`, `{{day}}` (weekday name), `{{month}}`, `{{year}}`, and `{{greeting}}`. Anything else stays on screen exactly as typed, so watch the spelling: it is `{{day}}`, not `{{dayOfWeek}}`. The greeting words are currently English only.
 
-**Shared-state tokens:** Single-brace `{<key>}` (separate from the double-brace template variables above) inserts a live value published by an add-on, e.g. `{plugin:ha:sensor.temp}`. Add a filter after a `|` to format it: `|round:1` rounds a numeric value to a set number of decimal places, and `|default:TEXT` supplies placeholder text for a key that hasn't published a value yet — e.g. `{plugin:ha:sensor.temp|round:1|default:n/a}`. Unknown keys render as an en dash with no filter.
+**Shared-state tokens:** Single-brace `{<key>}` (separate from the double-brace template variables above) inserts a live value published by an add-on, e.g. `{plugin:ha:sensor.temp}`. Add a filter after a `|` to format it: `|round:1` rounds a numeric value to a set number of decimal places, and `|default:TEXT` supplies placeholder text for a key that hasn't published a value yet, e.g. `{plugin:ha:sensor.temp|round:1|default:n/a}`. Unknown keys render as an en dash with no filter.
 
-**Content rotation:** Split content by a separator (default `---`) and rotate through the chunks at a set interval — useful for rotating quotes, tips, or announcements.
+**Content rotation:** Split content by a separator (default `---`) and rotate through the chunks at a set interval, useful for rotating quotes, tips, or announcements.
 
 ### Image
 
@@ -931,29 +931,29 @@ Displays a static image.
 
 ### Video
 
-Plays a video clip — a file from your media library, a direct video URL, or a YouTube link. In the editor the module shows a still frame with a play badge; the video only plays on the actual display.
+Plays a video clip, a file from your media library, a direct video URL, or a YouTube link. In the editor the module shows a still frame with a play badge; the video only plays on the actual display.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `source` | string | `"file"` | Where the video comes from: `file` (media library) or `url` (direct link or YouTube) |
-| `file` | string | — | Path to a video in the media library (file source) |
-| `url` | string | — | Direct link to an MP4/WebM video, or any YouTube link (url source) |
+| `file` | string |, | Path to a video in the media library (file source) |
+| `url` | string |, | Direct link to an MP4/WebM video, or any YouTube link (url source) |
 | `objectFit` | string | `"cover"` | How the video fills the container: `cover`, `contain`, or `fill` |
 | `muted` | boolean | `true` | Keep the video silent. Turning sound on also needs the display's autoplay setting (see below) |
 | `loop` | boolean | `true` | Start the video over when it ends |
-| `maxDurationMs` | number | — | Stop playing after this many milliseconds (0 or unset = keep playing) |
+| `maxDurationMs` | number |, | Stop playing after this many milliseconds (0 or unset = keep playing) |
 
 {% callout type="note" title="Best format for Raspberry Pi" %}
-MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4 — if a clip shows a black box, convert it to MP4 (H.264) first. If a video fails to load or stalls, playback stops cleanly instead of freezing the screen, and in a photo slideshow the show advances to the next slide.
+MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone recordings (`.mov` files with HEVC) may not play on a Pi 4, if a clip shows a black box, convert it to MP4 (H.264) first. If a video fails to load or stalls, playback stops cleanly instead of freezing the screen, and in a photo slideshow the show advances to the next slide.
 {% /callout %}
 
 **Sound:** Videos are silent by default. To play sound, turn on the module's sound toggle. Sound also needs a setting on the display itself, which every install and upgrade turns on automatically. If sound stays off on an older Pi, re-run the upgrade.
 
-**YouTube links:** Paste any YouTube link (`youtube.com/watch`, `youtu.be`, or a Short) into the URL field and the module plays it with YouTube's own player — autoplaying, without on-screen controls, using the privacy-friendly no-cookie player. The sound and repeat toggles work; the time limit doesn't apply (YouTube controls its own playback). Needs internet access on the display, and the video must allow embedding.
+**YouTube links:** Paste any YouTube link (`youtube.com/watch`, `youtu.be`, or a Short) into the URL field and the module plays it with YouTube's own player, autoplaying, without on-screen controls, using the privacy-friendly no-cookie player. The sound and repeat toggles work; the time limit doesn't apply (YouTube controls its own playback). Needs internet access on the display, and the video must allow embedding.
 
 ### Photo Slideshow
 
-Rotates through images from a local directory, an Immich photo library, a OneDrive folder, or an iCloud shared album. Can mix in videos from the same source — videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library — see [Google Photos](/docs/backgrounds#google-photos).
+Rotates through images from a local directory, an Immich photo library, a OneDrive folder, or an iCloud shared album. Can mix in videos from the same source, videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library, see [Google Photos](/docs/backgrounds#google-photos).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -962,21 +962,21 @@ Rotates through images from a local directory, an Immich photo library, a OneDri
 | `transition` | string | `"fade"` | Transition effect: `fade` or `none` |
 | `objectFit` | string | `"cover"` | Image fit mode |
 | `refreshIntervalMs` | number | `600000` | How often to re-scan the directory for new images (10 min) |
-| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album — no keys needed) |
-| `immichAlbumId` | string | — | Filter to a specific Immich album |
-| `immichPersonId` | string | — | Filter to a recognized person (face) in Immich |
+| `source` | string | `"local"` | Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed) |
+| `immichAlbumId` | string |, | Filter to a specific Immich album |
+| `immichPersonId` | string |, | Filter to a recognized person (face) in Immich |
 | `immichFavoritesOnly` | boolean | `false` | Only show photos marked as favorites in Immich |
 | `immichCount` | number | `50` | Number of photos to load per refresh (10–200) |
-| `icloudAlbumUrl` | string | — | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
-| `onedriveFolderId` | string | — | OneDrive folder to pull photos from (OneDrive source) |
-| `onedriveFolderName` | string | — | Folder name as shown in the editor — display only, the ID above is authoritative |
+| `icloudAlbumUrl` | string |, | iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source) |
+| `onedriveFolderId` | string |, | OneDrive folder to pull photos from (OneDrive source) |
+| `onedriveFolderName` | string |, | Folder name as shown in the editor, display only, the ID above is authoritative |
 | `onedriveCount` | number | `50` | Number of photos to load per refresh (10–200) |
 | `mediaTypes` | string | `"photos"` | What to show: `photos`, `videos`, or `both` |
 | `maxVideoDurationMs` | number | `60000` | Longest a video slide can play before moving on (60 sec) |
 
 When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
 
-When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed — the display loads photos straight from Apple's servers. The album must have a public website link enabled.
+When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed, the display loads photos straight from Apple's servers. The album must have a public website link enabled.
 
 When using OneDrive as the source, the module signs in to your Microsoft account once with a short code, and then you pick a folder. That folder's photos feed the slideshow, subfolders included. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
@@ -1017,7 +1017,7 @@ Embeds any web page or dashboard. Acts as a universal adapter for Home Assistant
 
 **Note:** Some websites (e.g. YouTube, Yahoo Finance, Twitter) set `frame-ancestors` or `X-Frame-Options` headers that prevent embedding. Self-hosted services, published Google Docs/Sheets, and sites that explicitly support embedding will work.
 
-**Embedding video pages:** Pages that host a video player (a YouTube *embed* URL, a self-hosted stream page) can be shown through this module too. If the player doesn't start with sandbox enabled, the default sandbox permissions (`allow-scripts allow-forms allow-popups`) may need adjusting for that player — or turn the sandbox off. For plain video files, the dedicated **Video** module is simpler.
+**Embedding video pages:** Pages that host a video player (a YouTube *embed* URL, a self-hosted stream page) can be shown through this module too. If the player doesn't start with sandbox enabled, the default sandbox permissions (`allow-scripts allow-forms allow-popups`) may need adjusting for that player, or turn the sandbox off. For plain video files, the dedicated **Video** module is simpler.
 
 ### Icon
 
@@ -1036,11 +1036,11 @@ A single Font Awesome 7 glyph rendered at any size with color, rotation, flip, a
 | `scale` | number | `0.7` | Glyph size as a fraction of the smaller container dimension (`cqmin`). Ignored when `autoFit` is true |
 | `autoFit` | boolean | `true` | When true, locks `scale` to `0.85` so the glyph has a comfortable margin on all sides |
 
-**Note:** `style: 'regular'` only renders icons that ship in the regular outline set. If a chosen icon is not in the regular set the codepoint falls back to text — keep `style: 'solid'` unless you've confirmed the icon ships in `fa-regular-400`.
+**Note:** `style: 'regular'` only renders icons that ship in the regular outline set. If a chosen icon is not in the regular set the codepoint falls back to text, keep `style: 'solid'` unless you've confirmed the icon ships in `fa-regular-400`.
 
 ### Shape & Divider
 
-Decorative shapes and dividers for layout polish — the visual equivalent of a horizontal rule, a callout frame, or a star sticker. The `view` field switches between {% $stats.shapeViewCount %} distinct renderers; most options apply only to a subset of views (line variants vs. geometric vs. atmospheric vs. frame).
+Decorative shapes and dividers for layout polish, the visual equivalent of a horizontal rule, a callout frame, or a star sticker. The `view` field switches between {% $stats.shapeViewCount %} distinct renderers; most options apply only to a subset of views (line variants vs. geometric vs. atmospheric vs. frame).
 
 **Views:** `divider`, `double-line`, `wave`, `zigzag`, `dotted-row`, `rectangle`, `circle`, `triangle`, `polygon`, `star`, `arrow`, `glow`, `gradient`, `grid`, `frame`
 
@@ -1078,22 +1078,22 @@ Decorative shapes and dividers for layout polish — the visual equivalent of a 
 | `frameStyle` | `'rectangle' \| 'brackets'` | `"rectangle"` | Frame border style |
 | `bracketLength` | number | `25` | Bracket length as % of side length (5–50) when `frameStyle = "brackets"` |
 
-**Sizing:** Default size is 400×80, which gives a comfortable touch/grab target on the editor canvas. The visible glyph (e.g. a 2-px divider line) renders inside that box — the wrapper provides hit area, the line stays thin.
+**Sizing:** Default size is 400×80, which gives a comfortable touch/grab target on the editor canvas. The visible glyph (e.g. a 2-px divider line) renders inside that box, the wrapper provides hit area, the line stays thin.
 
 ### Display Control
 
-Touch-friendly on-screen controls for putting a display to sleep or waking it, advancing screens, and adjusting brightness. Dispatches the same commands used by `/remote` — useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone. Every button carries a word next to its icon (Previous screen, Next screen, Sleep with "hold for 1 second", Wake, Brightness).
+Touch-friendly on-screen controls for putting a display to sleep or waking it, advancing screens, and adjusting brightness. Dispatches the same commands used by `/remote`: useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone. Every button carries a word next to its icon (Previous screen, Next screen, Sleep with "hold for 1 second", Wake, Brightness).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `layout` | `'bar' \| 'pad' \| 'panel'` | `'panel'` | Control layout — `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible |
+| `layout` | `'bar' \| 'pad' \| 'panel'` | `'panel'` | Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible |
 | `compact` | boolean | `false` | Icons only, no words (the buttons keep their spoken labels) |
 | `defaultTarget` | `'self' \| 'all' \| <displayId>` | `'self'` | Which display the buttons control. `self` resolves to the display the module is rendered on |
 | `allowRetargeting` | boolean | `false` | Show a "Controls" dropdown of display names (with "All displays" last) so people can retarget on the wall (hidden in single-display mode) |
 
 **Behavior:** Sleep requires a 1-second hold to confirm; a shorter tap flashes "Keep holding to sleep" over the button. Prev/next buttons are debounced at 200ms to collapse rapid taps. The brightness slider starts at the brightness the target display last reported (a dash until it has reported, or when "All displays" disagree) and commits on release so dragging doesn't spam the hub.
 
-`defaultTarget` is resolved when the module mounts. A display id that doesn't match anything in the registry **silently falls back to `self`** — there's no error, so a typo here looks like the buttons are controlling the wrong screen rather than a broken setting.
+`defaultTarget` is resolved when the module mounts. A display id that doesn't match anything in the registry **silently falls back to `self`**: there's no error, so a typo here looks like the buttons are controlling the wrong screen rather than a broken setting.
 
 ---
 
@@ -1148,7 +1148,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | `borderColor` | string | Outline color for the day |
 | `badgeIcon`, `badgeText`, `badgeColor` | string | A small marker drawn on the day |
 
-**Matching an event** — every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
+**Matching an event**: every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
 
 | Field | Type | Description |
 |---|---|---|
@@ -1169,7 +1169,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | `withEvents` | string | `any` (at least one event), `none` (an empty day), or `matching` (has an event matching `eventMatch`) |
 | `eventMatch` | object | An event match, used when `withEvents` is `matching` |
 
-Rules run from the top of the list down, and **the first rule to set a property wins for that property** — so list order is priority, and a later rule can still fill in something an earlier one left alone.
+Rules run from the top of the list down, and **the first rule to set a property wins for that property**: so list order is priority, and a later rule can still fill in something an earlier one left alone.
 
 
 ## Module Styling
@@ -1185,7 +1185,7 @@ Every module supports these style properties, configurable in the Property Panel
 | `textColor` | string | `"#ffffff"` | Text color |
 | `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
 | `fontSize` | number | `16` | Base font size in pixels |
-| `fontWeight` | number | — | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
+| `fontWeight` | number |, | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
 | `borderWidth` | number | `1` | Border width in pixels |
 | `borderColor` | string | `"rgba(255, 255, 255, 0.15)"` | Border color |

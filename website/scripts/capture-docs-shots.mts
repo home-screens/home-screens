@@ -63,6 +63,9 @@ const CHORES = [
   { id: 'c-homework', name: 'Homework', emoji: '📚', points: 2, frequency: 'daily', daysOfWeek: SCHOOL_DAYS, timeOfDay: 'afternoon', assigneeIds: ['m-avery', 'm-riley', 'm-jordan'], rotation: 'fixed' },
   { id: 'c-trash', name: 'Take out the trash', emoji: '🗑️', points: 2, frequency: 'daily', daysOfWeek: EVERY_DAY, timeOfDay: 'evening', assigneeIds: ['m-quinn'], rotation: 'fixed' },
   { id: 'c-piano', name: 'Practice piano', emoji: '🎹', points: 1, frequency: 'daily', daysOfWeek: SCHOOL_DAYS, timeOfDay: 'evening', assigneeIds: ['m-casey'], rotation: 'fixed' },
+  { id: 'c-backpack', name: 'Pack your backpack', emoji: '🎒', points: 1, frequency: 'daily', daysOfWeek: SCHOOL_DAYS, timeOfDay: 'morning', assigneeIds: ['m-avery', 'm-riley', 'm-jordan', 'm-casey'], rotation: 'fixed' },
+  { id: 'c-table', name: 'Clear the table', emoji: '🧽', points: 1, frequency: 'daily', daysOfWeek: EVERY_DAY, timeOfDay: 'evening', assigneeIds: ['m-riley', 'm-jordan'], rotation: 'rotate-daily' },
+  { id: 'c-plants', name: 'Water the plants', emoji: '🪴', points: 2, frequency: 'daily', daysOfWeek: [1, 4], timeOfDay: 'afternoon', assigneeIds: ['m-quinn'], rotation: 'fixed' },
 ];
 
 const MEALS = [
@@ -185,13 +188,13 @@ function familyTemplateScreen(): Screen {
 }
 
 function choresScreen(): Screen {
-  const chores = choreChartModule();
-  chores.position = { x: 20, y: 20 };
-  chores.size = { w: 1040, h: 760 };
-  const meals = buildModuleInstance('meal-planner', { view: 'week' });
-  meals.position = { x: 20, y: 820 };
-  meals.size = { w: 1040, h: 1080 };
-  return makeScreen('screen-chores', 'Chores and meals', [chores, meals], { backgroundImage: '/backgrounds/themes/forest.svg' });
+  const chart = buildModuleInstance('fullscreen-chore-chart', { view: 'chores', density: 'snug', typographySize: 'medium', layout: 'by-person' });
+  return makeScreen('screen-chores', 'Chores', [chart]);
+}
+
+function mealsScreen(): Screen {
+  const planner = buildModuleInstance('fullscreen-meal-planner', { view: 'week' });
+  return makeScreen('screen-meals', 'Meals', [planner]);
 }
 
 function familySettings(): Record<string, unknown> {
@@ -204,7 +207,7 @@ function familySettings(): Record<string, unknown> {
 }
 
 function familyConfig(): ScreenConfiguration {
-  return baseConfig({ screens: [familyTemplateScreen(), choresScreen()], settings: familySettings() });
+  return baseConfig({ screens: [familyTemplateScreen(), choresScreen(), mealsScreen()], settings: familySettings() });
 }
 
 /** What a freshly flashed Pi has: one empty screen and no location. */
@@ -264,6 +267,23 @@ async function installStubs(page: Page): Promise<void> {
     return route.fallback();
   });
   await page.route('**/api/plugins/registry*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REGISTRY) }));
+  // The Status page reports the hub's own hardware, which here is the Mac
+  // running this script. Keep the real payload's shape and swap in a Pi 5.
+  await page.route('**/api/system/stats*', async (route) => {
+    const upstream = await route.fetch();
+    const stats = await upstream.json();
+    const GB = 1024 ** 3;
+    stats.os = { ...stats.os, hostname: 'home-screens', platform: 'linux', arch: 'arm64', uptime: 6 * 86400 + 3 * 3600 };
+    stats.memory = { total: 8 * GB, used: Math.round(1.9 * GB), free: Math.round(6.1 * GB) };
+    stats.disk = { ...stats.disk, total: 31 * GB, used: Math.round(6.2 * GB), free: Math.round(24.8 * GB) };
+    stats.hardware = {
+      piModel: 'Raspberry Pi 5 Model B Rev 1.0', cpuModel: 'Cortex-A76', cpuCores: 4, cpuTempC: 48.7,
+      load1: 0.31, load5: 0.27, load15: 0.22,
+      throttled: { raw: '0x0', active: false, previouslyThrottled: false },
+      memoryTotal: 8 * GB, memoryFree: Math.round(6.1 * GB), memoryUsagePercent: 24, cpuUsagePercent: 9.4, uptimeSeconds: 6 * 86400 + 3 * 3600,
+    };
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(stats) });
+  });
   await page.route('**/api/system/version*', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({
@@ -434,6 +454,8 @@ async function prettifyOrigin(page: Page, origin: string): Promise<void> {
 }
 
 const DESKTOP = { width: 1440, height: 900 };
+/** The homepage's editor picture: a 16:9-ish crop with a module selected so the panel shows settings. */
+const MARKETING = { width: 1400, height: 780 };
 const PHONE = { width: 390, height: 844 };
 const WALL = { width: 1080, height: 1920 };
 
@@ -468,7 +490,7 @@ const SHOTS: Shot[] = [
     alt: 'The editor with its five areas numbered: screens, modules, your screen, the settings panel, and the toolbar buttons.',
     run: async (page) => {
       await openEditor(page);
-      await annotate(page, await editorAreas(page, ['Family', 'Chores and meals']));
+      await annotate(page, await editorAreas(page, ['Family', 'Chores', 'Meals']));
     },
   },
   {
@@ -518,6 +540,15 @@ const SHOTS: Shot[] = [
       await openEditor(page);
       await page.getByRole('button', { name: 'Plugins', exact: true }).click();
       await settle(page, 1500);
+    },
+  },
+  {
+    name: 'editor-marketing', scenario: 'family', viewport: MARKETING, maxWidth: 2000,
+    alt: 'The Home Screens editor: modules on the left, the screen being designed in the middle, and the settings for the selected weather module on the right.',
+    run: async (page) => {
+      await openEditor(page);
+      await page.locator('[data-module-type="weather"]').first().click();
+      await settle(page);
     },
   },
   // --- Settings -----------------------------------------------------------
@@ -589,7 +620,10 @@ const SHOTS: Shot[] = [
   {
     name: 'settings-status', scenario: 'family', viewport: DESKTOP, maxWidth: 1600,
     alt: 'The Status page, with the Diagnostics bundle button.',
-    run: async (page) => { await openSettings(page, 'stats'); },
+    run: async (page, ctx) => {
+      await heartbeat(ctx.request);
+      await openSettings(page, 'stats');
+    },
   },
   // --- The wall -------------------------------------------------------------
   {
@@ -612,12 +646,22 @@ const SHOTS: Shot[] = [
   },
   {
     name: 'display-chores', scenario: 'family', viewport: WALL, dpr: 1, maxWidth: 720,
-    alt: 'A chore chart and the week\'s meals on the wall.',
+    alt: 'The Full-Screen Chore Chart on the wall: one column per child, today\'s chores, and the tickets each has earned.',
     // The wall always starts on the first screen, so this shot swaps the order.
-    config: () => baseConfig({ screens: [choresScreen(), familyTemplateScreen()], settings: familySettings() }),
+    config: () => baseConfig({ screens: [choresScreen(), familyTemplateScreen(), mealsScreen()], settings: familySettings() }),
     run: async (page) => {
       await page.goto('/display');
-      await page.locator('[data-module-type="chore-chart"]').waitFor();
+      await page.locator('[data-module-type="fullscreen-chore-chart"]').waitFor();
+      await settle(page, 2500);
+    },
+  },
+  {
+    name: 'display-meals', scenario: 'family', viewport: WALL, dpr: 1, maxWidth: 720,
+    alt: 'The Full-Screen Meal Planner on the wall, showing the week\'s dinners.',
+    config: () => baseConfig({ screens: [mealsScreen(), familyTemplateScreen(), choresScreen()], settings: familySettings() }),
+    run: async (page) => {
+      await page.goto('/display');
+      await page.locator('[data-module-type="fullscreen-meal-planner"]').waitFor();
       await settle(page, 2500);
     },
   },
@@ -702,11 +746,21 @@ const SHOTS: Shot[] = [
 
 interface ManifestEntry { width: number; height: number; alt: string; viewport: string }
 
+/**
+ * Pictures that are not renders of the sandbox but belong in the same
+ * manifest so the docs place them with the same tag: plugin views captured
+ * from a live display (website/public/images/plugins).
+ */
+const STATIC_SHOTS: { name: string; file: string; alt: string }[] = [
+  { name: 'plugin-garmin-summary', file: 'plugins/garmin/summary.webp', alt: "The Garmin plugin's daily summary view: steps, sleep, Body Battery and the latest activity." },
+  { name: 'plugin-strava-latest', file: 'plugins/strava/latest-hero.webp', alt: "The Strava plugin's latest activity view with a route map." },
+];
+
 async function seedFamilyData(request: APIRequestContext): Promise<void> {
   let res = await request.put('/api/chores/data', { data: { members: MEMBERS, chores: CHORES } });
   if (!res.ok()) throw new Error(`seed chores: ${res.status()} ${await res.text()}`);
   const today = isoDate(new Date());
-  for (const [choreId, memberId] of [['c-bed', 'm-avery'], ['c-bed', 'm-jordan'], ['c-bed', 'm-quinn'], ['c-dog', 'm-avery'], ['c-dishes', 'm-casey']]) {
+  for (const [choreId, memberId] of [['c-bed', 'm-avery'], ['c-bed', 'm-jordan'], ['c-bed', 'm-quinn'], ['c-dog', 'm-avery'], ['c-dishes', 'm-casey'], ['c-backpack', 'm-jordan']]) {
     res = await request.post('/api/chores', { data: { choreId, memberId, date: today } });
     if (!res.ok()) throw new Error(`toggle chore: ${res.status()} ${await res.text()}`);
   }
@@ -790,8 +844,17 @@ async function main(): Promise<void> {
     await server.stop();
   }
 
+  for (const item of STATIC_SHOTS) {
+    if (only && !only.has(item.name)) continue;
+    const source = path.resolve(HERE, '..', 'public', 'images', item.file);
+    const size = await writeImage(item.name, await sharp(source).png().toBuffer(), 2000);
+    manifest[item.name] = { ...size, alt: item.alt, viewport: 'static' };
+    console.log(`  ok  ${item.name.padEnd(28)} ${size.width}x${size.height} (static)`);
+  }
+
   const ordered: Record<string, ManifestEntry> = {};
   for (const shot of SHOTS) if (manifest[shot.name]) ordered[shot.name] = manifest[shot.name];
+  for (const item of STATIC_SHOTS) if (manifest[item.name]) ordered[item.name] = manifest[item.name];
   writeFileSync(manifestPath, JSON.stringify(ordered, null, 2) + '\n');
   console.log(`\n${shots.length - failures.length}/${shots.length} shots written to ${path.relative(ROOT, OUT_DIR)}`);
   if (failures.length) {

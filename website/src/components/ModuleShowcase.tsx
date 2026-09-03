@@ -15,75 +15,33 @@ import type { LucideIcon } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
 import { MODULE_COUNT } from '@/lib/stats';
+import { MODULE_SHOWCASE } from '@/lib/module-showcase-data';
 
-interface ModuleItem {
-  icon: LucideIcon;
-  label: string;
-}
-
-// These lists must total MODULE_COUNT, which the section header advertises.
-// Health & Fitness is the one registry category with no tab here: it ships no
-// built-in modules and only appears in the app once a plugin uses it.
-const categories: Record<string, ModuleItem[]> = {
-  'Full Screen': [
-    { icon: Columns3, label: 'Calendar' },
-    { icon: ClipboardList, label: 'Chore Chart' },
-    { icon: UtensilsCrossed, label: 'Meal Planner' },
-    { icon: Image, label: 'Photo Viewer' },
-  ],
-  'Time & Date': [
-    { icon: Clock, label: 'Clock' },
-    { icon: CalendarDays, label: 'Calendar' },
-    { icon: Hourglass, label: 'Countdown' },
-    { icon: Calendar, label: 'Date' },
-    { icon: BarChart3, label: 'Year Progress' },
-    { icon: CalendarRange, label: 'Multi-Month' },
-  ],
-  'Weather & Environment': [
-    { icon: CloudSun, label: 'Weather' },
-    { icon: Moon, label: 'Moon Phase' },
-    { icon: Sunrise, label: 'Sunrise / Sunset' },
-    { icon: Wind, label: 'Air Quality' },
-    { icon: CloudRain, label: 'Rain Map' },
-  ],
-  'News & Finance': [
-    { icon: Newspaper, label: 'News' },
-    { icon: TrendingUp, label: 'Stock Ticker' },
-    { icon: Bitcoin, label: 'Crypto' },
-    { icon: Trophy, label: 'Sports Scores' },
-    { icon: Medal, label: 'Standings' },
-  ],
-  'Knowledge & Fun': [
-    { icon: Laugh, label: 'Dad Joke' },
-    { icon: Quote, label: 'Quote' },
-    { icon: BookOpen, label: 'Word of the Day' },
-    { icon: History, label: 'This Day in History' },
-  ],
-  'Personal': [
-    { icon: ListTodo, label: 'To-Do List' },
-    { icon: StickyNote, label: 'Sticky Note' },
-    { icon: HandMetal, label: 'Greeting' },
-    { icon: ListChecks, label: 'Todoist' },
-    { icon: Trash2, label: 'Garbage Day' },
-    { icon: Sparkles, label: 'Affirmations' },
-    { icon: UtensilsCrossed, label: 'Meal Planner' },
-    { icon: ClipboardList, label: 'Chore Chart' },
-  ],
-  'Media & Display': [
-    { icon: Type, label: 'Text' },
-    { icon: ImageIcon, label: 'Image' },
-    { icon: Video, label: 'Video' },
-    { icon: Image, label: 'Photo Slideshow' },
-    { icon: QrCode, label: 'QR Code' },
-    { icon: Globe, label: 'Web Embed' },
-    { icon: Star, label: 'Icon' },
-    { icon: Shapes, label: 'Shape & Divider' },
-    { icon: LayoutGrid, label: 'Display Control' },
-  ],
-  'Travel': [
-    { icon: Car, label: 'Traffic' },
-  ],
+// Icons keyed by the names in MODULE_SHOWCASE; the lists themselves live in
+// src/lib/module-showcase-data.ts so a test can hold them to MODULE_COUNT.
+const icons: Record<string, LucideIcon> = {
+  'Full Screen/Calendar': Columns3,
+  'Full Screen/Weather': CloudSun,
+  'Full Screen/Chore Chart': ClipboardList,
+  'Full Screen/Meal Planner': UtensilsCrossed,
+  'Full Screen/News': Newspaper,
+  'Full Screen/Photo Viewer': Image,
+  Clock, Calendar: CalendarDays, Countdown: Hourglass, Date: Calendar, 'Year Progress': BarChart3, 'Multi-Month': CalendarRange,
+  Weather: CloudSun, 'Moon Phase': Moon, 'Sunrise / Sunset': Sunrise, 'Air Quality': Wind, 'Rain Map': CloudRain,
+  News: Newspaper, 'Stock Ticker': TrendingUp, Crypto: Bitcoin, 'Sports Scores': Trophy, Standings: Medal,
+  'Dad Joke': Laugh, Quote, 'Word of the Day': BookOpen, 'This Day in History': History,
+  'To-Do List': ListTodo, 'Sticky Note': StickyNote, Greeting: HandMetal, Todoist: ListChecks, 'Garbage Day': Trash2,
+  Affirmations: Sparkles, 'Meal Planner': UtensilsCrossed, 'Chore Chart': ClipboardList,
+  Text: Type, Image: ImageIcon, Video, 'Photo Slideshow': Image, 'QR Code': QrCode, 'Web Embed': Globe, Icon: Star,
+  'Shape & Divider': Shapes, 'Display Control': LayoutGrid, Traffic: Car,
 };
+
+const categories: Record<string, { icon: LucideIcon; label: string }[]> = Object.fromEntries(
+  Object.entries(MODULE_SHOWCASE).map(([category, names]) => [
+    category,
+    names.map((label) => ({ label, icon: icons[`${category}/${label}`] ?? icons[label] ?? Star })),
+  ]),
+);
 
 const categoryNames = Object.keys(categories);
 

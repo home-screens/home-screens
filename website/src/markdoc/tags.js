@@ -1,8 +1,21 @@
 import { Callout } from '@/components/docs/Callout'
 import { LatestImageLink } from '@/components/docs/LatestImageLink'
 import { QuickLink, QuickLinks } from '@/components/docs/QuickLinks'
+import { Screenshot } from '@/components/docs/Screenshot'
 
 const tags = {
+  // {% screenshot name="editor-areas" caption="..." /%} — a render listed in
+  // public/images/docs/manifest.json (see Screenshot.tsx).
+  screenshot: {
+    selfClosing: true,
+    attributes: {
+      name: { type: String, required: true },
+      caption: { type: String },
+      alt: { type: String },
+      phone: { type: Boolean, default: false },
+    },
+    render: Screenshot,
+  },
   callout: {
     attributes: {
       title: { type: String },
@@ -14,22 +27,6 @@ const tags = {
       },
     },
     render: Callout,
-  },
-  figure: {
-    selfClosing: true,
-    attributes: {
-      src: { type: String },
-      alt: { type: String },
-      caption: { type: String },
-      width: { type: Number },
-      height: { type: Number },
-    },
-    render: ({ src, alt = '', caption, width, height }) => (
-      <figure>
-        <img src={src} alt={alt} width={width} height={height} />
-        <figcaption>{caption}</figcaption>
-      </figure>
-    ),
   },
   'latest-image-link': {
     selfClosing: true,

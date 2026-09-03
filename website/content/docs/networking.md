@@ -25,13 +25,13 @@ Home Screens runs a Next.js server on **port 3000** by default. Once installed, 
 | `http://<ip>:3000/remote` | Mobile remote control |
 | `http://<ip>:3000/chores` | Kid-facing chore view, never asks for a password |
 
-Any device on the same LAN can reach these URLs. The display view is designed for the connected screen; the editor is designed for phones, tablets, and laptops. Visiting the root URL (`/`) redirects to the editor since users navigating to the bare hostname are typically in a setup/configuration context. Pi displays are unaffected — the kiosk launches Chromium directly at `/display`.
+Any device on the same LAN can reach these URLs. The display view is designed for the connected screen; the editor is designed for phones, tablets, and laptops. Visiting the root URL (`/`) redirects to the editor since users navigating to the bare hostname are typically in a setup/configuration context. Pi displays are unaffected, the kiosk launches Chromium directly at `/display`.
 
 ---
 
 ## Remote access to the editor
 
-The editor is a standard web page — open `http://<pi-ip>:3000/editor` from any browser on your network. No app install is needed. The editor works well on phones and tablets in addition to desktops.
+The editor is a standard web page, open `http://<pi-ip>:3000/editor` from any browser on your network. No app install is needed. The editor works well on phones and tablets in addition to desktops.
 
 If password protection is enabled (Settings > Security), you will be prompted to log in before accessing the editor or any write API endpoint. The display view remains accessible without authentication so your kiosk does not need credentials.
 
@@ -97,17 +97,17 @@ The `data/port.conf` file is preserved across upgrades and deployments, and upgr
 
 ## Network settings (Settings → Network)
 
-The editor has a **Network** page under **Settings** that configures WiFi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi — Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
+The editor has a **Network** page under **Settings** that configures WiFi, static IP, hostname, and connectivity diagnostics without SSH. It shells out to `nmcli` and `hostnamectl` on the Pi, Linux hosts with NetworkManager only. On other platforms the page shows an "unavailable" message explaining why.
 
-Every network change that touches the **management interface** — the one your browser is currently talking to the Pi over — uses a two-phase commit. The editor asks you to confirm the warning, the server applies the change with a **60-second auto-rollback** scheduled against the previous settings, and the editor polls `GET /api/system/network/confirm` to prompt you when the new connection is working. If you don't confirm within 60 seconds (because the change cut off your session), the Pi reverts automatically. A connectivity watchdog timer (`wifi-watchdog.timer`) is paused during this window so it doesn't race the rollback.
+Every network change that touches the **management interface**: the one your browser is currently talking to the Pi over, uses a two-phase commit. The editor asks you to confirm the warning, the server applies the change with a **60-second auto-rollback** scheduled against the previous settings, and the editor polls `GET /api/system/network/confirm` to prompt you when the new connection is working. If you don't confirm within 60 seconds (because the change cut off your session), the Pi reverts automatically. A connectivity watchdog timer (`wifi-watchdog.timer`) is paused during this window so it doesn't race the rollback.
 
 ### WiFi
 
-- **Scan nearby networks** — lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
-- **Connect** — click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`).
-- **Saved networks** — list, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
-- **Forget** — `DELETE /api/system/network/wifi/saved` drops a saved profile.
-- **Disconnect** — brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`).
+- **Scan nearby networks**: lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
+- **Connect**: click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`).
+- **Saved networks**: list, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
+- **Forget**: `DELETE /api/system/network/wifi/saved` drops a saved profile.
+- **Disconnect**: brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`).
 
 ### IP address
 
@@ -119,7 +119,7 @@ Sets the system hostname via `hostnamectl`, rewrites the `127.0.1.1` line in `/e
 
 ### Diagnostics
 
-The **Diagnostics** panel pings the default gateway and `1.1.1.1`, and reports whether the `wifi-watchdog.timer` systemd unit is active. Useful first check when a display goes dark — gateway reachable + internet reachable narrows the problem to the Home Screens server; both unreachable points at the physical connection.
+The **Diagnostics** panel pings the default gateway and `1.1.1.1`, and reports whether the `wifi-watchdog.timer` systemd unit is active. Useful first check when a display goes dark, gateway reachable + internet reachable narrows the problem to the Home Screens server; both unreachable points at the physical connection.
 
 ### Source-based routing
 
@@ -216,7 +216,7 @@ The GET endpoints are bookmarkable, so you can save them as shortcuts on your ph
 
 **Every** `/api/display/*` endpoint on this page needs a credential once you set a password under **Settings > Security**, including the simple GET commands above. Without one they return `401`. This catches people out: the commands work fine, then stop working the day a password is set, and nothing on the phone or in Home Assistant explains why.
 
-Home Screens generates a **display token** for exactly this purpose. Find it under **Settings > Security > Display Token**, where you can reveal, copy, and regenerate it. There are two ways to send it:
+Home Screens generates a **display token** for exactly this purpose. Find it under **Settings > Security > Display key**, where you can reveal, copy, and make a new one. There are two ways to send it:
 
 ```bash
 # Header form, best for scripts and automations
@@ -228,13 +228,13 @@ http://<ip>:3000/api/display/wake?token=<token>
 
 The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the token is.
 
-The display token covers every command on this page, including profile switching — the only writes it can make are the ones the display itself performs.
+The display token covers every command on this page, including profile switching, the only writes it can make are the ones the display itself performs.
 
 ### Commands with payloads
 
 These require a POST with a JSON body:
 
-**Brightness** — set display brightness (0-100):
+**Brightness**: set display brightness (0-100):
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/brightness \
@@ -244,7 +244,7 @@ curl -X POST http://<ip>:3000/api/display/brightness \
 
 Brightness works by fading a black layer over the page, not by changing the panel's backlight. At `0` the screen is drawn fully black but the monitor is still powered on and lit.
 
-**Profile** — switch to a named profile:
+**Profile**: switch to a named profile:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/profile \
@@ -252,7 +252,7 @@ curl -X POST http://<ip>:3000/api/display/profile \
   -d '{"profile": "nighttime"}'
 ```
 
-**Go to screen** — jump straight to a screen by its name (or id) instead of stepping through the rotation. The display matches the name against its own screen list, ignoring case, and ignores names it doesn't have:
+**Go to screen**: jump straight to a screen by its name (or id) instead of stepping through the rotation. The display matches the name against its own screen list, ignoring case, and ignores names it doesn't have:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/goto-screen \
@@ -260,7 +260,7 @@ curl -X POST http://<ip>:3000/api/display/goto-screen \
   -d '{"screen": "calendar"}'
 ```
 
-**Keep the display on** — wake and hold off the sleep schedule, dim schedule, and idle behavior for a number of minutes (up to 24 hours). A plain `wake` during a scheduled window holds the display awake for its "After a wake-up" setting (5 minutes by default); use this when you want a specific, longer duration. An explicit `sleep` cancels the hold:
+**Keep the display on**: wake and hold off the sleep schedule, dim schedule, and idle behavior for a number of minutes (up to 24 hours). A plain `wake` during a scheduled window holds the display awake for its "After a wake-up" setting (5 minutes by default); use this when you want a specific, longer duration. An explicit `sleep` cancels the hold:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/sleep-override \
@@ -268,7 +268,7 @@ curl -X POST http://<ip>:3000/api/display/sleep-override \
   -d '{"minutes": 480}'
 ```
 
-**Alert** — display an overlay alert on the screen:
+**Alert**: display an overlay alert on the screen:
 
 ```bash
 curl -X POST http://<ip>:3000/api/display/alert \
@@ -316,11 +316,11 @@ Response:
 }
 ```
 
-The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` is present only when a per-Pi reporter is posting to the hub. Memory and disk figures are raw byte counts, and CPU load is reported as 1/5/15-minute load averages rather than a percentage. Display-only spoke Pis run `scripts/reporter.sh` on a 30-second systemd timer and POST to `/api/display/hw-stats` (adoption-gated — no bearer token, the spoke just has to appear in the hub's displays registry).
+The `displayState` field is one of: `active`, `dimmed`, or `asleep`. `hwStats` is present only when a per-Pi reporter is posting to the hub. Memory and disk figures are raw byte counts, and CPU load is reported as 1/5/15-minute load averages rather than a percentage. Display-only Pis run `scripts/reporter.sh` on a 30-second systemd timer and POST to `/api/display/hw-stats` (adoption-gated, no bearer token, the display-only Pi just has to appear in the hub's displays registry).
 
 ### Home Assistant integration
 
-For the full setup — every command as a ready-made `rest_command`, voice sentences for Assist ("show the calendar", "tell everyone dinner is ready"), family Q&A sensors, and chore check-off by voice — copy the two-file package in the **[Voice Control guide](/docs/voice-control)**. The short version, if you just want a command or two, is the [RESTful Command](https://www.home-assistant.io/integrations/rest_command/) integration:
+For the full setup, every command as a ready-made `rest_command`, voice sentences for Assist ("show the calendar", "tell everyone dinner is ready"), family Q&A sensors, and chore check-off by voice, copy the two-file package in the **[Voice Control guide](/docs/voice-control)**. The short version, if you just want a command or two, is the [RESTful Command](https://www.home-assistant.io/integrations/rest_command/) integration:
 
 ```yaml
 rest_command:
@@ -362,7 +362,7 @@ Then use these in automations, scripts, or dashboards.
 
 ## Multi-display setup
 
-Home Screens supports a hub-and-spoke deployment where one server drives any number of Raspberry Pi displays — each with its own screens, layout, dimensions, rotation, and active profile, all served from one config file. Spoke Pis run only Chromium and the kiosk launcher (no Node.js) and are installed with `--display-only --backend <hub-url>`. See the dedicated **[Multi-display guide](/docs/multi-display)** for the install flow, the adoption flow in the editor's **Per display > All displays** page, per-display API targeting, and troubleshooting.
+Home Screens supports a multi-display deployment where one server drives any number of Raspberry Pi displays, each with its own screens, layout, dimensions, rotation, and active profile, all served from one config file. Display-only Pis run only Chromium and the kiosk launcher (no Node.js) and are installed with `--display-only --backend <hub-url>`. See the dedicated **[Multi-display guide](/docs/multi-display)** for the install flow, the adoption flow in the editor's **Per display > All displays** page, per-display API targeting, and troubleshooting.
 
 ---
 
@@ -370,15 +370,15 @@ Home Screens supports a hub-and-spoke deployment where one server drives any num
 
 The install script applies several WiFi reliability hardening measures for Raspberry Pi deployments, especially important for headless displays on mesh networks:
 
-- **Infinite autoconnect retries** — NetworkManager's default of 4 retries can leave a headless display permanently offline; the installer sets unlimited retries
-- **Disabled scan MAC randomization** — random MACs confuse mesh access points and can prevent reconnection
-- **Disabled IPv6 on WiFi** — the Broadcom WiFi driver (`brcmfmac`) handles IPv6 multicast poorly, which can cause intermittent drops
-- **Masked suspend/hibernate** — `brcmfmac` cannot recover WiFi after suspend, so power management sleep states are disabled
-- **Connectivity watchdog** — a timer checks connectivity every 2 minutes and escalates through three recovery steps: NetworkManager reconnect, interface cycle, and driver reload
+- **Infinite autoconnect retries**: NetworkManager's default of 4 retries can leave a headless display permanently offline; the installer sets unlimited retries
+- **Disabled scan MAC randomization**: random MACs confuse mesh access points and can prevent reconnection
+- **Disabled IPv6 on WiFi**: the Broadcom WiFi driver (`brcmfmac`) handles IPv6 multicast poorly, which can cause intermittent drops
+- **Masked suspend/hibernate**: `brcmfmac` cannot recover WiFi after suspend, so power management sleep states are disabled
+- **Connectivity watchdog**: a timer checks connectivity every 2 minutes and escalates through three recovery steps: NetworkManager reconnect, interface cycle, and driver reload
 
 These changes are applied automatically by the full install and by the pre-built image. No manual configuration is needed.
 
-Note that display-only spoke Pis installed with `--display-only` do **not** get these settings today; that install path finishes before the system-tuning step runs. Headless spokes are exactly the machines that benefit most from it, so this is a known gap rather than a deliberate choice.
+Note that display-only Pis installed with `--display-only` do **not** get these settings today; that install path finishes before the system-tuning step runs. Headless display-only Pis are exactly the machines that benefit most from it, so this is a known gap rather than a deliberate choice.
 
 ### Offline indicator
 
@@ -433,24 +433,24 @@ Password protection is **off by default**. Until you set one, anyone on your net
 Set a password in the editor under **Settings > Security**. When enabled:
 
 - The editor (`/editor`) requires login
-- All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie — **except** the chore-toggle endpoint (`POST /api/chores`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
+- All write API endpoints (`PUT`, `POST`, `DELETE`) require a session cookie, **except** the chore-toggle endpoint (`POST /api/chores`) and the reward-redeem endpoint (`POST /api/rewards`), which are intentionally public on the LAN so the kid-facing `/chores` view keeps working without a password
 - Sensitive GET endpoints (secrets, system settings, backups) require authentication
 - Every display-control endpoint (`/api/display/*`) requires either a login or the display token, described under [Remote display control](#if-you-have-set-a-password)
 - The display view (`/display`) remains accessible without login
 - The kid-facing `/chores` view remains accessible without login and can read chore definitions, members, completions, and reward balances over the LAN
 - Read-only data endpoints (weather, calendar, etc.) remain accessible for the display
 
-Password protection is the right default for most LANs. If you want to lock things down further — including the kid view and the display itself — add an IP allowlist on top as described below.
+Password protection is the right default for most LANs. If you want to lock things down further, including the kid view and the display itself, add an IP allowlist on top as described below.
 
 ### Restrict access by IP
 
-In addition to (or instead of) a password, Home Screens can gate every route on the server by the caller's IP address. The editor surfaces this under **Settings > Security > IP Allowlist** and it has two independent toggles, both opt-in and both off by default.
+In addition to (or instead of) a password, Home Screens can gate every route on the server by the caller's IP address. The editor surfaces this under **Settings > Security > Allowed networks** and it has two independent toggles, both opt-in and both off by default.
 
 **Bypass authentication for trusted IPs.** Add your LAN subnets (for example `192.168.1.0/24`) and check the first toggle. Any request coming from an allowlisted IP skips the password prompt and the session-cookie check, so family members on the couch don't have to type a password every time they open the editor, while a phone on cellular data still gets the login form. Display-auth routes (the ~14 cached proxy endpoints the kiosk polls, plus `requireDisplayAuth`-wrapped routes) also accept the bypass, so a trusted LAN can drive the display without a display token.
 
-**Restrict access to allowlisted IPs only.** The second toggle is the harder wall. When enabled, Home Screens blocks every non-allowlisted IP from every route except `/login` and `/api/auth/status`; API callers receive `403 JSON`, browsers are redirected to a dedicated "Access is restricted by IP" banner on the login page. The check runs before the password gate, so an attacker who somehow knows the password still can't get in. Enabling the toggle from a client whose own IP is not in the allowlist returns `409 Conflict` without saving — the UI then shows a lockout warning and a **Save Anyway** button for the rare case where you really want to lock yourself out immediately.
+**Restrict access to allowlisted IPs only.** The second toggle is the harder wall. When enabled, Home Screens blocks every non-allowlisted IP from every route except `/login` and `/api/auth/status`; API callers receive `403 JSON`, browsers are redirected to a dedicated "Access is restricted by IP" banner on the login page. The check runs before the password gate, so an attacker who somehow knows the password still can't get in. Enabling the toggle from a client whose own IP is not in the allowlist returns `409 Conflict` without saving, the UI then shows a lockout warning and a **Save Anyway** button for the rare case where you really want to lock yourself out immediately.
 
-**CIDR entries.** Every entry is CIDR-validated: `a.b.c.d/prefix`, prefix between `0` and `32`, no leading-zero octets (so `01.168.1.0/24` is rejected, matching Node's `net.isIPv4()` behavior). Garbage entries in a hand-edited `data/auth.json` are skipped rather than matched — bad data fails safe instead of silently matching `0.0.0.0/24`.
+**CIDR entries.** Every entry is CIDR-validated: `a.b.c.d/prefix`, prefix between `0` and `32`, no leading-zero octets (so `01.168.1.0/24` is rejected, matching Node's `net.isIPv4()` behavior). Garbage entries in a hand-edited `data/auth.json` are skipped rather than matched, bad data fails safe instead of silently matching `0.0.0.0/24`.
 
 **Scope and caveats.**
 - **IPv4 only.** Home Screens normalizes IPv4-mapped IPv6 (`::ffff:127.0.0.1` → `127.0.0.1`) before matching but cannot match raw IPv6 addresses like `::1` or `fe80::...`. If your clients connect over IPv6, the allowlist will block them and the editor shows a dedicated warning so you know to switch the client to IPv4 (or leave the restriction off). The caller's detected IP is always displayed in the settings panel so you can verify what the server sees.
@@ -468,8 +468,8 @@ In addition to (or instead of) a password, Home Screens can gate every route on 
   [Service]
   Environment=HS_TRUSTED_PROXIES=127.0.0.1
   ```
-- **Lockout recovery.** If you lock yourself out (e.g. your router handed you a new DHCP lease and the old IP was the only one in the list), SSH into the server and either edit `data/auth.json` to add your new IP, or delete the `ipAllowlist` array entirely — the feature fails open when the list is empty.
-- **Allowlist survives password changes.** Setting, changing, clearing, or disabling the editor password no longer drops the IP allowlist — the restriction stays in force even during a password reset.
+- **Lockout recovery.** If you lock yourself out (e.g. your router handed you a new DHCP lease and the old IP was the only one in the list), SSH into the server and either edit `data/auth.json` to add your new IP, or delete the `ipAllowlist` array entirely, the feature fails open when the list is empty.
+- **Allowlist survives password changes.** Setting, changing, clearing, or disabling the editor password no longer drops the IP allowlist, the restriction stays in force even during a password reset.
 - **Audit logged.** Every change to the allowlist or either toggle emits an `ip_allowlist_change` audit event so you can spot unexpected edits in the audit log.
 
 ### Requests from other websites
@@ -486,8 +486,8 @@ and browsers do not always ask permission first. That page can never read the an
 without this check the request would still take effect.
 
 Browsers attach an `Origin` header to those requests and page code cannot fake it, so this is
-the one signal that reliably tells them apart. Requests with no `Origin` at all — `curl`, the
-per-Pi reporter script, anything not a browser — are unaffected, because a browser cannot
+the one signal that reliably tells them apart. Requests with no `Origin` at all, `curl`, the
+per-Pi reporter script, anything not a browser, are unaffected, because a browser cannot
 produce one.
 
 **If you use a reverse proxy** that rewrites the `Host` header and does not pass

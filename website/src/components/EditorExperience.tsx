@@ -1,10 +1,12 @@
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import { MousePointerClick, Eye, Settings } from 'lucide-react';
 import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
+import { Reveal } from '@/components/Reveal';
+import shots from '../../public/images/docs/manifest.json';
+
+// A render from `npm run docs:shots` in the main repo, so the marketing page
+// shows the editor as it is today rather than a screenshot from April.
+const EDITOR = shots['editor-marketing'];
 
 const callouts = [
   {
@@ -25,17 +27,12 @@ const callouts = [
 ];
 
 export function EditorExperience() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-80px' });
-
   return (
     <section className="py-24">
       <Container>
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5 }}
+        <Reveal
+          y={0}
+          margin="-80px"
           className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16"
         >
           {/* Left: text + callouts */}
@@ -69,17 +66,17 @@ export function EditorExperience() {
           {/* Right: editor screenshot */}
           <div className="overflow-hidden rounded-2xl border border-[#222] bg-[#111]">
             <picture>
-              <source srcSet="/images/editor-1.webp" type="image/webp" />
+              <source srcSet="/images/docs/editor-marketing.webp" type="image/webp" />
               <img
-                src="/images/editor-1.jpg"
-                alt="Home Screens visual editor showing drag and drop interface"
-                width={1400}
-                height={780}
+                src="/images/docs/editor-marketing.jpg"
+                alt={EDITOR.alt}
+                width={EDITOR.width}
+                height={EDITOR.height}
                 className="w-full"
               />
             </picture>
           </div>
-        </motion.div>
+        </Reveal>
       </Container>
     </section>
   );

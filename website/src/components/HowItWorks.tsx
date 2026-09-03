@@ -1,8 +1,5 @@
-'use client';
-
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
 import { Container } from '@/components/Container';
+import { Reveal } from '@/components/Reveal';
 
 const steps = [
   {
@@ -26,9 +23,6 @@ const steps = [
 ];
 
 export function HowItWorks() {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-60px' });
-
   return (
     <section className="py-24">
       <Container>
@@ -38,19 +32,13 @@ export function HowItWorks() {
           </h2>
         </div>
 
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 gap-8 md:grid-cols-3"
-        >
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {steps.map((step, i) => (
-            <motion.div
+            <Reveal
               key={step.number}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.4, delay: i * 0.15 }}
+              delay={i * 0.15}
+              y={20}
+              margin="-60px"
               className="rounded-2xl border border-[#222] bg-[#161616] p-6"
             >
               <span className="font-mono text-5xl font-bold text-cyan-500/20">
@@ -62,9 +50,9 @@ export function HowItWorks() {
               <p className="mt-2 text-sm text-neutral-500">
                 {step.description}
               </p>
-            </motion.div>
+            </Reveal>
           ))}
-        </motion.div>
+        </div>
       </Container>
     </section>
   );

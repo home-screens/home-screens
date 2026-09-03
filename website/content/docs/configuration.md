@@ -9,10 +9,10 @@ nextjs:
 ---
 
 {% callout type="note" %}
-**This page is a reference for power users.** Home Screens stores everything as JSON files, but you almost never need to touch them — the [editor](/docs/editor) manages all of this for you. This page exists to document the schema for scripting, external tooling, or debugging.
+**This page is a reference for power users.** Home Screens stores everything as JSON files, but you almost never need to touch them, the [editor](/docs/editor) manages all of this for you. This page exists to document the schema for scripting, external tooling, or debugging.
 {% /callout %}
 
-Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database — every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.
+Home Screens stores all configuration as JSON files on disk. The main config file is `data/config.json`; a few feature-specific data files (meals, chores, rewards) live alongside it. There is no database, every file is read and written directly by the API with atomic writes (temp file + rename) to prevent corruption during power loss.
 
 ## Data files
 
@@ -94,7 +94,7 @@ The configuration has the following structure:
 }
 ```
 
-The `displays` field is opt-in. When it is undefined or empty, Home Screens runs in single-display mode and renders `screens` directly — this is the default for fresh installs and the unchanged behavior for any existing config that predates the multi-display feature. When `displays` is populated, each entry has its own owned screens, dimensions, and rotation; see [DisplayNode](#displaynode-multi-display) below and the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke flow.
+The `displays` field is opt-in. When it is undefined or empty, Home Screens runs in single-display mode and renders `screens` directly, this is the default for fresh installs and the unchanged behavior for any existing config that predates the multi-display feature. When `displays` is populated, each entry has its own owned screens, dimensions, and rotation; see [DisplayNode](#display-node-multi-display) below and the [Multi-display guide](/docs/multi-display) for the full multi-display flow.
 
 ### GlobalSettings
 
@@ -147,8 +147,8 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
     enabled: boolean
     position: 'top' | 'bottom'
     maxVisible: number
-    defaultDuration: number       // ms — 0 means use per-type defaults
-    scale?: number                // 0.75–2.0, default 1.0 — scales alert dimensions
+    defaultDuration: number       // ms, 0 means use per-type defaults
+    scale?: number                // 0.75–2.0, default 1.0, scales alert dimensions
   }
 
   pauseEnabled?: boolean          // Allow double-tap on pagination dot to pause rotation (default true)
@@ -177,7 +177,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
                                   // Controls display language, dictionary lookup, and (unless
                                   // formattingLocale overrides it) date/number formatting.
   formattingLocale?: string       // Optional BCP-47 override that affects ONLY date/number
-                                  // formatting — leaves the active dictionary unchanged.
+                                  // formatting, leaves the active dictionary unchanged.
                                   // Falls back to `locale` when omitted.
   timeFormat?: '12h' | '24h'      // Household 12/24-hour preference. Calendar and
                                   // fullscreen-calendar times (including event detail
@@ -253,7 +253,7 @@ Set up under **Settings > Calendar > People**. A calendar that no person claims 
 }
 ```
 
-Account credentials (Apple ID + app-specific password) are **not** stored in the config file — they live in `data/icloud-accounts.json` and are referenced by `accountId`.
+Account credentials (Apple ID + app-specific password) are **not** stored in the config file, they live in `data/icloud-accounts.json` and are referenced by `accountId`.
 
 ### TransitionEffect
 
@@ -330,7 +330,7 @@ Controls when a module (or profile) is active based on day of week and time wind
 
 ### ModuleVisibility
 
-Shows or hides a module based on values published to the shared state bus. Most values come from plugins, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, which do not publish anything of their own. Home Screens itself publishes a small set of built-in `calendar.*` values from the display's shared calendar fetch (next event, how many events today, whether something is on right now) whenever a calendar source is configured — those need no module on screen and survive rotation. Conditions follow Home Assistant-style semantics.
+Shows or hides a module based on values published to the shared state bus. Most values come from plugins, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, which do not publish anything of their own. Home Screens itself publishes a small set of built-in `calendar.*` values from the display's shared calendar fetch (next event, how many events today, whether something is on right now) whenever a calendar source is configured, those need no module on screen and survive rotation. Conditions follow Home Assistant-style semantics.
 
 ```typescript
 {
@@ -350,9 +350,9 @@ type VisibilityCondition =
       below?: number, belowInclusive?: boolean   // belowInclusive: <= instead of <
     }
   | {
-      // Local time-of-day / day-of-week gate — no shared-state key, so it
+      // Local time-of-day / day-of-week gate, no shared-state key, so it
       // fences a condition tree (or a rule) by the clock. daysOfWeek/startTime/
-      // endTime use the same format as ModuleSchedule (no `invert` here — wrap
+      // endTime use the same format as ModuleSchedule (no `invert` here, wrap
       // in a `not` condition to invert instead). All fields absent means
       // "always true"; this kind never evaluates to unknown.
       kind: 'time'; daysOfWeek?: number[], startTime?: string, endTime?: string
@@ -362,7 +362,7 @@ type VisibilityCondition =
   | { kind: 'not';     conditions: VisibilityCondition[] }
 ```
 
-`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`, built-in ones are not). Conditions are edited visually in the editor's module Visibility panel; the key picker lists the built-in values first, under **Built-in**, followed by the keys plugins declare in their manifest's `providesState` field or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugins#shared-state-and-visibility-conditions) for the publishing side.
+`sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`, built-in ones are not). Conditions are edited visually in the editor's module Visibility panel; the key picker lists the built-in values first, under **Built-in**, followed by the keys plugins declare in their manifest's `providesState` field or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugin-development#shared-state-and-visibility-conditions) for the publishing side.
 
 Save-time limits: at most 32 conditions per module (leaves and groups combined) and 5 levels of `and` / `or` / `not` nesting, and a group condition must have at least one child. Exceeding any of these makes `PUT /api/config` fail with a 400 rather than saving.
 
@@ -396,7 +396,7 @@ A condition → action rule owned by a display. Rules reuse the `VisibilityCondi
 }
 ```
 
-When multiple rules could fire at once, the first one in list order wins; reorder rules by dragging their cards. In multi-display setups, a rule can be copied to another display — since screens are per-display, a copied `showScreen` action arrives with its target screen cleared, ready to point at a screen on the new display.
+When multiple rules could fire at once, the first one in list order wins; reorder rules by dragging their cards. In multi-display setups, a rule can be copied to another display, since screens are per-display, a copied `showScreen` action arrives with its target screen cleared, ready to point at a screen on the new display.
 
 Save-time limit: at most 64 rules per display. The `when` tree obeys the same condition and nesting limits as `ModuleVisibility` above.
 
@@ -418,7 +418,7 @@ type RuleAction =
 
 ### DisplayNode (multi-display)
 
-A named display device. Each display owns its own list of screens, designed at its own resolution and orientation. Used in hub-and-spoke deployments where one server drives multiple Pi displays. See the [Multi-display guide](/docs/multi-display) for the install and adoption flow.
+A named display device. Each display owns its own list of screens, designed at its own resolution and orientation. Used in multi-display deployments where one server drives multiple Pi displays. See the [Multi-display guide](/docs/multi-display) for the install and adoption flow.
 
 ```typescript
 {
@@ -435,9 +435,9 @@ A named display device. Each display owns its own list of screens, designed at i
 }
 ```
 
-Like `screens`, the `profiles` field is owned by the display: owned profile `screenIds` reference the display's own `screens`, not the global pool. When the first additional display is added to a single-display install, the existing `config.profiles` and `config.settings.activeProfile` migrate onto the auto-created `main` display alongside its screens; subsequent displays start with `profiles: []` so they build fresh against their own screens. In multi-display mode profiles are always per-display — there is no "shared pool" escape hatch, because a pool profile's `screenIds` would silently diverge from each display's owned screens as soon as either one is edited.
+Like `screens`, the `profiles` field is owned by the display: owned profile `screenIds` reference the display's own `screens`, not the global pool. When the first additional display is added to a single-display install, the existing `config.profiles` and `config.settings.activeProfile` migrate onto the auto-created `main` display alongside its screens; subsequent displays start with `profiles: []` so they build fresh against their own screens. In multi-display mode profiles are always per-display, there is no "shared pool" escape hatch, because a pool profile's `screenIds` would silently diverge from each display's owned screens as soon as either one is edited.
 
-`DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display. Nested objects (`sleep`, `screensaver`, `alerts`) are full-replacement, not deep-merged — override the whole object or omit it:
+`DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display. Nested objects (`sleep`, `screensaver`, `alerts`) are full-replacement, not deep-merged, override the whole object or omit it:
 
 ```typescript
 {
@@ -467,7 +467,7 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 
 | Rule | Limit |
 |---|---|
-| Display ID format | URL-safe slug — lowercase letters, digits, hyphens; must start with a letter or digit |
+| Display ID format | URL-safe slug, lowercase letters, digits, hyphens; must start with a letter or digit |
 | Display ID length | ≤ 64 characters |
 | IDs must be unique | Yes |
 | Maximum displays | 64 per config |
@@ -556,13 +556,13 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
 }
 ```
 
-`title` and `titleFontSize` only apply to modules that render the standard card frame. Plugin modules and Display Control draw their content without the card, so a title strip can never appear on them — the editor hides the Card Title fields for those modules, and both keys are dropped from a plugin manifest's `defaultStyle` when a module is placed.
+`title` and `titleFontSize` only apply to modules that render the standard card frame. Plugin modules and Display Control draw their content without the card, so a title strip can never appear on them, the editor hides the Card Title fields for those modules, and both keys are dropped from a plugin manifest's `defaultStyle` when a module is placed.
 
 `fontFamily` stores a font registry **id**, not a raw CSS stack. The available ids are `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, and `pacifico`. The fonts themselves are bundled at build time, so only these ids are guaranteed to load. A raw CSS stack is still accepted for backward compatibility, but anything the registry does not recognize is passed to the browser verbatim and will fall back to a system font.
 
 ## Module Configs
 
-Each `ModuleInstance.config` object holds the fields for its module type. Those fields, with their defaults and allowed values, are documented one table per module in the **[Module Reference](/docs/module-reference)** — that page is the source of truth for module options, and the stored JSON matches it exactly.
+Each `ModuleInstance.config` object holds the fields for its module type. Those fields, with their defaults and allowed values, are documented one table per module in the **[Module Reference](/docs/module-reference)**: that page is the source of truth for module options, and the stored JSON matches it exactly.
 
 ## Shared data files
 
@@ -694,7 +694,7 @@ Home Screens ships a standalone validator for `data/config.json` that you can ru
 npm run config:check
 ```
 
-A clean config exits with status `0` and a "Config is valid" summary. Any errors — unknown module types, duplicate screen IDs, profile references to non-existent screens, out-of-range display dimensions, etc. — exit with a non-zero status and a list of diagnostic entries, making the CLI safe to wire into a pre-commit hook or CI step on a server that mounts `data/`. The same validation rules are exposed programmatically from `src/lib/validate-config.ts` if you want to reuse them from your own tooling.
+A clean config exits with status `0` and a "Config is valid" summary. Any errors, unknown module types, duplicate screen IDs, profile references to non-existent screens, out-of-range display dimensions, etc., exit with a non-zero status and a list of diagnostic entries, making the CLI safe to wire into a pre-commit hook or CI step on a server that mounts `data/`. The same validation rules are exposed programmatically from `src/lib/validate-config.ts` if you want to reuse them from your own tooling.
 
 ## Backup & Restore
 
@@ -706,18 +706,18 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 By default a backup carries no keys at all. **This part needs an editor password** (Settings > Security): without one, anything on your network can ask the hub for your keys, and there is no way for it to tell you apart from anyone else. Until you set one, the checkbox below stays switched off.
 
-In the editor, **Settings > Backups & data > Full Backup** has two checkboxes:
+In the editor, **Settings > Backups & data > Save a copy** has two checkboxes:
 
 - **Include my API keys and connected accounts** adds your weather and map keys, your Google, iCloud, Immich and OneDrive sign-ins, your plugin logins, and your editor password to the file. Both boxes start unticked every time you open the page, so an accidental tick never becomes your standing default.
 - **Protect them with a password** locks that part of the file. You choose the password, and you need it again to put the keys back.
 
 A backup that carries keys is named `home-screens-backup-with-keys-<date>.json`, so you can tell it apart in a downloads folder.
 
-There is no way to recover the password. If you lose it you can still restore the backup — choose **Restore without my keys** at the prompt, and everything except the keys comes back. Losing the password costs you the keys, not your setup.
+There is no way to recover the password. If you lose it you can still restore the backup, choose **Restore without my keys** at the prompt, and everything except the keys comes back. Losing the password costs you the keys, not your setup.
 
 Restoring a backup that includes your editor password signs you out, because the password on this device becomes the one from the backup. Sign in again with that password. If the backup also had network address rules turned on and this device isn't on the restored list, the rules are left switched off so you can't lock yourself out; turn them back on in Settings once you've added this device.
 
-The remote control's Settings sheet has no password prompt. Restoring a key-carrying backup there restores everything except the keys and tells you so — finish that part in the editor.
+The remote control's Settings sheet has no password prompt. Restoring a key-carrying backup there restores everything except the keys and tells you so, finish that part in the editor.
 
 {% callout type="warning" %}
 **Keep a key-carrying backup private.** Without the password option, anyone who opens the file can use your accounts. With it, the keys are sealed and only your password opens them.

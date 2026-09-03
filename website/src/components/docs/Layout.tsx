@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import clsx from 'clsx'
 
 import { Hero } from '@/components/docs/Hero'
@@ -91,9 +92,40 @@ function Header() {
   )
 }
 
+/**
+ * The marketing pages are dark by design and the docs follow the system
+ * theme. Someone clicking "Docs" from the black homepage used to land on a
+ * white page. With no saved choice, a same-site arrival from a marketing page
+ * keeps the dark look; the theme toggle still wins afterwards and a direct
+ * visit to the docs still follows the system.
+ */
+function useDarkArrivalFromMarketing() {
+  const { setTheme } = useTheme()
+  useEffect(() => {
+    let saved: string | null = null
+    try {
+      saved = window.localStorage.getItem('theme')
+    } catch {
+      /* storage blocked: leave the system default */
+    }
+    if (saved) return
+    const from = document.referrer
+    if (!from) return
+    try {
+      const url = new URL(from)
+      if (url.origin === window.location.origin && !url.pathname.startsWith('/docs')) {
+        setTheme('dark')
+      }
+    } catch {
+      /* unparseable referrer */
+    }
+  }, [setTheme])
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isHomePage = pathname === '/docs'
+  useDarkArrivalFromMarketing()
 
   return (
     <div className="flex w-full flex-col">

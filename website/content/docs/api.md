@@ -122,7 +122,7 @@ If no location is set (in the query or in your weather settings), the route retu
 
 ### GET /api/calendar
 
-Fetches a merged event stream from all configured sources — Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source) — plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured. Display access. Results are cached for 2 minutes.
+Fetches a merged event stream from all configured sources, Google Calendar OAuth calendars, iCal/ICS feeds, **and** iCloud calendars (including the optional contact-birthdays source), plus optional public holidays. Each iCloud calendar fails in isolation, so one broken calendar doesn't blank the rest. Returns 400 if no source is configured. Display access. Results are cached for 2 minutes.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -164,7 +164,7 @@ On each event, `title` and `allDay` are always present. `location`, `description
 
 | Field | Type | Description |
 |---|---|---|
-| `id` | string | Matches the events' `sourceId` — a Google calendar id, an iCal or iCloud source id, or `holidays` |
+| `id` | string | Matches the events' `sourceId`: a Google calendar id, an iCal or iCloud source id, or `holidays` |
 | `name` | string | Best-effort display name; a source that has never succeeded may not have one |
 | `ok` | boolean | Whether the most recent attempt succeeded |
 | `error` | string | Plain, family-friendly wording for what went wrong, when it didn't |
@@ -174,7 +174,7 @@ On each event, `title` and `allDay` are always present. `location`, `description
 
 ### GET /api/calendar/status
 
-Returns just the per-source health from the most recent calendar fetch, without triggering a new one. The editor's **Source status** panel polls this: it costs nothing, never mints a cache entry, and never touches the saved-events map. The payload is empty until the first calendar fetch of the process, in which case a client should fall back to one regular `/api/calendar` call. Display access — it carries calendar names and upstream error text, so it is not public.
+Returns just the per-source health from the most recent calendar fetch, without triggering a new one. The editor's **Source status** panel polls this: it costs nothing, never mints a cache entry, and never touches the saved-events map. The payload is empty until the first calendar fetch of the process, in which case a client should fall back to one regular `/api/calendar` call. Display access, it carries calendar names and upstream error text, so it is not public.
 
 **Response:**
 ```json
@@ -189,7 +189,7 @@ Entries have the same shape as the `sourceStatus` array on `/api/calendar` above
 
 ### GET /api/calendars
 
-Lists the authenticated user's Google Calendars (OAuth only — used by the editor's calendar picker). Requires a valid session.
+Lists the authenticated user's Google Calendars (OAuth only, used by the editor's calendar picker). Requires a valid session.
 
 **Response:**
 ```json
@@ -284,7 +284,7 @@ Toggles a chore completion. If the completion already exists for the given chore
 
 The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 days. Future dates, invalid calendar dates (e.g. `2026-02-30`), and dates outside the retention window are rejected with `400`. Toggling a chore with a non-zero point value also credits or debits the member's reward balance; if removing a past completion would drive the balance negative, the response includes a `warning` string explaining the deficit.
 
-`direction` is optional. Omitted, the call is the flip described above. Set to `"complete"` or `"uncomplete"`, the call only ever moves the chore in that direction and is a no-op when it's already there — so a repeated "mark it done" (a voice assistant, a retried request) can never accidentally un-complete a chore and take the points back. Any other value is rejected with `400`.
+`direction` is optional. Omitted, the call is the flip described above. Set to `"complete"` or `"uncomplete"`, the call only ever moves the chore in that direction and is a no-op when it's already there, so a repeated "mark it done" (a voice assistant, a retried request) can never accidentally un-complete a chore and take the points back. Any other value is rejected with `400`.
 
 **Response:**
 ```json
@@ -296,11 +296,11 @@ The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 da
 }
 ```
 
-`changed` reports whether this call actually flipped anything — `false` means the directional request found the chore already in the requested state (and no points moved). `rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `warning` is only present in the deficit case described above.
+`changed` reports whether this call actually flipped anything, `false` means the directional request found the chore already in the requested state (and no points moved). `rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `warning` is only present in the deficit case described above.
 
 ### GET /api/chores/today
 
-Returns the **resolved** per-member chore list for one day — who actually owes what, with rotation (daily/weekly/schedule grids) and frequency rules already applied server-side, plus each chore's completion state. This is what the chore chart renders; use it instead of re-deriving assignments from `/api/chores/data`. Powers the "what chores does Alice have left?" question in the [Voice Control guide](/docs/voice-control). Display access.
+Returns the **resolved** per-member chore list for one day, who actually owes what, with rotation (daily/weekly/schedule grids) and frequency rules already applied server-side, plus each chore's completion state. This is what the chore chart renders; use it instead of re-deriving assignments from `/api/chores/data`. Powers the "what chores does Alice have left?" question in the [Voice Control guide](/docs/voice-control). Display access.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -399,11 +399,11 @@ Returns saved meals, weekly plan, grocery checked state, and shared meal-planner
 }
 ```
 
-`settings.timeFormat` is optional — when absent, meal times follow the household `GlobalSettings.timeFormat`, which the top-level `globalTimeFormat` field mirrors so clients can resolve "follow global" without a second config fetch. The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week support. Entries older than 12 weeks are pruned on write.
+`settings.timeFormat` is optional, when absent, meal times follow the household `GlobalSettings.timeFormat`, which the top-level `globalTimeFormat` field mirrors so clients can resolve "follow global" without a second config fetch. The `plan` array uses ISO date strings (e.g. `"2026-04-04"`) for multi-week support. Entries older than 12 weeks are pruned on write.
 
 ### PUT /api/meals/data
 
-Partial update — every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session.
+Partial update, every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session.
 
 The entire read-modify-write cycle runs inside the meal-data store queue, so cross-surface writers (editor settings sheet, `/remote`, grocery checks) cannot interleave and silently lose each other's edits.
 
@@ -432,7 +432,7 @@ Returns just the grocery checked state.
 
 ### GET /api/meals/grocery/list
 
-Returns the **resolved** grocery list for the current week — ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
+Returns the **resolved** grocery list for the current week, ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
 
 **Response:**
 ```json
@@ -448,7 +448,7 @@ Returns the **resolved** grocery list for the current week — ingredients aggre
 
 ### POST /api/meals/grocery
 
-Toggles a grocery item's checked state. If the item is already checked, it is unchecked; otherwise it is checked. Display access — a display token works, so an automation or voice assistant can check items off. The item name is matched after trimming and lowercasing, so senders can use the display-cased name from `/api/meals/grocery/list`.
+Toggles a grocery item's checked state. If the item is already checked, it is unchecked; otherwise it is checked. Display access, a display token works, so an automation or voice assistant can check items off. The item name is matched after trimming and lowercasing, so senders can use the display-cased name from `/api/meals/grocery/list`.
 
 **Body:**
 ```json
@@ -458,9 +458,9 @@ Toggles a grocery item's checked state. If the item is already checked, it is un
 }
 ```
 
-`direction` is optional. Omitted, the call is the historical flip. Set to `"check"` or `"uncheck"`, the call only ever moves the item in that direction and is a no-op when it's already there — so a repeated voice "check off milk" can never silently un-check it. Any other value is rejected with `400`.
+`direction` is optional. Omitted, the call is the historical flip. Set to `"check"` or `"uncheck"`, the call only ever moves the item in that direction and is a no-op when it's already there, so a repeated voice "check off milk" can never silently un-check it. Any other value is rejected with `400`.
 
-**Response:** `{ "groceryChecked": [...], "changed": true }` — `changed` reports whether this call actually flipped anything.
+**Response:** `{ "groceryChecked": [...], "changed": true }`: `changed` reports whether this call actually flipped anything.
 
 ---
 
@@ -495,7 +495,7 @@ Redeems a reward for a member. Checks eligibility (member restriction) and suffi
 }
 ```
 
-**Response:** `{ "balances": { ... }, "redemptions": [ ... ] }` — the updated point balances for all members and the updated redemption history after the redeem. Reward definitions are not returned here (they didn't change); re-fetch them via `GET /api/rewards` if needed.
+**Response:** `{ "balances": { ... }, "redemptions": [ ... ] }`: the updated point balances for all members and the updated redemption history after the redeem. Reward definitions are not returned here (they didn't change); re-fetch them via `GET /api/rewards` if needed.
 
 ### PUT /api/rewards/data
 
@@ -527,13 +527,13 @@ Manual point balance adjustment. Requires a valid session.
 
 Positive amounts credit points; negative amounts debit. Amount must be non-zero.
 
-**Response:** `{ "balances": { ... } }` — only the updated balances map. Reward definitions and redemption history are unchanged by this endpoint, so they are not returned.
+**Response:** `{ "balances": { ... } }`: only the updated balances map. Reward definitions and redemption history are unchanged by this endpoint, so they are not returned.
 
 ---
 
 ## Timers
 
-Visual timers and routines, managed from the remote's Timers tab. Routines are family data like meals and chores — they live in `data/routines.json`, not in the display config. A running timer is a **session**: a snapshot of the steps plus epoch timestamps, so clients derive the countdown locally and editing a routine mid-run can't corrupt it. There is at most one active session household-wide.
+Visual timers and routines, managed from the remote's Timers tab. Routines are family data like meals and chores, they live in `data/routines.json`, not in the display config. A running timer is a **session**: a snapshot of the steps plus epoch timestamps, so clients derive the countdown locally and editing a routine mid-run can't corrupt it. There is at most one active session household-wide.
 
 ### GET /api/timers/routines
 
@@ -545,25 +545,25 @@ Returns the saved routine list. Display access.
 
 ### PUT /api/timers/routines
 
-Replaces the routine list wholesale (the list is capped at 50 and edited from a single form, so replace-the-list avoids partial-update merge rules). Validation is all-or-nothing: one bad routine rejects the whole write with `400`. An empty list is a legitimate write — it's how the last routine is deleted. Requires a valid session.
+Replaces the routine list wholesale (the list is capped at 50 and edited from a single form, so replace-the-list avoids partial-update merge rules). Validation is all-or-nothing: one bad routine rejects the whole write with `400`. An empty list is a legitimate write, it's how the last routine is deleted. Requires a valid session.
 
-**Body:** `{ "routines": [ ... ] }` — same shape as the GET response.
+**Body:** `{ "routines": [ ... ] }`: same shape as the GET response.
 
 ### GET /api/timers/session
 
-Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays poll this every few seconds and compute the live countdown locally from the returned timestamps, so poll latency only delays the start — it never affects countdown accuracy. Display access.
+Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays poll this every few seconds and compute the live countdown locally from the returned timestamps, so poll latency only delays the start, it never affects countdown accuracy. Display access.
 
 ### POST /api/timers/session
 
 Starts a session or controls the running one, selected by `action`:
 
-- `start` — begin a timer. For a routine: `{ "action": "start", "kind": "routine", "routineId": "...", "targets": "all" }`. For a quick timer: `{ "action": "start", "kind": "quick", "durationSec": 300, "targets": "all" }`, with optional `view` and `sound`. `targets` is required and picks which displays the timer takes over: `"all"` or a non-empty array of display IDs. Starting while a session is already running replaces it — one active session at a time is the intended family-display behavior.
-- `pause`, `resume` — pause and resume the countdown
-- `skip` and `step-done` — the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
-- `add-minute` — add a minute to the current step
-- `cancel` — stop the session
+- `start`: begin a timer. For a routine: `{ "action": "start", "kind": "routine", "routineId": "...", "targets": "all" }`. For a quick timer: `{ "action": "start", "kind": "quick", "durationSec": 300, "targets": "all" }`, with optional `view` and `sound`. `targets` is required and picks which displays the timer takes over: `"all"` or a non-empty array of display IDs. Starting while a session is already running replaces it, one active session at a time is the intended family-display behavior.
+- `pause`, `resume`: pause and resume the countdown
+- `skip` and `step-done`: the same transition (advance to the next step now); both names exist because remotes skip and touch displays tap Done
+- `add-minute`: add a minute to the current step
+- `cancel`: stop the session
 
-Display access on purpose — touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
+Display access on purpose, touch kiosks post `step-done` when a kid taps Done. Every mutation runs through an atomic queue, so overlapping taps from multiple displays can't interleave.
 
 **Response:** `{ "session": { ... } }` with the updated session.
 
@@ -626,7 +626,7 @@ Returns `{ "displayToken": null }` if authentication is not enabled.
 
 ### POST /api/auth/display-token
 
-Regenerates the display token. The previous token is immediately invalidated — the display must reload to pick up the new token. Requires a valid session.
+Regenerates the display token. The previous token is immediately invalidated, the display must reload to pick up the new token. Requires a valid session.
 
 **Response:**
 ```json
@@ -700,7 +700,7 @@ with status `409`. The `callerIp` in that response is the address you'd need to 
 
 ## Google Auth
 
-Google sign-in uses the **OAuth 2.0 device flow** exclusively — there is no browser redirect endpoint, since the display itself is a kiosk with no keyboard. The editor calls `POST /api/auth/google/device` to get a `user_code`, the user enters that code at `google.com/device` on their phone or laptop, and the editor polls `PUT /api/auth/google/device` until Google returns a token.
+Google sign-in uses the **OAuth 2.0 device flow** exclusively, there is no browser redirect endpoint, since the display itself is a kiosk with no keyboard. The editor calls `POST /api/auth/google/device` to get a `user_code`, the user enters that code at `google.com/device` on their phone or laptop, and the editor polls `PUT /api/auth/google/device` until Google returns a token.
 
 ### GET /api/auth/google/status
 
@@ -810,7 +810,7 @@ An absent key means the item uses its authored default from the editor.
 
 ### POST /api/todo/toggle
 
-Atomically flips one To-Do item's completion state. The addressed module must exist, be a To-Do module, and have `interactive` enabled — a stale or forged request cannot flip a read-only instance. Returns the full updated state map so the tapping client can reconcile its optimistic update against server truth. Requires display auth.
+Atomically flips one To-Do item's completion state. The addressed module must exist, be a To-Do module, and have `interactive` enabled, a stale or forged request cannot flip a read-only instance. Returns the full updated state map so the tapping client can reconcile its optimistic update against server truth. Requires display auth.
 
 **Body:**
 ```json
@@ -953,7 +953,7 @@ Fetches and parses one or more feeds (RSS 2.0, RSS 1.0/RDF, Atom, JSON Feed) and
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `feed` | string (repeatable) | — | A feed URL, or a shorthand: `local` (news near the location in Settings), `topic:<keywords>`, `youtube:<channelId>`, `reddit:<subreddit>`. Up to 12 per call |
+| `feed` | string (repeatable) |, | A feed URL, or a shorthand: `local` (news near the location in Settings), `topic:<keywords>`, `youtube:<channelId>`, `reddit:<subreddit>`. Up to 12 per call |
 
 A feed that fails does not fail the request: it comes back with `ok: false` and an `error` code next to its healthy siblings. Codes are `blocked-url` (private, loopback, or link-local address, or an unbuildable shorthand), `no-location` (`local` without a location in Settings), `unreachable`, `timeout`, `http-error` (with the upstream `status`), `not-a-feed`, `empty-url`, and `too-many-feeds`. Feeds on your own network are only fetched when the exact URL is saved in a news module with **Home network** turned on; the flag in the editor is the consent, the query string alone is not.
 
@@ -1053,7 +1053,7 @@ All three numbers are whole minutes. `durationMinutes` is the drive with no traf
 {
   "routes": [ ... ],
   "mock": true,
-  "note": "Add a Google Maps or TomTom API key in Settings > Integrations for real traffic data"
+  "note": "Add a Google Maps or TomTom API key in Settings > API keys for real traffic data"
 }
 ```
 
@@ -1406,11 +1406,11 @@ Returns random photos from the Immich library with optional filters. Cached for 
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `albumId` | string | — | Filter to a specific album |
-| `personId` | string | — | Filter to a recognized person |
+| `albumId` | string |, | Filter to a specific album |
+| `personId` | string |, | Filter to a recognized person |
 | `favorites` | boolean | `false` | Only return favorites |
 | `count` | number | `50` | Number of photos (max 200) |
-| `media` | string | — | `photos`, `videos`, or `both`. Changes the response shape (see below) |
+| `media` | string |, | `photos`, `videos`, or `both`. Changes the response shape (see below) |
 
 Without `media`, the response is a plain array of image URLs served through the proxy:
 ```json
@@ -1451,12 +1451,12 @@ Proxies an Immich image through the server. Validates the asset ID format and ca
 
 ### GET /api/immich/video
 
-Streams a video asset from Immich. The incoming `Range` header is forwarded and the response body is piped straight through — never buffered or cached — so seeking works and large files can't exhaust the server's memory.
+Streams a video asset from Immich. The incoming `Range` header is forwarded and the response body is piped straight through, never buffered or cached, so seeking works and large files can't exhaust the server's memory.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `assetId` | string | *(required)* | UUID of the Immich video asset |
-| `mt` | string | — | Media token bound to this asset, for `<video src>` playback where a Bearer header can't be sent |
+| `mt` | string |, | Media token bound to this asset, for `<video src>` playback where a Bearer header can't be sent |
 
 **Response:** The video stream with `Content-Type`, `Content-Range`, `Content-Length`, and `Accept-Ranges` passed through from Immich.
 
@@ -1464,7 +1464,7 @@ Streams a video asset from Immich. The incoming `Range` header is forwarded and 
 
 ## OneDrive
 
-OneDrive photos for the Photo Slideshow and Full-Screen Photo Viewer modules. Sign-in is the OAuth 2.0 device flow against personal Microsoft accounts: the editor calls `POST /api/onedrive/auth` to get a `userCode`, you enter that code at the verification link on any device, and the editor polls `GET /api/onedrive/auth` until the state says `connected`. Requires a Microsoft **Application (client) ID** in Settings > API keys — the app-registration steps are in the [Modules guide](/docs/modules#one-drive-photos). Tokens live in `data/onedrive-tokens.json`, outside the config file, and are never returned by the API.
+OneDrive photos for the Photo Slideshow and Full-Screen Photo Viewer modules. Sign-in is the OAuth 2.0 device flow against personal Microsoft accounts: the editor calls `POST /api/onedrive/auth` to get a `userCode`, you enter that code at the verification link on any device, and the editor polls `GET /api/onedrive/auth` until the state says `connected`. Requires a Microsoft **Application (client) ID** in Settings > API keys, the app-registration steps are in the [Modules guide](/docs/modules#one-drive-photos). Tokens live in `data/onedrive-tokens.json`, outside the config file, and are never returned by the API.
 
 ### GET /api/onedrive/status
 
@@ -1493,7 +1493,7 @@ Starts the device-code sign-in. Requires a valid session.
 
 ### GET /api/onedrive/auth
 
-One poll attempt of the pending sign-in — call it every `intervalMs` milliseconds. The route always answers 200; the state machine is the payload. Requires a valid session.
+One poll attempt of the pending sign-in, call it every `intervalMs` milliseconds. The route always answers 200; the state machine is the payload. Requires a valid session.
 
 **Response:** `{ "state": "pending", "intervalMs": 5000 }`
 
@@ -1501,7 +1501,7 @@ One poll attempt of the pending sign-in — call it every `intervalMs` milliseco
 
 ### DELETE /api/onedrive/auth
 
-Disconnects OneDrive. Personal Microsoft accounts have no revocation endpoint, so this drops the stored tokens locally — to end the grant on Microsoft's side too, remove the app from your Microsoft account's apps page. Requires a valid session.
+Disconnects OneDrive. Personal Microsoft accounts have no revocation endpoint, so this drops the stored tokens locally, to end the grant on Microsoft's side too, remove the app from your Microsoft account's apps page. Requires a valid session.
 
 **Response:** `{ "connected": false }`
 
@@ -1511,7 +1511,7 @@ Folder browser for the editor: one folder plus its immediate subfolders (first 2
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `itemId` | string | — | Graph item ID of a folder; omit for the drive root |
+| `itemId` | string |, | Graph item ID of a folder; omit for the drive root |
 
 **Response:**
 ```json
@@ -1523,7 +1523,7 @@ Folder browser for the editor: one folder plus its immediate subfolders (first 2
 
 ### GET /api/onedrive/photos
 
-The slideshow's photo list: photos from one folder and all of its subfolders, shuffled. Used by photo slideshow and fullscreen photo. Display access — a display token works.
+The slideshow's photo list: photos from one folder and all of its subfolders, shuffled. Used by photo slideshow and fullscreen photo. Display access, a display token works.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -1541,7 +1541,7 @@ Cached for 5 minutes per `folderId` + `count` combination. The shuffle runs over
 
 ### GET /api/onedrive/serve
 
-Proxies a photo through the server, so displays never hold Graph's short-lived download URLs. Display access — a display token works.
+Proxies a photo through the server, so displays never hold Graph's short-lived download URLs. Display access, a display token works.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
@@ -1554,7 +1554,7 @@ Proxies a photo through the server, so displays never hold Graph's short-lived d
 
 ## iCloud
 
-There are two iCloud integrations. **Shared albums** (photos) work without an Apple account or API key — the album's public share link is all that's needed, and asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN. **Calendar sync** signs in to an iCloud account with an app-specific password; credentials live in `data/icloud-accounts.json` (never in the config file) and are never returned by the API.
+There are two iCloud integrations. **Shared albums** (photos) work without an Apple account or API key, the album's public share link is all that's needed, and asset URLs are Apple-signed and public, so displays load media straight from Apple's CDN. **Calendar sync** signs in to an iCloud account with an app-specific password; credentials live in `data/icloud-accounts.json` (never in the config file) and are never returned by the API.
 
 ### GET /api/icloud/photos
 
@@ -1563,7 +1563,7 @@ Lists media from an iCloud shared album. Album contents are cached for 5 minutes
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `album` | string | *(required)* | Shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token |
-| `media` | string | — | Filter: `photos`, `videos`, or `both`. Omitted = photos only, returned as a plain URL array |
+| `media` | string |, | Filter: `photos`, `videos`, or `both`. Omitted = photos only, returned as a plain URL array |
 | `count` | number | `50` | Number of items to return (1–200) |
 
 **Response (with `media`):**
@@ -1600,14 +1600,14 @@ Lists connected iCloud accounts as credential-free `{ id, appleId }` pairs. Requ
 
 ### POST /api/icloud/accounts
 
-Connects an iCloud account. The credentials are verified against iCloud before saving — a failed sign-in returns `400` with a friendly message (not `401`, which the editor would treat as an expired session). Re-adding an existing Apple ID replaces its stored password instead of duplicating the account. Requires a valid editor session.
+Connects an iCloud account. The credentials are verified against iCloud before saving, a failed sign-in returns `400` with a friendly message (not `401`, which the editor would treat as an expired session). Re-adding an existing Apple ID replaces its stored password instead of duplicating the account. Requires a valid editor session.
 
 **Request body:**
 ```json
 { "appleId": "user@icloud.com", "appPassword": "abcd-efgh-ijkl-mnop" }
 ```
 
-**Response:** the new account's `{ id, appleId }` — the password is never echoed back.
+**Response:** the new account's `{ id, appleId }`: the password is never echoed back.
 
 ### DELETE /api/icloud/accounts
 
@@ -1672,7 +1672,7 @@ Searches Unsplash photos. Requires an Unsplash access key in settings. Requires 
 
 ### POST /api/unsplash
 
-Downloads a chosen Unsplash photo to the local backgrounds directory and fires Unsplash's download-tracking pixel (required by the Unsplash API terms — the hit only fires when `downloadUrl` points at the real `api.unsplash.com` host, to prevent credential leakage). Requires a valid session.
+Downloads a chosen Unsplash photo to the local backgrounds directory and fires Unsplash's download-tracking pixel (required by the Unsplash API terms, the hit only fires when `downloadUrl` points at the real `api.unsplash.com` host, to prevent credential leakage). Requires a valid session.
 
 **Body:**
 ```json
@@ -1800,7 +1800,7 @@ Exchanges the `code` Google hands back for tokens.
 
 Whether the Picker is usable right now.
 
-**Response:** `{ "connected": true, "credentialsConfigured": true }` — `credentialsConfigured` is whether a client ID and secret have been saved at all, `connected` whether an account is currently authorized.
+**Response:** `{ "connected": true, "credentialsConfigured": true }`: `credentialsConfigured` is whether a client ID and secret have been saved at all, `connected` whether an account is currently authorized.
 
 ### DELETE /api/google-picker/status
 
@@ -1810,7 +1810,7 @@ Disconnects the account and discards its tokens. **Response:** `{ "connected": f
 
 Opens a picking session with Google.
 
-**Response:** `{ "id": "...", "pickerUri": "https://photos.google.com/picker/..." }` — open `pickerUri` for the person to make their selection.
+**Response:** `{ "id": "...", "pickerUri": "https://photos.google.com/picker/..." }`: open `pickerUri` for the person to make their selection.
 
 ### GET /api/google-picker/session
 
@@ -1822,7 +1822,7 @@ Closes a session. Takes `?id=<session id>`. **Response:** `{ "ok": true }`
 
 ### POST /api/google-picker/import
 
-Starts copying the picked photos into the library. Returns `202` because the copy runs in the background — poll the job with `GET` below.
+Starts copying the picked photos into the library. Returns `202` because the copy runs in the background, poll the job with `GET` below.
 
 **Body:** `{ "sessionId": "...", "folder": "<library folder>" }`
 
@@ -1847,7 +1847,7 @@ Reads the progress of a running or finished import. Takes `?jobId=<id>`; returns
 }
 ```
 
-`state` is `running`, `done`, or `error`. `skipped` counts files already in the library (matched by a deterministic name), and `failed` counts downloads that did not succeed — a failure is counted, never fatal to the job. `finishedAt` appears once the job ends, and `error` only when `state` is `error`.
+`state` is `running`, `done`, or `error`. `skipped` counts files already in the library (matched by a deterministic name), and `failed` counts downloads that did not succeed, a failure is counted, never fatal to the job. `finishedAt` appears once the job ends, and `error` only when `state` is `error`.
 
 ---
 
@@ -1923,7 +1923,7 @@ Installs a plugin from the registry. Downloads the tarball, verifies its SHA-256
 
 ### POST /api/plugins/install-external
 
-Installs a plugin from any HTTPS tarball URL — for private plugins, pre-release builds, or forks that aren't in the public registry. `http://localhost` and `http://127.0.0.1` are also accepted, so you can test a build you're serving locally. Runs through the same extract / validate pipeline as the registry install and cannot overwrite an ID already installed from the marketplace (the collision check is re-run after acquiring the per-ID lock to close a TOCTOU window). Requires a valid session.
+Installs a plugin from any HTTPS tarball URL, for private plugins, pre-release builds, or forks that aren't in the public registry. `http://localhost` and `http://127.0.0.1` are also accepted, so you can test a build you're serving locally. Runs through the same extract / validate pipeline as the registry install and cannot overwrite an ID already installed from the marketplace (the collision check is re-run after acquiring the per-ID lock to close a TOCTOU window). Requires a valid session.
 
 **Body:** `{ "tarballUrl": "https://example.com/my-plugin-{version}.tgz", "version": "1.2.0" }`
 
@@ -1967,7 +1967,7 @@ Both `enabled` and `clearPrevVersion` are optional.
 
 Runs an upgraded plugin's config migration against every placed instance of it, on every display. The editor calls this after installing a newer version of a plugin whose manifest declares `configMigrations`. Requires a valid session.
 
-The migration rules are read from the installed plugin's own manifest on disk, never taken from the request — the body only names which plugin to migrate, so a caller cannot inject arbitrary rewrites into your config. The read-modify-write runs through the same serialized queue as editor saves, so a migration can't clobber edits made while it runs.
+The migration rules are read from the installed plugin's own manifest on disk, never taken from the request, the body only names which plugin to migrate, so a caller cannot inject arbitrary rewrites into your config. The read-modify-write runs through the same serialized queue as editor saves, so a migration can't clobber edits made while it runs.
 
 **Body:**
 ```json
@@ -1977,7 +1977,7 @@ The migration rules are read from the installed plugin's own manifest on disk, n
 }
 ```
 
-**Response:** `{ "ok": true, "changed": true }` — `changed` is whether any module instance was actually rewritten. Returns `400` for an invalid plugin id or a missing `oldVersion`, and `404` if the plugin is not installed.
+**Response:** `{ "ok": true, "changed": true }`: `changed` is whether any module instance was actually rewritten. Returns `400` for an invalid plugin id or a missing `oldVersion`, and `404` if the plugin is not installed.
 
 ### GET /api/plugins/manifest/:pluginId
 
@@ -2031,7 +2031,7 @@ Only successful `GET` responses that are text, JSON, or XML are cached. Binary r
 
 #### Plugins that sign in
 
-When a plugin declares a [server-side auth adapter](/docs/plugins#server-side-auth), the proxy attaches its access token automatically for the domains that adapter covers; the plugin never sees or handles the token. If the upstream answers `401`, the proxy refreshes the token once and retries the request before giving up.
+When a plugin declares a [server-side auth adapter](/docs/plugin-development#server-side-auth), the proxy attaches its access token automatically for the domains that adapter covers; the plugin never sees or handles the token. If the upstream answers `401`, the proxy refreshes the token once and retries the request before giving up.
 
 If tokens exist but can no longer be refreshed, the proxy returns `401`:
 
@@ -2073,7 +2073,7 @@ Deletes a secret for a plugin. Requires a valid session.
 
 ### GET /api/plugins/settings/:pluginId
 
-Returns a plugin's stored plugin-level settings — the non-secret values shared by every instance of the plugin, shaped by its manifest [`settingsSchema`](/docs/plugins#settings-schema). Requires a valid session. Returns 404 if the plugin isn't installed.
+Returns a plugin's stored plugin-level settings, the non-secret values shared by every instance of the plugin, shaped by its manifest [`settingsSchema`](/docs/plugin-development#settings-schema). Requires a valid session. Returns 404 if the plugin isn't installed.
 
 Unlike secrets, these values are returned in full; secrets belong in the `secrets` endpoints above.
 
@@ -2093,7 +2093,7 @@ Replaces a plugin's settings object, validated against the manifest's `settingsS
 
 **Body:** `{ "settings": { "baseUrl": "http://192.168.1.50:8123" } }`
 
-**Response:** `{ "ok": true, "settings": { ... } }` — the stored object after validation.
+**Response:** `{ "ok": true, "settings": { ... } }`: the stored object after validation.
 
 ### GET /api/plugins/asset/:pluginId/\*
 
@@ -2103,7 +2103,7 @@ Serves a static file from an installed plugin's directory (icons, images, transl
 
 ### POST /api/plugins/auth/:pluginId/start
 
-Begins the sign-in flow for a plugin that declares a [server-side auth adapter](/docs/plugins#server-side-auth). Requires a valid session. Returns 404 if the plugin isn't installed and enabled, 400 if its manifest declares no `auth` field.
+Begins the sign-in flow for a plugin that declares a [server-side auth adapter](/docs/plugin-development#server-side-auth). Requires a valid session. Returns 404 if the plugin isn't installed and enabled, 400 if its manifest declares no `auth` field.
 
 **Body:** none for OAuth2 flows; `{ "email": "...", "password": "..." }` for the Garmin adapter.
 
@@ -2244,7 +2244,7 @@ Cancels an upgrade that is still downloading or preparing. Requires a valid sess
 There are three outcomes:
 
 - Nothing is running: `404 { "error": "No upgrade is currently running" }`.
-- The update has reached the install step: `409 { "error": "Cannot cancel during deploy — the update is being installed" }`. Past that point stopping halfway would leave a half-installed app, so it has to finish.
+- The update has reached the install step: `409 { "error": "Cannot cancel during deploy, the update is being installed" }`. Past that point stopping halfway would leave a half-installed app, so it has to finish.
 - Otherwise `{ "ok": true }` (or `{ "ok": false }` if the cancel didn't take).
 
 ### POST /api/system/rollback
@@ -2269,7 +2269,7 @@ The `restart-service` action requires the app to be managed by systemd (as the `
 
 Returns system statistics including disk usage, OS info, memory usage, app configuration summary, telemetry status, and a snapshot of the **hub's own hardware** (CPU usage/temperature, memory, disk, uptime). Requires a valid session.
 
-The top-level `hardware` field is gathered in-process via `getLocalHardwareStats()` — this is the hub's own hardware, not that of remote display-only Pis. Per-Pi hardware for spokes lives on `/api/displays` → each display's `hwStats` (posted by `scripts/reporter.sh` to `/api/display/hw-stats`).
+The top-level `hardware` field is gathered in-process via `getLocalHardwareStats()`: this is the hub's own hardware, not that of remote display-only Pis. Per-Pi hardware for display-only Pis lives on `/api/displays` → each display's `hwStats` (posted by `scripts/reporter.sh` to `/api/display/hw-stats`).
 
 **Response:**
 ```json
@@ -2332,15 +2332,15 @@ Before composing the bundle, the hub broadcasts `dump-console-log` to every adop
 
 ### GET/POST /api/backup
 
-Full household backup bundle — exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+Full household backup bundle, exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
-GET never returns credentials. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. This is what **Settings > Backups & data > Full Backup** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
+GET never returns credentials. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. This is what **Settings > Backups & data > Save a copy** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
-To restore a bundle whose `credentials` section is encrypted, add a transient `_passphrase` field to the POST body (it is stripped before anything is written and never stored). Credential failures come back as machine codes so the editor can localize them: `400 { "error": "passphrase_required" }` when the section is locked and no password was sent, `400 { "error": "bad_passphrase" }` when it was wrong, and `400 { "error": "invalid_credentials" }` when the section is damaged. None of these write anything — dropping the `credentials` field and re-posting restores everything else.
+To restore a bundle whose `credentials` section is encrypted, add a transient `_passphrase` field to the POST body (it is stripped before anything is written and never stored). Credential failures come back as machine codes so the editor can localize them: `400 { "error": "passphrase_required" }` when the section is locked and no password was sent, `400 { "error": "bad_passphrase" }` when it was wrong, and `400 { "error": "invalid_credentials" }` when the section is damaged. None of these write anything, dropping the `credentials` field and re-posting restores everything else.
 
 A restore body is capped at 25 MB. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
 
-**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too — `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
 
 ### POST /api/backup/credentials
 
@@ -2395,7 +2395,7 @@ Restores a configuration backup. Requires a valid session.
 
 ## Network
 
-Read and write the Pi's network configuration — WiFi, static IP, hostname, and diagnostics. All endpoints require a valid session and shell out to `nmcli` / `hostnamectl` on the host. Every write that touches the **management interface** (the one the request arrived on) has a two-phase commit: the hub inhibits the connectivity watchdog, schedules a 60-second auto-rollback, applies the change, and waits for the client to POST `/api/system/network/confirm` before discarding the rollback. If the client never confirms (because the change broke connectivity), the original settings are restored automatically.
+Read and write the Pi's network configuration, WiFi, static IP, hostname, and diagnostics. All endpoints require a valid session and shell out to `nmcli` / `hostnamectl` on the host. Every write that touches the **management interface** (the one the request arrived on) has a two-phase commit: the hub inhibits the connectivity watchdog, schedules a 60-second auto-rollback, applies the change, and waits for the client to POST `/api/system/network/confirm` before discarding the rollback. If the client never confirms (because the change broke connectivity), the original settings are restored automatically.
 
 ### GET /api/system/network
 
@@ -2405,7 +2405,7 @@ Returns a snapshot of every non-loopback network interface, including wired/wire
 
 Triggers a fresh WiFi scan on the given interface and returns the nearby networks. Rate-limited to one scan per interface every 15 seconds (cached results are returned inside the window).
 
-**Query:** `?iface=wlan0` (required — validated against an interface-name regex)
+**Query:** `?iface=wlan0` (required, validated against an interface-name regex)
 
 **Response:** Array of `{ ssid, bssid, signal (0–100), frequency, security, inUse, saved }`. Hidden SSIDs are filtered. When `nmcli` is unavailable, returns `[]` rather than an error so the UI can render "no networks found."
 
@@ -2434,7 +2434,7 @@ Brings down a saved WiFi connection by UUID. Like `connect`, management-interfac
 
 ### GET /api/system/network/wifi/saved
 
-Lists saved WiFi connection profiles with last-used timestamps. Pass `?showPasswords=true` to include the PSK — only honored when editor auth is enabled and the host can read NetworkManager secrets via sudo.
+Lists saved WiFi connection profiles with last-used timestamps. Pass `?showPasswords=true` to include the PSK, only honored when editor auth is enabled and the host can read NetworkManager secrets via sudo.
 
 **Response:** Array of `{ id, name, ssid, autoconnect, lastUsed, password? }`. A profile that has never been connected has `lastUsed` set to the literal string `"never"` rather than a date.
 
@@ -2448,7 +2448,7 @@ Deletes a saved WiFi profile.
 
 ### PUT /api/system/network/hostname
 
-Sets the system hostname via `hostnamectl`, rewrites the matching line in `/etc/hosts`, and restarts `avahi-daemon` so mDNS re-advertises under the new name. Hostname is validated (RFC-952/RFC-1123 style). `/etc/hosts` and avahi restart are best-effort — hostname change still succeeds even if those steps fail.
+Sets the system hostname via `hostnamectl`, rewrites the matching line in `/etc/hosts`, and restarts `avahi-daemon` so mDNS re-advertises under the new name. Hostname is validated (RFC-952/RFC-1123 style). `/etc/hosts` and avahi restart are best-effort, hostname change still succeeds even if those steps fail.
 
 **Body:** `{ "hostname": "kitchen-display" }`
 
@@ -2511,18 +2511,18 @@ Confirms a pending network change. Cancels the 60-second auto-revert timer and u
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display — a Home Assistant automation, a bookmark on your phone — the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [alert](#post-api-display-alert), and [module-command](#post-api-display-module-command) (next story on a news module). For a ready-made Home Assistant package built on them — voice sentences included — see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [alert](#post-api-display-alert), and [module-command](#post-api-display-module-command) (next story on a news module). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
 When the hub has more than one display registered, every display-control endpoint accepts an optional display target. There are two ways to provide it:
 
-- **Query string** — append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
-- **JSON body field** — `{ "displayId": "<id>", … }` (POST only).
+- **Query string**: append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
+- **JSON body field**: `{ "displayId": "<id>", … }` (POST only).
 
 Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command) and rejected for read-only or mutate-config actions (status, profile). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
-Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full hub-and-spoke setup.
+Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full multi-display setup.
 
 **Bookmarks need a token once you set a password.** Every endpoint in this section is protected at the display level, and a link you tap from your phone can't send an `Authorization` header. Add the display token to the link instead:
 
@@ -2534,13 +2534,13 @@ Get the token from `GET /api/auth/display-token`. This `?token=` shortcut works 
 
 ### GET /api/displays
 
-Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling spokes. Used by the editor's **Per display > All displays** page and by display-only Pis waiting for adoption. Display access.
+Read-only registry of all configured displays plus runtime heartbeat data the hub has collected from polling display-only Pis. Used by the editor's **Per display > All displays** page and by display-only Pis waiting for adoption. Display access.
 
 The configuration behind this response is re-read at most every 1.5 seconds, so a change you just saved can take one poll cycle to show up here.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `id` | string | Optional. When provided, returns a minimal `{adopted, displayId}` shape used by spoke Pis to poll for adoption. Without `id`, returns the full registry. |
+| `id` | string | Optional. When provided, returns a minimal `{adopted, displayId}` shape used by display-only Pis to poll for adoption. Without `id`, returns the full registry. |
 
 **Response (full):**
 
@@ -2582,7 +2582,7 @@ The configuration behind this response is re-read at most every 1.5 seconds, so 
 
 `settings` is that display's full set of [per-display overrides](/docs/multi-display): rotation interval, transitions, sleep schedule, screensaver, theme, alerts, and so on. It only contains the values that display actually overrides. `lastSeen` is `null`, rather than missing, for a display that has never checked in.
 
-This endpoint is read-only — all writes go through `PUT /api/config` so undo/redo and validation stay consistent.
+This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo and validation stay consistent.
 
 ### GET /api/display/commands
 
@@ -2624,7 +2624,7 @@ Returns the last-known display status as reported by the display client. Accepts
 
 ### GET /api/display/shared-state
 
-Returns the most recent snapshot of a display's [shared values](/docs/plugins#shared-state-and-visibility-conditions), the named values plugins publish and that modules can be shown or hidden by. The editor polls this while a visibility-conditions panel is open so it can show what each value currently is on the real screen.
+Returns the most recent snapshot of a display's [shared values](/docs/plugin-development#shared-state-and-visibility-conditions), the named values plugins publish and that modules can be shown or hidden by. The editor polls this while a visibility-conditions panel is open so it can show what each value currently is on the real screen.
 
 | Parameter | Type | Description |
 |---|---|---|
@@ -2653,7 +2653,7 @@ Polling this endpoint is also the signal that someone is watching. It marks the 
 ### GET /api/display/:command
 ### POST /api/display/:command
 
-Simple commands — bookmarkable via GET or scripted via POST. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`, `clear-alerts`. Pass `?display=<id>` or include `displayId` in a POST body to target a specific display; `?display=all` broadcasts.
+Simple commands, bookmarkable via GET or scripted via POST. Supported commands: `wake`, `sleep`, `next-screen`, `prev-screen`, `reload`, `clear-alerts`. Pass `?display=<id>` or include `displayId` in a POST body to target a specific display; `?display=all` broadcasts.
 
 **Response:** `{ "ok": true, "command": "wake" }`
 
@@ -2667,17 +2667,17 @@ Sets the display brightness.
 
 ### POST /api/display/goto-screen
 
-Jumps the display straight to a specific screen — the command behind "show the calendar" in the [Voice Control guide](/docs/voice-control) and the Display Control module's screen buttons.
+Jumps the display straight to a specific screen, the command behind "show the calendar" in the [Voice Control guide](/docs/voice-control) and the Display Control module's screen buttons.
 
 **Body:** `{ "screen": "calendar", "displayId": "kitchen" }` (`displayId` optional)
 
-`screen` is a screen **id or name**; the display client resolves it against its own rotation, matching the id first and then the name case-insensitively. The hub can't validate the target (screen sets are per-display and the queue never reads config), so an unknown target still returns `ok` here and is ignored with a console warning on the display. A screen excluded from the current rotation — for example by the active profile — is also ignored rather than jumped to. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
+`screen` is a screen **id or name**; the display client resolves it against its own rotation, matching the id first and then the name case-insensitively. The hub can't validate the target (screen sets are per-display and the queue never reads config), so an unknown target still returns `ok` here and is ignored with a console warning on the display. A screen excluded from the current rotation, for example by the active profile, is also ignored rather than jumped to. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
 
 **Response:** `{ "ok": true, "command": "goto-screen", "screen": "calendar" }`
 
 ### POST /api/display/module-command
 
-Pokes every module of one type on the display. The hub just relays it; the module decides what the action means. Today the news modules understand `next`, `prev` (move to the next or previous story or page), `details` (open the current story's summary), and `dismiss` (close it) — so "next story" can be a voice command or a button. Broadcast with `?display=all` is allowed.
+Pokes every module of one type on the display. The hub just relays it; the module decides what the action means. Today the news modules understand `next`, `prev` (move to the next or previous story or page), `details` (open the current story's summary), and `dismiss` (close it), so "next story" can be a voice command or a button. Broadcast with `?display=all` is allowed.
 
 **Body:** `{ "module": "news", "action": "next", "displayId": "kitchen" }` (`displayId` optional; `module` is `news` or `fullscreen-news`; an optional `value` string or number is passed through)
 
@@ -2687,15 +2687,15 @@ Pokes every module of one type on the display. The hub just relays it; the modul
 
 ### POST /api/display/sleep-override
 
-Wakes the display and holds off the automatic sleep machinery — the sleep schedule, the dim schedule, and idle transitions — for a number of minutes. This is "keep the display on tonight": use it when you need a specific, longer duration. A plain `wake` during a scheduled sleep or dim window also holds the display awake, but only for the display's "After a wake-up, stay on for" setting (5 minutes by default). Holds only ever extend — a shorter wake never cuts an existing longer hold short. An explicit `sleep` command (or brightness `0`) cancels the hold early. Broadcast with `?display=all` is allowed.
+Wakes the display and holds off the automatic sleep machinery, the sleep schedule, the dim schedule, and idle transitions, for a number of minutes. This is "keep the display on tonight": use it when you need a specific, longer duration. A plain `wake` during a scheduled sleep or dim window also holds the display awake, but only for the display's "After a wake-up, stay on for" setting (5 minutes by default). Holds only ever extend, a shorter wake never cuts an existing longer hold short. An explicit `sleep` command (or brightness `0`) cancels the hold early. Broadcast with `?display=all` is allowed.
 
-**Body:** `{ "minutes": 480 }` (1 to 1440 — anything longer than 24 hours is rejected with `400`)
+**Body:** `{ "minutes": 480 }` (1 to 1440, anything longer than 24 hours is rejected with `400`)
 
 **Response:** `{ "ok": true, "command": "sleep-override", "minutes": 480 }`
 
 ### POST /api/display/profile
 
-Switches the active profile. Persists the selection to the config file. Display access — a display token is enough, same as the other command verbs, so a Home Assistant automation can switch profiles; the write only touches the active-profile pointer, the same value the display's own rules engine flips. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
+Switches the active profile. Persists the selection to the config file. Display access, a display token is enough, same as the other command verbs, so a Home Assistant automation can switch profiles; the write only touches the active-profile pointer, the same value the display's own rules engine flips. Accepts `?display=<id>` or `displayId` in the body; does **not** accept `all` (profile switches are per-display).
 
 **Body:** `{ "profile": "profile-id", "displayId": "kitchen" }` (`displayId` optional)
 
@@ -2719,13 +2719,13 @@ Shows an alert overlay on the display.
 }
 ```
 
-The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly becomes `info` rather than failing. The `icon`, `duration`, and `dismissible` fields are optional. `duration` is in milliseconds; send `0` and the alert stays up until it is dismissed, whatever its type. Omit it and the display's default duration from **Settings > Screen > Alerts** applies; if that isn't set either, the per-type defaults kick in — 10 seconds for `info`, 30 seconds for `warning`, and `urgent` stays up until dismissed. At least one of `title` or `message` is required; send neither and you get `400 { "error": "title or message required" }`.
+The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly becomes `info` rather than failing. The `icon`, `duration`, and `dismissible` fields are optional. `duration` is in milliseconds; send `0` and the alert stays up until it is dismissed, whatever its type. Omit it and the display's default duration from **Settings > Screen > Alerts** applies; if that isn't set either, the per-type defaults kick in, 10 seconds for `info`, 30 seconds for `warning`, and `urgent` stays up until dismissed. At least one of `title` or `message` is required; send neither and you get `400 { "error": "title or message required" }`.
 
 **Response:** `{ "ok": true, "command": "alert" }`
 
 ### POST /api/display/status
 
-**Client protocol.** Reports the current display state. Called by the browser display client every 30 seconds (and on any state change). Goes through `withDisplayAuth` — the kiosk sends a display bearer token on every request.
+**Client protocol.** Reports the current display state. Called by the browser display client every 30 seconds (and on any state change). Goes through `withDisplayAuth`: the kiosk sends a display bearer token on every request.
 
 **Body:**
 ```json
@@ -2752,11 +2752,11 @@ The `type` field accepts `info`, `warning`, or `urgent`; anything else quietly b
 }
 ```
 
-Required fields: `currentScreen` (object with `id` string), `displayState` (one of `active` / `dimmed` / `asleep` — anything else is rejected), and `timestamp` (number). `displayId` is the display-registry ID; omit it in legacy single-display mode. `clientId` distinguishes multiple tabs reporting under the same display ID so the editor can surface "which tab is phantom-heartbeating."
+Required fields: `currentScreen` (object with `id` string), `displayState` (one of `active` / `dimmed` / `asleep`: anything else is rejected), and `timestamp` (number). `displayId` is the display-registry ID; omit it in legacy single-display mode. `clientId` distinguishes multiple tabs reporting under the same display ID so the editor can surface "which tab is phantom-heartbeating."
 
-`browserStats` is optional — when present, its `viewportWidth`/`viewportHeight` are also mirrored into a legacy top-level `reportedViewport` field so older consumers keep working. Any `hwStats` field sent to this endpoint is silently dropped — hardware telemetry now posts to `/api/display/hw-stats` instead.
+`browserStats` is optional, when present, its `viewportWidth`/`viewportHeight` are also mirrored into a legacy top-level `reportedViewport` field so older consumers keep working. Any `hwStats` field sent to this endpoint is silently dropped, hardware telemetry now posts to `/api/display/hw-stats` instead.
 
-`sharedState` and `providerHealth` are both optional and both ride along on the heartbeat rather than having endpoints of their own. `sharedState` is this tab's snapshot of its [shared values](/docs/plugins#shared-state-and-visibility-conditions) and `providerHealth` reports any plugin currently failing to supply them. Neither is stored with the rest of the status; they go into their own store and come back out of [`GET /api/display/shared-state`](#get-api-display-shared-state).
+`sharedState` and `providerHealth` are both optional and both ride along on the heartbeat rather than having endpoints of their own. `sharedState` is this tab's snapshot of its [shared values](/docs/plugin-development#shared-state-and-visibility-conditions) and `providerHealth` reports any plugin currently failing to supply them. Neither is stored with the rest of the status; they go into their own store and come back out of [`GET /api/display/shared-state`](#get-api-display-shared-state).
 
 **Response:** `{ "ok": true }`
 
@@ -2790,14 +2790,14 @@ Entries are capped at 500 per request and messages at 2 000 characters each (lon
 
 ### GET /api/display/kiosk-bundle
 
-**Client protocol.** Serves a display-only Pi its shell layer (kiosk launcher, splash page, reporter, systemd units) so spokes keep themselves up to date with the hub. The spoke's `kiosk-update.sh` polls this endpoint nightly and on every Chromium start, verifies the checksum, and swaps files in place with a rollback copy. Uses the same adoption gate as `/api/display/hw-stats`: the `display` ID must appear in `config.displays`, and an unadopted spoke gets a `403` that its updater treats as "no update".
+**Client protocol.** Serves a display-only Pi its shell layer (kiosk launcher, splash page, reporter, systemd units) so display-only Pis keep themselves up to date with the hub. The display-only Pi's `kiosk-update.sh` polls this endpoint nightly and on every Chromium start, verifies the checksum, and swaps files in place with a rollback copy. Uses the same adoption gate as `/api/display/hw-stats`: the `display` ID must appear in `config.displays`, and an unadopted display-only Pi gets a `403` that its updater treats as "no update".
 
 | Parameter | Type | Description |
 |---|---|---|
-| `display` | string | The spoke's display ID. Required. |
+| `display` | string | The display-only Pi's display ID. Required. |
 | `manifest` | string | Set to `1` to get the JSON manifest instead of the tarball |
 
-**Response:** with `manifest=1`, `{ "version", "sha256", "restartAdvised", "files": [...] }` — `restartAdvised` is computed on the hub from the display's sleep state, so a display someone is looking at is never told to restart itself mid-evening. Without it, the deterministic `application/gzip` tarball itself. Returns `503` when the hub can't compose a bundle, which the spoke reads as "try again later".
+**Response:** with `manifest=1`, `{ "version", "sha256", "restartAdvised", "files": [...] }`: `restartAdvised` is computed on the hub from the display's sleep state, so a display someone is looking at is never told to restart itself mid-evening. Without it, the deterministic `application/gzip` tarball itself. Returns `503` when the hub can't compose a bundle, which the display-only Pi reads as "try again later".
 
 ### GET /api/display/kiosk-bootstrap
 
@@ -2847,7 +2847,7 @@ Fetches one or more translation dictionaries for a locale. Used by the client-si
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `locale` (path) | string | — | BCP-47 tag (e.g. `en-US`, `de-DE`). See the fallback rules below; there is no 404 path. |
+| `locale` (path) | string |, | BCP-47 tag (e.g. `en-US`, `de-DE`). See the fallback rules below; there is no 404 path. |
 | `ns` (query) | string | `core` | Comma-separated namespace list. Valid namespaces are `core`, `editor`, `modules`, `remote`, `weather`. |
 
 A tag that isn't one of the shipped locales isn't simply dropped to English: it walks its language relatives first, so `de-AT` is served the registered `de-DE`. Only a language nobody ships lands on `en-US`. A tag that doesn't look like a language tag at all goes straight to `en-US`. A namespace name outside the safe character set returns `400 { "error": "Invalid namespace \"...\"" }`.
@@ -2869,4 +2869,4 @@ GET /api/i18n/de-DE?ns=core,weather
 }
 ```
 
-Plugin translations are not served by this route — they are bundled inside the plugin's own files and served through `/api/plugins/asset/...`. See the [Plugins guide](/docs/plugins) for plugin-side i18n.
+Plugin translations are not served by this route, they are bundled inside the plugin's own files and served through `/api/plugins/asset/...`. See the [Plugins guide](/docs/plugins) for plugin-side i18n.

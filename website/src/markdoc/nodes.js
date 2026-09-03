@@ -7,6 +7,19 @@ import { Fence } from '@/components/docs/Fence'
 
 let documentSlugifyMap = new Map()
 
+/**
+ * Tables scroll inside their own box. Without the wrapper a wide table (the
+ * Module Reference option tables, the install-flag table) widens the whole
+ * page on a phone and the header pans sideways with it.
+ */
+function ScrollingTable({ children }) {
+  return (
+    <div className="overflow-x-auto">
+      <table>{children}</table>
+    </div>
+  )
+}
+
 const nodes = {
   document: {
     ...defaultNodes.document,
@@ -39,6 +52,10 @@ const nodes = {
         children,
       )
     },
+  },
+  table: {
+    ...defaultNodes.table,
+    render: ScrollingTable,
   },
   th: {
     ...defaultNodes.th,
