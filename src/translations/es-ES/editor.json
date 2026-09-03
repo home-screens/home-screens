@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Estado",
     "enableLabel": "Mostrar solo a ciertas horas",
+    "repeatTitle": "Cómo se repite",
+    "shapeRepeat": "Cada día que elija",
+    "shapeSpan": "Un solo tramo",
+    "weekPreviewTitle": "Tu semana",
     "timeWindowTitle": "Ventana horaria",
     "fromLabel": "Desde",
     "untilLabel": "Hasta",
+    "endsOnLabel": "Termina",
+    "endsSameDay": "el mismo día",
+    "endsNextDay": "al día siguiente",
+    "endsDaysLater": "{count} días después",
     "behaviorTitle": "Comportamiento",
     "invertLabel": "Ocultarlo durante esas horas en vez de mostrarlo",
     "invertNeedsWindow": "Primero pon una hora en Desde y en Hasta.",
@@ -230,7 +238,8 @@
       "weekdays": "de lunes a viernes",
       "weekends": "sábados y domingos",
       "allDay": "todo el día",
-      "window": "de {start} a {end}"
+      "window": "de {start} a {end}",
+      "windowSpanned": "{start} hasta {end} {span}"
     },
     "allDayHint": "Déjalos vacíos para que se vea todo el día."
   },

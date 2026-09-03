@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isModuleEnabled, isModuleVisible, resolveProfileScreens } from '../schedule';
+import { isModuleEnabled, isModuleVisible, resolveProfileScreens, scheduleShape } from '../schedule';
 import type { ModuleInstance, Screen, Profile } from '@/types/config';
 
 // Helper: create a Date for a specific day/time
@@ -147,6 +147,115 @@ describe('isModuleVisible', () => {
       // At Friday 23:00 → day=5 not in [6], time matches but day doesn't → not visible
       const fridayAt11pm = makeDate(5, 23, 0);
       expect(isModuleVisible(schedule, fridayAt11pm)).toBe(false);
+    });
+  });
+
+  /**
+   * Reported by a user who wanted a bin reminder up from Tuesday 4pm to
+   * Wednesday 8am. Their goal was always reachable with Tuesday alone; ticking
+   * Wednesday as well is what kept the module on through Wednesday night. The
+   * behaviour is correct, so these lock it down rather than change it.
+   */
+  describe('single overnight stretch (the garbage-day report)', () => {
+    const schedule = { daysOfWeek: [2], startTime: '16:00', endTime: '08:00' };
+
+    it('runs from Tuesday afternoon into Wednesday morning and stops', () => {
+      expect(isModuleVisible(schedule, makeDate(2, 15, 59))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(2, 16, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 2, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 7, 59))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 8, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(3, 20, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(4, 2, 0))).toBe(false);
+    });
+
+    it('ticking Wednesday too gives a second, separate stretch', () => {
+      const both = { ...schedule, daysOfWeek: [2, 3] };
+      expect(isModuleVisible(both, makeDate(3, 20, 0))).toBe(true);
+      expect(isModuleVisible(both, makeDate(4, 2, 0))).toBe(true);
+      expect(isModuleVisible(both, makeDate(4, 8, 0))).toBe(false);
+      // The gap in the middle of Wednesday is what made it look continuous.
+      expect(isModuleVisible(both, makeDate(3, 12, 0))).toBe(false);
+    });
+  });
+
+  describe('endDayOffset (spans longer than a day)', () => {
+    it('holds a Monday 08:00 to Thursday 20:00 span open throughout', () => {
+      const schedule = { daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 3 };
+      expect(isModuleVisible(schedule, makeDate(1, 7, 59))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(1, 8, 0))).toBe(true);
+      // The whole way through, including the hours a repeating daily window
+      // would have gone dark.
+      expect(isModuleVisible(schedule, makeDate(1, 23, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 3, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 12, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 5, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(4, 19, 59))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(4, 20, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(5, 12, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(0, 12, 0))).toBe(false);
+    });
+
+    it('wraps a span past Saturday into the following week', () => {
+      // Friday 18:00 until Monday 08:00.
+      const schedule = { daysOfWeek: [5], startTime: '18:00', endTime: '08:00', endDayOffset: 3 };
+      expect(isModuleVisible(schedule, makeDate(5, 18, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(6, 12, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(0, 12, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(1, 7, 59))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(1, 8, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(2, 12, 0))).toBe(false);
+    });
+
+    it('an offset of 0 pins the window to its own day, overriding the overnight wrap', () => {
+      const schedule = { daysOfWeek: [2], startTime: '16:00', endTime: '08:00', endDayOffset: 0 };
+      // Closes before it opens, so it is simply never on.
+      expect(isModuleVisible(schedule, makeDate(2, 20, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(3, 2, 0))).toBe(false);
+    });
+
+    it('ignores an out-of-range or fractional offset rather than trusting it', () => {
+      const base = { daysOfWeek: [2], startTime: '16:00', endTime: '08:00' };
+      // Each falls back to the implicit overnight wrap.
+      for (const endDayOffset of [-1, 7, 99, 1.5, NaN]) {
+        expect(isModuleVisible({ ...base, endDayOffset }, makeDate(3, 2, 0))).toBe(true);
+        expect(isModuleVisible({ ...base, endDayOffset }, makeDate(3, 20, 0))).toBe(false);
+      }
+    });
+
+    it('repeats the span once per selected day', () => {
+      // Two 36-hour stretches: Mon 08:00-Tue 20:00 and Thu 08:00-Fri 20:00.
+      const schedule = { daysOfWeek: [1, 4], startTime: '08:00', endTime: '20:00', endDayOffset: 1 };
+      expect(isModuleVisible(schedule, makeDate(1, 23, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 19, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 21, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(4, 23, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(5, 19, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(5, 21, 0))).toBe(false);
+    });
+  });
+
+  describe('scheduleShape', () => {
+    it('reads an explicit multi-day offset as a span', () => {
+      expect(scheduleShape({ daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 3 }))
+        .toBe('span');
+    });
+
+    it('reads everything else as a repeating window', () => {
+      expect(scheduleShape({})).toBe('repeat');
+      expect(scheduleShape({ daysOfWeek: [1, 2], startTime: '08:00', endTime: '20:00' })).toBe('repeat');
+      // An overnight window repeats nightly; it is not a span.
+      expect(scheduleShape({ daysOfWeek: [2], startTime: '16:00', endTime: '08:00' })).toBe('repeat');
+      // A zero offset is a plain window whichever way it was authored.
+      expect(scheduleShape({ daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 0 }))
+        .toBe('repeat');
+    });
+
+    it('ignores an unusable offset rather than calling it a span', () => {
+      for (const endDayOffset of [-1, 7, 1.5, NaN]) {
+        expect(scheduleShape({ daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset }))
+          .toBe('repeat');
+      }
     });
   });
 

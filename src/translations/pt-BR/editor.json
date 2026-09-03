@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Mostrar só em certos horários",
+    "repeatTitle": "Como se repete",
+    "shapeRepeat": "Todo dia que eu escolher",
+    "shapeSpan": "Um período contínuo",
+    "weekPreviewTitle": "Sua semana",
     "timeWindowTitle": "Janela de tempo",
     "fromLabel": "De",
     "untilLabel": "Até",
+    "endsOnLabel": "Termina",
+    "endsSameDay": "no mesmo dia",
+    "endsNextDay": "no dia seguinte",
+    "endsDaysLater": "{count} dias depois",
     "behaviorTitle": "Comportamento",
     "invertLabel": "Em vez disso, ocultar nesses horários",
     "invertNeedsWindow": "Defina primeiro um horário De e Até.",
@@ -230,7 +238,8 @@
       "weekdays": "de segunda a sexta",
       "weekends": "sábado e domingo",
       "allDay": "o dia todo",
-      "window": "das {start} às {end}"
+      "window": "das {start} às {end}",
+      "windowSpanned": "{start} até {end} {span}"
     },
     "allDayHint": "Deixe os dois vazios para aparecer o dia todo."
   },

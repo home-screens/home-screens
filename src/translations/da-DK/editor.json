@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Vis kun på bestemte tidspunkter",
+    "repeatTitle": "Hvordan det gentages",
+    "shapeRepeat": "Hver dag jeg vælger",
+    "shapeSpan": "Én sammenhængende periode",
+    "weekPreviewTitle": "Din uge",
     "timeWindowTitle": "Tidsrum",
     "fromLabel": "Fra",
     "untilLabel": "Til",
+    "endsOnLabel": "Slutter",
+    "endsSameDay": "samme dag",
+    "endsNextDay": "dagen efter",
+    "endsDaysLater": "{count} dage senere",
     "behaviorTitle": "Opførsel",
     "invertLabel": "Skjul i stedet i dette tidsrum",
     "invertNeedsWindow": "Angiv først et Fra- og et Til-tidspunkt.",
@@ -230,7 +238,8 @@
       "weekdays": "man. til fre.",
       "weekends": "lør. og søn.",
       "allDay": "hele dagen",
-      "window": "{start} til {end}"
+      "window": "{start} til {end}",
+      "windowSpanned": "{start} til {end} {span}"
     },
     "allDayHint": "Lad dem begge stå tomme for at vise hele dagen."
   },

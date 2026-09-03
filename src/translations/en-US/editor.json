@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Only show at certain times",
+    "repeatTitle": "How it repeats",
+    "shapeRepeat": "Every day I pick",
+    "shapeSpan": "One stretch",
+    "weekPreviewTitle": "Your week",
     "timeWindowTitle": "Time window",
     "fromLabel": "From",
     "untilLabel": "Until",
+    "endsOnLabel": "Ends on",
+    "endsSameDay": "the same day",
+    "endsNextDay": "the next day",
+    "endsDaysLater": "{count} days later",
     "behaviorTitle": "Behavior",
     "invertLabel": "Hide during these hours instead",
     "invertNeedsWindow": "Set a From and Until time first.",
@@ -230,7 +238,8 @@
       "weekdays": "Mon to Fri",
       "weekends": "Sat and Sun",
       "allDay": "all day",
-      "window": "{start} to {end}"
+      "window": "{start} to {end}",
+      "windowSpanned": "{start} until {end} {span}"
     },
     "allDayHint": "Leave both empty to show all day."
   },

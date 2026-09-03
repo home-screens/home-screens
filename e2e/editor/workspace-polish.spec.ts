@@ -116,7 +116,12 @@ test.describe('schedule editor', () => {
     // Every day, all day: a no-op the user then narrows, not a silent Mon-Fri.
     expect((await getConfig(request)).screens[0].modules[0].schedule?.daysOfWeek)
       .toEqual([0, 1, 2, 3, 4, 5, 6]);
-    await expect(page.getByTestId('schedule-summary')).toContainText('Shows every day, all day.');
+    // All seven days picked, every row lit end to end.
+    const strip = page.getByTestId('schedule-week-strip');
+    await expect(strip).toBeVisible();
+    for (let day = 0; day < 7; day++) {
+      await expect(strip.getByTestId(`schedule-day-${day}`)).toHaveAttribute('aria-checked', 'true');
+    }
 
     // An empty window is explained rather than left as an unfilled time box.
     await expect(page.getByText('Leave both empty to show all day.')).toBeVisible();
@@ -125,15 +130,54 @@ test.describe('schedule editor', () => {
     await expect(page.getByText('Set a From and Until time first.')).toBeVisible();
   });
 
-  test('the summary reads back the window that was set', async ({ page, request }) => {
+  test('the strip draws the window that was set', async ({ page, request }) => {
     const mod = buildModuleInstance('clock');
     mod.schedule = { daysOfWeek: [0, 6], startTime: '08:00', endTime: '10:30' };
     await selectModule(page, request, mod);
     await page.getByRole('button', { name: 'Schedule', exact: true }).click();
 
-    await expect(page.getByTestId('schedule-summary'))
-      .toContainText('Shows Sat and Sun, 8:00 AM to 10:30 AM.');
+    const strip = page.getByTestId('schedule-week-strip');
+    // Sunday and Saturday picked, and only those two rows lit.
+    for (const day of [0, 6]) {
+      await expect(strip.getByTestId(`schedule-day-${day}`)).toHaveAttribute('aria-checked', 'true');
+      await expect(strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(1);
+    }
+    for (const day of [1, 2, 3, 4, 5]) {
+      await expect(strip.getByTestId(`schedule-day-${day}`)).toHaveAttribute('aria-checked', 'false');
+      await expect(strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(0);
+    }
     await expect(page.getByRole('switch', { name: 'Hide during these hours instead' })).toBeEnabled();
+  });
+
+  /**
+   * The bug this strip was built for. A user wanted a bin reminder from Tuesday
+   * 4pm to Wednesday 8am, ticked both Tuesday and Wednesday, and got two
+   * overnight stretches running to Thursday morning with no way to see it.
+   */
+  test('an overnight window is drawn crossing midnight, and a second day doubles it', async ({ page, request }) => {
+    const mod = buildModuleInstance('clock');
+    mod.schedule = { daysOfWeek: [2], startTime: '16:00', endTime: '08:00' };
+    await selectModule(page, request, mod);
+    await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+
+    const strip = page.getByTestId('schedule-week-strip');
+    const bandsOn = (day: number) =>
+      strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band');
+
+    // One stretch: Tuesday evening spilling into Wednesday morning, nothing else.
+    await expect(bandsOn(2)).toHaveCount(1);
+    await expect(bandsOn(3)).toHaveCount(1);
+    await expect(bandsOn(4)).toHaveCount(0);
+    // Wednesday is lit but was never picked - the point users kept missing.
+    await expect(strip.getByTestId('schedule-day-3')).toHaveAttribute('aria-checked', 'false');
+
+    // Ticking Wednesday too makes it two stretches, visibly.
+    await autosaved(page, async () => {
+      await strip.getByTestId('schedule-day-3').click();
+    });
+    expect((await getConfig(request)).screens[0].modules[0].schedule?.daysOfWeek).toEqual([2, 3]);
+    await expect(bandsOn(3)).toHaveCount(2);
+    await expect(bandsOn(4)).toHaveCount(1);
   });
 });
 

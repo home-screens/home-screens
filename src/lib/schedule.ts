@@ -23,39 +23,102 @@ export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
  */
 export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date): boolean {
   if (!schedule) return true;
-  const inWindow = matchesTimeWindow(schedule.daysOfWeek, schedule.startTime, schedule.endTime, now);
+  const inWindow = matchesTimeWindow(
+    schedule.daysOfWeek,
+    schedule.startTime,
+    schedule.endTime,
+    now,
+    schedule.endDayOffset,
+  );
   return schedule.invert ? !inWindow : inWindow;
 }
 
+const MINUTES_PER_DAY = 24 * 60;
+const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
 /**
  * Core day/time-window match shared by module schedules (`isModuleVisible`)
- * and `time` visibility conditions, so the two can never disagree about
- * overnight windows or which day a post-midnight instant belongs to. No
- * `invert` — that is a schedule-only concept; the condition tree negates with
- * a `not` group. `now` must already be shifted to the display's timezone
- * (callers use `useTZClock` / `createTZDate`).
+ * and `time` visibility conditions, so the two can never disagree about which
+ * day a post-midnight instant belongs to. No `invert`, which is a
+ * schedule-only concept; the condition tree negates with a `not` group. `now`
+ * must already be shifted to the display's timezone (callers use `useTZClock`
+ * / `createTZDate`).
+ *
+ * Every selected day opens one window on a minutes-since-Sunday-midnight line:
+ * it opens at `day * 1440 + start` and closes at `(day + span) * 1440 + end`,
+ * end exclusive. `span` is `endDayOffset` when set, otherwise 1 for an
+ * overnight window (`start > end`) and 0 for an ordinary one, which is exactly
+ * the behaviour this replaced.
+ *
+ * Testing `now + one week` as well as `now` is what lets a window opened late
+ * on Saturday reach into Sunday: Sunday is minute 0 of the line, so it only
+ * falls inside such a window once a week has been added to it.
  */
 function matchesTimeWindow(
   daysOfWeek: number[] | undefined,
   startTime: string | undefined,
   endTime: string | undefined,
   now: Date,
+  endDayOffset?: number,
 ): boolean {
   const start = parseTime(startTime) ?? 0;
-  const end = parseTime(endTime) ?? 24 * 60;
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const end = parseTime(endTime) ?? MINUTES_PER_DAY;
+  const span = clampSpan(endDayOffset) ?? (start > end ? 1 : 0);
 
-  // For overnight windows (e.g. 22:00–06:00), the post-midnight portion
-  // (00:00–06:00) logically belongs to the previous day's schedule.
-  // Use yesterday's day-of-week in that case.
-  const isOvernight = start > end;
-  const isPostMidnight = isOvernight && nowMinutes < end;
-  const relevantDay = isPostMidnight ? (now.getDay() + 6) % 7 : now.getDay();
+  const days = daysOfWeek && daysOfWeek.length > 0 ? daysOfWeek : ALL_DAYS;
+  const nowMinutes = now.getMinutes() + now.getHours() * 60 + now.getDay() * MINUTES_PER_DAY;
 
-  const dayMatch = !daysOfWeek || daysOfWeek.length === 0 || daysOfWeek.includes(relevantDay);
-  const timeMatch = isInTimeWindow(start, end, nowMinutes);
+  for (const day of days) {
+    const opens = day * MINUTES_PER_DAY + start;
+    const closes = (day + span) * MINUTES_PER_DAY + end;
+    if (nowMinutes >= opens && nowMinutes < closes) return true;
+    if (nowMinutes + MINUTES_PER_WEEK >= opens && nowMinutes + MINUTES_PER_WEEK < closes) return true;
+  }
+  return false;
+}
 
-  return dayMatch && timeMatch;
+/**
+ * A span of 0-6 whole days, or null when unset. Anything out of range or
+ * non-integer is treated as unset rather than trusted, so a hand-edited
+ * config.json cannot produce a window that laps itself.
+ */
+function clampSpan(endDayOffset: number | undefined): number | null {
+  if (endDayOffset === undefined || !Number.isInteger(endDayOffset)) return null;
+  if (endDayOffset < 0 || endDayOffset > 6) return null;
+  return endDayOffset;
+}
+
+/**
+ * How many days after its start day a window closes: the explicit
+ * `endDayOffset` when usable, else the implicit rule that an end earlier than
+ * the start means the next morning. THE definition of the span, used by the
+ * predicate above, the editor's controls and the week strip, so they cannot
+ * disagree about what a stored schedule currently means.
+ */
+export function resolveSpanDays(schedule: ModuleSchedule | undefined): number {
+  const explicit = clampSpan(schedule?.endDayOffset);
+  if (explicit !== null) return explicit;
+  const start = parseTime(schedule?.startTime) ?? 0;
+  const end = parseTime(schedule?.endTime) ?? MINUTES_PER_DAY;
+  return start > end ? 1 : 0;
+}
+
+/**
+ * Which of the two shapes a schedule is, derived rather than stored.
+ *
+ * `repeat` gives every picked day its own window, at most 24 hours long, so
+ * two picked days can never light the same hour. `span` is one stretch from a
+ * single start day, which is the only shape that can run for days.
+ *
+ * Keeping them apart is what makes overlap impossible: an explicit
+ * `endDayOffset` above zero means a span, and a span always has exactly one
+ * start day. A zero offset is a plain window either way, so it reads as
+ * `repeat` and nothing is lost.
+ */
+export function scheduleShape(schedule: ModuleSchedule | undefined): 'repeat' | 'span' {
+  const explicit = clampSpan(schedule?.endDayOffset);
+  return explicit !== null && explicit > 0 ? 'span' : 'repeat';
 }
 
 /**
@@ -254,18 +317,6 @@ export function collectConditionSourceKeys(modules: ModuleInstance[]): string[] 
 /** String equality where an array means "matches any" (HA's array semantics). */
 function matchesAny(value: string, expected: string | string[]): boolean {
   return Array.isArray(expected) ? expected.includes(value) : value === expected;
-}
-
-function isInTimeWindow(start: number, end: number, nowMinutes: number): boolean {
-  if (start === 0 && end === 24 * 60) return true;
-
-  if (start <= end) {
-    // Normal window: e.g., 06:00–09:00
-    return nowMinutes >= start && nowMinutes < end;
-  } else {
-    // Overnight window: e.g., 22:00–06:00 (wraps past midnight)
-    return nowMinutes >= start || nowMinutes < end;
-  }
 }
 
 function parseTime(time: string | undefined): number | null {

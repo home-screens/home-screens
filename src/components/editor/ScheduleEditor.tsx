@@ -1,14 +1,14 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Clock } from 'lucide-react';
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
+import ScheduleWeekStrip from './ScheduleWeekStrip';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useEditorStore } from '@/stores/editor-store';
+import { useMemo } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { describeSchedule } from '@/lib/schedule-summary';
+import { resolveSpanDays, scheduleShape } from '@/lib/schedule';
 import type { ModuleSchedule } from '@/types/config';
 
 interface ScheduleEditorProps {
@@ -22,12 +22,8 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
-  // Day-of-week labels follow the formatting locale (date-fns conventions),
-  // not the UI language — ['Sun', 'Mon', …] for en-US, ['So.', 'Mo.', …]
-  // for de-DE. Memoized so the schedule editor doesn't re-run 7
-  // formatDateSync calls on every parent re-render.
-  const dayLabels = useMemo(
-    () => getLocalizedDayNames(formattingLocale, 'short'),
+  const dayNames = useMemo(
+    () => getLocalizedDayNames(formattingLocale, 'full'),
     [formattingLocale],
   );
 
@@ -57,6 +53,11 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
   };
 
   const toggleDay = (day: number) => {
+    // A span runs from one day, so a chip picks that day outright.
+    if (shape === 'span') {
+      setSchedule({ daysOfWeek: [day] });
+      return;
+    }
     const current = schedule?.daysOfWeek ?? EVERY_DAY;
     const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort();
     // Prevent deselecting the last day — at least one must remain active
@@ -64,15 +65,31 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
     setSchedule({ daysOfWeek: next });
   };
 
+  /**
+   * Switching shape has to leave a schedule that means something. A span needs
+   * exactly one start day and an offset of at least one, or it is just a plain
+   * window wearing the wrong label; going back drops the offset so the overnight
+   * rule takes over again.
+   */
+  const setShape = (next: 'repeat' | 'span') => {
+    if (next === 'span') {
+      const first = (schedule?.daysOfWeek ?? EVERY_DAY)[0] ?? 0;
+      setSchedule({ daysOfWeek: [first], endDayOffset: Math.max(1, spanDays) });
+    } else {
+      setSchedule({ endDayOffset: undefined });
+    }
+  };
+
   // The invert toggle has nothing to invert without a window: with no times
   // set it would hide the module every day, forever.
   const hasWindow = !!schedule?.startTime && !!schedule?.endTime;
-  // date-fns-backed; re-deriving it on every unrelated parent re-render (not
-  // just an actual schedule edit) is wasted work.
-  const summary = useMemo(
-    () => describeSchedule(schedule, t, formattingLocale, timeFormat),
-    [schedule, t, formattingLocale, timeFormat],
-  );
+
+  // What the span selector shows while `endDayOffset` is unset: the implicit
+  // rule the schedule is running under, so the control reads back the truth
+  // rather than defaulting to "the same day" on an overnight window.
+  const spanDays = resolveSpanDays(schedule);
+  const shape = scheduleShape(schedule);
+  const startDay = (schedule?.daysOfWeek ?? EVERY_DAY)[0] ?? 0;
 
   return (
     <div className="space-y-3">
@@ -80,37 +97,32 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
         <Toggle label={t('scheduleEditor.enableLabel')} checked={enabled} onChange={toggleEnabled} />
       </PropertyGroup>
 
-      {enabled && (
+      {schedule && (
         <>
-          <div
-            className="flex gap-2 items-start rounded-md border border-hs-accent/30 bg-hs-accent-soft px-2.5 py-2 text-[11px] leading-relaxed text-hs-text-secondary"
-            data-testid="schedule-summary"
-          >
-            <Clock className="w-3 h-3 shrink-0 mt-0.5 text-hs-accent-hover" aria-hidden="true" />
-            <span>{summary.sentence}</span>
-          </div>
+          {/* The strip replaced a summary sentence and a separate row of day
+              chips. It shows the same facts and, unlike the sentence, shows
+              which day an overnight window ends on. */}
+          <PropertyGroup title={t('scheduleEditor.repeatTitle')} accent={1}>
+            <select
+              aria-label={t('scheduleEditor.repeatTitle')}
+              data-testid="schedule-shape"
+              value={shape}
+              onChange={(e) => setShape(e.target.value as 'repeat' | 'span')}
+              className={INPUT_CLASS}
+            >
+              <option value="repeat">{t('scheduleEditor.shapeRepeat')}</option>
+              <option value="span">{t('scheduleEditor.shapeSpan')}</option>
+            </select>
+          </PropertyGroup>
 
-          <PropertyGroup title={t('fields.days')} accent={2}>
-            <div className="flex gap-1">
-              {dayLabels.map((label, i) => {
-                const days = schedule?.daysOfWeek ?? EVERY_DAY;
-                const active = days.includes(i);
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => toggleDay(i)}
-                    className={`flex-1 text-[10px] py-1 rounded transition-colors ${
-                      active
-                        ? 'bg-hs-accent text-white'
-                        : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
+          <PropertyGroup title={t('scheduleEditor.weekPreviewTitle')} accent={2}>
+            <ScheduleWeekStrip
+              schedule={schedule}
+              timeFormat={timeFormat}
+              shape={shape}
+              onToggleDay={toggleDay}
+              onDragEdge={setSchedule}
+            />
           </PropertyGroup>
 
           <PropertyGroup title={t('scheduleEditor.timeWindowTitle')} accent={3}>
@@ -124,15 +136,38 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                   className={INPUT_CLASS}
                 />
               </label>
-              <label className="flex flex-col gap-0.5">
-                <span className="text-xs text-hs-text-muted">{t('scheduleEditor.untilLabel')}</span>
-                <input
-                  type="time"
-                  value={schedule?.endTime ?? ''}
-                  onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
-                  className={INPUT_CLASS}
-                />
-              </label>
+              {/* The select is a sibling of the label, not inside it: a label
+                  wrapping two controls folds the selected option's text into
+                  the time input's accessible name. */}
+              <div className="flex flex-col gap-0.5">
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-xs text-hs-text-muted">{t('scheduleEditor.untilLabel')}</span>
+                  <input
+                    type="time"
+                    value={schedule?.endTime ?? ''}
+                    onChange={(e) => setSchedule({ endTime: e.target.value || undefined })}
+                    className={INPUT_CLASS}
+                  />
+                </label>
+                {/* A span has one start day, so its end can be named outright
+                    rather than counted in days. The keyboard path to the same
+                    thing dragging the strip's end does. */}
+                {shape === 'span' && (
+                  <select
+                    aria-label={t('scheduleEditor.endsOnLabel')}
+                    data-testid="schedule-end-day-offset"
+                    value={String(spanDays)}
+                    onChange={(e) => setSchedule({ endDayOffset: Number(e.target.value) })}
+                    className={`${INPUT_CLASS} mt-1`}
+                  >
+                    {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+                      <option key={n} value={n}>
+                        {dayNames[(startDay + n) % 7]}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
             </div>
             {/* A native time input ignores `placeholder`, so an empty window
                 reads as "--:-- --" and nothing says that empty means all day. */}

@@ -1,4 +1,5 @@
 import { DEFAULT_TIME_FORMAT, type ModuleSchedule, type TimeFormat } from '@/types/config';
+import { resolveSpanDays } from '@/lib/schedule';
 import type { TranslateFn } from '@/i18n/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { formatEventTime } from '@/lib/calendar-utils';
@@ -31,7 +32,14 @@ export function formatScheduleDays(
   return days.map((d) => names[d]).join(', ');
 }
 
-/** "all day" when either end of the window is unset, else "7:00 AM to 9:00 AM". */
+/**
+ * "all day" when either end of the window is unset, else "7:00 AM to 9:00 AM".
+ *
+ * A window that closes on a later day says so: "4:00 PM until 8:00 AM the next
+ * day", "8:00 AM until 8:00 PM 3 days later". The editor shows this only to
+ * screen readers, since the week strip draws the same fact, but the canvas
+ * status chips have no strip and rely on it entirely.
+ */
 export function formatScheduleTime(
   schedule: ModuleSchedule | undefined,
   t: TranslateFn,
@@ -41,11 +49,22 @@ export function formatScheduleTime(
   const start = schedule?.startTime;
   const end = schedule?.endTime;
   if (!start || !end) return t('scheduleEditor.summary.allDay');
-  return t('scheduleEditor.summary.window', {
+
+  const parts = {
     start: formatClock(start, formattingLocale, timeFormat),
     end: formatClock(end, formattingLocale, timeFormat),
+  };
+  const span = resolveSpanDays(schedule);
+  if (span === 0) return t('scheduleEditor.summary.window', parts);
+  return t('scheduleEditor.summary.windowSpanned', {
+    ...parts,
+    span:
+      span === 1
+        ? t('scheduleEditor.endsNextDay')
+        : t('scheduleEditor.endsDaysLater', { count: span }),
   });
 }
+
 
 /**
  * "07:00" → "7:00 AM" (or "07:00" under a 24-hour household). Delegates to

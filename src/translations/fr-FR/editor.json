@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "État",
     "enableLabel": "N'afficher qu'à certaines heures",
+    "repeatTitle": "Répétition",
+    "shapeRepeat": "Chaque jour choisi",
+    "shapeSpan": "Une seule période",
+    "weekPreviewTitle": "Votre semaine",
     "timeWindowTitle": "Plage horaire",
     "fromLabel": "De",
     "untilLabel": "Jusqu'à",
+    "endsOnLabel": "Se termine",
+    "endsSameDay": "le même jour",
+    "endsNextDay": "le lendemain",
+    "endsDaysLater": "{count} jours plus tard",
     "behaviorTitle": "Comportement",
     "invertLabel": "Masquer pendant ces heures au lieu de l'afficher",
     "invertNeedsWindow": "Renseignez d'abord une heure de début et une heure de fin.",
@@ -230,7 +238,8 @@
       "weekdays": "du lundi au vendredi",
       "weekends": "le samedi et le dimanche",
       "allDay": "toute la journée",
-      "window": "de {start} à {end}"
+      "window": "de {start} à {end}",
+      "windowSpanned": "{start} jusqu’à {end} {span}"
     },
     "allDayHint": "Laissez les deux vides pour un affichage toute la journée."
   },

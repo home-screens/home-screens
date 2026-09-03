@@ -1891,9 +1891,11 @@ test.describe('PropertyPanel Schedule (module level)', () => {
     });
     await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([0, 1, 2, 3, 4, 5, 6]);
 
-    // Clicking an active day removes it; the editor keeps the list sorted.
+    // Each day's chip now lives in the gutter of its row in the week strip,
+    // and is a switch named for the day in full. Clicking an active one
+    // removes it; the editor keeps the list sorted.
     await autosaved(page, async () => {
-      await page.getByRole('button', { name: 'Sun', exact: true }).click();
+      await page.getByRole('switch', { name: 'Sunday', exact: true }).click();
     });
     await expect.poll(async () => (await moduleSchedule(request))?.daysOfWeek).toEqual([1, 2, 3, 4, 5, 6]);
 

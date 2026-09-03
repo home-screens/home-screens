@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Nur zu bestimmten Zeiten anzeigen",
+    "repeatTitle": "Wie es sich wiederholt",
+    "shapeRepeat": "An jedem gewählten Tag",
+    "shapeSpan": "Ein durchgehender Zeitraum",
+    "weekPreviewTitle": "Deine Woche",
     "timeWindowTitle": "Zeitfenster",
     "fromLabel": "Von",
     "untilLabel": "Bis",
+    "endsOnLabel": "Endet am",
+    "endsSameDay": "am selben Tag",
+    "endsNextDay": "am nächsten Tag",
+    "endsDaysLater": "{count} Tage später",
     "behaviorTitle": "Verhalten",
     "invertLabel": "In diesen Stunden stattdessen ausblenden",
     "invertNeedsWindow": "Stelle zuerst eine Von- und eine Bis-Zeit ein.",
@@ -230,7 +238,8 @@
       "weekdays": "Mo bis Fr",
       "weekends": "Sa und So",
       "allDay": "ganztägig",
-      "window": "{start} bis {end}"
+      "window": "{start} bis {end}",
+      "windowSpanned": "{start} bis {end} {span}"
     },
     "allDayHint": "Lass beide leer, damit es den ganzen Tag zu sehen ist."
   },

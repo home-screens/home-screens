@@ -216,9 +216,17 @@
   "scheduleEditor": {
     "statusTitle": "Status",
     "enableLabel": "Alleen op bepaalde tijden tonen",
+    "repeatTitle": "Hoe het herhaalt",
+    "shapeRepeat": "Elke gekozen dag",
+    "shapeSpan": "Eén doorlopende periode",
+    "weekPreviewTitle": "Jouw week",
     "timeWindowTitle": "Tijdvenster",
     "fromLabel": "Van",
     "untilLabel": "Tot",
+    "endsOnLabel": "Eindigt op",
+    "endsSameDay": "dezelfde dag",
+    "endsNextDay": "de volgende dag",
+    "endsDaysLater": "{count} dagen later",
     "behaviorTitle": "Gedrag",
     "invertLabel": "Juist verbergen tijdens deze uren",
     "invertNeedsWindow": "Stel eerst een tijd in bij Van en Tot.",
@@ -230,7 +238,8 @@
       "weekdays": "ma t/m vr",
       "weekends": "za en zo",
       "allDay": "de hele dag",
-      "window": "{start} tot {end}"
+      "window": "{start} tot {end}",
+      "windowSpanned": "{start} tot {end} {span}"
     },
     "allDayHint": "Laat ze allebei leeg om de hele dag te tonen."
   },
