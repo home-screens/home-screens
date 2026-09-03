@@ -110,10 +110,16 @@ test('empty screens list shows the setup watermark, with this hub\'s address', a
   await expect(hint).toBeVisible();
   await expect(hint.getByText('Nothing on this screen yet')).toBeVisible();
   // The address is the one fact the person in front of a blank Pi cannot look
-  // up, so assert it resolves to this hub's own origin rather than a
-  // placeholder. The bare origin is printed: `/` lands a laptop on the editor
-  // and a phone on the launcher.
-  await expect(hint.getByText(new URL(page.url()).origin, { exact: true })).toBeVisible();
+  // up, so assert it resolves to an address a phone can reach rather than a
+  // placeholder. The test browser is on loopback, like a kiosk on the hub Pi,
+  // so the hub's LAN address is printed instead of "localhost" (the page's
+  // own origin only when the hub has no LAN address, as on a bare CI runner).
+  // The bare origin is printed: `/` lands a laptop on the editor and a phone
+  // on the launcher.
+  const hub = (await (await request.get('/api/system/address')).json()) as { origin: string | null };
+  const expected = hub.origin ?? new URL(page.url()).origin;
+  await expect(hint.getByText(expected, { exact: true })).toBeVisible();
+  if (hub.origin) expect(expected).not.toMatch(/localhost|127\.0\.0\.1/);
 });
 
 test('screens with no modules show the setup watermark too (the fresh-install shape)', async ({ page, request }) => {

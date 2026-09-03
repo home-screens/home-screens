@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useTranslate } from '@/i18n';
+import { useOrigin } from '@/hooks/useOrigin';
 import { UI_MONO_STACK, UI_SANS_STACK } from '@/lib/font-registry';
 
 interface EmptyDisplayHintProps {
@@ -24,11 +24,12 @@ interface EmptyDisplayHintProps {
  * rectangle. The single most useful thing to put there is the hub's own
  * address, because that is the one fact the person standing in front of the
  * display cannot look up — they don't yet know whether the hub answers to a
- * hostname, an IP, or which port. `window.location.origin` is exactly the URL
- * this kiosk is already talking to, so it is always right. The bare origin is
- * printed rather than `/editor`: `/` lands a laptop on the editor and a phone
- * on the launcher, and it is the shortest thing to type from across a room.
- * A QR code of the same origin saves the typing for anyone with a phone.
+ * hostname, an IP, or which port. `useOrigin` gives the URL this kiosk is
+ * already talking to, with a `localhost` origin (a kiosk on the hub Pi itself)
+ * swapped for the hub's LAN address. The bare origin is printed rather than
+ * `/editor`: `/` lands a laptop on the editor and a phone on the launcher, and
+ * it is the shortest thing to type from across a room. A QR code of the same
+ * origin saves the typing for anyone with a phone.
  *
  * Deliberately a watermark, not a UI: there are no buttons, nothing is
  * brighter than the address (62% white) and the QR code (50%), and
@@ -44,12 +45,11 @@ interface EmptyDisplayHintProps {
 export default function EmptyDisplayHint({ deliberatelyEmpty = false }: EmptyDisplayHintProps) {
   const t = useTranslate('core');
 
-  // Resolved after mount, not during render: this component is server-rendered
-  // as part of the display route, where `window` does not exist and the origin
-  // is not knowable. Rendering the pill only once the origin is in hand costs
-  // one frame and avoids a hydration mismatch.
-  const [origin, setOrigin] = useState<string | null>(null);
-  useEffect(() => { setOrigin(window.location.origin); }, []);
+  // `''` until resolved after mount: this component is server-rendered as part
+  // of the display route, where the origin is not knowable. Rendering the pill
+  // only once the origin is in hand costs a frame and avoids a hydration
+  // mismatch.
+  const origin = useOrigin();
 
   return (
     <div
