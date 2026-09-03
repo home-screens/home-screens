@@ -5,7 +5,7 @@ import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import RemoteClient from './RemoteClient';
 
 const MEAL_MODULE_TYPES = ['meal-planner', 'fullscreen-meal-planner'];
-const PHOTO_MODULE_TYPES = ['fullscreen-photo'];
+const PHOTO_MODULE_TYPES = ['fullscreen-photo', 'photo-slideshow'];
 
 export const dynamic = 'force-dynamic';
 

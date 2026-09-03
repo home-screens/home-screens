@@ -23,6 +23,14 @@ interface BoardViewProps {
   width: number;
   /** Module font size in px; the column floor is expressed in it. */
   fontSize: number;
+  /**
+   * The module's authored font size (the ceiling `fontSize` was fitted down
+   * from). The row-wrap decision below has to use this, not the fitted size:
+   * a heavy day can shrink `fontSize` to a fraction of it, and if the "is a
+   * column too narrow" threshold shrinks along with it, it stops firing and
+   * every member gets squeezed into one row regardless of width.
+   */
+  authoredFontSize: number;
 }
 
 /** A column narrower than this (in em) wraps chore names one word per line. */
@@ -65,7 +73,7 @@ function MemberColumn({ member, stats, showPoints, children }: MemberColumnProps
   );
 }
 
-export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
+export function BoardView({ config, data, width, fontSize, authoredFontSize }: BoardViewProps) {
   const { todayAssignments, members, memberStats, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
   const [pressedKey, press] = usePressedKey();
@@ -76,7 +84,11 @@ export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
   const { idle } = partitionMembers(members, memberStats);
   const idleIds = new Set(idle.map((m) => m.id));
   const shown = members.filter((m) => !idleIds.has(m.id));
-  const perRow = fitPerRow(width, MIN_COLUMN_EM * fontSize, COLUMN_GAP, shown.length);
+  // The column-width floor is expressed against the authored size, not the
+  // fitted one: ChoreChartModule already budgeted the box height assuming
+  // this same row count (see BOARD_COLUMN_EM there), so using a different
+  // font size here would wrap fewer rows than the height was fit for.
+  const perRow = fitPerRow(width, MIN_COLUMN_EM * authoredFontSize, COLUMN_GAP, shown.length);
   const rows = balanceRows(shown, perRow);
 
   return (

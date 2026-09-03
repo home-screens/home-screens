@@ -100,7 +100,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   return (
     <ModuleWrapper style={style}>
       <div ref={frameRef} className="w-full h-full min-h-0" style={{ fontSize: `${fontSize}px` }}>
-        {view === 'board' && <BoardView {...viewProps} />}
+        {view === 'board' && <BoardView {...viewProps} authoredFontSize={style.fontSize} />}
         {view === 'star-chart' && <StarChartView {...viewProps} />}
         {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
         {view === 'progress' && <ProgressView {...viewProps} />}

@@ -8,10 +8,11 @@ import { buildModuleInstance } from '../helpers/module-fixtures';
 import type { ScreenConfiguration } from '@/types/config';
 
 /**
- * /remote Photos tab. The tab is gated on a `fullscreen-photo` module existing
- * in config (PHOTO_MODULE_TYPES in src/app/(remote)/remote/page.tsx), and the
- * bottom tab bar only renders once there are 2+ tabs (Control is always the
- * first), so a lone photo module is enough to surface it.
+ * /remote Photos tab. The tab is gated on a `fullscreen-photo` or
+ * `photo-slideshow` module existing in config (PHOTO_MODULE_TYPES in
+ * src/app/(remote)/remote/page.tsx), and the bottom tab bar only renders once
+ * there are 2+ tabs (Control is always the first), so a lone photo module of
+ * either type is enough to surface it.
  *
  * ISOLATION NOTE: backgrounds are stored on disk under `public/backgrounds`
  * (BACKGROUNDS_DIR), NOT `data/`. The e2e sandbox only gives each worker a
@@ -100,6 +101,21 @@ test('the Photos tab explains itself until a full-screen photo module exists', a
   // Exact match: in an empty folder the empty-state hint "Tap Upload Photos to
   // add images" also contains this text, so a substring match would be ambiguous.
   await expect(page.getByText('Upload Photos', { exact: true })).toBeVisible();
+});
+
+test('a windowed photo-slideshow module also surfaces the Photos tab', async ({ page, request }) => {
+  // PHOTO_MODULE_TYPES must cover both the windowed and full-screen photo
+  // module types, the same way MEAL_MODULE_TYPES covers both meal-planner
+  // variants — a household using only the windowed module shouldn't see a
+  // permanent "not set up" empty state.
+  const photo = buildModuleInstance('photo-slideshow', { directory: '' });
+  await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'Screen One', [photo])] }));
+  await page.goto('/remote');
+  const photosTab = page.getByRole('button', { name: 'Photos', exact: true });
+  await expect(photosTab).toBeVisible();
+  await photosTab.click();
+  await expect(page.getByRole('heading', { name: 'Photos' })).toBeVisible();
+  await expect(page.getByText('No photo slideshow yet')).not.toBeVisible();
 });
 
 test('uploading a photo adds it to the grid and writes it to disk', async ({ page, request, sandboxDir }) => {
