@@ -812,7 +812,7 @@
         "setupHintHelp": "When a display has no screens to show, it shows a faint message with the address of this editor. Turn this off to leave an empty display completely black.",
         "rotationProgressLabel": "Progress line under the screen dots",
         "rotationProgressToggle": "Enabled",
-        "rotationProgressHelp": "A thin line under the active dot fills up as the screen's time runs out, so a long screen and a stuck one look different from across the room.",
+        "rotationProgressHelp": "A thin line under the screen dots fills up as the screen's time runs out, so a long screen and a stuck one look different from across the room.",
         "transitionEffectLabel": "Transition effect",
         "transitionEffectHelp": "Animation style when cycling between screens. Blur may be GPU-intensive on low-power devices.",
         "transitionDurationLabel": "Transition duration",

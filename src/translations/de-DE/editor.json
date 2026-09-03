@@ -812,7 +812,7 @@
         "setupHintHelp": "Wenn ein Display keine Bildschirme anzeigen kann, erscheint ein schwacher Hinweis mit der Adresse dieses Editors. Schalte das aus, damit ein leeres Display völlig schwarz bleibt.",
         "rotationProgressLabel": "Fortschrittslinie unter den Bildschirmpunkten",
         "rotationProgressToggle": "Aktiviert",
-        "rotationProgressHelp": "Eine dünne Linie unter dem aktiven Punkt füllt sich, während die Zeit des Bildschirms abläuft. So sieht man auch von weitem, ob ein Bildschirm nur lange dauert oder hängt.",
+        "rotationProgressHelp": "Eine dünne Linie unter den Bildschirmpunkten füllt sich, während die Zeit des Bildschirms abläuft. So sieht man auch von weitem, ob ein Bildschirm nur lange dauert oder hängt.",
         "transitionEffectLabel": "Übergangseffekt",
         "transitionEffectHelp": "Animationsstil beim Wechsel zwischen Bildschirmen. „Unschärfe“ kann auf leistungsschwachen Geräten GPU-intensiv sein.",
         "transitionDurationLabel": "Übergangsdauer",

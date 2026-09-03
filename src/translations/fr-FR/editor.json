@@ -812,7 +812,7 @@
         "setupHintHelp": "Quand un affichage n'a aucun écran à montrer, il affiche un message discret avec l'adresse de cet éditeur. Désactive cette option pour laisser un affichage vide entièrement noir.",
         "rotationProgressLabel": "Ligne de progression sous les points d'écran",
         "rotationProgressToggle": "Activé",
-        "rotationProgressHelp": "Une fine ligne sous le point actif se remplit à mesure que le temps de l'écran s'écoule, pour distinguer de loin un écran long d'un écran bloqué.",
+        "rotationProgressHelp": "Une fine ligne sous les points d'écran se remplit à mesure que le temps de l'écran s'écoule, pour distinguer de loin un écran long d'un écran bloqué.",
         "transitionEffectLabel": "Effet de transition",
         "transitionEffectHelp": "Style d'animation lors du passage d'un écran à l'autre. Le flou peut solliciter le GPU sur les appareils peu puissants.",
         "transitionDurationLabel": "Durée de la transition",

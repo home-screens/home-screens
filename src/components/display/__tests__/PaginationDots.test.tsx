@@ -100,21 +100,84 @@ describe('PaginationDots', () => {
   });
 
   describe('progress line', () => {
-    it('sits under the active dot, sized to the dwell, and freezes while paused', () => {
-      const startedAt = Date.now();
-      const { rerender } = renderDots({ progress: { startedAt, durationMs: 30_000 } });
+    // jsdom has no Web Animations; stand in a minimal Animation so the fill's
+    // wiring (duration, start time, pause/play) can be asserted.
+    type FakeAnimation = {
+      startTime: number | null;
+      playState: 'running' | 'paused' | 'finished';
+      pause: ReturnType<typeof vi.fn>;
+      play: ReturnType<typeof vi.fn>;
+      cancel: ReturnType<typeof vi.fn>;
+      options: KeyframeAnimationOptions;
+    };
+    const animations: FakeAnimation[] = [];
+    function installAnimate() {
+      animations.length = 0;
+      Object.defineProperty(document, 'timeline', { configurable: true, value: { currentTime: 100_000 } });
+      HTMLElement.prototype.animate = function (_kf: unknown, options: KeyframeAnimationOptions) {
+        const anim: FakeAnimation = {
+          startTime: null,
+          playState: 'running',
+          options,
+          pause: vi.fn(() => { anim.playState = 'paused'; }),
+          play: vi.fn(() => { anim.playState = 'running'; }),
+          cancel: vi.fn(),
+        };
+        animations.push(anim);
+        return anim as unknown as Animation;
+      };
+    }
+
+    it('spans the whole dot row rather than hanging off the active dot', () => {
+      installAnimate();
+      renderDots({ activeIndex: 2, progress: { startedAt: Date.now(), durationMs: 30_000 } });
       const line = dom.getByTestId('rotation-progress');
-      expect(dom.getByRole('button', { name: 'Pause rotation (double-tap)' }).contains(line)).toBe(true);
-      const fill = line.firstElementChild as HTMLElement;
-      expect(fill.style.animation).toContain('30000ms');
-      expect(fill.style.animationPlayState).toBe('running');
+      expect(line.parentElement).toBe(dom.getByTestId('pagination-dots'));
+      for (const button of dom.getAllByRole('button')) expect(button.contains(line)).toBe(false);
+      expect(line.style.left).toBe('50%');
+      expect(line.style.transform).toBe('translateX(-50%)');
+    });
+
+    it('pins the fill to the dwell start, ignores re-renders, and freezes while paused', () => {
+      installAnimate();
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+      const startedAt = Date.now() - 12_000; // mounted 12s into a 30s dwell
+      const progress = { startedAt, durationMs: 30_000 };
+      const { rerender } = renderDots({ progress });
+      expect(animations).toHaveLength(1);
+      expect(animations[0].options.duration).toBe(30_000);
+      expect(animations[0].startTime).toBe(100_000 - 12_000);
+
+      // A parent re-render seconds later must not touch the running animation.
+      act(() => { vi.advanceTimersByTime(5_000); });
+      rerender(
+        <I18nProvider locale="en-US" blob={{ core: enUSCore }}>
+          <PaginationDots screens={screens(3)} activeIndex={0} paused={false} onDotClick={() => {}} progress={{ ...progress }} />
+        </I18nProvider>,
+      );
+      expect(animations).toHaveLength(1);
+      expect(animations[0].startTime).toBe(100_000 - 12_000);
+      expect(animations[0].cancel).not.toHaveBeenCalled();
 
       rerender(
         <I18nProvider locale="en-US" blob={{ core: enUSCore }}>
-          <PaginationDots screens={screens(3)} activeIndex={0} paused onDotClick={() => {}} onResume={() => {}} progress={{ startedAt, durationMs: 30_000 }} />
+          <PaginationDots screens={screens(3)} activeIndex={0} paused onDotClick={() => {}} onResume={() => {}} progress={{ ...progress }} />
         </I18nProvider>,
       );
-      expect((dom.getByTestId('rotation-progress').firstElementChild as HTMLElement).style.animationPlayState).toBe('paused');
+      expect(animations[0].pause).toHaveBeenCalledTimes(1);
+      expect(animations[0].play).not.toHaveBeenCalled();
+
+      // A new dwell is a fresh animation from zero.
+      rerender(
+        <I18nProvider locale="en-US" blob={{ core: enUSCore }}>
+          <PaginationDots screens={screens(3)} activeIndex={0} paused={false} onDotClick={() => {}} progress={{ startedAt: Date.now(), durationMs: 20_000 }} />
+        </I18nProvider>,
+      );
+      expect(animations[0].cancel).toHaveBeenCalledTimes(1);
+      expect(animations).toHaveLength(2);
+      expect(animations[1].options.duration).toBe(20_000);
+      expect(animations[1].startTime).toBe(100_000);
     });
 
     it('is not drawn without a dwell (sticky screen, or off in settings)', () => {

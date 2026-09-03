@@ -812,7 +812,7 @@
         "setupHintHelp": "Als een display geen schermen heeft om te tonen, verschijnt er een vaag bericht met het adres van deze editor. Zet dit uit om een leeg display helemaal zwart te laten.",
         "rotationProgressLabel": "Voortgangslijn onder de schermstippen",
         "rotationProgressToggle": "Ingeschakeld",
-        "rotationProgressHelp": "Een dun lijntje onder de actieve stip vult zich terwijl de tijd van het scherm afloopt, zodat je ook van een afstand een lang scherm van een vastgelopen scherm kunt onderscheiden.",
+        "rotationProgressHelp": "Een dun lijntje onder de schermstippen vult zich terwijl de tijd van het scherm afloopt, zodat je ook van een afstand een lang scherm van een vastgelopen scherm kunt onderscheiden.",
         "transitionEffectLabel": "Overgangseffect",
         "transitionEffectHelp": "Animatiestijl bij het wisselen tussen schermen. Blur kan zwaar zijn voor de GPU op apparaten met weinig vermogen.",
         "transitionDurationLabel": "Duur van de overgang",

@@ -812,7 +812,7 @@
         "setupHintHelp": "Quando uma tela não tem nada para mostrar, aparece uma mensagem discreta com o endereço deste editor. Desative isto para deixar uma tela vazia totalmente preta.",
         "rotationProgressLabel": "Linha de progresso sob os pontos de tela",
         "rotationProgressToggle": "Ativado",
-        "rotationProgressHelp": "Uma linha fina sob o ponto ativo vai se preenchendo enquanto o tempo da tela passa, para distinguir de longe uma tela demorada de uma travada.",
+        "rotationProgressHelp": "Uma linha fina sob os pontos de tela vai se preenchendo enquanto o tempo da tela passa, para distinguir de longe uma tela demorada de uma travada.",
         "transitionEffectLabel": "Efeito de transição",
         "transitionEffectHelp": "Estilo de animação ao alternar entre telas. Desfoque pode exigir muito da GPU em dispositivos mais fracos.",
         "transitionDurationLabel": "Duração da transição",

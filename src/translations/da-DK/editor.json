@@ -812,7 +812,7 @@
         "setupHintHelp": "Når et display ikke har nogen skærme at vise, kommer der en svag besked med adressen på denne editor. Slå det fra for at lade et tomt display være helt sort.",
         "rotationProgressLabel": "Fremdriftslinje under skærmprikkerne",
         "rotationProgressToggle": "Slået til",
-        "rotationProgressHelp": "En tynd linje under den aktive prik fyldes op, mens skærmens tid løber ud, så man på afstand kan se forskel på en lang skærm og en, der hænger.",
+        "rotationProgressHelp": "En tynd linje under skærmprikkerne fyldes op, mens skærmens tid løber ud, så man på afstand kan se forskel på en lang skærm og en, der hænger.",
         "transitionEffectLabel": "Overgangseffekt",
         "transitionEffectHelp": "Animationsstil ved skift mellem skærme. Sløring kan belaste grafikken på svage enheder.",
         "transitionDurationLabel": "Overgangens varighed",

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Screen } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import {
@@ -41,7 +41,7 @@ const NAME_FLASH_MS = 2_000;
 
 /**
  * The kiosk's screen indicator: one dot per screen, a thin progress line
- * under the active dot that fills over the screen's dwell, and the paused
+ * centred under the row that fills over the screen's dwell, and the paused
  * pill. With more than MAX_DOTS screens it collapses to `‹  7 / 24  ›`, where
  * the counter is the active dot (double-tap to pause) and the arrows step.
  * A tap on any of it flashes the destination screen's name for a moment.
@@ -54,10 +54,9 @@ const NAME_FLASH_MS = 2_000;
  * fingers on a wall-mounted panel, not a mouse. The pill is sized to be read
  * from across the room (22px at the wall's native pixels).
  *
- * The progress line is a CSS animation, not a rAF loop: a Pi paints one
- * transform per frame on the compositor and the main thread stays free. A
- * negative animation-delay syncs it to `startedAt` when the dots mount after
- * the dwell was armed; `animation-play-state: paused` freezes it while paused.
+ * The progress line is a compositor animation, not a rAF loop: a Pi paints
+ * one transform per frame and the main thread stays free. See `ProgressFill`
+ * for why it is a Web Animation pinned to `startedAt` rather than a CSS one.
  */
 export default function PaginationDots({
   screens,
@@ -118,8 +117,10 @@ export default function PaginationDots({
     </span>
   );
 
-  // The line sits just under the dot, inside the 44px hit target, and is
-  // wider than the target on purpose (overflow is visible).
+  // The line is centred under the whole dot row (never under one dot: at
+  // 200px it is as wide as a four-dot row, so hanging it off the active dot
+  // read as a bar that had slid to one side). It sits just under the dots,
+  // inside the 44px hit strip, and spans at least the row.
   const progressLine = progress && progress.durationMs > 0 ? (
     <span
       aria-hidden="true"
@@ -128,7 +129,8 @@ export default function PaginationDots({
         position: 'absolute',
         left: '50%',
         top: PAGINATION_HIT_PX / 2 + PAGINATION_DOT_PX / 2 + 8,
-        width: PAGINATION_PROGRESS_W_PX,
+        width: '100%',
+        minWidth: PAGINATION_PROGRESS_W_PX,
         height: PAGINATION_PROGRESS_H_PX,
         transform: 'translateX(-50%)',
         borderRadius: PAGINATION_PROGRESS_H_PX,
@@ -137,19 +139,11 @@ export default function PaginationDots({
         pointerEvents: 'none',
       }}
     >
-      <span
+      <ProgressFill
         key={progress.startedAt}
-        style={{
-          display: 'block',
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(255,255,255,0.6)',
-          transformOrigin: 'left center',
-          transform: 'scaleX(0)',
-          animation: `hs-rotation-progress ${progress.durationMs}ms linear forwards`,
-          animationDelay: `-${Math.min(Math.max(Date.now() - progress.startedAt, 0), progress.durationMs)}ms`,
-          animationPlayState: paused ? 'paused' : 'running',
-        }}
+        startedAt={progress.startedAt}
+        durationMs={progress.durationMs}
+        paused={paused}
       />
     </span>
   ) : null;
@@ -248,7 +242,7 @@ export default function PaginationDots({
           </span>
         )}
         {compact ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} data-testid="pagination-compact">
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }} data-testid="pagination-compact">
             <button
               onClick={() => tap((activeIndex - 1 + screens.length) % screens.length)}
               aria-label="Previous screen"
@@ -274,7 +268,6 @@ export default function PaginationDots({
                 {activeIndex + 1} / {screens.length}
               </span>
               {paused && pauseGlyph}
-              {progressLine}
             </button>
             <button
               onClick={() => tap((activeIndex + 1) % screens.length)}
@@ -283,9 +276,10 @@ export default function PaginationDots({
             >
               ›
             </button>
+            {progressLine}
           </div>
         ) : (
-          <div style={{ display: 'flex', gap: PAGINATION_GAP_PX }}>
+          <div style={{ position: 'relative', display: 'flex', gap: PAGINATION_GAP_PX }} data-testid="pagination-dots">
             {screens.map((s, i) => {
               const isActive = i === activeIndex;
               const showPause = isActive && paused;
@@ -312,10 +306,10 @@ export default function PaginationDots({
                       }}
                     />
                   )}
-                  {isActive && progressLine}
                 </button>
               );
             })}
+            {progressLine}
           </div>
         )}
       </div>
@@ -325,11 +319,71 @@ export default function PaginationDots({
           from { opacity: 0; transform: translateY(4px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes hs-rotation-progress {
-          from { transform: scaleX(0); }
-          to { transform: scaleX(1); }
-        }
       `}</style>
     </>
+  );
+}
+
+/**
+ * The fill of the progress line: scaleX 0 → 1 over the dwell, driven by the
+ * Web Animations API rather than a CSS `animation` so its clock is pinned to
+ * the dwell's own `startedAt`.
+ *
+ * Two things went wrong with the CSS version. Every parent re-render (a
+ * commands poll, a status post) recomputed a negative `animation-delay`, and
+ * Chromium applies a delay change as if it had been there from the start, so
+ * each re-render shoved the line forward by the time already elapsed and it
+ * sat full for the back half of every dwell. And on a Pi the animation's own
+ * start is the first frame after the screen transition finishes capturing,
+ * which lands well after the timer was armed, so the line ran late. Setting
+ * `startTime` on the document timeline sidesteps both: the position is
+ * always (now − startedAt) / duration, whenever the frame gets painted.
+ *
+ * Keyed on `startedAt` by the caller, so a new dwell is a fresh animation.
+ */
+function ProgressFill({ startedAt, durationMs, paused }: RotationProgress & { paused: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const animRef = useRef<Animation | null>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || typeof el.animate !== 'function') return;
+    const anim = el.animate(
+      [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+      { duration: durationMs, easing: 'linear', fill: 'forwards' },
+    );
+    const elapsed = Math.min(Math.max(Date.now() - startedAt, 0), durationMs);
+    const timelineNow = typeof document.timeline?.currentTime === 'number'
+      ? document.timeline.currentTime
+      : performance.now();
+    anim.startTime = timelineNow - elapsed;
+    animRef.current = anim;
+    return () => {
+      anim.cancel();
+      animRef.current = null;
+    };
+  }, [startedAt, durationMs]);
+
+  useLayoutEffect(() => {
+    const anim = animRef.current;
+    if (!anim) return;
+    if (paused) anim.pause();
+    // play() on a finished animation would rewind it; only lift a pause.
+    else if (anim.playState === 'paused') anim.play();
+  }, [paused, startedAt, durationMs]);
+
+  return (
+    <span
+      ref={ref}
+      data-testid="rotation-progress-fill"
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        transformOrigin: 'left center',
+        transform: 'scaleX(0)',
+      }}
+    />
   );
 }
