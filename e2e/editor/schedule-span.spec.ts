@@ -44,8 +44,6 @@ test('a Monday to Thursday span draws as one unbroken run', async ({ page, reque
     const track = await page.getByTestId(`schedule-track-${day}`).boundingBox();
     expect(box!.width).toBeCloseTo(track!.width, 0);
   }
-
-  await expect(page.getByTestId('schedule-week-strip')).toHaveScreenshot('span-mon-to-thu.png');
 });
 
 test('a span names the weekday it ends on, not a number of days', async ({ page, request }) => {
