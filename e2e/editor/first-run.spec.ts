@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig } from '../helpers/api';
+import { clearSecrets, getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance, MATRIX_LOCATION } from '../helpers/module-fixtures';
 import { stubModuleData } from '../helpers/stubs';
@@ -172,6 +172,7 @@ test.describe('location-dependent modules', () => {
 
   test('a keyed weather provider without a key shows an "Add API key" link', async ({ page, request }) => {
     await stubModuleData(page);
+    await clearSecrets(request, ['openweathermap_key']);
     const weather = buildModuleInstance('weather', { provider: 'openweathermap' });
     await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [weather])], settings: MATRIX_LOCATION }));
     await openEditor(page);

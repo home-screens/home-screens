@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig } from '../helpers/api';
+import { clearSecrets, getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, selectModule } from '../helpers/editor';
@@ -183,11 +183,9 @@ test.describe('schedule editor', () => {
 
 test.describe('background picker', () => {
   test('opens on backgrounds that need no key, and locks the ones that do', async ({ page, request }) => {
-    // Secrets live outside config.json and survive the per-test config reset,
-    // so clear the image keys this worker may have seeded earlier.
-    for (const key of ['unsplash_access_key', 'nasa_api_key', 'immich_api_key', 'immich_url']) {
-      await request.delete('/api/secrets', { data: { key } });
-    }
+    // Secrets survive the per-test config reset, so clear the image keys this
+    // worker may have seeded earlier.
+    await clearSecrets(request, ['unsplash_access_key', 'nasa_api_key', 'immich_api_key', 'immich_url']);
     await putConfig(request, baseConfig());
     await page.goto('/editor');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();

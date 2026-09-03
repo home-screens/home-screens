@@ -13,6 +13,19 @@ export async function putConfig(request: APIRequestContext, config: ScreenConfig
 }
 
 /**
+ * Secrets live in `data/secrets.json`, outside config.json, so the per-test
+ * `PUT /api/config` reset leaves whatever an earlier spec in the same worker
+ * seeded. A spec that asserts a key is missing has to clear it first, or it
+ * passes or fails on file ordering.
+ */
+export async function clearSecrets(request: APIRequestContext, keys: string[]): Promise<void> {
+  for (const key of keys) {
+    const res = await request.delete('/api/secrets', { data: { key } });
+    expect(res.ok()).toBe(true);
+  }
+}
+
+/**
  * A member + a daily fixed-rotation chore assigned to them. A fixed daily chore
  * appears in "today"'s list regardless of the calendar date, so specs can assert
  * the chore name deterministically. Seeded via `PUT /api/chores/data`.
