@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, weekMembers } from '../layout';
+import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, starIconSize, weekMembers } from '../layout';
 import type { MemberStats } from '../types';
 import type { ChoreMember } from '@/types/config';
 
@@ -140,6 +140,44 @@ describe('choreTapSize', () => {
 
   it('never goes below a size a child can hit', () => {
     expect(choreTapSize(11)).toBe(24);
+  });
+});
+
+describe('fitChoreFontSize, star chart', () => {
+  // rows = charted members, sections = legend rows.
+  const chart = { width: 476, height: 626, requested: 24, rows: 5, sections: 1, view: 'star-chart' };
+
+  it('keeps seven days of stars inside the width rather than squeezing the columns', () => {
+    // The name column plus seven day columns need about 20em across; the list
+    // views' 13em let the table run past its own box.
+    expect(fitChoreFontSize({ ...chart, width: 300 })).toBeLessThanOrEqual(300 / 20);
+  });
+
+  it('shrinks for a bigger household', () => {
+    const five = fitChoreFontSize(chart);
+    const seven = fitChoreFontSize({ ...chart, rows: 7, sections: 2, height: 300, width: 300 });
+    expect(seven).toBeLessThan(five);
+  });
+
+  it('bottoms out at the floor when the household cannot fit', () => {
+    // Ten kids in a 300x300 card is past any size that helps: it stops at the
+    // floor and FitRows says how many are below.
+    expect(fitChoreFontSize({ ...chart, rows: 10, sections: 3, width: 300, height: 300 })).toBe(11);
+  });
+
+  it('leaves the authored size alone when the chart already fits', () => {
+    expect(fitChoreFontSize({ ...chart, rows: 2, sections: 1, width: 900, height: 900 })).toBe(24);
+  });
+});
+
+describe('starIconSize', () => {
+  it('scales the member icon with the chart instead of pinning it at 18px', () => {
+    expect(starIconSize(24)).toBeGreaterThan(starIconSize(12));
+  });
+
+  it('stays visible at the floor and never dwarfs a big chart', () => {
+    expect(starIconSize(4)).toBe(10);
+    expect(starIconSize(100)).toBe(22);
   });
 });
 

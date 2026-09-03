@@ -78,9 +78,15 @@ interface ChoreFitInput {
   height: number;
   /** The module's own font size: the ceiling, never exceeded. */
   requested: number;
-  /** Chore rows the view must show today. */
+  /**
+   * Rows the view stacks down the box: chores for the list views, charted
+   * members for the star chart.
+   */
   rows: number;
-  /** Time-of-day headers between them (0 when the view has none). */
+  /**
+   * Bands between or below the rows: time-of-day headers for `today`, legend
+   * rows for the star chart, none for the rest.
+   */
   sections: number;
   view: string;
 }
@@ -92,6 +98,24 @@ const CHORE_FONT_FLOOR = 11;
 
 /** The fixed gap Tailwind's `space-y-2` puts between time-of-day sections. */
 const SECTION_GAP_PX = 8;
+
+/**
+ * Star chart geometry, in em of the fitted size, measured off the rendered
+ * table rather than derived from its CSS: the star is an emoji, whose line
+ * box is half again taller than its font size, so a row costs 2.64em where
+ * the stylesheet reads 1.4em.
+ */
+const STAR_ROW_EM = 2.64;
+const STAR_ROW_PAD_EM = 0.72;
+const STAR_HEADER_EM = 1.6;
+const STAR_TITLE_EM = 1.28;
+const STAR_LEGEND_EM = 0.97;
+/** Name column plus seven day columns, wide enough that stars are not squeezed. */
+const STAR_WIDTH_EM = 20;
+/** Fixed pixels the star chart spends whatever the type does. */
+const STAR_TITLE_GAP_PX = 8;
+const STAR_LEGEND_TOP_PX = 8;
+const STAR_LEGEND_GAP_PX = 4;
 
 /** Padding a row adds around its tap target, in em, per view. */
 const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35 };
@@ -127,10 +151,25 @@ const MORE_PILL_EM = 1.7;
  */
 export function fitChoreFontSize({ width, height, requested, rows, sections, view }: ChoreFitInput): number {
   if (height <= 0 || width <= 0) return requested;
+  if (view === 'star-chart') {
+    // A table: a header row, one row per charted member, then the legend.
+    // Its stars and its member icons both scale, so this searches the same
+    // way the lists do rather than dividing.
+    const fixedPx = STAR_TITLE_GAP_PX
+      + (sections > 0 ? STAR_LEGEND_TOP_PX + (sections - 1) * STAR_LEGEND_GAP_PX : 0);
+    const tallStar = (f: number) =>
+      // The member icon only sets the row height below the readable floor, but
+      // it is in the max so the model stays honest if either changes.
+      rows * Math.max(STAR_ROW_EM * f, starIconSize(f) + STAR_ROW_PAD_EM * f)
+      + (STAR_HEADER_EM + STAR_TITLE_EM + MORE_PILL_EM) * f
+      + sections * STAR_LEGEND_EM * f;
+    return search(tallStar, height - fixedPx, Math.min(requested, width / STAR_WIDTH_EM));
+  }
+
   const listView = view === 'today' || view === 'board' || view === 'compact';
   if (!listView) {
-    // The grid views (star chart, progress rings) are one block per member
-    // rather than a list, so they key off the box alone.
+    // The progress rings are one block per member rather than a list, so they
+    // key off the box alone.
     return Math.max(CHORE_FONT_FLOOR, Math.min(requested, height / 14, width / 13));
   }
 
@@ -148,15 +187,26 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
     + sections * SECTION_EM * f
     + (CHROME_EM[view] + MORE_PILL_EM) * f;
 
-  let lo = CHORE_FONT_FLOOR;
-  let hi = Math.min(requested, width / 13);
-  if (hi <= lo) return lo;
+  return search(tall, budget, Math.min(requested, width / 13));
+}
+
+/**
+ * Largest size at or below `hi` whose content fits `budget`, never below the
+ * floor. A search rather than a divide because the pieces that refuse to
+ * shrink past their own minimums (tap targets, member icons) make the height
+ * a bent line, not a straight one.
+ */
+function search(tall: (f: number) => number, budget: number, hi: number): number {
+  const lo0 = CHORE_FONT_FLOOR;
+  if (hi <= lo0) return lo0;
   if (tall(hi) <= budget) return hi;
+  let lo = lo0;
+  let high = hi;
   // 12 halvings over a 24px range settles well inside a tenth of a pixel.
   for (let i = 0; i < 12; i++) {
-    const mid = (lo + hi) / 2;
+    const mid = (lo + high) / 2;
     if (tall(mid) <= budget) lo = mid;
-    else hi = mid;
+    else high = mid;
   }
   return lo;
 }
@@ -169,4 +219,17 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
  */
 export function choreTapSize(fontSize: number): number {
   return Math.round(Math.max(24, Math.min(TAP_CHECKBOX_SIZE, fontSize * 1.6)));
+}
+
+/**
+ * The member icon in a star chart row, and its smaller twin in the legend.
+ * Both were fixed pixel sizes, so they set the row height on a small card and
+ * the type could not shrink past them.
+ */
+export function starIconSize(fontSize: number): number {
+  return Math.round(Math.max(10, Math.min(22, fontSize * 0.9)));
+}
+
+export function starLegendIconSize(fontSize: number): number {
+  return Math.round(Math.max(8, Math.min(14, fontSize * 0.55)));
 }

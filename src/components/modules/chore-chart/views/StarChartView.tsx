@@ -2,10 +2,11 @@
 
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import { todayStr, type MemberStats, type WeekDayData } from '../types';
-import { balanceRows, fitPerRow, weekMembers } from '../layout';
+import { balanceRows, fitPerRow, starIconSize, starLegendIconSize, weekMembers } from '../layout';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
+import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 
 interface StarChartViewProps {
   config: ChoreChartConfig;
@@ -49,7 +50,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
       )}
 
       {/* Grid */}
-      <div className="flex-1 overflow-auto" style={{ scrollbarWidth: 'none' }}>
+      <FitRows>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9em' }}>
           <thead>
             <tr>
@@ -79,10 +80,10 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
             {charted.map((member) => {
               const stats = memberStats.get(member.id);
               return (
-                <tr key={member.id}>
+                <tr key={member.id} {...{ [CHORE_ROW_ATTR]: '' }}>
                   <td style={{ padding: '0.4em 0.3em', whiteSpace: 'nowrap', maxWidth: '8em' }}>
                     <span className="inline-flex items-center gap-1 max-w-full align-bottom">
-                      <span className="shrink-0 flex">{member.emoji ? <ChoreIcon value={member.emoji} size={18} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}</span>
+                      <span className="shrink-0 flex">{member.emoji ? <ChoreIcon value={member.emoji} size={starIconSize(fontSize)} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}</span>
                       <span className="truncate min-w-0" title={member.name} style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.heading }}>{member.name}</span>
                     </span>
                     {showStreaks && (stats?.streak ?? 0) >= 2 && (
@@ -124,7 +125,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
             })}
           </tbody>
         </table>
-      </div>
+      </FitRows>
 
       {/* Weekly totals */}
       {config.showPoints && (
@@ -135,7 +136,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
                 const stats = memberStats.get(m.id);
                 return (
                   <span key={m.id} className="inline-flex items-center gap-1 whitespace-nowrap">
-                    {m.emoji ? <ChoreIcon value={m.emoji} size={12} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {t('chore-chart.ticketsCount', { count: stats?.weeklyPoints ?? 0 })}
+                    {m.emoji ? <ChoreIcon value={m.emoji} size={starLegendIconSize(fontSize)} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>} {t('chore-chart.ticketsCount', { count: stats?.weeklyPoints ?? 0 })}
                   </span>
                 );
               })}

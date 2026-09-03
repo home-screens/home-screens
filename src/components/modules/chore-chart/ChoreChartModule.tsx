@@ -4,11 +4,15 @@ import { useMemo } from 'react';
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
-import { fitChoreFontSize, fitPerRow } from './layout';
+import { balanceRows, fitChoreFontSize, fitPerRow, weekMembers } from './layout';
 
 /** Mirrors BoardView's own column sizing, for the height estimate. */
 const BOARD_COLUMN_EM = 6;
 const BOARD_COLUMN_GAP = 8;
+
+/** Mirrors StarChartView's legend sizing, for the height estimate. */
+const STAR_LEGEND_ITEM_PX = (fontSize: number) => 5.5 * 0.65 * fontSize;
+const STAR_LEGEND_GAP = 12;
 import ModuleWrapper from '../ModuleWrapper';
 import FamilyEmptyState from '../FamilyEmptyState';
 import { useChoreData } from './useChoreData';
@@ -58,8 +62,17 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       const times = new Set(assignments.map((a) => a.chore.timeOfDay));
       return { rows: assignments.length, sections: config.showTimeOfDay === false ? 0 : times.size };
     }
+    if (view === 'star-chart') {
+      // A row per charted member, and the legend under it wraps the same
+      // people into rows of its own.
+      const charted = weekMembers(data.members, data.memberStats);
+      const legendRows = config.showPoints === false
+        ? 0
+        : balanceRows(charted, fitPerRow(box.width, STAR_LEGEND_ITEM_PX(style.fontSize), STAR_LEGEND_GAP, charted.length)).length;
+      return { rows: charted.length, sections: legendRows };
+    }
     return { rows: 0, sections: 0 };
-  }, [data.todayAssignments, view, config.showTimeOfDay, box.width, style.fontSize]);
+  }, [data, view, config.showTimeOfDay, config.showPoints, box.width, style.fontSize]);
 
   // Family data lives on the phone, not in the editor: the empty state sends
   // people to /remote and says which tab.
