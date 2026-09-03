@@ -158,7 +158,7 @@ function NoPhotosYet({ theme, t, cloudHint }: { theme: FullscreenThemeTokens; t:
 
 // ── Clock overlay ────────────────────────────
 
-function ClockOverlay({ textColor, textMuted, timezone }: { textColor: string; textMuted: string; timezone?: string }) {
+function ClockOverlay({ theme, timezone }: { theme: FullscreenThemeTokens; timezone?: string }) {
   // Display-timezone clock, not browser-local — the Pi's OS timezone may differ
   const time = useTZClock(timezone, 1000);
   const locale = useFormattingLocale();
@@ -176,12 +176,21 @@ function ClockOverlay({ textColor, textMuted, timezone }: { textColor: string; t
     day: 'numeric',
   });
 
+  // The scrim always runs the opposite way from the theme's text, because the
+  // photo underneath can be any brightness. Dark themes darken the bottom of
+  // the frame and write light text on it; light themes lighten it and write
+  // dark text. `textSecondary`, not `textMuted`, carries the second line;
+  // several themes' muted tone is far too low-contrast to read across a room.
+  const scrim = theme.isDark
+    ? 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, transparent 100%)'
+    : 'linear-gradient(to top, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.38) 60%, transparent 100%)';
+  const textColor = theme.text;
+  const textMuted = theme.textSecondary;
+
   return (
     <div
       className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-start px-10 pb-10"
-      style={{
-        background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, transparent 100%)',
-      }}
+      style={{ background: scrim }}
     >
       <div className="flex items-baseline gap-2 pt-16">
         <span
@@ -271,8 +280,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
 
   const themeId = config.theme ?? fullscreenTheme ?? 'midnight';
   const theme = getThemeTokens(themeId);
-  // The empty/loading screens are the only frames the theme paints; they
-  // carry its atmosphere layer like every other fullscreen module.
+  // Photos are edge to edge, so the theme paints the frame around them: the
+  // empty/loading screens, the letterbox bars an `objectFit: contain` photo
+  // leaves behind, and the clock overlay's scrim and text.
   const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
 
   if (isSinglePhoto) {
@@ -297,7 +307,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       );
     }
     return (
-      <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ backgroundColor: '#000' }}>
+      <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={themeGround}>
         {config.kenBurns && <style>{KEN_BURNS_CSS}</style>}
         <SlideLayer
           src={config.file}
@@ -308,7 +318,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
           layerIndex={0}
         />
         {config.showClock && (
-          <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" timezone={timezone} />
+          <ClockOverlay theme={theme} timezone={timezone} />
         )}
       </div>
     );
@@ -382,7 +392,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={{ backgroundColor: '#000' }}>
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden" style={themeGround}>
       <style>{KEN_BURNS_CSS}</style>
 
       {/* Layer 0 */}
@@ -392,7 +402,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
 
       {/* Clock overlay */}
       {config.showClock && (
-        <ClockOverlay textColor="#ffffff" textMuted="rgba(255,255,255,0.75)" timezone={timezone} />
+        <ClockOverlay theme={theme} timezone={timezone} />
       )}
     </div>
   );

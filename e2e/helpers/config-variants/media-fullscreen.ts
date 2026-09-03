@@ -209,6 +209,23 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // The theme also has to reach the *loaded* frame, which is what users
+    // actually look at: the letterbox ground an `objectFit: contain` photo
+    // leaves behind takes the theme bg (linen #f5f1ea), and the clock overlay
+    // takes the theme's own text color (linen text #1c1917) rather than the
+    // white it used to hardcode.
+    type: 'fullscreen-photo', name: 'theme-linen-loaded', kind: 'network-free',
+    config: { file: TINY_GIF, theme: 'linen', objectFit: 'contain', showClock: true },
+    expect: async (mod) => {
+      const bgs = await mod.locator('div').evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el).backgroundColor.replace(/\s/g, '')),
+      );
+      expect(bgs).toContain('rgb(245,241,234)');
+      const clock = mod.locator('span').filter({ hasText: /^\d{1,2}:\d{2}$/ }).first();
+      await expect(clock).toHaveCSS('color', 'rgb(28, 25, 23)');
+    },
+  },
+  {
     // source 'immich' routes the fetch to /api/immich/photos (the 'immich' stub
     // serves the same bare URL array as backgrounds), and the image renders
     // from that payload.
