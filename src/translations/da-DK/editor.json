@@ -4179,10 +4179,8 @@
       "seeLiveValues": "Du kan se alle live-værdier under Indstillinger → Live-værdier."
     },
     "time": {
-      "daysLabel": "Dage",
       "fromLabel": "Fra",
-      "untilLabel": "Til",
-      "hint": "Lad begge tider stå tomme for hele dagen. Er sluttidspunktet tidligere end starten, går det over midnat (fx 22:00 til 06:00)."
+      "untilLabel": "Til"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Døre, lys og hvem der er hjemme kommer fra Home Assistant-tilføjelsen. Installér den, så dukker de også op her."

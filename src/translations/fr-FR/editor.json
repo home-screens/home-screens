@@ -4179,10 +4179,8 @@
       "seeLiveValues": "Vous pouvez voir toutes les valeurs en direct dans Réglages → Valeurs en direct."
     },
     "time": {
-      "daysLabel": "Jours",
       "fromLabel": "De",
-      "untilLabel": "Jusqu'à",
-      "hint": "Laissez les deux heures vides pour toute la journée. Une fin plus tôt que le début passe après minuit (par exemple 22 h 00 à 6 h 00)."
+      "untilLabel": "Jusqu'à"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Les portes, les lumières et qui est à la maison viennent du module Home Assistant. Installez-le et ils apparaîtront ici aussi."

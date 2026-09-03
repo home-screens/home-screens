@@ -150,10 +150,12 @@ test('authoring a time condition persists a window and a day toggle', async ({ p
     .poll(async () => (await savedVisibility(request))!.conditions[0])
     .toMatchObject({ kind: 'time', startTime: '08:30', endTime: '17:00' });
 
-  // Deselecting Sunday leaves the remaining six days (all-days is stored as
-  // undefined, so the first removal materializes the explicit array).
+  // Days are picked on the week strip now, one chip per row, named in full.
+  // All-days is stored as undefined, so the first removal materializes the
+  // explicit array.
+  await expect(page.getByTestId('schedule-week-strip')).toBeVisible();
   await autosaved(page, async () => {
-    await page.getByRole('button', { name: 'Sun', exact: true }).click();
+    await page.getByRole('switch', { name: 'Sunday', exact: true }).click();
   });
   await expect
     .poll(async () => {
@@ -161,6 +163,43 @@ test('authoring a time condition persists a window and a day toggle', async ({ p
       return c.kind === 'time' ? c.daysOfWeek : null;
     })
     .toEqual([1, 2, 3, 4, 5, 6]);
+});
+
+test('a time condition can be one stretch across several days', async ({ page, request }) => {
+  const mod = textModule('GATED', {
+    visibility: { conditions: [{ kind: 'time', daysOfWeek: [1], startTime: '08:00', endTime: '20:00' }] },
+  });
+  await openConditions(page, request, mod);
+
+  // Same two shapes the module Schedule accordion offers.
+  const shape = page.getByTestId('condition-time-shape');
+  await expect(shape).toHaveValue('repeat');
+  await expect(page.getByTestId('condition-time-end-day')).toHaveCount(0);
+
+  await autosaved(page, async () => {
+    await shape.selectOption('span');
+  });
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toMatchObject({ kind: 'time', daysOfWeek: [1], endDayOffset: 1 });
+
+  // The end is named outright, because a stretch has one start day.
+  const endDay = page.getByTestId('condition-time-end-day');
+  await autosaved(page, async () => {
+    await endDay.selectOption({ label: 'Thursday' });
+  });
+  await expect
+    .poll(async () => (await savedVisibility(request))!.conditions[0])
+    .toMatchObject({ kind: 'time', daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 3 });
+
+  // Monday through Thursday lit as one unbroken run, and nothing after it.
+  const strip = page.getByTestId('schedule-week-strip');
+  for (const day of [1, 2, 3, 4]) {
+    await expect(strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(1);
+  }
+  for (const day of [5, 6, 0]) {
+    await expect(strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(0);
+  }
 });
 
 test('switching to a group kind wraps the leaf and supports adding a nested child', async ({ page, request }) => {

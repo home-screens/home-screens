@@ -574,6 +574,17 @@ export function validateModuleSchedule(
     }
   }
 
+  // The runtime already ignores an unusable offset, so a bad one is harmless
+  // on the wall; rejecting it on save stops it being stored in the first place
+  // and says so, rather than leaving a schedule that silently means something
+  // else than its config reads.
+  if (schedule.endDayOffset !== undefined) {
+    const offset = schedule.endDayOffset;
+    if (!Number.isInteger(offset) || offset < 0 || offset > 6) {
+      return `${context}: schedule.endDayOffset must be an integer 0–6 (got ${JSON.stringify(offset)})`;
+    }
+  }
+
   return null;
 }
 
@@ -646,7 +657,12 @@ export function validateModuleVisibility(
     // identical to the schedule surface.
     if (condition.kind === 'time') {
       return validateModuleSchedule(
-        { daysOfWeek: condition.daysOfWeek, startTime: condition.startTime, endTime: condition.endTime },
+        {
+          daysOfWeek: condition.daysOfWeek,
+          startTime: condition.startTime,
+          endTime: condition.endTime,
+          endDayOffset: condition.endDayOffset,
+        },
         context,
       );
     }

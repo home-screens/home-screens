@@ -8,7 +8,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useMemo } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { resolveSpanDays, scheduleShape } from '@/lib/schedule';
+import { useScheduleWindow } from '@/hooks/useScheduleWindow';
 import type { ModuleSchedule } from '@/types/config';
 
 interface ScheduleEditorProps {
@@ -52,44 +52,14 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
     }
   };
 
-  const toggleDay = (day: number) => {
-    // A span runs from one day, so a chip picks that day outright.
-    if (shape === 'span') {
-      setSchedule({ daysOfWeek: [day] });
-      return;
-    }
-    const current = schedule?.daysOfWeek ?? EVERY_DAY;
-    const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort();
-    // Prevent deselecting the last day — at least one must remain active
-    if (next.length === 0) return;
-    setSchedule({ daysOfWeek: next });
-  };
-
-  /**
-   * Switching shape has to leave a schedule that means something. A span needs
-   * exactly one start day and an offset of at least one, or it is just a plain
-   * window wearing the wrong label; going back drops the offset so the overnight
-   * rule takes over again.
-   */
-  const setShape = (next: 'repeat' | 'span') => {
-    if (next === 'span') {
-      const first = (schedule?.daysOfWeek ?? EVERY_DAY)[0] ?? 0;
-      setSchedule({ daysOfWeek: [first], endDayOffset: Math.max(1, spanDays) });
-    } else {
-      setSchedule({ endDayOffset: undefined });
-    }
-  };
+  const { shape, spanDays, startDay, toggleDay, setShape } = useScheduleWindow(
+    schedule,
+    setSchedule,
+  );
 
   // The invert toggle has nothing to invert without a window: with no times
   // set it would hide the module every day, forever.
   const hasWindow = !!schedule?.startTime && !!schedule?.endTime;
-
-  // What the span selector shows while `endDayOffset` is unset: the implicit
-  // rule the schedule is running under, so the control reads back the truth
-  // rather than defaulting to "the same day" on an overnight window.
-  const spanDays = resolveSpanDays(schedule);
-  const shape = scheduleShape(schedule);
-  const startDay = (schedule?.daysOfWeek ?? EVERY_DAY)[0] ?? 0;
 
   return (
     <div className="space-y-3">

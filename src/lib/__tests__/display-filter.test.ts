@@ -1170,6 +1170,22 @@ describe('validateModuleSchedule', () => {
     expect(validateModuleSchedule({ startTime: '12:60' }, 'screen X')).toMatch(/startTime/);
   });
 
+  it('accepts a whole-day span offset', () => {
+    for (const endDayOffset of [0, 1, 3, 6]) {
+      expect(
+        validateModuleSchedule({ startTime: '08:00', endTime: '20:00', endDayOffset }, 'screen X'),
+      ).toBeNull();
+    }
+  });
+
+  it('rejects a span offset outside 0-6 or with a fraction', () => {
+    for (const endDayOffset of [-1, 7, 1.5, NaN, Infinity]) {
+      expect(
+        validateModuleSchedule({ startTime: '08:00', endTime: '20:00', endDayOffset }, 'screen X'),
+      ).toMatch(/endDayOffset/);
+    }
+  });
+
   it('includes the context label in the error message', () => {
     const err = validateModuleSchedule({ daysOfWeek: [9] }, 'display "kitchen" screen "k-s1"');
     expect(err).toContain('display "kitchen" screen "k-s1"');

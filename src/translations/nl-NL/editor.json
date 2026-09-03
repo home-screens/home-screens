@@ -4179,10 +4179,8 @@
       "seeLiveValues": "Je vindt alle live waarden onder Instellingen → Live waarden."
     },
     "time": {
-      "daysLabel": "Dagen",
       "fromLabel": "Van",
-      "untilLabel": "Tot",
-      "hint": "Laat beide tijden leeg voor de hele dag. Als het einde vóór de start ligt, loopt het door na middernacht (zoals 22:00 tot 06:00)."
+      "untilLabel": "Tot"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Deuren, lampen en wie er thuis is komen van de Home Assistant-add-on. Installeer die en ze verschijnen hier ook."

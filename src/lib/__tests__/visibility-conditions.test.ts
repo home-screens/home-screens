@@ -280,6 +280,52 @@ describe('time conditions', () => {
     expect(evaluateVisibility(v, states({}), at(3, 18))).toBe(true);
   });
 
+  it('holds a multi-day span open the whole way through', () => {
+    // Monday 08:00 until Thursday 20:00, the same shape a module schedule can
+    // express. A repeating window cannot say this: it would go dark nightly.
+    const v = vis({
+      conditions: [{ kind: 'time', daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 3 }],
+    });
+    expect(evaluateVisibility(v, states({}), at(1, 7, 59))).toBe(false);
+    expect(evaluateVisibility(v, states({}), at(1, 8))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(2, 3))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(3, 12))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(4, 19, 59))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(4, 20))).toBe(false);
+    expect(evaluateVisibility(v, states({}), at(5, 12))).toBe(false);
+  });
+
+  it('wraps a span past Saturday into the next week', () => {
+    const v = vis({
+      conditions: [{ kind: 'time', daysOfWeek: [5], startTime: '18:00', endTime: '08:00', endDayOffset: 3 }],
+    });
+    expect(evaluateVisibility(v, states({}), at(6, 12))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(0, 12))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(1, 7, 59))).toBe(true);
+    expect(evaluateVisibility(v, states({}), at(1, 8))).toBe(false);
+  });
+
+  it('ignores an unusable offset rather than trusting it', () => {
+    for (const endDayOffset of [-1, 7, 1.5, NaN]) {
+      const v = vis({
+        conditions: [{ kind: 'time', daysOfWeek: [2], startTime: '16:00', endTime: '08:00', endDayOffset }],
+      });
+      // Falls back to the implicit overnight wrap.
+      expect(evaluateVisibility(v, states({}), at(3, 2))).toBe(true);
+      expect(evaluateVisibility(v, states({}), at(3, 20))).toBe(false);
+    }
+  });
+
+  it('stays decidable under a span, so it never trips whenUnknown', () => {
+    const v = vis({
+      whenUnknown: 'show',
+      conditions: [{ kind: 'time', daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 2 }],
+    });
+    // Outside the span the answer is a definite false, not "unknown" turning
+    // into the whenUnknown outcome.
+    expect(evaluateVisibility(v, states({}), at(5, 12))).toBe(false);
+  });
+
   it('AND-combines with a state condition without tripping whenUnknown', () => {
     // The state key is unpublished, so whenUnknown governs — a time condition
     // must not itself make the tree "unknown".

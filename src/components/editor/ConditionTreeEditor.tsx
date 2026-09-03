@@ -17,6 +17,9 @@
 import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
+import ScheduleWeekStrip from '@/components/editor/ScheduleWeekStrip';
+import { useScheduleWindow } from '@/hooks/useScheduleWindow';
+import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
@@ -27,7 +30,7 @@ import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
 import { SHARED_STATE_KEY_RE, type ProvidedStateKey, type SharedStateEntry } from '@/lib/shared-state-types';
 import type { LoadedPlugin, StateKeyDescriptor } from '@/types/plugins';
-import type { VisibilityCondition } from '@/types/config';
+import type { ModuleSchedule, VisibilityCondition } from '@/types/config';
 
 /** Stable empty map so an absent `plugins` prop doesn't re-create one per render. */
 const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
@@ -660,41 +663,57 @@ function TimeConditionEditor({
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
-  const dayLabels = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
-  const days = condition.daysOfWeek;
+  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
+  const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
 
-  const toggleDay = (i: number) => {
-    const current = days ?? [0, 1, 2, 3, 4, 5, 6];
-    const next = current.includes(i) ? current.filter((d) => d !== i) : [...current, i].sort((a, b) => a - b);
-    if (next.length === 0) return; // keep at least one day active
-    // A full week is "every day" — store undefined so both render identically.
-    onChange({ ...condition, daysOfWeek: next.length === 7 ? undefined : next });
+  // A `time` condition is a ModuleSchedule minus `invert`, so it drives the
+  // same strip and the same controls. Patches drop back onto the condition.
+  const window: ModuleSchedule = {
+    daysOfWeek: condition.daysOfWeek,
+    startTime: condition.startTime,
+    endTime: condition.endTime,
+    endDayOffset: condition.endDayOffset,
   };
+  const patch = (next: Partial<ModuleSchedule>) => {
+    const merged = { ...window, ...next };
+    onChange({
+      ...condition,
+      // A full week is "every day"; storing undefined keeps the config clean
+      // and makes both spellings render identically.
+      daysOfWeek: merged.daysOfWeek?.length === 7 ? undefined : merged.daysOfWeek,
+      startTime: merged.startTime,
+      endTime: merged.endTime,
+      endDayOffset: merged.endDayOffset,
+    });
+  };
+  const { shape, spanDays, startDay, toggleDay, setShape } = useScheduleWindow(window, patch);
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.daysLabel')}</span>
-        <div className="flex gap-1">
-          {dayLabels.map((label, i) => {
-            const active = !days || days.length === 0 || days.includes(i);
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => toggleDay(i)}
-                aria-label={label}
-                aria-pressed={active}
-                className={`flex-1 text-[10px] py-1 rounded transition-colors ${
-                  active ? 'bg-hs-accent text-white' : 'bg-hs-card text-hs-text-faint hover:bg-hs-hover'
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-hs-text-muted">{t('scheduleEditor.repeatTitle')}</span>
+        <select
+          data-testid="condition-time-shape"
+          value={shape}
+          onChange={(e) => setShape(e.target.value as 'repeat' | 'span')}
+          className={INPUT_CLASS}
+        >
+          <option value="repeat">{t('scheduleEditor.shapeRepeat')}</option>
+          <option value="span">{t('scheduleEditor.shapeSpan')}</option>
+        </select>
+      </label>
+
+      {/* The same picture the module Schedule accordion draws. Without it this
+          panel was the last place an overnight window was described by two time
+          boxes and a row of chips, with nothing saying which day it ended on. */}
+      <ScheduleWeekStrip
+        schedule={window}
+        timeFormat={timeFormat}
+        shape={shape}
+        onToggleDay={toggleDay}
+        onDragEdge={patch}
+      />
+
       <div className="grid grid-cols-2 gap-2">
         <label className="flex flex-col gap-0.5">
           <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.fromLabel')}</span>
@@ -706,18 +725,41 @@ function TimeConditionEditor({
             className={INPUT_CLASS}
           />
         </label>
-        <label className="flex flex-col gap-0.5">
-          <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.untilLabel')}</span>
-          <input
-            type="time"
-            value={condition.endTime ?? ''}
-            aria-label={t('visibilityConditions.time.untilLabel')}
-            onChange={(e) => onChange({ ...condition, endTime: e.target.value || undefined })}
-            className={INPUT_CLASS}
-          />
-        </label>
+        {/* The select is a sibling of the label, not inside it: a label
+            wrapping two controls folds the selected option's text into the
+            time input's accessible name. */}
+        <div className="flex flex-col gap-0.5">
+          <label className="flex flex-col gap-0.5">
+            <span className="text-xs text-hs-text-muted">{t('visibilityConditions.time.untilLabel')}</span>
+            <input
+              type="time"
+              value={condition.endTime ?? ''}
+              aria-label={t('visibilityConditions.time.untilLabel')}
+              onChange={(e) => onChange({ ...condition, endTime: e.target.value || undefined })}
+              className={INPUT_CLASS}
+            />
+          </label>
+          {shape === 'span' && (
+            <select
+              aria-label={t('scheduleEditor.endsOnLabel')}
+              data-testid="condition-time-end-day"
+              value={String(spanDays)}
+              onChange={(e) => patch({ endDayOffset: Number(e.target.value) })}
+              className={`${INPUT_CLASS} mt-1`}
+            >
+              {[0, 1, 2, 3, 4, 5, 6].map((n) => (
+                <option key={n} value={n}>
+                  {dayNames[(startDay + n) % 7]}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
-      <p className="text-[10px] text-hs-text-dim">{t('visibilityConditions.time.hint')}</p>
+      {/* The old hint went on to explain that an end earlier than the start
+          crosses midnight. The strip draws that, so only the part it cannot
+          draw is left. */}
+      <p className="text-[10px] text-hs-text-dim">{t('scheduleEditor.allDayHint')}</p>
     </div>
   );
 }

@@ -193,7 +193,13 @@ function evaluateCondition(
       return true;
     }
     case 'time':
-      return matchesTimeWindow(condition.daysOfWeek, condition.startTime, condition.endTime, now);
+      return matchesTimeWindow(
+        condition.daysOfWeek,
+        condition.startTime,
+        condition.endTime,
+        now,
+        condition.endDayOffset,
+      );
     case 'and':
       return condition.conditions.every((c) => evaluateCondition(c, states, now));
     case 'or':

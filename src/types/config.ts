@@ -138,6 +138,8 @@ export type VisibilityCondition =
       daysOfWeek?: number[];    // 0=Sun … 6=Sat (omit / empty = every day)
       startTime?: string;       // "07:00" (omit = from midnight)
       endTime?: string;         // "21:00" (omit = until midnight)
+      /** Days after the start day that the window closes, exactly as `ModuleSchedule.endDayOffset`. */
+      endDayOffset?: number;
     }
   | { kind: 'and'; conditions: VisibilityCondition[] }
   | { kind: 'or'; conditions: VisibilityCondition[] }

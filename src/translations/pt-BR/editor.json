@@ -4179,10 +4179,8 @@
       "seeLiveValues": "Você pode ver todos os valores ao vivo em Configurações → Valores ao vivo."
     },
     "time": {
-      "daysLabel": "Dias",
       "fromLabel": "De",
-      "untilLabel": "Até",
-      "hint": "Deixe os dois horários vazios para o dia todo. Se o fim for antes do início, ele cruza a meia-noite (como das 22:00 às 6:00)."
+      "untilLabel": "Até"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Portas, luzes e quem está em casa vêm do complemento do Home Assistant. Instale-o e eles também aparecem aqui."

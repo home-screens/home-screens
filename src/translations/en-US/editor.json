@@ -4179,10 +4179,8 @@
       "seeLiveValues": "You can see every live value under Settings → Live values."
     },
     "time": {
-      "daysLabel": "Days",
       "fromLabel": "From",
-      "untilLabel": "Until",
-      "hint": "Leave both times empty for all day. An end earlier than the start crosses midnight (like 10:00 PM to 6:00 AM)."
+      "untilLabel": "Until"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Doors, lights and who's home come from the Home Assistant add-on. Install it and they appear here too."

@@ -4179,10 +4179,8 @@
       "seeLiveValues": "Alle Live-Werte findest du unter Einstellungen → Live-Werte."
     },
     "time": {
-      "daysLabel": "Tage",
       "fromLabel": "Von",
-      "untilLabel": "Bis",
-      "hint": "Beide Zeiten leer lassen für den ganzen Tag. Ist das Ende früher als der Anfang, geht es über Mitternacht (z. B. 22:00 bis 06:00 Uhr)."
+      "untilLabel": "Bis"
     },
     "providerHealthNote": "{plugin}: {message}",
     "addOnHint": "Türen, Lichter und wer zu Hause ist kommen vom Home-Assistant-Add-on. Installiere es, dann erscheinen sie auch hier."
