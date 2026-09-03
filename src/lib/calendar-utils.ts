@@ -4,12 +4,12 @@ import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
 import { toTZWallTime } from '@/lib/timezone';
 
-/** Clamp a multi-week grid's weeksToShow to its 4-12 range. The view and the
+/** Clamp a multi-week grid's weeksToShow to its 2-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
  * number (config.json is hand-editable and the API doesn't type-check it). */
 export function clampWeeksToShow(value: number | undefined): number {
   if (!Number.isFinite(value)) return 6;
-  return Math.min(12, Math.max(4, value as number));
+  return Math.min(12, Math.max(2, value as number));
 }
 
 /** Clamp a grid's gridMaxEventsPerCell to its 2-10 range. Unset or not a

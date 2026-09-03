@@ -819,7 +819,7 @@ export interface CalendarConfig {
   showLocation: boolean;
   maxEvents: number;
   showWeekNumbers: boolean;
-  // Multi-week grid view: total weeks rendered, 4-12 (row 1 = current week)
+  // Multi-week grid view: total weeks rendered, 2-12 (row 1 = current week)
   weeksToShow?: number;
   // Grid views (week / month / multi-week): event pills per day cell before
   // "+N more", 2-10. Unset = 5 on the week grid (its cells run a full column

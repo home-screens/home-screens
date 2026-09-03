@@ -180,7 +180,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           <Slider
             label={t('configSections.calendar.weeksToShow')}
             value={c.weeksToShow ?? 6}
-            min={4}
+            min={2}
             max={12}
             step={1}
             onChange={(v) => set({ weeksToShow: v })}

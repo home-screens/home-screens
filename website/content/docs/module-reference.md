@@ -293,7 +293,7 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `showLocation` | boolean | `false` | Show event locations |
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/multi-week/month views |
-| `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (4–12), starting with the current week |
+| `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (2–12), starting with the current week |
 | `gridMaxEventsPerCell` | number | `4` | Week/multi-week/month grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week and month cells |
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
 | `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |

@@ -39,8 +39,9 @@ describe('clampWeeksToShow', () => {
     expect(clampWeeksToShow(undefined)).toBe(6);
   });
 
-  it('clamps to the 4-12 range', () => {
-    expect(clampWeeksToShow(1)).toBe(4);
+  it('clamps to the 2-12 range', () => {
+    expect(clampWeeksToShow(1)).toBe(2);
+    expect(clampWeeksToShow(2)).toBe(2);
     expect(clampWeeksToShow(8)).toBe(8);
     expect(clampWeeksToShow(99)).toBe(12);
   });

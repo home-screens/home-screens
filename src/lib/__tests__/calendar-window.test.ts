@@ -182,13 +182,13 @@ describe('getCalendarFetchWindow', () => {
     expect(win!.timeMax).toBeNull();
   });
 
-  it('clamps out-of-range weeksToShow to the 4-12 bounds', () => {
+  it('clamps out-of-range weeksToShow to the 2-12 bounds', () => {
     const weekStart = startOfWeek(NOW, { weekStartsOn: 0 });
     const hi = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 99 })])], NOW, DAYS_AHEAD);
     expect(hi!.timeMax).toBe(addDays(addWeeks(weekStart, 12), 1).toISOString());
     expect(hi!.timeMin).toBe(addDays(weekStart, -1).toISOString());
-    const lo = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 2 })])], NOW, DAYS_AHEAD);
-    expect(lo!.timeMax).toBe(addDays(addWeeks(weekStart, 4), 1).toISOString());
+    const lo = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'multi-week', weeksToShow: 1 })])], NOW, DAYS_AHEAD);
+    expect(lo!.timeMax).toBe(addDays(addWeeks(weekStart, 2), 1).toISOString());
   });
 
   it('starts a Monday-start multi-week window at the Monday, not the Sunday', () => {

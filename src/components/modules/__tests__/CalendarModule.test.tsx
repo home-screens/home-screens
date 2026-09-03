@@ -419,7 +419,7 @@ describe('CalendarModule multi-week view', () => {
     const under = render(
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'multi-week', weeksToShow: 1 })} style={style} events={events} /></Wrapper>,
     );
-    expect(countWeekRows(under.container)).toBe(4);
+    expect(countWeekRows(under.container)).toBe(2);
   });
 
   it('falls back to 6 weeks when a hand-edited weeksToShow is not a number', () => {
