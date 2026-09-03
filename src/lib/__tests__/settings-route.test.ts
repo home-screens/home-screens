@@ -115,11 +115,33 @@ describe('parseSettingsRoute', () => {
     expect(parseSettingsRoute(params)).toEqual({ kind: 'displays' });
   });
 
-  it('resolves a bare legacy ?tab= bookmark to the default page', () => {
-    // In-product links shipped `?tab=X` until the reorganization, so the
-    // silent fallback IS the documented behavior for that shape — pin it
-    // directly so a parser edit can't change it unnoticed.
+  it('maps a legacy ?tab= bookmark to the page that holds its content now', () => {
+    // `?tab=X` was the pre-reorganization shape and is still in bookmarks and
+    // old docs. It used to fall through to Screen defaults, so every one of
+    // those links quietly opened the wrong page.
     expect(parseSettingsRoute(new URLSearchParams('tab=meals'))).toEqual({
+      kind: 'defaults',
+      page: 'meals',
+    });
+  });
+
+  it('carries a merged page\'s legacy tab to the panel that absorbed it', () => {
+    expect(parseSettingsRoute(new URLSearchParams('tab=sleep'))).toEqual({
+      kind: 'defaults',
+      page: 'screen',
+      panel: 'sleep',
+    });
+    expect(parseSettingsRoute(new URLSearchParams('tab=rules'))).toEqual({
+      kind: 'defaults',
+      page: 'automation',
+      panel: 'rules',
+    });
+  });
+
+  it('still falls back for a ?tab= value that names nothing', () => {
+    // `docs` left the app entirely at the reorganization; there is nowhere
+    // to send it, so it behaves like any other unknown value.
+    expect(parseSettingsRoute(new URLSearchParams('tab=docs'))).toEqual({
       kind: 'defaults',
       page: 'screen',
     });
@@ -231,12 +253,23 @@ describe('resolveSettingsRoute', () => {
     expect(next.get('panel')).toBe('rules');
   });
 
-  it('does not rewrite a bare legacy ?tab= bookmark (?tab= is an unrelated param now)', () => {
-    // `?tab=` is not a routing key anymore, so it is an unrelated param:
-    // the route falls back to the default page and the URL is left alone.
+  it('rewrites a legacy ?tab= bookmark to the current URL shape', () => {
     const result = resolveSettingsRoute('tab=meals');
+    expect(result.route).toEqual({ kind: 'defaults', page: 'meals' });
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('section')).toBe('defaults');
+    expect(next.get('page')).toBe('meals');
+    // The retired param must not survive, or the address bar keeps claiming
+    // a page that no longer exists.
+    expect(next.has('tab')).toBe(false);
+  });
+
+  it('rewrites away a ?tab= value that names nothing', () => {
+    const result = resolveSettingsRoute('tab=docs');
     expect(result.route).toEqual({ kind: 'defaults', page: 'screen' });
-    expect(result.redirectedQuery).toBeUndefined();
+    const next = new URLSearchParams(result.redirectedQuery!);
+    expect(next.get('page')).toBe('screen');
+    expect(next.has('tab')).toBe(false);
   });
 });
 

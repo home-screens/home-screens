@@ -29,19 +29,27 @@ function profileCard(page: import('@playwright/test').Page, name: string) {
 test('adding a profile persists and appears in the active-profile select', async ({ page, request }) => {
   await putConfig(request, baseConfig());
   await page.goto('/editor/settings?section=defaults&page=automation');
-  await expect(page.getByRole('button', { name: 'Add Profile' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add a profile' })).toBeVisible();
 
   await autosaved(page, async () => {
-    await page.getByRole('button', { name: 'Add Profile' }).click();
+    await page.getByRole('button', { name: 'Add a profile' }).click();
   });
 
-  // The new card renders the default name, and the active-profile select
-  // (only shown once profiles exist) now offers it as an option.
-  await expect(profileCard(page, 'Profile 1')).toBeVisible();
-  await expect(page.getByLabel('Active Profile').locator('option', { hasText: 'Profile 1' })).toHaveCount(1);
+  // The new card opens straight into its name field with the suggestions
+  // offered, so naming it is the first thing that happens rather than a
+  // second trip through the pencil icon.
+  await expect(page.getByRole('button', { name: 'School mornings' })).toBeVisible();
+  await autosaved(page, async () => {
+    await page.getByRole('button', { name: 'School mornings' }).click();
+  });
+
+  await expect(profileCard(page, 'School mornings')).toBeVisible();
+  await expect(
+    page.getByLabel('Showing right now').locator('option', { hasText: 'School mornings' }),
+  ).toHaveCount(1);
 
   const config = await getConfig(request);
-  expect(config.profiles?.[0]?.name).toBe('Profile 1');
+  expect(config.profiles?.[0]?.name).toBe('School mornings');
 });
 
 test('picking an active profile persists settings.activeProfile', async ({ page, request }) => {
@@ -49,7 +57,7 @@ test('picking an active profile persists settings.activeProfile', async ({ page,
   await page.goto('/editor/settings?section=defaults&page=automation');
 
   await autosaved(page, async () => {
-    await page.getByLabel('Active Profile').selectOption('p1');
+    await page.getByLabel('Showing right now').selectOption('p1');
   });
 
   await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBe('p1');

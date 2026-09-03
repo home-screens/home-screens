@@ -13,7 +13,7 @@
     "hubDisconnected": "Kan Home Screens niet bereiken"
   },
   "connectionBanner": {
-    "unreachable": "Home Screens is niet bereikbaar. Controleer of deze telefoon op de thuis-wifi zit en of de hub aanstaat.",
+    "unreachable": "Home Screens is niet bereikbaar. Controleer of deze telefoon op de thuis-wifi zit en of de hoofd-Pi aanstaat.",
     "restarting": "Home Screens start opnieuw op. Over ongeveer 20 seconden weer verbonden…",
     "rebooting": "Het apparaat start opnieuw op. Over ongeveer een minuut weer verbonden…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Melding sturen",
     "sendingButton": "Versturen…",
     "sentButton": "Verstuurd!",
-    "failedButton": "Mislukt — probeer opnieuw",
+    "failedButton": "Niet verzonden, probeer opnieuw",
     "clearOnDisplay": "Meldingen wissen op {name}",
     "clearOnAll": "Meldingen wissen op alle schermen",
     "clearingButton": "Wissen…",
@@ -427,8 +427,8 @@
       "confirmTitle": "{name} inwisselen?",
       "confirmDescriptionSingular": "Hiermee wordt {cost} ticket van het saldo van {memberName} gebruikt. Over: {remaining}",
       "confirmDescriptionPlural": "Hiermee worden {cost} tickets van het saldo van {memberName} gebruikt. Over: {remaining}",
-      "confirmLabelSingular": "Inwisselen — {cost} ticket",
-      "confirmLabelPlural": "Inwisselen — {cost} tickets",
+      "confirmLabelSingular": "Inwisselen voor {cost} ticket",
+      "confirmLabelPlural": "Inwisselen voor {cost} tickets",
       "emptyKid": "Nog geen beloningen. Een volwassene kan ze toevoegen via de telefoon.",
       "balanceLabelNamed": "tickets van {name}",
       "switchHint": "Ben jij niet {name}? Kies je naam op het tabblad Vandaag."
@@ -453,8 +453,8 @@
       "empty": "Nog niets ingewisseld",
       "entry": {
         "beforeReward": " heeft ",
-        "afterRewardSingular": " ingewisseld — {n} ticket",
-        "afterRewardPlural": " ingewisseld — {n} tickets"
+        "afterRewardSingular": " ingewisseld voor {n} ticket",
+        "afterRewardPlural": " ingewisseld voor {n} tickets"
       }
     },
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw."

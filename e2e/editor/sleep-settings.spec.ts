@@ -32,7 +32,7 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   await expect(page.getByRole('heading', { name: 'Screen defaults' })).toBeVisible();
 
   // Sleep must be enabled before the dim / schedule / screensaver fields mount.
-  await page.locator('label', { hasText: 'Enable display sleep' }).getByRole('switch').click();
+  await page.locator('label', { hasText: 'Dim or switch off on a schedule' }).getByRole('switch').click();
 
   // The 24-hour preview bar appears with the rest of the form.
   await expect(page.getByTestId('sleep-timeline-preview')).toBeVisible();

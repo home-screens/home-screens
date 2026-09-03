@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ChangelogModal from './ChangelogModal';
@@ -12,9 +13,13 @@ interface Props {
   onRollback: (tag: string, currentVersion: string | null) => void;
 }
 
+/** How many past versions the rollback list offers before "show all". */
+const VISIBLE_ROLLBACK_TAGS = 3;
+
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
+  const [showAllTags, setShowAllTags] = useState(false);
   const {
     versionInfo,
     releases,
@@ -39,6 +44,10 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     handleCancelUpgrade,
   } = useSystemActions({ onUpgrade, onRollback });
 
+  const allTags = versionInfo?.tags ?? [];
+  const visibleTags = showAllTags ? allTags : allTags.slice(0, VISIBLE_ROLLBACK_TAGS);
+  const hiddenTagCount = allTags.length - visibleTags.length;
+
   if (loading) {
     return (
       <div className="text-sm text-hs-text-faint py-8 text-center">
@@ -59,69 +68,37 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
 
   return (
     <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
-      {/* Advanced mode */}
-      <section>
-        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-          {t('settings.systemPage.advanced.heading')}
-        </h3>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-hs-text-primary">{t('settings.systemPage.advanced.toggleLabel')}</p>
-            <p className="text-xs text-hs-text-faint mt-0.5">
-              {t('settings.systemPage.advanced.help')}
-            </p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={advancedMode}
-            onClick={handleToggleAdvanced}
-            data-field-id="system.advancedMode"
-            className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                advancedMode ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
-      </section>
-
-      {/* Current Version */}
       <section data-field-id="system.version">
         <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
           {t('settings.systemPage.version.heading')}
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-hs-text-primary font-mono text-sm">
-              v{versionInfo.current}
-              {versionInfo.currentCommit !== 'unknown' && (
-                <span className="text-hs-text-faint ml-2">({versionInfo.currentCommit})</span>
-              )}
+            <p className="text-hs-text-primary text-sm">
+              {t('settings.systemPage.version.currentLabel', { version: versionInfo.current })}
             </p>
-            <p className="text-xs text-hs-text-faint mt-0.5">
-              {versionInfo.installedVia === 'git'
-                ? t('settings.systemPage.version.branchLabel', { channel: versionInfo.channel })
-                : t('settings.systemPage.version.installedFromRelease')}
-              {advancedMode && (
-                <>
-                  {' · '}
-                  <button
-                    onClick={handleToggleChannel}
-                    data-field-id="system.updateChannel"
-                    className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                  >
-                    {channel === 'stable'
-                      ? t('settings.systemPage.version.stableChannel')
-                      : t('settings.systemPage.version.prereleaseChannel')}
-                  </button>
-                </>
-              )}
-            </p>
+            {/* The commit hash, the git branch and the release channel are
+                build details, and "Show advanced options" already describes
+                itself as revealing developer-facing controls. They were the
+                first three facts on the page for everyone. */}
+            {advancedMode && (
+              <p className="text-xs text-hs-text-faint mt-0.5 font-mono">
+                {versionInfo.currentCommit !== 'unknown' && <>({versionInfo.currentCommit}){' · '}</>}
+                {versionInfo.installedVia === 'git'
+                  ? t('settings.systemPage.version.branchLabel', { channel: versionInfo.channel })
+                  : t('settings.systemPage.version.installedFromRelease')}
+                {' · '}
+                <button
+                  onClick={handleToggleChannel}
+                  data-field-id="system.updateChannel"
+                  className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                >
+                  {channel === 'stable'
+                    ? t('settings.systemPage.version.stableChannel')
+                    : t('settings.systemPage.version.prereleaseChannel')}
+                </button>
+              </p>
+            )}
           </div>
           <Button
             variant="secondary"
@@ -274,7 +251,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             {t('settings.systemPage.history.help')}
           </p>
           <div className="space-y-1 max-h-40 overflow-y-auto">
-            {versionInfo.tags.map((tagInfo) => {
+            {visibleTags.map((tagInfo) => {
               const isCurrent = tagInfo.version === versionInfo.current;
               return (
                 <div
@@ -301,6 +278,24 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
               );
             })}
           </div>
+          {/* Seventeen equally-weighted Rollback buttons, all the way back to
+              v1.0.0, invited a click on any of them. The recent few are the
+              ones that can plausibly help; the rest stay reachable with the
+              risk stated. */}
+          {hiddenTagCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAllTags(true)}
+              className="mt-2 text-xs text-hs-accent hover:underline"
+            >
+              {t('settings.systemPage.history.showAll', { count: versionInfo.tags.length })}
+            </button>
+          )}
+          {showAllTags && (
+            <p className="mt-2 text-xs text-hs-text-faint">
+              {t('settings.systemPage.history.olderWarning')}
+            </p>
+          )}
         </section>
       )}
 
@@ -353,6 +348,39 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           {t('settings.systemPage.actions.help')}
         </p>
       </section>
+
+      {/* Advanced mode */}
+      <section>
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.systemPage.advanced.heading')}
+        </h3>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-hs-text-primary">{t('settings.systemPage.advanced.toggleLabel')}</p>
+            <p className="text-xs text-hs-text-faint mt-0.5">
+              {t('settings.systemPage.advanced.help')}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={advancedMode}
+            onClick={handleToggleAdvanced}
+            data-field-id="system.advancedMode"
+            className={`relative shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              advancedMode ? 'bg-hs-accent' : 'bg-hs-card border border-hs-border-strong'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                advancedMode ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </section>
+
+      {/* Current Version */}
 
       {openRelease && (
         <ChangelogModal release={openRelease} onClose={() => handleOpenRelease(null)} />

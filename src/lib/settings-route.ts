@@ -131,7 +131,10 @@ const PER_DISPLAY_SUBTAB_SET: Set<string> = new Set(PER_DISPLAY_SUBTABS);
  * Adding a routing param means adding it here AND teaching the parser —
  * everything else on the URL is foreign and passes through untouched.
  */
-const ROUTE_OWNED_PARAMS = ['section', 'page', 'panel', 'id', 'subtab', 'highlight'] as const;
+// `tab` is owned too: it is the retired pre-reorganization param, and every
+// rewrite has to strip it or a mapped legacy link would keep advertising the
+// old page in the address bar forever.
+const ROUTE_OWNED_PARAMS = ['section', 'page', 'panel', 'id', 'subtab', 'highlight', 'tab'] as const;
 
 export interface SettingsHrefOptions {
   /**
@@ -223,6 +226,60 @@ export function validPanelFor(
  *   4. Unknown / missing params land on `defaults/screen`. (A bare URL can
  *      instead land on the caller's `landingPage` — see resolveSettingsRoute.)
  */
+/**
+ * Pages and tabs from before the 2026-07 reorganization, mapped to where
+ * their content lives now.
+ *
+ * The old URL shape was `?tab=<id>`. Those links are in bookmarks, in the
+ * docs, and in every screenshot taken before the reorg, and until now they
+ * all rendered Screen defaults while leaving `?tab=weather` sitting in the
+ * address bar: the wrong page, silently, with the URL still claiming
+ * otherwise. The set is fixed and closed (`tab` was never user-generated),
+ * so mapping it is a lookup, not open-ended aliasing.
+ *
+ * Ids that survived the reorg (`weather`, `calendar`, …) map to themselves;
+ * the merged ones carry their panel across. `docs` left the app entirely and
+ * has no entry, so it falls through to the default page like any other
+ * unknown value.
+ */
+const RETIRED_TAB_ROUTES: Record<string, { page: DefaultPageId; panel?: SettingsPanelId }> = {
+  // Merged into Screen.
+  display: { page: 'screen', panel: 'appearance' },
+  sleep: { page: 'screen', panel: 'sleep' },
+  alerts: { page: 'screen', panel: 'alerts' },
+  // Merged into Automation.
+  profiles: { page: 'automation', panel: 'profiles' },
+  rules: { page: 'automation', panel: 'rules' },
+  'shared-state': { page: 'automation', panel: 'live' },
+  sharedstate: { page: 'automation', panel: 'live' },
+  // Renamed.
+  integrations: { page: 'integrations' },
+  backups: { page: 'data' },
+  // Unchanged ids that were reachable as ?tab= before the reorg.
+  screen: { page: 'screen' },
+  location: { page: 'location' },
+  weather: { page: 'weather' },
+  calendar: { page: 'calendar' },
+  meals: { page: 'meals' },
+  phone: { page: 'phone' },
+  security: { page: 'security' },
+  network: { page: 'network' },
+  system: { page: 'system' },
+  data: { page: 'data' },
+  stats: { page: 'stats' },
+};
+
+/** Resolve a legacy `?tab=` value, or undefined when it names nothing. */
+function retiredTabRoute(params: URLSearchParams): SettingsRoute | undefined {
+  const tab = params.get('tab');
+  if (!tab) return undefined;
+  const target = RETIRED_TAB_ROUTES[tab.toLowerCase()];
+  if (!target) return undefined;
+  return (target.panel
+    ? { kind: 'defaults', page: target.page, panel: target.panel }
+    : { kind: 'defaults', page: target.page }) as SettingsRoute;
+}
+
 export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   const section = params.get('section');
   if (section === 'display') {
@@ -258,6 +315,11 @@ export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
         : { kind: 'defaults', page };
     }
   }
+  // Nothing in the current grammar matched. Before giving up on the default
+  // page, try the pre-reorganization `?tab=` shape.
+  const retired = retiredTabRoute(params);
+  if (retired) return retired;
+
   return { kind: 'defaults', page: 'screen' };
 }
 
@@ -304,7 +366,7 @@ export interface ResolveSettingsRouteOptions {
 }
 
 /** The params that name a route; `highlight` alone does not. */
-const ROUTING_PARAMS = ['section', 'page', 'panel', 'id', 'subtab'] as const;
+const ROUTING_PARAMS = ['section', 'page', 'panel', 'id', 'subtab', 'tab'] as const;
 
 export function resolveSettingsRoute(
   queryString: string,
@@ -354,7 +416,11 @@ export function resolveSettingsRoute(
       // keeps a panel the route kept and strips one the route dropped.
       (sectionParam !== null && sectionParam !== 'defaults') ||
       (pageParam !== null && pageParam !== route.page) ||
-      (panelParam !== null && panelParam !== (route.panel ?? null));
+      (panelParam !== null && panelParam !== (route.panel ?? null)) ||
+      // A legacy `?tab=` always rewrites, whether it mapped to a real page or
+      // fell through to the default one: leaving it in the URL is what made a
+      // stale bookmark look like it had worked.
+      params.has('tab');
     if (!stale) return { route };
     return { route, redirectedQuery: canonicalQuery() };
   }

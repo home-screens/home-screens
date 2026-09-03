@@ -260,12 +260,12 @@ test.describe('display adoption', () => {
     // sit in the waiting list (2 minute staleness window).
     const adoptRow = page.getByTestId(`unadopted-display-${unadoptedId}`);
     await expect(adoptRow).toBeVisible({ timeout: 15_000 });
-    await adoptRow.getByRole('button', { name: 'Adopt', exact: true }).click();
+    await adoptRow.getByRole('button', { name: 'Add', exact: true }).click();
 
     // The adopt form pre-fills (and locks) the polling Pi's id; only a name is needed.
     // Scope the submit to the form itself — in multi-display mode the sidebar `+`
     // and the index header also expose an "Add display" control.
-    const adoptForm = page.locator('div.space-y-4', { hasText: `Adopt ${unadoptedId}` });
+    const adoptForm = page.locator('div.space-y-4', { hasText: `Add ${unadoptedId}` });
     await adoptForm.getByPlaceholder('Kitchen Touchscreen').fill('Porch');
     await adoptForm.getByRole('button', { name: 'Add display' }).click();
 

@@ -16,6 +16,7 @@ import UpgradeModal from '@/components/editor/UpgradeModal';
 import { useSettingsAutosave } from '@/hooks/useSettingsAutosave';
 import { useSettingsRoute } from '@/components/editor/settings/useSettingsRoute';
 import { useSettingsHighlight } from '@/components/editor/settings/useSettingsHighlight';
+import { useSavedFieldFlash } from '@/components/editor/settings/useSavedFieldFlash';
 import { useOrientationGuard } from '@/components/editor/settings/useOrientationGuard';
 import { useUpgradeModal } from '@/components/editor/settings/useUpgradeModal';
 
@@ -110,13 +111,15 @@ function SettingsPageContent() {
   // hydration, dirty tracking, 500ms debounce, coalesced "Saved" toast)
   // stay in one place. `storeIsSaving`/`storeSaveError` are passed in so
   // the toast also fires for per-display subtab direct saves.
-  const { state, setState, updateGroup, saving, saveMessage } = useSettingsAutosave({
+  const { state, setState, updateGroup, saving, saveMessage, savedFieldIds } = useSettingsAutosave({
     settings,
     updateSettings,
     saveConfig,
     storeIsSaving,
     storeSaveError,
   });
+
+  useSavedFieldFlash(savedFieldIds);
 
   const upgrade = useUpgradeModal();
   const orientation = useOrientationGuard({ displayValues: state.display, updateGroup });

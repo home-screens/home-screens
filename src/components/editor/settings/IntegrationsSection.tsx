@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Globe,
   CheckCircle2,
@@ -8,11 +8,12 @@ import {
   Camera,
   Cloud,
 } from 'lucide-react';
-import SecretField, { type SecretKey, type SecretStatus } from './shared/SecretField';
+import SecretField, { type SecretCheck, type SecretKey, type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
 import { useEditorStore } from '@/stores/editor-store';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import { isServiceConnected, servicesForPage } from '@/lib/connectable-services';
 
 /* ─── Service icons (inline SVG for branded ones) ── */
 
@@ -45,24 +46,6 @@ function GitHubIcon() {
 
 /* ─── Helpers ──────────────────────────────── */
 
-type Integration = {
-  name: string;
-  keys: SecretKey[];
-};
-
-const INTEGRATIONS: Integration[] = [
-  // The web-client keys count toward "any key configured" (summary bar) but
-  // are excluded from the card's Connected/partial status — see cardStatus.
-  { name: 'Google', keys: ['google_client_id', 'google_client_secret', 'google_web_client_id', 'google_web_client_secret', 'google_maps_key'] },
-  { name: 'Immich', keys: ['immich_url', 'immich_api_key'] },
-  { name: 'Microsoft', keys: ['microsoft_client_id'] },
-  { name: 'Unsplash', keys: ['unsplash_access_key'] },
-  { name: 'NASA', keys: ['nasa_api_key'] },
-  { name: 'Todoist', keys: ['todoist_token'] },
-  { name: 'TomTom', keys: ['tomtom_key'] },
-  { name: 'GitHub', keys: ['github_token'] },
-];
-
 function getStatusInfo(
   status: SecretStatus,
   keys: SecretKey[],
@@ -84,19 +67,82 @@ function getStatusInfo(
   };
 }
 
+/* ─── Google card bands ───────────────────── */
+
+const GOOGLE_CALENDAR_DOCS = 'https://homescreens.dev/docs/getting-started#calendar-setup';
+const GOOGLE_PHOTOS_DOCS = 'https://homescreens.dev/docs/backgrounds';
+const GOOGLE_MAPS_DOCS = 'https://homescreens.dev/docs/modules#before-some-modules-will-work';
+
+/**
+ * Heading for one group of credentials inside the Google card: what the
+ * credentials are for, one sentence on how to make them, and the walkthrough.
+ * Google requires you to create an OAuth client in the Cloud Console before
+ * any of this works, and the card previously buried that in the tail of a
+ * five-line field help string.
+ */
+function GoogleBand({
+  title,
+  help,
+  docsHref,
+  t,
+}: {
+  title: string;
+  help: string;
+  docsHref: string;
+  t: TranslateFn;
+}) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-[13px] font-semibold text-hs-text-body">{title}</span>
+        <a
+          href={docsHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-xs text-hs-accent hover:underline"
+        >
+          {t('settings.integrationsPage.google.stepByStep')}
+        </a>
+      </div>
+      <p className="mt-0.5 max-w-[640px] text-xs text-hs-text-faint">{help}</p>
+    </div>
+  );
+}
+
+/**
+ * Google Client IDs always end in `.apps.googleusercontent.com`. Typing
+ * anything else used to save and report "Saved successfully", so the failure
+ * surfaced later as a calendar that never connected, with nothing pointing
+ * back at the field. `allowAnyway` is deliberately false: a value of this
+ * shape cannot work, so there is no judgement call to hand back to the user.
+ */
+const GOOGLE_CLIENT_ID_SUFFIX = '.apps.googleusercontent.com';
+
 /* ─── Main component ──────────────────────── */
 
 export default function IntegrationsSection() {
   const t = useTranslate('editor');
   const { status, loading, refetch } = useSecretStatus();
+
+  const validateGoogleClientId = useCallback(
+    async (value: string): Promise<SecretCheck> =>
+      value.trim().endsWith(GOOGLE_CLIENT_ID_SUFFIX)
+        ? { ok: true }
+        : {
+            ok: false,
+            message: t('settings.integrationsPage.google.clientIdInvalid', {
+              suffix: GOOGLE_CLIENT_ID_SUFFIX,
+            }),
+            allowAnyway: false,
+          },
+    [t],
+  );
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
 
   // Memoize visible integrations + per-card status info so the labels follow
   // the active locale while the underlying brand names stay verbatim.
   const { visibleIntegrations, cardStatus } = useMemo(() => {
-    const visible = advancedMode
-      ? INTEGRATIONS
-      : INTEGRATIONS.filter((i) => i.name !== 'GitHub');
+    const visible = servicesForPage('integrations', advancedMode);
     return {
       visibleIntegrations: visible,
       cardStatus: {
@@ -122,23 +168,16 @@ export default function IntegrationsSection() {
     );
   }
 
-  const configuredCount = visibleIntegrations.filter((i) =>
-    i.keys.some((k) => !!status[k]),
+  // Connected means "the keys this service actually needs are present", the
+  // same rule the Status page applies, so the two pages agree on the count.
+  const configuredCount = visibleIntegrations.filter((service) =>
+    isServiceConnected(service, Object.keys(status).filter((k) => status[k as SecretKey])),
   ).length;
 
   const { google, immich, microsoft, unsplash, nasa, todoist, tomtom, github } = cardStatus;
 
   return (
     <section>
-      {/* Header */}
-      <div className="mb-7">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">
-          {t('settings.integrationsPage.heading')}
-        </h2>
-        <p className="text-[13px] text-hs-text-faint">
-          {t('settings.integrationsPage.description')}
-        </p>
-      </div>
 
       {/* Summary bar */}
       <div className="flex items-center gap-2 px-3.5 py-2.5 bg-hs-hover border border-hs-border-strong/60 rounded-lg mb-7">
@@ -166,6 +205,16 @@ export default function IntegrationsSection() {
           statusType={google.type}
           defaultOpen={google.type !== 'none'}
         >
+          {/* Three labelled bands rather than three anonymous hairline-
+              separated rows. The card holds five credentials for three
+              unrelated jobs, and nothing used to say which two the calendar
+              needs, or that the middle pair is a different Google login. */}
+          <GoogleBand
+            title={t('settings.integrationsPage.google.calendarBand.title')}
+            help={t('settings.integrationsPage.google.calendarBand.help')}
+            docsHref={GOOGLE_CALENDAR_DOCS}
+            t={t}
+          />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SecretField
               label={t('settings.integrationsPage.google.clientIdLabel')}
@@ -174,6 +223,7 @@ export default function IntegrationsSection() {
               helpText={t('settings.integrationsPage.google.clientIdHelp')}
               status={!!status.google_client_id}
               onSaved={refetch}
+              validate={validateGoogleClientId}
             />
             <SecretField
               label={t('settings.integrationsPage.google.clientSecretLabel')}
@@ -187,7 +237,15 @@ export default function IntegrationsSection() {
           {/* Google Photos import uses a separate "Web application" OAuth
               client: the picker scope is rejected by the TV/device flow the
               calendar client uses. */}
-          <div className="border-t border-hs-border-strong/60 mt-4 pt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="border-t border-hs-border-strong/60 mt-4 pt-4">
+            <GoogleBand
+              title={t('settings.integrationsPage.google.photosBand.title')}
+              help={t('settings.integrationsPage.google.photosBand.help')}
+              docsHref={GOOGLE_PHOTOS_DOCS}
+              t={t}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SecretField
               label={t('settings.integrationsPage.google.webClientIdLabel')}
               secretKey="google_web_client_id"
@@ -195,6 +253,7 @@ export default function IntegrationsSection() {
               helpText={t('settings.integrationsPage.google.webClientIdHelp')}
               status={!!status.google_web_client_id}
               onSaved={refetch}
+              validate={validateGoogleClientId}
             />
             <SecretField
               label={t('settings.integrationsPage.google.webClientSecretLabel')}
@@ -205,7 +264,15 @@ export default function IntegrationsSection() {
               onSaved={refetch}
             />
           </div>
-          <div className="border-t border-hs-border-strong/60 mt-4 pt-4 lg:max-w-[calc(50%-0.5rem)]">
+          <div className="border-t border-hs-border-strong/60 mt-4 pt-4">
+            <GoogleBand
+              title={t('settings.integrationsPage.google.mapsBand.title')}
+              help={t('settings.integrationsPage.google.mapsBand.help')}
+              docsHref={GOOGLE_MAPS_DOCS}
+              t={t}
+            />
+          </div>
+          <div className="lg:max-w-[calc(50%-0.5rem)]">
             <SecretField
               label={t('settings.integrationsPage.google.mapsKeyLabel')}
               secretKey="google_maps_key"

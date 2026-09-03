@@ -184,9 +184,9 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
   async function handleRollback(tag: string) {
     await confirmAndRun(
       {
-        title: t('settings.systemPage.rollbackDialog.title'),
+        title: t('settings.systemPage.rollbackDialog.title', { tag }),
         message: t('settings.systemPage.rollbackDialog.message', { tag }),
-        confirmLabel: t('settings.systemPage.rollbackDialog.confirm'),
+        confirmLabel: t('settings.systemPage.rollbackDialog.confirm', { tag }),
       },
       async () => { onRollback(tag, versionInfo?.current ?? null); },
     );

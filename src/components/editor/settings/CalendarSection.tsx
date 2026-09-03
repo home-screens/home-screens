@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { CalendarPerson, ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
@@ -174,15 +175,18 @@ export default function CalendarSection({ values, onChange }: Props) {
       <p className="text-xs text-hs-text-muted">
         {t('settings.calendarPage.google.credentialsRequired')}
       </p>
+      {/* The destination has one name now, the one the sidebar uses. This
+          used to read "Settings → Integrations" while the sidebar said "API
+          keys" and the page's own H1 said "Integrations". */}
       <p className="text-xs text-hs-text-faint">
-        {t('settings.calendarPage.google.credentialsSetupPart1')}
+        {t('settings.calendarPage.google.credentialsSetupPrefix')}
         <a
           href={settingsPath({ kind: 'defaults', page: 'integrations' })}
           className="text-hs-accent hover:text-hs-accent-hover underline"
         >
-          {t('settings.calendarPage.google.settingsIntegrationsLink')}
+          {t('settings.sidebar.navLabels.integrations')}
         </a>
-        {t('settings.calendarPage.google.credentialsSetupPart2')}
+        {t('settings.calendarPage.google.credentialsSetupSuffix')}
       </p>
     </div>
   ) : (
@@ -272,10 +276,6 @@ export default function CalendarSection({ values, onChange }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="mb-7">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">{t('settings.calendarPage.heading')}</h2>
-        <p className="text-[13px] text-hs-text-faint">{t('settings.calendarPage.description')}</p>
-      </div>
 
       {/* 1. What to show: the window every calendar module starts from. First
           on purpose: a single slider that decides how far every list looks
@@ -330,21 +330,44 @@ export default function CalendarSection({ values, onChange }: Props) {
         >
           {googleBlock}
           {missingGoogleIds.length > 0 && (
-            <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
-              {missingGoogleIds.map((id) => {
-                const status = health.get(id);
-                return (
-                  <div key={id} className="flex items-center gap-3 px-3 py-2">
-                    <span className="text-sm text-hs-text-body flex-1 min-w-0">
-                      <span className="block truncate">{status?.name ?? id}</span>
-                      <span className="block text-[11px] text-hs-text-faint">{t('settings.calendarPage.google.notInListing')}</span>
-                      <SourceHealthError status={status} />
-                    </span>
-                    <SourceHealthBadge status={status} />
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              {/* One explanation above the group, rather than the same three
+                  failure sentences stacked inside every row. Rows carry the
+                  last name we saw, the id underneath, and a way to remove
+                  them, which iCal feeds have always had and these did not. */}
+              <p className="mb-2 text-[11px] text-hs-text-faint">
+                {t('settings.calendarPage.google.pausedExplanation')}
+              </p>
+              <div className="rounded-md bg-hs-card border border-hs-border-strong divide-y divide-hs-border-strong">
+                {missingGoogleIds.map((id) => {
+                  const status = health.get(id);
+                  return (
+                    <div key={id} className="flex items-center gap-3 px-3 py-2">
+                      <span className="text-sm text-hs-text-body flex-1 min-w-0">
+                        <span className="block truncate">{status?.name ?? id}</span>
+                        {status?.name && (
+                          <code className="mt-0.5 block truncate font-mono text-[10px] text-hs-text-faint">
+                            {id}
+                          </code>
+                        )}
+                      </span>
+                      <span className="shrink-0 rounded bg-hs-warning/10 px-1.5 py-0.5 text-[11px] text-hs-warning">
+                        {t('settings.calendarPage.google.pausedBadge')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleCalendar(id)}
+                        title={t('settings.calendarPage.google.removeTitle', { name: status?.name ?? id })}
+                        aria-label={t('settings.calendarPage.google.removeTitle', { name: status?.name ?? id })}
+                        className="shrink-0 text-hs-text-faint transition-colors hover:text-hs-danger"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </SourceBlock>
 

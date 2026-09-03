@@ -28,7 +28,7 @@ interface State {
  * same throw discards unsaved config edits.
  *
  * Deliberately per-module rather than one boundary per screen: the blast radius
- * should be the one broken widget, and the other modules on the screen should
+ * should be the one broken module, and the other modules on the screen should
  * keep rendering.
  *
  * Error boundaries have to be class components; there is no hook equivalent.

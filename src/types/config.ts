@@ -162,7 +162,7 @@ export interface ModuleInstance {
    * When true, this instance never renders on screen; it mounts once in the
    * hidden BackgroundProviderLayer so its data loop (and any state it
    * publishes) survives screen rotation. Background-ONLY, not "also run in
-   * background" — a user who wants the widget visible adds a second,
+   * background": a user who wants the module visible adds a second,
    * un-flagged instance.
    */
   backgroundProvider?: boolean;

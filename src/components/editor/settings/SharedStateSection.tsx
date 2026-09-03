@@ -107,6 +107,21 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
 
   const rows = useMemo(() => buildRows(liveState.entries, references), [liveState.entries, references]);
 
+  // Friendly names for the keys, from the same catalogue the Available tab
+  // and the condition pickers read. Rows used to lead with the raw key
+  // (`plugin:home-assistant:sensor.openweathermap_apparent_temperature`),
+  // which is the least readable and least scannable part of the row on a page
+  // whose whole job is "is this value arriving?".
+  const labels = useMemo(() => {
+    if (!config) return new Map<string, string>();
+    const provided = collectProvidedStateKeys(
+      getActiveScreens(config, selectedDisplayId),
+      { t, calendar: config.settings.calendar },
+    );
+    return new Map(provided.map((entry) => [entry.key, entry.label]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- plugins triggers the recompute; collectProvidedStateKeys reads the registry, not the map.
+  }, [config, selectedDisplayId, t, plugins]);
+
   const now = Date.now();
   // Unhealthy providers reported by the current source — surfaced as a banner
   // so a service outage reads as such instead of a wall of missing keys.
@@ -126,13 +141,13 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
           ? t('settings.sharedStatePage.editorValuesHint')
           : liveState.source === 'display' && liveState.reportedAt !== null
             ? t('settings.sharedStatePage.lastReportLabel', {
-                time: formatRelativeTime(Math.min(liveState.reportedAt, now), now, {
+                time: formatRelativeTime(now, Math.min(liveState.reportedAt, now), {
                   locale: formattingLocale,
                 }),
               })
             : liveState.reportedAt !== null
               ? t('settings.sharedStatePage.offlineSinceHint', {
-                  time: formatRelativeTime(Math.min(liveState.reportedAt, now), now, {
+                  time: formatRelativeTime(now, Math.min(liveState.reportedAt, now), {
                     locale: formattingLocale,
                   }),
                 })
@@ -153,7 +168,7 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
                 </span>
                 <span className="text-[11px] text-hs-text-faint shrink-0">
                   {t('settings.sharedStatePage.providerHealthSince', {
-                    time: formatRelativeTime(Math.min(entry.since, now), now, { locale: formattingLocale }),
+                    time: formatRelativeTime(now, Math.min(entry.since, now), { locale: formattingLocale }),
                   })}
                 </span>
               </div>
@@ -181,14 +196,28 @@ function WatchingTab({ selectedDisplayId }: { selectedDisplayId: string | null }
               }`}
             >
               <div className="flex items-baseline justify-between gap-3 flex-wrap">
-                <code className="font-mono text-xs text-hs-text-body break-all">{row.key}</code>
+                {/* Name first, key second: the key is still there for anyone
+                    typing it into a rule, but it no longer outranks the value
+                    and the freshness the reader came for. Keys with no
+                    catalogue entry (a plugin that publishes without declaring
+                    `providesState`) keep the old key-only presentation. */}
+                {labels.get(row.key) ? (
+                  <span className="min-w-0">
+                    <span className="block text-xs text-hs-text-body">{labels.get(row.key)}</span>
+                    <code className="mt-0.5 block font-mono text-[10px] text-hs-text-faint break-all">
+                      {row.key}
+                    </code>
+                  </span>
+                ) : (
+                  <code className="font-mono text-xs text-hs-text-body break-all">{row.key}</code>
+                )}
                 {row.entry ? (
                   <span className="text-[11px] text-hs-text-faint shrink-0">
                     <code className="rounded bg-hs-card px-1.5 py-0.5 font-mono text-hs-text-muted">
                       {row.entry.value === '' ? '""' : row.entry.value}
                     </code>
                     {' · '}
-                    {formatRelativeTime(Math.min(row.entry.updatedAt, now), now, {
+                    {formatRelativeTime(now, Math.min(row.entry.updatedAt, now), {
                       locale: formattingLocale,
                     })}
                     {/* This page exists to answer "is this value still

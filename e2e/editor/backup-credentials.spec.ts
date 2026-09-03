@@ -40,9 +40,9 @@ test('the opt-in is disabled until an editor password is set', async ({ page, re
   }));
   await page.goto(DATA_PAGE);
 
-  const checkbox = page.getByRole('checkbox', { name: /Include my API keys/i });
+  const checkbox = page.getByRole('checkbox', { name: /Include my keys and connected accounts/i });
   await expect(checkbox).toBeDisabled();
-  await expect(page.getByText(/Set an editor password first/i)).toBeVisible();
+  await expect(page.getByText(/Needs a password first/i)).toBeVisible();
 });
 
 test.describe('with an editor password set', () => {
@@ -83,7 +83,7 @@ test.describe('with an editor password set', () => {
 
   test('a plain backup carries no keys unless the box is ticked', async ({ page }) => {
     const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Backup All Data' }).click();
+    await page.getByRole('button', { name: 'Save a backup' }).click();
     const download = await downloadPromise;
 
     expect(download.suggestedFilename()).not.toContain('with-keys');
@@ -93,13 +93,13 @@ test.describe('with an editor password set', () => {
   });
 
   test('ticking the box without a password writes the key in the clear, after a warning', async ({ page }) => {
-    await page.getByRole('checkbox', { name: /Include my API keys/i }).check();
+    await page.getByRole('checkbox', { name: /Include my keys and connected accounts/i }).check();
 
     // The plaintext warning must be visible before the user commits.
     await expect(page.getByText(/Anyone who opens this file can use your accounts/i)).toBeVisible();
 
     const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: 'Backup All Data' }).click();
+    await page.getByRole('button', { name: 'Save a backup' }).click();
     // Confirmation dialog: this is the deliberate, warned-about plaintext path.
     await page.getByRole('button', { name: 'Back up anyway' }).click();
     const download = await downloadPromise;
@@ -111,11 +111,11 @@ test.describe('with an editor password set', () => {
   });
 
   test('a password-protected backup seals the key and needs the password to restore', async ({ page }) => {
-    await page.getByRole('checkbox', { name: /Include my API keys/i }).check();
+    await page.getByRole('checkbox', { name: /Include my keys and connected accounts/i }).check();
     await page.getByRole('checkbox', { name: /Protect them with a password/i }).check();
     await expect(page.getByText(/Anyone who opens this file/i)).toBeHidden();
 
-    await page.getByRole('button', { name: 'Backup All Data' }).click();
+    await page.getByRole('button', { name: 'Save a backup' }).click();
     await expect(page.getByRole('heading', { name: 'Choose a password' })).toBeVisible();
 
     await page.getByLabel('Password', { exact: true }).fill(FILE_PASSWORD);
@@ -148,9 +148,9 @@ test.describe('with an editor password set', () => {
   });
 
   test('a locked backup can still be restored without its keys', async ({ page }) => {
-    await page.getByRole('checkbox', { name: /Include my API keys/i }).check();
+    await page.getByRole('checkbox', { name: /Include my keys and connected accounts/i }).check();
     await page.getByRole('checkbox', { name: /Protect them with a password/i }).check();
-    await page.getByRole('button', { name: 'Backup All Data' }).click();
+    await page.getByRole('button', { name: 'Save a backup' }).click();
     await page.getByLabel('Password', { exact: true }).fill(FILE_PASSWORD);
     await page.getByLabel('Confirm password').fill(FILE_PASSWORD);
     const downloadPromise = page.waitForEvent('download');

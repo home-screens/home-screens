@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useEditorStore } from '@/stores/editor-store';
 import InterfaceCard from './network/InterfaceCard';
 import WifiScanSection from './network/WifiScanSection';
 import WifiConnectModal from './network/WifiConnectModal';
@@ -25,6 +26,7 @@ const POLL_INTERVAL_MS = 10_000;
 
 export default function NetworkSection() {
   const t = useTranslate('editor');
+  const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
   const [overview, setOverview] = useState<NetworkOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedWifiIface, setSelectedWifiIface] = useState<string>('');
@@ -208,9 +210,11 @@ export default function NetworkSection() {
             <p className="text-sm text-hs-text-muted">
               {t('settings.networkPage.unavailable.message')}
             </p>
-            {overview?.reason && (
-              // overview.reason comes from the server-side network probe and
-              // is already locale-agnostic / system-generated; rendered as-is.
+            {advancedMode && overview?.reason && (
+              // The raw probe reason ("NetworkManager not found") names a
+              // Linux daemon, which tells a household nothing and reads like
+              // a fault. The sentence above already says what to do, so the
+              // technical cause is kept for the advanced view only.
               <p className="text-xs text-hs-text-faint mt-1">
                 {overview.reason}
               </p>

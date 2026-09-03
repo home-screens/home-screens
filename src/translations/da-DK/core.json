@@ -50,23 +50,23 @@
     "seconds": "{count} sek."
   },
   "displayNotFound": {
-    "notRegistered": "Skærm ikke registreret",
-    "adoptionLine1": "Denne skærm er tilsluttet hubben, men er endnu ikke taget i brug.",
-    "adoptionLine2": "Åbn redigeringsværktøjet på hubben, gå til",
+    "notRegistered": "Skærm ikke tilføjet endnu",
+    "adoptionLine1": "Denne skærm er forbundet til Home Screens, men er ikke tilføjet endnu.",
+    "adoptionLine2": "Åbn redigeringsværktøjet på hoved-Pi'en, gå til",
     "settingsLink": "Indstillinger → Skærme",
     "andClick": "og klik",
-    "adoptLabel": "Adoptér",
+    "adoptLabel": "Tilføj",
     "nextTo": "ved siden af",
-    "waitingForAdoption": "Venter på at blive adopteret…",
-    "recoveryNotice": "Dette skærm-ID er ikke registreret, men din hub har andre skærme konfigureret. Der skiftes til standardskærmen om {seconds}s.",
-    "goToDefault": "Gå til standardskærmen nu"
+    "waitingForAdoption": "Venter på at blive tilføjet…",
+    "recoveryNotice": "Denne skærm er ikke sat op endnu, men det er dine andre skærme. Skifter til hovedskærmen om {seconds}s.",
+    "goToDefault": "Gå til hovedskærmen nu"
   },
   "login": {
     "checkingAuth": "Kontrollerer godkendelse…",
-    "ipBlocked": "Din ip-adresse er blokeret",
+    "ipBlocked": "Denne enhed må ikke logge ind",
     "enterPasswordToContinue": "Indtast dit kodeord for at fortsætte",
     "accessRestricted": "Begrænset adgang",
-    "accessRestrictedDescription": "Din ip-adresse er ikke på listen over tilladte adresser. Det hjælper ikke at logge ind — serveren vil stadig afvise alle anmodninger fra din adresse. Kontakt en administrator for at få din ip-adresse tilføjet til listen over tilladte adresser, eller log ind fra et tilladt netværk.",
+    "accessRestrictedDescription": "Home Screens tager kun imod forbindelser fra bestemte enheder, og denne er ikke på listen. Det hjælper ikke at logge ind. Bed den, der satte Home Screens op, om at tilføje denne enhed, eller prøv fra en enhed, der allerede har lov.",
     "passwordPlaceholder": "Kodeord",
     "rememberMe": "Husk mig i 90 dage",
     "signingIn": "Logger ind…",
@@ -74,7 +74,7 @@
     "loading": "Henter…",
     "backToDisplay": "Tilbage til skærm",
     "loginFailed": "Logind fejlede",
-    "unreachable": "Kan ikke oprette forbindelse til serveren",
+    "unreachable": "Kan ikke nå Home Screens",
     "errors": {
       "wrongPassword": "Det kodeord passer ikke.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "Glemt kodeordet?",
       "title": "Nulstil kodeordet",
-      "body": "Den, der satte enheden op, kan slette kodeordet. Kør på selve enheden (med et tastatur i) eller over SSH:",
+      "body": "Den, der satte enheden op, kan slette kodeordet. Kør det på selve enheden (med et tastatur i) eller fra en anden computer i en terminal:",
       "fallback": "Findes den kommando ikke, gør det det samme at slette filen {file} i Home Screens-mappen.",
       "after": "Derefter åbner Home Screens uden kodeord, og du kan vælge et nyt under indstillinger."
     }
   },
   "errors": {
-    "fetchFailed": "Hentning af data fejlede",
+    "fetchFailed": "Kunne ikke oprette forbindelse for at hente disse data",
     "loadImagesFailed": "Indlæsning af billederne fejlede",
     "uploadFailed": "Upload fejlede",
     "createFolderFailed": "Oprettelse af mappen fejlede",

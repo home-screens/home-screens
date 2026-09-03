@@ -14,6 +14,7 @@ import { settingsHref } from '@/lib/settings-route';
 import { phoneSurfaceLabel, phoneSurfaceUrl, type PhoneSurface } from '@/lib/phone-surfaces';
 import Button from '@/components/ui/Button';
 import PhoneSurfaceQrCode from '@/components/editor/PhoneSurfaceQrCode';
+import PasswordModal from '@/components/editor/settings/SecuritySection/PasswordModal';
 import { CopyLinkButton } from '@/components/editor/PhoneSurfaceLinks';
 
 const log = logger('phone-settings');
@@ -32,6 +33,7 @@ export default function PhoneSection() {
   const origin = useOrigin();
   const config = useEditorStore((s) => s.config);
   const [authEnabled, setAuthEnabled] = useState<boolean | null>(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Same helper /chores and /remote resolve their own chore config with, so
   // this page cannot disagree with the surface about whether it has anything
@@ -52,14 +54,6 @@ export default function PhoneSection() {
 
   return (
     <>
-      <div className="mb-5">
-        <div className="mb-1 text-[10px] uppercase tracking-wider text-hs-text-faint">
-          {t('settings.phonePage.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">{t('settings.phonePage.title')}</h1>
-        <p className="mt-1 text-sm text-hs-text-faint">{t('settings.phonePage.description')}</p>
-      </div>
-
       <div className="rounded-lg border border-hs-border bg-hs-panel p-3.5">
         <SurfaceRow
           surface="chores"
@@ -84,13 +78,22 @@ export default function PhoneSection() {
                   : t('settings.phonePage.password.off')}
             </div>
           </div>
+          {/* Set up opens the dialog here rather than navigating to Security,
+              whose copy is about the editor and API endpoints and never
+              mentions the remote, so the destination read as the wrong page.
+              Managing an existing password still goes to Security, which is
+              where the rest of those controls live. */}
           <Button
             size="sm"
-            onClick={() =>
-              router.push(
-                settingsHref({ kind: 'defaults', page: 'security' }, { from: window.location.search }),
-              )
-            }
+            onClick={() => {
+              if (authEnabled) {
+                router.push(
+                  settingsHref({ kind: 'defaults', page: 'security' }, { from: window.location.search }),
+                );
+              } else {
+                setShowPasswordModal(true);
+              }
+            }}
           >
             {authEnabled ? t('settings.phonePage.password.manageAction') : t('settings.phonePage.password.setUpAction')}
           </Button>
@@ -109,6 +112,18 @@ export default function PhoneSection() {
       </div>
 
       <PrintableCodes origin={origin} includeChores={hasChoreChart} />
+
+      {showPasswordModal && (
+        <PasswordModal
+          mode="set"
+          onClose={() => setShowPasswordModal(false)}
+          onStatusChange={(status) => {
+            setAuthEnabled(status.authEnabled);
+            setShowPasswordModal(false);
+          }}
+          onDisplayTokenChange={() => {}}
+        />
+      )}
     </>
   );
 }

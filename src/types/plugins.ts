@@ -31,7 +31,7 @@ export interface PluginManifest {
    * Declarative schema for plugin-level settings (connection URLs, poll
    * cadence) — values shared by every instance of the plugin, stored on the
    * plugin's `installed.json` record rather than any module's config. The
-   * editor renders it in the plugin manager with the same widget renderer as
+   * editor renders it in the plugin manager with the same control renderer as
    * `configSchema`; values reach plugin code via `__HS_SDK__.getPluginSettings`
    * and are passed to the `stateProvider` component as a prop. A plugin's
    * ConfigSection can also write them inline (editor-only

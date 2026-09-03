@@ -13,13 +13,13 @@
     "hubDisconnected": "Can't reach Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Can't reach Home Screens. Check that this phone is on the home Wi-Fi and the hub is on.",
+    "unreachable": "Can't reach Home Screens. Check that this phone is on the home Wi-Fi and the main Pi is on.",
     "restarting": "Home Screens is restarting. Reconnecting in about 20 seconds…",
     "rebooting": "The device is rebooting. Reconnecting in about a minute…"
   },
   "backupReminder": {
-    "daysAgoSingular": "You haven’t backed up in {n} day.",
-    "daysAgoPlural": "You haven’t backed up in {n} days.",
+    "daysAgoSingular": "You haven't backed up in {n} day.",
+    "daysAgoPlural": "You haven't backed up in {n} days.",
     "backupButton": "Backup",
     "savingButton": "Saving…",
     "dismissAriaLabel": "Dismiss"
@@ -404,7 +404,7 @@
     "sendButton": "Send Alert",
     "sendingButton": "Sending…",
     "sentButton": "Sent!",
-    "failedButton": "Failed — try again",
+    "failedButton": "Didn't send, try again",
     "clearOnDisplay": "Clear alerts on {name}",
     "clearOnAll": "Clear alerts on every display",
     "clearingButton": "Clearing…",
@@ -427,8 +427,8 @@
       "confirmTitle": "Redeem {name}?",
       "confirmDescriptionSingular": "This will use {cost} ticket from {memberName}'s balance. Remaining: {remaining}",
       "confirmDescriptionPlural": "This will use {cost} tickets from {memberName}'s balance. Remaining: {remaining}",
-      "confirmLabelSingular": "Redeem — {cost} ticket",
-      "confirmLabelPlural": "Redeem — {cost} tickets",
+      "confirmLabelSingular": "Redeem for {cost} ticket",
+      "confirmLabelPlural": "Redeem for {cost} tickets",
       "emptyKid": "No rewards yet. A grown-up can add some from their phone.",
       "balanceLabelNamed": "tickets for {name}",
       "switchHint": "Not {name}? Pick your name on the Today tab."
@@ -453,8 +453,8 @@
       "empty": "No redemptions yet",
       "entry": {
         "beforeReward": " redeemed ",
-        "afterRewardSingular": " — {n} ticket",
-        "afterRewardPlural": " — {n} tickets"
+        "afterRewardSingular": " for {n} ticket",
+        "afterRewardPlural": " for {n} tickets"
       }
     },
     "saveFailed": "Failed to save. Please try again."

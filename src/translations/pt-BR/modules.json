@@ -935,8 +935,8 @@
       "daylight": "de luz hoje",
       "dewPoint": "Ponto de orvalho {temp}°",
       "windNote": "Velocidade atual do vento",
-      "pressureFalling": "Caindo — o tempo vai mudar",
-      "pressureRising": "Subindo — vai firmar",
+      "pressureFalling": "Caindo, o tempo vai mudar",
+      "pressureRising": "Subindo, vai firmar",
       "pressureSteady": "Estável"
     },
     "moon": {
@@ -951,10 +951,10 @@
       "illuminated": "{percent}% iluminada"
     },
     "uv": {
-      "low": "Baixo — sem proteção",
-      "moderate": "Moderado — boné e óculos",
-      "high": "Alto — protetor solar",
-      "veryHigh": "Muito alto — se cubra bem"
+      "low": "Baixo, sem proteção",
+      "moderate": "Moderado, boné e óculos",
+      "high": "Alto, protetor solar",
+      "veryHigh": "Muito alto, se cubra bem"
     }
   }
 }

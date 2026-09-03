@@ -82,7 +82,7 @@ describe('AvailableTab warning branches', () => {
 
     // The cap-hit warning with the interpolated limit, and the preview cap
     // holding despite the huge result set (plus its show-more toggle).
-    expect(getByText(/search to find more/)).toBeTruthy();
+    expect(getByText(/Search to find more/)).toBeTruthy();
     expect(container.querySelectorAll('[data-available-key]')).toHaveLength(10);
     expect(getByTestId('shared-state-available-run-toggle')).toBeTruthy();
   });
@@ -91,7 +91,7 @@ describe('AvailableTab warning branches', () => {
     mocks.searchResult = { results: [descriptor(0)], searching: false, searchable: true };
     const { queryByText, getByTestId } = renderAvailableTab();
 
-    expect(queryByText(/search to find more/)).toBeNull();
+    expect(queryByText(/Search to find more/)).toBeNull();
     expect(getByTestId('shared-state-available-summary').textContent).toBe(
       '1 value available from your add-ons',
     );

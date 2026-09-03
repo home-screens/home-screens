@@ -121,13 +121,13 @@
     "zoomHint": "Ctrl+rul for at zoome, rul for at flytte rundt"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Planlagt — aktiv lige nu",
-    "scheduledInactiveTitle": "Planlagt — ikke aktiv lige nu",
-    "disabledTitle": "Slået fra — vises ikke på displayet",
+    "scheduledActiveTitle": "Planlagt, aktiv lige nu",
+    "scheduledInactiveTitle": "Planlagt, ikke aktiv lige nu",
+    "disabledTitle": "Slået fra, vises ikke på displayet",
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
-    "backgroundProviderTitle": "Kører skjult i baggrunden — vises aldrig på skærmen",
-    "conditionMetTitle": "Betingelser opfyldt — vises på skærmen nu",
-    "conditionUnmetTitle": "Betingelser ikke opfyldt — skjult på skærmen nu",
+    "backgroundProviderTitle": "Kører skjult i baggrunden, vises aldrig på skærmen",
+    "conditionMetTitle": "Betingelser opfyldt, vises på skærmen nu",
+    "conditionUnmetTitle": "Betingelser ikke opfyldt, skjult på skærmen nu",
     "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
     "conditionUnmetTitleEditor": "Betingelser ikke opfyldt, ville skjules nu",
     "status": {
@@ -149,10 +149,10 @@
     "addDisplay": "Tilføj et display"
   },
   "screenTabs": {
-    "stickyTooltip": "bliver — skifter ikke af sig selv; kræver et tryk eller fjernbetjeningen",
+    "stickyTooltip": "bliver: skifter ikke af sig selv, kræver et tryk eller fjernbetjeningen",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "planlagt",
-    "disabledTooltip": "slået fra — vises ikke på displayet",
+    "disabledTooltip": "slået fra, vises ikke på displayet",
     "disabledIndicatorAriaLabel": "Slået fra",
     "disabledBadge": "Fra",
     "stickyBadge": "Bliver",
@@ -396,10 +396,6 @@
       "searchPlaceholder": "Søg i indstillinger…",
       "noResults": "Ingen indstillinger fundet",
       "matchingFields": "Matchende felter",
-      "websiteAriaLabel": "Besøg homescreens.dev",
-      "websiteTitle": "homescreens.dev",
-      "githubAriaLabel": "Se på GitHub",
-      "githubTitle": "Se på GitHub",
       "navLabels": {
         "calendar": "Kalender",
         "weather": "Vejr",
@@ -422,8 +418,7 @@
         "automation": "Automatisering",
         "admin": "Vedligeholdelse"
       },
-      "docsTitle": "Dokumentation",
-      "docsAriaLabel": "Se dokumentationen"
+      "helpAndDocs": "Hjælp og dokumentation"
     },
     "overrideRow": {
       "override": "Tilsidesæt",
@@ -454,9 +449,7 @@
       "description": "Standardplan for dæmpning og slumring samt pauseskærm på alle displays. Et bestemt display kan tilsidesætte hele blokken fra sin egen side."
     },
     "locationAndLanguagePage": {
-      "breadcrumb": "Standarder → Placering & sprog",
-      "title": "Placering & sprog",
-      "description": "Vælg sproget, der bruges overalt, og indstil derefter placeringen, der bruges af vejr og andre placeringsafhængige moduler."
+      "description": "Hvor dette hjem ligger, og hvordan datoer, klokkeslæt og ord vises."
     },
     "locationPage": {
       "heading": "Placering",
@@ -499,13 +492,9 @@
         "disconnect": "Afbryd",
         "selectCalendars": "Vælg kalendere, der skal vises",
         "noCalendars": "Ingen kalendere fundet.",
-        "notInListing": "Er ikke længere på Google-kalenderlisten",
         "primaryBadge": "(primær)",
         "hideDeclinedLabel": "Skjul begivenheder du har afvist",
-        "credentialsRequired": "Der kræves Google OAuth-oplysninger for at forbinde din kalender.",
-        "credentialsSetupPart1": "Opret dit klient-id og din klienthemmelighed i ",
-        "settingsIntegrationsLink": "Indstillinger → Integrationer",
-        "credentialsSetupPart2": " først.",
+        "credentialsRequired": "For at forbinde din kalender skal du bruge et Google-login, du selv opretter. Tilføj det under API-nøgler.",
         "deviceCodeIntro": "Åbn linket herunder på din telefon eller computer, og indtast koden:",
         "waitingForAuthorization": "Venter på godkendelse…",
         "signIn": "Log ind med Google",
@@ -517,7 +506,12 @@
         "signInHelp": "Log ind for automatisk at se dine kalendere. Kræver en Google OAuth-klient af typen \"TVs and Limited Input devices\" i Cloud Console.",
         "copyCode": "Kopiér kode",
         "codeCopied": "Kopieret!",
-        "googleOnly": "Kun Google"
+        "googleOnly": "Kun Google",
+        "pausedExplanation": "Google er ikke forbundet lige nu, så disse kalendere opdateres ikke længere. Log ind igen ovenfor for at få dem tilbage.",
+        "pausedBadge": "Sat på pause",
+        "removeTitle": "Fjern {name}",
+        "credentialsSetupPrefix": "Tilføj dit Google-login på siden ",
+        "credentialsSetupSuffix": " først."
       },
       "icloud": {
         "heading": "iCloud-kalender",
@@ -584,7 +578,6 @@
         "show": "Hvad der vises",
         "showDescription": "Grænser som alle kalendermoduler starter fra. Et modul kan indsnævre yderligere med egne filtre."
       },
-      "heading": "Kalender",
       "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser."
     },
     "dataPage": {
@@ -617,28 +610,29 @@
         "browseButton": "Gennemse skabeloner"
       },
       "fullBackup": {
-        "heading": "Fuld sikkerhedskopi",
-        "description": "Eksportér eller gendan det hele: alle indstillinger, pligtdata og historik. Til sikkerhedskopiering og til at flytte til en ny enhed.",
+        "heading": "Gem en kopi",
+        "description": "Én fil med det hele: skærme, indstillinger, pligter og familiens historik. Brug den, når du skifter til en ny enhed.",
         "working": "Arbejder…",
-        "backupButton": "Sikkerhedskopiér alle data",
-        "restoreButton": "Gendan sikkerhedskopi",
-        "includeCredentialsLabel": "Tag mine API-nøgler og tilknyttede konti med",
+        "backupButton": "Gem en sikkerhedskopi",
+        "restoreButton": "Gendan fra en fil",
+        "includeCredentialsLabel": "Tag mine nøgler og tilknyttede konti med",
         "includeCredentialsHelp": "Dækker vejr- og kortnøgler, Google, iCloud, Immich, OneDrive, plugin-logins og din editor-adgangskode.",
         "protectLabel": "Beskyt dem med en adgangskode",
         "plaintextWarning": "Alle, der åbner denne fil, kan bruge dine konti. Gem den et privat sted.",
-        "needsEditorPassword": "Vælg først en editor-adgangskode under Sikkerhed. Uden den kan alle på dit netværk læse nøglerne i din sikkerhedskopi, når denne funktion er slået til."
+        "needsEditorPassword": "Kræver først en adgangskode, så filen ikke kan læses af enhver, der finder den.",
+        "savedTo": "{filename} er gemt i dine downloads."
       },
       "backupReminder": {
         "heading": "Påmindelse om sikkerhedskopi",
         "description": "Få en besked i editoren, når du ikke har taget en sikkerhedskopi i et stykke tid.",
-        "enableLabel": "Slå påmindelser om sikkerhedskopi til",
+        "enableLabel": "Mind mig om det, hvis jeg ikke har taget en kopi",
         "remindAfterLabel": "Påmind efter",
         "lastBackup": "Seneste sikkerhedskopi: {date}",
         "noBackups": "Der er ikke registreret sikkerhedskopier endnu"
       },
       "configBackups": {
-        "heading": "Sikkerhedskopier af opsætningen",
-        "description": "Øjebliksbilleder af indstillingerne, der gemmes automatisk før hver opdatering. Gendan et for at fortryde ændringer i indstillingerne; vil du tilbage til en ældre version af selve appen, så brug siden System.",
+        "heading": "Automatiske øjebliksbilleder",
+        "description": "Home Screens gemmer et øjebliksbillede af dine indstillinger før hver opdatering, så en dårlig opdatering kan fortrydes. Der er intet at sætte op.",
         "empty": "Ingen sikkerhedskopier endnu. De oprettes automatisk før hver opdatering.",
         "sizeKb": "{size}KB",
         "download": "Download",
@@ -680,10 +674,15 @@
         "wrongPassword": "Den adgangskode virkede ikke. Prøv igen, eller gendan uden dine nøgler.",
         "damagedKeys": "Nøglerne i filen er beskadigede og kan ikke læses. Du kan stadig gendanne alt det andet.",
         "reloadFailed": "Din sikkerhedskopi blev gendannet, men editoren kunne ikke genindlæse. Genindlæs siden for at se det."
+      },
+      "description": "Gem en kopi af det hele, læg den tilbage, eller start fra en skabelon.",
+      "restoreConfirm": {
+        "title": "Gendan fra en fil?",
+        "message": "Det erstatter alle dine indstillinger, skærme, pligter og madplaner med det, der står i filen. Alt, du har ændret, siden filen blev lavet, er væk. Der gemmes først et øjebliksbillede af din nuværende opsætning, så det kan fortrydes.",
+        "confirm": "Vælg en fil…"
       }
     },
     "weatherPage": {
-      "heading": "Vejr",
       "description": "Sæt en eller flere af vejrtjenesterne herunder op. Hvert vejrmodul kan bruge en hvilken som helst af de opsatte tjenester; én bruges som standard.",
       "unitsLabel": "Enheder",
       "imperialOption": "Imperiale (°F, mph)",
@@ -833,7 +832,7 @@
     },
     "perDisplayPage": {
       "header": {
-        "openTitle": "Åbn dette displays kiosk-URL",
+        "openTitle": "Åbn dette displays adresse",
         "openLabel": "Åbn",
         "editScreensTitle": "Redigér dette displays skærme på lærredet",
         "editScreensLabel": "Redigér skærme",
@@ -842,13 +841,13 @@
         "statusOffline": "Offline",
         "screenCountSingular": "1 skærm",
         "screenCountPlural": "{count} skærme",
-        "notFound": "Displayet blev ikke fundet",
-        "notFoundDescPart1": "Der er ikke registreret et display med id ",
-        "notFoundDescPart2": ".",
+        "notFound": "Der findes ingen skærm, der hedder “{id}”",
         "subtabs": {
           "overview": "oversigt",
           "overrides": "tilsidesættelser"
-        }
+        },
+        "notFoundDesc": "Den er måske fjernet, eller linket er forældet.",
+        "notFoundAction": "Se alle skærme"
       },
       "overview": {
         "activeProfileLabel": "Aktiv profil",
@@ -894,13 +893,13 @@
       },
       "identity": {
         "displayNameLabel": "Navn på display",
-        "displayNameHelp": "Vises i sidepanelet og på selve displayet. Gemmes automatisk, når du klikker væk.",
+        "displayNameHelp": "Vises i sidepanelet og på skærmen. Gemmes, når du klikker et andet sted.",
         "displayIdLabel": "Display-id",
-        "displayIdHelpPart1": "Bruges i kiosk-URL'en ",
+        "displayIdHelpPart1": "Bruges i dette displays adresse ",
         "displayIdHelpPart2": ". Kan ikke ændres, uden at Pi'en sættes op igen.",
         "dangerZoneHeading": "Pas på her",
-        "dangerZoneMainHelp": "Hoveddisplayet er selve hub-kiosken og kan ikke fjernes. Fjernede du det, ville dets skærme stå uden ejer, og hubben ville blive nulstillet.",
-        "dangerZoneRemovableHelp": "Fjerner du et display, holder det op med at blive vist, og dets skærme slettes. Pi'en kan melde sig til igen bagefter.",
+        "dangerZoneMainHelp": "Hoveddisplayet er det, denne Pi selv viser, og kan derfor ikke fjernes. Fjernede du det, ville dets skærme ikke have nogen steder at være.",
+        "dangerZoneRemovableHelp": "Fjerner du et display, holder det op med at blive vist, og dets skærme slettes. Den Pi kan dukke op her igen og vente på at blive tilføjet.",
         "removeButton": "Fjern {name}",
         "removeConfirm": "Vil du fjerne displayet \"{name}\"? Det sletter dets skærme."
       },
@@ -974,7 +973,7 @@
         "needsSetupTitle": "Slå automatiske opdateringer til",
         "connectLabel": "Forbind til den",
         "runLabel": "Kør så dette",
-        "connectUnknown": "Forbind til skærmen over SSH (brugernavnet er {user}), og kør så:"
+        "connectUnknown": "Forbind til skærmens Pi fra en terminal (brugernavnet er {user}), og kør så:"
       }
     },
     "alertFormFields": {
@@ -1001,7 +1000,7 @@
       "apiTypesPart3": ", "
     },
     "sleepFormFields": {
-      "enableLabel": "Lad displayet slumre",
+      "enableLabel": "Dæmp eller sluk efter en tidsplan",
       "enableHelp": "Dæmper displayet eller slukker det automatisk. Mus, berøring eller tastatur vækker det igen.",
       "idleSectionTitle": "Når ingen bruger det",
       "idleDimLabel": "Dæmp efter et par stille minutter",
@@ -1027,22 +1026,22 @@
       "screensaverClock": "Svævende ur",
       "screensaverBlank": "Sort (kun dæmpet)",
       "screensaverOff": "Fra (gå direkte i slumre)",
-      "dimmedSectionHelp": "Gælder altid, når displayet er dæmpet, uanset hvilken regel der dæmpede det.",
+      "dimmedSectionHelp": "Pauseskærmen vises, når skærmen er dæmpet, for eksempel fra telefonen.",
       "nothingDimsNote": "Dette display dæmpes ikke af sig selv lige nu. Pauseskærmen vises stadig, hvis det dæmpes fra fjernbetjeningen.",
       "legend": {
         "bright": "Lyst",
         "dim": "Dæmpet",
         "off": "Slukket",
         "idleNote": "+ dæmpes efter {minutes} stille minutter, når som helst"
-      }
+      },
+      "disabledHelp": "Slå det til for at vælge tidspunkter. Lige nu er skærmen lys hele døgnet."
     },
     "integrationsPage": {
-      "heading": "Integrationer",
-      "description": "Forbind eksterne tjenester for at få flere moduler og funktioner. API-nøgler gemmes lokalt og forlader aldrig din enhed.",
+      "description": "Nøgler og logins, der låser op for ekstra indhold: kalendere, billeder, trafik, nyheder. De bliver på denne enhed og sendes ingen steder hen.",
       "loadingStatus": "Indlæser status for integrationer…",
       "summary": {
         "configuredCountPart1": " af ",
-        "configuredCountPart2": " integrationer konfigureret"
+        "configuredCountPart2": " forbundet"
       },
       "groups": {
         "googleEcosystem": "Google-tjenester",
@@ -1054,17 +1053,31 @@
         "description": "Kalender, Maps, Fotos",
         "clientIdLabel": "Klient-id til kalender",
         "clientIdPlaceholder": "f.eks. 123456789-abc.apps.googleusercontent.com",
-        "clientIdHelp": "Til Google Kalender. Create at console.cloud.google.com → APIs & Services → Credentials. Use type: TVs and Limited Input devices.",
+        "clientIdHelp": "Begge dele kommer fra den samme adgang.",
         "clientSecretLabel": "Klienthemmelighed til kalender",
         "clientSecretPlaceholder": "f.eks. GOCSPX-…",
         "clientSecretHelp": "Klienthemmeligheden fra det samme OAuth-id ovenfor.",
         "webClientIdLabel": "Klient-id til foto-import",
-        "webClientIdHelp": "Endnu et OAuth-id til Google Fotos-import. Type: Webapplikation, med https://homescreens.dev/connect/google som godkendt omdirigerings-URI.",
+        "webClientIdHelp": "Tilføj https://homescreens.dev/connect/google som godkendt redirect-URI.",
         "webClientSecretLabel": "Klienthemmelighed til foto-import",
         "webClientSecretHelp": "Klienthemmeligheden fra webapplikations-id’et ovenfor.",
         "mapsKeyLabel": "Maps-API-nøgle",
         "mapsKeyPlaceholder": "Indsæt din Google Maps-API-nøgle",
-        "mapsKeyHelp": "Valgfri, til trafik- og pendlingsmodulet. Slå Routes API til i det samme Cloud Console-projekt."
+        "mapsKeyHelp": "Indsæt nøglen fra det samme Cloud Console-projekt.",
+        "stepByStep": "Trin-for-trin-guide",
+        "calendarBand": {
+          "title": "Til din kalender",
+          "help": "Google kræver, at du først laver et login til dit eget hjem. Opret en OAuth-adgang af typen “TVs and Limited Input devices” i Google Cloud Console, og indsæt så begge dele her."
+        },
+        "photosBand": {
+          "title": "Til import fra Google Fotos",
+          "help": "Et separat login fra kalenderens, af typen “Web application”. Kun nødvendigt, hvis du vil hente billeder ind. Ellers spring det over."
+        },
+        "mapsBand": {
+          "title": "Til køretider",
+          "help": "Valgfrit. Kun trafikmodulet bruger det. Slå Routes API til i det samme Cloud Console-projekt."
+        },
+        "clientIdInvalid": "Det ser ikke rigtigt ud. Et Client ID slutter på {suffix}."
       },
       "immich": {
         "name": "Immich",
@@ -1136,12 +1149,12 @@
         "connectButton": "Forbind til skjult netværk…"
       },
       "hostname": {
-        "heading": "Værtsnavn",
+        "heading": "Enhedsnavn",
         "placeholder": "home-screens",
         "saveButton": "Gem",
         "savingButton": "Gemmer…",
-        "successMessage": "Værtsnavnet er opdateret",
-        "defaultErrorMessage": "Kunne ikke opdatere værtsnavnet"
+        "successMessage": "Enhedsnavnet er opdateret",
+        "defaultErrorMessage": "Kunne ikke opdatere enhedsnavnet"
       },
       "interface": {
         "type": {
@@ -1285,7 +1298,8 @@
         "requestFailed": "Fejlsøgningen mislykkedes",
         "testButton": "Test forbindelsen",
         "testingButton": "Tester…"
-      }
+      },
+      "description": "Det wifi og den adresse, denne skærm bruger."
     },
     "mealsPage": {
       "loading": "Indlæser indstillinger for måltider…",
@@ -1308,7 +1322,7 @@
       },
       "timeFormat": {
         "heading": "Tidsformat",
-        "description": "Gælder for alle måltidsvisninger på skærmen og på fjernbetjeningen.",
+        "description": "Bruges alle steder, hvor måltider vises, på skærmen og på telefonen.",
         "twelveHourLabel": "12-timers",
         "twentyFourHourLabel": "24-timers",
         "followLabel": "Følg den globale indstilling"
@@ -1324,7 +1338,8 @@
       "reset": {
         "button": "Nulstil til standard",
         "help": "Gendanner morgenmad, frokost og aftensmad, ugestart om søndagen og 12-timersformat, og rydder alle standardtider."
-      }
+      },
+      "description": "Hvilke måltider I planlægger, og hvornår de plejer at være."
     },
     "systemPage": {
       "loading": "Indlæser systemoplysninger…",
@@ -1341,7 +1356,8 @@
         "stableChannel": "Stabil kanal",
         "prereleaseChannel": "Kanal for forhåndsversioner",
         "checkButton": "Søg efter opdateringer",
-        "checking": "Søger…"
+        "checking": "Søger…",
+        "currentLabel": "Du bruger version {version}"
       },
       "upgradeInProgress": {
         "title": "Opdatering i gang",
@@ -1370,10 +1386,12 @@
         "noNotes": "Denne version har ingen noter."
       },
       "history": {
-        "heading": "Versionshistorik",
+        "heading": "Hvis en opdatering gav problemer",
         "currentBadge": "nuværende",
-        "rollback": "Gå tilbage",
-        "help": "Går tilbage til en ældre version af appen. Vil du i stedet fortryde ændringer i indstillingerne, så gendan et øjebliksbillede på siden Sikkerhedskopier og data."
+        "rollback": "Gå tilbage til denne",
+        "help": "Gå tilbage til den version, du var på før. Vil du i stedet fortryde en indstilling, så gendan et øjebliksbillede fra siden Sikkerhedskopier og data.",
+        "showAll": "Vis alle {count} versioner",
+        "olderWarning": "Ældre versioner forstår måske ikke dine nuværende indstillinger."
       },
       "upgradeDialog": {
         "title": "Opdatér",
@@ -1381,15 +1399,15 @@
         "confirm": "Opdatér"
       },
       "rollbackDialog": {
-        "title": "Gå tilbage",
-        "message": "Vil du gå tilbage til {tag}? Serveren genstarter.",
-        "confirm": "Gå tilbage"
+        "title": "Gå tilbage til {tag}?",
+        "message": "Home Screens genstarter, og skærmen er tom i et par sekunder. Indstillinger, du har ændret siden da, virker måske ikke i {tag}. Der gemmes først et øjebliksbillede af din nuværende opsætning, så du kan komme tilbage.",
+        "confirm": "Gå tilbage til {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "Genstart systemet",
+        "rebootTitle": "Genstart hele enheden",
         "rebootMessage": "Er du sikker på, at du vil genstarte systemet? Du mister måske forbindelsen et kort øjeblik.",
         "rebootConfirm": "Genstart",
-        "restartTitle": "Genstart tjenesten",
+        "restartTitle": "Genstart Home Screens",
         "restartMessage": "Er du sikker på, at du vil genstarte tjenesten? Du mister måske forbindelsen et kort øjeblik.",
         "restartConfirm": "Genstart"
       },
@@ -1399,17 +1417,18 @@
         "confirm": "Afbryd opdateringen"
       },
       "actions": {
-        "heading": "Systemhandlinger",
-        "restartService": "Genstart tjenesten",
-        "rebootSystem": "Genstart systemet",
-        "help": "Genstart tjenesten genindlæser appen. Genstart systemet genstarter hele din Raspberry Pi."
+        "heading": "Hvis noget ser ud til at hænge",
+        "restartService": "Genstart Home Screens",
+        "rebootSystem": "Genstart hele enheden",
+        "help": "At genstarte Home Screens genindlæser appen og tager et par sekunder. At genstarte enheden tager et minut eller to."
       },
       "powerStatus": {
         "restartScheduled": "Genstart af tjenesten er sat i gang. Siden genindlæses om et øjeblik…",
         "rebootScheduled": "Genstart af systemet er sat i gang. Skærmen er tilbage om lidt…",
         "processing": "Behandler…",
         "unknownError": "Ukendt fejl"
-      }
+      },
+      "description": "Hold Home Screens opdateret, og gå tilbage hvis en opdatering giver problemer."
     },
     "profilesPage": {
       "heading": "Profiler",
@@ -1420,15 +1439,14 @@
         "help": "Profiler er pr. display, fordi de peger på hvert displays egne skærme. Skifter du her, skifter du også, hvilket display editoren arbejder på."
       },
       "active": {
-        "label": "Aktiv profil",
-        "noneOption": "Ingen (vis alle skærme)",
-        "help": "Vælg selv, hvilken profil der er aktiv. Planlagte profiler går forud for denne indstilling."
+        "label": "Vises lige nu",
+        "noneOption": "Alle skærme",
+        "help": "En planlagt profil tager over, når dens tid kommer, uanset hvad der er valgt her."
       },
       "priority": {
-        "labelPrefix": "Prioritetsrækkefølge:",
-        "helpSuffix": " Når flere profiler har overlappende tidsplaner, vinder den profil, der står først. Træk for at ændre rækkefølgen."
+        "help": "Når to profiler overlapper, vinder den øverste på listen. Træk for at ændre rækkefølgen."
       },
-      "addButton": "Tilføj profil",
+      "addButton": "Tilføj en profil",
       "newProfileName": "Profil {number}",
       "card": {
         "activeBadge": "Aktiv",
@@ -1445,17 +1463,28 @@
         "scheduleToggleLabel": "Aktivér automatisk efter en plan",
         "fromLabel": "Fra",
         "untilLabel": "Til",
-        "invertLabel": "Vend om (skjul i stedet i dette tidsrum)"
+        "invertLabel": "Vend om (skjul i stedet i dette tidsrum)",
+        "priorityBadge": "Prioritet {number}",
+        "screenCountSingular": "1 skærm",
+        "screenCountPlural": "{count} skærme",
+        "summaryScheduled": "{screens} · {when}",
+        "summaryManual": "{screens} · kun når du vælger den"
       },
       "deleteDialog": {
         "title": "Slet profil",
         "message": "Vil du slette \"{name}\"?",
         "confirm": "Slet"
+      },
+      "nameSuggestions": {
+        "morning": "Skolemorgener",
+        "evening": "Aften",
+        "weekend": "I weekenden",
+        "guests": "Gæster"
       }
     },
     "rulesPage": {
       "heading": "Regler",
-      "description": "Regler får skærmen til at reagere på, hvad der sker derhjemme. Når en regels betingelser bliver sande, kan den skifte til en skærm eller vække displayet, fx vise kameraskærmen, når det ringer på døren.",
+      "description": "Regler får skærmen til at reagere af sig selv. Når det, du beskriver, bliver sandt, kan den skifte til en skærm eller vågne, for eksempel vise kameraet ved hoveddøren, når det ringer på.",
       "displayPicker": {
         "label": "Redigerer regler for",
         "optionLabel": "{name} ({id})",
@@ -1508,7 +1537,7 @@
     },
     "sharedStatePage": {
       "heading": "Delte værdier",
-      "description": "Alle værdier denne skærm udgiver til betingelser, regler og teksttokens, samt alt der refereres, men aldrig ankommer.",
+      "description": "Alle værdier denne skærm udgiver til betingelser, regler og tekstpladsholdere, samt alt der refereres, men aldrig ankommer.",
       "intro": {
         "heading": "Sådan fungerer det",
         "body1": "Skærme kan reagere på, hvad der sker i dit hjem. Udvidelser (som Home Assistant) deler små navngivne værdier her, for eksempel om en dør er åben, eller hvem der er hjemme.",
@@ -1525,7 +1554,7 @@
           "one": "{count} værdi tilgængelig fra dine udvidelser",
           "other": "{count} værdier tilgængelige fra dine udvidelser"
         },
-        "truncationNote": "Viser kun de første {count} — søg for at finde flere",
+        "truncationNote": "Viser kun de første {count}. Søg for at finde flere",
         "collapseGroup": "Skjul {producer}",
         "expandGroup": "Udvid {producer}",
         "noProviders": "Der er endnu ikke noget at dele. Værdier kommer fra udvidelser, der deler dem (som Home Assistant). Når en udvidelse er sat op, vises dens værdier her.",
@@ -1552,24 +1581,25 @@
       "providerHealthSince": "siden {time}"
     },
     "securityPage": {
-      "loading": "Tjekker loginstatus…",
-      "heading": "Login",
+      "loading": "Tjekker…",
       "status": {
-        "enabled": "Login er slået til",
-        "disabled": "Login er slået fra"
+        "enabled": "Adgangskoden er slået til",
+        "disabled": "Ingen adgangskode endnu",
+        "enabledOutcome": "Editoren og familiefjernbetjeningen spørger efter den. Vægskærmen og børnenes pligtside er stadig åbne, så intet på køleskabet holder op med at virke.",
+        "disabledOutcome": "Alle på dit wifi kan åbne editoren og familiefjernbetjeningen."
       },
       "setup": {
-        "description": "Vælg en adgangskode for at beskytte editoren og API'et. Der oprettes automatisk en token til skærmen, så den kan logge ind af sig selv.",
-        "setPasswordButton": "Vælg adgangskode"
+        "description": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden.",
+        "setPasswordButton": "Vælg en adgangskode"
       },
       "actions": {
         "changePassword": "Skift adgangskode",
-        "disableAuth": "Slå login fra",
+        "disableAuth": "Slå adgangskoden fra",
         "logOut": "Log ud"
       },
       "revokeSessions": {
         "button": "Log alle ud",
-        "warning": "Alle bliver logget ud, også dig selv.",
+        "warning": "Alle bliver logget ud, også dig selv på denne enhed.",
         "confirmButton": "Bekræft",
         "revoking": "Logger ud…",
         "cancel": "Annullér",
@@ -1577,72 +1607,72 @@
         "failed": "Kunne ikke logge alle ud"
       },
       "displayToken": {
-        "heading": "Token til skærmen",
-        "description": "Skærmen bruger denne token til at logge ind på API'et. Den blev oprettet automatisk, da du valgte en adgangskode.",
+        "heading": "Skærmnøgle",
+        "description": "Dine skærme åbner Home Screens med denne nøgle uden at skrive adgangskoden. Den blev lavet, da du valgte adgangskoden.",
         "reveal": "Vis",
         "hide": "Skjul",
         "copy": "Kopiér",
         "copied": "Kopieret!",
-        "regenerateButton": "Lav en ny token",
+        "regenerateButton": "Lav en ny nøgle",
         "regenerating": "Laver ny token…",
         "regenerateConfirm": "Bekræft",
         "regenerateCancel": "Annullér",
-        "regenerateWarning": "Skærmen skal genindlæses for at bruge den nye token.",
-        "errorRegenerate": "Kunne ikke lave en ny token",
+        "regenerateWarning": "Hver skærm genindlæser én gang for at bruge den nye nøgle.",
+        "errorRegenerate": "Kunne ikke lave en ny nøgle",
         "errorCopy": "Kopieringen mislykkedes; markér og kopiér selv",
         "phoneHintPart1": "Til bogmærker på telefonen: tilføj ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " til kommando-URL'erne."
       },
       "ipAllowlist": {
-        "heading": "Tilladte IP-adresser",
+        "heading": "Tilladte netværk",
         "bypassAuth": {
-          "label": "Spring login over for betroede IP-adresser",
-          "help": "Skærme på disse netværk behøver ikke en token"
+          "label": "Luk disse netværk ind uden adgangskode",
+          "help": "Skærme på disse netværk kommer ind uden nøglen"
         },
         "restrictAccess": {
-          "label": "Giv kun adgang fra betroede IP-adresser",
-          "help": "Bloker alle andre IP-adresser (undtagen loginsiden)"
+          "label": "Tillad kun disse netværk",
+          "help": "Alt andet bliver afvist, undtagen loginsiden."
         },
-        "emptyHint": "Tilføj mindst ét IP-område for at kunne bruge disse valg.",
+        "emptyHint": "Tilføj mindst ét netværksområde for at slå det til.",
         "removeAriaLabel": "Fjern {entry}",
         "addPlaceholder": "192.168.1.0/24",
         "addButton": "Tilføj",
         "errors": {
-          "invalidCidr": "Ugyldigt CIDR-format",
-          "invalidIp": "Ugyldig IP-adresse",
-          "invalidPrefix": "Præfikslængden skal være 0-32",
+          "invalidCidr": "Det er ikke et netværksområde. De fleste hjemmenetværk er 192.168.1.0/24.",
+          "invalidIp": "Det er ikke en adresse",
+          "invalidPrefix": "Tallet efter skråstregen skal være mellem 0 og 32.",
           "alreadyInList": "Findes allerede på listen"
         },
         "callerIpLabel": "Din IP: ",
         "lockoutWarning": {
           "title": "Du kan komme til at låse dig selv ude",
           "messagePart1": "Din nuværende IP (",
-          "messagePart2": ") står ikke på listen. Slår du adgangsbegrænsning til, mister du adgangen til denne editor.",
+          "messagePart2": ") står ikke på listen. Tillader du kun disse netværk, mister du adgangen til denne editor.",
           "saveAnyway": "Gem alligevel",
           "cancel": "Annullér"
         },
         "saveButton": "Gem ændringer",
-        "lockedOutHintPart1": "Er du låst ude, så redigér ",
+        "lockedOutHintPart1": "Låser du dig selv ude, så redigér ",
         "lockedOutHintCode": "data/auth.json",
         "lockedOutHintPart2": " på enheden for at slå det fra.",
         "ipv4Warning": {
-          "strong": "Kun IPv4.",
-          "part1": " IPv6-klienter (også Pi'er med dobbelt netværksstak, der melder sig som ",
+          "strong": "Adresser med kolon passer ikke.",
+          "part1": " Denne liste forstår kun adresser som 192.168.1.20. En enhed, der melder sig som ",
           "loopback": "::1",
           "or": " eller ",
           "linkLocal": "fe80::…",
-          "part2": ") passer ikke til nogen post på listen og bliver blokeret, når begrænsningen er slået til. Tjek \"Din IP\" ovenfor; starter den med et kolon, blokerer denne funktion dig."
+          "part2": " passer ikke til noget her og bliver blokeret. Tjek \"Din IP\" ovenfor: står der kolon i den, låser det her dig ude."
         },
         "trustedNetworksWarning": {
           "strong": "Kun betroede netværk.",
-          "part1": " IP-begrænsningen læser ",
+          "part1": " Dette tjek læser ",
           "header": "X-Forwarded-For",
-          "part2": "-headeren. Er Home Screens tilgængelig direkte fra internettet uden en betroet reverse proxy, kan denne indstilling snydes."
+          "part2": "-headeren. Kan Home Screens nås fra internettet uden en betroet proxy foran, kan nogen forfalske den header og komme uden om det her."
         }
       },
       "modal": {
-        "setTitle": "Vælg adgangskode",
+        "setTitle": "Vælg en adgangskode",
         "changeTitle": "Skift adgangskode",
         "disableTitle": "Slå login fra",
         "currentPasswordPlaceholder": "Nuværende adgangskode",
@@ -1650,12 +1680,13 @@
         "confirmPasswordPlaceholder": "Bekræft ny adgangskode",
         "disableWarning": "Det fjerner adgangskoden, så alle på dit netværk kan komme ind i editoren.",
         "cancel": "Annullér",
-        "setSubmit": "Vælg adgangskode",
+        "setSubmit": "Slå til",
         "setting": "Gemmer…",
         "changeSubmit": "Skift adgangskode",
         "changing": "Skifter…",
         "disableSubmit": "Slå fra",
-        "disabling": "Slår fra…"
+        "disabling": "Slår fra…",
+        "setExplanation": "Én adgangskode til hele huset. Derefter spørger familiefjernbetjeningen og editoren efter den. Vægskærmen og børnenes pligtside virker stadig uden."
       },
       "errors": {
         "passwordsDoNotMatch": "Adgangskoderne er ikke ens",
@@ -1668,7 +1699,12 @@
         "passwordChanged": "Adgangskoden er skiftet. Alle andre er logget ud.",
         "authDisabled": "Login er slået fra."
       },
-      "forgotPasswordHint": "Glemt kodeordet? Kør {command} på enheden. At slette filen {file} i Home Screens-mappen rydder det også."
+      "forgotPasswordHint": "Glemt kodeordet? Kør {command} på enheden. At slette filen {file} i Home Screens-mappen rydder det også.",
+      "description": "Hvem der må ændre ting, og hvorfra.",
+      "advanced": {
+        "heading": "Avanceret netværksadgang",
+        "description": "Skærmnøgle, tilmeldte enheder og begrænsning til bestemte netværk."
+      }
     },
     "shared": {
       "secretField": {
@@ -1679,7 +1715,9 @@
         "checkingButton": "Tjekker…",
         "detailsToggle": "Detaljer",
         "saveAnyway": "Gem alligevel"
-      }
+      },
+      "savesAutomatically": "Ændringer gemmes automatisk.",
+      "learnMore": "Læs mere"
     },
     "localBackgrounds": {
       "none": "Ingen",
@@ -1703,14 +1741,14 @@
         "heading": "Ikke-godkendt plugin",
         "message": "Dette plugin er ikke gennemgået af Home Screens-teamet. Installér det på eget ansvar."
       },
-      "permissionsHeading": "Adgang der bedes om",
+      "permissionsHeading": "Hvad dette plugin må",
       "permissions": {
         "network": "Adgang til netværket",
         "secrets": "Opbevaring af nøgler",
         "events": "Begivenheder fra appen",
         "storage": "Lokal lagring",
         "localNetwork": "Lokalt netværk (LAN)",
-        "oauth": "Kontologin (OAuth)"
+        "oauth": "Kontologin"
       },
       "secretsHeading": "Nødvendige API-nøgler",
       "secretRequired": "(påkrævet)",
@@ -1853,7 +1891,7 @@
       "diagnosticsBundle": "Fejlsøgningspakke",
       "generatingBundle": "Opretter…",
       "bundleFailed": "Pakken kunne ikke oprettes: {error}",
-      "hostname": "Værtsnavn",
+      "hostname": "Enhedsnavn",
       "platform": "Platform",
       "uptime": "Oppetid",
       "hardwareTitle": "CPU og temperatur",
@@ -1880,8 +1918,7 @@
       "moduleSummary": "{count} moduler · {types} typer",
       "moduleOther": "andre",
       "integrations": "Integrationer",
-      "integrationsConfigured": "{count} / {total} konfigureret",
-      "cacheTitle": "Datacache",
+      "cacheTitle": "Gemte data",
       "hideDetails": "Skjul detaljer",
       "showDetails": "Vis detaljer",
       "hitRate": "Træfprocent",
@@ -1900,8 +1937,8 @@
       "cacheState": "Tilstand",
       "cacheStaleLabel": "forældet",
       "cacheFreshLabel": "frisk",
-      "cacheNoDisplay": "Cachedata rapporteres af skærmen. Ingen skærm er forbundet.",
-      "cacheNoDisplayForName": "Cachedata rapporteres af skærmen. Ingen skærm er forbundet for {name}.",
+      "cacheNoDisplay": "Disse tal kommer fra en skærm. Der er ingen forbundet lige nu.",
+      "cacheNoDisplayForName": "Disse tal kommer fra en skærm. {name} er ikke forbundet lige nu.",
       "telemetryTitle": "Anonym telemetri",
       "telemetryDescription": "Home Screens indsamler anonym brugsstatistik for at kunne prioritere funktioner og forstå, hvordan appen bruges. Der indsamles aldrig personlige data, IP-adresser eller indhold.",
       "telemetryToggle": "Send anonyme brugsdata",
@@ -1933,7 +1970,7 @@
       "indexOf": "{index} af {total}",
       "profile": "Profil",
       "viewport": "Visningsområde",
-      "notChromium": "Ikke Chromium",
+      "notChromium": "En anden browser",
       "lastSeen": "Sidst set",
       "timeAgo": "for {age} siden",
       "noDisplayPrefix": "Ingen skærm er forbundet. Åbn",
@@ -1945,7 +1982,8 @@
       "deviceMemoryLabel": "Enhedens hukommelse",
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browseroplysninger rapporteres af skærmen. Ingen skærm er forbundet.",
-      "noBrowserStatsForName": "Browseroplysninger rapporteres af skærmen. Ingen skærm er forbundet for {name}."
+      "noBrowserStatsForName": "Browseroplysninger rapporteres af skærmen. Ingen skærm er forbundet for {name}.",
+      "description": "Hvordan dine skærme og denne enhed har det lige nu."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -1954,7 +1992,7 @@
         "one": "{count} display i dette hjem",
         "other": "{count} displays i dette hjem"
       },
-      "emptyDescriptionPrefix": "Kør mere end én skærm fra denne Pi (en touchskærm i køkkenet, en skærm i soveværelset, et tv i stuen), hver med sit eget layout, sin egen opløsning og retning. Denne Pi bliver hub og betjener dem alle; ekstra skærme kan være billige Pi Zero'er, der kører ",
+      "emptyDescriptionPrefix": "Kør mere end én skærm fra denne Pi (en touchskærm i køkkenet, en skærm i soveværelset, et tv i stuen), hver med sit eget layout, sin egen opløsning og retning. Denne Pi bliver hub (den, der kører Home Screens og betjener alle skærme); ekstra skærme kan være billige Pi Zero'er, der kører ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Klik på et display for at redigere dets egne indstillinger. Alt andet bruger de fælles ",
       "populatedDescriptionSuffix": ".",
@@ -1962,29 +2000,29 @@
       "refreshHeartbeatsTitle": "Opdatér livstegn",
       "addDisplay": "Tilføj display",
       "emptyTitle": "Denne installation kører med én skærm",
-      "emptyParagraphPart1": "Din nuværende opsætning tæller som ét display, men er ikke registreret her endnu; understøttelse af flere skærme skal slås til, så eksisterende installationer er uændrede, indtil du selv tilføjer skærm nummer to. Så snart du tilføjer dit første display, bliver denne Pi's nuværende layout til et display, der hedder ",
+      "emptyParagraphPart1": "Din nuværende opsætning tæller som ét display, men er ikke tilføjet her endnu; understøttelse af flere skærme skal slås til, så eksisterende installationer er uændrede, indtil du selv tilføjer skærm nummer to. Så snart du tilføjer dit første display, bliver denne Pi's nuværende layout til et display, der hedder ",
       "emptyParagraphPart2": ", og det kører præcis som i dag.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klik på ",
-      "emptyBullet1Suffix": " ovenfor for at registrere en ny skærm. Giv den et navn, en opløsning og en retning, og design så dens eget layout i editoren.",
+      "emptyBullet1Suffix": " ovenfor for at tilføje en ny skærm. Giv den et navn, en opløsning og en retning, og design så dens eget layout i editoren.",
       "emptyBullet2Prefix": "Eller flash en anden Pi med ",
       "emptyBullet2Middle": ". Når den starter op, dukker den op herunder som et ",
-      "emptyBullet2Suffix": ", der venter på at blive tilknyttet med ét klik.",
-      "unadoptedLabel": "ikke-tilknyttet display",
+      "emptyBullet2Suffix": ", der venter på at blive tilføjet med ét klik.",
+      "unadoptedLabel": "display, der venter på at blive tilføjet",
       "unadoptedWaiting": {
-        "one": "{count} ikke-tilknyttet display venter",
-        "other": "{count} ikke-tilknyttede displays venter"
+        "one": "{count} display venter på at blive tilføjet",
+        "other": "{count} displays venter på at blive tilføjet"
       },
-      "unadoptedHintPrefix": "Disse Pi'er er forbundet til hubben, men er ikke registreret endnu. Klik på ",
+      "unadoptedHintPrefix": "Disse Pi'er er forbundet til hubben, men er ikke tilføjet endnu. Klik på ",
       "unadoptedHintSuffix": " for at give dem skærme.",
-      "adoptStrong": "Tilknyt",
-      "adoptButton": "Tilknyt",
+      "adoptStrong": "Tilføj",
+      "adoptButton": "Tilføj",
       "lastSeenLabel": "Sidst set {time}",
       "reportedDimensions": "{width}×{height} rapporteret",
       "reportedFrom": "fra {address}",
       "multipleClientsHeading": "{count} klienter melder sig med dette id",
       "multipleClientsParagraphPrefix": "To eller flere klienter sender data med dette display-id. Tjek kilde-IP'erne ovenfor for at finde ud af, hvilken enhed der reelt melder sig; oftest er det en dublet af ",
-      "multipleClientsParagraphSuffix": "-installationen, en glemt Chromium-fane eller en hub-kiosk, der peger på den forkerte URL.",
+      "multipleClientsParagraphSuffix": "-installationen, en glemt browserfane eller et display, der peger på den forkerte adresse.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
@@ -1998,7 +2036,7 @@
       "multipleClientsCardHeading": "{count} forskellige klienter melder sig for dette display",
       "tabsSuffix": "×{count} faner",
       "formEditTitle": "Redigér display",
-      "formAdoptTitle": "Tilknyt {id}",
+      "formAdoptTitle": "Tilføj {id}",
       "formAddTitle": "Tilføj display",
       "formNameLabel": "Navn",
       "formNamePlaceholder": "Touchskærm i køkkenet",
@@ -2009,7 +2047,7 @@
       "formReportedViewport": "(rapporteret af skærmen: {width} × {height})",
       "formWidth": "Bredde",
       "formHeight": "Højde",
-      "formResolutionHint": "Sæt den, så den passer til den fysiske skærm, kiosken vises på. Moduler placeres på et lærred i denne størrelse, når du redigerer dette displays skærme.",
+      "formResolutionHint": "Sæt den, så den passer til den fysiske skærm, dette display vises på. Moduler placeres på et lærred i denne størrelse, når du redigerer dette displays skærme.",
       "formRotationNormal": "Normal (liggende)",
       "formRotation90": "90° med uret (stående)",
       "formRotation180": "180° (på hovedet)",
@@ -2038,15 +2076,12 @@
       }
     },
     "screenPage": {
-      "breadcrumb": "Standarder → Skærm",
       "heading": "Standarder for skærm",
       "rotationAppearanceHeading": "Skærmskift og udseende",
       "sleepHeading": "Slumring og dæmpning",
       "alertsHeading": "Beskeder"
     },
     "automationPage": {
-      "breadcrumb": "Standarder → Automatisering",
-      "heading": "Automatisering",
       "description": "Profiler, regler og live-værdier for hvert display.",
       "displayPicker": {
         "label": "Redigerer automatisering for",
@@ -2055,8 +2090,6 @@
       }
     },
     "phonePage": {
-      "breadcrumb": "Standarder → På din telefon",
-      "title": "På din telefon",
       "description": "To adresser, som begge kan åbnes på enhver telefon eller tablet på jeres wifi. Der skal ikke installeres noget.",
       "open": "Åbn",
       "chores": {
@@ -2069,7 +2102,7 @@
       "password": {
         "label": "Bed om en adgangskode til familiefjernbetjeningen",
         "checking": "Tjekker…",
-        "on": "Til. Børnenes side er åben under alle omstændigheder.",
+        "on": "Til. Fjernbetjeningen og editoren spørger efter den; børnenes pligtside er stadig åben.",
         "off": "Fra. Alle på jeres wifi kan åbne den.",
         "setUpAction": "Sæt op",
         "manageAction": "Administrér"
@@ -2085,7 +2118,7 @@
   "backgroundPicker": {
     "missing": {
       "label": "Baggrundsbillede",
-      "note": "Dette billede er ikke på hubben længere, så skærmen viser den ensfarvede baggrund i stedet. Vælg et andet, eller fjern det.",
+      "note": "Dette billede er ikke på denne Pi længere, så skærmen viser den ensfarvede baggrund i stedet. Vælg et andet, eller fjern det.",
       "pickAnother": "Vælg et billede",
       "useSolid": "Brug den ensfarvede baggrund"
     },
@@ -2158,7 +2191,7 @@
     "photoCountPlural": "{count} billeder",
     "confirmSelectImage": "Vælg billede",
     "confirmUseFolder": "Brug denne mappe",
-    "unsplashAttribution": "Billeder fra Unsplash — gemt i dit lokale arkiv",
+    "unsplashAttribution": "Billeder fra Unsplash, gemt i dit lokale arkiv",
     "unsplashSearchPlaceholder": "Søg på Unsplash…",
     "unsplashCategories": {
       "nature": "Natur",
@@ -2204,7 +2237,7 @@
   "choreChartModal": {
     "title": "Pligtskema",
     "subtitleMembersChores": "{members} medlemmer · {chores} pligter",
-    "loadError": "Kunne ikke indlæse pligtdata — ændringer bliver ikke gemt.",
+    "loadError": "Kunne ikke indlæse pligtdata. Ændringer bliver ikke gemt.",
     "members": {
       "columnTitle": "Familiemedlemmer",
       "empty": "Ingen medlemmer endnu",
@@ -2520,7 +2553,7 @@
   "layoutImport": {
     "alerts": {
       "invalidLayoutFile": "Ugyldig layoutfil:\n{errors}",
-      "invalidJsonFile": "Ugyldig JSON-fil."
+      "invalidJsonFile": "Den fil er ikke et layout, Home Screens kan læse."
     }
   },
   "installFromUrlModal": {
@@ -2570,7 +2603,7 @@
       "other": "{count} ikoner"
     },
     "noMatch": "Ingen ikoner passer til “{query}”. Prøv et andet nøgleord.",
-    "moreResults": "+{count} mere — præcisér din søgning for at se dem.",
+    "moreResults": "+{count} mere. Præcisér din søgning for at se dem.",
     "chooseIconPlaceholder": "Vælg et ikon…",
     "browse": "Gennemse",
     "kindAll": "Alle",
@@ -2824,7 +2857,7 @@
       "defaultTarget": "Standardmål",
       "targetSelf": "Dette display (sig selv)",
       "targetAll": "Alle displays",
-      "legacyHint": "Kun ét display er registreret — målet er låst til dette display.",
+      "legacyHint": "Der er kun én skærm, så det er den, der styres.",
       "allowRetargeting": "Lad brugeren skifte mål undervejs",
       "compact": "Kun ikoner, ingen ord"
     },
@@ -3096,7 +3129,7 @@
       "animationFlip": "Vend",
       "animationSpeed": "Animationshastighed",
       "hideAdvanced": "▾ Skjul avanceret",
-      "showAdvanced": "▸ Avanceret — indsæt en rå klassestreng",
+      "showAdvanced": "▸ Avanceret: indsæt en rå klassestreng",
       "customClass": "Egen klasse"
     },
     "iframe": {
@@ -3172,7 +3205,7 @@
     "googlePhotosImport": {
       "importButton": "Importér fra Google Fotos",
       "checking": "Tjekker…",
-      "credentialsNeeded": "For at importere fra Google Fotos skal du tilføje et klient-id og en klienthemmelighed til Google Fotos-import under Indstillinger → Integrationer.",
+      "credentialsNeeded": "For at importere fra Google Fotos skal du tilføje et klient-id og en klienthemmelighed til Google Fotos-import under Indstillinger → API-nøgler.",
       "signInIntro": "Log ind med Google, og indsæt derefter den kode, du får til sidst.",
       "signIn": "Log ind med Google",
       "pastePlaceholder": "Indsæt koden eller linket her",
@@ -3668,7 +3701,7 @@
       "checking": "Tjekker…",
       "connected": "Forbundet",
       "notConfigured": "Ikke konfigureret.",
-      "settingsIntegrationsLink": "Indstillinger → Integrationer",
+      "settingsIntegrationsLink": "Indstillinger → API-nøgler",
       "title": "Listens navn",
       "viewMode": "Visning",
       "groupByLabel": "Gruppér efter",
@@ -3924,7 +3957,7 @@
       "apiKeyHint": "Opret en API-nøgle i Immich → Account Settings → API Keys",
       "errors": {
         "loadPhotos": "Kunne ikke indlæse billeder",
-        "fetchImage": "Kunne ikke hente billedet"
+        "fetchImage": "Billedet kunne ikke hentes"
       }
     },
     "unsplash": {
@@ -3963,7 +3996,7 @@
         "library": "Billedarkiv"
       },
       "errors": {
-        "fetch": "Kunne ikke hente NASA-billeder"
+        "fetch": "NASA-billederne kunne ikke hentes"
       },
       "categories": {
         "nebula": "Stjernetåge",
@@ -4012,7 +4045,7 @@
       "scaleToFit": "Skalér så det passer",
       "scaleToFitDescription": "formindsker alle moduler forholdsmæssigt, så intet bliver skåret af.",
       "switchAnyway": "Skift alligevel",
-      "switchAnywayDescription": "beholder modulerne, hvor de er — du kan selv flytte dem bagefter."
+      "switchAnywayDescription": "beholder modulerne, hvor de er. Du kan selv flytte dem bagefter."
     }
   },
   "viewSelect": {
@@ -4087,7 +4120,7 @@
     "sourceKeyLabel": "Hvad der tjekkes",
     "sourceKeyHint": "Indtastede nøgler skal matche præcist, inklusive plugin:-præfikset.",
     "sourceKeyUnknown": "Intet modul på denne skærm udgiver denne nøgle endnu. Indtil da tæller denne betingelse som ukendt, og modulet følger indstillingen 'Før data ankommer'.",
-    "sourceKeyPlaceholder": "Søg sensorer, lys og mere…",
+    "sourceKeyPlaceholder": "Vælg noget, eller skriv for at filtrere",
     "matchLabel": "Match",
     "matchEquals": "Er",
     "matchNotEquals": "Er ikke",
@@ -4105,14 +4138,14 @@
     "whenUnknownLabel": "Mens datakilden endnu ikke har rapporteret",
     "whenUnknownHide": "Skjul modulet",
     "whenUnknownShow": "Vis modulet",
-    "noProvidersHint": "Der er endnu ingen tilstandsnøgler at vælge imellem. Nøgler kommer fra plugins, der deler værdier (for eksempel Home Assistant). Du kan også selv indtaste en nøgle.",
+    "noProvidersHint": "Der deles ikke noget endnu. Tilslut en kalender, eller installér Home Assistant-tilføjelsen for døre, lys og hvem der er hjemme. Indtil da er Tidspunkt på dagen den betingelse, der virker.",
     "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",
     "liveValueLabel": "På skærmen lige nu:",
     "liveValueLabelEditor": "Værdi lige nu:",
     "liveValueStale": "opdateres ikke længere",
-    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver — værdien skal matche præcist.",
+    "caseMismatchWarning": "Skærmen udgiver '{value}'. Sammenligningen skelner mellem store og små bogstaver: værdien skal matche præcist.",
     "verdicts": {
       "met": "Opfyldt",
       "unmet": "Ikke opfyldt",
@@ -4141,7 +4174,8 @@
       "untilLabel": "Til",
       "hint": "Lad begge tider stå tomme for hele dagen. Er sluttidspunktet tidligere end starten, går det over midnat (fx 22:00 til 06:00)."
     },
-    "providerHealthNote": "{plugin}: {message}"
+    "providerHealthNote": "{plugin}: {message}",
+    "addOnHint": "Døre, lys og hvem der er hjemme kommer fra Home Assistant-tilføjelsen. Installér den, så dukker de også op her."
   },
   "stateKeys": {
     "calendar": {

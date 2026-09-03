@@ -12,6 +12,7 @@ import {
   SLEEP_OVERRIDE_FIELDS,
 } from '@/lib/display-override-fields';
 import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
+import { useDefaultsPageHeader } from '@/components/editor/settings/useDefaultsPageHeader';
 import CanvasCard from '@/components/editor/settings/screen/CanvasCard';
 import AppearanceCard from '@/components/editor/settings/screen/AppearanceCard';
 import SleepFormFields, {
@@ -144,10 +145,12 @@ export default function ScreenSection({
   // preset the current dimensions happen to match.
   const [userPickedCustom, setUserPickedCustom] = useState(false);
 
+  const header = useDefaultsPageHeader('screen', t('settings.screenPage.heading'));
+
   return (
     <DefaultsPageShell
-      breadcrumb={t('settings.screenPage.breadcrumb')}
-      heading={t('settings.screenPage.heading')}
+      {...header}
+      savesAutomatically
       description={
         <>
           <p className="text-sm text-hs-text-faint mt-1">

@@ -11,7 +11,7 @@ const log = logger('plugin');
  * `window.__HS_SDK__`, on every surface. A plugin can then call them without
  * feature-detecting: on a kiosk they warn and no-op instead of being
  * `undefined`. `ModuleErrorBoundary` now contains a render-time throw to the one
- * widget, but these are still worth having: a boundary turns a crash into a
+ * module, but these are still worth having: a boundary turns a crash into a
  * visible "could not be shown" placeholder, whereas a present-but-inert stub
  * lets the rest of the plugin keep working. They also cover throws the boundary
  * cannot catch — an event handler or an async callback firing after render.

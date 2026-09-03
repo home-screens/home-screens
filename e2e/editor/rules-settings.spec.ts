@@ -111,7 +111,7 @@ test('adding a condition through the tree editor persists into rule.when', async
 
   // Type a key manually (combobox is a free-text input) and a value; both
   // commit on blur.
-  const keyInput = page.getByPlaceholder('Search sensors, lights, and more…');
+  const keyInput = page.getByPlaceholder('Pick something, or type to filter');
   await autosaved(page, async () => {
     await keyInput.fill('plugin:ha:door');
     await keyInput.blur();
@@ -335,7 +335,7 @@ test('a rule edit survives an immediate switch to the Profiles tab', async ({ pa
 
   // Immediately, inside the debounce window.
   await page.getByTestId('automation-tab-profiles').click();
-  await expect(page.getByRole('button', { name: 'Add Profile' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add a profile' })).toBeVisible();
 
   await expect.poll(async () => {
     const config = await getConfig(request);
@@ -349,7 +349,7 @@ test('a profile edit survives an immediate switch to the Rules tab', async ({ pa
   await putConfig(request, config);
   await page.goto('/editor/settings?section=defaults&page=automation&panel=profiles');
 
-  await page.getByRole('button', { name: 'Add Profile' }).click();
+  await page.getByRole('button', { name: 'Add a profile' }).click();
   await page.getByTestId('automation-tab-rules').click();
   await expect(page.getByRole('button', { name: 'Add Rule' })).toBeVisible();
 

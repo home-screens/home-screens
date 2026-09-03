@@ -12,6 +12,12 @@ import { logger } from '@/lib/logger';
 
 const log = logger('useSettingsAutosave');
 
+/** Stable empty set so the "nothing just saved" state keeps one identity. */
+const EMPTY_FIELD_IDS: ReadonlySet<string> = new Set<string>();
+
+/** How long a just-saved field keeps its confirmation outline. */
+const SAVED_FLASH_MS = 1500;
+
 export type SaveStatus = 'saved' | 'failed' | null;
 
 /** Stages a partial edit into one group of the settings form state. */
@@ -39,6 +45,15 @@ interface UseSettingsAutosaveReturn {
   updateGroup: UpdateSettingsGroup;
   saving: boolean;
   saveMessage: SaveStatus;
+  /**
+   * Field ids (`<group>.<field>`, matching the `data-field-id` attributes the
+   * sidebar search already targets) that were part of the save that just
+   * landed. `useSavedFieldFlash` turns these into a brief outline on the
+   * fields themselves, so a confirmation appears where the edit happened
+   * rather than only as a pill in the window chrome, which on a tall page is
+   * off screen entirely.
+   */
+  savedFieldIds: ReadonlySet<string>;
 }
 
 /**
@@ -59,6 +74,12 @@ export function useSettingsAutosave({
   const [state, setState] = useState<SettingsState>(() => toFormState(settings));
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<SaveStatus>(null);
+
+  // Field ids edited since the last successful save, and the ones the last
+  // save actually carried. Kept in a ref while pending so accumulating edits
+  // during the 500ms debounce doesn't re-render on every keystroke.
+  const pendingFieldIdsRef = useRef<Set<string>>(new Set());
+  const [savedFieldIds, setSavedFieldIds] = useState<ReadonlySet<string>>(EMPTY_FIELD_IDS);
 
   // Re-initialize local state once config arrives (initial load only).
   // Imports re-sync via DataSection's onSettingsImported callback.
@@ -166,8 +187,17 @@ export function useSettingsAutosave({
       setSaveMessage(null);
       try {
         updateSettings(toConfigSettings(latestStateRef.current));
+        const justSaved = pendingFieldIdsRef.current;
+        pendingFieldIdsRef.current = new Set();
         await saveConfig();
         setSaveMessage('saved');
+        if (justSaved.size > 0) {
+          setSavedFieldIds(justSaved);
+          setTimeout(
+            () => setSavedFieldIds((prev) => (prev === justSaved ? EMPTY_FIELD_IDS : prev)),
+            SAVED_FLASH_MS,
+          );
+        }
         // Clear the "Saved" toast after a couple of seconds so it
         // disappears during long idle periods and reappears on the
         // next change.
@@ -190,9 +220,15 @@ export function useSettingsAutosave({
     // setState so the effect's dependency update sees the flag already
     // true on the subsequent render.
     userDirtyRef.current = true;
+    // `<group>.<field>` is the same id shape the fields carry as
+    // `data-field-id`, so no separate registry is needed to connect a staged
+    // edit to the element the user typed into.
+    for (const field of Object.keys(updates)) {
+      pendingFieldIdsRef.current.add(`${String(group)}.${field}`);
+    }
     setState((prev) => ({ ...prev, [group]: { ...prev[group], ...updates } }));
     setSaveMessage(null);
   }, []);
 
-  return { state, setState, updateGroup, saving, saveMessage };
+  return { state, setState, updateGroup, saving, saveMessage, savedFieldIds };
 }

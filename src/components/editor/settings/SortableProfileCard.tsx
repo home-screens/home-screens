@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -18,7 +18,8 @@ import { getActiveProfileId } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle from '@/components/ui/Toggle';
-import type { TranslateFn } from '@/i18n';
+import { useFormattingLocale, type TranslateFn } from '@/i18n';
+import { describeSchedule } from '@/lib/schedule-summary';
 import type { ModuleSchedule, Profile } from '@/types/config';
 
 const TIME_CLASS =
@@ -87,19 +88,46 @@ function SortableScreenRow({ screenId, screenName, screenEnabled, onRemove, t }:
 
 /* ─── Sortable profile card ──────────────────── */
 
+/** Starting points offered while naming a profile. */
+const PROFILE_NAME_SUGGESTION_KEYS = ['morning', 'evening', 'weekend', 'guests'] as const;
+
 interface ProfileCardProps {
   profile: Profile;
   index: number;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  /** Open the name field as soon as this card mounts (a just-added profile). */
+  startRenaming?: boolean;
+  /** Called once `startRenaming` has been acted on, so it fires only once. */
+  onRenameHandled?: () => void;
   t: TranslateFn;
   dayLabels: string[];
 }
 
-export default function SortableProfileCard({ profile, index, isExpanded, onToggleExpand, t, dayLabels }: ProfileCardProps) {
+export default function SortableProfileCard({
+  profile,
+  index,
+  isExpanded,
+  onToggleExpand,
+  startRenaming,
+  onRenameHandled,
+  t,
+  dayLabels,
+}: ProfileCardProps) {
   const { config, selectedDisplayId, updateProfile, removeProfile } = useEditorStore();
+  const formattingLocale = useFormattingLocale();
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+
+  // A freshly added profile opens straight into its name field with the
+  // placeholder name selected, so naming it is the first thing that happens
+  // rather than a second trip through the pencil icon.
+  useEffect(() => {
+    if (!startRenaming) return;
+    setRenamingId(profile.id);
+    setRenameValue('');
+    onRenameHandled?.();
+  }, [startRenaming, profile.id, onRenameHandled]);
 
   const {
     attributes,
@@ -140,6 +168,19 @@ export default function SortableProfileCard({ profile, index, isExpanded, onTogg
   // Screens not in this profile (available to add)
   const includedSet = new Set(profile.screenIds);
   const availableScreens = screens.filter((s) => !includedSet.has(s.id));
+
+  // Screen count plus, when the profile runs on a schedule, that schedule in
+  // the same words the module scheduler uses.
+  const screenCountLabel =
+    includedScreens.length === 1
+      ? t('settings.profilesPage.card.screenCountSingular', { count: includedScreens.length })
+      : t('settings.profilesPage.card.screenCountPlural', { count: includedScreens.length });
+  const summary = profile.schedule
+    ? t('settings.profilesPage.card.summaryScheduled', {
+        screens: screenCountLabel,
+        when: describeSchedule(profile.schedule, t, formattingLocale, config.settings?.timeFormat).short,
+      })
+    : t('settings.profilesPage.card.summaryManual', { screens: screenCountLabel });
 
   const commitRename = () => {
     const trimmed = renameValue.trim();
@@ -216,7 +257,8 @@ export default function SortableProfileCard({ profile, index, isExpanded, onTogg
         </button>
 
         {renamingId === profile.id ? (
-          <div className="flex flex-1 items-center gap-1.5 min-w-0">
+          <div className="flex flex-1 flex-col gap-1.5 min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0">
             <input
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
@@ -233,28 +275,60 @@ export default function SortableProfileCard({ profile, index, isExpanded, onTogg
             <button type="button" onClick={() => setRenamingId(null)} className="text-hs-text-faint hover:text-hs-text-secondary">
               <X className="w-3.5 h-3.5" />
             </button>
+            </div>
+            {/* One tap each. The suggestions teach what a profile is for far
+                faster than the paragraph above the list does. */}
+            <div className="flex flex-wrap gap-1.5">
+              {PROFILE_NAME_SUGGESTION_KEYS.map((key) => {
+                const suggestion = t(`settings.profilesPage.nameSuggestions.${key}`);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => {
+                      updateProfile(profile.id, { name: suggestion });
+                      setRenamingId(null);
+                    }}
+                    className="rounded border border-hs-border-strong bg-hs-card px-2 py-0.5 text-[11px] text-hs-text-muted hover:text-hs-text-body hover:border-hs-text-faint transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ) : (
           <button
             type="button"
             onClick={onToggleExpand}
-            className="flex flex-1 items-center gap-2 min-w-0"
+            className="flex flex-1 flex-col items-start gap-0.5 min-w-0 text-left"
           >
-            <span className="text-sm font-medium text-hs-text-body truncate">{profile.name}</span>
-            {activeProfileId === profile.id && (
-              <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">
-                {t('settings.profilesPage.card.activeBadge')}
-              </span>
-            )}
-            {profile.schedule && (
-              <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">
-                {t('settings.profilesPage.card.scheduledBadge')}
-              </span>
-            )}
+            <span className="flex items-center gap-2 min-w-0 max-w-full">
+              <span className="text-sm font-medium text-hs-text-body truncate">{profile.name}</span>
+              {activeProfileId === profile.id && (
+                <span className="text-[10px] uppercase tracking-wider text-hs-accent-hover bg-hs-accent-soft px-1.5 py-0.5 rounded shrink-0">
+                  {t('settings.profilesPage.card.activeBadge')}
+                </span>
+              )}
+              {profile.schedule && (
+                <span className="text-[10px] uppercase tracking-wider text-hs-success bg-hs-success/10 px-1.5 py-0.5 rounded shrink-0">
+                  {t('settings.profilesPage.card.scheduledBadge')}
+                </span>
+              )}
+            </span>
+            {/* "3 screens · Mon to Fri, 6:00 AM to 9:00 AM". Collapsed cards
+                used to carry nothing but the name and a bare "#2", so working
+                out what any profile actually did meant expanding all of them
+                one at a time. */}
+            <span className="text-[11px] text-hs-text-faint truncate max-w-full">
+              {summary}
+            </span>
           </button>
         )}
 
-        <span className="text-[11px] text-hs-text-faint tabular-nums shrink-0">#{index + 1}</span>
+        <span className="text-[11px] text-hs-text-faint shrink-0">
+          {t('settings.profilesPage.card.priorityBadge', { number: index + 1 })}
+        </span>
 
         <button
           onClick={(e) => {

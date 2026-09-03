@@ -10,6 +10,7 @@ import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, settingsHref, type PerDisplaySubtab } from '@/lib/settings-route';
 import { useTranslate, type TranslateFn } from '@/i18n';
+import Button from '@/components/ui/Button';
 import OverviewSubtab from './OverviewSubtab';
 import OverridesSubtab from './OverridesSubtab';
 
@@ -138,16 +139,23 @@ export default function PerDisplayPage({ displayId, subtab }: PerDisplayPageProp
   if (!config) return null;
   const display = config.displays?.find((d) => d.id === displayId);
   if (!display) {
+    // A stale bookmark or a removed display lands here. The old version said
+    // "Display not found" and stopped, leaving the bad id in the URL and no
+    // way onward but the browser's back button.
     return (
       <div className="max-w-2xl mx-auto py-12 text-center">
         <div className="text-lg font-semibold text-hs-text-body">
-          {t('settings.perDisplayPage.header.notFound')}
+          {t('settings.perDisplayPage.header.notFound', { id: displayId })}
         </div>
         <p className="text-sm text-hs-text-faint mt-2">
-          {t('settings.perDisplayPage.header.notFoundDescPart1')}
-          <code className="text-hs-text-secondary">{displayId}</code>
-          {t('settings.perDisplayPage.header.notFoundDescPart2')}
+          {t('settings.perDisplayPage.header.notFoundDesc')}
         </p>
+        <Button
+          className="mt-4"
+          onClick={() => router.push(settingsHref({ kind: 'displays' }))}
+        >
+          {t('settings.perDisplayPage.header.notFoundAction')}
+        </Button>
       </div>
     );
   }

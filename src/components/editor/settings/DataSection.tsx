@@ -71,6 +71,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     useLayoutFileImport(setImportLayout);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [backupBusy, setBackupBusy] = useState(false);
+  /** Filename of the backup that just downloaded, for the confirmation line. */
+  const [backupSaved, setBackupSaved] = useState<string | null>(null);
 
   // Credential opt-in. Deliberately NOT persisted to config: it resets on
   // every mount, so an accidental tick never becomes the standing default for
@@ -207,13 +209,16 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       const date = new Date().toISOString().slice(0, 10);
       // A distinct filename so a file holding keys is identifiable at a
       // glance in a downloads folder.
-      downloadBlob(
-        blob,
-        withCredentials
-          ? `home-screens-backup-with-keys-${date}.json`
-          : `home-screens-backup-${date}.json`,
-      );
+      const filename = withCredentials
+        ? `home-screens-backup-with-keys-${date}.json`
+        : `home-screens-backup-${date}.json`;
+      downloadBlob(blob, filename);
       setLastBackupDate(new Date().toISOString());
+      // Pressing the button used to change nothing on screen: the file
+      // appeared in the browser's downloads and the only in-app trace was a
+      // "Last backup" date below the fold. Say what happened, where the
+      // button is.
+      setBackupSaved(filename);
     } catch {
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.exportBackupFailed'));
     } finally {
@@ -221,7 +226,21 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     }
   }, [includeCredentials, t]);
 
+  // Say what a restore replaces before the OS file picker takes over the
+  // screen. Opening the picker first put the destructive explanation after
+  // the point of no return.
+  const handleRestoreClick = useCallback(async () => {
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('settings.dataPage.restoreConfirm.title'),
+      message: t('settings.dataPage.restoreConfirm.message'),
+      confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
+      variant: 'danger',
+    });
+    if (ok) backupInputRef.current?.click();
+  }, [t]);
+
   const handleBackupExport = useCallback(async () => {
+    setBackupSaved(null);
     if (includeCredentials && protectCredentials) {
       setShowExportPasswordModal(true);
       return;
@@ -417,49 +436,6 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   return (
     <>
       <div className="space-y-6">
-        {/* Share Layout */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.shareLayout.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.shareLayout.description')}
-          </p>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="primary"
-              onClick={() => setShowExportModal(true)}
-              data-field-id="data.shareLayoutExport"
-            >
-              {t('settings.dataPage.shareLayout.exportButton')}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={openFilePicker}
-              data-field-id="data.shareLayoutImport"
-            >
-              {t('settings.dataPage.shareLayout.importButton')}
-            </Button>
-          </div>
-        </section>
-
-        {/* Templates */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.templates.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.templates.description')}
-          </p>
-          <Button
-            variant="secondary"
-            onClick={() => setShowTemplatePicker(true)}
-            data-field-id="data.templatesBrowse"
-          >
-            {t('settings.dataPage.templates.browseButton')}
-          </Button>
-        </section>
-
         {/* Full Backup */}
         <section>
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
@@ -528,7 +504,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
           <div className="flex items-center gap-3">
             <Button
-              variant="secondary"
+              variant="primary"
               onClick={handleBackupExport}
               disabled={backupBusy}
               data-field-id="data.fullBackupExport"
@@ -537,13 +513,19 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => backupInputRef.current?.click()}
+              onClick={handleRestoreClick}
               disabled={backupBusy}
               data-field-id="data.fullBackupRestore"
             >
               {t('settings.dataPage.fullBackup.restoreButton')}
             </Button>
           </div>
+
+          {backupSaved && (
+            <p className="mt-2 text-xs text-hs-success" aria-live="polite">
+              {t('settings.dataPage.fullBackup.savedTo', { filename: backupSaved })}
+            </p>
+          )}
         </section>
 
         {/* Config Backups — automatic snapshots from the upgrade pipeline */}
@@ -643,6 +625,49 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                 : t('settings.dataPage.backupReminder.noBackups')}
             </p>
           </div>
+        </section>
+
+        {/* Share Layout */}
+        <section>
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+            {t('settings.dataPage.shareLayout.heading')}
+          </h3>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.dataPage.shareLayout.description')}
+          </p>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setShowExportModal(true)}
+              data-field-id="data.shareLayoutExport"
+            >
+              {t('settings.dataPage.shareLayout.exportButton')}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={openFilePicker}
+              data-field-id="data.shareLayoutImport"
+            >
+              {t('settings.dataPage.shareLayout.importButton')}
+            </Button>
+          </div>
+        </section>
+
+        {/* Templates */}
+        <section>
+          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+            {t('settings.dataPage.templates.heading')}
+          </h3>
+          <p className="text-xs text-hs-text-faint mb-3">
+            {t('settings.dataPage.templates.description')}
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => setShowTemplatePicker(true)}
+            data-field-id="data.templatesBrowse"
+          >
+            {t('settings.dataPage.templates.browseButton')}
+          </Button>
         </section>
       </div>
 

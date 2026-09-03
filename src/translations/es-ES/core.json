@@ -50,23 +50,23 @@
     "seconds": "{count} s"
   },
   "displayNotFound": {
-    "notRegistered": "Pantalla no registrada",
-    "adoptionLine1": "Esta pantalla está conectada al hub pero aún no se ha adoptado.",
-    "adoptionLine2": "Abre el editor en el hub, ve a",
+    "notRegistered": "Pantalla aún no añadida",
+    "adoptionLine1": "Esta pantalla está conectada a Home Screens pero aún no se ha añadido.",
+    "adoptionLine2": "Abre el editor en la Pi principal, ve a",
     "settingsLink": "Ajustes → Pantallas",
     "andClick": "y haz clic en",
-    "adoptLabel": "Adoptar",
+    "adoptLabel": "Añadir",
     "nextTo": "junto a",
-    "waitingForAdoption": "Esperando adopción…",
-    "recoveryNotice": "Este ID de pantalla no está registrado, pero tu hub tiene otras pantallas configuradas. Cambiando a la pantalla predeterminada en {seconds} s.",
-    "goToDefault": "Ir a la pantalla predeterminada ahora"
+    "waitingForAdoption": "Esperando a que se añada…",
+    "recoveryNotice": "Esta pantalla aún no está configurada, pero las otras sí. Cambiando a la pantalla principal en {seconds} s.",
+    "goToDefault": "Ir a la pantalla principal ahora"
   },
   "login": {
     "checkingAuth": "Comprobando autenticación…",
-    "ipBlocked": "Tu dirección IP está bloqueada",
+    "ipBlocked": "Este dispositivo no puede iniciar sesión",
     "enterPasswordToContinue": "Introduce tu contraseña para continuar",
     "accessRestricted": "Acceso restringido",
-    "accessRestrictedDescription": "Tu dirección IP no está en la lista permitida. Iniciar sesión no ayudará — el servidor rechazará todas las solicitudes desde tu dirección. Contacta con un administrador para añadir tu IP a la lista, o conéctate desde una red permitida.",
+    "accessRestrictedDescription": "Home Screens solo acepta conexiones desde ciertos dispositivos y este no está en la lista. Iniciar sesión no servirá de nada. Pídele a quien configuró Home Screens que añada este dispositivo, o inténtalo desde uno que ya esté permitido.",
     "passwordPlaceholder": "Contraseña",
     "rememberMe": "Recuérdame durante 90 días",
     "signingIn": "Iniciando sesión…",
@@ -74,7 +74,7 @@
     "loading": "Cargando…",
     "backToDisplay": "Volver a la pantalla",
     "loginFailed": "Error al iniciar sesión",
-    "unreachable": "No se puede contactar con el servidor",
+    "unreachable": "No se puede conectar con Home Screens",
     "errors": {
       "wrongPassword": "Esa contraseña no es correcta.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "¿Has olvidado la contraseña?",
       "title": "Restablecer la contraseña",
-      "body": "Quien configuró este dispositivo puede borrar la contraseña. En el propio dispositivo (con un teclado conectado) o por SSH, ejecuta:",
+      "body": "Quien configuró este dispositivo puede borrar la contraseña. En el propio dispositivo (con un teclado conectado) o desde otro ordenador en un terminal, ejecuta:",
       "fallback": "Si ese comando no existe, borrar el archivo {file} de la carpeta de Home Screens hace lo mismo.",
       "after": "Después Home Screens se abre sin contraseña y puedes poner una nueva en los ajustes."
     }
   },
   "errors": {
-    "fetchFailed": "Error al cargar los datos",
+    "fetchFailed": "No se pudo conectar para cargar estos datos",
     "loadImagesFailed": "Error al cargar las imágenes",
     "uploadFailed": "Error al subir",
     "createFolderFailed": "Error al crear la carpeta",

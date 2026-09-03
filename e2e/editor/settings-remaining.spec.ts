@@ -74,23 +74,21 @@ test('Defaults › Integrations renders without error', async ({ page, request }
   await putConfig(request, baseConfig());
   await page.goto('/editor/settings?section=defaults&page=integrations');
 
-  // The section shows a loading paragraph until /api/secrets resolves, then
-  // renders its single page heading. It's an <h2>, not the <h3> the plan
-  // assumed (only the per-service card names live below it, and those are
-  // plain divs).
-  await expect(page.getByRole('heading', { name: 'Integrations', level: 2 })).toBeVisible();
+  // The page heading comes from `DefaultsPageShell` now, so it is the <h1>
+  // every Defaults page renders, and it reads "API keys", the same name the
+  // sidebar row and the breadcrumb use. It used to say "Integrations" while
+  // the sidebar said "API keys".
+  await expect(page.getByRole('heading', { name: 'API keys', level: 1 })).toBeVisible();
 });
 
 test('Defaults › Data: triggering a backup responds', async ({ page, request }) => {
   await putConfig(request, baseConfig());
   await page.goto('/editor/settings?section=defaults&page=data');
 
-  // The button is labeled "Backup All Data" (not "Backup now"/"Create backup").
   // handleBackupExport GETs /api/backup, builds a JSON blob, and triggers a
-  // client-side download — there is NO "success/complete/saved" status text.
-  // The observable success signals are the file download firing and the
-  // "Last backup:" line replacing "No backups recorded yet".
-  const backupButton = page.getByRole('button', { name: 'Backup All Data' });
+  // client-side download. Pressing it now also states what it produced, right
+  // under the button.
+  const backupButton = page.getByRole('button', { name: 'Save a backup' });
   await expect(backupButton).toBeVisible();
 
   const downloadPromise = page.waitForEvent('download');
@@ -100,6 +98,9 @@ test('Defaults › Data: triggering a backup responds', async ({ page, request }
   expect(download.suggestedFilename()).toMatch(/^home-screens-backup-.*\.json$/);
 
   await expect(page.getByText(/Last backup:/)).toBeVisible();
+  // Pressing the button used to change nothing on screen; now it names the
+  // file it wrote.
+  await expect(page.getByText(/Saved home-screens-backup-.*\.json to your downloads\./)).toBeVisible();
 });
 
 test('Defaults › Stats renders without error', async ({ page, request }) => {

@@ -32,16 +32,19 @@ test('setting a password from the Security page enables auth and shows a display
   await page.goto(SECURITY_URL);
 
   // Section-level trigger (unique while the modal is closed).
-  await page.getByRole('button', { name: 'Set Password' }).click();
+  await page.getByRole('button', { name: 'Set a password' }).click();
 
   const modal = passwordModal(page);
   await modal.getByPlaceholder('New password (min 8 characters)').fill(PASSWORD);
   await modal.getByPlaceholder('Confirm new password').fill(PASSWORD);
-  await modal.getByRole('button', { name: 'Set Password', exact: true }).click();
+  await modal.getByRole('button', { name: 'Turn it on', exact: true }).click();
 
   // Status flips as soon as the POST succeeds.
-  await expect(page.getByText('Authentication is enabled')).toBeVisible();
-  // DisplayTokenPanel renders once the auto-generated token lands.
+  await expect(page.getByText('Password is on')).toBeVisible();
+  // The display token, signed-in devices and the IP allowlist live under one
+  // "Advanced network access" disclosure: the page leads with what the
+  // password covers, not with network administration.
+  await page.getByText('Advanced network access').click();
   await expect(page.getByRole('button', { name: 'Reveal' })).toBeVisible();
 });
 
@@ -50,7 +53,7 @@ test('logging in and changing the password works end to end', async ({ page, con
   expect((await context.cookies()).some((c) => c.name === 'hs-session')).toBe(true);
 
   await page.goto(SECURITY_URL);
-  await page.getByRole('button', { name: 'Change Password' }).click();
+  await page.getByRole('button', { name: 'Change password' }).click();
 
   const modal = passwordModal(page);
   await modal.getByPlaceholder('Current password').fill(PASSWORD);
@@ -65,6 +68,7 @@ test('the display token can be revealed and regenerated', async ({ page }) => {
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
+  await page.getByText('Advanced network access').click();
   // The token <code> uniquely carries the `select-all` class.
   const tokenCode = page.locator('code.select-all');
   await expect(tokenCode).toBeVisible();
@@ -72,7 +76,7 @@ test('the display token can be revealed and regenerated', async ({ page }) => {
   await page.getByRole('button', { name: 'Reveal' }).click();
   const before = await tokenCode.innerText();
 
-  await page.getByRole('button', { name: 'Regenerate Token' }).click();
+  await page.getByRole('button', { name: 'Make a new key' }).click();
   // The confirm button reads "Confirm" (not "Regenerate"); it's the only
   // Confirm on screen since session-revocation confirm isn't triggered.
   await page.getByRole('button', { name: 'Confirm', exact: true }).click();
@@ -86,25 +90,29 @@ test('the IP allowlist rejects a malformed entry with an inline error', async ({
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
+  // The allowlist sits under the "Advanced network access" disclosure.
+  await page.getByText('Advanced network access').click();
   const entryInput = page.getByPlaceholder('192.168.1.0/24');
   await expect(entryInput).toBeVisible();
 
-  // A value that fails the dotted-quad shape → "Invalid IP address". The bad
+  // A value that fails the dotted-quad shape → "That isn't an address". The bad
   // entry is never added to the list, so nothing gets saved.
   await entryInput.fill('not-an-ip');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(page.getByText('Invalid IP address')).toBeVisible();
+  await expect(page.getByText("That isn't an address")).toBeVisible();
   await expect(page.getByText('not-an-ip')).toHaveCount(0);
 
-  // A valid IP with an out-of-range prefix → "Prefix length must be 0-32".
+  // A valid IP with an out-of-range prefix → the slash-number explanation.
   await entryInput.fill('10.0.0.0/99');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await expect(page.getByText('Prefix length must be 0-32')).toBeVisible();
+  await expect(page.getByText('The number after the slash has to be between 0 and 32.')).toBeVisible();
 });
 
 test('the IP allowlist accepts an entry and saves', async ({ page }) => {
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
+
+  await page.getByText('Advanced network access').click();
 
   const entryInput = page.getByPlaceholder('192.168.1.0/24');
   await expect(entryInput).toBeVisible();
@@ -125,14 +133,15 @@ test('disabling auth from the Security page removes the login gate', async ({ pa
   await login(page, NEW_PASSWORD);
   await page.goto(SECURITY_URL);
 
-  // Section trigger is "Disable Authentication"; the modal submit is "Disable".
-  await page.getByRole('button', { name: 'Disable Authentication' }).click();
+  // Section trigger says what it does to the password; the modal submit is
+  // still the short "Disable".
+  await page.getByRole('button', { name: 'Turn the password off' }).click();
 
   const modal = passwordModal(page);
   await modal.getByPlaceholder('Current password').fill(NEW_PASSWORD);
   await modal.getByRole('button', { name: 'Disable', exact: true }).click();
 
-  await expect(page.getByText('Authentication is disabled')).toBeVisible();
+  await expect(page.getByText('No password yet')).toBeVisible();
 
   // With auth off, the editor loads without bouncing to /login even with no session.
   await context.clearCookies();

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import {
   Activity,
   BookOpen,
+  ChevronDown,
+  ExternalLink,
   Calendar,
   CloudSun,
   Database,
@@ -24,9 +26,12 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
-const REPO_URL = 'https://github.com/home-screens/home-screens';
-const WEBSITE_URL = 'https://homescreens.dev';
 const DOCS_URL = 'https://homescreens.dev/docs';
+
+/** localStorage key for the collapsed sidebar groups. */
+const COLLAPSED_GROUPS_KEY = 'hs-settings-collapsed-groups';
+/** Stable identity for "nothing collapsed", the default. */
+const EMPTY_GROUPS: ReadonlySet<SidebarGroup> = new Set();
 import { useEditorStore } from '@/stores/editor-store';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
@@ -275,6 +280,36 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
     [searchParams],
   );
 
+  // Which groups the user has collapsed, remembered per browser. A viewing
+  // preference, not a household setting, so it stays out of config.json. The
+  // default is empty: every group starts expanded, exactly as the list looked
+  // before this existed.
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<SidebarGroup>>(EMPTY_GROUPS);
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(COLLAPSED_GROUPS_KEY);
+      if (!stored) return;
+      const parsed: unknown = JSON.parse(stored);
+      if (Array.isArray(parsed)) setCollapsedGroups(new Set(parsed as SidebarGroup[]));
+    } catch {
+      /* Unreadable or blocked storage just means "nothing collapsed". */
+    }
+  }, []);
+
+  const toggleGroup = useCallback((group: SidebarGroup) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(group)) next.delete(group);
+      else next.add(group);
+      try {
+        window.localStorage.setItem(COLLAPSED_GROUPS_KEY, JSON.stringify([...next]));
+      } catch {
+        /* Preference is best-effort; the toggle still works this session. */
+      }
+      return next;
+    });
+  }, []);
+
   const navigate = useCallback((href: string) => {
     // `router.push` updates history AND triggers re-render of every
     // component that reads `useSearchParams` — so the parent settings
@@ -303,7 +338,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
         <div className="px-3.5 pt-3 pb-2">
           <SidebarSearchBox value={search} onChange={setSearch} placeholder={t('settings.sidebar.searchPlaceholder')} />
         </div>
-        <div className="flex-1 overflow-y-auto pb-3">
+        <div className="settings-sidebar-scroll flex-1 overflow-y-auto pb-3">
           {noResults ? (
             <p className="px-3.5 py-4 text-xs text-hs-text-faint text-center">{t('settings.sidebar.noResults')}</p>
           ) : (
@@ -313,6 +348,8 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
                 grouped={query.length === 0}
                 activeRoute={activeRoute}
                 navigate={navigate}
+                collapsedGroups={collapsedGroups}
+                onToggleGroup={toggleGroup}
                 t={t}
               />
               {filteredDefaultPages.length > 0 && displaysEntryMatches && (
@@ -347,7 +384,7 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
       <div className="px-3.5 pt-3 pb-2">
         <SidebarSearchBox value={search} onChange={setSearch} placeholder={t('settings.sidebar.searchPlaceholder')} />
       </div>
-      <div className="flex-1 overflow-y-auto pb-3">
+      <div className="settings-sidebar-scroll flex-1 overflow-y-auto pb-3">
       {noResults ? (
         <p className="px-3.5 py-4 text-xs text-hs-text-faint text-center">{t('settings.sidebar.noResults')}</p>
       ) : (
@@ -366,6 +403,8 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
             grouped={query.length === 0}
             activeRoute={activeRoute}
             navigate={navigate}
+            collapsedGroups={collapsedGroups}
+            onToggleGroup={toggleGroup}
             t={t}
           />
         </>
@@ -445,12 +484,16 @@ function GroupedPageList({
   grouped,
   activeRoute,
   navigate,
+  collapsedGroups,
+  onToggleGroup,
   t,
 }: {
   pages: ReturnType<typeof buildDefaultPages>;
   grouped: boolean;
   activeRoute: SettingsRoute;
   navigate: (href: string) => void;
+  collapsedGroups: ReadonlySet<SidebarGroup>;
+  onToggleGroup: (group: SidebarGroup) => void;
   t: TranslateFn;
 }) {
   const renderItems = (items: ReturnType<typeof buildDefaultPages>) =>
@@ -472,14 +515,36 @@ function GroupedPageList({
 
   return (
     <>
-      {groupPages(pages).map(({ group, pages: groupMembers }) => (
-        <div key={group}>
-          <div className="px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint/70 font-semibold">
-            {t(`settings.sidebar.groups.${group}`)}
+      {groupPages(pages).map(({ group, pages: groupMembers }) => {
+        // Expanded is the default and the stored state only ever narrows it:
+        // nobody should arrive at a sidebar that has hidden its own contents.
+        // The group holding the active page is never collapsed, so navigating
+        // into a page always shows where you are.
+        const holdsActive = groupMembers.some(
+          (p) => activeRoute.kind === 'defaults' && activeRoute.page === p.id,
+        );
+        const collapsed = !holdsActive && collapsedGroups.has(group);
+        return (
+          <div key={group}>
+            <button
+              type="button"
+              onClick={() => onToggleGroup(group)}
+              aria-expanded={!collapsed}
+              className="w-full flex items-center gap-1.5 px-3.5 pt-3 pb-0.5 text-[10px] uppercase tracking-wider text-hs-text-faint/70 font-semibold hover:text-hs-text-faint transition-colors"
+            >
+              <ChevronDown
+                className={`w-2.5 h-2.5 shrink-0 transition-transform ${collapsed ? '-rotate-90' : ''}`}
+                aria-hidden="true"
+              />
+              <span className="flex-1 text-left">{t(`settings.sidebar.groups.${group}`)}</span>
+              {collapsed && (
+                <span className="tabular-nums text-hs-text-faint/70">{groupMembers.length}</span>
+              )}
+            </button>
+            {!collapsed && renderItems(groupMembers)}
           </div>
-          {renderItems(groupMembers)}
-        </div>
-      ))}
+        );
+      })}
     </>
   );
 }
@@ -489,53 +554,28 @@ function GroupedPageList({
  * legacy and multi-display modes. The parent `<nav>` is a flex column
  * with a `flex-1 overflow-y-auto` body above this, so the footer stays
  * visible regardless of how far the Defaults / Per display lists scroll.
+ *
+ * One labelled row rather than the three bare icons it replaced. A book, a
+ * house and the GitHub mark carried their meaning only in a hover title,
+ * which does not exist on the touchscreen this editor is often used from.
+ * The website and repository links moved into the docs site's own footer,
+ * where someone looking for them is already standing; what a person wants
+ * from the editor is help with the page they are on, which is what the
+ * per-page "Learn more" links in `DefaultsPageShell` now answer.
  */
 function SidebarFooter() {
   const t = useTranslate('editor');
   return (
-    <div className="flex items-center justify-end gap-3 border-t border-hs-border px-3.5 py-2">
+    <div className="border-t border-hs-border py-1">
       <a
         href={DOCS_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
-        title={t('settings.sidebar.docsTitle')}
-        aria-label={t('settings.sidebar.docsAriaLabel')}
+        className="w-full flex items-center gap-2.5 px-3.5 py-1.5 text-[13px] text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover transition-colors"
       >
-        <BookOpen className="w-4 h-4" aria-hidden="true" />
-      </a>
-      <a
-        href={WEBSITE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
-        title={t('settings.sidebar.websiteTitle')}
-        aria-label={t('settings.sidebar.websiteAriaLabel')}
-      >
-        <svg
-          className="w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M3 11 12 4 21 11" />
-          <rect x="5" y="11" width="14" height="9" rx="2" />
-          <line x1="9" y1="15" x2="14" y2="15" />
-        </svg>
-      </a>
-      <a
-        href={REPO_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-hs-text-faint hover:text-hs-text-body transition-colors"
-        title={t('settings.sidebar.githubTitle')}
-        aria-label={t('settings.sidebar.githubAriaLabel')}
-      >
-        <i className="fa-brands fa-github text-base leading-none" aria-hidden="true" />
+        <BookOpen className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+        <span className="flex-1 text-left">{t('settings.sidebar.helpAndDocs')}</span>
+        <ExternalLink className="w-3 h-3 shrink-0 text-hs-text-faint" aria-hidden="true" />
       </a>
     </div>
   );

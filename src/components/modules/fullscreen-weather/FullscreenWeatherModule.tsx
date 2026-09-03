@@ -180,9 +180,9 @@ export default function FullscreenWeatherModule({
   const skyOn = (config.skyLayer ?? 'auto') !== 'off';
   const motionOn = config.animateConditions !== false;
 
-  // The fullscreen views always show a place name (unlike the widget, whose
-  // header is opt-in), so `showLocation` is pinned true and the null branch
-  // only fires when there are no coordinates at all.
+  // The fullscreen views always show a place name (unlike the standard weather
+  // module, whose header is opt-in), so `showLocation` is pinned true and the
+  // null branch only fires when there are no coordinates at all.
   const locationLabel = resolveWeatherLocationLabel(
     { showLocation: true, locationLabel: config.locationLabel },
     locationName,

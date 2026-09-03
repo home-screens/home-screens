@@ -64,18 +64,6 @@ export default function AutomationSection({ panel: routePanel }: { panel?: strin
 
   return (
     <>
-      <div className="mb-5">
-        <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-          {t('settings.automationPage.breadcrumb')}
-        </div>
-        <h1 className="text-xl font-semibold text-hs-text-primary">
-          {t('settings.automationPage.heading')}
-        </h1>
-        <p className="text-sm text-hs-text-faint mt-1">
-          {t('settings.automationPage.description')}
-        </p>
-      </div>
-
       {/* One display picker for the whole page. Profiles, rules, and the
           shared-state inspector are all per-display (they reference the
           owning display's screens and bus), so a single "which display am

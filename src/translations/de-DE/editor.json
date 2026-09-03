@@ -126,8 +126,8 @@
     "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt",
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
     "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
-    "conditionMetTitle": "Bedingungen erfüllt — wird auf dem Display angezeigt",
-    "conditionUnmetTitle": "Bedingungen nicht erfüllt — auf dem Display ausgeblendet",
+    "conditionMetTitle": "Bedingungen erfüllt, wird auf dem Display angezeigt",
+    "conditionUnmetTitle": "Bedingungen nicht erfüllt, auf dem Display ausgeblendet",
     "conditionMetTitleEditor": "Bedingungen erfüllt, würde gerade angezeigt",
     "conditionUnmetTitleEditor": "Bedingungen nicht erfüllt, würde gerade ausgeblendet",
     "status": {
@@ -396,10 +396,6 @@
       "searchPlaceholder": "Einstellungen durchsuchen…",
       "noResults": "Keine Einstellungen gefunden",
       "matchingFields": "Passende Felder",
-      "websiteAriaLabel": "homescreens.dev besuchen",
-      "websiteTitle": "homescreens.dev",
-      "githubAriaLabel": "Auf GitHub ansehen",
-      "githubTitle": "Auf GitHub ansehen",
       "navLabels": {
         "calendar": "Kalender",
         "weather": "Wetter",
@@ -422,8 +418,7 @@
         "automation": "Automatisierung",
         "admin": "Wartung"
       },
-      "docsTitle": "Dokumentation",
-      "docsAriaLabel": "Dokumentation ansehen"
+      "helpAndDocs": "Hilfe & Doku"
     },
     "overrideRow": {
       "override": "Überschreiben",
@@ -454,9 +449,7 @@
       "description": "Standard-Dimm-/Schlafzeitplan und Bildschirmschoner für jedes Display. Ein bestimmtes Display kann den gesamten Block von seiner eigenen Seite aus überschreiben."
     },
     "locationAndLanguagePage": {
-      "breadcrumb": "Standardwerte → Standort & Sprache",
-      "title": "Standort & Sprache",
-      "description": "Wähle die überall verwendete Sprache und lege dann den Standort fest, der von Wetter und anderen standortabhängigen Modulen verwendet wird."
+      "description": "Wo dieses Zuhause liegt und wie Datum, Uhrzeit und Sprache angezeigt werden."
     },
     "locationPage": {
       "heading": "Standort",
@@ -499,13 +492,9 @@
         "disconnect": "Verbindung trennen",
         "selectCalendars": "Kalender zur Anzeige auswählen",
         "noCalendars": "Keine Kalender gefunden.",
-        "notInListing": "Nicht mehr in der Google-Kalenderliste",
         "primaryBadge": "(primär)",
         "hideDeclinedLabel": "Abgesagte Termine ausblenden",
-        "credentialsRequired": "Google-OAuth-Anmeldedaten sind erforderlich, um deinen Kalender zu verbinden.",
-        "credentialsSetupPart1": "Lege deine Client-ID und dein Client-Secret zuerst unter ",
-        "settingsIntegrationsLink": "Einstellungen → Integrationen",
-        "credentialsSetupPart2": " an.",
+        "credentialsRequired": "Um deinen Kalender zu verbinden, brauchst du eine Google-Anmeldung, die du selbst anlegst. Trage sie unter API-Schlüssel ein.",
         "deviceCodeIntro": "Öffne den unten stehenden Link auf deinem Telefon oder Computer und gib dann den Code ein:",
         "waitingForAuthorization": "Warte auf Autorisierung …",
         "signIn": "Mit Google anmelden",
@@ -517,7 +506,12 @@
         "signInHelp": "Melde dich an, um deine Kalender automatisch anzuzeigen. Erfordert einen Google-OAuth-Client vom Typ „TVs and Limited Input devices“ in der Cloud Console.",
         "copyCode": "Code kopieren",
         "codeCopied": "Kopiert!",
-        "googleOnly": "Nur Google"
+        "googleOnly": "Nur Google",
+        "pausedExplanation": "Google ist gerade nicht verbunden, deshalb aktualisieren sich diese Kalender nicht mehr. Melde dich oben erneut an, um sie zurückzuholen.",
+        "pausedBadge": "Pausiert",
+        "removeTitle": "{name} entfernen",
+        "credentialsSetupPrefix": "Füge deine Google-Anmeldung auf der Seite ",
+        "credentialsSetupSuffix": " zuerst hinzu."
       },
       "icloud": {
         "heading": "iCloud-Kalender",
@@ -584,7 +578,6 @@
         "show": "Was angezeigt wird",
         "showDescription": "Grenzen, von denen jedes Kalendermodul ausgeht. Ein Modul kann mit eigenen Filtern weiter eingrenzen."
       },
-      "heading": "Kalender",
       "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt."
     },
     "dataPage": {
@@ -617,28 +610,29 @@
         "browseButton": "Vorlagen durchsuchen"
       },
       "fullBackup": {
-        "heading": "Vollständiges Backup",
-        "description": "Exportiere oder stelle alles wieder her: alle Einstellungen, Aufgabendaten und den Verlauf der Erledigungen. Für Backups und für den Umzug auf ein neues Gerät.",
+        "heading": "Kopie sichern",
+        "description": "Eine Datei mit allem: Bildschirme, Einstellungen, Aufgaben und der Verlauf der Familie. Damit ziehst du auf ein neues Gerät um.",
         "working": "Arbeitet …",
-        "backupButton": "Alle Daten sichern",
-        "restoreButton": "Backup wiederherstellen",
-        "includeCredentialsLabel": "Meine API-Schlüssel und verbundenen Konten mitsichern",
+        "backupButton": "Sicherung speichern",
+        "restoreButton": "Aus einer Datei wiederherstellen",
+        "includeCredentialsLabel": "Meine Schlüssel und verbundenen Konten mitnehmen",
         "includeCredentialsHelp": "Umfasst Wetter- und Kartenschlüssel, Google, iCloud, Immich, OneDrive, Plugin-Logins und dein Editor-Passwort.",
         "protectLabel": "Mit einem Passwort schützen",
         "plaintextWarning": "Wer diese Datei öffnet, kann deine Konten nutzen. Bewahre sie an einem privaten Ort auf.",
-        "needsEditorPassword": "Lege zuerst unter Sicherheit ein Editor-Passwort fest. Ohne eines könnte jeder in deinem Netzwerk die Schlüssel in deinem Backup lesen, wenn diese Funktion aktiviert ist."
+        "needsEditorPassword": "Braucht zuerst ein Passwort, damit die Datei nicht von jedem gelesen werden kann, der sie findet.",
+        "savedTo": "{filename} in deine Downloads gespeichert."
       },
       "backupReminder": {
         "heading": "Backup-Erinnerung",
         "description": "Erhalte eine Benachrichtigung im Editor, wenn du eine Weile kein Backup mehr erstellt hast.",
-        "enableLabel": "Backup-Erinnerungen aktivieren",
+        "enableLabel": "Erinnere mich, wenn ich lange nicht gesichert habe",
         "remindAfterLabel": "Erinnern nach",
         "lastBackup": "Letztes Backup: {date}",
         "noBackups": "Noch keine Backups erfasst"
       },
       "configBackups": {
-        "heading": "Konfigurations-Backups",
-        "description": "Einstellungs-Schnappschüsse, die vor jedem Update automatisch gespeichert werden. Stelle einen wieder her, um Änderungen an den Einstellungen rückgängig zu machen; um zu einer älteren Version der App zurückzukehren, nutze die Seite System.",
+        "heading": "Automatische Schnappschüsse",
+        "description": "Home Screens sichert vor jedem Update einen Schnappschuss deiner Einstellungen, damit ein misslungenes Update rückgängig gemacht werden kann. Nichts einzurichten.",
         "empty": "Noch keine Backups. Backups werden automatisch vor jeder Aktualisierung erstellt.",
         "sizeKb": "{size} KB",
         "download": "Herunterladen",
@@ -680,10 +674,15 @@
         "wrongPassword": "Dieses Passwort hat nicht funktioniert. Versuch es erneut oder stelle ohne deine Schlüssel wieder her.",
         "damagedKeys": "Die Schlüssel in dieser Datei sind beschädigt und nicht lesbar. Alles andere kannst du trotzdem wiederherstellen.",
         "reloadFailed": "Dein Backup wurde wiederhergestellt, aber der Editor konnte nicht neu laden. Lade die Seite neu, um es zu sehen."
+      },
+      "description": "Alles sichern, wiederherstellen oder mit einer Vorlage neu anfangen.",
+      "restoreConfirm": {
+        "title": "Aus einer Datei wiederherstellen?",
+        "message": "Das ersetzt alle deine Einstellungen, Bildschirme, Aufgaben und Essenspläne durch den Inhalt der Datei. Alles, was du seit dieser Datei geändert hast, ist weg. Vorher wird ein Schnappschuss deiner aktuellen Einrichtung gesichert, das lässt sich also rückgängig machen.",
+        "confirm": "Datei auswählen…"
       }
     },
     "weatherPage": {
-      "heading": "Wetter",
       "description": "Richte unten einen oder mehrere Wetteranbieter ein. Einzelne Wetter-Module können jeden eingerichteten Anbieter auswählen; einer davon wird als Standard verwendet.",
       "unitsLabel": "Einheiten",
       "imperialOption": "Imperial (°F, mph)",
@@ -833,7 +832,7 @@
     },
     "perDisplayPage": {
       "header": {
-        "openTitle": "Kiosk-URL dieses Displays öffnen",
+        "openTitle": "Adresse dieses Displays öffnen",
         "openLabel": "Öffnen",
         "editScreensTitle": "Bildschirme dieses Displays in der Anzeigefläche bearbeiten",
         "editScreensLabel": "Bildschirme bearbeiten",
@@ -842,13 +841,13 @@
         "statusOffline": "Offline",
         "screenCountSingular": "1 Bildschirm",
         "screenCountPlural": "{count} Bildschirme",
-        "notFound": "Display nicht gefunden",
-        "notFoundDescPart1": "Kein Display mit der ID ",
-        "notFoundDescPart2": " registriert.",
+        "notFound": "Es gibt kein Display namens „{id}“",
         "subtabs": {
           "overview": "Übersicht",
           "overrides": "Überschreibungen"
-        }
+        },
+        "notFoundDesc": "Es wurde vielleicht entfernt, oder der Link ist veraltet.",
+        "notFoundAction": "Alle Displays anzeigen"
       },
       "overview": {
         "activeProfileLabel": "Aktives Profil",
@@ -894,13 +893,13 @@
       },
       "identity": {
         "displayNameLabel": "Display-Name",
-        "displayNameHelp": "Wird in der Seitenleiste und im Display-Kiosk angezeigt. Speichert beim Verlassen automatisch.",
+        "displayNameHelp": "Wird in der Seitenleiste und auf dem Display angezeigt. Wird gespeichert, sobald du woanders hin klickst.",
         "displayIdLabel": "Display-ID",
-        "displayIdHelpPart1": "Wird in der Kiosk-URL ",
+        "displayIdHelpPart1": "Wird in der Adresse dieses Displays ",
         "displayIdHelpPart2": " verwendet. Kann nicht geändert werden, ohne den Pi neu zu konfigurieren.",
         "dangerZoneHeading": "Gefahrenbereich",
-        "dangerZoneMainHelp": "Das Hauptdisplay ist der Hub-Kiosk und kann nicht entfernt werden. Beim Entfernen würden seine Bildschirme verwaisen und der Hub auf einen nicht adoptierten Zustand zurückgesetzt.",
-        "dangerZoneRemovableHelp": "Beim Entfernen eines Displays wird es nicht mehr ausgeliefert und seine Bildschirme werden gelöscht. Der Pi kann sich erneut als nicht adoptiert registrieren.",
+        "dangerZoneMainHelp": "Das Hauptdisplay ist das, was dieser Pi selbst anzeigt, und kann deshalb nicht entfernt werden. Beim Entfernen hätten seine Bildschirme kein Zuhause mehr.",
+        "dangerZoneRemovableHelp": "Beim Entfernen eines Displays wird es nicht mehr ausgeliefert und seine Bildschirme werden gelöscht. Dieser Pi kann hier wieder auftauchen und auf das Hinzufügen warten.",
         "removeButton": "{name} entfernen",
         "removeConfirm": "Display „{name}“ entfernen? Dadurch werden seine Bildschirme gelöscht."
       },
@@ -974,7 +973,7 @@
         "needsSetupTitle": "Automatische Updates einschalten",
         "connectLabel": "Verbinde dich damit",
         "runLabel": "Dann führe das aus",
-        "connectUnknown": "Verbinde dich per SSH mit diesem Display (der Benutzername ist {user}) und führe dann aus:"
+        "connectUnknown": "Verbinde dich von einem Terminal aus mit dem Pi dieses Displays (der Benutzername ist {user}) und führe dann aus:"
       }
     },
     "alertFormFields": {
@@ -1001,7 +1000,7 @@
       "apiTypesPart3": ", "
     },
     "sleepFormFields": {
-      "enableLabel": "Display-Schlaf aktivieren",
+      "enableLabel": "Nach Zeitplan dimmen oder ausschalten",
       "enableHelp": "Dimmt das Display oder schaltet es automatisch aus. Maus-, Touch- oder Tastatureingaben wecken es wieder auf.",
       "idleSectionTitle": "Wenn niemand es benutzt",
       "idleDimLabel": "Nach ein paar ruhigen Minuten dimmen",
@@ -1027,22 +1026,22 @@
       "screensaverClock": "Treibende Uhr",
       "screensaverBlank": "Schwarz (nur dimmen)",
       "screensaverOff": "Aus (direkt schlafen)",
-      "dimmedSectionHelp": "Gilt immer, wenn das Display gedimmt ist, egal wodurch.",
+      "dimmedSectionHelp": "Der Bildschirmschoner erscheint immer, wenn das Display gedimmt ist, zum Beispiel per Fernbedienung.",
       "nothingDimsNote": "Dieses Display dimmt sich gerade nicht von selbst. Der Bildschirmschoner erscheint trotzdem, wenn es über die Fernbedienung gedimmt wird.",
       "legend": {
         "bright": "Hell",
         "dim": "Gedimmt",
         "off": "Aus",
         "idleNote": "+ dimmt nach {minutes} ruhigen Minuten, jederzeit"
-      }
+      },
+      "disabledHelp": "Schalte das ein, um Zeiten festzulegen. Im Moment bleibt das Display Tag und Nacht hell."
     },
     "integrationsPage": {
-      "heading": "Integrationen",
-      "description": "Verbinde externe Dienste, um zusätzliche Module und Funktionen freizuschalten. API-Schlüssel werden lokal gespeichert und verlassen dein Gerät niemals.",
+      "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät und werden nirgendwohin gesendet.",
       "loadingStatus": "Integrationsstatus wird geladen …",
       "summary": {
         "configuredCountPart1": " von ",
-        "configuredCountPart2": " Integrationen konfiguriert"
+        "configuredCountPart2": " verbunden"
       },
       "groups": {
         "googleEcosystem": "Google-Ökosystem",
@@ -1054,17 +1053,31 @@
         "description": "Kalender, Maps, Fotos",
         "clientIdLabel": "Client-ID für Kalender",
         "clientIdPlaceholder": "z. B. 123456789-abc.apps.googleusercontent.com",
-        "clientIdHelp": "Für Google Kalender. Erstelle unter console.cloud.google.com → APIs & Services → Credentials. Verwende den Typ: TVs and Limited Input devices.",
+        "clientIdHelp": "Beide Hälften stammen aus derselben Anmeldung.",
         "clientSecretLabel": "Client-Geheimnis für Kalender",
         "clientSecretPlaceholder": "z. B. GOCSPX-…",
         "clientSecretHelp": "Das Client-Secret derselben OAuth-Anmeldedaten von oben.",
         "webClientIdLabel": "Client-ID für Foto-Import",
-        "webClientIdHelp": "Ein zweites OAuth-Zugangsdatenpaar für den Google-Fotos-Import. Typ: Webanwendung, mit https://homescreens.dev/connect/google als autorisierter Weiterleitungs-URI.",
+        "webClientIdHelp": "Füge https://homescreens.dev/connect/google als autorisierte Weiterleitungs-URI hinzu.",
         "webClientSecretLabel": "Client-Geheimnis für Foto-Import",
         "webClientSecretHelp": "Das Client-Geheimnis aus dem Webanwendungs-Zugangsdatenpaar oben.",
         "mapsKeyLabel": "Maps-API-Schlüssel",
         "mapsKeyPlaceholder": "Füge deinen Google-Maps-API-Schlüssel ein",
-        "mapsKeyHelp": "Optional, für das Verkehrs-/Pendel-Modul. Aktiviere die Routes API im selben Cloud-Console-Projekt."
+        "mapsKeyHelp": "Füge den Schlüssel aus demselben Cloud-Console-Projekt ein.",
+        "stepByStep": "Schritt-für-Schritt-Anleitung",
+        "calendarBand": {
+          "title": "Für deinen Kalender",
+          "help": "Google verlangt, dass du zuerst eine Anmeldung für dein Zuhause anlegst. Erstelle in der Google Cloud Console eine OAuth-Anmeldung vom Typ „TVs and Limited Input devices“ und füge dann beide Hälften hier ein."
+        },
+        "photosBand": {
+          "title": "Zum Importieren von Google Fotos",
+          "help": "Eine eigene Anmeldung, getrennt von der für den Kalender, vom Typ „Web application“. Nur nötig, wenn du Fotos holen willst. Sonst überspringen."
+        },
+        "mapsBand": {
+          "title": "Für Fahrzeiten",
+          "help": "Optional. Nur das Verkehrs-Modul nutzt das. Aktiviere die Routes API im selben Cloud-Console-Projekt."
+        },
+        "clientIdInvalid": "Das sieht nicht richtig aus. Eine Client-ID endet auf {suffix}."
       },
       "immich": {
         "name": "Immich",
@@ -1136,12 +1149,12 @@
         "connectButton": "Mit verstecktem Netzwerk verbinden …"
       },
       "hostname": {
-        "heading": "Hostname",
+        "heading": "Gerätename",
         "placeholder": "home-screens",
         "saveButton": "Speichern",
         "savingButton": "Speichert …",
-        "successMessage": "Hostname aktualisiert",
-        "defaultErrorMessage": "Hostname konnte nicht aktualisiert werden"
+        "successMessage": "Gerätename aktualisiert",
+        "defaultErrorMessage": "Gerätename konnte nicht aktualisiert werden"
       },
       "interface": {
         "type": {
@@ -1285,7 +1298,8 @@
         "requestFailed": "Diagnose-Anfrage fehlgeschlagen",
         "testButton": "Verbindung testen",
         "testingButton": "Wird getestet …"
-      }
+      },
+      "description": "Das WLAN und die Adresse, die dieses Display verwendet."
     },
     "mealsPage": {
       "loading": "Mahlzeiten-Einstellungen werden geladen …",
@@ -1308,7 +1322,7 @@
       },
       "timeFormat": {
         "heading": "Zeitformat",
-        "description": "Gilt für jede Mahlzeitenanzeige im Kiosk und in der Fernsteuerung.",
+        "description": "Gilt überall, wo Mahlzeiten angezeigt werden, auf dem Display und auf dem Handy.",
         "twelveHourLabel": "12-Stunden",
         "twentyFourHourLabel": "24-Stunden",
         "followLabel": "Globale Einstellung folgen"
@@ -1324,7 +1338,8 @@
       "reset": {
         "button": "Auf Standardwerte zurücksetzen",
         "help": "Stellt Frühstück/Mittagessen/Abendessen, Wochenstart Sonntag und 12-Stunden-Format wieder her und entfernt alle Standardzeiten."
-      }
+      },
+      "description": "Welche Mahlzeiten ihr plant und wann sie üblicherweise stattfinden."
     },
     "systemPage": {
       "loading": "System-Informationen werden geladen …",
@@ -1341,7 +1356,8 @@
         "stableChannel": "Stable-Kanal",
         "prereleaseChannel": "Pre-Release-Kanal",
         "checkButton": "Nach Updates suchen",
-        "checking": "Wird geprüft …"
+        "checking": "Wird geprüft …",
+        "currentLabel": "Du nutzt Version {version}"
       },
       "upgradeInProgress": {
         "title": "Aktualisierung läuft",
@@ -1370,10 +1386,12 @@
         "noNotes": "Diese Version hat keine Hinweise."
       },
       "history": {
-        "heading": "Versionsverlauf",
+        "heading": "Wenn ein Update Ärger gemacht hat",
         "currentBadge": "aktuell",
-        "rollback": "Zurücksetzen",
-        "help": "Kehrt zu einer älteren Version der App zurück. Um stattdessen Einstellungsänderungen rückgängig zu machen, stelle einen Schnappschuss auf der Seite Backups & Daten wieder her."
+        "rollback": "Hierhin zurück",
+        "help": "Zurück zu der Version, auf der du vorher warst. Um stattdessen eine Einstellungsänderung rückgängig zu machen, stelle einen Schnappschuss auf der Seite Sicherungen & Daten wieder her.",
+        "showAll": "Alle {count} Versionen anzeigen",
+        "olderWarning": "Ältere Versionen verstehen deine aktuellen Einstellungen möglicherweise nicht."
       },
       "upgradeDialog": {
         "title": "Aktualisieren",
@@ -1381,15 +1399,15 @@
         "confirm": "Aktualisieren"
       },
       "rollbackDialog": {
-        "title": "Zurücksetzen",
-        "message": "Auf {tag} zurücksetzen? Der Server startet neu.",
-        "confirm": "Zurücksetzen"
+        "title": "Zurück zu {tag}?",
+        "message": "Home Screens startet neu und die Wand ist ein paar Sekunden leer. Einstellungen, die du seitdem geändert hast, funktionieren in {tag} möglicherweise nicht. Vorher wird ein Schnappschuss deiner aktuellen Einrichtung gespeichert, du kannst also zurück.",
+        "confirm": "Zurück zu {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "System neu starten",
+        "rebootTitle": "Ganzes Gerät neu starten",
         "rebootMessage": "Möchtest du das System wirklich neu starten? Du verlierst kurz die Verbindung.",
         "rebootConfirm": "Neu starten",
-        "restartTitle": "Dienst neu starten",
+        "restartTitle": "Home Screens neu starten",
         "restartMessage": "Möchtest du den Dienst wirklich neu starten? Du verlierst kurz die Verbindung.",
         "restartConfirm": "Neu starten"
       },
@@ -1399,17 +1417,18 @@
         "confirm": "Aktualisierung abbrechen"
       },
       "actions": {
-        "heading": "System-Aktionen",
-        "restartService": "Dienst neu starten",
-        "rebootSystem": "System neu starten",
-        "help": "„Dienst neu starten“ lädt die App neu. „System neu starten“ startet den gesamten Raspberry Pi neu."
+        "heading": "Wenn etwas hängt",
+        "restartService": "Home Screens neu starten",
+        "rebootSystem": "Ganzes Gerät neu starten",
+        "help": "Home Screens neu zu starten lädt die App neu und dauert ein paar Sekunden. Das Gerät neu zu starten dauert ein bis zwei Minuten."
       },
       "powerStatus": {
         "restartScheduled": "Dienst-Neustart geplant. Die Seite wird gleich neu geladen …",
         "rebootScheduled": "System-Neustart geplant. Das Display kommt in Kürze wieder online …",
         "processing": "Wird verarbeitet …",
         "unknownError": "Unbekannter Fehler"
-      }
+      },
+      "description": "Home Screens aktuell halten und zurückgehen, wenn ein Update Ärger macht."
     },
     "profilesPage": {
       "heading": "Profile",
@@ -1420,13 +1439,12 @@
         "help": "Profile sind pro Display, weil sie auf die jeweiligen Bildschirme eines Displays verweisen. Ein Wechsel hier ändert auch das Display, an dem der Editor-Canvas arbeitet."
       },
       "active": {
-        "label": "Aktives Profil",
-        "noneOption": "Keines (alle Bildschirme anzeigen)",
-        "help": "Lege manuell fest, welches Profil aktiv ist. Geplante Profile haben Vorrang vor dieser Einstellung."
+        "label": "Wird gerade gezeigt",
+        "noneOption": "Jeder Bildschirm",
+        "help": "Ein geplantes Profil übernimmt, sobald seine Zeit kommt, egal was hier gewählt ist."
       },
       "priority": {
-        "labelPrefix": "Reihenfolge der Priorität:",
-        "helpSuffix": " Wenn mehrere Profile sich überschneidende Zeitpläne haben, gewinnt das zuerst gelistete Profil. Ziehe zum Umsortieren."
+        "help": "Wenn sich zwei Profile überschneiden, gewinnt das weiter oben in der Liste. Zum Umsortieren ziehen."
       },
       "addButton": "Profil hinzufügen",
       "newProfileName": "Profil {number}",
@@ -1445,17 +1463,28 @@
         "scheduleToggleLabel": "Automatisch nach Zeitplan aktivieren",
         "fromLabel": "Von",
         "untilLabel": "Bis",
-        "invertLabel": "Umkehren (in diesem Zeitfenster stattdessen ausblenden)"
+        "invertLabel": "Umkehren (in diesem Zeitfenster stattdessen ausblenden)",
+        "priorityBadge": "Priorität {number}",
+        "screenCountSingular": "1 Bildschirm",
+        "screenCountPlural": "{count} Bildschirme",
+        "summaryScheduled": "{screens} · {when}",
+        "summaryManual": "{screens} · nur wenn du es auswählst"
       },
       "deleteDialog": {
         "title": "Profil löschen",
         "message": "„{name}“ löschen?",
         "confirm": "Löschen"
+      },
+      "nameSuggestions": {
+        "morning": "Schulmorgen",
+        "evening": "Abend",
+        "weekend": "Wochenende",
+        "guests": "Gäste"
       }
     },
     "rulesPage": {
       "heading": "Regeln",
-      "description": "Mit Regeln reagiert das Display auf das, was zu Hause passiert. Wenn die Bedingungen einer Regel zutreffen, kann sie zu einem Bildschirm wechseln oder das Display aufwecken, zum Beispiel den Kamera-Bildschirm zeigen, wenn es an der Tür klingelt.",
+      "description": "Regeln lassen das Display von selbst reagieren. Sobald zutrifft, was du beschreibst, kann es zu einem Bildschirm wechseln oder aufwachen, zum Beispiel die Haustürkamera zeigen, wenn es klingelt.",
       "displayPicker": {
         "label": "Regeln bearbeiten für",
         "optionLabel": "{name} ({id})",
@@ -1525,7 +1554,7 @@
           "one": "{count} Wert von deinen Erweiterungen verfügbar",
           "other": "{count} Werte von deinen Erweiterungen verfügbar"
         },
-        "truncationNote": "Nur die ersten {count} werden angezeigt — suche, um mehr zu finden",
+        "truncationNote": "Nur die ersten {count} werden angezeigt. Suche, um mehr zu finden",
         "collapseGroup": "{producer} einklappen",
         "expandGroup": "{producer} ausklappen",
         "noProviders": "Noch nichts zum Teilen verfügbar. Werte kommen von Erweiterungen, die sie teilen (wie Home Assistant). Sobald eine Erweiterung eingerichtet ist, erscheinen ihre Werte hier.",
@@ -1552,93 +1581,94 @@
       "providerHealthSince": "seit {time}"
     },
     "securityPage": {
-      "loading": "Anmeldungsstatus wird geprüft …",
-      "heading": "Anmeldung",
+      "loading": "Wird geprüft …",
       "status": {
-        "enabled": "Anmeldung ist aktiviert",
-        "disabled": "Anmeldung ist deaktiviert"
+        "enabled": "Passwort ist an",
+        "disabled": "Noch kein Passwort",
+        "enabledOutcome": "Der Editor und die Familien-Fernbedienung fragen danach. Das Wanddisplay und die Aufgabenseite der Kinder bleiben offen, am Kühlschrank ändert sich also nichts.",
+        "disabledOutcome": "Jeder in deinem WLAN kann den Editor und die Familien-Fernbedienung öffnen."
       },
       "setup": {
-        "description": "Lege ein Passwort fest, um den Editor und die API-Endpunkte zu schützen. Ein Display-Token wird automatisch erzeugt, damit das Display sich nahtlos anmelden kann.",
+        "description": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne.",
         "setPasswordButton": "Passwort festlegen"
       },
       "actions": {
         "changePassword": "Passwort ändern",
-        "disableAuth": "Anmeldung deaktivieren",
+        "disableAuth": "Passwort ausschalten",
         "logOut": "Abmelden"
       },
       "revokeSessions": {
-        "button": "Alle Sitzungen widerrufen",
-        "warning": "Alle Sitzungen werden ungültig, auch diese.",
+        "button": "Alle abmelden",
+        "warning": "Alle Angemeldeten werden abgemeldet, auch du auf diesem Gerät.",
         "confirmButton": "Bestätigen",
-        "revoking": "Wird widerrufen …",
+        "revoking": "Wird abgemeldet …",
         "cancel": "Abbrechen",
-        "success": "Alle Sitzungen widerrufen. Du wirst zur Anmeldung weitergeleitet …",
-        "failed": "Sitzungen konnten nicht widerrufen werden"
+        "success": "Alle sind abgemeldet. Weiter zur Anmeldung …",
+        "failed": "Abmelden fehlgeschlagen"
       },
       "displayToken": {
-        "heading": "Display-Token",
-        "description": "Das Display verwendet diesen Token, um API-Anfragen zu authentifizieren. Er wurde automatisch erzeugt, als du ein Passwort festgelegt hast.",
+        "heading": "Display-Schlüssel",
+        "description": "Deine Displays öffnen Home Screens mit diesem Schlüssel, ohne das Passwort einzugeben. Er wurde erstellt, als du das Passwort festgelegt hast.",
         "reveal": "Anzeigen",
         "hide": "Verbergen",
         "copy": "Kopieren",
         "copied": "Kopiert!",
-        "regenerateButton": "Token neu erzeugen",
+        "regenerateButton": "Neuen Schlüssel erstellen",
         "regenerating": "Wird erzeugt …",
         "regenerateConfirm": "Bestätigen",
         "regenerateCancel": "Abbrechen",
-        "regenerateWarning": "Das Display muss neu geladen werden, um den neuen Token zu übernehmen.",
-        "errorRegenerate": "Token konnte nicht neu erzeugt werden",
+        "regenerateWarning": "Jedes Display lädt einmal neu, um den neuen Schlüssel zu übernehmen.",
+        "errorRegenerate": "Neuer Schlüssel konnte nicht erstellt werden",
         "errorCopy": "Kopieren fehlgeschlagen; bitte manuell auswählen und kopieren",
         "phoneHintPart1": "Für Lesezeichen am Telefon hänge ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " an die Befehls-URLs an."
       },
       "ipAllowlist": {
-        "heading": "IP-Zulassungsliste",
+        "heading": "Zugelassene Netzwerke",
         "bypassAuth": {
-          "label": "Anmeldung für vertrauenswürdige IPs überspringen",
-          "help": "Displays in diesen Netzwerken benötigen keinen Token"
+          "label": "Diese Netzwerke ohne Passwort hereinlassen",
+          "help": "Displays in diesen Netzwerken kommen ohne Schlüssel hinein"
         },
         "restrictAccess": {
-          "label": "Zugriff auf vertrauenswürdige IPs beschränken",
-          "help": "Blockiere alle anderen IPs (außer der Anmeldeseite) am Zugriff auf das System"
+          "label": "Nur diese Netzwerke zulassen",
+          "help": "Alles andere wird abgewiesen, außer der Anmeldeseite."
         },
-        "emptyHint": "Füge mindestens einen IP-Bereich hinzu, um diese Optionen zu aktivieren.",
+        "emptyHint": "Füge mindestens einen Netzwerkbereich hinzu, um das einzuschalten.",
         "removeAriaLabel": "{entry} entfernen",
         "addPlaceholder": "192.168.1.0/24",
         "addButton": "Hinzufügen",
         "errors": {
-          "invalidCidr": "Ungültiges CIDR-Format",
-          "invalidIp": "Ungültige IP-Adresse",
-          "invalidPrefix": "Präfixlänge muss 0–32 sein",
+          "invalidCidr": "Das ist kein Netzwerkbereich. Die meisten Heimnetze sind 192.168.1.0/24.",
+          "invalidIp": "Das ist keine Adresse",
+          "invalidPrefix": "Die Zahl nach dem Schrägstrich muss zwischen 0 und 32 liegen.",
           "alreadyInList": "Bereits in der Liste"
         },
         "callerIpLabel": "Deine IP: ",
         "lockoutWarning": {
           "title": "Du könntest dich aussperren",
           "messagePart1": "Deine aktuelle IP (",
-          "messagePart2": ") ist nicht in der Zulassungsliste. Wenn die Zugriffsbeschränkung aktiv ist, verlierst du den Zugriff auf diesen Editor.",
+          "messagePart2": ") steht nicht auf der Liste. Wenn du nur diese Netzwerke zulässt, verlierst du den Zugriff auf diesen Editor.",
           "saveAnyway": "Trotzdem speichern",
           "cancel": "Abbrechen"
         },
         "saveButton": "Änderungen speichern",
-        "lockedOutHintPart1": "Falls du ausgesperrt bist, bearbeite ",
+        "lockedOutHintPart1": "Falls du dich aussperrst, bearbeite ",
         "lockedOutHintCode": "data/auth.json",
-        "lockedOutHintPart2": " auf dem Gerät, um es zu deaktivieren.",
+        "lockedOutHintPart2": " auf dem Gerät, um das abzuschalten.",
         "ipv4Warning": {
-          "strong": "Nur IPv4.",
-          "part1": " IPv6-Clients (auch Dual-Stack-Pis, die ",
+          "strong": "Adressen mit Doppelpunkten passen nicht.",
+          "part1": " Diese Liste versteht nur Adressen wie 192.168.1.20. Ein Gerät, das sich als ",
           "loopback": "::1",
           "or": " oder ",
           "linkLocal": "fe80::…",
-          "part2": " melden) entsprechen keinem Listeneintrag und werden bei aktiver Beschränkung blockiert. Prüfe „Deine IP“ oben; wenn sie mit einem Doppelpunkt beginnt, sperrt dich diese Funktion aus."
+          "part2": " meldet, passt zu keinem Eintrag hier und wird blockiert. Prüfe oben „Deine IP“: Stehen darin Doppelpunkte, sperrt dich diese Einstellung aus."
         },
         "trustedNetworksWarning": {
           "strong": "Nur vertrauenswürdige Netzwerke.",
-          "part1": " Die IP-Beschränkung liest den ",
+          "part1": " Diese Prüfung liest den ",
           "header": "X-Forwarded-For",
-          "part2": "-Header. Wenn Home Screens ohne vertrauenswürdigen Reverse-Proxy direkt im Internet steht, kann diese Einstellung manipuliert werden."
+          "part2": "-Header. Ist Home Screens ohne vertrauenswürdigen Proxy davor aus dem Internet erreichbar, kann jemand diesen Header fälschen und daran vorbeikommen."
         }
       },
       "modal": {
@@ -1650,12 +1680,13 @@
         "confirmPasswordPlaceholder": "Neues Passwort bestätigen",
         "disableWarning": "Dadurch wird das Passwort entfernt und jeder in deinem Netzwerk kann den Editor nutzen.",
         "cancel": "Abbrechen",
-        "setSubmit": "Passwort festlegen",
+        "setSubmit": "Einschalten",
         "setting": "Wird festgelegt …",
         "changeSubmit": "Passwort ändern",
         "changing": "Wird geändert …",
         "disableSubmit": "Deaktivieren",
-        "disabling": "Wird deaktiviert …"
+        "disabling": "Wird deaktiviert …",
+        "setExplanation": "Ein Passwort für das ganze Haus. Danach fragen die Familien-Fernbedienung und der Editor danach. Das Wanddisplay und die Aufgabenseite der Kinder funktionieren weiter ohne."
       },
       "errors": {
         "passwordsDoNotMatch": "Passwörter stimmen nicht überein",
@@ -1668,7 +1699,12 @@
         "passwordChanged": "Passwort geändert. Alle anderen Sitzungen wurden ungültig.",
         "authDisabled": "Anmeldung deaktiviert."
       },
-      "forgotPasswordHint": "Passwort vergessen? Führe am Gerät {command} aus. Auch das Löschen der Datei {file} im Home-Screens-Ordner setzt es zurück."
+      "forgotPasswordHint": "Passwort vergessen? Führe am Gerät {command} aus. Auch das Löschen der Datei {file} im Home-Screens-Ordner setzt es zurück.",
+      "description": "Wer etwas ändern darf und von wo aus.",
+      "advanced": {
+        "heading": "Erweiterter Netzwerkzugriff",
+        "description": "Display-Schlüssel, angemeldete Geräte und die Beschränkung auf bestimmte Netzwerke."
+      }
     },
     "shared": {
       "secretField": {
@@ -1679,7 +1715,9 @@
         "checkingButton": "Wird geprüft…",
         "detailsToggle": "Details",
         "saveAnyway": "Trotzdem speichern"
-      }
+      },
+      "savesAutomatically": "Änderungen werden automatisch gespeichert.",
+      "learnMore": "Mehr erfahren"
     },
     "localBackgrounds": {
       "none": "Kein Hintergrund",
@@ -1703,14 +1741,14 @@
         "heading": "Nicht verifiziertes Plugin",
         "message": "Dieses Plugin wurde nicht vom Home-Screens-Team geprüft. Installation auf eigenes Risiko."
       },
-      "permissionsHeading": "Angefragte Berechtigungen",
+      "permissionsHeading": "Was dieses Plugin darf",
       "permissions": {
         "network": "Netzwerkzugriff",
         "secrets": "Secret-Speicher",
         "events": "Host-Events",
         "storage": "Lokaler Speicher",
         "localNetwork": "Lokales Netzwerk (LAN)",
-        "oauth": "Kontoanmeldung (OAuth)"
+        "oauth": "Kontoanmeldung"
       },
       "secretsHeading": "Benötigte API-Schlüssel",
       "secretRequired": "(erforderlich)",
@@ -1853,7 +1891,7 @@
       "diagnosticsBundle": "Diagnose-Bundle",
       "generatingBundle": "Wird erstellt…",
       "bundleFailed": "Bundle-Erstellung fehlgeschlagen: {error}",
-      "hostname": "Hostname",
+      "hostname": "Gerätename",
       "platform": "Plattform",
       "uptime": "Betriebszeit",
       "hardwareTitle": "CPU & Temperatur",
@@ -1880,8 +1918,7 @@
       "moduleSummary": "{count} Module · {types} Typen",
       "moduleOther": "andere",
       "integrations": "Integrationen",
-      "integrationsConfigured": "{count} / {total} konfiguriert",
-      "cacheTitle": "Datencache",
+      "cacheTitle": "Gespeicherte Daten",
       "hideDetails": "Details ausblenden",
       "showDetails": "Details einblenden",
       "hitRate": "Trefferquote",
@@ -1900,8 +1937,8 @@
       "cacheState": "Status",
       "cacheStaleLabel": "veraltet",
       "cacheFreshLabel": "aktuell",
-      "cacheNoDisplay": "Cache-Statistiken werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden.",
-      "cacheNoDisplayForName": "Cache-Statistiken werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden für {name}.",
+      "cacheNoDisplay": "Diese Zahlen kommen von einem Display. Gerade ist keins verbunden.",
+      "cacheNoDisplayForName": "Diese Zahlen kommen von einem Display. {name} ist gerade nicht verbunden.",
       "telemetryTitle": "Anonyme Telemetrie",
       "telemetryDescription": "Home Screens erhebt anonyme Nutzungsstatistiken, um die Priorisierung von Funktionen und das Verständnis der App-Nutzung zu unterstützen. Es werden keine personenbezogenen Daten, IP-Adressen oder Inhalte erfasst.",
       "telemetryToggle": "Anonyme Nutzungsdaten senden",
@@ -1933,7 +1970,7 @@
       "indexOf": "{index} von {total}",
       "profile": "Profil",
       "viewport": "Ansichtsbereich",
-      "notChromium": "Nicht Chromium",
+      "notChromium": "Anderer Browser",
       "lastSeen": "Zuletzt gesehen",
       "timeAgo": "vor {age}",
       "noDisplayPrefix": "Keine Anzeige verbunden. Öffne",
@@ -1945,7 +1982,8 @@
       "deviceMemoryLabel": "Gerätespeicher",
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browser-Informationen werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden.",
-      "noBrowserStatsForName": "Browser-Informationen werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden für {name}."
+      "noBrowserStatsForName": "Browser-Informationen werden vom Anzeigeclient gemeldet. Keine Anzeige verbunden für {name}.",
+      "description": "Wie es deinen Displays und diesem Gerät gerade geht."
     },
     "displaysIndex": {
       "breadcrumb": "Anzeigen",
@@ -1954,7 +1992,7 @@
         "one": "{count} Anzeige in diesem Zuhause",
         "other": "{count} Anzeigen in diesem Zuhause"
       },
-      "emptyDescriptionPrefix": "Steuern Sie mehrere Bildschirme von diesem Pi aus (ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV), jeder mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub und liefert sie alle aus; zusätzliche Anzeigen können günstige Pi Zeros mit ",
+      "emptyDescriptionPrefix": "Steuern Sie mehrere Bildschirme von diesem Pi aus (ein Küchen-Touchscreen, ein Schlafzimmer-Monitor, ein Wohnzimmer-TV), jeder mit eigenem Layout, eigener Auflösung und Drehung. Dieser Pi wird zum Hub (der Pi, auf dem Home Screens läuft und der alle Anzeigen bedient); zusätzliche Anzeigen können günstige Pi Zeros mit ",
       "emptyDescriptionSuffix": " sein.",
       "populatedDescriptionPrefix": "Klicken Sie auf eine Anzeige, um ihre eigenen Einstellungen zu bearbeiten. Alles andere verwendet die gemeinsamen ",
       "populatedDescriptionSuffix": ".",
@@ -1962,29 +2000,29 @@
       "refreshHeartbeatsTitle": "Heartbeats aktualisieren",
       "addDisplay": "Anzeige hinzufügen",
       "emptyTitle": "Diese Installation läuft im Einzelanzeige-Modus",
-      "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht registriert; Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
+      "emptyParagraphPart1": "Ihr aktuelles Setup zählt als eine Anzeige, ist hier aber noch nicht hinzugefügt; Multi-Display-Unterstützung ist optional, damit bestehende Installationen unverändert bleiben, bis Sie explizit einen zweiten Bildschirm hinzufügen. Sobald Sie Ihre erste Anzeige hinzufügen, wird das aktuelle Layout dieses Pi zu einer Anzeige namens ",
       "emptyParagraphPart2": " und läuft genauso weiter wie heute.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Klicken Sie oben auf ",
-      "emptyBullet1Suffix": ", um einen neuen Bildschirm zu registrieren. Geben Sie ihm einen Namen, eine Auflösung und Drehung, und gestalten Sie sein Layout im Editor.",
+      "emptyBullet1Suffix": ", um einen neuen Bildschirm hinzuzufügen. Geben Sie ihm einen Namen, eine Auflösung und Drehung, und gestalten Sie sein Layout im Editor.",
       "emptyBullet2Prefix": "Oder flashen Sie einen weiteren Pi mit ",
       "emptyBullet2Middle": ". Sobald er bootet, erscheint er unten als ",
-      "emptyBullet2Suffix": ", die mit einem Klick adoptiert werden kann.",
-      "unadoptedLabel": "nicht adoptierte Anzeige",
+      "emptyBullet2Suffix": ", die mit einem Klick hinzugefügt werden kann.",
+      "unadoptedLabel": "Anzeige, die auf das Hinzufügen wartet",
       "unadoptedWaiting": {
-        "one": "{count} nicht adoptierte Anzeige wartet",
-        "other": "{count} nicht adoptierte Anzeigen warten"
+        "one": "{count} Anzeige wartet auf das Hinzufügen",
+        "other": "{count} Anzeigen warten auf das Hinzufügen"
       },
-      "unadoptedHintPrefix": "Diese Pis sind mit dem Hub verbunden, aber noch nicht registriert. Klicken Sie auf ",
+      "unadoptedHintPrefix": "Diese Pis sind mit dem Hub verbunden, aber noch nicht hinzugefügt. Klicken Sie auf ",
       "unadoptedHintSuffix": ", um ihnen Bildschirme zuzuweisen.",
-      "adoptStrong": "Adoptieren",
-      "adoptButton": "Adoptieren",
+      "adoptStrong": "Hinzufügen",
+      "adoptButton": "Hinzufügen",
       "lastSeenLabel": "Zuletzt gesehen {time}",
       "reportedDimensions": "{width}×{height} gemeldet",
       "reportedFrom": "von {address}",
       "multipleClientsHeading": "{count} Clients melden sich mit dieser ID",
       "multipleClientsParagraphPrefix": "Zwei oder mehr Clients senden POSTs mit dieser Anzeige-ID. Überprüfen Sie die Quell-IPs oben, um herauszufinden, welches Gerät tatsächlich meldet; meistens eine doppelte ",
-      "multipleClientsParagraphSuffix": "-Installation, ein verirrter Chromium-Tab oder ein Hub-Kiosk, der auf die falsche URL zeigt.",
+      "multipleClientsParagraphSuffix": "-Installation, ein verirrter Browser-Tab oder ein Display, das auf die falsche Adresse zeigt.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Inaktiv · {time}",
       "statusOffline": "Offline · {time}",
@@ -1998,7 +2036,7 @@
       "multipleClientsCardHeading": "{count} verschiedene Clients melden für diese Anzeige",
       "tabsSuffix": "×{count} Tabs",
       "formEditTitle": "Anzeige bearbeiten",
-      "formAdoptTitle": "{id} adoptieren",
+      "formAdoptTitle": "{id} hinzufügen",
       "formAddTitle": "Anzeige hinzufügen",
       "formNameLabel": "Name",
       "formNamePlaceholder": "Küchen-Touchscreen",
@@ -2009,7 +2047,7 @@
       "formReportedViewport": "(von Anzeige gemeldet: {width} × {height})",
       "formWidth": "Breite",
       "formHeight": "Höhe",
-      "formResolutionHint": "Stellen Sie dies auf die physische Anzeige ein, auf der der Kiosk läuft. Module werden gegen diese Canvas-Größe angeordnet, wenn Sie die Bildschirme dieser Anzeige bearbeiten.",
+      "formResolutionHint": "Stellen Sie dies auf den physischen Bildschirm ein, auf dem dieses Display läuft. Module werden gegen diese Canvas-Größe angeordnet, wenn Sie die Bildschirme dieser Anzeige bearbeiten.",
       "formRotationNormal": "Normal (Querformat)",
       "formRotation90": "90° im Uhrzeigersinn (Hochformat)",
       "formRotation180": "180° (umgekehrt)",
@@ -2038,15 +2076,12 @@
       }
     },
     "screenPage": {
-      "breadcrumb": "Standardwerte → Bildschirm",
       "heading": "Standard-Bildschirmeinstellungen",
       "rotationAppearanceHeading": "Rotation & Darstellung",
       "sleepHeading": "Ruhezustand & Dimmen",
       "alertsHeading": "Hinweise"
     },
     "automationPage": {
-      "breadcrumb": "Standardwerte → Automatisierung",
-      "heading": "Automatisierung",
       "description": "Profile, Regeln und Live-Werte je Display.",
       "displayPicker": {
         "label": "Automatisierung bearbeiten für",
@@ -2055,8 +2090,6 @@
       }
     },
     "phonePage": {
-      "breadcrumb": "Standardwerte → Auf dem Handy",
-      "title": "Auf dem Handy",
       "description": "Zwei Adressen, beide lassen sich auf jedem Handy oder Tablet im WLAN zu Hause öffnen. Nichts zu installieren.",
       "open": "Öffnen",
       "chores": {
@@ -2069,7 +2102,7 @@
       "password": {
         "label": "Passwort für die Familien-Fernbedienung verlangen",
         "checking": "Wird geprüft …",
-        "on": "An. Die Kinderseite bleibt in beiden Fällen offen.",
+        "on": "An. Die Fernbedienung und der Editor fragen danach; die Aufgabenseite der Kinder bleibt offen.",
         "off": "Aus. Alle im WLAN können sie öffnen.",
         "setUpAction": "Einrichten",
         "manageAction": "Verwalten"
@@ -2085,7 +2118,7 @@
   "backgroundPicker": {
     "missing": {
       "label": "Hintergrundbild",
-      "note": "Dieses Bild ist nicht mehr auf dem Hub, deshalb zeigt der Bildschirm stattdessen die einfarbige Fläche. Wähle ein anderes oder entferne es.",
+      "note": "Dieses Bild ist nicht mehr auf diesem Pi, deshalb zeigt der Bildschirm stattdessen die einfarbige Fläche. Wähle ein anderes oder entferne es.",
       "pickAnother": "Bild auswählen",
       "useSolid": "Einfarbig lassen"
     },
@@ -2204,7 +2237,7 @@
   "choreChartModal": {
     "title": "Aufgabentafel",
     "subtitleMembersChores": "{members} Mitglieder · {chores} Aufgaben",
-    "loadError": "Aufgaben konnten nicht geladen werden — Änderungen werden nicht gespeichert.",
+    "loadError": "Aufgaben konnten nicht geladen werden. Änderungen werden nicht gespeichert.",
     "members": {
       "columnTitle": "Familienmitglieder",
       "empty": "Noch keine Mitglieder",
@@ -2520,7 +2553,7 @@
   "layoutImport": {
     "alerts": {
       "invalidLayoutFile": "Ungültige Layout-Datei:\n{errors}",
-      "invalidJsonFile": "Ungültige JSON-Datei."
+      "invalidJsonFile": "Diese Datei ist kein Layout, das Home Screens lesen kann."
     }
   },
   "installFromUrlModal": {
@@ -2570,7 +2603,7 @@
       "other": "{count} Symbole"
     },
     "noMatch": "Keine Symbole passen zu „{query}“. Versuche ein anderes Stichwort.",
-    "moreResults": "+{count} weitere — verfeinere die Suche, um sie zu sehen.",
+    "moreResults": "+{count} weitere. Verfeinere die Suche, um sie zu sehen.",
     "chooseIconPlaceholder": "Symbol auswählen…",
     "browse": "Durchsuchen",
     "kindAll": "Alle",
@@ -2824,7 +2857,7 @@
       "defaultTarget": "Standardziel",
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",
-      "legacyHint": "Nur ein Display registriert – Ziel ist auf dieses Display festgelegt.",
+      "legacyHint": "Es gibt nur ein Display, also wird genau dieses gesteuert.",
       "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
       "compact": "Nur Symbole, keine Wörter"
     },
@@ -3172,7 +3205,7 @@
     "googlePhotosImport": {
       "importButton": "Aus Google Fotos importieren",
       "checking": "Wird geprüft…",
-      "credentialsNeeded": "Um aus Google Fotos zu importieren, füge unter Einstellungen → Integrationen eine Client-ID und ein Client-Geheimnis für den Google-Fotos-Import hinzu.",
+      "credentialsNeeded": "Um aus Google Fotos zu importieren, füge unter Einstellungen → API-Schlüssel eine Client-ID und ein Client-Geheimnis für den Google-Fotos-Import hinzu.",
       "signInIntro": "Melde dich mit Google an und füge dann den Code ein, den du am Ende erhältst.",
       "signIn": "Mit Google anmelden",
       "pastePlaceholder": "Code oder Link hier einfügen",
@@ -3668,7 +3701,7 @@
       "checking": "Wird geprüft …",
       "connected": "Verbunden",
       "notConfigured": "Nicht konfiguriert.",
-      "settingsIntegrationsLink": "Einstellungen → Integrationen",
+      "settingsIntegrationsLink": "Einstellungen → API-Schlüssel",
       "title": "Name der Liste",
       "viewMode": "Ansicht",
       "groupByLabel": "Gruppieren nach",
@@ -3924,7 +3957,7 @@
       "apiKeyHint": "Erstelle einen API-Schlüssel in Immich → Kontoeinstellungen → API-Schlüssel",
       "errors": {
         "loadPhotos": "Fotos konnten nicht geladen werden",
-        "fetchImage": "Bild konnte nicht abgerufen werden"
+        "fetchImage": "Dieses Bild lässt sich nicht laden"
       }
     },
     "unsplash": {
@@ -3963,7 +3996,7 @@
         "library": "Bildbibliothek"
       },
       "errors": {
-        "fetch": "NASA-Bilder konnten nicht abgerufen werden"
+        "fetch": "NASA-Bilder lassen sich nicht laden"
       },
       "categories": {
         "nebula": "Nebel",
@@ -4087,7 +4120,7 @@
     "sourceKeyLabel": "Was geprüft wird",
     "sourceKeyHint": "Selbst eingegebene Schlüssel müssen exakt passen, einschließlich des plugin:-Präfixes.",
     "sourceKeyUnknown": "Kein Modul auf diesem Display veröffentlicht diesen Schlüssel bisher. Bis dahin gilt diese Bedingung als unbekannt und das Modul folgt der Einstellung 'Bevor Daten eintreffen'.",
-    "sourceKeyPlaceholder": "Sensoren, Lampen und mehr suchen…",
+    "sourceKeyPlaceholder": "Etwas auswählen oder tippen, um zu filtern",
     "matchLabel": "Vergleich",
     "matchEquals": "Ist",
     "matchNotEquals": "Ist nicht",
@@ -4105,7 +4138,7 @@
     "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
     "whenUnknownHide": "Modul ausblenden",
     "whenUnknownShow": "Modul anzeigen",
-    "noProvidersHint": "Es sind noch keine Zustandsschlüssel zur Auswahl verfügbar. Schlüssel kommen von Plugins, die Werte teilen (zum Beispiel Home Assistant). Du kannst auch selbst einen Schlüssel eintippen.",
+    "noProvidersHint": "Es wird noch nichts geteilt. Verbinde einen Kalender oder installiere das Home-Assistant-Add-on für Türen, Lichter und wer zu Hause ist. Bis dahin funktioniert die Bedingung Tageszeit.",
     "noConditionsHint": "Noch keine Bedingungen. Das Modul wird immer angezeigt, bis eine hinzugefügt wird.",
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
@@ -4141,7 +4174,8 @@
       "untilLabel": "Bis",
       "hint": "Beide Zeiten leer lassen für den ganzen Tag. Ist das Ende früher als der Anfang, geht es über Mitternacht (z. B. 22:00 bis 06:00 Uhr)."
     },
-    "providerHealthNote": "{plugin}: {message}"
+    "providerHealthNote": "{plugin}: {message}",
+    "addOnHint": "Türen, Lichter und wer zu Hause ist kommen vom Home-Assistant-Add-on. Installiere es, dann erscheinen sie auch hier."
   },
   "stateKeys": {
     "calendar": {

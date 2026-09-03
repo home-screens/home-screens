@@ -47,6 +47,8 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
 
   const { config, selectedDisplayId, setSelectedDisplay, addProfile, reorderProfiles, setActiveProfile, saveConfig } = useEditorStore();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  /** The profile whose name field should open on its next render. */
+  const [pendingRenameId, setPendingRenameId] = useState<string | null>(null);
 
   const sensors = useSortableSensors();
 
@@ -102,8 +104,24 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
     });
   };
 
+  // A new profile arrives with its name field already open. It used to land
+  // as a collapsed row called "Profile 2", which said nothing about what it
+  // was for and needed a second, separate click to rename.
   const handleAdd = () => {
+    const before = new Set(profiles.map((p) => p.id));
     addProfile(t('settings.profilesPage.newProfileName', { number: profiles.length + 1 }));
+    const live = useEditorStore.getState();
+    const liveDisplay = live.selectedDisplayId
+      ? live.config?.displays?.find((d) => d.id === live.selectedDisplayId) ?? null
+      : null;
+    const nextProfiles = liveDisplay
+      ? getDisplayProfiles(liveDisplay, live.config?.profiles)
+      : live.config?.profiles ?? [];
+    const added = nextProfiles.find((p) => !before.has(p.id));
+    if (added) {
+      setPendingRenameId(added.id);
+      setExpandedIds((prev) => new Set(prev).add(added.id));
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -183,18 +201,6 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
         </label>
       )}
 
-      {/* Priority note */}
-      {profiles.length > 1 && (
-        <div className="rounded-md bg-hs-card/60 border border-hs-border-strong/50 px-3 py-2 mb-4">
-          <p className="text-xs text-hs-text-muted">
-            <span className="font-medium text-hs-text-secondary">
-              {t('settings.profilesPage.priority.labelPrefix')}
-            </span>
-            {t('settings.profilesPage.priority.helpSuffix')}
-          </p>
-        </div>
-      )}
-
       {/* Sortable profile list */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={profiles.map((p) => p.id)} strategy={verticalListSortingStrategy}>
@@ -206,6 +212,8 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
                 index={index}
                 isExpanded={expandedIds.has(profile.id)}
                 onToggleExpand={() => toggleExpand(profile.id)}
+                startRenaming={pendingRenameId === profile.id}
+                onRenameHandled={() => setPendingRenameId(null)}
                 t={t}
                 dayLabels={dayLabels}
               />
@@ -213,6 +221,16 @@ export default function ProfilesSection({ embedded = false }: ProfilesSectionPro
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Priority note, below the list it describes rather than above it, and
+          present from the first profile onward: the ordering rule used to
+          appear only once a second profile existed, which is after the point
+          where someone needed to know it. */}
+      {profiles.length > 0 && (
+        <p className="text-xs text-hs-text-faint mt-2">
+          {t('settings.profilesPage.priority.help')}
+        </p>
+      )}
 
       <div className="flex items-center gap-3 mt-4">
         <Button variant="secondary" onClick={handleAdd}>

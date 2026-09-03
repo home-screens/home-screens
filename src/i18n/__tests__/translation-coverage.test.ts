@@ -50,6 +50,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|canvas.zoomPercent',
   // "{days}, {time}" — punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
+  // "{screens} · {when}": the profile card's collapsed summary is the screen
+  // count and the schedule, both already localized, joined by a separator.
+  'editor|settings.profilesPage.card.summaryScheduled',
   'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',

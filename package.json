@@ -17,6 +17,7 @@
     "test:shell": "bash scripts/__tests__/reporter.test.sh && bash scripts/__tests__/kiosk-update.test.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "docs:shots": "tsx website/scripts/capture-docs-shots.mts",
     "config:check": "node scripts/check-config.mjs",
     "fa:copy": "node scripts/copy-font-awesome.mjs",
     "postinstall": "node scripts/copy-font-awesome.mjs"

@@ -50,23 +50,23 @@
     "seconds": "{count} sec"
   },
   "displayNotFound": {
-    "notRegistered": "Display niet geregistreerd",
-    "adoptionLine1": "Deze display is verbonden met de hub maar nog niet toegevoegd.",
-    "adoptionLine2": "Open de editor op de hub, ga naar",
+    "notRegistered": "Display nog niet toegevoegd",
+    "adoptionLine1": "Deze display is verbonden met Home Screens maar is nog niet toegevoegd.",
+    "adoptionLine2": "Open de editor op de hoofd-Pi, ga naar",
     "settingsLink": "Instellingen → Displays",
     "andClick": "en klik op",
     "adoptLabel": "Toevoegen",
     "nextTo": "naast",
     "waitingForAdoption": "Wachten op toevoeging…",
-    "recoveryNotice": "Deze display-ID is niet geregistreerd, maar je hub heeft andere displays. Schakelen naar de standaarddisplay over {seconds} s.",
-    "goToDefault": "Nu naar standaarddisplay"
+    "recoveryNotice": "Deze display is nog niet ingesteld, je andere displays wel. Over {seconds} s wordt overgeschakeld naar de hoofddisplay.",
+    "goToDefault": "Nu naar de hoofddisplay"
   },
   "login": {
     "checkingAuth": "Authenticatie controleren…",
-    "ipBlocked": "Je IP-adres is geblokkeerd",
+    "ipBlocked": "Dit apparaat mag niet inloggen",
     "enterPasswordToContinue": "Voer je wachtwoord in om door te gaan",
     "accessRestricted": "Toegang beperkt",
-    "accessRestrictedDescription": "Je IP-adres staat niet op de toegestane lijst. Inloggen helpt niet — de server weigert elk verzoek vanaf je adres. Neem contact op met een beheerder om je IP aan de lijst toe te voegen, of log in vanaf een toegestaan netwerk.",
+    "accessRestrictedDescription": "Home Screens accepteert alleen verbindingen van bepaalde apparaten, en dit apparaat staat niet op de lijst. Inloggen helpt niet. Vraag degene die Home Screens heeft ingesteld om dit apparaat toe te voegen, of probeer het op een apparaat dat al is toegestaan.",
     "passwordPlaceholder": "Wachtwoord",
     "rememberMe": "90 dagen ingelogd blijven",
     "signingIn": "Aanmelden…",
@@ -74,7 +74,7 @@
     "loading": "Laden…",
     "backToDisplay": "Terug naar display",
     "loginFailed": "Aanmelden mislukt",
-    "unreachable": "Server niet bereikbaar",
+    "unreachable": "Home Screens is niet bereikbaar",
     "errors": {
       "wrongPassword": "Dat wachtwoord klopt niet.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "Wachtwoord vergeten?",
       "title": "Wachtwoord opnieuw instellen",
-      "body": "Wie dit apparaat heeft ingesteld, kan het wachtwoord wissen. Voer op het apparaat zelf (met een toetsenbord eraan) of via SSH uit:",
+      "body": "Wie dit apparaat heeft ingesteld, kan het wachtwoord wissen. Voer dit uit op het apparaat zelf (met een toetsenbord eraan) of vanaf een andere computer in een terminal:",
       "fallback": "Bestaat die opdracht niet, dan doet het verwijderen van het bestand {file} in de Home Screens-map hetzelfde.",
       "after": "Home Screens opent daarna zonder wachtwoord en je kunt in de instellingen een nieuw wachtwoord kiezen."
     }
   },
   "errors": {
-    "fetchFailed": "Gegevens konden niet worden geladen",
+    "fetchFailed": "Kon geen verbinding maken om deze gegevens te laden",
     "loadImagesFailed": "Afbeeldingen konden niet worden geladen",
     "uploadFailed": "Uploaden mislukt",
     "createFolderFailed": "Map kon niet worden aangemaakt",

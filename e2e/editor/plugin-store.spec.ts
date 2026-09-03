@@ -255,7 +255,7 @@ test('the install confirmation preview surfaces the plugin\'s requested permissi
   // InstallConfirmModal renders PluginInstallPreview. The plugin is not on disk,
   // so its manifest fetch 404s and the registry-declared permissions are shown.
   await expect(page.getByRole('heading', { name: 'Install Plugin' })).toBeVisible();
-  await expect(page.getByText('Permissions requested')).toBeVisible();
+  await expect(page.getByText('What this plugin can do')).toBeVisible();
   await expect(page.getByText('Network access')).toBeVisible();
   await expect(page.getByText('Secret storage')).toBeVisible();
 });

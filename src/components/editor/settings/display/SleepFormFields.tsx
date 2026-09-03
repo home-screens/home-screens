@@ -84,6 +84,25 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
       </div>
       <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.enableHelp')}</p>
 
+      {/* The timeline stays on screen while sleep is off, greyed out. Hiding
+          it left the tab as a lone toggle with nothing to judge: the only way
+          to find out what turning it on would do was to turn it on. Greyed,
+          it previews the shape of the schedule and the sentence below states
+          the behaviour you have right now. */}
+      {!sleepEnabled && (
+        <>
+          <div className="opacity-40 pointer-events-none" aria-hidden="true">
+            <SleepTimelinePreview
+              dimWindow={dimScheduleEnabled ? { startTime: dimStartTime, endTime: dimEndTime } : undefined}
+              sleepWindow={sleepScheduleEnabled ? { startTime: sleepStartTime, endTime: sleepEndTime } : undefined}
+              idleDimEnabled={idleDimEnabled}
+              dimAfterMinutes={dimAfterMinutes}
+            />
+          </div>
+          <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.disabledHelp')}</p>
+        </>
+      )}
+
       {sleepEnabled && (
         <>
           <SleepTimelinePreview

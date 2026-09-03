@@ -192,7 +192,7 @@ test('logging out from the Security page clears the session and re-gates the edi
   const loggedOut = page.waitForResponse(
     (r) => r.url().includes('/api/auth/logout') && r.request().method() === 'POST',
   );
-  await page.getByRole('button', { name: 'Log Out', exact: true }).click();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   expect((await loggedOut).ok()).toBe(true);
   await page.waitForURL('**/login**');
 

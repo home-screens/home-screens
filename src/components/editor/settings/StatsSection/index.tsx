@@ -112,6 +112,7 @@ export default function StatsSection() {
   const stateLabel = displayState ?? 'off';
 
   const telemetryOn = config?.settings.telemetryEnabled !== false;
+  const advancedMode = config?.settings.advancedMode ?? false;
 
   /* ─── Render ──────────────────────────────── */
 
@@ -147,22 +148,33 @@ export default function StatsSection() {
           TIER 2 — Detailed sections
           ============================================================ */}
       <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
-        <DisplayHardwareCard displayStatus={displayStatus} activeDisplay={activeDisplay} />
-        <CacheCard
-          displayStatus={displayStatus}
-          displayConnected={displayConnected}
-          activeDisplay={activeDisplay}
-        />
+        {/* Everything below the hero answers "is something wrong with my
+            wall?". The cache hit rate, the browser build and the hub's
+            hostname/platform/Node version answer a different question, for a
+            different person, so they sit behind the advanced toggle that
+            already gates developer-facing controls on the System page. */}
+        {advancedMode && (
+          <DisplayHardwareCard displayStatus={displayStatus} activeDisplay={activeDisplay} />
+        )}
+        {advancedMode && (
+          <CacheCard
+            displayStatus={displayStatus}
+            displayConnected={displayConnected}
+            activeDisplay={activeDisplay}
+          />
+        )}
         <HardwareCard displayStatus={displayStatus} hubHardware={stats.hardware ?? null} />
         <DataDirCard stats={stats} />
         <ConfigurationCard stats={stats} />
-        <ServerCard
-          stats={stats}
-          bundleState={bundleState}
-          bundleError={bundleError}
-          onGenerateBundle={runGenerateBundle}
-          onRefresh={loadStats}
-        />
+        {advancedMode && (
+          <ServerCard
+            stats={stats}
+            bundleState={bundleState}
+            bundleError={bundleError}
+            onGenerateBundle={runGenerateBundle}
+            onRefresh={loadStats}
+          />
+        )}
         <TelemetryCard
           stats={stats}
           telemetryOn={telemetryOn}

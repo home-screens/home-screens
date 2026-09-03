@@ -66,7 +66,7 @@ export function VisibilityOutcomeLine({
       <p className="text-[10px] text-hs-text-dim" data-visibility-outcome="offline">
         {typeof reportedAt === 'number'
           ? t('visibilityConditions.outcome.offlineSince', {
-              time: formatRelativeTime(Math.min(reportedAt, now), now, { locale: formattingLocale }),
+              time: formatRelativeTime(now, Math.min(reportedAt, now), { locale: formattingLocale }),
             })
           : t('visibilityConditions.outcome.noLiveData')}
       </p>

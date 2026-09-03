@@ -162,6 +162,16 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
           {mode === 'disable' && t('settings.securityPage.modal.disableTitle')}
         </h4>
 
+        {/* Say what the password covers before asking for one. Reached from
+            "Ask for a password on the family remote", the dialog has to
+            answer the question that row raised; Security's own page never
+            mentioned the remote at all. */}
+        {mode === 'set' && (
+          <p className="-mt-2 mb-4 text-xs text-hs-text-faint">
+            {t('settings.securityPage.modal.setExplanation')}
+          </p>
+        )}
+
         <div className="space-y-3">
           {(mode === 'change' || mode === 'disable') && (
             <input

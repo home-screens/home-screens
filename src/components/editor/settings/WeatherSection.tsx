@@ -33,13 +33,6 @@ export default function WeatherSection({ values, onChange }: Props) {
 
   return (
     <section>
-      {/* Header */}
-      <div className="mb-7">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-1.5">{t('settings.weatherPage.heading')}</h2>
-        <p className="text-[13px] text-hs-text-faint">
-          {t('settings.weatherPage.description')}
-        </p>
-      </div>
 
       {/* Units — top of the section */}
       <div className="mb-6" data-field-id="weather.units">

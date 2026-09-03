@@ -1,23 +1,3 @@
-/* ─── Integration metadata ──────────────────── */
-
-export interface IntegrationMeta {
-  label: string;
-  initials: string;
-}
-
-export const INTEGRATION_META: Record<string, IntegrationMeta> = {
-  openweathermap_key: { label: 'OpenWeatherMap', initials: 'OW' },
-  weatherapi_key:     { label: 'WeatherAPI',     initials: 'WA' },
-  pirateweather_key:  { label: 'Pirate Weather', initials: 'PW' },
-  metoffice_key:      { label: 'Met Office',     initials: 'MO' },
-  unsplash_access_key:{ label: 'Unsplash',       initials: 'UN' },
-  nasa_api_key:       { label: 'NASA',           initials: 'NA' },
-  todoist_token:      { label: 'Todoist',        initials: 'TD' },
-  google_maps_key:    { label: 'Google Maps',    initials: 'GM' },
-  tomtom_key:         { label: 'TomTom',         initials: 'TT' },
-  google_client_id:   { label: 'Google OAuth',   initials: 'GO' },
-};
-
 /* ─── Palette for module-type and data-dir stacked bars ──────
  * Hand-picked hex values so segments are visually distinct while the
  * overall palette stays consistent with the semantic tokens used elsewhere

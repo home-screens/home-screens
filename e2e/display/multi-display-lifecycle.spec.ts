@@ -315,13 +315,13 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     await page.goto('/display/ghost-populated');
 
     // The fallback identifies itself and echoes the offending id in the heading.
-    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'ghost-populated' })).toBeVisible();
 
     // Because the hub reports OTHER registered displays, DisplayNotFound arms
     // its 60s auto-recovery and surfaces the "go to default" escape hatch.
     // This is the observable behavioral difference from legacy mode below.
-    await expect(page.getByRole('button', { name: 'Go to default display now' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: 'Go to the main display now' })).toBeVisible({ timeout: 10_000 });
   });
 
   test('unregistered id in legacy mode renders DisplayNotFound with no auto-recovery', async ({ page, request }) => {
@@ -342,14 +342,14 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
 
     await page.goto('/display/ghost-legacy');
 
-    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'ghost-legacy' })).toBeVisible();
 
     // With an empty registry the hub has no default to fall back to, so
     // DisplayNotFound never arms auto-recovery — no countdown, no button. It
     // waits indefinitely for adoption instead.
-    await expect(page.getByRole('button', { name: 'Go to default display now' })).toHaveCount(0);
-    await expect(page.getByText('Waiting for adoption')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Go to the main display now' })).toHaveCount(0);
+    await expect(page.getByText('Waiting to be added')).toBeVisible();
   });
 
   test('adopting a stranded id mid-poll navigates the tab onto the live display', async ({ page, request }) => {
@@ -357,7 +357,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     await putConfig(request, lifecycleConfig());
     await page.goto('/display/office');
 
-    await expect(page.getByText('Display Not Registered')).toBeVisible();
+    await expect(page.getByText('Display Not Added Yet')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'office' })).toBeVisible();
 
     // Adopt 'office' the way the editor store does: write it into
@@ -370,7 +370,7 @@ test.describe('DisplayNotFound and self-heal (page-driven)', () => {
     // then filters to the now-registered display and mounts ScreenRotator.
     // Generous timeout covers one 5s poll + the cache turnover with headroom.
     await expect(page.getByText('OFFICE', { exact: true })).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByText('Display Not Registered')).toHaveCount(0);
+    await expect(page.getByText('Display Not Added Yet')).toHaveCount(0);
     await expectRotatorModule(page);
   });
 

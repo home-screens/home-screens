@@ -13,7 +13,7 @@
     "hubDisconnected": "Home Screens ist nicht erreichbar"
   },
   "connectionBanner": {
-    "unreachable": "Home Screens ist nicht erreichbar. Prüfe, ob dieses Handy im Heim-WLAN ist und die Zentrale läuft.",
+    "unreachable": "Home Screens ist nicht erreichbar. Prüfe, ob dieses Handy im Heim-WLAN ist und der Haupt-Pi läuft.",
     "restarting": "Home Screens startet neu. Verbindung in etwa 20 Sekunden wieder da…",
     "rebooting": "Das Gerät startet neu. Verbindung in etwa einer Minute wieder da…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Hinweis senden",
     "sendingButton": "Sendet …",
     "sentButton": "Gesendet!",
-    "failedButton": "Fehlgeschlagen — erneut versuchen",
+    "failedButton": "Nicht gesendet, erneut versuchen",
     "clearOnDisplay": "Meldungen auf {name} löschen",
     "clearOnAll": "Meldungen auf allen Displays löschen",
     "clearingButton": "Wird gelöscht…",
@@ -427,8 +427,8 @@
       "confirmTitle": "„{name}“ einlösen?",
       "confirmDescriptionSingular": "Damit wird {cost} Ticket von {memberName}s Konto abgezogen. Rest: {remaining}",
       "confirmDescriptionPlural": "Damit werden {cost} Tickets von {memberName}s Konto abgezogen. Rest: {remaining}",
-      "confirmLabelSingular": "Einlösen — {cost} Ticket",
-      "confirmLabelPlural": "Einlösen — {cost} Tickets",
+      "confirmLabelSingular": "Einlösen für {cost} Ticket",
+      "confirmLabelPlural": "Einlösen für {cost} Tickets",
       "emptyKid": "Noch keine Belohnungen. Ein Erwachsener kann welche am Handy hinzufügen.",
       "balanceLabelNamed": "Tickets von {name}",
       "switchHint": "Nicht {name}? Wähle deinen Namen im Tab „Heute“."
@@ -453,8 +453,8 @@
       "empty": "Noch keine Einlösungen",
       "entry": {
         "beforeReward": " hat ",
-        "afterRewardSingular": " eingelöst — {n} Ticket",
-        "afterRewardPlural": " eingelöst — {n} Tickets"
+        "afterRewardSingular": " eingelöst für {n} Ticket",
+        "afterRewardPlural": " eingelöst für {n} Tickets"
       }
     },
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."

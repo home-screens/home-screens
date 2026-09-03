@@ -930,8 +930,8 @@
       "daylight": "dagslys i dag",
       "dewPoint": "Dugpunkt {temp}°",
       "windNote": "Aktuel vindhastighed",
-      "pressureFalling": "Faldende — vejret skifter",
-      "pressureRising": "Stigende — det falder til ro",
+      "pressureFalling": "Faldende, vejret skifter",
+      "pressureRising": "Stigende, det falder til ro",
       "pressureSteady": "Stabilt"
     },
     "moon": {
@@ -946,10 +946,10 @@
       "illuminated": "{percent}% oplyst"
     },
     "uv": {
-      "low": "Lavt — ingen beskyttelse nødvendig",
-      "moderate": "Moderat — hat og solbriller",
-      "high": "Højt — solcreme",
-      "veryHigh": "Meget højt — dæk dig godt til"
+      "low": "Lavt, ingen beskyttelse nødvendig",
+      "moderate": "Moderat, hat og solbriller",
+      "high": "Højt, solcreme",
+      "veryHigh": "Meget højt, dæk dig godt til"
     }
   }
 }

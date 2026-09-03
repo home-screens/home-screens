@@ -930,8 +930,8 @@
       "daylight": "daglicht vandaag",
       "dewPoint": "Dauwpunt {temp}°",
       "windNote": "Huidige windsnelheid",
-      "pressureFalling": "Dalend — weer verandert",
-      "pressureRising": "Stijgend — het wordt rustiger",
+      "pressureFalling": "Dalend, weer verandert",
+      "pressureRising": "Stijgend, het wordt rustiger",
       "pressureSteady": "Stabiel"
     },
     "moon": {
@@ -946,10 +946,10 @@
       "illuminated": "{percent}% verlicht"
     },
     "uv": {
-      "low": "Laag — geen bescherming nodig",
-      "moderate": "Matig — pet en zonnebril",
-      "high": "Hoog — zonnebrand",
-      "veryHigh": "Zeer hoog — goed bedekken"
+      "low": "Laag, geen bescherming nodig",
+      "moderate": "Matig, pet en zonnebril",
+      "high": "Hoog, zonnebrand",
+      "veryHigh": "Zeer hoog, goed bedekken"
     }
   }
 }

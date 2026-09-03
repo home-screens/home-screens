@@ -30,7 +30,7 @@ export default function BoardView({
     () => groupTasks(tasks, groupBy as TodoistGroupBy, now, tr),
     [tasks, groupBy, now, tr],
   );
-  // Cap at 3 columns to avoid broken multi-row layouts in fixed-height widget
+  // Cap at 3 columns to avoid broken multi-row layouts in a fixed-height module
   const groups = allGroups.slice(0, 3);
 
   return (

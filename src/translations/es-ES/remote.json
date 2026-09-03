@@ -13,7 +13,7 @@
     "hubDisconnected": "No se puede conectar con Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "No se puede conectar con Home Screens. Comprueba que este teléfono está en la Wi-Fi de casa y que la central está encendida.",
+    "unreachable": "No se puede conectar con Home Screens. Comprueba que este teléfono está en la Wi-Fi de casa y que la Pi principal está encendida.",
     "restarting": "Home Screens se está reiniciando. Se reconectará en unos 20 segundos…",
     "rebooting": "El dispositivo se está reiniciando. Se reconectará en aproximadamente un minuto…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Enviar aviso",
     "sendingButton": "Enviando…",
     "sentButton": "¡Enviado!",
-    "failedButton": "Error — vuelve a intentarlo",
+    "failedButton": "No se envió, inténtalo otra vez",
     "clearOnDisplay": "Borrar avisos en {name}",
     "clearOnAll": "Borrar avisos en todas las pantallas",
     "clearingButton": "Borrando…",
@@ -427,8 +427,8 @@
       "confirmTitle": "¿Canjear {name}?",
       "confirmDescriptionSingular": "Se usará {cost} ticket del saldo de {memberName}. Quedan: {remaining}",
       "confirmDescriptionPlural": "Se usarán {cost} tickets del saldo de {memberName}. Quedan: {remaining}",
-      "confirmLabelSingular": "Canjear — {cost} ticket",
-      "confirmLabelPlural": "Canjear — {cost} tickets",
+      "confirmLabelSingular": "Canjear por {cost} ticket",
+      "confirmLabelPlural": "Canjear por {cost} tickets",
       "emptyKid": "Aún no hay premios. Una persona mayor puede añadirlos desde su teléfono.",
       "balanceLabelNamed": "tickets de {name}",
       "switchHint": "¿No eres {name}? Elige tu nombre en la pestaña Hoy."
@@ -453,8 +453,8 @@
       "empty": "Aún no hay canjes",
       "entry": {
         "beforeReward": " ha canjeado ",
-        "afterRewardSingular": " — {n} ticket",
-        "afterRewardPlural": " — {n} tickets"
+        "afterRewardSingular": " por {n} ticket",
+        "afterRewardPlural": " por {n} tickets"
       }
     },
     "saveFailed": "No se pudo guardar. Inténtalo de nuevo."

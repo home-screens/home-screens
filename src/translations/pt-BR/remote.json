@@ -13,7 +13,7 @@
     "hubDisconnected": "Não foi possível conectar ao Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Não foi possível conectar ao Home Screens. Confira se este celular está no Wi-Fi de casa e se a central está ligada.",
+    "unreachable": "Não foi possível conectar ao Home Screens. Confira se este celular está no Wi-Fi de casa e se o Pi principal está ligado.",
     "restarting": "O Home Screens está reiniciando. Reconectando em cerca de 20 segundos…",
     "rebooting": "O aparelho está reiniciando. Reconectando em cerca de um minuto…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Enviar aviso",
     "sendingButton": "Enviando…",
     "sentButton": "Enviado!",
-    "failedButton": "Falhou — tente novamente",
+    "failedButton": "Não enviou, tente de novo",
     "clearOnDisplay": "Limpar avisos em {name}",
     "clearOnAll": "Limpar avisos em todas as telas",
     "clearingButton": "Limpando…",
@@ -427,8 +427,8 @@
       "confirmTitle": "Resgatar {name}?",
       "confirmDescriptionSingular": "Isso vai usar {cost} ticket do saldo de {memberName}. Restantes: {remaining}",
       "confirmDescriptionPlural": "Isso vai usar {cost} tickets do saldo de {memberName}. Restantes: {remaining}",
-      "confirmLabelSingular": "Resgatar — {cost} ticket",
-      "confirmLabelPlural": "Resgatar — {cost} tickets",
+      "confirmLabelSingular": "Resgatar por {cost} ticket",
+      "confirmLabelPlural": "Resgatar por {cost} tickets",
       "emptyKid": "Nenhuma recompensa ainda. Um adulto pode adicionar pelo celular.",
       "balanceLabelNamed": "tickets de {name}",
       "switchHint": "Não é {name}? Escolha seu nome na aba Hoje."
@@ -453,8 +453,8 @@
       "empty": "Nenhum resgate ainda",
       "entry": {
         "beforeReward": " resgatou ",
-        "afterRewardSingular": " — {n} ticket",
-        "afterRewardPlural": " — {n} tickets"
+        "afterRewardSingular": " por {n} ticket",
+        "afterRewardPlural": " por {n} tickets"
       }
     },
     "saveFailed": "Falha ao salvar. Tente novamente."

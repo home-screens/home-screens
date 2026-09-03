@@ -50,23 +50,23 @@
     "seconds": "{count} s"
   },
   "displayNotFound": {
-    "notRegistered": "Affichage non enregistré",
-    "adoptionLine1": "Cet affichage est connecté au hub mais n'a pas encore été adopté.",
-    "adoptionLine2": "Ouvre l'éditeur sur le hub, va dans",
+    "notRegistered": "Affichage pas encore ajouté",
+    "adoptionLine1": "Cet affichage est connecté à Home Screens mais n'a pas encore été ajouté.",
+    "adoptionLine2": "Ouvre l'éditeur sur le Pi principal, va dans",
     "settingsLink": "Paramètres → Affichages",
     "andClick": "et clique sur",
-    "adoptLabel": "Adopter",
+    "adoptLabel": "Ajouter",
     "nextTo": "à côté de",
-    "waitingForAdoption": "En attente d'adoption…",
-    "recoveryNotice": "Cet ID d'affichage n'est pas enregistré, mais ton hub a d'autres affichages configurés. Passage à l'affichage par défaut dans {seconds} s.",
-    "goToDefault": "Aller à l'affichage par défaut maintenant"
+    "waitingForAdoption": "En attente d'ajout…",
+    "recoveryNotice": "Cet affichage n'est pas encore configuré, mais tes autres affichages le sont. Passage à l'affichage principal dans {seconds} s.",
+    "goToDefault": "Aller à l'affichage principal maintenant"
   },
   "login": {
     "checkingAuth": "Vérification de l'authentification…",
-    "ipBlocked": "Ton adresse IP est bloquée",
+    "ipBlocked": "Cet appareil n'a pas le droit de se connecter",
     "enterPasswordToContinue": "Saisis ton mot de passe pour continuer",
     "accessRestricted": "Accès restreint",
-    "accessRestrictedDescription": "Ton adresse IP ne figure pas dans la liste autorisée. Te connecter n'aidera pas — le serveur rejettera toutes les requêtes de ton adresse. Contacte un administrateur pour ajouter ton IP à la liste, ou connecte-toi depuis un réseau autorisé.",
+    "accessRestrictedDescription": "Home Screens n'accepte les connexions que depuis certains appareils, et celui-ci n'est pas sur la liste. Se connecter n'y changera rien. Demande à la personne qui a installé Home Screens d'ajouter cet appareil, ou réessaie depuis un appareil déjà autorisé.",
     "passwordPlaceholder": "Mot de passe",
     "rememberMe": "Se souvenir de moi pendant 90 jours",
     "signingIn": "Connexion…",
@@ -74,7 +74,7 @@
     "loading": "Chargement…",
     "backToDisplay": "Retour à l'affichage",
     "loginFailed": "Échec de la connexion",
-    "unreachable": "Impossible de joindre le serveur",
+    "unreachable": "Impossible de joindre Home Screens",
     "errors": {
       "wrongPassword": "Ce mot de passe n'est pas le bon.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "Mot de passe oublié ?",
       "title": "Réinitialiser le mot de passe",
-      "body": "La personne qui a installé cet appareil peut effacer le mot de passe. Sur l'appareil (avec un clavier branché) ou via SSH, lancez :",
+      "body": "La personne qui a installé cet appareil peut effacer le mot de passe. Sur l'appareil (avec un clavier branché) ou depuis un autre ordinateur dans un terminal, lance :",
       "fallback": "Si cette commande n'existe pas, supprimer le fichier {file} dans le dossier Home Screens fait la même chose.",
       "after": "Home Screens s'ouvre ensuite sans mot de passe, et vous pouvez en définir un nouveau dans les réglages."
     }
   },
   "errors": {
-    "fetchFailed": "Échec du chargement des données",
+    "fetchFailed": "Impossible de se connecter pour charger ces données",
     "loadImagesFailed": "Échec du chargement des images",
     "uploadFailed": "Échec de l'envoi",
     "createFolderFailed": "Échec de la création du dossier",

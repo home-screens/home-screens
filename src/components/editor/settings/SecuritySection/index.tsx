@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
@@ -84,22 +85,36 @@ export default function SecuritySection() {
 
   return (
     <section>
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-        {t('settings.securityPage.heading')}
-      </h3>
       <div className="space-y-3">
-        {/* Status */}
-        <div className="flex items-center gap-2">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              status?.authEnabled ? 'bg-hs-success' : 'bg-hs-card'
-            }`}
-          />
-          <span className="text-sm text-hs-text-secondary">
+        {/* Lead with the outcome. The page used to open on the word
+            "Authentication" followed by "protect the editor and API
+            endpoints", which answers a question nobody in the house asked;
+            the one they do ask is whether the kids' chores page still opens
+            once a password is on. */}
+        <div
+          className={`rounded-lg border px-3 py-2.5 ${
+            status?.authEnabled
+              ? 'border-hs-success/35 bg-hs-success/[0.07]'
+              : 'border-hs-border-strong bg-hs-card/50'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                status?.authEnabled ? 'bg-hs-success' : 'bg-hs-card'
+              }`}
+            />
+            <span className={`text-sm font-medium ${status?.authEnabled ? 'text-hs-success' : 'text-hs-text-secondary'}`}>
+              {status?.authEnabled
+                ? t('settings.securityPage.status.enabled')
+                : t('settings.securityPage.status.disabled')}
+            </span>
+          </div>
+          <p className="mt-1 text-xs text-hs-text-muted">
             {status?.authEnabled
-              ? t('settings.securityPage.status.enabled')
-              : t('settings.securityPage.status.disabled')}
-          </span>
+              ? t('settings.securityPage.status.enabledOutcome')
+              : t('settings.securityPage.status.disabledOutcome')}
+          </p>
         </div>
 
         {!status?.authEnabled && (
@@ -132,15 +147,45 @@ export default function SecuritySection() {
               </Button>
             </div>
 
-            <SessionRevocation />
-
-            {displayToken && (
-              <DisplayTokenPanel token={displayToken} onTokenChange={setDisplayToken} />
-            )}
           </div>
         )}
 
-        {status?.authEnabled && <IpAllowlistPanel initial={ipInitial} />}
+        {/* The display token, the signed-in devices and the IP allowlist are
+            one subject: which machines get in without typing the password.
+            They were three always-open panels carrying CIDR errors, an
+            IPv6 caveat and an X-Forwarded-For spoofing warning, which is a
+            lot of network administration to scroll past on the way to
+            "change my password". The warnings stay, next to the toggles they
+            describe. */}
+        {status?.authEnabled && (
+          <details
+            className="group rounded-lg border border-hs-border-strong bg-hs-card/40 px-3 py-2.5 transition-colors hover:border-hs-text-faint"
+            data-field-id="security.advancedNetwork"
+          >
+            {/* `list-none` drops the native disclosure marker, so the chevron
+                is what says this opens. Without one the block reads as a
+                static explanation you cannot act on. */}
+            <summary className="flex cursor-pointer list-none items-start gap-2 text-sm text-hs-text-secondary">
+              <ChevronDown
+                className="mt-0.5 h-3.5 w-3.5 shrink-0 text-hs-text-faint transition-transform group-open:rotate-180"
+                aria-hidden="true"
+              />
+              <span className="min-w-0">
+                <span className="font-medium">{t('settings.securityPage.advanced.heading')}</span>
+                <span className="mt-0.5 block text-xs text-hs-text-faint">
+                  {t('settings.securityPage.advanced.description')}
+                </span>
+              </span>
+            </summary>
+            <div className="mt-3 space-y-3">
+              <SessionRevocation />
+              {displayToken && (
+                <DisplayTokenPanel token={displayToken} onTokenChange={setDisplayToken} />
+              )}
+              <IpAllowlistPanel initial={ipInitial} />
+            </div>
+          </details>
+        )}
 
         {/* Same advice /login carries, worded the same way: this page is the
             one you cannot reach once you are locked out. */}

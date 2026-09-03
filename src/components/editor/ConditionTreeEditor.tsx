@@ -20,7 +20,7 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
-import { buildSuggestions } from '@/lib/state-key-suggestions';
+import { buildSuggestions, producerLabel } from '@/lib/state-key-suggestions';
 import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
 import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
@@ -232,9 +232,25 @@ export function SourceKeyInput({
     plugins ?? EMPTY_PLUGINS,
   );
 
+  // Names the producer of each static key so the catalogue rows group the way
+  // the searched rows already do. Cached per namespace: `producerLabel` scans
+  // the plugin map, and this runs over every option on every keystroke.
+  const producerLabelFor = useMemo(() => {
+    const cache = new Map<string, string>();
+    return (key: string): string => {
+      const ns = key.startsWith('plugin:') ? key.split(':')[1] ?? '' : '';
+      let label = cache.get(ns);
+      if (label === undefined) {
+        label = producerLabel(key, plugins ?? EMPTY_PLUGINS, t);
+        cache.set(ns, label);
+      }
+      return label;
+    };
+  }, [plugins, t]);
+
   const suggestions = useMemo(
-    () => buildSuggestions(searched, options, draft, known),
-    [searched, options, draft, known],
+    () => buildSuggestions(searched, options, draft, known, producerLabelFor),
+    [searched, options, draft, known, producerLabelFor],
   );
   // An empty result from a search-capable plugin must SAY so: an
   // unconfigured plugin returns [] exactly like a genuine miss, and a silent
@@ -373,9 +389,19 @@ export function SourceKeyInput({
             )}
             {/* Manual-typing guidance lives here, in the key-editing affordance,
                 rather than as permanent chrome above every collapsed condition. */}
+            {/* Two footer lines, both permanent. The add-on line answers the
+                question the list itself raises for anyone who came looking
+                for a door or a light: those come from an add-on, and nothing
+                else on the page says so. */}
             <li
               role="presentation"
-              className="mt-0.5 border-t border-hs-border-strong px-2 pb-0.5 pt-1 text-[10px] text-hs-text-dim"
+              className="mt-0.5 border-t border-hs-border-strong px-2 pt-1 text-[10px] text-hs-text-dim"
+            >
+              {t('visibilityConditions.addOnHint')}
+            </li>
+            <li
+              role="presentation"
+              className="px-2 pb-0.5 pt-0.5 text-[10px] text-hs-text-dim"
             >
               {t('visibilityConditions.sourceKeyHint')}
             </li>
@@ -395,9 +421,9 @@ export function SourceKeyInput({
           </code>
           {' · '}
           {formatRelativeTime(
+            Date.now(),
             // Display and hub clocks can be skewed; never show a future age.
             Math.min(liveEntry.updatedAt, Date.now()),
-            Date.now(),
             { locale: formattingLocale },
           )}
           {/* The producer has cleared this key and the bus is holding its last

@@ -198,7 +198,7 @@ async function setupSystemStubs(page: Page, overrides: Overrides = {}): Promise<
     route.fulfill({ json: DIAGNOSTICS }),
   );
 
-  // Hostname change (PUT)
+  // Device name change (PUT)
   await page.route('**/api/system/network/hostname', (route) => {
     record(route);
     return route.fulfill({ json: { ok: true } });
@@ -289,8 +289,8 @@ test.describe('Defaults › Network', () => {
     await expect(page.getByRole('button', { name: 'IP Settings' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Disconnect' })).toBeVisible();
 
-    // Hostname section pre-filled from overview.
-    await expect(page.getByRole('heading', { name: 'Hostname' })).toBeVisible();
+    // Device name section pre-filled from overview.
+    await expect(page.getByRole('heading', { name: 'Device name' })).toBeVisible();
 
     // Diagnostics section renders its Test Connection button without error.
     await expect(page.getByRole('button', { name: 'Test Connection' })).toBeVisible();
@@ -412,15 +412,15 @@ test.describe('Defaults › Network', () => {
 
     await page.goto('/editor/settings?section=defaults&page=network');
 
-    // Scope to the Hostname section — the field's placeholder ("home-screens")
+    // Scope to the Device name section — the field's placeholder ("home-screens")
     // matches its own value, so target the input by its section instead.
     const hostnameSection = page.locator('section').filter({
-      has: page.getByRole('heading', { name: 'Hostname' }),
+      has: page.getByRole('heading', { name: 'Device name' }),
     });
     await hostnameSection.getByRole('textbox').fill('living-room-pi');
     await hostnameSection.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByText('Hostname updated')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText('Device name updated')).toBeVisible({ timeout: 15_000 });
 
     assertNoRealSystemCall(stubs);
     const posted = stubs.posted['/api/system/network/hostname'] as Array<{ hostname: string }>;
@@ -537,15 +537,17 @@ test.describe('Defaults › System', () => {
 
     await page.goto('/editor/settings?section=defaults&page=system');
 
-    // Version section from the stub. (The current-version <p> renders
-    // "v1.2.3 (abc1234)", so match the standalone history tag span exactly.)
-    await expect(page.getByText('v1.2.3', { exact: true })).toBeVisible();
+    // Version section from the stub. The commit hash and the branch/channel
+    // line are build details and only render under "Show advanced options",
+    // so the plain view states the version in words.
+    await expect(page.getByText("You're on version 1.2.3")).toBeVisible();
     await expect(page.getByText("You're on the latest version")).toBeVisible();
     await expect(page.getByRole('button', { name: 'Check for Updates' })).toBeVisible();
+    await expect(page.getByText('abc1234')).toHaveCount(0);
 
     // System Actions render but are NOT clicked here.
-    await expect(page.getByRole('button', { name: 'Restart Service' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Reboot System' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Restart Home Screens' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Restart the whole device' })).toBeVisible();
 
     assertNoRealSystemCall(stubs);
   });
@@ -559,7 +561,7 @@ test.describe('Defaults › System', () => {
 
     await page.goto('/editor/settings?section=defaults&page=data');
 
-    await expect(page.getByRole('heading', { name: 'Config Backups' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Automatic snapshots' })).toBeVisible();
     await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
     // exact — the Full Backup section's "Restore Backup" button lives on the
@@ -650,7 +652,7 @@ test.describe('Defaults › System', () => {
 
     await page.goto('/editor/settings?section=defaults&page=system');
 
-    await page.getByRole('button', { name: 'Restart Service' }).click();
+    await page.getByRole('button', { name: 'Restart Home Screens' }).click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -674,14 +676,16 @@ test.describe('Defaults › System', () => {
 
     await page.goto('/editor/settings?section=defaults&page=system');
 
-    // Version History lists v1.2.2 (not current) with a Rollback action.
-    await expect(page.getByRole('heading', { name: 'Version History' })).toBeVisible();
-    await page.getByRole('button', { name: 'Rollback' }).click();
+    // The version list names what going back is for, and the action names
+    // the version it targets.
+    await expect(page.getByRole('heading', { name: 'If an update caused trouble' })).toBeVisible();
+    await page.getByRole('button', { name: 'Go back to this' }).click();
 
-    // Confirm dialog (ConfirmModal).
+    // Confirm dialog (ConfirmModal). It states the cost before the button.
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    await dialog.getByRole('button', { name: 'Roll Back' }).click();
+    await expect(dialog.getByText(/may not work in v1\.2\.2/)).toBeVisible();
+    await dialog.getByRole('button', { name: 'Go back to v1.2.2' }).click();
 
     // The UpgradeModal replaces the settings page and renders its header.
     await expect(page.getByRole('heading', { name: 'Rolling back to v1.2.2' })).toBeVisible({ timeout: 15_000 });

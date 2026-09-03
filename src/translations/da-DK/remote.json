@@ -13,7 +13,7 @@
     "hubDisconnected": "Kan ikke nå Home Screens"
   },
   "connectionBanner": {
-    "unreachable": "Kan ikke nå Home Screens. Tjek, at denne telefon er på hjemmets wi-fi, og at hubben er tændt.",
+    "unreachable": "Kan ikke nå Home Screens. Tjek, at denne telefon er på hjemmets wi-fi, og at hoved-Pi'en er tændt.",
     "restarting": "Home Screens genstarter. Forbinder igen om cirka 20 sekunder…",
     "rebooting": "Enheden genstarter. Forbinder igen om cirka et minut…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Send besked",
     "sendingButton": "Sender…",
     "sentButton": "Sendt!",
-    "failedButton": "Fejlede — prøv igen",
+    "failedButton": "Blev ikke sendt, prøv igen",
     "clearOnDisplay": "Ryd beskeder på {name}",
     "clearOnAll": "Ryd beskeder på alle skærme",
     "clearingButton": "Rydder…",
@@ -427,8 +427,8 @@
       "confirmTitle": "Indløs {name}?",
       "confirmDescriptionSingular": "Det bruger {cost} billet af {memberName}s saldo. Tilbage: {remaining}",
       "confirmDescriptionPlural": "Det bruger {cost} billetter af {memberName}s saldo. Tilbage: {remaining}",
-      "confirmLabelSingular": "Indløs — {cost} billet",
-      "confirmLabelPlural": "Indløs — {cost} billetter",
+      "confirmLabelSingular": "Indløs for {cost} billet",
+      "confirmLabelPlural": "Indløs for {cost} billetter",
       "emptyKid": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
       "balanceLabelNamed": "billetter til {name}",
       "switchHint": "Er du ikke {name}? Vælg dit navn under I dag."
@@ -453,8 +453,8 @@
       "empty": "Ingen indløsninger endnu",
       "entry": {
         "beforeReward": " indløste ",
-        "afterRewardSingular": " — {n} billet",
-        "afterRewardPlural": " — {n} billetter"
+        "afterRewardSingular": " for {n} billet",
+        "afterRewardPlural": " for {n} billetter"
       }
     },
     "saveFailed": "Kunne ikke gemme. Prøv igen."

@@ -34,6 +34,14 @@ export function buildSuggestions(
   options: readonly ProvidedStateKey[],
   draft: string,
   known: boolean,
+  /**
+   * Names the producer a static key comes from ("Built in", "Home
+   * Assistant"), so the catalogue rows carry a group header like the searched
+   * ones already do. Without it the picker showed a flat list in which
+   * nothing said where a key originated, which is the same list the audit
+   * read as "a search that finds nothing".
+   */
+  producerLabelFor?: (key: string) => string,
 ): KeySuggestion[] {
   const query = draft.trim().toLowerCase();
   const out: KeySuggestion[] = [];
@@ -62,6 +70,7 @@ export function buildSuggestions(
       key: o.key,
       primary: o.sampleValues?.length ? `${o.label} (${o.sampleValues.join(', ')})` : o.label,
       secondary: o.key,
+      section: producerLabelFor?.(o.key),
     });
   }
   return out;

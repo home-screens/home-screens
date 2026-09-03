@@ -50,23 +50,23 @@
     "seconds": "{count} sec"
   },
   "displayNotFound": {
-    "notRegistered": "Display Not Registered",
-    "adoptionLine1": "This display is connected to the hub but has not been adopted yet.",
-    "adoptionLine2": "Open the editor on the hub, go to",
+    "notRegistered": "Display Not Added Yet",
+    "adoptionLine1": "This display is connected to Home Screens but hasn't been added yet.",
+    "adoptionLine2": "Open the editor on the main Pi, go to",
     "settingsLink": "Settings → Displays",
     "andClick": "and click",
-    "adoptLabel": "Adopt",
+    "adoptLabel": "Add",
     "nextTo": "next to",
-    "waitingForAdoption": "Waiting for adoption…",
-    "recoveryNotice": "This display ID isn't registered, but your hub has other displays set up. Switching to the default display in {seconds}s.",
-    "goToDefault": "Go to default display now"
+    "waitingForAdoption": "Waiting to be added…",
+    "recoveryNotice": "This display isn't set up yet, but your other displays are. Switching to the main display in {seconds}s.",
+    "goToDefault": "Go to the main display now"
   },
   "login": {
     "checkingAuth": "Checking authentication…",
-    "ipBlocked": "Your IP address is blocked",
+    "ipBlocked": "This device isn't allowed to sign in",
     "enterPasswordToContinue": "Enter your password to continue",
     "accessRestricted": "Access restricted",
-    "accessRestrictedDescription": "Your IP address is not in the allowed list. Signing in won't help — the server will still reject every request from your address. Contact an administrator to add your IP to the allowlist, or sign in from a permitted network.",
+    "accessRestrictedDescription": "Home Screens only accepts connections from certain devices, and this one isn't on the list. Signing in won't help. Ask whoever set up Home Screens to add this device, or try again from a device that is already allowed.",
     "passwordPlaceholder": "Password",
     "rememberMe": "Remember me for 90 days",
     "signingIn": "Signing in…",
@@ -74,7 +74,7 @@
     "loading": "Loading…",
     "backToDisplay": "Back to display",
     "loginFailed": "Login failed",
-    "unreachable": "Unable to reach server",
+    "unreachable": "Can't reach Home Screens",
     "errors": {
       "wrongPassword": "That password isn't right.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "Forgot the password?",
       "title": "Resetting the password",
-      "body": "Whoever set this device up can clear the password. On the device (plug in a keyboard) or over SSH, run:",
+      "body": "Whoever set this device up can clear the password. On the device (plug in a keyboard), or from another computer using a terminal, run:",
       "fallback": "If that command isn't there, deleting the file {file} in the Home Screens folder does the same thing.",
       "after": "Home Screens then opens without a password, and you can set a new one in Settings."
     }
   },
   "errors": {
-    "fetchFailed": "Failed to fetch data",
+    "fetchFailed": "Couldn't connect to load this data",
     "loadImagesFailed": "Failed to load images",
     "uploadFailed": "Upload failed",
     "createFolderFailed": "Failed to create folder",

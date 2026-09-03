@@ -121,13 +121,13 @@
     "zoomHint": "Ctrl+scroll to zoom, scroll to move around"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Scheduled — currently active",
-    "scheduledInactiveTitle": "Scheduled — currently inactive",
-    "disabledTitle": "Disabled — not shown on display",
+    "scheduledActiveTitle": "Scheduled, currently active",
+    "scheduledInactiveTitle": "Scheduled, currently inactive",
+    "disabledTitle": "Disabled, not shown on display",
     "conditionGatedTitle": "Shows only when its conditions are met",
     "backgroundProviderTitle": "Runs hidden in the background and never shown on the display",
-    "conditionMetTitle": "Conditions met — showing on the display now",
-    "conditionUnmetTitle": "Conditions not met — hidden on the display now",
+    "conditionMetTitle": "Conditions met, showing on the display now",
+    "conditionUnmetTitle": "Conditions not met, hidden on the display now",
     "conditionMetTitleEditor": "Conditions met, would show right now",
     "conditionUnmetTitleEditor": "Conditions not met, would hide right now",
     "status": {
@@ -149,10 +149,10 @@
     "addDisplay": "Add a display"
   },
   "screenTabs": {
-    "stickyTooltip": "stays — doesn't rotate on its own; needs a tap or the remote",
+    "stickyTooltip": "stays: doesn't rotate on its own, needs a tap or the remote",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "scheduled",
-    "disabledTooltip": "disabled — not shown on display",
+    "disabledTooltip": "disabled, not shown on display",
     "disabledIndicatorAriaLabel": "Disabled",
     "disabledBadge": "Off",
     "stickyBadge": "Stays",
@@ -396,10 +396,6 @@
       "searchPlaceholder": "Search settings…",
       "noResults": "No settings found",
       "matchingFields": "Matching fields",
-      "websiteAriaLabel": "Visit homescreens.dev",
-      "websiteTitle": "homescreens.dev",
-      "githubAriaLabel": "View on GitHub",
-      "githubTitle": "View on GitHub",
       "navLabels": {
         "calendar": "Calendar",
         "weather": "Weather",
@@ -422,8 +418,7 @@
         "automation": "Automation",
         "admin": "Maintenance"
       },
-      "docsTitle": "Documentation",
-      "docsAriaLabel": "View documentation"
+      "helpAndDocs": "Help & docs"
     },
     "overrideRow": {
       "override": "Override",
@@ -454,9 +449,7 @@
       "description": "Default dim / sleep schedule and screensaver applied to every display. A specific display can override the whole block from its own page."
     },
     "locationAndLanguagePage": {
-      "breadcrumb": "Defaults → Location & language",
-      "title": "Location & language",
-      "description": "Pick the language used everywhere, then set the location used by weather and other location-aware modules."
+      "description": "Where this home is, and how dates, times and words are shown."
     },
     "locationPage": {
       "heading": "Location",
@@ -499,13 +492,9 @@
         "disconnect": "Disconnect",
         "selectCalendars": "Select calendars to display",
         "noCalendars": "No calendars found.",
-        "notInListing": "Not in your Google calendar list anymore",
         "primaryBadge": "(primary)",
         "hideDeclinedLabel": "Hide events you declined",
-        "credentialsRequired": "Google OAuth credentials are required to connect your calendar.",
-        "credentialsSetupPart1": "Set up your Client ID and Client Secret in ",
-        "settingsIntegrationsLink": "Settings → Integrations",
-        "credentialsSetupPart2": " first.",
+        "credentialsRequired": "Connecting your calendar needs a Google sign-in you create yourself. Add it on the API keys page.",
         "deviceCodeIntro": "Open the link below on your phone or computer, then enter the code:",
         "waitingForAuthorization": "Waiting for authorization…",
         "signIn": "Sign in with Google",
@@ -517,7 +506,12 @@
         "signInHelp": "Sign in to automatically see your calendars. Requires a Google OAuth client of type \"TVs and Limited Input devices\" in the Cloud Console.",
         "copyCode": "Copy code",
         "codeCopied": "Copied!",
-        "googleOnly": "Google only"
+        "googleOnly": "Google only",
+        "pausedExplanation": "Google isn't connected right now, so these calendars have stopped updating. Sign in again above to bring them back.",
+        "pausedBadge": "Paused",
+        "removeTitle": "Remove {name}",
+        "credentialsSetupPrefix": "Add your Google login on the ",
+        "credentialsSetupSuffix": " page first."
       },
       "icloud": {
         "heading": "iCloud Calendar",
@@ -584,7 +578,6 @@
         "show": "What to show",
         "showDescription": "Limits every calendar module starts from. A module can narrow further with its own filters."
       },
-      "heading": "Calendar",
       "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows."
     },
     "dataPage": {
@@ -617,28 +610,29 @@
         "browseButton": "Browse Templates"
       },
       "fullBackup": {
-        "heading": "Full Backup",
-        "description": "Export or restore everything: all settings, chore data, and completion history. Use it for backups and for moving to a new device.",
+        "heading": "Save a copy",
+        "description": "One file with everything: screens, settings, chores and the family's history. Use it to move to a new device.",
         "working": "Working…",
-        "backupButton": "Backup All Data",
-        "restoreButton": "Restore Backup",
-        "includeCredentialsLabel": "Include my API keys and connected accounts",
+        "backupButton": "Save a backup",
+        "restoreButton": "Restore from a file",
+        "includeCredentialsLabel": "Include my keys and connected accounts",
         "includeCredentialsHelp": "Covers weather and map keys, Google, iCloud, Immich, OneDrive, plugin logins, and your editor password.",
         "protectLabel": "Protect them with a password",
         "plaintextWarning": "Anyone who opens this file can use your accounts. Keep it somewhere private.",
-        "needsEditorPassword": "Set an editor password first, under Security. Without one, anyone on your network could read the keys in your backup with this feature enabled."
+        "needsEditorPassword": "Needs a password first, so the file isn't readable by anyone who finds it.",
+        "savedTo": "Saved {filename} to your downloads."
       },
       "backupReminder": {
         "heading": "Backup Reminder",
         "description": "Get a notification in the editor when you haven't backed up for a while.",
-        "enableLabel": "Enable backup reminders",
+        "enableLabel": "Remind me if I haven't backed up",
         "remindAfterLabel": "Remind after",
         "lastBackup": "Last backup: {date}",
         "noBackups": "No backups recorded yet"
       },
       "configBackups": {
-        "heading": "Config Backups",
-        "description": "Settings snapshots saved automatically before each update. Restore one to undo settings changes; to go back to an older version of the app itself, use the System page.",
+        "heading": "Automatic snapshots",
+        "description": "Home Screens saves a snapshot of your settings before every update, so a bad update can be undone. Nothing to set up.",
         "empty": "No backups yet. Backups are created automatically before each upgrade.",
         "sizeKb": "{size}KB",
         "download": "Download",
@@ -680,10 +674,15 @@
         "wrongPassword": "That password did not work. Try again, or restore without your keys.",
         "damagedKeys": "The keys in this file are damaged and cannot be read. You can still restore everything else.",
         "reloadFailed": "Your backup was restored, but the editor could not reload. Refresh the page to see it."
+      },
+      "description": "Save a copy of everything, put it back, or start from a template.",
+      "restoreConfirm": {
+        "title": "Restore from a file?",
+        "message": "This replaces all of your settings, screens, chores and meal plans with what is in the file. Anything you have changed since that file was made is gone. A snapshot of your current setup is kept first, so this can be undone.",
+        "confirm": "Choose a file…"
       }
     },
     "weatherPage": {
-      "heading": "Weather",
       "description": "Configure any of the weather providers below. Individual weather modules can pick any configured provider; one is used as the default.",
       "unitsLabel": "Units",
       "imperialOption": "Imperial (°F, mph)",
@@ -833,7 +832,7 @@
     },
     "perDisplayPage": {
       "header": {
-        "openTitle": "Open this display's kiosk URL",
+        "openTitle": "Open this display's address",
         "openLabel": "Open",
         "editScreensTitle": "Edit this display's screens in the canvas",
         "editScreensLabel": "Edit screens",
@@ -842,13 +841,13 @@
         "statusOffline": "Offline",
         "screenCountSingular": "1 screen",
         "screenCountPlural": "{count} screens",
-        "notFound": "Display not found",
-        "notFoundDescPart1": "No display registered with id ",
-        "notFoundDescPart2": ".",
+        "notFound": "There's no display called “{id}”",
         "subtabs": {
           "overview": "overview",
           "overrides": "overrides"
-        }
+        },
+        "notFoundDesc": "It may have been removed, or the link may be out of date.",
+        "notFoundAction": "See all displays"
       },
       "overview": {
         "activeProfileLabel": "Active profile",
@@ -894,13 +893,13 @@
       },
       "identity": {
         "displayNameLabel": "Display name",
-        "displayNameHelp": "Shown in the sidebar and on the display kiosk. Auto-saves on blur.",
+        "displayNameHelp": "Shown in the sidebar and on the display. Saved when you click away.",
         "displayIdLabel": "Display ID",
-        "displayIdHelpPart1": "Used in the kiosk URL ",
+        "displayIdHelpPart1": "Used in this display's address ",
         "displayIdHelpPart2": ". Cannot be changed without reconfiguring the Pi.",
         "dangerZoneHeading": "Danger zone",
-        "dangerZoneMainHelp": "The main display is the hub kiosk and cannot be removed. Removing it would orphan its screens and reset the hub to an unadopted state.",
-        "dangerZoneRemovableHelp": "Removing a display stops serving it and deletes its screens. The Pi can re-register as unadopted.",
+        "dangerZoneMainHelp": "The main display is the one this Pi shows itself, so it can't be removed. Removing it would leave its screens with nowhere to go.",
+        "dangerZoneRemovableHelp": "Removing a display stops serving it and deletes its screens. That Pi can show up here again, waiting to be added.",
         "removeButton": "Remove {name}",
         "removeConfirm": "Remove display \"{name}\"? This deletes its screens."
       },
@@ -974,7 +973,7 @@
         "needsSetupTitle": "Turn on automatic updates",
         "connectLabel": "Connect to it",
         "runLabel": "Then run this",
-        "connectUnknown": "Connect to this display over SSH (the username is {user}), then run:"
+        "connectUnknown": "Connect to this display's Pi from a terminal (the username is {user}), then run:"
       }
     },
     "alertFormFields": {
@@ -1001,7 +1000,7 @@
       "apiTypesPart3": ", "
     },
     "sleepFormFields": {
-      "enableLabel": "Enable display sleep",
+      "enableLabel": "Dim or switch off on a schedule",
       "enableHelp": "Dim or turn off the display automatically. Any mouse, touch, or keyboard input wakes it up.",
       "idleSectionTitle": "When nobody's using it",
       "idleDimLabel": "Dim after a few quiet minutes",
@@ -1027,22 +1026,22 @@
       "screensaverClock": "Drifting clock",
       "screensaverBlank": "Blank (dim only)",
       "screensaverOff": "Off (skip to sleep)",
-      "dimmedSectionHelp": "These apply any time the display is dimmed, whichever rule dimmed it.",
+      "dimmedSectionHelp": "The screensaver appears whenever the display is dimmed, for example from the remote.",
       "nothingDimsNote": "Nothing dims this display on its own right now. The screensaver still shows if someone dims it from the remote.",
       "legend": {
         "bright": "Bright",
         "dim": "Dimmed",
         "off": "Off",
         "idleNote": "+ dims after {minutes} quiet minutes, any time"
-      }
+      },
+      "disabledHelp": "Turn this on to set times. Right now the display stays bright all day and night."
     },
     "integrationsPage": {
-      "heading": "Integrations",
-      "description": "Connect external services to unlock additional modules and features. API keys are stored locally and never leave your device.",
+      "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They are stored on this device and never sent anywhere else.",
       "loadingStatus": "Loading integration status...",
       "summary": {
         "configuredCountPart1": " of ",
-        "configuredCountPart2": " integrations configured"
+        "configuredCountPart2": " connected"
       },
       "groups": {
         "googleEcosystem": "Google Ecosystem",
@@ -1054,17 +1053,31 @@
         "description": "Calendar, Maps, Photos",
         "clientIdLabel": "Calendar Client ID",
         "clientIdPlaceholder": "e.g. 123456789-abc.apps.googleusercontent.com",
-        "clientIdHelp": "For Google Calendar. Create at console.cloud.google.com → APIs & Services → Credentials. Use type: TVs and Limited Input devices.",
+        "clientIdHelp": "Both halves come from the same credential.",
         "clientSecretLabel": "Calendar Client Secret",
         "clientSecretPlaceholder": "e.g. GOCSPX-...",
         "clientSecretHelp": "The client secret from the same OAuth credential above.",
         "webClientIdLabel": "Photos Import Client ID",
-        "webClientIdHelp": "A second OAuth credential for Google Photos import. Use type: Web application, and add https://homescreens.dev/connect/google as an authorized redirect URI.",
+        "webClientIdHelp": "Add https://homescreens.dev/connect/google as an authorized redirect URI.",
         "webClientSecretLabel": "Photos Import Client Secret",
         "webClientSecretHelp": "The client secret from the web application credential above.",
         "mapsKeyLabel": "Maps API Key",
         "mapsKeyPlaceholder": "Paste your Google Maps API key",
-        "mapsKeyHelp": "Optional, for the traffic/commute module. Enable the Routes API in the same Cloud Console project."
+        "mapsKeyHelp": "Paste the key from the same Cloud Console project.",
+        "stepByStep": "Step-by-step guide",
+        "calendarBand": {
+          "title": "For your calendar",
+          "help": "Google needs you to create a login for your own home first. Make an OAuth credential of type “TVs and Limited Input devices” in the Google Cloud Console, then paste both halves here."
+        },
+        "photosBand": {
+          "title": "For importing Google Photos",
+          "help": "A separate login from the calendar one, of type “Web application”. Only needed if you want to pull photos in. Skip this if you don't."
+        },
+        "mapsBand": {
+          "title": "For drive times",
+          "help": "Optional. Only the traffic module uses this. Turn on the Routes API in the same Cloud Console project."
+        },
+        "clientIdInvalid": "That doesn't look right. A Client ID ends in {suffix}."
       },
       "immich": {
         "name": "Immich",
@@ -1136,12 +1149,12 @@
         "connectButton": "Connect to hidden network..."
       },
       "hostname": {
-        "heading": "Hostname",
+        "heading": "Device name",
         "placeholder": "home-screens",
         "saveButton": "Save",
         "savingButton": "Saving...",
-        "successMessage": "Hostname updated",
-        "defaultErrorMessage": "Failed to update hostname"
+        "successMessage": "Device name updated",
+        "defaultErrorMessage": "Couldn't update the device name"
       },
       "interface": {
         "type": {
@@ -1285,7 +1298,8 @@
         "requestFailed": "Diagnostics request failed",
         "testButton": "Test Connection",
         "testingButton": "Testing..."
-      }
+      },
+      "description": "The wifi and address this display uses."
     },
     "mealsPage": {
       "loading": "Loading meal settings…",
@@ -1308,7 +1322,7 @@
       },
       "timeFormat": {
         "heading": "Time Format",
-        "description": "Applies to every meal display across the kiosk and the remote.",
+        "description": "Used everywhere meals are shown, on the display and on the phone.",
         "twelveHourLabel": "12-hour",
         "twentyFourHourLabel": "24-hour",
         "followLabel": "Follow global setting"
@@ -1324,7 +1338,8 @@
       "reset": {
         "button": "Reset to defaults",
         "help": "Restores breakfast/lunch/dinner, Sunday week start, 12-hour format, and clears all default times."
-      }
+      },
+      "description": "Which meals your household plans, and when they usually happen."
     },
     "systemPage": {
       "loading": "Loading system info…",
@@ -1341,7 +1356,8 @@
         "stableChannel": "Stable channel",
         "prereleaseChannel": "Pre-release channel",
         "checkButton": "Check for Updates",
-        "checking": "Checking…"
+        "checking": "Checking…",
+        "currentLabel": "You're on version {version}"
       },
       "upgradeInProgress": {
         "title": "Upgrade in progress",
@@ -1370,10 +1386,12 @@
         "noNotes": "This release has no notes."
       },
       "history": {
-        "heading": "Version History",
+        "heading": "If an update caused trouble",
         "currentBadge": "current",
-        "rollback": "Rollback",
-        "help": "Goes back to an older version of the app. To undo settings changes instead, restore a snapshot from the Backups & data page."
+        "rollback": "Go back to this",
+        "help": "Go back to the version you were on before. To undo a settings change instead, restore a snapshot from the Backups & data page.",
+        "showAll": "Show all {count} versions",
+        "olderWarning": "Older versions may not understand your current settings."
       },
       "upgradeDialog": {
         "title": "Upgrade",
@@ -1381,15 +1399,15 @@
         "confirm": "Upgrade"
       },
       "rollbackDialog": {
-        "title": "Rollback",
-        "message": "Roll back to {tag}? The server will restart.",
-        "confirm": "Roll Back"
+        "title": "Go back to {tag}?",
+        "message": "Home Screens will restart and the wall will be blank for a few seconds. Settings you changed since then may not work in {tag}. A snapshot of your current setup is saved first, so you can come back.",
+        "confirm": "Go back to {tag}"
       },
       "powerDialog": {
-        "rebootTitle": "Reboot System",
+        "rebootTitle": "Restart the whole device",
         "rebootMessage": "Are you sure you want to reboot the system? You may briefly lose connection.",
         "rebootConfirm": "Reboot",
-        "restartTitle": "Restart Service",
+        "restartTitle": "Restart Home Screens",
         "restartMessage": "Are you sure you want to restart the service? You may briefly lose connection.",
         "restartConfirm": "Restart"
       },
@@ -1399,17 +1417,18 @@
         "confirm": "Cancel Upgrade"
       },
       "actions": {
-        "heading": "System Actions",
-        "restartService": "Restart Service",
-        "rebootSystem": "Reboot System",
-        "help": "Restart Service reloads the app. Reboot System restarts the entire Raspberry Pi."
+        "heading": "If something seems stuck",
+        "restartService": "Restart Home Screens",
+        "rebootSystem": "Restart the whole device",
+        "help": "Restarting Home Screens reloads the app and takes a few seconds. Restarting the device takes a minute or two."
       },
       "powerStatus": {
         "restartScheduled": "Service restart scheduled. The page will reload momentarily…",
         "rebootScheduled": "System reboot scheduled. The display will come back online shortly…",
         "processing": "Processing…",
         "unknownError": "Unknown error"
-      }
+      },
+      "description": "Keep Home Screens up to date, and go back if an update causes trouble."
     },
     "profilesPage": {
       "heading": "Profiles",
@@ -1420,15 +1439,14 @@
         "help": "Profiles are per-display because they reference each display's own screens. Switching here changes which display the editor canvas is also working on."
       },
       "active": {
-        "label": "Active Profile",
-        "noneOption": "None (show all screens)",
-        "help": "Manually set which profile is active. Scheduled profiles take priority over this setting."
+        "label": "Showing right now",
+        "noneOption": "Every screen",
+        "help": "A scheduled profile takes over when its time comes, whatever is picked here."
       },
       "priority": {
-        "labelPrefix": "Priority order:",
-        "helpSuffix": " When multiple profiles have overlapping schedules, the profile listed first wins. Drag to reorder."
+        "help": "When two profiles overlap, the one higher in this list wins. Drag to reorder."
       },
-      "addButton": "Add Profile",
+      "addButton": "Add a profile",
       "newProfileName": "Profile {number}",
       "card": {
         "activeBadge": "Active",
@@ -1445,17 +1463,28 @@
         "scheduleToggleLabel": "Auto-activate on schedule",
         "fromLabel": "From",
         "untilLabel": "Until",
-        "invertLabel": "Invert (hide during this window instead)"
+        "invertLabel": "Invert (hide during this window instead)",
+        "priorityBadge": "Priority {number}",
+        "screenCountSingular": "1 screen",
+        "screenCountPlural": "{count} screens",
+        "summaryScheduled": "{screens} · {when}",
+        "summaryManual": "{screens} · only when you pick it"
       },
       "deleteDialog": {
         "title": "Delete profile",
         "message": "Delete \"{name}\"?",
         "confirm": "Delete"
+      },
+      "nameSuggestions": {
+        "morning": "School mornings",
+        "evening": "Evening",
+        "weekend": "Weekend",
+        "guests": "Guests"
       }
     },
     "rulesPage": {
       "heading": "Rules",
-      "description": "Rules make the display react to what's happening at home. When a rule's conditions become true, it can switch to a screen or wake the display, like showing the camera screen when the doorbell rings.",
+      "description": "Rules make the display react on its own. When what you describe becomes true, it can switch to a screen or wake up, like showing the front door camera when the doorbell rings.",
       "displayPicker": {
         "label": "Editing rules for",
         "optionLabel": "{name} ({id})",
@@ -1508,7 +1537,7 @@
     },
     "sharedStatePage": {
       "heading": "Shared state",
-      "description": "Every value this display publishes for conditions, rules, and text tokens, plus anything referenced that never arrives.",
+      "description": "Every value this display publishes for conditions, rules, and text placeholders, plus anything referenced that never arrives.",
       "intro": {
         "heading": "How this works",
         "body1": "Displays can react to what's happening around your home. Add-ons (like Home Assistant) share small named values here, such as whether a door is open or who is home.",
@@ -1525,7 +1554,7 @@
           "one": "{count} value available from your add-ons",
           "other": "{count} values available from your add-ons"
         },
-        "truncationNote": "Showing the first {count} — search to find more",
+        "truncationNote": "Showing the first {count}. Search to find more",
         "collapseGroup": "Collapse {producer}",
         "expandGroup": "Expand {producer}",
         "noProviders": "Nothing is available to share yet. Values come from add-ons that share them (like Home Assistant). Once an add-on is set up, its values show up here.",
@@ -1552,97 +1581,98 @@
       "providerHealthSince": "since {time}"
     },
     "securityPage": {
-      "loading": "Checking authentication status…",
-      "heading": "Authentication",
+      "loading": "Checking…",
       "status": {
-        "enabled": "Authentication is enabled",
-        "disabled": "Authentication is disabled"
+        "enabled": "Password is on",
+        "disabled": "No password yet",
+        "enabledOutcome": "The editor and the family remote ask for it. The wall display and the kids' chores page stay open, so nothing on the fridge stops working.",
+        "disabledOutcome": "Anyone on your home wifi can open the editor and the family remote."
       },
       "setup": {
-        "description": "Set a password to protect the editor and API endpoints. A display token will be auto-generated so the display can authenticate seamlessly.",
-        "setPasswordButton": "Set Password"
+        "description": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it.",
+        "setPasswordButton": "Set a password"
       },
       "actions": {
-        "changePassword": "Change Password",
-        "disableAuth": "Disable Authentication",
-        "logOut": "Log Out"
+        "changePassword": "Change password",
+        "disableAuth": "Turn the password off",
+        "logOut": "Sign out"
       },
       "revokeSessions": {
-        "button": "Revoke All Sessions",
-        "warning": "All sessions will be invalidated, including this one.",
+        "button": "Sign everyone out",
+        "warning": "Everyone signed in gets signed out, including you on this device.",
         "confirmButton": "Confirm",
-        "revoking": "Revoking…",
+        "revoking": "Signing out…",
         "cancel": "Cancel",
-        "success": "All sessions revoked. Redirecting to login…",
-        "failed": "Failed to revoke sessions"
+        "success": "Everyone is signed out. Taking you to the login page…",
+        "failed": "Couldn't sign everyone out"
       },
       "displayToken": {
-        "heading": "Display Token",
-        "description": "The display uses this token to authenticate API requests. It was auto-generated when you set a password.",
+        "heading": "Display key",
+        "description": "Your displays use this key to open Home Screens without typing the password. It was created for you when you set the password.",
         "reveal": "Reveal",
         "hide": "Hide",
         "copy": "Copy",
         "copied": "Copied!",
-        "regenerateButton": "Regenerate Token",
+        "regenerateButton": "Make a new key",
         "regenerating": "Regenerating…",
         "regenerateConfirm": "Confirm",
         "regenerateCancel": "Cancel",
-        "regenerateWarning": "The display will need to reload to pick up the new token.",
-        "errorRegenerate": "Failed to regenerate token",
+        "regenerateWarning": "Each display reloads once to pick up the new key.",
+        "errorRegenerate": "Couldn't make a new key",
         "errorCopy": "Copy failed; select and copy manually",
         "phoneHintPart1": "For phone bookmarks, append ",
         "phoneHintCode": "?token=TOKEN",
         "phoneHintPart2": " to command URLs."
       },
       "ipAllowlist": {
-        "heading": "IP Allowlist",
+        "heading": "Allowed networks",
         "bypassAuth": {
-          "label": "Skip authentication for trusted IPs",
-          "help": "Displays on these networks won't need a token"
+          "label": "Let these networks in without the password",
+          "help": "Displays on these networks get in without the key"
         },
         "restrictAccess": {
-          "label": "Restrict access to trusted IPs",
-          "help": "Block all other IPs from reaching the system (except the login page)"
+          "label": "Only allow these networks",
+          "help": "Everything else is turned away, apart from the login page."
         },
-        "emptyHint": "Add at least one IP range to enable these options.",
+        "emptyHint": "Add at least one network range to turn these on.",
         "removeAriaLabel": "Remove {entry}",
         "addPlaceholder": "192.168.1.0/24",
         "addButton": "Add",
         "errors": {
-          "invalidCidr": "Invalid CIDR format",
-          "invalidIp": "Invalid IP address",
-          "invalidPrefix": "Prefix length must be 0-32",
+          "invalidCidr": "That isn't a network range. Most home networks are 192.168.1.0/24.",
+          "invalidIp": "That isn't an address",
+          "invalidPrefix": "The number after the slash has to be between 0 and 32.",
           "alreadyInList": "Already in the list"
         },
         "callerIpLabel": "Your IP: ",
         "lockoutWarning": {
           "title": "You may lock yourself out",
           "messagePart1": "Your current IP (",
-          "messagePart2": ") is not in the allowlist. If access restriction is enabled, you'll lose access to this editor.",
-          "saveAnyway": "Save Anyway",
+          "messagePart2": ") isn't on the list. If you only allow these networks, you'll lose access to this editor.",
+          "saveAnyway": "Save anyway",
           "cancel": "Cancel"
         },
         "saveButton": "Save Changes",
-        "lockedOutHintPart1": "If locked out, edit ",
+        "lockedOutHintPart1": "If you do get locked out, edit ",
         "lockedOutHintCode": "data/auth.json",
-        "lockedOutHintPart2": " on the device to disable.",
+        "lockedOutHintPart2": " on the device to turn this off.",
         "ipv4Warning": {
-          "strong": "IPv4 only.",
-          "part1": " IPv6 clients (including dual-stack Pis reporting ",
+          "strong": "Addresses with colons won't match.",
+          "part1": " This list only understands addresses like 192.168.1.20. A device that reports ",
           "loopback": "::1",
           "or": " or ",
           "linkLocal": "fe80::…",
-          "part2": ") do not match any allowlist entry and will be blocked when restriction is enabled. Check \"Your IP\" above; if it starts with a colon, this feature will block you."
+          "part2": " won't match anything here and will be blocked. Check \"Your IP\" above: if it has colons in it, turning this on locks you out."
         },
         "trustedNetworksWarning": {
           "strong": "Trusted networks only.",
-          "part1": " IP restriction reads the ",
+          "part1": " This check reads the ",
           "header": "X-Forwarded-For",
-          "part2": " header. If Home Screens is exposed directly to the internet without a trusted reverse proxy, this setting can be spoofed."
+          "part2": " header. If Home Screens is reachable from the internet without a trusted proxy in front of it, someone can fake that header and get past this."
         }
       },
       "modal": {
-        "setTitle": "Set Password",
+        "setTitle": "Set a password",
         "changeTitle": "Change Password",
         "disableTitle": "Disable Authentication",
         "currentPasswordPlaceholder": "Current password",
@@ -1650,12 +1680,13 @@
         "confirmPasswordPlaceholder": "Confirm new password",
         "disableWarning": "This will remove the password and allow anyone on your network to access the editor.",
         "cancel": "Cancel",
-        "setSubmit": "Set Password",
+        "setSubmit": "Turn it on",
         "setting": "Setting…",
         "changeSubmit": "Change Password",
         "changing": "Changing…",
         "disableSubmit": "Disable",
-        "disabling": "Disabling…"
+        "disabling": "Disabling…",
+        "setExplanation": "One password for the whole house. After this, the family remote and the editor ask for it. The wall display and the kids' chores page keep working without it."
       },
       "errors": {
         "passwordsDoNotMatch": "Passwords do not match",
@@ -1668,7 +1699,12 @@
         "passwordChanged": "Password changed. All other sessions have been invalidated.",
         "authDisabled": "Authentication disabled."
       },
-      "forgotPasswordHint": "Forgot the password? On the device, run {command}. Deleting the file {file} in the Home Screens folder clears it too."
+      "forgotPasswordHint": "Forgot the password? On the device, run {command}. Deleting the file {file} in the Home Screens folder clears it too.",
+      "description": "Who can change things, and from where.",
+      "advanced": {
+        "heading": "Advanced network access",
+        "description": "Display key, signed-in devices, and limiting access to certain networks."
+      }
     },
     "shared": {
       "secretField": {
@@ -1679,7 +1715,9 @@
         "checkingButton": "Checking…",
         "detailsToggle": "Details",
         "saveAnyway": "Save anyway"
-      }
+      },
+      "savesAutomatically": "Changes save automatically.",
+      "learnMore": "Learn more"
     },
     "localBackgrounds": {
       "none": "None",
@@ -1703,14 +1741,14 @@
         "heading": "Unverified Plugin",
         "message": "This plugin has not been reviewed by the Home Screens team. Install at your own discretion."
       },
-      "permissionsHeading": "Permissions requested",
+      "permissionsHeading": "What this plugin can do",
       "permissions": {
         "network": "Network access",
         "secrets": "Secret storage",
         "events": "Host events",
         "storage": "Local storage",
         "localNetwork": "Local network (LAN)",
-        "oauth": "Account sign-in (OAuth)"
+        "oauth": "Account sign-in"
       },
       "secretsHeading": "API keys required",
       "secretRequired": "(required)",
@@ -1853,7 +1891,7 @@
       "diagnosticsBundle": "Diagnostics bundle",
       "generatingBundle": "Generating…",
       "bundleFailed": "Bundle generation failed: {error}",
-      "hostname": "Hostname",
+      "hostname": "Device name",
       "platform": "Platform",
       "uptime": "Uptime",
       "hardwareTitle": "CPU & Thermal",
@@ -1880,8 +1918,7 @@
       "moduleSummary": "{count} modules · {types} types",
       "moduleOther": "other",
       "integrations": "Integrations",
-      "integrationsConfigured": "{count} / {total} configured",
-      "cacheTitle": "Data Cache",
+      "cacheTitle": "Saved data",
       "hideDetails": "Hide details",
       "showDetails": "Show details",
       "hitRate": "Hit rate",
@@ -1900,8 +1937,8 @@
       "cacheState": "State",
       "cacheStaleLabel": "stale",
       "cacheFreshLabel": "fresh",
-      "cacheNoDisplay": "Cache stats are reported by the display client. No display connected.",
-      "cacheNoDisplayForName": "Cache stats are reported by the display client. No display connected for {name}.",
+      "cacheNoDisplay": "These numbers come from a display. None is connected right now.",
+      "cacheNoDisplayForName": "These numbers come from a display. {name} isn't connected right now.",
       "telemetryTitle": "Anonymous Telemetry",
       "telemetryDescription": "Home Screens collects anonymous usage statistics to help prioritize features and understand how the app is used. No personal data, IP addresses, or content is ever collected.",
       "telemetryToggle": "Send anonymous usage data",
@@ -1933,7 +1970,7 @@
       "indexOf": "{index} of {total}",
       "profile": "Profile",
       "viewport": "Viewport",
-      "notChromium": "Not Chromium",
+      "notChromium": "Another browser",
       "lastSeen": "Last seen",
       "timeAgo": "{age} ago",
       "noDisplayPrefix": "No display connected. Open",
@@ -1945,7 +1982,8 @@
       "deviceMemoryLabel": "Device memory",
       "deviceMemoryGb": "{gb} GB",
       "noBrowserStats": "Browser info is reported by the display client. No display connected.",
-      "noBrowserStatsForName": "Browser info is reported by the display client. No display connected for {name}."
+      "noBrowserStatsForName": "Browser info is reported by the display client. No display connected for {name}.",
+      "description": "How your displays and this device are doing right now."
     },
     "displaysIndex": {
       "breadcrumb": "Displays",
@@ -1954,7 +1992,7 @@
         "one": "{count} display in this home",
         "other": "{count} displays in this home"
       },
-      "emptyDescriptionPrefix": "Drive more than one screen from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub and serves all of them; secondary displays can be cheap Pi Zeros running ",
+      "emptyDescriptionPrefix": "Drive more than one screen from this Pi (a kitchen touchscreen, a bedroom monitor, a living-room TV), each with its own layout, resolution, and rotation. This Pi becomes the hub (the one that runs Home Screens and serves every display); secondary displays can be cheap Pi Zeros running ",
       "emptyDescriptionSuffix": ".",
       "populatedDescriptionPrefix": "Click a display to edit its own settings. Everything else uses the shared ",
       "populatedDescriptionSuffix": ".",
@@ -1962,29 +2000,29 @@
       "refreshHeartbeatsTitle": "Refresh heartbeats",
       "addDisplay": "Add display",
       "emptyTitle": "This install is running in single-display mode",
-      "emptyParagraphPart1": "Your current setup counts as one display but isn’t registered here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi’s current layout becomes a display called ",
+      "emptyParagraphPart1": "Your current setup counts as one display but isn't added here yet; multi-display support is opt-in so existing installs stay unchanged until you explicitly add a second screen. The moment you add your first display, this Pi's current layout becomes a display called ",
       "emptyParagraphPart2": " and keeps running exactly as it does today.",
       "mainLabel": "Main",
       "emptyBullet1Prefix": "Click ",
-      "emptyBullet1Suffix": " above to register a new screen. Give it a name, resolution, and rotation, then design its own layout in the editor.",
+      "emptyBullet1Suffix": " above to add a new screen. Give it a name, resolution, and rotation, then design its own layout in the editor.",
       "emptyBullet2Prefix": "Or flash another Pi with ",
       "emptyBullet2Middle": ". Once it boots, it will appear below as an ",
-      "emptyBullet2Suffix": " waiting to be adopted with one click.",
-      "unadoptedLabel": "unadopted display",
+      "emptyBullet2Suffix": " waiting to be added with one click.",
+      "unadoptedLabel": "display waiting to be added",
       "unadoptedWaiting": {
-        "one": "{count} unadopted display waiting",
-        "other": "{count} unadopted displays waiting"
+        "one": "{count} display waiting to be added",
+        "other": "{count} displays waiting to be added"
       },
-      "unadoptedHintPrefix": "These Pis are connected to the hub but have not been registered yet. Click ",
+      "unadoptedHintPrefix": "These Pis are connected to the hub but haven't been added yet. Click ",
       "unadoptedHintSuffix": " to assign them screens.",
-      "adoptStrong": "Adopt",
-      "adoptButton": "Adopt",
+      "adoptStrong": "Add",
+      "adoptButton": "Add",
       "lastSeenLabel": "Last seen {time}",
       "reportedDimensions": "{width}×{height} reported",
       "reportedFrom": "from {address}",
       "multipleClientsHeading": "{count} clients reporting with this ID",
       "multipleClientsParagraphPrefix": "Two or more clients are POSTing with this display ID. Check the source IPs above to find which device is actually reporting; most often a duplicate ",
-      "multipleClientsParagraphSuffix": " install, a stray chromium tab, or a hub kiosk pointed at the wrong URL.",
+      "multipleClientsParagraphSuffix": " install, a stray browser tab, or a display pointed at the wrong address.",
       "statusOnline": "Online · {time}",
       "statusIdle": "Idle · {time}",
       "statusOffline": "Offline · {time}",
@@ -1998,7 +2036,7 @@
       "multipleClientsCardHeading": "{count} distinct clients reporting for this display",
       "tabsSuffix": "×{count} tabs",
       "formEditTitle": "Edit Display",
-      "formAdoptTitle": "Adopt {id}",
+      "formAdoptTitle": "Add {id}",
       "formAddTitle": "Add Display",
       "formNameLabel": "Name",
       "formNamePlaceholder": "Kitchen Touchscreen",
@@ -2009,7 +2047,7 @@
       "formReportedViewport": "(reported by display: {width} × {height})",
       "formWidth": "Width",
       "formHeight": "Height",
-      "formResolutionHint": "Set this to match the physical display the kiosk is rendering on. Modules will be laid out against this canvas size when you edit this display's screens.",
+      "formResolutionHint": "Set this to match the physical screen this display is showing on. Modules will be laid out against this canvas size when you edit this display's screens.",
       "formRotationNormal": "Normal (landscape)",
       "formRotation90": "90° clockwise (portrait)",
       "formRotation180": "180° (inverted)",
@@ -2038,15 +2076,12 @@
       }
     },
     "screenPage": {
-      "breadcrumb": "Defaults → Screen",
       "heading": "Screen defaults",
       "rotationAppearanceHeading": "Rotation & appearance",
       "sleepHeading": "Sleep & dimming",
       "alertsHeading": "Alerts"
     },
     "automationPage": {
-      "breadcrumb": "Defaults → Automation",
-      "heading": "Automation",
       "description": "Profiles, rules, and live values for each display.",
       "displayPicker": {
         "label": "Editing automation for",
@@ -2055,8 +2090,6 @@
       }
     },
     "phonePage": {
-      "breadcrumb": "Defaults → On your phone",
-      "title": "On your phone",
       "description": "Two addresses, both open on any phone or tablet on your home wifi. Nothing to install.",
       "open": "Open",
       "chores": {
@@ -2069,7 +2102,7 @@
       "password": {
         "label": "Ask for a password on the family remote",
         "checking": "Checking…",
-        "on": "On. The kids' page stays open either way.",
+        "on": "On. The remote and the editor ask for it; the kids' chores page stays open.",
         "off": "Off. Anyone on your wifi can open it.",
         "setUpAction": "Set up",
         "manageAction": "Manage"
@@ -2085,7 +2118,7 @@
   "backgroundPicker": {
     "missing": {
       "label": "Background image",
-      "note": "This picture isn't on the hub anymore, so the screen shows the solid color instead. Pick another one or remove it.",
+      "note": "This picture isn't on this Pi anymore, so the screen shows the solid color instead. Pick another one or remove it.",
       "pickAnother": "Pick a picture",
       "useSolid": "Use the solid color"
     },
@@ -2158,7 +2191,7 @@
     "photoCountPlural": "{count} photos",
     "confirmSelectImage": "Select Image",
     "confirmUseFolder": "Use This Folder",
-    "unsplashAttribution": "Photos by Unsplash — saved to your local library",
+    "unsplashAttribution": "Photos by Unsplash, saved to your local library",
     "unsplashSearchPlaceholder": "Search Unsplash...",
     "unsplashCategories": {
       "nature": "Nature",
@@ -2204,7 +2237,7 @@
   "choreChartModal": {
     "title": "Chore Chart",
     "subtitleMembersChores": "{members} members · {chores} chores",
-    "loadError": "Failed to load chore data — changes won't be saved.",
+    "loadError": "Couldn't load the chore data. Changes won't be saved.",
     "members": {
       "columnTitle": "Family Members",
       "empty": "No members yet",
@@ -2520,7 +2553,7 @@
   "layoutImport": {
     "alerts": {
       "invalidLayoutFile": "Invalid layout file:\n{errors}",
-      "invalidJsonFile": "Invalid JSON file."
+      "invalidJsonFile": "That file isn't a layout Home Screens can read."
     }
   },
   "installFromUrlModal": {
@@ -2570,7 +2603,7 @@
       "other": "{count} icons"
     },
     "noMatch": "No icons match “{query}”. Try a different keyword.",
-    "moreResults": "+{count} more — refine your search to see them.",
+    "moreResults": "+{count} more. Refine your search to see them.",
     "chooseIconPlaceholder": "Choose an icon…",
     "browse": "Browse",
     "kindAll": "All",
@@ -2824,7 +2857,7 @@
       "defaultTarget": "Default target",
       "targetSelf": "This display (self)",
       "targetAll": "All displays",
-      "legacyHint": "Only one display registered — target is locked to this display.",
+      "legacyHint": "There's only one display, so this is the one it controls.",
       "allowRetargeting": "Allow user to change target at runtime",
       "compact": "Icons only, no words"
     },
@@ -3096,7 +3129,7 @@
       "animationFlip": "Flip",
       "animationSpeed": "Animation speed",
       "hideAdvanced": "▾ Hide advanced",
-      "showAdvanced": "▸ Advanced — paste a raw class string",
+      "showAdvanced": "▸ Advanced: paste a raw class string",
       "customClass": "Custom class"
     },
     "iframe": {
@@ -3172,7 +3205,7 @@
     "googlePhotosImport": {
       "importButton": "Import from Google Photos",
       "checking": "Checking…",
-      "credentialsNeeded": "To import from Google Photos, add a Google Photos import Client ID and Secret in Settings → Integrations.",
+      "credentialsNeeded": "To import from Google Photos, add a Google Photos import Client ID and Secret in Settings → API keys.",
       "signInIntro": "Sign in with Google, then paste the code you get at the end.",
       "signIn": "Sign in with Google",
       "pastePlaceholder": "Paste the code or link here",
@@ -3187,7 +3220,7 @@
       "nothingPicked": "Nothing was picked. Try choosing photos again.",
       "sessionExpired": "Google Photos closed that picking session. Try choosing photos again.",
       "busy": "Another import is already running. Wait for it to finish, then try again.",
-      "tooMany": "That's a lot of photos! Imports max out at 2000 — pick fewer and try again.",
+      "tooMany": "That's a lot of photos! Imports max out at 2000, so pick fewer and try again.",
       "jobLost": "The import was interrupted. Check your photo folder and try again.",
       "allFailed": "The photos couldn't be saved. Check the connection and try again.",
       "failedNote": "{failed} couldn't be saved.",
@@ -3652,7 +3685,7 @@
         "down": "Down"
       },
       "stateTokensHint": "Insert {example} to show a live value published by a background module.",
-      "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those tokens show '–' until a module publishes them.",
+      "stateTokenUnknown": "Nothing on this display publishes {keys} yet. Those spots show '–' until a module publishes them.",
       "stateTokenFiltersHint": "Add |round:1 to round numbers, or |default:text to choose what shows before a value arrives.",
       "stateTokenPreview": "Live preview"
     },
@@ -3668,7 +3701,7 @@
       "checking": "Checking...",
       "connected": "Connected",
       "notConfigured": "Not configured.",
-      "settingsIntegrationsLink": "Settings → Integrations",
+      "settingsIntegrationsLink": "Settings → API keys",
       "title": "List name",
       "viewMode": "View Mode",
       "groupByLabel": "Group By",
@@ -3924,7 +3957,7 @@
       "apiKeyHint": "Create an API key in Immich → Account Settings → API Keys",
       "errors": {
         "loadPhotos": "Failed to load photos",
-        "fetchImage": "Failed to fetch image"
+        "fetchImage": "Couldn't load this image"
       }
     },
     "unsplash": {
@@ -3963,7 +3996,7 @@
         "library": "Image Library"
       },
       "errors": {
-        "fetch": "Failed to fetch NASA images"
+        "fetch": "Couldn't load NASA images"
       },
       "categories": {
         "nebula": "Nebula",
@@ -4012,7 +4045,7 @@
       "scaleToFit": "Scale to Fit",
       "scaleToFitDescription": "shrinks all modules proportionally so nothing is cut off.",
       "switchAnyway": "Switch Anyway",
-      "switchAnywayDescription": "keeps modules at their current positions — you can reposition them manually."
+      "switchAnywayDescription": "keeps modules at their current positions. You can reposition them manually."
     }
   },
   "viewSelect": {
@@ -4051,8 +4084,8 @@
   },
   "backupReminder": {
     "message": {
-      "one": "You haven’t backed up in 1 day.",
-      "other": "You haven’t backed up in {count} days."
+      "one": "You haven't backed up in 1 day.",
+      "other": "You haven't backed up in {count} days."
     },
     "downloading": "Downloading…",
     "backupNow": "Backup Now",
@@ -4087,7 +4120,7 @@
     "sourceKeyLabel": "What to check",
     "sourceKeyHint": "Typed keys must match exactly, including the plugin: prefix.",
     "sourceKeyUnknown": "Nothing on this display publishes this key yet. Until something does, this condition counts as unknown and the module follows the 'Before data arrives' setting.",
-    "sourceKeyPlaceholder": "Search sensors, lights, and more…",
+    "sourceKeyPlaceholder": "Pick something, or type to filter",
     "matchLabel": "Match",
     "matchEquals": "Is",
     "matchNotEquals": "Is not",
@@ -4105,14 +4138,14 @@
     "whenUnknownLabel": "While the data source hasn't reported yet",
     "whenUnknownHide": "Hide the module",
     "whenUnknownShow": "Show the module",
-    "noProvidersHint": "No state keys are available to pick from yet. Keys come from plugins that share values (like Home Assistant). You can also type a key yourself.",
+    "noProvidersHint": "Nothing is being shared yet. Connect a calendar, or install the Home Assistant add-on for doors, lights and who's home. Until then, Time of day is the condition that works.",
     "noConditionsHint": "No conditions yet. The module always shows until you add one.",
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",
     "liveValueLabel": "On the display now:",
     "liveValueLabelEditor": "Value right now:",
     "liveValueStale": "no longer updating",
-    "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive — update the value to match exactly.",
+    "caseMismatchWarning": "The display publishes '{value}'. Matching is case-sensitive, so the value must match exactly.",
     "verdicts": {
       "met": "Met",
       "unmet": "Not met",
@@ -4141,7 +4174,8 @@
       "untilLabel": "Until",
       "hint": "Leave both times empty for all day. An end earlier than the start crosses midnight (like 10:00 PM to 6:00 AM)."
     },
-    "providerHealthNote": "{plugin}: {message}"
+    "providerHealthNote": "{plugin}: {message}",
+    "addOnHint": "Doors, lights and who's home come from the Home Assistant add-on. Install it and they appear here too."
   },
   "stateKeys": {
     "calendar": {

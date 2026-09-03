@@ -50,23 +50,23 @@
     "seconds": "{count} Sek."
   },
   "displayNotFound": {
-    "notRegistered": "Display nicht registriert",
-    "adoptionLine1": "Dieses Display ist mit dem Hub verbunden, wurde aber noch nicht hinzugefügt.",
-    "adoptionLine2": "Öffne den Editor am Hub, gehe zu",
+    "notRegistered": "Display noch nicht hinzugefügt",
+    "adoptionLine1": "Dieses Display ist mit Home Screens verbunden, wurde aber noch nicht hinzugefügt.",
+    "adoptionLine2": "Öffne den Editor auf dem Haupt-Pi, gehe zu",
     "settingsLink": "Einstellungen → Displays",
     "andClick": "und klicke",
     "adoptLabel": "Hinzufügen",
     "nextTo": "neben",
     "waitingForAdoption": "Warte auf das Hinzufügen…",
-    "recoveryNotice": "Diese Display-ID ist nicht registriert, aber dein Hub hat andere Displays eingerichtet. Wechsle in {seconds} s zum Standard-Display.",
-    "goToDefault": "Jetzt zum Standard-Display wechseln"
+    "recoveryNotice": "Dieses Display ist noch nicht eingerichtet, deine anderen Displays schon. Wechsel zum Haupt-Display in {seconds}s.",
+    "goToDefault": "Jetzt zum Haupt-Display wechseln"
   },
   "login": {
     "checkingAuth": "Authentifizierung wird geprüft…",
-    "ipBlocked": "Deine IP-Adresse ist blockiert",
+    "ipBlocked": "Dieses Gerät darf sich nicht anmelden",
     "enterPasswordToContinue": "Gib dein Passwort ein, um fortzufahren",
     "accessRestricted": "Zugang eingeschränkt",
-    "accessRestrictedDescription": "Deine IP-Adresse ist nicht auf der zugelassenen Liste. Anmelden hilft nicht — der Server lehnt jede Anfrage von deiner Adresse ab. Wende dich an einen Administrator, um deine IP zur Zugriffsliste hinzuzufügen, oder melde dich aus einem zulässigen Netzwerk an.",
+    "accessRestrictedDescription": "Home Screens nimmt nur Verbindungen von bestimmten Geräten an, und dieses steht nicht auf der Liste. Anmelden hilft nicht. Bitte die Person, die Home Screens eingerichtet hat, dieses Gerät hinzuzufügen, oder versuche es von einem Gerät, das schon erlaubt ist.",
     "passwordPlaceholder": "Passwort",
     "rememberMe": "90 Tage angemeldet bleiben",
     "signingIn": "Anmeldung läuft…",
@@ -74,7 +74,7 @@
     "loading": "Wird geladen…",
     "backToDisplay": "Zurück zum Display",
     "loginFailed": "Anmeldung fehlgeschlagen",
-    "unreachable": "Server nicht erreichbar",
+    "unreachable": "Home Screens ist nicht erreichbar",
     "errors": {
       "wrongPassword": "Dieses Passwort stimmt nicht.",
       "tooManyTries": {
@@ -85,13 +85,13 @@
     "forgotPassword": {
       "link": "Passwort vergessen?",
       "title": "Passwort zurücksetzen",
-      "body": "Wer dieses Gerät eingerichtet hat, kann das Passwort löschen. Führe direkt am Gerät (mit angeschlossener Tastatur) oder über SSH aus:",
+      "body": "Wer dieses Gerät eingerichtet hat, kann das Passwort löschen. Führe das direkt am Gerät (mit angeschlossener Tastatur) oder von einem anderen Computer im Terminal aus:",
       "fallback": "Falls es diesen Befehl nicht gibt: Die Datei {file} im Home-Screens-Ordner zu löschen bewirkt dasselbe.",
       "after": "Home Screens öffnet sich danach ohne Passwort, und du kannst in den Einstellungen ein neues festlegen."
     }
   },
   "errors": {
-    "fetchFailed": "Daten konnten nicht geladen werden",
+    "fetchFailed": "Verbindung zum Laden der Daten fehlgeschlagen",
     "loadImagesFailed": "Bilder konnten nicht geladen werden",
     "uploadFailed": "Upload fehlgeschlagen",
     "createFolderFailed": "Ordner konnte nicht erstellt werden",

@@ -13,7 +13,7 @@
     "hubDisconnected": "Home Screens est injoignable"
   },
   "connectionBanner": {
-    "unreachable": "Impossible de joindre Home Screens. Vérifie que ce téléphone est sur le Wi-Fi de la maison et que la centrale est allumée.",
+    "unreachable": "Impossible de joindre Home Screens. Vérifie que ce téléphone est sur le Wi-Fi de la maison et que le Pi principal est allumé.",
     "restarting": "Home Screens redémarre. Reconnexion dans environ 20 secondes…",
     "rebooting": "L'appareil redémarre. Reconnexion dans environ une minute…"
   },
@@ -404,7 +404,7 @@
     "sendButton": "Envoyer l'alerte",
     "sendingButton": "Envoi…",
     "sentButton": "Envoyée !",
-    "failedButton": "Échec — réessaie",
+    "failedButton": "Non envoyé, réessaie",
     "clearOnDisplay": "Effacer les alertes sur {name}",
     "clearOnAll": "Effacer les alertes sur tous les écrans",
     "clearingButton": "Effacement…",
@@ -427,8 +427,8 @@
       "confirmTitle": "Échanger {name} ?",
       "confirmDescriptionSingular": "Cela utilisera {cost} ticket du solde de {memberName}. Restant : {remaining}",
       "confirmDescriptionPlural": "Cela utilisera {cost} tickets du solde de {memberName}. Restant : {remaining}",
-      "confirmLabelSingular": "Échanger — {cost} ticket",
-      "confirmLabelPlural": "Échanger — {cost} tickets",
+      "confirmLabelSingular": "Échanger pour {cost} ticket",
+      "confirmLabelPlural": "Échanger pour {cost} tickets",
       "emptyKid": "Aucune récompense pour l'instant. Un grand peut en ajouter depuis son téléphone.",
       "balanceLabelNamed": "tickets de {name}",
       "switchHint": "Ce n'est pas {name} ? Choisis ton nom dans l'onglet Aujourd'hui."
@@ -453,8 +453,8 @@
       "empty": "Aucun échange pour l'instant",
       "entry": {
         "beforeReward": " a échangé ",
-        "afterRewardSingular": " — {n} ticket",
-        "afterRewardPlural": " — {n} tickets"
+        "afterRewardSingular": " pour {n} ticket",
+        "afterRewardPlural": " pour {n} tickets"
       }
     },
     "saveFailed": "Échec de l'enregistrement. Réessaie."

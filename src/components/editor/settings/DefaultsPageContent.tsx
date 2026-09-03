@@ -18,6 +18,8 @@ import NetworkSection from '@/components/editor/settings/NetworkSection';
 import SecuritySection from '@/components/editor/settings/SecuritySection';
 import StatsSection from '@/components/editor/settings/StatsSection';
 import DataSection from '@/components/editor/settings/DataSection';
+import DefaultsPageShell from '@/components/editor/settings/DefaultsPageShell';
+import { useDefaultsPageHeader } from '@/components/editor/settings/useDefaultsPageHeader';
 import type { DefaultPageId, SettingsPanelId } from '@/lib/settings-route';
 import {
   toFormState,
@@ -43,6 +45,39 @@ interface DefaultsPageContentProps {
 }
 
 /**
+ * Header copy for every Defaults page, keyed by page id.
+ *
+ * Typed as a total `Record<DefaultPageId, ...>` for the same reason
+ * `PAGE_CONTENT` is: a new page id without a header is a build failure, not a
+ * page that silently opens on a section label with nothing naming it. Six
+ * pages used to do exactly that, which left deep links and sidebar
+ * field-search results stranded on a view that never said where you were.
+ *
+ * `null` means the page renders its own `DefaultsPageShell` because its
+ * header is not static. Only Screen qualifies: its backlink banner reports
+ * the overrides of the active tab, so the shell has to live below the tab
+ * state.
+ */
+const PAGE_HEADERS: Record<
+  DefaultPageId,
+  { descriptionKey: string; savesAutomatically?: boolean } | null
+> = {
+  screen: null,
+  location: { descriptionKey: 'settings.locationAndLanguagePage.description', savesAutomatically: true },
+  weather: { descriptionKey: 'settings.weatherPage.description' },
+  calendar: { descriptionKey: 'settings.calendarPage.description', savesAutomatically: true },
+  meals: { descriptionKey: 'settings.mealsPage.description', savesAutomatically: true },
+  phone: { descriptionKey: 'settings.phonePage.description' },
+  integrations: { descriptionKey: 'settings.integrationsPage.description' },
+  automation: { descriptionKey: 'settings.automationPage.description', savesAutomatically: true },
+  security: { descriptionKey: 'settings.securityPage.description' },
+  network: { descriptionKey: 'settings.networkPage.description' },
+  system: { descriptionKey: 'settings.systemPage.description' },
+  data: { descriptionKey: 'settings.dataPage.description' },
+  stats: { descriptionKey: 'settings.statsSection.description' },
+};
+
+/**
  * The Defaults half of the settings content pane: one source-of-truth page
  * per shared value, picked by the page id the URL resolved to.
  */
@@ -58,6 +93,7 @@ export default function DefaultsPageContent({
   onRollback,
 }: DefaultsPageContentProps) {
   const t = useTranslate('editor');
+  const header = useDefaultsPageHeader(page);
 
   /**
    * Content for every Defaults page, keyed by page id.
@@ -84,17 +120,6 @@ export default function DefaultsPageContent({
 
     location: (
       <>
-        <div className="mb-5">
-          <div className="text-[10px] uppercase tracking-wider text-hs-text-faint mb-1">
-            {t('settings.locationAndLanguagePage.breadcrumb')}
-          </div>
-          <h1 className="text-xl font-semibold text-hs-text-primary">
-            {t('settings.locationAndLanguagePage.title')}
-          </h1>
-          <p className="text-sm text-hs-text-faint mt-1">
-            {t('settings.locationAndLanguagePage.description')}
-          </p>
-        </div>
         <LanguageFields />
         <div className="mt-6">
           <TimeFormatFields />
@@ -161,6 +186,8 @@ export default function DefaultsPageContent({
     network: <NetworkSection />,
   };
 
+  const chrome = PAGE_HEADERS[page];
+
   return (
     <div className={`mx-auto px-6 py-6 ${
       page === 'stats'
@@ -174,7 +201,17 @@ export default function DefaultsPageContent({
           branch used to render a silently empty pane; now a missing entry
           is a compile error, which matters because this list churned twice
           during the settings reorg. */}
-      {PAGE_CONTENT[page]}
+      {chrome ? (
+        <DefaultsPageShell
+          {...header}
+          description={t(chrome.descriptionKey)}
+          savesAutomatically={chrome.savesAutomatically}
+        >
+          {PAGE_CONTENT[page]}
+        </DefaultsPageShell>
+      ) : (
+        PAGE_CONTENT[page]
+      )}
     </div>
   );
 }
