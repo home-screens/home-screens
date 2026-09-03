@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslate } from '@/i18n';
+import type { ControlMetrics } from './metrics';
 
 export interface TargetPickerProps {
   /** Current dispatch target: a display id, 'all', or undefined (this display, id unknown). */
@@ -13,9 +14,15 @@ export interface TargetPickerProps {
   selfId?: string;
   /** Lets the layout dim its buttons while the list is open. */
   onOpenChange?: (open: boolean) => void;
+  /** Sizing model, so the row shrinks with the widget. */
+  m: ControlMetrics;
 }
 
 export const ALL_TARGET = 'all';
+
+/** The open list floats over the widget, so it is legible at a fixed size
+ *  rather than shrinking with a small picker row. */
+const LIST_FONT = 18;
 
 /** A display's friendly name, or its id when it was never given one. */
 export function displayLabel(d: { id: string; name: string }): string {
@@ -27,7 +34,7 @@ export function displayLabel(d: { id: string; name: string }): string {
  * display marked, and "All displays" last. A custom list rather than a native
  * select so it renders at wall size and can be styled like the buttons.
  */
-export function TargetPicker({ value, onChange, options, selfId, onOpenChange }: TargetPickerProps) {
+export function TargetPicker({ value, onChange, options, selfId, onOpenChange, m }: TargetPickerProps) {
   const t = useTranslate('modules');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -59,24 +66,31 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange }:
 
   return (
     // data-swipe-ignore: a drag inside the list must never turn into screen navigation.
-    <div ref={ref} className="relative flex items-center gap-3 text-[20px] text-hs-text-muted" data-swipe-ignore>
-      <span>{t('display-control.controls')}</span>
+    <div
+      ref={ref}
+      className="relative flex min-w-0 items-center text-hs-text-muted"
+      style={{ gap: m.gap * 0.6, height: m.pickerH || undefined, fontSize: m.picker }}
+      data-swipe-ignore
+    >
+      {m.showPickerPrefix && <span className="shrink-0">{t('display-control.controls')}</span>}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-3 rounded-xl border border-hs-border-strong bg-hs-card px-4 py-2 text-[22px] font-medium text-hs-text-primary transition-transform active:scale-[0.98]"
+        className="flex h-full min-w-0 items-center border border-hs-border-strong bg-hs-card font-medium text-hs-text-primary transition-transform active:scale-[0.98]"
+        style={{ gap: m.gap * 0.5, borderRadius: m.radius * 0.7, paddingInline: m.pad * 0.6, fontSize: m.picker * 1.05 }}
       >
-        <span>{selectedLabel}</span>
-        <svg aria-hidden="true" className="h-5 w-5 text-hs-text-faint" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <span className="truncate">{selectedLabel}</span>
+        <svg aria-hidden="true" className="shrink-0 text-hs-text-faint" style={{ height: m.picker * 0.9, width: m.picker * 0.9 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M6 9l6 6 6-6" />
         </svg>
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-20 mt-2 max-h-[360px] min-w-[300px] overflow-y-auto rounded-2xl border border-hs-border-strong bg-hs-card p-2 shadow-2xl"
+          className="absolute left-0 top-full z-20 mt-2 max-h-[360px] min-w-[240px] overflow-y-auto rounded-2xl border border-hs-border-strong bg-hs-card p-2 shadow-2xl"
+          style={{ fontSize: LIST_FONT }}
         >
           {options.map((opt) => {
             const active = opt.id === value || (value === undefined && opt.id === selfId);
@@ -86,13 +100,13 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange }:
                 type="button"
                 role="menuitem"
                 onClick={() => choose(opt.id)}
-                className={`flex w-full items-center justify-between gap-4 rounded-xl px-4 py-3 text-left text-[22px] ${
+                className={`flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left ${
                   active ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
                 }`}
               >
                 <span>{displayLabel(opt)}</span>
                 {opt.id === selfId && (
-                  <span className="text-[20px] text-hs-text-muted">{t('display-control.thisDisplayTag')}</span>
+                  <span className="text-hs-text-muted" style={{ fontSize: LIST_FONT * 0.85 }}>{t('display-control.thisDisplayTag')}</span>
                 )}
               </button>
             );
@@ -101,7 +115,7 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange }:
             type="button"
             role="menuitem"
             onClick={() => choose(ALL_TARGET)}
-            className={`flex w-full items-center rounded-xl px-4 py-3 text-left text-[22px] ${
+            className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left ${
               value === ALL_TARGET ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
             }`}
           >

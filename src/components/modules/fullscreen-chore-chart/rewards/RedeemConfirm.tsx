@@ -9,129 +9,116 @@ interface RedeemConfirmProps {
   reward: RewardDefinition;
   memberName: string;
   error?: string | null;
+  busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  scale: number;
+  k: number;
+  t: number;
+  d: number;
+  onAccent: string;
 }
 
-export default function RedeemConfirm({
-  reward,
-  memberName,
-  error,
-  onConfirm,
-  onCancel,
-  scale,
-}: RedeemConfirmProps) {
-  const emojiFontSize = scale * 4.0;
-  const titleFontSize = scale * 1.6;
-  const subtitleFontSize = scale * 1.1;
-  const buttonFontSize = scale * 1.1;
-  const dialogPadding = `${scale * 2.0}px ${scale * 2.4}px`;
-  const dialogBorderRadius = scale * 1.2;
-  const buttonBorderRadius = scale * 2;
-  const buttonPadding = `${scale * 0.7}px ${scale * 2.0}px`;
-  const gap = scale * 0.8;
-  const t = useTranslate('modules');
+/**
+ * "Spend your tickets?" sheet. Sized like the cards behind it (t for text,
+ * k for tap targets) so it reads from where the kid is standing, not like a
+ * phone dialog dropped on a wall.
+ */
+export default function RedeemConfirm({ reward, memberName, error, busy, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
+  const tr = useTranslate('modules');
+  const buttonText = 26 * t;
+  const buttonHeight = Math.max(60 * k, buttonText * 1.2 + 20 * k);
+
+  const buttonBase: React.CSSProperties = {
+    minHeight: buttonHeight,
+    padding: `0 ${44 * k * d}px`,
+    minWidth: 6 * buttonText,
+    borderRadius: 999,
+    fontSize: buttonText,
+    fontWeight: 700,
+    lineHeight: 1,
+    cursor: 'pointer',
+    outline: 'none',
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap',
+  };
 
   return (
     <div
+      data-testid="fcc-redeem-confirm"
       onClick={onCancel}
       style={{
         position: 'absolute',
         inset: 0,
-        background: 'rgba(0,0,0,0.5)',
+        background: 'rgba(0,0,0,0.55)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        padding: 40 * k,
         zIndex: 100,
       }}
     >
       <div
+        role="dialog"
         onClick={(e) => e.stopPropagation()}
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap,
-          padding: dialogPadding,
+          gap: 16 * k * d,
+          padding: `${40 * k * d}px ${48 * k * d}px`,
           background: 'var(--fcc-surface)',
-          borderRadius: dialogBorderRadius,
-          border: `${scale * 0.1}px solid var(--fcc-border)`,
-          boxShadow: '0 8px 40px rgba(0,0,0,0.35)',
-          maxWidth: scale * 28,
+          borderRadius: 32 * k,
+          border: `${Math.max(1, 1.5 * k)}px solid var(--fcc-border)`,
+          boxShadow: '0 12px 60px rgba(0,0,0,0.4)',
+          maxWidth: `min(${24 * 30 * t}px, 80vw)`,
+          width: '100%',
           textAlign: 'center',
+          color: 'var(--fcc-text)',
         }}
       >
-        <div style={{ lineHeight: 1 }}>
-          <ChoreIcon value={reward.emoji} size={Math.round(emojiFontSize)} color="var(--fcc-accent)" />
+        <div style={{ lineHeight: 1, height: 96 * t, display: 'flex', alignItems: 'center' }}>
+          <ChoreIcon value={reward.emoji} size={Math.round(96 * t)} bare />
         </div>
 
-        <div
-          style={{
-            fontSize: titleFontSize,
-            fontWeight: 700,
-            color: 'var(--fcc-text)',
-            lineHeight: 1.2,
-          }}
-        >
-          {t('fullscreen-chore-chart.rewardsStore.confirmTitle')}
+        <div style={{ fontSize: 36 * t, fontWeight: 800, lineHeight: 1.15 }}>
+          {tr('fullscreen-chore-chart.rewardsStore.confirmTitle')}
         </div>
 
-        <div
-          style={{
-            fontSize: subtitleFontSize,
-            color: 'var(--fcc-text-2)',
-            lineHeight: 1.4,
-          }}
-        >
-          {t('fullscreen-chore-chart.rewardsStore.confirmBody', { member: memberName, reward: reward.name, count: reward.cost })}
+        <div style={{ fontSize: 26 * t, fontWeight: 500, color: 'var(--fcc-text-2)', lineHeight: 1.35 }}>
+          {tr('fullscreen-chore-chart.rewardsStore.confirmBody', { member: memberName, reward: reward.name, count: reward.cost })}
         </div>
 
         {error && (
-          <div style={{ fontSize: scale * 0.8, color: '#ef4444', fontWeight: 600, marginTop: scale * 0.2 }}>
+          <div style={{ fontSize: 22 * t, color: '#ef4444', fontWeight: 600 }}>
             {error}
           </div>
         )}
 
-        <div
-          style={{
-            display: 'flex',
-            gap: scale * 0.8,
-            marginTop: scale * 0.4,
-          }}
-        >
+        <div style={{ display: 'flex', gap: 16 * k * d, marginTop: 8 * k * d, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button
             onClick={onCancel}
             style={{
-              fontSize: buttonFontSize,
-              fontWeight: 600,
+              ...buttonBase,
               color: 'var(--fcc-text)',
               background: 'var(--fcc-surface)',
-              border: `${scale * 0.12}px solid var(--fcc-border)`,
-              borderRadius: buttonBorderRadius,
-              padding: buttonPadding,
-              cursor: 'pointer',
-              outline: 'none',
+              border: `${Math.max(1, 2 * k)}px solid var(--fcc-border)`,
             }}
           >
-            {t('fullscreen-chore-chart.rewardsStore.confirmCancel')}
+            {tr('fullscreen-chore-chart.rewardsStore.confirmCancel')}
           </button>
 
           <button
             onClick={onConfirm}
+            disabled={busy}
             style={{
-              fontSize: buttonFontSize,
-              fontWeight: 700,
-              color: 'white',
+              ...buttonBase,
+              color: onAccent,
               background: 'var(--fcc-accent)',
               border: 'none',
-              borderRadius: buttonBorderRadius,
-              padding: buttonPadding,
-              cursor: 'pointer',
-              outline: 'none',
+              opacity: busy ? 0.7 : 1,
             }}
           >
-            {t('fullscreen-chore-chart.rewardsStore.confirmYes')}
+            {tr('fullscreen-chore-chart.rewardsStore.confirmYes')}
           </button>
         </div>
       </div>

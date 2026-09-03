@@ -5,10 +5,12 @@ import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
-import { BUTTON_CLASS, BrightnessIcon, BrightnessSlider, ButtonWords, ControlButton, NextIcon, PrevIcon, SleepIcon, WakeIcon } from './controls';
+import { controlMetrics } from './metrics';
+import { useControlBox } from './useControlBox';
+import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
 /**
- * Buttons only: a 2x2 grid plus a Brightness row that swaps the grid for a
+ * Buttons only: a grid plus a Brightness row that swaps the grid for a
  * slider while open. Same words as the panel, no always-visible slider.
  */
 export function PadLayout(props: LayoutProps) {
@@ -21,9 +23,16 @@ export function PadLayout(props: LayoutProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
   const dim = pickerOpen ? 'opacity-35' : '';
+  const [boxRef, box] = useControlBox();
+  const m = controlMetrics({ ...box, layout: 'pad', compact, showPicker });
 
   return (
-    <div className="h-full w-full flex flex-col p-4 gap-3" data-layout="pad">
+    <div
+      ref={boxRef}
+      className="h-full w-full flex flex-col"
+      style={{ padding: m.pad, gap: m.gap }}
+      data-layout="pad"
+    >
       {showPicker && (
         <TargetPicker
           value={currentTarget}
@@ -31,50 +40,65 @@ export function PadLayout(props: LayoutProps) {
           options={availableDisplays}
           selfId={selfId}
           onOpenChange={setPickerOpen}
+          m={m}
         />
       )}
 
       {brightnessOpen ? (
-        <div className={`flex-1 min-h-0 rounded-[18px] bg-hs-card border border-hs-border-strong flex flex-col p-4 gap-3 ${dim}`}>
+        <div
+          className={`flex-1 min-h-0 bg-hs-card border border-hs-border-strong flex flex-col ${dim}`}
+          style={{ borderRadius: m.radius, padding: m.pad, gap: m.gap }}
+        >
           <div className="flex justify-end">
             <button
               type="button"
               aria-label={t('display-control.closeBrightness')}
               onClick={() => setBrightnessOpen(false)}
-              className="h-12 w-12 rounded-full flex items-center justify-center text-hs-text-muted transition-transform active:scale-95"
+              className="flex shrink-0 items-center justify-center rounded-full text-hs-text-muted transition-transform active:scale-95"
+              style={{ height: m.icon + m.gap, width: m.icon + m.gap }}
             >
-              <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <svg style={{ height: m.icon * 0.7, width: m.icon * 0.7 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M6 6l12 12M18 6l-12 12" />
               </svg>
             </button>
           </div>
-          <BrightnessSlider value={brightness} onCommit={onBrightness} className="my-auto" />
+          <BrightnessSlider value={brightness} onCommit={onBrightness} m={m} className="my-auto" />
         </div>
       ) : (
-        <div className={`flex-1 min-h-0 flex flex-col gap-3 transition-opacity ${dim}`}>
-          <div className="grid grid-cols-2 grid-rows-2 gap-3 flex-1 min-h-0">
-            <ControlButton compact={compact} label={t('display-control.ariaPrev')} icon={<PrevIcon />} onClick={onPrev} />
-            <ControlButton compact={compact} label={t('display-control.ariaNext')} icon={<NextIcon />} onClick={onNext} />
+        <div className={`flex-1 min-h-0 flex flex-col transition-opacity ${dim}`} style={{ gap: m.gap }}>
+          <div
+            className="grid flex-1 min-h-0"
+            style={{
+              gridTemplateColumns: `repeat(${m.cols}, minmax(0, 1fr))`,
+              gridTemplateRows: `repeat(${m.rows}, minmax(0, 1fr))`,
+              gap: m.gap,
+            }}
+          >
+            <ControlButton m={m} label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon="prev" onClick={onPrev} />
+            <ControlButton m={m} label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon="next" onClick={onNext} />
             <HoldConfirmButton
               ariaLabel={t('display-control.sleepHoldHint')}
               hint={t('display-control.keepHolding')}
+              hintFontSize={Math.max(11, m.label || 13)}
               onConfirm={onSleep}
               className={BUTTON_CLASS}
-              contentClassName="flex h-full w-full flex-col items-center justify-center gap-2"
+              style={buttonStyle(m)}
+              contentClassName="flex h-full w-full flex-col items-center justify-center"
             >
-              <SleepIcon />
-              {!compact && <ButtonWords label={t('display-control.sleep')} sub={t('display-control.holdSub')} />}
+              <ControlIcon name="sleep" m={m} />
+              <ButtonWords m={m} label={t('display-control.sleep')} sub={t('display-control.holdSub')} />
             </HoldConfirmButton>
-            <ControlButton compact={compact} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon={<WakeIcon />} onClick={onWake} />
+            <ControlButton m={m} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon="wake" onClick={onWake} />
           </div>
           <ControlButton
-            compact={compact}
+            m={m}
             row
             label={t('display-control.brightness')}
             sub={brightness === null ? '–' : `${brightness}%`}
-            icon={<BrightnessIcon size={28} />}
+            icon="brightness"
             onClick={() => setBrightnessOpen(true)}
-            className="min-h-[72px] shrink-0"
+            className="shrink-0"
+            style={{ height: m.brightRowH }}
           />
         </div>
       )}

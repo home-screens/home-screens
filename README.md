@@ -46,7 +46,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ### Raspberry Pi — pre-built image
 
-The fastest path. Flash the latest `.img.xz` from [Releases](https://github.com/home-screens/home-screens/releases) with Raspberry Pi Imager, drop a `wifi.txt` on the boot partition if you are not on Ethernet, and power on. Up in 2 to 3 minutes with no terminal. Step-by-step in [Getting Started](https://homescreens.dev/docs/getting-started).
+The fastest path. Flash the latest `.img.xz` from [Releases](https://github.com/home-screens/home-screens/releases) with Raspberry Pi Imager, drop a `wifi.txt` on the boot partition if you are not on Ethernet, and power on. About 10 minutes of hands-on work and no terminal. Step-by-step in [Getting Started](https://homescreens.dev/docs/getting-started).
 
 Images ship for major and minor releases. For a patch release, or an existing Pi OS install, use the script below.
 

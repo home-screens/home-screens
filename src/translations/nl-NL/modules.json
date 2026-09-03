@@ -582,6 +582,10 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
+    "moreBelow": {
+      "one": "{count} meer hieronder",
+      "other": "{count} meer hieronder"
+    },
     "verbs": {
       "completed": "heeft gedaan",
       "uncompleted": "heeft afgevinkt teruggedraaid",
@@ -602,9 +606,9 @@
     "rewardsStore": {
       "title": "Beloningen",
       "subtitle": "Kies iets leuks",
-      "backToChores": "← Klusjes",
-      "noneAvailable": "Nog geen beloningen. Een volwassene kan ze toevoegen via de telefoon.",
-      "recentRedemptions": "Onlangs ingewisseld",
+      "backToChores": "Klusjes",
+      "noneAvailable": "Nog geen beloningen",
+      "recentRedemptions": "Onlangs besteed",
       "redemptionCost": {
         "one": "−{count} ticket",
         "other": "−{count} tickets"
@@ -627,7 +631,22 @@
       "confirmCancel": "Annuleren",
       "confirmYes": "Ja!",
       "errorGeneric": "Er ging iets mis",
-      "errorOffline": "Geen verbinding"
+      "errorOffline": "Geen verbinding",
+      "addFromPhoneHint": "Voeg beloningen toe via een telefoon: open {url} en tik op Klusjes",
+      "moreTickets": {
+        "one": "Nog 1 ticket te gaan",
+        "other": "Nog {count} tickets te gaan"
+      },
+      "enoughTickets": "Je hebt genoeg!",
+      "moreRewards": {
+        "one": "+{count} beloning meer",
+        "other": "+{count} beloningen meer"
+      },
+      "redeemedTitle": "Gelukt!",
+      "redeemedBody": {
+        "one": "{member} heeft 1 ticket besteed aan {reward}",
+        "other": "{member} heeft {count} tickets besteed aan {reward}"
+      }
     }
   },
   "sports": {

@@ -234,7 +234,7 @@ export default function ChoreIcon({ value, size = 24, color, className, bare }: 
           width: size,
           height: size,
           borderRadius: size * 0.25,
-          backgroundColor: `${badgeColor}20`,
+          backgroundColor: `color-mix(in srgb, ${badgeColor} 12%, transparent)`,
           color: badgeColor,
         }}
       >

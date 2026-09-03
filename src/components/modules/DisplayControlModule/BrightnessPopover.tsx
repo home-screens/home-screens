@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { BrightnessSlider } from './controls';
+import { popoverMetrics } from './metrics';
 
 export interface BrightnessPopoverProps {
   /** Reported brightness 0..100, or null while nothing has been reported. */
@@ -27,9 +28,9 @@ export function BrightnessPopover({ initial, onCommit, onDismiss }: BrightnessPo
   return (
     <div
       ref={ref}
-      className="w-[360px] rounded-2xl border border-hs-border-strong bg-hs-card p-5 shadow-2xl"
+      className="w-[300px] rounded-2xl border border-hs-border-strong bg-hs-card p-4 shadow-2xl"
     >
-      <BrightnessSlider value={clamp(initial)} onCommit={onCommit} />
+      <BrightnessSlider value={clamp(initial)} onCommit={onCommit} m={popoverMetrics()} />
     </div>
   );
 }

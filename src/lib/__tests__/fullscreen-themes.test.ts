@@ -8,6 +8,8 @@ import {
   getDensityMultiplier,
   resolveFullscreenAccent,
   surfaceBackdrop,
+  onAccentFor,
+  resolveFullscreenOnAccent,
 } from '../fullscreen-themes';
 
 // ---------------------------------------------------------------------------
@@ -222,5 +224,36 @@ describe('getDensityMultiplier', () => {
     expect(getDensityMultiplier('compact')).toBe(1.0);
     expect(getDensityMultiplier('normal')).toBe(1.0);
     expect(getDensityMultiplier('')).toBe(1.0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// onAccentFor / resolveFullscreenOnAccent
+// ---------------------------------------------------------------------------
+describe('onAccentFor', () => {
+  it('puts dark ink on light accents and white on saturated ones', () => {
+    expect(onAccentFor('#f59e0b')).toBe('#1c1917');
+    expect(onAccentFor('#F5C37E')).toBe('#1c1917');
+    expect(onAccentFor('#C2410C')).toBe('#ffffff');
+    expect(onAccentFor('#7C5CD6')).toBe('#ffffff');
+    expect(onAccentFor('rgb(37, 99, 235)')).toBe('#ffffff');
+    expect(onAccentFor('#fff')).toBe('#1c1917');
+  });
+
+  it('falls back to white for colours it cannot parse', () => {
+    expect(onAccentFor('var(--nope)')).toBe('#ffffff');
+  });
+});
+
+describe('resolveFullscreenOnAccent', () => {
+  it('uses the theme ink while the theme accent is in use', () => {
+    const tokens = getThemeTokens('obsidian');
+    expect(resolveFullscreenOnAccent(undefined, tokens, '#f59e0b')).toBe(tokens.onAccent);
+    expect(resolveFullscreenOnAccent('', tokens, '#f59e0b')).toBe(tokens.onAccent);
+  });
+
+  it('computes the ink for a user-set accent or the module fallback', () => {
+    expect(resolveFullscreenOnAccent('#1d4ed8', getThemeTokens('obsidian'), '#f59e0b')).toBe('#ffffff');
+    expect(resolveFullscreenOnAccent(undefined, getThemeTokens('linen'), '#f59e0b')).toBe('#1c1917');
   });
 });

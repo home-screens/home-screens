@@ -6,9 +6,9 @@ import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
-import { BUTTON_CLASS, BrightnessIcon, ButtonWords, ControlButton, NextIcon, PrevIcon, SleepIcon, WakeIcon } from './controls';
-
-const ICON = 28;
+import { controlMetrics } from './metrics';
+import { useControlBox } from './useControlBox';
+import { BUTTON_CLASS, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
 /** One row of word-and-icon buttons; Brightness opens a popover above the row. */
 export function BarLayout(props: LayoutProps) {
@@ -19,9 +19,16 @@ export function BarLayout(props: LayoutProps) {
   } = props;
   const [brightnessOpen, setBrightnessOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
+  const [boxRef, box] = useControlBox();
+  const m = controlMetrics({ ...box, layout: 'bar', compact, showPicker });
 
   return (
-    <div className="h-full w-full flex items-stretch gap-3 px-4 py-3" data-layout="bar">
+    <div
+      ref={boxRef}
+      className="h-full w-full flex items-stretch"
+      style={{ paddingInline: m.pad, paddingBlock: m.pad * 0.75, gap: m.gap }}
+      data-layout="bar"
+    >
       {showPicker && (
         <div className="flex items-center">
           <TargetPicker
@@ -29,35 +36,38 @@ export function BarLayout(props: LayoutProps) {
             onChange={(v) => setCurrentTarget(v)}
             options={availableDisplays}
             selfId={selfId}
+            m={m}
           />
         </div>
       )}
-      {showPicker && <div className="w-px self-center h-10 bg-hs-border-strong" />}
+      {showPicker && <div className="w-px self-center bg-hs-border-strong" style={{ height: '60%' }} />}
 
-      <ControlButton compact={compact} row className="flex-1" label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon={<PrevIcon size={ICON} />} onClick={onPrev} />
-      <ControlButton compact={compact} row className="flex-1" label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon={<NextIcon size={ICON} />} onClick={onNext} />
+      <ControlButton m={m} row className="flex-1" label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon="prev" onClick={onPrev} />
+      <ControlButton m={m} row className="flex-1" label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon="next" onClick={onNext} />
 
       <HoldConfirmButton
         ariaLabel={t('display-control.sleepHoldHint')}
         hint={t('display-control.keepHolding')}
+        hintFontSize={Math.max(11, m.label || 13)}
         onConfirm={onSleep}
         className={`${BUTTON_CLASS} flex-1`}
-        contentClassName="flex h-full w-full items-center justify-center gap-3"
+        style={buttonStyle(m)}
+        contentClassName="flex h-full w-full items-center justify-center"
       >
-        <SleepIcon size={ICON} />
-        {!compact && <ButtonWords row label={t('display-control.sleep')} sub={t('display-control.holdShort')} />}
+        <ControlIcon name="sleep" m={m} />
+        <ButtonWords row m={m} label={t('display-control.sleep')} sub={t('display-control.holdShort')} />
       </HoldConfirmButton>
 
-      <ControlButton compact={compact} row className="flex-1" label={t('display-control.wake')} icon={<WakeIcon size={ICON} />} onClick={onWake} />
+      <ControlButton m={m} row className="flex-1" label={t('display-control.wake')} icon="wake" onClick={onWake} />
 
       <div className="relative flex flex-1">
         <ControlButton
-          compact={compact}
+          m={m}
           row
           className="flex-1"
           label={t('display-control.brightness')}
           sub={brightness === null ? '–' : `${brightness}%`}
-          icon={<BrightnessIcon size={ICON} />}
+          icon="brightness"
           onClick={() => setBrightnessOpen((v) => !v)}
         />
         {brightnessOpen && (

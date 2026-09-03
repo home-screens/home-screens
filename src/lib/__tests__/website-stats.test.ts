@@ -17,6 +17,7 @@ import {
   LOCALE_COUNT,
   LOCALE_NATIVE_NAMES,
 } from '../../../website/src/lib/stats';
+import { MODULE_SHOWCASE_TOTAL } from '../../../website/src/lib/module-showcase-data';
 import { LOCALES } from '@/i18n/manifest';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -160,5 +161,12 @@ describe('website stats stay in sync with the codebase', () => {
       `<span class="num">${MODULE_COUNT}</span> modules`,
       'og-image.html social-card template',
     );
+  });
+});
+
+describe('homepage module showcase', () => {
+  it('lists exactly MODULE_COUNT modules across its tabs', () => {
+    // The section header advertises MODULE_COUNT; the tabs must add up to it.
+    expect(MODULE_SHOWCASE_TOTAL).toBe(MODULE_COUNT);
   });
 });

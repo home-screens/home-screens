@@ -28,6 +28,7 @@ import { useFormattingLocale } from '@/i18n';
 import { logger } from '@/lib/logger';
 
 const log = logger('chores');
+const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
 
 /** Display-only settings accepted by useChoreData — no members/chores,
  *  those are fetched from the shared /api/chores/data endpoint. */
@@ -63,6 +64,8 @@ interface ChoreDataState {
   memberStats: Map<string, MemberStats>;
   weekData: WeekDayData[];
   recentRedemptions: RewardRedemption[];
+  /** Every redemption the server still holds (it purges at 90 days), for the store's feed. */
+  allRedemptions: RewardRedemption[];
   isLoading: boolean;
   error: FetchError | null;
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
@@ -248,6 +251,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     memberStats,
     weekData,
     recentRedemptions,
+    allRedemptions: rewards?.redemptions ?? EMPTY_REDEMPTIONS,
     isLoading,
     error,
     toggleComplete,

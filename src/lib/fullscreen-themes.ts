@@ -446,6 +446,62 @@ export function resolveFullscreenAccent(
   return accentColor || tokens.accent || fallback;
 }
 
+const ON_ACCENT_LIGHT = '#ffffff';
+const ON_ACCENT_DARK = '#1c1917';
+
+function parseColorChannels(color: string): [number, number, number] | null {
+  const c = color.trim();
+  const hex = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
+  if (hex) {
+    let h = hex[1];
+    if (h.length === 3) h = h.split('').map((ch) => ch + ch).join('');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+  const rgb = c.match(/^rgba?\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)/i);
+  if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
+  return null;
+}
+
+/** WCAG relative luminance of a hex or rgb() colour; null when it cannot be parsed. */
+export function relativeLuminance(color: string): number | null {
+  const ch = parseColorChannels(color);
+  if (!ch) return null;
+  const [r, g, b] = ch.map((v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/**
+ * The ink that reads on top of `accent`: white on a saturated accent, dark
+ * ink on a light one (amber, peach, mint). Picks whichever of the two has
+ * the higher WCAG contrast against the accent; unparsable colours get white.
+ */
+export function onAccentFor(accent: string): string {
+  const l = relativeLuminance(accent);
+  if (l === null) return ON_ACCENT_LIGHT;
+  const lightInk = relativeLuminance(ON_ACCENT_LIGHT) as number;
+  const darkInk = relativeLuminance(ON_ACCENT_DARK) as number;
+  const contrastLight = (lightInk + 0.05) / (l + 0.05);
+  const contrastDark = (l + 0.05) / (darkInk + 0.05);
+  return contrastDark > contrastLight ? ON_ACCENT_DARK : ON_ACCENT_LIGHT;
+}
+
+/**
+ * The text colour for `resolveFullscreenAccent`'s result. A theme's own
+ * `onAccent` wins while the theme's own accent is in use; a user-set accent
+ * (or the module fallback) gets an ink computed from its luminance.
+ */
+export function resolveFullscreenOnAccent(
+  accentColor: string | undefined,
+  tokens: FullscreenThemeTokens,
+  fallback: string,
+): string {
+  if (!accentColor && tokens.accent && tokens.onAccent) return tokens.onAccent;
+  return onAccentFor(resolveFullscreenAccent(accentColor, tokens, fallback));
+}
+
 /** The `backdrop-filter` value for a theme's frosted surfaces: a real blur
  *  only when the theme asks for one. `blur(0px)` is not free — it still
  *  promotes a backdrop render surface on the Pi for no visual change. */

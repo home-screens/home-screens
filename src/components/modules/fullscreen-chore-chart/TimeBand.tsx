@@ -9,14 +9,16 @@ interface TimeBandHeaderProps {
   tod: ChoreTimeOfDay;
   /** Label size. The icon is drawn 1.1× this. */
   fontSize: number;
+  /** Band height; the label sits centred in it. */
+  height?: number;
   currentTod: ChoreTimeOfDay | null;
   style?: React.CSSProperties;
 }
 
-export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHeaderProps) {
+export function TimeBandHeader({ tod, fontSize, height, currentTod, style }: TimeBandHeaderProps) {
   const TodIcon = TOD_ICONS[tod];
   const isCurrent = tod === currentTod;
-  const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-3)';
+  const headerColor = isCurrent ? 'var(--fcc-accent)' : 'var(--fcc-text-2)';
   const t = useTranslate('modules');
 
   return (
@@ -26,6 +28,9 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
         display: 'flex',
         alignItems: 'center',
         gap: fontSize * 0.45,
+        height,
+        boxSizing: 'border-box',
+        flexShrink: 0,
         ...style,
       }}
     >
@@ -37,6 +42,7 @@ export function TimeBandHeader({ tod, fontSize, currentTod, style }: TimeBandHea
           textTransform: 'uppercase',
           letterSpacing: '0.12em',
           color: headerColor,
+          whiteSpace: 'nowrap',
         }}
       >
         {t(`fullscreen-chore-chart.timeOfDay.${tod}`)}
@@ -53,14 +59,13 @@ interface TimeBandProps {
   dotSize: number;
   /** Fit-rule row height; see FullscreenChoreChartModule. */
   rowHeight: number;
-  /** Fit-rule header band height (label sits at its bottom edge). */
+  /** Header band height in px, fixed by the label size. */
   headerHeight: number;
-  /** Header label size, fixed by the fit rule rather than derived from the row. */
   headerFontSize: number;
   /** Width each row has; see ChoreRowItem.rowWidth. */
   rowWidth: number;
-  /** Name under each dot; see ChoreRowItem.nameLabelSize. */
-  nameLabelSize?: number;
+  /** Dots under the name on every row of this band; see ChoreRowItem.stacked. */
+  stacked?: boolean;
   showHeader: boolean;
   showPoints: boolean;
   currentTod: ChoreTimeOfDay | null;
@@ -79,7 +84,7 @@ export default function TimeBand({
   headerHeight,
   headerFontSize,
   rowWidth,
-  nameLabelSize = 0,
+  stacked = false,
   showHeader,
   showPoints,
   currentTod,
@@ -89,18 +94,14 @@ export default function TimeBand({
   onToggle,
 }: TimeBandProps) {
   return (
-    <div style={{ flexShrink: 0 }}>
+    <div data-testid="fcc-band" style={{ flexShrink: 0 }}>
       {showHeader && (
         <TimeBandHeader
           tod={tod}
           fontSize={headerFontSize}
+          height={headerHeight}
           currentTod={currentTod}
-          style={{
-            height: headerHeight,
-            boxSizing: 'border-box',
-            alignItems: 'flex-end',
-            padding: `0 ${fontSize * 0.3}px ${headerFontSize * 0.3}px`,
-          }}
+          style={{ padding: `0 ${fontSize * 0.3}px` }}
         />
       )}
       {rows.map((row, i) => (
@@ -111,7 +112,7 @@ export default function TimeBand({
           dotSize={dotSize}
           rowHeight={rowHeight}
           rowWidth={rowWidth}
-          nameLabelSize={nameLabelSize}
+          stacked={stacked}
           // A header sits flush on its first row, so the pair reads as one block.
           isFirst={i === 0}
           showPoints={showPoints}

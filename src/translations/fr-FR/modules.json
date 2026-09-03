@@ -582,6 +582,10 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
+    "moreBelow": {
+      "one": "{count} de plus en dessous",
+      "other": "{count} de plus en dessous"
+    },
     "verbs": {
       "completed": "a fait",
       "uncompleted": "a annulé",
@@ -602,9 +606,9 @@
     "rewardsStore": {
       "title": "Récompenses",
       "subtitle": "Choisis quelque chose de chouette",
-      "backToChores": "← Tâches",
-      "noneAvailable": "Aucune récompense pour l'instant. Un grand peut en ajouter depuis son téléphone.",
-      "recentRedemptions": "Échanges récents",
+      "backToChores": "Tâches",
+      "noneAvailable": "Aucune récompense pour l'instant",
+      "recentRedemptions": "Dépensé récemment",
       "redemptionCost": {
         "one": "−{count} ticket",
         "other": "−{count} tickets"
@@ -627,7 +631,22 @@
       "confirmCancel": "Annuler",
       "confirmYes": "Oui !",
       "errorGeneric": "Quelque chose a mal tourné",
-      "errorOffline": "Connexion impossible"
+      "errorOffline": "Connexion impossible",
+      "addFromPhoneHint": "Ajoute des récompenses depuis un téléphone : ouvre {url} et touche Tâches",
+      "moreTickets": {
+        "one": "Encore 1 ticket",
+        "other": "Encore {count} tickets"
+      },
+      "enoughTickets": "Tu en as assez !",
+      "moreRewards": {
+        "one": "+{count} autre récompense",
+        "other": "+{count} autres récompenses"
+      },
+      "redeemedTitle": "C'est à toi !",
+      "redeemedBody": {
+        "one": "{member} a dépensé 1 ticket pour {reward}",
+        "other": "{member} a dépensé {count} tickets pour {reward}"
+      }
     }
   },
   "sports": {

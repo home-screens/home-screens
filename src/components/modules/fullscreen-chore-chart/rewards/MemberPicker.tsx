@@ -1,39 +1,42 @@
 'use client';
 
 import React from 'react';
+import { Ticket } from 'lucide-react';
 import type { ChoreMember } from '@/types/config';
-import { useTranslate } from '@/i18n';
+import { onAccentFor } from '@/lib/fullscreen-themes';
 
 interface MemberPickerProps {
   members: ChoreMember[];
   balances: Record<string, number>;
   selectedId: string | null;
   onSelect: (memberId: string) => void;
-  scale: number;
+  k: number;
+  t: number;
+  d: number;
+  /** Where the chips line up: the title's left edge in portrait, or centred. */
+  justify?: 'flex-start' | 'center';
 }
 
-export default function MemberPicker({
-  members,
-  balances,
-  selectedId,
-  onSelect,
-  scale,
-}: MemberPickerProps) {
-  const avatarSize = scale * 3.2;
-  const nameFontSize = scale * 0.9;
-  const balanceFontSize = scale * 0.85;
-  const gap = scale * 0.8;
-  const padding = `${scale * 0.6}px ${scale * 0.8}px`;
-  const borderRadius = scale * 0.8;
-  const t = useTranslate('modules');
+/**
+ * One compact chip per member: avatar, name, ticket balance. Horizontal so
+ * eight members wrap into two rows instead of a wall of tall tiles. The
+ * balance sits in the secondary text colour; the accent is kept for the
+ * selected border so the picked kid is the only highlighted thing.
+ */
+export default function MemberPicker({ members, balances, selectedId, onSelect, k, t, d, justify = 'flex-start' }: MemberPickerProps) {
+  const nameSize = 24 * t;
+  const avatar = Math.max(44 * k, nameSize * 1.7);
+  const balanceSize = 20 * t;
+  const border = Math.max(2, 3 * k);
 
   return (
     <div
+      data-testid="fcc-store-picker"
       style={{
         display: 'flex',
         flexWrap: 'wrap',
-        gap,
-        justifyContent: 'center',
+        gap: 12 * k * d,
+        justifyContent: justify,
       }}
     >
       {members.map((member) => {
@@ -43,63 +46,66 @@ export default function MemberPicker({
         return (
           <button
             key={member.id}
+            data-testid="fcc-store-chip"
             onClick={() => onSelect(member.id)}
+            aria-pressed={isSelected}
             style={{
-              display: 'flex',
-              flexDirection: 'column',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: scale * 0.3,
-              padding,
-              borderRadius,
-              border: isSelected
-                ? `${scale * 0.15}px solid var(--fcc-accent)`
-                : `${scale * 0.1}px solid var(--fcc-border)`,
+              gap: 10 * k * d,
+              padding: `${6 * k * d}px ${18 * k * d}px ${6 * k * d}px ${6 * k * d}px`,
+              minHeight: 44 * k,
+              borderRadius: 999,
+              border: `${border}px solid ${isSelected ? 'var(--fcc-accent)' : 'var(--fcc-border)'}`,
               background: isSelected
                 ? 'color-mix(in srgb, var(--fcc-accent) 12%, var(--fcc-surface))'
                 : 'var(--fcc-surface)',
+              boxShadow: 'var(--fcc-card-shadow)',
               cursor: 'pointer',
               transition: 'border-color 0.15s, background 0.15s',
               outline: 'none',
+              fontFamily: 'inherit',
+              color: 'var(--fcc-text)',
             }}
           >
-            <div
+            <span
               style={{
-                width: avatarSize,
-                height: avatarSize,
+                width: avatar,
+                height: avatar,
                 borderRadius: '50%',
                 background: member.color,
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                fontSize: avatarSize * 0.45,
+                fontSize: avatar * 0.46,
                 fontWeight: 700,
-                color: 'white',
+                lineHeight: 1,
+                color: onAccentFor(member.color),
               }}
             >
               {member.name.charAt(0).toUpperCase()}
-            </div>
+            </span>
 
-            <div
+            <span style={{ fontSize: nameSize, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap' }}>
+              {member.name}
+            </span>
+
+            <span
               style={{
-                fontSize: nameFontSize,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4 * k,
+                fontSize: balanceSize,
                 fontWeight: 600,
-                color: 'var(--fcc-text)',
+                lineHeight: 1,
+                color: 'var(--fcc-text-2)',
                 whiteSpace: 'nowrap',
               }}
             >
-              {member.name}
-            </div>
-
-            <div
-              style={{
-                fontSize: balanceFontSize,
-                fontWeight: 700,
-                color: 'var(--fcc-accent)',
-              }}
-            >
-              {t('fullscreen-chore-chart.rewardsStore.balanceCount', { count: balance })}
-            </div>
+              <Ticket size={balanceSize} strokeWidth={2} aria-hidden="true" />
+              {balance}
+            </span>
           </button>
         );
       })}

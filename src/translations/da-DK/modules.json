@@ -582,6 +582,10 @@
     "tickets": "billetter",
     "ticketCount": "{count} billet",
     "ticketsCount": "{count} billetter",
+    "moreBelow": {
+      "one": "{count} mere nedenfor",
+      "other": "{count} mere nedenfor"
+    },
     "verbs": {
       "completed": "klarede",
       "uncompleted": "fortrød",
@@ -602,9 +606,9 @@
     "rewardsStore": {
       "title": "Belønninger",
       "subtitle": "Vælg noget godt",
-      "backToChores": "← Pligter",
-      "noneAvailable": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
-      "recentRedemptions": "Seneste indløsninger",
+      "backToChores": "Pligter",
+      "noneAvailable": "Ingen belønninger endnu",
+      "recentRedemptions": "Brugt for nylig",
       "redemptionCost": {
         "one": "−{count} billet",
         "other": "−{count} billetter"
@@ -627,7 +631,22 @@
       "confirmCancel": "Annullér",
       "confirmYes": "Ja!",
       "errorGeneric": "Noget gik galt",
-      "errorOffline": "Kunne ikke forbinde"
+      "errorOffline": "Kunne ikke forbinde",
+      "addFromPhoneHint": "Tilføj belønninger fra en telefon: åbn {url} og tryk på Pligter",
+      "moreTickets": {
+        "one": "1 billet mere",
+        "other": "{count} billetter mere"
+      },
+      "enoughTickets": "Du har nok!",
+      "moreRewards": {
+        "one": "+{count} belønning mere",
+        "other": "+{count} belønninger mere"
+      },
+      "redeemedTitle": "Den er din!",
+      "redeemedBody": {
+        "one": "{member} brugte 1 billet på {reward}",
+        "other": "{member} brugte {count} billetter på {reward}"
+      }
     }
   },
   "sports": {

@@ -3,41 +3,34 @@
 import type { ChoreMember } from '@/types/config';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
-import AssigneeDot, { dotSlotWidth } from './AssigneeDot';
-import type { ChoreRow, ToggleParams } from './helpers';
+import AssigneeDot from './AssigneeDot';
+import { dotGap, TOD_ICONS, type ChoreRow, type ToggleParams } from './helpers';
 
 interface ChoreRowItemProps {
   row: ChoreRow;
+  /** Chore-name size. Everything else on the row is a fraction of it. */
   fontSize: number;
+  /** Dot size for this column; the same on every row of the column. */
   dotSize: number;
   /**
-   * Fixed row height from the fit rule (see FullscreenChoreChartModule).
-   * Omitted = the row is as tall as its padded content, the pre-fit layout.
+   * Row height from the fit rule. A flat row is exactly this tall; a stacked
+   * row is at least this tall and grows for a second name line.
    */
   rowHeight?: number;
   /**
-   * Narrow column (landscape). The name may wrap to a second line, and a
-   * row with several dots puts them on their own line under the name; a
-   * row with one dot keeps it beside the name, where a lone ring belongs.
+   * Dots on their own line under the name. Decided per column, so every row
+   * in a column has the same shape (see `shouldStack`).
    */
   stacked?: boolean;
-  /**
-   * Width the row has to work with. A long name shrinks (never below 78% of
-   * `fontSize`) until it fits beside its dots before it ellipsises, so a
-   * light day with 80px rows does not read "Make your ..." across the room.
-   */
+  /** Width the row has to work with, for the name-fit estimate. */
   rowWidth?: number;
   /**
-   * Print each assignee's name under their dot. Zero (the default) draws bare
-   * dots; the module passes a size once the fitted row is tall enough to
-   * hold a name line beneath the dot.
-   */
-  nameLabelSize?: number;
-  /**
-   * Draw the initial inside an unfinished dot. Off in the by-person layout,
-   * where every dot in a section belongs to the section's own member.
+   * Draw the initial inside a to-do dot. Off in the by-person layout, where
+   * every dot in a section belongs to the section's own member.
    */
   showInitials?: boolean;
+  /** Draw the time-of-day glyph after the name (the by-person layout has no bands). */
+  showTimeOfDay?: boolean;
   isFirst: boolean;
   showPoints: boolean;
   memberMap: Map<string, ChoreMember>;
@@ -46,72 +39,41 @@ interface ChoreRowItemProps {
   onToggle: (params: ToggleParams) => void;
 }
 
-/** Average Inter glyph width at weight 500, as a fraction of the font size. */
-const GLYPH_EM = 0.54;
-/** A name never shrinks past this fraction of the fitted row size. */
-const MIN_NAME_FRACTION = 0.78;
+/**
+ * Inter glyph width at weight 500 as a fraction of the font size, erring
+ * wide: a name the estimate says fits must really fit, or it ellipsises.
+ */
+const GLYPH_EM = 0.6;
+/** A name never shrinks past this fraction of the authored size. */
+const MIN_NAME_FRACTION = 0.85;
+const LINE_HEIGHT = 1.15;
+
+/** Estimated width of `text` at `fontSize`. */
+export function textWidth(text: string, fontSize: number): number {
+  return text.length * GLYPH_EM * fontSize;
+}
 
 /**
- * The largest size, up to `fontSize`, at which the name and its ticket tag
- * fit in the width left beside the icon and dots. Estimated from glyph
- * counts rather than measured: a measurement pass per row per resize is not
- * worth it for a wall chart, and the estimate errs wide, so a fitted name
- * still ellipsises cleanly instead of overflowing.
+ * The largest size, up to `fontSize`, at which a one-line name fits in
+ * `available`. Estimated from glyph counts rather than measured: a
+ * measurement pass per row per resize is not worth it for a wall chart, and
+ * the estimate errs wide, so a fitted name still ellipsises cleanly.
  */
-export function fitNameSize(
-  fontSize: number,
-  name: string,
-  ticketLabel: string,
-  rowWidth: number | undefined,
-  dotCount: number,
-  dotSize: number,
-  hasIcon: boolean,
-  /** Width of one dot column when names are printed under the dots. */
-  dotSlot: number = dotSize,
-): number {
-  if (!rowWidth || rowWidth <= 0) return fontSize;
-  const dotsWidth = dotCount > 0 ? dotCount * dotSlot + (dotCount - 1) * dotGap(dotSize) + fontSize * 0.6 : 0;
-  const iconWidth = hasIcon ? fontSize * 0.8 + fontSize * 0.6 : 0;
-  const available = rowWidth - fontSize * 0.6 - dotsWidth - iconWidth;
+export function fitNameSize(fontSize: number, name: string, available: number): number {
   if (available <= 0) return fontSize * MIN_NAME_FRACTION;
-  // The ticket tag is 60% of the name size plus its gap.
-  const ems = name.length * GLYPH_EM + (ticketLabel ? ticketLabel.length * GLYPH_EM * 0.6 + 0.3 : 0);
-  const fitted = available / ems;
+  const fitted = available / (name.length * GLYPH_EM);
   return Math.max(fontSize * MIN_NAME_FRACTION, Math.min(fontSize, fitted));
-}
-
-/** Gap between two dots on a row. */
-export function dotGap(dotSize: number): number {
-  return Math.max(dotSize * 0.2, 8);
-}
-
-/** Smallest dot still readable as a ring with a letter in it. */
-const MIN_STACKED_DOT = 28;
-
-/**
- * The largest dot, up to `dotSize`, at which `count` dots fit on their own
- * line in a `rowWidth`-wide stacked row. Undefined width (a row that is not
- * stacked, or not measured) keeps the requested size.
- */
-export function fitStackedDots(dotSize: number, count: number, rowWidth: number | undefined, fontSize: number, hasIcon: boolean): number {
-  if (!rowWidth || rowWidth <= 0 || count <= 0) return dotSize;
-  const room = rowWidth - fontSize * 0.6 - (hasIcon ? fontSize * 1.2 : 0);
-  // Gaps scale with the dot, so solve count*d + (count-1)*max(0.2d, 8) <= room
-  // by trying the proportional gap first and the 8px floor second.
-  const proportional = room / (count + (count - 1) * 0.2);
-  const fitted = proportional * 0.2 >= 8 ? proportional : (room - (count - 1) * 8) / count;
-  return Math.max(MIN_STACKED_DOT, Math.min(dotSize, fitted));
 }
 
 export default function ChoreRowItem({
   row,
   fontSize,
-  dotSize: requestedDotSize,
+  dotSize,
   rowHeight,
   stacked = false,
   rowWidth,
-  nameLabelSize = 0,
   showInitials = true,
+  showTimeOfDay = false,
   isFirst,
   showPoints,
   memberMap,
@@ -123,97 +85,153 @@ export default function ChoreRowItem({
   const ticketLabel = showPoints && row.points > 1
     ? t(row.points === 1 ? 'fullscreen-chore-chart.ticketCount' : 'fullscreen-chore-chart.ticketsCount', { count: row.points })
     : '';
-  const labelled = nameLabelSize > 0;
-  // One dot sits beside the name even in a narrow column; several go under it.
-  const dotsBelow = stacked && row.assignees.length > 1;
-  // Dots on their own line: nothing else gives way when five of them outgrow
-  // a narrow landscape column, so the dots do.
-  const dotSize = fitStackedDots(requestedDotSize, row.assignees.length, dotsBelow ? rowWidth : undefined, fontSize, !!row.choreEmoji);
-  const dotSlot = labelled ? dotSlotWidth(dotSize, nameLabelSize) : dotSize;
-  // A narrow column wraps the name onto a second line when the row is tall
-  // enough for one, instead of shrinking it or cutting it to three words.
-  const lineHeight = 1.1;
-  const nameRoom = rowHeight === undefined ? Infinity : dotsBelow ? rowHeight - dotSize - fontSize * 0.25 : rowHeight - fontSize * 0.3;
-  const maxLines = stacked ? Math.min(2, Math.max(1, Math.floor(nameRoom / (fontSize * lineHeight)))) : 1;
-  const nameSize = stacked ? fontSize : fitNameSize(fontSize, row.choreName, ticketLabel, rowWidth, row.assignees.length, dotSize, !!row.choreEmoji, dotSlot);
+  const hasIcon = !!row.choreEmoji;
+  const iconSize = fontSize * 0.9;
+  const gap = fontSize * 0.5;
+  const padX = fontSize * 0.3;
+  const dotCount = row.assignees.length;
+  const dotsWidth = dotCount * dotSize + (dotCount - 1) * dotGap(dotSize);
+  const tagSize = fontSize * 0.62;
+  const tagWidth = ticketLabel ? textWidth(ticketLabel, tagSize) + gap : 0;
+  const todWidth = showTimeOfDay ? fontSize * 0.8 + gap : 0;
+
+  // What the name line has left once the icon, the tag, the glyph and (on a
+  // flat row) the dots have taken their share. When that is under about nine
+  // characters the extras give way before the name does: the time glyph
+  // first, then the ticket tag.
+  const roomFor = (withTag: boolean, withTod: boolean) => {
+    if (!rowWidth) return 0;
+    const line = rowWidth - padX * 2 - (hasIcon ? iconSize + gap : 0) - (withTag ? tagWidth : 0) - (withTod ? todWidth : 0);
+    return stacked ? line : line - (dotCount > 0 ? dotsWidth + gap : 0);
+  };
+  const minRoom = fontSize * GLYPH_EM * 9;
+  let showTod = showTimeOfDay;
+  let showTag = !!ticketLabel;
+  if (rowWidth && roomFor(showTag, showTod) < minRoom && showTod) showTod = false;
+  if (rowWidth && roomFor(showTag, showTod) < minRoom && showTag) showTag = false;
+  const nameRoom = roomFor(showTag, showTod);
+  const fits = nameRoom <= 0 || textWidth(row.choreName, fontSize) <= nameRoom;
+  // A row tall enough for two lines wraps a long name before it shrinks it;
+  // a stacked row grows for the second line instead. A single word cannot
+  // wrap, so it shrinks.
+  const canWrap = /\s/.test(row.choreName.trim());
+  const twoLinesFit = stacked || rowHeight === undefined || rowHeight >= fontSize * LINE_HEIGHT * 2 + fontSize * 0.4;
+  const maxLines = fits ? 1 : twoLinesFit && canWrap ? 2 : 1;
+  // A wrapped name still shrinks when its longest word alone would overflow
+  // the line, so "dishwasher" is never cut in half.
+  const longestWord = row.choreName.split(/\s+/).reduce((n, w) => Math.max(n, w.length), 0);
+  const nameSize = fits
+    ? fontSize
+    : maxLines === 2
+      ? Math.max(fontSize * 0.7, Math.min(fontSize, nameRoom / (longestWord * GLYPH_EM)))
+      : fitNameSize(fontSize, row.choreName, nameRoom);
+
   const name = (
     <span
       style={{
-        flex: dotsBelow ? undefined : 1,
+        flex: 1,
         fontSize: nameSize,
         fontWeight: 500,
         letterSpacing: '-0.01em',
         color: 'var(--fcc-text)',
         minWidth: 0,
         overflow: 'hidden',
+        lineHeight: LINE_HEIGHT,
         ...(maxLines > 1
-          ? { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'normal' as const, lineHeight }
+          ? { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical' as const, whiteSpace: 'normal' as const }
           : { whiteSpace: 'nowrap' as const, textOverflow: 'ellipsis' }),
       }}
     >
       {row.choreName}
-      {showPoints && row.points > 1 && (
-        <span style={{ fontSize: nameSize * 0.6, color: 'var(--fcc-text-2)', fontWeight: 600, marginLeft: nameSize * 0.3, whiteSpace: 'nowrap', display: 'inline-block' }}>
-          {ticketLabel}
-        </span>
-      )}
     </span>
   );
-  const icon = row.choreEmoji && (
-    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', opacity: 0.85 }}>
-      <ChoreIcon value={row.choreEmoji} size={fontSize * 0.8} color="var(--fcc-text-2)" />
+  const tag = showTag && (
+    <span style={{ fontSize: tagSize, color: 'var(--fcc-text-2)', fontWeight: 600, whiteSpace: 'nowrap', flexShrink: 0 }}>
+      {ticketLabel}
     </span>
   );
+  const TodIcon = TOD_ICONS[row.timeOfDay];
+  const tod = showTod && (
+    <TodIcon size={fontSize * 0.8} color="var(--fcc-text-3)" strokeWidth={2} style={{ flexShrink: 0 }} />
+  );
+  const icon = hasIcon && (
+    <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--fcc-text-2)' }}>
+      <ChoreIcon value={row.choreEmoji} size={iconSize} color="var(--fcc-text-2)" bare />
+    </span>
+  );
+  const dots = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: dotGap(dotSize), flexShrink: 0 }}>
+      {row.assignees.map((a) => {
+        const member = memberMap.get(a.memberId);
+        if (!member) return null;
+        return (
+          <AssigneeDot
+            key={a.memberId}
+            memberId={a.memberId}
+            isCompleted={a.isCompleted}
+            dotSize={dotSize}
+            choreId={row.choreId}
+            choreName={row.choreName}
+            memberName={member.name}
+            memberColor={member.color}
+            initial={showInitials ? (initialsMap.get(a.memberId) ?? member.name[0]) : ''}
+            allowTouch={allowTouch}
+            onToggle={onToggle}
+          />
+        );
+      })}
+    </div>
+  );
+
+  if (stacked) {
+    return (
+      <div
+        data-testid="fcc-row"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: `${fontSize * 0.4}px ${padX}px`,
+          minHeight: rowHeight,
+          boxSizing: 'border-box',
+          flexShrink: 0,
+          gap: fontSize * 0.35,
+          borderTop: isFirst ? 'none' : '1px solid var(--fcc-border-sub)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap, minWidth: 0 }}>
+          {icon}
+          {name}
+          {tod}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap, paddingLeft: hasIcon ? iconSize + gap : 0 }}>
+          {dots}
+          <span style={{ flex: 1 }} />
+          {tag}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       data-testid="fcc-row"
       style={{
         display: 'flex',
-        flexDirection: dotsBelow ? 'column' : 'row',
-        alignItems: dotsBelow ? 'stretch' : 'center',
-        justifyContent: dotsBelow ? 'center' : undefined,
-        padding: rowHeight === undefined ? `${fontSize * 0.4}px ${fontSize * 0.3}px` : `0 ${fontSize * 0.3}px`,
+        alignItems: 'center',
+        padding: rowHeight === undefined ? `${fontSize * 0.4}px ${padX}px` : `0 ${padX}px`,
         height: rowHeight,
         boxSizing: 'border-box',
         flexShrink: 0,
-        gap: dotsBelow ? fontSize * 0.25 : fontSize * 0.6,
+        gap,
         borderTop: isFirst ? 'none' : '1px solid var(--fcc-border-sub)',
       }}
     >
-      {dotsBelow ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: fontSize * 0.4, minWidth: 0 }}>
-          {icon}
-          {name}
-        </div>
-      ) : (
-        <>
-          {icon}
-          {name}
-        </>
-      )}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: dotGap(dotSize), flexShrink: 0, paddingLeft: dotsBelow && row.choreEmoji ? fontSize * 1.2 : 0 }}>
-        {row.assignees.map((a) => {
-          const member = memberMap.get(a.memberId);
-          if (!member) return null;
-          return (
-            <AssigneeDot
-              key={a.memberId}
-              memberId={a.memberId}
-              isCompleted={a.isCompleted}
-              dotSize={dotSize}
-              choreId={row.choreId}
-              choreName={row.choreName}
-              memberName={member.name}
-              memberColor={member.color}
-              initial={showInitials ? (initialsMap.get(a.memberId) ?? member.name[0]) : ''}
-              label={labelled ? member.name : undefined}
-              labelSize={nameLabelSize}
-              allowTouch={allowTouch}
-              onToggle={onToggle}
-            />
-          );
-        })}
-      </div>
+      {icon}
+      {name}
+      {tag}
+      {tod}
+      {dots}
     </div>
   );
 }

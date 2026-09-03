@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
-import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay } from '@/types/config';
+import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay, ChoreMember } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
@@ -11,10 +11,11 @@ import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreToast, { type ToastItem } from './ChoreToast';
 import FamilyEmptyState from '../FamilyEmptyState';
-import ChoreRowItem from './ChoreRowItem';
-import TimeBand, { TimeBandHeader } from './TimeBand';
+import TimeBand from './TimeBand';
 import MemberStrip from './MemberStrip';
-import MemberBand, { MemberBandHeader } from './MemberBand';
+import MemberBand, { memberHeaderHeight } from './MemberBand';
+import FitList from './FitList';
+import { Star } from 'lucide-react';
 import StarChart from './StarChart';
 import WeekStrip from './WeekStrip';
 import { RewardsStoreView } from './RewardsStoreView';
@@ -22,14 +23,17 @@ import {
   type ChoreRow,
   type ToggleParams,
   TOD_ORDER,
-  HEADER_ROW_UNITS,
-  MEMBER_HEADER_ROW_UNITS,
+  ROW_HEIGHT_FLOOR,
   getOrientation,
   getUniqueInitials,
   getCurrentTimeOfDay,
   buildChoreRows,
   buildMemberRows,
   fitRowHeight,
+  fitDotSize,
+  fitDotsInRoom,
+  shouldStack,
+  splitInOrder,
 } from './helpers';
 
 interface FullscreenChoreChartModuleProps {
@@ -41,36 +45,62 @@ interface FullscreenChoreChartModuleProps {
 
 /** Width the block sizes below are authored against. */
 const REF_W = 1080;
-/** Assignee dots never drop below a fingertip, whatever the row height. */
-const MIN_DOT_PX = 44;
-/** Or grow past this on the standard kiosk. */
-const MAX_DOT_REF = 84;
-/** A name under a dot is never drawn smaller than this. */
-const MIN_NAME_LABEL_PX = 12;
-/** Or larger than this on the standard kiosk: past it five labelled dots eat the chore name. */
-const MAX_NAME_LABEL_REF = 18;
+/** Chore name size at `medium` on the standard kiosk; `typographySize` multiplies it. */
+const NAME_REF = 30;
+/** A chore name is never drawn smaller than this, whatever the panel. */
+const MIN_NAME_PX = 20;
+/**
+ * The header, chips and footer follow `typographySize` only this far: past
+ * it the fixed blocks would eat the list, and the setting is about reading
+ * chores from further away, not the date.
+ */
+const MAX_CHROME_TYPO = 1.35;
+/** A landscape column never grows wider than this: a row wider than it puts the dot too far from its name. */
+const MAX_COLUMN_REF = 900;
+/** By-person sections across in landscape before they wrap to a second row of columns. */
+const MAX_PERSON_COLUMNS = 4;
+/** A column narrower than this puts the member fraction under the name. */
+const COMPACT_COLUMN_REF = 520;
+/** A column narrower than this puts a row's dots under its name instead of beside it. */
+const STACK_COLUMN_REF = 700;
+/** Landscape by-time bands pack into columns about this wide, so rows keep their dots beside the name. */
+const BAND_COLUMN_REF = 820;
+/** A time-of-day band costs this many rows on top of its chores when bands are packed. */
+const BAND_HEADER_ROWS = 0.7;
+/** A by-person section costs this many rows on top of its chores when columns are packed. */
+const MEMBER_HEADER_ROWS = 1.6;
 
 /**
- * Content height of an element, tracked with ResizeObserver. The list box is
- * `flex: 1` with `minHeight: 0`, so its height comes from the canvas minus
- * the fixed blocks, never from its own rows — measuring it cannot feed back
- * into the row size it decides.
+ * Content height of an element, tracked with a ResizeObserver that follows
+ * the element: the list box is a different node in portrait and landscape,
+ * so a ref bound once on mount would keep watching an unmounted node. The
+ * box is `flex: 1` with `minHeight: 0`, so its height comes from the canvas
+ * minus the fixed blocks, never from its own rows; measuring it cannot feed
+ * back into the row size it decides.
  */
-function useMeasuredHeight(): [React.RefObject<HTMLDivElement | null>, number] {
-  const ref = useRef<HTMLDivElement>(null);
+function useMeasuredHeight(): [(el: HTMLDivElement | null) => void, number] {
   const [height, setHeight] = useState(0);
-  useLayoutEffect(() => {
-    const el = ref.current;
+  const roRef = useRef<ResizeObserver | null>(null);
+  const setRef = useCallback((el: HTMLDivElement | null) => {
+    roRef.current?.disconnect();
+    roRef.current = null;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) setHeight(entry.contentRect.height);
     });
     ro.observe(el);
+    roRef.current = ro;
     setHeight(el.clientHeight);
-    return () => ro.disconnect();
   }, []);
-  return [ref, height];
+  return [setRef, height];
+}
+
+interface Section {
+  key: string;
+  rows: ChoreRow[];
+  tod?: ChoreTimeOfDay;
+  member?: ChoreMember;
 }
 
 export default function FullscreenChoreChartModule({
@@ -92,12 +122,12 @@ export default function FullscreenChoreChartModule({
   // 720-wide panel or the editor preview shrinks them proportionally. The
   // chore list is not authored — it takes whatever height is left.
   const k = Math.min(dims.w, dims.h) / REF_W;
-  const typoMul = getTypoMultiplier(config.typographySize ?? 'extra-large');
+  const typoMul = getTypoMultiplier(config.typographySize ?? 'medium');
   const d = getDensityMultiplier(config.density);
   const pad = 40 * k * d;
   const weekProgress = config.weekProgress ?? 'chips';
 
-  const { todayAssignments, memberStats, weekData, members, chores, rewards, recentRedemptions, toggleComplete } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, chores, rewards, recentRedemptions, allRedemptions, toggleComplete } = useChoreData(config);
   const allowTouch = config.allowDisplayComplete ?? true;
   const byPerson = (config.layout ?? 'by-time') === 'by-person';
   // Who is on the chart: chips for people with chores today, one line for a
@@ -177,8 +207,9 @@ export default function FullscreenChoreChartModule({
     setToasts((prev) => prev.filter((t) => t.id !== toastId));
   }, [toggleComplete]);
 
-  // Build chore rows grouped by time-of-day
-  const choreGroups = useMemo(() => buildChoreRows(todayAssignments), [todayAssignments]);
+  // Build chore rows grouped by time-of-day; dots keep household order.
+  const memberOrder = useMemo(() => new Map(members.map((m, i) => [m.id, i])), [members]);
+  const choreGroups = useMemo(() => buildChoreRows(todayAssignments, memberOrder), [todayAssignments, memberOrder]);
 
   // Overall completion
   const totalChores = todayAssignments.length;
@@ -229,71 +260,125 @@ export default function FullscreenChoreChartModule({
   const sectionMembers = useMemo(() => activeMembers.filter((m) => memberRows.has(m.id)), [activeMembers, memberRows]);
   const sectionCount = byPerson ? sectionMembers.length : displayTods.length;
 
-  // ── The fit rule ──
-  // Portrait stacks every band, so the list has to hold all rows and headers;
-  // landscape gives each time-of-day its own column, so the tallest column
-  // sets the row height and every column shares it.
+  // ── Sizes ──
+  // Text follows `typographySize`; the header, chips and footer follow it
+  // only up to MAX_CHROME_TYPO so the list keeps its room.
+  const tx = k * typoMul;
+  const tc = k * Math.min(typoMul, MAX_CHROME_TYPO);
+  const authoredName = Math.max(MIN_NAME_PX, NAME_REF * tx);
+  const bandGap = 20 * k * d;
+  const listWidth = dims.w - pad * 2;
+  const hasChoresToday = totalChores > 0;
+
+  // ── Layout ──
+  // The list is a grid of cells; each cell stacks whole sections (a
+  // time-of-day band or a member) and scrolls on its own when it must.
+  // Portrait by-time: one cell. Portrait by-person: one cell, or two columns
+  // when a big family cannot fit at the row floor. Landscape by-time: one
+  // cell per band. Landscape by-person: up to four across, then a second
+  // row of columns.
+  const sections = useMemo<Section[]>(() => (
+    byPerson
+      ? sectionMembers.map((m) => ({ key: m.id, rows: memberRows.get(m.id) ?? [], member: m }))
+      : displayTods.map((tod) => ({ key: tod, rows: displayGroups.get(tod) ?? [], tod }))
+  ), [byPerson, sectionMembers, memberRows, displayTods, displayGroups]);
+
   const [listRef, listHeight] = useMeasuredHeight();
-  const headerUnits = byPerson ? MEMBER_HEADER_ROW_UNITS : HEADER_ROW_UNITS;
-  const { chores: fitChores, headers: fitHeaders } = useMemo(() => {
-    let chores = 0;
-    let headers = 0;
-    if (byPerson) {
-      if (isLandscape) {
-        for (const m of sectionMembers) {
-          const n = (memberRows.get(m.id) ?? []).length + MEMBER_HEADER_ROW_UNITS;
-          if (n > chores) chores = n;
-        }
-        return { chores, headers: 0 };
-      }
-      for (const m of sectionMembers) {
-        chores += (memberRows.get(m.id) ?? []).length;
-        headers += 1;
-      }
-      return { chores, headers };
-    }
-    if (isLandscape) {
-      for (const tod of displayTods) {
-        const n = (displayGroups.get(tod) ?? []).length + (config.showTimeOfDay ? HEADER_ROW_UNITS : 0);
-        if (n > chores) chores = n;
-      }
-      // The header is already folded into `chores` above as a fractional row.
-      return { chores, headers: 0 };
-    }
-    for (const tod of displayTods) {
-      chores += (displayGroups.get(tod) ?? []).length;
-      if (config.showTimeOfDay) headers += 1;
-    }
-    return { chores, headers };
-  }, [byPerson, isLandscape, sectionMembers, memberRows, displayTods, displayGroups, config.showTimeOfDay]);
+  const weightOf = (sec: Section) => sec.rows.length + MEMBER_HEADER_ROWS;
+  let cols = 1;
+  let cells: Section[][];
+  if (!isLandscape && !byPerson) {
+    cells = [sections];
+  } else if (!isLandscape) {
+    const wideHeader = memberHeaderHeight(28 * tx, false);
+    const need = sections.reduce((sum, sec) => sum + sec.rows.length * ROW_HEIGHT_FLOOR * k + wideHeader, 0) + Math.max(0, sections.length - 1) * bandGap;
+    cols = listHeight > 0 && need > listHeight && sections.length > 1 ? 2 : 1;
+    cells = splitInOrder(sections, weightOf, cols);
+  } else if (!byPerson) {
+    // Bands share a few wide columns rather than one narrow column each, so
+    // a morning with one chore does not own a quarter of the wall.
+    cols = Math.max(1, Math.min(sections.length, Math.floor(listWidth / (BAND_COLUMN_REF * k))));
+    cells = splitInOrder(sections, (sec) => sec.rows.length + (config.showTimeOfDay ? BAND_HEADER_ROWS : 0), cols);
+  } else {
+    cols = Math.max(1, Math.min(MAX_PERSON_COLUMNS, sections.length));
+    cells = splitInOrder(sections, weightOf, cols);
+  }
+  const rawColumnWidth = (listWidth - (cols - 1) * bandGap) / cols;
+  const columnWidth = isLandscape && cols <= 2 ? Math.min(rawColumnWidth, MAX_COLUMN_REF * k) : rawColumnWidth;
+  // Inside a cell a row has the column minus the cell's own side padding.
+  const cellPadX = isLandscape ? pad * 0.5 : 0;
+  const rowWidth = columnWidth - cellPadX * 2;
+  const compactHeader = columnWidth < COMPACT_COLUMN_REF * tx;
+  const cellHeight = listHeight;
 
-  const rowHeight = fitRowHeight({ listHeight, chores: fitChores, headers: fitHeaders, k, typoMul, headerUnits });
-  const headerHeight = rowHeight * headerUnits;
-  // Landscape columns are narrow (a 1920 panel with four time-of-day columns
-  // gives each ~480px), so a row stacks its name over its dots and splits the
-  // height between the two lines instead of sharing one line.
-  const columnWidth = isLandscape ? (dims.w - pad * 2) / Math.max(1, sectionCount) : dims.w;
-  const stackedRows = isLandscape && columnWidth < 900 * k;
-  // What a row can use for icon, name and dots: the column minus its own padding.
-  const rowWidth = isLandscape ? columnWidth - pad : dims.w - pad * 2;
-  // A narrow column sizes the name from its width (about 13 characters a
-  // line), never from the row height alone: a 52px name in a 440px column
-  // reads "Take the rec…" from anywhere in the room.
-  const nameSize = stackedRows ? Math.min(rowHeight * 0.36, columnWidth / 13) : rowHeight * 0.5;
-  const dotSize = Math.max(MIN_DOT_PX, Math.min(MAX_DOT_REF * k, rowHeight * (stackedRows ? 0.42 : 0.62)));
-  const bandLabelSize = 22 * k;
-  const memberBandNameSize = 28 * k;
-  // A name under each dot, when the fitted row leaves a readable line beneath
-  // the dot. Heavy days at the row floor keep bare dots; by person the
-  // section already names its owner.
-  const labelRoom = rowHeight - dotSize;
-  const fittedLabel = Math.min(labelRoom * 0.7, MAX_NAME_LABEL_REF * k);
-  const nameLabelSize = !byPerson && !stackedRows && fittedLabel >= MIN_NAME_LABEL_PX ? fittedLabel : 0;
-  // Rows at the floor no longer fit: let the list scroll instead of clipping.
-  const listOverflows = listHeight > 0 && rowHeight * (fitChores + headerUnits * fitHeaders) > listHeight + 1;
+  // The fit rule: rows share what the tightest cell leaves after its headers
+  // and gaps, capped by typography and floored so a heavy day scrolls. A
+  // heavy day at a big type size squeezes the name under the row; the name
+  // follows the row down rather than overflowing it, and the band and member
+  // labels follow the name so a label is never bigger than the chores under
+  // it. Two passes: the labels set the header height that sets the row.
+  const fitFor = (name: number) => {
+    const bandLabel = Math.min(24 * tx, name * 0.8);
+    const memberName = Math.min(28 * tx, name * 0.95);
+    const bandHeader = config.showTimeOfDay ? bandLabel * 2.2 : 0;
+    const memberHeader = memberHeaderHeight(memberName, compactHeader);
+    const header = byPerson ? memberHeader : bandHeader;
+    let tightest = Infinity;
+    let tightestRows = 0;
+    for (const cell of cells) {
+      const rows = cell.reduce((sum, sec) => sum + sec.rows.length, 0);
+      if (rows === 0) continue;
+      const fixed = cell.length * header + Math.max(0, cell.length - 1) * bandGap;
+      const share = (cellHeight - fixed) / rows;
+      if (share < tightest) { tightest = share; tightestRows = rows; }
+    }
+    const row = fitRowHeight({
+      listHeight: tightestRows > 0 && cellHeight > 0 ? tightest * tightestRows : 0,
+      chores: tightestRows,
+      k,
+      typoMul,
+      densityMul: d,
+    });
+    return { row, name: Math.max(MIN_NAME_PX, Math.min(authoredName, row * 0.55)), bandLabel, memberName, bandHeader, memberHeader, header };
+  };
+  const first = fitFor(authoredName);
+  const fit = first.name < authoredName ? fitFor(first.name) : first;
+  const rowHeight = fit.row;
+  const nameSize = fit.name;
+  const bandLabelSize = fit.bandLabel;
+  const memberNameSize = fit.memberName;
+  const bandHeaderPx = fit.bandHeader;
+  const memberHeaderPx = fit.memberHeader;
+  const headerPx = fit.header;
+  const dotBase = fitDotSize(rowHeight, k);
+  const iconRoom = nameSize * 1.4;
+  // Stacking (dots under the name) is decided per cell from its widest row,
+  // so every row in a column has the same shape; a stacked row grows past
+  // the fitted height for its second line, and the cell scrolls if it must.
+  const cellShapes = cells.map((cell) => {
+    let widest = 0;
+    for (const sec of cell) for (const row of sec.rows) widest = Math.max(widest, row.assignees.length);
+    // A wide column keeps dots beside the name and shrinks them to fit; only
+    // a narrow column stacks.
+    const stacked = columnWidth < STACK_COLUMN_REF * k && shouldStack(widest, dotBase, rowWidth - iconRoom);
+    const dotSize = stacked
+      ? fitDotsInRoom(dotBase, widest, rowWidth - nameSize * 0.6 - iconRoom)
+      : fitDotsInRoom(dotBase, widest, (rowWidth - iconRoom) * 0.4);
+    const stackedNeed = nameSize * 1.15 + nameSize * 0.35 + dotSize + nameSize * 0.8;
+    const cellRowHeight = stacked ? Math.max(rowHeight, stackedNeed) : rowHeight;
+    // On a light day the rows stop at the cap and the slack goes between the
+    // bands (up to three gaps' worth each); what is left stays at the bottom.
+    const rows = cell.reduce((sum, sec) => sum + sec.rows.length, 0);
+    const used = rows * cellRowHeight + cell.length * headerPx + Math.max(0, cell.length - 1) * bandGap;
+    const slack = cellHeight > 0 ? Math.max(0, cellHeight - used) : 0;
+    const gap = cell.length > 1 ? bandGap + Math.min(bandGap * 2, slack / (cell.length - 1)) : bandGap;
+    // A very light day sits centred in its space rather than hugging the top.
+    const centred = cellHeight > 0 && slack > cellHeight * 0.3;
+    return { stacked, dotSize, rowHeight: cellRowHeight, gap, centred };
+  });
 
-  const memberStripWidth = isLandscape ? dims.w * 0.65 : dims.w - pad * 2;
-  const chipScale = isLandscape ? k * 0.75 : k;
+  const chipScale = isLandscape ? tc * 0.85 : tc;
+  const memberStripWidth = isLandscape ? dims.w * 0.62 : listWidth;
   const chipDetail = weekProgress === 'chips' ? 'stars' : 'bar';
 
   const weekBottom = weekProgress === 'grid'
@@ -305,49 +390,131 @@ export default function FullscreenChoreChartModule({
   const dayOffLine = dayOffMembers.length > 0 && (
     <div
       data-testid="fcc-day-off"
-      style={{ fontSize: 20 * k, fontWeight: 500, color: 'var(--fcc-text-3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+      style={{ fontSize: 24 * tc, fontWeight: 500, color: 'var(--fcc-text-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
     >
       {t('chore-chart.dayOffList', { names: dayOffMembers.map((m) => m.name).join(', ') })}
     </div>
   );
 
-  const footer = (config.showPoints || config.showStreaks) && (
+  const renderSection = (sec: Section, shape: { stacked: boolean; dotSize: number; rowHeight: number; gap: number; centred: boolean }) => (
+    sec.member ? (
+      <MemberBand
+        key={sec.key}
+        member={sec.member}
+        stats={memberStats.get(sec.member.id)}
+        rows={sec.rows}
+        fontSize={nameSize}
+        dotSize={shape.dotSize}
+        rowHeight={shape.rowHeight}
+        headerHeight={memberHeaderPx}
+        headerFontSize={memberNameSize}
+        rowWidth={rowWidth}
+        stacked={shape.stacked}
+        compact={compactHeader}
+        showPoints={config.showPoints}
+        showStreaks={config.showStreaks}
+        showTimeOfDay={config.showTimeOfDay}
+        weekData={weekData}
+        detail={chipDetail}
+        memberMap={memberMap}
+        initialsMap={initialsMap}
+        allowTouch={allowTouch}
+        onToggle={handleToggle}
+      />
+    ) : (
+      <TimeBand
+        key={sec.key}
+        tod={sec.tod!}
+        rows={sec.rows}
+        fontSize={nameSize}
+        dotSize={shape.dotSize}
+        rowHeight={shape.rowHeight}
+        headerHeight={bandHeaderPx}
+        headerFontSize={bandLabelSize}
+        rowWidth={rowWidth}
+        stacked={shape.stacked}
+        showHeader={config.showTimeOfDay}
+        showPoints={config.showPoints}
+        currentTod={currentTod}
+        memberMap={memberMap}
+        initialsMap={initialsMap}
+        allowTouch={allowTouch}
+        onToggle={handleToggle}
+      />
+    )
+  );
+
+  const listGrid = sectionCount > 0 && (
+    <div
+      ref={listRef}
+      data-testid="fcc-list-box"
+      style={{
+        flex: 1,
+        minHeight: 0,
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, minmax(0, ${Math.round(columnWidth)}px))`,
+        gridAutoRows: 'minmax(0, 1fr)',
+        justifyContent: 'center',
+        columnGap: bandGap,
+        padding: `0 ${pad}px`,
+      }}
+    >
+      {cells.map((cell, i) => (
+        <FitList
+          key={cell[0]?.key ?? i}
+          fontSize={22 * tc}
+          testId={i === 0 ? 'fcc-list' : undefined}
+          style={{
+            minWidth: 0,
+            borderLeft: isLandscape && i % cols > 0 ? '1px solid var(--fcc-border-sub)' : undefined,
+          }}
+          innerStyle={{ display: 'flex', flexDirection: 'column', justifyContent: cellShapes[i].centred ? 'center' : 'flex-start', gap: cellShapes[i].gap, padding: `${isLandscape ? 12 * k : 0}px ${cellPadX}px ${cellShapes[i].centred ? 24 * k : 0}px` }}
+        >
+          {cell.map((sec) => renderSection(sec, cellShapes[i]))}
+        </FitList>
+      ))}
+    </div>
+  );
+
+  const isUnset = members.length === 0 || chores.length === 0;
+  const footer = !isUnset && (config.showPoints || config.showStreaks) && (
     <div style={{
       flexShrink: 0,
-      padding: `${18 * k}px ${pad}px ${30 * k}px`,
+      padding: `${16 * k}px ${pad}px ${26 * k}px`,
       borderTop: '1px solid var(--fcc-border-sub)',
       display: 'flex',
-      justifyContent: 'space-between',
       gap: pad,
-      fontSize: 21 * k,
-      color: 'var(--fcc-text-3)',
+      fontSize: 24 * tc,
+      color: 'var(--fcc-text-2)',
       fontWeight: 500,
     }}>
-      {config.showPoints && (
-        <div>
-          <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
+      <div style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {config.showPoints && (
+          <span style={{ color: 'var(--fcc-text)', fontWeight: 600 }}>
             {t('fullscreen-chore-chart.weeklyTicketsValue', {
               count: Array.from(memberStats.values()).reduce((sum, ms) => sum + ms.weeklyPoints, 0),
             })}
           </span>
-        </div>
-      )}
-      {config.showStreaks && (
-        <div>
-          {t('fullscreen-chore-chart.bestStreakLabel')} <span style={{ color: 'var(--fcc-text-2)', fontWeight: 600 }}>
-            {(() => {
-              let best = { name: '', streak: 0 };
-              for (const m of members) {
-                const ms = memberStats.get(m.id);
-                if (ms && ms.streak > best.streak) best = { name: m.name, streak: ms.streak };
-              }
-              return best.streak > 0
-                ? t('fullscreen-chore-chart.bestStreakValue', { name: best.name, count: best.streak })
-                : t('fullscreen-chore-chart.bestStreakNone');
-            })()}
-          </span>
-        </div>
-      )}
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0, textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {config.showStreaks && (
+          <>
+            {t('fullscreen-chore-chart.bestStreakLabel')} <span style={{ color: 'var(--fcc-text)', fontWeight: 600 }}>
+              {(() => {
+                let best = { name: '', streak: 0 };
+                for (const m of members) {
+                  const ms = memberStats.get(m.id);
+                  if (ms && ms.streak > best.streak) best = { name: m.name, streak: ms.streak };
+                }
+                return best.streak > 0
+                  ? t('fullscreen-chore-chart.bestStreakValue', { name: best.name, count: best.streak })
+                  : t('fullscreen-chore-chart.bestStreakNone');
+              })()}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 
@@ -355,12 +522,16 @@ export default function FullscreenChoreChartModule({
     <button
       onClick={() => setShowRewardsOverride(true)}
       style={{
-        padding: `${8 * k}px ${20 * k}px`,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 8 * tc,
+        padding: `${8 * tc}px ${20 * tc}px`,
+        minHeight: 44 * k,
         borderRadius: 999,
         border: '1px solid var(--fcc-border)',
         background: 'var(--fcc-surface)',
         color: 'var(--fcc-accent)',
-        fontSize: 22 * k,
+        fontSize: 22 * tc,
         fontWeight: 700,
         cursor: 'pointer',
         boxShadow: 'var(--fcc-card-shadow)',
@@ -368,16 +539,15 @@ export default function FullscreenChoreChartModule({
         whiteSpace: 'nowrap',
       }}
     >
-      ★ {t('fullscreen-chore-chart.rewardsButton')}
+      <Star size={22 * tc} fill="currentColor" /> {t('fullscreen-chore-chart.rewardsButton')}
     </button>
   );
 
   // "No chores today" is a day off. A household with no members or no chores
   // at all is a fresh install, and that needs to say where chores come from,
   // at a size that reads across the room.
-  const isUnset = members.length === 0 || chores.length === 0;
   const emptyState = isUnset ? (
-    <div style={{ flex: 1, display: 'flex', color: 'var(--fcc-text-2)' }}>
+    <div style={{ flex: 1, display: 'flex', color: 'var(--fcc-text)' }}>
       <FamilyEmptyState
         icon={<>&#128203;</>}
         title={t(members.length === 0 ? 'chore-chart.noMembersYet' : 'chore-chart.noChoresYet')}
@@ -386,8 +556,9 @@ export default function FullscreenChoreChartModule({
       />
     </div>
   ) : (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fcc-text-2)', fontSize: 40 * k, textAlign: 'center' }}>
-      {t('fullscreen-chore-chart.noChoresToday')}
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 * k, color: 'var(--fcc-text-2)', fontSize: 40 * tc, textAlign: 'center', padding: pad }}>
+      <div>{t('fullscreen-chore-chart.noChoresToday')}</div>
+      {dayOffLine}
     </div>
   );
 
@@ -422,9 +593,14 @@ export default function FullscreenChoreChartModule({
           members={members}
           rewards={rewards}
           balances={rewardBalances}
-          redemptions={recentRedemptions}
-          scale={k * 10.8 * typoMul}
+          redemptions={allRedemptions}
+          k={k}
+          typoMul={typoMul}
+          density={config.density}
           isLandscape={isLandscape}
+          allowTouch={allowTouch}
+          accentColor={config.accentColor}
+          theme={theme}
           onBack={showRewardsOverride ? () => setShowRewardsOverride(false) : undefined}
           idleTimeoutMs={showRewardsOverride ? 60_000 : undefined}
         />
@@ -432,63 +608,38 @@ export default function FullscreenChoreChartModule({
         <>
           {/* Landscape header: date + progress on the left, member chips on the right. */}
           <div style={{ display: 'flex', alignItems: 'stretch', padding: `${20 * k}px ${pad}px`, gap: 28 * k, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: 28 * k, borderRight: '1px solid var(--fcc-border-sub)', minWidth: 300 * k }}>
-              <div style={{ fontSize: 20 * k, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingRight: 28 * k, borderRight: '1px solid var(--fcc-border-sub)', minWidth: 320 * tc }}>
+              <div style={{ fontSize: 20 * tc, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {dayName}
               </div>
-              <div style={{ fontSize: 38 * k, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fcc-text)', marginTop: 2 * k }}>
+              <div style={{ fontSize: 38 * tc, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fcc-text)', marginTop: 2 * k }}>
                 {dateStr}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 * k, marginTop: 14 * k }}>
-                <div style={{ flex: 1, height: 8 * k, background: 'var(--fcc-border-sub)', borderRadius: 4 * k, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: 4 * k, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
+              {hasChoresToday && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 * k, marginTop: 14 * k }}>
+                  <div style={{ flex: 1, height: 8 * k, background: 'var(--fcc-border-sub)', borderRadius: 4 * k, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: 4 * k, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
+                  </div>
+                  <div style={{ fontSize: 34 * tc, fontWeight: 800, color: 'var(--fcc-accent)', flexShrink: 0, lineHeight: 1 }}>
+                    {overallPct}%
+                  </div>
                 </div>
-                <div style={{ fontSize: 34 * k, fontWeight: 800, color: 'var(--fcc-accent)', flexShrink: 0, lineHeight: 1 }}>
-                  {overallPct}%
-                </div>
-                {rewardsButton}
-              </div>
+              )}
+              {rewardsButton && <div style={{ marginTop: 14 * k, display: 'flex' }}>{rewardsButton}</div>}
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
               <div style={{ width: '100%' }}>
                 {byPerson ? dayOffLine : (
-                  <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
+                  <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} maxPerRow={4} />
                 )}
               </div>
             </div>
           </div>
 
-          <div ref={listRef} style={{ flex: 1, display: 'flex', gap: 1, background: 'var(--fcc-surface)', minHeight: 0, overflow: 'hidden' }}>
-            {sectionCount === 0 ? (
-              <div style={{ flex: 1, display: 'flex', background: 'var(--fcc-bg)' }}>{emptyState}</div>
-            ) : byPerson ? sectionMembers.map((member) => {
-              const rows = memberRows.get(member.id) ?? [];
-              return (
-                <div key={member.id} data-testid="fcc-member-section" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--fcc-bg)', minWidth: 0 }}>
-                  <MemberBandHeader member={member} stats={memberStats.get(member.id)} height={headerHeight} fontSize={memberBandNameSize} showStreaks={config.showStreaks} showPoints={config.showPoints} weekData={weekData} detail={chipDetail} compact={stackedRows} style={{ padding: `0 ${pad * 0.5}px`, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }} />
-                  <div style={{ flex: 1, overflowY: listOverflows ? 'auto' : 'hidden', padding: `0 ${pad * 0.5}px`, scrollbarWidth: 'none', touchAction: 'pan-y' }}>
-                    {rows.map((row, i) => (
-                      <ChoreRowItem key={row.choreId} row={row} fontSize={nameSize} dotSize={dotSize} rowHeight={rowHeight} rowWidth={rowWidth} stacked={stackedRows} showInitials={false} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
-                    ))}
-                  </div>
-                </div>
-              );
-            }) : displayTods.map((tod) => {
-              const rows = displayGroups.get(tod) ?? [];
-              return (
-                <div key={tod} style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--fcc-bg)', minWidth: 0 }}>
-                  {config.showTimeOfDay && (
-                    <TimeBandHeader tod={tod} fontSize={bandLabelSize} currentTod={currentTod} style={{ height: headerHeight, boxSizing: 'border-box', alignItems: 'flex-end', padding: `0 ${pad * 0.5}px ${bandLabelSize * 0.3}px`, borderBottom: '1px solid var(--fcc-border-sub)', flexShrink: 0 }} />
-                  )}
-                  <div style={{ flex: 1, overflowY: listOverflows ? 'auto' : 'hidden', padding: `0 ${pad * 0.5}px`, scrollbarWidth: 'none', touchAction: 'pan-y' }}>
-                    {rows.map((row, i) => (
-                      <ChoreRowItem key={row.choreId} row={row} fontSize={nameSize} dotSize={dotSize} rowHeight={rowHeight} rowWidth={rowWidth} stacked={stackedRows} nameLabelSize={nameLabelSize} isFirst={i === 0} showPoints={config.showPoints} memberMap={memberMap} initialsMap={initialsMap} allowTouch={allowTouch} onToggle={handleToggle} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          {listGrid}
+          {sectionCount === 0 && (
+            <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>{emptyState}</div>
+          )}
 
           {weekBottom && (
             <div style={{ flexShrink: 0, margin: `0 ${pad}px`, borderTop: '1px solid var(--fcc-border-sub)' }}>{weekBottom}</div>
@@ -497,102 +648,51 @@ export default function FullscreenChoreChartModule({
         </>
       ) : (
         <>
-          {/* Portrait header: day + date left, completion + rewards right. */}
-          <div style={{ padding: `${pad}px ${pad}px 0`, flexShrink: 0 }}>
+          {/* Portrait header: day + date left, completion right, progress bar and the rewards pill on one line. */}
+          <div style={{ padding: `${pad}px ${pad}px ${byPerson ? 18 * k : 0}px`, flexShrink: 0, borderBottom: byPerson ? '1px solid var(--fcc-border-sub)' : undefined }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: pad }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 22 * k, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ fontSize: 22 * tc, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {dayName}
                 </div>
-                <div style={{ fontSize: 46 * k, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fcc-text)', marginTop: 2 * k, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ fontSize: 46 * tc, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fcc-text)', marginTop: 2 * k, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {dateStr}
                 </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 * k, flexShrink: 0 }}>
-                <div style={{ fontSize: 64 * k, fontWeight: 800, color: 'var(--fcc-accent)', lineHeight: 1, letterSpacing: '-0.02em' }}>
-                  {overallPct}<span style={{ fontSize: 28 * k, color: 'var(--fcc-text-2)', fontWeight: 700 }}>%</span>
+              {hasChoresToday && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 * k, flexShrink: 0 }}>
+                  <div style={{ fontSize: 64 * tc, fontWeight: 800, color: 'var(--fcc-accent)', lineHeight: 1, letterSpacing: '-0.02em' }}>
+                    {overallPct}<span style={{ fontSize: 28 * tc, color: 'var(--fcc-text-2)', fontWeight: 700 }}>%</span>
+                  </div>
+                  <div style={{ fontSize: 16 * tc, fontWeight: 600, color: 'var(--fcc-text-2)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {t('fullscreen-chore-chart.complete')}
+                  </div>
                 </div>
-                <div style={{ fontSize: 16 * k, fontWeight: 600, color: 'var(--fcc-text-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  {t('fullscreen-chore-chart.complete')}
-                </div>
+              )}
+            </div>
+            {(hasChoresToday || rewardsButton) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 * k, marginTop: 18 * k }}>
+                {hasChoresToday && (
+                  <div style={{ flex: 1, height: 10 * k, background: 'var(--fcc-border-sub)', borderRadius: 5 * k, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: 5 * k, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
+                  </div>
+                )}
                 {rewardsButton}
               </div>
-            </div>
-            <div style={{ height: 10 * k, background: 'var(--fcc-border-sub)', borderRadius: 5 * k, overflow: 'hidden', marginTop: 18 * k }}>
-              <div style={{ height: '100%', background: 'var(--fcc-accent)', borderRadius: 5 * k, width: `${overallPct}%`, transition: 'width 0.5s ease' }} />
-            </div>
+            )}
+            {byPerson && sectionCount > 0 && dayOffLine && <div style={{ marginTop: 14 * k }}>{dayOffLine}</div>}
           </div>
           {!byPerson && (
             <div style={{ padding: `${24 * k}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
-              <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} />
+              <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} maxPerRow={3} />
             </div>
           )}
+          {byPerson && <div style={{ height: 12 * k, flexShrink: 0 }} />}
 
-          {/* The list: every pixel between the chips and the week block. */}
-          <div
-            ref={listRef}
-            data-testid="fcc-list"
-            style={{
-              flex: 1,
-              minHeight: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              // Rows at the cap leave slack; spread it between the bands
-              // rather than pooling it at the bottom.
-              justifyContent: listOverflows || sectionCount === 0 ? 'flex-start' : 'space-evenly',
-              overflowY: listOverflows ? 'auto' : 'hidden',
-              padding: `0 ${pad}px`,
-              scrollbarWidth: 'none',
-              touchAction: 'pan-y',
-            }}
-          >
-            {byPerson ? sectionMembers.map((member) => (
-              <MemberBand
-                key={member.id}
-                member={member}
-                stats={memberStats.get(member.id)}
-                rows={memberRows.get(member.id) ?? []}
-                fontSize={nameSize}
-                dotSize={dotSize}
-                rowHeight={rowHeight}
-                headerHeight={headerHeight}
-                headerFontSize={memberBandNameSize}
-                rowWidth={rowWidth}
-                showPoints={config.showPoints}
-                showStreaks={config.showStreaks}
-                weekData={weekData}
-                detail={chipDetail}
-                memberMap={memberMap}
-                initialsMap={initialsMap}
-                allowTouch={allowTouch}
-                onToggle={handleToggle}
-              />
-            )) : displayTods.map((tod) => (
-              <TimeBand
-                key={tod}
-                tod={tod}
-                rows={displayGroups.get(tod) ?? []}
-                fontSize={nameSize}
-                dotSize={dotSize}
-                rowHeight={rowHeight}
-                headerHeight={headerHeight}
-                headerFontSize={bandLabelSize}
-                rowWidth={rowWidth}
-                nameLabelSize={nameLabelSize}
-                showHeader={config.showTimeOfDay}
-                showPoints={config.showPoints}
-                currentTod={currentTod}
-                memberMap={memberMap}
-                initialsMap={initialsMap}
-                allowTouch={allowTouch}
-                onToggle={handleToggle}
-              />
-            ))}
-            {byPerson && sectionCount > 0 && dayOffLine && (
-              <div style={{ flexShrink: 0, padding: `${12 * k}px ${nameSize * 0.3}px` }}>{dayOffLine}</div>
-            )}
-            {sectionCount === 0 && emptyState}
-          </div>
+          {listGrid}
+          {sectionCount === 0 && (
+            <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>{emptyState}</div>
+          )}
 
           {weekBottom && (
             <div style={{ flexShrink: 0, margin: `0 ${pad}px`, borderTop: '1px solid var(--fcc-border-sub)' }}>{weekBottom}</div>
@@ -602,7 +702,7 @@ export default function FullscreenChoreChartModule({
       )}
 
       {/* Touch completion toasts — always rendered */}
-      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} />}
+      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} scale={tc} bottom={footer ? 96 * k : 20 * k} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useLayoutEffect } from 'react';
 
 /** Dimensions returned by the hook. */
 export interface FullscreenDims {
@@ -10,13 +10,15 @@ export interface FullscreenDims {
 
 /**
  * Tracks the content dimensions of a container element via ResizeObserver.
- * Defaults to 1080×1920 (portrait display) until the first measurement.
+ * Defaults to 1080×1920 (portrait display) until the first measurement,
+ * which happens before the first paint so a landscape panel never shows a
+ * portrait frame.
  */
 export function useFullscreenDims() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<FullscreenDims>({ w: 1080, h: 1920 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {

@@ -43,11 +43,11 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
       className="flex h-full w-full flex-col items-center justify-center text-center"
       style={{ gap: '0.5em', padding: '0.75em', fontSize, ...style }}
     >
-      <span style={{ fontSize: '2.2em', lineHeight: 1, opacity: TEXT_OPACITY.tertiary }} aria-hidden="true">
+      <span style={{ fontSize: '2.2em', lineHeight: 1, opacity: TEXT_OPACITY.secondary }} aria-hidden="true">
         {icon}
       </span>
-      <p style={{ fontSize: '0.8em', fontWeight: 600, opacity: TEXT_OPACITY.dim, lineHeight: 1.3 }}>{title}</p>
-      <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary, lineHeight: 1.45, maxWidth: '26em' }}>
+      <p style={{ fontSize: '0.8em', fontWeight: 600, opacity: TEXT_OPACITY.heading, lineHeight: 1.3 }}>{title}</p>
+      <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
         {before}
         <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>
         {after}

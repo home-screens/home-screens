@@ -3,7 +3,7 @@
 import type { ChoreMember } from '@/types/config';
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { Flame, Star } from 'lucide-react';
+import { Flame, Star, Ticket } from 'lucide-react';
 import ChoreRowItem from './ChoreRowItem';
 import type { MemberChipDetail } from './MemberStrip';
 import type { ChoreRow, ToggleParams } from './helpers';
@@ -11,7 +11,7 @@ import type { ChoreRow, ToggleParams } from './helpers';
 interface MemberBandHeaderProps {
   member: ChoreMember;
   stats: MemberStats | undefined;
-  /** Band height from the fit rule. */
+  /** Band height in px, fixed by the name size. */
   height: number;
   /** Name size; the avatar and fraction are drawn relative to it. */
   fontSize: number;
@@ -21,10 +21,17 @@ interface MemberBandHeaderProps {
   /** `stars` draws the week's seven stars at the right edge, the way a member
    *  chip does; the chips are hidden in the by-person layout. */
   detail: MemberChipDetail;
-  /** Narrow column (landscape): the stars go under the bar, not beside the
-   *  name, so the name is never the thing that gives way. */
+  /**
+   * Narrow column: the fraction goes under the name and the stars under the
+   * bar, so the name is never the thing that gives way.
+   */
   compact?: boolean;
   style?: React.CSSProperties;
+}
+
+/** Band height the header needs, as a multiple of the name size. */
+export function memberHeaderHeight(fontSize: number, compact: boolean): number {
+  return fontSize * (compact ? 4.7 : 3.1);
 }
 
 /**
@@ -34,7 +41,7 @@ interface MemberBandHeaderProps {
  */
 export function MemberBandHeader({ member, stats, height, fontSize, showStreaks, showPoints, weekData, detail, compact = false, style }: MemberBandHeaderProps) {
   const avatar = Math.min(height * 0.7, fontSize * 2);
-  const statSize = fontSize * 0.7;
+  const statSize = fontSize * 0.75;
   const starSize = fontSize * 0.75;
   const done = stats?.completed ?? 0;
   const total = stats?.total ?? 0;
@@ -59,6 +66,21 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
       })}
     </div>
   );
+  const stat = (
+    <span style={{ fontSize: statSize, fontWeight: 600, color: complete ? member.color : 'var(--fcc-text-2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.4, flexShrink: 0 }}>
+      <span>{done}/{total}</span>
+      {showStreaks && stats && stats.streak > 0 && (
+        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.1 }}>
+          <Flame size={statSize} />{stats.streak}
+        </span>
+      )}
+      {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
+        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.15 }}>
+          <Ticket size={statSize} />{stats!.rewardBalance}
+        </span>
+      )}
+    </span>
+  );
   return (
     <div
       data-testid="fcc-member-band"
@@ -81,27 +103,19 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
+          color: 'white',
         }}
       >
-        <ChoreIcon value={member.emoji} size={avatar * 0.5} color="white" />
+        <ChoreIcon value={member.emoji} size={avatar * 0.55} color="white" bare />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: fontSize * 0.5, minWidth: 0 }}>
-          <span style={{ fontSize, fontWeight: 700, letterSpacing: '-0.01em', color: member.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+          <span style={{ fontSize, fontWeight: 700, letterSpacing: '-0.01em', color: member.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: compact ? 1 : undefined }}>
             {member.name}
           </span>
-          <span style={{ fontSize: statSize, fontWeight: 600, color: complete ? member.color : 'var(--fcc-text-2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-            {done}/{total}
-            {showStreaks && stats && stats.streak > 0 && (
-              <span style={{ color: 'var(--fcc-accent)', marginLeft: statSize * 0.5 }}>
-                <Flame size={statSize} style={{ display: 'inline', verticalAlign: '-0.12em' }} /> {stats.streak}
-              </span>
-            )}
-            {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
-              <span style={{ color: '#a78bfa', marginLeft: statSize * 0.5 }}>🎟️{stats!.rewardBalance}</span>
-            )}
-          </span>
+          {!compact && stat}
         </div>
+        {compact && <div style={{ marginTop: fontSize * 0.15 }}>{stat}</div>}
         <div style={{ height: Math.max(4, fontSize * 0.18), background: 'var(--fcc-border)', borderRadius: 999, marginTop: fontSize * 0.25, overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 999, background: member.color, width: `${stats?.percentage ?? 0}%`, transition: 'width 0.5s ease' }} />
         </div>
@@ -124,8 +138,13 @@ interface MemberBandProps {
   /** Member-name size in the header band. */
   headerFontSize: number;
   rowWidth: number;
+  /** Dots under the name on every row; see ChoreRowItem.stacked. */
+  stacked?: boolean;
+  /** Narrow band: see MemberBandHeader.compact. */
+  compact?: boolean;
   showPoints: boolean;
   showStreaks: boolean;
+  showTimeOfDay: boolean;
   weekData: WeekDayData[];
   detail: MemberChipDetail;
   memberMap: Map<string, ChoreMember>;
@@ -134,7 +153,7 @@ interface MemberBandProps {
   onToggle: (params: ToggleParams) => void;
 }
 
-/** One member's section in the portrait by-person layout. */
+/** One member's section in the by-person layout. */
 export default function MemberBand({
   member,
   stats,
@@ -145,8 +164,11 @@ export default function MemberBand({
   headerHeight,
   headerFontSize,
   rowWidth,
+  stacked = false,
+  compact = false,
   showPoints,
   showStreaks,
+  showTimeOfDay,
   weekData,
   detail,
   memberMap,
@@ -165,6 +187,7 @@ export default function MemberBand({
         showPoints={showPoints}
         weekData={weekData}
         detail={detail}
+        compact={compact}
         style={{ padding: `0 ${fontSize * 0.3}px ${headerFontSize * 0.2}px` }}
       />
       {rows.map((row, i) => (
@@ -175,7 +198,9 @@ export default function MemberBand({
           dotSize={dotSize}
           rowHeight={rowHeight}
           rowWidth={rowWidth}
+          stacked={stacked}
           showInitials={false}
+          showTimeOfDay={showTimeOfDay}
           isFirst={i === 0}
           showPoints={showPoints}
           memberMap={memberMap}

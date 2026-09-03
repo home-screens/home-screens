@@ -582,6 +582,10 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
+    "moreBelow": {
+      "one": "{count} more below",
+      "other": "{count} more below"
+    },
     "verbs": {
       "completed": "completed",
       "uncompleted": "uncompleted",
@@ -602,9 +606,9 @@
     "rewardsStore": {
       "title": "Rewards",
       "subtitle": "Pick something great",
-      "backToChores": "← Chores",
-      "noneAvailable": "No rewards yet. A grown-up can add some from their phone.",
-      "recentRedemptions": "Recent Redemptions",
+      "backToChores": "Chores",
+      "noneAvailable": "No rewards yet",
+      "recentRedemptions": "Recently spent",
       "redemptionCost": {
         "one": "−{count} ticket",
         "other": "−{count} tickets"
@@ -627,7 +631,22 @@
       "confirmCancel": "Cancel",
       "confirmYes": "Yes!",
       "errorGeneric": "Something went wrong",
-      "errorOffline": "Could not connect"
+      "errorOffline": "Could not connect",
+      "addFromPhoneHint": "Add rewards from a phone: open {url} and tap Chores",
+      "moreTickets": {
+        "one": "1 more ticket to go",
+        "other": "{count} more tickets to go"
+      },
+      "enoughTickets": "You have enough!",
+      "moreRewards": {
+        "one": "+{count} more reward",
+        "other": "+{count} more rewards"
+      },
+      "redeemedTitle": "You got it!",
+      "redeemedBody": {
+        "one": "{member} spent 1 ticket on {reward}",
+        "other": "{member} spent {count} tickets on {reward}"
+      }
     }
   },
   "sports": {

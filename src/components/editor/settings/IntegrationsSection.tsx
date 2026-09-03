@@ -69,9 +69,9 @@ function getStatusInfo(
 
 /* ─── Google card bands ───────────────────── */
 
-const GOOGLE_CALENDAR_DOCS = 'https://homescreens.dev/docs/getting-started#calendar-setup';
+const GOOGLE_CALENDAR_DOCS = 'https://homescreens.dev/docs/calendars#google-sign-in';
 const GOOGLE_PHOTOS_DOCS = 'https://homescreens.dev/docs/backgrounds';
-const GOOGLE_MAPS_DOCS = 'https://homescreens.dev/docs/modules#before-some-modules-will-work';
+const GOOGLE_MAPS_DOCS = 'https://homescreens.dev/docs/calendars#api-keys';
 
 /**
  * Heading for one group of credentials inside the Google card: what the

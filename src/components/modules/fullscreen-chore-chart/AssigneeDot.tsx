@@ -13,16 +13,16 @@ interface AssigneeDotProps {
   memberName: string;
   memberColor: string;
   initial: string;
-  /**
-   * Name printed under the dot, when the row is tall enough to hold one.
-   * A parent glancing from the kitchen reads "Marshall", not a colour.
-   */
-  label?: string;
-  labelSize?: number;
   allowTouch: boolean;
   onToggle: (params: ToggleParams) => void;
 }
 
+/**
+ * One member's mark on a chore row. Done is a solid disc with a check;
+ * still-to-do is a ring in the member's full colour over a light tint of it,
+ * with the initial inside. Both read from across a room: the to-do state is
+ * what a parent scans for, so it is never dimmed.
+ */
 export default function AssigneeDot({
   memberId,
   isCompleted,
@@ -32,16 +32,15 @@ export default function AssigneeDot({
   memberName,
   memberColor,
   initial,
-  label,
-  labelSize = 0,
   allowTouch,
   onToggle,
 }: AssigneeDotProps) {
   const iconSz = dotSize * 0.55;
   const t = useTranslate('modules');
 
-  const dot = (
+  return (
     <div
+      data-testid="fcc-dot"
       className={allowTouch ? 'press-dot' : undefined}
       role={allowTouch ? 'button' : undefined}
       tabIndex={allowTouch ? 0 : undefined}
@@ -75,44 +74,16 @@ export default function AssigneeDot({
         ...(isCompleted
           ? { background: memberColor }
           : {
-              border: `2px solid ${memberColor}`,
-              opacity: 0.4,
+              border: `${Math.max(3, Math.round(dotSize * 0.06))}px solid ${memberColor}`,
+              background: `color-mix(in srgb, ${memberColor} 16%, transparent)`,
               color: memberColor,
-              fontSize: dotSize * (initial.length > 1 ? 0.32 : 0.4),
+              fontSize: dotSize * (initial.length > 1 ? 0.34 : 0.42),
               fontWeight: 700,
+              lineHeight: 1,
             }),
       }}
     >
       {isCompleted ? <Check size={iconSz} color="white" strokeWidth={3} /> : initial}
     </div>
   );
-
-  if (!label || labelSize <= 0) return dot;
-  return (
-    <div
-      data-testid="fcc-dot-labelled"
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: labelSize * 0.15, width: dotSlotWidth(dotSize, labelSize), flexShrink: 0 }}
-    >
-      {dot}
-      <span
-        style={{
-          fontSize: labelSize,
-          lineHeight: 1,
-          fontWeight: 600,
-          color: isCompleted ? 'var(--fcc-text)' : 'var(--fcc-text-2)',
-          maxWidth: '100%',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
-
-/** Width of one labelled dot column: room for an eight-letter name under the dot. */
-export function dotSlotWidth(dotSize: number, labelSize: number): number {
-  return Math.max(dotSize * 1.6, labelSize * 4.6);
 }

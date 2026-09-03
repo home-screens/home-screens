@@ -18,6 +18,10 @@ export interface HoldConfirmButtonProps {
    * finger that lifted too soon learns to keep holding.
    */
   hint?: string;
+  /** Hint type size, so a corner-sized widget doesn't get a wall-sized pill. */
+  hintFontSize?: number;
+  /** Corner radius and any other box styling from the sizing model. */
+  style?: CSSProperties;
 }
 
 /**
@@ -34,6 +38,8 @@ export function HoldConfirmButton({
   disabled = false,
   ariaLabel,
   hint,
+  hintFontSize = 20,
+  style,
 }: HoldConfirmButtonProps) {
   const { progress, isHolding, releasedEarly, onPointerDown, onPointerUp, onPointerCancel } = useHoldConfirm({
     durationMs,
@@ -57,7 +63,7 @@ export function HoldConfirmButton({
       onPointerCancel={disabled ? undefined : onPointerCancel}
       onPointerLeave={disabled ? undefined : onPointerUp}
       className={`relative overflow-hidden select-none touch-none ${isHolding ? 'border-red-400' : ''} ${className}`}
-      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' }}
+      style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none', ...style }}
     >
       <span
         aria-hidden="true"
@@ -67,7 +73,8 @@ export function HoldConfirmButton({
       {releasedEarly && hint && (
         <span
           role="status"
-          className="absolute left-1/2 top-2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-white px-4 py-1 text-[20px] font-semibold leading-tight text-black pointer-events-none"
+          style={{ fontSize: hintFontSize, paddingInline: hintFontSize * 0.7, paddingBlock: hintFontSize * 0.18 }}
+          className="absolute left-1/2 top-1 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-white font-semibold leading-tight text-black pointer-events-none"
         >
           {hint}
         </span>

@@ -6,13 +6,16 @@ import {
   buildChoreRows,
   buildMemberRows,
   fitRowHeight,
+  fitDotSize,
+  fitDotsInRoom,
+  shouldStack,
+  splitInOrder,
   TOD_ORDER,
-  HEADER_ROW_UNITS,
-  MEMBER_HEADER_ROW_UNITS,
+  ROW_HEIGHT_CAP,
+  ROW_GROWTH,
 } from '../helpers';
 import type { ResolvedAssignment } from '@/components/modules/chore-chart/types';
 import type { ChoreDefinition } from '@/types/config';
-import { fitStackedDots } from '../ChoreRowItem';
 
 function makeChore(overrides: Partial<ChoreDefinition> & { id: string; name: string }): ChoreDefinition {
   return {
@@ -170,19 +173,19 @@ describe('buildChoreRows', () => {
     expect(result.has('afternoon')).toBe(false);
   });
 
-  it('sorts assignees within a row (completed first)', () => {
+  it('keeps assignees in household order whatever their state', () => {
     const chore = makeChore({ id: 'clean', name: 'Clean', timeOfDay: 'anytime' });
     const assignments: ResolvedAssignment[] = [
-      makeAssignment(chore, 'alice', false),
-      makeAssignment(chore, 'bob', true),
       makeAssignment(chore, 'charlie', false),
+      makeAssignment(chore, 'bob', true),
+      makeAssignment(chore, 'alice', false),
     ];
+    const order = new Map([['alice', 0], ['bob', 1], ['charlie', 2]]);
 
-    const result = buildChoreRows(assignments);
-    const row = result.get('anytime')![0];
-    // Completed (bob) should be sorted first
-    expect(row.assignees[0].memberId).toBe('bob');
-    expect(row.assignees[0].isCompleted).toBe(true);
+    const row = buildChoreRows(assignments, order).get('anytime')![0];
+    // A kid's ring stays in the same column when someone else finishes.
+    expect(row.assignees.map((a) => a.memberId)).toEqual(['alice', 'bob', 'charlie']);
+    expect(row.assignees[1].isCompleted).toBe(true);
   });
 
   it('preserves chore metadata (emoji, points)', () => {
@@ -213,25 +216,77 @@ describe('buildChoreRows', () => {
 });
 
 describe('fitRowHeight', () => {
-  it('shares the list height equally between rows and header bands', () => {
-    // 9 chores + 3 headers on a 1400px list: 1400 / (9 + 3 × 0.55) ≈ 131px,
-    // under the extra-large cap of 120 × 1.35 = 162px.
-    const r = fitRowHeight({ listHeight: 1400, chores: 9, headers: 3, k: 1, typoMul: 1.35 });
-    expect(r).toBeCloseTo(1400 / 10.65, 3);
+  it('shares what the headers leave between the rows', () => {
+    // 9 chores under 3 headers of 50px on a 900px list: (900 - 150) / 9 = 83.3px,
+    // under the cozy cap of 70 x 1.2 = 84px.
+    expect(fitRowHeight({ listHeight: 900, chores: 9, fixed: 150, k: 1, typoMul: 1 })).toBeCloseTo(750 / 9, 3);
   });
 
-  it('caps a light day at typographySize and floors a heavy one', () => {
-    expect(fitRowHeight({ listHeight: 1400, chores: 2, headers: 1, k: 1, typoMul: 1.35 })).toBe(162);
-    expect(fitRowHeight({ listHeight: 1400, chores: 40, headers: 4, k: 1, typoMul: 1.35 })).toBe(56);
+  it('caps a light day at typography plus headroom and floors a heavy one', () => {
+    const cap = ROW_HEIGHT_CAP * 1.2 * 1.35 * ROW_GROWTH;
+    expect(fitRowHeight({ listHeight: 1400, chores: 2, fixed: 50, k: 1, typoMul: 1.35 })).toBeCloseTo(cap, 6);
+    expect(fitRowHeight({ listHeight: 1400, chores: 40, fixed: 200, k: 1, typoMul: 1.35 })).toBe(56);
   });
 
-  it('scales floor and cap with the canvas but only the cap with typographySize', () => {
-    expect(fitRowHeight({ listHeight: 10_000, chores: 1, headers: 0, k: 0.5, typoMul: 2 })).toBe(120);
-    expect(fitRowHeight({ listHeight: 10, chores: 40, headers: 0, k: 0.5, typoMul: 2 })).toBe(28);
+  it('scales floor and cap with the canvas but only the cap with typography and density', () => {
+    expect(fitRowHeight({ listHeight: 10_000, chores: 1, k: 0.5, typoMul: 2, densityMul: 1 })).toBeCloseTo(70 * 0.5 * 2 * ROW_GROWTH, 6);
+    expect(fitRowHeight({ listHeight: 10, chores: 40, k: 0.5, typoMul: 2 })).toBe(28);
   });
 
   it('returns the cap before the list has been measured', () => {
-    expect(fitRowHeight({ listHeight: 0, chores: 9, headers: 3, k: 1, typoMul: 1 })).toBe(120);
+    expect(fitRowHeight({ listHeight: 0, chores: 9, k: 1, typoMul: 1 })).toBeCloseTo(84, 6);
+  });
+});
+
+describe('fitDotSize', () => {
+  it('is fingertip-sized when the row can hold one and never taller than the row', () => {
+    expect(fitDotSize(84, 1)).toBeCloseTo(52.08, 2);
+    expect(fitDotSize(56, 1)).toBe(44);
+    expect(fitDotSize(37, 0.667)).toBeCloseTo(33.3, 1);
+    expect(fitDotSize(200, 1)).toBe(60);
+  });
+});
+
+describe('fitDotsInRoom', () => {
+  it('keeps the requested size when one dot or the dots fit', () => {
+    expect(fitDotsInRoom(52, 1, 100)).toBe(52);
+    expect(fitDotsInRoom(52, 2, 440)).toBe(52);
+  });
+
+  it('shrinks eight dots to share a narrow column', () => {
+    const d = fitDotsInRoom(52, 8, 368);
+    expect(d).toBeLessThan(52);
+    expect(d * 8 + Math.max(d * 0.2, 8) * 7).toBeLessThanOrEqual(368 + 0.01);
+  });
+
+  it('never drops below the readable floor', () => {
+    expect(fitDotsInRoom(52, 12, 200)).toBe(28);
+  });
+});
+
+describe('shouldStack', () => {
+  it('stacks a column whose widest row would spend over two fifths of the width on dots', () => {
+    // Six 52px dots plus gaps = 364px: too much beside a name in a 456px column, fine in a 984px one.
+    expect(shouldStack(6, 52, 456)).toBe(true);
+    expect(shouldStack(6, 52, 984)).toBe(false);
+    expect(shouldStack(1, 52, 200)).toBe(false);
+  });
+});
+
+describe('splitInOrder', () => {
+  it('cuts the sections in order where the columns come out most even', () => {
+    const sections = [{ id: 'morning', n: 3 }, { id: 'afternoon', n: 2 }, { id: 'evening', n: 2 }, { id: 'anytime', n: 6 }];
+    const cols = splitInOrder(sections, (s) => s.n, 2);
+    expect(cols.map((c) => c.map((s) => s.id))).toEqual([['morning', 'afternoon', 'evening'], ['anytime']]);
+  });
+
+  it('never splits a section and never reorders', () => {
+    const cols = splitInOrder([{ id: 'a', n: 9 }, { id: 'b', n: 1 }, { id: 'c', n: 1 }], (s) => s.n, 2);
+    expect(cols.map((c) => c.map((s) => s.id))).toEqual([['a'], ['b', 'c']]);
+  });
+
+  it('keeps everything in one column when asked for one', () => {
+    expect(splitInOrder([1, 2, 3], () => 1, 1)).toEqual([[1, 2, 3]]);
   });
 });
 
@@ -266,37 +321,9 @@ describe('buildMemberRows', () => {
     const rows = buildMemberRows(members, [makeAssignment(dishes, 'a'), makeAssignment(bed, 'a')], false);
     expect(rows.get('a')!.map((r) => r.choreId)).toEqual(['dishes', 'bed']);
   });
-});
 
-describe('fitRowHeight headerUnits', () => {
-  it('charges a member header more than a time-of-day band', () => {
-    const list = 1000;
-    const byTime = fitRowHeight({ listHeight: list, chores: 8, headers: 2, k: 1, typoMul: 1 });
-    const byPerson = fitRowHeight({ listHeight: list, chores: 8, headers: 2, k: 1, typoMul: 1, headerUnits: MEMBER_HEADER_ROW_UNITS });
-    expect(byTime).toBeCloseTo(list / (8 + 2 * HEADER_ROW_UNITS));
-    expect(byPerson).toBeCloseTo(list / (8 + 2 * MEMBER_HEADER_ROW_UNITS));
-    expect(byPerson).toBeLessThan(byTime);
-  });
-});
-
-describe('fitStackedDots', () => {
-  it('keeps the requested size when the row is not stacked or not measured', () => {
-    expect(fitStackedDots(64, 5, undefined, 40, true)).toBe(64);
-    expect(fitStackedDots(64, 5, 0, 40, true)).toBe(64);
-  });
-
-  it('keeps the requested size when the dots fit', () => {
-    expect(fitStackedDots(64, 2, 440, 40, true)).toBe(64);
-  });
-
-  it('shrinks five dots to share a narrow landscape column', () => {
-    // 440 - 24 (row padding) - 48 (icon indent) = 368px for 5 dots + 4 gaps.
-    const d = fitStackedDots(64, 5, 440, 40, true);
-    expect(d).toBeLessThan(64);
-    expect(d * 5 + Math.max(d * 0.2, 8) * 4).toBeLessThanOrEqual(368 + 0.01);
-  });
-
-  it('never drops below the readable floor', () => {
-    expect(fitStackedDots(64, 12, 200, 40, true)).toBe(28);
+  it('keeps a done row where it was so a tap never moves it', () => {
+    const rows = buildMemberRows(members, [makeAssignment(bed, 'a', true), makeAssignment(dishes, 'a')], true);
+    expect(rows.get('a')!.map((r) => r.choreId)).toEqual(['bed', 'dishes']);
   });
 });

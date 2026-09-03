@@ -385,15 +385,27 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   },
 
   // -- display-control --
+  // The widget sizes itself to its box, and the default box is too narrow for
+  // five bar buttons to carry words, so assert the layout and its controls
+  // rather than the words (see metrics.ts).
   {
     type: 'display-control', name: 'layout-bar', kind: 'network-free',
     config: { layout: 'bar' },
-    expect: async (mod) => { await child('[data-layout="bar"]')(mod); await has('Previous')(mod); },
+    expect: async (mod) => {
+      await child('[data-layout="bar"]')(mod);
+      await count('button[aria-label]', 5)(mod);
+    },
   },
+  // Pad is the panel without the always-visible slider: a Brightness button
+  // opens it instead.
   {
     type: 'display-control', name: 'layout-pad', kind: 'network-free',
     config: { layout: 'pad' },
-    expect: async (mod) => { await child('[data-layout="pad"]')(mod); await child('.grid-cols-2')(mod); },
+    expect: async (mod) => {
+      await child('[data-layout="pad"]')(mod);
+      await child('button[aria-label="Brightness"]')(mod);
+      await expect(mod.locator('input[type="range"]')).toHaveCount(0);
+    },
   },
   // Icons only: the buttons keep their aria-labels but lose their words.
   {

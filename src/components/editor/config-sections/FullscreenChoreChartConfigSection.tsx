@@ -119,7 +119,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
       {/* Typography Size */}
       <LabeledSelect
         label={t('configSections.fullscreen-chore-chart.typographySize')}
-        value={c.typographySize ?? 'extra-large'}
+        value={c.typographySize ?? 'medium'}
         onChange={(v) => set({ typographySize: v })}
         options={typographySizeOptions}
       />

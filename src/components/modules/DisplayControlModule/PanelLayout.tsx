@@ -5,9 +5,11 @@ import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
-import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, NextIcon, PrevIcon, SleepIcon, WakeIcon } from './controls';
+import { controlMetrics } from './metrics';
+import { useControlBox } from './useControlBox';
+import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
-/** Four big word-and-icon buttons in a 2x2 grid with the brightness slider under them. */
+/** Four word-and-icon buttons in a grid with the brightness slider under them. */
 export function PanelLayout(props: LayoutProps) {
   const t = useTranslate('modules');
   const {
@@ -17,9 +19,16 @@ export function PanelLayout(props: LayoutProps) {
   const showPicker = allowRetargeting && !isLegacyMode;
   const [pickerOpen, setPickerOpen] = useState(false);
   const dim = pickerOpen ? 'opacity-35' : '';
+  const [boxRef, box] = useControlBox();
+  const m = controlMetrics({ ...box, layout: 'panel', compact, showPicker });
 
   return (
-    <div className="h-full w-full flex flex-col p-5 gap-4" data-layout="panel">
+    <div
+      ref={boxRef}
+      className="h-full w-full flex flex-col"
+      style={{ padding: m.pad, gap: m.gap }}
+      data-layout="panel"
+    >
       {showPicker && (
         <TargetPicker
           value={currentTarget}
@@ -27,26 +36,40 @@ export function PanelLayout(props: LayoutProps) {
           options={availableDisplays}
           selfId={selfId}
           onOpenChange={setPickerOpen}
+          m={m}
         />
       )}
 
-      <div className={`grid grid-cols-2 grid-rows-2 gap-3 flex-1 min-h-0 transition-opacity ${dim}`}>
-        <ControlButton compact={compact} label={t('display-control.ariaPrev')} icon={<PrevIcon />} onClick={onPrev} />
-        <ControlButton compact={compact} label={t('display-control.ariaNext')} icon={<NextIcon />} onClick={onNext} />
+      <div
+        className={`grid flex-1 min-h-0 transition-opacity ${dim}`}
+        style={{
+          gridTemplateColumns: `repeat(${m.cols}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${m.rows}, minmax(0, 1fr))`,
+          gap: m.gap,
+        }}
+      >
+        <ControlButton m={m} label={t('display-control.prev')} ariaLabel={t('display-control.ariaPrev')} icon="prev" onClick={onPrev} />
+        <ControlButton m={m} label={t('display-control.next')} ariaLabel={t('display-control.ariaNext')} icon="next" onClick={onNext} />
         <HoldConfirmButton
           ariaLabel={t('display-control.sleepHoldHint')}
           hint={t('display-control.keepHolding')}
+          hintFontSize={Math.max(11, m.label || 13)}
           onConfirm={onSleep}
           className={BUTTON_CLASS}
-          contentClassName="flex h-full w-full flex-col items-center justify-center gap-2"
+          style={buttonStyle(m)}
+          contentClassName="flex h-full w-full flex-col items-center justify-center"
         >
-          <SleepIcon />
-          {!compact && <ButtonWords label={t('display-control.sleep')} sub={t('display-control.holdSub')} />}
+          <ControlIcon name="sleep" m={m} />
+          <ButtonWords m={m} label={t('display-control.sleep')} sub={t('display-control.holdSub')} />
         </HoldConfirmButton>
-        <ControlButton compact={compact} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon={<WakeIcon />} onClick={onWake} />
+        <ControlButton m={m} label={t('display-control.wake')} sub={t('display-control.wakeSub')} icon="wake" onClick={onWake} />
       </div>
 
-      <BrightnessSlider value={brightness} onCommit={onBrightness} className={`mt-auto transition-opacity ${dim}`} />
+      {/* Held at the height the sizing model reserved, so the buttons above
+          really do get the box the metrics were computed from. */}
+      <div className={`shrink-0 transition-opacity ${dim}`} style={{ height: m.sliderH }}>
+        <BrightnessSlider value={brightness} onCommit={onBrightness} m={m} className="h-full" />
+      </div>
     </div>
   );
 }

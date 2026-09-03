@@ -582,6 +582,10 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
+    "moreBelow": {
+      "one": "{count} mais abaixo",
+      "other": "{count} mais abaixo"
+    },
     "verbs": {
       "completed": "concluiu",
       "uncompleted": "desmarcou",
@@ -602,9 +606,9 @@
     "rewardsStore": {
       "title": "Recompensas",
       "subtitle": "Escolha algo bem legal",
-      "backToChores": "← Tarefas",
-      "noneAvailable": "Nenhuma recompensa ainda. Um adulto pode adicionar pelo celular.",
-      "recentRedemptions": "Resgates recentes",
+      "backToChores": "Tarefas",
+      "noneAvailable": "Nenhuma recompensa ainda",
+      "recentRedemptions": "Gasto recentemente",
       "redemptionCost": {
         "one": "−{count} ticket",
         "other": "−{count} tickets"
@@ -627,7 +631,22 @@
       "confirmCancel": "Cancelar",
       "confirmYes": "Sim!",
       "errorGeneric": "Algo deu errado",
-      "errorOffline": "Não foi possível conectar"
+      "errorOffline": "Não foi possível conectar",
+      "addFromPhoneHint": "Adicione recompensas pelo celular: abra {url} e toque em Tarefas",
+      "moreTickets": {
+        "one": "Falta 1 ticket",
+        "other": "Faltam {count} tickets"
+      },
+      "enoughTickets": "Você já tem o suficiente!",
+      "moreRewards": {
+        "one": "+{count} recompensa a mais",
+        "other": "+{count} recompensas a mais"
+      },
+      "redeemedTitle": "É seu!",
+      "redeemedBody": {
+        "one": "{member} gastou 1 ticket em {reward}",
+        "other": "{member} gastou {count} tickets em {reward}"
+      }
     }
   },
   "sports": {

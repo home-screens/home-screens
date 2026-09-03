@@ -582,6 +582,10 @@
     "tickets": "Tickets",
     "ticketCount": "{count} Ticket",
     "ticketsCount": "{count} Tickets",
+    "moreBelow": {
+      "one": "{count} weitere unten",
+      "other": "{count} weitere unten"
+    },
     "verbs": {
       "completed": "hat geschafft",
       "uncompleted": "hat abgewählt",
@@ -602,8 +606,8 @@
     "rewardsStore": {
       "title": "Belohnungen",
       "subtitle": "Such dir was Schönes aus",
-      "backToChores": "← Aufgaben",
-      "noneAvailable": "Noch keine Belohnungen. Ein Erwachsener kann welche am Handy hinzufügen.",
+      "backToChores": "Aufgaben",
+      "noneAvailable": "Noch keine Belohnungen",
       "recentRedemptions": "Zuletzt eingelöst",
       "redemptionCost": {
         "one": "−{count} Ticket",
@@ -627,7 +631,22 @@
       "confirmCancel": "Abbrechen",
       "confirmYes": "Ja!",
       "errorGeneric": "Etwas ist schiefgelaufen",
-      "errorOffline": "Keine Verbindung"
+      "errorOffline": "Keine Verbindung",
+      "addFromPhoneHint": "Füge Belohnungen am Handy hinzu: Öffne {url} und tippe auf Aufgaben",
+      "moreTickets": {
+        "one": "Noch 1 Ticket",
+        "other": "Noch {count} Tickets"
+      },
+      "enoughTickets": "Du hast genug!",
+      "moreRewards": {
+        "one": "+{count} weitere Belohnung",
+        "other": "+{count} weitere Belohnungen"
+      },
+      "redeemedTitle": "Geschafft!",
+      "redeemedBody": {
+        "one": "{member} hat 1 Ticket für {reward} ausgegeben",
+        "other": "{member} hat {count} Tickets für {reward} ausgegeben"
+      }
     }
   },
   "sports": {

@@ -17,16 +17,16 @@ const DOCS_BASE = 'https://homescreens.dev/docs';
 const PAGE_DOCS: Partial<Record<DefaultPageId, string>> = {
   screen: `${DOCS_BASE}/editor#global-settings`,
   location: `${DOCS_BASE}/editor#global-settings`,
-  weather: `${DOCS_BASE}/modules#before-some-modules-will-work`,
-  calendar: `${DOCS_BASE}/getting-started#calendar-setup`,
-  meals: `${DOCS_BASE}/modules`,
+  weather: `${DOCS_BASE}/weather`,
+  calendar: `${DOCS_BASE}/calendars`,
+  meals: `${DOCS_BASE}/meals`,
   phone: `${DOCS_BASE}/remote-control`,
-  integrations: `${DOCS_BASE}/modules#before-some-modules-will-work`,
+  integrations: `${DOCS_BASE}/calendars#api-keys`,
   automation: `${DOCS_BASE}/profiles`,
-  security: `${DOCS_BASE}/networking`,
+  security: `${DOCS_BASE}/editor#security`,
   network: `${DOCS_BASE}/networking`,
-  system: `${DOCS_BASE}/getting-started#update-channel`,
-  data: `${DOCS_BASE}/configuration`,
+  system: `${DOCS_BASE}/faq#how-do-i-update-to-the-latest-version`,
+  data: `${DOCS_BASE}/faq#how-do-i-backup-my-configuration`,
   stats: `${DOCS_BASE}/troubleshooting`,
 };
 

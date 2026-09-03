@@ -376,9 +376,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       allowDisplayComplete: true,
       darkMode: true,
       density: 'cozy',
-      // The chore list sizes itself to the panel; this only caps how tall a
-      // row may grow on a light day, so the wall default is generous.
-      typographySize: 'extra-large',
+      // Chore names are 30px on a 1080-wide panel at medium; the rows and
+      // everything else on the board size themselves to the panel.
+      typographySize: 'medium',
       // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
       accentColor: '',
     },
@@ -1178,8 +1178,10 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       allowRetargeting: false,
       compact: false,
     },
-    // Four word-and-icon buttons in a 2x2 grid plus the brightness slider.
-    defaultSize: { w: 680, h: 480 },
+    // Four word-and-icon buttons plus the brightness slider. The widget sizes
+    // its type and spacing to whatever box it is given, so this is a
+    // comfortable starting box rather than a floor.
+    defaultSize: { w: 440, h: 320 },
   },
 
   // -- Travel --
