@@ -89,7 +89,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     return providers;
   }, [secrets, secretsLoading, secretsError, hasStatus]);
 
-  const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'openweathermap');
+  const effectiveProvider = (c.provider && c.provider !== 'global') ? c.provider : (globalProvider ?? 'open-meteo');
   const caps = PROVIDER_CAPS[effectiveProvider] ?? {};
   // A keyed provider with no key renders nothing but "No weather data" on the
   // wall, and nothing in the editor says why. Surface it here, next to the

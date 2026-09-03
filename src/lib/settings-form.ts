@@ -100,7 +100,7 @@ export const FORM_DEFAULTS: SettingsState = {
     showRotationProgress: true,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
-  weather: { provider: 'weatherapi', units: 'imperial' },
+  weather: { provider: 'open-meteo', units: 'imperial' },
   calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], people: [], daysAhead: 7, holidayCountry: '', hideDeclined: false },
   sleep: {
     sleepEnabled: false,

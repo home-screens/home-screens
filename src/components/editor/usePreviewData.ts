@@ -152,7 +152,7 @@ export function usePreviewData(): PreviewData {
 
   // Publish weather events to the event bus so editor modules using
   // useEventBus('weather.conditions') see the same data as the display.
-  const globalProvider = provider ?? 'weatherapi';
+  const globalProvider = provider ?? 'open-meteo';
   const globalWeather = previewData.weatherByProvider[globalProvider];
   useEffect(() => {
     if (!globalWeather) return;

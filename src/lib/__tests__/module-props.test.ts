@@ -220,7 +220,7 @@ describe('toEditorSource', () => {
     const source = toEditorSource(null, { weatherErrors: {}, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null });
     expect(source.location).toBeNull();
     expect(source.weather.units).toBe('imperial');
-    expect(source.weather.globalProvider).toBe('weatherapi');
+    expect(source.weather.globalProvider).toBe('open-meteo');
   });
 });
 

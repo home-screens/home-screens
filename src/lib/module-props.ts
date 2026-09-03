@@ -302,7 +302,7 @@ export function toEditorSource(
   previewData: PreviewData,
   displays: Array<{ id: string; name: string }> = [],
 ): ModuleDataSource {
-  const globalProvider = settings?.globalProvider ?? 'weatherapi';
+  const globalProvider = settings?.globalProvider ?? 'open-meteo';
   return {
     surface: 'editor',
     timezone: settings?.timezone,
