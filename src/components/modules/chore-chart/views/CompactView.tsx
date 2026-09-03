@@ -3,11 +3,11 @@
 import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
-import { partitionMembers } from '../layout';
+import { choreTapSize, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
-import { TapCheckbox, TAP_CHECKBOX_SIZE } from '../../shared/TapCheckbox';
+import { TapCheckbox } from '../../shared/TapCheckbox';
 import { usePressedKey } from '../../shared/usePressedKey';
 
 interface CompactViewProps {
@@ -29,8 +29,8 @@ interface CompactViewProps {
 /** Width of one member checkbox column, in em. */
 const COLUMN_EM = 1.8;
 const COLUMN_GAP = 8;
-/** Column width in px when the boxes are tappable: the 38px box plus breathing room. */
-const TOUCH_COLUMN_PX = TAP_CHECKBOX_SIZE + 8;
+/** Column width in px when the boxes are tappable: the box plus breathing room. */
+const touchColumnPx = (fontSize: number) => choreTapSize(fontSize) + 8;
 /** The chore name keeps at least this share of the row; past it the member
  *  columns collapse into one "done/total" cell per chore. */
 const MAX_COLUMNS_SHARE = 0.45;
@@ -43,7 +43,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   const t = useTranslate('modules');
   const [pressedKey, press] = usePressedKey();
   // Tappable boxes are fixed-size touch targets; read-only glyphs scale with the text.
-  const columnWidth: string | number = allowTouch ? TOUCH_COLUMN_PX : `${COLUMN_EM}em`;
+  const columnWidth: string | number = allowTouch ? touchColumnPx(fontSize) : `${COLUMN_EM}em`;
 
   const todayChores = chores.filter(
     (c) => choreAppliesToday(c, dayOfWeek, today),
@@ -52,7 +52,8 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   // parent or a kid on their day off is noise.
   const { active } = partitionMembers(members, memberStats);
   const activeIds = new Set(active.map((m) => m.id));
-  const columnsWidth = active.length * ((allowTouch ? TOUCH_COLUMN_PX : COLUMN_EM * fontSize) + COLUMN_GAP);
+  const tapSize = choreTapSize(fontSize);
+  const columnsWidth = active.length * ((allowTouch ? touchColumnPx(fontSize) : COLUMN_EM * fontSize) + COLUMN_GAP);
   const aggregate = width > 0 && columnsWidth > width * MAX_COLUMNS_SHARE;
 
   const totals = active.reduce(
@@ -75,9 +76,9 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
         aria-label={`${chore.name}: ${member.name}`}
         aria-pressed={allowTouch ? done : undefined}
         className={allowTouch ? 'flex items-center justify-center shrink-0' : undefined}
-        style={{ width: columnWidth, textAlign: 'center', cursor: allowTouch ? 'pointer' : 'default', background: 'none', border: 'none', color: 'inherit', padding: 0, fontSize: allowTouch ? undefined : '1.2em', minHeight: allowTouch ? TOUCH_COLUMN_PX : undefined }}
+        style={{ width: columnWidth, textAlign: 'center', cursor: allowTouch ? 'pointer' : 'default', background: 'none', border: 'none', color: 'inherit', padding: 0, fontSize: allowTouch ? undefined : '1.2em', minHeight: allowTouch ? touchColumnPx(fontSize) : undefined }}
       >
-        {allowTouch ? <TapCheckbox checked={done} pressed={pressedKey === key} color={member.color} /> : (done ? '✅' : '☐')}
+        {allowTouch ? <TapCheckbox checked={done} pressed={pressedKey === key} color={member.color} size={tapSize} /> : (done ? '✅' : '☐')}
       </button>
     );
   };
@@ -158,7 +159,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
           ) : active.map((m) => {
             const stats = memberStats.get(m.id);
             return (
-              <span key={m.id} style={{ width: allowTouch ? TOUCH_COLUMN_PX : `${COLUMN_EM / 0.7}em`, textAlign: 'center', fontSize: '0.95em', fontVariantNumeric: 'tabular-nums' }}>
+              <span key={m.id} style={{ width: allowTouch ? touchColumnPx(fontSize) : `${COLUMN_EM / 0.7}em`, textAlign: 'center', fontSize: '0.95em', fontVariantNumeric: 'tabular-nums' }}>
                 {stats ? `${stats.completed}/${stats.total}` : '—'}
               </span>
             );

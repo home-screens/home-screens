@@ -3,7 +3,7 @@
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
-import { balanceRows, fitPerRow, partitionMembers } from '../layout';
+import { balanceRows, choreTapSize, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -142,7 +142,7 @@ export function BoardView({ config, data, width, fontSize }: BoardViewProps) {
                           }}
                         >
                           {allowTouch ? (
-                            <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${member.id}`} color={member.color} />
+                            <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${member.id}`} color={member.color} size={choreTapSize(fontSize)} />
                           ) : (
                             <span className="shrink-0" style={{ fontSize: '1.15em', lineHeight: 1.1 }}>{isCompleted ? '✅' : '☐'}</span>
                           )}

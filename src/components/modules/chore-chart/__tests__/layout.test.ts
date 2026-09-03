@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { balanceRows, fitPerRow, partitionMembers, weekMembers } from '../layout';
+import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, weekMembers } from '../layout';
 import type { MemberStats } from '../types';
 import type { ChoreMember } from '@/types/config';
 
@@ -73,3 +73,53 @@ describe('partitionMembers', () => {
     expect(weekMembers(members, m).map((x) => x.id)).toEqual(['kid', 'rest']);
   });
 });
+
+describe('fitChoreFontSize', () => {
+  const day = { width: 476, height: 626, requested: 24, rows: 10, sections: 4, view: 'today' };
+
+  it('shrinks a busy day to fit its own default card', () => {
+    // Ten chores at the module's 24px default need ~780px of rows; the card
+    // is 650. Before this the last three were cut off mid-row.
+    const fitted = fitChoreFontSize(day);
+    expect(fitted).toBeLessThan(24);
+    expect(fitted * (day.rows * 2.6 + day.sections * 1.9 + 3.7)).toBeLessThanOrEqual(day.height);
+  });
+
+  it('leaves a light day at the size the household asked for', () => {
+    expect(fitChoreFontSize({ ...day, rows: 3, sections: 2 })).toBe(24);
+  });
+
+  it('never exceeds the module font size, however big the box', () => {
+    expect(fitChoreFontSize({ ...day, width: 4000, height: 4000, rows: 1, sections: 1 })).toBe(24);
+  });
+
+  it('stops shrinking at a readable floor rather than vanishing', () => {
+    expect(fitChoreFontSize({ ...day, height: 120, rows: 30, sections: 4 })).toBe(11);
+  });
+
+  it('keeps the authored size until the box has been measured', () => {
+    expect(fitChoreFontSize({ ...day, width: 0, height: 0 })).toBe(24);
+  });
+
+  it('leaves room for compact\'s member header and totals legend', () => {
+    // Compact draws shorter rows than the list views but carries far more
+    // chrome, so the fit has to budget for the chrome, not just the rows.
+    const compact = fitChoreFontSize({ ...day, view: 'compact', sections: 0 });
+    expect(compact * (day.rows * 1.9 + 9)).toBeLessThanOrEqual(day.height);
+  });
+});
+
+describe('choreTapSize', () => {
+  it('keeps a fingertip target while the type allows one', () => {
+    expect(choreTapSize(24)).toBe(38);
+  });
+
+  it('shrinks with the type rather than pushing chores off the bottom', () => {
+    expect(choreTapSize(16)).toBeLessThan(38);
+  });
+
+  it('never goes below a size a child can hit', () => {
+    expect(choreTapSize(11)).toBe(24);
+  });
+});
+

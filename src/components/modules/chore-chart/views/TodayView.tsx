@@ -8,6 +8,7 @@ import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
+import { choreTapSize } from '../layout';
 import { usePressedKey } from '../../shared/usePressedKey';
 
 interface TodayViewProps {
@@ -19,11 +20,13 @@ interface TodayViewProps {
     toggleComplete: (choreId: string, memberId: string) => Promise<void>;
   };
   timezone?: string;
+  /** Fitted module font size: the row's tap target scales with it. */
+  fontSize: number;
 }
 
 const TIME_SECTIONS: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
-export function TodayView({ config, data, timezone }: TodayViewProps) {
+export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) {
   const { todayAssignments, members, toggleComplete } = data;
   const allowTouch = config.allowDisplayComplete;
   const [pressedKey, press] = usePressedKey();
@@ -132,7 +135,7 @@ export function TodayView({ config, data, timezone }: TodayViewProps) {
                         </span>
                       )}
                       {allowTouch ? (
-                        <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${memberId}`} color={member?.color ?? accentColor} />
+                        <TapCheckbox checked={isCompleted} pressed={pressedKey === `${chore.id}:${memberId}`} color={member?.color ?? accentColor} size={choreTapSize(fontSize)} />
                       ) : (
                         <span style={{ fontSize: '1.3em' }}>
                           {isCompleted ? '\u2705' : '\u2610'}

@@ -1,4 +1,5 @@
 import type { ChoreMember } from '@/types/config';
+import { TAP_CHECKBOX_SIZE } from '../shared/TapCheckbox';
 import type { MemberStats } from './types';
 
 /**
@@ -68,4 +69,69 @@ export function partitionMembers(members: ChoreMember[], memberStats: Map<string
 /** Members that take part in the chart this week: everyone but the idle ones. */
 export function weekMembers(members: ChoreMember[], memberStats: Map<string, MemberStats>): ChoreMember[] {
   return members.filter((m) => (memberStats.get(m.id)?.weekAssigned ?? 0) > 0);
+}
+
+/** Rows and section headers a view has to fit, in the em units it draws them at. */
+interface ChoreFitInput {
+  /** Measured box, px. Zero on the first paint. */
+  width: number;
+  height: number;
+  /** The module's own font size: the ceiling, never exceeded. */
+  requested: number;
+  /** Chore rows the view must show today. */
+  rows: number;
+  /** Time-of-day headers between them (0 when the view has none). */
+  sections: number;
+  view: string;
+}
+
+/** Below this the chart is unreadable from anywhere, so it stops shrinking. */
+const CHORE_FONT_FLOOR = 11;
+
+/**
+ * The font size a view can actually draw at inside its box.
+ *
+ * The chart is authored in `em` off the module's font size, so nothing about
+ * it followed the box: a 10-chore day at the 24px default needs 62px rows and
+ * 780px of height, and the module's own 500x650 default cut the last three
+ * chores off mid-row. This solves for the size where the day fits instead.
+ *
+ * The module font size is a ceiling, not a target, so a chart that already
+ * fits is left exactly as it was and only an overfull one shrinks.
+ */
+export function fitChoreFontSize({ width, height, requested, rows, sections, view }: ChoreFitInput): number {
+  if (height <= 0 || width <= 0) return requested;
+
+  // Height each part costs, in em, measured off the rendered views: a row is
+  // its 1em of text plus 0.5em padding top and bottom plus the tap target's
+  // overhang, a section header is its 0.85em line plus margins.
+  const ROW_EM = view === 'compact' ? 1.9 : 2.6;
+  const SECTION_EM = 1.9;
+  // Compact carries far more chrome than the others: a member column header
+  // above the matrix and a per-member totals legend under it.
+  const CHROME_EM = view === 'compact' ? 9 : 3.7;
+
+  const listViews = view === 'today' || view === 'board' || view === 'compact';
+  const emTall = listViews
+    ? rows * ROW_EM + sections * SECTION_EM + CHROME_EM
+    // The grid views (star chart, progress rings) are one block per member
+    // rather than a list, so they key off the box alone.
+    : 14;
+
+  // The em model runs a couple of percent optimistic against the real
+  // borders and margins, so leave that much back rather than fit exactly.
+  const byHeight = (height / Math.max(1, emTall)) * 0.96;
+  // A name needs room across the row as well as down the column.
+  const byWidth = width / 13;
+  return Math.max(CHORE_FONT_FLOOR, Math.min(requested, byHeight, byWidth));
+}
+
+/**
+ * Tap target for a chore row: a fingertip-sized box whenever the box allows
+ * one, shrinking only when the alternative is hiding chores off the bottom.
+ * A fixed 38px floors the row height, so on a small card it, not the type,
+ * is what pushes the last chores out of view.
+ */
+export function choreTapSize(fontSize: number): number {
+  return Math.round(Math.max(24, Math.min(TAP_CHECKBOX_SIZE, fontSize * 1.6)));
 }
