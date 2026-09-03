@@ -85,8 +85,34 @@ interface ChoreFitInput {
   view: string;
 }
 
-/** Below this the chart is unreadable from anywhere, so it stops shrinking. */
+/** Below this the chart is unreadable from anywhere, so it stops shrinking.
+ *  Past the floor the list scrolls and says how many chores are below it
+ *  (see `FitRows`) rather than shrinking into nothing. */
 const CHORE_FONT_FLOOR = 11;
+
+/** The fixed gap Tailwind's `space-y-2` puts between time-of-day sections. */
+const SECTION_GAP_PX = 8;
+
+/** Padding a row adds around its tap target, in em, per view. */
+const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35 };
+
+/** A time-of-day header: its 0.85em line plus its margins. */
+const SECTION_EM = 1.9;
+
+/**
+ * Everything that is neither a row nor a section header. Compact carries far
+ * more than the others: a member column header above the matrix and a
+ * per-member totals legend under it.
+ */
+const CHROME_EM: Record<string, number> = { today: 3.7, compact: 9, board: 3.7 };
+
+/**
+ * The strip `FitRows` keeps for its "N more below" pill. Budgeted on every
+ * list, not just an overflowing one: a fit that ignored it would shrink the
+ * type to exactly fill the box, the strip would then appear and push a row
+ * back out, and the chart would sit one row short forever.
+ */
+const MORE_PILL_EM = 1.7;
 
 /**
  * The font size a view can actually draw at inside its box.
@@ -101,29 +127,38 @@ const CHORE_FONT_FLOOR = 11;
  */
 export function fitChoreFontSize({ width, height, requested, rows, sections, view }: ChoreFitInput): number {
   if (height <= 0 || width <= 0) return requested;
-
-  // Height each part costs, in em, measured off the rendered views: a row is
-  // its 1em of text plus 0.5em padding top and bottom plus the tap target's
-  // overhang, a section header is its 0.85em line plus margins.
-  const ROW_EM = view === 'compact' ? 1.9 : 2.6;
-  const SECTION_EM = 1.9;
-  // Compact carries far more chrome than the others: a member column header
-  // above the matrix and a per-member totals legend under it.
-  const CHROME_EM = view === 'compact' ? 9 : 3.7;
-
-  const listViews = view === 'today' || view === 'board' || view === 'compact';
-  const emTall = listViews
-    ? rows * ROW_EM + sections * SECTION_EM + CHROME_EM
+  const listView = view === 'today' || view === 'board' || view === 'compact';
+  if (!listView) {
     // The grid views (star chart, progress rings) are one block per member
     // rather than a list, so they key off the box alone.
-    : 14;
+    return Math.max(CHORE_FONT_FLOOR, Math.min(requested, height / 14, width / 13));
+  }
 
-  // The em model runs a couple of percent optimistic against the real
-  // borders and margins, so leave that much back rather than fit exactly.
-  const byHeight = (height / Math.max(1, emTall)) * 0.96;
-  // A name needs room across the row as well as down the column.
-  const byWidth = width / 13;
-  return Math.max(CHORE_FONT_FLOOR, Math.min(requested, byHeight, byWidth));
+  // Sections are spaced with a fixed 8px gap (Tailwind space-y-2), which does
+  // not scale with the type at all.
+  const gapPx = Math.max(0, sections - 1) * SECTION_GAP_PX;
+  const budget = height - gapPx;
+
+  // Height the whole list needs at font `f`. A row is its tap target plus the
+  // view's own padding, and the tap target has a floor of its own, so rows
+  // stop shrinking before the type does: solving this in closed form gets the
+  // last chore wrong every time, which is why it is searched instead.
+  const tall = (f: number) =>
+    rows * (choreTapSize(f) + ROW_PADDING_EM[view] * f)
+    + sections * SECTION_EM * f
+    + (CHROME_EM[view] + MORE_PILL_EM) * f;
+
+  let lo = CHORE_FONT_FLOOR;
+  let hi = Math.min(requested, width / 13);
+  if (hi <= lo) return lo;
+  if (tall(hi) <= budget) return hi;
+  // 12 halvings over a 24px range settles well inside a tenth of a pixel.
+  for (let i = 0; i < 12; i++) {
+    const mid = (lo + hi) / 2;
+    if (tall(mid) <= budget) lo = mid;
+    else hi = mid;
+  }
+  return lo;
 }
 
 /**

@@ -4,6 +4,7 @@ import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/con
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
 import { choreTapSize, partitionMembers } from '../layout';
+import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -102,13 +103,14 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
       <div style={{ borderBottom: `1px solid ${DIVIDER.visible}`, marginBottom: '0.3em' }} />
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
+      <FitRows>
         {todayChores.map((chore) => {
           const assignees = active.filter((m) => resolveAssignee(chore, today).includes(m.id));
           if (assignees.length === 0) return null;
           return (
             <div
               key={chore.id}
+              {...{ [CHORE_ROW_ATTR]: '' }}
               className="flex items-center gap-2"
               style={{ padding: '0.25em 0', fontSize: '1em' }}
             >
@@ -147,7 +149,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
             </div>
           );
         })}
-      </div>
+      </FitRows>
 
       {/* Summary row */}
       <div style={{ borderTop: `1px solid ${DIVIDER.visible}`, marginTop: '0.3em', paddingTop: '0.3em' }}>

@@ -582,10 +582,6 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
-    "moreBelow": {
-      "one": "{count} meer hieronder",
-      "other": "{count} meer hieronder"
-    },
     "verbs": {
       "completed": "heeft gedaan",
       "uncompleted": "heeft afgevinkt teruggedraaid",
@@ -896,6 +892,10 @@
       "finishInEditor": "Rond het instellen af in de editor",
       "openSettings": "API-sleutels openen",
       "openWeatherSettings": "Weerinstellingen openen"
+    },
+    "moreBelow": {
+      "one": "{count} meer hieronder",
+      "other": "{count} meer hieronder"
     }
   },
   "event-detail": {

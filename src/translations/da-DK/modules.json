@@ -582,10 +582,6 @@
     "tickets": "billetter",
     "ticketCount": "{count} billet",
     "ticketsCount": "{count} billetter",
-    "moreBelow": {
-      "one": "{count} mere nedenfor",
-      "other": "{count} mere nedenfor"
-    },
     "verbs": {
       "completed": "klarede",
       "uncompleted": "fortrød",
@@ -896,6 +892,10 @@
       "finishInEditor": "Gør opsætningen færdig i editoren",
       "openSettings": "Åbn API-nøgler",
       "openWeatherSettings": "Åbn vejrindstillinger"
+    },
+    "moreBelow": {
+      "one": "{count} mere nedenfor",
+      "other": "{count} mere nedenfor"
     }
   },
   "event-detail": {

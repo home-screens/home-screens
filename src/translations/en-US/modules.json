@@ -582,10 +582,6 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
-    "moreBelow": {
-      "one": "{count} more below",
-      "other": "{count} more below"
-    },
     "verbs": {
       "completed": "completed",
       "uncompleted": "uncompleted",
@@ -896,6 +892,10 @@
       "finishInEditor": "Finish setup in the editor",
       "openSettings": "Open API keys",
       "openWeatherSettings": "Open weather settings"
+    },
+    "moreBelow": {
+      "one": "{count} more below",
+      "other": "{count} more below"
     }
   },
   "event-detail": {

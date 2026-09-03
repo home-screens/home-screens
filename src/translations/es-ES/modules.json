@@ -582,10 +582,6 @@
     "tickets": "tickets",
     "ticketCount": "{count} ticket",
     "ticketsCount": "{count} tickets",
-    "moreBelow": {
-      "one": "{count} más abajo",
-      "other": "{count} más abajo"
-    },
     "verbs": {
       "completed": "ha hecho",
       "uncompleted": "ha desmarcado",
@@ -901,6 +897,10 @@
       "finishInEditor": "Termina la configuración en el editor",
       "openSettings": "Abrir claves de API",
       "openWeatherSettings": "Abrir ajustes del tiempo"
+    },
+    "moreBelow": {
+      "one": "{count} más abajo",
+      "other": "{count} más abajo"
     }
   },
   "event-detail": {

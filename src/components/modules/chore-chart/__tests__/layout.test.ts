@@ -82,7 +82,26 @@ describe('fitChoreFontSize', () => {
     // is 650. Before this the last three were cut off mid-row.
     const fitted = fitChoreFontSize(day);
     expect(fitted).toBeLessThan(24);
-    expect(fitted * (day.rows * 2.6 + day.sections * 1.9 + 3.7)).toBeLessThanOrEqual(day.height);
+    // The list, at the size it settled on, fits the box it was given.
+    const rowPx = choreTapSize(fitted) + fitted;
+    const gaps = (day.sections - 1) * 8;
+    expect(day.rows * rowPx + day.sections * 1.9 * fitted + 3.7 * fitted + gaps)
+      .toBeLessThanOrEqual(day.height);
+  });
+
+  it('accounts for the tap target refusing to shrink past its own floor', () => {
+    // Rows stop shrinking with the type once the target hits its 24px floor,
+    // so the fit has to search rather than divide: at 14 chores a closed-form
+    // solve returns a size whose rows still overflow.
+    const fitted = fitChoreFontSize({ ...day, rows: 12, sections: 4 });
+    const rowPx = choreTapSize(fitted) + fitted;
+    expect(12 * rowPx + 4 * 1.9 * fitted + 3.7 * fitted + 24).toBeLessThanOrEqual(day.height);
+  });
+
+  it('bottoms out at the floor when no size can fit the day, leaving the rest to the list', () => {
+    // Twenty rows cannot fit 626px even at the floor: the list scrolls and
+    // says how many are below it (see FitRows) instead of vanishing.
+    expect(fitChoreFontSize({ ...day, rows: 20, sections: 4 })).toBe(11);
   });
 
   it('leaves a light day at the size the household asked for', () => {
@@ -105,7 +124,8 @@ describe('fitChoreFontSize', () => {
     // Compact draws shorter rows than the list views but carries far more
     // chrome, so the fit has to budget for the chrome, not just the rows.
     const compact = fitChoreFontSize({ ...day, view: 'compact', sections: 0 });
-    expect(compact * (day.rows * 1.9 + 9)).toBeLessThanOrEqual(day.height);
+    expect(day.rows * (choreTapSize(compact) + 0.5 * compact) + 9 * compact)
+      .toBeLessThanOrEqual(day.height);
   });
 });
 

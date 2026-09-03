@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React from 'react';
 import { useTranslate } from '@/i18n';
+import { useHiddenRowCount } from '../shared/useHiddenRowCount';
 
 interface FitListProps {
   children: React.ReactNode;
@@ -22,36 +23,7 @@ interface FitListProps {
  */
 export default function FitList({ children, fontSize, style, innerStyle, testId }: FitListProps) {
   const t = useTranslate('modules');
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const [hidden, setHidden] = useState(0);
-  const [overflows, setOverflows] = useState(false);
-
-  const measure = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const over = el.scrollHeight > el.clientHeight + 1;
-    let below = 0;
-    if (over) {
-      const bottom = el.getBoundingClientRect().bottom;
-      for (const row of el.querySelectorAll('[data-testid="fcc-row"]')) {
-        const r = row.getBoundingClientRect();
-        // A row counts as hidden when less than half of it is on screen.
-        if (r.top + r.height / 2 > bottom) below += 1;
-      }
-    }
-    setOverflows((prev) => (prev === over ? prev : over));
-    setHidden((prev) => (prev === below ? prev : below));
-  }, []);
-
-  useLayoutEffect(measure);
-  useLayoutEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    el.addEventListener('scroll', measure, { passive: true });
-    return () => { ro.disconnect(); el.removeEventListener('scroll', measure); };
-  }, [measure]);
+  const { scrollerRef, contentRef, overflows, hidden } = useHiddenRowCount('[data-testid="fcc-row"]');
 
   return (
     <div style={{ position: 'relative', minHeight: 0, ...style }}>
@@ -67,7 +39,7 @@ export default function FitList({ children, fontSize, style, innerStyle, testId 
           ...innerStyle,
         }}
       >
-        {children}
+        <div ref={contentRef}>{children}</div>
       </div>
       {overflows && hidden > 0 && (
         <div
@@ -87,7 +59,7 @@ export default function FitList({ children, fontSize, style, innerStyle, testId 
           }}
         >
           <span style={{ fontSize, fontWeight: 600, color: 'var(--fcc-text-2)', background: 'var(--fcc-surface)', border: '1px solid var(--fcc-border)', borderRadius: 999, padding: `${fontSize * 0.2}px ${fontSize * 0.7}px` }}>
-            {t('fullscreen-chore-chart.moreBelow', { count: hidden })}
+            {t('common.moreBelow', { count: hidden })}
           </span>
         </div>
       )}

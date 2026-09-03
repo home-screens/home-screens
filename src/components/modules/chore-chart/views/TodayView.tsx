@@ -9,6 +9,7 @@ import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
 import { choreTapSize } from '../layout';
+import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { usePressedKey } from '../../shared/usePressedKey';
 
 interface TodayViewProps {
@@ -66,7 +67,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
       )}
 
       {/* Time sections */}
-      <div className="flex-1 overflow-y-auto space-y-2" style={{ scrollbarWidth: 'none' }}>
+      <FitRows className="space-y-2">
         {TIME_SECTIONS.map((section) => {
           const items = byTime.get(section) ?? [];
           if (items.length === 0) return null;
@@ -105,6 +106,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
                   return (
                     <button
                       key={`${chore.id}-${memberId}`}
+                      {...{ [CHORE_ROW_ATTR]: '' }}
                       type="button"
                       onClick={allowTouch ? () => { void press(`${chore.id}:${memberId}`, () => toggleComplete(chore.id, memberId)); } : undefined}
                       disabled={!allowTouch}
@@ -148,7 +150,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
             </div>
           );
         })}
-      </div>
+      </FitRows>
 
       {/* Progress bar */}
       <div className="mt-2">
