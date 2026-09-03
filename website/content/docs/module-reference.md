@@ -1082,16 +1082,16 @@ Decorative shapes and dividers for layout polish, the visual equivalent of a hor
 
 ### Display Control
 
-Touch-friendly on-screen controls for putting a display to sleep or waking it, advancing screens, and adjusting brightness. Dispatches the same commands used by `/remote`: useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone. Every button carries a word next to its icon (Previous screen, Next screen, Sleep with "hold for 1 second", Wake, Brightness).
+Touch-friendly on-screen controls for putting a display to sleep or waking it, advancing screens, and adjusting brightness. Dispatches the same commands used by `/remote`: useful for bedside or hallway touchscreens where you want a physical control surface without pulling up a phone. Every button carries a word next to its icon (Previous screen, Next screen, Sleep with "hold for 1 second", Wake, Brightness). The `nav` layout is the pared-back one: only Previous and Next, filling the whole widget.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `layout` | `'bar' \| 'pad' \| 'panel'` | `'panel'` | Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible |
+| `layout` | `'bar' \| 'pad' \| 'panel' \| 'nav'` | `'panel'` | Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible, `nav` just two big Previous and Next buttons |
 | `compact` | boolean | `false` | Icons only, no words (the buttons keep their spoken labels) |
 | `defaultTarget` | `'self' \| 'all' \| <displayId>` | `'self'` | Which display the buttons control. `self` resolves to the display the module is rendered on |
 | `allowRetargeting` | boolean | `false` | Show a "Controls" dropdown of display names (with "All displays" last) so people can retarget on the wall (hidden in single-display mode) |
 
-**Behavior:** Sleep requires a 1-second hold to confirm; a shorter tap flashes "Keep holding to sleep" over the button. Prev/next buttons are debounced at 200ms to collapse rapid taps. The brightness slider starts at the brightness the target display last reported (a dash until it has reported, or when "All displays" disagree) and commits on release so dragging doesn't spam the hub.
+**Behavior:** The `nav` layout puts its two buttons side by side, and stacks them with up and down arrows when the widget is much taller than it is wide. Sleep requires a 1-second hold to confirm; a shorter tap flashes "Keep holding to sleep" over the button. Prev/next buttons are debounced at 200ms to collapse rapid taps. The brightness slider starts at the brightness the target display last reported (a dash until it has reported, or when "All displays" disagree) and commits on release so dragging doesn't spam the hub.
 
 `defaultTarget` is resolved when the module mounts. A display id that doesn't match anything in the registry **silently falls back to `self`**: there's no error, so a typo here looks like the buttons are controlling the wrong screen rather than a broken setting.
 

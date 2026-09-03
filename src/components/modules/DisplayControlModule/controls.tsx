@@ -23,6 +23,12 @@ export const PrevIcon = ({ size = 36 }: { size?: number }) => (
 export const NextIcon = ({ size = 36 }: { size?: number }) => (
   <svg {...iconProps(size)}><path d="M9 5l7 7-7 7" /></svg>
 );
+export const UpIcon = ({ size = 36 }: { size?: number }) => (
+  <svg {...iconProps(size)}><path d="M5 15l7-7 7 7" /></svg>
+);
+export const DownIcon = ({ size = 36 }: { size?: number }) => (
+  <svg {...iconProps(size)}><path d="M19 9l-7 7-7-7" /></svg>
+);
 export const SleepIcon = ({ size = 36 }: { size?: number }) => (
   <svg {...iconProps(size)}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
 );
@@ -39,11 +45,13 @@ export const BrightnessIcon = ({ size = 36 }: { size?: number }) => (
   </svg>
 );
 
-export type ControlIconName = 'prev' | 'next' | 'sleep' | 'wake' | 'brightness';
+export type ControlIconName = 'prev' | 'next' | 'up' | 'down' | 'sleep' | 'wake' | 'brightness';
 
 const ICONS: Record<ControlIconName, (p: { size?: number }) => React.ReactElement> = {
   prev: PrevIcon,
   next: NextIcon,
+  up: UpIcon,
+  down: DownIcon,
   sleep: SleepIcon,
   wake: WakeIcon,
   brightness: BrightnessIcon,

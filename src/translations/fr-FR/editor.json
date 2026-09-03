@@ -2863,6 +2863,7 @@
       "layoutBar": "Barre",
       "layoutPad": "Pavé",
       "layoutPanel": "Panneau",
+      "layoutNav": "Flèches",
       "defaultTarget": "Cible par défaut",
       "targetSelf": "Cet affichage (self)",
       "targetAll": "Tous les affichages",

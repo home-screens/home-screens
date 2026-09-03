@@ -407,6 +407,16 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('input[type="range"]')).toHaveCount(0);
     },
   },
+  // Nav is the pared-back one: the two navigation buttons and nothing else.
+  {
+    type: 'display-control', name: 'layout-nav', kind: 'network-free',
+    config: { layout: 'nav' },
+    expect: async (mod) => {
+      await child('[data-layout="nav"]')(mod);
+      await count('button[aria-label]', 2)(mod);
+      await expect(mod.locator('input[type="range"]')).toHaveCount(0);
+    },
+  },
   // Icons only: the buttons keep their aria-labels but lose their words.
   {
     type: 'display-control', name: 'compact', kind: 'network-free',

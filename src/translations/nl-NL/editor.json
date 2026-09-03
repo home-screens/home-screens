@@ -2863,6 +2863,7 @@
       "layoutBar": "Balk",
       "layoutPad": "Pad",
       "layoutPanel": "Paneel",
+      "layoutNav": "Pijlen",
       "defaultTarget": "Standaarddoel",
       "targetSelf": "Dit display (zelf)",
       "targetAll": "Alle displays",

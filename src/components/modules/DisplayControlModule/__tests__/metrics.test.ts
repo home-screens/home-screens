@@ -75,6 +75,28 @@ describe('controlMetrics', () => {
     expect(narrow.showWords).toBe(false);
   });
 
+  it('splits the nav layout along the box\'s long axis', () => {
+    const wide = controlMetrics({ w: 520, h: 200, layout: 'nav', compact: false, showPicker: false });
+    expect([wide.cols, wide.rows]).toEqual([2, 1]);
+    expect(wide.showWords).toBe(true);
+    const tall = controlMetrics({ w: 200, h: 420, layout: 'nav', compact: false, showPicker: false });
+    expect([tall.cols, tall.rows]).toEqual([1, 2]);
+  });
+
+  it('carries no brightness or sub-label furniture in the nav layout', () => {
+    const m = controlMetrics({ w: 520, h: 200, layout: 'nav', compact: false, showPicker: false });
+    expect(m.sliderH).toBe(0);
+    expect(m.brightRowH).toBe(0);
+    expect(m.sub).toBe(0);
+    expect(m.showSubs).toBe(false);
+  });
+
+  it('gives the nav layout a bigger arrow than the four-button grid at the same box', () => {
+    // Two buttons instead of four, so each one is roughly twice the size.
+    const nav = controlMetrics({ w: 440, h: 320, layout: 'nav', compact: false, showPicker: false });
+    expect(nav.icon).toBeGreaterThan(panel(440, 320).icon);
+  });
+
   it('assumes the authored box before the first measurement', () => {
     // jsdom (and the first render) report zero; the widget must not paint a
     // hairline version of itself for a frame.

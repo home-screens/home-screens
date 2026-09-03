@@ -1757,7 +1757,8 @@ export interface DateConfig {
 
 // Display control module config
 export interface DisplayControlConfig {
-  layout: 'bar' | 'pad' | 'panel';
+  /** 'nav' is the pared-back one: just Previous and Next, nothing else. */
+  layout: 'bar' | 'pad' | 'panel' | 'nav';
   /**
    * Target at mount time. 'self' resolves to the display this module renders
    * on (via useDisplayId). 'all' broadcasts. A display id targets that queue;

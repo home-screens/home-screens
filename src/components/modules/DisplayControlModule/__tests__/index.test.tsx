@@ -124,6 +124,22 @@ describe('DisplayControlModule integration', () => {
     expect(screen.getByText('Brightness')).toBeTruthy();
   });
 
+  it('renders only Previous and Next in the nav layout', () => {
+    render(wrap(<DisplayControlModule config={{ ...base, layout: 'nav' }} availableDisplays={displays} />));
+    expect(screen.getByRole('button', { name: /previous screen/i }).textContent).toContain('Previous');
+    expect(screen.getByRole('button', { name: /next screen/i }).textContent).toContain('Next');
+    expect(screen.getAllByRole('button')).toHaveLength(2);
+    expect(screen.queryByText('Sleep')).toBeNull();
+    expect(screen.queryByText('Brightness')).toBeNull();
+  });
+
+  it('dispatches from the nav layout buttons', () => {
+    render(wrap(<DisplayControlModule config={{ ...base, layout: 'nav' }} availableDisplays={displays} />));
+    fireEvent.click(screen.getByRole('button', { name: /previous screen/i }));
+    act(() => vi.advanceTimersByTime(200));
+    expect(commandCalls().at(-1)).toBe('/api/display/prev-screen?display=kitchen');
+  });
+
   it('compact drops the words but keeps the aria-labels', () => {
     render(wrap(<DisplayControlModule config={{ ...base, compact: true }} availableDisplays={displays} />));
     expect(screen.getByRole('button', { name: /previous screen/i }).textContent).toBe('');

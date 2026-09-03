@@ -2863,6 +2863,7 @@
       "layoutBar": "Bjælke",
       "layoutPad": "Knapfelt",
       "layoutPanel": "Panel",
+      "layoutNav": "Pile",
       "defaultTarget": "Standardmål",
       "targetSelf": "Dette display (sig selv)",
       "targetAll": "Alle displays",

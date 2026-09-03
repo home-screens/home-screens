@@ -10,6 +10,7 @@ import { useTargetBrightness } from './useTargetBrightness';
 import { BarLayout } from './BarLayout';
 import { PadLayout } from './PadLayout';
 import { PanelLayout } from './PanelLayout';
+import { NavLayout } from './NavLayout';
 import type { LayoutProps } from './types';
 
 export interface DisplayControlModuleProps {
@@ -128,6 +129,8 @@ export default function DisplayControlModule({
       return <BarLayout {...layoutProps} />;
     case 'pad':
       return <PadLayout {...layoutProps} />;
+    case 'nav':
+      return <NavLayout {...layoutProps} />;
     case 'panel':
     default:
       return <PanelLayout {...layoutProps} />;

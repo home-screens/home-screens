@@ -56,7 +56,7 @@ export interface ControlMetrics {
 export interface ControlBox {
   w: number;
   h: number;
-  layout: 'bar' | 'pad' | 'panel';
+  layout: 'bar' | 'pad' | 'panel' | 'nav';
   compact: boolean;
   /** Whether the target picker row takes space. */
   showPicker: boolean;
@@ -66,7 +66,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 
 /** Box assumed before the first measurement (and in unit tests, where jsdom
  *  reports zero) so the widget never paints a one-frame wrong size. */
-const UNMEASURED = { panel: { w: 440, h: 320 }, pad: { w: 440, h: 320 }, bar: { w: 900, h: 96 } };
+const UNMEASURED = { panel: { w: 440, h: 320 }, pad: { w: 440, h: 320 }, bar: { w: 900, h: 96 }, nav: { w: 440, h: 220 } };
 
 export function controlMetrics(box: ControlBox): ControlMetrics {
   const fallback = UNMEASURED[box.layout] ?? UNMEASURED.panel;
@@ -112,6 +112,31 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
       sub: showSubs ? clamp(label * 0.85, 10, 18) : 0,
       showWords, showSubs, showCaption: false,
       showPickerPrefix: innerW >= 620,
+      pickerH, sliderH: 0, brightRowH: 0, bw, bh,
+      thumb: 0, track: 0, caption: 0, picker,
+    };
+  }
+
+  if (layout === 'nav') {
+    // Two buttons splitting the box along its long axis: side by side
+    // normally, stacked in a properly tall one so a slim vertical strip never
+    // becomes two letterbox slivers. With only two controls to place, the
+    // words survive in boxes where the four-button layouts have already
+    // dropped them, and the arrow grows much larger than a grid button's.
+    const vertical = innerH > 0 && innerW / innerH <= 0.75;
+    const [cols, rows] = vertical ? [1, 2] : [2, 1];
+    const bw = (innerW - gap * (cols - 1)) / cols;
+    const bh = (innerH - gap * (rows - 1)) / rows;
+    const showWords = !compact && bw >= 104 && bh >= 44;
+    const label = showWords ? clamp(Math.min(bw / 7, bh * 0.22), 12, 30) : 0;
+    const wordsBlock = showWords ? label * 1.25 : 0;
+    return {
+      cols, rows, pad, gap, radius,
+      icon: clamp(Math.min(bh * 0.8 - wordsBlock, bw * 0.55), 14, 160),
+      label,
+      sub: 0,
+      showWords, showSubs: false, showCaption: false,
+      showPickerPrefix: innerW >= 380,
       pickerH, sliderH: 0, brightRowH: 0, bw, bh,
       thumb: 0, track: 0, caption: 0, picker,
     };

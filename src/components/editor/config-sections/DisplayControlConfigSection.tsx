@@ -22,18 +22,19 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
 
   const legacy = displays.length === 0;
 
-  const LAYOUT_LABELS: Record<'bar' | 'pad' | 'panel', string> = {
+  const LAYOUT_LABELS: Record<DisplayControlConfig['layout'], string> = {
     bar: t('configSections.display-control.layoutBar'),
     pad: t('configSections.display-control.layoutPad'),
     panel: t('configSections.display-control.layoutPanel'),
+    nav: t('configSections.display-control.layoutNav'),
   };
 
   return (
     <div className="space-y-4">
       <div>
         <span className="text-xs text-hs-text-muted uppercase tracking-wider">{t('configSections.display-control.layout')}</span>
-        <div className="grid grid-cols-3 gap-2 mt-1">
-          {(['bar', 'pad', 'panel'] as const).map((opt) => (
+        <div className="grid grid-cols-2 gap-2 mt-1">
+          {(['bar', 'pad', 'panel', 'nav'] as const).map((opt) => (
             <button
               key={opt}
               type="button"

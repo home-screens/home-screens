@@ -2863,6 +2863,7 @@
       "layoutBar": "Bar",
       "layoutPad": "Pad",
       "layoutPanel": "Panel",
+      "layoutNav": "Arrows",
       "defaultTarget": "Default target",
       "targetSelf": "This display (self)",
       "targetAll": "All displays",

@@ -2863,6 +2863,7 @@
       "layoutBar": "Leiste",
       "layoutPad": "Pad",
       "layoutPanel": "Panel",
+      "layoutNav": "Pfeile",
       "defaultTarget": "Standardziel",
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",

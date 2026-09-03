@@ -2863,6 +2863,7 @@
       "layoutBar": "Barra",
       "layoutPad": "Painel de toques",
       "layoutPanel": "Painel",
+      "layoutNav": "Setas",
       "defaultTarget": "Destino padrão",
       "targetSelf": "Esta tela (própria)",
       "targetAll": "Todas as telas",
