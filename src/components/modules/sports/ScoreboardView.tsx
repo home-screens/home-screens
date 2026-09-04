@@ -27,19 +27,19 @@ function TeamRow({
       </div>
       <div className="flex-1 min-w-0">
         <div
-          className={`font-bold truncate ${winner ? 'text-white' : 'text-white/70'}`}
+          className={`font-bold truncate ${winner ? 'text-current' : 'text-current/70'}`}
           style={{ fontSize: '1.05em' }}
         >
           {abbr}
         </div>
         {record && (
-          <div className="text-white/35 truncate" style={{ fontSize: '0.65em' }}>
+          <div className="text-current/35 truncate" style={{ fontSize: '0.65em' }}>
             {record}
           </div>
         )}
       </div>
       <div
-        className={`font-bold tabular-nums ${winner ? 'text-white' : 'text-white/60'}`}
+        className={`font-bold tabular-nums ${winner ? 'text-current' : 'text-current/60'}`}
         style={{ fontSize: '1.6em' }}
       >
         {score}
@@ -58,13 +58,13 @@ export function ScoreboardView({ games, kickoff }: { games: Game[]; kickoff: Kic
     <div className="flex flex-col justify-center h-full gap-3 px-4">
       <div className="flex items-center justify-between">
         <span
-          className="font-semibold tracking-widest uppercase text-white/40"
+          className="font-semibold tracking-widest uppercase text-current/40"
           style={{ fontSize: '0.65em' }}
         >
           {game.league}
         </span>
         {game.broadcast && (
-          <span className="text-white/30" style={{ fontSize: '0.6em' }}>
+          <span className="text-current/30" style={{ fontSize: '0.6em' }}>
             {game.broadcast}
           </span>
         )}

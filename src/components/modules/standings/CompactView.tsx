@@ -38,17 +38,17 @@ export function CompactView({ groups, teamsToShow, showPlayoffLine, rotationInte
               barWidth={barWidth}
               logoSize={16}
               rowClassName="relative flex items-center gap-2 py-0.5 px-2"
-              nameClassName="text-white/90 truncate font-medium relative"
+              nameClassName="text-current/90 truncate font-medium relative"
               nameStyle={{ fontSize: '0.75em' }}
               clincherClassName="text-emerald-400/70 ml-1"
               clincherStyle={{ fontSize: '0.8em' }}
             >
-              <span className="text-white/60 tabular-nums shrink-0 relative" style={{ fontSize: '0.7em' }}>
+              <span className="text-current/60 tabular-nums shrink-0 relative" style={{ fontSize: '0.7em' }}>
                 {formatRecord(entry, group.league)}
               </span>
 
               {entry.points !== undefined && (
-                <span className="text-white/80 tabular-nums font-semibold shrink-0 relative" style={{ fontSize: '0.7em', width: '2em', textAlign: 'right' }}>
+                <span className="text-current/80 tabular-nums font-semibold shrink-0 relative" style={{ fontSize: '0.7em', width: '2em', textAlign: 'right' }}>
                   {entry.points}
                 </span>
               )}

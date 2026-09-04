@@ -1,3 +1,5 @@
+import { DEFAULT_MODULE_STYLE } from '@/types/config';
+
 /** Convert a CSS color to rgba with a given alpha, so backdrop-filter blur
  *  shows through instead of being hidden by an opaque background. Hex and
  *  rgb()/rgba() convert directly; anything else falls back to `color-mix`. */
@@ -29,6 +31,28 @@ export function colorWithAlpha(color: string, alpha: number): string {
 export function resolveTitleFontSize(style: { titleFontSize?: number; fontSize: number }): number {
   const tfs = style.titleFontSize;
   return typeof tfs === 'number' && Number.isFinite(tfs) && tfs > 0 ? tfs : style.fontSize;
+}
+
+/**
+ * Font size for text drawn inside a viewBox'd SVG, biased by the module's
+ * `Style > Font size`.
+ *
+ * SVG text is authored in user-space units, so it already scales with the card
+ * — which is right, and is why these were left as bare numbers. It also made
+ * them the one place the font-size setting could not reach: raising it grew the
+ * HTML around a sun arc and nothing on the arc, and did nothing at all to an
+ * analog clock face.
+ *
+ * Same shape as the bias in `useScaledFontSize`: the ratio against the default
+ * size, so at the default it is exactly 1 and every dial already set renders
+ * the same pixels. A hand-edited 0 or nonsense value falls back to 1 rather
+ * than collapsing the text to nothing.
+ */
+export function svgFontSize(userUnits: number, styleFontSize: number): string {
+  const bias = Number.isFinite(styleFontSize) && styleFontSize > 0
+    ? styleFontSize / DEFAULT_MODULE_STYLE.fontSize
+    : 1;
+  return `${userUnits * bias}px`;
 }
 
 /** Build the box-shadow CSS value for a module card. */

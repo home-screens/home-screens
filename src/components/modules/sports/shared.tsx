@@ -28,8 +28,8 @@ export function GameStatus({
   fontSize,
   gap = 'gap-1',
   liveColor = 'text-green-400',
-  postColor = 'text-white/40',
-  preColor = 'text-white/60',
+  postColor = 'text-current/40',
+  preColor = 'text-current/60',
 }: {
   state: string;
   kickoff?: string | null;

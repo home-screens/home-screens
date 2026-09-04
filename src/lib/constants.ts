@@ -108,11 +108,18 @@ export const TEXT_OPACITY = {
 //   default (0.08) — standard dividers and borders
 //   visible (0.10) — section separators within modules
 //   strong  (0.15) — emphasized borders, prominent separators
+//
+// Derived from `currentColor`, which is the module's own `style.textColor`, so
+// a card with dark text keeps its structure instead of losing every separator.
+// These were literal `rgba(255,255,255,x)` and silently assumed a dark
+// background: set a light card and the dividers vanished, while the text they
+// separate obeyed the setting. At the default white text these resolve to
+// exactly what they always were, so no card already on a wall changes.
 export const DIVIDER = {
-  subtle: 'rgba(255,255,255,0.05)',
-  default: 'rgba(255,255,255,0.08)',
-  visible: 'rgba(255,255,255,0.10)',
-  strong: 'rgba(255,255,255,0.15)',
+  subtle: 'color-mix(in oklab, currentColor 5%, transparent)',
+  default: 'color-mix(in oklab, currentColor 8%, transparent)',
+  visible: 'color-mix(in oklab, currentColor 10%, transparent)',
+  strong: 'color-mix(in oklab, currentColor 15%, transparent)',
 } as const;
 
 /** Check whether a user-configured accent color is actually set (not the default black). */

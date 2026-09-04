@@ -33,7 +33,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
           cy={cy}
           r={radius}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
+          stroke="currentColor" strokeOpacity={0.08}
           strokeWidth="1"
         />
 
@@ -49,7 +49,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
               cx={mx}
               cy={my}
               r={0.5}
-              fill="rgba(255,255,255,0.15)"
+              fill="currentColor" fillOpacity={0.15}
             />
           );
         })}
@@ -71,7 +71,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
                 y={ty}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="rgba(255,255,255,0.6)"
+                fill="currentColor" fillOpacity={0.6}
                 fontSize="8"
                 fontWeight="300"
                 fontFamily={UI_SANS_STACK}
@@ -92,7 +92,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke="rgba(255,255,255,0.5)"
+              stroke="currentColor" strokeOpacity={0.5}
               strokeWidth={i % 3 === 0 ? 1.5 : 0.8}
               strokeLinecap="round"
             />
@@ -103,7 +103,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
         <g transform={`rotate(${hourAngle} ${cx} ${cy})`} suppressHydrationWarning>
           <polygon
             points={`${cx - 3},${cy + 8} ${cx + 3},${cy + 8} ${cx + 1},${cy - 50} ${cx - 1},${cy - 50}`}
-            fill="rgba(255,255,255,0.9)"
+            fill="currentColor" fillOpacity={0.9}
           />
         </g>
 
@@ -111,7 +111,7 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
         <g transform={`rotate(${minuteAngle} ${cx} ${cy})`} suppressHydrationWarning>
           <polygon
             points={`${cx - 2},${cy + 10} ${cx + 2},${cy + 10} ${cx + 0.6},${cy - 72} ${cx - 0.6},${cy - 72}`}
-            fill="rgba(255,255,255,0.85)"
+            fill="currentColor" fillOpacity={0.85}
           />
         </g>
 

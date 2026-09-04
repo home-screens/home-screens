@@ -1,4 +1,4 @@
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, ModuleType } from '@/types/config';
 import { matrixSettings } from '../helpers/module-fixtures';
 
 /**
@@ -89,3 +89,33 @@ export function applyScenario(
       };
   return { ...mod, style, size };
 }
+
+/**
+ * Extra shots for views the default config does not reach.
+ *
+ * The matrix renders each module in its registry-default view, which leaves
+ * every other view outside the gate. That is fine until a change touches one:
+ * wave 2 rewrote the sun arc, the sun circle and the analog clock face, and all
+ * three came back "unchanged" simply because none of them was ever rendered.
+ *
+ * So this list is not a general view matrix (`module-views.spec.ts` is that).
+ * It is the set of non-default views some fix has actually touched, and it
+ * should grow whenever one does.
+ */
+export interface GalleryViewVariant {
+  type: ModuleType;
+  /** Suffix for the shot filename. */
+  name: string;
+  config: Record<string, unknown>;
+}
+
+export const VIEW_VARIANTS: GalleryViewVariant[] = [
+  // Wave 2, item 16: user-unit SVG text, biased by Style > Font size.
+  { type: 'sunrise-sunset', name: 'arc', config: { view: 'arc' } },
+  { type: 'sunrise-sunset', name: 'circle', config: { view: 'circle' } },
+  // Wave 2, item 3b: a clock face drawn entirely in hardcoded white. The
+  // numerals are behind `showNumerals`, so the plain analog shot renders the
+  // ring, ticks and hands but not them — hence the second variant.
+  { type: 'clock', name: 'analog', config: { view: 'analog' } },
+  { type: 'clock', name: 'analog-numerals', config: { view: 'analog', showNumerals: true } },
+];

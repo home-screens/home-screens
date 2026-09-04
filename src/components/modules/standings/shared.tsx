@@ -32,10 +32,10 @@ export function StandingsTeamRow({
   borderWidth = 3,
   logoSize = 18,
   rowClassName = 'relative flex items-center gap-1.5 py-1 px-2',
-  rankClassName = 'text-white/30 tabular-nums shrink-0 relative',
+  rankClassName = 'text-current/30 tabular-nums shrink-0 relative',
   rankStyle = { fontSize: '0.7em', width: '1.2em', textAlign: 'right' as const },
   nameWrapperClassName,
-  nameClassName = 'text-white/90 truncate font-medium',
+  nameClassName = 'text-current/90 truncate font-medium',
   nameStyle = { fontSize: '0.8em' },
   clincherClassName = 'text-emerald-400/70 font-medium shrink-0',
   clincherStyle = { fontSize: '0.6em' },
@@ -146,12 +146,12 @@ export function StandingsHeader({
     <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10">
       <div className="flex items-center gap-2">
         <span
-          className="font-semibold tracking-widest uppercase text-white/40"
+          className="font-semibold tracking-widest uppercase text-current/40"
           style={{ fontSize: '0.65em' }}
         >
           {league}
         </span>
-        <span className="text-white/60 font-medium" style={{ fontSize: '0.75em' }}>
+        <span className="text-current/60 font-medium" style={{ fontSize: '0.75em' }}>
           {groupName}
         </span>
       </div>

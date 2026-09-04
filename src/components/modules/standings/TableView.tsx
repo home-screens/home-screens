@@ -112,13 +112,13 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
       <StandingsHeader league={group.league} groupName={group.name} total={groups.length} current={index} />
 
       <div className="flex items-center gap-1.5 px-2 pb-1" style={{ paddingLeft: 'calc(0.5rem + 3px)' }}>
-        <span style={{ width: '1.2em', fontSize: '0.6em' }} className="text-white/25 text-right shrink-0">#</span>
+        <span style={{ width: '1.2em', fontSize: '0.6em' }} className="text-current/25 text-right shrink-0">#</span>
         <div style={{ width: 18 }} className="shrink-0" />
         <div className="flex-1" />
         {columns.map((col) => (
           <span
             key={col.key}
-            className={`${col.width} text-right text-white/25 uppercase tracking-wider shrink-0`}
+            className={`${col.width} text-right text-current/25 uppercase tracking-wider shrink-0`}
             style={{ fontSize: '0.55em' }}
           >
             {col.label}
@@ -141,7 +141,7 @@ export function TableView({ groups, teamsToShow, showPlayoffLine, rotationInterv
               {columns.map((col) => (
                 <span
                   key={col.key}
-                  className={`${col.width} text-right text-white/60 tabular-nums shrink-0 relative`}
+                  className={`${col.width} text-right text-current/60 tabular-nums shrink-0 relative`}
                   style={{ fontSize: '0.7em' }}
                 >
                   <CellValue entry={entry} col={col.key} league={group.league} />

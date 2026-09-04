@@ -7,7 +7,7 @@ import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, MODULE_FIXTURES, allBuiltinTypes } from '../helpers/module-fixtures';
 import { getModuleDefinition } from '@/lib/module-registry';
 import type { ModuleInstance } from '@/types/config';
-import { SCENARIOS, applyScenario, scenarioSettings } from './scenarios';
+import { SCENARIOS, VIEW_VARIANTS, applyScenario, scenarioSettings } from './scenarios';
 
 /**
  * The pixel gallery: the render matrix with a screenshot where the assertion
@@ -183,6 +183,43 @@ export function runGallery(label: string): void {
           caret: 'hide',
           // A strict gate on purpose: same machine, same browser, minutes
           // apart. Any tolerance here is a place for a real change to hide.
+          threshold: 0,
+          maxDiffPixels: 0,
+        });
+      });
+    }
+
+    // Non-default views a fix has touched (see VIEW_VARIANTS).
+    for (const variant of VIEW_VARIANTS) {
+      const fx = MODULE_FIXTURES[variant.type];
+      test(`${variant.type} (${variant.name})`, async ({ page, request }) => {
+        await page.clock.setFixedTime(galleryInstant());
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await pinRandom(page);
+        await stubModuleData(page);
+
+        const def = getModuleDefinition(variant.type);
+        const mod = applyScenario(
+          buildModuleInstance(variant.type, { ...fx.config, ...variant.config }),
+          scenario,
+          { fillsCanvas: !!def?.fillsCanvas, displayW: 1080, displayH: 1920 },
+        );
+        mod.id = `${variant.type}-${variant.name}`;
+
+        const settings = scenarioSettings(scenario);
+        await renderOnDisplay(page, request, baseConfig({
+          screens: [makeScreen('s1', 'S1', [PLACEHOLDER])],
+          settings,
+        }));
+        await mountClientSide(page, request, settings, mod);
+
+        const target = page.locator(`[data-module-id="${mod.id}"]`);
+        await expect(target).toBeVisible();
+        await settle(page);
+
+        await expect(target).toHaveScreenshot([scenario.label, `${variant.type}-${variant.name}.png`], {
+          animations: 'disabled',
+          caret: 'hide',
           threshold: 0,
           maxDiffPixels: 0,
         });

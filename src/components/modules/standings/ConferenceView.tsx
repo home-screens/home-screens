@@ -30,7 +30,7 @@ function ConferenceColumn({
   return (
     <div className="flex-1 min-w-0">
       <div className="px-1.5 pb-1 mb-1 border-b border-white/10">
-        <span className="text-white/50 font-medium" style={{ fontSize: '0.65em' }}>
+        <span className="text-current/50 font-medium" style={{ fontSize: '0.65em' }}>
           {group.name}
         </span>
       </div>
@@ -44,15 +44,15 @@ function ConferenceColumn({
           borderWidth={2}
           logoSize={14}
           rowClassName="flex items-center gap-1 py-0.5 px-1"
-          rankClassName="text-white/25 tabular-nums shrink-0"
+          rankClassName="text-current/25 tabular-nums shrink-0"
           rankStyle={{ fontSize: '0.6em', width: '1em', textAlign: 'right' }}
-          nameClassName="text-white/80 truncate"
+          nameClassName="text-current/80 truncate"
           nameStyle={{ fontSize: '0.65em' }}
           teamLabel={entry.teamAbbr}
           clincherClassName="text-emerald-400/60 ml-0.5"
           clincherStyle={{ fontSize: '0.8em' }}
         >
-          <span className="text-white/50 tabular-nums shrink-0" style={{ fontSize: '0.6em' }}>
+          <span className="text-current/50 tabular-nums shrink-0" style={{ fontSize: '0.6em' }}>
             {formatRecord(entry, group.league)}
           </span>
         </StandingsTeamRow>
@@ -77,7 +77,7 @@ export function ConferenceView({ groups, teamsToShow, showPlayoffLine, rotationI
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between px-2 pb-1.5 mb-1 border-b border-white/10">
         <span
-          className="font-semibold tracking-widest uppercase text-white/40"
+          className="font-semibold tracking-widest uppercase text-current/40"
           style={{ fontSize: '0.65em' }}
         >
           {pair[0].league}
