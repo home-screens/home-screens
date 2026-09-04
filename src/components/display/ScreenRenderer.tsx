@@ -131,7 +131,15 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
     return () => { probe.onerror = null; };
   }, [backgroundImage]);
 
-  const source = toDisplaySource(settings, getLocation(settings), sharedData, availableDisplays);
+  // `renderDisplayId` is the authoritative render-as id: the URL alone is
+  // unreliable, because the legacy /display route renders a multi-display main
+  // inline without redirecting. Which modules receive it, and which receive the
+  // instance address, is declared in the registry (`rendersAsDisplay` /
+  // `needsInstanceAddress`) and applied by `buildModuleProps`.
+  const source = toDisplaySource(settings, getLocation(settings), sharedData, availableDisplays, {
+    renderDisplayId: displayId,
+    screenId: screen.id,
+  });
 
   return (
     <div
@@ -196,28 +204,6 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         }
 
         const extraProps = buildModuleProps(mod, source);
-
-        // `availableDisplays` rides the shared source; `renderDisplayId` stays a
-        // display-caller concern because the editor has no equivalent. It is the
-        // authoritative render-as id — the URL alone is unreliable because the
-        // legacy /display route renders a multi-display main inline without redirecting.
-        if (mod.type === 'display-control') {
-          (extraProps as Record<string, unknown>).renderDisplayId = displayId;
-        }
-
-        // Thread the module's instance address into interactive modules. The
-        // todo module needs it to locate itself in the config tree when
-        // POSTing a toggle; the meal planners use its presence as the "on a
-        // real display" signal for tap-to-open-recipe (the editor preview
-        // threads nothing and falls back to opening links in a new tab);
-        // the video module and slideshows use it the same way to autoplay
-        // video only on real displays (the editor shows poster frames).
-        if (mod.type === 'todo' || mod.type === 'meal-planner' || mod.type === 'fullscreen-meal-planner'
-          || mod.type === 'video' || mod.type === 'photo-slideshow' || mod.type === 'fullscreen-photo') {
-          (extraProps as Record<string, unknown>).displayId = displayId;
-          (extraProps as Record<string, unknown>).screenId = screen.id;
-          (extraProps as Record<string, unknown>).moduleId = mod.id;
-        }
 
         return (
           <div

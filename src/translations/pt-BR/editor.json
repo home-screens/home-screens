@@ -938,7 +938,8 @@
           "rotationIntervalSeconds": "{seconds} segundos",
           "pauseEnabledLabelDisabled": "Desativada",
           "swipeEnabledLabelDisabled": "Desativado",
-          "setupHintLabelDisabled": "Desativado"
+          "setupHintLabelDisabled": "Desativado",
+          "rotationProgressLabelDisabled": "Desativado"
         },
         "footer": {
           "overrideCountSingular": "{count} substituição de tela",

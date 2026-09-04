@@ -938,7 +938,8 @@
           "rotationIntervalSeconds": "{seconds} segundos",
           "pauseEnabledLabelDisabled": "Desactivado",
           "swipeEnabledLabelDisabled": "Desactivado",
-          "setupHintLabelDisabled": "Desactivado"
+          "setupHintLabelDisabled": "Desactivado",
+          "rotationProgressLabelDisabled": "Desactivado"
         },
         "footer": {
           "overrideCountSingular": "{count} anulación de display",

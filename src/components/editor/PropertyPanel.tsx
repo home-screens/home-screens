@@ -547,6 +547,14 @@ export default function PropertyPanel({
   // builtins (display-control) and full-screen modules never mount one, so
   // offering a title there would be a control with nothing to show.
   const showTitleControl = !isPlugin && !moduleDef?.cardless && !moduleDef?.fillsCanvas;
+  // Style reaches a module one of two ways: ModuleWrapper's card, or the
+  // module applying `style` itself. A `fillsCanvas` module has neither (it
+  // paints the whole canvas from its own theme), and neither does a `cardless`
+  // one — display-control does not even accept the prop, so every control in
+  // the section was inert for it. Plugins DO get it: they render raw, but they
+  // re-implement the card from `style` themselves, which is why only the
+  // class-based weight override is hidden for them (see StyleSection).
+  const showStyleControls = !moduleDef?.fillsCanvas && !moduleDef?.cardless;
   const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
   const moduleLabel = resolveModuleLabel(selectedModule.type, t);
   const moduleDescription = resolveModuleDescription(selectedModule.type, t);
@@ -610,7 +618,7 @@ export default function PropertyPanel({
             <PositionSection mod={selectedModule} screenId={selectedScreenId} t={t} />
           </AccordionSection>
         )}
-        {!moduleDef?.fillsCanvas && (
+        {showStyleControls && (
           <AccordionSection title={t('propertyPanel.sections.style')} defaultOpen={false}>
             <StyleSection mod={selectedModule} screenId={selectedScreenId} t={t} />
           </AccordionSection>

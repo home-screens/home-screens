@@ -77,11 +77,35 @@ export interface ModuleDefinition {
   fillsCanvas?: boolean;
   /**
    * True for modules that render bare, without ModuleWrapper's card chrome
-   * (currently only display-control among builtins; plugins are always bare).
-   * Card-only style fields — the title strip — are hidden in the editor and
-   * dropped from defaultStyle at placement, since nothing could render them.
+   * (currently only display-control among builtins).
+   *
+   * A cardless module receives `style` and does nothing with it, so the whole
+   * Style section is hidden in the editor and the card-only fields (the title
+   * strip) are dropped from defaultStyle at placement — nothing could render
+   * them. Plugins are bare too, but they are NOT cardless: they re-implement
+   * the card from `style` themselves, so they keep the section.
    */
   cardless?: boolean;
+  /**
+   * True for modules that act on a specific display and therefore need to know
+   * which display they are rendering as (`renderDisplayId`).
+   *
+   * Declared here rather than branched on by type in the renderer, so a new
+   * module of this shape cannot be silently left out of the wiring.
+   */
+  rendersAsDisplay?: boolean;
+  /**
+   * True for modules that write back to their own instance in the config, or
+   * that behave differently on a real display than in a preview. They receive
+   * `displayId` / `screenId` / `moduleId`.
+   *
+   * The todo module needs the address to locate itself when POSTing a toggle;
+   * the meal planners use its presence as the "on a real display" signal for
+   * tap-to-open-recipe; the video module and the slideshows use it the same way
+   * to autoplay only on a real display. The editor supplies none of it, which
+   * is what makes the preview fall back to safe behaviour.
+   */
+  needsInstanceAddress?: boolean;
   /**
    * True for modules that render a built-in title of their own (a fixed
    * header like "Traffic", or a configurable one like todo's). The editor shows
@@ -388,6 +412,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-meal-planner',
+    needsInstanceAddress: true,
     label: 'Full-Screen Meal Planner',
     icon: UtensilsCrossed,
     category: 'Full Screen',
@@ -436,6 +461,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-photo',
+    needsInstanceAddress: true,
     label: 'Full-Screen Photo Viewer',
     icon: Image,
     category: 'Full Screen',
@@ -852,6 +878,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Personal --
   {
     type: 'todo',
+    needsInstanceAddress: true,
     label: 'To-Do List',
     icon: ListTodo,
     category: 'Personal',
@@ -956,6 +983,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'meal-planner',
+    needsInstanceAddress: true,
     label: 'Meal Planner',
     icon: UtensilsCrossed,
     category: 'Personal',
@@ -1025,6 +1053,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'video',
+    needsInstanceAddress: true,
     label: 'Video',
     icon: Video,
     category: 'Media & Display',
@@ -1041,6 +1070,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'photo-slideshow',
+    needsInstanceAddress: true,
     label: 'Photo Slideshow',
     icon: Image,
     category: 'Media & Display',
@@ -1169,6 +1199,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'display-control',
+    rendersAsDisplay: true,
     label: 'Display Control',
     icon: LayoutGrid,
     category: 'Media & Display',

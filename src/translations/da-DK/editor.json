@@ -938,7 +938,8 @@
           "rotationIntervalSeconds": "{seconds} sekunder",
           "pauseEnabledLabelDisabled": "Slået fra",
           "swipeEnabledLabelDisabled": "Slået fra",
-          "setupHintLabelDisabled": "Slået fra"
+          "setupHintLabelDisabled": "Slået fra",
+          "rotationProgressLabelDisabled": "Slået fra"
         },
         "footer": {
           "overrideCountSingular": "{count} tilsidesættelse for displayet",

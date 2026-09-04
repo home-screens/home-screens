@@ -1758,13 +1758,17 @@ test.describe('PropertyPanel Style', () => {
 
   test('title controls are hidden for display-control (renders without a card)', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('display-control'));
-    await page.getByRole('button', { name: 'Style', exact: true }).click();
 
-    // The strip could never render (no ModuleWrapper), so the whole title
-    // control is gone — while ordinary text styling stays available.
-    await expect(page.getByRole('slider', { name: 'Font Size' })).toBeVisible();
+    // This used to open the Style section and assert that only the title
+    // control was missing, on the reasoning that the strip needs
+    // ModuleWrapper. The same reasoning covers the rest of the section:
+    // display-control never mounts the wrapper AND never reads `style`, so
+    // every control in there was inert, not just the title. The section is now
+    // hidden outright (see the 'PropertyPanel Style section' describe), which
+    // is why there is no longer a Style button to click here.
     await expect(page.getByTestId('module-title-control')).toHaveCount(0);
     await expect(page.getByLabel('Title words', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('slider', { name: 'Font Size' })).toHaveCount(0);
   });
 
   test('only modules with a title of their own offer that option in the picker', async ({ page, request }) => {
@@ -1957,5 +1961,58 @@ test.describe('PropertyPanel background provider', () => {
 
     const config = await getConfig(request);
     expect(config.screens[0].modules[0].backgroundProvider).toBe(true);
+  });
+});
+
+/**
+ * The Style section is offered only where style can actually reach the module.
+ *
+ * Style arrives one of two ways: ModuleWrapper's card, or the module applying
+ * `style` itself. A `fillsCanvas` module has neither. Neither does a `cardless`
+ * one — display-control does not even accept the prop, so all ten controls in
+ * the section were inert for it, and a user who set a background colour there
+ * got nothing and no explanation.
+ *
+ * The plugin case is the guard, and it is the reason this is a test rather than
+ * a one-line gate: plugins also render bare, but they re-implement the card
+ * from `style` themselves (every shipped plugin carries a ModuleStyle-to-CSS
+ * function), so hiding the section for them would take away controls that work.
+ */
+test.describe('PropertyPanel Style section', () => {
+  const styleSection = (page: Page) => page.getByRole('button', { name: 'Style', exact: true });
+
+  test('a card module offers it', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('text'));
+    await expect(styleSection(page)).toBeVisible();
+  });
+
+  test('a cardless module does not — display-control ignores style entirely', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('display-control'));
+    // Panel is open on the right module, so an absent Style section is the
+    // gate working rather than a mis-selected module.
+    await expect(page.getByRole('button', { name: 'Module settings' })).toBeVisible();
+    await expect(styleSection(page)).toHaveCount(0);
+  });
+
+  test('a fillsCanvas module does not', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('fullscreen-weather'));
+    await expect(styleSection(page)).toHaveCount(0);
+  });
+
+  test('a plugin keeps it — plugins paint their own card from style', async ({ page, request, sandboxDir }) => {
+    seedFixturePlugin(sandboxDir);
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [{
+        id: 'e2e-plugin-style', type: FIXTURE_PLUGIN_TYPE,
+        position: { x: 0, y: 0 }, size: { w: 320, h: 200 }, zIndex: 1,
+        style: { ...DEFAULT_MODULE_STYLE }, config: { label: 'E2E PLUGIN' },
+      } as ModuleInstance])],
+      settings: matrixSettings(),
+    }));
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+    await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
+    await page.locator('[data-module-id="e2e-plugin-style"]').click();
+    await expect(styleSection(page)).toBeVisible();
   });
 });

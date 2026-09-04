@@ -125,6 +125,20 @@ export interface ModuleDataSource {
    */
   calendarConfigured: boolean;
   availableDisplays: Array<{ id: string; name: string }>;
+  /**
+   * The display this render is acting as, and the screen it is on.
+   *
+   * Only the kiosk knows these. The editor canvas and the hidden
+   * background-provider layer leave them undefined, which is exactly what makes
+   * a preview fall back to safe behaviour: a tap in the editor must not sleep
+   * the real panel, and a preview must not autoplay video.
+   *
+   * The display route resolves `renderDisplayId` itself rather than reading the
+   * URL, because the legacy `/display` route renders a multi-display `main`
+   * inline without redirecting, so the path alone is unreliable.
+   */
+  renderDisplayId?: string;
+  screenId?: string;
 }
 
 /** Resolve a weather module's effective provider ('global' defers to settings). */
@@ -148,7 +162,7 @@ export function resolveProvider(
  * same props wherever it renders.
  */
 export function buildModuleProps(
-  mod: { type: ModuleType; config: Record<string, unknown> },
+  mod: { id?: string; type: ModuleType; config: Record<string, unknown> },
   source: ModuleDataSource,
 ): Record<string, unknown> {
   const props: Record<string, unknown> = {
@@ -221,8 +235,17 @@ export function buildModuleProps(
     props.locationName = source.locationName;
   }
 
-  if (mod.type === 'display-control') {
+  // Registry-driven, not a type list in the renderer: a new module of either
+  // shape declares itself and cannot be silently left out of the wiring.
+  if (def?.rendersAsDisplay) {
+    props.renderDisplayId = source.renderDisplayId;
+    // The targets its picker can dispatch at — same audience as the flag.
     props.availableDisplays = source.availableDisplays;
+  }
+  if (def?.needsInstanceAddress) {
+    props.displayId = source.renderDisplayId;
+    props.screenId = source.screenId;
+    props.moduleId = mod.id;
   }
 
   // Editor preview of a location-dependent module with no location: the
@@ -264,6 +287,8 @@ export function toDisplaySource(
   location: { lat: number; lon: number } | null,
   sharedData: SharedDisplayData,
   availableDisplays: Array<{ id: string; name: string }> = [],
+  /** Omitted by the background-provider layer, which is not on a screen. */
+  address: { renderDisplayId?: string; screenId?: string } = {},
 ): ModuleDataSource {
   const calendarData = sharedData.calendarData;
   return {
@@ -291,6 +316,8 @@ export function toDisplaySource(
     calendarPeople: settings.calendar?.people ?? null,
     calendarConfigured: hasAnyCalendarSource(settings.calendar),
     availableDisplays,
+    renderDisplayId: address.renderDisplayId,
+    screenId: address.screenId,
   };
 }
 

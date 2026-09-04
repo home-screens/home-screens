@@ -938,7 +938,8 @@
           "rotationIntervalSeconds": "{seconds} seconden",
           "pauseEnabledLabelDisabled": "Uitgeschakeld",
           "swipeEnabledLabelDisabled": "Uitgeschakeld",
-          "setupHintLabelDisabled": "Uitgeschakeld"
+          "setupHintLabelDisabled": "Uitgeschakeld",
+          "rotationProgressLabelDisabled": "Uitgeschakeld"
         },
         "footer": {
           "overrideCountSingular": "{count} display-override",

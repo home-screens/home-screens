@@ -284,6 +284,31 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
               />
             )}
           </OverrideRow>
+
+          <OverrideRow
+            label={t('settings.defaultDisplayPage.fields.rotationProgressLabel')}
+            defaultValue={settings.showRotationProgress ?? true}
+            override={overrides.showRotationProgress}
+            onFork={(seed) => setOverride('showRotationProgress', seed)}
+            onReset={() => setOverride('showRotationProgress', undefined)}
+            defaultsPageHref={DEFAULTS_HREF}
+            defaultsPageLabel={DEFAULTS_LABEL}
+            formatValue={(v) =>
+              v
+                ? t('settings.defaultDisplayPage.fields.rotationProgressToggle')
+                : t('settings.perDisplayPage.display.fields.rotationProgressLabelDisabled')
+            }
+            displayName={display.name}
+          >
+            {({ value, onChange, disabled }) => (
+              <Toggle
+                label={t('settings.defaultDisplayPage.fields.rotationProgressToggle')}
+                checked={value}
+                disabled={disabled}
+                onChange={onChange}
+              />
+            )}
+          </OverrideRow>
         </div>
       </div>
 

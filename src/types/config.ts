@@ -489,6 +489,7 @@ export interface DisplayNodeSettings {
   pauseTimeoutSeconds?: number;
   swipeEnabled?: boolean;
   setupHintEnabled?: boolean;
+  showRotationProgress?: boolean;
   alerts?: AlertSettings;
 
   // NOTE: per-display location overrides (latitude/longitude/locationName/
