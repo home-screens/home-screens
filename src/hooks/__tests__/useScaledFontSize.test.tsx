@@ -103,6 +103,23 @@ describe('useScaledFontSize', () => {
     expect(latest()).toBe(40);
   });
 
+  it('never renders below the default size, however small the card', () => {
+    // 100 * 0.1 = 10px, which is not readable across a room. The floor is a
+    // separate guarantee from the bias and survives it: the setting scales
+    // whatever the module picked, and what it picked is never under the default.
+    boxHeight = 100;
+    mount({ mounted: true });
+    expect(latest()).toBe(16);
+
+    // The floor is the default, not the user's value, so asking for smaller
+    // still gets smaller.
+    mount({ mounted: true, base: 8 });
+    expect(latest()).toBe(8);
+
+    mount({ mounted: true, base: 32 });
+    expect(latest()).toBe(32);
+  });
+
   it('falls back to the raw size while the box measures zero', () => {
     boxHeight = 0;
     mount({ mounted: true });

@@ -38,9 +38,11 @@ const AUTOSIZED: ModuleType[] = [
 ];
 
 /**
- * Modules exempt from property 2, with the reason. An entry here is a claim
- * that the module is *meant* to render the same size in any box — not a place
- * to park a module that fails.
+ * Modules that render the same size in any box, with the reason. An entry here
+ * is a claim that the module is *meant* to be box-independent — not a place to
+ * park one that fails. They are held to the opposite of property 2 (they must
+ * NOT grow) and are excused property 1 in the large box, since a size that
+ * never grows falls below any fill floor once the box is big enough.
  */
 const FIXED_SIZE_REASONS: Partial<Record<string, string>> = {
   // The flip cards are authored at 28px times the module's own `scale` config
@@ -53,20 +55,21 @@ const FIXED_SIZE_REASONS: Partial<Record<string, string>> = {
 
 /**
  * Floor, as a fraction of box height. The smallest healthy value measured
- * across these modules is 5.6%; the shipped bug produced 2.4%. 4% sits between
- * them with room on both sides.
+ * across these modules is 6.6%; the shipped bug produced 1.8% in the large box.
+ * 4% sits between them with room on both sides.
  */
 const MIN_FILL = 0.04;
 
 /**
- * Growth between the two boxes, whose heights differ by 2.95x. The smallest
- * healthy growth measured is 2.46x (the clock, which is also width-fitted);
- * the bug produced exactly 1.0x, the same pixels in both boxes.
+ * Growth between the two boxes, whose heights differ by 4.1x. The smallest
+ * healthy growth measured is 2.46x (the clock, which stops growing once its
+ * width becomes the binding constraint); the bug produced exactly 1.0x, the
+ * same pixels in both boxes.
  */
 const MIN_GROWTH = 2.0;
 
 const SMALL = { w: 400, h: 220 };
-const LARGE = { w: 900, h: 650 };
+const LARGE = { w: 900, h: 900 };
 
 /**
  * The largest font size actually painted inside the module, and the height of
@@ -122,15 +125,17 @@ for (const type of AUTOSIZED) {
     const small = await largestType(page, type);
 
     await renderAt(page, request, type, LARGE);
-    await expect
-      .poll(async () => {
-        const { max, boxH } = await largestType(page, type);
-        return boxH > 0 ? max / boxH : 0;
-      }, { message: `${type} type is lost in a ${LARGE.w}x${LARGE.h} box` })
-      .toBeGreaterThanOrEqual(MIN_FILL);
+    const reason = FIXED_SIZE_REASONS[type];
+    if (!reason) {
+      await expect
+        .poll(async () => {
+          const { max, boxH } = await largestType(page, type);
+          return boxH > 0 ? max / boxH : 0;
+        }, { message: `${type} type is lost in a ${LARGE.w}x${LARGE.h} box` })
+        .toBeGreaterThanOrEqual(MIN_FILL);
+    }
     const large = await largestType(page, type);
 
-    const reason = FIXED_SIZE_REASONS[type];
     if (reason) {
       expect(large.max, `${type} is listed as fixed-size (${reason}) but grew with its box`)
         .toBeLessThan(small.max * MIN_GROWTH);
