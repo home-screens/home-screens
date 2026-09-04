@@ -361,7 +361,6 @@
     "noMealsPlannedYet": "Nog geen maaltijden gepland",
     "noMealsPlanned": "Geen maaltijden gepland",
     "noMealPlanned": "Geen maaltijd gepland",
-    "nothingPlanned": "Niets gepland",
     "nothingPlannedThisWeek": "Niets gepland deze week",
     "todaysMeals": "Maaltijden vandaag",
     "now": "nu",
@@ -645,10 +644,6 @@
         "other": "−{count} tickets"
       },
       "memberTickets": "Tickets van {member}",
-      "balanceCount": {
-        "one": "{count} ticket",
-        "other": "{count} tickets"
-      },
       "rewardCost": {
         "one": "{count} ticket",
         "other": "{count} tickets"

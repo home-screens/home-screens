@@ -121,9 +121,6 @@
     "zoomHint": "Ctrl + molette pour zoomer, molette pour vous déplacer"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Planifié, actuellement actif",
-    "scheduledInactiveTitle": "Planifié, actuellement inactif",
-    "disabledTitle": "Désactivé, non affiché sur l'écran",
     "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
     "backgroundProviderTitle": "S'exécute masqué en arrière-plan, jamais affiché sur l'écran",
     "conditionMetTitle": "Conditions remplies, affiché sur l'écran en ce moment",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Quel affichage ce canevas est-il en train de modifier ? (Les surcharges des paramètres sont dans Paramètres → Par affichage.)",
     "label": "Quel affichage ce canevas est-il en train de modifier ?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "allumé",
     "lastSeen": "vu {time}",
     "addDisplay": "Ajouter un affichage"
@@ -224,7 +220,6 @@
     "fromLabel": "De",
     "untilLabel": "Jusqu'à",
     "endsOnLabel": "Se termine",
-    "endsSameDay": "le même jour",
     "endsNextDay": "le lendemain",
     "endsDaysLater": "{count} jours plus tard",
     "behaviorTitle": "Comportement",

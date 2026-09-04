@@ -44,6 +44,8 @@
   },
   "pagination": {
     "paused": "Gepauzeerd",
+    "previousScreen": "Vorig scherm",
+    "nextScreen": "Volgend scherm",
     "resumesIn": "Gaat verder over {time} · tik om nu verder te gaan",
     "tapToResume": "tik om verder te gaan",
     "minutes": "{count} min",

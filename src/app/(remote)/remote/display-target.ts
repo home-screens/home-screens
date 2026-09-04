@@ -18,7 +18,7 @@ export interface DisplayLiveEntry {
   lastSeen: number | null;
   /** The hub has never received a heartbeat from this display. */
   neverConnected: boolean;
-  /** Last heartbeat is older than OFFLINE_AFTER_MS (see display-liveness). */
+  /** Last heartbeat is older than REMOTE_OFFLINE_AFTER_MS (see `@/lib/display-liveness`). */
   offline: boolean;
 }
 

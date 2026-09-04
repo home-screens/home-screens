@@ -53,6 +53,7 @@ const COLLAPSED_GROUPS_KEY = 'hs-settings-collapsed-groups';
 const EMPTY_GROUPS: ReadonlySet<SidebarGroup> = new Set();
 import { useEditorStore } from '@/stores/editor-store';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
+import { heartbeatState } from '@/lib/display-liveness';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import {
   DEFAULT_PAGE_IDS,
@@ -185,17 +186,16 @@ function groupPages(
   return out;
 }
 
-/**
- * Map a heartbeat lastSeen (ms epoch) to one of the three status colors.
- * Mirrors the rule in DisplaysSection so the sidebar dot and the per-
- * display detail page header agree on a display's online state.
- */
+/** Map a heartbeat lastSeen (ms epoch) to one of the three status colors. */
 function statusDotClass(lastSeen: number | null): string {
-  if (!lastSeen) return 'bg-hs-text-faint';
-  const diff = Date.now() - lastSeen;
-  if (diff < 30_000) return 'bg-hs-success ring-2 ring-hs-success/20';
-  if (diff < 300_000) return 'bg-hs-warning';
-  return 'bg-hs-text-faint';
+  switch (heartbeatState(lastSeen)) {
+    case 'online':
+      return 'bg-hs-success ring-2 ring-hs-success/20';
+    case 'idle':
+      return 'bg-hs-warning';
+    case 'offline':
+      return 'bg-hs-text-faint';
+  }
 }
 
 export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) {

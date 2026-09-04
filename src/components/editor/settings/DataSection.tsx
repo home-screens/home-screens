@@ -29,8 +29,8 @@ interface ConfigBackupFile {
   modified: string;
 }
 
-/** Recoverable credential errors from POST /api/backup — machine codes the
- *  server returns so the client can drive the unlock modal in any language. */
+/** Recoverable credential errors from POST /api/backup: the `code` beside the
+ *  server's sentence, so the client can drive the unlock modal in any language. */
 const CREDENTIAL_ERROR_CODES = ['passphrase_required', 'bad_passphrase', 'invalid_credentials'] as const;
 type CredentialErrorCode = (typeof CREDENTIAL_ERROR_CODES)[number];
 
@@ -325,7 +325,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (!res.ok) {
         if (res.status === 400) {
           const data = await res.json().catch(() => ({}));
-          if (isCredentialErrorCode(data?.error)) return data.error;
+          if (isCredentialErrorCode(data?.code)) return data.code;
         }
         throw new Error(`HTTP ${res.status}`);
       }

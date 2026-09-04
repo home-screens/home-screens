@@ -42,8 +42,6 @@ export type ProviderStatusType =
  */
 export interface WeatherProvider {
   id: WeatherProviderId;
-  /** Brand / proper-noun name. Rendered verbatim in every locale. */
-  name: string;
   taglineKey: string;
   helperTextKey?: string;
   secretKey: WeatherSecretKey | null;
@@ -62,7 +60,6 @@ export interface WeatherProvider {
 export const WEATHER_PROVIDERS: WeatherProvider[] = [
   {
     id: 'open-meteo',
-    name: 'Open-Meteo',
     taglineKey: 'settings.weatherPage.providers.openMeteo.tagline',
     helperTextKey: 'settings.weatherPage.providers.openMeteo.helperText',
     secretKey: null,
@@ -70,7 +67,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'weatherapi',
-    name: 'WeatherAPI.com',
     taglineKey: 'settings.weatherPage.providers.weatherApi.tagline',
     secretKey: 'weatherapi_key',
     keyHintKey: 'settings.weatherPage.providers.weatherApi.keyHint',
@@ -79,7 +75,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'openweathermap',
-    name: 'OpenWeatherMap',
     taglineKey: 'settings.weatherPage.providers.openWeatherMap.tagline',
     secretKey: 'openweathermap_key',
     keyHintKey: 'settings.weatherPage.providers.openWeatherMap.keyHint',
@@ -88,7 +83,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'pirateweather',
-    name: 'Pirate Weather',
     taglineKey: 'settings.weatherPage.providers.pirateWeather.tagline',
     secretKey: 'pirateweather_key',
     keyHintKey: 'settings.weatherPage.providers.pirateWeather.keyHint',
@@ -97,7 +91,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'noaa',
-    name: 'NOAA / NWS',
     taglineKey: 'settings.weatherPage.providers.noaa.tagline',
     helperTextKey: 'settings.weatherPage.providers.noaa.helperText',
     secretKey: null,
@@ -105,7 +98,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'yr',
-    name: 'Yr.no / MET Norway',
     taglineKey: 'settings.weatherPage.providers.yr.tagline',
     helperTextKey: 'settings.weatherPage.providers.yr.helperText',
     secretKey: null,
@@ -113,7 +105,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'smhi',
-    name: 'SMHI',
     taglineKey: 'settings.weatherPage.providers.smhi.tagline',
     helperTextKey: 'settings.weatherPage.providers.smhi.helperText',
     secretKey: null,
@@ -125,7 +116,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'metoffice',
-    name: 'UK Met Office',
     taglineKey: 'settings.weatherPage.providers.metOffice.tagline',
     secretKey: 'metoffice_key',
     keyHintKey: 'settings.weatherPage.providers.metOffice.keyHint',
@@ -134,7 +124,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   },
   {
     id: 'envcanada',
-    name: 'Environment Canada',
     taglineKey: 'settings.weatherPage.providers.envCanada.tagline',
     helperTextKey: 'settings.weatherPage.providers.envCanada.helperText',
     secretKey: null,

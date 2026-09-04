@@ -26,7 +26,8 @@ const { GET, cache } = cachedProxyRoute<Record<string, unknown>, AirQualityParam
       );
     }
 
-    const apiKey = await requireSecret('openweathermap_key', 'OpenWeatherMap');
+    // The OpenWeatherMap key field lives on the Weather page, not API keys.
+    const apiKey = await requireSecret('openweathermap_key', 'OpenWeatherMap', 'weather');
     if (apiKey instanceof NextResponse) return apiKey;
 
     const { lat, lon } = location;
@@ -36,7 +37,7 @@ const { GET, cache } = cachedProxyRoute<Record<string, unknown>, AirQualityParam
 
     if (airRes.status === 401 || airRes.status === 403) {
       log.warn(`Air pollution API rejected the OpenWeatherMap key (${airRes.status})`);
-      return setupErrorResponse(`OpenWeatherMap rejected the API key (${airRes.status})`, 'invalidKey', 'OpenWeatherMap');
+      return setupErrorResponse(`OpenWeatherMap rejected the API key (${airRes.status})`, 'invalidKey', 'OpenWeatherMap', 'weather');
     }
     if (!airRes.ok) {
       log.error(`Air pollution API returned ${airRes.status}`);

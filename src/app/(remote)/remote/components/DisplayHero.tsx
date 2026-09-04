@@ -4,7 +4,7 @@ import type { DisplayStatus } from '@/lib/display-commands';
 import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { useTranslate } from '@/i18n';
 import type { DisplayLiveEntry } from '../display-target';
-import { isOfflineSince } from '../display-liveness';
+import { isOfflineSince } from '@/lib/display-liveness';
 
 interface DisplayHeroProps {
   status: DisplayStatus | null;

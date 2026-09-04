@@ -743,6 +743,13 @@ export function parseCommaList(param: string | null): string[] {
   return param.split(',').map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Body cap for routes that take a handful of short fields (a URL, a key, a
+ * passphrase). Generous for the real payload, small enough that nothing
+ * expensive runs on a body worth buffering.
+ */
+export const SMALL_BODY_BYTES = 8 * 1024;
+
 export interface ParseJsonBodyOptions {
   /**
    * Maximum accepted body size in bytes. When set, an oversized request is

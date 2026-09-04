@@ -15,6 +15,7 @@ import {
   RESERVED_DISPLAY_IDS,
 } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
+import { heartbeatState } from '@/lib/display-liveness';
 import { settingsHref } from '@/lib/settings-route';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import type { DisplayNode } from '@/types/config';
@@ -737,26 +738,26 @@ function DisplayCard({
         label: '—',
       };
     }
-    const diff = Date.now() - lastSeen;
-    if (diff < 30_000) {
-      return {
-        className: 'bg-hs-success/10 border-hs-success/30 text-hs-success',
-        dot: 'bg-hs-success',
-        label: t('settings.displaysIndex.statusOnline', { time: formatLastSeen(lastSeen) }),
-      };
+    switch (heartbeatState(lastSeen)) {
+      case 'online':
+        return {
+          className: 'bg-hs-success/10 border-hs-success/30 text-hs-success',
+          dot: 'bg-hs-success',
+          label: t('settings.displaysIndex.statusOnline', { time: formatLastSeen(lastSeen) }),
+        };
+      case 'idle':
+        return {
+          className: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning',
+          dot: 'bg-hs-warning',
+          label: t('settings.displaysIndex.statusIdle', { time: formatLastSeen(lastSeen) }),
+        };
+      case 'offline':
+        return {
+          className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
+          dot: 'bg-hs-card',
+          label: t('settings.displaysIndex.statusOffline', { time: formatLastSeen(lastSeen) }),
+        };
     }
-    if (diff < 300_000) {
-      return {
-        className: 'bg-hs-warning/10 border-hs-warning/30 text-hs-warning',
-        dot: 'bg-hs-warning',
-        label: t('settings.displaysIndex.statusIdle', { time: formatLastSeen(lastSeen) }),
-      };
-    }
-    return {
-      className: 'bg-hs-card border-hs-border-strong text-hs-text-muted',
-      dot: 'bg-hs-card',
-      label: t('settings.displaysIndex.statusOffline', { time: formatLastSeen(lastSeen) }),
-    };
   })();
 
   return (

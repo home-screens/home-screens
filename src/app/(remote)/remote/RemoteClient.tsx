@@ -13,7 +13,7 @@ import {
   type DisplayLiveEntry,
   type DisplayTargetValue,
 } from './display-target';
-import { CONFIRM_TIMEOUT_MS, isOfflineSince } from './display-liveness';
+import { CONFIRM_TIMEOUT_MS, isOfflineSince } from '@/lib/display-liveness';
 import { showToast } from './remote-toast';
 import StatusBar from './components/StatusBar';
 import ConnectionBanner from './components/ConnectionBanner';

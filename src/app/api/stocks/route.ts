@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cachedProxyRoute, createTTLCache, fetchWithTimeout, parseCommaList } from '@/lib/api-utils';
+import { logger } from '@/lib/logger';
+
+const log = logger('stocks');
 
 export const dynamic = 'force-dynamic';
 
@@ -213,7 +216,7 @@ function noteRateLimited(): void {
   const delay = Math.min(BACKOFF_BASE_MS * 2 ** rateLimitStrikes, BACKOFF_MAX_MS);
   rateLimitStrikes++;
   rateLimitedUntil = Date.now() + delay;
-  console.warn(`[stocks] Yahoo rate limited; pausing all stock fetches for ${Math.round(delay / 1000)}s`);
+  log.warn(`Yahoo rate limited; pausing all stock fetches for ${Math.round(delay / 1000)}s`);
 }
 
 async function fetchLegUncached(symbol: string, chart: Chart): Promise<ChartWithMeta> {
@@ -278,7 +281,7 @@ async function fetchStock(symbol: string, charts: Chart[]): Promise<StockResult>
     const leg = legs[i];
     if (leg.status === 'rejected') {
       const reason = leg.reason instanceof Error ? leg.reason.message : String(leg.reason);
-      console.warn(`[stocks] ${symbol} ${charts[i]} chart failed: ${reason}`);
+      log.warn(`${symbol} ${charts[i]} chart failed: ${reason}`);
     }
   }
   const day = ok.find((l) => l.value.chart === 'day')?.value.yc;

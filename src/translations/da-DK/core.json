@@ -44,6 +44,8 @@
   },
   "pagination": {
     "paused": "Sat på pause",
+    "previousScreen": "Forrige skærm",
+    "nextScreen": "Næste skærm",
     "resumesIn": "Fortsætter om {time} · tryk for at fortsætte nu",
     "tapToResume": "tryk for at fortsætte",
     "minutes": "{count} min",

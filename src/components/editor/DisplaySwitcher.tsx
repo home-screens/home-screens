@@ -9,11 +9,9 @@ import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { useOutsidePointerDown } from '@/hooks/useOutsidePointerDown';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
+import { isOnlineNow } from '@/lib/display-liveness';
 import { settingsPath } from '@/lib/settings-route';
 import { useTranslate } from '@/i18n';
-
-/** A display that has checked in within this window is treated as switched on. */
-const ONLINE_WINDOW_MS = 30_000;
 
 /**
  * Display picker for the editor toolbar. Shows which display the editor is
@@ -160,7 +158,7 @@ export default function DisplaySwitcher() {
         >
           {displays.map((d, i) => {
             const lastSeen = heartbeats.get(d.id) ?? null;
-            const online = lastSeen != null && Date.now() - lastSeen < ONLINE_WINDOW_MS;
+            const online = isOnlineNow(lastSeen);
             const dims = dimensionsFor(d);
             return (
               <button

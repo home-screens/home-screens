@@ -1,11 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
-import { SetupError, withAuth, parseJsonBody } from '@/lib/api-utils';
+import { SetupError, withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 
 export const dynamic = 'force-dynamic';
-
-const MAX_BODY_BYTES = 8 * 1024;
 
 /** Providers that take a household API key, and so can reject one. */
 const KEYED_PROVIDERS = new Set(['openweathermap', 'weatherapi', 'pirateweather', 'metoffice']);
@@ -27,7 +25,7 @@ export type WeatherKeyCheck =
  * hourly request and never stored here. Editor session only.
  */
 export const POST = withAuth(async (request) => {
-  const body = await parseJsonBody<{ provider?: string; key?: string }>(request, { maxBytes: MAX_BODY_BYTES });
+  const body = await parseJsonBody<{ provider?: string; key?: string }>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const provider = typeof body.provider === 'string' ? body.provider : '';
   const key = typeof body.key === 'string' ? body.key.trim() : '';

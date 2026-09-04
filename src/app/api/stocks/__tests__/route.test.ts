@@ -343,7 +343,7 @@ describe('GET /api/stocks', () => {
     // The partial leg is named, not silently dropped, and logged.
     expect(json.stocks[0].missingCharts).toEqual(['day']);
     expect(json.failedSymbols).toBeUndefined();
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('AAPL day chart failed'));
+    expect(console.warn).toHaveBeenCalledWith('[stocks]', expect.stringContaining('AAPL day chart failed'));
   });
 
   it('week-only without previousClose reports no daily change instead of the week move', async () => {
@@ -696,7 +696,7 @@ describe('GET /api/stocks', () => {
     expect(first.status).toBe(502);
     const callsAfterFirst = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
     expect(callsAfterFirst).toBeGreaterThan(0);
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('rate limited'));
+    expect(console.warn).toHaveBeenCalledWith('[stocks]', expect.stringContaining('rate limited'));
 
     // Within the back-off window nothing reaches Yahoo, even for new symbols.
     const second = await GET(makeRequest('GOOGL', 'day'));

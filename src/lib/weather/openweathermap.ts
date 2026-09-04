@@ -115,7 +115,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
   private forecastPromise?: Promise<OWMForecastResponse>;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new SetupError('OpenWeatherMap API key is not configured. Add it in Settings > API keys.', 'key', 'OpenWeatherMap', 'weather');
+    if (!apiKey) throw new SetupError('OpenWeatherMap API key is not configured. Add it in Settings > Weather.', 'key', 'OpenWeatherMap', 'weather');
     this.apiKey = apiKey;
   }
 

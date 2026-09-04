@@ -121,9 +121,6 @@
     "zoomHint": "Ctrl+scrollen om te zoomen, scrollen om te verschuiven"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Gepland, momenteel actief",
-    "scheduledInactiveTitle": "Gepland, momenteel inactief",
-    "disabledTitle": "Uitgeschakeld, niet getoond op display",
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
     "backgroundProviderTitle": "Draait verborgen op de achtergrond, wordt nooit op het display getoond",
     "conditionMetTitle": "Voorwaarden voldaan, nu zichtbaar op het scherm",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Welk display bewerk je nu op dit canvas? (Instellingen-overrides staan onder Instellingen → Per display.)",
     "label": "Welk display bewerk je nu op dit canvas?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "nu aan",
     "lastSeen": "laatst gezien {time}",
     "addDisplay": "Display toevoegen"
@@ -224,7 +220,6 @@
     "fromLabel": "Van",
     "untilLabel": "Tot",
     "endsOnLabel": "Eindigt op",
-    "endsSameDay": "dezelfde dag",
     "endsNextDay": "de volgende dag",
     "endsDaysLater": "{count} dagen later",
     "behaviorTitle": "Gedrag",

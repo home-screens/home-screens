@@ -121,9 +121,6 @@
     "zoomHint": "Ctrl+rul for at zoome, rul for at flytte rundt"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Planlagt, aktiv lige nu",
-    "scheduledInactiveTitle": "Planlagt, ikke aktiv lige nu",
-    "disabledTitle": "Slået fra, vises ikke på displayet",
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
     "backgroundProviderTitle": "Kører skjult i baggrunden, vises aldrig på skærmen",
     "conditionMetTitle": "Betingelser opfyldt, vises på skærmen nu",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Hvilket display redigerer dette lærred? (Tilsidesatte indstillinger findes under Indstillinger → Pr. display.)",
     "label": "Hvilket display redigerer dette lærred?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "tændt lige nu",
     "lastSeen": "sidst set {time}",
     "addDisplay": "Tilføj et display"
@@ -224,7 +220,6 @@
     "fromLabel": "Fra",
     "untilLabel": "Til",
     "endsOnLabel": "Slutter",
-    "endsSameDay": "samme dag",
     "endsNextDay": "dagen efter",
     "endsDaysLater": "{count} dage senere",
     "behaviorTitle": "Opførsel",

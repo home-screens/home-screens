@@ -2,6 +2,7 @@
 
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { WEATHER_PROVIDERS } from './weather/providers';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 import WeatherProviderCard from './weather/WeatherProviderCard';
 import { useTranslate } from '@/i18n';
 
@@ -78,7 +79,7 @@ export default function WeatherSection({ values, onChange }: Props) {
       {defaultNeedsKey && defaultProvider && (
         <div data-testid="weather-default-needs-key" className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2.5 mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="text-xs text-hs-warning flex-1 min-w-[16rem]">
-            {t('settings.weatherPage.defaultNeedsKey.message', { provider: defaultProvider.name })}
+            {t('settings.weatherPage.defaultNeedsKey.message', { provider: weatherProviderName(defaultProvider.id) })}
           </p>
           <button
             type="button"

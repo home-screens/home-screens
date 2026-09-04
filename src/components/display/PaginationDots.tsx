@@ -245,7 +245,7 @@ export default function PaginationDots({
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }} data-testid="pagination-compact">
             <button
               onClick={() => tap((activeIndex - 1 + screens.length) % screens.length)}
-              aria-label="Previous screen"
+              aria-label={t('pagination.previousScreen')}
               style={{ ...hitTarget, fontSize: 22, lineHeight: 1 }}
             >
               ‹
@@ -271,7 +271,7 @@ export default function PaginationDots({
             </button>
             <button
               onClick={() => tap((activeIndex + 1) % screens.length)}
-              aria-label="Next screen"
+              aria-label={t('pagination.nextScreen')}
               style={{ ...hitTarget, fontSize: 22, lineHeight: 1 }}
             >
               ›

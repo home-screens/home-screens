@@ -170,7 +170,7 @@ export class MetOfficeProvider implements WeatherProvider {
   private apiKey: string;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new SetupError('Met Office API key is not configured. Add it in Settings > API keys.', 'key', 'Met Office', 'weather');
+    if (!apiKey) throw new SetupError('UK Met Office API key is not configured. Add it in Settings > Weather.', 'key', 'UK Met Office', 'weather');
     this.apiKey = apiKey;
   }
 
@@ -224,7 +224,7 @@ export class MetOfficeProvider implements WeatherProvider {
       `?latitude=${latStr}&longitude=${lonStr}` +
       `&excludeParameterMetadata=true&includeLocationName=false`;
 
-    const promise = fetchKeyedWeatherJSON<MetOfficeResponse>(url, 'Met Office', {
+    const promise = fetchKeyedWeatherJSON<MetOfficeResponse>(url, 'UK Met Office', {
       headers: { apikey: this.apiKey, Accept: 'application/json' },
     })
       .then((data) => {

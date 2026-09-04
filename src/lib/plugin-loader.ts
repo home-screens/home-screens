@@ -263,7 +263,14 @@ async function syncEditorAfterMigrations(applied: { manifest: PluginManifest; ol
   const config = structuredClone(store.config);
   for (const { manifest, oldVersion } of applied) migrateConfigModules(config, manifest, oldVersion);
   const revision = applied[applied.length - 1].revision;
-  useEditorStore.setState({ config, ...(revision ? { configRevision: revision } : {}) });
+  // Bump the generation like every other outside-the-session replacement, so
+  // an open settings form re-hydrates instead of writing its pre-migration
+  // snapshot back over the migrated shape on the next keystroke.
+  useEditorStore.setState({
+    config,
+    configGeneration: store.configGeneration + 1,
+    ...(revision ? { configRevision: revision } : {}),
+  });
 }
 
 // ---------------------------------------------------------------------------

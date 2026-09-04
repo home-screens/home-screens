@@ -121,9 +121,6 @@
     "zoomHint": "Ctrl + rueda para hacer zoom, rueda para moverte"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Programado, activo ahora",
-    "scheduledInactiveTitle": "Programado, inactivo ahora",
-    "disabledTitle": "Desactivado, no se muestra en pantalla",
     "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones",
     "backgroundProviderTitle": "Se ejecuta oculto en segundo plano, nunca se muestra en pantalla",
     "conditionMetTitle": "Condiciones cumplidas, visible en la pantalla ahora",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "¿Qué display estás editando en este lienzo? (Las anulaciones de ajustes están en Ajustes → Por display.)",
     "label": "¿Qué display estás editando en este lienzo?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "encendido ahora",
     "lastSeen": "visto por última vez {time}",
     "addDisplay": "Añadir un display"
@@ -224,7 +220,6 @@
     "fromLabel": "Desde",
     "untilLabel": "Hasta",
     "endsOnLabel": "Termina",
-    "endsSameDay": "el mismo día",
     "endsNextDay": "al día siguiente",
     "endsDaysLater": "{count} días después",
     "behaviorTitle": "Comportamiento",

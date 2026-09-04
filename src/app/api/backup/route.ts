@@ -125,35 +125,47 @@ function sectionsPresentIn(payload: CredentialPayload): CredentialSection[] {
 }
 
 /**
+ * A sentence for anything that prints `error` verbatim, plus the machine code
+ * the editor maps to localized copy. Both, always: `error` alone reaches a
+ * phone, and a code alone would show it the word `bad_passphrase`.
+ */
+const CREDENTIAL_ERRORS = {
+  passphrase_required: 'This backup\'s saved keys are password protected. Enter the password to restore them.',
+  bad_passphrase: 'That password does not match the one this backup was saved with.',
+  invalid_credentials: 'The saved keys in this backup are damaged and cannot be read.',
+} as const;
+
+function credentialError(code: keyof typeof CREDENTIAL_ERRORS): NextResponse {
+  return NextResponse.json({ error: CREDENTIAL_ERRORS[code], code }, { status: 400 });
+}
+
+/**
  * Turn the bundle's `credentials` field into a payload we can write, or into
  * the 400 the client needs to drive its passphrase prompt. Runs BEFORE any
- * disk write, so a wrong password costs nothing.
- *
- * The error strings are machine codes, not prose: the editor maps them to
- * localized copy, and `passphrase_required` specifically is what opens the
- * password modal on the restore path.
+ * disk write, so a wrong password costs nothing. `passphrase_required` is
+ * what opens the password modal on the restore path.
  */
 async function resolveCredentials(
   raw: unknown,
   passphrase: string | undefined,
 ): Promise<CredentialPayload | NextResponse> {
   if (!isCredentialEnvelope(raw)) {
-    return NextResponse.json({ error: 'invalid_credentials' }, { status: 400 });
+    return credentialError('invalid_credentials');
   }
   const envelope = raw as CredentialEnvelope;
   if (!isEncryptedEnvelope(envelope)) return envelope.data;
 
   if (!passphrase) {
-    return NextResponse.json({ error: 'passphrase_required' }, { status: 400 });
+    return credentialError('passphrase_required');
   }
   try {
     return await decryptCredentials(envelope, passphrase);
   } catch (err) {
     if (err instanceof BadPassphraseError) {
-      return NextResponse.json({ error: 'bad_passphrase' }, { status: 400 });
+      return credentialError('bad_passphrase');
     }
     if (err instanceof MalformedEnvelopeError) {
-      return NextResponse.json({ error: 'invalid_credentials' }, { status: 400 });
+      return credentialError('invalid_credentials');
     }
     throw err;
   }

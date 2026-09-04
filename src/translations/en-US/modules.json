@@ -361,7 +361,6 @@
     "noMealsPlannedYet": "No meals planned yet",
     "noMealsPlanned": "No meals planned",
     "noMealPlanned": "No meal planned",
-    "nothingPlanned": "Nothing planned",
     "nothingPlannedThisWeek": "Nothing planned this week",
     "todaysMeals": "Today's Meals",
     "now": "now",
@@ -645,10 +644,6 @@
         "other": "−{count} tickets"
       },
       "memberTickets": "Tickets for {member}",
-      "balanceCount": {
-        "one": "{count} ticket",
-        "other": "{count} tickets"
-      },
       "rewardCost": {
         "one": "{count} ticket",
         "other": "{count} tickets"

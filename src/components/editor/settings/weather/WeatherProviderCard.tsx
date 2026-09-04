@@ -8,6 +8,7 @@ import IntegrationCard from '../shared/IntegrationCard';
 import SecretField, { type SecretCheck } from '../shared/SecretField';
 import type { WeatherKeyCheck } from '@/app/api/weather/check-key/route';
 import { getProviderStatus, type WeatherProvider, type WeatherProviderId, type ProviderStatusType } from './providers';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
 const ICONS: Record<WeatherProviderId, React.ReactNode> = {
@@ -81,6 +82,7 @@ export default function WeatherProviderCard({
   const [testStatus, setTestStatus] = useState<TestStatus | null>(null);
   const [testing, setTesting] = useState(false);
 
+  const providerName = weatherProviderName(provider.id);
   const isFree = provider.secretKey === null;
   const { type } = getProviderStatus(isDefault, keyConfigured, isFree);
   const label = translateProviderStatus(type, t);
@@ -103,8 +105,8 @@ export default function WeatherProviderCard({
     return {
       ok: false,
       message: verdict.reason === 'rejected'
-        ? t('settings.weatherPage.providerCard.keyCheck.rejected', { provider: provider.name })
-        : t('settings.weatherPage.providerCard.keyCheck.unreachable', { provider: provider.name }),
+        ? t('settings.weatherPage.providerCard.keyCheck.rejected', { provider: providerName })
+        : t('settings.weatherPage.providerCard.keyCheck.unreachable', { provider: providerName }),
       detail: verdict.detail,
       allowAnyway: true,
     };
@@ -159,8 +161,8 @@ export default function WeatherProviderCard({
         setTestStatus({
           kind: 'error',
           message: rejectedKey
-            ? t('settings.weatherPage.providerCard.testStatus.rejectedKey', { provider: provider.name })
-            : t('settings.weatherPage.providerCard.testStatus.failedPlain', { provider: provider.name }),
+            ? t('settings.weatherPage.providerCard.testStatus.rejectedKey', { provider: providerName })
+            : t('settings.weatherPage.providerCard.testStatus.failedPlain', { provider: providerName }),
           detail: [err.error, err.detail].filter((part): part is string => typeof part === 'string' && part.length > 0).join(': ') || undefined,
         });
       }
@@ -183,7 +185,7 @@ export default function WeatherProviderCard({
     <IntegrationCard
       icon={ICONS[provider.id]}
       iconBg={provider.iconBg}
-      name={provider.name}
+      name={providerName}
       description={t(provider.taglineKey)}
       statusLabel={label}
       statusType={cardStatusType}

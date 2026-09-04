@@ -5,7 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
 import { usePendingCommand } from '../hooks';
-import { CONFIRM_TIMEOUT_MS } from '../display-liveness';
+import { CONFIRM_TIMEOUT_MS } from '@/lib/display-liveness';
 
 interface BrightnessCardProps {
   /**

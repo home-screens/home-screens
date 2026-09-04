@@ -6,6 +6,7 @@ import { ExternalLink, LayoutGrid } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
 import { formatLastSeen } from '@/lib/time-format';
+import { heartbeatState, type HeartbeatState } from '@/lib/display-liveness';
 import { useDisplayHeartbeats } from '@/hooks/useDisplayHeartbeats';
 import { formatClientAddress, collapseReports } from '@/components/editor/settings/DisplaysIndexPage';
 import { PER_DISPLAY_SUBTABS, settingsHref, type PerDisplaySubtab } from '@/lib/settings-route';
@@ -45,7 +46,7 @@ interface PerDisplayPageProps {
 
 // The status pill drives styling AND copy off `kind` rather than sniffing the
 // English label so de-DE / future locales never break the CSS branching.
-type StatusKind = 'online' | 'idle' | 'offline';
+type StatusKind = HeartbeatState;
 interface StatusInfo {
   bg: string;
   text: string;
@@ -54,17 +55,19 @@ interface StatusInfo {
 }
 
 function statusColor(lastSeen: number | null): StatusInfo {
+  // Never heard from at all: same words as offline, but no border, so a
+  // display that has yet to check in does not read as one that went away.
   if (!lastSeen) {
     return { bg: 'bg-hs-card', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
   }
-  const diff = Date.now() - lastSeen;
-  if (diff < 30_000) {
-    return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', kind: 'online' };
+  switch (heartbeatState(lastSeen)) {
+    case 'online':
+      return { bg: 'bg-hs-success/10 border-hs-success/30', text: 'text-hs-success', dot: 'bg-hs-success', kind: 'online' };
+    case 'idle':
+      return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', kind: 'idle' };
+    case 'offline':
+      return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
   }
-  if (diff < 300_000) {
-    return { bg: 'bg-hs-warning/10 border-hs-warning/30', text: 'text-hs-warning', dot: 'bg-hs-warning', kind: 'idle' };
-  }
-  return { bg: 'bg-hs-card border-hs-border-strong', text: 'text-hs-text-muted', dot: 'bg-hs-card', kind: 'offline' };
 }
 
 function statusLabel(kind: StatusKind, t: TranslateFn): string {

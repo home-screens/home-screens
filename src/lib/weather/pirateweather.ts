@@ -65,7 +65,7 @@ export class PirateWeatherProvider implements WeatherProvider {
   private fetchPromise: Promise<PWResponse> | null = null;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new SetupError('Pirate Weather API key is not configured. Add it in Settings > API keys.', 'key', 'Pirate Weather', 'weather');
+    if (!apiKey) throw new SetupError('Pirate Weather API key is not configured. Add it in Settings > Weather.', 'key', 'Pirate Weather', 'weather');
     this.apiKey = apiKey;
   }
 

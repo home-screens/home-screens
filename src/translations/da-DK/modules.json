@@ -361,7 +361,6 @@
     "noMealsPlannedYet": "Ingen måltider planlagt endnu",
     "noMealsPlanned": "Ingen måltider planlagt",
     "noMealPlanned": "Intet måltid planlagt",
-    "nothingPlanned": "Intet planlagt",
     "nothingPlannedThisWeek": "Intet planlagt i denne uge",
     "todaysMeals": "Dagens måltider",
     "now": "nu",
@@ -645,10 +644,6 @@
         "other": "−{count} billetter"
       },
       "memberTickets": "{member}s billetter",
-      "balanceCount": {
-        "one": "{count} billet",
-        "other": "{count} billetter"
-      },
       "rewardCost": {
         "one": "{count} billet",
         "other": "{count} billetter"

@@ -187,12 +187,20 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
     try {
       const res = await editorFetch('/api/onedrive/auth', { method: 'POST' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      // The server's `error` sentence is English, for curl. Everything shown
+      // here comes from the dictionary, keyed off `code`.
+      if (!res.ok) {
+        setError(t(data?.code === 'credentials_missing'
+          ? 'configSections.onedriveSource.credentialsNeeded'
+          : 'configSections.onedriveSource.signInFailed'));
+        return;
+      }
       setFlow(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('configSections.onedriveSource.signInFailed'));
+    } catch {
+      setError(t('configSections.onedriveSource.signInFailed'));
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   };
 
   const disconnect = async () => {

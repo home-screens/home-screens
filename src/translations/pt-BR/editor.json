@@ -121,9 +121,6 @@
     "zoomHint": "Segure Ctrl e role para dar zoom; role para se mover."
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Agendado, atualmente ativo",
-    "scheduledInactiveTitle": "Agendado, atualmente inativo",
-    "disabledTitle": "Desativado, não exibido no display",
     "conditionGatedTitle": "Só aparece quando suas condições são atendidas",
     "backgroundProviderTitle": "Executa oculto em segundo plano, nunca é exibido no display",
     "conditionMetTitle": "Condições atendidas, visível na tela agora",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Qual tela este canvas está editando? (Substituições de configurações ficam em Configurações → Por tela.)",
     "label": "Qual tela este canvas está editando?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "ligado agora",
     "lastSeen": "visto pela última vez {time}",
     "addDisplay": "Adicionar um display"
@@ -224,7 +220,6 @@
     "fromLabel": "De",
     "untilLabel": "Até",
     "endsOnLabel": "Termina",
-    "endsSameDay": "no mesmo dia",
     "endsNextDay": "no dia seguinte",
     "endsDaysLater": "{count} dias depois",
     "behaviorTitle": "Comportamento",

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, getClientIP, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { isAuthEnabled } from '@/lib/auth';
 import { collectCredentials } from '@/lib/backup-credentials';
 import { encryptCredentials } from '@/lib/backup-crypto';
@@ -42,15 +42,21 @@ export const POST = withAuth(async (request: NextRequest) => {
   // distinguishes the owner from anyone else on the LAN — so it requires one.
   if (!(await isAuthEnabled())) {
     audit({ action: 'credential_backup_denied', ip: getClientIP(request) });
-    return NextResponse.json({ error: 'editor_password_required' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'Set an editor password before saving your keys in a backup.', code: 'editor_password_required' },
+      { status: 403 },
+    );
   }
 
-  const body = await parseJsonBody<{ passphrase?: unknown }>(request);
+  const body = await parseJsonBody<{ passphrase?: unknown }>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
 
   const passphrase = typeof body.passphrase === 'string' ? body.passphrase : '';
   if (passphrase && passphrase.length < MIN_PASSPHRASE_LENGTH) {
-    return NextResponse.json({ error: 'passphrase_too_short' }, { status: 400 });
+    return NextResponse.json(
+      { error: `The backup password must be at least ${MIN_PASSPHRASE_LENGTH} characters.`, code: 'passphrase_too_short' },
+      { status: 400 },
+    );
   }
 
   const payload = await collectCredentials();

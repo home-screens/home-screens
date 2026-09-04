@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { withAuth, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
-
-const MAX_BODY_BYTES = 8 * 1024;
 
 /**
  * Probe an iCal / ICS link before the editor saves it, so a wrong paste (a
@@ -19,7 +17,7 @@ const MAX_BODY_BYTES = 8 * 1024;
  * cannot be used to look around the home network.
  */
 export const POST = withAuth(async (request) => {
-  const body = await parseJsonBody<{ url?: string; homeNetwork?: boolean }>(request, { maxBytes: MAX_BODY_BYTES });
+  const body = await parseJsonBody<{ url?: string; homeNetwork?: boolean }>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const url = typeof body.url === 'string' ? body.url.trim() : '';
   if (!url) {

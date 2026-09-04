@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-utils';
-import { startDeviceFlow, pollDeviceFlow, onedriveDisconnect } from '@/lib/onedrive';
+import { startDeviceFlow, pollDeviceFlow, onedriveDisconnect, OneDriveError } from '@/lib/onedrive';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,10 +16,16 @@ export const POST = withAuth(async () => {
   try {
     return NextResponse.json(await startDeviceFlow());
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Could not start Microsoft sign-in' },
-      { status: 400 },
-    );
+    // Same catch as folders/photos/serve: only a OneDriveError is an answer,
+    // anything else is a bug and belongs in withAuth's 500 with a log. The
+    // `code` is what the editor translates; the sentence is for curl.
+    if (error instanceof OneDriveError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code ?? 'start_failed' },
+        { status: error.status },
+      );
+    }
+    throw error; // withAuth answers 500
   }
 }, 'Could not start Microsoft sign-in');
 

@@ -308,7 +308,10 @@ describe('POST /api/backup — credential section', () => {
     const res = await POST(postReq(bundleWith(envelope)));
 
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('passphrase_required');
+    const body = await res.json();
+    expect(body.code).toBe('passphrase_required');
+    // A generic consumer prints `error`, so it must be a sentence.
+    expect(body.error).toMatch(/ /);
     // A missing password must cost nothing — not even the config write.
     expect(await readSecrets()).toEqual({});
     expect((await readConfig()).screens[0].id).toBe('default');
@@ -319,7 +322,10 @@ describe('POST /api/backup — credential section', () => {
     const res = await POST(postReq(bundleWith(envelope, { _passphrase: 'wrong password here' })));
 
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('bad_passphrase');
+    const body = await res.json();
+    expect(body.code).toBe('bad_passphrase');
+    // A generic consumer prints `error`, so it must be a sentence.
+    expect(body.error).toMatch(/ /);
     expect(await readSecrets()).toEqual({});
   });
 
@@ -340,7 +346,10 @@ describe('POST /api/backup — credential section', () => {
   it('rejects a credentials field that is not a recognizable envelope', async () => {
     const res = await POST(postReq(bundleWith({ secrets: { openweathermap_key: 'raw' } })));
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('invalid_credentials');
+    const body = await res.json();
+    expect(body.code).toBe('invalid_credentials');
+    // A generic consumer prints `error`, so it must be a sentence.
+    expect(body.error).toMatch(/ /);
     expect(await readSecrets()).toEqual({});
   });
 
@@ -349,7 +358,10 @@ describe('POST /api/backup — credential section', () => {
     const damaged = { ...envelope, kdfParams: { ...envelope.kdfParams, N: 1000 } };
     const res = await POST(postReq(bundleWith(damaged, { _passphrase: PASSWORD })));
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('invalid_credentials');
+    const body = await res.json();
+    expect(body.code).toBe('invalid_credentials');
+    // A generic consumer prints `error`, so it must be a sentence.
+    expect(body.error).toMatch(/ /);
   });
 
   // The client's fallback when the user cannot supply the password: re-post

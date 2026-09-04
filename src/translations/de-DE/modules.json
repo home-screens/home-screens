@@ -361,7 +361,6 @@
     "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
     "noMealsPlanned": "Keine Mahlzeiten geplant",
     "noMealPlanned": "Keine Mahlzeit geplant",
-    "nothingPlanned": "Nichts geplant",
     "nothingPlannedThisWeek": "Diese Woche nichts geplant",
     "todaysMeals": "Mahlzeiten heute",
     "now": "jetzt",
@@ -645,10 +644,6 @@
         "other": "−{count} Tickets"
       },
       "memberTickets": "Tickets von {member}",
-      "balanceCount": {
-        "one": "{count} Ticket",
-        "other": "{count} Tickets"
-      },
       "rewardCost": {
         "one": "{count} Ticket",
         "other": "{count} Tickets"

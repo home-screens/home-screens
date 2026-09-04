@@ -1,4 +1,5 @@
 import type { SecretKey } from '@/components/editor/settings/shared/SecretField';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 
 /**
  * Every outside service a household can connect, and the secrets that count
@@ -19,7 +20,8 @@ import type { SecretKey } from '@/components/editor/settings/shared/SecretField'
  */
 export interface ConnectableService {
   id: string;
-  /** Brand name, deliberately untranslated. */
+  /** Brand name, deliberately untranslated. Weather rows take theirs from
+   *  `weatherProviderName` so the Weather page and this one cannot disagree. */
   label: string;
   /** Two-letter badge used by the Status page's grid. */
   initials: string;
@@ -56,10 +58,10 @@ export const CONNECTABLE_SERVICES: ConnectableService[] = [
   { id: 'todoist', label: 'Todoist', initials: 'TD', page: 'integrations', keys: ['todoist_token'] },
   { id: 'tomtom', label: 'TomTom', initials: 'TT', page: 'integrations', keys: ['tomtom_key'] },
   { id: 'github', label: 'GitHub', initials: 'GH', page: 'integrations', keys: ['github_token'], advancedOnly: true },
-  { id: 'openweathermap', label: 'OpenWeatherMap', initials: 'OW', page: 'weather', keys: ['openweathermap_key'] },
-  { id: 'weatherapi', label: 'WeatherAPI', initials: 'WA', page: 'weather', keys: ['weatherapi_key'] },
-  { id: 'pirateweather', label: 'Pirate Weather', initials: 'PW', page: 'weather', keys: ['pirateweather_key'] },
-  { id: 'metoffice', label: 'Met Office', initials: 'MO', page: 'weather', keys: ['metoffice_key'] },
+  { id: 'openweathermap', label: weatherProviderName('openweathermap'), initials: 'OW', page: 'weather', keys: ['openweathermap_key'] },
+  { id: 'weatherapi', label: weatherProviderName('weatherapi'), initials: 'WA', page: 'weather', keys: ['weatherapi_key'] },
+  { id: 'pirateweather', label: weatherProviderName('pirateweather'), initials: 'PW', page: 'weather', keys: ['pirateweather_key'] },
+  { id: 'metoffice', label: weatherProviderName('metoffice'), initials: 'MO', page: 'weather', keys: ['metoffice_key'] },
 ];
 
 /** The keys that decide whether a service counts as connected. */

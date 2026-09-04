@@ -36,9 +36,12 @@ const PAGE_SIZE = 200;
  *  is a real ceiling: 25 x 200 items scanned to fill a 1,000-photo sample. */
 const MAX_LIST_PAGES = 25;
 
+/** What went wrong, for routes that let the editor translate the reason. */
+export type OneDriveErrorCode = 'credentials_missing' | 'start_failed';
+
 export class OneDriveError extends Error {
   /** HTTP status the API route should respond with. */
-  constructor(message: string, readonly status: number = 502) {
+  constructor(message: string, readonly status: number = 502, readonly code?: OneDriveErrorCode) {
     super(message);
   }
 }
@@ -115,7 +118,7 @@ export interface DeviceFlowStart {
 
 export async function startDeviceFlow(): Promise<DeviceFlowStart> {
   const clientId = await getMicrosoftClientId();
-  if (!clientId) throw new OneDriveError('Add your Microsoft Application ID in Settings, API keys first', 400);
+  if (!clientId) throw new OneDriveError('Add your Microsoft Application ID in Settings, API keys first', 400, 'credentials_missing');
 
   const res = await fetchWithTimeout(DEVICE_URL, {
     method: 'POST',
@@ -126,7 +129,7 @@ export async function startDeviceFlow(): Promise<DeviceFlowStart> {
   const data = await res.json();
   if (!res.ok || !data.device_code || !data.user_code) {
     log.error('Device flow failed to start:', data.error_description || data.error || res.status);
-    throw new OneDriveError('Microsoft would not start sign-in. Check the Application ID.', 400);
+    throw new OneDriveError('Microsoft would not start sign-in. Check the Application ID.', 400, 'start_failed');
   }
   pendingDeviceFlow = {
     deviceCode: data.device_code,

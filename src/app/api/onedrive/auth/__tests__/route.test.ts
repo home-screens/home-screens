@@ -7,15 +7,21 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/onedrive', () => ({
-  startDeviceFlow: vi.fn(),
-  pollDeviceFlow: vi.fn(),
-  cancelDeviceFlow: vi.fn(),
-  onedriveDisconnect: vi.fn(),
-}));
+vi.mock('@/lib/onedrive', async () => {
+  // The route branches on `instanceof OneDriveError`, so the mock has to
+  // carry the real class, not a stub.
+  const actual = await vi.importActual<typeof import('@/lib/onedrive')>('@/lib/onedrive');
+  return {
+    OneDriveError: actual.OneDriveError,
+    startDeviceFlow: vi.fn(),
+    pollDeviceFlow: vi.fn(),
+    cancelDeviceFlow: vi.fn(),
+    onedriveDisconnect: vi.fn(),
+  };
+});
 
 import { GET, POST, DELETE } from '@/app/api/onedrive/auth/route';
-import { startDeviceFlow, pollDeviceFlow, onedriveDisconnect } from '@/lib/onedrive';
+import { startDeviceFlow, pollDeviceFlow, onedriveDisconnect, OneDriveError } from '@/lib/onedrive';
 
 const mockStart = vi.mocked(startDeviceFlow);
 const mockPoll = vi.mocked(pollDeviceFlow);
@@ -41,13 +47,28 @@ describe('POST /api/onedrive/auth', () => {
     });
   });
 
-  it('surfaces start failures as 400 with the message', async () => {
-    mockStart.mockRejectedValue(new Error('Add your Microsoft Application ID in Settings, API keys first'));
+  it('answers a missing Application ID with a code the editor can translate', async () => {
+    mockStart.mockRejectedValue(
+      new OneDriveError('Add your Microsoft Application ID in Settings, API keys first', 400, 'credentials_missing'),
+    );
 
     const res = await POST(new NextRequest('http://localhost/api/onedrive/auth', { method: 'POST' }));
 
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toContain('Application ID');
+    const body = await res.json();
+    expect(body.code).toBe('credentials_missing');
+    // The sentence stays for curl callers.
+    expect(body.error).toContain('Application ID');
+  });
+
+  it('lets an unexpected failure be a 500 rather than a 400 carrying a Node message', async () => {
+    mockStart.mockRejectedValue(new TypeError('fetch failed'));
+
+    const res = await POST(new NextRequest('http://localhost/api/onedrive/auth', { method: 'POST' }));
+
+    expect(res.status).toBe(500);
+    // withAuth's standard shape: a sentence in `error`, the raw cause in `detail`.
+    expect(await res.json()).toEqual({ error: 'Could not start Microsoft sign-in', detail: 'fetch failed' });
   });
 });
 

@@ -44,6 +44,8 @@
   },
   "pagination": {
     "paused": "Pausado",
+    "previousScreen": "Tela anterior",
+    "nextScreen": "Próxima tela",
     "resumesIn": "Continua em {time} · toque para continuar agora",
     "tapToResume": "toque para continuar",
     "minutes": "{count} min",

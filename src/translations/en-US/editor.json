@@ -121,9 +121,6 @@
     "zoomHint": "Ctrl+scroll to zoom, scroll to move around"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Scheduled, currently active",
-    "scheduledInactiveTitle": "Scheduled, currently inactive",
-    "disabledTitle": "Disabled, not shown on display",
     "conditionGatedTitle": "Shows only when its conditions are met",
     "backgroundProviderTitle": "Runs hidden in the background and never shown on the display",
     "conditionMetTitle": "Conditions met, showing on the display now",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Which display is this canvas editing? (Settings overrides live in Settings → Per display.)",
     "label": "Which display is this canvas editing?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "on now",
     "lastSeen": "last seen {time}",
     "addDisplay": "Add a display"
@@ -224,7 +220,6 @@
     "fromLabel": "From",
     "untilLabel": "Until",
     "endsOnLabel": "Ends on",
-    "endsSameDay": "the same day",
     "endsNextDay": "the next day",
     "endsDaysLater": "{count} days later",
     "behaviorTitle": "Behavior",

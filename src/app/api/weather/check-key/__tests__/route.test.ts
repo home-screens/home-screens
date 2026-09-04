@@ -68,7 +68,7 @@ describe('POST /api/weather/check-key', () => {
     expect(await res.json()).toEqual({
       ok: false,
       reason: 'rejected',
-      provider: 'WeatherAPI',
+      provider: 'WeatherAPI.com',
       detail: expect.stringContaining('API key is invalid'),
     });
   });

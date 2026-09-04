@@ -44,6 +44,8 @@
   },
   "pagination": {
     "paused": "Pausiert",
+    "previousScreen": "Vorheriger Bildschirm",
+    "nextScreen": "Nächster Bildschirm",
     "resumesIn": "Geht in {time} weiter · zum Fortsetzen tippen",
     "tapToResume": "zum Fortsetzen tippen",
     "minutes": "{count} Min.",

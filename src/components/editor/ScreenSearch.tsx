@@ -45,7 +45,10 @@ export default function ScreenSearch() {
 
   // Cmd/Ctrl+K toggles from anywhere in the editor. It stays out of text
   // fields (opening would blur them and commit half-typed drafts, e.g. a tab
-  // rename) except its own input, and defers to any other open dialog.
+  // rename) except its own input, and defers to any other open dialog. It
+  // deliberately does NOT defer to an open context menu: the menu closes on
+  // the way through, and swallowing a keystroke the user typed on purpose
+  // would leave the menu up with nothing happening.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'k') return;

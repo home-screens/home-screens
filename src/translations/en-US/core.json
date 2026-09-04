@@ -44,6 +44,8 @@
   },
   "pagination": {
     "paused": "Paused",
+    "previousScreen": "Previous screen",
+    "nextScreen": "Next screen",
     "resumesIn": "Resumes in {time} · tap to resume now",
     "tapToResume": "tap to resume",
     "minutes": "{count} min",

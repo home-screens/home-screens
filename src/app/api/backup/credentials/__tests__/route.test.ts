@@ -53,7 +53,9 @@ describe('POST /api/backup/credentials', () => {
 
     const res = await POST(postReq({}));
     expect(res.status).toBe(403);
-    expect((await res.json()).error).toBe('editor_password_required');
+    const body = await res.json();
+    expect(body.code).toBe('editor_password_required');
+    expect(body.error).toMatch(/ /);
   });
 
   it('leaks nothing in the refusal body', async () => {
@@ -112,7 +114,9 @@ describe('POST /api/backup/credentials', () => {
   it('rejects a password shorter than the minimum', async () => {
     const res = await POST(postReq({ passphrase: 'short' }));
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('passphrase_too_short');
+    const body = await res.json();
+    expect(body.code).toBe('passphrase_too_short');
+    expect(body.error).toMatch(/ /);
   });
 
   it('rejects a malformed body', async () => {

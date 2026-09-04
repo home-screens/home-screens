@@ -328,7 +328,7 @@ describe('OpenMeteoProvider', () => {
 
 describe('WeatherAPIProvider', () => {
   it('throws without API key', () => {
-    expect(() => new WeatherAPIProvider()).toThrow('WeatherAPI key is not configured');
+    expect(() => new WeatherAPIProvider()).toThrow('WeatherAPI.com key is not configured');
   });
 
   describe('condition code mapping', () => {

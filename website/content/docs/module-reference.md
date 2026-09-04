@@ -402,7 +402,7 @@ Unified weather module with {% $stats.weatherViewCount %} views and {% $stats.we
 {% callout type="note" title="Set your location first" %}
 Every weather view needs a latitude and longitude. Set them once in **Settings > Weather**. Without a location the module shows an error rather than a forecast.
 
-Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), **Yr.no**, **SMHI**, and **Environment Canada**. Four need a free key added under **Settings > API keys**: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather**, and **Met Office**.
+Five providers work with no API key at all: **Open-Meteo**, **NOAA** (US only), **Yr.no**, **SMHI**, and **Environment Canada**. Four need a free key added on the provider's own card under **Settings > Weather**: **OpenWeatherMap**, **WeatherAPI**, **Pirate Weather**, and **Met Office**.
 {% /callout %}
 
 **Views:** `current`, `hourly`, `daily`, `combined`, `compact`, `table`, `precipitation`, `alerts`
@@ -474,7 +474,7 @@ Air quality index and pollutant levels.
 | `showPollutants` | boolean | `false` | Show individual pollutant levels (PM2.5, PM10, O3, NO2) |
 | `refreshIntervalMs` | number | `300000` | Refresh interval (5 min) |
 
-Requires an **OpenWeatherMap** API key (Settings > API keys) and a location set in **Settings > Weather**. The location is checked first, so a missing location shows an error even when the key is in place.
+Requires an **OpenWeatherMap** API key (on its card under Settings > Weather) and a location set in **Settings > Weather**. The location is checked first, so a missing location shows an error even when the key is in place.
 
 ### Rain Map
 

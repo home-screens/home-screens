@@ -121,9 +121,6 @@
     "zoomHint": "Strg+Scrollen zum Zoomen, Scrollen zum Verschieben"
   },
   "draggableModule": {
-    "scheduledActiveTitle": "Geplant – derzeit aktiv",
-    "scheduledInactiveTitle": "Geplant – derzeit inaktiv",
-    "disabledTitle": "Deaktiviert – nicht auf dem Display angezeigt",
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
     "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
     "conditionMetTitle": "Bedingungen erfüllt, wird auf dem Display angezeigt",
@@ -143,7 +140,6 @@
   "displaySwitcher": {
     "title": "Welches Display bearbeitet diese Leinwand gerade? (Einstellungs-Überschreibungen liegen unter Einstellungen → Pro Display.)",
     "label": "Welches Display bearbeitet diese Leinwand gerade?",
-    "optionWithDimensions": "{name} ({width}×{height})",
     "onNow": "jetzt an",
     "lastSeen": "zuletzt gesehen {time}",
     "addDisplay": "Display hinzufügen"
@@ -224,7 +220,6 @@
     "fromLabel": "Von",
     "untilLabel": "Bis",
     "endsOnLabel": "Endet am",
-    "endsSameDay": "am selben Tag",
     "endsNextDay": "am nächsten Tag",
     "endsDaysLater": "{count} Tage später",
     "behaviorTitle": "Verhalten",

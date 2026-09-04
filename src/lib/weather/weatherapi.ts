@@ -57,13 +57,13 @@ export class WeatherAPIProvider implements WeatherProvider {
   private apiKey: string;
 
   constructor(apiKey?: string) {
-    if (!apiKey) throw new SetupError('WeatherAPI key is not configured. Add it in Settings > API keys.', 'key', 'WeatherAPI', 'weather');
+    if (!apiKey) throw new SetupError('WeatherAPI.com key is not configured. Add it in Settings > Weather.', 'key', 'WeatherAPI.com', 'weather');
     this.apiKey = apiKey;
   }
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
     const url = `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=2&aqi=no`;
-    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI');
+    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI.com');
     const isCelsius = units === 'metric';
     const isDay = data.current?.is_day === 1;
 
@@ -89,7 +89,7 @@ export class WeatherAPIProvider implements WeatherProvider {
 
   async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
     const url = `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=7&aqi=no`;
-    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI');
+    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI.com');
     const isCelsius = units === 'metric';
 
     return data.forecast.forecastday.map((d) => ({
