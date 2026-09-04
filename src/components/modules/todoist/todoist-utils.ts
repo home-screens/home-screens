@@ -1,4 +1,4 @@
-import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
+import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n/types';
@@ -122,13 +122,20 @@ export function daysBetween(a: Date, b: Date): number {
 }
 
 /**
- * Pick a clock-time format string based on the locale's resolved hour
- * cycle. `Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions()
- * .hourCycle` returns `'h11' | 'h12' | 'h23' | 'h24'` — the first two are
- * 12-hour, the latter two 24-hour. This correctly classifies en-GB and
- * fr-CA as 24h (which `locale.startsWith('en')` misses).
+ * Pick a clock-time format string: the household's 12/24 choice when it has
+ * made one, otherwise the locale's own convention.
+ *
+ * The locale fallback is load-bearing, not a guess. `Intl.DateTimeFormat(locale,
+ * { hour: 'numeric' }).resolvedOptions().hourCycle` returns
+ * `'h11' | 'h12' | 'h23' | 'h24'` — the first two are 12-hour, the latter two
+ * 24-hour — which correctly classifies en-GB and fr-CA as 24h (something
+ * `locale.startsWith('en')` misses). The 12/24 picker stores nothing when the
+ * answer is 12h, so "absent" cannot be read as "chose 12h": doing that would
+ * flip every en-GB, fr-CA, de-DE and nl-NL household from 14:30 to 2:30 PM
+ * without anyone touching a setting.
  */
-function pickTimeFormat(locale: string): string {
+function pickTimeFormat(locale: string, timeFormat: TimeFormat | undefined): string {
+  if (timeFormat) return timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
   const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
   return cycle === 'h11' || cycle === 'h12' ? 'h:mm a' : 'HH:mm';
 }
@@ -143,6 +150,7 @@ export function formatDueDate(
   now: Date,
   t: TranslateFn,
   locale: string = DEFAULT_LOCALE,
+  timeFormat?: TimeFormat,
 ): { text: string; color: string } {
   if (!due) return { text: '', color: '' };
 
@@ -161,7 +169,7 @@ export function formatDueDate(
   }
   if (diff === 0) {
     if (due.datetime) {
-      const timeText = formatDateSync(dueDate, pickTimeFormat(locale), { locale });
+      const timeText = formatDateSync(dueDate, pickTimeFormat(locale, timeFormat), { locale });
       return {
         text: t('todoist.dueDate.todayAtTime', { time: timeText }),
         color: '#f59e0b',

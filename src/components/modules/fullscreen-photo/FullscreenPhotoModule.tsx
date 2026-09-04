@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle } from '@/types/config';
+import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle, TimeFormat } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
@@ -158,15 +158,18 @@ function NoPhotosYet({ theme, t, cloudHint }: { theme: FullscreenThemeTokens; t:
 
 // ── Clock overlay ────────────────────────────
 
-function ClockOverlay({ theme, timezone }: { theme: FullscreenThemeTokens; timezone?: string }) {
+function ClockOverlay({ theme, timezone, timeFormat }: { theme: FullscreenThemeTokens; timezone?: string; timeFormat?: TimeFormat }) {
   // Display-timezone clock, not browser-local — the Pi's OS timezone may differ
   const time = useTZClock(timezone, 1000);
   const locale = useFormattingLocale();
 
-  // Resolve the locale's hour cycle from Intl rather than guessing on the
-  // language tag — this gets en-GB (24h) and fr-CA (24h) right.
+  // The household's 12/24 choice when it has made one. Otherwise resolve the
+  // locale's hour cycle from Intl rather than guessing on the language tag —
+  // this gets en-GB (24h) and fr-CA (24h) right, and the 12/24 picker stores
+  // nothing for 12h, so "absent" must not be read as "chose 12h" or every
+  // 24-hour locale would flip to AM/PM without anyone touching a setting.
   const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
-  const is12Hour = cycle === 'h11' || cycle === 'h12';
+  const is12Hour = timeFormat ? timeFormat === '12h' : (cycle === 'h11' || cycle === 'h12');
   const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
   const minutes = time.getMinutes().toString().padStart(2, '0');
   const ampm = is12Hour ? (time.getHours() >= 12 ? 'PM' : 'AM') : null;
@@ -225,13 +228,15 @@ interface FullscreenPhotoModuleProps {
   style: ModuleStyle;
   timezone?: string;
   fullscreenTheme?: string;
+  /** Household 12/24 choice, threaded by buildModuleProps. */
+  timeFormat?: TimeFormat;
   // Threaded by ScreenRenderer on real displays only; the editor preview gets
   // neither, so video slides show posters and rotate on the photo timer there.
   screenId?: string;
   moduleId?: string;
 }
 
-export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, screenId, moduleId }: FullscreenPhotoModuleProps) {
+export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, timeFormat, screenId, moduleId }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -318,7 +323,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
           layerIndex={0}
         />
         {config.showClock && (
-          <ClockOverlay theme={theme} timezone={timezone} />
+          <ClockOverlay theme={theme} timezone={timezone} timeFormat={timeFormat} />
         )}
       </div>
     );
@@ -402,7 +407,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
 
       {/* Clock overlay */}
       {config.showClock && (
-        <ClockOverlay theme={theme} timezone={timezone} />
+        <ClockOverlay theme={theme} timezone={timezone} timeFormat={timeFormat} />
       )}
     </div>
   );

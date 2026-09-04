@@ -196,7 +196,7 @@ export function runGallery(label: string): void {
         await page.clock.setFixedTime(galleryInstant());
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await pinRandom(page);
-        await stubModuleData(page);
+        await stubModuleData(page, variant.stubOverrides ? { overrides: variant.stubOverrides } : {});
 
         const def = getModuleDefinition(variant.type);
         const mod = applyScenario(

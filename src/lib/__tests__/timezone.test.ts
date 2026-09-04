@@ -93,18 +93,18 @@ describe('createTZDate', () => {
 describe('formatTimeInTZ', () => {
   it('returns "—" (em dash) for an invalid/NaN Date', () => {
     const nanDate = new Date('not-a-date');
-    expect(formatTimeInTZ(nanDate)).toBe('—');
+    expect(formatTimeInTZ(nanDate, { locale: 'en-US', hour12: true })).toBe('—');
   });
 
   it('returns "—" for NaN Date even when timezone and options are provided', () => {
     const nanDate = new Date(NaN);
-    expect(formatTimeInTZ(nanDate, 'America/Chicago', { hour12: false })).toBe('—');
+    expect(formatTimeInTZ(nanDate, { timezone: 'America/Chicago', locale: 'en-US', hour12: false })).toBe('—');
   });
 
   it('formats a valid date with a specific timezone', () => {
     // Use a known UTC instant: 2024-01-15T12:30:00Z (noon UTC)
     const date = new Date('2024-01-15T12:30:00Z');
-    const result = formatTimeInTZ(date, 'America/New_York');
+    const result = formatTimeInTZ(date, { timezone: 'America/New_York', locale: 'en-US', hour12: true });
 
     // New York is UTC-5 in January, so 12:30 UTC → 7:30 AM ET
     expect(result).toMatch(/7:30/);
@@ -113,7 +113,7 @@ describe('formatTimeInTZ', () => {
 
   it('formats a valid date without timezone (uses system default)', () => {
     const date = new Date('2024-06-15T18:45:00Z');
-    const result = formatTimeInTZ(date);
+    const result = formatTimeInTZ(date, { locale: 'en-US', hour12: true });
 
     // Should return a formatted string, not "—"
     expect(result).not.toBe('—');
@@ -122,7 +122,7 @@ describe('formatTimeInTZ', () => {
 
   it('falls back gracefully for an invalid timezone (does NOT throw)', () => {
     const date = new Date('2024-01-15T12:30:00Z');
-    const result = formatTimeInTZ(date, 'Invalid/Timezone_Zone');
+    const result = formatTimeInTZ(date, { timezone: 'Invalid/Timezone_Zone', locale: 'en-US', hour12: true });
 
     // Should still format, just without timezone override
     expect(result).not.toBe('—');
@@ -131,7 +131,7 @@ describe('formatTimeInTZ', () => {
 
   it('passes through custom Intl options (hour12: false)', () => {
     const date = new Date('2024-01-15T15:30:00Z');
-    const result = formatTimeInTZ(date, 'UTC', { hour12: false });
+    const result = formatTimeInTZ(date, { timezone: 'UTC', locale: 'en-US', hour12: false });
 
     // With hour12: false and UTC, should show 15:30 (no AM/PM)
     expect(result).toMatch(/15:30/);
@@ -140,7 +140,7 @@ describe('formatTimeInTZ', () => {
 
   it('passes through custom Intl options (second display)', () => {
     const date = new Date('2024-01-15T12:30:45Z');
-    const result = formatTimeInTZ(date, 'UTC', { second: '2-digit' });
+    const result = formatTimeInTZ(date, { timezone: 'UTC', locale: 'en-US', hour12: true }, { second: '2-digit' });
 
     // Should include seconds
     expect(result).toMatch(/45/);
@@ -150,7 +150,7 @@ describe('formatTimeInTZ', () => {
     // 2024-07-15T00:00:00Z — midnight UTC
     const date = new Date('2024-07-15T00:00:00Z');
 
-    const sydney = formatTimeInTZ(date, 'Australia/Sydney');
+    const sydney = formatTimeInTZ(date, { timezone: 'Australia/Sydney', locale: 'en-US', hour12: true });
     // Sydney is UTC+10 in July (AEST, no DST), so midnight UTC → 10:00 AM
     expect(sydney).toMatch(/10:00/);
     expect(sydney).toMatch(/AM/);
@@ -166,8 +166,8 @@ describe('formatTimeInTZ', () => {
     // resilient to ICU version drift while still proving the locale
     // flowed end-to-end.
     const date = new Date('2024-07-15T15:30:00Z');
-    const de = formatTimeInTZ(date, 'Europe/Berlin', { hour12: false }, 'de-DE');
-    const en = formatTimeInTZ(date, 'Europe/Berlin', { hour12: false }, 'en-US');
+    const de = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false });
+    const en = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'en-US', hour12: false });
     // Both should hit the locale-default 24h path with Berlin = UTC+2
     // in July, so 15:30 UTC → 17:30 Berlin. The exact separator/spacing
     // can differ between locales (de-DE may include narrow no-break
@@ -182,8 +182,8 @@ describe('formatTimeInTZ', () => {
       hour: 'numeric',
       minute: '2-digit',
     };
-    const deLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'de-DE');
-    const enLong = formatTimeInTZ(date, 'Europe/Berlin', dateOptions, 'en-US');
+    const deLong = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'de-DE', hour12: false }, dateOptions);
+    const enLong = formatTimeInTZ(date, { timezone: 'Europe/Berlin', locale: 'en-US', hour12: false }, dateOptions);
     expect(deLong).not.toBe(enLong);
   });
 });

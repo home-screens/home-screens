@@ -154,38 +154,48 @@ export function toTZWallTime(date: Date, timezone?: string): Date {
 }
 
 /**
+ * How a clock time should be rendered: which zone, which locale, and 12 or 24
+ * hour.
+ *
+ * All three are required on purpose. This function used to default `locale` to
+ * en-US and `hour12` to true, so the obvious call — `formatTimeInTZ(date, tz)` —
+ * silently produced American 12-hour output regardless of the household's
+ * language or its 12/24 setting. Two modules were written that way and nothing
+ * pointed at them. Required fields make the compiler do the pointing.
+ */
+export interface ClockFormat {
+  timezone?: string;
+  /** BCP-47 tag for the Intl formatter (`useFormattingLocale()` on the client). */
+  locale: string;
+  /** true = 12-hour with AM/PM, false = 24-hour. */
+  hour12: boolean;
+}
+
+/**
  * Format a Date's time in the given timezone using Intl.
  * Useful for modules that display times from external sources (SunCalc, APIs)
  * where the Date is already a real UTC instant.
- *
- * `locale` is the BCP-47 tag used for the Intl formatter — defaults to
- * `DEFAULT_LOCALE` (en-US). Pass the value from `useFormattingLocale()`
- * (client) or from `settings.formattingLocale` (server) for
- * locale-aware output.
  */
 export function formatTimeInTZ(
   date: Date,
-  timezone?: string,
+  fmt: ClockFormat,
   options?: Intl.DateTimeFormatOptions,
-  locale: string = DEFAULT_LOCALE,
 ): string {
   if (isNaN(date.getTime())) return '—';
+  const base: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: fmt.hour12,
+    ...options,
+  };
   try {
-    return date.toLocaleTimeString(locale, {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      ...options,
-      ...(timezone ? { timeZone: timezone } : {}),
+    return date.toLocaleTimeString(fmt.locale, {
+      ...base,
+      ...(fmt.timezone ? { timeZone: fmt.timezone } : {}),
     });
   } catch {
     // Invalid timezone — format without timezone override
-    return date.toLocaleTimeString(locale, {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      ...options,
-    });
+    return date.toLocaleTimeString(fmt.locale, base);
   }
 }
 

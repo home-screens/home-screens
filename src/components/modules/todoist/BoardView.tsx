@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { TodoistConfig, TodoistGroupBy } from '@/types/config';
+import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import {
   PRIORITY_COLORS,
@@ -17,11 +17,14 @@ export default function BoardView({
   config,
   now,
   onComplete,
+  timeFormat,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
   onComplete?: (taskId: string) => void;
+  /** Household 12/24 choice; absent falls back to the locale's own cycle. */
+  timeFormat?: TimeFormat;
 }) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -71,7 +74,7 @@ export default function BoardView({
           {/* Task cards */}
           <div className="flex flex-col gap-1 p-1.5 overflow-hidden flex-1">
             {group.tasks.map((t) => {
-              const dueInfo = formatDueDate(t.due, now, tr, locale);
+              const dueInfo = formatDueDate(t.due, now, tr, locale, timeFormat);
               const isOverdue = t.due
                 ? daysBetween(
                     new Date(t.due.datetime ?? t.due.date + 'T23:59:59'),

@@ -2,7 +2,7 @@
 
 import { useId, useMemo } from 'react';
 import SunCalc from 'suncalc';
-import { formatTimeInTZ } from '@/lib/timezone';
+import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { useRealClock } from '@/hooks/useTZClock';
 import { svgFontSize } from '@/lib/module-style';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -10,13 +10,17 @@ import { CIRCLE, CIRCLE_R, astroDarkWindow, circleAngle, circleArcPath, circleLa
 import { decompose, formatDuration } from '@/lib/duration-format';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { SunriseSunsetConfig, SunriseSunsetTheme, ModuleStyle } from '@/types/config';
+import type { SunriseSunsetConfig, SunriseSunsetTheme, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
 
 interface SunriseSunsetModuleProps {
   config: SunriseSunsetConfig;
   style: ModuleStyle;
+  /** Household 12/24-hour preference, threaded by buildModuleProps. Absent
+   *  means nobody has chosen, which keeps this module's historic 12-hour
+   *  default rather than inventing one. */
+  timeFormat?: TimeFormat;
   latitude?: number;
   longitude?: number;
   locationSettingsHref?: string;
@@ -76,7 +80,6 @@ function arcPoint(progress: number, cx: number, cy: number, rx: number, ry: numb
 function SunArcView({
   times,
   now,
-  timezone,
   fontScale,
   showDayLength,
   showGoldenHour,
@@ -84,10 +87,10 @@ function SunArcView({
   dark,
   polar,
   locale,
+  clock,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
-  timezone?: string;
   showDayLength: boolean;
   showGoldenHour: boolean;
   t: TranslateFn;
@@ -96,6 +99,8 @@ function SunArcView({
   locale: string;
   /** Module `Style > Font size`, biasing the SVG's user-unit text. */
   fontScale: number;
+  /** Zone, locale and 12/24 for every clock time this view prints. */
+  clock: ClockFormat;
 }) {
   const uid = useId();
   const sunGlowId = `sun-glow-${uid}`;
@@ -112,13 +117,13 @@ function SunArcView({
           </>
         ) : (
           <>
-            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
-            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
+            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, clock)}</span>
+            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, clock)}</span>
           </>
         )}
         {dark && (
           <span>
-            {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, timezone)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, timezone)}
+            {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, clock)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, clock)}
           </span>
         )}
         {showDayLength && !polar && <span>{getDayLength(sunrise, sunset, locale)}</span>}
@@ -211,7 +216,7 @@ function SunArcView({
                 fillOpacity={TEXT_OPACITY.dim}
                 style={{ fontSize: svgFontSize(8, fontScale) }}
               >
-                {formatTimeInTZ(times.goldenHour, timezone)}
+                {formatTimeInTZ(times.goldenHour, clock)}
               </text>
             </g>
           );
@@ -257,7 +262,7 @@ function SunArcView({
           fillOpacity={TEXT_OPACITY.secondary}
           style={{ fontSize: svgFontSize(9, fontScale) }}
         >
-          {formatTimeInTZ(sunrise, timezone)}
+          {formatTimeInTZ(sunrise, clock)}
         </text>
         <text
           x={arcStartX}
@@ -278,7 +283,7 @@ function SunArcView({
           fillOpacity={TEXT_OPACITY.secondary}
           style={{ fontSize: svgFontSize(9, fontScale) }}
         >
-          {formatTimeInTZ(sunset, timezone)}
+          {formatTimeInTZ(sunset, clock)}
         </text>
         <text
           x={arcEndX}
@@ -297,7 +302,7 @@ function SunArcView({
           so the dark events (which fall outside that span) have no honest position on it. */}
       {dark && (
         <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
-          {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, timezone)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, timezone)}
+          {t('sunrise-sunset.darkBegins')} {formatTimeInTZ(dark.begins, clock)} · {t('sunrise-sunset.darkEnds')} {formatTimeInTZ(dark.ends, clock)}
         </span>
       )}
 
@@ -317,20 +322,21 @@ function SunArcView({
 
 function DefaultView({
   times,
-  timezone,
   showDayLength,
   showGoldenHour,
   t,
   dark,
   locale,
+  clock,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
-  timezone?: string;
   showDayLength: boolean;
   showGoldenHour: boolean;
   t: TranslateFn;
   dark: AstroDarkWindow | null;
   locale: string;
+  /** Zone, locale and 12/24 for every clock time this view prints. */
+  clock: ClockFormat;
 }) {
   return (
     <div className="flex flex-col items-center justify-center h-full" style={{ gap: '0.6em' }}>
@@ -341,7 +347,7 @@ function DefaultView({
             {t('sunrise-sunset.sunrise')}
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
-            {formatTimeInTZ(times.sunrise, timezone)}
+            {formatTimeInTZ(times.sunrise, clock)}
           </span>
         </div>
 
@@ -351,7 +357,7 @@ function DefaultView({
             {t('sunrise-sunset.sunset')}
           </span>
           <span className="font-light" style={{ fontSize: '1.3em' }}>
-            {formatTimeInTZ(times.sunset, timezone)}
+            {formatTimeInTZ(times.sunset, clock)}
           </span>
         </div>
       </div>
@@ -363,7 +369,7 @@ function DefaultView({
               {t('sunrise-sunset.darkBegins')}
             </span>
             <span className="font-light" style={{ fontSize: '0.95em' }}>
-              {formatTimeInTZ(dark.begins, timezone)}
+              {formatTimeInTZ(dark.begins, clock)}
             </span>
           </div>
           <div className="flex flex-col items-center" style={{ gap: '0.1em' }}>
@@ -371,7 +377,7 @@ function DefaultView({
               {t('sunrise-sunset.darkEnds')}
             </span>
             <span className="font-light" style={{ fontSize: '0.95em' }}>
-              {formatTimeInTZ(dark.ends, timezone)}
+              {formatTimeInTZ(dark.ends, clock)}
             </span>
           </div>
         </div>
@@ -388,7 +394,7 @@ function DefaultView({
               : t('sunrise-sunset.darkLength', { length: formatDurationMs(dark.lengthMs, locale) })}
           </span>
           {showGoldenHour && (
-            <span>{t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}</span>
+            <span>{t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, clock) })}</span>
           )}
         </div>
       ) : (
@@ -401,7 +407,7 @@ function DefaultView({
 
           {showGoldenHour && (
             <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.dim }}>
-              {t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, timezone) })}
+              {t('sunrise-sunset.goldenHour', { time: formatTimeInTZ(times.goldenHour, clock) })}
             </span>
           )}
         </>
@@ -430,6 +436,7 @@ function CircleView({
   polar,
   locale,
   theme,
+  clock,
 }: {
   times: ReturnType<typeof SunCalc.getTimes>;
   now: Date;
@@ -443,6 +450,8 @@ function CircleView({
   theme?: SunriseSunsetTheme;
   /** Module `Style > Font size`, biasing the SVG's user-unit text. */
   fontScale: number;
+  /** Zone, locale and 12/24 for every clock time this view prints. */
+  clock: ClockFormat;
 }) {
   const uid = useId();
   const glowId = `circle-sun-glow-${uid}`;
@@ -532,8 +541,8 @@ function CircleView({
           </>
         ) : (
           <>
-            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, timezone)}</span>
-            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, timezone)}</span>
+            <span>{isNaN(sunrise.getTime()) ? t('sunrise-sunset.noSunriseToday') : formatTimeInTZ(sunrise, clock)}</span>
+            <span>{isNaN(sunset.getTime()) ? t('sunrise-sunset.noSunsetToday') : formatTimeInTZ(sunset, clock)}</span>
           </>
         )}
       </div>
@@ -649,7 +658,7 @@ function CircleView({
             <g key={m.wordKey}>
               <circle cx={pt[0]} cy={pt[1]} r="3" fill="#e2e8f0" stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
               <text x={lp.x} y={lp.y} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, fontScale) }}>
-                {formatTimeInTZ(m.time, timezone)}
+                {formatTimeInTZ(m.time, clock)}
               </text>
               <text x={lp.x} y={lp.y + 9} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: svgFontSize(6, fontScale) }}>
                 {t(m.wordKey)}
@@ -666,7 +675,7 @@ function CircleView({
               {t('sunrise-sunset.goldenHourLabel')}
             </text>
             <text x={goldenPt[0] - 11} y={goldenPt[1] + 6.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, fontScale) }}>
-              {formatTimeInTZ(goldenHour, timezone)}
+              {formatTimeInTZ(goldenHour, clock)}
             </text>
           </g>
         )}
@@ -716,7 +725,7 @@ function CircleView({
   );
 }
 
-export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone, locationSettingsHref }: SunriseSunsetModuleProps) {
+export default function SunriseSunsetModule({ config, style, latitude, longitude, timezone, timeFormat, locationSettingsHref }: SunriseSunsetModuleProps) {
   // Real instant, NOT the shifted TZ clock: SunCalc returns true UTC instants,
   // so the arc position / isDaytime comparison and the solar-day selection
   // must use a true epoch too. `timezone` is only for formatting the labels.
@@ -739,13 +748,18 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
   const dark = nextTimes ? astroDarkWindow(times, nextTimes) : null;
   const polar = polarKind(times, latitude, longitude);
 
+  // The household's 12/24 choice when there is one; otherwise this module's
+  // historic 12-hour rendering, so a display nobody has configured does not
+  // move. The locale is the real one either way — it used to be pinned to
+  // en-US, which printed American times on a German wall.
+  const clock: ClockFormat = { timezone, locale, hour12: timeFormat !== '24h' };
+
   return (
     <ModuleWrapper style={style}>
       {view === 'arc' ? (
         <SunArcView
           times={times}
           now={now}
-          timezone={timezone}
           showDayLength={config.showDayLength !== false}
           showGoldenHour={!!config.showGoldenHour}
           t={t}
@@ -753,6 +767,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           polar={polar}
           locale={locale}
           fontScale={style.fontSize}
+          clock={clock}
         />
       ) : view === 'circle' ? (
         <CircleView
@@ -767,16 +782,17 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           locale={locale}
           theme={config.theme}
           fontScale={style.fontSize}
+          clock={clock}
         />
       ) : (
         <DefaultView
           times={times}
-          timezone={timezone}
           showDayLength={config.showDayLength !== false}
           showGoldenHour={!!config.showGoldenHour}
           t={t}
           dark={dark}
           locale={locale}
+          clock={clock}
         />
       )}
     </ModuleWrapper>

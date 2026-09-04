@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { TodoistConfig } from '@/types/config';
+import type { TodoistConfig, TimeFormat } from '@/types/config';
 import type { TodoistTask, TaskNode } from './todoist-utils';
 import {
   PRIORITY_COLORS,
@@ -19,17 +19,20 @@ export function TaskRow({
   now,
   depth = 0,
   onComplete,
+  timeFormat,
 }: {
   task: TaskNode;
   config: TodoistConfig;
   now: Date;
   depth?: number;
   onComplete?: (taskId: string) => void;
+  /** Household 12/24 choice; absent falls back to the locale's own cycle. */
+  timeFormat?: TimeFormat;
 }) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
   const t = task.task;
-  const dueInfo = formatDueDate(t.due, now, tr, locale);
+  const dueInfo = formatDueDate(t.due, now, tr, locale, timeFormat);
   const isOverdue = t.due
     ? daysBetween(new Date(t.due.datetime ?? t.due.date + 'T23:59:59'), now) < 0
     : false;
@@ -161,6 +164,7 @@ export function TaskRow({
       {config.showSubtasks &&
         task.children.map((child) => (
           <TaskRow
+            timeFormat={timeFormat}
             key={child.task.id}
             task={child}
             config={config}
@@ -178,11 +182,13 @@ export default function ListView({
   config,
   now,
   onComplete,
+  timeFormat,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
   onComplete?: (taskId: string) => void;
+  timeFormat?: TimeFormat;
 }) {
   const tr = useTranslate('modules');
   const groups = useMemo(
@@ -230,6 +236,7 @@ export default function ListView({
             <div className="flex flex-col gap-1">
               {tree.map((node) => (
                 <TaskRow
+            timeFormat={timeFormat}
                   key={node.task.id}
                   task={node}
                   config={config}

@@ -1,13 +1,13 @@
 'use client';
 
 import SunCalc from 'suncalc';
-import { formatTimeInTZ } from '@/lib/timezone';
+import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { useRealClock } from '@/hooks/useTZClock';
-import type { MoonPhaseConfig, ModuleStyle } from '@/types/config';
+import type { MoonPhaseConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { MetadataText } from './shared/MetadataText';
 
@@ -18,6 +18,10 @@ interface MoonPhaseModuleProps {
   locationSettingsHref?: string;
   longitude?: number;
   timezone?: string;
+  /** Household 12/24-hour preference, threaded by buildModuleProps. Absent
+   *  means nobody has chosen, which keeps this module's historic 12-hour
+   *  default rather than inventing one. */
+  timeFormat?: TimeFormat;
 }
 
 function getPhaseName(phase: number, t: TranslateFn): string {
@@ -77,12 +81,18 @@ function MoonVisual({ phase }: { phase: number }) {
   );
 }
 
-export default function MoonPhaseModule({ config, style, latitude, longitude, timezone, locationSettingsHref }: MoonPhaseModuleProps) {
+export default function MoonPhaseModule({ config, style, latitude, longitude, timezone, timeFormat, locationSettingsHref }: MoonPhaseModuleProps) {
   // Real instant, NOT the shifted TZ clock: getMoonIllumination/getMoonTimes
   // take true UTC instants; the shifted clock could resolve to the adjacent
   // lunar day. `timezone` is only for formatting the rise/set labels.
   const now = useRealClock();
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
+  // The household's 12/24 choice when there is one; otherwise this module's
+  // historic 12-hour rendering, so a display nobody has configured does not
+  // move. The locale is the real one either way — it used to be pinned to
+  // en-US, which printed American times on a German wall.
+  const clock: ClockFormat = { timezone, locale, hour12: timeFormat !== '24h' };
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
@@ -116,7 +126,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
             {moonTimes.rise && (
               <MetadataText size="sm">
                 <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.rise')}</span>{' '}
-                <span className="tabular-nums">{formatTimeInTZ(moonTimes.rise, timezone)}</span>
+                <span className="tabular-nums">{formatTimeInTZ(moonTimes.rise, clock)}</span>
               </MetadataText>
             )}
             {moonTimes.rise && moonTimes.set && (
@@ -125,7 +135,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
             {moonTimes.set && (
               <MetadataText size="sm">
                 <span style={{ opacity: TEXT_OPACITY.tertiary }}>{t('moon-phase.set')}</span>{' '}
-                <span className="tabular-nums">{formatTimeInTZ(moonTimes.set, timezone)}</span>
+                <span className="tabular-nums">{formatTimeInTZ(moonTimes.set, clock)}</span>
               </MetadataText>
             )}
           </div>

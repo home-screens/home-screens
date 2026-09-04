@@ -63,6 +63,17 @@ export const SCENARIOS: GalleryScenario[] = [
     who: 'German locale and explicitly chose 24-hour',
     settings: { locale: 'de-DE', timeFormat: '24h' },
   },
+  {
+    // The household the 12/24 setting exists for, and the only scenario that
+    // can see two of the four fixes. Todoist and the fullscreen photo clock
+    // derive 12/24 from the locale's hour cycle, so under a German locale they
+    // already showed 24-hour times and honouring the setting changes nothing
+    // visible. On en-US the locale says 12-hour and the setting says 24, and
+    // only then does the fix show.
+    label: 'us-24h',
+    who: 'US locale but explicitly chose 24-hour',
+    settings: { timeFormat: '24h' },
+  },
 ];
 
 /** Global settings for a scenario: the matrix baseline plus its overrides. */
@@ -107,7 +118,15 @@ export interface GalleryViewVariant {
   /** Suffix for the shot filename. */
   name: string;
   config: Record<string, unknown>;
+  /** Stub payload overrides, for a path the shared fixture cannot reach. */
+  stubOverrides?: Record<string, unknown>;
 }
+
+/** Today, in the local zone, as YYYY-MM-DD — matches `galleryInstant()`'s date. */
+const TODAY_ISO = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+})();
 
 export const VIEW_VARIANTS: GalleryViewVariant[] = [
   // Wave 2, item 16: user-unit SVG text, biased by Style > Font size.
@@ -118,4 +137,26 @@ export const VIEW_VARIANTS: GalleryViewVariant[] = [
   // ring, ticks and hands but not them — hence the second variant.
   { type: 'clock', name: 'analog', config: { view: 'analog' } },
   { type: 'clock', name: 'analog-numerals', config: { view: 'analog', showNumerals: true } },
+  // Wave 3b: todoist renders a due *time* only for a task due TODAY that also
+  // carries a datetime (see formatDueDate). The shared fixture's task is
+  // date-only and dated 2099, so it renders "Jan 15" and the 12/24 decision was
+  // never on screen. Built from today so it lands in the same-day branch under
+  // the gallery's fixed clock.
+  {
+    type: 'todoist',
+    name: 'timed-due',
+    config: {},
+    stubOverrides: {
+      todoist: {
+        tasks: [{
+          id: '1001', content: 'Buy oat milk', description: '', priority: 1,
+          due: { date: TODAY_ISO, datetime: `${TODAY_ISO}T14:30:00`, isRecurring: false },
+          labels: [], labelColors: {}, projectId: '2001', projectName: 'Inbox',
+          projectColor: '#808080', sectionId: '', sectionName: '', parentId: null,
+          order: 1, commentCount: 0,
+        }],
+        projects: [{ id: '2001', name: 'Inbox', color: '#808080', order: 1 }],
+      },
+    },
+  },
 ];

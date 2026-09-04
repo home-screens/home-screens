@@ -250,9 +250,16 @@ describe('timeFormat threading', () => {
     expect(other.timeFormat).toBe('24h');
   });
 
-  it('defaults to 12h when no adapter supplies a value', () => {
+  it('passes an unset preference through as undefined rather than collapsing it to 12h', () => {
+    // The builder used to substitute '12h' here. That erased the difference
+    // between "nobody has chosen" and "chose 12h" — and the picker stores
+    // nothing for 12h, so those are the same on disk and undefined is the only
+    // signal a module gets. Modules that can do better than 12h without a
+    // choice (todoist and the fullscreen photo clock read the locale's hour
+    // cycle, which is how en-GB and de-DE get 24-hour times) need to see it.
+    // Every other consumer applies its own `?? DEFAULT_TIME_FORMAT`.
     const cal = buildModuleProps(instance('calendar'), toDisplaySource(displaySettings, LOCATION, emptyShared()));
-    expect(cal.timeFormat).toBe('12h');
+    expect(cal.timeFormat).toBeUndefined();
   });
 
   it('toDisplaySource reads settings.timeFormat', () => {

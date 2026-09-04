@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { TodoistConfig, ModuleStyle } from '@/types/config';
+import type { TodoistConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -24,11 +24,14 @@ const log = logger('todoist');
 interface TodoistModuleProps {
   config: TodoistConfig;
   style: ModuleStyle;
+  /** Household 12/24 choice, threaded by buildModuleProps. Absent means nobody
+   *  has chosen, and due times fall back to the locale's own hour cycle. */
+  timeFormat?: TimeFormat;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
-export default function TodoistModule({ config, style }: TodoistModuleProps) {
+export default function TodoistModule({ config, style, timeFormat }: TodoistModuleProps) {
   const t = useTranslate('modules');
   const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
@@ -153,11 +156,11 @@ export default function TodoistModule({ config, style }: TodoistModuleProps) {
             </div>
           </div>
         ) : viewMode === 'board' ? (
-          <BoardView tasks={tasks} config={config} now={now} onComplete={onComplete} />
+          <BoardView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} />
         ) : viewMode === 'focus' ? (
           <FocusView allTasks={filteredAll} config={config} now={now} onComplete={onComplete} />
         ) : (
-          <ListView tasks={tasks} config={config} now={now} onComplete={onComplete} />
+          <ListView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} />
         )}
       </div>
     </ModuleWrapper>
