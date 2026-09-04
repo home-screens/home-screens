@@ -603,6 +603,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showCurrentMonthLabel: true,
       todayStyle: 'filled',
       accentColor: DEFAULT_CALENDAR_ACCENT,
+      // New calendars fill their card. Existing ones have no such key, and
+      // `fitToBox` reads as off there, so nothing already on a wall moves.
+      fitToBox: true,
     },
     defaultSize: { w: 400, h: 700 },
     defaultStyle: { fontSize: 26 },

@@ -13,7 +13,7 @@ import type { ModuleInstance, MultiMonthTodayStyle } from '@/types/config';
 export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string }>(mod, screenId);
+  const { config: c, set } = useModuleConfig<{ view?: string; monthCount?: number; startDay?: string; showWeekNumbers?: boolean; highlightWeekends?: boolean; showAdjacentDays?: boolean; showCurrentMonthLabel?: boolean; todayStyle?: MultiMonthTodayStyle; accentColor?: string; fitToBox?: boolean }>(mod, screenId);
 
   const TODAY_STYLE_OPTIONS: { value: MultiMonthTodayStyle; label: string }[] = [
     { value: 'filled', label: t('configSections.multi-month.todayFilled') },
@@ -47,6 +47,7 @@ export function MultiMonthConfigSection({ mod, screenId }: { mod: ModuleInstance
         onChange={(v) => set({ startDay: v })}
         options={START_DAY_OPTIONS}
       />
+      <Toggle label={t('configSections.multi-month.fitToBox')} checked={c.fitToBox === true} onChange={(v) => set({ fitToBox: v })} />
       <Toggle label={t('configSections.multi-month.showCurrentMonthLabel')} checked={c.showCurrentMonthLabel !== false} onChange={(v) => set({ showCurrentMonthLabel: v })} />
       <Toggle label={t('configSections.multi-month.showWeekNumbers')} checked={c.showWeekNumbers === true} onChange={(v) => set({ showWeekNumbers: v })} />
       <Toggle label={t('configSections.multi-month.highlightWeekends')} checked={c.highlightWeekends !== false} onChange={(v) => set({ highlightWeekends: v })} />

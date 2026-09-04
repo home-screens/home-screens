@@ -49,6 +49,12 @@ export interface ConfigVariant {
   companions?: Array<{ type: ModuleType; config?: Record<string, unknown> }>;
   /** Global-settings overrides merged over matrixSettings() (e.g. metric units). */
   settings?: Record<string, unknown>;
+  /**
+   * Module box, when the registry's defaultSize cannot show the difference —
+   * a field that only changes how a module fills a large card is invisible at
+   * a small one. Omitted = the registry default.
+   */
+  size?: { w: number; h: number };
   /** Config overrides merged over the registry defaultConfig. */
   config: Record<string, unknown>;
   /**

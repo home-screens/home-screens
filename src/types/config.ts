@@ -1443,6 +1443,18 @@ export interface MultiMonthConfig {
   todayStyle?: MultiMonthTodayStyle;
   /** Color of today's marker. Omitted = '#3b82f6'. */
   accentColor?: string;
+  /**
+   * Size the calendar to the module instead of to the text size setting.
+   *
+   * Off, the grid is built from `style.fontSize` and only ever shrinks to fit,
+   * so a calendar in a card taller than about 600px stops at the text size and
+   * leaves the rest of the card empty. On, it grows to fill the card the way
+   * every other measured module does, and the text size becomes a bias on that.
+   *
+   * Omitted = off, which is how every calendar built before this option
+   * behaved. New ones get it from the registry default.
+   */
+  fitToBox?: boolean;
 }
 
 // Garbage day module config

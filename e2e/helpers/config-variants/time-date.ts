@@ -303,6 +303,27 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // fitToBox on: the grid is sized to the card instead of to the text size,
+    // so in a card far taller than the text size can fill it renders larger.
+    // Off (which is what every calendar built before the option has, since the
+    // key is simply absent) the fit can only shrink from `style.fontSize`, so
+    // the same card stops at that size. The row asserts the difference in
+    // rendered pixels, which is the whole point of the setting.
+    type: 'multi-month', name: 'fit-to-box', kind: 'network-free',
+    config: { fitToBox: true },
+    size: { w: 900, h: 900 },
+    expect: async (mod) => {
+      await has('September')(mod);
+      // ModuleWrapper's card, then the box the grid's ems are built from.
+      await expect
+        .poll(async () => mod.evaluate((el) => {
+          const box = el.firstElementChild?.firstElementChild as HTMLElement | undefined;
+          return box ? parseFloat(getComputedStyle(box).fontSize) : 0;
+        }))
+        .toBeGreaterThan(20);
+    },
+  },
+  {
     // showCurrentMonthLabel off: the current month's heading (and its rule) is
     // hidden, while the two months after it keep theirs — nothing else names
     // them. The headings stay in the DOM (display:none) so the child count

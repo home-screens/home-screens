@@ -3238,6 +3238,7 @@
       "layoutHorizontal": "Horizontaal (naast elkaar)",
       "monthsToShow": "Aantal maanden tonen",
       "weekStartsOn": "Week begint op",
+      "fitToBox": "De ruimte vullen",
       "showCurrentMonthLabel": "Naam van huidige maand tonen",
       "showWeekNumbers": "Weeknummers tonen",
       "highlightWeekends": "Weekenden markeren",

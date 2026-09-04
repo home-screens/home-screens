@@ -2,7 +2,9 @@
 
 import type { CSSProperties } from 'react';
 import { useTZClock } from '@/hooks/useTZClock';
+import { useCallback } from 'react';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
+import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { weekStartsOnFor } from '@/lib/calendar-utils';
@@ -10,6 +12,14 @@ import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color
 import { colorWithAlpha } from '@/lib/module-style';
 import type { MultiMonthConfig, ModuleStyle, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
+
+/**
+ * Starting point for the fit, as a fraction of card height. Deliberately above
+ * what a card of that height can actually hold (measured: a 900px card fits
+ * about 29px, a 1400px one about 46px), so the bisection lands on the real
+ * maximum instead of stopping at the number it started from.
+ */
+const FIT_FACTOR = 0.04;
 
 interface MultiMonthModuleProps {
   config: MultiMonthConfig;
@@ -340,14 +350,29 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   // grid's seven columns straight through its neighbour. Measure and scale down
   // instead: horizontal runs out of width first, vertical out of height, and
   // both are caught because the fit checks each axis.
+  //
+  // What the fit starts from is the `fitToBox` question. Off, it is the raw
+  // text size, which the fit can only shrink — so past roughly 600px of card
+  // the grid stops at that size and leaves the rest empty. On, it is derived
+  // from the card like every other measured module, and the fit lands on the
+  // largest size that actually fits. Below that 600px the two are the same
+  // picture, because the fit is already the binding constraint there.
+  const { containerRef: measureRef, scaledFontSize } = useScaledFontSize(style.fontSize, FIT_FACTOR);
+  const desired = config.fitToBox ? scaledFontSize : style.fontSize;
   const { boxRef, contentRef, fontSize } = useFitFontSize(
-    style.fontSize,
+    desired,
     [view, monthCount, startDay, showWeekNumbers, hideMonthLabel, today.year, today.month].join('|'),
   );
+  // One element, measured by both: the fit needs it as its box, the scaler
+  // needs its height.
+  const setBox = useCallback((el: HTMLDivElement | null) => {
+    boxRef.current = el;
+    measureRef(el);
+  }, [boxRef, measureRef]);
 
   return (
     <ModuleWrapper style={style}>
-      <div ref={boxRef} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }}>
+      <div ref={setBox} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }}>
         <div
           ref={contentRef}
           className="h-full"

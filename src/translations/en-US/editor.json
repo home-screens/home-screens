@@ -3238,6 +3238,7 @@
       "layoutHorizontal": "Horizontal (side by side)",
       "monthsToShow": "Months to Show",
       "weekStartsOn": "Week Starts On",
+      "fitToBox": "Fill the space",
       "showCurrentMonthLabel": "Show Current Month Name",
       "showWeekNumbers": "Show Week Numbers",
       "highlightWeekends": "Highlight Weekends",

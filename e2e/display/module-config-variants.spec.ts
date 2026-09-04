@@ -40,6 +40,7 @@ async function renderVariant(page: Page, request: APIRequestContext, variant: Co
 
   const variantModule = buildModuleInstance(variant.type, variant.config);
   variantModule.id = `${variant.type}-v`;
+  if (variant.size) variantModule.size = variant.size;
   const anchor = buildModuleInstance('text', { content: 'E2E ANCHOR' });
   anchor.id = 'anchor';
   const companions = (variant.companions ?? []).map((c, i) => {
