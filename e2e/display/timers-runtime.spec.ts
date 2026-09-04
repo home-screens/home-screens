@@ -111,6 +111,7 @@ test.afterEach(async ({ request }) => {
 test('the countdown ticks down in real time between server polls', async ({ page, request }) => {
   await putConfig(request, timerConfig());
   await startQuick(request, 240);
+  await page.clock.install();
   await page.goto('/display');
 
   await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'ring');
@@ -120,44 +121,52 @@ test('the countdown ticks down in real time between server polls', async ({ page
   // 2.5s is well inside one 3s session poll, so the decrease can only come
   // from the local 250ms tick re-materializing the session — which is the
   // whole point of the design (poll latency must not affect the countdown).
-  await page.waitForTimeout(2500);
+  // page.clock fakes that local tick directly instead of waiting on it.
+  await page.clock.runFor(2500);
   const second = await readCountdownSec(page);
 
   expect(second).toBeLessThan(first);
-  // Allow a second of slack either side of the 2.5s wait for tick/render phase.
+  // Allow a second of slack either side of the 2.5s advance for render phase.
   expect(first - second).toBeGreaterThanOrEqual(2);
   expect(first - second).toBeLessThanOrEqual(4);
 });
 
 test('an elapsed timer flips to the celebration, then hands the screen back to rotation', async ({ page, request }) => {
-  // The celebration lingers SESSION_LINGER_MS (15s) past completion before the
-  // overlay unmounts, so this test legitimately spans ~25s of real time.
-  test.setTimeout(60_000);
+  // Completion and the SESSION_LINGER_MS (15s) linger are both derived
+  // client-side from epoch timestamps via materializeSession (src/lib/
+  // timer-logic.ts) — a pure, idempotent function of (raw session, now). The
+  // 3s session poll keeps refetching the SERVER's own materialization (using
+  // the server's real, unfaked clock, so it still reports "running" while our
+  // virtual time races ahead) — but re-applying the client's later fake `now`
+  // to that raw data always re-derives the same or a further-advanced state,
+  // so the poll can't undo what the local tick already advanced past. Fakes
+  // the client's Date/setInterval and skips the wait entirely.
   await putConfig(request, timerConfig());
   await startQuick(request, 5); // MIN_STEP_SEC — the shortest legal session
+  await page.clock.install();
   await page.goto('/display');
 
   await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'ring');
 
-  // Completion is derived locally from timestamps: at the 5s mark the overlay
-  // swaps the running view for the celebration with no server round-trip.
-  await expect(page.getByTestId('timer-view')).toHaveAttribute(
-    'data-timer-view', 'celebration', { timeout: 15_000 },
-  );
+  // Past the 5s mark: the overlay swaps the running view for the celebration.
+  await page.clock.runFor(5_500);
+  await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'celebration');
   await expect(page.getByText("Time's up!")).toBeVisible();
 
-  // Once the linger window expires, materializeSession returns null and the
-  // whole overlay unmounts. Rotation kept running underneath the takeover the
+  // Past the linger window: materializeSession returns null and the whole
+  // overlay unmounts. Rotation kept running underneath the takeover the
   // entire time, so the display is left exactly where rotation would have put
   // it — assert on the overlay being GONE (the underlying module was in the
   // DOM all along, merely covered).
-  await expect(page.getByTestId('timer-overlay')).toHaveCount(0, { timeout: 25_000 });
+  await page.clock.runFor(15_500);
+  await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
   await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
 });
 
 test('a wait-for-a-tap step holds the routine until the display is tapped', async ({ page, request }) => {
   await putConfig(request, timerConfig());
   await startHoldRoutine(request);
+  await page.clock.install();
   await page.goto('/display');
 
   await expect(page.getByText('Step 1 of 2')).toBeVisible();
@@ -166,17 +175,19 @@ test('a wait-for-a-tap step holds the routine until the display is tapped', asyn
   // After its 5s the step does NOT advance: the countdown is replaced by the
   // "Done!" pill and the routine waits. Scoped to the dial so the chip strip's
   // own "✓ Done" markers can't satisfy it.
-  await expect(dial(page).getByText('Done!')).toBeVisible({ timeout: 15_000 });
+  await page.clock.runFor(5_500);
+  await expect(dial(page).getByText('Done!')).toBeVisible();
   await expect(dial(page).getByText(/^\d+:\d\d$/)).toHaveCount(0);
   // The hold is stable, not a frame the render passed through.
-  await page.waitForTimeout(2000);
+  await page.clock.runFor(2_000);
   await expect(page.getByText('Step 1 of 2')).toBeVisible();
 
   // Tapping anywhere on the takeover posts `step-done` — the same transition
-  // as a remote skip — and the next step starts counting immediately.
+  // as a remote skip — and tapDone() calls refresh() itself right after the
+  // POST resolves, so the next step starts counting with no poll wait at all.
   await page.getByTestId('timer-overlay').click();
 
-  await expect(page.getByText('Step 2 of 2')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('Step 2 of 2')).toBeVisible();
   await expect(dial(page).getByText('After the tap')).toBeVisible();
   await expect(dial(page).getByText('Done!')).toHaveCount(0);
   await expect(dial(page).getByText(/^\d+:\d\d$/).first()).toBeVisible();
@@ -188,26 +199,38 @@ test('a session targeting other displays never takes over this one', async ({ pa
   // Targeted at 'main' only. `start` also replaces any session a previous test
   // left lingering, so the absence assertion below is about targeting alone.
   await startQuick(request, 240, ['main']);
+  await page.clock.install();
   await page.goto('/display/kitchen');
   await expect(page.getByText(ROTATION_TEXT, { exact: true })).toBeVisible();
 
-  // Ride out more than one full 3s poll: the kitchen tab has definitely seen
-  // the running session and declined to render it (TimerOverlay's `matches`
-  // check against session.targets), rather than simply not having polled yet.
-  await page.waitForTimeout(4500);
+  // Ride out more than one full 3s poll (useDisplayCommands-style stable
+  // effect deps, so an exact runFor is reliable — see commands-runtime.spec.ts):
+  // the kitchen tab has definitely seen the running session and declined to
+  // render it (TimerOverlay's `matches` check against session.targets),
+  // rather than simply not having polled yet.
+  await page.clock.runFor(4_500);
   await expect(page.getByTestId('timer-overlay')).toHaveCount(0);
 
   // Same display, now named in targets → it takes over on the next poll.
   await startQuick(request, 240, ['kitchen']);
-  await expect(page.getByTestId('timer-overlay')).toBeVisible({ timeout: 10_000 });
+  await page.clock.runFor(3_000);
+  await expect(page.getByTestId('timer-overlay')).toBeVisible();
   await expect(page.getByTestId('timer-view')).toHaveAttribute('data-timer-view', 'ring');
 
   // And 'all' covers every display without naming it.
   await startQuick(request, 240, 'all');
-  await expect(page.getByTestId('timer-overlay')).toBeVisible({ timeout: 10_000 });
+  await page.clock.runFor(3_000);
+  await expect(page.getByTestId('timer-overlay')).toBeVisible();
 });
 
 test('pausing from the hub freezes the countdown on the display; resuming restarts it', async ({ page, request }) => {
+  // NOT converted to page.clock: resume shifts the step anchor by the pause
+  // duration as the SERVER's real clock measured it (pause/resume are plain
+  // HTTP POSTs, timestamped server-side). Faking only the client's clock would
+  // let it race ahead of that real duration while "paused", and the gap gets
+  // cashed in the instant resume un-pins effectiveNow — an apparent multi-
+  // second jump that has nothing to do with the behavior under test. This one
+  // genuinely needs the client and server on the same (real) clock.
   await putConfig(request, timerConfig());
   await startQuick(request, 240);
   await page.goto('/display');

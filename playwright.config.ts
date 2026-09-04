@@ -1,3 +1,4 @@
+import os from 'os';
 import { defineConfig } from '@playwright/test';
 
 /**
@@ -11,7 +12,11 @@ export default defineConfig({
   fullyParallel: false, // files parallel across workers; tests within a file share the worker's server sequentially
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : 4,
+  // Local: scale to the machine (each worker is a full next-server + browser,
+  // so a hardcoded count either wastes cores on a big box or thrashes a small
+  // one) — leave a couple cores free for the OS/editor. CI runners stay fixed
+  // since the shard count already tunes total parallelism there.
+  workers: process.env.CI ? 2 : Math.max(2, os.cpus().length - 2),
   timeout: 30_000,
   expect: { timeout: 10_000 }, // display live-update assertions ride a 3s config poll
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],

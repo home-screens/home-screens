@@ -95,6 +95,11 @@ test('next-screen and prev-screen navigate the visible screen', async ({ page, r
 
 test('goto-screen jumps to a screen by name (case-insensitive) or id, and ignores unknown targets', async ({ page, request }) => {
   const id = 'cmd-goto';
+  // useDisplayCommands' poll effect depends only on [displayId, enabled]
+  // (stable primitives), so unlike useSleepManager's schedule-check interval
+  // it never gets torn down mid-window by a config-poll reference change —
+  // `page.clock` can drive it with an exact runFor instead of generous margin.
+  await page.clock.install();
   await openDisplay(
     page,
     request,
@@ -114,17 +119,19 @@ test('goto-screen jumps to a screen by name (case-insensitive) or id, and ignore
   // By name, wrong case — the resolver (resolveScreenTargetIndex) lowercases
   // both sides, which is what makes voice targets workable.
   await sendCommand(request, id, 'goto-screen', { screen: 'calendar' });
-  await expect(page.getByText('GOTO SCREEN BRAVO', { exact: true })).toBeVisible({ timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.getByText('GOTO SCREEN BRAVO', { exact: true })).toBeVisible();
   await expect(page.getByText('GOTO SCREEN ALPHA', { exact: true })).toHaveCount(0);
 
   // By exact screen id.
   await sendCommand(request, id, 'goto-screen', { screen: 'goto-c' });
-  await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible({ timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible();
 
-  // Unknown target: command drains but the client warns and stays put.
+  // Unknown target: command drains but the client warns and stays put. Ride
+  // out one 3s poll cycle (in virtual time) so the bogus command has drained.
   await sendCommand(request, id, 'goto-screen', { screen: 'garage' });
-  // Ride out at least one 3s poll cycle so the bogus command has drained.
-  await page.waitForTimeout(4000);
+  await page.clock.runFor(3_000);
   await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible();
 
   // Broadcast is rejected at the route boundary (screen sets are per-display).
@@ -180,15 +187,20 @@ test('sleep blacks out the display; wake restores content and resumes a paused r
 });
 
 test('sleep-override holds the display awake against an active sleep schedule; a plain wake does not', async ({ page, request }) => {
-  // Legitimately slow: proving "the schedule tried and failed to re-assert"
-  // means soaking across several real 10s sleep-manager ticks (~50s total).
-  test.setTimeout(90_000);
+  // Both client timers in play here — useDisplayCommands' 3s command poll and
+  // useSleepManager's 10s schedule check — are page.clock-fakeable. The
+  // schedule check isn't exactly-timed (see sleep.spec.ts's file header: a
+  // config-poll reference change can tear down and restart it mid-window), so
+  // waits on it use the same generous 31s virtual margin as there; it's still
+  // ~instant in real time. The command poll's effect deps are stable, so a
+  // command drain only needs one exact 3s tick.
   const id = 'cmd-sleep-override';
+  await page.clock.install();
   await openDisplay(
     page,
     request,
     // An always-active sleep window: the schedule re-asserts sleep on every
-    // 10s tick, so anything still visible 12s after a wake proves a hold.
+    // 10s tick, so anything still visible after a wake + hold proves a hold.
     // wakeHoldMinutes: 0 disables the explicit-wake hold so the plain-wake
     // control case below actually re-sleeps; the default hold has its own
     // test after this one.
@@ -206,29 +218,34 @@ test('sleep-override holds the display awake against an active sleep schedule; a
   );
 
   // The schedule blacks the display out within the first tick.
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+  await page.clock.runFor(31_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 
   // A plain wake is re-slept by the next 10s tick (the control case).
   await sendCommand(request, id, 'wake');
-  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
+  await page.clock.runFor(31_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 
-  // sleep-override: wake + hold. 12s straddles at least one full tick, so the
-  // schedule demonstrably tried and failed to re-assert during the hold.
+  // sleep-override: wake + hold. The schedule demonstrably tries and fails to
+  // re-assert during the hold (31s of ticks, still far under the 5-minute hold).
   await sendCommand(request, id, 'sleep-override', { minutes: 5 });
-  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
-  await page.waitForTimeout(12_000);
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
+  await page.clock.runFor(31_000);
   await expect(page.locator(OVERLAY)).toHaveCount(0);
 
   // An explicit sleep cancels the hold and sticks (forceSleep clears it).
   await sendCommand(request, id, 'sleep');
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 });
 
 test('the default wake hold keeps a plain wake alive through the sleep window, and navigation wakes a sleeping display', async ({ page, request }) => {
-  // Same soak-across-real-ticks structure as the sleep-override test above.
-  test.setTimeout(90_000);
+  // Same fake-clock structure as the sleep-override test above.
   const id = 'cmd-wake-hold';
+  await page.clock.install();
   await openDisplay(
     page,
     request,
@@ -254,27 +271,32 @@ test('the default wake hold keeps a plain wake alive through the sleep window, a
   );
 
   // The schedule blacks the display out within the first tick.
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 15000 });
+  await page.clock.runFor(31_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 
-  // A plain wake now holds: 12s straddles at least one full 10s tick, so the
-  // schedule demonstrably tried and failed to re-assert during the hold.
+  // A plain wake now holds: the schedule demonstrably tries and fails to
+  // re-assert during the hold (31s of ticks, still far under the 5-minute
+  // DEFAULT_WAKE_HOLD_MINUTES hold).
   await sendCommand(request, id, 'wake');
-  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
-  await page.waitForTimeout(12_000);
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
+  await page.clock.runFor(31_000);
   await expect(page.locator(OVERLAY)).toHaveCount(0);
 
   // An explicit sleep cancels the hold and sticks.
   await sendCommand(request, id, 'sleep');
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 
   // next-screen on the sleeping display wakes it onto the other screen
   // (previously it navigated invisibly under the opaque overlay), and the
   // wake carries the same hold.
   const onAlpha = await page.getByText('HOLD SCREEN ALPHA', { exact: true }).isVisible();
   await sendCommand(request, id, 'next-screen');
-  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
   const nextText = onAlpha ? 'HOLD SCREEN BRAVO' : 'HOLD SCREEN ALPHA';
-  await expect(page.getByText(nextText, { exact: true })).toBeVisible({ timeout: 8000 });
+  await expect(page.getByText(nextText, { exact: true })).toBeVisible();
 });
 
 test('brightness dims the display, and brightness 100 restores it', async ({ page, request }) => {
@@ -327,6 +349,11 @@ test('alert renders its title and message; clear-alerts removes it', async ({ pa
 
 test('an urgent alert wakes a sleeping display and it sleeps again when dismissed; a routine alert waits', async ({ page, request }) => {
   const id = 'cmd-alert-wake';
+  // Sleep is disabled below, so useSleepManager's effect never sets up its
+  // own interval — the only client timer in play is useDisplayCommands' 3s
+  // command poll, which (stable [displayId, enabled] deps) never gets torn
+  // down mid-window, so page.clock can drive it with exact runFor calls.
+  await page.clock.install();
   await openDisplay(
     page,
     request,
@@ -337,19 +364,21 @@ test('an urgent alert wakes a sleeping display and it sleeps again when dismisse
   );
 
   await sendCommand(request, id, 'sleep');
-  await expect(page.locator(OVERLAY)).toBeVisible({ timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.locator(OVERLAY)).toBeVisible();
 
   // A routine alert must not light a bedroom at 2 AM: it is dropped, not
   // queued for whoever touches the panel in the morning.
   await sendCommand(request, id, 'alert', { type: 'info', title: 'ROUTINE WHILE ASLEEP', message: 'body', duration: 0 });
-  await page.waitForTimeout(4500);
+  await page.clock.runFor(3_000);
   await expect(page.getByText('ROUTINE WHILE ASLEEP')).toHaveCount(0);
   await expect(page.locator(OVERLAY)).toBeVisible();
 
   // An urgent alert wakes the display and shows as the full-width bar.
   await sendCommand(request, id, 'alert', { type: 'urgent', title: 'SMOKE DETECTED', message: 'Basement smoke alarm' });
-  await expect(page.getByTestId('alert-urgent')).toBeVisible({ timeout: 8000 });
-  await expect(page.locator(OVERLAY)).toHaveCount(0, { timeout: 8000 });
+  await page.clock.runFor(3_000);
+  await expect(page.getByTestId('alert-urgent')).toBeVisible();
+  await expect(page.locator(OVERLAY)).toHaveCount(0);
 
   // Dismissing the bar puts the display back to sleep.
   await page.getByTestId('alert-dismiss').first().click();

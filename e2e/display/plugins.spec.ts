@@ -358,7 +358,11 @@ test('a manifest providesState key appears in the editor visibility-condition pi
  * the flag-gated module (whenUnknown: 'hide') would be gone by then.
  */
 test('a failed plugin reload is a no-op: the plugin and its gated module survive past the grace window', async ({ page, request }) => {
-  test.setTimeout(50_000);
+  // The reload-trigger poll (useLiveConfig's CONFIG_POLL_MS, stable [displayId]
+  // deps — see commands-runtime.spec.ts's note on why that makes an exact
+  // runFor reliable) and the shared-state tombstone grace (TOMBSTONE_TTL_MS in
+  // shared-state-store.ts) are both plain client-side setInterval/setTimeout,
+  // so page.clock drives the whole sequence without a real wait.
   const gated = textModule('FULL PURGE CONTENT', {
     id: 'gated',
     visibility: {
@@ -367,13 +371,14 @@ test('a failed plugin reload is a no-op: the plugin and its gated module survive
     },
   });
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [pluginModule(), gated])] }));
+  await page.clock.install();
   await page.goto('/display');
   await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
   await expect(page.getByText('FULL PURGE CONTENT')).toBeVisible();
 
-  // Let the display record its baseline plugin hash from real polls before we
+  // Let the display record its baseline plugin hash from a poll before we
   // change what the installed endpoint returns (one poll cycle is ~3s).
-  await page.waitForTimeout(4000);
+  await page.clock.runFor(4_000);
 
   // Arm the trap on the client's installed fetches.
   let served = 0;
@@ -406,7 +411,7 @@ test('a failed plugin reload is a no-op: the plugin and its gated module survive
   // Reload trigger (≤3s) + tombstone grace (15s) + margin: if the failed
   // reload had purged the key, whenUnknown:hide would have dropped the module
   // inside this window. It must still be here, alongside the plugin itself.
-  await page.waitForTimeout(22_000);
+  await page.clock.runFor(22_000);
   await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
   await expect(page.getByText('FULL PURGE CONTENT')).toBeVisible();
 });
