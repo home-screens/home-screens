@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useElementBox } from '@/hooks/useElementBox';
 import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { TimeFormat } from '@/types/config';
@@ -37,25 +37,25 @@ export function hourLabelShift(index: number, lastIndex: number): string {
 // ─── Hooks ───
 
 /**
- * Measures the content height of a scrollable container via ResizeObserver.
- * Used to size the time grid so it fills the available space without scrolling.
+ * Content height of the scrollable container, used to size the time grid so it
+ * fills the space without scrolling.
+ *
+ * Built on `useElementBox`, whose callback ref follows the element. The hand
+ * rolled version attached a RefObject inside a mount effect with an empty
+ * dependency list — the exact shape that pinned every weather view to 16px
+ * (c8a8ad6f): the effect runs once, and an element that first appears on a
+ * later render is never observed. These four views happen to mount their box
+ * unconditionally, so it was latent rather than broken; one conditional
+ * wrapper would have made it real.
+ *
+ * `'content'` is deliberate. The old code seeded from `clientHeight` (padding
+ * box) and then updated from `contentRect.height` (content box), so the content
+ * box is the steady state these grids are tuned against. `'padding'` would add
+ * each box's padding to every hour row and month cell.
  */
 export function useContainerHeight() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [containerH, setContainerH] = useState(0);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setContainerH(el.clientHeight);
-    const ro = new ResizeObserver((entries) => {
-      setContainerH(entries[0]?.contentRect.height ?? 0);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  return { scrollRef, containerH };
+  const [scrollRef, box] = useElementBox<HTMLDivElement>('content');
+  return { scrollRef, containerH: box.height };
 }
 
 // ─── Components ───

@@ -196,7 +196,16 @@ export function runGallery(label: string): void {
         await page.clock.setFixedTime(galleryInstant());
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await pinRandom(page);
-        await stubModuleData(page, variant.stubOverrides ? { overrides: variant.stubOverrides } : {});
+        // Same stub rules as the matrix above: a calendar-backed module needs
+        // events dated against the test clock or its views render empty, and a
+        // local-data module needs its API seeded.
+        const overrides = {
+          ...(fx.stubKey === 'calendar' ? { calendar: todayCalendarEvents() } : {}),
+          ...(variant.stubOverrides ?? {}),
+        };
+        await stubModuleData(page, Object.keys(overrides).length ? { overrides } : {});
+        if (fx.seed === 'chores') await seedChores(request);
+        if (fx.seed === 'meals') await seedMeals(request);
 
         const def = getModuleDefinition(variant.type);
         const mod = applyScenario(

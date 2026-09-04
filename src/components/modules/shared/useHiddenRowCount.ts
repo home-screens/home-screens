@@ -1,16 +1,16 @@
 'use client';
 
-import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useState } from 'react';
 
 export interface HiddenRows {
   /** Attach to the scrolling element. */
-  scrollerRef: React.RefObject<HTMLDivElement | null>;
+  scrollerRef: (el: HTMLDivElement | null) => void;
   /**
    * Attach to a wrapper around the rows. Observing the scroller alone is not
    * enough: it is sized by its flex parent, so its box never changes when the
    * content grows or the type is refitted, and the count silently goes stale.
    */
-  contentRef: React.RefObject<HTMLDivElement | null>;
+  contentRef: (el: HTMLDivElement | null) => void;
   /** The content is taller than the box. */
   overflows: boolean;
   /** Rows past the fold: less than half of each is on screen. */
@@ -28,21 +28,31 @@ export interface HiddenRows {
  *
  * `rowSelector` picks the rows to count; anything else inside the scroller
  * (section headers, spacers) is ignored.
+ *
+ * Both refs are callback refs whose element goes into state, so the observer
+ * and the scroll listener follow whatever node is actually mounted. They used
+ * to be RefObjects attached inside a mount effect keyed on a stable callback,
+ * which meant the observer was wired up only if both elements existed on the
+ * very first commit: an element appearing on a later render was never observed,
+ * and a node swapped between layouts left the observer on a detached one. The
+ * every-render `useLayoutEffect(measure)` below hid it, because render-driven
+ * measurement kept working — only resize- and scroll-driven updates were lost.
+ * That is the same shape as the bug that pinned every weather view to 16px
+ * (c8a8ad6f), and it is worth not leaving a second copy of it around.
  */
 export function useHiddenRowCount(rowSelector: string): HiddenRows {
-  const scrollerRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const [content, setContent] = useState<HTMLDivElement | null>(null);
   const [hidden, setHidden] = useState(0);
   const [overflows, setOverflows] = useState(false);
 
   const measure = useCallback(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const over = el.scrollHeight > el.clientHeight + 1;
+    if (!scroller) return;
+    const over = scroller.scrollHeight > scroller.clientHeight + 1;
     let below = 0;
     if (over) {
-      const bottom = el.getBoundingClientRect().bottom;
-      for (const row of el.querySelectorAll(rowSelector)) {
+      const bottom = scroller.getBoundingClientRect().bottom;
+      for (const row of scroller.querySelectorAll(rowSelector)) {
         const r = row.getBoundingClientRect();
         // A row counts as hidden when less than half of it is on screen.
         if (r.top + r.height / 2 > bottom) below += 1;
@@ -50,18 +60,25 @@ export function useHiddenRowCount(rowSelector: string): HiddenRows {
     }
     setOverflows((prev) => (prev === over ? prev : over));
     setHidden((prev) => (prev === below ? prev : below));
-  }, [rowSelector]);
+  }, [scroller, rowSelector]);
 
   useLayoutEffect(measure);
   useLayoutEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    if (contentRef.current) ro.observe(contentRef.current);
-    el.addEventListener('scroll', measure, { passive: true });
-    return () => { ro.disconnect(); el.removeEventListener('scroll', measure); };
-  }, [measure]);
+    if (!scroller) return;
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    ro?.observe(scroller);
+    if (content) ro?.observe(content);
+    scroller.addEventListener('scroll', measure, { passive: true });
+    return () => {
+      ro?.disconnect();
+      scroller.removeEventListener('scroll', measure);
+    };
+  }, [scroller, content, measure]);
 
-  return { scrollerRef, contentRef, overflows, hidden };
+  return {
+    scrollerRef: useCallback((el: HTMLDivElement | null) => setScroller(el), []),
+    contentRef: useCallback((el: HTMLDivElement | null) => setContent(el), []),
+    overflows,
+    hidden,
+  };
 }

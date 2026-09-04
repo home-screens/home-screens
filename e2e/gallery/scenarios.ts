@@ -142,6 +142,14 @@ export const VIEW_VARIANTS: GalleryViewVariant[] = [
   // date-only and dated 2099, so it renders "Jan 15" and the 12/24 decision was
   // never on screen. Built from today so it lands in the same-day branch under
   // the gallery's fixed clock.
+  // Wave 4: the views that measure their own box with `useContainerHeight`.
+  // Only `schedule` is the registry default, so the other three were outside
+  // the gate while the hook under them was being rebuilt.
+  { type: 'fullscreen-calendar', name: 'month-grid', config: { view: 'month-grid' } },
+  { type: 'fullscreen-calendar', name: 'day-timeline', config: { view: 'day-timeline' } },
+  // Wave 4: `useHiddenRowCount` via FitRows. The chore chart's default view is
+  // `board`, which does not use it.
+  { type: 'chore-chart', name: 'today', config: { view: 'today' } },
   {
     type: 'todoist',
     name: 'timed-due',

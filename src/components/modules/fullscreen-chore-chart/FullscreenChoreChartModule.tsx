@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { useElementBox } from '@/hooks/useElementBox';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay, ChoreMember } from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
@@ -71,29 +72,21 @@ const BAND_HEADER_ROWS = 0.7;
 const MEMBER_HEADER_ROWS = 1.6;
 
 /**
- * Content height of an element, tracked with a ResizeObserver that follows
- * the element: the list box is a different node in portrait and landscape,
- * so a ref bound once on mount would keep watching an unmounted node. The
- * box is `flex: 1` with `minHeight: 0`, so its height comes from the canvas
- * minus the fixed blocks, never from its own rows; measuring it cannot feed
+ * Content height of the list box.
+ *
+ * This was the one hand-rolled observer in the codebase that already had the
+ * right shape — a callback ref, because the box is a different node in portrait
+ * and landscape and a ref bound once on mount would keep watching an unmounted
+ * one. `useElementBox` is that same idea as a shared primitive, so the local
+ * copy is gone rather than maintained alongside it.
+ *
+ * The box is `flex: 1` with `minHeight: 0`, so its height comes from the canvas
+ * minus the fixed blocks, never from its own rows: measuring it cannot feed
  * back into the row size it decides.
  */
 function useMeasuredHeight(): [(el: HTMLDivElement | null) => void, number] {
-  const [height, setHeight] = useState(0);
-  const roRef = useRef<ResizeObserver | null>(null);
-  const setRef = useCallback((el: HTMLDivElement | null) => {
-    roRef.current?.disconnect();
-    roRef.current = null;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) setHeight(entry.contentRect.height);
-    });
-    ro.observe(el);
-    roRef.current = ro;
-    setHeight(el.clientHeight);
-  }, []);
-  return [setRef, height];
+  const [ref, box] = useElementBox<HTMLDivElement>('content');
+  return [ref, box.height];
 }
 
 interface Section {
