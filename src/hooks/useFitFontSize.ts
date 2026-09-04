@@ -33,7 +33,9 @@ const MAX_STEPS = 8;
  *
  * Pass a `resetKey` that changes whenever the content itself changes (which
  * config rows render, the day count, …) so the fit is recomputed from scratch
- * rather than staying shrunk after the content gets shorter.
+ * rather than staying shrunk after the content gets shorter. A change in the
+ * box's own size restarts the search on its own — the caller has nothing to
+ * pass for that.
  *
  * Never scales up past `desired`: when the content already fits, `fontSize` is
  * `desired` unchanged, so views that never overflow render exactly as before.
@@ -49,9 +51,9 @@ export function useFitFontSize(desired: number, resetKey: string): {
   // Keyed so a change in `desired`/`resetKey` renders at full size again before
   // re-measuring; storing the key alongside avoids a reset-then-measure effect
   // ordering problem.
-  const [fit, setFit] = useState({ key: '', scale: 1, lo: 0, hi: Infinity, steps: 0 });
-  const matches = fit.key === `${desired}|${resetKey}`;
+  const [fit, setFit] = useState({ key: '', box: '', scale: 1, lo: 0, hi: Infinity, steps: 0 });
   const key = `${desired}|${resetKey}`;
+  const matches = fit.key === key;
   const scale = matches ? fit.scale : 1;
   const lo = matches ? fit.lo : 0;
   const hi = matches ? fit.hi : Infinity;
@@ -64,7 +66,10 @@ export function useFitFontSize(desired: number, resetKey: string): {
     const content = contentRef.current;
     if (!box || !content) return;
 
+    let cancelled = false;
+
     const measure = () => {
+      if (cancelled) return;
       const boxH = box.clientHeight;
       const boxW = box.clientWidth;
       // offsetHeight covers a natural-height wrapper; scrollHeight covers a
@@ -80,6 +85,26 @@ export function useFitFontSize(desired: number, resetKey: string): {
       const contentW = content.scrollWidth;
       if (!boxH || !contentH) return;
 
+      // The measured text is laid out in the fallback face until the woff2
+      // lands (`font-display: swap`), and the swap moves every line after the
+      // search has settled with nothing to re-run it. Reading the layout above
+      // is what starts the load, so this is checked after the measurement it
+      // invalidates, not before. Same guard `useFitScale` carries.
+      if (typeof document !== 'undefined' && document.fonts?.status === 'loading') {
+        document.fonts.ready.then(() => { if (!cancelled) measure(); });
+        return;
+      }
+
+      // A box that changed size invalidates the bracket: it was measured
+      // against the old one, and a settled bracket otherwise pins the fit
+      // forever — a box that grows can never win back the size it lost,
+      // because "fits" is all a larger box can ever report.
+      const boxKey = `${boxW}x${boxH}`;
+      if (matches && fit.box !== boxKey) {
+        setFit({ key, box: boxKey, scale: 1, lo: 0, hi: Infinity, steps: 0 });
+        return;
+      }
+
       // Fit is judged in pixels, not by how small the correction got: a
       // step-size threshold tolerates a different number of pixels at every
       // scale and box size, and left `current` one pixel over at 600x700 while
@@ -93,7 +118,7 @@ export function useFitFontSize(desired: number, resetKey: string): {
       // Bracket tight enough, or out of rounds: settle on a size known to fit.
       if (steps >= MAX_STEPS || nextHi - nextLo <= TOLERANCE) {
         if (!fits && nextLo > 0 && nextLo < scale) {
-          setFit({ key, scale: nextLo, lo: nextLo, hi: nextHi, steps: steps + 1 });
+          setFit({ key, box: boxKey, scale: nextLo, lo: nextLo, hi: nextHi, steps: steps + 1 });
         }
         return;
       }
@@ -111,7 +136,7 @@ export function useFitFontSize(desired: number, resetKey: string): {
           );
 
       if (Math.abs(next - scale) > 0.001) {
-        setFit({ key, scale: next, lo: nextLo, hi: nextHi, steps: steps + 1 });
+        setFit({ key, box: boxKey, scale: next, lo: nextLo, hi: nextHi, steps: steps + 1 });
       }
     };
 
@@ -119,7 +144,7 @@ export function useFitFontSize(desired: number, resetKey: string): {
     ro.observe(box);
     ro.observe(content);
     measure();
-    return () => ro.disconnect();
+    return () => { cancelled = true; ro.disconnect(); };
   });
 
   return { boxRef, contentRef, fontSize: desired * scale };

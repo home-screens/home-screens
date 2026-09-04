@@ -1,10 +1,8 @@
 'use client';
 
-import { useCallback } from 'react';
 import type { ClockConfig, ClockView, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { useElementBox } from '@/hooks/useElementBox';
 import ModuleWrapper from '../ModuleWrapper';
 import ClockClassicView from './ClockClassicView';
 import ClockDigitalView from './ClockDigitalView';
@@ -89,15 +87,10 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
   const interval = view === 'elapsed' ? 600_000 : getTickInterval(view, config.showSeconds ?? true);
   const now = useTZClock(timezone, interval);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
-  // Padding box, matching what useScaledFontSize reads off the same element.
-  const [attachBox, box] = useElementBox('padding');
-  // One ref on the view's root feeding both: the font scaler still wants a
-  // RefObject, the box measurement follows the node when the view is swapped.
-  const setContainer = useCallback((el: HTMLDivElement | null) => {
-    containerRef.current = el;
-    attachBox(el);
-  }, [containerRef, attachBox]);
+  // One ref on the view's root feeds both the font scale and the box the
+  // width-fitting views lay out against; it follows the node when the view is
+  // swapped.
+  const { containerRef, scaledFontSize, boxWidth, boxHeight } = useScaledFontSize(style.fontSize, scaleFactor);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? ClockClassicView;
 
@@ -107,9 +100,9 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
         config={config}
         now={now}
         scaledFontSize={scaledFontSize}
-        containerRef={setContainer}
-        boxWidth={box.width}
-        boxHeight={box.height}
+        containerRef={containerRef}
+        boxWidth={boxWidth}
+        boxHeight={boxHeight}
         timezone={timezone}
       />
     </ModuleWrapper>

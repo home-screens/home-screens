@@ -24,27 +24,33 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
   // when the rendered rows are byte-identical. Key on what the rows say.
   const rowsKey = items.map((i) => `${newsItemKey(i)}|${i.title}|${i.description}|${i.imageUrl ?? ''}|${i.source}`).join('\u0001');
   const listRef = useRef<HTMLDivElement>(null);
-  // null = measuring pass: every row rendered so heights can be read.
-  const [pages, setPages] = useState<number[][] | null>(null);
-  const [gen, setGen] = useState(0);
+  // The box the ResizeObserver last reported, as part of the measure key: a
+  // module that is resized, or whose font arrives a render after it mounts,
+  // must page again against the new box.
+  const [boxKey, setBoxKey] = useState('');
 
-  // Anything that changes row heights sends the list back to its measuring
-  // pass. Skipped on mount: the layout effect below has already measured by
-  // the time this passive effect runs, and resetting here would throw that
-  // first page layout away.
-  const measureDeps = [rowsKey, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, gen];
-  const mountedRef = useRef(false);
-  useEffect(() => {
-    if (!mountedRef.current) { mountedRef.current = true; return; }
-    setPages(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- deps listed explicitly above
-  }, measureDeps);
+  // Everything that changes a row's height. The measurement belongs to exactly
+  // one of these keys.
+  const measureKey = [rowsKey, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, boxKey].join('|');
+
+  // The key is stored WITH the pages, and a stale key reads as null — the
+  // measuring pass in which every row is rendered so its height can be read.
+  // Deriving the reset rather than firing it from an effect is what makes this
+  // safe: on the render where the key changes, the rows are already all on
+  // screen for the layout effect below to measure. Resetting from a passive
+  // effect instead put a paint between the two, and the reset could land after
+  // a measurement it was meant to invalidate — which left the list stuck in
+  // its measuring pass, every row rendered and clipped at the box edge.
+  const [fit, setFit] = useState<{ key: string; pages: number[][] }>({ key: '', pages: [] });
+  const pages = fit.key === measureKey ? fit.pages : null;
 
   // Size the last measurement saw; a ResizeObserver callback reporting
   // anything else (including the first real layout after a hidden mount)
   // triggers a re-measure.
   const measuredRef = useRef<{ w: number; h: number } | null>(null);
 
+  // No dependency array: the effect runs after every render and returns
+  // immediately unless the pages are stale, so it can never miss a key change.
   useLayoutEffect(() => {
     if (pages !== null) return;
     const el = listRef.current;
@@ -72,10 +78,8 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
       }
     });
     if (page.length > 0) result.push(page);
-    setPages(result.length > 0 ? result : [[]]);
-    // `gen` re-runs the measurement even when `pages` was already null (a
-    // hidden mount that never produced a first page).
-  }, [pages, gen]);
+    setFit({ key: measureKey, pages: result.length > 0 ? result : [[]] });
+  });
 
   // Re-measure when the box itself changes size (font scaling, editor resize).
   useEffect(() => {
@@ -84,7 +88,7 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
     const ro = new ResizeObserver(() => {
       const m = measuredRef.current;
       if (m && Math.abs(m.h - el.clientHeight) < 1 && Math.abs(m.w - el.clientWidth) < 1) return;
-      setGen((g) => g + 1);
+      setBoxKey(`${Math.round(el.clientWidth)}x${Math.round(el.clientHeight)}`);
     });
     ro.observe(el);
     return () => ro.disconnect();
