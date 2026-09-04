@@ -116,8 +116,11 @@ test('dragging a stretch end onto a lower row extends it across days', async ({ 
   await expect(bandsOn(page, 3)).toHaveCount(0);
 
   // The span already reaches Tuesday, so that is where its end grip sits.
-  // hover() first: it waits for the accordion's open animation to settle, and
-  // a box measured while the panel is still moving points at empty space.
+  // hover() parks the pointer on the grip and scrolls it into view. That
+  // scroll must land on the panel, not on the accordion's animating wrapper:
+  // a wrapper that can scroll unwinds its offset as its height reaches auto
+  // and slides the rows under a fixed pointer mid-drag (the `overflow-clip`
+  // in AccordionSection is what rules that out).
   const grip = page.getByTestId('schedule-track-2').getByTestId('schedule-grip-end');
   await grip.hover();
   const wed = (await page.getByTestId('schedule-track-3').boundingBox())!;

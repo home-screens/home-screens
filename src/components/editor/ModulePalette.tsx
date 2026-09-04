@@ -109,7 +109,8 @@ function CategoryGroup({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            // `clip`, not `hidden`; see AccordionSection for why.
+            className="overflow-clip"
           >
             <div className="flex flex-col gap-1.5 pb-2">
               {modules.map((def) => (

@@ -30,7 +30,12 @@ export default function AccordionSection({ title, defaultOpen = true, badge, chi
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden"
+            // `clip`, not `hidden`: while the height animates, a `hidden`
+            // wrapper is a scroll container, and anything that scrolls a child
+            // into view (focus, scrollIntoView, a test's hover) drags this box
+            // instead of the panel. The offset then unwinds as the height
+            // reaches auto, sliding the contents down mid-interaction.
+            className="overflow-clip"
           >
             <div className="space-y-3 pb-2">
               {children}
