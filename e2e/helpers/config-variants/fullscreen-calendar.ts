@@ -473,7 +473,10 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     // "10 AM" and never the default "6 AM".
     type: 'fullscreen-calendar', name: 'schedule-hour-window', kind: 'networked', stubKey: 'calendar',
     config: { view: 'schedule', scheduleHourStart: 10, scheduleHourEnd: 14 },
-    expect: async (mod) => { await has('10 AM')(mod); await expect(mod).not.toContainText('6 AM'); },
+    // Word-bounded: the live "now" badge reads e.g. "10:16 AM", and a bare
+    // "6 AM" substring matches inside it, so this row failed for one minute in
+    // ten of every morning. The boundary only matches a gutter label.
+    expect: async (mod) => { await has('10 AM')(mod); await expect(mod).not.toContainText(/\b6 AM/); },
   },
   {
     type: 'fullscreen-calendar', name: 'schedule-show-description', kind: 'networked', stubKey: 'calendar', stubBody: SCHEDULE_DESC,
@@ -546,7 +549,9 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
   {
     type: 'fullscreen-calendar', name: 'day-hour-window', kind: 'networked', stubKey: 'calendar',
     config: { view: 'day-timeline', dayHourStart: 9, dayHourEnd: 15 },
-    expect: async (mod) => { await has('9 AM')(mod); await expect(mod).not.toContainText('6 AM'); },
+    // See the schedule-hour-window row: word-bounded so the "now" badge's
+    // "10:16 AM" cannot satisfy it.
+    expect: async (mod) => { await has('9 AM')(mod); await expect(mod).not.toContainText(/\b6 AM/); },
   },
   {
     // The default event carries location "123 Main St"; hiding locations drops

@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from '../shared/SectionHeader';
 import { usePagedRotation } from '@/hooks/usePagedRotation';
+import { useFontsReady } from '@/hooks/useFontsReady';
 import { newsItemKey } from '@/hooks/useNewsFeeds';
 import { clampLines, formatNewsAge, isBreaking, metaParts } from './news-shared';
 import { useViewCommand } from './news-hooks';
@@ -28,10 +29,13 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
   // module that is resized, or whose font arrives a render after it mounts,
   // must page again against the new box.
   const [boxKey, setBoxKey] = useState('');
+  // Row heights are measured text, so the web font swapping in changes them
+  // all. The box does not change with it, so nothing else here would notice.
+  const fontsReady = useFontsReady();
 
   // Everything that changes a row's height. The measurement belongs to exactly
   // one of these keys.
-  const measureKey = [rowsKey, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, boxKey].join('|');
+  const measureKey = [rowsKey, config.showDescription, config.descriptionLines, config.showImages, config.showTimestamp, config.showSource, config.singleLineTitles, fontScaleKey, boxKey, fontsReady].join('|');
 
   // The key is stored WITH the pages, and a stale key reads as null — the
   // measuring pass in which every row is rendered so its height can be read.
@@ -49,8 +53,12 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
   // triggers a re-measure.
   const measuredRef = useRef<{ w: number; h: number } | null>(null);
 
-  // No dependency array: the effect runs after every render and returns
-  // immediately unless the pages are stale, so it can never miss a key change.
+  // No dependency array on purpose: the effect runs after every render and
+  // returns immediately unless the pages are stale, so it can never miss a key
+  // change. A dependency list is what made the old version stall — the reset and
+  // the measurement batched into one commit, the listed deps came out unchanged,
+  // and the effect never ran again.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- see above; a dep list reintroduces the stall
   useLayoutEffect(() => {
     if (pages !== null) return;
     const el = listRef.current;

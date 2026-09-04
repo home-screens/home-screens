@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { RefObject } from 'react';
+import { useFontsReady } from '@/hooks/useFontsReady';
 
 export interface AutoFitResult {
   scale: number;
@@ -16,6 +17,10 @@ export function useAutoFit(
   deps: unknown[],
 ): AutoFitResult {
   const [state, setState] = useState<AutoFitResult>({ scale: 1, measuredWidth: 0, measuredHeight: 0 });
+  // This measures rendered text, so it has to be redone when the web font
+  // swaps in. The ResizeObserver below cannot see that: it watches the
+  // container, whose size does not change when the face does.
+  const fontsReady = useFontsReady();
 
   useEffect(() => {
     if (!enabled) {
@@ -55,7 +60,7 @@ export function useAutoFit(
       observer.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deps is a spread array from the caller; the linter can't statically verify its contents
-  }, [enabled, ...deps]);
+  }, [enabled, fontsReady, ...deps]);
 
   return state;
 }
