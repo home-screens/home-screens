@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, existsSync } from 'fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import path from 'path';
 import { test, expect } from '@playwright/test';
 import { getAllModuleDefinitions, getModuleDefinition } from '@/lib/module-registry';
@@ -8,6 +8,7 @@ import { MODULE_FIXTURES } from '../helpers/module-fixtures';
 import { VIEW_MATRIX } from '../helpers/view-matrix';
 import { CONFIG_VARIANTS } from '../helpers/config-variants';
 import { EMPTY_STATE_FIXTURES } from '../helpers/empty-state-fixtures';
+import { AUTOSIZED_MODULES, AUTOSIZE_EXEMPTIONS } from '../helpers/autosized-modules';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -899,5 +900,96 @@ test('every manifest locale is referenced in each surface i18n spec', () => {
   expect(
     stalePending,
     `LOCALE_SURFACE_PENDING entries whose spec now exists (or is unknown) — remove them: ${stalePending.join(', ')}`,
+  ).toEqual([]);
+});
+
+// ===========================================================================
+
+/**
+ * Every module that sizes its type off its box has to be in the auto-size
+ * matrix (e2e/display/module-autosize.spec.ts).
+ *
+ * That matrix asserts the one property nothing else in the suite covers: type
+ * is sized for the box it is in. The suite could already tell you a module
+ * rendered the right words and did not overflow, and every one of those
+ * assertions passed while five modules rendered 16px type in a 650px card,
+ * because 16px in a 650px card is the most "fitting" result possible. A new
+ * module using either sizing hook must not be able to skip it.
+ *
+ * Membership is derived rather than declared: walk the import graph of each
+ * entry in module-components.ts and see whether anything it reaches imports
+ * `useScaledFontSize` or `useFitFontSize`. That follows the indirection the
+ * hand-written list kept getting wrong — quote, dad joke, word of day and
+ * history reach the hook through `ScaledAccentContent`, not directly.
+ */
+const SIZING_HOOKS = ['@/hooks/useScaledFontSize', '@/hooks/useFitFontSize'];
+const SRC_DIR = path.resolve(REPO_ROOT, 'src');
+
+/** Resolve an import specifier to a file under src/, or null for a package. */
+function resolveImport(spec: string, fromFile: string): string | null {
+  let base: string;
+  if (spec.startsWith('@/')) base = path.join(SRC_DIR, spec.slice(2));
+  else if (spec.startsWith('.')) base = path.resolve(path.dirname(fromFile), spec);
+  else return null;
+  // A bare path can be a directory (DisplayControlModule/index.tsx), so the
+  // candidate has to be a file, not merely present.
+  for (const candidate of [base, `${base}.tsx`, `${base}.ts`, path.join(base, 'index.tsx'), path.join(base, 'index.ts')]) {
+    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
+  }
+  return null;
+}
+
+/** The first file reachable from `entry` that imports a sizing hook, if any. */
+function reachesSizingHook(entry: string): string | null {
+  const seen = new Set<string>();
+  const queue = [entry];
+  while (queue.length) {
+    const file = queue.shift()!;
+    if (seen.has(file)) continue;
+    seen.add(file);
+    let source: string;
+    try { source = readFileSync(file, 'utf8'); } catch { continue; }
+    for (const m of source.matchAll(/(?:from|import)\s*\(?\s*['"]([^'"]+)['"]/g)) {
+      const spec = m[1];
+      if (SIZING_HOOKS.includes(spec)) return file;
+      const resolved = resolveImport(spec, file);
+      if (resolved && resolved.startsWith(SRC_DIR) && !seen.has(resolved)) queue.push(resolved);
+    }
+  }
+  return null;
+}
+
+test('every module that sizes type off its box is in the auto-size matrix', () => {
+  const componentsSource = readFileSync(path.resolve(SRC_DIR, 'lib/module-components.ts'), 'utf8');
+  const entries = [...componentsSource.matchAll(/'?([a-z0-9-]+)'?:\s*dynamic\(\(\)\s*=>\s*import\('([^']+)'\)\)/g)];
+  expect(entries.length, 'parsed no module components; the registry file shape changed').toBeGreaterThan(30);
+
+  const autoSizing = new Map<string, string>();
+  for (const [, type, spec] of entries) {
+    const file = resolveImport(spec, path.resolve(SRC_DIR, 'lib/module-components.ts'));
+    expect(file, `could not resolve the component for "${type}" (${spec})`).toBeTruthy();
+    const via = reachesSizingHook(file!);
+    if (via) autoSizing.set(type, path.relative(SRC_DIR, via));
+  }
+
+  const listed = new Set<string>(AUTOSIZED_MODULES);
+  const missing = [...autoSizing.entries()]
+    .filter(([type]) => !listed.has(type))
+    .map(([type, via]) => `${type} (reaches a sizing hook via ${via})`);
+  expect(
+    missing,
+    `Modules sizing type off their box but absent from AUTOSIZED_MODULES in e2e/helpers/autosized-modules.ts:\n${missing.map((m) => `  ${m}`).join('\n')}`,
+  ).toEqual([]);
+
+  const stale = [...listed].filter((type) => !autoSizing.has(type));
+  expect(
+    stale,
+    `AUTOSIZED_MODULES entries that no longer reach a sizing hook — remove them: ${stale.join(', ')}`,
+  ).toEqual([]);
+
+  const staleExemptions = Object.keys(AUTOSIZE_EXEMPTIONS).filter((type) => !listed.has(type));
+  expect(
+    staleExemptions,
+    `AUTOSIZE_EXEMPTIONS entries for modules not in AUTOSIZED_MODULES — remove them: ${staleExemptions.join(', ')}`,
   ).toEqual([]);
 });

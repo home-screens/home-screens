@@ -5,6 +5,7 @@ import { seedChores, seedMeals } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
+import { AUTOSIZED_MODULES, AUTOSIZE_EXEMPTIONS } from '../helpers/autosized-modules';
 import type { ModuleType } from '@/types/config';
 
 /**
@@ -29,29 +30,6 @@ import type { ModuleType } from '@/types/config';
  * broke; all five passed, because a stubbed observer reports nothing and a hook
  * that measures nothing looks exactly like one that measures correctly.
  */
-
-/** Modules that size themselves off their measured box, via `useScaledFontSize`
- *  directly or through `ScaledAccentContent`. */
-const AUTOSIZED: ModuleType[] = [
-  'weather', 'news', 'quote', 'dad-joke', 'word-of-day', 'history',
-  'clock', 'date', 'greeting', 'sticky-note', 'countdown', 'todo', 'affirmations',
-];
-
-/**
- * Modules that render the same size in any box, with the reason. An entry here
- * is a claim that the module is *meant* to be box-independent — not a place to
- * park one that fails. They are held to the opposite of property 2 (they must
- * NOT grow) and are excused property 1 in the large box, since a size that
- * never grows falls below any fill floor once the box is big enough.
- */
-const FIXED_SIZE_REASONS: Partial<Record<string, string>> = {
-  // The flip cards are authored at 28px times the module's own `scale` config
-  // and ignore the box, so a countdown renders the same digits in a 220px card
-  // and a 650px one. Deliberate today (`scale` is the control, and the E2E
-  // variant rows pin 28 * scale exactly), but it does mean the module is the
-  // one auto-sizing module whose headline does not follow its box.
-  countdown: 'flip cards are 28px * config.scale, not box-derived',
-};
 
 /**
  * Floor, as a fraction of box height. The smallest healthy value measured
@@ -111,7 +89,7 @@ async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[
   await fx.expect(display.module(type), page);
 }
 
-for (const type of AUTOSIZED) {
+for (const type of AUTOSIZED_MODULES) {
   test(`${type} sizes its type for its box`, async ({ page, request }) => {
     await renderAt(page, request, type, SMALL);
     // Polled, not slept on: the measure-and-fit pass converges over a render or
@@ -121,12 +99,12 @@ for (const type of AUTOSIZED) {
         const { max, boxH } = await largestType(page, type);
         return boxH > 0 ? max / boxH : 0;
       }, { message: `${type} type is lost in a ${SMALL.w}x${SMALL.h} box` })
-      .toBeGreaterThanOrEqual(MIN_FILL);
+      .toBeGreaterThanOrEqual(AUTOSIZE_EXEMPTIONS[type]?.fill ? 0 : MIN_FILL);
     const small = await largestType(page, type);
 
     await renderAt(page, request, type, LARGE);
-    const reason = FIXED_SIZE_REASONS[type];
-    if (!reason) {
+    const exempt = AUTOSIZE_EXEMPTIONS[type] ?? {};
+    if (!exempt.fill) {
       await expect
         .poll(async () => {
           const { max, boxH } = await largestType(page, type);
@@ -136,8 +114,8 @@ for (const type of AUTOSIZED) {
     }
     const large = await largestType(page, type);
 
-    if (reason) {
-      expect(large.max, `${type} is listed as fixed-size (${reason}) but grew with its box`)
+    if (exempt.growth) {
+      expect(large.max, `${type} is listed as fixed-size (${exempt.growth}) but grew with its box`)
         .toBeLessThan(small.max * MIN_GROWTH);
       return;
     }
