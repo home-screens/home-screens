@@ -427,7 +427,9 @@
         "automation": "Automatización",
         "admin": "Mantenimiento"
       },
-      "helpAndDocs": "Ayuda y documentación"
+      "helpAndDocs": "Ayuda y documentación",
+      "github": "GitHub",
+      "discord": "Discord"
     },
     "overrideRow": {
       "override": "Anular",

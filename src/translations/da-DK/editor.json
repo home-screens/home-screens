@@ -427,7 +427,9 @@
         "automation": "Automatisering",
         "admin": "Vedligeholdelse"
       },
-      "helpAndDocs": "Hjælp og dokumentation"
+      "helpAndDocs": "Hjælp og dokumentation",
+      "github": "GitHub",
+      "discord": "Discord"
     },
     "overrideRow": {
       "override": "Tilsidesæt",

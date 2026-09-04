@@ -27,6 +27,25 @@ import {
 } from 'lucide-react';
 
 const DOCS_URL = 'https://homescreens.dev/docs';
+const GITHUB_URL = 'https://github.com/home-screens/home-screens';
+const DISCORD_URL = 'https://discord.gg/KafmFuSNU';
+
+/** lucide-react ships no GitHub or Discord brand mark, so these are inline SVGs. */
+function GithubIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.089-.745.083-.729.083-.729 1.205.084 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.42-1.305.762-1.605-2.665-.303-5.467-1.332-5.467-5.93 0-1.31.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.5 11.5 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.61-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.606-.015 2.898-.015 3.293 0 .322.216.696.825.578C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+    </svg>
+  );
+}
+
+function DiscordIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
+    </svg>
+  );
+}
 
 /** localStorage key for the collapsed sidebar groups. */
 const COLLAPSED_GROUPS_KEY = 'hs-settings-collapsed-groups';
@@ -550,18 +569,15 @@ function GroupedPageList({
 }
 
 /**
- * Pinned footer row rendered at the bottom of the sidebar in both
- * legacy and multi-display modes. The parent `<nav>` is a flex column
- * with a `flex-1 overflow-y-auto` body above this, so the footer stays
- * visible regardless of how far the Defaults / Per display lists scroll.
+ * Pinned footer rendered at the bottom of the sidebar in both legacy and
+ * multi-display modes. The parent `<nav>` is a flex column with a
+ * `flex-1 overflow-y-auto` body above this, so the footer stays visible
+ * regardless of how far the Defaults / Per display lists scroll.
  *
- * One labelled row rather than the three bare icons it replaced. A book, a
- * house and the GitHub mark carried their meaning only in a hover title,
- * which does not exist on the touchscreen this editor is often used from.
- * The website and repository links moved into the docs site's own footer,
- * where someone looking for them is already standing; what a person wants
- * from the editor is help with the page they are on, which is what the
- * per-page "Learn more" links in `DefaultsPageShell` now answer.
+ * Labelled rows, not bare icons: a book/GitHub mark/Discord mark only carry
+ * their meaning via a hover title, which is a worse affordance than a label
+ * regardless of input device. (The editor itself is rarely touchscreen-only
+ * — that's the kiosk display — but the labelled row still reads faster.)
  */
 function SidebarFooter() {
   const t = useTranslate('editor');
@@ -575,6 +591,26 @@ function SidebarFooter() {
       >
         <BookOpen className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
         <span className="flex-1 text-left">{t('settings.sidebar.helpAndDocs')}</span>
+        <ExternalLink className="w-3 h-3 shrink-0 text-hs-text-faint" aria-hidden="true" />
+      </a>
+      <a
+        href={GITHUB_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full flex items-center gap-2.5 px-3.5 py-1.5 text-[13px] text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover transition-colors"
+      >
+        <GithubIcon className="w-3.5 h-3.5 shrink-0" />
+        <span className="flex-1 text-left">{t('settings.sidebar.github')}</span>
+        <ExternalLink className="w-3 h-3 shrink-0 text-hs-text-faint" aria-hidden="true" />
+      </a>
+      <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full flex items-center gap-2.5 px-3.5 py-1.5 text-[13px] text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover transition-colors"
+      >
+        <DiscordIcon className="w-3.5 h-3.5 shrink-0" />
+        <span className="flex-1 text-left">{t('settings.sidebar.discord')}</span>
         <ExternalLink className="w-3 h-3 shrink-0 text-hs-text-faint" aria-hidden="true" />
       </a>
     </div>

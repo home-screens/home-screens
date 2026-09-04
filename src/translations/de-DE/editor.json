@@ -427,7 +427,9 @@
         "automation": "Automatisierung",
         "admin": "Wartung"
       },
-      "helpAndDocs": "Hilfe & Doku"
+      "helpAndDocs": "Hilfe & Doku",
+      "github": "GitHub",
+      "discord": "Discord"
     },
     "overrideRow": {
       "override": "Überschreiben",

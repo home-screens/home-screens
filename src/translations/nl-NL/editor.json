@@ -427,7 +427,9 @@
         "automation": "Automatisering",
         "admin": "Onderhoud"
       },
-      "helpAndDocs": "Help en documentatie"
+      "helpAndDocs": "Help en documentatie",
+      "github": "GitHub",
+      "discord": "Discord"
     },
     "overrideRow": {
       "override": "Overschrijven",

@@ -47,6 +47,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // Brand names of the rotation sources, spelled the same everywhere.
   'editor|backgroundPicker.sources.unsplash',
   'editor|backgroundPicker.sources.immich',
+  // Brand names of the sidebar footer's community links, spelled the same everywhere.
+  'editor|settings.sidebar.github',
+  'editor|settings.sidebar.discord',
   'editor|canvas.zoomPercent',
   // "{days}, {time}" — punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
