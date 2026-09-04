@@ -33,5 +33,34 @@ export default defineConfig({
     { name: 'remote',  testDir: './e2e/remote',  use: { viewport: { width: 390, height: 844 } } },
     { name: 'chores',  testDir: './e2e/chores',  use: { viewport: { width: 390, height: 844 } } },
     { name: 'auth',    testDir: './e2e/auth',    use: { viewport: { width: 1280, height: 800 } } },
+    // Pixel gallery — local only, never CI. It proves a settings-pipeline
+    // change did not repaint an existing wall (see .claude/plans/51); CI runs
+    // `playwright test` with no project filter, and pixel snapshots in CI are
+    // what 66e4d7cf removed on purpose, so it is gated on an env var rather
+    // than on `process.env.CI` being falsy.
+    //
+    //   capture baseline:  HS_GALLERY=1 npx playwright test --project=gallery --update-snapshots
+    //   compare:           HS_GALLERY=1 npx playwright test --project=gallery
+    //
+    // Snapshots land under .claude/mockups/, which is gitignored: they are a
+    // working artifact of one machine on one day, not a committed baseline.
+    ...(process.env.HS_GALLERY ? [{
+      name: 'gallery',
+      testDir: './e2e/gallery',
+      // The pixel threshold stays at zero; this absorbs load-dependent noise
+      // instead. Measured over three full runs (630 shots): one shot differed,
+      // by 18 pixels, on a row highlight, and passed 3/3 when re-run alone.
+      //
+      // The protocol that makes this safe: a shot that passes on retry is
+      // noise, a shot that fails twice is a real change. Never widen
+      // `threshold` or `maxDiffPixels` to make a diff go away - that is where a
+      // real repaint would hide.
+      retries: 1,
+      // Screenshots retry until two consecutive captures match, and a
+      // fullscreen module is a 1080x1920 paint; 30s is not enough headroom.
+      timeout: 120_000,
+      snapshotPathTemplate: '.claude/mockups/gallery/{arg}{ext}',
+      use: { viewport: { width: 1080, height: 1920 } },
+    }] : []),
   ],
 });
