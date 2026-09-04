@@ -6,7 +6,7 @@ import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
 import { controlMetrics } from './metrics';
-import { useControlBox } from './useControlBox';
+import { useElementBox } from '@/hooks/useElementBox';
 import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
 /**
@@ -23,8 +23,8 @@ export function PadLayout(props: LayoutProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
   const dim = pickerOpen ? 'opacity-35' : '';
-  const [boxRef, box] = useControlBox();
-  const m = controlMetrics({ ...box, layout: 'pad', compact, showPicker });
+  const [boxRef, box] = useElementBox('padding');
+  const m = controlMetrics({ w: box.width, h: box.height, layout: 'pad', compact, showPicker });
 
   return (
     <div

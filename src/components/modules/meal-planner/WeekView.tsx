@@ -5,7 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotT
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import { useElementWidth } from '@/hooks/useElementWidth';
+import { useElementWidth } from '@/hooks/useElementBox';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 
 interface WeekViewProps {

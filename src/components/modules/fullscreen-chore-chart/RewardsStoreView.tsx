@@ -16,7 +16,7 @@ import BalanceBanner from './rewards/BalanceBanner';
 import RewardCard from './rewards/RewardCard';
 import RedeemConfirm from './rewards/RedeemConfirm';
 import RedeemedBanner from './rewards/RedeemedBanner';
-import { useElementSize } from './rewards/useElementSize';
+import { useElementBox } from '@/hooks/useElementBox';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
 
 interface RewardsStoreViewProps {
@@ -80,7 +80,7 @@ export function RewardsStoreView({
 
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const redeemedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [scrollerRef, scrollerSize] = useElementSize();
+  const [scrollerRef, scrollerSize] = useElementBox();
 
   // Sync from props when polling updates arrive
   useEffect(() => { setLocalBalances(balances); }, [balances]);

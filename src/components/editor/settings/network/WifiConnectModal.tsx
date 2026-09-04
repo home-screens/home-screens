@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
 
@@ -48,10 +48,6 @@ export default function WifiConnectModal({
   const [hiddenSsidInput, setHiddenSsidInput] = useState(hiddenSsid ?? '');
 
   const effectiveSsid = network ? ssid : hiddenSsidInput;
-
-  /* ── Escape to close ───────────────────────── */
-
-  useEscapeKey(onClose);
 
   /* ── Connect handler ───────────────────────── */
 
@@ -118,14 +114,9 @@ export default function WifiConnectModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-modal flex items-center justify-center bg-black/60"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-4">
+    <ModalFrame labelledBy="wifi-connect-title" onClose={onClose} className="w-full max-w-md">
+      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <h2 id="wifi-connect-title" className="text-lg font-semibold text-hs-text-primary mb-4">
           {network
             ? t('settings.networkPage.wifiConnect.titleNamed', { ssid })
             : t('settings.networkPage.wifiConnect.titleHidden')}
@@ -217,6 +208,6 @@ export default function WifiConnectModal({
           </div>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

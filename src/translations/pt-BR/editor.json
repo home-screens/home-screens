@@ -564,6 +564,7 @@
           "icloudNoAccount": "Nenhuma conta do iCloud está conectada para esta agenda",
           "icloudNotICloudUrl": "O endereço da agenda não é um link do iCloud",
           "icloudUnreachable": "Não foi possível acessar o iCloud",
+          "linkBlocked": "Esse link não pode ser usado. Confira e tente de novo.",
           "linkHttpError": "Não foi possível acessar o link (HTTP {status})",
           "linkInvalid": "O link não é um endereço web válido",
           "linkUnreachable": "Não foi possível acessar o link",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Adicione membros da família primeiro",
       "editAriaLabel": "Editar {name}",
       "deleteAriaLabel": "Excluir {name}",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Excluir tarefa",
         "message": "Excluir \"{name}\"?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Atribuir a",
       "weeklyScheduleLabel": "Agenda semanal",
       "coverageLabel": "Cobertura: {covered} de 7 dias",
-      "coverageUncovered": "{days} sem cobertura",
       "addSubmit": "Adicionar tarefa",
-      "saveSubmit": "Salvar",
-      "validation": {
-        "enterName": "Digite um nome para a tarefa",
-        "addPersonToSchedule": "Adicione pelo menos uma pessoa à agenda",
-        "selectAtLeastOnePerson": "Selecione pelo menos uma pessoa"
-      }
-    },
-    "frequency": {
-      "daily": "Diária",
-      "weekly": "Semanal",
-      "biweekly": "A cada duas semanas",
-      "once": "Uma vez"
-    },
-    "rotation": {
-      "fixed": "Fixo (todos fazem)",
-      "rotateDaily": "Rodízio diário",
-      "rotateWeekly": "Rodízio semanal",
-      "schedule": "Agenda"
-    },
-    "choreSummary": {
-      "daily": "Diária",
-      "weekly": "Semanal",
-      "biweekly": "A cada duas semanas",
-      "once": "Uma vez · {date}",
-      "onceNoDate": "Uma vez",
-      "ticketCountSingular": "{count} ticket",
-      "ticketCountPlural": "{count} tickets",
-      "rotationDaily": "rodízio diário",
-      "rotationWeekly": "rodízio semanal",
-      "rotationSchedule": "agenda",
-      "rotatedShort": "← rod",
-      "arrow": "→"
+      "saveSubmit": "Salvar"
     },
     "preview": {
       "columnTitleNew": "Nova tarefa",
@@ -3912,6 +3880,7 @@
       "view": "Visualização",
       "viewStory": "Notícia",
       "viewFrontPage": "Capa",
+      "themeDefault": "Padrão (das Configurações)",
       "rotateSeconds": "Trocar de notícia a cada (segundos)",
       "maxItems": "Máx. de notícias",
       "showTime": "Mostrar a hora",
@@ -4047,7 +4016,9 @@
       "checking": "Verificando o link…",
       "checkFailedHint": "Confira se o link termina em .ics ou começa com webcal://",
       "addAnyway": "Adicionar mesmo assim",
-      "checkUnavailable": "Não deu para verificar o link agora"
+      "checkUnavailable": "Não deu para verificar o link agora",
+      "homeNetwork": "Rede doméstica",
+      "homeNetworkHint": "Permite que a tela leia uma agenda de um aparelho da sua rede doméstica, como um servidor de agenda próprio."
     },
     "orientation": {
       "title": "Alguns módulos podem ficar fora da tela",

@@ -73,6 +73,8 @@ export interface NewsViewContext {
   onTap?: (item: NewsDisplayItem) => void;
   timezone?: string;
   timeFormat: TimeFormat;
+  /** Names of feeds that did not answer this refresh; empty when all replied. */
+  unavailable: string[];
 }
 
 /**

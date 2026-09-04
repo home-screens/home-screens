@@ -6,9 +6,14 @@ import { fetchWithTimeout } from '@/lib/api-utils';
 import { compareEventStarts } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
+import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { logger } from '@/lib/logger';
 
 const log = logger('ical');
+
+const FETCH_TIMEOUT_MS = 15_000;
+const MAX_REDIRECTS = 5;
+const MAX_BODY_BYTES = 4 * 1024 * 1024;
 
 /** Extract the string value from a node-ical ParameterValue (string | {val, params}). */
 function paramValue(v: unknown): string {
@@ -99,12 +104,15 @@ type SourceOutcome = { events: CalendarEvent[]; results: SourceFetchResult[] };
  * is not a calendar becomes a failing `results` entry with plain-language
  * wording (and an i18n `messageKey`). Network failures inside
  * `fetchWithTimeout` still reject; callers map those to `linkUnreachable`.
+ *
+ * Links that point into the home network are refused unless the source has
+ * `homeNetwork: true`, and every redirect hop is checked the same way.
  */
 export async function fetchICalSource(source: ICalSource, from: Date, to: Date): Promise<SourceOutcome> {
   const fail = (error: string, messageKey: string, messageParams?: Record<string, string | number>): SourceOutcome =>
     ({ events: [], results: [{ id: source.id, name: source.name, ok: false, error, messageKey, messageParams }] });
 
-  // Validate URL scheme — normalize webcal:// to https://
+  // Validate the URL, normalizing webcal:// to https://
   let fetchUrl = source.url;
   let parsed: URL;
   try {
@@ -122,12 +130,61 @@ export async function fetchICalSource(source: ICalSource, from: Date, to: Date):
     return fail("The link isn't a valid web address", 'linkInvalid');
   }
 
-  const res = await fetchWithTimeout(fetchUrl, { timeout: 15_000 });
+  // A calendar link is typed by a person, so it can point anywhere, including
+  // at the router, the hub itself, or a cloud metadata address. Public links
+  // go through the strict check; a household that runs its own calendar server
+  // turns on "Home network" for that one feed to reach a private address.
+  // Redirects are followed by hand so every hop is checked the same way:
+  // letting fetch follow them would let an allowed public host send us to
+  // http://169.254.169.254/ or http://192.168.1.1/ and have us fetch it.
+  const isSafe = (url: string) =>
+    source.homeNetwork === true ? isSafeLocalOrExternalUrl(url) : isSafeExternalUrl(url);
+
+  const blocked = () => {
+    log.warn(`Refused to fetch the link for source "${source.name}" (${source.id})`);
+    return fail("That link can't be used. Check it and try again.", 'linkBlocked');
+  };
+
+  if (!(await isSafe(fetchUrl))) return blocked();
+
+  let current = fetchUrl;
+  let res!: Response;
+  for (let hop = 0; ; hop++) {
+    res = await fetchWithTimeout(current, { timeout: FETCH_TIMEOUT_MS, redirect: 'manual' });
+    if (res.status < 300 || res.status >= 400) break;
+    const location = res.headers.get('location');
+    if (!location) break;
+    if (hop === MAX_REDIRECTS) {
+      log.warn(`Too many redirects for source "${source.name}" (${source.id})`);
+      return fail('Could not reach the link', 'linkUnreachable');
+    }
+    let next: string;
+    try {
+      next = new URL(location, current).toString();
+    } catch {
+      return blocked();
+    }
+    if (!(await isSafe(next))) return blocked();
+    current = next;
+  }
+
   if (!res.ok) {
     log.warn(`Fetch failed for source "${source.name}" (${source.id}): HTTP ${res.status}`);
     return fail(`Could not reach the link (HTTP ${res.status})`, 'linkHttpError', { status: res.status });
   }
-  const icsText = await res.text();
+
+  // Cap the download so a link pointing at something huge cannot exhaust memory.
+  const declaredLength = Number(res.headers.get('content-length') ?? 0);
+  if (declaredLength > MAX_BODY_BYTES) {
+    log.warn(`Source "${source.name}" (${source.id}) returned too much data`);
+    return fail("The link didn't return a readable calendar", 'linkUnreadable');
+  }
+  const bytes = await res.arrayBuffer();
+  if (bytes.byteLength > MAX_BODY_BYTES) {
+    log.warn(`Source "${source.name}" (${source.id}) returned too much data`);
+    return fail("The link didn't return a readable calendar", 'linkUnreadable');
+  }
+  const icsText = new TextDecoder('utf-8').decode(bytes);
 
   // A login page or an HTML 200 from a portal is the usual wrong paste; the
   // parser would quietly find no components in it, so require the calendar
@@ -187,12 +244,27 @@ export type ICalCheckResult =
  * saves it: same URL rules, same HTTP fetch, same parser. Counts the events
  * in the coming year so the editor can tell an empty calendar from a broken
  * link. Never rejects.
+ *
+ * `homeNetwork` is the same opt-in the saved source carries, so the form can
+ * check a home-network calendar before it is saved. Without it the check is
+ * held to the strict rule and cannot be used to poke around the network.
  */
-export async function checkICalUrl(url: string): Promise<ICalCheckResult> {
+export async function checkICalUrl(
+  url: string,
+  options: { homeNetwork?: boolean } = {},
+): Promise<ICalCheckResult> {
   const from = new Date();
   const to = new Date(from);
   to.setFullYear(to.getFullYear() + 1);
-  const probe: ICalSource = { id: 'check', type: 'ical', name: 'check', url, color: '', enabled: true };
+  const probe: ICalSource = {
+    id: 'check',
+    type: 'ical',
+    name: 'check',
+    url,
+    color: '',
+    enabled: true,
+    homeNetwork: options.homeNetwork === true,
+  };
   try {
     const { events, results } = await fetchICalSource(probe, from, to);
     const result = results[0];

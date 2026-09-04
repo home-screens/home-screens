@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -13,7 +12,7 @@ import type { ClockViewProps } from './types';
  * Sizes itself to fit the container rather than scaling with scaledFontSize,
  * since the content is inherently vertical and needs to fill available height.
  */
-export default function ClockVerticalView({ config, now, containerRef }: ClockViewProps) {
+export default function ClockVerticalView({ config, now, containerRef, boxHeight }: ClockViewProps) {
   const t = useTranslate('modules');
   const { h, mStr, sStr, hours } = parseClockTime(config.format24h, now);
   // Vertical digits always need 2-digit hours
@@ -26,19 +25,8 @@ export default function ClockVerticalView({ config, now, containerRef }: ClockVi
   // Each separator is roughly 0.4 digit-heights
   const totalSlots = digitCount + separatorCount * 0.4;
 
-  // Measure container to fit digits
-  const [containerHeight, setContainerHeight] = useState(300);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      setContainerHeight(el.clientHeight);
-    });
-    ro.observe(el);
-    setContainerHeight(el.clientHeight);
-    return () => ro.disconnect();
-  }, [containerRef]);
+  // The module measures the root for us; 300 stands in until it has.
+  const containerHeight = boxHeight > 0 ? boxHeight : 300;
 
   // Size digits to fit container with some breathing room
   const digitSize = Math.floor((containerHeight * 0.85) / (totalSlots * 1.0));

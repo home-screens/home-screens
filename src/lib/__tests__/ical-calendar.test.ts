@@ -7,6 +7,35 @@ vi.mock('@/lib/api-utils', () => ({
   fetchWithTimeout: vi.fn(),
 }));
 
+// Stub the SSRF guards so tests don't depend on real DNS resolution.
+// `isSafeExternalUrl` calls `dns.lookup` for every non-literal-IP host,
+// which would either flake or fail outright in network-isolated CI
+// sandboxes. The stub keeps the same shape (URL parse + protocol check
+// + literal loopback / private / metadata block) so the fetcher's behavior
+// matches what callers see in production for the cases tested here.
+vi.mock('@/lib/url-safety', () => ({
+  isSafeExternalUrl: vi.fn(async (url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+      const blocked = new Set(['localhost', '127.0.0.1', '169.254.169.254', '::1']);
+      if (blocked.has(u.hostname)) return false;
+      return !/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(u.hostname);
+    } catch {
+      return false;
+    }
+  }),
+  isSafeLocalOrExternalUrl: vi.fn(async (url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+      return u.hostname !== '169.254.169.254';
+    } catch {
+      return false;
+    }
+  }),
+}));
+
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { fetchICalEvents } from '@/lib/ical-calendar';
 
@@ -298,6 +327,109 @@ describe('fetchICalEvents', () => {
 
     expect(events).toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  describe('links that point into the home network', () => {
+    it('refuses a private address and never fetches it', async () => {
+      mockFetch.mockClear();
+      const { events, results } = await fetchICalEvents(
+        [makeSource({ url: 'http://192.168.1.10/calendar.ics' })],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(events).toEqual([]);
+      expect(results[0].ok).toBe(false);
+      expect(results[0].messageKey).toBe('linkBlocked');
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('refuses a public link that redirects to a private address', async () => {
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(
+        new Response('', { status: 302, headers: { location: 'http://169.254.169.254/latest/meta-data' } }),
+      );
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(events).toEqual([]);
+      expect(results[0].messageKey).toBe('linkBlocked');
+      // The first hop was fetched; the redirect target never was.
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('follows a redirect that stays on a public address', async () => {
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(
+        new Response('', { status: 302, headers: { location: 'https://cdn.example.com/calendar.ics' } }),
+      );
+      mockFetchResponse(SIMPLE_ICS);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events).toHaveLength(2);
+      expect(mockFetch).toHaveBeenLastCalledWith(
+        'https://cdn.example.com/calendar.ics',
+        expect.objectContaining({ redirect: 'manual' }),
+      );
+    });
+
+    it('allows a private address when the feed opted in', async () => {
+      mockFetch.mockClear();
+      mockFetchResponse(SIMPLE_ICS);
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource({ url: 'http://192.168.1.10/calendar.ics', homeNetwork: true })],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(results[0].ok).toBe(true);
+      expect(events).toHaveLength(2);
+    });
+  });
+
+  describe('oversized responses', () => {
+    it('rejects a body past the size cap', async () => {
+      mockFetch.mockClear();
+      const huge = 'x'.repeat(4 * 1024 * 1024 + 1);
+      mockFetch.mockResolvedValueOnce(new Response(huge, { status: 200 }));
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(events).toEqual([]);
+      expect(results[0].ok).toBe(false);
+      expect(results[0].messageKey).toBe('linkUnreadable');
+    });
+
+    it('rejects a response that declares a size past the cap without reading it', async () => {
+      mockFetch.mockClear();
+      mockFetch.mockResolvedValueOnce(
+        new Response(SIMPLE_ICS, { status: 200, headers: { 'content-length': String(50 * 1024 * 1024) } }),
+      );
+
+      const { events, results } = await fetchICalEvents(
+        [makeSource()],
+        '2025-03-01T00:00:00Z',
+        '2025-03-31T00:00:00Z',
+      );
+
+      expect(events).toEqual([]);
+      expect(results[0].messageKey).toBe('linkUnreadable');
+    });
   });
 
   it('continues when one source fails — partial failure', async () => {

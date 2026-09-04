@@ -6,7 +6,7 @@ import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
 import { controlMetrics } from './metrics';
-import { useControlBox } from './useControlBox';
+import { useElementBox } from '@/hooks/useElementBox';
 import { BUTTON_CLASS, BrightnessSlider, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
 /** Four word-and-icon buttons in a grid with the brightness slider under them. */
@@ -19,8 +19,8 @@ export function PanelLayout(props: LayoutProps) {
   const showPicker = allowRetargeting && !isLegacyMode;
   const [pickerOpen, setPickerOpen] = useState(false);
   const dim = pickerOpen ? 'opacity-35' : '';
-  const [boxRef, box] = useControlBox();
-  const m = controlMetrics({ ...box, layout: 'panel', compact, showPicker });
+  const [boxRef, box] = useElementBox('padding');
+  const m = controlMetrics({ w: box.width, h: box.height, layout: 'panel', compact, showPicker });
 
   return (
     <div

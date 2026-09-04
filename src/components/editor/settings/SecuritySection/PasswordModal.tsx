@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import type { AuthStatus } from './types';
 
@@ -154,9 +155,16 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-hs-panel border border-hs-border-strong rounded-lg p-6 w-full max-w-sm shadow-xl">
-        <h4 className="text-sm font-medium text-hs-text-body mb-4">
+    // Escape and the backdrop are suspended mid-request, matching the Cancel
+    // button, which is disabled for the same window.
+    <ModalFrame
+      labelledBy="security-password-title"
+      onClose={onClose}
+      closable={!submitting}
+      className="w-full max-w-sm"
+    >
+      <div className="bg-hs-panel border border-hs-border-strong rounded-lg p-6 w-full shadow-xl">
+        <h4 id="security-password-title" className="text-sm font-medium text-hs-text-body mb-4">
           {mode === 'set' && t('settings.securityPage.modal.setTitle')}
           {mode === 'change' && t('settings.securityPage.modal.changeTitle')}
           {mode === 'disable' && t('settings.securityPage.modal.disableTitle')}
@@ -263,6 +271,6 @@ export default function PasswordModal({ mode, onClose, onStatusChange, onDisplay
           </div>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

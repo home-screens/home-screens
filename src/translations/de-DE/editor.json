@@ -564,6 +564,7 @@
           "icloudNoAccount": "Für diesen Kalender ist kein iCloud-Konto verbunden",
           "icloudNotICloudUrl": "Die Kalenderadresse ist kein iCloud-Link",
           "icloudUnreachable": "iCloud ist nicht erreichbar",
+          "linkBlocked": "Dieser Link kann nicht verwendet werden. Prüfe ihn und versuche es erneut.",
           "linkHttpError": "Der Link ist nicht erreichbar (HTTP {status})",
           "linkInvalid": "Der Link ist keine gültige Webadresse",
           "linkUnreachable": "Der Link ist nicht erreichbar",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Füge zuerst Familienmitglieder hinzu",
       "editAriaLabel": "{name} bearbeiten",
       "deleteAriaLabel": "{name} löschen",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Aufgabe löschen",
         "message": "„{name}“ löschen?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Wer macht's?",
       "weeklyScheduleLabel": "Wochenplan",
       "coverageLabel": "Abgedeckt: {covered} von 7 Tagen",
-      "coverageUncovered": "{days} offen",
       "addSubmit": "Aufgabe hinzufügen",
-      "saveSubmit": "Speichern",
-      "validation": {
-        "enterName": "Gib der Aufgabe einen Namen",
-        "addPersonToSchedule": "Trag mindestens eine Person in den Plan ein",
-        "selectAtLeastOnePerson": "Wähle mindestens eine Person aus"
-      }
-    },
-    "frequency": {
-      "daily": "Täglich",
-      "weekly": "Wöchentlich",
-      "biweekly": "Alle zwei Wochen",
-      "once": "Einmalig"
-    },
-    "rotation": {
-      "fixed": "Fest (alle machen mit)",
-      "rotateDaily": "Täglich abwechseln",
-      "rotateWeekly": "Wöchentlich abwechseln",
-      "schedule": "Plan"
-    },
-    "choreSummary": {
-      "daily": "Täglich",
-      "weekly": "Wöchentlich",
-      "biweekly": "Alle zwei Wochen",
-      "once": "Einmalig · {date}",
-      "onceNoDate": "Einmalig",
-      "ticketCountSingular": "{count} Ticket",
-      "ticketCountPlural": "{count} Tickets",
-      "rotationDaily": "täglich abwechseln",
-      "rotationWeekly": "wöchentlich abwechseln",
-      "rotationSchedule": "Plan",
-      "rotatedShort": "← Wechsel",
-      "arrow": "→"
+      "saveSubmit": "Speichern"
     },
     "preview": {
       "columnTitleNew": "Neue Aufgabe",
@@ -3912,6 +3880,7 @@
       "view": "Ansicht",
       "viewStory": "Meldung",
       "viewFrontPage": "Titelseite",
+      "themeDefault": "Standard (aus Einstellungen)",
       "rotateSeconds": "Meldung wechseln alle (Sekunden)",
       "maxItems": "Max. Meldungen",
       "showTime": "Uhrzeit anzeigen",
@@ -4047,7 +4016,9 @@
       "checking": "Link wird geprüft…",
       "checkFailedHint": "Prüfe, ob der Link auf .ics endet oder mit webcal:// beginnt",
       "addAnyway": "Trotzdem hinzufügen",
-      "checkUnavailable": "Der Link konnte gerade nicht geprüft werden"
+      "checkUnavailable": "Der Link konnte gerade nicht geprüft werden",
+      "homeNetwork": "Heimnetzwerk",
+      "homeNetworkHint": "Erlaubt der Anzeige, einen Kalender von einem Gerät in deinem Heimnetzwerk zu lesen, zum Beispiel einem selbst betriebenen Kalenderserver."
     },
     "orientation": {
       "title": "Module könnten außerhalb des Bildschirms liegen",

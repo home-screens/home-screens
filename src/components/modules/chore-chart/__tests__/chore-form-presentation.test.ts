@@ -14,7 +14,6 @@ const fakeT: TranslateFn = (key, vars) => {
   const parts = Object.entries(vars).map(([k, v]) => `${k}=${v}`).join(',');
   return `[${key} ${parts}]`;
 };
-const fakeTModules: TranslateFn = (key) => `M:${key}`;
 
 function makeChore(overrides: Partial<ChoreDefinition>): ChoreDefinition {
   return {
@@ -36,10 +35,9 @@ describe('buildChoreSummaryLine', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ frequency: 'daily', points: 2 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
     expect(out).toBe(
-      '[choreChartModal.choreSummary.daily] · M:chore-chart.timeOfDay.morning · [choreChartModal.choreSummary.ticketCountPlural count=2]',
+      '[chore-chart.choreSummary.daily] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountPlural count=2]',
     );
   });
 
@@ -47,29 +45,26 @@ describe('buildChoreSummaryLine', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ frequency: 'weekly', points: 3, timeOfDay: 'afternoon' }),
       t: fakeT,
-      tModules: fakeTModules,
     });
-    expect(out).toContain('[choreChartModal.choreSummary.weekly]');
-    expect(out).toContain('M:chore-chart.timeOfDay.afternoon');
+    expect(out).toContain('[chore-chart.choreSummary.weekly]');
+    expect(out).toContain('[chore-chart.timeOfDay.afternoon]');
   });
 
   it('routes biweekly frequency through the choreSummary.biweekly key', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ frequency: 'biweekly', points: 4 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
-    expect(out).toContain('[choreChartModal.choreSummary.biweekly]');
+    expect(out).toContain('[chore-chart.choreSummary.biweekly]');
   });
 
   it('uses the dated `once` key when specificDate is set', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ frequency: 'once', specificDate: '2026-06-01', points: 1 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
     expect(out).toBe(
-      '[choreChartModal.choreSummary.once date=2026-06-01] · M:chore-chart.timeOfDay.morning · [choreChartModal.choreSummary.ticketCountSingular count=1]',
+      '[chore-chart.choreSummary.once date=2026-06-01] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountSingular count=1]',
     );
   });
 
@@ -77,27 +72,24 @@ describe('buildChoreSummaryLine', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ frequency: 'once', specificDate: undefined, points: 5 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
-    expect(out).toContain('[choreChartModal.choreSummary.onceNoDate]');
+    expect(out).toContain('[chore-chart.choreSummary.onceNoDate]');
   });
 
   it('singularizes the ticket count when points === 1', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ points: 1 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
-    expect(out).toContain('[choreChartModal.choreSummary.ticketCountSingular count=1]');
+    expect(out).toContain('[chore-chart.choreSummary.ticketCountSingular count=1]');
   });
 
   it('pluralizes the ticket count when points !== 1', () => {
     const out = buildChoreSummaryLine({
       chore: makeChore({ points: 7 }),
       t: fakeT,
-      tModules: fakeTModules,
     });
-    expect(out).toContain('[choreChartModal.choreSummary.ticketCountPlural count=7]');
+    expect(out).toContain('[chore-chart.choreSummary.ticketCountPlural count=7]');
   });
 });
 

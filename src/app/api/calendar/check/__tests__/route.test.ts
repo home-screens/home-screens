@@ -10,6 +10,32 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
 
+// Stub the SSRF guards so tests don't depend on real DNS resolution, which
+// would either flake or fail outright in network-isolated CI sandboxes. The
+// stub keeps the same shape (URL parse + protocol check + literal loopback /
+// private / metadata block) as the real guards.
+vi.mock('@/lib/url-safety', () => ({
+  isSafeExternalUrl: vi.fn(async (url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+      if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.hostname === '169.254.169.254') return false;
+      return !/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(u.hostname);
+    } catch {
+      return false;
+    }
+  }),
+  isSafeLocalOrExternalUrl: vi.fn(async (url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+      return u.hostname !== '169.254.169.254';
+    } catch {
+      return false;
+    }
+  }),
+}));
+
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { requireSession } from '@/lib/auth';
 import { POST } from '@/app/api/calendar/check/route';
@@ -83,6 +109,18 @@ describe('POST /api/calendar/check', () => {
     const res = await POST(request({ url: 'not a link' }));
     expect(await res.json()).toMatchObject({ ok: false, messageKey: 'linkInvalid' });
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('refuses a home-network address without fetching it', async () => {
+    const res = await POST(request({ url: 'http://192.168.1.10/calendar.ics' }));
+    expect(await res.json()).toMatchObject({ ok: false, messageKey: 'linkBlocked' });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('checks a home-network address when the form opted in', async () => {
+    mockFetch.mockResolvedValueOnce(new Response(ICS, { status: 200 }));
+    const res = await POST(request({ url: 'http://192.168.1.10/calendar.ics', homeNetwork: true }));
+    expect(await res.json()).toEqual({ ok: true, eventCount: 1 });
   });
 
   it('reports a network failure as unreachable', async () => {

@@ -562,7 +562,42 @@
     },
     "noMembersYet": "Ingen familiemedlemmer endnu",
     "noChoresYet": "Ingen pligter endnu",
-    "setUpFromPhoneHint": "Tilføj familie og pligter fra en telefon: åbn {url} og tryk på Pligter"
+    "setUpFromPhoneHint": "Tilføj familie og pligter fra en telefon: åbn {url} og tryk på Pligter",
+    "frequency": {
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hver anden uge",
+      "once": "Én gang"
+    },
+    "rotation": {
+      "fixed": "Fast (alle gør det)",
+      "rotateDaily": "Rotatér dagligt",
+      "rotateWeekly": "Rotatér ugentligt",
+      "schedule": "Skema"
+    },
+    "choreSummary": {
+      "daily": "Daglig",
+      "weekly": "Ugentlig",
+      "biweekly": "Hver anden uge",
+      "once": "Én gang · {date}",
+      "onceNoDate": "Én gang",
+      "ticketCountSingular": "{count} billet",
+      "ticketCountPlural": "{count} billetter",
+      "rotationDaily": "rotér dagligt",
+      "rotationWeekly": "rotér ugentligt",
+      "rotationSchedule": "skema",
+      "rotatedShort": "← skift",
+      "arrow": "→"
+    },
+    "choreForm": {
+      "coverageUncovered": "{days} ikke dækket",
+      "validation": {
+        "enterName": "Tilføj et navn på en pligt",
+        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
+        "selectAtLeastOnePerson": "Vælg mindst én person"
+      }
+    },
+    "unknownAssignee": "?"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belønninger",
@@ -742,6 +777,9 @@
       "hours": "for {count} t siden",
       "days": "for {count} d siden"
     }
+  },
+  "fullscreen-news": {
+    "name": "Nyheder på fuld skærm"
   },
   "greeting": {
     "morning": "Godmorgen",

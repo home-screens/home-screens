@@ -564,6 +564,7 @@
           "icloudNoAccount": "Aucun compte iCloud n'est connecté pour ce calendrier",
           "icloudNotICloudUrl": "L'adresse du calendrier n'est pas un lien iCloud",
           "icloudUnreachable": "iCloud est injoignable",
+          "linkBlocked": "Ce lien ne peut pas être utilisé. Vérifiez-le et réessayez.",
           "linkHttpError": "Impossible d'accéder au lien (HTTP {status})",
           "linkInvalid": "Le lien n'est pas une adresse web valide",
           "linkUnreachable": "Impossible d'accéder au lien",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Ajoute d'abord des membres de la famille",
       "editAriaLabel": "Modifier {name}",
       "deleteAriaLabel": "Supprimer {name}",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Supprimer la tâche",
         "message": "Supprimer « {name} » ?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Assigner à",
       "weeklyScheduleLabel": "Planning hebdomadaire",
       "coverageLabel": "Couverture : {covered} jours sur 7",
-      "coverageUncovered": "{days} sans plan",
       "addSubmit": "Ajouter la tâche",
-      "saveSubmit": "Enregistrer",
-      "validation": {
-        "enterName": "Saisis un nom de tâche",
-        "addPersonToSchedule": "Ajoute au moins une personne au planning",
-        "selectAtLeastOnePerson": "Sélectionne au moins une personne"
-      }
-    },
-    "frequency": {
-      "daily": "Quotidienne",
-      "weekly": "Hebdomadaire",
-      "biweekly": "Une semaine sur deux",
-      "once": "Une fois"
-    },
-    "rotation": {
-      "fixed": "Fixe (tout le monde la fait)",
-      "rotateDaily": "Rotation quotidienne",
-      "rotateWeekly": "Rotation hebdomadaire",
-      "schedule": "Planning"
-    },
-    "choreSummary": {
-      "daily": "Quotidienne",
-      "weekly": "Hebdomadaire",
-      "biweekly": "Une semaine sur deux",
-      "once": "Une fois · {date}",
-      "onceNoDate": "Une fois",
-      "ticketCountSingular": "{count} ticket",
-      "ticketCountPlural": "{count} tickets",
-      "rotationDaily": "rotation quotidienne",
-      "rotationWeekly": "rotation hebdomadaire",
-      "rotationSchedule": "planning",
-      "rotatedShort": "← rot",
-      "arrow": "→"
+      "saveSubmit": "Enregistrer"
     },
     "preview": {
       "columnTitleNew": "Nouvelle tâche",
@@ -3912,6 +3880,7 @@
       "view": "Vue",
       "viewStory": "Article",
       "viewFrontPage": "Une",
+      "themeDefault": "Par défaut (Réglages)",
       "rotateSeconds": "Changer d’article toutes les (secondes)",
       "maxItems": "Articles max.",
       "showTime": "Afficher l’heure",
@@ -4047,7 +4016,9 @@
       "checking": "Vérification du lien…",
       "checkFailedHint": "Vérifie que le lien se termine par .ics ou commence par webcal://",
       "addAnyway": "Ajouter quand même",
-      "checkUnavailable": "Impossible de vérifier le lien pour le moment"
+      "checkUnavailable": "Impossible de vérifier le lien pour le moment",
+      "homeNetwork": "Réseau domestique",
+      "homeNetworkHint": "Permet à l’écran de lire un calendrier depuis un appareil de votre réseau domestique, comme un serveur de calendrier que vous hébergez."
     },
     "orientation": {
       "title": "Des modules risquent d'être hors écran",

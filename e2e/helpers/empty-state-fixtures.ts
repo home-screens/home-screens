@@ -73,6 +73,13 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Add a news feed in the editor and headlines show here'),
   },
   {
+    // Same config-level gate as the news tile: on the wall it has to be the
+    // full placeholder, not a bare muted line.
+    type: 'fullscreen-news', name: 'no-feeds', kind: 'network-free',
+    config: { feeds: [] },
+    expect: showsCopy('Add a news feed in the editor and headlines show here'),
+  },
+  {
     type: 'todo', name: 'no-items', kind: 'network-free',
     config: { title: 'E2E TODO', items: [] },
     expect: showsCopy('Add tasks in the editor and they show up here'),

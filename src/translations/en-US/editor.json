@@ -564,6 +564,7 @@
           "icloudNoAccount": "No iCloud account is connected for this calendar",
           "icloudNotICloudUrl": "The calendar address isn't an iCloud link",
           "icloudUnreachable": "Couldn't reach iCloud",
+          "linkBlocked": "That link can't be used. Check it and try again.",
           "linkHttpError": "Could not reach the link (HTTP {status})",
           "linkInvalid": "The link isn't a valid web address",
           "linkUnreachable": "Could not reach the link",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Add family members first",
       "editAriaLabel": "Edit {name}",
       "deleteAriaLabel": "Delete {name}",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Delete chore",
         "message": "Delete \"{name}\"?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Assign to",
       "weeklyScheduleLabel": "Weekly Schedule",
       "coverageLabel": "Coverage: {covered} of 7 days",
-      "coverageUncovered": "{days} uncovered",
       "addSubmit": "Add Chore",
-      "saveSubmit": "Save",
-      "validation": {
-        "enterName": "Enter a chore name",
-        "addPersonToSchedule": "Add at least one person to the schedule",
-        "selectAtLeastOnePerson": "Select at least one person"
-      }
-    },
-    "frequency": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One Time"
-    },
-    "rotation": {
-      "fixed": "Fixed (all do it)",
-      "rotateDaily": "Rotate Daily",
-      "rotateWeekly": "Rotate Weekly",
-      "schedule": "Schedule"
-    },
-    "choreSummary": {
-      "daily": "Daily",
-      "weekly": "Weekly",
-      "biweekly": "Every Other Week",
-      "once": "One time · {date}",
-      "onceNoDate": "One time",
-      "ticketCountSingular": "{count} ticket",
-      "ticketCountPlural": "{count} tickets",
-      "rotationDaily": "rotate daily",
-      "rotationWeekly": "rotate weekly",
-      "rotationSchedule": "schedule",
-      "rotatedShort": "← rot",
-      "arrow": "→"
+      "saveSubmit": "Save"
     },
     "preview": {
       "columnTitleNew": "New Chore",
@@ -3912,6 +3880,7 @@
       "view": "View",
       "viewStory": "Story",
       "viewFrontPage": "Front page",
+      "themeDefault": "Default (from Settings)",
       "rotateSeconds": "Change story every (seconds)",
       "maxItems": "Max stories",
       "showTime": "Show the time",
@@ -4047,7 +4016,9 @@
       "checking": "Checking the link…",
       "checkFailedHint": "Check the link ends in .ics or starts with webcal://",
       "addAnyway": "Add anyway",
-      "checkUnavailable": "Couldn't check the link right now"
+      "checkUnavailable": "Couldn't check the link right now",
+      "homeNetwork": "Home network",
+      "homeNetworkHint": "Lets the display read a calendar from a device on your home network, like a calendar server you run yourself."
     },
     "orientation": {
       "title": "Modules may be off-screen",

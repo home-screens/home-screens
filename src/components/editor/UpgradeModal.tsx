@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { ArrowUp, RotateCcw, Check, X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import {
   useUpgradeStream,
@@ -208,14 +209,22 @@ export default function UpgradeModal({
   );
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-hs-panel border border-hs-border-strong rounded-2xl w-full max-w-[880px] shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    // Escape and the backdrop stay inert while the install is running, so a
+    // stray keypress can't drop the only view of a half-finished upgrade.
+    // Once it is done or failed the footer's own exit is mirrored by Escape.
+    <ModalFrame
+      labelledBy="upgrade-modal-title"
+      onClose={onClose}
+      closable={done || failed}
+      className="w-full max-w-[880px]"
+    >
+      <div className="bg-hs-panel border border-hs-border-strong rounded-2xl w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="px-6 py-4 border-b border-hs-border-strong flex items-center gap-4 flex-shrink-0">
           <div className="w-10 h-10 rounded-[10px] bg-hs-accent-soft border border-hs-accent-ring flex items-center justify-center text-hs-accent-hover flex-shrink-0">
             <HeaderIcon size={18} />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-[17px] font-semibold text-hs-text-primary truncate">
+            <h2 id="upgrade-modal-title" className="text-[17px] font-semibold text-hs-text-primary truncate">
               {headerTitle}
             </h2>
             {currentVersion && (
@@ -374,6 +383,6 @@ export default function UpgradeModal({
           )}
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

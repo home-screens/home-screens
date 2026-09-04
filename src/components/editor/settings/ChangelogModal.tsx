@@ -2,9 +2,8 @@
 
 import { ExternalLink, X } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import ModalFrame from '@/components/ui/ModalFrame';
 import ReleaseNotes from '@/components/ui/ReleaseNotes';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { ChangelogRelease } from '@/lib/version';
 
@@ -22,25 +21,18 @@ export default function ChangelogModal({ release, onClose }: Props) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
-  const trapRef = useFocusTrap<HTMLDivElement>();
-
-  useEscapeKey(onClose);
 
   const published = release.published ? new Date(release.published) : null;
 
   return (
-    <div
-      className="fixed inset-0 z-modal flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('settings.systemPage.changelog.notesHeading', { tag: release.tag })}
+    // Labelled by name rather than `labelledBy`: the only heading in the panel
+    // is the bare tag, which does not say what the dialog is on its own.
+    <ModalFrame
+      label={t('settings.systemPage.changelog.notesHeading', { tag: release.tag })}
+      onClose={onClose}
+      className="w-full max-w-2xl"
     >
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div
-        ref={trapRef}
-        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl"
-      >
+      <div className="flex max-h-[85vh] w-full flex-col rounded-xl border border-hs-border-strong bg-hs-panel shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-hs-border-strong px-6 py-4">
           <div>
             <h2 className="font-mono text-base font-semibold text-hs-text-primary">{release.tag}</h2>
@@ -86,6 +78,6 @@ export default function ChangelogModal({ release, onClose }: Props) {
           </Button>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

@@ -7,7 +7,7 @@ import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
 import { BrightnessPopover } from './BrightnessPopover';
 import { controlMetrics } from './metrics';
-import { useControlBox } from './useControlBox';
+import { useElementBox } from '@/hooks/useElementBox';
 import { BUTTON_CLASS, ButtonWords, ControlButton, ControlIcon, buttonStyle } from './controls';
 
 /** One row of word-and-icon buttons; Brightness opens a popover above the row. */
@@ -19,8 +19,8 @@ export function BarLayout(props: LayoutProps) {
   } = props;
   const [brightnessOpen, setBrightnessOpen] = useState(false);
   const showPicker = allowRetargeting && !isLegacyMode;
-  const [boxRef, box] = useControlBox();
-  const m = controlMetrics({ ...box, layout: 'bar', compact, showPicker });
+  const [boxRef, box] = useElementBox('padding');
+  const m = controlMetrics({ w: box.width, h: box.height, layout: 'bar', compact, showPicker });
 
   return (
     <div

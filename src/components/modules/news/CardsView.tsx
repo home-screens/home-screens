@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { SectionHeader } from '../shared/SectionHeader';
-import { useFullscreenDims } from '@/hooks/useFullscreenDims';
+import { useElementBox } from '@/hooks/useElementBox';
 import { usePagedRotation } from '@/hooks/usePagedRotation';
 import { newsItemKey } from '@/hooks/useNewsFeeds';
 import { clampLines, formatNewsAge, isBreaking, metaParts } from './news-shared';
@@ -23,18 +23,25 @@ const CARD_GAP_EM = 0.6;
  * fit the box, and the grid pages through the list on the rotate interval.
  */
 export default function CardsView({ items, config, t, locale, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
-  const { containerRef, dims } = useFullscreenDims();
+  // Measures its own box, not the panel's: a 540x420 news tile is not a
+  // 1080x1920 screen, and a portrait guess would page it wrong on first paint.
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+  const [attachBox, box] = useElementBox();
+  const containerRef = useCallback((el: HTMLDivElement | null) => {
+    nodeRef.current = el;
+    attachBox(el);
+  }, [attachBox]);
   const cols = config.cardColumns;
 
   // Card height = 16:9 picture + fixed text block, all in px of the current font.
   const perPage = useMemo(() => {
-    const fontPx = fontScaleKey || parseFloat(containerRef.current ? getComputedStyle(containerRef.current).fontSize : '16') || 16;
+    const fontPx = fontScaleKey || parseFloat(nodeRef.current ? getComputedStyle(nodeRef.current).fontSize : '16') || 16;
     const gapPx = CARD_GAP_EM * fontPx;
-    const colW = Math.max(1, (dims.w - gapPx * (cols - 1)) / cols);
+    const colW = Math.max(1, (box.width - gapPx * (cols - 1)) / cols);
     const cardH = (config.showImages ? colW * 9 / 16 : 0) + CARD_TEXT_EM * fontPx;
-    const rows = Math.max(1, Math.floor((dims.h + gapPx) / (cardH + gapPx)));
+    const rows = Math.max(1, Math.floor((box.height + gapPx) / (cardH + gapPx)));
     return rows * cols;
-  }, [dims.w, dims.h, cols, config.showImages, containerRef, fontScaleKey]);
+  }, [box.width, box.height, cols, config.showImages, fontScaleKey]);
 
   const pages = useMemo(() => {
     const out: typeof items[] = [];

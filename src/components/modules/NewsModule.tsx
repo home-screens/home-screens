@@ -10,9 +10,8 @@ import { useModuleCommand } from '@/hooks/useModuleCommand';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { NewsDisplayItem } from '@/lib/news/types';
-import { sourceKind } from '@/lib/news/sources';
 import { resolveNewsConfig, type ViewCommand } from './news/news-view-types';
-import { formatNewsAge, metaParts } from './news/news-shared';
+import { feedDisplayLabel, formatNewsAge, metaParts } from './news/news-shared';
 import { StoryOverlay } from './news/StoryOverlay';
 import HeadlineView from './news/HeadlineView';
 import ListView from './news/ListView';
@@ -26,20 +25,6 @@ interface NewsModuleProps {
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000;
-
-/** Label for the unavailable footer: the user's label, else a readable name for the source. */
-export function feedDisplayLabel(feed: { url: string; label?: string }, t: (k: string) => string): string {
-  if (feed.label?.trim()) return feed.label.trim();
-  switch (sourceKind(feed.url)) {
-    case 'local': return t('news.localNews');
-    case 'topic': return feed.url.replace(/^topic:/i, '').trim();
-    case 'youtube': return 'YouTube';
-    case 'reddit': return `r/${feed.url.replace(/^reddit:/i, '').trim()}`;
-    default: {
-      try { return new URL(feed.url).hostname.replace(/^www\./, ''); } catch { return feed.url; }
-    }
-  }
-}
 
 export default function NewsModule({ config, style }: NewsModuleProps) {
   const t = useTranslate('modules');

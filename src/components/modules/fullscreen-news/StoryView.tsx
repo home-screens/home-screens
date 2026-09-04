@@ -5,6 +5,7 @@ import type { NewsDisplayItem } from '@/lib/news/types';
 import { useStoryImage } from '../news/news-hooks';
 import { clampLines, sourceInitial } from '../news/news-shared';
 import { StoryButton } from '../news/StoryButton';
+import { UnavailableFooter } from '../news/UnavailableFooter';
 import { sourceTint, themeBgAlpha, type NewsViewContext } from './news-canvas';
 import { ClockCorner, SourceMeta, StoryProgress } from './news-parts';
 
@@ -21,7 +22,7 @@ const HERO_SHARE_LANDSCAPE_NO_IMAGE = 0.4;
  * text moves up. Stories swap in place: no enter or exit animation.
  */
 export default function StoryView({ item, index, ctx }: { item: NewsDisplayItem; index: number; ctx: NewsViewContext }) {
-  const { items, scale, theme, options, onTap, locale, timezone, timeFormat } = ctx;
+  const { items, scale, theme, options, onTap, t, locale, timezone, timeFormat, unavailable } = ctx;
   const { bu, s } = scale;
   const landscape = scale.orientation === 'landscape';
 
@@ -144,12 +145,19 @@ export default function StoryView({ item, index, ctx }: { item: NewsDisplayItem;
             {item.description}
           </p>
         )}
-        <StoryProgress
-          count={items.length}
-          index={index}
-          ctx={ctx}
-          style={landscape ? { marginTop: bu * 4.4 } : { marginTop: 'auto', paddingTop: bu * 2 }}
-        />
+        {/* Bottom rail: the progress bar, then the names of any feeds that did
+            not answer. Absent entirely when there is neither. */}
+        {(items.length > 1 || unavailable.length > 0) && (
+          <div
+            className="shrink-0"
+            style={landscape ? { marginTop: bu * 4.4 } : { marginTop: 'auto', paddingTop: bu * 2 }}
+          >
+            <StoryProgress count={items.length} index={index} ctx={ctx} />
+            {/* Colour is inherited (theme.text) and dimmed by the footer's own
+                tertiary opacity, exactly as on the news tile. */}
+            <UnavailableFooter labels={unavailable} t={t} style={{ fontSize: s * 2, marginTop: bu * 1.3 }} />
+          </div>
+        )}
       </div>
     </StoryButton>
   );

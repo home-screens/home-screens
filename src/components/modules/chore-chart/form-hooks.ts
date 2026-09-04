@@ -203,28 +203,30 @@ export interface ChoreLabelMaps {
 
 /**
  * Frequency and rotation `<select>` option labels. Both the editor modal and
- * the /remote overlay read the SAME `choreChartModal.frequency.*` and
- * `choreChartModal.rotation.*` keys from the editor namespace, so callers pass
- * a `t` bound to `useTranslate('editor')` (the /remote overlay passes its
- * `tEditor`). Memoized on `t`, which is locale-stable per provider.tsx, so the
- * maps rebuild only when the active locale changes, not on every keystroke.
+ * the /remote overlay read the SAME `chore-chart.frequency.*` and
+ * `chore-chart.rotation.*` keys, which live in the `modules` namespace so
+ * /remote and /chores never have to pull the 181 KB editor dictionary for a
+ * handful of chore words. Callers pass a `t` bound to
+ * `useTranslate('modules')`. Memoized on `t`, which is locale-stable per
+ * provider.tsx, so the maps rebuild only when the active locale changes, not
+ * on every keystroke.
  */
 export function useChoreLabelMaps(t: TranslateFn): ChoreLabelMaps {
   const frequencyLabelMap = useMemo<Record<ChoreResetFrequency, string>>(
     () => ({
-      daily: t('choreChartModal.frequency.daily'),
-      weekly: t('choreChartModal.frequency.weekly'),
-      biweekly: t('choreChartModal.frequency.biweekly'),
-      once: t('choreChartModal.frequency.once'),
+      daily: t('chore-chart.frequency.daily'),
+      weekly: t('chore-chart.frequency.weekly'),
+      biweekly: t('chore-chart.frequency.biweekly'),
+      once: t('chore-chart.frequency.once'),
     }),
     [t],
   );
   const rotationLabelMap = useMemo<Record<ChoreRotation, string>>(
     () => ({
-      fixed: t('choreChartModal.rotation.fixed'),
-      'rotate-daily': t('choreChartModal.rotation.rotateDaily'),
-      'rotate-weekly': t('choreChartModal.rotation.rotateWeekly'),
-      schedule: t('choreChartModal.rotation.schedule'),
+      fixed: t('chore-chart.rotation.fixed'),
+      'rotate-daily': t('chore-chart.rotation.rotateDaily'),
+      'rotate-weekly': t('chore-chart.rotation.rotateWeekly'),
+      schedule: t('chore-chart.rotation.schedule'),
     }),
     [t],
   );

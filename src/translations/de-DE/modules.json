@@ -562,7 +562,42 @@
     },
     "noMembersYet": "Noch keine Familienmitglieder",
     "noChoresYet": "Noch keine Aufgaben",
-    "setUpFromPhoneHint": "Füge Familie und Aufgaben am Handy hinzu: Öffne {url} und tippe auf Aufgaben"
+    "setUpFromPhoneHint": "Füge Familie und Aufgaben am Handy hinzu: Öffne {url} und tippe auf Aufgaben",
+    "frequency": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "once": "Einmalig"
+    },
+    "rotation": {
+      "fixed": "Fest (alle machen mit)",
+      "rotateDaily": "Täglich abwechseln",
+      "rotateWeekly": "Wöchentlich abwechseln",
+      "schedule": "Plan"
+    },
+    "choreSummary": {
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle zwei Wochen",
+      "once": "Einmalig · {date}",
+      "onceNoDate": "Einmalig",
+      "ticketCountSingular": "{count} Ticket",
+      "ticketCountPlural": "{count} Tickets",
+      "rotationDaily": "täglich abwechseln",
+      "rotationWeekly": "wöchentlich abwechseln",
+      "rotationSchedule": "Plan",
+      "rotatedShort": "← Wechsel",
+      "arrow": "→"
+    },
+    "choreForm": {
+      "coverageUncovered": "{days} offen",
+      "validation": {
+        "enterName": "Gib der Aufgabe einen Namen",
+        "addPersonToSchedule": "Trag mindestens eine Person in den Plan ein",
+        "selectAtLeastOnePerson": "Wähle mindestens eine Person aus"
+      }
+    },
+    "unknownAssignee": "?"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Belohnungen",
@@ -742,6 +777,9 @@
       "hours": "vor {count} Std",
       "days": "vor {count} T"
     }
+  },
+  "fullscreen-news": {
+    "name": "Vollbild-Nachrichten"
   },
   "greeting": {
     "morning": "Guten Morgen",

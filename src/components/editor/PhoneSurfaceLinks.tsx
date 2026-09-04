@@ -5,8 +5,7 @@ import { ChevronRight, Copy, ListChecks, Check, Images, Smartphone, UtensilsCros
 import type { LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
-import { useEscapeKey } from '@/hooks/useEscapeKey';
-import { useFocusTrap } from '@/hooks/useFocusTrap';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { copyText } from '@/lib/clipboard';
 import {
   SURFACES_BY_CONTEXT,
@@ -103,31 +102,20 @@ function PhoneSurfaceDialog({ context, onClose }: { context: PhoneContext; onClo
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const origin = useOrigin();
-  const trapRef = useFocusTrap<HTMLDivElement>();
   const surfaces = SURFACES_BY_CONTEXT[context];
 
-  useEscapeKey(onClose);
-
   return (
-    <div
-      className="fixed inset-0 z-modal flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t(`phoneSurfaces.dialog.title.${context}`)}
+    <ModalFrame
+      labelledBy="phone-surface-dialog-title"
+      onClose={onClose}
+      // Narrower when only one surface is on offer: a lone card stretched
+      // across the two-card width reads as a layout bug, not a choice.
+      className={`w-full ${surfaces.length > 1 ? 'max-w-md' : 'max-w-64'}`}
     >
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div
-        ref={trapRef}
-        // Narrower when only one surface is on offer: a lone card stretched
-        // across the two-card width reads as a layout bug, not a choice.
-        className={`relative w-full rounded-xl border border-hs-border-strong bg-hs-panel p-4 ${
-          surfaces.length > 1 ? 'max-w-md' : 'max-w-64'
-        }`}
-      >
+      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-4">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold text-hs-text-primary">
+            <h2 id="phone-surface-dialog-title" className="text-sm font-semibold text-hs-text-primary">
               {t(`phoneSurfaces.dialog.title.${context}`)}
             </h2>
             <p className="mt-0.5 text-xs text-hs-text-muted">{t('phoneSurfaces.dialog.lede')}</p>
@@ -151,7 +139,7 @@ function PhoneSurfaceDialog({ context, onClose }: { context: PhoneContext; onClo
           {t('phoneSurfaces.dialog.passwordHint')}
         </p>
       </div>
-    </div>
+    </ModalFrame>
   );
 }
 

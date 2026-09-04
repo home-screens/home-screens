@@ -353,6 +353,15 @@ export const NEWS_FINANCE_VARIANTS: ConfigVariant[] = [
   // Shares the feed pipeline (merge, filters, tap overlay) with the news tile;
   // rows below pin the canvas-only toggles plus the shared tap-action members.
   {
+    // Per-module theme override: linen paints the canvas ground #f5f1ea
+    // instead of the screen's default fullscreen theme (a dark one).
+    type: 'fullscreen-news', name: 'theme-linen', kind: 'networked', stubKey: 'news',
+    config: { view: 'story', theme: 'linen' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-fullscreen-news-view]')).toHaveAttribute('style', /rgb\(245, 241, 234\)/);
+    },
+  },
+  {
     type: 'fullscreen-news', name: 'story-description', kind: 'networked', stubKey: 'news',
     config: { view: 'story', showDescription: true },
     expect: async (mod) => { await has('Stocks climbed today.')(mod); await child('[data-news-description]')(mod); },

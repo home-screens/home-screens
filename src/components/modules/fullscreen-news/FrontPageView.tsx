@@ -5,6 +5,7 @@ import type { NewsDisplayItem } from '@/lib/news/types';
 import { clampLines, formatNewsAge, metaParts } from '../news/news-shared';
 import { StoryButton } from '../news/StoryButton';
 import { Thumbnail } from '../news/Thumbnail';
+import { UnavailableFooter } from '../news/UnavailableFooter';
 import { FRONT_PAGE_SIZE, type NewsViewContext } from './news-canvas';
 import { PageDots, SourceMeta } from './news-parts';
 
@@ -25,7 +26,7 @@ export default function FrontPageView({
   title: string;
   ctx: NewsViewContext;
 }) {
-  const { items, scale, theme, accent, options, onTap, locale, timezone } = ctx;
+  const { items, scale, theme, accent, options, onTap, t, locale, timezone, unavailable } = ctx;
   const { bu, s } = scale;
   const landscape = scale.orientation === 'landscape';
   const start = page * FRONT_PAGE_SIZE;
@@ -122,6 +123,9 @@ export default function FrontPageView({
         </>
       )}
       <PageDots count={pageCount} index={page} ctx={ctx} style={{ marginTop: bu * (landscape ? 1.7 : 2.4) }} />
+      {/* Colour is inherited (theme.text) and dimmed by the footer's own
+          tertiary opacity, exactly as on the news tile. */}
+      <UnavailableFooter labels={unavailable} t={t} style={{ fontSize: s * 2, marginTop: bu * 1.3, textAlign: 'center' }} />
     </div>
   );
 }

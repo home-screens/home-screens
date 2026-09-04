@@ -252,6 +252,8 @@ export interface ICalSource {
   url: string;
   color: string;
   enabled: boolean;
+  /** Let the hub fetch this calendar from a home-network address (self-hosted calendar servers). */
+  homeNetwork?: boolean;
 }
 
 export interface ICloudSource {
@@ -1206,6 +1208,7 @@ export interface FullscreenNewsConfig extends NewsSourceOptions {
   typographySize: FullscreenTypographySize;
   /** Unset = follow the theme accent. */
   accentColor: string;
+  theme?: string;
 }
 
 // Stock ticker module config

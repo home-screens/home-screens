@@ -1,9 +1,10 @@
 'use client';
 
+import { useCallback } from 'react';
 import type { ClockConfig, ClockView, ModuleStyle } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
-import { useContainerWidth } from './useContainerWidth';
+import { useElementBox } from '@/hooks/useElementBox';
 import ModuleWrapper from '../ModuleWrapper';
 import ClockClassicView from './ClockClassicView';
 import ClockDigitalView from './ClockDigitalView';
@@ -89,7 +90,14 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
   const now = useTZClock(timezone, interval);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
   const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
-  const boxWidth = useContainerWidth(containerRef, view);
+  // Padding box, matching what useScaledFontSize reads off the same element.
+  const [attachBox, box] = useElementBox('padding');
+  // One ref on the view's root feeding both: the font scaler still wants a
+  // RefObject, the box measurement follows the node when the view is swapped.
+  const setContainer = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+    attachBox(el);
+  }, [containerRef, attachBox]);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? ClockClassicView;
 
@@ -99,8 +107,9 @@ export default function ClockModule({ config, style, timezone }: ClockModuleProp
         config={config}
         now={now}
         scaledFontSize={scaledFontSize}
-        containerRef={containerRef}
-        boxWidth={boxWidth}
+        containerRef={setContainer}
+        boxWidth={box.width}
+        boxHeight={box.height}
         timezone={timezone}
       />
     </ModuleWrapper>

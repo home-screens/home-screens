@@ -5,7 +5,7 @@ import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { controlMetrics } from './metrics';
-import { useControlBox } from './useControlBox';
+import { useElementBox } from '@/hooks/useElementBox';
 import { ControlButton } from './controls';
 
 /**
@@ -22,8 +22,8 @@ export function NavLayout(props: LayoutProps) {
   const showPicker = allowRetargeting && !isLegacyMode;
   const [pickerOpen, setPickerOpen] = useState(false);
   const dim = pickerOpen ? 'opacity-35' : '';
-  const [boxRef, box] = useControlBox();
-  const m = controlMetrics({ ...box, layout: 'nav', compact, showPicker });
+  const [boxRef, box] = useElementBox('padding');
+  const m = controlMetrics({ w: box.width, h: box.height, layout: 'nav', compact, showPicker });
   const stacked = m.rows === 2;
 
   return (

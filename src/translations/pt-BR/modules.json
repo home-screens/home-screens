@@ -562,7 +562,42 @@
     },
     "noMembersYet": "Nenhum membro da família ainda",
     "noChoresYet": "Nenhuma tarefa ainda",
-    "setUpFromPhoneHint": "Adicione sua família e as tarefas pelo celular: abra {url} e toque em Tarefas"
+    "setUpFromPhoneHint": "Adicione sua família e as tarefas pelo celular: abra {url} e toque em Tarefas",
+    "frequency": {
+      "daily": "Diária",
+      "weekly": "Semanal",
+      "biweekly": "A cada duas semanas",
+      "once": "Uma vez"
+    },
+    "rotation": {
+      "fixed": "Fixo (todos fazem)",
+      "rotateDaily": "Rodízio diário",
+      "rotateWeekly": "Rodízio semanal",
+      "schedule": "Agenda"
+    },
+    "choreSummary": {
+      "daily": "Diária",
+      "weekly": "Semanal",
+      "biweekly": "A cada duas semanas",
+      "once": "Uma vez · {date}",
+      "onceNoDate": "Uma vez",
+      "ticketCountSingular": "{count} ticket",
+      "ticketCountPlural": "{count} tickets",
+      "rotationDaily": "rodízio diário",
+      "rotationWeekly": "rodízio semanal",
+      "rotationSchedule": "agenda",
+      "rotatedShort": "← rod",
+      "arrow": "→"
+    },
+    "choreForm": {
+      "coverageUncovered": "{days} sem cobertura",
+      "validation": {
+        "enterName": "Digite um nome para a tarefa",
+        "addPersonToSchedule": "Adicione pelo menos uma pessoa à agenda",
+        "selectAtLeastOnePerson": "Selecione pelo menos uma pessoa"
+      }
+    },
+    "unknownAssignee": "?"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Recompensas",
@@ -743,6 +778,9 @@
       "hours": "há {count}h",
       "days": "há {count}d"
     }
+  },
+  "fullscreen-news": {
+    "name": "Notícias em tela cheia"
   },
   "greeting": {
     "morning": "Bom dia",

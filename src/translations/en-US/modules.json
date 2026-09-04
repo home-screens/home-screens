@@ -562,7 +562,42 @@
     },
     "noMembersYet": "No family members yet",
     "noChoresYet": "No chores yet",
-    "setUpFromPhoneHint": "Add your family and chores from a phone: open {url} and tap Chores"
+    "setUpFromPhoneHint": "Add your family and chores from a phone: open {url} and tap Chores",
+    "frequency": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every Other Week",
+      "once": "One Time"
+    },
+    "rotation": {
+      "fixed": "Fixed (all do it)",
+      "rotateDaily": "Rotate Daily",
+      "rotateWeekly": "Rotate Weekly",
+      "schedule": "Schedule"
+    },
+    "choreSummary": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every Other Week",
+      "once": "One time · {date}",
+      "onceNoDate": "One time",
+      "ticketCountSingular": "{count} ticket",
+      "ticketCountPlural": "{count} tickets",
+      "rotationDaily": "rotate daily",
+      "rotationWeekly": "rotate weekly",
+      "rotationSchedule": "schedule",
+      "rotatedShort": "← rot",
+      "arrow": "→"
+    },
+    "choreForm": {
+      "coverageUncovered": "{days} uncovered",
+      "validation": {
+        "enterName": "Enter a chore name",
+        "addPersonToSchedule": "Add at least one person to the schedule",
+        "selectAtLeastOnePerson": "Select at least one person"
+      }
+    },
+    "unknownAssignee": "?"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Rewards",
@@ -742,6 +777,9 @@
       "hours": "{count}h ago",
       "days": "{count}d ago"
     }
+  },
+  "fullscreen-news": {
+    "name": "Full-Screen News"
   },
   "greeting": {
     "morning": "Good morning",

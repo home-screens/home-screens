@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { TranslateFn } from '@/i18n';
 import type { NewsDisplayItem } from '@/lib/news/types';
+import { sourceKind } from '@/lib/news/sources';
 
 /** Stories younger than this get the "Just in" mark when enabled. */
 export const BREAKING_WINDOW_MS = 60 * 60 * 1000;
@@ -61,4 +62,18 @@ export function metaParts(
 export function sourceInitial(item: NewsDisplayItem): string {
   const src = item.source.trim();
   return src ? src[0].toUpperCase() : '·';
+}
+
+/** Label for the unavailable footer: the user's label, else a readable name for the source. */
+export function feedDisplayLabel(feed: { url: string; label?: string }, t: (k: string) => string): string {
+  if (feed.label?.trim()) return feed.label.trim();
+  switch (sourceKind(feed.url)) {
+    case 'local': return t('news.localNews');
+    case 'topic': return feed.url.replace(/^topic:/i, '').trim();
+    case 'youtube': return 'YouTube';
+    case 'reddit': return `r/${feed.url.replace(/^reddit:/i, '').trim()}`;
+    default: {
+      try { return new URL(feed.url).hostname.replace(/^www\./, ''); } catch { return feed.url; }
+    }
+  }
 }

@@ -170,7 +170,7 @@ function ChoreForm({
   } = f;
   const submit = () => f.submit(onSubmit);
 
-  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(t);
+  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tModules);
 
   return (
     <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
@@ -361,7 +361,7 @@ function ChoreForm({
               <>
                 {' · '}
                 <span className="text-hs-warning/70">
-                  {t('choreChartModal.choreForm.coverageUncovered', {
+                  {tModules('chore-chart.choreForm.coverageUncovered', {
                     days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
                   })}
                 </span>
@@ -394,7 +394,7 @@ function ChoreForm({
 
       {validationHintKind && (
         <p className="text-xs text-hs-warning/80">
-          {t(`choreChartModal.choreForm.validation.${validationHintKind}`)}
+          {tModules(`chore-chart.choreForm.validation.${validationHintKind}`)}
         </p>
       )}
       <div className="flex gap-2 pt-1">
@@ -423,6 +423,9 @@ function WeeklyPreview({
   accentColor: string;
 }) {
   const t = useTranslate('editor');
+  // The chore-summary vocabulary lives in the modules namespace so /remote and
+  // /chores can render it without pulling the whole editor dictionary.
+  const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNamesFull = useMemo(
     () => getLocalizedDayNames(formattingLocale, 'full'),
@@ -503,7 +506,7 @@ function WeeklyPreview({
                   >
                     {chore.emoji && <ChoreIcon value={chore.emoji} size={12} color="currentColor" />}
                     <span className="text-hs-text-secondary">{chore.name}</span>
-                    <span className="text-hs-text-faint">{t('choreChartModal.choreSummary.arrow')}</span>
+                    <span className="text-hs-text-faint">{tModules('chore-chart.choreSummary.arrow')}</span>
                     {assignees.map((aid) => {
                       const m = members.find((x) => x.id === aid);
                       if (!m) return null;
@@ -515,7 +518,7 @@ function WeeklyPreview({
                       );
                     })}
                     {isRotated && (
-                      <span className="text-hs-text-faint text-[10px]">{t('choreChartModal.choreSummary.rotatedShort')}</span>
+                      <span className="text-hs-text-faint text-[10px]">{tModules('chore-chart.choreSummary.rotatedShort')}</span>
                     )}
                   </div>
                 );
@@ -740,9 +743,9 @@ function ChoreColumn({
           .map((chore) => {
             let rotationSuffix: string | null = null;
             if ((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') {
-              if (chore.rotation === 'rotate-daily') rotationSuffix = t('choreChartModal.choreSummary.rotationDaily');
-              else if (chore.rotation === 'rotate-weekly') rotationSuffix = t('choreChartModal.choreSummary.rotationWeekly');
-              else rotationSuffix = t('choreChartModal.choreSummary.rotationSchedule');
+              if (chore.rotation === 'rotate-daily') rotationSuffix = tModules('chore-chart.choreSummary.rotationDaily');
+              else if (chore.rotation === 'rotate-weekly') rotationSuffix = tModules('chore-chart.choreSummary.rotationWeekly');
+              else rotationSuffix = tModules('chore-chart.choreSummary.rotationSchedule');
             }
             return (
             <div
@@ -765,10 +768,10 @@ function ChoreColumn({
                   {chore.name}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  {buildChoreSummaryLine({ chore, t, tModules })}
+                  {buildChoreSummaryLine({ chore, t: tModules })}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  {t('choreChartModal.choreSummary.arrow')}{' '}
+                  {tModules('chore-chart.choreSummary.arrow')}{' '}
                   {chore.assigneeIds
                     .map((id) => members.find((m) => m.id === id)?.name ?? '?')
                     .join(', ')}

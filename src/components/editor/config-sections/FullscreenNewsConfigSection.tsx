@@ -5,6 +5,7 @@ import Slider from '@/components/ui/Slider';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
+import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { NewsSourcesFields } from './news/NewsSourcesFields';
 import { NewsFiltersFields } from './news/NewsFiltersFields';
@@ -27,6 +28,12 @@ export function FullscreenNewsConfigSection({ mod, screenId }: { mod: ModuleInst
   return (
     <>
       <NewsSourcesFields config={c} set={set} />
+
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-news.themeDefault"
+      />
 
       <LabeledSelect
         label={t('configSections.fullscreen-news.view')}

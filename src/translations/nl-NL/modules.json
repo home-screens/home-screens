@@ -562,7 +562,42 @@
     },
     "noMembersYet": "Nog geen gezinsleden",
     "noChoresYet": "Nog geen klusjes",
-    "setUpFromPhoneHint": "Voeg je gezin en klusjes toe via een telefoon: open {url} en tik op Klusjes"
+    "setUpFromPhoneHint": "Voeg je gezin en klusjes toe via een telefoon: open {url} en tik op Klusjes",
+    "frequency": {
+      "daily": "Dagelijks",
+      "weekly": "Wekelijks",
+      "biweekly": "Om de week",
+      "once": "Eenmalig"
+    },
+    "rotation": {
+      "fixed": "Vast (iedereen doet mee)",
+      "rotateDaily": "Dagelijks wisselen",
+      "rotateWeekly": "Wekelijks wisselen",
+      "schedule": "Schema"
+    },
+    "choreSummary": {
+      "daily": "Dagelijks",
+      "weekly": "Wekelijks",
+      "biweekly": "Om de week",
+      "once": "Eenmalig · {date}",
+      "onceNoDate": "Eenmalig",
+      "ticketCountSingular": "{count} ticket",
+      "ticketCountPlural": "{count} tickets",
+      "rotationDaily": "dagelijks wisselen",
+      "rotationWeekly": "wekelijks wisselen",
+      "rotationSchedule": "schema",
+      "rotatedShort": "← rot",
+      "arrow": "→"
+    },
+    "choreForm": {
+      "coverageUncovered": "{days} zonder iemand",
+      "validation": {
+        "enterName": "Geef het klusje een naam",
+        "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
+        "selectAtLeastOnePerson": "Kies minstens één persoon"
+      }
+    },
+    "unknownAssignee": "?"
   },
   "fullscreen-chore-chart": {
     "rewardsButton": "Beloningen",
@@ -742,6 +777,9 @@
       "hours": "{count} uur geleden",
       "days": "{count} d geleden"
     }
+  },
+  "fullscreen-news": {
+    "name": "Nieuws op volledig scherm"
   },
   "greeting": {
     "morning": "Goedemorgen",

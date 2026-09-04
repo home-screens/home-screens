@@ -14,11 +14,11 @@ const NEW_PASSWORD = 'e2e-security-page-pw-2';
 
 const SECURITY_URL = '/editor/settings?section=defaults&page=security';
 
-// The PasswordModal is the only `fixed inset-0 z-50` overlay in the editor, so
-// this scopes the modal's submit button away from the section-level trigger
-// button that shares its accessible name.
+// The PasswordModal is the only dialog the Security page opens, so this scopes
+// the modal's submit button away from the section-level trigger button that
+// shares its accessible name.
 function passwordModal(page: import('@playwright/test').Page) {
-  return page.locator('div.fixed.inset-0.z-50');
+  return page.getByRole('dialog');
 }
 
 async function login(page: import('@playwright/test').Page, password: string) {

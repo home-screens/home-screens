@@ -6,6 +6,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import type { ICalCheckResult } from '@/lib/ical-calendar';
 import type { CalendarSourceStatus, ICalSource } from '@/types/config';
 import Button from '@/components/ui/Button';
+import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { SourceBlock, SourceHealthBadge, SourceHealthError, type SourceHealthMap } from './calendar-settings-bits';
 
@@ -37,6 +38,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
   const [showAddForm, setShowAddForm] = useState(false);
   const [newFeedName, setNewFeedName] = useState('');
   const [newFeedUrl, setNewFeedUrl] = useState('');
+  const [newFeedHomeNetwork, setNewFeedHomeNetwork] = useState(false);
   const [linkCheck, setLinkCheck] = useState<LinkCheck>({ state: 'idle' });
   const [newFeedColor, setNewFeedColor] = useState(() => {
     const usedColors = new Set(icalSources.map(s => s.color));
@@ -47,6 +49,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
   function closeAddForm() {
     setNewFeedName('');
     setNewFeedUrl('');
+    setNewFeedHomeNetwork(false);
     setLinkCheck({ state: 'idle' });
     setShowAddForm(false);
   }
@@ -61,6 +64,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
       url: newFeedUrl.trim(),
       color: newFeedColor,
       enabled: true,
+      ...(newFeedHomeNetwork ? { homeNetwork: true } : {}),
     };
     onChange({ icalSources: [...icalSources, newSource] });
     if (status) onSourceChecked?.({ ...status, id: newSource.id, name: newSource.name });
@@ -83,7 +87,7 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
       const res = await editorFetch('/api/calendar/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: newFeedUrl.trim() }),
+        body: JSON.stringify({ url: newFeedUrl.trim(), homeNetwork: newFeedHomeNetwork }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       result = await res.json();
@@ -175,6 +179,14 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
                       className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
                       placeholder="https://example.com/calendar.ics"
                     />
+                    <Toggle
+                      label={t('modals.icalFeeds.homeNetwork')}
+                      checked={source.homeNetwork === true}
+                      onChange={(v) => updateICalSource(source.id, { homeNetwork: v || undefined })}
+                    />
+                    <p className="text-[11px] text-hs-text-faint leading-relaxed">
+                      {t('modals.icalFeeds.homeNetworkHint')}
+                    </p>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs text-hs-text-muted mr-1">{t('fields.color')}</span>
                       {ICAL_COLOR_PALETTE.map((color) => (
@@ -213,6 +225,14 @@ export default function ICalFeedManager({ icalSources, onChange, health, onSourc
               className="w-full rounded-md bg-hs-panel border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none font-mono text-xs"
               placeholder="https://example.com/calendar.ics"
             />
+            <Toggle
+              label={t('modals.icalFeeds.homeNetwork')}
+              checked={newFeedHomeNetwork}
+              onChange={(v) => { setNewFeedHomeNetwork(v); setLinkCheck({ state: 'idle' }); }}
+            />
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('modals.icalFeeds.homeNetworkHint')}
+            </p>
             {linkCheck.state === 'failed' && (
               <div data-testid="ical-link-check" className="rounded-md bg-hs-warning/10 border border-hs-warning/30 px-2.5 py-2 text-xs text-hs-warning space-y-0.5">
                 <p className="font-medium">{linkCheck.message}</p>

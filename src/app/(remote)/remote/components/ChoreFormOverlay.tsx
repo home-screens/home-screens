@@ -45,7 +45,6 @@ export default function ChoreFormOverlay({
   onBack: () => void;
 }) {
   const t = useTranslate('remote');
-  const tEditor = useTranslate('editor');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // Day-of-week labels follow the formatting locale, not the UI language.
@@ -80,9 +79,9 @@ export default function ChoreFormOverlay({
   const isEdit = !!initial;
   const handleSubmit = () => f.submit(onSubmit);
 
-  // The frequency/rotation labels resolve through the editor namespace on both
-  // surfaces, so this overlay passes its `tEditor` binding.
-  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tEditor);
+  // The frequency/rotation labels resolve through the modules namespace on
+  // both surfaces, so this overlay passes its `tModules` binding.
+  const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tModules);
 
   return (
     <>
@@ -94,7 +93,7 @@ export default function ChoreFormOverlay({
           <div style={{ padding: '12px 16px' }}>
             {touched && validationHintKind && (
               <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
-                {tEditor(`choreChartModal.choreForm.validation.${validationHintKind}`)}
+                {tModules(`chore-chart.choreForm.validation.${validationHintKind}`)}
               </p>
             )}
             <button
@@ -365,7 +364,7 @@ export default function ChoreFormOverlay({
                 <>
                   {' · '}
                   <span style={{ color: 'var(--hs-warning)', fontSize: 12 }}>
-                    {tEditor('choreChartModal.choreForm.coverageUncovered', {
+                    {tModules('chore-chart.choreForm.coverageUncovered', {
                       days: [0,1,2,3,4,5,6].filter((d) => !scheduleDays.includes(d)).map((d) => dayNamesShort[d]).join(', '),
                     })}
                   </span>

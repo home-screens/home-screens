@@ -564,6 +564,7 @@
           "icloudNoAccount": "Der er ingen iCloud-konto forbundet til denne kalender",
           "icloudNotICloudUrl": "Kalenderadressen er ikke et iCloud-link",
           "icloudUnreachable": "iCloud kan ikke nås",
+          "linkBlocked": "Det link kan ikke bruges. Tjek det, og prøv igen.",
           "linkHttpError": "Linket kan ikke nås (HTTP {status})",
           "linkInvalid": "Linket er ikke en gyldig webadresse",
           "linkUnreachable": "Linket kan ikke nås",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Tilføj familiemedlemmer først",
       "editAriaLabel": "Redigér {name}",
       "deleteAriaLabel": "Slet {name}",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Slet pligt",
         "message": "Vil du slette \"{name}\"?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Tildel",
       "weeklyScheduleLabel": "Ugeskema",
       "coverageLabel": "Dækning: {covered} af 7 dage",
-      "coverageUncovered": "{days} ikke dækket",
       "addSubmit": "Tilføj pligt",
-      "saveSubmit": "Gem",
-      "validation": {
-        "enterName": "Tilføj et navn på en pligt",
-        "addPersonToSchedule": "Tilføj mindst én person til skemaet",
-        "selectAtLeastOnePerson": "Vælg mindst én person"
-      }
-    },
-    "frequency": {
-      "daily": "Daglig",
-      "weekly": "Ugentlig",
-      "biweekly": "Hver anden uge",
-      "once": "Én gang"
-    },
-    "rotation": {
-      "fixed": "Fast (alle gør det)",
-      "rotateDaily": "Rotatér dagligt",
-      "rotateWeekly": "Rotatér ugentligt",
-      "schedule": "Skema"
-    },
-    "choreSummary": {
-      "daily": "Daglig",
-      "weekly": "Ugentlig",
-      "biweekly": "Hver anden uge",
-      "once": "Én gang · {date}",
-      "onceNoDate": "Én gang",
-      "ticketCountSingular": "{count} billet",
-      "ticketCountPlural": "{count} billetter",
-      "rotationDaily": "rotér dagligt",
-      "rotationWeekly": "rotér ugentligt",
-      "rotationSchedule": "skema",
-      "rotatedShort": "← skift",
-      "arrow": "→"
+      "saveSubmit": "Gem"
     },
     "preview": {
       "columnTitleNew": "Ny pligt",
@@ -3912,6 +3880,7 @@
       "view": "Visning",
       "viewStory": "Nyhed",
       "viewFrontPage": "Forside",
+      "themeDefault": "Standard (fra Indstillinger)",
       "rotateSeconds": "Skift nyhed hvert (sekunder)",
       "maxItems": "Maks. nyheder",
       "showTime": "Vis klokkeslæt",
@@ -4047,7 +4016,9 @@
       "checking": "Tjekker linket…",
       "checkFailedHint": "Tjek, at linket slutter på .ics eller starter med webcal://",
       "addAnyway": "Tilføj alligevel",
-      "checkUnavailable": "Linket kunne ikke tjekkes lige nu"
+      "checkUnavailable": "Linket kunne ikke tjekkes lige nu",
+      "homeNetwork": "Hjemmenetværk",
+      "homeNetworkHint": "Lader skærmen læse en kalender fra en enhed på dit hjemmenetværk, for eksempel en kalenderserver, du selv kører."
     },
     "orientation": {
       "title": "Nogle moduler havner måske uden for skærmen",

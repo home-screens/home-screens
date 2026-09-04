@@ -54,6 +54,8 @@ export interface ControlMetrics {
 }
 
 export interface ControlBox {
+  /** The widget's padding box, since `pad` below is set on that same element
+   *  and subtracted here; a content-box measurement would drop it twice. */
   w: number;
   h: number;
   layout: 'bar' | 'pad' | 'panel' | 'nav';

@@ -564,6 +564,7 @@
           "icloudNoAccount": "Er is geen iCloud-account gekoppeld voor deze agenda",
           "icloudNotICloudUrl": "Het agenda-adres is geen iCloud-link",
           "icloudUnreachable": "iCloud is niet bereikbaar",
+          "linkBlocked": "Die link kan niet worden gebruikt. Controleer hem en probeer het opnieuw.",
           "linkHttpError": "De link is niet bereikbaar (HTTP {status})",
           "linkInvalid": "De link is geen geldig webadres",
           "linkUnreachable": "De link is niet bereikbaar",
@@ -2274,7 +2275,6 @@
       "addMembersFirst": "Voeg eerst gezinsleden toe",
       "editAriaLabel": "{name} bewerken",
       "deleteAriaLabel": "{name} verwijderen",
-      "unknownAssignee": "?",
       "deleteConfirm": {
         "title": "Klusje verwijderen",
         "message": "\"{name}\" verwijderen?",
@@ -2290,40 +2290,8 @@
       "assignToLabel": "Toewijzen aan",
       "weeklyScheduleLabel": "Weekschema",
       "coverageLabel": "Dekking: {covered} van 7 dagen",
-      "coverageUncovered": "{days} zonder iemand",
       "addSubmit": "Klusje toevoegen",
-      "saveSubmit": "Opslaan",
-      "validation": {
-        "enterName": "Geef het klusje een naam",
-        "addPersonToSchedule": "Voeg minstens één persoon toe aan het schema",
-        "selectAtLeastOnePerson": "Kies minstens één persoon"
-      }
-    },
-    "frequency": {
-      "daily": "Dagelijks",
-      "weekly": "Wekelijks",
-      "biweekly": "Om de week",
-      "once": "Eenmalig"
-    },
-    "rotation": {
-      "fixed": "Vast (iedereen doet mee)",
-      "rotateDaily": "Dagelijks wisselen",
-      "rotateWeekly": "Wekelijks wisselen",
-      "schedule": "Schema"
-    },
-    "choreSummary": {
-      "daily": "Dagelijks",
-      "weekly": "Wekelijks",
-      "biweekly": "Om de week",
-      "once": "Eenmalig · {date}",
-      "onceNoDate": "Eenmalig",
-      "ticketCountSingular": "{count} ticket",
-      "ticketCountPlural": "{count} tickets",
-      "rotationDaily": "dagelijks wisselen",
-      "rotationWeekly": "wekelijks wisselen",
-      "rotationSchedule": "schema",
-      "rotatedShort": "← rot",
-      "arrow": "→"
+      "saveSubmit": "Opslaan"
     },
     "preview": {
       "columnTitleNew": "Nieuw klusje",
@@ -3912,6 +3880,7 @@
       "view": "Weergave",
       "viewStory": "Bericht",
       "viewFrontPage": "Voorpagina",
+      "themeDefault": "Standaard (uit Instellingen)",
       "rotateSeconds": "Ander bericht elke (seconden)",
       "maxItems": "Max. berichten",
       "showTime": "Tijd tonen",
@@ -4047,7 +4016,9 @@
       "checking": "Link controleren…",
       "checkFailedHint": "Controleer of de link eindigt op .ics of begint met webcal://",
       "addAnyway": "Toch toevoegen",
-      "checkUnavailable": "De link kon nu niet worden gecontroleerd"
+      "checkUnavailable": "De link kon nu niet worden gecontroleerd",
+      "homeNetwork": "Thuisnetwerk",
+      "homeNetworkHint": "Laat het scherm een agenda lezen van een apparaat in je thuisnetwerk, zoals een eigen agendaserver."
     },
     "orientation": {
       "title": "Modules kunnen buiten beeld vallen",

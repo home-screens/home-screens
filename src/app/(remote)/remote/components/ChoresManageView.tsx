@@ -171,7 +171,6 @@ export default function ChoresManageView({
   onChoresChange,
 }: ChoresManageViewProps) {
   const t = useTranslate('remote');
-  const tEditor = useTranslate('editor');
   const tModules = useTranslate('modules');
   const [section, setSection] = useState<'members' | 'chores'>('chores');
   const [overlay, setOverlay] = useState<
@@ -405,9 +404,9 @@ export default function ChoresManageView({
           {chores.map((chore) => {
             let rotationLabel: string | null = null;
             if ((chore.rotation !== 'fixed' && chore.assigneeIds.length > 1) || chore.rotation === 'schedule') {
-              if (chore.rotation === 'rotate-daily') rotationLabel = tEditor('choreChartModal.choreSummary.rotationDaily');
-              else if (chore.rotation === 'rotate-weekly') rotationLabel = tEditor('choreChartModal.choreSummary.rotationWeekly');
-              else rotationLabel = tEditor('choreChartModal.choreSummary.rotationSchedule');
+              if (chore.rotation === 'rotate-daily') rotationLabel = tModules('chore-chart.choreSummary.rotationDaily');
+              else if (chore.rotation === 'rotate-weekly') rotationLabel = tModules('chore-chart.choreSummary.rotationWeekly');
+              else rotationLabel = tModules('chore-chart.choreSummary.rotationSchedule');
             }
             return (
               <button
@@ -452,12 +451,12 @@ export default function ChoresManageView({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                    {buildChoreSummaryLine({ chore, t: tEditor, tModules })}
+                    {buildChoreSummaryLine({ chore, t: tModules })}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                     &rarr;{' '}
                     {chore.assigneeIds
-                      .map((id) => members.find((m) => m.id === id)?.name ?? tEditor('choreChartModal.chores.unknownAssignee'))
+                      .map((id) => members.find((m) => m.id === id)?.name ?? tModules('chore-chart.unknownAssignee'))
                       .join(', ')}
                     {rotationLabel && (
                       <span> ({rotationLabel})</span>

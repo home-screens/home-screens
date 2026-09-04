@@ -31,7 +31,6 @@ export default function ModalFrame({
   className?: string;
   children: ReactNode;
 }) {
-  const trapRef = useFocusTrap<HTMLDivElement>();
   useEscapeKey(onClose, closable);
 
   return (
@@ -48,11 +47,25 @@ export default function ModalFrame({
           onClick={closable ? onClose : undefined}
           data-testid="modal-backdrop"
         />
-        <div ref={trapRef} className={`relative ${className ?? ''}`}>
-          {children}
-        </div>
+        <TrapLayer className={className}>{children}</TrapLayer>
       </div>
     </ModalPortal>
+  );
+}
+
+/**
+ * The trapped panel, as its own component so the trap lives *inside* the
+ * portal. `ModalPortal` renders nothing until its own mount effect has a DOM
+ * target, so a `useFocusTrap` called from `ModalFrame` itself would run its
+ * effect one commit too early, find a null ref and never attach again.
+ */
+function TrapLayer({ className, children }: { className?: string; children: ReactNode }) {
+  const trapRef = useFocusTrap<HTMLDivElement>();
+
+  return (
+    <div ref={trapRef} className={`relative ${className ?? ''}`}>
+      {children}
+    </div>
   );
 }
 

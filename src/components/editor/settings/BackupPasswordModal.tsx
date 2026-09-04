@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Button from '@/components/ui/Button';
+import ModalFrame from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';
 import { MIN_PASSPHRASE_LENGTH } from '@/lib/backup-credentials-types';
 
@@ -52,9 +53,14 @@ export default function BackupPasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
-        <h2 className="text-lg font-semibold text-hs-text-primary mb-2">
+    <ModalFrame
+      labelledBy="backup-password-title"
+      onClose={onClose}
+      closable={!busy}
+      className="w-full max-w-md"
+    >
+      <div className="w-full rounded-xl border border-hs-border-strong bg-hs-panel p-6 shadow-2xl">
+        <h2 id="backup-password-title" className="text-lg font-semibold text-hs-text-primary mb-2">
           {mode === 'set'
             ? t('settings.dataPage.backupPassword.setTitle')
             : t('settings.dataPage.backupPassword.enterTitle')}
@@ -136,6 +142,6 @@ export default function BackupPasswordModal({
           </Button>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 }

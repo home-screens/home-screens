@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { FullscreenNewsConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
-import { moduleGate } from '../ModuleStates';
+import { ModuleEmptyState, moduleGate } from '../ModuleStates';
 import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useNewsFeeds } from '@/hooks/useNewsFeeds';
 import { useModuleCommand } from '@/hooks/useModuleCommand';
@@ -13,7 +13,7 @@ import { useRealClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getThemeTokens, getTypoMultiplier, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import type { NewsDisplayItem } from '@/lib/news/types';
-import { formatNewsAge, metaParts } from '../news/news-shared';
+import { feedDisplayLabel, formatNewsAge, metaParts } from '../news/news-shared';
 import { StoryOverlay } from '../news/StoryOverlay';
 import {
   FRONT_PAGE_SIZE, NEWS_ACCENT, buildNewsScale, mastheadTitle, resolveDisplayOptions, type NewsViewContext,
@@ -43,13 +43,13 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
   const { containerRef, dims } = useFullscreenDims();
   const now = useRealClock(60_000).getTime();
 
-  const theme = getThemeTokens(fullscreenTheme);
+  const theme = getThemeTokens(config.theme ?? fullscreenTheme);
   const accent = resolveFullscreenAccent(config.accentColor, theme, NEWS_ACCENT);
   const options = useMemo(() => resolveDisplayOptions(config), [config]);
   const view = config.view ?? 'story';
   const rotateMs = Math.max(1000, config.rotateIntervalMs ?? 15_000);
 
-  const { items, data, error, allFailed } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  const { items, data, error, failed, allFailed } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
   // One rotation drives both views: stories one at a time, or front pages
   // six stories at a time.
@@ -71,26 +71,36 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
   });
 
   const themeGround = { backgroundColor: theme.bg, backgroundImage: theme.bgImage ?? 'none' };
+  const stateStyle = { ...style, textColor: theme.text };
+  // Every pre-content state sits on the theme ground at a canvas-relative
+  // base size, so the shared state cards scale with the display.
+  const stateShell = (content: ReactNode) => (
+    <div ref={containerRef} data-fullscreen-news-view={view} className="w-full h-full" style={{ ...themeGround, fontSize: Math.min(dims.w, dims.h) * 0.026 }}>
+      {content}
+    </div>
+  );
+
+  // "Nothing configured yet" is answered before the gate, so a module with no
+  // feed shows the same icon-plus-name placeholder the news tile shows.
   const hasFeeds = Array.isArray(config.feeds) && config.feeds.some((f) => f?.url?.trim());
+  if (!hasFeeds) {
+    return stateShell(<ModuleEmptyState style={stateStyle} type="fullscreen-news" message={t('news.noFeeds')} />);
+  }
+
   const gate = moduleGate({
-    style: { ...style, textColor: theme.text },
-    data: hasFeeds ? data : { feeds: [] },
+    style: stateStyle,
+    data,
     error,
     loadingMessage: t('news.loading'),
-    empty: !hasFeeds ? t('news.noFeeds') : allFailed ? t('news.allUnavailable') : items.length === 0 && t('news.empty'),
+    empty: allFailed ? t('news.allUnavailable') : items.length === 0 && t('news.empty'),
   });
-  if (gate) {
-    return (
-      <div ref={containerRef} data-fullscreen-news-view={view} className="w-full h-full" style={{ ...themeGround, fontSize: Math.min(dims.w, dims.h) * 0.026 }}>
-        {gate}
-      </div>
-    );
-  }
+  if (gate) return stateShell(gate);
 
   const scale = buildNewsScale(dims.w, dims.h, getTypoMultiplier(config.typographySize ?? 'medium'));
   const ctx: NewsViewContext = {
     items, scale, theme, accent, options, t, locale, now, onTap, timezone,
     timeFormat: timeFormat ?? DEFAULT_TIME_FORMAT,
+    unavailable: failed.map(({ feed }) => feedDisplayLabel(feed, t)),
   };
   const overlayMeta = overlay
     ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, locale, now)).join(' · ')
