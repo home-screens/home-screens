@@ -30,7 +30,7 @@ interface ScaledAccentContentProps {
  * the resolved `accentColor` / `hasAccent` without recomputing them.
  */
 export function ScaledAccentContent({ style, config, minScale, className, children }: ScaledAccentContentProps) {
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, minScale);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, minScale);
   const { accentColor, hasAccent, gradientStyle } = resolveAccent(config);
 
   return (

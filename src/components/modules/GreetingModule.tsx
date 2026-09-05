@@ -46,7 +46,7 @@ export default function GreetingModule({ config, style, timezone }: GreetingModu
   const t = useTranslate('modules');
   const now = useTZClock(timezone);
   const weather = useEventBus('weather.conditions');
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.12);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.12);
 
   const name = config.name ?? t('greeting.defaultName');
   const greeting = getGreeting(now.getHours(), t);

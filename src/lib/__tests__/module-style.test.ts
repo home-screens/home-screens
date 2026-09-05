@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow, colorWithAlpha } from '../module-style';
+import { buildModuleShadow, colorWithAlpha, resolveTextScale } from '../module-style';
 
 describe('buildModuleShadow', () => {
   it('returns "none" when shadowSize is 0', () => {
@@ -77,5 +77,21 @@ describe('colorWithAlpha', () => {
   it('falls back to color-mix for colors it cannot parse, so alpha still applies', () => {
     expect(colorWithAlpha('red', 0.5)).toBe('color-mix(in srgb, red 50%, transparent)');
     expect(colorWithAlpha('hsl(50 90% 60%)', 0.85)).toBe('color-mix(in srgb, hsl(50 90% 60%) 85%, transparent)');
+  });
+});
+
+describe('resolveTextScale', () => {
+  it('reads the percent as a factor and treats absent as 100', () => {
+    expect(resolveTextScale({})).toBe(1);
+    expect(resolveTextScale({ textScale: 100 })).toBe(1);
+    expect(resolveTextScale({ textScale: 150 })).toBe(1.5);
+    expect(resolveTextScale({ textScale: 50 })).toBe(0.5);
+  });
+
+  it('clamps a hand-edited value to 50..200 and ignores nonsense', () => {
+    expect(resolveTextScale({ textScale: 900 })).toBe(2);
+    expect(resolveTextScale({ textScale: 0 })).toBe(0.5);
+    expect(resolveTextScale({ textScale: Number.NaN })).toBe(1);
+    expect(resolveTextScale({ textScale: undefined })).toBe(1);
   });
 });

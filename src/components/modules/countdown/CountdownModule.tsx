@@ -59,7 +59,7 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   }, [moduleId, activeBackground, register]);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? CountdownAllView;
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.06);
 
   if (events.length === 0) {
     return <ModuleEmptyState style={style} type="countdown" message={t('countdown.noEvents')} />;

@@ -88,12 +88,12 @@ const VIEW_COMPONENTS = {
 export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat = DEFAULT_TIME_FORMAT, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
   const view = config.view ?? 'hourly';
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, scaleFactor);
   // Second measurement on the view box (outer height minus the label). Not
   // circular: the label sizes off the OUTER box, so the inner height it drives
   // never feeds back into it. With no label the two boxes are the same height
   // and this returns exactly `scaledFontSize`, leaving existing layouts untouched.
-  const { containerRef: viewRef, scaledFontSize: viewFontSize } = useScaledFontSize(style.fontSize, scaleFactor);
+  const { containerRef: viewRef, scaledFontSize: viewFontSize } = useScaledFontSize(style, scaleFactor);
   const t = useTranslate('modules');
   // No payload yet: the props are absent entirely (see buildModuleProps), as
   // opposed to a provider that answered with nothing (empty arrays).

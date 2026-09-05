@@ -13,7 +13,7 @@ interface StickyNoteModuleProps {
 
 export default function StickyNoteModule({ config, style }: StickyNoteModuleProps) {
   const t = useTranslate('modules');
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.07);
 
   if (!config.content?.trim()) {
     return <ModuleEmptyState style={style} type="sticky-note" message={t('sticky-note.empty')} />;

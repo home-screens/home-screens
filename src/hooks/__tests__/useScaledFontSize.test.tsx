@@ -62,10 +62,10 @@ function mount(props: Parameters<typeof Harness>[0]) {
  * with `mounted` false the measured element does not exist yet, exactly as in
  * weather (always, on first paint) and news (whenever its feeds are in flight).
  */
-function Harness({ mounted, base = 16, factor = 0.1, tag = 'div' }: {
-  mounted: boolean; base?: number; factor?: number; tag?: 'div' | 'section';
+function Harness({ mounted, base = 16, scale, factor = 0.1, tag = 'div' }: {
+  mounted: boolean; base?: number; scale?: number; factor?: number; tag?: 'div' | 'section';
 }) {
-  const { containerRef, scaledFontSize } = useScaledFontSize(base, factor);
+  const { containerRef, scaledFontSize } = useScaledFontSize({ fontSize: base, textScale: scale }, factor);
   return (
     <>
       <output data-testid="size">{scaledFontSize}</output>
@@ -88,36 +88,51 @@ describe('useScaledFontSize', () => {
     expect(latest()).toBe(40);
   });
 
-  it('treats the style font size as a bias, not a floor', () => {
+  it('treats the style font size as a floor in pixels, never as a multiplier', () => {
     boxHeight = 400;
-    mount({ mounted: true, base: 8 });
-    // A floor would report max(8, 40) = 40 and ignore the setting entirely.
-    // As a bias, half the default size renders half as big.
-    expect(latest()).toBe(20);
-
+    // A card large enough shows the fitted size whatever the floor is. For one
+    // release this read 32 as "2x" and rendered 80: every wall that had ever
+    // set a normal pixel size on one of these modules doubled or tripled.
     mount({ mounted: true, base: 32 });
-    expect(latest()).toBe(80);
+    expect(latest()).toBe(40);
+
+    mount({ mounted: true, base: 8 });
+    expect(latest()).toBe(40);
 
     mount({ mounted: true, base: 16 });
-    // The default is the neutral point, so existing configs render unchanged.
     expect(latest()).toBe(40);
   });
 
-  it('never renders below the default size, however small the card', () => {
-    // 100 * 0.1 = 10px, which is not readable across a room. The floor is a
-    // separate guarantee from the bias and survives it: the setting scales
-    // whatever the module picked, and what it picked is never under the default.
+  it('never renders below the floor, however small the card', () => {
+    // 100 * 0.1 = 10px, which is not readable across a room; the floor is the
+    // style size, so a wall that raised it keeps what it asked for.
     boxHeight = 100;
     mount({ mounted: true });
     expect(latest()).toBe(16);
 
-    // The floor is the default, not the user's value, so asking for smaller
-    // still gets smaller.
-    mount({ mounted: true, base: 8 });
-    expect(latest()).toBe(8);
-
     mount({ mounted: true, base: 32 });
     expect(latest()).toBe(32);
+  });
+
+  it('scales the fitted size by textScale, and absent means 100 percent', () => {
+    boxHeight = 400;
+    mount({ mounted: true, scale: 150 });
+    expect(latest()).toBe(60);
+
+    mount({ mounted: true, scale: 50 });
+    expect(latest()).toBe(20);
+
+    // The scale applies above the floor, so a small card still respects it.
+    boxHeight = 100;
+    mount({ mounted: true, scale: 50 });
+    expect(latest()).toBe(8);
+
+    // Out-of-range and nonsense values are clamped or ignored, never trusted.
+    boxHeight = 400;
+    mount({ mounted: true, scale: 900 });
+    expect(latest()).toBe(80);
+    mount({ mounted: true, scale: Number.NaN });
+    expect(latest()).toBe(40);
   });
 
   it('falls back to the raw size while the box measures zero', () => {

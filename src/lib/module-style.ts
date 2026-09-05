@@ -43,16 +43,31 @@ export function resolveTitleFontSize(style: { titleFontSize?: number; fontSize: 
  * HTML around a sun arc and nothing on the arc, and did nothing at all to an
  * analog clock face.
  *
- * Same shape as the bias in `useScaledFontSize`: the ratio against the default
- * size, so at the default it is exactly 1 and every dial already set renders
- * the same pixels. A hand-edited 0 or nonsense value falls back to 1 rather
- * than collapsing the text to nothing.
+ * The ratio of the style size against the default, so at the default it is
+ * exactly 1 and every dial already set renders the same pixels. This is the
+ * one place a pixel size acts as a ratio, and it is safe here only because
+ * these modules never fit their text to the box: their `fontSize` is the
+ * literal size, not a floor, so the ratio is the same choice the user made in
+ * pixels. A hand-edited 0 or nonsense value falls back to 1 rather than
+ * collapsing the text to nothing.
  */
 export function svgFontSize(userUnits: number, styleFontSize: number): string {
   const bias = Number.isFinite(styleFontSize) && styleFontSize > 0
     ? styleFontSize / DEFAULT_MODULE_STYLE.fontSize
     : 1;
   return `${userUnits * bias}px`;
+}
+
+/**
+ * `textScale` as a factor, for the modules that fit their text to their box.
+ * Absent is 1. A hand-edited value outside 50..200 is clamped rather than
+ * trusted, and a nonsense value is 1, so a bad config can never render text
+ * at nothing or at a hundred times the box.
+ */
+export function resolveTextScale(style: { textScale?: number }): number {
+  const pct = style.textScale;
+  if (typeof pct !== 'number' || !Number.isFinite(pct)) return 1;
+  return Math.min(200, Math.max(50, pct)) / 100;
 }
 
 /** Build the box-shadow CSS value for a module card. */

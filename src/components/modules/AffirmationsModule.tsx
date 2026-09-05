@@ -269,7 +269,7 @@ export default function AffirmationsModule({ config, style, timezone, latitude }
 
   const weatherCondition = weatherAware ? (weather?.condition ?? null) : null;
   const result = useAffirmationRotation(allEntries, rotationMs, timeAware, now, latitude ?? 0, weatherCondition);
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.08);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.08);
 
   if (!result) {
     return <ModuleEmptyState style={style} type="affirmations" message={t('affirmations.noEntries')} />;

@@ -357,7 +357,7 @@ export default function MultiMonthModule({ config, style, timezone }: MultiMonth
   // from the card like every other measured module, and the fit lands on the
   // largest size that actually fits. Below that 600px the two are the same
   // picture, because the fit is already the binding constraint there.
-  const { containerRef: measureRef, scaledFontSize } = useScaledFontSize(style.fontSize, FIT_FACTOR);
+  const { containerRef: measureRef, scaledFontSize } = useScaledFontSize(style, FIT_FACTOR);
   const desired = config.fitToBox ? scaledFontSize : style.fontSize;
   const { boxRef, contentRef, fontSize } = useFitFontSize(
     desired,

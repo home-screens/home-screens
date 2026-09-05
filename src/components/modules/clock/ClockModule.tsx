@@ -103,7 +103,7 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
   // One ref on the view's root feeds both the font scale and the box the
   // width-fitting views lay out against; it follows the node when the view is
   // swapped.
-  const { containerRef, scaledFontSize, boxWidth, boxHeight } = useScaledFontSize(style.fontSize, scaleFactor);
+  const { containerRef, scaledFontSize, boxWidth, boxHeight } = useScaledFontSize(style, scaleFactor);
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? ClockClassicView;
 

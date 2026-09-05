@@ -1521,18 +1521,25 @@ test.describe('PropertyPanel Style', () => {
     await expect(styledWrapper(page)).toHaveAttribute('style', /opacity:\s*0\.5/);
   });
 
-  test('font size slider persists and enlarges the preview text', async ({ page, request }) => {
+  test('text size slider persists and enlarges the preview text', async ({ page, request }) => {
     await selectStyledGreeting(page, request);
+    // The greeting fits its text to its box, so its control is the percent
+    // Text size slider and the size it paints is on the inner element, not
+    // the wrapper (whose pixel font-size is only the floor).
+    const inner = page.locator('[data-module-id="greeting-1"] div[style*="background-color"] div[style*="font-size"]').first();
+    const readPx = () => inner.evaluate((el) => parseFloat((el as HTMLElement).style.fontSize));
+    const before = await readPx();
+    expect(before).toBeGreaterThan(0);
 
-    // End jumps to the slider max (72).
+    // End jumps to the slider max (200%).
     await autosaved(page, async () => {
-      const slider = page.getByRole('slider', { name: 'Font Size' });
+      const slider = page.getByRole('slider', { name: 'Text size' });
       await slider.focus();
       await slider.press('End');
     });
 
-    expect((await moduleInstance(request)).style.fontSize).toBe(72);
-    await expect(styledWrapper(page)).toHaveAttribute('style', /font-size:\s*72px/);
+    expect((await moduleInstance(request)).style.textScale).toBe(200);
+    await expect.poll(readPx).toBeCloseTo(before * 2, 0);
   });
 
   test('background color picker persists and recolors the preview', async ({ page, request }) => {
@@ -2019,16 +2026,25 @@ test.describe('PropertyPanel Style section', () => {
     await expect(styleSection(page)).toHaveCount(0);
   });
 
-  // Font size means two things (plan 50, item 15): a bias on a measured size
-  // in modules that fit their type to the box, the literal size everywhere
-  // else. The slider says which, per module, from the registry's flag.
-  test('the Font Size slider says whether the module fits its own text', async ({ page, request }) => {
+  // A module that fits its text to its box gets a percent Text size slider
+  // (textScale); every other module gets the pixel Font Size slider. The two
+  // are never both offered, so a number on screen always means what it says.
+  test('a module that fits its text gets the percent slider, the rest the pixel one', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('clock'));
     await styleSection(page).click();
-    await expect(page.getByTestId('font-size-hint')).toHaveText(/already fits its text/);
+    await expect(page.getByText('Text size', { exact: true })).toBeVisible();
+    await expect(page.getByText('Font Size', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('font-size-hint')).toHaveText(/fits its text/);
+    // 100 is the absent default; anything else is stored as a percent.
+    await autosaved(page, async () => {
+      await page.getByRole('slider', { name: 'Text size' }).fill('150');
+    });
+    expect((await getConfig(request)).screens[0].modules[0].style.textScale).toBe(150);
 
     await selectModule(page, request, buildModuleInstance('sports'));
     await styleSection(page).click();
+    await expect(page.getByText('Font Size', { exact: true })).toBeVisible();
+    await expect(page.getByText('Text size', { exact: true })).toHaveCount(0);
     await expect(page.getByTestId('font-size-hint')).toHaveText(/stays this size/);
   });
 

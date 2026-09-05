@@ -38,7 +38,11 @@ export const STYLE_PROBES: StyleProbe[] = [
   // it stays readable.
   { field: 'textColor', value: '#101010' },
   { field: 'backgroundColor', value: 'rgba(255, 255, 255, 0.92)' },
+  // Pixels for modules whose text is that size; the percent scale for the
+  // ones that fit their text to the box, where the pixel value is only a
+  // floor (see probesFor).
   { field: 'fontSize', value: DEFAULT_MODULE_STYLE.fontSize * 2 },
+  { field: 'textScale', value: 150 },
   // A registry id (font-registry.ts) for a face that needs no download, so
   // `document.fonts.ready` is not part of the comparison.
   { field: 'fontFamily', value: 'georgia' },
@@ -79,8 +83,13 @@ export const STYLE_EXEMPTIONS: StyleExemptions = {
  * be a failure with nothing for anyone to fix.
  */
 export function probesFor(type: ModuleType): StyleProbe[] {
-  const owned = new Set(getModuleDefinition(type)?.ownsStyleFields ?? []);
-  return STYLE_PROBES.filter((p) => !owned.has(p.field));
+  const def = getModuleDefinition(type);
+  const owned = new Set(def?.ownsStyleFields ?? []);
+  // The two size controls are exclusive: a module that fits its text gets
+  // the percent slider and its pixel size is a floor that a large card never
+  // shows; every other module gets the pixel slider and ignores the percent.
+  const sizeField = def?.autoSizesText ? 'textScale' : 'fontSize';
+  return STYLE_PROBES.filter((p) => !owned.has(p.field) && (p.field === sizeField || (p.field !== 'fontSize' && p.field !== 'textScale')));
 }
 
 /**

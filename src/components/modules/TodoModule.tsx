@@ -110,7 +110,7 @@ function TodoRow({ item, accentColor, tappable, pressed }: { item: TodoItem; acc
 export default function TodoModule({ config, style, displayId, screenId, moduleId }: TodoModuleProps) {
   const t = useTranslate('modules');
   const title = config.title ?? t('todo.defaultTitle');
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.06);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.06);
   const accentColor = config.accentColor ?? '#000000';
 
   // Interactive only when explicitly opted in AND the renderer threaded the

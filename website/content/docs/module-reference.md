@@ -1185,7 +1185,8 @@ Every module supports these style properties, configurable in the Property Panel
 | `backgroundColor` | string | `"rgba(0, 0, 0, 0.4)"` | Background color |
 | `textColor` | string | `"#ffffff"` | Text color |
 | `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
-| `fontSize` | number | `16` | Text size in pixels. In modules that fit their text to their box (clock, countdown, date, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, multi-month calendar) it scales that fitted size, with 16 meaning "as fitted"; everywhere else it is the literal base size |
+| `fontSize` | number | `16` | Text size in pixels. In modules that fit their text to their box (clock, countdown, date, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, multi-month calendar) it is only a floor the text never drops below; everywhere else it is the literal base size |
+| `textScale` | number |, | Percent of the fitted size, for the modules that fit their text to their box: 100 (or unset) is the fitted size, 50 half, 200 double. Ignored by every other module |
 | `fontWeight` | number |, | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
 | `borderWidth` | number | `1` | Border width in pixels |

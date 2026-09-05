@@ -32,7 +32,7 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   const { items, data, error, failed, allFailed, newKeys } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
   const resolved = useMemo(() => resolveNewsConfig(config), [config]);
   const view = config.view ?? 'headline';
-  const { containerRef, scaledFontSize } = useScaledFontSize(style.fontSize, 0.07);
+  const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.07);
 
   const [overlay, setOverlay] = useState<NewsDisplayItem | null>(null);
   const closeOverlay = useCallback(() => setOverlay(null), []);
