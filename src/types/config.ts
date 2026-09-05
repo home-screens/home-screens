@@ -59,7 +59,7 @@ export interface ModuleStyle {
   fontFamily: string;
   fontSize: number;
   /**
-   * Text size, as a percent of what the module shows on its own (50..450):
+   * Text size, as a percent of what the module shows on its own (10..450):
    * the fitted size on a module that fits its text to its box, the registry
    * base pixel size everywhere else. The editor's only text-size control.
    * Absent on any module not touched since it existed, whose `fontSize` then

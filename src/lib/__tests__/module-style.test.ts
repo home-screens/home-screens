@@ -91,7 +91,7 @@ describe('resolveTextScale', () => {
 
   it('clamps a hand-edited value to the slider range and ignores nonsense', () => {
     expect(resolveTextScale({ textScale: 900 })).toBe(4.5);
-    expect(resolveTextScale({ textScale: 0 })).toBe(0.5);
+    expect(resolveTextScale({ textScale: 0 })).toBe(0.1);
     expect(resolveTextScale({ textScale: Number.NaN })).toBe(1);
     expect(resolveTextScale({ textScale: undefined })).toBe(1);
   });
@@ -140,7 +140,7 @@ describe('the one Text size control', () => {
   });
 
   it('keeps the slider inside its range whatever the file holds', () => {
-    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 2 }, base16)).toBe(50);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 1 }, base16)).toBe(10);
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 200 }, base16)).toBe(450);
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, textScale: Number.NaN, fontSize: 16 }, base16)).toBe(100);
   });

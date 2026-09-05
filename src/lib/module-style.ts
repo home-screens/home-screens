@@ -61,11 +61,11 @@ export function svgFontSize(userUnits: number, styleFontSize: number): string {
 /**
  * The one text-size control, Text size, is a percent of what the module shows
  * on its own: the fitted size on a module that fits its text to its box, the
- * registry base pixel size everywhere else. The range covers every pixel
- * value a wall already stores (8..72 on a 16px base is 50%..450%), so nothing
- * is lost when an old value is read as a percent.
+ * registry base pixel size everywhere else. The top covers every pixel value
+ * a wall already stores (72 on a 16px base is 450%); the bottom is only "not
+ * nothing", since a range input needs a minimum and 0% is invisible text.
  */
-export const TEXT_SCALE_MIN = 50;
+export const TEXT_SCALE_MIN = 10;
 export const TEXT_SCALE_MAX = 450;
 
 /** What a module or plugin needs to know about its own defaults. */

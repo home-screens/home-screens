@@ -554,7 +554,7 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   fontFamily: string            // Font registry id (default "inter"); see the list below
   fontSize: number              // Text size in pixels (the smallest size, on modules that fit text
                                 //   to the box); stands as it is when textScale is absent
-  textScale?: number            // Text size, 50-450, percent of what the module shows on its own
+  textScale?: number            // Text size, 10-450, percent of what the module shows on its own
                                 //   (the fitted size, or the base pixel size); absent = fontSize stands
   fontWeight?: number           // Numeric weight 100–900; omitted = normal (400)
   title?: string                // Centered title strip above the module content; omitted or empty = no strip
