@@ -1,7 +1,10 @@
 /**
- * Dashboards shown in the homepage showcase, in display order.
- * Images live in public/images/dashboards/<image>.{jpg,webp} (640x1138,
- * 2x the rendered card width). Every screenshot is a real render of the app.
+ * Dashboards shown in the homepage showcase, in display order. Every one was
+ * rendered in both orientations: the portrait render lives at
+ * public/images/dashboards/<image>.{jpg,webp} (640x1138, 2x the rendered card
+ * column) and its landscape twin at public/images/dashboards/landscape/
+ * <image>.{jpg,webp} (1280x720). Every screenshot is a real render of the app;
+ * the generator is .claude/homepage-shots in the main repo.
  */
 export interface Dashboard {
   /** File stem under /images/dashboards */
@@ -163,7 +166,7 @@ export const DASHBOARDS: Dashboard[] = [
     title: "Menu board",
     when: "Week of August 17",
     description:
-      "Fullscreen meal planner in the Paper theme: a full week of breakfast, lunch, dinner, and snack cards with emoji, serving times, and prep times; today highlighted.",
+      "Fullscreen meal planner in the Paper theme: a full week of breakfast, lunch, dinner, and snack cards with emoji and serving times; today highlighted.",
     modules: ["Fullscreen meal planner (week view)"],
   },
   {
