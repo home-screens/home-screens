@@ -3,7 +3,7 @@
 import { memo, useMemo, useRef } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { usePluginStore } from '@/stores/plugin-store';
-import { resolveModuleLabel } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
@@ -16,7 +16,7 @@ import { buildModuleProps, type ModuleDataSource } from '@/lib/module-props';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
-import { buildModuleShadow } from '@/lib/module-style';
+import { buildModuleShadow, resolveModuleStyle } from '@/lib/module-style';
 
 // Memoized: this renders the real module component (animations, canvases,
 // videos), and the canvas re-renders on every shared-state poll and clock
@@ -49,7 +49,7 @@ const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: Module
   return (
     <ModuleSurfaceProvider value="editor">
       <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-        <Component config={mod.config} style={mod.style} {...extraProps} />
+        <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
       </ModuleErrorBoundary>
     </ModuleSurfaceProvider>
   );

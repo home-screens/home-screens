@@ -1,5 +1,5 @@
 import { getAllModuleDefinitions, getModuleDefinition, styleReachesModule } from '@/lib/module-registry';
-import { DEFAULT_MODULE_STYLE, type ModuleStyle, type ModuleType } from '@/types/config';
+import { type ModuleStyle, type ModuleType } from '@/types/config';
 
 /**
  * The style matrix (e2e/display/module-style.spec.ts): for every module the
@@ -38,10 +38,7 @@ export const STYLE_PROBES: StyleProbe[] = [
   // it stays readable.
   { field: 'textColor', value: '#101010' },
   { field: 'backgroundColor', value: 'rgba(255, 255, 255, 0.92)' },
-  // Pixels for modules whose text is that size; the percent scale for the
-  // ones that fit their text to the box, where the pixel value is only a
-  // floor (see probesFor).
-  { field: 'fontSize', value: DEFAULT_MODULE_STYLE.fontSize * 2 },
+  // The one text-size control: a percent of the module's normal size.
   { field: 'textScale', value: 150 },
   // A registry id (font-registry.ts) for a face that needs no download, so
   // `document.fonts.ready` is not part of the comparison.
@@ -58,12 +55,12 @@ export type StyleExemptions = Partial<Record<string, Partial<Record<StyleProbe['
 const NO_TEXT = 'paints no text, so there is no ink for the text controls to reach';
 
 export const STYLE_EXEMPTIONS: StyleExemptions = {
-  image: { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
-  'photo-slideshow': { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
-  iframe: { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
+  image: { textColor: NO_TEXT, textScale: NO_TEXT, fontFamily: NO_TEXT },
+  'photo-slideshow': { textColor: NO_TEXT, textScale: NO_TEXT, fontFamily: NO_TEXT },
+  iframe: { textColor: NO_TEXT, textScale: NO_TEXT, fontFamily: NO_TEXT },
   shape: {
     textColor: 'paints no text; its fill is its own Color setting',
-    fontSize: NO_TEXT,
+    textScale: NO_TEXT,
     fontFamily: NO_TEXT,
   },
   icon: {
@@ -71,7 +68,7 @@ export const STYLE_EXEMPTIONS: StyleExemptions = {
     // follows the text colour only once its own Color setting is cleared, and
     // the registry default sets one.
     textColor: 'its own Color setting wins while set, and the default sets one; cleared, the glyph follows the text colour',
-    fontSize: 'sized by its own Scale setting in container units (cqmin), not by the type size',
+    textScale: 'sized by its own Scale setting in container units (cqmin), not by the type size',
     fontFamily: NO_TEXT,
   },
 };
@@ -83,13 +80,8 @@ export const STYLE_EXEMPTIONS: StyleExemptions = {
  * be a failure with nothing for anyone to fix.
  */
 export function probesFor(type: ModuleType): StyleProbe[] {
-  const def = getModuleDefinition(type);
-  const owned = new Set(def?.ownsStyleFields ?? []);
-  // The two size controls are exclusive: a module that fits its text gets
-  // the percent slider and its pixel size is a floor that a large card never
-  // shows; every other module gets the pixel slider and ignores the percent.
-  const sizeField = def?.autoSizesText ? 'textScale' : 'fontSize';
-  return STYLE_PROBES.filter((p) => !owned.has(p.field) && (p.field === sizeField || (p.field !== 'fontSize' && p.field !== 'textScale')));
+  const owned = new Set(getModuleDefinition(type)?.ownsStyleFields ?? []);
+  return STYLE_PROBES.filter((p) => !owned.has(p.field));
 }
 
 /**

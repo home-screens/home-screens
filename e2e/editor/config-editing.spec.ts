@@ -1531,11 +1531,8 @@ test.describe('PropertyPanel Style', () => {
     const before = await readPx();
     expect(before).toBeGreaterThan(0);
 
-    // End jumps to the slider max (200%).
     await autosaved(page, async () => {
-      const slider = page.getByRole('slider', { name: 'Text size' });
-      await slider.focus();
-      await slider.press('End');
+      await page.getByRole('slider', { name: 'Text size' }).fill('200');
     });
 
     expect((await moduleInstance(request)).style.textScale).toBe(200);
@@ -1795,7 +1792,7 @@ test.describe('PropertyPanel Style', () => {
     // is why there is no longer a Style button to click here.
     await expect(page.getByTestId('module-title-control')).toHaveCount(0);
     await expect(page.getByLabel('Title words', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('slider', { name: 'Font Size' })).toHaveCount(0);
+    await expect(page.getByRole('slider', { name: 'Text size' })).toHaveCount(0);
   });
 
   test('only modules with a title of their own offer that option in the picker', async ({ page, request }) => {
@@ -2026,26 +2023,40 @@ test.describe('PropertyPanel Style section', () => {
     await expect(styleSection(page)).toHaveCount(0);
   });
 
-  // A module that fits its text to its box gets a percent Text size slider
-  // (textScale); every other module gets the pixel Font Size slider. The two
-  // are never both offered, so a number on screen always means what it says.
-  test('a module that fits its text gets the percent slider, the rest the pixel one', async ({ page, request }) => {
+  // One Text size control, in percent of the module's normal size, on every
+  // module. A module that still carries only the old pixel value reads it as
+  // a percent of its base, so the slider says what the wall shows, and the
+  // first edit writes the percent and resets the pixel field to the base.
+  test('Text size reads an old pixel value as a percent and converts it on the first edit', async ({ page, request }) => {
+    const mod = buildModuleInstance('text', { content: 'SIZED' });
+    mod.style = { ...mod.style, fontSize: 32 };
+    await selectModule(page, request, mod);
+    await styleSection(page).click();
+    const slider = page.getByRole('slider', { name: 'Text size' });
+    await expect(slider).toHaveValue('200');
+    await expect(page.getByRole('slider', { name: 'Font Size' })).toHaveCount(0);
+    // Untouched, the file still holds only the pixel value.
+    expect((await getConfig(request)).screens[0].modules[0].style.textScale).toBeUndefined();
+
+    await autosaved(page, async () => {
+      await slider.fill('150');
+    });
+    const style = (await getConfig(request)).screens[0].modules[0].style;
+    expect(style.textScale).toBe(150);
+    expect(style.fontSize).toBe(16);
+    // And the preview renders base times percent: 16 * 1.5.
+    await expect(page.locator('[data-module-id="text-1"] div[style*="background-color"]').first()).toHaveAttribute('style', /font-size:\s*24px/);
+  });
+
+  test('a module that fits its text reads 100% until touched, then stores the percent', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('clock'));
     await styleSection(page).click();
-    await expect(page.getByText('Text size', { exact: true })).toBeVisible();
-    await expect(page.getByText('Font Size', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('font-size-hint')).toHaveText(/fits its text/);
-    // 100 is the absent default; anything else is stored as a percent.
+    const slider = page.getByRole('slider', { name: 'Text size' });
+    await expect(slider).toHaveValue('100');
     await autosaved(page, async () => {
-      await page.getByRole('slider', { name: 'Text size' }).fill('150');
+      await slider.fill('150');
     });
     expect((await getConfig(request)).screens[0].modules[0].style.textScale).toBe(150);
-
-    await selectModule(page, request, buildModuleInstance('sports'));
-    await styleSection(page).click();
-    await expect(page.getByText('Font Size', { exact: true })).toBeVisible();
-    await expect(page.getByText('Text size', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('font-size-hint')).toHaveText(/stays this size/);
   });
 
   // A module that paints a field from its own settings (registry

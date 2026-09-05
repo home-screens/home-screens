@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow, colorWithAlpha, resolveTextScale } from '../module-style';
+import { buildModuleShadow, colorWithAlpha, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize } from '../module-style';
+import { DEFAULT_MODULE_STYLE } from '@/types/config';
 
 describe('buildModuleShadow', () => {
   it('returns "none" when shadowSize is 0', () => {
@@ -88,10 +89,52 @@ describe('resolveTextScale', () => {
     expect(resolveTextScale({ textScale: 50 })).toBe(0.5);
   });
 
-  it('clamps a hand-edited value to 50..200 and ignores nonsense', () => {
-    expect(resolveTextScale({ textScale: 900 })).toBe(2);
+  it('clamps a hand-edited value to the slider range and ignores nonsense', () => {
+    expect(resolveTextScale({ textScale: 900 })).toBe(4.5);
     expect(resolveTextScale({ textScale: 0 })).toBe(0.5);
     expect(resolveTextScale({ textScale: Number.NaN })).toBe(1);
     expect(resolveTextScale({ textScale: undefined })).toBe(1);
+  });
+});
+
+describe('the one Text size control', () => {
+  const base16 = { autoSizesText: false };
+  const base26 = { defaultStyle: { fontSize: 26 } };
+  const fitting = { autoSizesText: true };
+
+  it('is 100% of the registry default, which is 16 unless the module says otherwise', () => {
+    expect(moduleBaseFontSize(undefined)).toBe(16);
+    expect(moduleBaseFontSize(base16)).toBe(16);
+    expect(moduleBaseFontSize(base26)).toBe(26);
+    expect(moduleBaseFontSize({ defaultStyle: { fontSize: 0 } })).toBe(16);
+  });
+
+  it('reads an untouched pixel value as a percent of the base, and renders it unchanged', () => {
+    const style = { ...DEFAULT_MODULE_STYLE, fontSize: 34 };
+    expect(displayTextPercent(style, base16)).toBe(213);
+    // No textScale: the pixel value keeps its meaning, so the wall is untouched.
+    expect(resolveModuleStyle(style, base16)).toBe(style);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 26 }, base26)).toBe(100);
+  });
+
+  it('renders base times percent once textScale is set', () => {
+    const style = { ...DEFAULT_MODULE_STYLE, fontSize: 16, textScale: 150 };
+    expect(resolveModuleStyle(style, base16).fontSize).toBe(24);
+    expect(resolveModuleStyle({ ...style, fontSize: 26 }, base26).fontSize).toBe(39);
+    expect(displayTextPercent(style, base16)).toBe(150);
+  });
+
+  it('leaves a fitting module alone, whose hook reads both fields itself', () => {
+    const style = { ...DEFAULT_MODULE_STYLE, fontSize: 31, textScale: 150 };
+    expect(resolveModuleStyle(style, fitting)).toBe(style);
+    // An untouched fitting module reads 100%: its pixel value is a floor a
+    // normal card never shows.
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 31 }, fitting)).toBe(100);
+  });
+
+  it('keeps the slider inside its range whatever the file holds', () => {
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 2 }, base16)).toBe(50);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 200 }, base16)).toBe(450);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, textScale: Number.NaN, fontSize: 16 }, base16)).toBe(100);
   });
 });

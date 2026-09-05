@@ -37,6 +37,8 @@ import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgr
 import { useAuthImage } from './useAuthImage';
 import { eventBus } from '@/lib/event-bus';
 import { getLocation } from '@/lib/location';
+import { getModuleDefinition } from '@/lib/module-registry';
+import { resolveModuleStyle } from '@/lib/module-style';
 
 interface ScreenRendererProps {
   screen: Screen;
@@ -220,7 +222,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
             }}
           >
             <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-              <Component config={mod.config} style={mod.style} {...extraProps} />
+              <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
             </ModuleErrorBoundary>
           </div>
         );

@@ -33,7 +33,7 @@ import { MousePointerClick, ChevronLeft, HelpCircle, Monitor, PanelRight, PanelR
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import LabeledField from '@/components/ui/LabeledField';
-import { resolveTitleFontSize } from '@/lib/module-style';
+import { resolveTitleFontSize, displayTextPercent, moduleBaseFontSize, TEXT_SCALE_MIN, TEXT_SCALE_MAX } from '@/lib/module-style';
 
 import {
   ClockConfigSection,
@@ -291,16 +291,14 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   // class-based font weight override cannot reach them — hide the control
   // rather than show a slider that does nothing.
   const isPlugin = mod.type.startsWith('plugin:');
-  // A module that fits its text to its box gets a percent slider (textScale)
-  // and no pixel slider: its pixel size is only a readability floor, and
-  // offering it as "font size" is how a pixel value once got read as a
-  // multiplier. Every other module gets the pixel slider, which is exactly
-  // its text size. Plugins scale their own units and get the pixel slider
-  // with no hint.
+  // One text-size control for every module, in percent of its normal size
+  // (see resolveModuleStyle / displayTextPercent in module-style.ts). A
+  // module that still carries only the old pixel value reads it as a percent
+  // of its base, so the slider says what the wall shows; the first edit
+  // writes the percent and resets the pixel field to the base.
   const def = getModuleDefinition(mod.type);
-  const autoSizesText = !!def?.autoSizesText;
-  // Controls for fields the module paints from its own settings are hidden,
-  // not offered inert (see ModuleDefinition.ownsStyleFields).
+  const basePx = moduleBaseFontSize(def);
+  const textPercent = displayTextPercent(s, def);
   const owned = new Set(def?.ownsStyleFields ?? []);
 
   return (
@@ -337,32 +335,22 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
         <div className="space-y-3">
           {/* The title lives in Module settings, next to the module's own
               "show my title" option, so the two can't be set to fight. */}
-          {autoSizesText ? (
-            <div>
-              <Slider
-                label={t('propertyPanel.fields.textScale')}
-                value={s.textScale ?? 100}
-                min={50}
-                max={200}
-                step={5}
-                displayValue={`${s.textScale ?? 100}%`}
-                // 100 is stored as absent, so an untouched module carries no key.
-                onChange={(v) => set({ textScale: v === 100 ? undefined : v })}
-              />
-              <p data-testid="font-size-hint" className="text-[11px] text-hs-text-dim mt-1">
-                {t('propertyPanel.fields.textScaleHint')}
-              </p>
-            </div>
-          ) : (
-            <div>
-              <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
-              {!isPlugin && (
-                <p data-testid="font-size-hint" className="text-[11px] text-hs-text-dim mt-1">
-                  {t('propertyPanel.fields.fontSizeHint')}
-                </p>
-              )}
-            </div>
-          )}
+          <div>
+            <Slider
+              label={t('propertyPanel.fields.textScale')}
+              value={textPercent}
+              min={TEXT_SCALE_MIN}
+              max={TEXT_SCALE_MAX}
+              step={5}
+              displayValue={`${textPercent}%`}
+              // 100 is stored as absent. The pixel field goes back to the base
+              // in the same edit, so the percent is the one number that matters.
+              onChange={(v) => set({ textScale: v === 100 ? undefined : v, fontSize: basePx })}
+            />
+            <p data-testid="font-size-hint" className="text-[11px] text-hs-text-dim mt-1">
+              {t('propertyPanel.fields.textScaleHint')}
+            </p>
+          </div>
           {!isPlugin && (
             <div
               // A range input fires no change event when released at its current

@@ -552,8 +552,9 @@ type ModuleType = BuiltinModuleType | PluginModuleType;
   backgroundColor: string      // CSS color (e.g. "rgba(0,0,0,0.4)")
   textColor: string             // CSS color (e.g. "#ffffff")
   fontFamily: string            // Font registry id (default "inter"); see the list below
-  fontSize: number              // Base font size in pixels (a floor, in modules that fit text to the box)
-  textScale?: number            // Percent of the fitted size in those modules, 50-200; absent = 100
+  fontSize: number              // Base font size in pixels; an old value with no textScale keeps its
+                                //   meaning (the size, or a floor on modules that fit text to the box)
+  textScale?: number            // Text size, percent of the module's normal size, 50-450; absent = 100
   fontWeight?: number           // Numeric weight 100–900; omitted = normal (400)
   title?: string                // Centered title strip above the module content; omitted or empty = no strip
   titleFontSize?: number        // Title font size in pixels; omitted = same as fontSize

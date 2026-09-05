@@ -130,7 +130,7 @@ describe('useScaledFontSize', () => {
     // Out-of-range and nonsense values are clamped or ignored, never trusted.
     boxHeight = 400;
     mount({ mounted: true, scale: 900 });
-    expect(latest()).toBe(80);
+    expect(latest()).toBe(180);
     mount({ mounted: true, scale: Number.NaN });
     expect(latest()).toBe(40);
   });
