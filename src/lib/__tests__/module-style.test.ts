@@ -98,9 +98,9 @@ describe('resolveTextScale', () => {
 });
 
 describe('the one Text size control', () => {
-  const base16 = { autoSizesText: false };
+  const base16 = {};
   const base26 = { defaultStyle: { fontSize: 26 } };
-  const fitting = { autoSizesText: true };
+  const fitting = {};
 
   it('is 100% of the registry default, which is 16 unless the module says otherwise', () => {
     expect(moduleBaseFontSize(undefined)).toBe(16);
@@ -124,12 +124,12 @@ describe('the one Text size control', () => {
     expect(displayTextPercent(style, base16)).toBe(150);
   });
 
-  it('leaves a fitting module alone, whose hook reads both fields itself', () => {
-    const style = { ...DEFAULT_MODULE_STYLE, fontSize: 31, textScale: 150 };
-    expect(resolveModuleStyle(style, fitting)).toBe(style);
-    // An untouched fitting module reads 100%: its pixel value is a floor a
-    // normal card never shows.
-    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 31 }, fitting)).toBe(100);
+  it('is the same rule on a module that fits its text: the percent sets its floor', () => {
+    const style = { ...DEFAULT_MODULE_STYLE, fontSize: 16, textScale: 300 };
+    expect(resolveModuleStyle(style, fitting).fontSize).toBe(48);
+    // An untouched fitting module reads its floor as a percent of the base,
+    // like every other module: 31px on a 16px base is 194%.
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 31 }, fitting)).toBe(194);
   });
 
   it('keeps the slider inside its range whatever the file holds', () => {

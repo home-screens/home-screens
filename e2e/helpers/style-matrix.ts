@@ -38,8 +38,10 @@ export const STYLE_PROBES: StyleProbe[] = [
   // it stays readable.
   { field: 'textColor', value: '#101010' },
   { field: 'backgroundColor', value: 'rgba(255, 255, 255, 0.92)' },
-  // The one text-size control: a percent of the module's normal size.
-  { field: 'textScale', value: 150 },
+  // The one text-size control: a percent of the module's base pixel size.
+  // 450% is a 72px floor, which beats the fitted size of every fixture card,
+  // so the probe reaches the modules that fit their text as well.
+  { field: 'textScale', value: 450 },
   // A registry id (font-registry.ts) for a face that needs no download, so
   // `document.fonts.ready` is not part of the comparison.
   { field: 'fontFamily', value: 'georgia' },

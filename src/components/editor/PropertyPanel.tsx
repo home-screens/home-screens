@@ -341,7 +341,10 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
               value={textPercent}
               min={TEXT_SCALE_MIN}
               max={TEXT_SCALE_MAX}
-              step={5}
+              // Step 1, so a percent derived from an old pixel value (31px on a
+              // 16px base is 194%) is representable exactly: a range input
+              // snaps its value to the step.
+              step={1}
               displayValue={`${textPercent}%`}
               // 100 is stored as absent. The pixel field goes back to the base
               // in the same edit, so the percent is the one number that matters.

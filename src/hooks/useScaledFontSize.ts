@@ -2,7 +2,6 @@
 
 import type { RefCallback } from 'react';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
-import { resolveTextScale } from '@/lib/module-style';
 import { useElementBox } from './useElementBox';
 
 /**
@@ -16,24 +15,18 @@ import { useElementBox } from './useElementBox';
  * exist yet, and nothing re-runs it, so the size stayed at the raw style font
  * size for the life of the page. Every weather view rendered that way.
  *
- * Two style fields feed it, and they mean different things:
- *
- * - `fontSize` is a **floor in pixels**: the module never renders below it,
- *   however small its card, and in a card large enough it is the fitted size
- *   that shows. This is what the field has always meant here, and what every
- *   stored value on every wall was chosen against.
- * - `textScale` is the **bias on the fitted size**, as a percent, absent
- *   meaning 100. It is the control for "a bit bigger or smaller than fitted",
- *   and it is its own field on purpose.
- *
- * For one release the pixel value was read as the bias (`fontSize / 16`). At
- * the default that is exactly 1, so every gallery shot at the default passed,
- * and every wall that had ever set the slider to a normal pixel size (31, 40,
- * 48) had its fitted text multiplied by two or three. A stored number must
- * keep its unit; a new meaning gets a new key.
+ * `style.fontSize` is a **floor in pixels**: the module never renders below
+ * it, however small its card, and in a card large enough it is the fitted
+ * size that shows. That is what the field has always meant here, and it is
+ * already the base times the Text size percent by the time it arrives (see
+ * resolveModuleStyle), so the percent raises or lowers the floor and never
+ * multiplies the fitted size. For one release it did (`fontSize / 16` as a
+ * bias): at the default that is exactly 1, so every gallery shot at the
+ * default passed, and every wall that had ever set a normal pixel size on one
+ * of these modules had its fitted text multiplied by two or three.
  */
 export function useScaledFontSize(
-  style: Pick<ModuleStyle, 'fontSize' | 'textScale'>,
+  style: Pick<ModuleStyle, 'fontSize'>,
   scaleFactor: number,
 ): {
   containerRef: RefCallback<HTMLDivElement>;
@@ -57,12 +50,11 @@ export function useScaledFontSize(
   const floor = Number.isFinite(style.fontSize) && style.fontSize > 0
     ? style.fontSize
     : DEFAULT_MODULE_STYLE.fontSize;
-  const scale = resolveTextScale(style);
   return {
     containerRef,
     // An unmeasured box needs no special case: it floors to the style size,
     // exactly what this hook has always reported until its element existed.
-    scaledFontSize: Math.max(floor, box.height * scaleFactor) * scale,
+    scaledFontSize: Math.max(floor, box.height * scaleFactor),
     boxWidth: box.width,
     boxHeight: box.height,
   };
