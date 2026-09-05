@@ -1,4 +1,4 @@
-import { getAllModuleDefinitions, styleReachesModule } from '@/lib/module-registry';
+import { getAllModuleDefinitions, getModuleDefinition, styleReachesModule } from '@/lib/module-registry';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle, type ModuleType } from '@/types/config';
 
 /**
@@ -70,18 +70,18 @@ export const STYLE_EXEMPTIONS: StyleExemptions = {
     fontSize: 'sized by its own Scale setting in container units (cqmin), not by the type size',
     fontFamily: NO_TEXT,
   },
-  'sticky-note': {
-    // StickyNoteModule hands ModuleWrapper a style with `backgroundColor`
-    // replaced by its own Note colour setting and `textColor` pinned to a
-    // dark ink, so both Style controls are inert for it. Every existing note
-    // carries the never-painted white default, so honouring it now would
-    // repaint every note on every wall (plan 50, the anti-pattern). The
-    // honest fix is to hide the two controls for this module or seed the
-    // stored values first; recorded as audit item 20 in plan 50.
-    textColor: 'the note pins its own dark ink; honouring the stored white would repaint every existing note (plan 50, item 20)',
-    backgroundColor: 'the note colour is its own Note colour setting (plan 50, item 20)',
-  },
 };
+
+/**
+ * The probes that apply to a module: every probe, minus the fields the
+ * registry says the module paints from its own settings (`ownsStyleFields`),
+ * whose controls the editor hides. A field hidden there and probed here would
+ * be a failure with nothing for anyone to fix.
+ */
+export function probesFor(type: ModuleType): StyleProbe[] {
+  const owned = new Set(getModuleDefinition(type)?.ownsStyleFields ?? []);
+  return STYLE_PROBES.filter((p) => !owned.has(p.field));
+}
 
 /**
  * Every built-in the editor offers a Style section to. Derived from the same

@@ -131,6 +131,8 @@ Every module can be styled except the full-screen ones and Display Control, whic
 - **Border Color**: the color of the outline set by Border Width
 - **Text Color**: set the text color
 
+The sticky note has no Background or Text Color here: its paper colour is the note's own **Note colour** setting, and its ink is always dark so it reads on any paper.
+
 **Text**
 
 - **Card Title**: show a centered title at the top of the module. The title sits on the module card, above its content, and is cut off with an ellipsis when it is too long to fit. Leave it empty for no title. Some modules (like the to-do list) also show a title of their own from their settings; setting both means you will see both

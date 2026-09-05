@@ -6,7 +6,7 @@ import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES, type ModuleFixture } from '../helpers/module-fixtures';
 import { PLACEHOLDER, QUARANTINE, galleryInstant, mountClientSide, pinRandom, settle } from '../helpers/deterministic-render';
-import { STYLE_EXEMPTIONS, STYLE_PROBES, styleMatrixTypes } from '../helpers/style-matrix';
+import { STYLE_EXEMPTIONS, probesFor, styleMatrixTypes } from '../helpers/style-matrix';
 import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 
@@ -77,7 +77,7 @@ async function probeEveryControl(
     'Find the motion and pin it (see deterministic-render.ts), or quarantine the module there with the reason.',
   ).toBe(true);
 
-  for (const [i, probe] of STYLE_PROBES.entries()) {
+  for (const [i, probe] of probesFor(mod.type).entries()) {
     const exempt = STYLE_EXEMPTIONS[mod.type]?.[probe.field];
     if (exempt) continue;
     // One field off the default at a time, so a failure names the control.

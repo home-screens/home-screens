@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import path from 'path';
 import { test, expect } from '@playwright/test';
 import { getAllModuleDefinitions, getModuleDefinition } from '@/lib/module-registry';
+import type { ModuleStyle, ModuleType } from '@/types/config';
 import { DEFAULT_PAGE_IDS, PER_DISPLAY_SUBTABS } from '@/lib/settings-route';
 import { LOCALES } from '@/i18n/manifest';
 import { MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -1022,6 +1023,16 @@ test('every style-matrix exemption names a probed module and a probed control', 
   expect(
     staleFields,
     `STYLE_EXEMPTIONS entries for controls the style matrix does not probe — remove them: ${staleFields.join(', ')}`,
+  ).toEqual([]);
+
+  const owned = Object.entries(STYLE_EXEMPTIONS)
+    .flatMap(([type, byField]) => {
+      const own = new Set(getModuleDefinition(type as ModuleType)?.ownsStyleFields ?? []);
+      return Object.keys(byField ?? {}).filter((f) => own.has(f as keyof ModuleStyle)).map((f) => `${type}.${f}`);
+    });
+  expect(
+    owned,
+    `STYLE_EXEMPTIONS entries for fields the registry already marks as module-owned (ownsStyleFields), which the matrix never probes — remove them: ${owned.join(', ')}`,
   ).toEqual([]);
 
   const unreasoned = Object.entries(STYLE_EXEMPTIONS)

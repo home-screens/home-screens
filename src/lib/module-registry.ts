@@ -98,6 +98,17 @@ export interface ModuleDefinition {
    */
   autoSizesText?: boolean;
   /**
+   * Style fields this module paints from its own settings instead of from
+   * `style`, so the matching Style controls are hidden in the editor and the
+   * style E2E matrix does not probe them. The sticky note is the case: its
+   * paper colour is its own Note colour setting and its ink is fixed dark for
+   * that paper, so Style > Background and Style > Text color could never reach
+   * it. Hiding them is the honest answer; honouring them would repaint every
+   * existing note, which carries the never-painted white default (plan 50,
+   * item 20).
+   */
+  ownsStyleFields?: ReadonlyArray<keyof import('@/types/config').ModuleStyle>;
+  /**
    * True for modules that act on a specific display and therefore need to know
    * which display they are rendering as (`renderDisplayId`).
    *
@@ -929,6 +940,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'sticky-note',
     autoSizesText: true,
+    ownsStyleFields: ['textColor', 'backgroundColor'],
     label: 'Sticky Note',
     icon: StickyNote,
     category: 'Personal',

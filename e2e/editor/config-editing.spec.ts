@@ -2012,6 +2012,23 @@ test.describe('PropertyPanel Style section', () => {
     await expect(page.getByTestId('font-size-hint')).toHaveText(/stays this size/);
   });
 
+  // A module that paints a field from its own settings (registry
+  // `ownsStyleFields`) loses that control rather than being offered it inert:
+  // the sticky note's paper is its Note colour setting and its ink is fixed
+  // dark for that paper (plan 50, item 20).
+  test('a module that owns a colour is not offered the Style control for it', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('sticky-note'));
+    await styleSection(page).click();
+    await expect(page.getByText('Border Color', { exact: true })).toBeVisible();
+    await expect(page.getByText('Text Color', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Background', { exact: true })).toHaveCount(0);
+
+    await selectModule(page, request, buildModuleInstance('text'));
+    await styleSection(page).click();
+    await expect(page.getByText('Text Color', { exact: true })).toBeVisible();
+    await expect(page.getByText('Background', { exact: true })).toBeVisible();
+  });
+
   test('a plugin keeps it — plugins paint their own card from style', async ({ page, request, sandboxDir }) => {
     seedFixturePlugin(sandboxDir);
     await putConfig(request, baseConfig({

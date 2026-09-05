@@ -21,6 +21,11 @@ export default function StickyNoteModule({ config, style }: StickyNoteModuleProp
 
   const noteColor = config.noteColor ?? '#fef08a';
 
+  // The note is paper: its colour is the Note colour setting and its ink is
+  // dark for that paper, so the two Style colours are replaced here. The
+  // registry marks both as module-owned (`ownsStyleFields`), which is what
+  // hides their controls in the editor and keeps the style matrix from
+  // probing them.
   const overriddenStyle: ModuleStyle = {
     ...style,
     backgroundColor: noteColor,

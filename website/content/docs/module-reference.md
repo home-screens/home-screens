@@ -1191,6 +1191,8 @@ Every module supports these style properties, configurable in the Property Panel
 | `borderColor` | string | `"rgba(255, 255, 255, 0.15)"` | Border color |
 | `shadowSize` | number | `8` | Box shadow size in pixels |
 
+The **Sticky Note** paints its own paper and ink: its background is the module's `noteColor` setting and its text is always dark, so the editor does not offer `backgroundColor` or `textColor` for it.
+
 These are the values a newly added module starts with. A few modules override some of them on add: the four full-screen modules plus **Shape & Divider** and **Icon** start transparent with no padding, blur, border, or shadow; **Video** and **Web Embed** start with no padding; and **Multi-Month Calendar** and **Chore Chart** start at a larger base font size.
 
 ## Settings every module shares

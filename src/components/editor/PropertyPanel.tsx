@@ -295,7 +295,11 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   // type off its box it is a bias on that measured size, everywhere else it is
   // the literal size. Say which one this module has rather than leave it to be
   // discovered. Plugins scale their own units and are not described either way.
-  const autoSizesText = !!getModuleDefinition(mod.type)?.autoSizesText;
+  const def = getModuleDefinition(mod.type);
+  const autoSizesText = !!def?.autoSizesText;
+  // Controls for fields the module paints from its own settings are hidden,
+  // not offered inert (see ModuleDefinition.ownsStyleFields).
+  const owned = new Set(def?.ownsStyleFields ?? []);
 
   return (
     <>
@@ -317,9 +321,13 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
 
       <PropertyGroup title={t('fields.color')} accent={3}>
         <div className="space-y-3">
-          <ColorPicker label={t('propertyPanel.fields.background')} value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
+          {!owned.has('backgroundColor') && (
+            <ColorPicker label={t('propertyPanel.fields.background')} value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
+          )}
           <ColorPicker label={t('propertyPanel.fields.borderColor')} value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} />
-          <ColorPicker label={t('propertyPanel.fields.textColor')} value={s.textColor} onChange={(v) => set({ textColor: v })} />
+          {!owned.has('textColor') && (
+            <ColorPicker label={t('propertyPanel.fields.textColor')} value={s.textColor} onChange={(v) => set({ textColor: v })} />
+          )}
         </div>
       </PropertyGroup>
 
