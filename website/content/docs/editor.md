@@ -18,7 +18,10 @@ The editor is where you design what the wall shows. Open it at `/editor` on a la
 - **Module palette** (left): every module you can add, in groups. Drag one onto the screen.
 - **Canvas** (middle): the screen you are designing, at the wall's own shape.
 - **Property panel** (right): settings for whatever you clicked. Click empty canvas and it shows the screen's own settings and its background instead.
-- **Toolbar** (top right): **Plugins** opens the plugin browser, **Settings** opens the settings pages, and **Preview** opens the screen you are editing in a new tab at full size. A small indicator beside them shows **Saving…** or **Saved**, and offers **Retry** if a save ever fails.
+- **Toolbar** (top right): **Plugins** opens the plugin browser, **Settings** opens the settings pages, and **Preview** opens the screen you are editing in a new tab at full size. A small indicator beside them reads **Unsaved changes**, **Saving…**, **Saved**, or **Couldn't save** with the reason and a **Retry** button.
+- **Find a screen** (the magnifier after the add-screen button, or `Cmd+K` / `Ctrl+K`): type a screen name or a module like "weather" or "chore chart" and it lists every matching screen across all your displays. Picking one switches to it.
+
+If someone saves from another editor or phone while you are editing, the toolbar says so and offers **Load their changes** or **Keep mine**. Auto-save waits until you pick one. An editor left open notices outside changes too and offers a reload.
 
 ## Appearance
 
@@ -78,10 +81,13 @@ Categories in the palette are collapsible. Click a category header to expand or 
 - **Click** a module on the canvas to select it
 - **Drag** a selected module to reposition it
 - **Resize** by selecting the module first, then dragging the small square handle at its bottom-right corner. That handle is the only way to resize, and it appears only while the module is selected. Modules can't be made smaller than 40 × 40
-- **Delete** by selecting the module and clicking **Delete Module** at the bottom of the Property Panel. You'll be asked to confirm first. The Delete key does nothing on the canvas
+- **Delete** by selecting the module and pressing `Delete` or `Backspace`, or clicking **Delete Module** at the bottom of the Property Panel. Either way you'll be asked to confirm first
+- **Keyboard**: with a module selected, the arrow keys nudge it one pixel (hold `Shift` for one grid step), `Cmd+D` / `Ctrl+D` duplicates it, and `Escape` deselects it. The shortcuts stay quiet while you are typing in a field or a dialog is open
 - Position and size can also be set precisely using the X, Y, W, H fields in the Property Panel
 
-When modules overlap, **click the same spot again** to cycle through the modules stacked under it, so a covered module is always reachable. To change which module draws on top, select it and use the **Bring to Front** and **Send to Back** buttons near the bottom of the Property Panel, each button is disabled once the module is already at that end of the stack.
+When modules overlap, a plain click keeps whatever is selected. **Alt-click** (Option-click on a Mac) the same spot to cycle through the modules stacked under it, so a covered module is always reachable, or right-click a module and choose **Select the module behind**. That right-click menu also has **Bring to Front**, **Send to Back**, **Duplicate**, **Hide on display** (the same switch as the Visibility section), and **Delete Module**. The Bring to Front and Send to Back buttons near the bottom of the Property Panel do the same, each disabled once the module is already at that end of the stack. Dropping a dragged module raises it above anything it lands on; typed X/Y values and arrow nudges keep the layering you chose.
+
+While you drag, the module's edges and center snap to its neighbours and alignment guides appear, so lining modules up needs no arithmetic.
 
 ## Configuring Modules
 
@@ -94,7 +100,7 @@ The panel has two operating states:
 - **Module selected**: collapsible sections in this order: **Position & Size**, **Style**, **Config** (the module's own options), then for plugins **Connection** and **Secrets**, and finally **Visibility**, **Schedule**, and **Conditions**. A **Delete Module** button sits at the bottom. The Background picker is hidden while a module is selected, so the panel stays focused on the module's own fields.
 - **No module selected**: the panel shows **Screen settings** (the screen's name and module count, a rotation-duration override, and a schedule for the screen itself), followed by the Background picker for the current screen. You can set rotation, screen schedules, and backgrounds without first dropping a module on the canvas.
 
-Full-screen modules (full-screen calendar, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & Size or Style sections at all.
+The six full-screen modules (full-screen calendar, weather, news, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & Size or Style sections at all. They sit in their own palette group, **Full-Screen Views**, and are framed on the canvas with a tinted border and their name.
 
 ### Module Settings
 
@@ -103,9 +109,9 @@ Each module type has its own configuration options. For example:
 - **Clock**: toggle 24-hour format, seconds, date display
 - **Countdown**: add/remove events with labels and dates
 - **To-Do**: add/edit/check off items
-- **News**: set the RSS feed URL
+- **News**: pick the feeds it shows, from the built-in list or your own links (see [News](/docs/news))
 - **Stock Ticker**: enter comma-separated stock symbols
-- **Display Control**: pick layout (bar / pad / panel), default target (self / all / specific display), allow runtime retargeting
+- **Display Control**: pick layout (Bar / Pad / Panel / Arrows), default target (self / all / specific display), allow runtime retargeting
 
 See the [Module Reference](/docs/module-reference) for all available options.
 

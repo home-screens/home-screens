@@ -10,7 +10,6 @@ import { MODULE_COUNT } from '@/lib/stats';
 const facts = [
   'Free and open source',
   'Raspberry Pi 4 or 5 + any HDMI screen',
-  'About $90 if you are starting from scratch',
 ];
 
 export function Hero({ version }: { version: string }) {

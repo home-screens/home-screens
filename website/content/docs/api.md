@@ -58,6 +58,12 @@ For bookmarkable links, the `/api/display/*` routes also accept the token as a `
 
 If you have an IP allowlist configured with **Bypass authentication for trusted IPs** turned on, requests from those addresses clear display access with no token at all.
 
+### Cross-origin writes
+
+Every `POST`, `PUT`, `PATCH` and `DELETE` under `/api/` is refused with `403` when the request carries an `Origin` header that does not match the hub's own address. Browsers add that header to every cross-site request and page scripts cannot remove it, so a web page on some other site cannot make a browser in your house change your settings, even on an install with no password. Requests with no `Origin` header at all are allowed, so `curl`, Home Assistant, scripts and the per-Pi reporter are unaffected. `GET` and `HEAD` are never checked.
+
+If you call the API from a page served somewhere else on purpose (a dashboard on another host, for example), list that page's origin in the `HS_ALLOWED_ORIGINS` environment variable of the Home Screens service, comma-separated. A full origin (`http://dashboard.local:8123`) or a bare host (`dashboard.local`) both work; the comparison is on the host.
+
 ---
 
 ## Configuration
@@ -116,6 +122,29 @@ The example above is what `type=both` returns. With `type=forecast` only the `fo
 
 If no location is set (in the query or in your weather settings), the route returns `400 { "error": "Missing required query params: lat, lon" }`.
 
+### POST /api/weather/check-key
+
+Tries a weather API key against its provider before the editor saves it, so a mistyped key is caught in the form rather than showing as a green **Configured** badge with an empty weather module on the wall. The key is used for one hourly request against a fixed test location and is not stored by this route. Requires a valid session.
+
+**Request body:**
+```json
+{ "provider": "openweathermap", "key": "abc123" }
+```
+
+`provider` must be one of the keyed providers: `openweathermap`, `weatherapi`, `pirateweather`, or `metoffice`. Any other value returns `400`, as does a missing `key`.
+
+**Response:**
+```json
+{ "ok": true }
+```
+
+When the key does not work:
+```json
+{ "ok": false, "reason": "rejected", "provider": "OpenWeatherMap", "detail": "401 Unauthorized" }
+```
+
+`reason` is `rejected` when the provider answered 401 or 403 for this key, and `unreachable` when there was no verdict (an outage, a timeout, or another error). `detail` carries the upstream message when there is one.
+
 ---
 
 ## Calendar
@@ -171,6 +200,29 @@ On each event, `title` and `allDay` are always present. `location`, `description
 | `messageKey` | string | Translation key for the same message, under the editor's `settings.calendarPage.health.errors.*`. Preferred over `error` when you can translate |
 | `messageParams` | object | Values to interpolate into `messageKey` (for example an HTTP status) |
 | `fetchedAt` | number \| null | When this source last delivered events, in epoch milliseconds; `null` means never this session |
+
+### POST /api/calendar/check
+
+Probes an iCal / ICS link the way the display will fetch it, before the editor saves it, so a wrong paste (a school portal's login page, a link missing `.ics`) is caught in the Add form instead of sitting silently on the Calendar page. Runs the same fetch and parser the display uses and counts the events in the coming year, so an empty calendar can be told apart from a broken link. Requires a valid session.
+
+**Request body:**
+```json
+{ "url": "https://example.com/team.ics", "homeNetwork": false }
+```
+
+`homeNetwork` mirrors the **Home network** toggle on the feed being added, so a calendar served from inside the house can be checked before it is saved. Without it the check follows the same rules as a normal feed, so this route cannot be used to look around the home network.
+
+**Response:**
+```json
+{ "ok": true, "eventCount": 42 }
+```
+
+When the link does not work:
+```json
+{ "ok": false, "error": "Could not reach the link", "messageKey": "linkUnreachable" }
+```
+
+`messageKey` names the translated message the editor shows; `error` is the upstream text. A missing `url` returns `400`.
 
 ### GET /api/calendar/status
 
@@ -2198,6 +2250,17 @@ Dismisses the notice for one version. Display access.
 Returns the current build hash. Used by the display to detect new deployments and auto-reload. Open with no sign-in on purpose: if it needed a token, a screen running code from before a deploy could never notice the new one and would stay on the old version forever.
 
 **Response:** Plain text build ID (e.g. `abc123`), sent with no caching.
+
+### GET /api/system/address
+
+Returns the address a phone on the home network can reach this hub at. A kiosk running on the hub Pi opens the display at `localhost`, so without this the setup watermark and the empty photo, chores and meals states would print an address no phone could open. The scheme and port are the ones the request arrived on; only the host is replaced with the hub's LAN IPv4 (wired before Wi-Fi, skipping loopback, link-local, bridge and tunnel interfaces). Display access.
+
+**Response:**
+```json
+{ "origin": "http://192.168.1.50:3000" }
+```
+
+`origin` is `null` when no LAN address is known.
 
 ### GET /api/system/status
 

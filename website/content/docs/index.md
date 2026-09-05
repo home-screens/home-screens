@@ -24,7 +24,7 @@ A free, open-source smart display for your kitchen, hallway, or family command c
 
 ## Your weekend project
 
-1. **Get the hardware.** About $90 if you are starting from scratch, less if you already have a screen. See [What to buy](/docs/what-to-buy).
+1. **Get the hardware.** A Raspberry Pi and a screen. See [What to buy](/docs/what-to-buy).
 2. **Flash the card.** Download the ready-to-boot image and write it with Raspberry Pi Imager. About 10 minutes, most of it waiting for the download. See [Install](/docs/getting-started).
 3. **Plug in the Pi.** The screen shows the address to open, and a QR code, as soon as it has booted.
 4. **Open the editor on a laptop** and pick a template. Set your location and the weather fills in. There is no Save button; every change goes live on the wall a second after you make it. See [Your first screen](/docs/first-screen).

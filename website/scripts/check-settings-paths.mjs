@@ -35,7 +35,7 @@ const TABS = {
   status: ['diagnostics bundle', 'anonymous telemetry', 'last seen'],
   'on your phone': [],
   'api keys': [],
-  weather: [],
+  weather: ['rain radar'],
   'location & language': [],
   meals: [],
   network: ['wifi', 'ip address', 'hostname', 'diagnostics'],

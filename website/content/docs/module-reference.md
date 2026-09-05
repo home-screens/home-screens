@@ -180,7 +180,7 @@ The temperature curve draws however many hours your source returns, and its head
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"panorama"` | `panorama`, `almanac`, `ambient`, `week`, or `hourly` |
+| `view` | string | `"panorama"` | `panorama`, `strip` (Wide strip), `almanac`, `ambient`, `week`, or `hourly` |
 | `theme` | string |, | Full-screen palette; unset inherits the display default |
 | `skyLayer` | string | `"auto"` | `auto` tints the background by conditions, `off` uses the plain theme background |
 | `animateConditions` | boolean | `true` | Falling rain and snow. Turn off if the display stutters on older hardware |
