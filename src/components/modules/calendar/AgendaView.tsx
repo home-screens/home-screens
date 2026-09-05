@@ -8,7 +8,7 @@ import {
 import { dayDecorFor, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { SectionHeader } from '../shared/SectionHeader';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle } from '@/types/config';
 import { EventCard } from './EventCard';
@@ -98,11 +98,11 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
           )}
           {boundary === 'week' && (
             <div className="flex items-center gap-2 mb-2">
-              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+              <div className="flex-1" style={{ height: 2, backgroundColor: ink(0.18) }} />
               <span className="shrink-0 uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary, fontWeight: 600 }}>
                 {t('calendar.weekOf', { date: formatDateSync(addDays(date, -((date.getDay() - weekStartsOn + 7) % 7)), 'MMM d', { locale }) })}
               </span>
-              <div className="flex-1" style={{ height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }} />
+              <div className="flex-1" style={{ height: 2, backgroundColor: ink(0.18) }} />
             </div>
           )}
           <div className="flex items-center gap-2 mb-1.5">
@@ -110,7 +110,7 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
               {formatRelativeDay(date, today, tCore, locale)}
             </SectionHeader>
             <DayBadges badges={decor.badges} style={{ fontSize: '0.75em' }} />
-            <div className="flex-1 h-px" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <div className="flex-1 h-px" style={{ backgroundColor: ink(0.1) }} />
           </div>
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => {

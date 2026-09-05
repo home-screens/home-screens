@@ -150,6 +150,23 @@ export const VIEW_VARIANTS: GalleryViewVariant[] = [
   // Wave 4: `useHiddenRowCount` via FitRows. The chore chart's default view is
   // `board`, which does not use it.
   { type: 'chore-chart', name: 'today', config: { view: 'today' } },
+  // Item 19: views whose fills, rules and rings were literal white and are
+  // now the module's ink. The default views are in the matrix; these are the
+  // touched non-default ones, so the `styled` scenario can show the change
+  // and `default` can prove there is none.
+  { type: 'clock', name: 'digital', config: { view: 'digital' } },
+  { type: 'clock', name: 'dot-matrix', config: { view: 'dot-matrix' } },
+  { type: 'clock', name: 'neon', config: { view: 'neon' } },
+  { type: 'clock', name: 'world', config: { view: 'world', worldZones: [{ label: 'Tokyo', timezone: 'Asia/Tokyo' }] } },
+  { type: 'text', name: 'neon', config: { effect: 'neon' } },
+  { type: 'calendar', name: 'agenda', config: { viewMode: 'agenda' } },
+  { type: 'calendar', name: 'week', config: { viewMode: 'week' } },
+  { type: 'calendar', name: 'month', config: { viewMode: 'month' } },
+  { type: 'chore-chart', name: 'progress', config: { view: 'progress' } },
+  { type: 'chore-chart', name: 'compact', config: { view: 'compact' } },
+  { type: 'todoist', name: 'board', config: { viewMode: 'board' } },
+  { type: 'meal-planner', name: 'today', config: { view: 'today' } },
+  { type: 'news', name: 'list', config: { view: 'list' } },
   {
     type: 'todoist',
     name: 'timed-due',

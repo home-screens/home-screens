@@ -4,7 +4,7 @@ import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
 import { balanceRows, choreTapSize, fitPerRow, partitionMembers } from '../layout';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
@@ -147,7 +147,7 @@ export function BoardView({ config, data, width, fontSize, authoredFontSize }: B
                             lineHeight: 1.25,
                             opacity: isCompleted ? 0.45 : 1,
                             textDecoration: isCompleted ? 'line-through' : 'none',
-                            backgroundColor: isCompleted ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)',
+                            backgroundColor: isCompleted ? ink(0.03) : ink(0.06),
                             cursor: allowTouch ? 'pointer' : 'default',
                             border: 'none',
                             color: 'inherit',

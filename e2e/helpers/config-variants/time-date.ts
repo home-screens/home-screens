@@ -787,7 +787,10 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
     config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored', gridEventPillBackground: true },
     expect: async (mod) => {
-      await expect(mod.locator('[data-event-id="cgp-a"]').first()).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.1)');
+      // The pill is the card's ink at 10% (`ink(0.10)`), which Chromium
+      // reports in its color() form; at the default white ink that is the
+      // same colour the literal rgba used to be.
+      await expect(mod.locator('[data-event-id="cgp-a"]').first()).toHaveCSS('background-color', /^(rgba\(255, 255, 255, 0\.1\)|color\(srgb 1 1 1 \/ 0\.1\))$/);
     },
   },
   {

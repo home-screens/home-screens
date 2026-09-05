@@ -4,7 +4,7 @@ import type { QuoteConfig, ModuleStyle } from '@/types/config';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { quoteUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
 import { useTranslate } from '@/i18n';
 
@@ -33,21 +33,21 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
         <>
           <span
             className="absolute top-2 left-4 font-serif pointer-events-none select-none"
-            style={{ fontSize: '5em', color: hasAccent ? accentColor : 'rgba(255,255,255,0.08)', opacity: hasAccent ? 0.10 : 1 }}
+            style={{ fontSize: '5em', color: hasAccent ? accentColor : ink(0.08), opacity: hasAccent ? 0.10 : 1 }}
           >
             &ldquo;
           </span>
 
           <div
             className="flex flex-col px-5 relative"
-            style={{ borderLeft: `3px solid ${hasAccent ? `${accentColor}50` : 'rgba(255,255,255,0.15)'}` }}
+            style={{ borderLeft: `3px solid ${hasAccent ? `${accentColor}50` : ink(0.15)}` }}
           >
             <p className="leading-relaxed italic">
               {data.quote}
             </p>
             {data.author && (
               <>
-                <div className="w-8 h-px mt-3 mb-2" style={{ backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)', opacity: hasAccent ? TEXT_OPACITY.tertiary : 1 }} />
+                <div className="w-8 h-px mt-3 mb-2" style={{ backgroundColor: hasAccent ? accentColor : ink(0.15), opacity: hasAccent ? TEXT_OPACITY.tertiary : 1 }} />
                 <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
                   &mdash; {data.author}
                 </p>

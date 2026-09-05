@@ -9,7 +9,7 @@ import {
 import { dayDecorFor, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { SectionHeader } from '../shared/SectionHeader';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle, TimeFormat } from '@/types/config';
 import { EventCard } from './EventCard';
@@ -135,7 +135,7 @@ export function DailyView({ events, config, style, today, now, accentColor, even
         const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
         return (
           <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0 rounded" style={mergeCellDecor({}, decor)}>
-            <div className="text-center mb-2 pb-1.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="text-center mb-2 pb-1.5" style={{ borderBottom: `1px solid ${ink(0.1)}` }}>
               <SectionHeader active={isToday}>
                 {isToday ? tCore('today') : formatDateSync(date, 'EEE', { locale })}
               </SectionHeader>
@@ -154,7 +154,7 @@ export function DailyView({ events, config, style, today, now, accentColor, even
               {dayEvents.length === 0 ? (
                 <div
                   className="flex items-center justify-center rounded-lg px-2.5 py-3"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}
+                  style={{ backgroundColor: ink(0.06) }}
                 >
                   <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
                 </div>

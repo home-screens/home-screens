@@ -3,7 +3,7 @@
 import type { ChoreChartConfig, ChoreTimeOfDay, ChoreMember } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { createTZDate, formatDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -97,7 +97,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
               {/* Chore rows */}
               <div
                 className="rounded-lg overflow-hidden"
-                style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}
+                style={{ backgroundColor: ink(0.04) }}
               >
                 {items.map((assignment, i) => {
                   const { chore, memberId, isCompleted } = assignment;

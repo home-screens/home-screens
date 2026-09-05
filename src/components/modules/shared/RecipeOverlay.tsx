@@ -48,6 +48,8 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
 
   if (typeof document === 'undefined') return null;
 
+  // Everything below is painted on the overlay's own near-black scrim, so its
+  // white ink and white QR are for that scrim, not the card (plan 50, item 19).
   const overlay = view === 'qr' ? (
     <div
       role="dialog"

@@ -7,7 +7,7 @@ import type { TranslateFn } from '@/i18n';
 import type { GarbageDayConfig, GarbageFrequency, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { SectionHeader } from './shared/SectionHeader';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 
 interface GarbageDayModuleProps {
@@ -175,8 +175,8 @@ function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequen
     <div
       className="flex items-center gap-3 rounded-lg px-3 py-2.5"
       style={{
-        background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-        border: active ? `1px solid rgba(255,255,255,0.15)` : '1px solid transparent',
+        background: active ? ink(0.1) : 'transparent',
+        border: active ? `1px solid ${ink(0.15)}` : '1px solid transparent',
       }}
     >
       {icon}
@@ -193,7 +193,7 @@ function WasteRow({ label, icon, scheduleDay, today, highlightMode, now, frequen
           className="px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0"
           style={{
             fontSize: '0.6em',
-            background: 'rgba(255,255,255,0.15)',
+            background: ink(0.15),
             letterSpacing: '0.05em',
           }}
         >

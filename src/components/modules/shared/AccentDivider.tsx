@@ -1,4 +1,4 @@
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 
 interface AccentDividerProps {
   accentColor: string;
@@ -14,7 +14,7 @@ export function AccentDivider({ accentColor, hasAccent }: AccentDividerProps) {
     <div
       className="w-12 h-0.5 rounded-full"
       style={{
-        backgroundColor: hasAccent ? accentColor : 'rgba(255,255,255,0.15)',
+        backgroundColor: hasAccent ? accentColor : ink(0.15),
         opacity: TEXT_OPACITY.secondary,
       }}
     />

@@ -6,7 +6,7 @@ import { useRealClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { MetadataText } from './shared/MetadataText';
@@ -65,6 +65,7 @@ function MoonVisual({ phase }: { phase: number }) {
       height={size}
       viewBox={`0 0 ${size} ${size}`}
       style={{
+        // Moonlight: the glow of the disc the module paints, not card ink.
         filter: 'drop-shadow(0 0 18px rgba(255,255,255,0.15)) drop-shadow(0 0 6px rgba(200,220,255,0.10))',
       }}
     >
@@ -130,7 +131,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
               </MetadataText>
             )}
             {moonTimes.rise && moonTimes.set && (
-              <span className="w-px h-3" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }} />
+              <span className="w-px h-3" style={{ backgroundColor: ink(0.15) }} />
             )}
             {moonTimes.set && (
               <MetadataText size="sm">

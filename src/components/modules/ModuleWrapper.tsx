@@ -47,6 +47,9 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
     boxShadow: buildModuleShadow(style.shadowSize ?? 0),
   };
   if (hasWeight) wrapperStyle['--module-font-weight'] = fw;
+  // The card's ink for descendants that set their own colour but paint fills
+  // and rules relative to the card (see `ink` in constants.ts).
+  wrapperStyle['--module-ink'] = style.textColor;
 
   // Untitled modules keep the exact original structure (no flex column, no
   // content box) so every existing screen stays pixel-identical — and the

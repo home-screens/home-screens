@@ -1,6 +1,7 @@
 'use client';
 
 import type { CSSProperties } from 'react';
+import { ink } from '@/lib/constants';
 
 /** Default box size: a comfortable fingertip target on a 1080-wide wall. */
 export const TAP_CHECKBOX_SIZE = 38;
@@ -34,7 +35,7 @@ export function TapCheckbox({
     ? `0 0 0 ${Math.round(size * 0.21)}px ${withAlpha(color, 0.22)}`
     : checked
       ? 'none'
-      : `0 0 0 ${Math.round(size * 0.105)}px rgba(255,255,255,0.06)`;
+      : `0 0 0 ${Math.round(size * 0.105)}px ${ink(0.06)}`;
   return (
     <span
       data-testid="tap-checkbox"
@@ -47,7 +48,7 @@ export function TapCheckbox({
         height: size,
         borderRadius: radius,
         boxSizing: 'border-box',
-        border: `${border}px solid ${checked || pressed ? color : 'rgba(255,255,255,0.55)'}`,
+        border: `${border}px solid ${checked || pressed ? color : ink(0.55)}`,
         backgroundColor: checked ? color : pressed ? withAlpha(color, 0.25) : 'transparent',
         boxShadow: ring,
         transition: 'background-color 120ms ease, box-shadow 120ms ease, border-color 120ms ease',
@@ -56,6 +57,7 @@ export function TapCheckbox({
     >
       {checked && (
         <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          {/* White for contrast on the accent fill it sits in: chip ink, not card ink. */}
           <path d="M5 12.5L10 17.5L19 7" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}

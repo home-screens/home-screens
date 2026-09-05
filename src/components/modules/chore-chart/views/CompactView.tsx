@@ -5,7 +5,7 @@ import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
 import { choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
@@ -128,7 +128,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
                   ) : (
                     <span
                       data-testid="chore-compact-aggregate"
-                      style={{ minWidth: '2.6em', textAlign: 'center', fontSize: '0.75em', fontWeight: 600, padding: '0.15em 0.5em', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.08)', fontVariantNumeric: 'tabular-nums' }}
+                      style={{ minWidth: '2.6em', textAlign: 'center', fontSize: '0.75em', fontWeight: 600, padding: '0.15em 0.5em', borderRadius: 999, backgroundColor: ink(0.08), fontVariantNumeric: 'tabular-nums' }}
                     >
                       {done}/{assignees.length}
                     </span>

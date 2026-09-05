@@ -10,7 +10,7 @@ import {
   groupTasks,
   buildTaskTree,
 } from './todoist-utils';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 
 export function TaskRow({
@@ -37,7 +37,7 @@ export function TaskRow({
     ? daysBetween(new Date(t.due.datetime ?? t.due.date + 'T23:59:59'), now) < 0
     : false;
   const priorityColor = PRIORITY_COLORS[t.priority];
-  const visiblePriorityColor = priorityColor === 'transparent' ? 'rgba(255,255,255,0.4)' : priorityColor;
+  const visiblePriorityColor = priorityColor === 'transparent' ? ink(0.4) : priorityColor;
 
   return (
     <>
@@ -46,7 +46,7 @@ export function TaskRow({
         style={{
           backgroundColor: isOverdue
             ? 'rgba(239, 68, 68, 0.08)'
-            : 'rgba(255,255,255,0.06)',
+            : ink(0.06),
           marginLeft: depth * 20,
         }}
       >

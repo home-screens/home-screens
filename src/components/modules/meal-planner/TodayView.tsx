@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
@@ -54,7 +54,7 @@ function SlotCard({
       layout
       className="flex flex-col rounded-lg overflow-hidden"
       style={{
-        backgroundColor: meal ? meta.bg : 'rgba(255,255,255,0.02)',
+        backgroundColor: meal ? meta.bg : ink(0.02),
         borderLeft: `3px solid ${isActive ? meta.color : `${meta.color}30`}`,
       }}
     >

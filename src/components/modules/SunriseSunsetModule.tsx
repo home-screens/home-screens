@@ -513,6 +513,8 @@ function CircleView({
     });
   }, [skyTheme, midnightSun, polarNight, sr, ss, noonH, goldenH, db, de]);
 
+  // Stars are white on purpose: they sit on the sky the module paints itself,
+  // not on the card, so they are not card ink (plan 50, item 19).
   const skyStars = useMemo(() => {
     if (!skyTheme) return null;
     // Polar night: the night lasts all day — stars around the whole dial.

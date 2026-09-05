@@ -9,7 +9,7 @@ import { installResizeObserverStub, I18nWrapper as Wrapper } from './helpers/har
 
 installResizeObserverStub();
 
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import CalendarModule from '../CalendarModule';
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
@@ -535,7 +535,7 @@ describe('grid event styling', () => {
     const { getByText } = render(
       <Wrapper><CalendarModule config={multiWeek({ gridEventStyle: 'colored', gridEventPillBackground: true })} style={style} events={[timedBlue]} /></Wrapper>,
     );
-    expect(((getByText('Haircut') as HTMLElement).parentElement as HTMLElement).style.backgroundColor).toBe('rgba(255, 255, 255, 0.1)');
+    expect(((getByText('Haircut') as HTMLElement).parentElement as HTMLElement).style.backgroundColor).toBe(ink(0.10));
   });
 
   it('orders all-day events before timed events within a day cell', () => {
@@ -663,7 +663,7 @@ describe('month and multi-week grid themes', () => {
     expect(getByText('4p')).toBeTruthy();       // on the hour drops them
     const title = getByText('Haircut') as HTMLElement;
     expect(title.className).toContain('font-semibold');
-    expect((title.parentElement as HTMLElement).style.backgroundColor).toBe('rgba(255, 255, 255, 0.1)');
+    expect((title.parentElement as HTMLElement).style.backgroundColor).toBe(ink(0.10));
   });
 
   it('clean: supersedes gridEventStyle for this view', () => {

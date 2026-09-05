@@ -1,3 +1,4 @@
+import { ink } from '@/lib/constants';
 interface ContentCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
@@ -10,8 +11,8 @@ export function ContentCard({ children, className, style, ...rest }: ContentCard
       {...rest}
       className={`rounded-lg ${className ?? ''}`}
       style={{
-        backgroundColor: 'rgba(255,255,255,0.10)',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
+        backgroundColor: ink(0.10),
+        borderTop: `1px solid ${ink(0.08)}`,
         padding: '6px 10px',
         ...style,
       }}

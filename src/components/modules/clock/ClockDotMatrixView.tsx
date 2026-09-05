@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 const DotCharacter = memo(function DotCharacter({
@@ -37,7 +37,7 @@ const DotCharacter = memo(function DotCharacter({
                 width: dotSize,
                 height: dotSize,
                 borderRadius: '50%',
-                backgroundColor: active ? accentColor : 'rgba(255,255,255,0.08)',
+                backgroundColor: active ? accentColor : ink(0.08),
                 boxShadow: active
                   ? `0 0 ${dotSize * 0.5}px ${accentColor}, 0 0 ${dotSize * 1.2}px ${accentColor}40`
                   : 'none',

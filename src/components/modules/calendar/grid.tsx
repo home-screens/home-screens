@@ -11,7 +11,7 @@ import { viewDayWindow } from '@/lib/calendar-legend';
 import { pickGridTimeColor, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-color';
 import { dayDecorFor, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarGridTheme, ModuleStyle } from '@/types/config';
@@ -247,7 +247,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
                   style={mergeCellDecor({
-                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : 'rgba(255,255,255,0.02)',
+                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : ink(0.02),
                     ...(marksMonthStart ? { backgroundImage: `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent)` } : {}),
                     opacity: isMuted ? TEXT_OPACITY.tertiary : 1,
                   }, decor)}
@@ -338,7 +338,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
       <div
         data-event-id={event.id}
         className="flex items-baseline rounded truncate"
-        style={{ padding: '2px 4px 2px 7px', backgroundColor: 'rgba(255,255,255,0.09)', boxShadow: `inset 3px 0 0 ${color}`, color: textColor }}
+        style={{ padding: '2px 4px 2px 7px', backgroundColor: ink(0.09), boxShadow: `inset 3px 0 0 ${color}`, color: textColor }}
       >
         {title}
       </div>
@@ -366,7 +366,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
     <div
       data-event-id={event.id}
       className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-      style={{ backgroundColor: 'rgba(255,255,255,0.10)', color: textColor }}
+      style={{ backgroundColor: ink(0.10), color: textColor }}
     >
       <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>
       {title}
@@ -467,7 +467,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                       return ev.opacity == null ? pill : <div key={ev.id} style={{ opacity: ev.opacity }}>{pill}</div>;
                     })}
                     {overflow > 0 && (
-                      <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                      <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: ink(0.08) }}>
                         {t('calendar.moreCount', { count: overflow })}
                       </span>
                     )}

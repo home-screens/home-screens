@@ -5,7 +5,7 @@ import type { TodoConfig, TodoItem, ModuleStyle } from '@/types/config';
 import type { TodoState } from '@/lib/todo-data';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from './shared/TapCheckbox';
 import { usePressedKey } from './shared/usePressedKey';
@@ -67,10 +67,11 @@ function CheckIcon({ done, color }: { done: boolean; color: string }) {
       {done ? (
         <>
           <rect x="1" y="1" width="16" height="16" rx="4" fill={color} />
+          {/* White for contrast on the accent-filled box: chip ink, not card ink. */}
           <path d="M5.5 9.5L7.5 11.5L12.5 6.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
         </>
       ) : (
-        <rect x="1" y="1" width="16" height="16" rx="4" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+        <rect x="1" y="1" width="16" height="16" rx="4" fill="none" stroke={ink(0.25)} strokeWidth="1.5" />
       )}
     </svg>
   );
@@ -273,7 +274,7 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
                       opacity,
                       touchAction: 'pan-y',
                       // The pressed row tints while its tap is in flight.
-                      backgroundColor: pressed ? 'rgba(255,255,255,0.06)' : undefined,
+                      backgroundColor: pressed ? ink(0.06) : undefined,
                       margin: pressed ? '0 -0.5em' : undefined,
                       padding: pressed ? '0.5em 0.5em' : undefined,
                       width: pressed ? 'calc(100% + 1em)' : undefined,
@@ -305,6 +306,7 @@ export default function TodoModule({ config, style, displayId, screenId, moduleI
               bottom: '0.4em',
               fontSize: '0.8em',
               padding: '0.45em 1.1em',
+              // A light pill with its own dark text, readable on any card: chip ink.
               color: '#111',
               backgroundColor: 'rgba(255,255,255,0.92)',
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)',

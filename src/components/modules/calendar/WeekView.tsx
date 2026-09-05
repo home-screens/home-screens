@@ -4,7 +4,7 @@ import { isSameDay, startOfWeek, addDays } from 'date-fns';
 import { eventsForDay, weekStartsOnFor, clampGridMaxEventsPerCell, clampGridDayLabelScale } from '@/lib/calendar-utils';
 import { dayDecorFor, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle } from '@/types/config';
 import { withAlpha, type EventDisplayStyle } from './support';
@@ -78,7 +78,7 @@ export function WeekView({ events, config, style, today, now, accentColor, event
             <div
               key={date.toISOString()}
               className="flex flex-col p-0.5 overflow-hidden rounded"
-              style={mergeCellDecor({ backgroundColor: 'rgba(255,255,255,0.03)' }, decor)}
+              style={mergeCellDecor({ backgroundColor: ink(0.03) }, decor)}
             >
               <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, 'week')} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
             </div>

@@ -40,6 +40,8 @@ export function StoryOverlay({
       aria-label={item.title}
       onClick={onClose}
       className="absolute inset-0 z-10 flex items-center justify-center p-[6%] cursor-pointer"
+      // The QR below is fixed dark-on-white so it scans, and sits on this scrim
+      // rather than the card: not card ink (plan 50, item 19).
       style={{ backgroundColor: 'rgba(8,10,14,0.9)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
     >
       {mode === 'qr' ? (

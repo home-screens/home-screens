@@ -5,7 +5,7 @@ import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { historyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
 import { AccentDivider } from './shared/AccentDivider';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
@@ -62,8 +62,8 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
                   className="inline-block mt-2 px-2 py-0.5 rounded-full"
                   style={{
                     fontSize: '0.7em',
-                    backgroundColor: hasAccent ? `${accentColor}20` : 'rgba(255,255,255,0.08)',
-                    color: hasAccent ? accentColor : 'rgba(255,255,255,0.7)',
+                    backgroundColor: hasAccent ? `${accentColor}20` : ink(0.08),
+                    color: hasAccent ? accentColor : ink(0.7),
                   }}
                 >
                   {t('history.yearsAgo', { count: yearsAgo })}

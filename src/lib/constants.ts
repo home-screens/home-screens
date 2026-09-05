@@ -122,6 +122,45 @@ export const DIVIDER = {
   strong: 'color-mix(in oklab, currentColor 15%, transparent)',
 } as const;
 
+/**
+ * The card's ink: the module's `Style > Text color`, as a CSS value.
+ *
+ * ModuleWrapper publishes it as `--module-ink`, so it is the card's colour
+ * even on an element that sets its own `color` (a badge in the accent, an
+ * event pill in the event's colour), where `currentcolor` would be that
+ * element's colour instead. The pixel gate caught exactly that: a badge whose
+ * background was 8% of its own faded text rather than 8% of the card's ink.
+ * Outside a card (fullscreen modules paint their own theme) it falls back to
+ * `currentcolor`, which is what those already inherit.
+ */
+export const INK = 'var(--module-ink, currentcolor)';
+
+/**
+ * The card's ink at an alpha.
+ *
+ * For every fill, rule, ring and placeholder that used to be a literal
+ * `rgba(255,255,255,x)` and so assumed a dark card (plan 50, item 19). The
+ * same idea as DIVIDER, for the alphas the tiers do not cover: at the
+ * default white text it resolves to exactly the old value, so nothing already
+ * on a wall changes, and on a light card with dark text the element darkens
+ * instead of disappearing. Ink painted on a coloured chip for contrast (a tick
+ * on a filled checkbox, digits on a flip clock's own dark flap) is not this
+ * and stays white on purpose, with a comment saying so.
+ *
+ * Not for gradient stops: a `color-mix()` stop is a non-legacy colour, which
+ * switches the whole gradient to oklab interpolation and moves every pixel
+ * of it. Those sites keep their literals, with a comment.
+ */
+export function ink(alpha: number): string {
+  // `in srgb`, not oklab like DIVIDER: mixing white through oklab lands a
+  // level off at anti-aliased edges, and the pixel gate caught exactly that
+  // on 40 shots. In srgb white at N% is rgba(255,255,255,N/100) to the bit.
+  // Lower-case keyword so the value survives a round trip through the DOM's
+  // style parser unchanged (jsdom lower-cases it), which is what the unit
+  // tests read back.
+  return `color-mix(in srgb, ${INK} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
 /** Check whether a user-configured accent color is actually set (not the default black). */
 export function hasAccentColor(color: string | undefined): color is string {
   return !!color && color !== '#000000';

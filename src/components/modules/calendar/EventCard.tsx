@@ -8,7 +8,7 @@ import {
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { pickPillTextColor } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { MetadataText } from '../shared/MetadataText';
 import { ContentCard } from '../shared/ContentCard';
 import type { TranslateFn } from '@/i18n';
@@ -62,7 +62,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         <div
           data-event-id={event.id}
           className="flex items-baseline gap-1 px-1 py-0.5 rounded"
-          style={{ backgroundColor: pillBackground ? 'rgba(255,255,255,0.10)' : undefined, opacity: event.opacity }}
+          style={{ backgroundColor: pillBackground ? ink(0.10) : undefined, opacity: event.opacity }}
         >
           <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
             {formatEventTime(start, timeFormat, locale, true)}
@@ -72,7 +72,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       );
     }
     return (
-      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: 'rgba(255,255,255,0.10)', opacity: event.opacity }}>
+      <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: ink(0.10), opacity: event.opacity }}>
         {glyph ? (
           <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>
         ) : (
@@ -131,7 +131,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
                 style={{
                   fontSize: '0.6em',
                   color: accentColor,
-                  backgroundColor: 'rgba(255,255,255,0.10)',
+                  backgroundColor: ink(0.10),
                   padding: '1px 7px',
                 }}
               >
@@ -148,7 +148,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
             aria-valuemin={0}
             aria-valuemax={100}
             className="rounded-full overflow-hidden"
-            style={{ height: 3, marginTop: 4, backgroundColor: 'rgba(255,255,255,0.15)' }}
+            style={{ height: 3, marginTop: 4, backgroundColor: ink(0.15) }}
           >
             <div className="h-full rounded-full" style={{ width: `${Math.round(progress * 100)}%`, backgroundColor: accentColor }} />
           </div>

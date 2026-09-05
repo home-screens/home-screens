@@ -3,7 +3,7 @@
 import type { ChoreChartConfig, ChoreMember } from '@/types/config';
 import type { MemberStats } from '../types';
 import { balanceRows, fitPerRow, partitionMembers } from '../layout';
-import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
+import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 
@@ -171,7 +171,7 @@ export function ProgressView({ config, data, width, fontSize }: ProgressViewProp
         </div>
         <div
           className="rounded-lg p-2 space-y-1"
-          style={{ backgroundColor: 'rgba(255,255,255,0.04)', fontSize: '0.65em' }}
+          style={{ backgroundColor: ink(0.04), fontSize: '0.65em' }}
         >
           {showPoints && (
             <div className="flex items-center justify-between" style={{ opacity: TEXT_OPACITY.secondary }}>
@@ -191,7 +191,7 @@ export function ProgressView({ config, data, width, fontSize }: ProgressViewProp
           </div>
           {showPoints && totalRewardBalance > 0 && (
             <>
-              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '2px 0' }} />
+              <div style={{ height: 1, background: ink(0.06), margin: '2px 0' }} />
               <div className="flex items-center justify-between" style={{ color: '#a78bfa' }}>
                 <span>🎟️ {t('chore-chart.rewardBalances')}</span>
                 <span style={{ fontWeight: 600 }}>{t('chore-chart.ticketsCount', { count: totalRewardBalance })}</span>

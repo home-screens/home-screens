@@ -9,7 +9,7 @@ import {
   formatDueDate,
   groupTasks,
 } from './todoist-utils';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 
 export default function BoardView({
@@ -47,7 +47,7 @@ export default function BoardView({
         <div
           key={group.key}
           className="flex flex-col rounded-lg overflow-hidden"
-          style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+          style={{ backgroundColor: ink(0.03) }}
         >
           {/* Column header */}
           <div className="flex items-center gap-1.5 px-2.5 py-2 border-b border-white/[0.06]">
@@ -82,7 +82,7 @@ export default function BoardView({
                   ) < 0
                 : false;
               const priorityColor = PRIORITY_COLORS[t.priority];
-              const visiblePriorityColor = priorityColor === 'transparent' ? 'rgba(255,255,255,0.4)' : priorityColor;
+              const visiblePriorityColor = priorityColor === 'transparent' ? ink(0.4) : priorityColor;
               return (
                 <div
                   key={t.id}
@@ -90,7 +90,7 @@ export default function BoardView({
                   style={{
                     backgroundColor: isOverdue
                       ? 'rgba(239, 68, 68, 0.08)'
-                      : 'rgba(255,255,255,0.05)',
+                      : ink(0.05),
                   }}
                 >
                   {onComplete ? (

@@ -7,7 +7,7 @@ import { moduleGate } from './ModuleStates';
 import { LocationRequired } from './LocationRequired';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
 
@@ -64,7 +64,7 @@ function PollutantBar({ label, value, unit, threshold, color }: {
     <ContentCard>
       <div className="flex items-center justify-between gap-3" style={{ fontSize: '0.8em' }}>
         <span className="shrink-0" style={{ opacity: TEXT_OPACITY.secondary, minWidth: '3em' }}>{label}</span>
-        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+        <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: ink(0.06) }}>
           <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.8, transition: 'width 0.5s ease' }} />
         </div>
         <span className="tabular-nums shrink-0" style={{ opacity: TEXT_OPACITY.tertiary, minWidth: '5em', textAlign: 'right' }}>

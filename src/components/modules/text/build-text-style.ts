@@ -32,7 +32,9 @@ function applyEffectStyles(
     }
     case 'neon': {
       const c = config.accentColor || '#22d3ee';
-      textStyle.color = '#fff';
+      // The tube's hot core is the module's text colour (white by default);
+      // the halo is the accent. It used to force white here, which made
+      // Style > Text color inert for neon text.
       textStyle.textShadow = [`0 0 4px ${c}`, `0 0 10px ${c}`, `0 0 20px ${c}`, `0 0 40px ${c}`].join(', ');
       textStyle.animation = `_textNeonFlicker ${animSeconds * 1.5}s linear infinite`;
       break;

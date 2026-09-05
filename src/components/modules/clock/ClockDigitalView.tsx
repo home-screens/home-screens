@@ -3,6 +3,7 @@
 import { parseClockTime } from '@/lib/date-info';
 import { digitalRowWidth, fitFactor } from './fit-width';
 import type { ClockViewProps } from './types';
+import { ink } from '@/lib/constants';
 
 // Seven-segment digit map: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
 const SEGMENT_MAP: Record<string, boolean[]> = {
@@ -23,7 +24,7 @@ function Segment({ active, color, style }: { active: boolean; color: string; sty
     <div
       style={{
         ...style,
-        background: active ? color : 'rgba(255, 255, 255, 0.05)',
+        background: active ? color : ink(0.05),
         boxShadow: active
           ? `0 0 8px ${color}80, 0 0 20px ${color}40`
           : 'none',

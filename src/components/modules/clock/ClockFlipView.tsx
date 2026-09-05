@@ -41,6 +41,9 @@ function FlipCard({
   const borderColor = accentColor ? `${accentColor}20` : 'rgba(255,255,255,0.06)';
 
   // Shared text style — full card height, centered, so clipping top/bottom half works
+  // The digits are white on purpose: they sit on the flap's own dark fill
+  // (#1a1a1a below), not on the card, so they are chip ink and do not follow
+  // the text colour (plan 50, item 19).
   const textBase: React.CSSProperties = {
     position: 'absolute',
     width: '100%',

@@ -2,7 +2,7 @@
 
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, INK } from '@/lib/constants';
 import { fitFactor, timeLineWidth } from './fit-width';
 import type { ClockViewProps } from './types';
 
@@ -29,8 +29,8 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
   const infoStr = infoParts.length > 0 ? infoParts.join(' · ') : null;
 
   const neonTextShadow = [
-    `0 0 7px #fff`,
-    `0 0 10px #fff`,
+    `0 0 7px ${INK}`,
+    `0 0 10px ${INK}`,
     `0 0 21px ${neonColor}`,
     `0 0 42px ${neonColor}`,
     `0 0 82px ${neonColor}`,
@@ -46,7 +46,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
   const s = scaledFontSize * factor;
 
   const neonDateShadow = [
-    `0 0 4px #fff`,
+    `0 0 4px ${INK}`,
     `0 0 10px ${neonColor}`,
     `0 0 30px ${neonColor}`,
   ].join(', ');
@@ -63,7 +63,8 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
           fontWeight: 300,
           lineHeight: 1.1,
           letterSpacing: '0.08em',
-          color: '#fff',
+          // The tube's hot core is the text colour (white by default); the
+          // halo is the accent.
           textShadow: neonTextShadow,
         }}
         suppressHydrationWarning

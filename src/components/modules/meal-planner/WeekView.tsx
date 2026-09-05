@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementWidth } from '@/hooks/useElementBox';
@@ -82,7 +82,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
               className="grid gap-px flex-1 min-h-0 items-center rounded-md transition-colors"
               style={{
                 gridTemplateColumns: columns,
-                backgroundColor: isToday ? 'rgba(255,255,255,0.06)' : 'transparent',
+                backgroundColor: isToday ? ink(0.06) : 'transparent',
               }}
             >
               {/* Day label */}

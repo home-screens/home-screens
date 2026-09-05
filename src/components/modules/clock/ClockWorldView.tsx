@@ -3,7 +3,7 @@
 import { parseClockTime } from '@/lib/date-info';
 import { createTZDate } from '@/lib/timezone';
 import { useTranslate } from '@/i18n';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import type { ClockViewProps } from './types';
 
 /**
@@ -144,7 +144,7 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
                         fontSize: badgeFontSize,
                         minWidth: scaledFontSize * 1.2,
                         height: scaledFontSize * 0.85,
-                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        backgroundColor: ink(0.1),
                         paddingLeft: scaledFontSize * 0.2,
                         paddingRight: scaledFontSize * 0.2,
                       }}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { TEXT_OPACITY } from '@/lib/constants';
+import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SectionHeader } from '../shared/SectionHeader';
 import { usePagedRotation } from '@/hooks/usePagedRotation';
 import { useFontsReady } from '@/hooks/useFontsReady';
@@ -146,7 +146,7 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
                 ) : (
                   <span
                     className="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5"
-                    style={{ backgroundColor: item.sourceColor ?? config.accentColor ?? 'rgba(255,255,255,0.35)' }}
+                    style={{ backgroundColor: item.sourceColor ?? config.accentColor ?? ink(0.35) }}
                   />
                 )}
                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
