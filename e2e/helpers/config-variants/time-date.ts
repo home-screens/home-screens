@@ -139,7 +139,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     // the next minute).
     type: 'clock', name: 'timezone', kind: 'network-free',
     settings: { timezone: 'UTC' },
-    config: { view: 'classic', format24h: true, showSeconds: false, showDate: false, timezone: 'Pacific/Kiritimati' },
+    config: { view: 'classic', hourFormat: '24h', showSeconds: false, showDate: false, timezone: 'Pacific/Kiritimati' },
     expect: async (mod) => {
       await expect(async () => {
         const text = (await mod.innerText()) ?? '';

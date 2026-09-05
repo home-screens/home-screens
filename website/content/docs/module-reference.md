@@ -265,7 +265,8 @@ Displays the current time with optional date information. Supports {% $stats.clo
 |---|---|---|---|
 | `view` | string | `"classic"` | Display style: `classic`, `digital`, `analog`, `minimal`, `flip`, `word`, `binary`, `vertical`, `split`, `progress`, `fuzzy`, `world`, `dot-matrix`, `radial`, `arc`, `neon`, `bar`, or `elapsed` |
 | `timezone` | string | `""` | IANA timezone to show (e.g. `"Asia/Tokyo"`); empty = follow the display setting |
-| `format24h` | boolean | `false` | Use 24-hour time format |
+| `hourFormat` | string | `"inherit"` | Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock. Clocks from before this option existed have no `hourFormat` and keep using `format24h` |
+| `format24h` | boolean | `false` | The older per-clock 24-hour toggle. Only read when `hourFormat` is absent |
 | `showSeconds` | boolean | `true` | Display seconds |
 | `showDate` | boolean | `true` | Show date below time |
 | `dateFormat` | string | `"EEEE, MMMM d"` | Date format string (date-fns) |

@@ -280,7 +280,7 @@ Sleep and dimming draw a black layer over the page rather than powering the pane
 - **Your town or zip code**: type it and click **Look up**, or click **Use my internet location** to guess from your connection. Every module that needs a location (weather, sunrise, moon, air quality, rain map, local news) uses this one. **Edit coordinates manually** takes exact numbers.
 - **Timezone** follows the town you pick; change it only if the clocks look wrong. **Clock check** shows the browser's time and the Pi's side by side so you can tell.
 - **Language** sets the words on the editor, every display and the family remote. **More options** holds a separate formatting locale for dates and numbers, for English text with European date order.
-- **Time format** picks 12-hour or 24-hour for every time the display shows: calendar events, weather, sports, sunrise and sunset, moon rise and set, the full-screen photo clock and Todoist due times. It is also the default the meal planner follows. The clock module keeps its own setting.
+- **Time format** picks 12-hour or 24-hour for every time the display shows: calendar events, weather, sports, sunrise and sunset, moon rise and set, the full-screen photo clock and Todoist due times. It is also the default the meal planner follows. New clocks follow it too; a clock can pick its own 12-hour or 24-hour under its **Hour format** setting, and clocks added before that setting existed keep the choice they had.
 
 ### Weather
 

@@ -33,10 +33,36 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   },
 
   // -- clock --
+  // The AM/PM regexes below have a boundary before the marker only: the
+  // wrapper's textContent runs the marker straight into the date line
+  // ("9:32 PMFriday, ..."), so a trailing boundary never matched, and the
+  // 24-hour rows' negation was passing without proving anything.
   {
-    type: 'clock', name: 'format-24h', kind: 'network-free',
-    config: { view: 'classic', format24h: true, showSeconds: false },
-    expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)\b/)(mod); },
+    // A clock placed before `hourFormat` existed: no such key, so its own
+    // toggle is what it reads. `undefined` drops the registry default on the
+    // way to JSON, which is exactly the on-disk shape of such a clock.
+    type: 'clock', name: 'format-24h-legacy', kind: 'network-free',
+    config: { view: 'classic', format24h: true, hourFormat: undefined, showSeconds: false },
+    expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)/)(mod); },
+  },
+  {
+    type: 'clock', name: 'hour-format-24h', kind: 'network-free',
+    config: { view: 'classic', hourFormat: '24h', showSeconds: false },
+    expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)/)(mod); },
+  },
+  {
+    // New clocks follow the household setting.
+    type: 'clock', name: 'hour-format-inherit', kind: 'network-free',
+    settings: { timeFormat: '24h' },
+    config: { view: 'classic', hourFormat: 'inherit', showSeconds: false },
+    expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)/)(mod); },
+  },
+  {
+    // ...and an explicit 12-hour choice on a clock beats a 24-hour household.
+    type: 'clock', name: 'hour-format-12h', kind: 'network-free',
+    settings: { timeFormat: '24h' },
+    config: { view: 'classic', hourFormat: '12h', showSeconds: false },
+    expect: matches(/\b(AM|PM)/),
   },
   {
     type: 'clock', name: 'show-seconds', kind: 'network-free',

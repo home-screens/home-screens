@@ -185,7 +185,9 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
                                   // sunrise-sunset, moon-phase, the fullscreen photo
                                   // clock, todoist due times), and the meal planner
                                   // follows it unless its own timeFormat override is
-                                  // set. The clock module has its own `format24h`.
+                                  // set. Clocks follow it when their `hourFormat` is
+                                  // `inherit` (the default for new clocks); older
+                                  // clocks without that key keep their `format24h`.
                                   // Absent = 12h, except in modules that read the
                                   // locale's hour cycle when unset (todoist and the
                                   // photo clock). Global-only like `locale`.

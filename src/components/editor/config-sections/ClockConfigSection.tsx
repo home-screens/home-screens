@@ -14,7 +14,8 @@ import { useEditorStore } from '@/stores/editor-store';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { formatElapsed } from '@/components/modules/clock/elapsed-format';
-import type { ModuleInstance, ClockView, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
+import type { ModuleInstance, ClockView, ClockHourFormat, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
+import { DEFAULT_TIME_FORMAT } from '@/types/config';
 
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
@@ -40,23 +41,23 @@ const SAMPLE_ELAPSED_MS =
 
 /** Which config fields are relevant for each view */
 const VIEW_FIELDS: Record<ClockView, Set<string>> = {
-  classic:     new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
-  digital:     new Set(['format24h', 'showSeconds', 'accentColor']),
+  classic:     new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
+  digital:     new Set(['hourFormat', 'showSeconds', 'accentColor']),
   analog:      new Set(['showSeconds', 'showNumerals', 'accentColor']),
-  minimal:     new Set(['format24h']),
-  flip:        new Set(['format24h', 'showSeconds', 'animateFlip', 'accentColor']),
+  minimal:     new Set(['hourFormat']),
+  flip:        new Set(['hourFormat', 'showSeconds', 'animateFlip', 'accentColor']),
   word:        new Set(['showDate', 'dateFormat']),
-  binary:      new Set(['format24h', 'showSeconds', 'accentColor']),
-  vertical:    new Set(['format24h', 'showSeconds']),
-  split:       new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
-  progress:    new Set(['format24h', 'showSeconds', 'accentColor']),
+  binary:      new Set(['hourFormat', 'showSeconds', 'accentColor']),
+  vertical:    new Set(['hourFormat', 'showSeconds']),
+  split:       new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
+  progress:    new Set(['hourFormat', 'showSeconds', 'accentColor']),
   fuzzy:       new Set(['showDate', 'dateFormat']),
-  world:       new Set(['format24h', 'showSeconds', 'worldZones']),
-  'dot-matrix': new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
-  radial:      new Set(['format24h', 'showSeconds', 'accentColor']),
-  arc:         new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'accentColor']),
-  neon:        new Set(['format24h', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
-  bar:         new Set(['format24h', 'showSeconds', 'accentColor']),
+  world:       new Set(['hourFormat', 'showSeconds', 'worldZones']),
+  'dot-matrix': new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
+  radial:      new Set(['hourFormat', 'showSeconds', 'accentColor']),
+  arc:         new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'accentColor']),
+  neon:        new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay', 'accentColor']),
+  bar:         new Set(['hourFormat', 'showSeconds', 'accentColor']),
   elapsed:     new Set(['referenceTime', 'referenceLabel', 'countUp', 'accentColor', 'elapsedFormat', 'elapsedPrecision']),
 };
 
@@ -64,6 +65,7 @@ type ClockConfigType = {
   view?: ClockView;
   timezone?: string;
   format24h?: boolean;
+  hourFormat?: ClockHourFormat;
   showSeconds?: boolean;
   showDate?: boolean;
   dateFormat?: string;
@@ -85,6 +87,12 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<ClockConfigType>(mod, screenId);
   const globalTimezone = useEditorStore((s) => s.config?.settings?.timezone);
+  const householdTimeFormat = useEditorStore((s) => s.config?.settings?.timeFormat) ?? DEFAULT_TIME_FORMAT;
+  // A clock placed before `hourFormat` existed shows its own toggle's value,
+  // which is what it renders; picking anything writes `hourFormat` and the
+  // toggle is never read again (see resolveClockFormat24h).
+  const hourFormat: ClockHourFormat = c.hourFormat ?? (c.format24h ? '24h' : '12h');
+  const householdLabel = t(householdTimeFormat === '24h' ? 'configSections.clock.hourFormat24h' : 'configSections.clock.hourFormat12h');
 
   const VIEWS: { value: ClockView; label: string }[] = [
     { value: 'classic', label: t('configSections.clock.viewClassic') },
@@ -195,8 +203,19 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       </LabeledField>
 
       {/* Format */}
-      {has('format24h') && (
-        <Toggle label={t('configSections.clock.format24h')} checked={!!c.format24h} onChange={(v) => set({ format24h: v })} />
+      {has('hourFormat') && (
+        <LabeledField label={t('configSections.clock.hourFormat')}>
+          <select
+            value={hourFormat}
+            onChange={(e) => set({ hourFormat: e.target.value as ClockHourFormat })}
+            className={INPUT_CLASS}
+            aria-label={t('configSections.clock.hourFormat')}
+          >
+            <option value="inherit">{t('configSections.clock.hourFormatInherit', { format: householdLabel })}</option>
+            <option value="12h">{t('configSections.clock.hourFormat12h')}</option>
+            <option value="24h">{t('configSections.clock.hourFormat24h')}</option>
+          </select>
+        </LabeledField>
       )}
 
       {/* Seconds */}

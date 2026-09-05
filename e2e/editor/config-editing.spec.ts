@@ -61,6 +61,26 @@ test('clock: switching View persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'clock')).view).toBe('digital');
 });
 
+test('clock: picking an Hour format persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('clock'));
+  const picker = page.getByRole('combobox', { name: 'Hour format' });
+  // A new clock follows the display setting.
+  await expect(picker).toHaveValue('inherit');
+
+  await autosaved(page, async () => {
+    await picker.selectOption('24h');
+  });
+
+  expect((await moduleConfig(request, 'clock')).hourFormat).toBe('24h');
+});
+
+test('clock: a clock from before Hour format existed shows the choice its own toggle made', async ({ page, request }) => {
+  // No `hourFormat` key at all, the on-disk shape of every older clock; the
+  // picker reads the legacy toggle so the panel says what the wall shows.
+  await selectModule(page, request, buildModuleInstance('clock', { format24h: true, hourFormat: undefined }));
+  await expect(page.getByRole('combobox', { name: 'Hour format' })).toHaveValue('24h');
+});
+
 test('date: switching View persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('date'));
 

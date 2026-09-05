@@ -554,6 +554,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     defaultConfig: {
       view: 'classic',
       format24h: false,
+      // New clocks follow the household setting; the boolean above is what
+      // a clock without this key (placed before it existed) still reads.
+      hourFormat: 'inherit',
       showSeconds: true,
       showDate: true,
       dateFormat: 'EEEE, MMMM d',

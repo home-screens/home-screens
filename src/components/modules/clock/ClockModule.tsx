@@ -1,8 +1,11 @@
 'use client';
 
-import type { ClockConfig, ClockView, ModuleStyle } from '@/types/config';
+import { useMemo } from 'react';
+
+import type { ClockConfig, ClockView, ModuleStyle, TimeFormat } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { resolveClockFormat24h } from './hour-format';
 import ModuleWrapper from '../ModuleWrapper';
 import ClockClassicView from './ClockClassicView';
 import ClockDigitalView from './ClockDigitalView';
@@ -78,9 +81,19 @@ interface ClockModuleProps {
   style: ModuleStyle;
   /** Effective zone — buildModuleProps merges the per-module override with the display setting. */
   timezone?: string;
+  /** Household 12/24-hour preference; read when `config.hourFormat` is `inherit`. */
+  timeFormat?: TimeFormat;
 }
 
-export default function ClockModule({ config, style, timezone }: ClockModuleProps) {
+export default function ClockModule({ config: rawConfig, style, timezone, timeFormat }: ClockModuleProps) {
+  // Every view reads `config.format24h`, so the resolved choice is folded
+  // back into the config they receive rather than threaded through eighteen
+  // of them. Same object when nothing changes, so memoised views keep theirs.
+  const format24h = resolveClockFormat24h(rawConfig, timeFormat);
+  const config = useMemo(
+    () => (rawConfig.format24h === format24h ? rawConfig : { ...rawConfig, format24h }),
+    [rawConfig, format24h],
+  );
   const view = config.view ?? 'classic';
   // The elapsed view ticks its own real clock (useRealClock in the view), so
   // the module-level shifted clock only needs a coarse keepalive there.

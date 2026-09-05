@@ -591,9 +591,23 @@ export interface WorldClockZone {
   timezone: string;
 }
 
+/**
+ * Where a clock takes its 12/24-hour choice from. `inherit` follows the
+ * household `GlobalSettings.timeFormat`; the other two pin it per clock.
+ */
+export type ClockHourFormat = 'inherit' | '12h' | '24h';
+
 export interface ClockConfig {
   view: ClockView;
+  /**
+   * Legacy per-clock toggle. Every clock placed before `hourFormat` existed
+   * carries an explicit value here and keeps it: it is only read when
+   * `hourFormat` is absent, so nothing on a wall changed when the household
+   * setting started reaching new clocks (plan 50, item 6b).
+   */
   format24h: boolean;
+  /** Absent = read `format24h`. New clocks are placed with `inherit`. */
+  hourFormat?: ClockHourFormat;
   showSeconds: boolean;
   showDate: boolean;
   dateFormat: string;

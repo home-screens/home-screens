@@ -74,7 +74,7 @@ Ambient displays that fill the whole screen. They have no position, size or styl
 
 ### Time & Date
 
-- **Clock** ([reference](/docs/module-reference#clock)): {% $stats.clockViewCount %} looks, from **Classic**, **Digital** and **Analog** to **Flip**, **Word**, **Binary**, **Neon** and **World**. Its own 12 or 24-hour setting, seconds on or off, and an optional date line. Needs nothing.
+- **Clock** ([reference](/docs/module-reference#clock)): {% $stats.clockViewCount %} looks, from **Classic**, **Digital** and **Analog** to **Flip**, **Word**, **Binary**, **Neon** and **World**. Follows the display's 12 or 24-hour setting or picks its own, seconds on or off, and an optional date line. Needs nothing.
 - **Calendar** ([reference](/docs/module-reference#calendar)): the next few days of events in a tile. Views: **Daily**, **Agenda**, **Week**, **Multi-week** and **Month**, with classic or coloured event styling. Needs a [calendar](/docs/calendars).
 - **Countdown** ([reference](/docs/module-reference#countdown)): days until a birthday, a trip or the last day of school. Add as many events as you like; views **All** or just the **Next** one. Needs nothing.
 - **Date** ([reference](/docs/module-reference#date)): today's date in five layouts: **Full**, **Minimal**, **Stacked**, **Editorial** and **Banner**. Needs nothing.
