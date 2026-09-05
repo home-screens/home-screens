@@ -502,7 +502,9 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   {
     type: 'calendar', name: 'hide-time', kind: 'networked', stubKey: 'calendar',
     config: { viewMode: 'daily', showTime: false },
-    expect: async (mod) => { await has('Dentist Appointment')(mod); await notMatches(/\b(AM|PM)\b/)(mod); },
+    // Boundary before the marker only, as in the clock rows: the wrapper's
+    // textContent can run "PM" straight into the next line.
+    expect: async (mod) => { await has('Dentist Appointment')(mod); await notMatches(/\b(AM|PM)/)(mod); },
   },
   {
     type: 'calendar', name: 'show-location', kind: 'networked', stubKey: 'calendar',

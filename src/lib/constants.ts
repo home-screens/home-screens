@@ -103,25 +103,6 @@ export const TEXT_OPACITY = {
   tertiary: 0.35,
 } as const;
 
-// Divider/separator color tiers for consistent structural elements across modules.
-//   subtle  (0.05) — faint list grouping, barely-there separators
-//   default (0.08) — standard dividers and borders
-//   visible (0.10) — section separators within modules
-//   strong  (0.15) — emphasized borders, prominent separators
-//
-// Derived from `currentColor`, which is the module's own `style.textColor`, so
-// a card with dark text keeps its structure instead of losing every separator.
-// These were literal `rgba(255,255,255,x)` and silently assumed a dark
-// background: set a light card and the dividers vanished, while the text they
-// separate obeyed the setting. At the default white text these resolve to
-// exactly what they always were, so no card already on a wall changes.
-export const DIVIDER = {
-  subtle: 'color-mix(in oklab, currentColor 5%, transparent)',
-  default: 'color-mix(in oklab, currentColor 8%, transparent)',
-  visible: 'color-mix(in oklab, currentColor 10%, transparent)',
-  strong: 'color-mix(in oklab, currentColor 15%, transparent)',
-} as const;
-
 /**
  * The card's ink: the module's `Style > Text color`, as a CSS value.
  *
@@ -160,6 +141,30 @@ export function ink(alpha: number): string {
   // tests read back.
   return `color-mix(in srgb, ${INK} ${Math.round(alpha * 100)}%, transparent)`;
 }
+
+// Divider/separator color tiers for consistent structural elements across modules.
+//   subtle  (0.05) — faint list grouping, barely-there separators
+//   default (0.08) — standard dividers and borders
+//   visible (0.10) — section separators within modules
+//   strong  (0.15) — emphasized borders, prominent separators
+//
+// Derived from `currentColor`, which is the module's own `style.textColor`, so
+// a card with dark text keeps its structure instead of losing every separator.
+// These were literal `rgba(255,255,255,x)` and silently assumed a dark
+// background: set a light card and the dividers vanished, while the text they
+// separate obeyed the setting. At the default white text these resolve to
+// exactly what they always were, so no card already on a wall changes.
+//
+// Built on `ink()` below since item 19 found two traps in the first version
+// (oklab mixing lands a level off at anti-aliased edges; `currentColor` on an
+// element that sets its own colour is that colour, not the card's). Same
+// values, now exact at white and anchored to the card's ink.
+export const DIVIDER = {
+  subtle: ink(0.05),
+  default: ink(0.08),
+  visible: ink(0.10),
+  strong: ink(0.15),
+} as const;
 
 /** Check whether a user-configured accent color is actually set (not the default black). */
 export function hasAccentColor(color: string | undefined): color is string {
