@@ -19,6 +19,7 @@ function makeStore(opts?: {
   const fetches: string[] = [];
   const created: string[] = [];
   const revoked: string[] = [];
+  const warnings: string[] = [];
   let responder: (url: string) => { status: number } | 'hang' = () => ({ status: 200 });
   let tick = 0;
   const store = createTileStore({
@@ -29,6 +30,7 @@ function makeStore(opts?: {
     maxPauseMs: opts?.maxPauseMs,
     timeoutMs: opts?.timeoutMs,
     maxEntries: opts?.maxEntries,
+    warn: (m) => warnings.push(m),
     now: () => tick,
     fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
       const u = String(url);
@@ -57,7 +59,7 @@ function makeStore(opts?: {
   // pauses dispatch without consumers, so tests subscribe like real callers.
   const unsubscribe = store.subscribe(() => {});
   return {
-    store,
+    store, warnings,
     fetches,
     created,
     revoked,
@@ -460,6 +462,48 @@ describe('createTileStore', () => {
     expect(listener).toHaveBeenCalled();
     expect(store.getVersion()).toBeGreaterThan(0);
     unsubscribe();
+  });
+
+  it('reports how long until failed tiles may be retried', async () => {
+    const { store, failAll, okAll, advance } = makeStore({ cooldownMs: 1_000 });
+    failAll(503);
+    await store.ensure(['a/bad.png']);
+    await settle();
+    okAll();
+    await store.ensure(['a/ok.png']);
+    await settle();
+    expect(store.retryDelay(['a/ok.png'])).toBe(0);
+    expect(store.retryDelay(['a/ok.png', 'a/bad.png'])).toBe(1_000);
+    advance(600);
+    expect(store.retryDelay(['a/bad.png'])).toBe(400);
+    advance(400);
+    expect(store.retryDelay(['a/bad.png'])).toBe(0);
+  });
+
+  it('notes failures on the console at most once per interval, with the latest reason', async () => {
+    const { store, failAll, advance, warnings } = makeStore({ cooldownMs: 1_000 });
+    failAll(503);
+    await store.ensure(['a/1.png', 'a/2.png', 'a/3.png']);
+    await settle();
+    // One line for the burst, not three: the first failure is reported at
+    // once and the rest of the burst is counted into the next note.
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatch(/^\[rain-map\] 1 radar tile request failed/);
+    expect(warnings[0]).toContain('HTTP 503');
+    expect(warnings[0]).toContain('retrying in 1s');
+
+    // The cooldown lapses and a retry fails inside the interval: quiet ...
+    advance(1_000);
+    await store.ensure(['a/1.png']);
+    await settle();
+    expect(warnings).toHaveLength(1);
+    // ... and counted into the next note once the interval has passed: the
+    // two unreported from the burst, the retry, and this one.
+    advance(30_000);
+    await store.ensure(['a/2.png']);
+    await settle();
+    expect(warnings).toHaveLength(2);
+    expect(warnings[1]).toMatch(/^\[rain-map\] 4 radar tile requests failed/);
   });
 
   it('ignores empty URLs without creating a request', async () => {

@@ -2,23 +2,25 @@
  * Rate-bounded radar tile store.
  *
  * All radar tile network flows through this store — the rendered <img> tags
- * only ever point at cached object URLs. RainViewer publishes no numeric rate
- * limit (its docs only say the API is free for personal use and that abuse
- * gets an IP blocked), but its tile servers do answer 429 when a client
- * bursts, and one animation window is 13+ frames x 25 tiles = 325+ requests.
- * Four rules keep a weeks-long kiosk mount polite:
+ * only ever point at cached object URLs. The radar server renders tiles on
+ * demand and the public LibreWXR instance is a donation-funded project with
+ * no published rate limit, while one animation window is 18 frames x 4 to 9
+ * tiles (sized to the box; see rain-map-grid.ts) = 70 to 160 requests. Four
+ * rules keep a weeks-long kiosk mount polite:
  * - A single issuance queue meters dispatches through a token bucket: a small
- *   burst (enough for the first frame to appear at once) and then one token
- *   per `spacingMs`, so the sustained rate is bounded no matter how fast the
- *   animation cycles or how many frames it sweeps. The queue is strictly FIFO,
- *   so callers control priority by the order they ensure() in.
- * - A 429 pauses the WHOLE store, not just the tile that received it. The
- *   rate limit is per IP, so every further request during the window is a
+ *   burst (a frame or two, so the first frame appears at once) and then one
+ *   token per `spacingMs`, so the sustained rate is bounded no matter how fast
+ *   the animation cycles or how many frames it sweeps. The queue is strictly
+ *   FIFO, so callers control priority by the order they ensure() in.
+ * - A 429 pauses the WHOLE store, not just the tile that received it. A rate
+ *   limit is per IP, so every further request during the window is a
  *   guaranteed rejection that still consumes the window; the tile goes back
  *   to the head of the queue and the pause backs off exponentially while 429s
  *   keep coming after each pause.
  * - Any other failure (5xx, timeout, network error) puts that tile in a
- *   cooldown so it is not re-requested at animation tempo.
+ *   cooldown so it is not re-requested at animation tempo. Failures are
+ *   noted on the console at most once every 30s, with the latest reason and
+ *   URL, so a hole in the radar can be traced without a debugger.
  * - Successes are cached as object URLs, so cycling frames and remounting
  *   screens (rotation) render for free. The store is bounded by entry count:
  *   past the cap, tiles outside every live window are evicted least recently
@@ -44,6 +46,13 @@ export interface TileStore {
    */
   ensure(urls: string[]): Promise<void>;
   /**
+   * Milliseconds until every one of these URLs that is in failure cooldown may
+   * be retried; 0 when none is cooling down. Lets a consumer retry a frame
+   * with a failed tile the moment the store will accept the request, instead
+   * of guessing at the cooldown.
+   */
+  retryDelay(urls: string[]): number;
+  /**
    * Register a consumer's animation window; returns a release function. Tiles
    * in a live window are never evicted and queued requests outside every live
    * window are skipped, so simultaneously mounted rain-map instances (two
@@ -61,15 +70,20 @@ export interface TileStoreDeps {
   createObjectURL?: (blob: Blob) => string;
   revokeObjectURL?: (url: string) => void;
   now?: () => number;
-  /** Sustained spacing between dispatched tile requests. Default 200ms (≤300/min). */
+  /** Sustained spacing between dispatched tile requests. Default 300ms (200/min). */
   spacingMs?: number;
   /**
-   * How many requests may go out at once before spacing applies. Default 40:
-   * more than one 25-tile frame so the first frame appears immediately
-   * (340 requests in the first minute: 40 + 300).
+   * How many requests may go out at once before spacing applies. Default 25:
+   * two or three frames of a large box, so the first frames appear
+   * immediately and the first minute stays under 225 requests (25 + 200).
+   * A full window is on screen well inside a minute, growing frame by frame.
    */
   burstSize?: number;
-  /** How long a failed (non-429) tile waits before it may be retried. Default 90s. */
+  /**
+   * How long a failed (non-429) tile waits before it may be retried. Default
+   * 20s: long enough that a dead tile is not hammered at animation tempo,
+   * short enough that a hole from one slow render heals within a loop or two.
+   */
   cooldownMs?: number;
   /** First store-wide pause after a 429. Doubles per consecutive pause. Default 20s. */
   pauseMs?: number;
@@ -77,13 +91,18 @@ export interface TileStoreDeps {
   maxPauseMs?: number;
   /**
    * How long a single tile request may run before it is aborted and enters the
-   * failure cooldown. Default 10s. Without it a handful of half-open
-   * connections (kiosk WiFi drop) would occupy every in-flight slot forever
-   * and nothing would ever dispatch again for the rest of the tab's life.
+   * failure cooldown. Default 30s: the radar server renders cold tiles on
+   * demand and a 512px tile has been measured at 5s with four in flight, so a
+   * shorter limit turns a busy server into holes. Without any limit a handful
+   * of half-open connections (kiosk WiFi drop) would occupy every in-flight
+   * slot forever and nothing would ever dispatch again for the rest of the
+   * tab's life.
    */
   timeoutMs?: number;
+  /** Where failure notes go. Default console.warn. */
+  warn?: (message: string) => void;
   /**
-   * Entry cap before eviction. Default 1600: four full animation windows, so
+   * Entry cap before eviction. Default 1800: four full animation windows, so
    * a display rotating between several rain-map screens keeps all of them.
    * Live windows are never evicted, so the cap is exceeded rather than
    * enforced if the live union alone is larger.
@@ -91,13 +110,15 @@ export interface TileStoreDeps {
   maxEntries?: number;
 }
 
-const DEFAULT_SPACING_MS = 200;
-const DEFAULT_BURST_SIZE = 40;
-const DEFAULT_COOLDOWN_MS = 90_000;
+const DEFAULT_SPACING_MS = 300;
+const DEFAULT_BURST_SIZE = 25;
+const DEFAULT_COOLDOWN_MS = 20_000;
 const DEFAULT_PAUSE_MS = 20_000;
 const DEFAULT_MAX_PAUSE_MS = 300_000;
-const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_MAX_ENTRIES = 1600;
+const DEFAULT_TIMEOUT_MS = 30_000;
+/** Failure notes are batched: at most one console line per this interval. */
+const WARN_INTERVAL_MS = 30_000;
+const DEFAULT_MAX_ENTRIES = 1800;
 const MAX_IN_FLIGHT = 4;
 
 interface TileEntry {
@@ -118,6 +139,7 @@ export function createTileStore({
   maxPauseMs = DEFAULT_MAX_PAUSE_MS,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   maxEntries = DEFAULT_MAX_ENTRIES,
+  warn = (message: string) => console.warn(message),
 }: TileStoreDeps = {}): TileStore {
   // Insertion order doubles as the eviction order: retaining a window moves
   // its entries to the end, so the head is the least recently retained.
@@ -143,6 +165,21 @@ export function createTileStore({
   const liveWindows = new Map<number, ReadonlySet<string>>();
   let nextWindowId = 1;
   let evictScheduled = false;
+  // Failure notes, batched so an outage is one line per interval, not one per tile.
+  let failuresSinceWarn = 0;
+  let lastWarnAt = -Infinity;
+
+  function recordFailure(url: string, reason: string) {
+    failuresSinceWarn++;
+    const t = now();
+    if (t - lastWarnAt < WARN_INTERVAL_MS) return;
+    lastWarnAt = t;
+    const count = failuresSinceWarn;
+    failuresSinceWarn = 0;
+    warn(
+      `[rain-map] ${count} radar tile request${count === 1 ? '' : 's'} failed (latest: ${reason} ${url}); retrying in ${Math.round(cooldownMs / 1000)}s`,
+    );
+  }
 
   /** True when nothing more will happen for this URL without a new ensure(). */
   function isSettled(url: string): boolean {
@@ -243,6 +280,7 @@ export function createTileStore({
     // not each extend or escalate it.
     if (t < pausedUntil) return;
     pausedUntil = t + nextPauseMs;
+    warn(`[rain-map] radar server answered 429 (too many requests); pausing tile requests for ${Math.round(nextPauseMs / 1000)}s`);
     nextPauseMs = Math.min(nextPauseMs * 2, maxPauseMs);
     // Resume gently: no burst when the pause lifts.
     tokens = 0;
@@ -269,9 +307,11 @@ export function createTileStore({
         pauseForRateLimit(now());
       } else {
         entries.set(url, { status: 'cooldown', retryAt: now() + cooldownMs });
+        recordFailure(url, `HTTP ${res.status}`);
       }
     } catch {
       entries.set(url, { status: 'cooldown', retryAt: now() + cooldownMs });
+      recordFailure(url, controller.signal.aborted ? `timed out after ${Math.round(timeoutMs / 1000)}s` : 'network error');
     } finally {
       clearTimeout(timeout);
       inFlight.delete(url);
@@ -355,6 +395,15 @@ export function createTileStore({
     getVersion: () => version,
     get: (url) => entries.get(url)?.objectUrl ?? null,
     ensure,
+    retryDelay(urls) {
+      const t = now();
+      let delay = 0;
+      for (const url of urls) {
+        const e = entries.get(url);
+        if (e?.status === 'cooldown') delay = Math.max(delay, (e.retryAt ?? 0) - t);
+      }
+      return delay;
+    },
     retainWindow(urls) {
       const id = nextWindowId++;
       liveWindows.set(id, urls);

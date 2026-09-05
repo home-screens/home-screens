@@ -7,10 +7,12 @@ import { moduleGate } from './ModuleStates';
 import { radarTileStore } from './rain-map-preload';
 import { useFetchData } from '@/hooks/useFetchData';
 import { LocationRequired } from './LocationRequired';
+import { useElementBox } from '@/hooks/useElementBox';
+import { computeTileGrid, BASE_TILE_SIZE, RADAR_TILE_SIZE } from './rain-map-grid';
 import { rainMapUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { RainFrame, RainViewerResponse } from '@/lib/rain-map-types';
+import type { RainFrame, RadarIndexResponse } from '@/lib/rain-map-types';
 
 interface RainMapModuleProps {
   config: RainMapConfig;
@@ -20,79 +22,29 @@ interface RainMapModuleProps {
   locationSettingsHref?: string;
 }
 
-// ── Tile math (standard Web Mercator) ──
-
-function lon2tile(lon: number, zoom: number): number {
-  return ((lon + 180) / 360) * Math.pow(2, zoom);
-}
-
-function lat2tile(lat: number, zoom: number): number {
-  const latRad = (lat * Math.PI) / 180;
-  return (
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
-    Math.pow(2, zoom)
-  );
-}
-
-const TILE_SIZE = 256;
-const MAX_RADAR_ZOOM = 7;
-
-interface TileGrid {
-  tiles: Array<{ x: number; y: number; px: number; py: number }>;
-  totalSize: number;
-  scaledSize: number;
-}
-
-/**
- * Assemble a centered slippy-map tile grid around (lat, lon) at the given tile
- * zoom. `scale` upsamples each tile: the base map passes 1 (native tiles) while
- * the radar layer passes >1 to stretch RainViewer's zoom-capped tiles up to the
- * base map's zoom. The grid radius grows as the scale shrinks so a scaled grid
- * still covers the viewport. `px`/`py` are top-left offsets inside a
- * `totalSize`-square container centered over the location. Kept as one helper so
- * the base and radar grids can never drift; the multiplication order matches the
- * original per-caller code exactly (scale is always an exact power of two, so
- * even the base map's added `* 1` is bit-identical).
- */
-function computeTileGrid(lat: number, lon: number, tileZoom: number, scale: number): TileGrid {
-  const centerTileX = lon2tile(lon, tileZoom);
-  const centerTileY = lat2tile(lat, tileZoom);
-  const tileX = Math.floor(centerTileX);
-  const tileY = Math.floor(centerTileY);
-  const scaledSize = TILE_SIZE * scale;
-  const offsetX = (centerTileX - tileX) * TILE_SIZE * scale;
-  const offsetY = (centerTileY - tileY) * TILE_SIZE * scale;
-
-  // Match the base map's gridRadius — the extra +1 padding was causing
-  // 49 tiles/frame instead of 25, which overwhelms RainViewer's rate limit.
-  const gridRadius = Math.max(2, Math.ceil(2 / scale));
-  const totalSize = (gridRadius * 2 + 1) * scaledSize;
-  const tiles: Array<{ x: number; y: number; px: number; py: number }> = [];
-  for (let dy = -gridRadius; dy <= gridRadius; dy++) {
-    for (let dx = -gridRadius; dx <= gridRadius; dx++) {
-      tiles.push({
-        x: tileX + dx,
-        y: tileY + dy,
-        px: totalSize / 2 - offsetX + dx * scaledSize,
-        py: totalSize / 2 - offsetY + dy * scaledSize,
-      });
-    }
-  }
-  return { tiles, totalSize, scaledSize };
-}
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000;
 
 /** How long the radar window inputs must be stable before tiles are fetched. */
 const RADAR_WINDOW_DEBOUNCE_MS = 500;
 
+/**
+ * How many times a frame with a failed tile is retried (once the store's
+ * cooldown lapses) before it is shown with the hole. A hole is worse than a
+ * skipped frame, but a tile the server will never serve must not keep a frame
+ * out of the loop forever.
+ */
+const MAX_TILE_RETRIES = 2;
+
 interface RadarWindowInputs {
   lat: number;
   lon: number;
-  radarZoom: number;
-  radarScale: number;
+  zoom: number;
   colorScheme: number;
   smooth: number;
   snow: number;
+  /** Measured box, so a resize drag settles before a new window is fetched. */
+  width: number;
+  height: number;
 }
 
 /**
@@ -140,9 +92,9 @@ const FRAME_NOW_WINDOW_S = 90;
 function formatFrameTime(unixTime: number, t: TranslateFn, locale: string): string {
   const nowMs = Date.now();
   if (Math.abs(unixTime * 1000 - nowMs) <= FRAME_NOW_WINDOW_S * 1000) return t('rain-map.now');
-  // Minute granularity on purpose: RainViewer's past frames are 10 minutes
-  // apart over ~2 hours, and "1 hr. ago" for three frames in a row says
-  // nothing about which one is showing.
+  // Minute granularity on purpose: past frames are 10 minutes apart over
+  // ~2 hours, and "1 hr. ago" for three frames in a row says nothing about
+  // which one is showing.
   return formatRelativeTime(nowMs, unixTime * 1000, { locale, numeric: 'always', style: 'short', unit: 'minute' });
 }
 
@@ -181,7 +133,10 @@ export default function RainMapModule({
   const refreshMs = config.refreshIntervalMs ?? DEFAULT_REFRESH_MS;
 
   // '' skips the fetch while there is nothing to centre the radar on.
-  const [data, error] = useFetchData<RainViewerResponse>(hasCoords ? rainMapUrl() : '', refreshMs);
+  const [data, error] = useFetchData<RadarIndexResponse>(hasCoords ? rainMapUrl() : '', refreshMs);
+
+  // The map box, measured: both tile grids cover exactly this and no more.
+  const [boxRef, box] = useElementBox<HTMLDivElement>();
 
   const [displayIndex, setDisplayIndex] = useState(0);
   const indexRef = useRef(0);
@@ -198,55 +153,60 @@ export default function RainMapModule({
     return [...(data.radar.past ?? []), ...(data.radar.nowcast ?? [])];
   }, [data]);
 
-  // Radar zoom is capped at 7 by the RainViewer API; above that we upscale
-  const radarZoom = Math.min(zoom, MAX_RADAR_ZOOM);
-  const radarScale = Math.pow(2, zoom - radarZoom); // 1 at zoom ≤ 7, 2 at 8, 4 at 9, etc.
-
   // Debounce the inputs that define the radar tile window. Editor sliders
-  // (native range inputs) fire per step during a drag, and each intermediate
-  // zoom/location/color value would otherwise mint a full 325-URL window of
-  // tiles; only the value the slider settles on is ever fetched. The base map
-  // below stays live so the canvas keeps up with the pointer.
+  // (native range inputs) fire per step during a drag, and a resize drag
+  // commits every intermediate box; each intermediate value would otherwise
+  // mint a full window of tile requests. Only the value the control settles
+  // on is ever fetched. The base map below stays live so the canvas keeps up
+  // with the pointer.
   const radarWindow = useDebouncedRadarWindow(
-    { lat, lon, radarZoom, radarScale, colorScheme, smooth, snow },
+    { lat, lon, zoom, colorScheme, smooth, snow, width: box.width, height: box.height },
     RADAR_WINDOW_DEBOUNCE_MS,
   );
 
-  // Base map tile grid (uses full zoom, native tile size)
+  // Base map tile grid: live, follows the slider and the box.
   const tileGrid = useMemo(
-    () => computeTileGrid(lat, lon, zoom, 1),
-    [lat, lon, zoom],
+    () => computeTileGrid(lat, lon, zoom, BASE_TILE_SIZE, box),
+    [lat, lon, zoom, box],
   );
 
-  // Radar tile grid (uses capped zoom, scaled up to match the base map)
+  // Radar tile grid from the debounced inputs: 512px tiles one zoom below the
+  // map, the same ground per pixel as the base tiles in a quarter of the
+  // requests.
+  const radarZoom = radarWindow.zoom - 1;
   const radarTileGrid = useMemo(
-    () => computeTileGrid(radarWindow.lat, radarWindow.lon, radarWindow.radarZoom, radarWindow.radarScale),
-    [radarWindow],
+    () => computeTileGrid(radarWindow.lat, radarWindow.lon, radarZoom, RADAR_TILE_SIZE, radarWindow),
+    [radarWindow, radarZoom],
   );
 
-  // Build radar tile URL for a given frame
+  // Build radar tile URL for a given frame (the RainViewer v2 tile scheme
+  // every compatible server, LibreWXR included, serves).
   const getRadarUrl = useCallback(
     (frame: RainFrame, tile: { x: number; y: number }) => {
       if (!data?.host) return '';
-      return `${data.host}${frame.path}/${TILE_SIZE}/${radarWindow.radarZoom}/${tile.x}/${tile.y}/${radarWindow.colorScheme}/${radarWindow.smooth}_${radarWindow.snow}.png`;
+      return `${data.host}${frame.path}/${RADAR_TILE_SIZE}/${radarZoom}/${tile.x}/${tile.y}/${radarWindow.colorScheme}/${radarWindow.smooth}_${radarWindow.snow}.png`;
     },
-    [data, radarWindow],
+    [data, radarWindow, radarZoom],
   );
 
   // Tile URLs for one frame, through the rate-bounded store.
   const frameUrls = useCallback(
-    (frame: RainFrame) => radarTileGrid.tiles.map((tile) => getRadarUrl(frame, tile)),
-    [radarTileGrid.tiles, getRadarUrl],
+    (frame: RainFrame) => radarTileGrid.map((tile) => getRadarUrl(frame, tile)),
+    [radarTileGrid, getRadarUrl],
   );
 
   // Queue every frame in display order, then animate over the frames whose
-  // tiles have settled. The store paces requests far slower than the animation
-  // runs, so a cold start would otherwise cycle through mostly empty frames
-  // for over a minute; instead the loop never shows a frame it has not loaded.
-  // Until every frame has settled the loop only moves forward, parking on
-  // the newest loaded frame until the next one lands, so a cold start plays
-  // one progressive sweep (1, 2, 3, ...) rather than restarting from the
-  // first frame each time a new one arrives. Once all frames are in it loops.
+  // tiles have all loaded. The store paces requests far slower than the
+  // animation runs, so a cold start would otherwise cycle through mostly
+  // empty frames for over a minute; instead the loop never shows a frame it
+  // has not loaded. A frame with a failed tile is held back and retried when
+  // the store's cooldown lapses (a slow render on the radar server is the
+  // usual cause, and the retry lands warm); after MAX_TILE_RETRIES it joins
+  // the loop with the hole rather than never. Until every frame is ready the
+  // loop only moves forward, parking on the newest ready frame until the next
+  // one lands, so a cold start plays one progressive sweep (1, 2, 3, ...)
+  // rather than restarting from the first frame each time a new one arrives.
+  // Once all frames are in it loops.
   useEffect(() => {
     const perFrame = frames.map(frameUrls);
     if (!perFrame.length || !perFrame[0].length || !data?.host) return;
@@ -261,6 +221,8 @@ export default function RainMapModule({
     // True while the loop is holding on the newest ready frame.
     let parked = false;
     const ready = new Set<number>();
+    const retries = new Array<number>(perFrame.length).fill(0);
+    const retryTimers = new Set<ReturnType<typeof setTimeout>>();
     indexRef.current = 0;
     setDisplayIndex(0);
 
@@ -298,30 +260,54 @@ export default function RainMapModule({
       }, delay);
     }
 
-    perFrame.forEach((urls, i) => {
-      radarTileStore.ensure(urls).then(() => {
-        if (cancelled) return;
-        ready.add(i);
-        if (!started) {
-          // The first frame to settle starts the loop (frame 0, except when
-          // a later frame was already cached).
-          started = true;
-          indexRef.current = i;
-          setDisplayIndex(i);
-          scheduleNext();
-        } else if (parked) {
-          // The frame the loop was waiting on arrived: move on at animation
-          // tempo instead of waiting out the end-of-loop hold.
-          clearTimeout(timerRef.current);
-          scheduleNext();
+    function markReady(i: number) {
+      ready.add(i);
+      if (!started) {
+        // The first frame to be ready starts the loop (frame 0, except when
+        // a later frame was already cached).
+        started = true;
+        indexRef.current = i;
+        setDisplayIndex(i);
+        scheduleNext();
+      } else if (parked) {
+        // The frame the loop was waiting on arrived: move on at animation
+        // tempo instead of waiting out the end-of-loop hold.
+        clearTimeout(timerRef.current);
+        scheduleNext();
+      }
+    }
+
+    // Every tile of the frame has settled: ready if they all loaded, else a
+    // retry once the failed ones may be requested again.
+    function settle(i: number) {
+      if (cancelled) return;
+      const urls = perFrame[i];
+      const complete = urls.every((url) => radarTileStore.get(url) !== null);
+      if (!complete && retries[i] < MAX_TILE_RETRIES) {
+        const delay = radarTileStore.retryDelay(urls);
+        if (delay > 0) {
+          retries[i]++;
+          const timer = setTimeout(() => {
+            retryTimers.delete(timer);
+            if (cancelled) return;
+            radarTileStore.ensure(urls).then(() => settle(i));
+          }, delay + 50);
+          retryTimers.add(timer);
+          return;
         }
-      });
+      }
+      markReady(i);
+    }
+
+    perFrame.forEach((urls, i) => {
+      radarTileStore.ensure(urls).then(() => settle(i));
     });
 
     return () => {
       releaseWindow();
       cancelled = true;
       if (timerRef.current) clearTimeout(timerRef.current);
+      for (const timer of retryTimers) clearTimeout(timer);
     };
   }, [frames, data?.host, frameUrls, animationSpeedMs, extraDelayLastFrameMs]);
 
@@ -343,20 +329,16 @@ export default function RainMapModule({
   return (
     <ModuleWrapper style={style}>
       <div
+        ref={boxRef}
         className="relative w-full h-full overflow-hidden rounded-lg"
         style={{ backgroundColor: MAP_BG[mapStyle] ?? MAP_BG.dark }}
       >
-        <div
-          className="absolute"
-          style={{
-            width: tileGrid.totalSize,
-            height: tileGrid.totalSize,
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          {tileGrid.tiles.map((tile) => (
+        {/* Both layers hang off a zero-size anchor at the box centre, which
+            sits on the configured coordinates; tile offsets are relative to it.
+            The tiles carry max-w-none: the global img reset caps width at 100%
+            of the parent, and 100% of a zero-size anchor is nothing. */}
+        <div className="absolute left-1/2 top-1/2">
+          {tileGrid.map((tile) => (
             <img
               key={`base-${tile.x}-${tile.y}`}
               src={OSM_TILE_URL
@@ -364,35 +346,26 @@ export default function RainMapModule({
                 .replace('{x}', String(tile.x))
                 .replace('{y}', String(tile.y))}
               alt=""
-              className="absolute"
+              className="absolute max-w-none"
               style={{
-                width: TILE_SIZE,
-                height: TILE_SIZE,
-                left: tile.px,
-                top: tile.py,
+                width: BASE_TILE_SIZE,
+                height: BASE_TILE_SIZE,
+                left: tile.left,
+                top: tile.top,
                 filter: isDark ? DARK_TILE_FILTER : undefined,
               }}
               draggable={false}
             />
           ))}
-
         </div>
 
-        {/* Radar overlay tiles for current frame (own container, scaled up beyond zoom 7) */}
-        <div
-          className="absolute"
-          style={{
-            width: radarTileGrid.totalSize,
-            height: radarTileGrid.totalSize,
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          {radarTileGrid.tiles.map((tile) => {
+        {/* Radar overlay tiles for the current frame (own anchor: its grid follows the debounced window) */}
+        <div className="absolute left-1/2 top-1/2">
+          {radarTileGrid.map((tile) => {
             // Blob URLs come from the tile store, so a frame advance just
             // swaps src on the same nodes — no remount, no network. Tiles not
-            // yet loaded (or in failure cooldown) render as gaps.
+            // yet loaded render as gaps; the loop above only advances onto
+            // frames whose tiles are all in (or have exhausted their retries).
             const src = radarTileStore.get(getRadarUrl(currentFrame, tile));
             if (!src) return null;
             return (
@@ -400,14 +373,13 @@ export default function RainMapModule({
                 key={`radar-${tile.x}-${tile.y}`}
                 src={src}
                 alt=""
-                className="absolute"
+                className="absolute max-w-none"
                 style={{
-                  width: radarTileGrid.scaledSize,
-                  height: radarTileGrid.scaledSize,
-                  left: tile.px,
-                  top: tile.py,
+                  width: RADAR_TILE_SIZE,
+                  height: RADAR_TILE_SIZE,
+                  left: tile.left,
+                  top: tile.top,
                   opacity: radarOpacity,
-                  imageRendering: radarScale > 1 ? 'pixelated' : undefined,
                 }}
                 draggable={false}
               />

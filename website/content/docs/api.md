@@ -1173,14 +1173,14 @@ This endpoint takes no parameters. The location always comes from the location i
 
 ### GET /api/rain-map
 
-Returns precipitation map tile data from RainViewer. Results are cached for 5 minutes. No API key required.
+Returns the rain map's radar frame index from the configured radar server (the public [LibreWXR](https://github.com/JoshuaKimsey/LibreWXR) instance unless `settings.weather.radarServerUrl` names another). `host` is always the server the hub read from, so displays build tile URLs against the address the hub was given. Results are cached for 5 minutes. No API key required.
 
 **Response:**
 ```json
 {
   "version": "2.0",
   "generated": 1709913600,
-  "host": "https://tilecache.rainviewer.com",
+  "host": "https://api.librewxr.net",
   "radar": {
     "past": [
       { "time": 1709913000, "path": "/v2/radar/..." }

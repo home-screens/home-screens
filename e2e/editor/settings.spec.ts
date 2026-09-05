@@ -23,6 +23,32 @@ test('Defaults › Weather: switching units persists to the shared config', asyn
     .toBe('metric');
 });
 
+test('Defaults › Weather: a self-hosted radar server persists, blank means the public one', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor/settings?section=defaults&page=weather');
+
+  const field = page.locator('[data-field-id="weather.radarServer"]');
+  await expect(field.getByText('Rain radar')).toBeVisible();
+  const input = field.getByLabel('Radar server');
+  await expect(input).toHaveAttribute('placeholder', 'https://api.librewxr.net');
+
+  // A bare hostname cannot work; say so instead of saving it silently.
+  await input.fill('nas.local:8080');
+  await expect(field.getByTestId('radar-server-invalid')).toBeVisible();
+
+  await input.fill('http://nas.local:8080');
+  await expect(field.getByTestId('radar-server-invalid')).toHaveCount(0);
+  await expect
+    .poll(async () => (await getConfig(request)).settings.weather.radarServerUrl)
+    .toBe('http://nas.local:8080');
+
+  // Clearing the field drops the key so the public server is used again.
+  await input.fill('');
+  await expect
+    .poll(async () => (await getConfig(request)).settings.weather.radarServerUrl)
+    .toBeUndefined();
+});
+
 test.describe('Defaults › Weather providers', () => {
   test('a rejected key stays in the form with the reason; Save anyway still saves', async ({ page, request }) => {
     await putConfig(request, baseConfig());

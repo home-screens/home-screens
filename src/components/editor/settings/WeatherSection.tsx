@@ -4,6 +4,8 @@ import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { WEATHER_PROVIDERS } from './weather/providers';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 import WeatherProviderCard from './weather/WeatherProviderCard';
+import LabeledInput from '@/components/ui/LabeledInput';
+import { DEFAULT_RADAR_SERVER_URL, normalizeRadarServerUrl } from '@/lib/radar-server';
 import { useTranslate } from '@/i18n';
 
 interface WeatherSettings {
@@ -11,6 +13,7 @@ interface WeatherSettings {
   units: string;
   lat: string;
   lon: string;
+  radarServerUrl: string;
 }
 
 interface Props {
@@ -19,8 +22,11 @@ interface Props {
 }
 
 export default function WeatherSection({ values, onChange }: Props) {
-  const { provider, units, lat, lon } = values;
+  const { provider, units, lat, lon, radarServerUrl } = values;
   const t = useTranslate('editor');
+  // Blank means the public server; anything else must be a full http(s)
+  // address or the hub silently falls back to the default, so say so here.
+  const radarServerInvalid = radarServerUrl.trim() !== '' && normalizeRadarServerUrl(radarServerUrl) === null;
 
   const { status, loading, refetch } = useSecretStatus();
 
@@ -112,6 +118,32 @@ export default function WeatherSection({ values, onChange }: Props) {
               units={units}
             />
           ))
+        )}
+      </div>
+
+      {/* Rain radar server: the rain map reads from LibreWXR's public
+          instance unless a household points the hub at its own copy. */}
+      <div className="mt-8" data-field-id="weather.radarServer">
+        <div className="text-[11px] font-semibold text-hs-text-faint uppercase tracking-wider mb-2.5">
+          {t('settings.weatherPage.radar.heading')}
+        </div>
+        <div className="max-w-[480px]">
+          <LabeledInput
+            label={t('settings.weatherPage.radar.serverLabel')}
+            type="url"
+            value={radarServerUrl}
+            placeholder={DEFAULT_RADAR_SERVER_URL}
+            onChange={(v) => onChange({ radarServerUrl: v })}
+          />
+        </div>
+        {radarServerInvalid ? (
+          <p className="mt-1.5 text-xs text-hs-warning" data-testid="radar-server-invalid">
+            {t('settings.weatherPage.radar.invalid')}
+          </p>
+        ) : (
+          <p className="mt-1.5 max-w-[640px] text-xs text-hs-text-faint">
+            {t('settings.weatherPage.radar.help')}
+          </p>
         )}
       </div>
     </section>

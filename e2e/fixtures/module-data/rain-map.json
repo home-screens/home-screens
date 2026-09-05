@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "generated": 4081276800,
-  "host": "https://tilecache.rainviewer.com",
+  "host": "https://api.librewxr.net",
   "radar": {
     "past": [
       { "time": 4081276200, "path": "/v2/radar/4081276200" },

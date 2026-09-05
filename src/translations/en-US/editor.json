@@ -697,6 +697,12 @@
       "locationWarning": "Set your location for weather to work. Enter a zip code or city name, or use Detect.",
       "providersLabel": "Providers",
       "loadingProviderStatus": "Loading provider status…",
+      "radar": {
+        "heading": "Rain radar",
+        "serverLabel": "Radar server",
+        "help": "The rain map gets its radar pictures from LibreWXR, a free community server. Leave this blank to use it. If you run your own LibreWXR at home, enter its address here.",
+        "invalid": "Enter the full address, starting with http:// or https://. Until then the rain map keeps using the free community server."
+      },
       "providerCard": {
         "currentlyDefault": "Currently the default",
         "setAsDefault": "Set as default",

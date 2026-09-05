@@ -144,6 +144,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'location', fieldId: 'location.timeFormat', labelKey: 'languageAndRegion.timeFormatLabel' },
 
   { pageId: 'weather', fieldId: 'weather.units', labelKey: 'settings.weatherPage.unitsLabel' },
+  { pageId: 'weather', fieldId: 'weather.radarServer', labelKey: 'settings.weatherPage.radar.heading' },
   { pageId: 'weather', fieldId: 'weather.provider.open-meteo', label: 'Open-Meteo' },
   { pageId: 'weather', fieldId: 'weather.provider.weatherapi', label: 'WeatherAPI.com' },
   { pageId: 'weather', fieldId: 'weather.provider.openweathermap', label: 'OpenWeatherMap' },

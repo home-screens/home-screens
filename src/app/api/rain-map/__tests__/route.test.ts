@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { DEFAULT_RADAR_SERVER_URL } from '@/lib/radar-server';
 
 vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(),
@@ -7,31 +8,38 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
+let radarServerUrl: string | undefined;
+vi.mock('@/lib/config', () => ({
+  readConfig: vi.fn(async () => ({
+    settings: { weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial', radarServerUrl } },
+  })),
+}));
+
 const dummyRequest = new NextRequest('http://localhost/api/rain-map');
 
-function makeRainViewerResponse() {
+function makeIndex() {
   return {
     version: '2.0',
     generated: 1709985600,
-    host: 'https://tilecache.rainviewer.com',
+    host: 'http://localhost:8080',
     radar: {
       past: [
-        { time: 1709985000, path: '/v2/radar/1709985000/256/{z}/{x}/{y}/2/1_1.png' },
-        { time: 1709985600, path: '/v2/radar/1709985600/256/{z}/{x}/{y}/2/1_1.png' },
+        { time: 1709985000, path: '/v2/radar/1709985000' },
+        { time: 1709985600, path: '/v2/radar/1709985600' },
       ],
       nowcast: [
-        { time: 1709986200, path: '/v2/radar/1709986200/256/{z}/{x}/{y}/2/1_1.png' },
+        { time: 1709986200, path: '/v2/radar/nowcast_1709986200' },
       ],
     },
     satellite: {
       infrared: [
-        { time: 1709985600, path: '/v2/satellite/1709985600/256/{z}/{x}/{y}/0/0_0.png' },
+        { time: 1709985600, path: '/v2/satellite/1709985600' },
       ],
     },
   };
 }
 
-function mockFetchSuccess(data = makeRainViewerResponse()) {
+function mockFetchSuccess(data = makeIndex()) {
   vi.stubGlobal(
     'fetch',
     vi.fn(() =>
@@ -67,6 +75,7 @@ describe('GET /api/rain-map', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     vi.resetModules();
+    radarServerUrl = undefined;
   });
 
   async function importGET() {
@@ -74,42 +83,54 @@ describe('GET /api/rain-map', () => {
     return mod.GET;
   }
 
-  it('returns the full RainViewer response on success', async () => {
-    const expected = makeRainViewerResponse();
-    mockFetchSuccess(expected);
+  it('reads the frame index from the public LibreWXR server by default', async () => {
+    mockFetchSuccess();
 
     const GET = await importGET();
     const response = await GET(dummyRequest);
     const json = await response.json();
 
     expect(response.status).toBe(200);
-    expect(json).toEqual(expected);
-  });
-
-  it('preserves all nested radar and satellite data', async () => {
-    mockFetchSuccess();
-
-    const GET = await importGET();
-    const response = await GET(dummyRequest);
-    const json = await response.json();
-
+    expect(fetch).toHaveBeenCalledWith(`${DEFAULT_RADAR_SERVER_URL}/public/weather-maps.json`, expect.anything());
     expect(json.radar.past).toHaveLength(2);
     expect(json.radar.nowcast).toHaveLength(1);
     expect(json.satellite.infrared).toHaveLength(1);
     expect(json.version).toBe('2.0');
-    expect(json.host).toBe('https://tilecache.rainviewer.com');
   });
 
-  it('calls the correct RainViewer API URL', async () => {
+  it('rewrites host to the server the hub fetched from, not the one the server reports', async () => {
+    mockFetchSuccess();
+
+    const GET = await importGET();
+    const json = await (await GET(dummyRequest)).json();
+
+    // A self-hosted LibreWXR reports its LIBREWXR_PUBLIC_URL (localhost out of
+    // the box); displays must build tile URLs on the address the hub uses.
+    expect(json.host).toBe(DEFAULT_RADAR_SERVER_URL);
+  });
+
+  it('reads from a configured self-hosted server, trailing slash and all', async () => {
+    radarServerUrl = 'http://nas.local:8080/';
+    mockFetchSuccess();
+
+    const GET = await importGET();
+    const json = await (await GET(dummyRequest)).json();
+
+    expect(fetch).toHaveBeenCalledWith('http://nas.local:8080/public/weather-maps.json', expect.anything());
+    expect(json.host).toBe('http://nas.local:8080');
+  });
+
+  it('falls back to the default server when the configured value is not a usable URL', async () => {
+    radarServerUrl = 'nas.local';
     mockFetchSuccess();
 
     const GET = await importGET();
     await GET(dummyRequest);
 
-    expect(fetch).toHaveBeenCalledWith('https://api.rainviewer.com/public/weather-maps.json', expect.anything());
+    expect(fetch).toHaveBeenCalledWith(`${DEFAULT_RADAR_SERVER_URL}/public/weather-maps.json`, expect.anything());
   });
 
-  it('returns 502 with status in error message when upstream fails', async () => {
+  it('returns 502 with the upstream status when the radar server fails', async () => {
     mockFetchUpstreamFailure(503);
 
     const GET = await importGET();
@@ -117,17 +138,7 @@ describe('GET /api/rain-map', () => {
     const json = await response.json();
 
     expect(response.status).toBe(502);
-    expect(json).toEqual({ error: 'RainViewer API returned 503' });
-  });
-
-  it('includes specific upstream status code in error message', async () => {
-    mockFetchUpstreamFailure(429);
-
-    const GET = await importGET();
-    const response = await GET(dummyRequest);
-    const json = await response.json();
-
-    expect(json.error).toBe('RainViewer API returned 429');
+    expect(json).toEqual({ error: 'Radar server returned 503' });
   });
 
   it('returns 500 with error message when network request fails', async () => {

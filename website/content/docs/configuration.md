@@ -202,6 +202,7 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   latitude: number            // Weather-specific latitude (overrides global)
   longitude: number           // Weather-specific longitude (overrides global)
   units: 'metric' | 'imperial'
+  radarServerUrl?: string     // Rain map radar server (LibreWXR); blank = public instance
 }
 ```
 

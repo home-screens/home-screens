@@ -231,6 +231,12 @@ export interface WeatherSettings {
   latitude: number;
   longitude: number;
   units: 'metric' | 'imperial';
+  /**
+   * Radar server the rain map reads from: any LibreWXR (RainViewer v2
+   * compatible) instance. Absent or blank = the public LibreWXR server
+   * (`DEFAULT_RADAR_SERVER_URL`); set it to point at a self-hosted copy.
+   */
+  radarServerUrl?: string;
 }
 
 export interface CalendarEvent {

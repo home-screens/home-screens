@@ -697,6 +697,12 @@
       "locationWarning": "Angiv din placering, for at vejret virker. Indtast et postnummer eller bynavn, eller brug Find.",
       "providersLabel": "Udbydere",
       "loadingProviderStatus": "Indlæser status for udbydere…",
+      "radar": {
+        "heading": "Regnradar",
+        "serverLabel": "Radarserver",
+        "help": "Regnkortet henter sine radarbilleder fra LibreWXR, en gratis fællesskabsserver. Lad feltet stå tomt for at bruge den. Kører du din egen LibreWXR hjemme, så skriv dens adresse her.",
+        "invalid": "Skriv hele adressen, der begynder med http:// eller https://. Indtil da bruger regnkortet fortsat den gratis fællesskabsserver."
+      },
       "providerCard": {
         "currentlyDefault": "Er standard lige nu",
         "setAsDefault": "Vælg som standard",

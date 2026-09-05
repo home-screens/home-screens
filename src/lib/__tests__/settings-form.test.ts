@@ -59,7 +59,7 @@ describe('settings-form transforms', () => {
         showRotationProgress: false,
       },
       location: { lat: '44.7133', lon: '-93.4227', locationName: 'Prior Lake, MN', timezone: 'America/Chicago' },
-      weather: { provider: 'openweathermap', units: 'metric' },
+      weather: { provider: 'openweathermap', units: 'metric', radarServerUrl: 'http://nas.local:8080' },
       calendar: {
         selectedCalendarIds: ['cal-a', 'cal-b'],
         icalSources: [{ id: 'ical-1', type: 'ical', name: 'Holidays', url: 'https://example.com/holidays.ics', color: '#3b82f6', enabled: true }],

@@ -9,10 +9,10 @@ import enUSModules from '@/translations/en-US/modules.json';
 
 // The real wire contract, so the mock cannot drift from what the route
 // actually serves and the module actually reads.
-import type { RainFrame, RainViewerResponse } from '@/lib/rain-map-types';
+import type { RainFrame, RadarIndexResponse } from '@/lib/rain-map-types';
 
-// Drive the RainViewer index fetch deterministically.
-let mockData: RainViewerResponse | null = null;
+// Drive the radar index fetch deterministically.
+let mockData: RadarIndexResponse | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: () => [mockData, null],
 }));
@@ -26,6 +26,13 @@ vi.mock('@/hooks/useFetchData', () => ({
 // "object.stream is not a function" — every 200 tile would land in the
 // failure cooldown instead of loading. The store only reads `.ok` and awaits
 // `.blob()`, which is all these fakes implement.
+// jsdom lays nothing out, so the box would measure 0x0 and the grids would be
+// empty. Report a 1024px square: 5x5 base tiles at 256px and 3x3 radar tiles
+// at 512px, whatever the centre's fractional tile offset.
+vi.mock('@/hooks/useElementBox', () => ({
+  useElementBox: () => [() => {}, { width: 1024, height: 1024 }],
+}));
+
 let tileResponder: (url: string) => number | 'hang' = () => 200;
 // Hung tile requests, releasable mid-test as successes.
 let hungTiles: Array<() => void> = [];
@@ -41,7 +48,8 @@ vi.mock('../rain-map-preload', async (importOriginal) => {
       cooldownMs: 60_000,
       // Two frames' worth of tiles: small enough that a third frame forces
       // the store to evict, so the bounded-cache test can observe it.
-      maxEntries: 50,
+      maxEntries: 18,
+      warn: () => {},
       now: () => tileNow,
       fetchImpl: (async (url: string | URL | Request) => {
         const u = String(url);
@@ -72,7 +80,7 @@ const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
 const config: RainMapConfig = {
   latitude: 44.7,
   longitude: -93.4,
-  zoom: 6, // gridRadius 2 → 5×5 = 25 radar tiles per frame
+  zoom: 6, // 1024px box → 5×5 base tiles, 3×3 radar tiles (512px at zoom 5)
   animationSpeedMs: 600_000,
   extraDelayLastFrameMs: 600_000,
   colorScheme: 2,
@@ -85,10 +93,11 @@ const config: RainMapConfig = {
   mapStyle: 'dark',
 };
 
-const TILES_PER_FRAME = 25;
+const TILES_PER_FRAME = 9;
+const BASE_TILES = 25;
 
 const frame = (t: number): RainFrame => ({ time: t, path: `/v2/radar/${t}` });
-const makeData = (times: number[]): RainViewerResponse => ({
+const makeData = (times: number[]): RadarIndexResponse => ({
   version: '2.0',
   generated: 0,
   host: 'https://tiles.test',
@@ -144,7 +153,7 @@ describe('RainMapModule tile pipeline', () => {
     expect(imgs).toHaveLength(TILES_PER_FRAME);
     // Base map tiles keep their direct OSM srcs.
     expect(document.querySelectorAll('img[src*="tile.openstreetmap.org"]')).toHaveLength(
-      TILES_PER_FRAME,
+      BASE_TILES,
     );
   });
 
@@ -197,7 +206,7 @@ describe('RainMapModule tile pipeline', () => {
     mockData = makeData([4100]);
     const { rerender } = render(ui({ zoom: 6 }));
     await flush();
-    expect(tileFetches.filter((u) => u.includes('/256/6/')).length).toBe(TILES_PER_FRAME);
+    expect(tileFetches.filter((u) => u.includes('/512/5/')).length).toBe(TILES_PER_FRAME);
 
     // A drag through zoom 5 must not fetch zoom 5's window — only the value
     // the slider settles on (zoom 4) may load, after the debounce.
@@ -207,25 +216,25 @@ describe('RainMapModule tile pipeline', () => {
       await rerender(ui({ zoom: 4 }));
     });
     await act(async () => rerender(ui({ zoom: 4 })));
-    expect(tileFetches.filter((u) => u.includes('/256/5/')).length).toBe(0);
-    expect(tileFetches.filter((u) => u.includes('/256/4/')).length).toBe(0);
+    expect(tileFetches.filter((u) => u.includes('/512/4/')).length).toBe(0);
+    expect(tileFetches.filter((u) => u.includes('/512/3/')).length).toBe(0);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(600);
     });
     await flush();
-    expect(tileFetches.filter((u) => u.includes('/256/5/')).length).toBe(0);
-    expect(tileFetches.filter((u) => u.includes('/256/4/')).length).toBe(TILES_PER_FRAME);
+    expect(tileFetches.filter((u) => u.includes('/512/4/')).length).toBe(0);
+    expect(tileFetches.filter((u) => u.includes('/512/3/')).length).toBe(TILES_PER_FRAME);
   });
 
   it('a second instance with a different window cannot evict the first’s tiles', async () => {
-    // Latitudes 44.7 and 60 sit on fully disjoint tile rows at zoom 6, so the
-    // two windows share zero URLs.
+    // Latitudes 44.7 and 70 sit on fully disjoint radar tile rows (10-12 and
+    // 5-7 at zoom 5), so the two windows share zero URLs.
     mockData = makeData([5100]);
     const tree = (withSecond: boolean) => (
       <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
         <RainMapModule config={{ ...config, latitude: 44.7 }} style={style} />
-        {withSecond && <RainMapModule config={{ ...config, latitude: 60 }} style={style} />}
+        {withSecond && <RainMapModule config={{ ...config, latitude: 70 }} style={style} />}
       </I18nProvider>
     );
     const { rerender } = render(tree(false));
@@ -271,7 +280,7 @@ describe('RainMapModule tile pipeline', () => {
     const tree = () => (
       <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>
         <RainMapModule config={{ ...config, latitude: 44.7 }} style={style} />
-        <RainMapModule config={{ ...config, latitude: 60 }} style={style} />
+        <RainMapModule config={{ ...config, latitude: 70 }} style={style} />
       </I18nProvider>
     );
     const { rerender } = render(tree());
@@ -293,10 +302,10 @@ describe('RainMapModule tile pipeline', () => {
         <RainMapModule key={latitude} config={{ ...config, latitude }} style={style} />
       </I18nProvider>
     );
-    // Screen 1 (lat 44.7) → screen 2 (lat 60) → back to screen 1.
+    // Screen 1 (lat 44.7) → screen 2 (lat 70) → back to screen 1.
     const { rerender } = render(tree(44.7));
     await flush();
-    await act(async () => rerender(tree(60)));
+    await act(async () => rerender(tree(70)));
     await flush();
     expect(requestsFor(9100)).toBe(TILES_PER_FRAME * 2);
 
@@ -327,6 +336,47 @@ describe('RainMapModule tile pipeline', () => {
     );
     expect(after).toEqual(before);
   });
+  it('holds a frame with a failed tile out of the loop until the retry lands, instead of showing a hole', async () => {
+    vi.useFakeTimers();
+    // One tile of frame 2 fails on its first request (a slow render aborted,
+    // a 5xx); everything else loads. Frame 2 has "settled", but with a hole,
+    // so the loop must stay on frame 1 and retry frame 2's tile once the
+    // store's cooldown (60s in this mock) lapses, then move on.
+    let failedOnce = false;
+    tileResponder = (u) => {
+      if (u.includes('/v2/radar/9200/') && !failedOnce) {
+        failedOnce = true;
+        return 503;
+      }
+      return 200;
+    };
+    mockData = makeData([9100, 9200]);
+    // A long end-of-loop hold so that, once the loop reaches frame 2, it
+    // stays there long enough to be observed rather than wrapping at once.
+    render(ui({ animationSpeedMs: 500, extraDelayLastFrameMs: 60_000 }));
+    await flush();
+    const currentDot = () =>
+      [...document.querySelectorAll('[data-testid="rain-map-timeline"] .rounded-full')].findIndex(
+        (el) => (el as HTMLElement).style.width === '8px',
+      );
+    expect(currentDot()).toBe(0);
+    expect(requestsFor(9200)).toBe(TILES_PER_FRAME);
+
+    // Frame 2 is not ready: the animation tempo does not reach it.
+    await act(async () => { await vi.advanceTimersByTimeAsync(3_000); });
+    expect(currentDot()).toBe(0);
+    expect(requestsFor(9200)).toBe(TILES_PER_FRAME); // no animation-tempo retry
+
+    // The cooldown lapses: one retry for the failed tile, frame 2 joins, and
+    // the loop steps onto it at animation tempo.
+    tileNow = 60_000;
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await flush();
+    expect(requestsFor(9200)).toBe(TILES_PER_FRAME + 1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+    expect(currentDot()).toBe(1);
+  });
+
   it('plays a cold start as one forward sweep, parking until the next frame lands', async () => {
     vi.useFakeTimers();
     // Frames 1 and 2 load at once; frame 3 is still on its way. The loop must

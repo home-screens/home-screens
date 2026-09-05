@@ -201,14 +201,17 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   // derived category rather than the bare index digit.
   'air-quality': { type: 'air-quality', kind: 'networked', stubKey: 'air-quality', expect: containsText('Fair') },
   // Radar tiles go through the module's rate-bounded tile store: URLs from
-  // the fetched RainViewer host (rain-map.json) are fetched to blobs, so a
+  // the fetched radar server host (rain-map.json) are fetched to blobs, so a
   // blob-src radar tile proves the full payload → fetch → render round trip —
-  // not merely that the wrapper has size.
+  // not merely that the wrapper has size. Visible, not merely attached: the
+  // tiles hang off a zero-size anchor, and a global img rule once collapsed
+  // every tile to zero width while the DOM looked complete.
   'rain-map': {
     type: 'rain-map', kind: 'networked', stubKey: 'rain-map',
     expect: async (mod) => {
       await expect(mod).toBeVisible();
-      await expect(mod.locator('img[src^="blob:"]').first()).toBeAttached();
+      await expect(mod.locator('img[src^="blob:"]').first()).toBeVisible();
+      await expect(mod.locator('img[src*="tile.openstreetmap.org"]').first()).toBeVisible();
     },
   },
   news: { type: 'news', kind: 'networked', stubKey: 'news', expect: containsText('Global markets rally on tech surge') },

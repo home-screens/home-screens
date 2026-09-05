@@ -50,6 +50,12 @@ Every weather module has a **Weather source** dropdown in its settings, set to *
 
 The **Air Quality** module reads from OpenWeatherMap even when your weather comes from somewhere else, so it needs an OpenWeatherMap key on that service's card. Rain Map, Moon Phase and Sunrise / Sunset need only the location.
 
+## Rain radar
+
+The **Rain Map** module gets its radar pictures from [LibreWXR](https://github.com/JoshuaKimsey/LibreWXR), a free community server that covers the US, Canada, Europe and parts of Asia. It needs no key or account. It replaced RainViewer, which shut its free API in 2026.
+
+If you run your own LibreWXR at home, enter its address under **Settings > Weather > Rain radar** and every display reads from it instead. Leave the field blank to use the community server.
+
 ## Next steps
 
 - [Modules](/docs/modules#weather-and-environment): the weather module's eight views and the full-screen weather wall

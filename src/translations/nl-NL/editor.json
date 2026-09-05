@@ -697,6 +697,12 @@
       "locationWarning": "Stel je locatie in om het weer te laten werken. Voer een postcode of plaatsnaam in, of gebruik Detecteren.",
       "providersLabel": "Aanbieders",
       "loadingProviderStatus": "Status van aanbieder laden…",
+      "radar": {
+        "heading": "Regenradar",
+        "serverLabel": "Radarserver",
+        "help": "De regenkaart haalt zijn radarbeelden van LibreWXR, een gratis communityserver. Laat dit leeg om die te gebruiken. Draai je thuis je eigen LibreWXR, vul dan hier het adres in.",
+        "invalid": "Vul het volledige adres in, beginnend met http:// of https://. Tot die tijd blijft de regenkaart de gratis communityserver gebruiken."
+      },
       "providerCard": {
         "currentlyDefault": "Op dit moment de standaard",
         "setAsDefault": "Als standaard instellen",

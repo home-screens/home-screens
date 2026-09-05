@@ -38,6 +38,8 @@ export interface LocationState {
 export interface WeatherState {
   provider: string;
   units: string;
+  /** Radar server for the rain map; '' means the public LibreWXR server. */
+  radarServerUrl: string;
 }
 
 export interface CalendarState {
@@ -100,7 +102,7 @@ export const FORM_DEFAULTS: SettingsState = {
     showRotationProgress: true,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
-  weather: { provider: 'open-meteo', units: 'imperial' },
+  weather: { provider: 'open-meteo', units: 'imperial', radarServerUrl: '' },
   calendar: { selectedCalendarIds: [], icalSources: [], icloudSources: [], people: [], daysAhead: 7, holidayCountry: '', hideDeclined: false },
   sleep: {
     sleepEnabled: false,
@@ -197,6 +199,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
     weather: {
       provider: s.weather.provider,
       units: s.weather.units,
+      radarServerUrl: s.weather.radarServerUrl ?? '',
     },
     calendar: {
       selectedCalendarIds: s.calendar.googleCalendarIds ?? (s.calendar.googleCalendarId ? [s.calendar.googleCalendarId] : []),
@@ -246,6 +249,9 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
       latitude: parsedLat,
       longitude: parsedLon,
       units: weather.units as 'metric' | 'imperial',
+      // Omitted while blank so a household on the public server keeps the
+      // exact settings shape it had before the field existed.
+      ...(weather.radarServerUrl.trim() ? { radarServerUrl: weather.radarServerUrl.trim() } : {}),
     },
     calendar: {
       googleCalendarId: calendar.selectedCalendarIds[0] ?? '',

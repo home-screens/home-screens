@@ -697,6 +697,12 @@
       "locationWarning": "Defina sua localização para o tempo funcionar. Insira um CEP ou nome de cidade, ou use Detectar.",
       "providersLabel": "Provedores",
       "loadingProviderStatus": "Carregando status dos provedores…",
+      "radar": {
+        "heading": "Radar de chuva",
+        "serverLabel": "Servidor de radar",
+        "help": "O mapa de chuva busca as imagens de radar no LibreWXR, um servidor comunitário gratuito. Deixe em branco para usá-lo. Se você tem seu próprio LibreWXR em casa, informe o endereço dele aqui.",
+        "invalid": "Informe o endereço completo, começando com http:// ou https://. Até então, o mapa de chuva continua usando o servidor comunitário gratuito."
+      },
       "providerCard": {
         "currentlyDefault": "Atualmente o padrão",
         "setAsDefault": "Definir como padrão",

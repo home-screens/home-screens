@@ -1,7 +1,8 @@
 /**
- * Wire-format types for `/api/rain-map` (a pass-through of RainViewer's
- * weather-maps.json). Shared between the server route and the RainMap module
- * so a field added on one side doesn't go silently unconsumed on the other.
+ * Wire-format types for `/api/rain-map`: the frame index of a v2-compatible
+ * radar server (LibreWXR by default; the format RainViewer introduced). Shared
+ * between the server route and the RainMap module so a field added on one
+ * side doesn't go silently unconsumed on the other.
  */
 
 export interface RainFrame {
@@ -9,9 +10,10 @@ export interface RainFrame {
   path: string;
 }
 
-export interface RainViewerResponse {
+export interface RadarIndexResponse {
   version: string;
   generated: number;
+  /** Tile server origin; the hub rewrites this to the configured radar server. */
   host: string;
   radar: {
     past: RainFrame[];

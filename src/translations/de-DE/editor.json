@@ -697,6 +697,12 @@
       "locationWarning": "Lege deinen Standort fest, damit das Wetter funktioniert. Gib eine Postleitzahl oder einen Ortsnamen ein oder verwende „Erkennen“.",
       "providersLabel": "Anbieter",
       "loadingProviderStatus": "Anbieterstatus wird geladen …",
+      "radar": {
+        "heading": "Regenradar",
+        "serverLabel": "Radar-Server",
+        "help": "Die Regenkarte holt ihre Radarbilder von LibreWXR, einem kostenlosen Community-Server. Lass das Feld leer, um ihn zu nutzen. Wenn du zu Hause dein eigenes LibreWXR betreibst, gib hier seine Adresse ein.",
+        "invalid": "Gib die vollständige Adresse ein, beginnend mit http:// oder https://. Bis dahin nutzt die Regenkarte weiter den kostenlosen Community-Server."
+      },
       "providerCard": {
         "currentlyDefault": "Aktueller Standard",
         "setAsDefault": "Als Standard festlegen",

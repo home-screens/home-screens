@@ -697,6 +697,12 @@
       "locationWarning": "Définis ton lieu pour que la météo fonctionne. Saisis un code postal ou un nom de ville, ou utilise Détecter.",
       "providersLabel": "Fournisseurs",
       "loadingProviderStatus": "Chargement de l'état du fournisseur…",
+      "radar": {
+        "heading": "Radar de pluie",
+        "serverLabel": "Serveur radar",
+        "help": "La carte de pluie récupère ses images radar sur LibreWXR, un serveur communautaire gratuit. Laisse ce champ vide pour l'utiliser. Si tu fais tourner ton propre LibreWXR à la maison, saisis son adresse ici.",
+        "invalid": "Saisis l'adresse complète, en commençant par http:// ou https://. En attendant, la carte de pluie continue d'utiliser le serveur communautaire gratuit."
+      },
       "providerCard": {
         "currentlyDefault": "Actuellement par défaut",
         "setAsDefault": "Définir par défaut",

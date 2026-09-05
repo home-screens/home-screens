@@ -479,16 +479,16 @@ Requires an **OpenWeatherMap** API key (on its card under Settings > Weather) an
 
 ### Rain Map
 
-Animated precipitation radar map powered by RainViewer. Displays past radar and near-future nowcast frames over a base map.
+Animated precipitation radar map over an OpenStreetMap base map. Shows the past two hours of radar and the next hour of nowcast frames. Radar comes from [LibreWXR](https://github.com/JoshuaKimsey/LibreWXR), a free community server; a household running its own LibreWXR points the hub at it under **Settings > Weather > Rain radar**.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `latitude` | number | `0` | Map center latitude (falls back to global setting) |
 | `longitude` | number | `0` | Map center longitude (falls back to global setting) |
-| `zoom` | number | `6` | Map zoom level (1–12). Radar imagery is only published up to zoom 7, so higher values sharpen the base map but stretch the radar layer |
+| `zoom` | number | `6` | Map zoom level (1–12) |
 | `animationSpeedMs` | number | `500` | Delay between animation frames |
 | `extraDelayLastFrameMs` | number | `2000` | Extra pause on the last frame before looping |
-| `colorScheme` | number | `2` | RainViewer color scheme ID |
+| `colorScheme` | number | `2` | Radar color scheme (0–8, the RainViewer numbering LibreWXR keeps; 2 is Universal Blue) |
 | `smooth` | boolean | `true` | Smooth radar rendering |
 | `showSnow` | boolean | `true` | Show snow on radar |
 | `opacity` | number | `0.7` | Radar overlay opacity (0–1) |
