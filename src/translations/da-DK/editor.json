@@ -3853,6 +3853,7 @@
     "fullscreen-weather": {
       "view": "Visning",
       "viewPanorama": "Panorama",
+      "viewStrip": "Bred stribe",
       "viewAlmanac": "Almanak",
       "viewAmbient": "Stemning",
       "viewWeek": "Ugen frem",

@@ -357,3 +357,36 @@ describe('GET /api/weather', () => {
     expect(json.error).toBe('Failed to fetch weather');
   });
 });
+
+describe('today\'s range', () => {
+  it('remembers the day\'s warmest reading across polls', async () => {
+    // Its own place, so the record it writes is not seen by the other tests.
+    setupDefaults({ lat: '40.2', lon: '-74.9' });
+    const provider = makeMockProvider();
+    provider.getForecast = vi.fn().mockResolvedValue([{ date: '2026-09-04', high: 66, low: 66, icon: '01n', description: 'Mostly Clear' }]);
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+
+    // Mid-afternoon: 86°.
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '15:00', temp: 86, icon: '01d', description: 'Sunny' }]);
+    await GET(makeRequest({ lat: '40.2', lon: '-74.9' }));
+    cache.clear();
+
+    // Evening: 80° now, but the hub saw 86° earlier and the feed has forgotten it.
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '19:00', temp: 80, icon: '01n', description: 'Clear' }]);
+    const json = await (await GET(makeRequest({ lat: '40.2', lon: '-74.9' }))).json();
+    expect(json.forecast[0]).toMatchObject({ high: 86, low: 66 });
+  });
+
+  it('type=both raises today\'s high to the current temperature', async () => {
+    // Its own place: the record is keyed by location and persists across the file's tests.
+    setupDefaults({ lat: '41.0', lon: '-75.5' });
+    const provider = makeMockProvider();
+    // A post-sunset NOAA feed: only "tonight" is left, so the high is the low.
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '19:00', temp: 80, icon: '01n', description: 'Clear' }]);
+    provider.getForecast = vi.fn().mockResolvedValue([{ date: '2026-09-04', high: 66, low: 66, icon: '01n', description: 'Mostly Clear' }]);
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+
+    const json = await (await GET(makeRequest({ lat: '41.0', lon: '-75.5' }))).json();
+    expect(json.forecast[0]).toMatchObject({ high: 80, low: 66 });
+  });
+});

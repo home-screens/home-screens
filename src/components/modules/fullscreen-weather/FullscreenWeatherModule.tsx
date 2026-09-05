@@ -15,13 +15,13 @@ import type { FetchError } from '@/lib/fetch-error';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, particleKind } from './sky-layer';
 import {
-  tzHour, getOrientation, isNightHour, timelineHours, hoursWithin,
+  tzHour, getOrientation, isNightHour, timelineHours, hoursWithin, baseUnit,
   CANVAS_PAD_X_U, CANVAS_PAD_Y_U,
   type WeatherScale, type WeatherViewProps, type SunTimes,
 } from './weather-view-utils';
 import ConditionParticles from './ConditionParticles';
 import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
-import PanoramaView from './PanoramaView';
+import PanoramaView, { StripView } from './PanoramaView';
 import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';
 import WeekView from './WeekView';
@@ -112,7 +112,13 @@ export default function FullscreenWeatherModule({
   // list shrinks by one at every hour boundary while the 24-row timeline
   // stays 24 rows. Re-fitting an identical layout costs a frame at factor 1
   // (the list visibly overflows at large type) and a fresh bisection.
-  const hourlyCount = config.view === 'hourly'
+  // The Wide strip view is scaled by its area while it has a wide box to lay
+  // across (see `baseUnit`); its portrait form is a portrait view like the
+  // others and takes the short-edge unit, and draws the 24-row timeline
+  // rather than the ribbon.
+  const strip = config.view === 'strip' && getOrientation(dims.w, dims.h) === 'landscape';
+  const stripRows = config.view === 'strip' && !strip;
+  const hourlyCount = config.view === 'hourly' || stripRows
     ? timelineHours(hourly).length
     : config.view === 'almanac'
       ? hoursWithin(hourly, 12).length
@@ -135,7 +141,7 @@ export default function FullscreenWeatherModule({
   ]);
 
   const scale: WeatherScale = useMemo(() => {
-    const bu = Math.min(dims.w, dims.h) / 100;
+    const bu = baseUnit(dims.w, dims.h, strip);
     const densityMul = getDensityMultiplier(config.density ?? 'snug');
     return {
       bu,
@@ -146,7 +152,7 @@ export default function FullscreenWeatherModule({
       isDark: theme.isDark,
       orientation: getOrientation(dims.w, dims.h),
     };
-  }, [dims, requestedTypoMul, fit, config.density, theme.isDark]);
+  }, [dims, requestedTypoMul, fit, config.density, theme.isDark, strip]);
 
   // Sun times drive the sky layer, the ribbon's night shading, and the Almanac
   // sun arc. Without coordinates there is no daylight model, so the module
@@ -281,6 +287,8 @@ export default function FullscreenWeatherModule({
           <WeekView {...viewProps} />
         ) : config.view === 'hourly' ? (
           <HourlyView {...viewProps} />
+        ) : config.view === 'strip' ? (
+          <StripView {...viewProps} />
         ) : (
           <PanoramaView {...viewProps} />
         )}

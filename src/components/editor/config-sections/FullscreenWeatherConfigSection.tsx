@@ -21,6 +21,7 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
 
   const VIEWS = [
     { value: 'panorama', label: t('configSections.fullscreen-weather.viewPanorama') },
+    { value: 'strip', label: t('configSections.fullscreen-weather.viewStrip') },
     { value: 'almanac', label: t('configSections.fullscreen-weather.viewAlmanac') },
     { value: 'ambient', label: t('configSections.fullscreen-weather.viewAmbient') },
     { value: 'week', label: t('configSections.fullscreen-weather.viewWeek') },

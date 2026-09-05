@@ -3,7 +3,7 @@ import type { HourlyWeather, MinutelyPrecip, ForecastDay } from '@/lib/weather';
 import {
   nowcastVerdict, hoursWithin, hourLabel, isNightHour, timelineHours, labelStride, spanHours,
   timelineMarks, temperatureAxis, weekRange, clampDaysToShow, meteogramColumnPx, valueLabelled, hourLabelled,
-  tzDayKey, CANVAS_PAD_X_U, CARD_PAD_X_U,
+  tzDayKey, baseUnit, CANVAS_PAD_X_U, CARD_PAD_X_U,
   type SunTimes,
 } from '../weather-view-utils';
 
@@ -328,3 +328,24 @@ describe('meteogram label thinning', () => {
     expect(hourLabelled(11, 3, m3)).toBe(false);
   });
 });
+
+
+describe('baseUnit', () => {
+  it('is 1% of the short edge for a wall in either orientation', () => {
+    expect(baseUnit(1080, 1920, false)).toBeCloseTo(10.8);
+    expect(baseUnit(1920, 1080, false)).toBeCloseTo(10.8);
+  });
+
+  it('scales a strip by its area, as the height of the 16:9 canvas with the same pixels', () => {
+    expect(baseUnit(1920, 600, false)).toBeCloseTo(6);
+    expect(baseUnit(1920, 270, true)).toBeCloseTo(5.4, 1);
+  });
+
+  it('caps a strip at what its width can seat, so a tall box gets a strip and not an overflow', () => {
+    expect(baseUnit(1920, 600, true)).toBeCloseTo(8);
+    expect(baseUnit(1080, 345, true)).toBeCloseTo(4.5);
+    expect(baseUnit(1080, 1920, true)).toBeCloseTo(4.5);
+    expect(baseUnit(1920, 1080, true)).toBeCloseTo(8);
+  });
+});
+

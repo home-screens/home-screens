@@ -821,11 +821,14 @@ describe('PirateWeatherProvider — data normalization', () => {
     expect(hourly[0].humidity).toBeUndefined();
   });
 
-  it('defaults temperature to 0 when missing', async () => {
+  it('drops a sample with no temperature rather than showing 0°', async () => {
+    // The hub records the first sample as today's reading, so an invented
+    // 0° would become the day's low for the rest of the day.
     const response = makePWResponse({
       hourly: {
         data: [
           { time: nowEpoch, icon: 'clear-day', summary: 'Clear' },
+          { time: nowEpoch + 3600, temperature: 71, icon: 'clear-day', summary: 'Clear' },
         ],
       },
     });
@@ -833,7 +836,8 @@ describe('PirateWeatherProvider — data normalization', () => {
     const provider = createWeatherProvider('pirateweather', 'test-key');
     const hourly = await provider.getHourly(40.7, -74.0, 'imperial');
 
-    expect(hourly[0].temp).toBe(0);
+    expect(hourly).toHaveLength(1);
+    expect(hourly[0].temp).toBe(71);
   });
 
   it('returns empty hourly array when hourly data is missing', async () => {

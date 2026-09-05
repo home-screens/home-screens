@@ -322,10 +322,13 @@ export class EnvCanadaProvider implements WeatherProvider {
       const iconCode = iconStr != null ? parseInt(iconStr, 10) : undefined;
       const lop = lopStr != null ? parseFloat(lopStr) : undefined;
       const windKmh = windSpeedStr != null ? parseFloat(windSpeedStr) : undefined;
+      // A sample with no temperature is dropped, not shown as 0°: the hub
+      // records the first sample as today's reading (see today-record.ts).
+      if (tempC == null) continue;
 
       out.push({
         time,
-        temp: tempC != null ? Math.round(celsiusToUnit(tempC, isMetric) * 10) / 10 : 0,
+        temp: Math.round(celsiusToUnit(tempC, isMetric) * 10) / 10,
         humidity: humidityStr != null ? parseFloat(humidityStr) : undefined,
         icon: iconCodeToIcon(iconCode),
         description: condStr ?? '',

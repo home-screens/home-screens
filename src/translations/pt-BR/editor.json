@@ -3853,6 +3853,7 @@
     "fullscreen-weather": {
       "view": "Visualização",
       "viewPanorama": "Panorama",
+      "viewStrip": "Faixa larga",
       "viewAlmanac": "Almanaque",
       "viewAmbient": "Ambiente",
       "viewWeek": "Próxima semana",

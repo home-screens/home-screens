@@ -8,7 +8,7 @@ import { richWeather } from '../helpers/weather-payload';
 import { measureParts, type PartReport } from '../helpers/part-geometry';
 import type { FullscreenTypographySize, FullscreenWeatherView } from '@/types/config';
 
-const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week', 'hourly'];
+const VIEWS: FullscreenWeatherView[] = ['panorama', 'strip', 'almanac', 'ambient', 'week', 'hourly'];
 
 /**
  * Scale coverage for fullscreen-weather.

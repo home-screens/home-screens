@@ -51,6 +51,43 @@ export function getOrientation(width: number, height: number): Orientation {
 }
 
 /**
+ * The base unit: what 1% of the canvas is.
+ *
+ * 1% of the shorter edge, so a wall gets the same type whichever way it is
+ * mounted. The Wide strip view is the exception: it is chosen for a module
+ * across the foot of a wall, where the short edge is the height of a module
+ * rather than of a wall, and its arrangement holds the parts across the
+ * width instead of down the height. So a strip is scaled by its area, as 1%
+ * of the height of the 16:9 canvas holding the same pixels (a 1920×600
+ * strip is scaled like an 805px-tall wall, not a 600px one), capped by what
+ * its width can seat: three columns of `STRIP_UNITS_ACROSS / 3` units each.
+ * The cap is what keeps the strip a strip in a tall box, where the area
+ * unit would size three columns' worth of type for a third of the width.
+ */
+export function baseUnit(width: number, height: number, strip: boolean): number {
+  if (!strip) return Math.min(width, height) / 100;
+  return Math.min(Math.sqrt(width * height * 9 / 16) / 100, width / STRIP_UNITS_ACROSS);
+}
+
+/**
+ * How many units the strip lays across its width at most. The day list is
+ * the widest column at about 44 units of fixed parts plus a range bar worth
+ * reading, the hero about 37, and the ribbon wants room for eight hour
+ * labels; 80 a column seats all three. A 1920 strip lands on 8px a unit.
+ */
+export const STRIP_UNITS_ACROSS = 240;
+
+/**
+ * Share of the strip's width each column takes, before the two gaps.
+ *
+ * The hero is all type and needs the least; the day list is the widest thing
+ * in the module (name, icon, rain, low, bar, high) and the 48h ribbon wants
+ * room for its hour labels. Exported for the same reason as
+ * `LANDSCAPE_LEFT_FRACTION`: the ribbon reconstructs its own width.
+ */
+export const STRIP_COLUMNS = { hero: 0.30, hours: 0.35, days: 0.35 } as const;
+
+/**
  * Share of the landscape canvas the left rail takes.
  *
  * Exported because the temperature ribbon has to reconstruct its own rendered

@@ -8,7 +8,7 @@ import { richWeather } from '../helpers/weather-payload';
 import { measureParts, type PartReport } from '../helpers/part-geometry';
 import type { FullscreenTypographySize, FullscreenWeatherView } from '@/types/config';
 
-const VIEWS: FullscreenWeatherView[] = ['panorama', 'almanac', 'ambient', 'week', 'hourly'];
+const VIEWS: FullscreenWeatherView[] = ['panorama', 'strip', 'almanac', 'ambient', 'week', 'hourly'];
 
 /**
  * Landscape coverage for fullscreen-weather.
@@ -495,5 +495,118 @@ test.describe('hour by hour: time runs down in portrait, across in landscape', (
     // The only day label is the crossing; the other rows are clock hours.
     expect(hourLabels.filter((l) => /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)$/.test(l))).toHaveLength(1);
     expect(hourLabels).not.toContain('12a');
+  });
+});
+
+/**
+ * The Wide strip view: Panorama's parts side by side, for a module across
+ * the foot of a landscape wall. Landscape's wide column is a stack of the
+ * ribbon over the day list, so in a box this shape the height bounds both
+ * while most of the width carries nothing; the strip stands the hero, the
+ * hours and the days side by side instead, and is scaled by its area rather
+ * than its height. A view the household picks, never a shape the box picks:
+ * Panorama in the same box is asserted unchanged.
+ */
+test.describe('the wide strip view', () => {
+  const STRIP = { x: 0, y: 480, w: 1920, h: 600 };
+
+  for (const typographySize of SIZES) {
+    test(`fits a ${STRIP.w}x${STRIP.h} strip at ${typographySize}`, async ({ page, request }) => {
+      const r = await render(page, request, LANDSCAPE, { view: 'strip', typographySize }, { module: STRIP, payload: PAYLOADS.plain() });
+      expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
+      expect(r.overY, `${typographySize} overflows vertically by ${r.overY}px`).toBeLessThanOrEqual(2);
+      expect(r.overX, `${typographySize} overflows horizontally by ${r.overX}px`).toBeLessThanOrEqual(2);
+      expectNoCollisions(r, `strip/${typographySize} in a strip`);
+    });
+  }
+
+  test('the days sit beside the ribbon, and the rail under it as a row', async ({ page, request }) => {
+    await render(page, request, LANDSCAPE, { view: 'strip' }, { module: STRIP, payload: PAYLOADS.plain() });
+
+    const hero = (await page.locator('[data-testid="fsw-hero-temp"]').boundingBox())!;
+    const ribbon = (await page.locator('[data-testid="fsw-ribbon"]').boundingBox())!;
+    const days = (await page.locator('[data-testid="fsw-days"]').boundingBox())!;
+    const rail = (await page.locator('[data-testid="fsw-stat-rail"]').boundingBox())!;
+
+    // Three columns, left to right: hero, hours, days.
+    expect(ribbon.x).toBeGreaterThan(hero.x + hero.width);
+    expect(days.x).toBeGreaterThan(ribbon.x + ribbon.width);
+    expect(days.y).toBeLessThan(ribbon.y + ribbon.height);
+    // The rail is a row of cells under the ribbon, as wide as it.
+    expect(rail.y).toBeGreaterThan(ribbon.y + ribbon.height);
+    expect(Math.abs(rail.width - ribbon.width)).toBeLessThan(2);
+    expect(rail.width).toBeGreaterThan(rail.height);
+    // The ribbon takes the column's slack: it stands taller than the rail.
+    expect(ribbon.height).toBeGreaterThan(rail.height);
+  });
+
+  test('type follows the strip\'s area, not its height', async ({ page, request }) => {
+    const heroFont = async () =>
+      page.locator('[data-testid="fsw-hero-temp"]').evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+
+    await render(page, request, LANDSCAPE, { view: 'panorama' });
+    const wall = await heroFont();
+    await render(page, request, LANDSCAPE, { view: 'strip' }, { module: STRIP, payload: PAYLOADS.plain() });
+    const strip = await heroFont();
+
+    // 1% of the height would give 600/1080 = 0.56 of the wall's type; the
+    // area of a 1920x600 strip is that of an 805px-tall wall, so 0.745.
+    expect(strip / wall).toBeGreaterThan(0.7);
+    expect(strip / wall).toBeLessThan(0.8);
+  });
+
+  test('panorama keeps its two columns in the same box', async ({ page, request }) => {
+    await render(page, request, LANDSCAPE, { view: 'panorama' }, { module: STRIP, payload: PAYLOADS.plain() });
+    const ribbon = (await page.locator('[data-testid="fsw-ribbon"]').boundingBox())!;
+    const days = (await page.locator('[data-testid="fsw-days"]').boundingBox())!;
+    // The days stay under the ribbon, not beside it.
+    expect(days.y).toBeGreaterThan(ribbon.y + ribbon.height);
+    expect(Math.abs(days.x - ribbon.x)).toBeLessThan(2);
+  });
+
+  // A view that turned into Panorama in a tall box would look like nothing
+  // happened when it was picked. It keeps its three columns, each in the
+  // form that suits a tall narrow column: hours as rows, days as bands.
+  for (const typographySize of SIZES) {
+    test(`in a portrait box the strip view is three tall columns at ${typographySize}`, async ({ page, request }) => {
+      const r = await render(page, request, PORTRAIT, { view: 'strip', typographySize }, { payload: PAYLOADS.plain() });
+      expect(r.errors, `render errors: ${r.errors.join('; ')}`).toEqual([]);
+      const hero = (await page.locator('[data-testid="fsw-hero-temp"]').boundingBox())!;
+      const hours = (await page.locator('[data-testid="fsw-hourly"]').boundingBox())!;
+      const days = (await page.locator('[data-testid="fsw-days"]').boundingBox())!;
+      const rail = (await page.locator('[data-testid="fsw-stat-rail"]').boundingBox())!;
+      // Three columns, left to right: now, hours, days.
+      expect(hours.x).toBeGreaterThan(hero.x + hero.width);
+      expect(days.x).toBeGreaterThan(hours.x + hours.width);
+      // The hours and the days each run most of the wall's height; the rail sits under the hero.
+      expect(hours.height).toBeGreaterThan(PORTRAIT.h * 0.6);
+      expect(days.height).toBeGreaterThan(PORTRAIT.h * 0.6);
+      expect(rail.y).toBeGreaterThan(hero.y + hero.height);
+      expect(rail.x).toBeLessThan(hours.x);
+      // Every hour is a row down the column.
+      await expect(page.locator('[data-testid="fsw-hour"]')).toHaveCount(24);
+      expect(r.overY, `${typographySize} overflows vertically by ${r.overY}px`).toBeLessThanOrEqual(2);
+      expect(r.overX, `${typographySize} overflows horizontally by ${r.overX}px`).toBeLessThanOrEqual(2);
+      expectNoCollisions(r, `strip/${typographySize} in a portrait box`);
+    });
+  }
+
+  test('on a 16:9 wall the chart keeps a landscape proportion and the stats take the slack', async ({ page, request }) => {
+    await render(page, request, LANDSCAPE, { view: 'strip' }, { payload: PAYLOADS.plain() });
+    const ribbon = (await page.locator('[data-testid="fsw-ribbon"]').boundingBox())!;
+    const rail = (await page.locator('[data-testid="fsw-stat-rail"]').boundingBox())!;
+    expect(ribbon.height).toBeLessThan(ribbon.width * 0.8);
+    expect(rail.y).toBeGreaterThan(ribbon.y + ribbon.height);
+    // Together they fill the column: no hole under the rail.
+    const stack = (await page.locator('[data-testid="fsw-stack"]').boundingBox())!;
+    expect(stack.y + stack.height - (rail.y + rail.height)).toBeLessThan(4);
+  });
+
+  test('the portrait strip labels every day with its description and range', async ({ page, request }) => {
+    await render(page, request, PORTRAIT, { view: 'strip', daysToShow: 7 }, { payload: PAYLOADS.plain() });
+    const bands = page.locator('[data-testid="fsw-days"] [data-testid="fsw-week-day"]');
+    await expect(bands).toHaveCount(7);
+    await expect(bands.first()).toContainText('Sunny');
+    await expect(bands.first().locator('[data-testid="fsw-now-ring"]')).toHaveCount(1);
   });
 });

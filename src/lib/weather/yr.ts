@@ -168,6 +168,9 @@ export class YrProvider implements WeatherProvider {
 
     return data.properties.timeseries
       .filter((entry) => new Date(entry.time).getTime() >= nowMs - 3600000)
+      // A sample with no temperature is dropped, not shown as 0°: the hub
+      // records the first sample as today's reading (see today-record.ts).
+      .filter((entry) => entry.data.instant.details?.air_temperature != null)
       .slice(0, 48)
       .map((entry) => {
         const inst = entry.data.instant.details ?? {};
@@ -176,7 +179,7 @@ export class YrProvider implements WeatherProvider {
 
         return {
           time: entry.time,
-          temp: inst.air_temperature != null ? celsiusToUnit(inst.air_temperature, isMetric) : 0,
+          temp: celsiusToUnit(inst.air_temperature as number, isMetric),
           humidity: inst.relative_humidity,
           icon: symbolToIcon(symbol),
           description: symbolDescription(symbol),

@@ -91,10 +91,12 @@ export class PirateWeatherProvider implements WeatherProvider {
     // currently.time is the exact request time, not hour-aligned.
     const nowEpoch = Math.floor(Date.now() / 1000);
     return data.hourly.data
-      .filter((h) => h.time >= nowEpoch - 3600)
+      // A sample with no temperature is dropped, not shown as 0°: the hub
+      // records the first sample as today's reading (see today-record.ts).
+      .filter((h) => h.time >= nowEpoch - 3600 && h.temperature != null)
       .map((h) => ({
         time: new Date(h.time * 1000).toISOString(),
-        temp: h.temperature ?? 0,
+        temp: h.temperature as number,
         feelsLike: h.apparentTemperature,
         humidity: h.humidity != null ? Math.round(h.humidity * 100) : undefined,
         icon: this.mapIcon(h.icon ?? ''),

@@ -247,10 +247,13 @@ export class MetOfficeProvider implements WeatherProvider {
 
     return series
       .filter((e) => new Date(e.time).getTime() >= nowMs - 3600000)
+      // A sample with no temperature is dropped, not shown as 0°: the hub
+      // records the first sample as today's reading (see today-record.ts).
+      .filter((e) => e.screenTemperature != null)
       .slice(0, 48)
       .map((e) => ({
         time: e.time,
-        temp: e.screenTemperature != null ? celsiusToUnit(e.screenTemperature, isMetric) : 0,
+        temp: celsiusToUnit(e.screenTemperature as number, isMetric),
         feelsLike: e.feelsLikeTemperature != null
           ? celsiusToUnit(e.feelsLikeTemperature, isMetric)
           : undefined,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveWeatherConditions, deriveWeatherAlerts } from '../derive';
+import { deriveWeatherConditions, deriveWeatherAlerts, reconcileTodayRange } from '../derive';
 import type { HourlyWeather, WeatherAlert } from '../types';
 
 describe('deriveWeatherConditions', () => {
@@ -139,5 +139,44 @@ describe('deriveWeatherAlerts', () => {
     ];
     const result = deriveWeatherAlerts(alerts);
     expect(result!.alerts[0].severity).toBe('moderate');
+  });
+});
+
+describe('reconcileTodayRange', () => {
+  const day = (high: number, low: number) => ({ date: '2026-09-04', high, low, icon: 'clear-day', description: 'Clear' });
+  const now = (temp: number) => ({ time: '2026-09-04T19:00:00', temp, icon: 'clear-night', description: 'Clear' });
+
+  it('raises a post-sunset "tonight" range to the current temperature', () => {
+    // NOAA and Environment Canada report the night's low as both numbers.
+    const out = reconcileTodayRange([day(66, 66), day(82, 61)], [now(80)]);
+    expect(out[0]).toMatchObject({ high: 80, low: 66 });
+    expect(out[1]).toMatchObject({ high: 82, low: 61 });
+  });
+
+  it('lowers the low when it is colder now than the model expected', () => {
+    expect(reconcileTodayRange([day(70, 50)], [now(45)])[0]).toMatchObject({ high: 70, low: 45 });
+  });
+
+  it('returns the same array when the range already holds the current reading', () => {
+    const forecast = [day(78, 61)];
+    expect(reconcileTodayRange(forecast, [now(72)])).toBe(forecast);
+  });
+
+  it('widens the range to what the hub recorded earlier today', () => {
+    // By evening the afternoon's 86° is gone from the feed; the record still has it.
+    const out = reconcileTodayRange([day(66, 66)], [now(80)], { date: '2026-09-04', high: 86, low: 58 });
+    expect(out[0]).toMatchObject({ high: 86, low: 58 });
+  });
+
+  it('ignores a record from another day', () => {
+    // The provider rolled over to a new day since the last poll: yesterday's peak is not today's.
+    const out = reconcileTodayRange([day(66, 66)], [now(80)], { date: '2026-09-03', high: 96, low: 40 });
+    expect(out[0]).toMatchObject({ high: 80, low: 66 });
+  });
+
+  it('leaves the forecast alone without a current reading', () => {
+    const forecast = [day(66, 66)];
+    expect(reconcileTodayRange(forecast, [])).toBe(forecast);
+    expect(reconcileTodayRange([], [now(80)])).toEqual([]);
   });
 });

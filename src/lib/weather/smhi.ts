@@ -130,6 +130,9 @@ export class SMHIProvider implements WeatherProvider {
 
     return data.timeSeries
       .filter((entry) => new Date(entry.time).getTime() >= nowMs - 3600000)
+      // A sample with no temperature is dropped, not shown as 0°: the hub
+      // records the first sample as today's reading (see today-record.ts).
+      .filter((entry) => entry.data.air_temperature != null)
       .slice(0, 48)
       .map((entry) => {
         const d = entry.data;
@@ -138,7 +141,7 @@ export class SMHIProvider implements WeatherProvider {
 
         return {
           time: entry.time,
-          temp: d.air_temperature != null ? celsiusToUnit(d.air_temperature, isMetric) : 0,
+          temp: celsiusToUnit(d.air_temperature as number, isMetric),
           humidity: d.relative_humidity,
           icon: d.symbol_code != null ? wsymb2ToIcon(d.symbol_code, isDay) : FALLBACK_ICON,
           description: d.symbol_code != null

@@ -11,7 +11,7 @@ import {
   HOURLY_RAIN_SHOWN_PCT,
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
-import { Card, TopBar, AlertBand, MiniHero, PrecipLegendHeader } from './weather-parts';
+import { Card, Label, TopBar, AlertBand, MiniHero, PrecipLegendHeader } from './weather-parts';
 
 /**
  * The next 24 hours as a timeline.
@@ -30,9 +30,8 @@ import { Card, TopBar, AlertBand, MiniHero, PrecipLegendHeader } from './weather
  * time axis and 0-100 across it, drawn with `preserveAspectRatio="none"` and
  * a non-scaling stroke, so it lands exactly on the DOM dots at any size.
  */
-export default function HourlyView(p: WeatherViewProps) {
-  const { s, u } = p.scale;
-  const landscape = p.scale.orientation === 'landscape';
+/** The entries the timeline draws, with everything a row or column needs about each. */
+function timeline(p: WeatherViewProps) {
   const hrs = timelineHours(p.hourly);
   const N = hrs.length;
   const temps = hrs.map((h) => h.temp);
@@ -57,36 +56,16 @@ export default function HourlyView(p: WeatherViewProps) {
       k: axis.k(h.temp),
     };
   });
+  return { hrs, N, temps, axis, entries };
+}
 
-  const uid = useId();
-  const gradId = `${uid}-tl`;
-  const windUnit = windUnitLabel(p.units);
-  // Marks that carry data floor on `s`: the fit loop shrinks `u` fastest, and
-  // a dot or bar sized off `u` alone becomes a speck beside large numbers.
-  const stroke = Math.max(2, s * .18);
-  const dot = Math.max(u * 1.5, s * .8);
-
-  const head = <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .8 }} />;
-
-  // One entry is not a timeline (and "Next 1 hours" is not a heading): when
-  // the hourly fetch came back short, say so rather than draw an empty axis.
-  if (N < 2) {
-    return (
-      <>
-        <TopBar p={p} />
-        <MiniHero p={p} />
-        <AlertBand p={p} />
-        <Card u={u} testId="fsw-hourly" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--fsw-text-3)', fontSize: s * 2.2 }}>
-          {p.t('fullscreen-weather.loading')}
-        </Card>
-      </>
-    );
-  }
-
-  const gradient = (vertical: boolean) => (
+/** The spline's colour ramp, one stop per entry, in the list's own units. */
+function TempGradient({ p, id, temps, vertical }: { p: WeatherViewProps; id: string; temps: number[]; vertical: boolean }) {
+  const N = temps.length;
+  return (
     <defs>
       <linearGradient
-        id={gradId} gradientUnits="userSpaceOnUse"
+        id={id} gradientUnits="userSpaceOnUse"
         x1={vertical ? 0 : 0.5} y1={vertical ? 0.5 : 0}
         x2={vertical ? 0 : N - 0.5} y2={vertical ? N - 0.5 : 0}
       >
@@ -96,156 +75,40 @@ export default function HourlyView(p: WeatherViewProps) {
       </linearGradient>
     </defs>
   );
+}
 
-  // ── Portrait: rows ──────────────────────────────────────────────────────
-  if (!landscape) {
-    // Fixed column widths, so the spline overlay can be placed without
-    // measuring (which would re-render inside the fit loop). The column
-    // order is defined once, here; the axis row, the ghost row that carries
-    // the spline, and every data row all lay out from it, so the overlay
-    // lands on the track without anyone adding up the widths before it.
-    const cols: Cell[] = [
-      { key: 'hour', size: s * 6 },
-      { key: 'icon', size: s * 4 },
-      { key: 'track' },
-      { key: 'rain', size: s * 9 },
-      { key: 'wind', size: s * 7 },
-    ];
-    const gap = u * 1.5;
-    const rowMin = Math.max(s * 2.8, u * 2.4);
-    const rainBar = Math.max(u * .9, s * .5);
-    // The plot box is inset from the track cell in *pixels of type*: half a
-    // dot on the left, and room for a "100°" label to the right of the
-    // warmest dot. A percentage inset was tried first and fails at large
-    // type, where the label outgrows its share of the track.
-    const plotL = dot / 2;
-    const plotR = s * 4.8;
-    const pts = entries.map((e) => [e.k * 100, e.i + 0.5] as [number, number]);
-    const cell = (c: Cell, style?: React.CSSProperties): React.CSSProperties =>
-      c.size != null ? { width: c.size, flex: 'none', ...style } : { flex: 1, minWidth: 0, ...style };
+/** Marks that carry data floor on `s`: the fit loop shrinks `u` fastest, and
+ *  a dot or bar sized off `u` alone becomes a speck beside large numbers. */
+function markSizes(p: WeatherViewProps) {
+  const { s, u } = p.scale;
+  return { stroke: Math.max(2, s * .18), dot: Math.max(u * 1.5, s * .8) };
+}
 
-    const axisCell: Record<string, React.ReactNode> = {
-      hour: null,
-      icon: null,
-      track: (
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: `0 ${s * .4}px` }}>
-          <span>{Math.round(axis.min)}°</span><span>{Math.round(axis.max)}°</span>
-        </div>
-      ),
-      rain: <div style={{ display: 'flex', justifyContent: 'center' }}><Droplet style={{ width: s * 1.7, height: s * 1.7 }} strokeWidth={1.6} /></div>,
-      wind: <div style={{ display: 'flex', justifyContent: 'center' }}><Wind style={{ width: s * 1.7, height: s * 1.7 }} strokeWidth={1.6} /></div>,
-    };
+export default function HourlyView(p: WeatherViewProps) {
+  const { s, u } = p.scale;
+  const landscape = p.scale.orientation === 'landscape';
+  const { hrs, N, temps, entries } = timeline(p);
 
-    const rowCell = (e: (typeof entries)[number], key: string): React.ReactNode => {
-      switch (key) {
-        case 'hour':
-          return (
-            <div style={{
-              fontSize: s * 1.7, fontWeight: 600, whiteSpace: 'nowrap',
-              color: e.i === 0 ? p.accent : e.midnight ? 'var(--fsw-text-2)' : 'var(--fsw-text-3)',
-            }}>{e.label}</div>
-          );
-        case 'icon': {
-          const Ico = getWeatherIcon(e.h.icon, 'outline');
-          return (
-            <div style={{ display: 'grid', placeItems: 'center', color: e.rain >= 50 ? '#38bdf8' : 'var(--fsw-text-2)' }}>
-              <Ico style={{ width: s * 2.4, height: s * 2.4 }} strokeWidth={1.6} />
-            </div>
-          );
-        }
-        case 'track':
-          return (
-            <div style={{ position: 'absolute', top: 0, bottom: 0, left: plotL, right: plotR }}>
-              <Dot p={p} temp={e.h.temp} size={dot} style={{ top: '50%', left: `${e.k * 100}%`, transform: 'translate(-50%,-50%)' }} />
-              <div style={{
-                position: 'absolute', top: '50%', left: `${e.k * 100}%`, transform: `translate(${dot * .5 + s * .5}px,-50%)`,
-                fontSize: s * 1.9, fontWeight: 600, letterSpacing: '-.02em', whiteSpace: 'nowrap',
-              }}>{Math.round(e.h.temp)}°</div>
-            </div>
-          );
-        case 'rain':
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: s * .5, visibility: e.rain >= HOURLY_RAIN_SHOWN_PCT ? 'visible' : 'hidden' }}>
-              <div style={{ flex: 1, height: rainBar, borderRadius: 999, background: 'var(--fsw-surface-alt)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${e.rain}%`, background: '#38bdf8', borderRadius: 999 }} />
-              </div>
-              <div style={{ width: s * 3.2, textAlign: 'right', fontSize: s * 1.4, fontWeight: 600, color: '#38bdf8' }}>{e.rain}%</div>
-            </div>
-          );
-        case 'wind':
-          return (
-            <div style={{ textAlign: 'right', fontSize: s * 1.6, fontWeight: 500, color: 'var(--fsw-text-2)', whiteSpace: 'nowrap' }}>
-              {e.wind != null ? `${e.wind} ${windUnit}` : ''}
-            </div>
-          );
-        default:
-          return null;
-      }
-    };
+  const uid = useId();
+  const gradId = `${uid}-tl`;
+  const windUnit = windUnitLabel(p.units);
+  const { stroke, dot } = markSizes(p);
 
+  // Portrait, and a list too short to be a timeline in either orientation
+  // ("Next 1 hours" is not a heading): the rows card says what it can.
+  if (!landscape || N < 2) {
     return (
       <>
         <TopBar p={p} />
         <MiniHero p={p} />
         <AlertBand p={p} />
-        <Card u={u} testId="fsw-hourly" style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          // Header + axis + rows + the card's own padding: a real floor.
-          minHeight: rowMin * N + s * 4.5 + u * 6.5,
-          // The fixed columns are sized in `s`; past a point they outgrow the
-          // card, and a stretched flex item would spill into the card's
-          // padding where the fit loop cannot see it. `min-content` makes the
-          // card overflow the stack instead, which the loop measures.
-          minWidth: 'min-content',
-        }}>
-          {head}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap, color: 'var(--fsw-text-3)',
-            fontSize: s * 1.3, fontWeight: 600, paddingBottom: u * .6, borderBottom: '1px solid var(--fsw-border-sub)',
-          }}>
-            {cols.map((c) => <div key={c.key} style={cell(c)}>{axisCell[c.key]}</div>)}
-          </div>
-
-          <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', minHeight: rowMin * N }}>
-            {/* A ghost row with the same columns as the data rows, spanning
-                the whole list, whose track cell holds the spline. The SVG is
-                a replaced element: `top/bottom` alone would leave it at its
-                intrinsic 150px, so a wrapper carries the placement and the
-                SVG fills it. */}
-            <div aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', gap, pointerEvents: 'none' }}>
-              {cols.map((c) => (
-                <div key={c.key} style={cell(c, { position: 'relative' })}>
-                  {c.key === 'track' && (
-                    <div data-testid="fsw-hourly-spline" style={{ position: 'absolute', top: 0, bottom: 0, left: plotL, right: plotR }}>
-                      <svg viewBox={`0 0 100 ${N}`} preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '100%', overflow: 'visible' }}>
-                        {gradient(true)}
-                        <path d={smoothPath(pts)} fill="none" stroke={`url(#${gradId})`} strokeWidth={stroke} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {entries.map((e) => (
-              <div key={e.i} data-testid="fsw-hour" style={{
-                flex: 1, display: 'flex', alignItems: 'center', gap, minHeight: rowMin,
-                position: 'relative', borderRadius: u * .6,
-                borderTop: e.midnight ? '1px solid var(--fsw-border)' : '1px solid transparent',
-              }}>
-                {e.night && <NightShade radius={u * .6} />}
-                {cols.map((c) => (
-                  <div key={c.key} style={cell(c, { position: 'relative', ...(c.key === 'track' ? { alignSelf: 'stretch' } : {}) })}>
-                    {rowCell(e, c.key)}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </Card>
+        <HourlyRows p={p} />
       </>
     );
   }
+
+  const head = <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .8 }} />;
+  const gradient = (vertical: boolean) => <TempGradient p={p} id={gradId} temps={temps} vertical={vertical} />;
 
   // ── Landscape: columns (a meteogram) ────────────────────────────────────
   // The band order is defined once: the gutter, the ghost column that carries
@@ -390,6 +253,185 @@ export default function HourlyView(p: WeatherViewProps) {
       </Card>
     </>
   );
+}
+
+
+/**
+ * The next hours as rows, time running down the card.
+ *
+ * The Hour by hour view's portrait body, on its own so the Wide strip view
+ * can seat it in a column: `narrow` drops the icon and wind columns and the
+ * rain bar, keeping the hour, the curve with its temperatures, and the rain
+ * chance, which is what fits in a third of a portrait wall.
+ */
+export function HourlyRows({ p, narrow = false }: { p: WeatherViewProps; narrow?: boolean }) {
+  const { s, u } = p.scale;
+  const { hrs, N, temps, axis, entries } = timeline(p);
+  const uid = useId();
+  const gradId = `${uid}-rows`;
+  const windUnit = windUnitLabel(p.units);
+  const { stroke, dot } = markSizes(p);
+  const gradient = (vertical: boolean) => <TempGradient p={p} id={gradId} temps={temps} vertical={vertical} />;
+
+  if (N < 2) {
+    return (
+      <Card u={u} testId="fsw-hourly" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--fsw-text-3)', fontSize: s * 2.2 }}>
+        {p.t('fullscreen-weather.loading')}
+      </Card>
+    );
+  }
+
+    // Fixed column widths, so the spline overlay can be placed without
+    // measuring (which would re-render inside the fit loop). The column
+    // order is defined once, here; the axis row, the ghost row that carries
+    // the spline, and every data row all lay out from it, so the overlay
+    // lands on the track without anyone adding up the widths before it.
+    const cols: Cell[] = narrow
+      ? [
+        { key: 'hour', size: s * 4.5 },
+        { key: 'track' },
+        { key: 'rain', size: s * 4 },
+      ]
+      : [
+        { key: 'hour', size: s * 6 },
+        { key: 'icon', size: s * 4 },
+        { key: 'track' },
+        { key: 'rain', size: s * 9 },
+        { key: 'wind', size: s * 7 },
+      ];
+    const gap = u * 1.5;
+    const rowMin = Math.max(s * 2.8, u * 2.4);
+    const rainBar = Math.max(u * .9, s * .5);
+    // The plot box is inset from the track cell in *pixels of type*: half a
+    // dot on the left, and room for a "100°" label to the right of the
+    // warmest dot. A percentage inset was tried first and fails at large
+    // type, where the label outgrows its share of the track.
+    const plotL = dot / 2;
+    const plotR = s * 4.8;
+    const pts = entries.map((e) => [e.k * 100, e.i + 0.5] as [number, number]);
+    const cell = (c: Cell, style?: React.CSSProperties): React.CSSProperties =>
+      c.size != null ? { width: c.size, flex: 'none', ...style } : { flex: 1, minWidth: 0, ...style };
+
+    const axisCell: Record<string, React.ReactNode> = {
+      hour: null,
+      icon: null,
+      track: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: `0 ${s * .4}px` }}>
+          <span>{Math.round(axis.min)}°</span><span>{Math.round(axis.max)}°</span>
+        </div>
+      ),
+      rain: <div style={{ display: 'flex', justifyContent: 'center' }}><Droplet style={{ width: s * 1.7, height: s * 1.7 }} strokeWidth={1.6} /></div>,
+      wind: <div style={{ display: 'flex', justifyContent: 'center' }}><Wind style={{ width: s * 1.7, height: s * 1.7 }} strokeWidth={1.6} /></div>,
+    };
+
+    const rowCell = (e: (typeof entries)[number], key: string): React.ReactNode => {
+      switch (key) {
+        case 'hour':
+          return (
+            <div style={{
+              fontSize: s * 1.7, fontWeight: 600, whiteSpace: 'nowrap',
+              color: e.i === 0 ? p.accent : e.midnight ? 'var(--fsw-text-2)' : 'var(--fsw-text-3)',
+            }}>{e.label}</div>
+          );
+        case 'icon': {
+          const Ico = getWeatherIcon(e.h.icon, 'outline');
+          return (
+            <div style={{ display: 'grid', placeItems: 'center', color: e.rain >= 50 ? '#38bdf8' : 'var(--fsw-text-2)' }}>
+              <Ico style={{ width: s * 2.4, height: s * 2.4 }} strokeWidth={1.6} />
+            </div>
+          );
+        }
+        case 'track':
+          return (
+            <div style={{ position: 'absolute', top: 0, bottom: 0, left: plotL, right: plotR }}>
+              <Dot p={p} temp={e.h.temp} size={dot} style={{ top: '50%', left: `${e.k * 100}%`, transform: 'translate(-50%,-50%)' }} />
+              <div style={{
+                position: 'absolute', top: '50%', left: `${e.k * 100}%`, transform: `translate(${dot * .5 + s * .5}px,-50%)`,
+                fontSize: s * 1.9, fontWeight: 600, letterSpacing: '-.02em', whiteSpace: 'nowrap',
+              }}>{Math.round(e.h.temp)}°</div>
+            </div>
+          );
+        case 'rain':
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: s * .5, visibility: e.rain >= HOURLY_RAIN_SHOWN_PCT ? 'visible' : 'hidden' }}>
+              {!narrow && (
+                <div style={{ flex: 1, height: rainBar, borderRadius: 999, background: 'var(--fsw-surface-alt)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${e.rain}%`, background: '#38bdf8', borderRadius: 999 }} />
+                </div>
+              )}
+              <div style={{ width: narrow ? '100%' : s * 3.2, textAlign: 'right', fontSize: s * 1.4, fontWeight: 600, color: '#38bdf8' }}>{e.rain}%</div>
+            </div>
+          );
+        case 'wind':
+          return (
+            <div style={{ textAlign: 'right', fontSize: s * 1.6, fontWeight: 500, color: 'var(--fsw-text-2)', whiteSpace: 'nowrap' }}>
+              {e.wind != null ? `${e.wind} ${windUnit}` : ''}
+            </div>
+          );
+        default:
+          return null;
+      }
+    };
+
+    return (
+        <Card u={u} testId="fsw-hourly" style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          // Header + axis + rows + the card's own padding: a real floor.
+          minHeight: rowMin * N + s * 4.5 + u * 6.5,
+          // The fixed columns are sized in `s`; past a point they outgrow the
+          // card, and a stretched flex item would spill into the card's
+          // padding where the fit loop cannot see it. `min-content` makes the
+          // card overflow the stack instead, which the loop measures.
+          minWidth: 'min-content',
+        }}>
+          {narrow
+            ? <Label s={s} style={{ marginBottom: u * .8 }}>{p.t('fullscreen-weather.sections.nextHours', { hours: spanHours(hrs) })}</Label>
+            : <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .8 }} />}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap, color: 'var(--fsw-text-3)',
+            fontSize: s * 1.3, fontWeight: 600, paddingBottom: u * .6, borderBottom: '1px solid var(--fsw-border-sub)',
+          }}>
+            {cols.map((c) => <div key={c.key} style={cell(c)}>{axisCell[c.key]}</div>)}
+          </div>
+
+          <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', minHeight: rowMin * N }}>
+            {/* A ghost row with the same columns as the data rows, spanning
+                the whole list, whose track cell holds the spline. The SVG is
+                a replaced element: `top/bottom` alone would leave it at its
+                intrinsic 150px, so a wrapper carries the placement and the
+                SVG fills it. */}
+            <div aria-hidden style={{ position: 'absolute', inset: 0, display: 'flex', gap, pointerEvents: 'none' }}>
+              {cols.map((c) => (
+                <div key={c.key} style={cell(c, { position: 'relative' })}>
+                  {c.key === 'track' && (
+                    <div data-testid="fsw-hourly-spline" style={{ position: 'absolute', top: 0, bottom: 0, left: plotL, right: plotR }}>
+                      <svg viewBox={`0 0 100 ${N}`} preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '100%', overflow: 'visible' }}>
+                        {gradient(true)}
+                        <path d={smoothPath(pts)} fill="none" stroke={`url(#${gradId})`} strokeWidth={stroke} vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {entries.map((e) => (
+              <div key={e.i} data-testid="fsw-hour" style={{
+                flex: 1, display: 'flex', alignItems: 'center', gap, minHeight: rowMin,
+                position: 'relative', borderRadius: u * .6,
+                borderTop: e.midnight ? '1px solid var(--fsw-border)' : '1px solid transparent',
+              }}>
+                {e.night && <NightShade radius={u * .6} />}
+                {cols.map((c) => (
+                  <div key={c.key} style={cell(c, { position: 'relative', ...(c.key === 'track' ? { alignSelf: 'stretch' } : {}) })}>
+                    {rowCell(e, c.key)}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </Card>
+    );
 }
 
 /** One column (portrait) or band (landscape) of the timeline: a fixed size, or the flexible track. */

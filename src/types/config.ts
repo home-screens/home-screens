@@ -1930,7 +1930,7 @@ export interface FullscreenMealPlannerConfig {
  * hourly — the next 24 hours as a timeline (down the page in portrait, across
  * it in landscape).
  */
-export type FullscreenWeatherView = 'panorama' | 'almanac' | 'ambient' | 'week' | 'hourly';
+export type FullscreenWeatherView = 'panorama' | 'strip' | 'almanac' | 'ambient' | 'week' | 'hourly';
 
 /** 'auto' tints the background by condition and sun elevation; 'off' falls
  *  back to the flat theme background. The sky is a wash *behind* the cards,

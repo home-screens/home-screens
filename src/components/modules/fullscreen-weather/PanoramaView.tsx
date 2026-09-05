@@ -1,16 +1,18 @@
 'use client';
 
 import { useId } from 'react';
+import { useElementBox } from '@/hooks/useElementBox';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
 import { windUnitLabel } from '@/lib/weather/units';
 import {
   hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, isNightHour, spanHours,
-  LANDSCAPE_LEFT_FRACTION, CANVAS_PAD_X_U, CARD_PAD_X_U, HOURLY_RAIN_SHOWN_PCT,
+  LANDSCAPE_LEFT_FRACTION, STRIP_COLUMNS, CANVAS_PAD_X_U, CARD_PAD_X_U, HOURLY_RAIN_SHOWN_PCT,
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
-import { Card, Label, TopBar, AlertBand, DayRangeBars, PrecipLegendHeader } from './weather-parts';
+import { Card, Label, TopBar, AlertBand, DayRangeBars, DayTallBands, PrecipLegendHeader } from './weather-parts';
+import { HourlyRows } from './HourlyView';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 
 /**
@@ -27,6 +29,105 @@ export default function PanoramaView(p: WeatherViewProps) {
   return p.scale.orientation === 'landscape'
     ? <PanoramaLandscape p={p} />
     : <PanoramaPortrait p={p} />;
+}
+
+/**
+ * The Wide strip view: Panorama's parts side by side, for a module across
+ * the foot of a landscape wall. A view of its own rather than a shape the
+ * box picks, so the household chooses it and Panorama never rearranges
+ * itself under them.
+ *
+ * It keeps its three columns in a portrait box too, since a view that
+ * quietly became Panorama there would look like nothing happened when it
+ * was picked. There each column takes the form that suits a tall narrow
+ * column (`StripPortrait`), so the wall is full because the content is,
+ * not because the strip was stretched over it. A landscape box that is
+ * taller than a strip (a 16:9 wall) keeps the wide form: the tall form's
+ * 24 hourly rows need a portrait wall's height at large type. There the
+ * chart is capped at a landscape proportion and the stats card takes the
+ * slack instead.
+ */
+export function StripView(p: WeatherViewProps) {
+  return p.scale.orientation === 'landscape'
+    ? <PanoramaStrip p={p} />
+    : <StripPortrait p={p} />;
+}
+
+/**
+ * The strip turned on end: now, then the next hours, then the next days,
+ * left to right, each column tall because its content is. The hero stacks
+ * its temperature over its icon with the stat rail at the foot; the hours
+ * run down the middle column as rows with the curve through them; each day
+ * is a band with its description and range bar.
+ */
+function StripPortrait({ p }: { p: WeatherViewProps }) {
+  const { u } = p.scale;
+  return (
+    <>
+      <TopBar p={p} />
+      <div style={{ flex: 1, display: 'flex', gap: u * 2 }}>
+        <StripColumn share={STRIP_COLUMNS.hero}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
+            <Hero p={p} stacked />
+            <AlertBand p={p} />
+            <NowcastStrip p={p} />
+            {p.config.showStatRail !== false && <StatRailVertical p={p} style={{ marginTop: 'auto' }} />}
+          </div>
+        </StripColumn>
+        <StripColumn share={STRIP_COLUMNS.hours}>
+          <HourlyRows p={p} narrow />
+        </StripColumn>
+        <StripColumn share={STRIP_COLUMNS.days}>
+          <DayTallBands p={p} />
+        </StripColumn>
+      </div>
+    </>
+  );
+}
+
+/** A column of the strip: its share of the width, measured by the fit loop. */
+function StripColumn({ share, children }: { share: number; children: React.ReactNode }) {
+  return (
+    <div {...{ [FIT_MEASURE_ATTR]: '' }} style={{
+      flex: `${share * 100} 0 0%`, minWidth: 0,
+      display: 'flex', flexDirection: 'column',
+    }}>{children}</div>
+  );
+}
+
+/**
+ * Landscape stacks the ribbon over the day list, so in a box three times as
+ * wide as it is tall the box's height bounds both and most of the width is
+ * a bar with nothing on it. Here the three parts stand side by side, each
+ * with the whole height: the hero, then the hours (the ribbon, taking the
+ * slack, over the stat rail as a row of cells), then the days. Left to right
+ * is now to later.
+ */
+function PanoramaStrip({ p }: { p: WeatherViewProps }) {
+  const { u } = p.scale;
+  return (
+    <>
+      <TopBar p={p} />
+      <div style={{ flex: 1, display: 'flex', gap: u * 2 }}>
+        <StripColumn share={STRIP_COLUMNS.hero}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
+            <Hero p={p} wide />
+            <AlertBand p={p} />
+            <NowcastStrip p={p} />
+          </div>
+        </StripColumn>
+        <StripColumn share={STRIP_COLUMNS.hours}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: u * 2 }}>
+            {p.config.showRibbon !== false && <TempRibbon p={p} strip />}
+            {p.config.showStatRail !== false && <StatRail p={p} fill />}
+          </div>
+        </StripColumn>
+        <StripColumn share={STRIP_COLUMNS.days}>
+          <DayRangeBars p={p} />
+        </StripColumn>
+      </div>
+    </>
+  );
 }
 
 function PanoramaPortrait({ p }: { p: WeatherViewProps }) {
@@ -90,9 +191,12 @@ function PanoramaLandscape({ p }: { p: WeatherViewProps }) {
  * hero is what absorbs whatever the alert, nowcast, and stat rail leave — the
  * left column is the only part of the layout with slack.
  */
-function Hero({ p }: { p: WeatherViewProps }) {
+function Hero({ p, wide, stacked }: { p: WeatherViewProps; wide?: boolean; stacked?: boolean }) {
   const { s, u } = p.scale;
-  const landscape = p.scale.orientation === 'landscape';
+  // The strip's hero column is the landscape hero whatever the box's shape;
+  // `stacked` is its portrait-strip form, temperature over icon in a column
+  // a third of the wall wide, sized between the two.
+  const landscape = stacked ? true : (wide ?? p.scale.orientation === 'landscape');
   const now = p.hourly[0];
   const today = p.forecast[0];
   const Icon = getWeatherIcon(now?.icon ?? 'thermometer', 'outline');
@@ -122,13 +226,23 @@ function Hero({ p }: { p: WeatherViewProps }) {
       <div style={{ fontSize: landscape ? s * 3.2 : s * 3.6, fontWeight: 500, letterSpacing: '-.02em', marginTop: landscape ? u * 1.2 : u * 2 }}>
         {now?.description ?? ''}
       </div>
-      <div style={{ fontSize: s * 2.1, color: 'var(--fsw-text-2)', marginTop: u, display: 'flex', gap: u * 1.4 }}>
+      <div style={{ fontSize: s * 2.1, color: 'var(--fsw-text-2)', marginTop: u, display: 'flex', gap: stacked ? u * .5 : u * 1.4, flexDirection: stacked ? 'column' : 'row' }}>
         {now?.feelsLike != null && <span>{p.t('fullscreen-weather.feelsLike', { temp: Math.round(now.feelsLike) })}</span>}
-        {today && <span style={{ opacity: .4 }}>·</span>}
+        {today && !stacked && <span style={{ opacity: .4 }}>·</span>}
         {today && <span>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</span>}
       </div>
     </div>
   );
+
+  if (stacked) {
+    return (
+      <div style={{ flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: `${u * .6}px ${u * .4}px 0` }}>
+        {temp}
+        <div style={{ marginTop: u * 1.2 }}>{art}</div>
+        {caption}
+      </div>
+    );
+  }
 
   if (landscape) {
     return (
@@ -193,7 +307,7 @@ function NowcastStrip({ p }: { p: WeatherViewProps }) {
  * on most others, ~156h on NOAA), so the ribbon draws whatever it was given
  * and labels the span rather than assuming 48 points exist.
  */
-function TempRibbon({ p }: { p: WeatherViewProps }) {
+function TempRibbon({ p, strip = false }: { p: WeatherViewProps; strip?: boolean }) {
   const { s, u } = p.scale;
   const landscape = p.scale.orientation === 'landscape';
   // Gradient ids are document-global; namespace them so two instances in one
@@ -201,6 +315,8 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   const uid = useId();
   const tempGradId = `${uid}-temp`;
   const areaGradId = `${uid}-area`;
+  // The strip's chart is measured, not reconstructed (see the geometry note).
+  const [chartRef, chartBox] = useElementBox<HTMLDivElement>();
   const hrs = p.hourly.slice(0, 48);
   if (hrs.length < 2) return null;
 
@@ -216,13 +332,27 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
   // `preserveAspectRatio="none"` scales x and y equally and text is not
   // stretched. That means reconstructing the card's own width from the
   // canvas and card padding, and in landscape the card sits in the
-  // right-hand column rather than spanning the canvas.
+  // right-hand column rather than spanning the canvas; in the strip, in the
+  // middle one of three.
   const contentW = p.scale.width - u * CANVAS_PAD_X_U * 2;
-  const cardOuterW = landscape
-    ? (contentW - u * 2) * (1 - LANDSCAPE_LEFT_FRACTION)
-    : contentW;
-  const renderedW = Math.max(120, cardOuterW - u * CARD_PAD_X_U * 2);
-  const renderedH = Math.max(60, u * (landscape ? 30 : 27));
+  const cardOuterW = strip
+    ? (contentW - u * 4) * STRIP_COLUMNS.hours
+    : landscape
+      ? (contentW - u * 2) * (1 - LANDSCAPE_LEFT_FRACTION)
+      : contentW;
+  const authoredW = Math.max(120, cardOuterW - u * CARD_PAD_X_U * 2);
+  const authoredH = Math.max(60, u * (strip ? 36 : landscape ? 30 : 27));
+
+  // Portrait and landscape give the chart a fixed height and let a
+  // neighbour take the column's slack. In the strip the chart is the tallest
+  // thing in its column and the most informative, so it takes the slack
+  // itself: the card grows, the chart box fills it, and its viewBox follows
+  // the measured box. Measuring is safe here because nothing in the layout
+  // depends on the viewBox, so the fit loop's probes are not disturbed; the
+  // authored size stands in until the first measurement lands.
+  const measured = strip && chartBox.width > 0 && chartBox.height > 0;
+  const renderedW = measured ? chartBox.width : authoredW;
+  const renderedH = measured ? chartBox.height : authoredH;
   const VH = Math.round((W * renderedH) / renderedW);
 
   /** Floors for the two data bands, in viewBox units. */
@@ -283,14 +413,23 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
    * Callout placement. Above the point when there is room, below it otherwise —
    * the hottest hour sits near the top of the band, so a fixed upward offset
    * puts its label outside the viewBox and the card clips it.
+   *
+   * An extreme at either end is labelled, not skipped: on a falling evening
+   * the warmest hour of the run is "now", and skipping it left the ribbon
+   * with a low and no high. Like the hour ticks, an end label is anchored
+   * inward so it cannot hang past the viewBox, and at the start it also
+   * steps past the now marker.
    */
   const callout = (i: number) => {
-    if (i < 4 || i > N - 2) return null;
     const above = y(temps[i]) - labelGap;
     const fitsAbove = above - labelPx * 0.8 >= 0;
     const ty = fitsAbove ? above : Math.min(baseline - 2, y(temps[i]) + labelGap + labelPx * 0.85);
+    const atStart = x(i) < W * 0.05;
+    const atEnd = x(i) > W * 0.95;
+    const anchor = atStart ? 'start' : atEnd ? 'end' : 'middle';
+    const tx = atStart ? x(i) + 9 * r : x(i);
     return (
-      <text x={x(i)} y={ty} fontSize={labelPx} fontWeight={600} fill="var(--fsw-text)" textAnchor="middle">
+      <text x={tx} y={ty} fontSize={labelPx} fontWeight={600} fill="var(--fsw-text)" textAnchor={anchor}>
         {Math.round(temps[i])}&deg;
       </text>
     );
@@ -298,9 +437,19 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
 
 
   return (
-    <Card u={u} testId="fsw-ribbon" style={{ flex: 'none' }}>
-      <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .6 }} />
-      <svg viewBox={`0 0 ${W} ${VH}`} preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: renderedH }}>
+    <Card u={u} testId="fsw-ribbon" style={{
+      // The chart takes the column's slack ahead of the stats card (a grow
+      // of 999 against its 1), but a chart is a landscape thing: its share
+      // is capped at a landscape proportion of its own width, and only
+      // what is left past the cap reaches the stats card.
+      flex: strip ? '999 1 0%' : 'none', display: 'flex', flexDirection: 'column',
+      maxHeight: strip ? authoredW * 0.75 : undefined,
+    }}>
+      <PrecipLegendHeader p={p} hours={spanHours(hrs)} style={{ marginBottom: u * .6, flex: 'none' }} />
+      {/* The chart floors at half its authored height so the fit loop can
+          see a column too short to hold a chart at all. */}
+      <div ref={chartRef} style={strip ? { flex: '1 1 0%', minHeight: authoredH / 2, position: 'relative' } : { flex: 'none', height: renderedH, position: 'relative' }}>
+      <svg viewBox={`0 0 ${W} ${VH}`} preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, display: 'block', width: '100%', height: '100%' }}>
         <defs>
           <linearGradient id={tempGradId} x1="0" x2="1">{stops}</linearGradient>
           <linearGradient id={areaGradId} x1="0" y1="0" x2="0" y2="1">
@@ -357,6 +506,7 @@ function TempRibbon({ p }: { p: WeatherViewProps }) {
         <line x1={x(0)} y1={TOP * .5} x2={x(0)} y2={baseline + PB} stroke={p.accent} strokeWidth={2.5} opacity=".9" />
         <circle cx={x(0)} cy={y(temps[0])} r={6.5 * r} fill={p.accent} stroke="var(--fsw-surface)" strokeWidth={3 * r} />
       </svg>
+      </div>
     </Card>
   );
 }
@@ -388,14 +538,21 @@ function statCells(p: WeatherViewProps): StatCell[] {
   return cells;
 }
 
-/** Portrait: one strip across the foot of the stack. */
-function StatRail({ p }: { p: WeatherViewProps }) {
+/**
+ * Portrait: one strip across the foot of the stack. The strip arrangement
+ * seats it under the ribbon, where it takes the column's slack (`fill`)
+ * with its cells centred in whatever height that leaves.
+ */
+function StatRail({ p, fill }: { p: WeatherViewProps; fill?: boolean }) {
   const { s, u } = p.scale;
   const cells = statCells(p);
   if (cells.length === 0) return null;
 
   return (
-    <Card u={u} testId="fsw-stat-rail" style={{ flex: 'none', display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, padding: `${u * 2}px 0` }}>
+    <Card u={u} testId="fsw-stat-rail" style={{
+      flex: fill ? '1 1 auto' : 'none', alignContent: 'center',
+      display: 'grid', gridTemplateColumns: `repeat(${cells.length}, 1fr)`, padding: `${u * 2}px 0`,
+    }}>
       {cells.map((c, i) => {
         const Ico = c.icon;
         return (
@@ -422,13 +579,13 @@ function StatRail({ p }: { p: WeatherViewProps }) {
  * gives the column a floor it can always fill and hands the full height of the
  * wide column to the charts.
  */
-function StatRailVertical({ p }: { p: WeatherViewProps }) {
+function StatRailVertical({ p, style }: { p: WeatherViewProps; style?: React.CSSProperties }) {
   const { s, u } = p.scale;
   const cells = statCells(p);
   if (cells.length === 0) return null;
 
   return (
-    <Card u={u} testId="fsw-stat-rail" style={{ flex: 'none', padding: `${u * .6}px ${u * 2.3}px` }}>
+    <Card u={u} testId="fsw-stat-rail" style={{ flex: 'none', padding: `${u * .6}px ${u * 2.3}px`, ...style }}>
       {cells.map((c, i) => {
         const Ico = c.icon;
         return (

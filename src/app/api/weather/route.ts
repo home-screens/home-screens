@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
+import { reconcileTodayRange } from '@/lib/weather/derive';
+import { recordReading, readingKey, type DayRange } from '@/lib/weather/today-record';
+import type { HourlyWeather, ForecastDay } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/api-utils';
 import { weatherProviderName } from '@/lib/weather-provider-names';
@@ -18,6 +21,25 @@ interface WeatherParams {
   provider: string;
   location: { lat: string; lon: string } | null;
   units: string;
+}
+
+/**
+ * Write the current reading into the record for the forecast's day 0 and
+ * return that day's range so far. The forecast's date is the location's own
+ * calendar day, so no timezone is involved. A disk problem must not cost
+ * the wall its weather, so a failure here is logged and the range simply
+ * goes unrecorded this poll.
+ */
+async function noteReading(p: WeatherParams, hourly: HourlyWeather[], forecast: ForecastDay[]): Promise<DayRange | undefined> {
+  const now = hourly[0];
+  const today = forecast[0];
+  if (!p.location || !now || !today || !Number.isFinite(now.temp)) return undefined;
+  try {
+    return await recordReading(readingKey(p.provider, p.location.lat, p.location.lon, p.units), today.date, now.temp);
+  } catch (err) {
+    console.error('[weather] could not record today\'s reading:', err);
+    return undefined;
+  }
 }
 
 const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
@@ -42,7 +64,8 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
     const lon = location?.lon ?? '_';
     return `${provider}:${lat}:${lon}:${units}:${type}`;
   },
-  execute: async ({ type, provider, location, units }) => {
+  execute: async (params) => {
+    const { type, provider, location, units } = params;
     if (!location) {
       return NextResponse.json(
         { error: 'Missing required query params: lat, lon' },
@@ -76,7 +99,8 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
         weatherProvider.getHourly(Number(lat), Number(lon), units),
         weatherProvider.getForecast(Number(lat), Number(lon), units),
       ]);
-      result = { hourly, forecast };
+      const seen = await noteReading(params, hourly, forecast);
+      result = { hourly, forecast: reconcileTodayRange(forecast, hourly, seen) };
     }
 
     // Include minutely and alerts if the provider supports them

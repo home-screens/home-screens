@@ -45,6 +45,7 @@ function countWeatherProviderFiles(): number {
     'fetch.ts',
     'icons.ts',
     'eccc-stations.ts',
+    'today-record.ts',
   ]);
   return fs
     .readdirSync(weatherDir)

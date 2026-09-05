@@ -13,11 +13,11 @@ import {
 import { tempColor } from './temp-ramp';
 
 /** Section label: small, tracked-out, muted. Shared by every card. */
-export function Label({ children, s }: { children: React.ReactNode; s: number }) {
+export function Label({ children, s, style }: { children: React.ReactNode; s: number; style?: React.CSSProperties }) {
   return (
     <div style={{
       fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.13em',
-      textTransform: 'uppercase', color: 'var(--fsw-text-3)',
+      textTransform: 'uppercase', color: 'var(--fsw-text-3)', ...style,
     }}>{children}</div>
   );
 }
@@ -328,3 +328,66 @@ export function DayDetails({ p, day, size = 1.5, align = 'left' }: {
   );
 }
 
+/**
+ * The forecast days as bands down a narrow column: name and date with the
+ * icon beside them, the description, the details line, and the range bar on
+ * the week's shared scale. The Wide strip view's days column in a portrait
+ * box, where the row layout of `DayRangeBars` has no width to run across.
+ */
+export function DayTallBands({ p }: { p: WeatherViewProps }) {
+  const { s, u } = p.scale;
+  const range = weekRange(p);
+  const { days, weekMin, weekMax } = range;
+  if (days.length === 0) return null;
+
+  // Name, description, details and bar stacked, with their gaps.
+  const bandMin = s * 11.5 + u * 3;
+  const marks = { bar: Math.max(u * .85, s * .4), ring: Math.max(u * 1.25, s * .7) };
+
+  return (
+    <Card u={u} testId="fsw-days" style={{
+      flex: 1, display: 'flex', flexDirection: 'column',
+      minHeight: bandMin * days.length + u * 6.1,
+      minWidth: 'min-content',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Label s={s}>{p.t('fullscreen-weather.sections.outlook', { days: days.length })}</Label>
+        <Label s={s}>{`${Math.round(weekMin)}° – ${Math.round(weekMax)}°`}</Label>
+      </div>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: u * .4, minHeight: bandMin * days.length }}>
+        {days.map((d, i) => {
+          const today = i === 0;
+          const Icon = getWeatherIcon(d.icon, 'outline');
+          return (
+            <div key={d.date} data-testid="fsw-week-day" style={{
+              flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: u * .9,
+              minHeight: bandMin, padding: `${u * 1.2}px ${u * .6}px`, position: 'relative', borderRadius: u * 1.6,
+              borderBottom: i === days.length - 1 || today ? '1px solid transparent' : '1px solid var(--fsw-border-sub)',
+            }}>
+              {today && <div aria-hidden style={{ position: 'absolute', inset: 0, borderRadius: u * 1.6, background: p.accent, opacity: .07, pointerEvents: 'none' }} />}
+              <div style={{ display: 'flex', alignItems: 'center', gap: u * 1.2, position: 'relative' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: s * 2.7, fontWeight: today ? 700 : 500, letterSpacing: '-.01em', color: today ? 'var(--fsw-text)' : 'var(--fsw-text-2)' }}>
+                    {dayName(d.date, i, p)}
+                  </div>
+                  <div style={{ fontSize: s * 1.5, fontWeight: 500, color: 'var(--fsw-text-3)', marginTop: u * .2 }}>{shortDate(d.date, p)}</div>
+                </div>
+                <Icon style={{ width: s * 4.8, height: s * 4.8, marginLeft: 'auto', flex: 'none', color: today ? p.accent : 'var(--fsw-text-2)' }} strokeWidth={1.3} />
+              </div>
+              <div style={{
+                position: 'relative', fontSize: s * 2, fontWeight: 500, letterSpacing: '-.01em', lineHeight: 1.2,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>{d.description}</div>
+              <div style={{ position: 'relative' }}><DayDetails p={p} day={d} size={1.5} /></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: u * 1.2, position: 'relative' }}>
+                <div style={{ width: s * 4.8, textAlign: 'right', fontSize: s * 2.2, color: 'var(--fsw-text-3)' }}>{Math.round(d.low)}°</div>
+                <RangeBar p={p} day={d} range={range} today={today} height={marks.bar} ring={marks.ring} />
+                <div style={{ width: s * 5.2, textAlign: 'right', fontSize: s * 2.2, fontWeight: 600 }}>{Math.round(d.high)}°</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}

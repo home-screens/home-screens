@@ -1,4 +1,4 @@
-import type { HourlyWeather, WeatherAlert } from './types';
+import type { HourlyWeather, ForecastDay, WeatherAlert } from './types';
 import type { WeatherConditionsEvent, WeatherAlertsEvent, WeatherCondition } from '../event-bus';
 
 /**
@@ -16,6 +16,35 @@ function mapDescriptionToCondition(description: string): WeatherCondition {
   if (d.includes('wind') || d.includes('gust')) return 'wind';
   if (d.includes('cloud') || d.includes('overcast') || d.includes('partly')) return 'clouds';
   return 'clear';
+}
+
+/**
+ * Today's range, reconciled with what the day has actually done.
+ *
+ * A provider's day-0 high and low are what its model expected, and after
+ * sunset two of them (NOAA, Environment Canada) have only "tonight" left and
+ * report the night's low as both numbers. Either way the wall can say
+ * "H 66°" while it is 80° outside. Two things are known for certain: the
+ * current reading, which is the first hourly entry on every provider, and
+ * the warmest and coldest readings the hub has recorded for this same day
+ * (`seen`, from `today-record.ts`). Today's high cannot be below either,
+ * nor its low above.
+ */
+export function reconcileTodayRange(
+  forecast: ForecastDay[],
+  hourly: HourlyWeather[],
+  seen?: { date: string; high: number; low: number },
+): ForecastDay[] {
+  const today = forecast[0];
+  const now = hourly[0];
+  if (!today || !now || !Number.isFinite(now.temp)) return forecast;
+  // The record is keyed by the forecast's own day; one from another day
+  // (the provider rolled over since the last poll) is not today's.
+  const sameDay = seen && seen.date === today.date ? seen : undefined;
+  const high = Math.max(today.high, now.temp, sameDay?.high ?? -Infinity);
+  const low = Math.min(today.low, now.temp, sameDay?.low ?? Infinity);
+  if (high === today.high && low === today.low) return forecast;
+  return [{ ...today, high, low }, ...forecast.slice(1)];
 }
 
 /** Derive a WeatherConditionsEvent from the first hourly entry (current conditions). */
