@@ -129,9 +129,10 @@ describe('useScaledFontSize', () => {
     // Smaller than it fits: the case a floor alone could never reach.
     mount({ mounted: true, scale: 50 });
     expect(latest()).toBe(20);
-    // The scale applies above the floor, so a small card still respects it.
+    // The floor arrives already scaled (resolveModuleStyle), so in a card that
+    // fits below it the floor is what shows.
     boxHeight = 100;
-    mount({ mounted: true, scale: 50 });
+    mount({ mounted: true, base: 8, scale: 50 });
     expect(latest()).toBe(8);
     // Out-of-range and nonsense values are clamped or ignored, never trusted.
     boxHeight = 400;

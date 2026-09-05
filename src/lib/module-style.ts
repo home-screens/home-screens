@@ -93,19 +93,18 @@ export function resolveTextScale(style: { textScale?: number }): number {
 }
 
 /**
- * The style a module renders with.
+ * The style a module renders with, applied once at the three render sites.
  *
- * Text size is a percent of what the module shows on its own. For a module
- * that fits its text to its box that is the fitted size, and the hook applies
- * the percent itself (with the pixel value as a floor), so the style passes
- * through untouched. For every other module it is the registry base, and the
- * effective pixel size is base times percent in `fontSize`'s place. A module
- * nobody has touched since Text size existed carries only the pixel value and
- * renders exactly as it always did; the first edit writes `textScale` and
- * resets `fontSize` to the base so the two never disagree.
+ * With `textScale` present, `fontSize` becomes base times percent. That is
+ * the text size on most modules, and on a module that fits its text to its
+ * box it is the floor, whose hook scales the fitted size by the same percent
+ * (see useScaledFontSize), so the whole module, card title included, follows
+ * the one number. A module nobody has touched since Text size existed
+ * carries only the pixel value and passes through untouched, rendering
+ * exactly as it always did; the first edit writes `textScale` and resets
+ * `fontSize` to the base so the two never disagree.
  */
 export function resolveModuleStyle(style: ModuleStyle, def: TextSizeDefinition | undefined): ModuleStyle {
-  if (def?.autoSizesText) return style;
   const pct = style.textScale;
   if (typeof pct !== 'number' || !Number.isFinite(pct)) return style;
   return { ...style, fontSize: moduleBaseFontSize(def) * resolveTextScale(style) };

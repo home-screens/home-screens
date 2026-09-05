@@ -18,17 +18,19 @@ import { resolveTextScale } from '@/lib/module-style';
  *
  * Fit to box is the default, and Text size scales it:
  *
- *   size = max(fontSize, fitted) * textScale
+ *   size = max(fontSize, fitted * textScale)
  *
  * - `fitted` is the card's height times the module's factor: what the module
  *   shows on its own, and what 100% means.
- * - `fontSize` is a floor in pixels the text never drops below. A module from
+ * - `textScale` (absent = 100%) scales it in both directions, so a new clock
+ *   can be made smaller than it fits as well as larger.
+ * - `fontSize` is a floor in pixels the text never drops below. It arrives
+ *   already scaled (resolveModuleStyle makes it base times percent once
+ *   `textScale` is set), so the floor follows the same number. A module from
  *   before Text size existed carries only this, and renders exactly as it
- *   always did. The editor shows that value as a percent of the fitted size
+ *   always did; the editor shows that value as a percent of the fitted size
  *   (published on the container as `data-fitted-px`), and the first edit
  *   writes `textScale` and resets the floor to the base.
- * - `textScale` (absent = 100%) scales the result in both directions, so a
- *   new clock can be made smaller than it fits as well as larger.
  *
  * The multiplier comes only from `textScale`, never from the pixel value.
  * For one release it came from `fontSize / 16`: at the default that is
@@ -78,7 +80,7 @@ export function useScaledFontSize(
     containerRef,
     // An unmeasured box needs no special case: it floors to the style size,
     // exactly what this hook has always reported until its element existed.
-    scaledFontSize: Math.max(floor, fitted) * resolveTextScale(style),
+    scaledFontSize: Math.max(floor, fitted * resolveTextScale(style)),
     boxWidth: box.width,
     boxHeight: box.height,
   };

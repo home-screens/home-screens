@@ -124,9 +124,9 @@ describe('the one Text size control', () => {
     expect(displayTextPercent(style, base16)).toBe(150);
   });
 
-  it('leaves a fitting module alone, whose hook applies the percent to the fit', () => {
+  it('scales a fitting module the same way: its floor becomes base times percent', () => {
     const style = { ...DEFAULT_MODULE_STYLE, fontSize: 16, textScale: 300 };
-    expect(resolveModuleStyle(style, fitting)).toBe(style);
+    expect(resolveModuleStyle(style, fitting).fontSize).toBe(48);
     expect(displayTextPercent(style, fitting, 40)).toBe(300);
   });
 
