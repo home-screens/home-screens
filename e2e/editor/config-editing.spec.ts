@@ -1523,21 +1523,19 @@ test.describe('PropertyPanel Style', () => {
 
   test('text size slider persists and enlarges the preview text', async ({ page, request }) => {
     await selectStyledGreeting(page, request);
-    // The greeting fits its text to its box: Text size raises its floor, and
-    // the size it paints is on the inner element, not the wrapper.
+    // The greeting fits its text to its box: Text size scales the fit, and the
+    // size it paints is on the inner element, not the wrapper.
     const inner = page.locator('[data-module-id="greeting-1"] div[style*="background-color"] div[style*="font-size"]').first();
     const readPx = () => inner.evaluate((el) => parseFloat((el as HTMLElement).style.fontSize));
     const before = await readPx();
     expect(before).toBeGreaterThan(0);
 
-    // 450% of the 16px base is a 72px floor, above anything this card fits.
     await autosaved(page, async () => {
-      await page.getByRole('slider', { name: 'Text size' }).fill('450');
+      await page.getByRole('slider', { name: 'Text size' }).fill('200');
     });
 
-    expect((await moduleInstance(request)).style.textScale).toBe(450);
-    expect(before).toBeLessThan(72);
-    await expect.poll(readPx).toBe(72);
+    expect((await moduleInstance(request)).style.textScale).toBe(200);
+    await expect.poll(readPx).toBeCloseTo(before * 2, 0);
   });
 
   test('background color picker persists and recolors the preview', async ({ page, request }) => {
@@ -2049,21 +2047,50 @@ test.describe('PropertyPanel Style section', () => {
     await expect(page.locator('[data-module-id="text-1"] div[style*="background-color"]').first()).toHaveAttribute('style', /font-size:\s*24px/);
   });
 
-  test('a module that fits its text reads its old pixel floor as a percent too', async ({ page, request }) => {
-    // 31px stored on a clock from before Text size existed: the same rule as
-    // every other module, 31 over the 16px base.
-    const mod = buildModuleInstance('clock');
-    mod.style = { ...mod.style, fontSize: 31 };
-    await selectModule(page, request, mod);
+  test('a module that fits its text is 100% at the fit and can go below it', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('clock'));
     await styleSection(page).click();
     const slider = page.getByRole('slider', { name: 'Text size' });
-    await expect(slider).toHaveValue('194');
+    await expect(slider).toHaveValue('100');
+    const inner = page.locator('[data-module-id="clock-1"] [data-fitted-px]');
+    const fitted = parseFloat((await inner.getAttribute('data-fitted-px')) ?? '0');
+    expect(fitted).toBeGreaterThan(16);
     await autosaved(page, async () => {
-      await slider.fill('300');
+      await slider.fill('50');
     });
     const style = (await getConfig(request)).screens[0].modules[0].style;
-    expect(style.textScale).toBe(300);
+    expect(style.textScale).toBe(50);
     expect(style.fontSize).toBe(16);
+    // The clock hands its size to its view, so read the largest type actually
+    // painted inside the card rather than any one element's inline style.
+    const largest = () => page.locator('[data-module-id="clock-1"]').evaluate((root) => {
+      let max = 0;
+      for (const el of Array.from(root.querySelectorAll('*'))) {
+        const own = Array.from(el.childNodes).some((n) => n.nodeType === 3 && (n.textContent ?? '').trim());
+        if (!own) continue;
+        const fs = parseFloat(getComputedStyle(el).fontSize);
+        if (Number.isFinite(fs) && fs > max) max = fs;
+      }
+      return max;
+    });
+    await expect.poll(largest).toBeLessThan(fitted * 3 * 0.55);
+    await expect.poll(largest).toBeGreaterThan(fitted * 3 * 0.45);
+  });
+
+  test('an old pixel floor above the fit reads as a percent of the fit and keeps its size', async ({ page, request }) => {
+    // 60px stored on a greeting from before Text size existed, in a card that
+    // fits smaller: the floor was what showed, so that is what 60 converts to.
+    const mod = buildModuleInstance('greeting', { name: 'FLOOR' });
+    mod.style = { ...mod.style, fontSize: 60 };
+    await selectModule(page, request, mod);
+    await styleSection(page).click();
+    const inner = page.locator('[data-module-id="greeting-1"] [data-fitted-px]');
+    const fitted = parseFloat((await inner.getAttribute('data-fitted-px')) ?? '0');
+    expect(fitted).toBeGreaterThan(0);
+    expect(fitted).toBeLessThan(60);
+    const expected = Math.round((60 / fitted) * 100);
+    await expect(page.getByRole('slider', { name: 'Text size' })).toHaveValue(String(expected));
+    await expect(inner).toHaveAttribute('style', /font-size:\s*60px/);
   });
 
   // A module that paints a field from its own settings (registry

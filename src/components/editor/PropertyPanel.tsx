@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
@@ -283,6 +283,29 @@ function TitleControl({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   );
 }
 
+/**
+ * The size a fitting module shows on its own, read off the canvas preview,
+ * which publishes it on its measuring element (useScaledFontSize). The panel
+ * needs it to show an old pixel floor as a percent of the fit. Polled rather
+ * than observed: it changes only when the card is resized, and a quarter
+ * second is below what anyone dragging a handle can see.
+ */
+function useFittedPx(moduleId: string, enabled: boolean): number | undefined {
+  const [fitted, setFitted] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!enabled) { setFitted(undefined); return; }
+    const read = () => {
+      const el = document.querySelector(`[data-module-id="${moduleId}"] [data-fitted-px]`);
+      const px = el ? parseFloat(el.getAttribute('data-fitted-px') ?? '') : Number.NaN;
+      setFitted(Number.isFinite(px) && px > 0 ? px : undefined);
+    };
+    read();
+    const id = window.setInterval(read, 250);
+    return () => window.clearInterval(id);
+  }, [moduleId, enabled]);
+  return fitted;
+}
+
 function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: string; t: TranslateFn }) {
   const { updateModuleStyle } = useEditorStore();
   const s = mod.style;
@@ -298,7 +321,8 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   // writes the percent and resets the pixel field to the base.
   const def = getModuleDefinition(mod.type);
   const basePx = moduleBaseFontSize(def);
-  const textPercent = displayTextPercent(s, def);
+  const fittedPx = useFittedPx(mod.id, !!def?.autoSizesText);
+  const textPercent = displayTextPercent(s, def, fittedPx);
   const owned = new Set(def?.ownsStyleFields ?? []);
 
   return (

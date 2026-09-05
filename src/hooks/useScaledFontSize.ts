@@ -1,8 +1,9 @@
 'use client';
 
-import type { RefCallback } from 'react';
+import { useCallback, useEffect, useRef, type RefCallback } from 'react';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 import { useElementBox } from './useElementBox';
+import { resolveTextScale } from '@/lib/module-style';
 
 /**
  * Scales a font size off the container's height, tracked with a callback ref.
@@ -15,18 +16,30 @@ import { useElementBox } from './useElementBox';
  * exist yet, and nothing re-runs it, so the size stayed at the raw style font
  * size for the life of the page. Every weather view rendered that way.
  *
- * `style.fontSize` is a **floor in pixels**: the module never renders below
- * it, however small its card, and in a card large enough it is the fitted
- * size that shows. That is what the field has always meant here, and it is
- * already the base times the Text size percent by the time it arrives (see
- * resolveModuleStyle), so the percent raises or lowers the floor and never
- * multiplies the fitted size. For one release it did (`fontSize / 16` as a
- * bias): at the default that is exactly 1, so every gallery shot at the
- * default passed, and every wall that had ever set a normal pixel size on one
- * of these modules had its fitted text multiplied by two or three.
+ * Fit to box is the default, and Text size scales it:
+ *
+ *   size = max(fontSize, fitted) * textScale
+ *
+ * - `fitted` is the card's height times the module's factor: what the module
+ *   shows on its own, and what 100% means.
+ * - `fontSize` is a floor in pixels the text never drops below. A module from
+ *   before Text size existed carries only this, and renders exactly as it
+ *   always did. The editor shows that value as a percent of the fitted size
+ *   (published on the container as `data-fitted-px`), and the first edit
+ *   writes `textScale` and resets the floor to the base.
+ * - `textScale` (absent = 100%) scales the result in both directions, so a
+ *   new clock can be made smaller than it fits as well as larger.
+ *
+ * The multiplier comes only from `textScale`, never from the pixel value.
+ * For one release it came from `fontSize / 16`: at the default that is
+ * exactly 1, so every gallery shot at the default passed, and every wall that
+ * had ever set a normal pixel size on one of these modules had its fitted
+ * text multiplied by two or three.
  */
+export const FITTED_PX_ATTR = 'data-fitted-px';
+
 export function useScaledFontSize(
-  style: Pick<ModuleStyle, 'fontSize'>,
+  style: Pick<ModuleStyle, 'fontSize' | 'textScale'>,
   scaleFactor: number,
 ): {
   containerRef: RefCallback<HTMLDivElement>;
@@ -44,17 +57,28 @@ export function useScaledFontSize(
   // change, but every factor would then need re-tuning and every wall with a
   // non-default padding would move. Left as is, on purpose, until the
   // auto-size rework in `.claude/plans/future/module-autosize-v2.md`.
-  const [containerRef, box] = useElementBox<HTMLDivElement>('padding');
+  const [attach, box] = useElementBox<HTMLDivElement>('padding');
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useCallback<RefCallback<HTMLDivElement>>((el) => {
+    elRef.current = el;
+    attach(el);
+  }, [attach]);
+  const fitted = box.height * scaleFactor;
   // A hand-edited config could carry 0 or a nonsense value; the default
   // floor keeps the module readable rather than rendering it at nothing.
   const floor = Number.isFinite(style.fontSize) && style.fontSize > 0
     ? style.fontSize
     : DEFAULT_MODULE_STYLE.fontSize;
+  // Published for the editor, which converts an old pixel floor to a percent
+  // of this rather than of the base (see displayTextPercent).
+  useEffect(() => {
+    elRef.current?.setAttribute(FITTED_PX_ATTR, String(Math.round(fitted * 100) / 100));
+  }, [fitted]);
   return {
     containerRef,
     // An unmeasured box needs no special case: it floors to the style size,
     // exactly what this hook has always reported until its element existed.
-    scaledFontSize: Math.max(floor, box.height * scaleFactor),
+    scaledFontSize: Math.max(floor, fitted) * resolveTextScale(style),
     boxWidth: box.width,
     boxHeight: box.height,
   };

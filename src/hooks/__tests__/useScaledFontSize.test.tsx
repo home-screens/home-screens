@@ -62,10 +62,10 @@ function mount(props: Parameters<typeof Harness>[0]) {
  * with `mounted` false the measured element does not exist yet, exactly as in
  * weather (always, on first paint) and news (whenever its feeds are in flight).
  */
-function Harness({ mounted, base = 16, factor = 0.1, tag = 'div' }: {
-  mounted: boolean; base?: number; factor?: number; tag?: 'div' | 'section';
+function Harness({ mounted, base = 16, scale, factor = 0.1, tag = 'div' }: {
+  mounted: boolean; base?: number; scale?: number; factor?: number; tag?: 'div' | 'section';
 }) {
-  const { containerRef, scaledFontSize } = useScaledFontSize({ fontSize: base }, factor);
+  const { containerRef, scaledFontSize } = useScaledFontSize({ fontSize: base, textScale: scale }, factor);
   return (
     <>
       <output data-testid="size">{scaledFontSize}</output>
@@ -115,13 +115,36 @@ describe('useScaledFontSize', () => {
   });
 
   it('a raised floor is what shows once it passes the fitted size', () => {
-    // Text size arrives here already applied to the floor (resolveModuleStyle):
-    // 300% of a 16px base is a 48px floor, which beats a 40px fit.
     boxHeight = 400;
     mount({ mounted: true, base: 48 });
     expect(latest()).toBe(48);
     mount({ mounted: true, base: 32 });
     expect(latest()).toBe(40);
+  });
+
+  it('Text size scales the fitted size in both directions, and absent is 100%', () => {
+    boxHeight = 400;
+    mount({ mounted: true, scale: 150 });
+    expect(latest()).toBe(60);
+    // Smaller than it fits: the case a floor alone could never reach.
+    mount({ mounted: true, scale: 50 });
+    expect(latest()).toBe(20);
+    // The scale applies above the floor, so a small card still respects it.
+    boxHeight = 100;
+    mount({ mounted: true, scale: 50 });
+    expect(latest()).toBe(8);
+    // Out-of-range and nonsense values are clamped or ignored, never trusted.
+    boxHeight = 400;
+    mount({ mounted: true, scale: 900 });
+    expect(latest()).toBe(180);
+    mount({ mounted: true, scale: Number.NaN });
+    expect(latest()).toBe(40);
+  });
+
+  it('publishes the fitted size for the editor', () => {
+    boxHeight = 400;
+    const { container } = mount({ mounted: true });
+    expect(container.querySelector('[data-fitted-px]')?.getAttribute('data-fitted-px')).toBe('40');
   });
 
   it('falls back to the raw size while the box measures zero', () => {

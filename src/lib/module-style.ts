@@ -59,16 +59,19 @@ export function svgFontSize(userUnits: number, styleFontSize: number): string {
 }
 
 /**
- * The one text-size control, Text size, is a percent of the module's base
- * pixel size (its registry default, 16 for almost every module). The range
- * covers every pixel value a wall already stores (8..72 on a 16px base is
- * 50%..450%), so nothing is lost when an old value is read as a percent.
+ * The one text-size control, Text size, is a percent of what the module shows
+ * on its own: the fitted size on a module that fits its text to its box, the
+ * registry base pixel size everywhere else. The range covers every pixel
+ * value a wall already stores (8..72 on a 16px base is 50%..450%), so nothing
+ * is lost when an old value is read as a percent.
  */
 export const TEXT_SCALE_MIN = 50;
 export const TEXT_SCALE_MAX = 450;
 
 /** What a module or plugin needs to know about its own defaults. */
 export interface TextSizeDefinition {
+  /** Fits its text to its box (useScaledFontSize); 100% is the fitted size. */
+  autoSizesText?: boolean;
   defaultStyle?: Partial<ModuleStyle>;
 }
 
@@ -90,35 +93,45 @@ export function resolveTextScale(style: { textScale?: number }): number {
 }
 
 /**
- * The style a module renders with. One rule, for every module:
+ * The style a module renders with.
  *
- *   effective fontSize = textScale present ? base * textScale : fontSize
- *
- * A module nobody has touched since Text size existed carries only the pixel
- * value, and it renders exactly as it always did. Once `textScale` is present
- * it wins, as a percent of the module's base, and the editor resets `fontSize`
- * to the base in the same edit so the two never disagree. What the module does
- * with the pixel size is its own business: most render text at it; the ones
- * that fit their text to their box treat it as the smallest the text can be
- * and grow past it to fill the card. Either way the percent never multiplies
- * a fitted size, which is what once doubled every touched wall.
+ * Text size is a percent of what the module shows on its own. For a module
+ * that fits its text to its box that is the fitted size, and the hook applies
+ * the percent itself (with the pixel value as a floor), so the style passes
+ * through untouched. For every other module it is the registry base, and the
+ * effective pixel size is base times percent in `fontSize`'s place. A module
+ * nobody has touched since Text size existed carries only the pixel value and
+ * renders exactly as it always did; the first edit writes `textScale` and
+ * resets `fontSize` to the base so the two never disagree.
  */
 export function resolveModuleStyle(style: ModuleStyle, def: TextSizeDefinition | undefined): ModuleStyle {
+  if (def?.autoSizesText) return style;
   const pct = style.textScale;
   if (typeof pct !== 'number' || !Number.isFinite(pct)) return style;
   return { ...style, fontSize: moduleBaseFontSize(def) * resolveTextScale(style) };
 }
 
 /**
- * The percent the Text size slider shows: the stored `textScale`, or the
- * pixel value as a percent of the base, so a wall with 34px stored on a 16px
- * module reads 213% and renders 34px. Same rule on every module.
+ * The percent the Text size slider shows: the stored `textScale`, or the old
+ * pixel value as a percent of what the module shows on its own.
+ *
+ * On a fixed-size module that is the base: 34px on a 16px base reads 213%.
+ * On a module that fits its text it is the fitted size the module publishes
+ * (`fittedPx`), and the pixel value was a floor: one below the fit never
+ * showed and reads 100%, one above it is what showed and reads its ratio, so
+ * 35px on a card that fits 18px reads 194%. Until the fit is known it reads
+ * 100%, which is the fit.
  */
-export function displayTextPercent(style: ModuleStyle, def: TextSizeDefinition | undefined): number {
+export function displayTextPercent(style: ModuleStyle, def: TextSizeDefinition | undefined, fittedPx?: number): number {
+  const clamp = (n: number) => Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, Math.round(n)));
   const pct = style.textScale;
-  if (typeof pct === 'number' && Number.isFinite(pct)) return Math.round(Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, pct)));
-  const derived = Math.round((style.fontSize / moduleBaseFontSize(def)) * 100);
-  return Number.isFinite(derived) ? Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, derived)) : 100;
+  if (typeof pct === 'number' && Number.isFinite(pct)) return clamp(pct);
+  if (def?.autoSizesText) {
+    if (typeof fittedPx !== 'number' || !Number.isFinite(fittedPx) || fittedPx <= 0) return 100;
+    return clamp(Math.max(100, (style.fontSize / fittedPx) * 100));
+  }
+  const derived = (style.fontSize / moduleBaseFontSize(def)) * 100;
+  return Number.isFinite(derived) ? clamp(derived) : 100;
 }
 
 /** Build the box-shadow CSS value for a module card. */

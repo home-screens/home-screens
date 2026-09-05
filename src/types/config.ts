@@ -59,14 +59,15 @@ export interface ModuleStyle {
   fontFamily: string;
   fontSize: number;
   /**
-   * Text size, as a percent of the module's base pixel size (its registry
-   * default; 50..450). The editor's only text-size control; it renders as
-   * `base * textScale` in `fontSize`'s place. Absent on any module not
-   * touched since it existed, whose `fontSize` then stands as it is, and the
-   * editor shows that value as a percent of the base. Kept apart from
-   * `fontSize` on purpose: a stored pixel value must never be reinterpreted
-   * as a multiplier of a fitted size (that happened once and doubled text on
-   * every wall that had touched the slider).
+   * Text size, as a percent of what the module shows on its own (50..450):
+   * the fitted size on a module that fits its text to its box, the registry
+   * base pixel size everywhere else. The editor's only text-size control.
+   * Absent on any module not touched since it existed, whose `fontSize` then
+   * stands as it is (the size, or the floor on a fitting module), and the
+   * editor shows that value as a percent. Kept apart from `fontSize` on
+   * purpose: a stored pixel value must never be reinterpreted as a multiplier
+   * of a fitted size (that happened once and doubled text on every wall that
+   * had touched the slider).
    */
   textScale?: number;
   /** Numeric weight 100–900. Omitted = normal (400). */
