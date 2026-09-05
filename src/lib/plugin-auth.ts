@@ -74,11 +74,32 @@ export async function readPluginTokensRaw(pluginId: string): Promise<PluginToken
   return tokenStoreFor(pluginId).read();
 }
 
+// Per-plugin save generation, bumped by every save or delete. A refresh reads
+// the tokens, spends a network round trip, then saves what it started from
+// plus a new access token. If the grant was replaced in the meantime (a
+// backup restore, a disconnect, a fresh sign-in), that save would put the
+// previous account's refresh token back over the new one, so a refresh only
+// commits while the generation it started under is still current. The
+// json-store write queue cannot provide this: it orders the file writes, not
+// the stale read that produced one.
+const tokenGenerations = new Map<string, number>();
+
+function tokenGeneration(pluginId: string): number {
+  return tokenGenerations.get(sanitizePluginId(pluginId)) ?? 0;
+}
+
+function bumpTokenGeneration(pluginId: string): void {
+  const safeId = sanitizePluginId(pluginId);
+  tokenGenerations.set(safeId, (tokenGenerations.get(safeId) ?? 0) + 1);
+}
+
 export async function savePluginTokens(pluginId: string, tokens: PluginTokens): Promise<void> {
+  bumpTokenGeneration(pluginId);
   await tokenStoreFor(pluginId).write(tokens);
 }
 
 export async function deletePluginTokens(pluginId: string): Promise<void> {
+  bumpTokenGeneration(pluginId);
   await tokenStoreFor(pluginId).remove().catch(() => {});
 }
 
@@ -523,6 +544,11 @@ async function pollDeviceFlowInner(pluginId: string, auth: OAuth2Auth): Promise<
 /* ─── Client Credentials flow ────────────────── */
 
 export async function runClientCredentialsFlow(pluginId: string, auth: OAuth2Auth): Promise<void> {
+  await savePluginTokens(pluginId, await mintClientCredentials(pluginId, auth));
+}
+
+/** One client_credentials token request; the caller decides whether to save. */
+async function mintClientCredentials(pluginId: string, auth: OAuth2Auth): Promise<PluginTokens> {
   const { clientId, clientSecret } = await getOAuthClientCredentials(pluginId, auth);
   const params: Record<string, string> = {
     grant_type: 'client_credentials',
@@ -539,7 +565,7 @@ export async function runClientCredentialsFlow(pluginId: string, auth: OAuth2Aut
       : typeof result.data.error === 'string' ? result.data.error : `HTTP ${result.status}`;
     throw new Error(`Could not connect: ${detail}`);
   }
-  await savePluginTokens(pluginId, parseTokenResponse(auth, result.data));
+  return parseTokenResponse(auth, result.data);
 }
 
 /* ─── Token injection (provider → proxy seam) ── */
@@ -579,10 +605,7 @@ async function refreshTokens(pluginId: string, auth: PluginAuth, tokens: PluginT
   if (!tokens.refresh_token) {
     if (auth.flow === 'client_credentials') {
       // No refresh tokens in this flow — just mint a new access token.
-      await runClientCredentialsFlow(pluginId, auth);
-      const renewed = await loadPluginTokens(pluginId);
-      if (!renewed) throw new Error('Token renewal failed');
-      return renewed;
+      return mintClientCredentials(pluginId, auth);
     }
     throw new Error('No refresh token stored — reconnect the account.');
   }
@@ -610,12 +633,22 @@ async function refreshTokens(pluginId: string, auth: PluginAuth, tokens: PluginT
 // cross-worker deployment would need a file mutex.
 const refreshInFlight = new Map<string, Promise<PluginTokens | null>>();
 
-function refreshSerialized(pluginId: string, auth: PluginAuth, tokens: PluginTokens): Promise<PluginTokens | null> {
+function refreshSerialized(
+  pluginId: string,
+  auth: PluginAuth,
+  tokens: PluginTokens,
+  /** The generation observed before `tokens` were read. */
+  startedAt: number,
+): Promise<PluginTokens | null> {
   const existing = refreshInFlight.get(pluginId);
   if (existing) return existing;
   const promise = (async () => {
     try {
       const renewed = await refreshTokens(pluginId, auth, tokens);
+      if (tokenGeneration(pluginId) !== startedAt) {
+        log.warn(`Token refresh discarded for plugin ${pluginId}: the stored grant was replaced while it was in flight`);
+        return null;
+      }
       await savePluginTokens(pluginId, renewed);
       audit({ action: 'plugin_token_refresh', pluginId });
       return renewed;
@@ -643,13 +676,14 @@ export async function getValidAccessToken(
   const auth = manifest?.auth;
   if (!auth) return null;
 
+  const startedAt = tokenGeneration(pluginId);
   const tokens = await loadPluginTokens(pluginId);
   if (!tokens) return null;
 
   const fresh = tokens.expiry_date > Date.now() + REFRESH_GRACE_MS;
   if (fresh && !opts?.force) return tokens.access_token;
 
-  const renewed = await refreshSerialized(pluginId, auth, tokens);
+  const renewed = await refreshSerialized(pluginId, auth, tokens, startedAt);
   return renewed?.access_token ?? null;
 }
 

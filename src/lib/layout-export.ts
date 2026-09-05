@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { ScreenConfiguration, Screen, Profile, ModuleInstance } from '@/types/config';
 import type { LayoutExport } from '@/types/layout-export';
+import { migrateScreens, getLatestSchemaVersion } from '@/lib/migrations';
 
 // ── Export ───────────────────────────────────────────────────────────
 
@@ -76,6 +77,16 @@ export function importLayout(
 ): ScreenConfiguration {
   const { mode, applyVisual = false } = options;
 
+  // Modules exported under an older schema are migrated first: the merged
+  // config already sits on the latest version, so nothing downstream would
+  // ever repair them. A file that does not say which version wrote it is
+  // taken as current (every export has recorded configVersion).
+  const sourceVersion = layout.metadata?.configVersion;
+  const sourceScreens = migrateScreens(
+    layout.screens,
+    typeof sourceVersion === 'number' && Number.isFinite(sourceVersion) ? sourceVersion : getLatestSchemaVersion(),
+  );
+
   // Scale and clamp modules to fit the target display
   const srcW = layout.metadata.sourceDisplay.width;
   const srcH = layout.metadata.sourceDisplay.height;
@@ -110,7 +121,7 @@ export function importLayout(
     mode === 'add' ? existingConfig.screens.map((s) => s.name) : [],
   );
 
-  const newScreens: Screen[] = layout.screens.map((screen) => {
+  const newScreens: Screen[] = sourceScreens.map((screen) => {
     const newScreenId = uuidv4();
     screenIdMap.set(screen.id, newScreenId);
 

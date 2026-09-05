@@ -5,7 +5,7 @@
     "name": "Weather Station",
     "description": "Comprehensive weather display with current conditions, forecasts, air quality, and rain radar",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 1,
+    "configVersion": 10,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 7

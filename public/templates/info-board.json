@@ -5,7 +5,7 @@
     "name": "Info Board",
     "description": "An information-rich board with news, stocks, word of the day, historical facts, and quotes",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 1,
+    "configVersion": 10,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 5
@@ -28,7 +28,9 @@
           "size": { "w": 1040, "h": 740 },
           "zIndex": 1,
           "config": {
-            "feedUrl": "",
+            "feeds": [
+              { "id": "tpl-info-m1-feed-1", "url": "https://feeds.bbci.co.uk/news/rss.xml", "label": "BBC News" }
+            ],
             "view": "list",
             "refreshIntervalMs": 300000,
             "rotateIntervalMs": 8000,

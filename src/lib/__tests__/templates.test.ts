@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { mockFetch, mockFetchError } from '@/test-utils';
+import { migrateUp } from '@/lib/migrations';
+import { validateLayoutExport } from '@/lib/layout-export';
+import type { LayoutExport } from '@/types/layout-export';
 import {
   getDisplayOrientation,
   loadTemplate,
@@ -187,6 +192,40 @@ describe('TEMPLATE_CATALOG data integrity', () => {
   it('all template descriptions are non-empty strings', () => {
     for (const t of TEMPLATE_CATALOG) {
       expect(t.description.trim().length, `${t.id}: description should be non-empty`).toBeGreaterThan(0);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bundled template files
+// ---------------------------------------------------------------------------
+describe('bundled template files', () => {
+  const TEMPLATES_DIR = path.join(__dirname, '..', '..', '..', 'public', 'templates');
+
+  async function readTemplate(filename: string): Promise<LayoutExport> {
+    return JSON.parse(await fs.readFile(path.join(TEMPLATES_DIR, filename), 'utf-8'));
+  }
+
+  const files = TEMPLATE_CATALOG.flatMap((t) => [t.portrait, t.landscape]);
+
+  it('every catalog entry points at a valid layout file', async () => {
+    for (const filename of files) {
+      const layout = await readTemplate(filename);
+      const result = validateLayoutExport(layout);
+      expect(result.errors, filename).toEqual([]);
+    }
+  });
+
+  it('every template already carries the current module shapes', async () => {
+    // A template written for an older schema is migrated on import (see
+    // importLayout), but the bundled files should not depend on that: a
+    // migration that changes something here means a template fell behind.
+    for (const filename of files) {
+      const layout = await readTemplate(filename);
+      const synthetic = { version: layout.metadata.configVersion, settings: {}, screens: layout.screens } as never;
+      const { config } = migrateUp(synthetic);
+      expect(config.screens, `${filename} is behind the current schema`).toEqual(layout.screens);
+      expect(JSON.stringify(layout), `${filename} still uses the retired news feedUrl`).not.toContain('"feedUrl"');
     }
   });
 });

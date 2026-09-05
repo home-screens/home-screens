@@ -1,4 +1,4 @@
-import type { ScreenConfiguration } from '@/types/config';
+import type { ScreenConfiguration, Screen, GlobalSettings } from '@/types/config';
 import { v4ToV5 } from './v4-to-v5';
 import { v5ToV6 } from './v5-to-v6';
 import { v6ToV7 } from './v6-to-v7';
@@ -109,6 +109,21 @@ export function migrateUp(
   }
 
   return { config: result, migrationsRun };
+}
+
+/**
+ * Bring screens authored under an older schema up to the current one, for
+ * content that arrives from outside config.json (layout imports, bundled
+ * templates). Migrate-on-boot never revisits these: by the time they are
+ * merged, the surrounding config already carries the latest version, so any
+ * module still on an old shape (a news `feedUrl`, say) would stay broken for
+ * good. Only module-level changes matter here; settings-level migrations run
+ * against an empty settings object and their output is discarded.
+ */
+export function migrateScreens(screens: Screen[], fromVersion: number): Screen[] {
+  if (fromVersion >= getLatestSchemaVersion()) return screens;
+  const synthetic = { version: fromVersion, settings: {} as GlobalSettings, screens };
+  return migrateUp(synthetic).config.screens;
 }
 
 /** Get the latest schema version */

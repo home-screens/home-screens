@@ -328,6 +328,54 @@ describe('importLayout', () => {
     expect(mod.size).toEqual({ w: 400, h: 300 });
   });
 
+  it('migrates modules exported under an older schema before merging them', () => {
+    const screen = makeScreen('s1', 'Old export', 0);
+    screen.modules = [
+      {
+        ...makeScreen('n', 'x').modules[0],
+        id: 'news-1',
+        type: 'news',
+        config: { feedUrl: '', view: 'list' },
+      },
+      {
+        ...makeScreen('c', 'x').modules[0],
+        id: 'cd-1',
+        type: 'countdown',
+        config: { view: 'next', scale: 1 },
+      },
+    ];
+    const layout = { ...makeLayout([screen]), metadata: { ...makeLayout([screen]).metadata, configVersion: 5 } };
+    const existing = makeConfig([]);
+    existing.version = 10;
+
+    const result = importLayout(layout, existing, { mode: 'add' });
+
+    const [news, countdown] = result.screens[0].modules;
+    expect(news.config).toEqual({
+      view: 'list',
+      feeds: [{ id: 'news-1-feed-1', url: 'https://feeds.bbci.co.uk/news/rss.xml', label: 'BBC News' }],
+    });
+    expect(countdown.config).toEqual({ view: 'next', scale: 1.3 });
+    // The source file is not mutated in place.
+    expect(layout.screens[0].modules[0].config).toEqual({ feedUrl: '', view: 'list' });
+  });
+
+  it('leaves modules from a current export untouched', () => {
+    const screen = makeScreen('s1', 'Current export', 0);
+    const feeds = [{ id: 'f1', url: 'https://example.com/rss' }];
+    screen.modules = [
+      { ...makeScreen('n', 'x').modules[0], id: 'news-1', type: 'news', config: { feeds, view: 'list' } },
+      { ...makeScreen('c', 'x').modules[0], id: 'cd-1', type: 'countdown', config: { view: 'next', scale: 1 } },
+    ];
+    const base = makeLayout([screen]);
+    const layout = { ...base, metadata: { ...base.metadata, configVersion: 10 } };
+
+    const result = importLayout(layout, makeConfig([]), { mode: 'add' });
+
+    expect(result.screens[0].modules[0].config).toEqual({ feeds, view: 'list' });
+    expect(result.screens[0].modules[1].config).toEqual({ view: 'next', scale: 1 });
+  });
+
   it('clears activeProfile on replace mode', () => {
     const existing = makeConfig([makeScreen('e1', 'Old')]);
     existing.settings.activeProfile = 'old-profile-id';

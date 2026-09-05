@@ -5,7 +5,7 @@
     "name": "Productivity",
     "description": "Task management, calendar, countdowns, and year progress tracking for staying on top of your schedule",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 1,
+    "configVersion": 10,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 4

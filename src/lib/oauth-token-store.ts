@@ -66,12 +66,20 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   const log = logger(opts.logName);
   let refreshInFlight: Promise<string | null> | null = null;
 
+  // Bumped by every save. A refresh reads the tokens, spends a network round
+  // trip, then saves what it started from plus a new access token. If the
+  // grant was replaced in the meantime (a backup restore, a disconnect, a
+  // fresh sign-in), that save would put the previous account's refresh token
+  // back over the new one, so a refresh only commits while the generation it
+  // started under is still current. The write queue below cannot provide
+  // this: it orders the file writes, not the stale read that produced one.
+  let generation = 0;
+
   // Same store the other secret files use (secrets.json, auth.json): writes
-  // are queued (so a disconnect can't interleave with an in-flight refresh's
-  // save), tmp+rename atomic (so a power cut on the Pi can't leave a torn
-  // tokens file), and chmod'd before the rename (so a refresh token is never
-  // briefly world-readable). No dirMode: these live directly in data/, which
-  // is shared with non-secret files.
+  // are queued, tmp+rename atomic (so a power cut on the Pi can't leave a
+  // torn tokens file), and chmod'd before the rename (so a refresh token is
+  // never briefly world-readable). No dirMode: these live directly in data/,
+  // which is shared with non-secret files.
   const store = createJsonStore<StoredOAuthTokens | null>({
     path: opts.tokensPath,
     defaultValue: null,
@@ -83,10 +91,12 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   }
 
   async function saveTokens(tokens: StoredOAuthTokens): Promise<void> {
+    generation += 1;
     await store.write(tokens);
   }
 
-  async function refreshAccessToken(tokens: StoredOAuthTokens): Promise<string | null> {
+  /** `startedAt` is the generation observed before the tokens were read. */
+  async function refreshAccessToken(tokens: StoredOAuthTokens, startedAt: number): Promise<string | null> {
     let credentials: Record<string, string>;
     try {
       credentials = await opts.getCredentials();
@@ -108,6 +118,10 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
       log.error('Token refresh failed:', data.error_description || data.error || res.status);
       return null;
     }
+    if (generation !== startedAt) {
+      log.warn('Token refresh discarded: the stored grant was replaced while it was in flight');
+      return null;
+    }
     await saveTokens({
       ...tokens,
       access_token: data.access_token,
@@ -120,6 +134,7 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   }
 
   async function getAccessToken(): Promise<string | null> {
+    const startedAt = generation;
     const tokens = await loadTokens();
     if (!tokens) return null;
 
@@ -136,7 +151,7 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
     }
 
     if (!refreshInFlight) {
-      refreshInFlight = refreshAccessToken(tokens).finally(() => { refreshInFlight = null; });
+      refreshInFlight = refreshAccessToken(tokens, startedAt).finally(() => { refreshInFlight = null; });
     }
     return refreshInFlight;
   }

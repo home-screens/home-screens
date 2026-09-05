@@ -5,7 +5,7 @@
     "name": "Family Dashboard",
     "description": "A family-friendly dashboard with clock, greeting, weather, calendar, and countdown modules",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 1,
+    "configVersion": 10,
     "sourceDisplay": { "width": 1920, "height": 1080 },
     "screenCount": 1,
     "moduleCount": 5

@@ -219,6 +219,70 @@ describe('plugin-auth getValidAccessToken', () => {
   });
 });
 
+describe('plugin-auth refresh racing a replaced grant', () => {
+  /** A fetch that stays pending until the test releases it. */
+  function deferredFetch(body: unknown) {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn().mockImplementation(() => gate.then(() => jsonResponse(body)));
+    vi.stubGlobal('fetch', fetchMock);
+    return { fetchMock, release };
+  }
+
+  it('discards a refresh that finishes after a restore replaced the tokens', async () => {
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { fetchMock, release } = deferredFetch({ access_token: 'renewed-old', expires_in: 3600 });
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'stale', refresh_token: 'rt-old-account', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+
+    const pending = getValidAccessToken('p1');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const restored = { access_token: 'at-restored', refresh_token: 'rt-restored', token_type: 'Bearer', expiry_date: Date.now() + 3600_000 };
+    await savePluginTokens('p1', restored);
+    release();
+
+    expect(await pending).toBeNull();
+    expect(await loadPluginTokens('p1')).toEqual(restored);
+    // The restored grant serves from then on, with no second refresh.
+    expect(await getValidAccessToken('p1')).toBe('at-restored');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the account disconnected when a refresh finishes after disconnect', async () => {
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { fetchMock, release } = deferredFetch({ access_token: 'renewed', expires_in: 3600 });
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens, disconnectPluginAuth } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'stale', refresh_token: 'rt-1', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+
+    const pending = getValidAccessToken('p1');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await disconnectPluginAuth('p1');
+    release();
+
+    expect(await pending).toBeNull();
+    expect(await loadPluginTokens('p1')).toBeNull();
+  });
+
+  it('client_credentials re-mint writes the tokens once and honours the same check', async () => {
+    await seedManifest('p1', CLIENT_CREDS_MANIFEST);
+    await seedSecret('p1', { client_id: 'cid', client_secret: 'sek' });
+    const { fetchMock, release } = deferredFetch({ access_token: 'reminted', expires_in: 3600 });
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'old', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+
+    const pending = getValidAccessToken('p1');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const restored = { access_token: 'at-restored', token_type: 'Bearer', expiry_date: Date.now() + 3600_000 };
+    await savePluginTokens('p1', restored);
+    release();
+
+    expect(await pending).toBeNull();
+    expect(await loadPluginTokens('p1')).toEqual(restored);
+  });
+});
+
 describe('plugin-auth authorization_code callback', () => {
   it('applies tokenResponseTransform to a non-standard token response', async () => {
     await seedManifest('p1', {

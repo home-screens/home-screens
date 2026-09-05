@@ -159,3 +159,61 @@ describe('createOAuthTokenStore', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 });
+
+describe('createOAuthTokenStore: grant replaced during a refresh', () => {
+  /** A fetch that stays pending until the test releases it. */
+  function deferredFetch() {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    mockFetch.mockImplementation(() => gate.then(() => tokenResponse({ refresh_token: undefined })));
+    return release;
+  }
+
+  it('discards a refresh that finishes after a restore replaced the tokens', async () => {
+    tokensContent = JSON.stringify({ refresh_token: 'rt-old-account', access_token: 'stale' });
+    const release = deferredFetch();
+    const store = createOAuthTokenStore(idOnlyOpts());
+
+    const pending = store.getAccessToken();
+    await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    await store.saveTokens({ refresh_token: 'rt-restored', access_token: 'at-restored', expiry_date: Date.now() + 3_600_000 });
+    release();
+
+    expect(await pending).toBeNull();
+    expect(JSON.parse(tokensContent!)).toEqual({
+      refresh_token: 'rt-restored',
+      access_token: 'at-restored',
+      expiry_date: expect.any(Number),
+    });
+    // The restored grant serves from then on, with no second refresh.
+    expect(await store.getAccessToken()).toBe('at-restored');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the account disconnected when a refresh finishes after disconnect', async () => {
+    tokensContent = JSON.stringify({ refresh_token: 'rt-1', access_token: 'stale' });
+    const release = deferredFetch();
+    const store = createOAuthTokenStore(idOnlyOpts());
+
+    const pending = store.getAccessToken();
+    await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(1));
+    await store.disconnect();
+    release();
+
+    expect(await pending).toBeNull();
+    expect(JSON.parse(tokensContent!)).toEqual({});
+    expect(await store.isConnected()).toBe(false);
+  });
+
+  it('commits a refresh nothing interrupted', async () => {
+    tokensContent = JSON.stringify({ refresh_token: 'rt-1', access_token: 'stale' });
+    const release = deferredFetch();
+    const store = createOAuthTokenStore(idOnlyOpts());
+
+    const pending = store.getAccessToken();
+    release();
+
+    expect(await pending).toBe('at-new');
+    expect(JSON.parse(tokensContent!).access_token).toBe('at-new');
+  });
+});

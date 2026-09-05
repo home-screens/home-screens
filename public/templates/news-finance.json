@@ -5,7 +5,7 @@
     "name": "News & Finance",
     "description": "Stay informed with news headlines, stock market tickers, and cryptocurrency prices",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 1,
+    "configVersion": 10,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 3
@@ -28,7 +28,9 @@
           "size": { "w": 1040, "h": 620 },
           "zIndex": 1,
           "config": {
-            "feedUrl": "",
+            "feeds": [
+              { "id": "tpl-newsfi-m1-feed-1", "url": "https://feeds.bbci.co.uk/news/rss.xml", "label": "BBC News" }
+            ],
             "view": "headline",
             "refreshIntervalMs": 300000,
             "rotateIntervalMs": 6000,
