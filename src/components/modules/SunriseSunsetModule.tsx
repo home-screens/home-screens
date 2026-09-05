@@ -80,7 +80,7 @@ function arcPoint(progress: number, cx: number, cy: number, rx: number, ry: numb
 function SunArcView({
   times,
   now,
-  fontScale,
+  textScale,
   showDayLength,
   showGoldenHour,
   t,
@@ -98,7 +98,8 @@ function SunArcView({
   polar: PolarKind;
   locale: string;
   /** Module `Style > Font size`, biasing the SVG's user-unit text. */
-  fontScale: number;
+  /** The module style; SVG labels scale with its Text size (svgFontSize). */
+  textScale: Pick<ModuleStyle, 'textScale'>;
   /** Zone, locale and 12/24 for every clock time this view prints. */
   clock: ClockFormat;
 }) {
@@ -214,7 +215,7 @@ function SunArcView({
                 textAnchor="middle"
                 fill="currentColor"
                 fillOpacity={TEXT_OPACITY.dim}
-                style={{ fontSize: svgFontSize(8, fontScale) }}
+                style={{ fontSize: svgFontSize(8, textScale) }}
               >
                 {formatTimeInTZ(times.goldenHour, clock)}
               </text>
@@ -237,7 +238,7 @@ function SunArcView({
           textAnchor="middle"
           fill="currentColor"
           fillOpacity={TEXT_OPACITY.tertiary}
-          style={{ fontSize: svgFontSize(8, fontScale) }}
+          style={{ fontSize: svgFontSize(8, textScale) }}
         >
           {t('sunrise-sunset.noon')}
         </text>
@@ -260,7 +261,7 @@ function SunArcView({
           textAnchor="middle"
           fill="currentColor"
           fillOpacity={TEXT_OPACITY.secondary}
-          style={{ fontSize: svgFontSize(9, fontScale) }}
+          style={{ fontSize: svgFontSize(9, textScale) }}
         >
           {formatTimeInTZ(sunrise, clock)}
         </text>
@@ -270,7 +271,7 @@ function SunArcView({
           textAnchor="middle"
           fill="currentColor"
           fillOpacity={TEXT_OPACITY.tertiary}
-          style={{ fontSize: svgFontSize(7, fontScale) }}
+          style={{ fontSize: svgFontSize(7, textScale) }}
         >
           {t('sunrise-sunset.riseShort')}
         </text>
@@ -281,7 +282,7 @@ function SunArcView({
           textAnchor="middle"
           fill="currentColor"
           fillOpacity={TEXT_OPACITY.secondary}
-          style={{ fontSize: svgFontSize(9, fontScale) }}
+          style={{ fontSize: svgFontSize(9, textScale) }}
         >
           {formatTimeInTZ(sunset, clock)}
         </text>
@@ -291,7 +292,7 @@ function SunArcView({
           textAnchor="middle"
           fill="currentColor"
           fillOpacity={TEXT_OPACITY.tertiary}
-          style={{ fontSize: svgFontSize(7, fontScale) }}
+          style={{ fontSize: svgFontSize(7, textScale) }}
         >
           {t('sunrise-sunset.setShort')}
         </text>
@@ -428,7 +429,7 @@ function CircleView({
   times,
   now,
   timezone,
-  fontScale,
+  textScale,
   showDayLength,
   showGoldenHour,
   t,
@@ -449,7 +450,8 @@ function CircleView({
   locale: string;
   theme?: SunriseSunsetTheme;
   /** Module `Style > Font size`, biasing the SVG's user-unit text. */
-  fontScale: number;
+  /** The module style; SVG labels scale with its Text size (svgFontSize). */
+  textScale: Pick<ModuleStyle, 'textScale'>;
   /** Zone, locale and 12/24 for every clock time this view prints. */
   clock: ClockFormat;
 }) {
@@ -644,11 +646,11 @@ function CircleView({
 
         {/* noon / midnight notches + inside words */}
         <line x1={CIRCLE.cx} y1={CIRCLE.cy - CIRCLE_R - 6} x2={CIRCLE.cx} y2={CIRCLE.cy - CIRCLE_R + 6} stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" />
-        <text x={CIRCLE.cx} y={CIRCLE.cy - CIRCLE_R + 17} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(6.5, fontScale) }}>
+        <text x={CIRCLE.cx} y={CIRCLE.cy - CIRCLE_R + 17} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(6.5, textScale) }}>
           {t('sunrise-sunset.noon')}
         </text>
         <line x1={CIRCLE.cx} y1={CIRCLE.cy + CIRCLE_R - 6} x2={CIRCLE.cx} y2={CIRCLE.cy + CIRCLE_R + 6} stroke="currentColor" strokeOpacity="0.4" strokeWidth="2" />
-        <text x={CIRCLE.cx} y={CIRCLE.cy + CIRCLE_R - 11} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(6.5, fontScale) }}>
+        <text x={CIRCLE.cx} y={CIRCLE.cy + CIRCLE_R - 11} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(6.5, textScale) }}>
           {t('sunrise-sunset.midnight')}
         </text>
 
@@ -659,10 +661,10 @@ function CircleView({
           return (
             <g key={m.wordKey}>
               <circle cx={pt[0]} cy={pt[1]} r="3" fill="#e2e8f0" stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
-              <text x={lp.x} y={lp.y} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, fontScale) }}>
+              <text x={lp.x} y={lp.y} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, textScale) }}>
                 {formatTimeInTZ(m.time, clock)}
               </text>
-              <text x={lp.x} y={lp.y + 9} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: svgFontSize(6, fontScale) }}>
+              <text x={lp.x} y={lp.y + 9} textAnchor={lp.anchor} fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: svgFontSize(6, textScale) }}>
                 {t(m.wordKey)}
               </text>
             </g>
@@ -673,10 +675,10 @@ function CircleView({
         {goldenPt && (
           <g>
             <circle cx={goldenPt[0]} cy={goldenPt[1]} r="3.5" fill={goldenDotColor} stroke="currentColor" strokeOpacity="0.6" strokeWidth="1.5" />
-            <text x={goldenPt[0] - 11} y={goldenPt[1] - 2.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: svgFontSize(6, fontScale) }}>
+            <text x={goldenPt[0] - 11} y={goldenPt[1] - 2.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.tertiary} style={{ fontSize: svgFontSize(6, textScale) }}>
               {t('sunrise-sunset.goldenHourLabel')}
             </text>
-            <text x={goldenPt[0] - 11} y={goldenPt[1] + 6.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, fontScale) }}>
+            <text x={goldenPt[0] - 11} y={goldenPt[1] + 6.5} textAnchor="end" fill="currentColor" fillOpacity={TEXT_OPACITY.secondary} style={{ fontSize: svgFontSize(7.5, textScale) }}>
               {formatTimeInTZ(goldenHour, clock)}
             </text>
           </g>
@@ -700,12 +702,12 @@ function CircleView({
 
         {/* centered durations (polar dials get a caption in place of day length) */}
         {sunInvalid ? (
-          <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(10, fontScale) }}>
+          <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" fillOpacity={TEXT_OPACITY.dim} style={{ fontSize: svgFontSize(10, textScale) }}>
             {midnightSun ? t('sunrise-sunset.midnightSun') : t('sunrise-sunset.polarNight')}
           </text>
         ) : (
           showDayLength && (
-            <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" style={{ fontSize: svgFontSize(15, fontScale), fontWeight: 300 }}>
+            <text x={CIRCLE.cx} y={CIRCLE.cy - 3} textAnchor="middle" fill="currentColor" style={{ fontSize: svgFontSize(15, textScale), fontWeight: 300 }}>
               {getDayLength(sunrise, sunset, locale)}
             </text>
           )
@@ -717,7 +719,7 @@ function CircleView({
             textAnchor="middle"
             fill="currentColor"
             fillOpacity={TEXT_OPACITY.dim}
-            style={{ fontSize: svgFontSize(10, fontScale) }}
+            style={{ fontSize: svgFontSize(10, textScale) }}
           >
             {t('sunrise-sunset.circleDarkLength', { length: formatDurationMs(dark.lengthMs, locale) })}
           </text>
@@ -768,7 +770,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           dark={dark}
           polar={polar}
           locale={locale}
-          fontScale={style.fontSize}
+          textScale={style}
           clock={clock}
         />
       ) : view === 'circle' ? (
@@ -783,7 +785,7 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
           polar={polar}
           locale={locale}
           theme={config.theme}
-          fontScale={style.fontSize}
+          textScale={style}
           clock={clock}
         />
       ) : (

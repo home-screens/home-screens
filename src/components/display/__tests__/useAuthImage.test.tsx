@@ -8,7 +8,7 @@ vi.mock('@/lib/display-fetch', () => ({
 }));
 
 import { displayFetch } from '@/lib/display-fetch';
-import { useAuthImage } from '../useAuthImage';
+import { useAuthImage, useAuthImageState } from '../useAuthImage';
 
 const mockDisplayFetch = vi.mocked(displayFetch);
 
@@ -75,6 +75,30 @@ describe('useAuthImage', () => {
 
     await act(async () => { resolveB(); });
     expect(result.current).toBe('blob:mock-2');
+  });
+
+  it('reports a failed fetch for the current src, and recovers on the next src', async () => {
+    mockDisplayFetch.mockResolvedValueOnce({ ok: false, status: 404 } as never);
+    const { result, rerender } = renderHook(
+      ({ src }) => useAuthImageState(src, { holdPrevious: false }),
+      { initialProps: { src: '/api/onedrive/serve?itemId=dead' } },
+    );
+    expect(result.current.status).toBe('loading');
+    await act(async () => { await Promise.resolve(); });
+    expect(result.current).toEqual({ url: undefined, status: 'failed' });
+
+    const resolveB = deferredResponse();
+    rerender({ src: '/api/onedrive/serve?itemId=b' });
+    expect(result.current.status).toBe('loading');
+    await act(async () => { resolveB(); });
+    expect(result.current).toEqual({ url: 'blob:mock-1', status: 'ready' });
+  });
+
+  it('reports a network error as failed', async () => {
+    mockDisplayFetch.mockRejectedValueOnce(new Error('offline'));
+    const { result } = renderHook(() => useAuthImageState('/api/immich/serve?assetId=x'));
+    await act(async () => { await Promise.resolve(); });
+    expect(result.current.status).toBe('failed');
   });
 
   it('returns static paths directly without fetching', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow, colorWithAlpha, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize } from '../module-style';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
+import { buildModuleShadow, colorWithAlpha, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
+import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 
 describe('buildModuleShadow', () => {
   it('returns "none" when shadowSize is 0', () => {
@@ -97,6 +97,22 @@ describe('resolveTextScale', () => {
   });
 });
 
+describe('svgFontSize', () => {
+  it('leaves SVG labels alone on a module that carries only the old pixel size', () => {
+    // 48px stored on a sun arc meant 48px HTML text and unchanged labels; the
+    // stored pixel value is never a multiplier.
+    const legacy: ModuleStyle = { ...DEFAULT_MODULE_STYLE, fontSize: 48 };
+    expect(svgFontSize(9, legacy)).toBe('9px');
+    expect(svgFontSize(9, {})).toBe('9px');
+  });
+
+  it('scales SVG labels by Text size once it is set', () => {
+    expect(svgFontSize(9, { textScale: 300 })).toBe('27px');
+    expect(svgFontSize(8, { textScale: 50 })).toBe('4px');
+    expect(svgFontSize(9, { textScale: 100 })).toBe('9px');
+  });
+});
+
 describe('the one Text size control', () => {
   const base16 = {};
   const base26 = { defaultStyle: { fontSize: 26 } };
@@ -137,6 +153,24 @@ describe('the one Text size control', () => {
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 31 }, fitting, 34)).toBe(100);
     // Fit not known yet: the fit is what it shows.
     expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 31 }, fitting)).toBe(100);
+  });
+
+  it('reads an instance with the fit switched off as a percent of the base', () => {
+    // A multi-month calendar from before `fitToBox` existed renders its
+    // literal pixel size; its 100% is the base, not the fit it never uses.
+    const fitting26 = { autoSizesText: true, defaultStyle: { fontSize: 26 }, textFitEnabled: (c: Record<string, unknown>) => c.fitToBox === true };
+    const off = textSizeDefinitionFor(fitting26, {});
+    expect(off?.autoSizesText).toBe(false);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 52 }, off, 40)).toBe(200);
+    // ...and the next nudge of the slider lands next to the old size, not far below it.
+    expect(resolveModuleStyle({ ...DEFAULT_MODULE_STYLE, fontSize: 26, textScale: 201 }, off).fontSize).toBeCloseTo(52.26);
+
+    const on = textSizeDefinitionFor(fitting26, { fitToBox: true });
+    expect(on?.autoSizesText).toBe(true);
+    expect(displayTextPercent({ ...DEFAULT_MODULE_STYLE, fontSize: 52 }, on, 40)).toBe(130);
+    // Modules without a per-instance switch are untouched.
+    expect(textSizeDefinitionFor(fitting, {})).toBe(fitting);
+    expect(textSizeDefinitionFor(base16, {})).toBe(base16);
   });
 
   it('keeps the slider inside its range whatever the file holds', () => {

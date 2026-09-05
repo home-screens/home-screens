@@ -22,6 +22,20 @@ const ALWAYS_ASLEEP: SleepSettings = {
   schedule: { startTime: '00:00', endTime: '23:59' },
 };
 
+// Idle dimming off so the schedule is the only thing that could re-sleep it.
+const OVERNIGHT: SleepSettings = {
+  ...ALWAYS_ASLEEP,
+  idleDimEnabled: false,
+  schedule: { startTime: '23:00', endTime: '06:00' },
+};
+
+const IDLE_ONLY: SleepSettings = {
+  enabled: true,
+  dimAfterMinutes: 5,
+  sleepAfterMinutes: 5,
+  dimBrightness: 20,
+};
+
 describe('useSleepManager alert wake', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -84,6 +98,42 @@ describe('useSleepManager alert wake', () => {
     act(() => { result.current.releaseAlertWake(); });
     expect(result.current.displayState).toBe('dimmed');
     expect(result.current.dimOpacity).toBeCloseTo(0.6);
+  });
+
+  it('an alert that outlives the overnight sleep window leaves the display awake on release', async () => {
+    // Schedule 23:00-06:00, alert at 02:00, dismissed at 08:00. The schedule
+    // ended while the alert was up; release must honor that, not re-judge
+    // "no window open" as "this sleep was manual" and black out the day.
+    vi.setSystemTime(new Date(2025, 0, 15, 2, 0, 0));
+    const { result } = renderHook(() => useSleepManager(OVERNIGHT, undefined));
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(result.current.displayState).toBe('asleep');
+
+    act(() => { result.current.wakeForAlert(); });
+    expect(result.current.displayState).toBe('active');
+    await act(async () => { await vi.advanceTimersByTimeAsync(6 * 60 * 60_000); });
+    expect(result.current.displayState).toBe('active');
+
+    act(() => { result.current.releaseAlertWake(); });
+    expect(result.current.displayState).toBe('active');
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+    expect(result.current.displayState).toBe('active');
+  });
+
+  it('restores an idle dim with its idle clock intact instead of escalating to sleep', async () => {
+    const { result } = renderHook(() => useSleepManager(IDLE_ONLY, undefined));
+    // 6 minutes idle: past dimAfter (5), short of dimAfter + sleepAfter (10).
+    await act(async () => { await vi.advanceTimersByTimeAsync(6 * 60_000); });
+    expect(result.current.displayState).toBe('dimmed');
+
+    act(() => { result.current.wakeForAlert(); });
+    act(() => { result.current.releaseAlertWake(); });
+    expect(result.current.displayState).toBe('dimmed');
+    // Ticks continue from six minutes idle, not from "idle forever".
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(result.current.displayState).toBe('dimmed');
+    await act(async () => { await vi.advanceTimersByTimeAsync(4 * 60_000); });
+    expect(result.current.displayState).toBe('asleep');
   });
 
   it('a second urgent alert during the wake keeps the first snapshot; release is a no-op without a wake', () => {

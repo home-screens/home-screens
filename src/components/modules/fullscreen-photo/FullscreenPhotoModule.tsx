@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle, TimeFormat } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
-import { useAuthImage } from '@/components/display/useAuthImage';
+import { useAuthImageState } from '@/components/display/useAuthImage';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
@@ -14,6 +14,7 @@ import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoLayer from '../shared/VideoLayer';
+import { useCrossfadeLayers, type LayerIndex } from '../shared/useCrossfadeLayers';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 const NO_ITEMS: MediaListItem[] = [];
@@ -40,17 +41,28 @@ function SlideLayer({
   transition,
   kenBurns,
   layerIndex,
+  onReady,
+  onFailed,
 }: {
   src: string;
   active: boolean;
   objectFit?: React.CSSProperties['objectFit'];
   transition: FullscreenPhotoConfig['transition'];
   kenBurns: boolean;
-  layerIndex: number;
+  layerIndex: LayerIndex;
+  /** The image for `src` is painted; the crossfade may bring this layer up. */
+  onReady?: () => void;
+  /** The image for `src` could not be fetched or decoded. */
+  onFailed?: () => void;
 }) {
-  // Never render the previous slide's blob on an already-active layer —
-  // the layer stays hidden until its own image is ready.
-  const authSrc = useAuthImage(src, { holdPrevious: false });
+  // Never render the previous slide's blob here: the layer holds the next
+  // slide while it loads and stays hidden until its own image is ready.
+  const { url: authSrc, status } = useAuthImageState(src, { holdPrevious: false });
+  const onFailedRef = useRef(onFailed);
+  onFailedRef.current = onFailed;
+  useEffect(() => {
+    if (status === 'failed') onFailedRef.current?.();
+  }, [status, src]);
 
   const transitionStyle = useMemo((): React.CSSProperties => {
     const base: React.CSSProperties = {
@@ -102,6 +114,8 @@ function SlideLayer({
       alt=""
       className="absolute inset-0 w-full h-full"
       style={{ ...transitionStyle, ...kenBurnsStyle }}
+      onLoad={onReady}
+      onError={onFailed}
     />
   );
 }
@@ -260,28 +274,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // current pass completes instead of re-dealing mid-slideshow.
   const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl);
 
-  const [activeLayer, setActiveLayer] = useState(0);
-  const [sources, setSources] = useState<[MediaListItem | null, MediaListItem | null]>([null, null]);
-  const prevIndexRef = useRef(photoIndex);
-
-  useEffect(() => {
-    if (isSinglePhoto || files.length === 0) return;
-    const item = files[photoIndex];
-
-    if (prevIndexRef.current !== photoIndex) {
-      const nextLayer = activeLayer === 0 ? 1 : 0;
-      setSources((prev) => {
-        const updated: [MediaListItem | null, MediaListItem | null] = [...prev] as [MediaListItem | null, MediaListItem | null];
-        updated[nextLayer] = item;
-        return updated;
-      });
-      setActiveLayer(nextLayer);
-      prevIndexRef.current = photoIndex;
-    } else {
-      setSources([item, item]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
-  }, [photoIndex, files, isSinglePhoto]);
+  // The swap waits for the incoming image: see useCrossfadeLayers.
+  const currentItem = isSinglePhoto || files.length === 0 ? null : files[photoIndex] ?? null;
+  const { sources, activeLayer, layerReady, layerFailed } = useCrossfadeLayers(currentItem, photoIndex, advance);
 
   // The one full-screen module whose last-resort theme is dark. The others
   // fall through to `getThemeTokens`, which defaults to `linen`, and the
@@ -400,6 +395,8 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
         transition={transition}
         kenBurns={(config.kenBurns ?? false) && !videoAdjacent}
         layerIndex={layer}
+        onReady={() => layerReady(layer)}
+        onFailed={() => layerFailed(layer)}
       />
     );
   };

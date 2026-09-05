@@ -179,14 +179,18 @@ export function useSettingsAutosave({
 
   useEffect(() => {
     if (!settingsInitRef.current || !userDirtyRef.current) return;
-    // Held while a save conflict waits on the user, like useAutoSave.
-    if (useEditorStore.getState().saveConflict) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(async () => {
+      // Always stage the form into the store, even while a save conflict
+      // waits on the user: "Keep mine" saves the store's config, so an edit
+      // typed while the conflict banner is up has to be in it or it is lost.
+      // Only the PUT itself is held (like useAutoSave) - the store refuses
+      // saves during a conflict, and resolving it saves everything staged.
+      updateSettings(toConfigSettings(latestStateRef.current));
+      if (useEditorStore.getState().saveConflict) return;
       setSaving(true);
       setSaveMessage(null);
       try {
-        updateSettings(toConfigSettings(latestStateRef.current));
         const justSaved = pendingFieldIdsRef.current;
         pendingFieldIdsRef.current = new Set();
         await saveConfig();

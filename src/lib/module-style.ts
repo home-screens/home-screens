@@ -34,28 +34,24 @@ export function resolveTitleFontSize(style: { titleFontSize?: number; fontSize: 
 }
 
 /**
- * Font size for text drawn inside a viewBox'd SVG, biased by the module's
- * `Style > Font size`.
+ * Font size for text drawn inside a viewBox'd SVG, scaled by the module's
+ * Text size.
  *
  * SVG text is authored in user-space units, so it already scales with the card
- * — which is right, and is why these were left as bare numbers. It also made
- * them the one place the font-size setting could not reach: raising it grew the
- * HTML around a sun arc and nothing on the arc, and did nothing at all to an
- * analog clock face.
+ * (which is right, and is why these were left as bare numbers). It also made
+ * them the one place the text-size setting could not reach: raising it grew
+ * the HTML around a sun arc and nothing on the arc.
  *
- * The ratio of the style size against the default, so at the default it is
- * exactly 1 and every dial already set renders the same pixels. This is the
- * one place a pixel size acts as a ratio, and it is safe here only because
- * these modules never fit their text to the box: their `fontSize` is the
- * literal size, not a floor, so the ratio is the same choice the user made in
- * pixels. A hand-edited 0 or nonsense value falls back to 1 rather than
- * collapsing the text to nothing.
+ * The factor is `textScale` alone, never the stored pixel value. A module
+ * carrying only the old pixel size renders its SVG labels exactly as it
+ * always did (48px stored on a sun arc used to mean 48px HTML and unchanged
+ * labels; tripling the labels on upgrade was a visible change nobody asked
+ * for, and the labels' positions never moved with them). The first edit of
+ * Text size writes `textScale`, and from then on the labels follow it along
+ * with everything else.
  */
-export function svgFontSize(userUnits: number, styleFontSize: number): string {
-  const bias = Number.isFinite(styleFontSize) && styleFontSize > 0
-    ? styleFontSize / DEFAULT_MODULE_STYLE.fontSize
-    : 1;
-  return `${userUnits * bias}px`;
+export function svgFontSize(userUnits: number, style: { textScale?: number }): string {
+  return `${userUnits * resolveTextScale(style)}px`;
 }
 
 /**
@@ -72,7 +68,28 @@ export const TEXT_SCALE_MAX = 450;
 export interface TextSizeDefinition {
   /** Fits its text to its box (useScaledFontSize); 100% is the fitted size. */
   autoSizesText?: boolean;
+  /**
+   * For a module that can fit its text but lets each instance turn that off,
+   * whether THIS instance does. Absent means every instance fits.
+   */
+  textFitEnabled?: (config: Record<string, unknown>) => boolean;
   defaultStyle?: Partial<ModuleStyle>;
+}
+
+/**
+ * The definition as it applies to one instance: `autoSizesText` true only when
+ * the module fits its text AND this instance has that on. The multi-month
+ * calendar is the case: new ones fill their card, but one from before `fitToBox`
+ * existed renders its literal pixel size, so its 100% is the base, not a fit
+ * it never uses. Reading it as fitted showed 130% against a theoretical fit
+ * and the next nudge of the slider shrank a 52px calendar to 34px.
+ */
+export function textSizeDefinitionFor(
+  def: TextSizeDefinition | undefined,
+  config: Record<string, unknown> | undefined,
+): TextSizeDefinition | undefined {
+  if (!def?.autoSizesText || !def.textFitEnabled) return def;
+  return { ...def, autoSizesText: def.textFitEnabled(config ?? {}) };
 }
 
 /** The pixel size a module's Text size is 100% of: its registry default. */

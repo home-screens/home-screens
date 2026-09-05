@@ -98,6 +98,13 @@ export interface ModuleDefinition {
    */
   autoSizesText?: boolean;
   /**
+   * For an `autoSizesText` module that lets each instance switch the fit off,
+   * whether a given instance has it on. The editor reads this so the Text size
+   * slider's 100% is the fit only where the fit is actually in use, and the
+   * registry base everywhere else. Absent means every instance fits.
+   */
+  textFitEnabled?: (config: Record<string, unknown>) => boolean;
+  /**
    * Style fields this module paints from its own settings instead of from
    * `style`, so the matching Style controls are hidden in the editor and the
    * style E2E matrix does not probe them. The sticky note is the case: its
@@ -657,6 +664,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'multi-month',
     autoSizesText: true,
+    // Off (or absent, on calendars from before the toggle existed) the grid
+    // renders its literal pixel size, so Text size is a percent of the base.
+    textFitEnabled: (config) => config.fitToBox === true,
     label: 'Multi-Month Calendar',
     icon: CalendarRange,
     category: 'Time & Date',

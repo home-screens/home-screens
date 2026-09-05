@@ -2093,6 +2093,33 @@ test.describe('PropertyPanel Style section', () => {
     await expect(inner).toHaveAttribute('style', /font-size:\s*60px/);
   });
 
+  test('a fitting module with its fit switched off reads Text size against its base, not the fit', async ({ page, request }) => {
+    // A multi-month calendar from before `fitToBox` existed (the key is
+    // absent) renders its literal 52px. Its 100% is the 26px base, so the
+    // slider reads 200%, and the first nudge lands next to 52px rather than
+    // shrinking it to 26 * 1.31 against a fit the calendar never uses.
+    const mod = buildModuleInstance('multi-month', { fitToBox: undefined });
+    mod.style = { ...mod.style, fontSize: 52 };
+    await selectModule(page, request, mod);
+    await styleSection(page).click();
+    const slider = page.getByRole('slider', { name: 'Text size' });
+    await expect(slider).toHaveValue('200');
+    // What the grid paints (the fit may shrink 52px to the card; it never grows it).
+    const grid = page.locator('[data-module-id="multi-month-1"] [data-fitted-px]');
+    const painted = () => grid.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    const before = await painted();
+    expect(before).toBeGreaterThan(0);
+
+    await autosaved(page, async () => {
+      await slider.fill('201');
+    });
+    const style = (await getConfig(request)).screens[0].modules[0].style;
+    expect(style.textScale).toBe(201);
+    expect(style.fontSize).toBe(26);
+    // 26 * 2.01 is the same picture as 52: the nudge did not shrink the calendar.
+    await expect.poll(painted).toBeGreaterThanOrEqual(before * 0.98);
+  });
+
   // A module that paints a field from its own settings (registry
   // `ownsStyleFields`) loses that control rather than being offered it inert:
   // the sticky note's paper is its Note colour setting and its ink is fixed

@@ -84,4 +84,20 @@ describe('useSettingsAutosave', () => {
     act(() => { vi.advanceTimersByTime(1_000); });
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it('"Keep mine" saves edits typed while the conflict was waiting', async () => {
+    const { result } = mount();
+    act(() => {
+      useEditorStore.setState({ saveConflict: { theirs: makeConfig(), revision: 'rev-9' } });
+    });
+    act(() => { result.current.updateGroup('display', { rotationInterval: 60 }); });
+    act(() => { vi.advanceTimersByTime(1_000); });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    await act(async () => { await useEditorStore.getState().resolveSaveConflict('mine'); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse((fetchMock.mock.calls[0]![1] as RequestInit).body as string);
+    expect(body.settings.rotationIntervalMs).toBe(60_000);
+    expect(useEditorStore.getState().saveConflict).toBeNull();
+  });
 });

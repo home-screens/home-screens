@@ -20,6 +20,7 @@ vi.mock('@/hooks/useFetchData', () => ({
 // Bypass the blob-fetch: return API srcs verbatim so <img> carries them.
 vi.mock('@/components/display/useAuthImage', () => ({
   useAuthImage: (src?: string) => src,
+  useAuthImageState: (src?: string) => ({ url: src, status: src ? 'ready' : 'idle' }),
 }));
 
 import PhotoSlideshowModule from '../PhotoSlideshowModule';
@@ -44,8 +45,10 @@ function renderSlideshow(config: PhotoSlideshowConfig) {
   );
 }
 
-/** The layer currently on top (zIndex 1). */
+/** The layer currently on top (zIndex 1), after every image reports loaded
+ *  (jsdom never fires `load` itself; the crossfade waits for it). */
 function activeElement(container: HTMLElement): Element | null {
+  for (const img of container.querySelectorAll('img')) fireEvent.load(img);
   return [...container.querySelectorAll('img, video')].find(
     (el) => (el as HTMLElement).style.zIndex === '1',
   ) ?? null;

@@ -33,7 +33,7 @@ import { MousePointerClick, ChevronLeft, HelpCircle, Monitor, PanelRight, PanelR
 import AccordionSection from './AccordionSection';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
 import LabeledField from '@/components/ui/LabeledField';
-import { resolveTitleFontSize, displayTextPercent, moduleBaseFontSize, TEXT_SCALE_MIN, TEXT_SCALE_MAX } from '@/lib/module-style';
+import { resolveTitleFontSize, displayTextPercent, moduleBaseFontSize, textSizeDefinitionFor, TEXT_SCALE_MIN, TEXT_SCALE_MAX } from '@/lib/module-style';
 
 import {
   ClockConfigSection,
@@ -319,10 +319,13 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   // module that still carries only the old pixel value reads it as a percent
   // of its base, so the slider says what the wall shows; the first edit
   // writes the percent and resets the pixel field to the base.
+  // Per instance: a module that can fit its text but has the fit switched off
+  // on this one sizes from its base, and the slider must say so.
   const def = getModuleDefinition(mod.type);
-  const basePx = moduleBaseFontSize(def);
-  const fittedPx = useFittedPx(mod.id, !!def?.autoSizesText);
-  const textPercent = displayTextPercent(s, def, fittedPx);
+  const textDef = textSizeDefinitionFor(def, mod.config);
+  const basePx = moduleBaseFontSize(textDef);
+  const fittedPx = useFittedPx(mod.id, !!textDef?.autoSizesText);
+  const textPercent = displayTextPercent(s, textDef, fittedPx);
   const owned = new Set(def?.ownsStyleFields ?? []);
 
   return (

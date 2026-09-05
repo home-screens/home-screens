@@ -8,6 +8,23 @@ import { DEFAULT_WAKE_HOLD_MINUTES, isMinuteInScheduleWindow } from '@/lib/sleep
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
 /**
+ * Why the display is dimmed or asleep. Recorded at every transition so the
+ * alert wake can put the display back by REASON rather than by re-judging the
+ * schedule at release time: an alert that wakes a scheduled sleep at 2 AM and
+ * is dismissed at 8 AM must not conclude "no window open, so this sleep was
+ * manual" and black the display out for the day.
+ *
+ * - `schedule`: a sleep or dim schedule window put it there; the 10s tick owns
+ *   it and re-asserts (or has already ended) on its own.
+ * - `idle`: the idle timer put it there; restoring it must also restore how
+ *   long the display had been idle, or the next tick escalates a dim to sleep.
+ * - `explicit`: a remote sleep command, rule, or brightness 0; nothing
+ *   automatic ever undoes it, so it comes back exactly as it was.
+ * - `brightness`: a remote partial brightness (1-99); comes back at that level.
+ */
+type SleepReason = 'schedule' | 'idle' | 'explicit' | 'brightness';
+
+/**
  * How long a rule-initiated wake holds the display awake against the automatic
  * sleep machinery before it takes back over. The remote `sleep-override`
  * command uses the same hold with a caller-chosen duration ("keep the display
@@ -134,8 +151,12 @@ export function useSleepManager(
   // commit cycle, where a render-assigned ref lags the actual state.
   const displayStateRef = useRef<DisplayState>('active');
   const brightnessOverrideRef = useRef<number | null>(null);
-  const applyDisplayState = useCallback((next: DisplayState) => {
+  // Why the display is currently dimmed/asleep (meaningless while 'active').
+  // Written alongside displayStateRef at every non-active transition.
+  const sleepReasonRef = useRef<SleepReason>('explicit');
+  const applyDisplayState = useCallback((next: DisplayState, reason: SleepReason = 'explicit') => {
     displayStateRef.current = next;
+    if (next !== 'active') sleepReasonRef.current = reason;
     setDisplayState(next);
   }, []);
   const applyBrightnessOverride = useCallback((next: number | null) => {
@@ -231,17 +252,26 @@ export function useSleepManager(
   // What `wakeForAlert` found, so `releaseAlertWake` can put it back. Null
   // while no alert wake is standing; a second urgent alert during one keeps
   // the first snapshot (the display was already awake for the first).
-  const alertWakeRef = useRef<{ priorState: DisplayState; priorBrightness: number | null; priorHold: number } | null>(null);
+  const alertWakeRef = useRef<{
+    priorState: DisplayState;
+    priorReason: SleepReason;
+    priorBrightness: number | null;
+    priorHold: number;
+    /** How long the display had been idle when the alert landed. */
+    priorIdleMs: number;
+  } | null>(null);
 
   const wakeForAlert = useCallback(() => {
-    lastActivityRef.current = Date.now();
     if (!alertWakeRef.current) {
       alertWakeRef.current = {
         priorState: displayStateRef.current,
+        priorReason: sleepReasonRef.current,
         priorBrightness: brightnessOverrideRef.current,
         priorHold: wakeHoldUntilRef.current,
+        priorIdleMs: Math.max(0, Date.now() - lastActivityRef.current),
       };
     }
+    lastActivityRef.current = Date.now();
     raiseWakeHold(Date.now() + ALERT_WAKE_HOLD_MS);
     applyBrightnessOverride(null);
     applyDisplayState('active');
@@ -255,34 +285,35 @@ export function useSleepManager(
     wakeHoldUntilRef.current = saved.priorHold;
     if (saved.priorState === 'active') return;
 
-    const { sleep: s, timezone: tz } = scheduleRef.current;
-    const tzNow = createTZDate(tz);
-    const inSleepWindow = !!s?.enabled && !!s.schedule && isInScheduleWindow(s.schedule, tzNow);
-    const inDimWindow = !!s?.enabled && !!s.dimSchedule && isInScheduleWindow(s.dimSchedule, tzNow);
-
-    if (saved.priorState === 'asleep') {
-      // Inside a sleep window the next 10s tick re-asserts sleep on its own
-      // now that the hold is gone. Outside one the sleep was explicit (remote
-      // command, rule, brightness 0) and nothing would ever re-sleep it.
-      if (inSleepWindow) return;
-      lastActivityRef.current = 0;
-      wakeHoldUntilRef.current = 0;
-      applyBrightnessOverride(null);
-      applyDisplayState('asleep');
-      return;
+    switch (saved.priorReason) {
+      case 'schedule':
+        // The tick owns scheduled states. If the window is still open the
+        // next tick re-asserts it now that the hold is gone; if it closed
+        // while the alert was up, the display stays awake exactly as the
+        // scheduled morning wake would have left it.
+        return;
+      case 'brightness':
+        // A remote-set partial brightness comes back as it was.
+        applyBrightnessOverride(saved.priorBrightness);
+        applyDisplayState('dimmed', 'brightness');
+        return;
+      case 'idle':
+        // Resume the idle clock where the alert interrupted it, so a dim that
+        // was two minutes from sleeping is still two minutes from sleeping
+        // rather than escalating on the very next tick.
+        lastActivityRef.current = Date.now() - saved.priorIdleMs;
+        applyBrightnessOverride(null);
+        applyDisplayState(saved.priorState, 'idle');
+        return;
+      case 'explicit':
+        // A remote command, rule, or brightness 0: nothing automatic would
+        // ever re-sleep it, so put it back the way an explicit sleep does.
+        lastActivityRef.current = 0;
+        wakeHoldUntilRef.current = 0;
+        applyBrightnessOverride(null);
+        applyDisplayState('asleep', 'explicit');
+        return;
     }
-
-    // Dimmed: a remote-set partial brightness comes back as it was; a dim
-    // window re-asserts on the next tick; an idle dim is restored directly.
-    if (saved.priorBrightness !== null) {
-      applyBrightnessOverride(saved.priorBrightness);
-      applyDisplayState('dimmed');
-      return;
-    }
-    if (inDimWindow) return;
-    lastActivityRef.current = 0;
-    applyBrightnessOverride(null);
-    applyDisplayState('dimmed');
   }, [applyBrightnessOverride, applyDisplayState]);
 
   const getDisplayState = useCallback(() => displayStateRef.current, []);
@@ -313,7 +344,7 @@ export function useSleepManager(
       // explicit remote choice deserves the same hold as a wake.
       armScheduleWakeHold();
       applyBrightnessOverride(clamped);
-      applyDisplayState('dimmed');
+      applyDisplayState('dimmed', 'brightness');
     }
   }, [armScheduleWakeHold, applyBrightnessOverride, applyDisplayState]);
 
@@ -429,7 +460,7 @@ export function useSleepManager(
       // Clear brightness override so remote brightness can't prevent full blackout
       if (inSleepWindow) {
         applyBrightnessOverride(null);
-        applyDisplayState('asleep');
+        applyDisplayState('asleep', 'schedule');
         return;
       }
 
@@ -438,7 +469,7 @@ export function useSleepManager(
       // If you want the screen fully off at night, use a sleep schedule.
       if (inDimWindow) {
         applyBrightnessOverride(null);
-        applyDisplayState('dimmed');
+        applyDisplayState('dimmed', 'schedule');
         return;
       }
 
@@ -454,10 +485,10 @@ export function useSleepManager(
 
         if (sleepMs > 0 && idle >= dimMs + sleepMs) {
           applyBrightnessOverride(null);
-          applyDisplayState('asleep');
+          applyDisplayState('asleep', 'idle');
         } else if (idle >= dimMs) {
           applyBrightnessOverride(null);
-          applyDisplayState('dimmed');
+          applyDisplayState('dimmed', 'idle');
         }
       }
       // Don't reset to 'active' here — that's handled by the activity listener

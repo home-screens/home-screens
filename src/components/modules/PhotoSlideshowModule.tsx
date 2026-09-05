@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import type { MediaListItem, PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -8,19 +8,26 @@ import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
-import { useAuthImage } from '@/components/display/useAuthImage';
+import { useAuthImageState } from '@/components/display/useAuthImage';
 import VideoLayer from './shared/VideoLayer';
+import { useCrossfadeLayers, type LayerIndex } from './shared/useCrossfadeLayers';
 
 /** Renders a single slide layer, fetching API-served images through displayFetch for auth.
  *  The <img> stays mounted while the blob loads so the CSS opacity transition fires on
- *  a style change rather than on mount (which would cause a hard pop instead of a fade). */
-function SlideLayer({ src, active, objectFit, isFade }: {
+ *  a style change rather than on mount (which would cause a hard pop instead of a fade).
+ *  It reports load/failure so the crossfade only brings it up once painted. */
+function SlideLayer({ src, active, objectFit, isFade, onReady, onFailed }: {
   src: string; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
+  onReady?: () => void; onFailed?: () => void;
 }) {
-  // A slide layer goes active the moment its src changes, so it must never
-  // render the previous slide's blob while the new one loads — it stays
-  // hidden until its own image is ready.
-  const authSrc = useAuthImage(src, { holdPrevious: false });
+  // Never render the previous slide's blob here: the layer holds the next
+  // slide while it loads and stays hidden until its own image is ready.
+  const { url: authSrc, status } = useAuthImageState(src, { holdPrevious: false });
+  const onFailedRef = useRef(onFailed);
+  onFailedRef.current = onFailed;
+  useEffect(() => {
+    if (status === 'failed') onFailedRef.current?.();
+  }, [status, src]);
   return (
     <img
       src={authSrc || undefined}
@@ -33,6 +40,8 @@ function SlideLayer({ src, active, objectFit, isFade }: {
         zIndex: active ? 1 : 0,
         visibility: authSrc ? 'visible' : 'hidden',
       }}
+      onLoad={onReady}
+      onError={onFailed}
     />
   );
 }
@@ -69,31 +78,9 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   // current pass completes instead of re-dealing mid-slideshow.
   const [batch, index, advance] = useMediaRotation(items, intervalMs, false, playVideos, listUrl);
 
-  // Track the active layer (0 or 1) to alternate which slide is on top
-  const [activeLayer, setActiveLayer] = useState(0);
-  const [sources, setSources] = useState<[MediaListItem | null, MediaListItem | null]>([null, null]);
-  const prevIndexRef = useRef(index);
-
-  useEffect(() => {
-    if (batch.length === 0) return;
-    const item = batch[index % batch.length];
-
-    if (prevIndexRef.current !== index) {
-      // Switch to the other layer for the new slide
-      const nextLayer = activeLayer === 0 ? 1 : 0;
-      setSources((prev) => {
-        const updated: [MediaListItem | null, MediaListItem | null] = [...prev] as [MediaListItem | null, MediaListItem | null];
-        updated[nextLayer] = item;
-        return updated;
-      });
-      setActiveLayer(nextLayer);
-      prevIndexRef.current = index;
-    } else {
-      // Initial load — set both layers to the same slide
-      setSources([item, item]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- layer crossfade uses refs (prevIndexRef, activeLayer) that shouldn't trigger re-runs
-  }, [index, batch]);
+  // The swap waits for the incoming image: see useCrossfadeLayers.
+  const currentItem = batch.length === 0 ? null : batch[index % batch.length] ?? null;
+  const { sources, activeLayer, layerReady, layerFailed } = useCrossfadeLayers(currentItem, index, advance);
 
   const gate = moduleGate({
     style, data, error,
@@ -115,7 +102,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const videoAdjacent = sources.some((s) => s?.type === 'video');
   const isFade = config.transition === 'fade' && !videoAdjacent;
 
-  const renderLayer = (layer: 0 | 1) => {
+  const renderLayer = (layer: LayerIndex) => {
     const item = sources[layer];
     if (!item) return null;
     const active = activeLayer === layer;
@@ -134,7 +121,16 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
         />
       );
     }
-    return <SlideLayer src={item.url} active={active} objectFit={config.objectFit} isFade={isFade} />;
+    return (
+      <SlideLayer
+        src={item.url}
+        active={active}
+        objectFit={config.objectFit}
+        isFade={isFade}
+        onReady={() => layerReady(layer)}
+        onFailed={() => layerFailed(layer)}
+      />
+    );
   };
 
   return (
