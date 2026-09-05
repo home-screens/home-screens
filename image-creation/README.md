@@ -145,7 +145,7 @@ The build process downloads a pre-built release tarball from GitHub and uses the
 
 1. **OS preparation** — Hostname (`home-screens`), user (`hs`), locale, SSH
 2. **Package management** — Install display stack (Chromium, labwc), remove bloat
-3. **App installation** — Download release tarball or build from local source
+3. **App installation** — Download release tarball or build from local source, then write the seed `config.json` (the tarball ships none) so `setup-system` and first boot have a file to fill in
 4. **System setup** — Delegates to `upgrade.sh setup-system` for services, kiosk, Plymouth, autologin
 5. **Optimization** — Volatile journal, zram swap, tmpfs mounts, boot speed
 6. **Finalize** — Clear caches, SSH keys, machine-id, first-boot service

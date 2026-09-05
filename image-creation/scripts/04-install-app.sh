@@ -120,22 +120,9 @@ elif [[ "$HS_LOCAL" == "true" ]]; then
     cp -r scripts "${STAGING_DIR}/scripts"
     [ -f .node-version ] && cp .node-version "${STAGING_DIR}/.node-version"
 
-    # Create seed config
+    # No seed config here: the shared "Seed config" step below writes it,
+    # so the local-build and tarball paths produce the same file.
     mkdir -p "${STAGING_DIR}/data"
-    node -e "
-      const seed = {
-        version: 1,
-        settings: {
-          rotationIntervalMs: 30000,
-          displayWidth: 0, displayHeight: 0,
-          latitude: 0, longitude: 0,
-          weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial' },
-          calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 }
-        },
-        screens: [{ id: 'default', name: 'Screen 1', backgroundImage: '', modules: [] }]
-      };
-      require('fs').writeFileSync(process.argv[1], JSON.stringify(seed, null, 2));
-    " "${STAGING_DIR}/data/config.json"
 
     # Fix package.json start script
     node -e "
@@ -226,26 +213,46 @@ fi
 chown -R "${APP_USER}:${APP_USER}" "${INSTALL_BASE}"
 
 # ============================================================================
-# Patch seed config defaults
+# Seed config
 # ============================================================================
+# The release tarball ships an empty data/ dir (see release.yml), and nothing
+# downstream creates config.json in time: setup-system only generates
+# kiosk.conf from an existing file, and firstboot.sh only detects the display
+# resolution into an existing file before marking itself complete. The app
+# would write DEFAULT_CONFIG on its first read, but that is long after both.
+# So the image writes its own seed here, then patches whatever is present.
+#
 # The image is generic — display detection happens at boot via firstboot.
 # Seed with 0x0 dimensions so setup-system omits DISPLAY_MODE and labwc
 # auto-detects the connected display's native resolution.
 log_info "Configuring seed defaults"
 
-if [[ -f "${APP_DIR}/data/config.json" ]]; then
-    node -e "
-      const fs = require('fs');
-      const f = process.argv[1];
-      const c = JSON.parse(fs.readFileSync(f, 'utf-8'));
-      const s = c.settings = c.settings || {};
-      if (!s.piVariant) s.piVariant = 'lite';
-      if (!s.displayTransform) s.displayTransform = '90';
-      if (!s.calendar) s.calendar = {};
-      if (!s.calendar.icalSources) s.calendar.icalSources = [];
-      fs.writeFileSync(f, JSON.stringify(c, null, 2) + '\n');
-    " "${APP_DIR}/data/config.json"
-fi
+mkdir -p "${APP_DIR}/data"
+node -e "
+  const fs = require('fs');
+  const f = process.argv[1];
+  let c;
+  try { c = JSON.parse(fs.readFileSync(f, 'utf-8')); } catch {
+    c = {
+      version: 1,
+      settings: {
+        rotationIntervalMs: 30000,
+        displayWidth: 0, displayHeight: 0,
+        latitude: 0, longitude: 0,
+        weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial' },
+        calendar: { googleCalendarId: '', googleCalendarIds: [], daysAhead: 7 }
+      },
+      screens: [{ id: 'default', name: 'Screen 1', backgroundImage: '', modules: [] }]
+    };
+  }
+  const s = c.settings = c.settings || {};
+  if (!s.piVariant) s.piVariant = 'lite';
+  if (!s.displayTransform) s.displayTransform = '90';
+  if (!s.calendar) s.calendar = {};
+  if (!s.calendar.icalSources) s.calendar.icalSources = [];
+  fs.writeFileSync(f, JSON.stringify(c, null, 2) + '\n');
+" "${APP_DIR}/data/config.json"
+chown "${APP_USER}:${APP_USER}" "${APP_DIR}/data" "${APP_DIR}/data/config.json"
 
 # ============================================================================
 # Run setup-system

@@ -85,8 +85,10 @@ jobs:
 
           # Ship an empty data/ dir, never a seeded config.json. The app
           # writes data/config.json from DEFAULT_CONFIG (src/lib/config.ts)
-          # on first read, and install.sh writes its own seed when the file
-          # is absent. A hand-rolled seed here silently outranks both and
+          # on first read; install.sh and the image builder (stage
+          # 04-install-app.sh) each write their own seed when the file is
+          # absent, because setup-system and firstboot only patch an existing
+          # file. A hand-rolled seed here silently outranks all of them and
           # goes stale: this one still pinned schema version 1, the removed
           # calendar.maxEvents field, and the keyed weatherapi provider, so
           # every fresh install landed on a weather provider that needs an
