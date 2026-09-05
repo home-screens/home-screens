@@ -87,6 +87,17 @@ export interface ModuleDefinition {
    */
   cardless?: boolean;
   /**
+   * True for modules that size their type off their measured box
+   * (`useScaledFontSize` / `useFitFontSize`), where `Style > Font size` is a
+   * bias on that measured size rather than the literal size. In every other
+   * module it is the literal base size every `em` hangs off.
+   *
+   * The editor reads this to say which of the two the slider is doing. A
+   * `meta` ratchet derives the true set from the import graph and fails when
+   * this flag and the code disagree in either direction, so it cannot drift.
+   */
+  autoSizesText?: boolean;
+  /**
    * True for modules that act on a specific display and therefore need to know
    * which display they are rendering as (`renderDisplayId`).
    *
@@ -238,6 +249,18 @@ export function getModuleDefinition(type: ModuleType): ModuleDefinition | undefi
  * English). Anything unregistered (a plugin that failed to load) falls back
  * to the raw type so it is still identifiable.
  */
+/**
+ * Whether `Style` can reach a module at all: through ModuleWrapper's card, or
+ * through the module applying `style` itself (plugins do). A `fillsCanvas`
+ * module paints the whole canvas from its own theme and a `cardless` one
+ * ignores the prop, so for both the answer is no and the editor hides the
+ * section. The style E2E matrix takes its population from the same answer, so
+ * "offered in the editor" and "proven to reach the module" are one predicate.
+ */
+export function styleReachesModule(def: Pick<ModuleDefinition, 'fillsCanvas' | 'cardless'> | undefined): boolean {
+  return !def?.fillsCanvas && !def?.cardless;
+}
+
 export function resolveModuleLabel(type: ModuleType, t: TranslateFn): string {
   const def = registry.get(type);
   if (type.startsWith('plugin:')) return def?.label || type;
@@ -513,6 +536,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Time & Date --
   {
     type: 'clock',
+    autoSizesText: true,
     label: 'Clock',
     icon: Clock,
     category: 'Time & Date',
@@ -570,6 +594,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'countdown',
+    autoSizesText: true,
     label: 'Countdown',
     icon: Hourglass,
     category: 'Time & Date',
@@ -585,6 +610,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'date',
+    autoSizesText: true,
     label: 'Date',
     icon: Calendar,
     category: 'Time & Date',
@@ -616,6 +642,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'multi-month',
+    autoSizesText: true,
     label: 'Multi-Month Calendar',
     icon: CalendarRange,
     category: 'Time & Date',
@@ -640,6 +667,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Weather & Environment --
   {
     type: 'weather',
+    autoSizesText: true,
     label: 'Weather',
     icon: CloudSun,
     category: 'Weather & Environment',
@@ -732,6 +760,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- News & Finance --
   {
     type: 'news',
+    autoSizesText: true,
     label: 'News Headlines',
     icon: Newspaper,
     category: 'News & Finance',
@@ -827,6 +856,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Knowledge & Fun --
   {
     type: 'dad-joke',
+    autoSizesText: true,
     label: 'Dad Joke',
     icon: Laugh,
     category: 'Knowledge & Fun',
@@ -839,6 +869,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'quote',
+    autoSizesText: true,
     label: 'Quote of the Day',
     icon: Quote,
     category: 'Knowledge & Fun',
@@ -850,6 +881,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'word-of-day',
+    autoSizesText: true,
     label: 'Word of the Day',
     icon: BookOpen,
     category: 'Knowledge & Fun',
@@ -861,6 +893,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'history',
+    autoSizesText: true,
     label: 'This Day in History',
     icon: History,
     category: 'Knowledge & Fun',
@@ -878,6 +911,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Personal --
   {
     type: 'todo',
+    autoSizesText: true,
     needsInstanceAddress: true,
     label: 'To-Do List',
     icon: ListTodo,
@@ -894,6 +928,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'sticky-note',
+    autoSizesText: true,
     label: 'Sticky Note',
     icon: StickyNote,
     category: 'Personal',
@@ -905,6 +940,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'greeting',
+    autoSizesText: true,
     label: 'Greeting',
     icon: HandMetal,
     category: 'Personal',
@@ -965,6 +1001,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'affirmations',
+    autoSizesText: true,
     label: 'Affirmations',
     icon: Sparkles,
     category: 'Personal',

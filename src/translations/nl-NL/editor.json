@@ -2414,6 +2414,8 @@
       "borderColor": "Randkleur",
       "textColor": "Tekstkleur",
       "fontSize": "Tekstgrootte",
+      "fontSizeHintAuto": "Deze module past de tekst al aan het vak aan. Hiermee maak je die tekst groter of kleiner.",
+      "fontSizeHintFixed": "De tekst houdt deze grootte, hoe groot het vak ook is.",
       "fontWeight": "Lettergewicht",
       "fontWeightDefault": "Standaard",
       "fontWeightReset": "Terugzetten op standaard",

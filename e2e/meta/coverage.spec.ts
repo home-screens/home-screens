@@ -9,6 +9,8 @@ import { VIEW_MATRIX } from '../helpers/view-matrix';
 import { CONFIG_VARIANTS } from '../helpers/config-variants';
 import { EMPTY_STATE_FIXTURES } from '../helpers/empty-state-fixtures';
 import { AUTOSIZED_MODULES, AUTOSIZE_EXEMPTIONS } from '../helpers/autosized-modules';
+import { STYLE_EXEMPTIONS, STYLE_PROBES, styleMatrixTypes } from '../helpers/style-matrix';
+import { FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
@@ -978,13 +980,13 @@ test('every module that sizes type off its box is in the auto-size matrix', () =
     .map(([type, via]) => `${type} (reaches a sizing hook via ${via})`);
   expect(
     missing,
-    `Modules sizing type off their box but absent from AUTOSIZED_MODULES in e2e/helpers/autosized-modules.ts:\n${missing.map((m) => `  ${m}`).join('\n')}`,
+    `Modules sizing type off their box but not flagged \`autoSizesText\` in src/lib/module-registry.ts:\n${missing.map((m) => `  ${m}`).join('\n')}`,
   ).toEqual([]);
 
   const stale = [...listed].filter((type) => !autoSizing.has(type));
   expect(
     stale,
-    `AUTOSIZED_MODULES entries that no longer reach a sizing hook — remove them: ${stale.join(', ')}`,
+    `Modules flagged \`autoSizesText\` that no longer reach a sizing hook — drop the flag: ${stale.join(', ')}`,
   ).toEqual([]);
 
   const staleExemptions = Object.keys(AUTOSIZE_EXEMPTIONS).filter((type) => !listed.has(type));
@@ -992,4 +994,37 @@ test('every module that sizes type off its box is in the auto-size matrix', () =
     staleExemptions,
     `AUTOSIZE_EXEMPTIONS entries for modules not in AUTOSIZED_MODULES — remove them: ${staleExemptions.join(', ')}`,
   ).toEqual([]);
+});
+
+// ===========================================================================
+
+/**
+ * The style matrix (e2e/display/module-style.spec.ts) takes its population
+ * from the registry, so a new module cannot skip it. What can drift is the
+ * exemption map: an entry for a module that no longer exists, that the editor
+ * no longer offers a Style section to, or for a control the matrix does not
+ * probe, would sit there excusing nothing. Each key has to name a module the
+ * matrix runs and each field a probe it runs.
+ */
+test('every style-matrix exemption names a probed module and a probed control', () => {
+  const probed = new Set<string>(styleMatrixTypes());
+  probed.add(FIXTURE_PLUGIN_TYPE);
+  const fields = new Set<string>(STYLE_PROBES.map((p) => p.field));
+
+  const staleModules = Object.keys(STYLE_EXEMPTIONS).filter((type) => !probed.has(type));
+  expect(
+    staleModules,
+    `STYLE_EXEMPTIONS entries for modules the style matrix does not run (unknown, fillsCanvas or cardless) — remove them: ${staleModules.join(', ')}`,
+  ).toEqual([]);
+
+  const staleFields = Object.entries(STYLE_EXEMPTIONS)
+    .flatMap(([type, byField]) => Object.keys(byField ?? {}).filter((f) => !fields.has(f)).map((f) => `${type}.${f}`));
+  expect(
+    staleFields,
+    `STYLE_EXEMPTIONS entries for controls the style matrix does not probe — remove them: ${staleFields.join(', ')}`,
+  ).toEqual([]);
+
+  const unreasoned = Object.entries(STYLE_EXEMPTIONS)
+    .flatMap(([type, byField]) => Object.entries(byField ?? {}).filter(([, reason]) => !reason?.trim()).map(([f]) => `${type}.${f}`));
+  expect(unreasoned, `STYLE_EXEMPTIONS entries without a reason: ${unreasoned.join(', ')}`).toEqual([]);
 });

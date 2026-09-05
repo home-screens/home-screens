@@ -1999,6 +1999,19 @@ test.describe('PropertyPanel Style section', () => {
     await expect(styleSection(page)).toHaveCount(0);
   });
 
+  // Font size means two things (plan 50, item 15): a bias on a measured size
+  // in modules that fit their type to the box, the literal size everywhere
+  // else. The slider says which, per module, from the registry's flag.
+  test('the Font Size slider says whether the module fits its own text', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('clock'));
+    await styleSection(page).click();
+    await expect(page.getByTestId('font-size-hint')).toHaveText(/already fits its text/);
+
+    await selectModule(page, request, buildModuleInstance('sports'));
+    await styleSection(page).click();
+    await expect(page.getByTestId('font-size-hint')).toHaveText(/stays this size/);
+  });
+
   test('a plugin keeps it — plugins paint their own card from style', async ({ page, request, sandboxDir }) => {
     seedFixturePlugin(sandboxDir);
     await putConfig(request, baseConfig({

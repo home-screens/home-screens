@@ -111,7 +111,7 @@ See the [Module Reference](/docs/module-reference) for all available options.
 
 ### Style Settings
 
-Every module (except the full-screen ones) can be styled. The controls are grouped into four blocks:
+Every module can be styled except the full-screen ones and Display Control, which draw their own look and have no Style section. The controls are grouped into four blocks:
 
 **Shape**
 
@@ -135,7 +135,7 @@ Every module (except the full-screen ones) can be styled. The controls are group
 
 - **Card Title**: show a centered title at the top of the module. The title sits on the module card, above its content, and is cut off with an ellipsis when it is too long to fit. Leave it empty for no title. Some modules (like the to-do list) also show a title of their own from their settings; setting both means you will see both
 - **Title Size**: set the title's font size (8–72). It appears once a title is set and starts at the module's font size, so leaving the slider alone keeps them matched; use Reset to default to match the font size again. Clearing the title clears this too
-- **Font Size**: set the base font size (8–72)
+- **Font Size**: set the text size (8–72). Some modules (the clock, date, weather, news, quote and a few others) already fit their text to the size of their box; for those, this makes that fitted text bigger or smaller. For every other module the text stays at this size no matter how big the box is. The slider says which of the two the selected module does
 - **Font Weight**: make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back. The title always stays at its normal weight
 - **Font Family**: choose from available fonts
 
@@ -278,7 +278,7 @@ Sleep and dimming draw a black layer over the page rather than powering the pane
 - **Your town or zip code**: type it and click **Look up**, or click **Use my internet location** to guess from your connection. Every module that needs a location (weather, sunrise, moon, air quality, rain map, local news) uses this one. **Edit coordinates manually** takes exact numbers.
 - **Timezone** follows the town you pick; change it only if the clocks look wrong. **Clock check** shows the browser's time and the Pi's side by side so you can tell.
 - **Language** sets the words on the editor, every display and the family remote. **More options** holds a separate formatting locale for dates and numbers, for English text with European date order.
-- **Time format** picks 12-hour or 24-hour for calendar events everywhere they appear, and is the default the meal planner follows. The clock module keeps its own setting.
+- **Time format** picks 12-hour or 24-hour for every time the display shows: calendar events, weather, sports, sunrise and sunset, moon rise and set, the full-screen photo clock and Todoist due times. It is also the default the meal planner follows. The clock module keeps its own setting.
 
 ### Weather
 

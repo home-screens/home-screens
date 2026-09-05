@@ -2414,6 +2414,8 @@
       "borderColor": "Rahmenfarbe",
       "textColor": "Textfarbe",
       "fontSize": "Schriftgröße",
+      "fontSizeHintAuto": "Dieses Modul passt seinen Text bereits an die Box an. Hiermit wird dieser Text größer oder kleiner.",
+      "fontSizeHintFixed": "Der Text behält diese Größe, egal wie groß die Box ist.",
       "fontWeight": "Schriftstärke",
       "fontWeightDefault": "Standard",
       "fontWeightReset": "Auf Standard zurücksetzen",

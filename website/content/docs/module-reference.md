@@ -1174,7 +1174,7 @@ Rules run from the top of the list down, and **the first rule to set a property 
 
 ## Module Styling
 
-Every module supports these style properties, configurable in the Property Panel:
+Every module supports these style properties, configurable in the Property Panel, except the full-screen modules and Display Control, which paint their own look and have no Style section:
 
 | Property | Type | Default | Description |
 |---|---|---|---|
@@ -1184,7 +1184,7 @@ Every module supports these style properties, configurable in the Property Panel
 | `backgroundColor` | string | `"rgba(0, 0, 0, 0.4)"` | Background color |
 | `textColor` | string | `"#ffffff"` | Text color |
 | `fontFamily` | string | `"inter"` | Font id from the built-in font list: `inter`, `roboto`, `poppins`, `system-ui`, `playfair`, `lora`, `dm-serif`, `georgia`, `jetbrains`, `mono`, `bebas`, `caveat`, `pacifico`. Raw CSS font stacks saved by older versions still work |
-| `fontSize` | number | `16` | Base font size in pixels |
+| `fontSize` | number | `16` | Text size in pixels. In modules that fit their text to their box (clock, countdown, date, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, multi-month calendar) it scales that fitted size, with 16 meaning "as fitted"; everywhere else it is the literal base size |
 | `fontWeight` | number |, | Forces every piece of the module's text to one weight (100–900). Unset = each module keeps its own designed weights. Not available for plugin modules |
 | `backdropBlur` | number | `12` | Backdrop blur in pixels |
 | `borderWidth` | number | `1` | Border width in pixels |

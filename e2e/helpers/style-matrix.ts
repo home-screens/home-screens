@@ -1,0 +1,97 @@
+import { getAllModuleDefinitions, styleReachesModule } from '@/lib/module-registry';
+import { DEFAULT_MODULE_STYLE, type ModuleStyle, type ModuleType } from '@/types/config';
+
+/**
+ * The style matrix (e2e/display/module-style.spec.ts): for every module the
+ * editor offers a Style section to, change one control and prove the module
+ * painted differently.
+ *
+ * Fourteen ratchets police config fields, views, routes, locales, empty states
+ * and auto-sizing, and none covered the fields of `ModuleStyle`. That is the
+ * hole a font-size control that did nothing lived in for a release, and the
+ * hole a Style section that was inert for display-control, and text that
+ * stayed white on a light card in sports and standings, were sitting in
+ * (plan 50, items 1, 3, 4, 14).
+ */
+
+/** One control, and the value that has to produce a visibly different card. */
+export interface StyleProbe {
+  field: keyof ModuleStyle;
+  value: ModuleStyle[keyof ModuleStyle];
+}
+
+/**
+ * The controls asserted per module. `opacity`, `borderRadius`, `padding`,
+ * `backdropBlur`, `shadowSize`, `borderWidth` and `borderColor` are applied
+ * by ModuleWrapper alone and cannot be ignored by a module, so they are covered
+ * once by the wrapper's own tests rather than 40 times here. (Padding was
+ * probed in the first draft and failed on correct modules: content that is
+ * centred and does not reach the card's edges moves nothing when the inset
+ * grows. Whether it shows is a fact about the fixture, not the module.)
+ *
+ * These four are the ones a module can defeat: by hardcoding a colour, by
+ * sizing its type in px, by naming its own font, or by painting its own
+ * background over the card's.
+ */
+export const STYLE_PROBES: StyleProbe[] = [
+  // Dark on the default dark card: the point is that the ink moves, not that
+  // it stays readable.
+  { field: 'textColor', value: '#101010' },
+  { field: 'backgroundColor', value: 'rgba(255, 255, 255, 0.92)' },
+  { field: 'fontSize', value: DEFAULT_MODULE_STYLE.fontSize * 2 },
+  // A registry id (font-registry.ts) for a face that needs no download, so
+  // `document.fonts.ready` is not part of the comparison.
+  { field: 'fontFamily', value: 'georgia' },
+];
+
+/**
+ * A reasoned exemption from one probe, per module. A reason here is a claim
+ * about how the module is *meant* to behave, not a place to park a failure:
+ * "renders no text" is a reason, "was failing" is not.
+ */
+export type StyleExemptions = Partial<Record<string, Partial<Record<StyleProbe['field'], string>>>>;
+
+const NO_TEXT = 'paints no text, so there is no ink for the text controls to reach';
+
+export const STYLE_EXEMPTIONS: StyleExemptions = {
+  image: { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
+  'photo-slideshow': { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
+  iframe: { textColor: NO_TEXT, fontSize: NO_TEXT, fontFamily: NO_TEXT },
+  shape: {
+    textColor: 'paints no text; its fill is its own Color setting',
+    fontSize: NO_TEXT,
+    fontFamily: NO_TEXT,
+  },
+  icon: {
+    // `color: config.color || 'currentColor'` (IconModule.tsx): the glyph
+    // follows the text colour only once its own Color setting is cleared, and
+    // the registry default sets one.
+    textColor: 'its own Color setting wins while set, and the default sets one; cleared, the glyph follows the text colour',
+    fontSize: 'sized by its own Scale setting in container units (cqmin), not by the type size',
+    fontFamily: NO_TEXT,
+  },
+  'sticky-note': {
+    // StickyNoteModule hands ModuleWrapper a style with `backgroundColor`
+    // replaced by its own Note colour setting and `textColor` pinned to a
+    // dark ink, so both Style controls are inert for it. Every existing note
+    // carries the never-painted white default, so honouring it now would
+    // repaint every note on every wall (plan 50, the anti-pattern). The
+    // honest fix is to hide the two controls for this module or seed the
+    // stored values first; recorded as audit item 20 in plan 50.
+    textColor: 'the note pins its own dark ink; honouring the stored white would repaint every existing note (plan 50, item 20)',
+    backgroundColor: 'the note colour is its own Note colour setting (plan 50, item 20)',
+  },
+};
+
+/**
+ * Every built-in the editor offers a Style section to. Derived from the same
+ * predicate PropertyPanel gates the section on, so a module cannot be offered
+ * controls the matrix does not check, and a module the panel hides (the
+ * fillsCanvas six, the cardless display-control) is exempt by construction
+ * rather than by listing.
+ */
+export function styleMatrixTypes(): ModuleType[] {
+  return getAllModuleDefinitions()
+    .filter((def) => !def.type.startsWith('plugin:') && styleReachesModule(def))
+    .map((def) => def.type);
+}

@@ -2414,6 +2414,8 @@
       "borderColor": "Kantfarve",
       "textColor": "Tekstfarve",
       "fontSize": "Skriftstørrelse",
+      "fontSizeHintAuto": "Dette modul tilpasser allerede sin tekst til boksen. Her gør du teksten større eller mindre.",
+      "fontSizeHintFixed": "Teksten beholder denne størrelse, uanset hvor stor boksen er.",
       "fontWeight": "Skrifttykkelse",
       "fontWeightDefault": "Standard",
       "fontWeightReset": "Nulstil til standard",

@@ -22,7 +22,7 @@ import { isStateProducerType } from '@/lib/provided-state-keys';
 import { stackExtremes } from '@/lib/module-utils';
 import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
-import { getModuleDefinition, resolveModuleDescription, resolveModuleLabel } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleDescription, resolveModuleLabel, styleReachesModule } from '@/lib/module-registry';
 import { moduleDocsUrl } from '@/lib/module-docs';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
@@ -291,6 +291,11 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   // class-based font weight override cannot reach them — hide the control
   // rather than show a slider that does nothing.
   const isPlugin = mod.type.startsWith('plugin:');
+  // Font size means two things (plan 50, item 15): in a module that sizes its
+  // type off its box it is a bias on that measured size, everywhere else it is
+  // the literal size. Say which one this module has rather than leave it to be
+  // discovered. Plugins scale their own units and are not described either way.
+  const autoSizesText = !!getModuleDefinition(mod.type)?.autoSizesText;
 
   return (
     <>
@@ -322,7 +327,14 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
         <div className="space-y-3">
           {/* The title lives in Module settings, next to the module's own
               "show my title" option, so the two can't be set to fight. */}
-          <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
+          <div>
+            <Slider label={t('propertyPanel.fields.fontSize')} value={s.fontSize} min={8} max={72} onChange={(v) => set({ fontSize: v })} />
+            {!isPlugin && (
+              <p data-testid="font-size-hint" className="text-[11px] text-hs-text-dim mt-1">
+                {t(autoSizesText ? 'propertyPanel.fields.fontSizeHintAuto' : 'propertyPanel.fields.fontSizeHintFixed')}
+              </p>
+            )}
+          </div>
           {!isPlugin && (
             <div
               // A range input fires no change event when released at its current
@@ -554,7 +566,7 @@ export default function PropertyPanel({
   // the section was inert for it. Plugins DO get it: they render raw, but they
   // re-implement the card from `style` themselves, which is why only the
   // class-based weight override is hidden for them (see StyleSection).
-  const showStyleControls = !moduleDef?.fillsCanvas && !moduleDef?.cardless;
+  const showStyleControls = styleReachesModule(moduleDef);
   const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
   const moduleLabel = resolveModuleLabel(selectedModule.type, t);
   const moduleDescription = resolveModuleDescription(selectedModule.type, t);

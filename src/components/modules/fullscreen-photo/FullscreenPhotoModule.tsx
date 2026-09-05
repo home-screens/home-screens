@@ -283,6 +283,14 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     // eslint-disable-next-line react-hooks/exhaustive-deps -- activeLayer and prevIndexRef are internal state managed by this effect, not external deps
   }, [photoIndex, files, isSinglePhoto]);
 
+  // The one full-screen module whose last-resort theme is dark. The others
+  // fall through to `getThemeTokens`, which defaults to `linen`, and the
+  // per-display override UI advertises linen as the default for that reason.
+  // Photos are the exception on purpose: the frame this theme paints (the
+  // letterbox bars, the empty and loading screens, the clock scrim) sits
+  // against a photograph, and a pale frame around a photo reads as a mistake
+  // where a dark one reads as a mount. A household that wants linen here sets
+  // it, per module or per display, and this only applies when neither is set.
   const themeId = config.theme ?? fullscreenTheme ?? 'midnight';
   const theme = getThemeTokens(themeId);
   // Photos are edge to edge, so the theme paints the frame around them: the

@@ -179,11 +179,16 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   formattingLocale?: string       // Optional BCP-47 override that affects ONLY date/number
                                   // formatting, leaves the active dictionary unchanged.
                                   // Falls back to `locale` when omitted.
-  timeFormat?: '12h' | '24h'      // Household 12/24-hour preference. Calendar and
-                                  // fullscreen-calendar times (including event detail
-                                  // popups) resolve against it, and the meal planner
-                                  // follows it unless its own timeFormat override is set.
-                                  // Absent = 12h. Global-only like `locale`.
+  timeFormat?: '12h' | '24h'      // Household 12/24-hour preference. Every module that
+                                  // shows a time follows it (calendar and fullscreen
+                                  // calendar including event popups, weather, sports,
+                                  // sunrise-sunset, moon-phase, the fullscreen photo
+                                  // clock, todoist due times), and the meal planner
+                                  // follows it unless its own timeFormat override is
+                                  // set. The clock module has its own `format24h`.
+                                  // Absent = 12h, except in modules that read the
+                                  // locale's hour cycle when unset (todoist and the
+                                  // photo clock). Global-only like `locale`.
 }
 ```
 

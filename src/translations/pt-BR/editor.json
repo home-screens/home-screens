@@ -2414,6 +2414,8 @@
       "borderColor": "Cor da borda",
       "textColor": "Cor do texto",
       "fontSize": "Tamanho da fonte",
+      "fontSizeHintAuto": "Este módulo já ajusta o texto ao tamanho da caixa. Isto deixa esse texto maior ou menor.",
+      "fontSizeHintFixed": "O texto mantém este tamanho, não importa o tamanho da caixa.",
       "fontWeight": "Peso da fonte",
       "fontWeightDefault": "Padrão",
       "fontWeightReset": "Redefinir para padrão",

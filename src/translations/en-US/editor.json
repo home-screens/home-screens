@@ -2414,6 +2414,8 @@
       "borderColor": "Border Color",
       "textColor": "Text Color",
       "fontSize": "Font Size",
+      "fontSizeHintAuto": "This module already fits its text to its box. This makes that text bigger or smaller.",
+      "fontSizeHintFixed": "Text stays this size no matter how big the box is.",
       "fontWeight": "Font Weight",
       "fontWeightDefault": "Default",
       "fontWeightReset": "Reset to default",

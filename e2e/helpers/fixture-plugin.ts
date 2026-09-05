@@ -268,6 +268,33 @@ export const SEARCH_BUNDLE = `(function () {
   window.__HS_PLUGIN__ = { default: Component, searchStateKeys: searchStateKeys };
 })();`;
 
+/**
+ * A variant bundle that paints its own card from the `style` prop, the way
+ * every shipped plugin does (each carries a ModuleStyle-to-CSS function and
+ * spreads it onto its root; see plan 50, item 2). Plugins render bare, outside
+ * ModuleWrapper, so this is the only way Style controls reach them, and it is
+ * what the style matrix (e2e/display/module-style.spec.ts) proves the host
+ * still delivers. The visible label is unchanged from {@link BUNDLE}.
+ */
+export const STYLE_BUNDLE = `(function () {
+  var React = window.React;
+  function Component(props) {
+    var cfg = (props && props.config) || {};
+    var s = (props && props.style) || {};
+    var label = cfg.label || 'E2E PLUGIN';
+    return React.createElement('div', {
+      'data-plugin-marker': 'e2e',
+      style: {
+        width: '100%', height: '100%', boxSizing: 'border-box',
+        color: s.textColor, backgroundColor: s.backgroundColor,
+        padding: s.padding, fontSize: s.fontSize, fontFamily: s.fontFamily,
+        borderRadius: s.borderRadius, opacity: s.opacity,
+      },
+    }, label);
+  }
+  window.__HS_PLUGIN__ = { default: Component };
+})();`;
+
 /** A single declared secret, mirroring `PluginSecretDeclaration` in the manifest. */
 export interface FixtureSecretDeclaration {
   key: string;
@@ -302,6 +329,11 @@ interface SeedFixturePluginOptions {
    */
   search?: boolean;
   /**
+   * When true, seed {@link STYLE_BUNDLE}, which paints its card from the
+   * `style` prop like a shipped plugin.
+   */
+  styled?: boolean;
+  /**
    * When provided, the seeded manifest declares this `settingsSchema` so the
    * plugin manager renders its "Plugin settings" section.
    */
@@ -322,6 +354,7 @@ export function seedFixturePlugin(sandboxDir: string, opts: SeedFixturePluginOpt
   };
   const bundle = opts.stateProvider ? PROVIDER_BUNDLE
     : opts.search ? SEARCH_BUNDLE
+    : opts.styled ? STYLE_BUNDLE
     : opts.nav ? NAV_BUNDLE : BUNDLE;
   writeSandboxFile(sandboxDir, 'plugins/installed.json', installedFile(opts.settings));
   writeSandboxFile(sandboxDir, `plugins/${FIXTURE_PLUGIN_ID}/manifest.json`, manifest);

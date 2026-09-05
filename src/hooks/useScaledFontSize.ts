@@ -43,6 +43,13 @@ export function useScaledFontSize(
 } {
   // Padding box: the historical measurement is `clientHeight`, and the scale
   // factors are all tuned against it.
+  //
+  // A known trade, not an oversight (plan 50, item 17): raising `Style >
+  // Padding` grows this box and therefore the type, in a card whose content
+  // area just shrank. Measuring the content box instead would be a one-line
+  // change, but every factor would then need re-tuning and every wall with a
+  // non-default padding would move. Left as is, on purpose, until the
+  // auto-size rework in `.claude/plans/future/module-autosize-v2.md`.
   const [containerRef, box] = useElementBox<HTMLDivElement>('padding');
   // A hand-edited config could carry 0 or a nonsense value; a bias of 1 renders
   // the module at the size it picks for itself rather than at nothing.

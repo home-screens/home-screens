@@ -1,17 +1,19 @@
+import { getAllModuleDefinitions } from '@/lib/module-registry';
 import type { ModuleType } from '@/types/config';
 
 /**
  * Modules that size their type off their measured box, via `useScaledFontSize`
  * or `useFitFontSize`.
  *
- * The list is enforced, not maintained by hand: a `meta` ratchet walks the
- * import graph of every entry in `module-components.ts` and fails if a module
- * reaching either hook is missing here, or if a row here no longer reaches one.
+ * Read from the registry's `autoSizesText` flag, which is what the editor uses
+ * to explain what the Font Size slider does for the selected module. The flag
+ * is enforced, not maintained by hand: a `meta` ratchet walks the import graph
+ * of every entry in `module-components.ts` and fails if a module reaching
+ * either hook is not flagged, or if a flagged module no longer reaches one.
  */
-export const AUTOSIZED_MODULES: ModuleType[] = [
-  'affirmations', 'clock', 'countdown', 'dad-joke', 'date', 'greeting', 'history',
-  'multi-month', 'news', 'quote', 'sticky-note', 'todo', 'weather', 'word-of-day',
-];
+export const AUTOSIZED_MODULES: ModuleType[] = getAllModuleDefinitions()
+  .filter((def) => def.autoSizesText)
+  .map((def) => def.type);
 
 /**
  * A reasoned exemption from one of the two properties the auto-size matrix

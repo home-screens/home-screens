@@ -2414,6 +2414,8 @@
       "borderColor": "Color del borde",
       "textColor": "Color del texto",
       "fontSize": "Tamaño de fuente",
+      "fontSizeHintAuto": "Este módulo ya ajusta su texto al tamaño de la caja. Esto lo hace más grande o más pequeño.",
+      "fontSizeHintFixed": "El texto mantiene este tamaño sin importar el tamaño de la caja.",
       "fontWeight": "Grosor de fuente",
       "fontWeightDefault": "Predeterminado",
       "fontWeightReset": "Restablecer al valor predeterminado",
