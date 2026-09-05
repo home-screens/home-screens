@@ -47,9 +47,9 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
  *
  * Every selected day opens one window on a minutes-since-Sunday-midnight line:
  * it opens at `day * 1440 + start` and closes at `(day + span) * 1440 + end`,
- * end exclusive. `span` is `endDayOffset` when set, otherwise 1 for an
- * overnight window (`start > end`) and 0 for an ordinary one, which is exactly
- * the behaviour this replaced.
+ * end exclusive. `span` comes from `resolveSpan` below: `endDayOffset` when
+ * it is a usable value above zero, otherwise 1 for a window whose end is not
+ * after its start and 0 for an ordinary one.
  *
  * Testing `now + one week` as well as `now` is what lets a window opened late
  * on Saturday reach into Sunday: Sunday is minute 0 of the line, so it only
@@ -64,7 +64,7 @@ function matchesTimeWindow(
 ): boolean {
   const start = parseTime(startTime) ?? 0;
   const end = parseTime(endTime) ?? MINUTES_PER_DAY;
-  const span = clampSpan(endDayOffset) ?? (start > end ? 1 : 0);
+  const span = resolveSpan(start, end, endDayOffset);
 
   const days = daysOfWeek && daysOfWeek.length > 0 ? daysOfWeek : ALL_DAYS;
   const nowMinutes = now.getMinutes() + now.getHours() * 60 + now.getDay() * MINUTES_PER_DAY;
@@ -90,18 +90,31 @@ function clampSpan(endDayOffset: number | undefined): number | null {
 }
 
 /**
- * How many days after its start day a window closes: the explicit
- * `endDayOffset` when usable, else the implicit rule that an end earlier than
- * the start means the next morning. THE definition of the span, used by the
- * predicate above, the editor's controls and the week strip, so they cannot
- * disagree about what a stored schedule currently means.
+ * THE definition of the span, shared by the predicate above, the editor's
+ * controls, the summary text and the week strip, so they cannot disagree
+ * about what a stored schedule currently means.
+ *
+ * An explicit `endDayOffset` above zero wins. Zero means the same as omitted:
+ * the span editor's "Ends on" select writes it when the start day is picked,
+ * and the type promises it is a plain window, so an overnight pair must still
+ * wrap. Without a usable offset, an end at or before the start closes the
+ * next day. "At" matters: equal times are the only way to store a full
+ * 24-hour repeating window (the strip's end drag lands there at its cap), and
+ * a zero-length window is of no use to anyone.
+ */
+function resolveSpan(start: number, end: number, endDayOffset: number | undefined): number {
+  const explicit = clampSpan(endDayOffset);
+  if (explicit) return explicit;
+  return start >= end ? 1 : 0;
+}
+
+/**
+ * How many days after its start day a window closes. See `resolveSpan`.
  */
 export function resolveSpanDays(schedule: ModuleSchedule | undefined): number {
-  const explicit = clampSpan(schedule?.endDayOffset);
-  if (explicit !== null) return explicit;
   const start = parseTime(schedule?.startTime) ?? 0;
   const end = parseTime(schedule?.endTime) ?? MINUTES_PER_DAY;
-  return start > end ? 1 : 0;
+  return resolveSpan(start, end, schedule?.endDayOffset);
 }
 
 /**

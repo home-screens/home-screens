@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} jours plus tard",
     "behaviorTitle": "Comportement",
     "invertLabel": "Masquer pendant ces heures au lieu de l'afficher",
-    "invertNeedsWindow": "Renseignez d'abord une heure de début et une heure de fin.",
+    "neverShows": "Avec ces réglages, il ne s'affiche jamais.",
     "summary": {
       "shows": "Affiché {when}.",
       "hides": "Masqué {when}. Affiché le reste du temps.",

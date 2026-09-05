@@ -46,9 +46,12 @@ describe('formatScheduleTime', () => {
     // Explicit multi-day span.
     expect(formatScheduleTime({ startTime: '08:00', endTime: '20:00', endDayOffset: 3 }, t, 'en-US', '24h'))
       .toBe('08:00 until 20:00 3 days later');
-    // An explicit same-day offset overrides the implicit wrap.
+    // An explicit zero offset means the same as none; the overnight pair still wraps.
     expect(formatScheduleTime({ startTime: '16:00', endTime: '08:00', endDayOffset: 0 }, t, 'en-US', '24h'))
-      .toBe('16:00 to 08:00');
+      .toBe('16:00 until 08:00 the next day');
+    // Equal times are a full day, and read as one.
+    expect(formatScheduleTime({ startTime: '08:00', endTime: '08:00' }, t, 'en-US', '24h'))
+      .toBe('08:00 until 08:00 the next day');
   });
 
   it('leaves a malformed stored time alone rather than inventing one', () => {

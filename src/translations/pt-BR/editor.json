@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} dias depois",
     "behaviorTitle": "Comportamento",
     "invertLabel": "Em vez disso, ocultar nesses horários",
-    "invertNeedsWindow": "Defina primeiro um horário De e Até.",
+    "neverShows": "Com essas configurações, nunca aparece.",
     "summary": {
       "shows": "Aparece {when}.",
       "hides": "Fica oculto {when}. Aparece no resto do tempo.",

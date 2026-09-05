@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useScheduleWindow } from '@/hooks/useScheduleWindow';
+import { computeWeekSegments } from '@/lib/schedule-timeline';
 import type { ModuleSchedule } from '@/types/config';
 
 interface ScheduleEditorProps {
@@ -29,17 +30,13 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
   const enabled = !!schedule;
 
+  // Every field is kept as set. `invert` in particular is never rewritten on
+  // the user's behalf: "hide before 09:00" (an end with no start) and "hide on
+  // weekends" (days with no times) are real schedules, and an earlier version
+  // that dropped the flag whenever a time was empty turned them into their
+  // opposites the moment any other field was edited.
   const setSchedule = (updates: Partial<ModuleSchedule>) => {
-    const next: ModuleSchedule = { ...schedule, ...updates };
-    // Invert has nothing to invert without a full window. Dropping it here
-    // (not just disabling the toggle) keeps the checkbox and the underlying
-    // flag from disagreeing — otherwise clearing the window after Invert was
-    // turned on leaves the module hidden forever with no control left to
-    // uncheck it.
-    if (!(next.startTime && next.endTime) && next.invert) {
-      next.invert = undefined;
-    }
-    onChange(next);
+    onChange({ ...schedule, ...updates });
   };
 
   const toggleEnabled = (on: boolean) => {
@@ -57,9 +54,12 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
     setSchedule,
   );
 
-  // The invert toggle has nothing to invert without a window: with no times
-  // set it would hide the module every day, forever.
-  const hasWindow = !!schedule?.startTime && !!schedule?.endTime;
+  // Invert with nothing narrowing the week hides the module always. The toggle
+  // stays usable so the user can undo it; this only says what has happened.
+  const neverShows = useMemo(
+    () => !!schedule && computeWeekSegments(schedule).length === 0,
+    [schedule],
+  );
 
   return (
     <div className="space-y-3">
@@ -150,12 +150,14 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
             <Toggle
               label={t('scheduleEditor.invertLabel')}
               checked={!!schedule?.invert}
-              disabled={!hasWindow}
               onChange={(v) => setSchedule({ invert: v || undefined })}
             />
-            {!hasWindow && (
-              <p className="mt-1.5 text-[10px] text-hs-text-faint leading-relaxed">
-                {t('scheduleEditor.invertNeedsWindow')}
+            {neverShows && (
+              <p
+                data-testid="schedule-never-shows"
+                className="mt-1.5 text-[10px] text-amber-400 leading-relaxed"
+              >
+                {t('scheduleEditor.neverShows')}
               </p>
             )}
           </PropertyGroup>

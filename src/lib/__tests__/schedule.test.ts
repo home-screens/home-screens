@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isModuleEnabled, isModuleVisible, resolveProfileScreens, scheduleShape } from '../schedule';
+import { isModuleEnabled, isModuleVisible, resolveProfileScreens, resolveSpanDays, scheduleShape } from '../schedule';
 import type { ModuleInstance, Screen, Profile } from '@/types/config';
 
 // Helper: create a Date for a specific day/time
@@ -109,11 +109,21 @@ describe('isModuleVisible', () => {
       expect(isModuleVisible({ daysOfWeek: [0, 1, 2, 3, 4, 5] }, saturday)).toBe(false);
     });
 
-    it('equal start and end time produces zero-width window (always hidden)', () => {
-      const at6am = makeDate(1, 6, 0);
-      const at12pm = makeDate(1, 12, 0);
-      expect(isModuleVisible({ startTime: '06:00', endTime: '06:00' }, at6am)).toBe(false);
-      expect(isModuleVisible({ startTime: '06:00', endTime: '06:00' }, at12pm)).toBe(false);
+    it('equal start and end time is a full 24 hours from the start', () => {
+      // The strip's end drag stores a day-long repeating window this way; a
+      // zero-length window would hide the module with nothing on screen to
+      // say why.
+      const schedule = { daysOfWeek: [1], startTime: '06:00', endTime: '06:00' };
+      expect(isModuleVisible(schedule, makeDate(1, 5, 59))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(1, 6, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(1, 12, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 5, 59))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(2, 6, 0))).toBe(false);
+      expect(resolveSpanDays(schedule)).toBe(1);
+    });
+
+    it('an end of 00:00 with no start is the whole day, not nothing', () => {
+      expect(isModuleVisible({ endTime: '00:00' }, makeDate(1, 12, 0))).toBe(true);
     });
 
     it('rejects out-of-range times (treats as no constraint)', () => {
@@ -207,11 +217,24 @@ describe('isModuleVisible', () => {
       expect(isModuleVisible(schedule, makeDate(2, 12, 0))).toBe(false);
     });
 
-    it('an offset of 0 pins the window to its own day, overriding the overnight wrap', () => {
+    it('an explicit offset of 0 means the same as none: an overnight pair still wraps', () => {
+      // The span editor's "Ends on" select writes 0 when the start day is
+      // picked; reading it as "closes before it opens" emptied the window.
       const schedule = { daysOfWeek: [2], startTime: '16:00', endTime: '08:00', endDayOffset: 0 };
-      // Closes before it opens, so it is simply never on.
-      expect(isModuleVisible(schedule, makeDate(2, 20, 0))).toBe(false);
-      expect(isModuleVisible(schedule, makeDate(3, 2, 0))).toBe(false);
+      expect(isModuleVisible(schedule, makeDate(2, 20, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 2, 0))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(3, 8, 0))).toBe(false);
+      expect(resolveSpanDays(schedule)).toBe(1);
+      // And with equal times, offset 0 is the same full day as no offset.
+      const day = { daysOfWeek: [2], startTime: '08:00', endTime: '08:00', endDayOffset: 0 };
+      expect(isModuleVisible(day, makeDate(3, 7, 59))).toBe(true);
+      expect(isModuleVisible(day, makeDate(3, 8, 0))).toBe(false);
+    });
+
+    it('equal times under a multi-day offset close on that day at the start time', () => {
+      const schedule = { daysOfWeek: [1], startTime: '08:00', endTime: '08:00', endDayOffset: 3 };
+      expect(isModuleVisible(schedule, makeDate(4, 7, 59))).toBe(true);
+      expect(isModuleVisible(schedule, makeDate(4, 8, 0))).toBe(false);
     });
 
     it('ignores an out-of-range or fractional offset rather than trusting it', () => {

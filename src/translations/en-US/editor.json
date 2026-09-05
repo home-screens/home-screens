@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} days later",
     "behaviorTitle": "Behavior",
     "invertLabel": "Hide during these hours instead",
-    "invertNeedsWindow": "Set a From and Until time first.",
+    "neverShows": "With these settings it never shows.",
     "summary": {
       "shows": "Shows {when}.",
       "hides": "Hidden {when}. Shown the rest of the time.",

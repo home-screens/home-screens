@@ -70,6 +70,14 @@ describe('computeWeekSegments', () => {
     expect(segs.filter((s) => s[0] === SUN)).toEqual([[SUN, 0, MINUTES_PER_DAY, true, true]]);
   });
 
+  it('draws equal times as a full day, joined onto the next row', () => {
+    // What the strip's end drag stores at its 24-hour cap.
+    expect(shape({ daysOfWeek: [MON], startTime: '08:00', endTime: '08:00' })).toEqual([
+      [MON, 480, MINUTES_PER_DAY, false, true],
+      [TUE, 0, 480, true, false],
+    ]);
+  });
+
   it('treats a start-only window as running to midnight', () => {
     expect(shape({ daysOfWeek: [FRI], startTime: '18:00' })).toEqual([
       [FRI, 1080, MINUTES_PER_DAY, false, false],

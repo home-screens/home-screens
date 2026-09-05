@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} Tage später",
     "behaviorTitle": "Verhalten",
     "invertLabel": "In diesen Stunden stattdessen ausblenden",
-    "invertNeedsWindow": "Stelle zuerst eine Von- und eine Bis-Zeit ein.",
+    "neverShows": "Mit diesen Einstellungen wird es nie angezeigt.",
     "summary": {
       "shows": "Wird {when} angezeigt.",
       "hides": "Wird {when} ausgeblendet. Sonst immer zu sehen.",

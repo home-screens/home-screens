@@ -99,12 +99,17 @@ export interface ModuleSize {
 export interface ModuleSchedule {
   daysOfWeek?: number[];    // 0=Sun, 1=Mon, ... 6=Sat (omit = every day)
   startTime?: string;       // "06:00" (omit = from midnight)
-  endTime?: string;         // "09:00" (omit = until midnight)
+  /**
+   * "09:00" (omit = until midnight). An end earlier than the start closes the
+   * next morning; an end equal to the start is a full 24 hours from the start,
+   * which is how the editor stores a repeating window dragged out to a day.
+   */
+  endTime?: string;
   /**
    * How many days after its start day the window closes. 0-6.
    *
    * Omitted, or 0, means a plain repeating window: same day, or the next
-   * morning when `startTime > endTime`. Above 0 it is one continuous stretch,
+   * morning when `startTime >= endTime`. Above 0 it is one continuous stretch,
    * which the implicit wrap cannot reach. "Monday 08:00 until Thursday 20:00"
    * is `daysOfWeek: [1]`, `startTime: '08:00'`, `endTime: '20:00'`,
    * `endDayOffset: 3`.

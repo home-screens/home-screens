@@ -172,8 +172,41 @@ test('a repeating window cannot be dragged long enough to overlap the next day',
   expect(saved?.endTime).toBe('08:00');
   expect(saved?.endDayOffset).toBeUndefined();
   expect(saved?.daysOfWeek).toEqual([0, 1, 2]);
-  // Wednesday onwards stays dark: no run of the week.
+  // Reported: the equal times used to read as an empty window and the module
+  // vanished. A full day is Sun 08:00 to Mon 08:00, and so on: each picked
+  // row lit from 08:00 and spilling onto the next morning.
+  for (const day of [0, 1, 2]) {
+    await expect(bandsOn(page, day).last()).toHaveCSS('border-top-right-radius', '0px');
+  }
+  await expect(bandsOn(page, 3)).toHaveCount(1);
+  await expect(bandsOn(page, 3)).toHaveCSS('border-top-left-radius', '0px');
+  await expect(page.getByTestId('schedule-never-shows')).toHaveCount(0);
+  // Thursday onwards stays dark: no run of the week.
   for (const day of [4, 5, 6]) await expect(bandsOn(page, day)).toHaveCount(0);
+});
+
+test('a stretch cannot be dragged a whole week onto its own start', async ({ page, request }) => {
+  const mod = buildModuleInstance('clock');
+  mod.schedule = { daysOfWeek: [0], startTime: '00:00', endTime: '12:00', endDayOffset: 1 };
+  await selectModule(page, request, mod);
+  await openSchedule(page);
+
+  // Sunday's stretch ends on Monday; drag that end to the far right of Saturday.
+  const grip = page.getByTestId('schedule-track-1').getByTestId('schedule-grip-end');
+  await grip.hover();
+  const sat = (await page.getByTestId('schedule-track-6').boundingBox())!;
+  await autosaved(page, async () => {
+    await page.mouse.down();
+    await page.mouse.move(sat.x + sat.width + 20, sat.y + sat.height / 2, { steps: 8 });
+    await page.mouse.up();
+  });
+
+  const saved = (await getConfig(request)).screens[0].modules[0].schedule;
+  // A whole week has no offset to be stored under and means "always on"; it
+  // stops one step short instead of collapsing to an empty same-day window.
+  expect(saved?.endDayOffset).toBe(6);
+  expect(saved?.endTime).toBe('23:45');
+  for (let day = 0; day < 7; day++) await expect(bandsOn(page, day)).toHaveCount(1);
 });
 
 /**

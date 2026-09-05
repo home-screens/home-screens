@@ -125,9 +125,72 @@ test.describe('schedule editor', () => {
 
     // An empty window is explained rather than left as an unfilled time box.
     await expect(page.getByText('Leave both empty to show all day.')).toBeVisible();
-    // Nothing to invert yet, so the toggle is off the table until there is.
-    await expect(page.getByRole('switch', { name: 'Hide during these hours instead' })).toBeDisabled();
-    await expect(page.getByText('Set a From and Until time first.')).toBeVisible();
+    // The invert toggle is always usable; nothing warns until it would hide
+    // the module all week.
+    const invert = page.getByRole('switch', { name: 'Hide during these hours instead' });
+    await expect(invert).toBeEnabled();
+    await expect(page.getByTestId('schedule-never-shows')).toHaveCount(0);
+    await autosaved(page, async () => {
+      await invert.click();
+    });
+    await expect(page.getByTestId('schedule-never-shows')).toBeVisible();
+    // And it can be turned straight back off.
+    await autosaved(page, async () => {
+      await invert.click();
+    });
+    await expect(page.getByTestId('schedule-never-shows')).toHaveCount(0);
+    expect((await getConfig(request)).screens[0].modules[0].schedule?.invert).toBeUndefined();
+  });
+
+  /**
+   * Reported: an end-only "hide before 09:00" became "show before 10:00" when
+   * its end was edited, and a "hide on weekends" flipped to "weekends only"
+   * on a day toggle, because the editor dropped `invert` whenever a time was
+   * empty. Both are real schedules and must survive edits intact.
+   */
+  test('editing a schedule with one time or no times keeps it inverted', async ({ page, request }) => {
+    const mod = buildModuleInstance('clock');
+    mod.schedule = { endTime: '09:00', invert: true };
+    await selectModule(page, request, mod);
+    await page.getByRole('button', { name: 'Schedule', exact: true }).click();
+
+    const invert = page.getByRole('switch', { name: 'Hide during these hours instead' });
+    await expect(invert).toBeEnabled();
+    await expect(invert).toHaveAttribute('aria-checked', 'true');
+
+    await autosaved(page, async () => {
+      await page.getByLabel('Until', { exact: true }).fill('10:00');
+    });
+    let saved = (await getConfig(request)).screens[0].modules[0].schedule;
+    expect(saved).toMatchObject({ endTime: '10:00', invert: true });
+    expect(saved?.startTime).toBeUndefined();
+
+    // Days only: hide on weekends, then also on Fridays.
+    await autosaved(page, async () => {
+      await page.getByLabel('Until', { exact: true }).fill('');
+    });
+    await autosaved(page, async () => {
+      for (const day of [1, 2, 3, 4, 5]) {
+        await page.getByTestId('schedule-week-strip').getByTestId(`schedule-day-${day}`).click();
+      }
+    });
+    saved = (await getConfig(request)).screens[0].modules[0].schedule;
+    expect(saved).toMatchObject({ daysOfWeek: [0, 6], invert: true });
+    expect(saved?.endTime).toBeUndefined();
+
+    await autosaved(page, async () => {
+      await page.getByTestId('schedule-week-strip').getByTestId('schedule-day-5').click();
+    });
+    saved = (await getConfig(request)).screens[0].modules[0].schedule;
+    expect(saved).toMatchObject({ daysOfWeek: [0, 5, 6], invert: true });
+    // Mon to Thu lit, the rest dark, and no "never shows" warning.
+    for (const day of [1, 2, 3, 4]) {
+      await expect(page.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(1);
+    }
+    for (const day of [0, 5, 6]) {
+      await expect(page.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(0);
+    }
+    await expect(page.getByTestId('schedule-never-shows')).toHaveCount(0);
   });
 
   test('the strip draws the window that was set', async ({ page, request }) => {

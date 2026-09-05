@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} dagen later",
     "behaviorTitle": "Gedrag",
     "invertLabel": "Juist verbergen tijdens deze uren",
-    "invertNeedsWindow": "Stel eerst een tijd in bij Van en Tot.",
+    "neverShows": "Met deze instellingen wordt het nooit getoond.",
     "summary": {
       "shows": "Zichtbaar {when}.",
       "hides": "Verborgen {when}. De rest van de tijd wel zichtbaar.",

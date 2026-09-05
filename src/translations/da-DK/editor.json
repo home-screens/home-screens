@@ -224,7 +224,7 @@
     "endsDaysLater": "{count} dage senere",
     "behaviorTitle": "Opførsel",
     "invertLabel": "Skjul i stedet i dette tidsrum",
-    "invertNeedsWindow": "Angiv først et Fra- og et Til-tidspunkt.",
+    "neverShows": "Med disse indstillinger vises det aldrig.",
     "summary": {
       "shows": "Vises {when}.",
       "hides": "Skjult {when}. Vises resten af tiden.",

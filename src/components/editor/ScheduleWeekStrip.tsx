@@ -70,8 +70,9 @@ const toClock = (min: number) => {
  *    add, including the spill onto the following morning, so the start-day rule
  *    is demonstrated before the click rather than explained after it.
  *  - Dragging an end sets the stretch's length, capped at 24 hours for a
- *    repeating window and a week for a span, so a repeating schedule can never
- *    be dragged far enough for two picked days to light the same hour.
+ *    repeating window and just short of a week for a span, so a repeating
+ *    schedule can never be dragged far enough for two picked days to light the
+ *    same hour.
  *
  * The bands come from the display's own `isModuleVisible` (see
  * `computeWeekSegments`), so the picture cannot disagree with the wall.
@@ -174,7 +175,10 @@ export default function ScheduleWeekStrip({
       // Drag the end as a length, not as a position, so it can never land
       // before its own start and the wrap past Saturday needs no special case.
       // A repeating window tops out at 24 hours, which is what stops two picked
-      // days ever lighting the same hour; a span may run the week.
+      // days ever lighting the same hour; it is stored as equal times, which
+      // the predicate reads as a full day. A span stops one step short of a
+      // week: a whole week is "always on", which is what no schedule already
+      // means, and it has no offset (0-6) to be stored under.
       //
       // Rows disambiguate direction. Measured purely as a distance around the
       // week, "a little before the start" and "days after it" both come out
@@ -182,7 +186,7 @@ export default function ScheduleWeekStrip({
       const startAbs = state.anchorDay * MINUTES_PER_DAY + start;
       const dayDelta = mod(slot.day - state.anchorDay, 7);
       const minuteDelta = slot.minute - start;
-      const ceiling = state.shape === 'span' ? WEEK_MINUTES : MINUTES_PER_DAY;
+      const ceiling = state.shape === 'span' ? WEEK_MINUTES - SNAP_MINUTES : MINUTES_PER_DAY;
       const length = Math.min(
         Math.max(
           dayDelta === 0 && minuteDelta <= 0
