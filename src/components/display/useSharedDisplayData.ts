@@ -138,7 +138,16 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
     settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
   );
   const calendarUrl = buildCalendarUrl(calendarIdList, hasFeedSources, fetchWindow, refreshEpoch);
-  const [calendarData, calendarError, calendarUpdatedAt] = useFetchData(calendarUrl, CALENDAR_REFRESH_MS);
+  // The same sources without the window or the refresh bump: every URL this
+  // display builds for these sources is one dataset, so a midnight window
+  // advance or a forced refresh keeps the events already on the wall while
+  // the new request is in flight or failing.
+  const calendarDatasetKey = buildCalendarUrl(calendarIdList, hasFeedSources, null, 0);
+  const [calendarData, calendarError, calendarUpdatedAt] = useFetchData(
+    calendarUrl,
+    CALENDAR_REFRESH_MS,
+    calendarDatasetKey,
+  );
 
   // Failure ≠ empty: the calendar modules must distinguish "the fetch is
   // failing" (keep last-good events, badge them as saved) from "the calendar

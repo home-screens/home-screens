@@ -86,9 +86,16 @@ function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date): 
 /**
  * Record per-source last-good events, or substitute them for a failing
  * source. On success the source's saved set becomes: previously saved rows
- * outside this request's window (minus stale ones) plus the fresh rows, so
- * the fallback always covers the union of every window that has succeeded.
- * Substituted events are re-filtered to the requested window, so
+ * outside this request's window (minus stale ones, and minus any row whose
+ * id the fresh rows carry) plus the fresh rows, so the fallback always
+ * covers the union of every window that has succeeded. The id check is what
+ * keeps a moved appointment from living twice: a wide fetch saves it next
+ * week, a narrow fetch then sees it moved into today, and without the check
+ * the old copy sits outside the narrow window and survives, so the next
+ * failed wide fetch would serve it at both times. Google ids are stable
+ * across a move; an iCal id embeds the occurrence start, so a moved iCal
+ * event is a new id and its old copy lasts until a window covering it next
+ * succeeds. Substituted events are re-filtered to the requested window, so
  * out-of-window strays never eat the budget of healthy sources. Known
  * limitation: entries are keyed by source id alone, so if a source's URL is
  * repointed while the new target is failing, the old target's events serve
@@ -107,8 +114,12 @@ export function withSavedEvents(
   for (const r of results) {
     if (r.ok) {
       const fresh = events.filter((ev) => ev.sourceId === r.id);
+      const freshIds = new Set(fresh.map((ev) => ev.id));
       const kept = (lastGoodEvents.get(r.id) ?? []).filter(
-        (ev) => !overlapsWindow(ev, windowStart, windowEnd) && new Date(ev.end).getTime() >= retainAfter,
+        (ev) =>
+          !freshIds.has(ev.id)
+          && !overlapsWindow(ev, windowStart, windowEnd)
+          && new Date(ev.end).getTime() >= retainAfter,
       );
       lastGoodEvents.set(r.id, [...kept, ...fresh]);
     } else {

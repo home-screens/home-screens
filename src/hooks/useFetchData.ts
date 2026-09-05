@@ -24,24 +24,49 @@ const log = logger('fetch-data');
  *
  * A different `url` is a different dataset: the kept payload is dropped (and
  * restored from the display cache when that URL has one) so a module never
- * renders the new request's shape against the old request's data.
+ * renders the new request's shape against the old request's data. The
+ * exception is a URL change within one `datasetKey`: URLs sharing a key are
+ * the same feed asked for a different slice (the calendar's date window
+ * advances at midnight), so the change is treated like a poll and the kept
+ * payload, its fetch time and any standing error carry over. Without that, a
+ * day rollover during an outage dropped the events the display already
+ * held and showed "can't load" until the hub came back.
  */
-export function useFetchData<T>(url: string, refreshMs: number): [T | null, FetchError | null, number | null] {
+export function useFetchData<T>(
+  url: string,
+  refreshMs: number,
+  datasetKey?: string,
+): [T | null, FetchError | null, number | null] {
   const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<FetchError | null>(null);
   const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const lastUrl = useRef(url);
+  // Read through a ref so a key change alone never re-runs the effect; it is
+  // only consulted at the moment the URL changes.
+  const lastDatasetKey = useRef(datasetKey);
+  const currentDatasetKey = useRef(datasetKey);
+  currentDatasetKey.current = datasetKey;
 
   useEffect(() => {
-    if (!url) { setData(null); setError(null); setUpdatedAt(null); lastUrl.current = url; return; }
+    if (!url) {
+      setData(null); setError(null); setUpdatedAt(null);
+      lastUrl.current = url;
+      lastDatasetKey.current = currentDatasetKey.current;
+      return;
+    }
     if (lastUrl.current !== url) {
       // Only on a real URL change, not on a refreshMs/translator re-run,
       // so a settings tweak never blinks a module that keeps its URL.
+      const key = currentDatasetKey.current;
+      const sameDataset = key !== undefined && key === lastDatasetKey.current;
       lastUrl.current = url;
-      setData(null);
-      setError(null);
-      setUpdatedAt(null);
+      lastDatasetKey.current = key;
+      if (!sameDataset) {
+        setData(null);
+        setError(null);
+        setUpdatedAt(null);
+      }
     }
     const controller = new AbortController();
 

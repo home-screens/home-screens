@@ -82,6 +82,19 @@ describe('withSavedEvents', () => {
     expect(out.map((e) => e.id).sort()).toEqual(['a', 'c']);
   });
 
+  it('a fresh row replaces its saved counterpart wherever the saved copy sits (a moved appointment shows once)', () => {
+    // A wide fetch saves the appointment next week. A narrow fetch covering
+    // only this week then sees it moved into today. The old copy lies outside
+    // the narrow window and used to survive the merge, so a failed wide fetch
+    // served the appointment at both times.
+    withSavedEvents([mk('appt', '2026-07-20T10:00:00')], [{ id: 's1', ok: true }], winStart, winEnd);
+    const weekStart = new Date(2026, 6, 10);
+    const weekEnd = new Date(2026, 6, 17);
+    withSavedEvents([mk('appt', '2026-07-12T10:00:00')], [{ id: 's1', ok: true }], weekStart, weekEnd);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], winStart, winEnd);
+    expect(out).toEqual([mk('appt', '2026-07-12T10:00:00')]);
+  });
+
   it('drops saved rows that ended long before now, measured from now rather than the fetch window', () => {
     const now = new Date(2026, 7, 1).getTime();
     const wide = [mk('old', '2026-04-20T10:00:00'), mk('recent', '2026-06-30T10:00:00')];
