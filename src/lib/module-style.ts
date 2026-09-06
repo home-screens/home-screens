@@ -132,11 +132,12 @@ export function resolveModuleStyle(style: ModuleStyle, def: TextSizeDefinition |
  * pixel value as a percent of what the module shows on its own.
  *
  * On a fixed-size module that is the base: 34px on a 16px base reads 213%.
- * On a module that fits its text it is the fitted size the module publishes
- * (`fittedPx`), and the pixel value was a floor: one below the fit never
- * showed and reads 100%, one above it is what showed and reads its ratio, so
- * 35px on a card that fits 18px reads 194%. Until the fit is known it reads
- * 100%, which is the fit.
+ * On a fitting module, compare the old rendered size (the greater of its
+ * saved floor and `fittedPx`) with the new 100% size (the greater of the
+ * registry base and `fittedPx`). Both floors matter: on a card fitting 10px,
+ * a saved 32px size is 200% of the default 16px, not 320%. Otherwise the
+ * first slider nudge would change 32px to 51px. Until the fit is known the
+ * readout stays at 100%.
  */
 export function displayTextPercent(style: ModuleStyle, def: TextSizeDefinition | undefined, fittedPx?: number): number {
   const clamp = (n: number) => Math.min(TEXT_SCALE_MAX, Math.max(TEXT_SCALE_MIN, Math.round(n)));
@@ -144,7 +145,11 @@ export function displayTextPercent(style: ModuleStyle, def: TextSizeDefinition |
   if (typeof pct === 'number' && Number.isFinite(pct)) return clamp(pct);
   if (def?.autoSizesText) {
     if (typeof fittedPx !== 'number' || !Number.isFinite(fittedPx) || fittedPx <= 0) return 100;
-    return clamp(Math.max(100, (style.fontSize / fittedPx) * 100));
+    const base = moduleBaseFontSize(def);
+    const floor = Number.isFinite(style.fontSize) && style.fontSize > 0
+      ? style.fontSize
+      : DEFAULT_MODULE_STYLE.fontSize;
+    return clamp((Math.max(floor, fittedPx) / Math.max(base, fittedPx)) * 100);
   }
   const derived = (style.fontSize / moduleBaseFontSize(def)) * 100;
   return Number.isFinite(derived) ? clamp(derived) : 100;

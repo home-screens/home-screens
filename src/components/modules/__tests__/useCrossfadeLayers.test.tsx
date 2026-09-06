@@ -52,6 +52,36 @@ describe('useCrossfadeLayers', () => {
     expect(result.current.activeLayer).toBe(0);
   });
 
+  it('reuses a ready image but forgets readiness when that layer gets another source', () => {
+    const { result, rerender } = mount(A, 0);
+    act(() => { result.current.layerReady(0); });
+    rerender({ item: B, index: 1 });
+    act(() => { result.current.layerReady(1); });
+    rerender({ item: A, index: 0 });
+    expect(result.current.activeLayer).toBe(0);
+    rerender({ item: B, index: 1 });
+    expect(result.current.activeLayer).toBe(1);
+
+    // Replacing A with an unloaded C discards A's decoded image. Coming
+    // back to A before C loads must wait for a fresh load, not reuse that mark.
+    rerender({ item: { url: '/api/p/c', type: 'image' }, index: 2 });
+    rerender({ item: A, index: 0 });
+    expect(result.current.activeLayer).toBe(1);
+    act(() => { result.current.layerReady(0); });
+    expect(result.current.activeLayer).toBe(0);
+  });
+
+  it('does not reuse readiness after a hidden layer reports a failure', () => {
+    const { result, rerender, advance } = mount(A, 0);
+    act(() => { result.current.layerReady(0); });
+    rerender({ item: B, index: 1 });
+    act(() => { result.current.layerReady(1); });
+    act(() => { result.current.layerFailed(0); });
+    rerender({ item: A, index: 0 });
+    expect(result.current.activeLayer).toBe(1);
+    expect(advance).not.toHaveBeenCalled();
+  });
+
   it('cuts to a video immediately (VideoLayer owns its own loading)', () => {
     const { result, rerender } = mount(A, 0);
     rerender({ item: V, index: 1 });

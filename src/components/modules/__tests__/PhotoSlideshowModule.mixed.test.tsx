@@ -45,10 +45,18 @@ function renderSlideshow(config: PhotoSlideshowConfig) {
   );
 }
 
-/** The layer currently on top (zIndex 1), after every image reports loaded
- *  (jsdom never fires `load` itself; the crossfade waits for it). */
+let loadedSources = new WeakMap<HTMLImageElement, string | null>();
+
+/** Complete new image loads, then find the layer on top. An unchanged src
+ *  does not fire another load event in a browser, even when its layer is reused. */
 function activeElement(container: HTMLElement): Element | null {
-  for (const img of container.querySelectorAll('img')) fireEvent.load(img);
+  for (const img of container.querySelectorAll('img')) {
+    const src = img.getAttribute('src');
+    if (loadedSources.get(img) !== src) {
+      loadedSources.set(img, src);
+      fireEvent.load(img);
+    }
+  }
   return [...container.querySelectorAll('img, video')].find(
     (el) => (el as HTMLElement).style.zIndex === '1',
   ) ?? null;
@@ -56,6 +64,7 @@ function activeElement(container: HTMLElement): Element | null {
 
 beforeEach(() => {
   vi.useFakeTimers();
+  loadedSources = new WeakMap();
 });
 
 afterEach(() => {
@@ -122,5 +131,15 @@ describe('PhotoSlideshowModule mixed media', () => {
     expect(img.style.transition).toContain('opacity'); // fade preserved
     act(() => vi.advanceTimersByTime(10_001));
     expect(activeElement(container)?.getAttribute('src')).toContain('b.jpg');
+  });
+
+  it('alternates two photos across full passes without reloading unchanged images', () => {
+    mockData = ['/api/backgrounds/serve?file=a.jpg', '/api/backgrounds/serve?file=b.jpg'];
+    const { container } = renderSlideshow(makeConfig());
+    expect(activeElement(container)?.getAttribute('src')).toContain('a.jpg');
+    for (let step = 1; step <= 6; step++) {
+      act(() => vi.advanceTimersByTime(10_000));
+      expect(activeElement(container)?.getAttribute('src')).toContain(step % 2 ? 'b.jpg' : 'a.jpg');
+    }
   });
 });

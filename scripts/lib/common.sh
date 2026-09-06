@@ -272,7 +272,10 @@ setup_font_aliases() {
   #
   # Idempotent. Sets FONT_ALIAS_CHANGES so callers can fold it into their own
   # change tracking, matching setup_boot_splash.
-  local conf="/etc/fonts/local.conf"
+  # Keep household font preferences in local.conf intact. Load our defaults
+  # after user/local aliases and before the distribution's generic aliases:
+  # fontconfig gives the earlier preferred families priority.
+  local conf="/etc/fonts/conf.d/59-home-screens-font-aliases.conf"
   FONT_ALIAS_CHANGES=""
 
   local body
@@ -289,10 +292,19 @@ FONTCONF
 )"
 
   if [ "$(cat "${conf}" 2>/dev/null)" != "${body}" ]; then
+    sudo mkdir -p /etc/fonts/conf.d
     printf '%s\n' "${body}" | sudo tee "${conf}" >/dev/null
+    FONT_ALIAS_CHANGES="fontconfig,"
+  fi
+  # Earlier RCs owned local.conf. Remove only our exact, unmodified output;
+  # even a file carrying our marker may now contain a user's custom settings.
+  if [ "$(cat /etc/fonts/local.conf 2>/dev/null)" = "${body}" ]; then
+    sudo rm /etc/fonts/local.conf
+    FONT_ALIAS_CHANGES="fontconfig,"
+  fi
+  if [ -n "${FONT_ALIAS_CHANGES}" ]; then
     # Refresh the cache so the next Chromium start picks the aliases up.
     sudo fc-cache -f >/dev/null 2>&1 || true
-    FONT_ALIAS_CHANGES="fontconfig,"
   fi
   return 0
 }

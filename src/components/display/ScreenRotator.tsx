@@ -658,7 +658,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {/* Same z as SleepOverlay but later in DOM, so a running timer shows
           over a sleeping display (starting one is an explicit wake intent)
           while urgent alerts (9998) still surface above it. */}
-      <TimerOverlay displayId={displayId} viewport={viewportSize} />
+      {/* A preview must neither show nor control the live routine. The overlay
+          owns its polling and step-done writes, so leave it unmounted here. */}
+      {!preview && <TimerOverlay displayId={displayId} viewport={viewportSize} />}
     </div>
   );
 }

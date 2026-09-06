@@ -3,6 +3,8 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { useScaledFontSize } from '../useScaledFontSize';
+import { displayTextPercent, moduleBaseFontSize, resolveModuleStyle } from '@/lib/module-style';
+import { DEFAULT_MODULE_STYLE } from '@/types/config';
 
 /**
  * jsdom has no layout and no ResizeObserver, which is exactly why the bug these
@@ -146,6 +148,30 @@ describe('useScaledFontSize', () => {
     boxHeight = 400;
     const { container } = mount({ mounted: true });
     expect(container.querySelector('[data-fitted-px]')?.getAttribute('data-fitted-px')).toBe('40');
+  });
+
+  it.each([
+    { stored: 32, height: 100, base: 16 },
+    { stored: 8, height: 100, base: 16 },
+    { stored: 48, height: 400, base: 16 },
+    { stored: 16, height: 400, base: 16 },
+    { stored: 52, height: 200, base: 26 },
+  ])('keeps the first slider nudge proportional for a saved $stored px module in a $height px box', ({ stored, height, base }) => {
+    boxHeight = height;
+    const def = { autoSizesText: true, defaultStyle: { fontSize: base } };
+    const saved = { ...DEFAULT_MODULE_STYLE, fontSize: stored };
+    const { container, rerender } = mount({ mounted: true, base: saved.fontSize });
+    const before = latest();
+    const fitted = Number(container.querySelector('[data-fitted-px]')?.getAttribute('data-fitted-px'));
+    const percent = displayTextPercent(saved, def, fitted);
+    // Follow the editor's write and the renderer's resolution, rather than
+    // supplying an already-scaled floor directly to the hook.
+    const edited = resolveModuleStyle({ ...saved, fontSize: moduleBaseFontSize(def), textScale: percent + 1 }, def);
+    rerender(<Harness mounted base={edited.fontSize} scale={edited.textScale} />);
+    const percentStep = Math.max(base, fitted) / 100;
+    // Allow half a step for the integer slider's rounding of the old size.
+    expect(latest()).toBeGreaterThan(before);
+    expect(Math.abs(latest() - before - percentStep)).toBeLessThanOrEqual(percentStep * 0.501);
   });
 
   it('falls back to the raw size while the box measures zero', () => {

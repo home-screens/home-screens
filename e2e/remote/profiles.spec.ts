@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig } from '../helpers/api';
+import { getConfig, postHeartbeat, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -54,6 +54,24 @@ test('the switcher offers All screens, never toggles off silently, and says what
   await chips.getByRole('button', { name: 'All screens' }).click();
   await expect(page.getByTestId('remote-toast')).toHaveText('The display is showing all screens');
   await expect.poll(async () => (await getConfig(request)).settings.activeProfile).toBeUndefined();
+});
+
+test('a heartbeat reporting no profile beats the page-load profile', async ({ page, request }) => {
+  // Morning was active when the page loaded, then the display reports it is
+  // running with no profile. That null is a real answer, not missing data:
+  // the switcher must show All screens and let Morning be picked again.
+  await putConfig(request, profileConfig('p1'));
+  await page.goto('/remote');
+  const chips = page.getByTestId('profile-switcher');
+  await expect(chips.getByRole('button', { name: /Morning/ })).toHaveAttribute('aria-pressed', 'true');
+
+  await postHeartbeat(request, { activeProfile: null });
+  await expect(chips.getByRole('button', { name: /All screens/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(chips.getByRole('button', { name: 'Morning' })).toHaveAttribute('aria-pressed', 'false');
+
+  await chips.getByRole('button', { name: 'Morning' }).click();
+  await expect(page.getByTestId('remote-toast')).toHaveText('The display switched to Morning');
+  await expect(chips.getByRole('button', { name: /Morning/ })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('the display resolves the active profile screens', async ({ page, request }) => {

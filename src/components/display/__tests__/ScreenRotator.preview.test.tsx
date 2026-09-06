@@ -19,7 +19,8 @@ vi.mock('../SleepOverlay', () => ({ default: () => null }));
 vi.mock('../BackgroundProviderLayer', () => ({ default: () => null }));
 vi.mock('../PluginServiceLayer', () => ({ default: () => null }));
 vi.mock('../AlertOverlay', () => ({ default: () => null }));
-vi.mock('../TimerOverlay', () => ({ default: () => null }));
+const timerOverlay = vi.fn(() => <div data-testid="live-timer" />);
+vi.mock('../TimerOverlay', () => ({ default: () => timerOverlay() }));
 vi.mock('../NetworkIndicator', () => ({ default: () => null }));
 vi.mock('../useLiveConfig', () => ({
   useLiveConfig: (
@@ -85,6 +86,7 @@ describe('ScreenRotator start screen and preview mode', () => {
     vi.useFakeTimers();
     useDisplayCommands.mockClear();
     useStatusReporter.mockClear();
+    timerOverlay.mockClear();
   });
   afterEach(() => {
     cleanup();
@@ -166,10 +168,21 @@ describe('ScreenRotator start screen and preview mode', () => {
     expect(rendered()).toBe('weather');
   });
 
+  it('never mounts the live timer in a preview, including after polling intervals', () => {
+    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} displayId="main" initialScreenId="weather" preview />);
+    act(() => { vi.advanceTimersByTime(10_000); });
+    expect(rendered()).toBe('weather');
+    // TimerOverlay owns its polling, sound and step-done POST. Keeping it
+    // unmounted prevents all three, as well as covering the previewed screen.
+    expect(timerOverlay).not.toHaveBeenCalled();
+    expect(dom.queryByTestId('live-timer')).toBeNull();
+  });
+
   it('a normal display keeps hub traffic on', () => {
     render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(useDisplayCommands.mock.calls.every((c) => c[2] === true)).toBe(true);
     expect(useStatusReporter.mock.calls.every((c) => c[c.length - 1] === true)).toBe(true);
+    expect(dom.getByTestId('live-timer')).toBeTruthy();
   });
 });

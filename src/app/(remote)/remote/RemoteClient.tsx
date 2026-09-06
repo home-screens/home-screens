@@ -367,9 +367,12 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 onNoConfirm={noConfirmToast}
               />
               {showSingleDisplayControls && effectiveProfiles.length > 0 && (
+                // The page-load profile only stands in until the first
+                // heartbeat. After that the display's report wins, and its
+                // null means "no profile", not "unknown".
                 <ProfileSwitcher
                   profiles={effectiveProfiles}
-                  activeProfile={status?.activeProfile ?? effectiveInitialActiveProfile}
+                  activeProfile={status ? status.activeProfile : effectiveInitialActiveProfile}
                   displayName={targetName ?? t('displayHero.theDisplay')}
                 />
               )}

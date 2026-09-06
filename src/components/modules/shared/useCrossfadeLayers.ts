@@ -48,6 +48,10 @@ export function useCrossfadeLayers<T extends MediaListItem>(
 ): CrossfadeLayers<T> {
   const [activeLayer, setActiveLayer] = useState<LayerIndex>(0);
   const [sources, setSources] = useState<[T | null, T | null]>([null, null]);
+  const sourcesRef = useRef<[T | null, T | null]>([null, null]);
+  // Readiness belongs to the image currently mounted in each layer. Reusing
+  // an unchanged src does not fire onLoad again (notably with two photos).
+  const readyRef = useRef<[boolean, boolean]>([false, false]);
   const activeLayerRef = useRef<LayerIndex>(0);
   const prevIndexRef = useRef(index);
   // The layer holding the item that is due next, waiting on its image.
@@ -73,15 +77,24 @@ export function useCrossfadeLayers<T extends MediaListItem>(
     if (!item) return;
     clearSkip();
 
+    const updateSources = (next: [T | null, T | null]) => {
+      for (const layer of [0, 1] as const) {
+        const prev = sourcesRef.current[layer];
+        if (prev?.url !== next[layer]?.url || prev?.type !== next[layer]?.type) {
+          readyRef.current[layer] = false;
+        }
+      }
+      sourcesRef.current = next;
+      setSources(next);
+    };
+
     if (prevIndexRef.current !== index) {
       prevIndexRef.current = index;
       const nextLayer: LayerIndex = activeLayerRef.current === 0 ? 1 : 0;
-      setSources((prev) => {
-        const updated: [T | null, T | null] = [prev[0], prev[1]];
-        updated[nextLayer] = item;
-        return updated;
-      });
-      if (item.type === 'video') {
+      const updated: [T | null, T | null] = [...sourcesRef.current];
+      updated[nextLayer] = item;
+      updateSources(updated);
+      if (item.type === 'video' || readyRef.current[nextLayer]) {
         flipTo(nextLayer);
       } else {
         pendingLayerRef.current = nextLayer;
@@ -90,19 +103,21 @@ export function useCrossfadeLayers<T extends MediaListItem>(
       // Initial load, or the batch changed under the same index: both layers
       // carry the slide, and the active one shows it as soon as it loads.
       pendingLayerRef.current = null;
-      setSources([item, item]);
+      updateSources([item, item]);
     }
   }, [item, index, flipTo]);
 
   useEffect(() => () => clearSkip(), []);
 
   const layerReady = useCallback((layer: LayerIndex) => {
+    readyRef.current[layer] = sourcesRef.current[layer]?.type === 'image';
     if (pendingLayerRef.current !== layer) return;
     clearSkip();
     flipTo(layer);
   }, [flipTo]);
 
   const layerFailed = useCallback((layer: LayerIndex) => {
+    readyRef.current[layer] = false;
     // Only a layer that is (or is about to be) on screen matters; a stale
     // failure on the hidden outgoing layer changes nothing.
     if (pendingLayerRef.current !== layer && activeLayerRef.current !== layer) return;
