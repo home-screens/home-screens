@@ -4,6 +4,7 @@ import { useId, useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
@@ -66,7 +67,8 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div style={{ width: svgWidth }}>
         {mounted && <svg

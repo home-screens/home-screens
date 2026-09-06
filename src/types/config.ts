@@ -638,6 +638,25 @@ export interface ClockConfig {
   showDayOfYear: boolean;
   /** IANA zone id (e.g. "Asia/Tokyo"); empty/absent = follow the display setting. */
   timezone?: string;
+  /**
+   * Where the clock sits in its box; absent = centered both ways. Every view
+   * honours it, so a clock whose Text size overflows the box grows from the
+   * corner it is pinned to instead of from the middle.
+   */
+  alignment?: 'left' | 'center' | 'right';
+  verticalAlign?: 'top' | 'center' | 'bottom';
+  /**
+   * How the clock is sized. `fit` (absent) sizes it off the box height with
+   * Text size as a percent of that, and shrinks a one-line view to the box
+   * width. `fixed` renders Text size alone (a percent of the 16px base) and
+   * never reads the box, which then only places the clock.
+   */
+  sizeMode?: 'fit' | 'fixed';
+  /**
+   * Minimal: append AM/PM in 12-hour mode. Absent = off, so a Minimal clock
+   * placed before this existed keeps its bare time.
+   */
+  showAmPm?: boolean;
   // View-specific
   showNumerals: boolean;        // analog: hour numbers on face
   animateFlip: boolean;         // flip: show flip animation on digit change

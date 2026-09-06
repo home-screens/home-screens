@@ -56,6 +56,23 @@ export function fitFactor(contentWidth: number, boxWidth: number, inset = FIT_IN
   return Math.max(MIN_FIT_FACTOR, Math.min(1, available / contentWidth));
 }
 
+/**
+ * The size a view measures its line at before asking `fitFactor` to shrink
+ * it. The factor is `available / width` and `width` grows with the size, so
+ * a factor taken at the scaled size cancels the scale outright: once the
+ * line was as wide as the box, Text size did nothing at all in six views.
+ *
+ * Up to 100% the scaled size is measured, so a clock at or below the size it
+ * picks on its own still shrinks to its box exactly as it always has. Above
+ * 100% the auto size is measured instead: the factor then fits what the
+ * module would show on its own, and the Text size the user set multiplies on
+ * top of that and may overflow the box, which is what a size above 100% asks
+ * for. The two agree at 100%, so the slider has no step in it.
+ */
+export function fitBaseSize(scaledFontSize: number, autoFontSize: number): number {
+  return Math.min(scaledFontSize, autoFontSize);
+}
+
 export interface TimeLineSuffix {
   /** The AM/PM text, without the leading space the view renders. */
   text: string;

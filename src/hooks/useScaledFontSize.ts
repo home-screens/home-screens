@@ -46,6 +46,19 @@ export function useScaledFontSize(
 ): {
   containerRef: RefCallback<HTMLDivElement>;
   scaledFontSize: number;
+  /**
+   * The size at 100%: the fitted size, or the floor when that is higher. The
+   * clock views that also fit their time line to the box width fit this
+   * rather than `scaledFontSize`, so a Text size above 100% grows past the
+   * box instead of being cancelled by the fit (see clock/fit-width.ts,
+   * `fitBaseSize`).
+   *
+   * The floor arrives already multiplied by Text size (resolveModuleStyle),
+   * so it is divided back out here; otherwise, in a box small enough for the
+   * floor to win, this would carry the scale too and the fit would cancel it
+   * exactly as before. That box is the reported case: a clock in a corner.
+   */
+  autoFontSize: number;
   /** The measured padding box, for callers that also lay out across the width. */
   boxWidth: number;
   boxHeight: number;
@@ -76,11 +89,13 @@ export function useScaledFontSize(
   useEffect(() => {
     elRef.current?.setAttribute(FITTED_PX_ATTR, String(Math.round(fitted * 100) / 100));
   }, [fitted]);
+  const scale = resolveTextScale(style);
   return {
     containerRef,
     // An unmeasured box needs no special case: it floors to the style size,
     // exactly what this hook has always reported until its element existed.
-    scaledFontSize: Math.max(floor, fitted * resolveTextScale(style)),
+    scaledFontSize: Math.max(floor, fitted * scale),
+    autoFontSize: Math.max(floor / scale, fitted),
     boxWidth: box.width,
     boxHeight: box.height,
   };

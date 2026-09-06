@@ -3,6 +3,7 @@
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
@@ -111,7 +112,8 @@ export default function ClockRadialView({ config, now, scaledFontSize, container
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div className="relative" style={{ width: svgSize, height: svgSize }}>
         <svg

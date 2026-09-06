@@ -1,7 +1,8 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
-import { digitalRowWidth, fitFactor } from './fit-width';
+import { fitBaseSize, digitalRowWidth, fitFactor } from './fit-width';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { ink } from '@/lib/constants';
 
@@ -113,7 +114,7 @@ function Colon({ size, color }: { size: number; color: string }) {
   );
 }
 
-export default function ClockDigitalView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockDigitalView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
   // Seven-segment display always needs 2-digit hours
   const hStr = String(h).padStart(2, '0');
@@ -124,16 +125,18 @@ export default function ClockDigitalView({ config, now, scaledFontSize, containe
     ? [hStr[0], hStr[1], ':', mStr[0], mStr[1], ':', sStr[0], sStr[1]]
     : [hStr[0], hStr[1], ':', mStr[0], mStr[1]];
   // Shrink the row when it is wider than the box; the height-derived size
-  // stays the ceiling.
-  const baseDigitSize = scaledFontSize * 3.2;
+  // stays the ceiling. Measured at the auto size, so a Text size above 100%
+  // is applied on top and may overflow (fitBaseSize).
   const digitCount = config.showSeconds ? 6 : 4;
   const colonCount = config.showSeconds ? 2 : 1;
-  const digitSize = baseDigitSize * fitFactor(digitalRowWidth(baseDigitSize, digitCount, colonCount), boxWidth);
+  const fitDigitSize = fitBaseSize(scaledFontSize, autoFontSize) * 3.2;
+  const digitSize = scaledFontSize * 3.2 * (fitToBox ? fitFactor(digitalRowWidth(fitDigitSize, digitCount, colonCount), boxWidth) : 1);
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center relative overflow-hidden"
+      className="w-full h-full flex relative overflow-hidden"
+      style={clockAlignmentStyle(config, 'row')}
     >
       {/* Scanline overlay */}
       <div

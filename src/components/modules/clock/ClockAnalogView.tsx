@@ -1,10 +1,12 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
+import { clockAlignmentStyle } from './alignment';
+import { noShrink } from './fixed-size';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
-export default function ClockAnalogView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockAnalogView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const { hours, minutes, seconds } = parseClockTime(config.format24h, now);
 
   const hourAngle = ((hours % 12) + minutes / 60) * 30;
@@ -20,11 +22,12 @@ export default function ClockAnalogView({ config, now, scaledFontSize, container
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex"
+      style={clockAlignmentStyle(config, 'row')}
     >
       <svg
         viewBox="0 0 200 200"
-        style={{ width: size, height: size }}
+        style={{ width: size, height: size, ...noShrink(fitToBox) }}
         suppressHydrationWarning
       >
         {/* Face */}

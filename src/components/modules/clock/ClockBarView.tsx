@@ -3,7 +3,8 @@
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { fitFactor, timeLineWidth } from './fit-width';
+import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 interface BarRowProps {
@@ -68,7 +69,7 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
   );
 }
 
-export default function ClockBarView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockBarView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
   const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
@@ -80,8 +81,10 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
     : `${hStr}:${mStr}${period}`;
 
   // The bars stretch to any width; only the time line above them can clip,
-  // so it alone shrinks. The container's px-6 is the inset.
-  const timeFontSize = scaledFontSize * 2 * fitFactor(timeLineWidth(timeStr, scaledFontSize * 2, 0.025), boxWidth, 48);
+  // so it alone shrinks. The container's px-6 is the inset. Measured at the
+  // auto size, so a Text size above 100% is applied on top (fitBaseSize).
+  const fitTimeSize = fitBaseSize(scaledFontSize, autoFontSize) * 2;
+  const timeFontSize = scaledFontSize * 2 * (fitToBox ? fitFactor(timeLineWidth(timeStr, fitTimeSize, 0.025), boxWidth, 48) : 1);
 
   const accentColor = config.accentColor || '#ffffff';
   const barFontSize = Math.max(12, scaledFontSize);
@@ -90,7 +93,8 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center px-6"
+      className="w-full h-full flex flex-col px-6"
+      style={clockAlignmentStyle(config, 'column')}
     >
       {/* Digital time above bars */}
       <div
@@ -106,7 +110,7 @@ export default function ClockBarView({ config, now, scaledFontSize, containerRef
       </div>
 
       {/* Progress bars */}
-      <div className="w-full flex flex-col" style={{ gap: barGap, maxWidth: scaledFontSize * 18 }}>
+      <div className="flex flex-col" style={{ width: fitToBox ? '100%' : scaledFontSize * 18, maxWidth: scaledFontSize * 18, gap: barGap }}>
         <BarRow
           label={t('clock.barHoursLabel')}
           value={config.format24h ? hours : h12}

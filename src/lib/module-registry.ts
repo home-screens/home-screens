@@ -555,6 +555,9 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'clock',
     autoSizesText: true,
+    // A fixed-size clock renders Text size alone, so the editor reads the
+    // slider as a percent of the base for that instance.
+    textFitEnabled: (config) => config.sizeMode !== 'fixed',
     label: 'Clock',
     icon: Clock,
     category: 'Time & Date',
@@ -569,6 +572,10 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       dateFormat: 'EEEE, MMMM d',
       showWeekNumber: false,
       showDayOfYear: false,
+      alignment: 'center',
+      verticalAlign: 'center',
+      sizeMode: 'fit',
+      showAmPm: false,
       showNumerals: false,
       animateFlip: true,
       accentColor: '#22d3ee',

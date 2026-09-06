@@ -3,6 +3,7 @@
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 /**
@@ -12,7 +13,7 @@ import type { ClockViewProps } from './types';
  * Sizes itself to fit the container rather than scaling with scaledFontSize,
  * since the content is inherently vertical and needs to fill available height.
  */
-export default function ClockVerticalView({ config, now, containerRef, boxHeight }: ClockViewProps) {
+export default function ClockVerticalView({ config, now, scaledFontSize, fitToBox, containerRef, boxHeight }: ClockViewProps) {
   const t = useTranslate('modules');
   const { h, mStr, sStr, hours } = parseClockTime(config.format24h, now);
   // Vertical digits always need 2-digit hours
@@ -28,8 +29,12 @@ export default function ClockVerticalView({ config, now, containerRef, boxHeight
   // The module measures the root for us; 300 stands in until it has.
   const containerHeight = boxHeight > 0 ? boxHeight : 300;
 
-  // Size digits to fit container with some breathing room
-  const digitSize = Math.floor((containerHeight * 0.85) / (totalSlots * 1.0));
+  // Size digits to fit container with some breathing room; a fixed-size
+  // clock sizes them off Text size instead (about what the fit gives in the
+  // registry box) and ignores the height.
+  const digitSize = fitToBox
+    ? Math.floor((containerHeight * 0.85) / (totalSlots * 1.0))
+    : scaledFontSize * 2.1;
   const dotSize = Math.max(3, digitSize * 0.08);
   const dotGap = dotSize * 1.2;
 
@@ -44,7 +49,8 @@ export default function ClockVerticalView({ config, now, containerRef, boxHeight
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div className="flex flex-col items-center" style={{ gap: 0 }}>
         {groups.map((digits, gi) => (

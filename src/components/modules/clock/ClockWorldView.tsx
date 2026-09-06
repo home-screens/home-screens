@@ -4,13 +4,14 @@ import { parseClockTime } from '@/lib/date-info';
 import { createTZDate } from '@/lib/timezone';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 /**
  * World clock — primary local time displayed large on top,
  * with compact timezone rows below showing up to 3 additional zones.
  */
-export default function ClockWorldView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockWorldView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
   const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
@@ -62,8 +63,8 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
-      style={{ gap: scaledFontSize * 1.0 }}
+      className="w-full h-full flex flex-col"
+      style={{ ...clockAlignmentStyle(config, 'column'), gap: scaledFontSize * 1.0  }}
     >
       {/* Primary time */}
       <div className="flex flex-col items-center">
@@ -88,8 +89,9 @@ export default function ClockWorldView({ config, now, scaledFontSize, containerR
       {/* Zone rows */}
       {zones.length > 0 && (
         <div
-          className="flex flex-col w-full"
+          className="flex flex-col"
           style={{
+            width: fitToBox ? '100%' : scaledFontSize * 16,
             maxWidth: scaledFontSize * 16,
             gap: scaledFontSize * 0.3,
           }}

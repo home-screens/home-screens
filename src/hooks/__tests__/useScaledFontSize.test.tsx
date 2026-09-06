@@ -67,10 +67,11 @@ function mount(props: Parameters<typeof Harness>[0]) {
 function Harness({ mounted, base = 16, scale, factor = 0.1, tag = 'div' }: {
   mounted: boolean; base?: number; scale?: number; factor?: number; tag?: 'div' | 'section';
 }) {
-  const { containerRef, scaledFontSize } = useScaledFontSize({ fontSize: base, textScale: scale }, factor);
+  const { containerRef, scaledFontSize, autoFontSize } = useScaledFontSize({ fontSize: base, textScale: scale }, factor);
   return (
     <>
       <output data-testid="size">{scaledFontSize}</output>
+      <output data-testid="auto">{autoFontSize}</output>
       {mounted && (tag === 'div' ? <div ref={containerRef} /> : <section ref={containerRef as never} />)}
     </>
   );
@@ -142,6 +143,45 @@ describe('useScaledFontSize', () => {
     expect(latest()).toBe(180);
     mount({ mounted: true, scale: Number.NaN });
     expect(latest()).toBe(40);
+  });
+
+  it('reports the size at 100% for the width-fitting views, whatever Text size is', () => {
+    const auto = () => Number(screen.getByTestId('auto').textContent);
+    const def = { autoSizesText: true, defaultStyle: { fontSize: 16 } };
+    // Feed the hook what the renderer feeds it: a floor already multiplied by
+    // Text size (resolveModuleStyle), so the test would catch a floor that
+    // carried the scale into the auto size.
+    const styled = (textScale?: number) => resolveModuleStyle({ ...DEFAULT_MODULE_STYLE, fontSize: 16, textScale }, def);
+    const at = (textScale?: number) => {
+      const s = styled(textScale);
+      mount({ mounted: true, base: s.fontSize, scale: s.textScale });
+    };
+
+    boxHeight = 400;
+    at(250);
+    expect(latest()).toBe(100);
+    expect(auto()).toBe(40);
+    at(50);
+    expect(auto()).toBe(40);
+
+    // The reported case: a box small enough that the floor wins. At 300% the
+    // floor is 48 and shows; the auto size is the 16px base, not 48, so the
+    // width fit measured at it leaves the 300% free to overflow.
+    boxHeight = 100;
+    at(300);
+    expect(latest()).toBe(48);
+    expect(auto()).toBe(16);
+    at();
+    expect(auto()).toBe(16);
+
+    // A legacy floor with no Text size is the size at 100% by definition.
+    boxHeight = 400;
+    mount({ mounted: true, base: 48 });
+    expect(auto()).toBe(48);
+    // Unmeasured: the raw style size, same as scaledFontSize.
+    boxHeight = 0;
+    at();
+    expect(auto()).toBe(16);
   });
 
   it('publishes the fitted size for the editor', () => {

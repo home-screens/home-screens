@@ -6,6 +6,7 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
+import LabeledSelect from '@/components/ui/LabeledSelect';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
@@ -44,7 +45,7 @@ const VIEW_FIELDS: Record<ClockView, Set<string>> = {
   classic:     new Set(['hourFormat', 'showSeconds', 'showDate', 'dateFormat', 'weekDay']),
   digital:     new Set(['hourFormat', 'showSeconds', 'accentColor']),
   analog:      new Set(['showSeconds', 'showNumerals', 'accentColor']),
-  minimal:     new Set(['hourFormat']),
+  minimal:     new Set(['hourFormat', 'showAmPm']),
   flip:        new Set(['hourFormat', 'showSeconds', 'animateFlip', 'accentColor']),
   word:        new Set(['showDate', 'dateFormat']),
   binary:      new Set(['hourFormat', 'showSeconds', 'accentColor']),
@@ -71,6 +72,10 @@ type ClockConfigType = {
   dateFormat?: string;
   showWeekNumber?: boolean;
   showDayOfYear?: boolean;
+  alignment?: 'left' | 'center' | 'right';
+  verticalAlign?: 'top' | 'center' | 'bottom';
+  sizeMode?: 'fit' | 'fixed';
+  showAmPm?: boolean;
   showNumerals?: boolean;
   animateFlip?: boolean;
   accentColor?: string;
@@ -141,6 +146,23 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     { value: 'daysHours', label: t('configSections.clock.precisionDaysHours') },
     { value: 'daysHoursMinutes', label: t('configSections.clock.precisionDaysHoursMinutes') },
     { value: 'daysHoursMinutesSeconds', label: t('configSections.clock.precisionDaysHoursMinutesSeconds') },
+  ];
+
+  const ALIGNMENT_OPTIONS: { value: 'left' | 'center' | 'right'; label: string }[] = [
+    { value: 'left', label: t('configSections.text.alignmentOptions.left') },
+    { value: 'center', label: t('configSections.text.alignmentOptions.center') },
+    { value: 'right', label: t('configSections.text.alignmentOptions.right') },
+  ];
+
+  const VERTICAL_ALIGN_OPTIONS: { value: 'top' | 'center' | 'bottom'; label: string }[] = [
+    { value: 'top', label: t('configSections.text.verticalAlignOptions.top') },
+    { value: 'center', label: t('configSections.text.verticalAlignOptions.center') },
+    { value: 'bottom', label: t('configSections.text.verticalAlignOptions.bottom') },
+  ];
+
+  const SIZE_MODE_OPTIONS: { value: 'fit' | 'fixed'; label: string }[] = [
+    { value: 'fit', label: t('configSections.clock.sizeModeFit') },
+    { value: 'fixed', label: t('configSections.clock.sizeModeFixed') },
   ];
 
   const view = c.view ?? 'classic';
@@ -216,6 +238,11 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
             <option value="24h">{t('configSections.clock.hourFormat24h')}</option>
           </select>
         </LabeledField>
+      )}
+
+      {/* Minimal: AM/PM suffix (off by default, so existing Minimal clocks keep the bare time) */}
+      {has('showAmPm') && (
+        <Toggle label={t('configSections.clock.showAmPm')} checked={!!c.showAmPm} onChange={(v) => set({ showAmPm: v })} />
       )}
 
       {/* Seconds */}
@@ -400,6 +427,33 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           <span className="text-xs text-hs-text-faint">{elapsedPreview}</span>
         </div>
       )}
+
+      {/* Size and placement, every view. Fixed: the box only places the clock
+          and Text size (Style) alone sets how big it is. A clock pinned to a
+          corner grows out of that corner when it is bigger than the box. */}
+      <div className="flex flex-col gap-1">
+        <LabeledSelect
+          label={t('configSections.clock.sizeMode')}
+          value={c.sizeMode ?? 'fit'}
+          onChange={(v) => set({ sizeMode: v })}
+          options={SIZE_MODE_OPTIONS}
+        />
+        {c.sizeMode === 'fixed' && (
+          <span className="text-xs text-hs-text-faint">{t('configSections.clock.sizeModeFixedHint')}</span>
+        )}
+      </div>
+      <LabeledSelect
+        label={t('configSections.clock.alignment')}
+        value={c.alignment ?? 'center'}
+        onChange={(v) => set({ alignment: v })}
+        options={ALIGNMENT_OPTIONS}
+      />
+      <LabeledSelect
+        label={t('configSections.clock.verticalAlign')}
+        value={c.verticalAlign ?? 'center'}
+        onChange={(v) => set({ verticalAlign: v })}
+        options={VERTICAL_ALIGN_OPTIONS}
+      />
     </>
   );
 }

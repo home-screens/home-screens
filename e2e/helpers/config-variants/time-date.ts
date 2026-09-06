@@ -35,6 +35,37 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: matches(/\d{4}-\d{2}-\d{2}/),
   },
   {
+    // alignment + verticalAlign land as flex placement on the view's root,
+    // the only element inside the module with justify-content inline. Classic
+    // is a column flex, so horizontal alignment is align-items and vertical
+    // is justify-content (the Text row asserts the row-flex mirror image).
+    type: 'clock', name: 'alignment-vertical', kind: 'network-free',
+    config: { view: 'classic', alignment: 'left', verticalAlign: 'top' },
+    expect: async (mod) => {
+      const root = mod.locator('div[style*="justify-content"]').first();
+      await expect(root).toHaveCSS('justify-content', 'flex-start'); // verticalAlign: top
+      await expect(root).toHaveCSS('align-items', 'flex-start');     // alignment: left
+    },
+  },
+  {
+    // sizeMode 'fixed': the box only places the clock and the time renders at
+    // Text size alone (the 16px base, so the 3x Classic time is 48px). The
+    // default fit sizes off the box height and is about 89px in the registry
+    // box, so the pixel value is the proof that the box was ignored.
+    type: 'clock', name: 'size-fixed', kind: 'network-free',
+    config: { view: 'classic', sizeMode: 'fixed', showSeconds: false, showDate: false },
+    expect: async (mod) => {
+      await expect(mod.locator('div[style*="justify-content"] > div.tabular-nums').first()).toHaveCSS('font-size', '48px');
+    },
+  },
+  {
+    // Minimal renders the bare time by default; showAmPm appends the suffix
+    // in 12-hour mode. Pinned to 12h so the household setting can't hide it.
+    type: 'clock', name: 'minimal-ampm', kind: 'network-free',
+    config: { view: 'minimal', hourFormat: '12h', showAmPm: true },
+    expect: matches(/\d{1,2}:\d{2}\s?[AP]M/),
+  },
+  {
     // Analog face with hour numerals: 12 <text> glyphs render only when
     // showNumerals is on (otherwise the hour markers are <line>s).
     type: 'clock', name: 'analog-numerals', kind: 'network-free',

@@ -3,10 +3,12 @@
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, INK } from '@/lib/constants';
-import { fitFactor, timeLineWidth } from './fit-width';
+import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
+import { clockAlignmentStyle } from './alignment';
+import { noWrap } from './fixed-size';
 import type { ClockViewProps } from './types';
 
-export default function ClockNeonView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockNeonView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
@@ -39,8 +41,11 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
 
   // Shrink everything together when the box is narrower than the time line;
   // the height-derived size stays the ceiling.
-  const factor = fitFactor(
-    timeLineWidth(timeStr, scaledFontSize * 3.2, 0.08, ampm ? { text: ampm, scale: 0.35, marginEm: 0.2 } : null),
+  // Measured at the auto size, so a Text size above 100% is applied on top
+  // and may overflow (fitBaseSize).
+  const fitBase = fitBaseSize(scaledFontSize, autoFontSize);
+  const factor = !fitToBox ? 1 : fitFactor(
+    timeLineWidth(timeStr, fitBase * 3.2, 0.08, ampm ? { text: ampm, scale: 0.35, marginEm: 0.2 } : null),
     boxWidth,
   );
   const s = scaledFontSize * factor;
@@ -54,7 +59,8 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div
         className="tabular-nums whitespace-nowrap"
@@ -87,7 +93,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
       {dateStr && (
         <div
           className="mt-4 tracking-wide"
-          style={{
+          style={{ ...noWrap(fitToBox),
             fontSize: s * 1,
             color: neonColor,
             textShadow: neonDateShadow,
@@ -103,7 +109,7 @@ export default function ClockNeonView({ config, now, scaledFontSize, containerRe
       {infoStr && (
         <div
           className="mt-1 uppercase tracking-widest"
-          style={{
+          style={{ ...noWrap(fitToBox),
             fontSize: s * 0.75,
             color: neonColor,
             textShadow: `0 0 6px ${neonColor}`,

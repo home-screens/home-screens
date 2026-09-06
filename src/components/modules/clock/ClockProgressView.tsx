@@ -3,13 +3,14 @@
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 /**
  * Progress clock — SVG ring showing how far through the day we are,
  * with time and percentage centered inside the ring.
  */
-export default function ClockProgressView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockProgressView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
   const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
@@ -38,9 +39,17 @@ export default function ClockProgressView({ config, now, scaledFontSize, contain
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex"
+      style={clockAlignmentStyle(config, 'row')}
     >
-      <div className="relative" style={{ width: '70%', maxWidth: 280, aspectRatio: '1' }}>
+      {/* Fit: a share of the box, capped. Fixed: what that cap gives in the
+          registry box, in ems of the text size, and never shrunk to the box. */}
+      <div
+        className="relative"
+        style={fitToBox
+          ? { width: '70%', maxWidth: 280, aspectRatio: '1' }
+          : { width: scaledFontSize * 17.5, aspectRatio: '1', flexShrink: 0 }}
+      >
         {/* SVG Ring */}
         <svg
           viewBox={`0 0 ${svgSize} ${svgSize}`}

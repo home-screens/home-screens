@@ -2,7 +2,8 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
-import { fitFactor, flipRowWidth } from './fit-width';
+import { fitBaseSize, fitFactor, flipRowWidth } from './fit-width';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 const FLIP_DURATION = 500; // ms
@@ -152,25 +153,27 @@ function FlipColon({ size, accentColor }: { size: number; accentColor: string })
   );
 }
 
-export default function ClockFlipView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockFlipView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
   // Flip cards always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
 
   const accent = config.accentColor || 'rgba(255, 255, 255, 0.5)';
   // Shrink the cards when the row is wider than the box; the height-derived
-  // size stays the ceiling.
-  const baseCardSize = scaledFontSize * 3.5;
+  // size stays the ceiling. Measured at the auto size, so a Text size above
+  // 100% is applied on top and may overflow (fitBaseSize).
   const cards = config.showSeconds ? 6 : 4;
   const colons = config.showSeconds ? 2 : 1;
-  const cardSize = baseCardSize * fitFactor(flipRowWidth(baseCardSize, cards, colons), boxWidth);
+  const fitCardSize = fitBaseSize(scaledFontSize, autoFontSize) * 3.5;
+  const cardSize = scaledFontSize * 3.5 * (fitToBox ? fitFactor(flipRowWidth(fitCardSize, cards, colons), boxWidth) : 1);
   const gap = Math.max(cardSize * 0.04, 2);
   const animate = config.animateFlip !== false;
 
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex"
+      style={clockAlignmentStyle(config, 'row')}
     >
       <style>{`
         @keyframes flip-top-down {

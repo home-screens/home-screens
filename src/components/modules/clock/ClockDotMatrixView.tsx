@@ -5,6 +5,8 @@ import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
+import { noWrap } from './fixed-size';
 import type { ClockViewProps } from './types';
 
 const DotCharacter = memo(function DotCharacter({
@@ -51,7 +53,7 @@ const DotCharacter = memo(function DotCharacter({
   );
 });
 
-export default function ClockDotMatrixView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockDotMatrixView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { h, mStr, sStr } = parseClockTime(config.format24h, now);
@@ -81,7 +83,8 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div
         className="flex items-center"
@@ -108,7 +111,7 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
       {dateStr && (
         <div
           className="tracking-wide mt-4"
-          style={{ fontSize: scaledFontSize * 0.9, color: accentColor, opacity: TEXT_OPACITY.dim }}
+          style={{ ...noWrap(fitToBox), fontSize: scaledFontSize * 0.9, color: accentColor, opacity: TEXT_OPACITY.dim }}
           suppressHydrationWarning
         >
           {dateStr}
@@ -118,7 +121,7 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, contai
       {infoStr && (
         <div
           className="tracking-wider uppercase mt-1"
-          style={{ fontSize: scaledFontSize * 0.7, color: accentColor, opacity: TEXT_OPACITY.tertiary }}
+          style={{ ...noWrap(fitToBox), fontSize: scaledFontSize * 0.7, color: accentColor, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoStr}

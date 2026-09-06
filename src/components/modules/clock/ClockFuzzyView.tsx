@@ -4,6 +4,8 @@ import { parseClockTime } from '@/lib/date-info';
 import { timeToFuzzy } from './word-time';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
+import { noWrap } from './fixed-size';
 import type { ClockViewProps } from './types';
 import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
@@ -13,7 +15,7 @@ import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
  *
  * Literary and cozy, distinct from the formal "word" view.
  */
-export default function ClockFuzzyView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockFuzzyView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { hours, minutes } = parseClockTime(config.format24h, now);
@@ -26,7 +28,8 @@ export default function ClockFuzzyView({ config, now, scaledFontSize, containerR
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center px-6"
+      className="w-full h-full flex flex-col px-6"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div
         className="text-center leading-snug"
@@ -36,7 +39,8 @@ export default function ClockFuzzyView({ config, now, scaledFontSize, containerR
           fontStyle: 'italic',
           fontWeight: 300,
           lineHeight: 1.3,
-          maxWidth: '90%',
+          // Prose: wraps at its own width in fixed mode, not the box's.
+          ...(fitToBox ? { maxWidth: '90%' } : { width: 'max-content', maxWidth: scaledFontSize * 16 }),
         }}
         suppressHydrationWarning
       >
@@ -46,7 +50,7 @@ export default function ClockFuzzyView({ config, now, scaledFontSize, containerR
       {dateStr && (
         <div
           className="text-center font-light tracking-wide"
-          style={{
+          style={{ ...noWrap(fitToBox),
             fontSize: scaledFontSize * 0.9,
             fontFamily: 'inherit',
             fontStyle: 'normal',

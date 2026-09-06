@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 
-import type { ClockConfig, ClockView, ModuleStyle, TimeFormat } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ClockConfig, type ClockView, type ModuleStyle, type TimeFormat } from '@/types/config';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { resolveClockFormat24h } from './hour-format';
@@ -103,7 +103,12 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
   // One ref on the view's root feeds both the font scale and the box the
   // width-fitting views lay out against; it follows the node when the view is
   // swapped.
-  const { containerRef, scaledFontSize, boxWidth, boxHeight } = useScaledFontSize(style, scaleFactor);
+  const { containerRef, scaledFontSize, autoFontSize, boxWidth, boxHeight } = useScaledFontSize(style, scaleFactor);
+  // Fixed: Text size alone, which arrives as the style size (base times
+  // percent, see resolveModuleStyle); the box only places the clock. The
+  // same guard as the hook's floor, so a hand-edited 0 still renders.
+  const fitToBox = config.sizeMode !== 'fixed';
+  const fixedFontSize = Number.isFinite(style.fontSize) && style.fontSize > 0 ? style.fontSize : DEFAULT_MODULE_STYLE.fontSize;
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? ClockClassicView;
 
@@ -112,7 +117,9 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
       <ViewComponent
         config={config}
         now={now}
-        scaledFontSize={scaledFontSize}
+        scaledFontSize={fitToBox ? scaledFontSize : fixedFontSize}
+        autoFontSize={autoFontSize}
+        fitToBox={fitToBox}
         containerRef={containerRef}
         boxWidth={boxWidth}
         boxHeight={boxHeight}

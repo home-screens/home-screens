@@ -3,6 +3,7 @@
 import { parseClockTime } from '@/lib/date-info';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
+import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
 /**
@@ -102,7 +103,8 @@ export default function ClockBinaryView({ config, now, scaledFontSize, container
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <div className="flex items-end" style={{ gap: groupGap }}>
         {groups.map((group) => (

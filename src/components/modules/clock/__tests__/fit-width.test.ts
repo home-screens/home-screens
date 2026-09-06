@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   estimateTextWidth,
+  fitBaseSize,
   fitFactor,
   timeLineWidth,
   flipRowWidth,
@@ -61,6 +62,49 @@ describe('fitFactor', () => {
   it('floors at the minimum factor for an absurdly narrow box', () => {
     expect(fitFactor(1000, 30)).toBe(MIN_FIT_FACTOR);
     expect(fitFactor(1000, 10)).toBe(MIN_FIT_FACTOR);
+  });
+});
+
+describe('fitBaseSize', () => {
+  /** What a one-line view renders: the scaled size, shrunk by the fit measured at the base. */
+  function classicSize(scaled: number, auto: number, boxWidth: number): number {
+    const base = fitBaseSize(scaled, auto);
+    return scaled * fitFactor(timeLineWidth('9:51:37', base * 3, 0.025, { text: 'PM', scale: 0.4, marginEm: 0.15 }), boxWidth);
+  }
+
+  it('is the scaled size at or below 100%, so the fit is unchanged there', () => {
+    expect(fitBaseSize(40, 40)).toBe(40);
+    expect(fitBaseSize(20, 40)).toBe(20);
+  });
+
+  it('is the auto size above 100%', () => {
+    expect(fitBaseSize(80, 40)).toBe(40);
+  });
+
+  it('Text size above 100% grows a width-bound clock past its box', () => {
+    // A 280px-tall box 330px wide: the classic time line is width-bound at 100%.
+    const auto = 33.6;
+    const at100 = classicSize(auto, auto, 330);
+    expect(at100).toBeLessThan(auto);
+    // The regression: measured at the scaled size the factor is proportional
+    // to 1/size, so this used to come out exactly equal to `at100`.
+    expect(classicSize(auto * 2, auto, 330)).toBeCloseTo(at100 * 2);
+    expect(classicSize(auto * 4.5, auto, 330)).toBeCloseTo(at100 * 4.5);
+  });
+
+  it('Text size below 100% still shrinks to the box exactly as before', () => {
+    const auto = 33.6;
+    const scaled = auto * 0.5;
+    const before = scaled * fitFactor(timeLineWidth('9:51:37', scaled * 3, 0.025, { text: 'PM', scale: 0.4, marginEm: 0.15 }), 330);
+    expect(classicSize(scaled, auto, 330)).toBeCloseTo(before);
+  });
+
+  it('has no step at 100%', () => {
+    const auto = 33.6;
+    const below = classicSize(auto * 0.999, auto, 330);
+    const above = classicSize(auto * 1.001, auto, 330);
+    expect(above - below).toBeLessThan(0.2);
+    expect(above).toBeGreaterThan(below);
   });
 });
 

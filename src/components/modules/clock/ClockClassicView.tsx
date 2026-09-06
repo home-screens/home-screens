@@ -3,10 +3,12 @@
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
-import { fitFactor, timeLineWidth } from './fit-width';
+import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
+import { clockAlignmentStyle } from './alignment';
+import { noWrap } from './fixed-size';
 import type { ClockViewProps } from './types';
 
-export default function ClockClassicView({ config, now, scaledFontSize, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockClassicView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
@@ -25,10 +27,12 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
   const infoStr = infoParts.length > 0 ? infoParts.join(' · ') : null;
 
   // Shrink everything together when the box is narrower than the time line;
-  // the height-derived size stays the ceiling.
+  // the height-derived size stays the ceiling. Measured at the auto size, so
+  // a Text size above 100% is applied on top and may overflow (fitBaseSize).
   const timeStr = config.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
-  const factor = fitFactor(
-    timeLineWidth(timeStr, scaledFontSize * 3, 0.025, ampm ? { text: ampm, scale: 0.4, marginEm: 0.15 } : null),
+  const fitBase = fitBaseSize(scaledFontSize, autoFontSize);
+  const factor = !fitToBox ? 1 : fitFactor(
+    timeLineWidth(timeStr, fitBase * 3, 0.025, ampm ? { text: ampm, scale: 0.4, marginEm: 0.15 } : null),
     boxWidth,
   );
   const s = scaledFontSize * factor;
@@ -36,7 +40,8 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       <style>{`
         @keyframes clock-colon-pulse {
@@ -75,7 +80,7 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
       {dateStr && (
         <div
           className="mt-2 tracking-wide"
-          style={{ fontSize: s * 1.125, opacity: TEXT_OPACITY.secondary }}
+          style={{ ...noWrap(fitToBox), fontSize: s * 1.125, opacity: TEXT_OPACITY.secondary }}
           suppressHydrationWarning
         >
           {dateStr}
@@ -85,7 +90,7 @@ export default function ClockClassicView({ config, now, scaledFontSize, containe
       {infoStr && (
         <div
           className="mt-1 tracking-wider uppercase"
-          style={{ fontSize: s * 0.85, opacity: TEXT_OPACITY.tertiary }}
+          style={{ ...noWrap(fitToBox), fontSize: s * 0.85, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
           {infoStr}

@@ -7,9 +7,11 @@ import { useRealClock } from '@/hooks/useTZClock';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { ModuleEmptyBody } from '../ModuleStates';
 import { formatElapsed } from './elapsed-format';
+import { clockAlignmentStyle } from './alignment';
+import { noWrap } from './fixed-size';
 import type { ClockViewProps } from './types';
 
-export default function ClockElapsedView({ config, scaledFontSize, containerRef, timezone }: ClockViewProps) {
+export default function ClockElapsedView({ config, scaledFontSize, fitToBox, containerRef, timezone }: ClockViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   // Elapsed math runs on REAL instants only. The `now` prop the other views
@@ -63,7 +65,8 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex flex-col items-center justify-center"
+      className="w-full h-full flex flex-col"
+      style={clockAlignmentStyle(config, 'column')}
     >
       {/* Elapsed time */}
       <div
@@ -72,6 +75,9 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
           fontSize: scaledFontSize * 2.8,
           lineHeight: 1.1,
           color: accentColor,
+          // Fixed: units never wrap; the words format is prose and wraps at
+          // its own width rather than the box's.
+          ...(isWords ? (fitToBox ? {} : { width: 'max-content', maxWidth: scaledFontSize * 18 }) : noWrap(fitToBox)),
         }}
         suppressHydrationWarning
       >
@@ -82,7 +88,7 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
       {label && (
         <div
           className="mt-3 tracking-wide font-light"
-          style={{
+          style={{ ...noWrap(fitToBox),
             fontSize: scaledFontSize * 1,
             color: accentColor,
             opacity: TEXT_OPACITY.dim,
@@ -97,7 +103,7 @@ export default function ClockElapsedView({ config, scaledFontSize, containerRef,
       {!isExpected && (
         <div
           className="mt-2 uppercase tracking-widest"
-          style={{
+          style={{ ...noWrap(fitToBox),
             fontSize: scaledFontSize * 0.65,
             color: accentColor,
             opacity: TEXT_OPACITY.tertiary,
