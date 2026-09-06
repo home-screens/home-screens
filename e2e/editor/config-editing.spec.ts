@@ -2088,7 +2088,11 @@ test.describe('PropertyPanel Style section', () => {
     const fitted = parseFloat((await inner.getAttribute('data-fitted-px')) ?? '0');
     expect(fitted).toBeGreaterThan(0);
     expect(fitted).toBeLessThan(60);
-    const expected = Math.round((60 / fitted) * 100);
+    // 100% is the greater of the base and the fit (displayTextPercent): the
+    // registry box fits below the 16px base, so 60 reads against 16 and the
+    // percent renders back to exactly 60px. Reading against the fit alone
+    // would render 16 times that percent, larger than the floor ever was.
+    const expected = Math.round((60 / Math.max(16, fitted)) * 100);
     await expect(page.getByRole('slider', { name: 'Text size' })).toHaveValue(String(expected));
     await expect(inner).toHaveAttribute('style', /font-size:\s*60px/);
   });
