@@ -130,3 +130,36 @@ describe('prefs-cleanup copies match clear_chromium_crash_state', () => {
     expect(source).toContain(PURGE);
   });
 });
+
+describe('translate-prompt copies match disable_chromium_translate_prompt', () => {
+  // Chromium's "Translate this page?" bubble is gated on the translate.enabled
+  // profile pref, not on any command-line flag (--disable-translate has been a
+  // no-op for years and --disable-features=Translate does not touch it). Every
+  // launcher must seed the pref off before exec'ing the browser.
+  const SET_PREF = `python3 -c 'import json,os,sys;p=sys.argv[1];d=json.load(open(p));d.setdefault("translate",{})["enabled"]=False;t=p+".tmp";f=open(t,"w");json.dump(d,f,separators=(",",":"));f.close();os.replace(t,p)' "\${CHROME_PREFS}" 2>/dev/null || true`;
+  const SEED_PREF = `echo '{"translate":{"enabled":false}}' > "\${CHROME_PREFS}"`;
+
+  it('common.sh defines the canonical helper', () => {
+    expect(common).toContain('disable_chromium_translate_prompt()');
+    expect(common).toContain(SET_PREF);
+    expect(common).toContain(SEED_PREF);
+  });
+
+  it('start-display.sh calls the helper', () => {
+    expect(read('start-display.sh')).toContain('disable_chromium_translate_prompt');
+  });
+
+  it.each(['kiosk-launcher-display.sh', 'upgrade.sh'])('%s inlines the same body', (file) => {
+    const source = read(file).replaceAll(`'"'"'`, "'");
+    expect(source).toContain(SET_PREF);
+    expect(source).toContain(SEED_PREF);
+  });
+
+  it('no launcher still passes the dead --disable-translate flag', () => {
+    // Flag lines only: the comments explaining why it went are allowed to name it.
+    for (const file of ['lib/common.sh', 'kiosk-launcher-display.sh', 'upgrade.sh', 'start-display.sh']) {
+      expect(read(file)).not.toMatch(/^\s*--disable-translate\b/m);
+      expect(read(file)).not.toMatch(/^\s*--disable-features=Translate\b/m);
+    }
+  });
+});

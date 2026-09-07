@@ -217,7 +217,8 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
   # that the hub install pulls in transitively.
   info "Installing kiosk packages..."
   sudo apt-get update -qq
-  sudo apt-get install -y -qq chromium labwc wtype wlr-randr fonts-noto-color-emoji fonts-dejavu-core curl jq
+  # python3 is what the kiosk launcher uses to turn off Chromium's translate prompt.
+  sudo apt-get install -y -qq chromium labwc wtype wlr-randr fonts-noto-color-emoji fonts-dejavu-core curl jq python3
   if [ "${PI_VARIANT}" = "lite" ]; then
     sudo apt-get install -y -qq fonts-noto-core libpam-systemd dbus-user-session
   fi

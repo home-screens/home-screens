@@ -97,6 +97,19 @@ fi
 # reboot produces a duplicate tab that silently drains the command queue.
 rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
 
+# Turn off Chromium's "Translate this page?" bubble. The page's <html lang>
+# follows the configured locale, so a Danish display on an English-UI Chromium
+# is offered a translation on every load. --disable-translate stopped doing
+# anything years ago and no feature flag covers this: the offer is gated on the
+# translate.enabled profile pref (what the TranslateEnabled policy sets), so
+# seed it off before launch.
+if [ -f "${CHROME_PREFS}" ]; then
+  python3 -c 'import json,os,sys;p=sys.argv[1];d=json.load(open(p));d.setdefault("translate",{})["enabled"]=False;t=p+".tmp";f=open(t,"w");json.dump(d,f,separators=(",",":"));f.close();os.replace(t,p)' "${CHROME_PREFS}" 2>/dev/null || true
+else
+  mkdir -p "$(dirname "${CHROME_PREFS}")"
+  echo '{"translate":{"enabled":false}}' > "${CHROME_PREFS}"
+fi
+
 if [ "${HUB_UP}" = "true" ]; then
   TARGET_URL="${DISPLAY_URL}"
 else
@@ -123,7 +136,6 @@ exec chromium \
   --disable-infobars \
   --no-first-run \
   --disable-session-crashed-bubble \
-  --disable-translate \
   --autoplay-policy=no-user-gesture-required \
   --overscroll-history-navigation=0 \
   --check-for-update-interval=31536000 \

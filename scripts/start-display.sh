@@ -44,8 +44,10 @@ for i in $(seq 1 30); do
   sleep 1
 done
 
-# Clear crash state and session restore data to avoid duplicate app windows
+# Clear crash state and session restore data to avoid duplicate app windows,
+# and keep Chromium from offering to translate a non-English display.
 clear_chromium_crash_state
+disable_chromium_translate_prompt
 
 echo "Launching Chromium in app mode..."
 # Flags come from lib/common.sh. The Pi-only list is deliberately not used

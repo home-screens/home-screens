@@ -161,7 +161,6 @@ CHROMIUM_KIOSK_FLAGS=(
   --disable-infobars
   --no-first-run
   --disable-session-crashed-bubble
-  --disable-translate
   --autoplay-policy=no-user-gesture-required
   --overscroll-history-navigation=0
   --remote-debugging-port=9222
@@ -192,6 +191,24 @@ clear_chromium_crash_state() {
     sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${prefs}"
   fi
   rm -rf "${HOME}/.config/chromium/Default/Sessions" 2>/dev/null || true
+}
+
+# Turn off Chromium's "Translate this page?" bubble. The page's <html lang>
+# follows settings.locale, so a Danish display on an English-UI Chromium is
+# offered a translation on every load. --disable-translate stopped doing
+# anything years ago and no feature flag covers this: the desktop offer is
+# gated on the translate.enabled profile pref (what the TranslateEnabled
+# policy sets), so seed it off before launch. Same copy rule as above:
+# kiosk-launcher-display.sh and upgrade.sh's launcher inline this body and
+# chromium-flags.test.ts keeps them in step.
+disable_chromium_translate_prompt() {
+  local CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
+  if [ -f "${CHROME_PREFS}" ]; then
+    python3 -c 'import json,os,sys;p=sys.argv[1];d=json.load(open(p));d.setdefault("translate",{})["enabled"]=False;t=p+".tmp";f=open(t,"w");json.dump(d,f,separators=(",",":"));f.close();os.replace(t,p)' "${CHROME_PREFS}" 2>/dev/null || true
+  else
+    mkdir -p "$(dirname "${CHROME_PREFS}")"
+    echo '{"translate":{"enabled":false}}' > "${CHROME_PREFS}"
+  fi
 }
 
 # --- Kiosk block management ---
