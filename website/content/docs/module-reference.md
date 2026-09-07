@@ -66,9 +66,11 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `showMeals` | boolean | `false` | Week list view: add the day's planned meals from the meal planner under its events |
 | `showChores` | boolean | `false` | Week list view: add one chore progress row per day (done/total, a bar, and who has a chore) from the chore chart |
 | `familyShowEveryoneRow` | boolean | `true` | Family grid view: an Everyone row for events on calendars that belong to nobody in particular |
+| `familyShowDescription` | boolean | `false` | Family grid view: show the first two lines of the event description under each title |
 | `upNextLaterCount` | number | `3` | Up next view: how many more events from the same day to list under the big one (0–6) |
 | `upNextShowEarlier` | boolean | `true` | Up next view: list today's running and finished events |
 | `upNextShowTomorrow` | boolean | `true` | Up next view: list tomorrow's events |
+| `upNextShowDescription` | boolean | `false` | Up next view: show the event description on the big card and under each listed event |
 | `freeTimeHourStart` | number | `7` | Free time view start hour (0–23) |
 | `freeTimeHourEnd` | number | `22` | Free time view end hour (1–24) |
 | `freeTimeShowTomorrow` | boolean | `true` | Free time view: add a compact row per person for tomorrow |
@@ -89,6 +91,8 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 | `dayRules` | array |, | Tint whole days and add badges to them. See [Event and day rules](#event-and-day-rules) below |
 
 In the schedule and day timeline views, descriptions only draw when the event block is tall enough to fit them, so short events show the title alone even with the toggle on.
+
+The up next view is a fixed box, so when descriptions would push its last row off the bottom, the listed events drop theirs first, then the big card, until everything fits. In the family grid a cell only reserves room for the descriptions its events actually have, so plain events still fit next to described ones.
 
 **View details:**
 

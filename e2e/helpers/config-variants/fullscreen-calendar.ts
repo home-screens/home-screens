@@ -132,6 +132,41 @@ const UNCLAIMED_WEEK = [
   { id: 'uc1', title: 'SHARED EVENT', start: localIso(0, 10, 0), end: localIso(0, 11, 0), allDay: false, calendarColor: BLUE },
 ];
 
+/** The unclaimed event again, carrying an HTML-wrapped description as school
+ *  feeds send them; the chip must show the sanitized text. */
+const UNCLAIMED_WEEK_DESC = [
+  { ...UNCLAIMED_WEEK[0], description: '<p>FAMILY DESC E2E</p>' },
+];
+
+/** Eight unclaimed events today with CJK titles and descriptions. Wide
+ *  glyphs wrap far sooner than a Latin character count suggests, so this is
+ *  the feed that catches a cell budget that guesses at line breaks. */
+const UNCLAIMED_CJK_DESC = Array.from({ length: 8 }, (_, i) => ({
+  id: `cjk${i + 1}`, title: `家族会議と学校の遠足の準備 ${i + 1}`,
+  start: localIso(0, 8 + i, 0), end: localIso(0, 8 + i, 45),
+  allDay: false, calendarColor: BLUE,
+  description: '持ち物：水筒、お弁当、帽子、雨具。集合は正門前、八時十五分厳守。',
+}));
+
+/** Tomorrow's hero and its later row, both with descriptions: the hero card
+ *  and a list row each draw their own. */
+const TOMORROW_MORNING_DESC = [
+  { ...TOMORROW_MORNING[0], description: '<p>UPNEXT HERO DESC E2E</p>' },
+  { ...TOMORROW_MORNING[1], description: 'UPNEXT ROW DESC E2E' },
+];
+
+/** A packed tomorrow: the hero, six later rows and five Tomorrow rows, every
+ *  one with a long description. With descriptions drawn on every row the
+ *  board overflows its fixed box, so the view must shed them rather than
+ *  push the last Tomorrow row off the bottom. */
+const LONG_DESC = 'UPNEXT OVERFLOW DESC E2E. ' + 'Bring the permission slip, a packed lunch and a water bottle. '.repeat(3);
+const TOMORROW_PACKED_DESC = Array.from({ length: 12 }, (_, i) => ({
+  id: `tp${i + 1}`, title: `PACKED EVENT ${i + 1}`,
+  start: localIso(1, 7 + i, 0), end: localIso(1, 7 + i, 45),
+  allDay: false, calendarColor: BLUE, sourceId: 'src-a', sourceName: 'Alpha',
+  description: LONG_DESC,
+}));
+
 /** Parse a rolling-window strip label ("2 PM", "12 AM", "14:00") to an hour 0..23. */
 function hourOfLabel(label: string): number {
   const m24 = label.match(/^(\d{1,2}):00$/);
@@ -718,6 +753,39 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await lacks(TODAY_EEE, 'Everyone')(mod); await expect(mod).not.toContainText('SHARED EVENT'); },
   },
   {
+    type: 'fullscreen-calendar', name: 'family-show-description', kind: 'networked', stubKey: 'calendar',
+    stubBody: UNCLAIMED_WEEK_DESC,
+    config: { view: 'family-grid', familyShowDescription: true },
+    expect: async (mod) => { await has('SHARED EVENT')(mod); await has('FAMILY DESC E2E')(mod); await expect(mod).not.toContainText('<p>'); },
+  },
+  {
+    // Every visible chip and the "+N" line stay inside the cell, even with
+    // wide-script titles and descriptions that wrap early.
+    type: 'fullscreen-calendar', name: 'family-show-description-cjk-fit', kind: 'networked', stubKey: 'calendar',
+    stubBody: UNCLAIMED_CJK_DESC,
+    config: { view: 'family-grid', familyShowDescription: true },
+    expect: async (mod) => {
+      const cell = mod.locator('[role="gridcell"]', { hasText: /\+\d+/ }).first();
+      const more = cell.getByText(/^\+\d+/);
+      await expect(more).toBeVisible();
+      const cellBox = (await cell.boundingBox())!;
+      const bottom = cellBox.y + cellBox.height + 1;
+      for (const chip of await cell.locator('.fsc-event-block').all()) {
+        const box = (await chip.boundingBox())!;
+        expect(box.y + box.height).toBeLessThanOrEqual(bottom);
+      }
+      const moreBox = (await more.boundingBox())!;
+      expect(moreBox.y + moreBox.height).toBeLessThanOrEqual(bottom);
+      await expect(cell).toContainText('持ち物');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'family-show-description-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: UNCLAIMED_WEEK_DESC,
+    config: { view: 'family-grid', familyShowDescription: false },
+    expect: async (mod) => { await has('SHARED EVENT')(mod); await expect(mod).not.toContainText('FAMILY DESC E2E'); },
+  },
+  {
     // People from settings become rows even when their calendars are empty
     // this week; the stub's 'src-a' event belongs to Alpha Person.
     type: 'fullscreen-calendar', name: 'family-people-rows', kind: 'networked', stubKey: 'calendar',
@@ -779,6 +847,39 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     stubBody: RUNNING_PLUS_TOMORROW_ALLDAY,
     config: { view: 'up-next', upNextShowTomorrow: false },
     expect: lacks('RUNNING NOW', 'TOMORROW ALLDAY'),
+  },
+  {
+    // Hero card and a later-row each draw their sanitized description.
+    type: 'fullscreen-calendar', name: 'up-next-show-description', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_MORNING_DESC,
+    config: { view: 'up-next', upNextShowDescription: true, upNextLaterCount: 3 },
+    expect: async (mod) => {
+      await has('UPNEXT HERO DESC E2E')(mod);
+      await has('UPNEXT ROW DESC E2E')(mod);
+      await expect(mod).not.toContainText('<p>');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'up-next-show-description-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_MORNING_DESC,
+    config: { view: 'up-next', upNextShowDescription: false, upNextLaterCount: 3 },
+    expect: async (mod) => { await has('UPNEXT HERO')(mod); await expect(mod).not.toContainText('DESC E2E'); },
+  },
+  {
+    // Descriptions never cost the board its last row: when they would push
+    // Tomorrow off the bottom, the rows shed theirs and the last Tomorrow
+    // row stays inside the module's box.
+    type: 'fullscreen-calendar', name: 'up-next-show-description-overflow', kind: 'networked', stubKey: 'calendar',
+    stubBody: TOMORROW_PACKED_DESC,
+    config: { view: 'up-next', upNextShowDescription: true, upNextLaterCount: 6, upNextShowEarlier: false, upNextShowTomorrow: true },
+    expect: async (mod) => {
+      const last = mod.locator('[data-event-id="tp12"]');
+      await expect(last).toBeVisible();
+      const modBox = (await mod.boundingBox())!;
+      const lastBox = (await last.boundingBox())!;
+      expect(lastBox.y + lastBox.height).toBeLessThanOrEqual(modBox.y + modBox.height + 1);
+      await expect(mod.locator('[data-event-id="tp12"]')).not.toContainText('UPNEXT OVERFLOW DESC');
+    },
   },
 
   // ================= FREE TIME =================

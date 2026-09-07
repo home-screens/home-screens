@@ -10,7 +10,7 @@ import {
 import { EVERYONE_COLOR, buildPersonRows, eventsForRow, type PersonRow } from '@/lib/calendar-people';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { clampStyle, dayCellFill, resolveTodayHighlight, useDayDecors, useWeekDays } from './view-support';
-import type { CalendarEvent, CalendarViewProps, RowCtx } from './view-support';
+import type { CalendarEvent, CalendarScale, CalendarViewProps, RowCtx } from './view-support';
 import { PersonAvatar, PeopleHint } from './person-view-bits';
 import type { DayDecor } from '@/lib/calendar-rules';
 import { eventSurface } from '@/lib/calendar-event-surface';
@@ -22,6 +22,49 @@ import { eventAriaLabel } from './list-view-bits';
 import { useContainerHeight } from './shared-time-grid';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { GlyphPrefix } from '@/components/ui/Glyph';
+import { sanitizeEventDescription } from '@/lib/event-description';
+import { fitChips } from './chip-budget';
+import type { FullscreenCalendarConfig } from '@/types/config';
+
+// Chip metrics, shared by EventChip and the cell budget so a cell charges a
+// chip exactly what it draws: vertical padding (base units), the 1px gap
+// between its lines, then each line's font (em of fontSize), line height and
+// clamp. Titles wrap to two lines in portrait, descriptions to two always.
+const CHIP_PAD_V = 0.3;
+const CHIP_LINE_GAP = 1;
+const CHIP_TIME_FONT = 0.72;
+const CHIP_TIME_LINE_HEIGHT = 1.2;
+const CHIP_TITLE_FONT = 0.95;
+const CHIP_TITLE_LINE_HEIGHT = 1.15;
+const CHIP_TITLE_LINES = 2;
+const CHIP_DESCRIPTION_FONT = 0.72;
+const CHIP_DESCRIPTION_LINE_HEIGHT = 1.3;
+const CHIP_DESCRIPTION_LINES = 2;
+const CHIP_MORE_FONT = 0.75;
+const CHIP_MORE_LINE_HEIGHT = 1.3;
+/** Vertical pixels the chip surface adds around its content: the wash and
+ *  glass looks draw a 1px border top and bottom (eventSurface 'chip');
+ *  solid has none and rule only a left bar. */
+function chipBorderPx(eventStyle: CalendarScale['eventStyle']): number {
+  return eventStyle === 'solid' || eventStyle === 'rule' ? 0 : 2;
+}
+
+/** Height a chip will draw at, from the lines it carries. */
+function estimateChipHeight(opts: { hasTime: boolean; titleLines: number; descriptionLines: number; fontSize: number; bu: number; borderPx: number }): number {
+  const { hasTime, titleLines, descriptionLines, fontSize, bu, borderPx } = opts;
+  let h = borderPx + bu * CHIP_PAD_V * 2 + titleLines * fontSize * CHIP_TITLE_FONT * CHIP_TITLE_LINE_HEIGHT;
+  if (hasTime) h += fontSize * CHIP_TIME_FONT * CHIP_TIME_LINE_HEIGHT + CHIP_LINE_GAP;
+  if (descriptionLines > 0) h += descriptionLines * fontSize * CHIP_DESCRIPTION_FONT * CHIP_DESCRIPTION_LINE_HEIGHT + CHIP_LINE_GAP;
+  return h;
+}
+
+/** The text a chip draws under its title: sanitized, with blank lines folded
+ *  (two clamped lines cannot spare one for a paragraph gap), or empty when
+ *  descriptions are off. The cell budget and the chip read the same text. */
+function chipDescription(event: CalendarEvent, config: FullscreenCalendarConfig): string {
+  if (!config.familyShowDescription) return '';
+  return sanitizeEventDescription(event.description).replace(/\n+/g, '\n');
+}
 
 interface CellEvent {
   ev: CalendarEvent;
@@ -93,8 +136,8 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   const noPeople = !people || people.length === 0;
   const cellPad = scale.bu * 0.5;
   const chipGap = scale.bu * 0.4;
-  const chipH = fontSize * (isLandscape ? 2.1 : 3.0);
-  const maxPerCell = rowH > 0 ? Math.max(1, Math.floor((rowH - cellPad * 2 + chipGap) / (chipH + chipGap))) : 3;
+  // Until the grid is measured, budget for roughly three plain chips.
+  const cellBudgetH = rowH > 0 ? rowH - cellPad * 2 : fontSize * 9;
 
   return (
     <div
@@ -162,7 +205,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
             ctx={rowCtx}
             cellPad={cellPad}
             chipGap={chipGap}
-            maxPerCell={maxPerCell}
+            cellBudgetH={cellBudgetH}
             wrapTitles={!isLandscape}
             showTodayBg={showTodayBg}
             decorByDay={decorByDay}
@@ -175,7 +218,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   );
 }
 
-function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, maxPerCell, wrapTitles, showTodayBg, decorByDay, failingSourceIds }: {
+function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds }: {
   row: PersonRow;
   cells: CellEvent[][];
   count: number;
@@ -185,7 +228,7 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
   ctx: RowCtx;
   cellPad: number;
   chipGap: number;
-  maxPerCell: number;
+  cellBudgetH: number;
   wrapTitles: boolean;
   showTodayBg: boolean;
   decorByDay: DayDecor[];
@@ -220,12 +263,23 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
         const day = days[dayIdx];
         const isToday = isSameDay(day, today);
         const isPast = day < today && !isToday;
-        // An overflowing cell gives up one chip slot to the "+N" line —
-        // except at a one-chip budget, where the first event still shows and
-        // the "+N" rides the cell's corner instead of spending the only slot.
-        const visible = cell.slice(0, cell.length > maxPerCell ? Math.max(1, maxPerCell - 1) : maxPerCell);
-        const hidden = cell.length - visible.length;
-        const cornerBadge = hidden > 0 && maxPerCell === 1;
+        // Fit chips by height (fitChips): an overflowing cell gives the "+N"
+        // line room by dropping chips from the bottom, except that the first
+        // event always shows and, when nothing else fits, the "+N" rides the
+        // cell's corner instead of spending the only slot. Each chip is
+        // budgeted at its clamp: a wrapping title and a non-empty description
+        // cost their full two lines, so the estimate is never short of what
+        // draws (a character count cannot know where wide scripts wrap), while
+        // a chip with no description stays at its smaller height.
+        const chipHeights = cell.map(({ ev, segment }) => estimateChipHeight({
+          hasTime: !(ev.allDay || segment === 'middle'),
+          titleLines: wrapTitles ? CHIP_TITLE_LINES : 1,
+          descriptionLines: chipDescription(ev, config) ? CHIP_DESCRIPTION_LINES : 0,
+          fontSize, bu: scale.bu, borderPx: chipBorderPx(scale.eventStyle),
+        }));
+        const budget = fitChips({ chipHeights, budgetH: cellBudgetH, gap: chipGap, moreH: fontSize * CHIP_MORE_FONT * CHIP_MORE_LINE_HEIGHT });
+        const visible = cell.slice(0, budget.visible);
+        const { hidden, cornerBadge } = budget;
         return (
           <div
             key={day.toISOString()}
@@ -255,7 +309,7 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
               </div>
             ) : (
-              <div style={{ fontSize: fontSize * 0.75, fontWeight: 600, color: 'var(--cal-text-tertiary)', paddingLeft: scale.bu * 0.3 }}>
+              <div style={{ fontSize: fontSize * CHIP_MORE_FONT, lineHeight: CHIP_MORE_LINE_HEIGHT, fontWeight: 600, color: 'var(--cal-text-tertiary)', paddingLeft: scale.bu * 0.3 }}>
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
               </div>
             ))}
@@ -292,6 +346,7 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
       );
   const finished = !isAllDay && end <= now;
   const glyph = eventGlyph(event);
+  const description = chipDescription(event, ctx.config);
   const ariaLabel = eventAriaLabel(t, event, {
     startLabel: formatEventTime(start, timeFormat, locale),
     endLabel: formatEventTime(end, timeFormat, locale),
@@ -305,21 +360,30 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
       aria-label={ariaLabel}
       style={{
         ...eventSurface(color, scale, 'chip', { radius: scale.bu * 0.5 }),
-        padding: `${scale.bu * 0.3}px ${scale.bu * 0.5}px`,
-        display: 'flex', flexDirection: 'column', gap: 1,
+        padding: `${scale.bu * CHIP_PAD_V}px ${scale.bu * 0.5}px`,
+        display: 'flex', flexDirection: 'column', gap: CHIP_LINE_GAP,
         flexShrink: 0,
         opacity: eventOpacity(event, finished ? 0.55 : 1),
         minWidth: 0,
       }}
     >
       {timeLabel && (
-        <span style={{ fontSize: fontSize * 0.72, fontWeight: 500, color: 'var(--cal-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontVariantNumeric: 'tabular-nums' }}>
+        <span style={{ fontSize: fontSize * CHIP_TIME_FONT, lineHeight: CHIP_TIME_LINE_HEIGHT, fontWeight: 500, color: 'var(--cal-text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontVariantNumeric: 'tabular-nums' }}>
           {timeLabel}
         </span>
       )}
-      <span style={{ fontSize: fontSize * 0.95, fontWeight: 600, color: 'var(--cal-text-primary)', lineHeight: 1.15, ...clampStyle(wrapTitles) }}>
+      <span style={{ fontSize: fontSize * CHIP_TITLE_FONT, fontWeight: 600, color: 'var(--cal-text-primary)', lineHeight: CHIP_TITLE_LINE_HEIGHT, ...clampStyle(wrapTitles) }}>
         <GlyphPrefix value={glyph} />{event.title}
       </span>
+      {description && (
+        <span style={{
+          fontSize: fontSize * CHIP_DESCRIPTION_FONT, lineHeight: CHIP_DESCRIPTION_LINE_HEIGHT, color: 'var(--cal-text-secondary)',
+          whiteSpace: 'pre-line', wordBreak: 'break-word',
+          display: '-webkit-box', WebkitLineClamp: CHIP_DESCRIPTION_LINES, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>
+          {description}
+        </span>
+      )}
     </div>
   );
 }

@@ -842,11 +842,13 @@ export interface FullscreenCalendarConfig {
 
   // Family grid view (people as rows, the week as columns)
   familyShowEveryoneRow?: boolean;  // default true; shared events on their own row
+  familyShowDescription?: boolean;  // default false; two clamped lines under each chip title
 
   // Up next view
   upNextLaterCount?: number;        // 0-6, default 3: rows under the hero
   upNextShowEarlier?: boolean;      // default true: today's finished / running events
   upNextShowTomorrow?: boolean;     // default true
+  upNextShowDescription?: boolean;  // default false; under the hero's time line and each row's title
 
   // Free time view
   freeTimeHourStart?: number;       // 0-23, default 7

@@ -25,6 +25,8 @@ const SHOW_DESCRIPTION_KEY = {
   'week-list': 'weekShowDescription',
   'day-timeline': 'dayShowDescription',
   'agenda': 'agendaShowDescription',
+  'family-grid': 'familyShowDescription',
+  'up-next': 'upNextShowDescription',
 } as const;
 
 export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {

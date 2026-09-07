@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   parseEventDate, parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
 } from '@/lib/calendar-utils';
@@ -15,6 +15,7 @@ import { EventWeatherLine } from './WeatherInline';
 import { EventProgressBar, eventAriaLabel } from './list-view-bits';
 import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
+import { sanitizeEventDescription } from '@/lib/event-description';
 
 /**
  * The hallway view: one event rendered huge (what is next, or what is
@@ -45,8 +46,39 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
   const sectionGap = scale.bu * 3;
   const isLandscape = scale.orientation === 'landscape';
 
+  // Descriptions make rows taller, and the board is a fixed box: with them
+  // on, a full day pushed Tomorrow off the bottom edge with nothing to say
+  // it was there. So they degrade by measurement, before paint: the listed
+  // rows lose theirs first, then the big card, until the board fits. Level
+  // 2 = card and rows, 1 = card only, 0 = none.
+  //
+  // The level is recorded together with the inputs it was measured under:
+  // the events, and every layout input that moves the rows (box size, type
+  // size from typography and density, orientation, the weather line, the
+  // clock format, the toggle). Any change makes that record stale, and a
+  // stale record reads as level 2, so the fresh attempt renders with
+  // everything on and is measured from there. (A separate "reset" effect
+  // would fire in the same commit as the measurement and net out one step
+  // short, leaving a resized board clipped at level 1 for good.)
+  const wantDescriptions = config.upNextShowDescription === true;
+  const layoutKey = [scale.width, scale.height, fontSize, scale.orientation, weather?.placement ?? 'none', timeFormat, wantDescriptions].join('|');
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [attempt, setAttempt] = useState({ model, layoutKey, level: 2 });
+  const stale = attempt.model !== model || attempt.layoutKey !== layoutKey;
+  const descriptionLevel = stale ? 2 : attempt.level;
+  useLayoutEffect(() => {
+    const el = rootRef.current;
+    if (!wantDescriptions || descriptionLevel === 0 || !el) return;
+    if (el.scrollHeight > el.clientHeight + 1) {
+      setAttempt({ model, layoutKey, level: descriptionLevel - 1 });
+    }
+  }, [wantDescriptions, descriptionLevel, model, layoutKey]);
+  const heroDescription = wantDescriptions && descriptionLevel >= 1;
+  const rowDescription = wantDescriptions && descriptionLevel >= 2;
+
   return (
     <div
+      ref={rootRef}
       aria-label={t('fullscreen-calendar.viewLabels.upNext')}
       style={{
         height: '100%', overflow: 'hidden', padding: `${scale.bu * 2.5}px ${pad}px 0`,
@@ -109,7 +141,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {/* Hero */}
       <div style={{ marginTop: scale.bu * 4, flexShrink: 0 }}>
         {hero ? (
-          <HeroCard item={hero} running={heroIsRunning} heroToday={heroToday} heroDay={heroDay} now={now} ctx={rowCtx} weather={weather} failingSourceIds={failingSourceIds} />
+          <HeroCard item={hero} running={heroIsRunning} heroToday={heroToday} heroDay={heroDay} now={now} ctx={rowCtx} showDescription={heroDescription} weather={weather} failingSourceIds={failingSourceIds} />
         ) : (
           <div style={{
             borderRadius: scale.bu * 2, padding: `${scale.bu * 3.5}px ${scale.bu * 4}px`,
@@ -131,7 +163,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {later.length > 0 && (
         <Section title={heroToday ? t('fullscreen-calendar.upNext.laterToday') : t('fullscreen-calendar.upNext.alsoOn', { day: formatDateSync(heroDay, 'EEEE', { locale }) })} fontSize={fontSize}>
           {later.map((x) => (
-            <ListRow key={x.ev.id} item={x} ctx={rowCtx} trailing={formatCountdown(x.start, now, locale)} />
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx} showDescription={rowDescription} trailing={formatCountdown(x.start, now, locale)} />
           ))}
         </Section>
       )}
@@ -141,7 +173,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {runningRows.length > 0 && (
         <Section title={t('fullscreen-calendar.upNext.now')} fontSize={fontSize}>
           {runningRows.map((x) => (
-            <ListRow key={x.ev.id} item={x} ctx={rowCtx}
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx} showDescription={rowDescription}
               trailing={t('fullscreen-calendar.upNext.minutesLeft', { count: Math.max(1, Math.ceil((x.end.getTime() - now.getTime()) / 60_000)) })}
               progress={eventProgress(x.start, x.end, now)} />
           ))}
@@ -152,7 +184,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       {earlier.length > 0 && (
         <Section title={t('fullscreen-calendar.upNext.earlier')} fontSize={fontSize}>
           {earlier.map((x) => (
-            <ListRow key={x.ev.id} item={x} ctx={rowCtx} dim trailing={t('fullscreen-calendar.upNext.done')} />
+            <ListRow key={x.ev.id} item={x} ctx={rowCtx} showDescription={rowDescription} dim trailing={t('fullscreen-calendar.upNext.done')} />
           ))}
         </Section>
       )}
@@ -165,7 +197,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
               key={ev.id}
               item={{ ev, start: parseEventWallTime(ev.start, timezone), end: parseEventWallTime(ev.end, timezone) }}
               allDay={ev.allDay}
-              ctx={rowCtx}
+              ctx={rowCtx} showDescription={rowDescription}
               trailing={ev.sourceName ?? ''}
             />
           ))}
@@ -189,13 +221,14 @@ function Section({ title, fontSize, children }: { title: string; fontSize: numbe
   );
 }
 
-function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failingSourceIds }: {
+function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription, weather, failingSourceIds }: {
   item: UpNextTimedEvent;
   running: boolean;
   heroToday: boolean;
   heroDay: Date;
   now: Date;
   ctx: RowCtx;
+  showDescription: boolean;
   weather?: CalendarWeather;
   failingSourceIds?: ReadonlySet<string>;
 }) {
@@ -209,6 +242,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failin
   const endLabel = formatEventTime(end, timeFormat, locale);
   const glyph = eventGlyph(ev);
   const saved = ev.sourceId != null && failingSourceIds?.has(ev.sourceId);
+  const description = showDescription ? sanitizeEventDescription(ev.description) : '';
   return (
     <div
       className="fsc-event-block fsc-tap-row"
@@ -257,6 +291,15 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failin
         )}
         {weather && <EventWeatherLine weather={weather} start={parseEventDate(ev.start)} fontSize={fontSize * 2.2} marginTop={scale.bu * 0.4} />}
       </div>
+      {description && (
+        <div style={{
+          marginTop: scale.bu * 1.6, fontSize: fontSize * 2.2, lineHeight: 1.35, color: 'var(--cal-text-secondary)',
+          whiteSpace: 'pre-line', wordBreak: 'break-word',
+          display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>
+          {description}
+        </div>
+      )}
       {ev.sourceName && (
         <div style={{ marginTop: scale.bu * 2, display: 'flex', alignItems: 'center', gap: scale.bu * 0.8, fontSize: fontSize * 1.8, color: 'var(--cal-text-secondary)' }}>
           <span aria-hidden="true" style={{ width: fontSize * 1.2, height: fontSize * 1.2, borderRadius: '50%', background: bar, flexShrink: 0 }} />
@@ -272,10 +315,11 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, weather, failin
   );
 }
 
-function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
+function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }: {
   item: UpNextTimedEvent;
   allDay?: boolean;
   ctx: RowCtx;
+  showDescription: boolean;
   trailing?: string;
   dim?: boolean;
   progress?: number | null;
@@ -287,6 +331,12 @@ function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
   const startLabel = formatEventTime(start, timeFormat, locale);
   const endLabel = formatEventTime(end, timeFormat, locale);
   const ariaLabel = eventAriaLabel(t, ev, { startLabel, endLabel, allDay });
+  // Two clamped lines cannot spare one for a paragraph gap, so blank lines
+  // fold into single breaks here (the hero keeps them: it has three lines).
+  const description = showDescription ? sanitizeEventDescription(ev.description).replace(/\n+/g, '\n') : '';
+  // The time column's width plus the row gap, so the description lines up
+  // under the title rather than under the clock.
+  const timeColW = fontSize * 9 + scale.bu * 2;
   return (
     <div
       className="fsc-event-block fsc-tap-row"
@@ -319,6 +369,16 @@ function ListRow({ item, allDay, ctx, trailing, dim, progress }: {
           </span>
         )}
       </div>
+      {description && (
+        <div style={{
+          marginLeft: timeColW, marginTop: scale.bu * 0.4,
+          fontSize: fontSize * 1.6, lineHeight: 1.35, color: 'var(--cal-text-secondary)',
+          whiteSpace: 'pre-line', wordBreak: 'break-word',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+        }}>
+          {description}
+        </div>
+      )}
       {progress != null && <EventProgressBar fraction={progress} fontSize={fontSize * 1.6} />}
     </div>
   );
