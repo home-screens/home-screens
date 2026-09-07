@@ -244,6 +244,13 @@ jobs:
             --tarball "${TARBALL}" \
             --tarball-sha256 "${SHA}"
 
+      # The image is held here, not attached to the release. A green build
+      # proves the filesystem, not the device: two images shipped with a kiosk
+      # that never started and a sudo grant that was missing, and every finalize
+      # check had passed. Publication is the promote-image workflow, run by a
+      # person after the checklist in the job summary passes on real hardware,
+      # against this exact artifact. 30 days is long enough to test and short
+      # enough that an untested image cannot linger and get promoted by mistake.
       - name: Upload image artifact
         uses: actions/upload-artifact@v4
         with:
@@ -251,24 +258,34 @@ jobs:
           path: |
             image-creation/out/*.img.xz
             image-creation/out/*.img.xz.sha256
+          retention-days: 30
           if-no-files-found: error
 
-      # Adds the image to the release the build job already created. Assets are
-      # added, not replaced, so the tarball published above survives.
-      - name: Attach image to release
-        if: ${{ startsWith(github.ref, 'refs/tags/') && (inputs.rebuild_from_tag || '') == '' }}
-        uses: softprops/action-gh-release@v2.5.0
-        with:
-          files: |
-            image-creation/out/*.img.xz
-            image-creation/out/*.img.xz.sha256
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+      - name: Publish the acceptance checklist
+        if: ${{ (inputs.rebuild_from_tag || '') == '' }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          {
+            echo "## Pi image built, not published"
+            echo
+            echo "Download the \`pi-image\` artifact from this run, flash it, and run every line below on a real Pi with a screen attached. Then publish it with the **Promote Pi image** workflow using run id \`${GITHUB_RUN_ID}\` and tag \`${VERSION}\`."
+            echo
+            echo "- [ ] First boot reaches the kiosk on HDMI (no black screen, no login prompt)"
+            echo "- [ ] Second boot: nothing re-runs, the wall comes back on its own"
+            echo "- [ ] Ethernet boot, then Settings > Network lists WiFi networks and joins one"
+            echo "- [ ] Fresh flash with wifi.txt joins the network; a wrong password leaves a fixable state (new wifi.txt on the card replaces it)"
+            echo "- [ ] A settings change in the editor survives a reboot"
+            echo "- [ ] \`ssh hs@home-screens.local\` with password \`screens\` works; \`sudo -k -n true\` succeeds"
+            echo "- [ ] Settings > System: update to the previous release and back to this one"
+            echo "- [ ] Pull power during the install step of an update; the wall comes back on the next boot"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      # A rebuild targets a release that is not github.ref, which the action
-      # above cannot express, so upload directly. --clobber because the whole
-      # point is replacing an image that shipped broken. Opt-in: leave `attach`
-      # off to inspect the artifact before it goes anywhere users can reach.
+      # A rebuild may attach directly with `attach`, because its payload is a
+      # release that already shipped and the operator asked for it by name.
+      # --clobber because the whole point is replacing an image that shipped
+      # broken. Leave `attach` off to run the checklist first and promote
+      # through the promote-image workflow like any other build.
       - name: Attach rebuilt image to its release
         if: ${{ (inputs.rebuild_from_tag || '') != '' && inputs.attach }}
         env:

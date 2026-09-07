@@ -151,90 +151,9 @@ if [ ! -s /etc/machine-id ]; then
     systemd-machine-id-setup
 fi
 
-# Configure WiFi from /boot/firmware/wifi.txt if present.
-# Users create this file on the FAT32 boot partition after flashing the image.
-# Format: SSID=..., PASSWORD=..., COUNTRY=... (one per line, PASSWORD optional
-# for open networks, COUNTRY optional — defaults to US).
-WIFI_FILE="/boot/firmware/wifi.txt"
-if [ -f "${WIFI_FILE}" ]; then
-    log "Found wifi.txt — configuring WiFi"
-    WIFI_SSID="" WIFI_PASS="" WIFI_COUNTRY="" WIFI_HIDDEN=""
-    while IFS= read -r line; do
-        # Skip comments and blank lines
-        case "$line" in \#*|"") continue ;; esac
-        key="${line%%=*}"
-        value="${line#*=}"
-        key=$(echo "$key" | tr -d '[:space:]')
-        value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        case "$key" in
-            SSID)     WIFI_SSID="$value" ;;
-            PASSWORD) WIFI_PASS="$value" ;;
-            COUNTRY)  WIFI_COUNTRY="$value" ;;
-            HIDDEN)   WIFI_HIDDEN="$value" ;;
-        esac
-    done < "${WIFI_FILE}"
-
-    if [ -n "${WIFI_SSID}" ]; then
-        IMAGER_CUSTOM="/usr/lib/raspberrypi-sys-mods/imager_custom"
-        if [ -x "${IMAGER_CUSTOM}" ]; then
-            WLAN_ARGS=""
-            [ "${WIFI_HIDDEN}" = "true" ] && WLAN_ARGS="${WLAN_ARGS} --hidden"
-            if [ -n "${WIFI_PASS}" ]; then
-                "${IMAGER_CUSTOM}" set_wlan ${WLAN_ARGS} --plain \
-                    "${WIFI_SSID}" "${WIFI_PASS}" ${WIFI_COUNTRY:+"${WIFI_COUNTRY}"} \
-                    && log "WiFi configured via imager_custom" \
-                    || log "imager_custom set_wlan failed"
-            else
-                "${IMAGER_CUSTOM}" set_wlan ${WLAN_ARGS} --plain \
-                    "${WIFI_SSID}" "" ${WIFI_COUNTRY:+"${WIFI_COUNTRY}"} \
-                    && log "WiFi configured via imager_custom (open network)" \
-                    || log "imager_custom set_wlan failed"
-            fi
-        else
-            # Fallback: write the nmconnection file directly
-            log "imager_custom not found — writing nmconnection directly"
-            CONNFILE="/etc/NetworkManager/system-connections/preconfigured.nmconnection"
-            cat > "${CONNFILE}" << NMEOF
-[connection]
-id=preconfigured
-uuid=$(cat /proc/sys/kernel/random/uuid)
-type=wifi
-[wifi]
-mode=infrastructure
-ssid=${WIFI_SSID}
-hidden=${WIFI_HIDDEN:-false}
-[ipv4]
-method=auto
-[ipv6]
-addr-gen-mode=default
-method=auto
-[proxy]
-NMEOF
-            if [ -n "${WIFI_PASS}" ]; then
-                cat >> "${CONNFILE}" << NMEOF
-[wifi-security]
-key-mgmt=wpa-psk
-psk=${WIFI_PASS}
-NMEOF
-            fi
-            chmod 600 "${CONNFILE}"
-        fi
-
-        # Tell NetworkManager to pick up the new connection and activate it
-        nmcli connection reload 2>/dev/null || true
-        nmcli connection up preconfigured 2>/dev/null \
-            && log "WiFi connection activated" \
-            || log "WiFi activation deferred — will connect on next boot"
-    else
-        log "wifi.txt found but SSID is empty — skipping"
-    fi
-
-    # Remove wifi.txt (contains plaintext credentials on the FAT32 partition)
-    rm -f "${WIFI_FILE}"
-    log "Removed wifi.txt from boot partition"
-else
-    log "No wifi.txt found — skipping WiFi provisioning"
-fi
+# WiFi from wifi.txt is handled by home-screens-wifi.service, which runs on
+# every boot while the file exists, so a corrected file after a failed first
+# attempt still works. It is deliberately not part of this once-only script.
 
 # Expand filesystem to fill SD card (immediate, no reboot needed)
 ROOT_PART=$(findmnt -n -o SOURCE / 2>/dev/null || echo "")
@@ -307,17 +226,187 @@ chmod +x /opt/home-screens/bin/firstboot.sh
 systemctl enable home-screens-firstboot.service
 
 # ============================================================================
+# WiFi provisioning from wifi.txt: its own unit, runs on every boot while the
+# file exists. Kept out of firstboot.sh so a corrected wifi.txt after a failed
+# first attempt is picked up without reflashing.
+# ============================================================================
+log_info "Setting up WiFi provisioning from wifi.txt"
+cat > /opt/home-screens/bin/wifi-provision.sh << 'WPEOF'
+#!/bin/bash
+# Home Screens WiFi setup from /boot/firmware/wifi.txt.
+#
+# Runs on every boot while the file exists (the unit's ConditionPathExists),
+# not only the first, so a corrected file after a failed attempt is used
+# without reflashing. The file is removed only once NetworkManager has a
+# saved, valid profile; from then on NetworkManager owns the retries. A file
+# that cannot be turned into a profile stays on the card, with the reason in
+# the journal (journalctl -t home-screens-wifi).
+#
+# The profile is written by `nmcli --offline`, which escapes the SSID and
+# password for the keyfile format. Pi OS's imager_custom writes them raw,
+# which drops leading spaces and mangles backslashes, so it is not used.
+set -u
+
+WIFI_FILE="/boot/firmware/wifi.txt"
+CONN_NAME="preconfigured"
+CONN_DIR="/etc/NetworkManager/system-connections"
+CONN_FILE="${CONN_DIR}/${CONN_NAME}.nmconnection"
+
+log() {
+    echo "[Home Screens WiFi] $1"
+    logger -t home-screens-wifi "$1" 2>/dev/null || true
+}
+
+[ -f "${WIFI_FILE}" ] || exit 0
+log "Found wifi.txt"
+
+WIFI_SSID="" WIFI_PASS="" WIFI_COUNTRY="" WIFI_HIDDEN=""
+# `|| [ -n "$line" ]` keeps a last line that has no trailing newline; a bare
+# `read` returns 1 on it and the loop body never ran, so a file that ended
+# with PASSWORD=... silently became an open network. Values are used exactly
+# as written apart from a Windows carriage return and one pair of matching
+# surrounding quotes, since passwords may contain spaces.
+while IFS= read -r line || [ -n "$line" ]; do
+    line="${line%$'\r'}"
+    case "$line" in \#*|"") continue ;; esac
+    key="${line%%=*}"
+    value="${line#*=}"
+    key=$(echo "$key" | tr -d '[:space:]')
+    case "$value" in
+        \"*\") value="${value#\"}"; value="${value%\"}" ;;
+        \'*\') value="${value#\'}"; value="${value%\'}" ;;
+    esac
+    case "$key" in
+        SSID)     WIFI_SSID="$value" ;;
+        PASSWORD) WIFI_PASS="$value" ;;
+        COUNTRY)  WIFI_COUNTRY="$(echo "$value" | tr -d '[:space:]')" ;;
+        HIDDEN)   WIFI_HIDDEN="$(echo "$value" | tr -d '[:space:]')" ;;
+    esac
+done < "${WIFI_FILE}"
+
+if [ -z "${WIFI_SSID}" ]; then
+    log "wifi.txt has no SSID line, leaving the file in place"
+    exit 0
+fi
+
+# A WPA passphrase is 8 to 63 bytes, or exactly 64 hex digits. nmcli
+# --offline does not check this, and a profile with a bad key would be saved,
+# the file deleted, and the join fail forever with nothing to fix on the card.
+# Bytes, not characters: the unit runs under the system's UTF-8 locale, where
+# ${#var} counts characters, and NetworkManager measures the key in bytes.
+if [ -n "${WIFI_PASS}" ]; then
+    pass_bytes=$(printf '%s' "${WIFI_PASS}" | wc -c | tr -d ' ')
+    if ! { [ "${pass_bytes}" -ge 8 ] && [ "${pass_bytes}" -le 63 ]; } \
+       && ! printf '%s' "${WIFI_PASS}" | grep -qE '^[0-9A-Fa-f]{64}$'; then
+        log "PASSWORD is ${pass_bytes} bytes long; a WiFi password is 8 to 63 bytes (accented letters count as 2). Leaving wifi.txt in place"
+        exit 0
+    fi
+fi
+
+# Country: the documented default is US, and it must be a real ISO 3166 code
+# because raspi-config writes it into cmdline.txt as the regulatory domain.
+WIFI_COUNTRY="$(printf '%s' "${WIFI_COUNTRY:-US}" | tr '[:lower:]' '[:upper:]')"
+if ! printf '%s' "${WIFI_COUNTRY}" | grep -qE '^[A-Z]{2}$' \
+   || ! grep -qE "^${WIFI_COUNTRY}[[:space:]]" /usr/share/zoneinfo/iso3166.tab 2>/dev/null; then
+    log "COUNTRY '${WIFI_COUNTRY}' is not a two-letter country code, using US"
+    WIFI_COUNTRY="US"
+fi
+
+# Setting the country is also what switches the radio on: raspi-config sets
+# the regulatory domain, records it in cmdline.txt and runs nmcli radio wifi on.
+if command -v raspi-config >/dev/null 2>&1; then
+    if raspi-config nonint do_wifi_country "${WIFI_COUNTRY}" >/dev/null 2>&1; then
+        log "Country set to ${WIFI_COUNTRY}"
+    else
+        log "Could not set the country with raspi-config, continuing"
+    fi
+else
+    command -v iw >/dev/null 2>&1 && iw reg set "${WIFI_COUNTRY}" 2>/dev/null || true
+    nmcli radio wifi on 2>/dev/null || true
+fi
+
+args=(connection add type wifi con-name "${CONN_NAME}" ifname '*' ssid "${WIFI_SSID}"
+      connection.autoconnect yes connection.autoconnect-retries 0
+      ipv4.method auto ipv6.method auto)
+case "${WIFI_HIDDEN}" in
+    true|TRUE|True|yes|1) args+=(802-11-wireless.hidden yes) ;;
+esac
+if [ -n "${WIFI_PASS}" ]; then
+    args+=(wifi-sec.key-mgmt wpa-psk wifi-sec.psk "${WIFI_PASS}")
+fi
+
+# NetworkManager ignores dotfiles in this directory, so the profile is built
+# under a hidden temp name and renamed into place in one step.
+# Every step of the save is checked: wifi.txt is only removed once the
+# profile is verifiably in place, so a full disk or a read-only filesystem
+# leaves the file on the card for the next boot instead of losing it.
+save_failed() {
+    rm -f "${tmp:-}"
+    log "Could not save the network profile ($1), leaving wifi.txt in place"
+    exit 0
+}
+mkdir -p "${CONN_DIR}" || save_failed "cannot create ${CONN_DIR}"
+tmp="$(mktemp "${CONN_DIR}/.${CONN_NAME}.XXXXXX")" || save_failed "cannot write in ${CONN_DIR}"
+if ! err="$(nmcli --offline "${args[@]}" 2>&1 >"${tmp}")"; then
+    rm -f "${tmp}"
+    log "NetworkManager rejected the settings, leaving wifi.txt in place: ${err}"
+    exit 0
+fi
+[ -s "${tmp}" ] || save_failed "nmcli wrote an empty profile"
+chmod 600 "${tmp}" || save_failed "chmod failed"
+chown root:root "${tmp}" || save_failed "chown failed"
+mv -f "${tmp}" "${CONN_FILE}" || save_failed "rename failed"
+[ -s "${CONN_FILE}" ] || save_failed "profile missing after rename"
+nmcli connection reload 2>/dev/null || true
+
+# The profile is saved with the password inside it, root-only, so the
+# plaintext copy on the FAT32 boot partition can go.
+rm -f "${WIFI_FILE}"
+log "Saved network '${WIFI_SSID}' and removed wifi.txt; NetworkManager keeps trying to connect from here"
+
+if nmcli connection up "${CONN_NAME}" >/dev/null 2>&1; then
+    log "Connected"
+else
+    log "Not connected yet, NetworkManager will keep trying"
+fi
+exit 0
+WPEOF
+chmod +x /opt/home-screens/bin/wifi-provision.sh
+
+cat > /etc/systemd/system/home-screens-wifi.service << EOF
+[Unit]
+Description=Home Screens WiFi setup from wifi.txt
+ConditionPathExists=/boot/firmware/wifi.txt
+RequiresMountsFor=/boot/firmware
+After=NetworkManager.service
+Wants=NetworkManager.service
+Before=home-screens.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/home-screens/bin/wifi-provision.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable home-screens-wifi.service
+
+# ============================================================================
 # Drop wifi.txt.example on the boot partition so users know the format
 # ============================================================================
 log_info "Creating wifi.txt.example on boot partition"
 cat > /boot/firmware/wifi.txt.example << 'WIFIEOF'
 # Home Screens WiFi Configuration
 # Rename this file to wifi.txt and fill in your details.
-# The Pi will connect to WiFi on first boot and delete this file.
+# The Pi reads it when it boots, saves the network, and deletes this file.
+# If something in it could not be used, the file stays; fix it and boot again.
 #
 # SSID     — Your WiFi network name (required)
-# PASSWORD — Your WiFi password (omit for open networks)
-# COUNTRY  — Two-letter country code, e.g. US, GB, DE (optional, defaults to US)
+# PASSWORD — Your WiFi password (omit for open networks). Everything after
+#            the = sign is used as typed, spaces included; quotes around the
+#            whole value are removed.
+# COUNTRY  — Two-letter country code, e.g. US, GB, DK (optional, defaults to US).
+#            Set it: it decides which WiFi channels the Pi may use.
 # HIDDEN   — Set to true if your network is hidden (optional, defaults to false)
 
 SSID=
@@ -429,6 +518,38 @@ elif ! grep -qE "^${APP_USER}[[:space:]]+ALL=\(ALL(:ALL)?\)[[:space:]]+NOPASSWD:
     VERIFY_OK=false
 else
     log_info "${SUDOERS_DROPIN} grants ${APP_USER} passwordless sudo"
+fi
+
+# NetworkManager restores WirelessEnabled from this file on every boot. The
+# stock base image says false, which leaves a Pi started on Ethernet unable to
+# add WiFi from the editor; stage 01 flips it. Check the flag, not just the file.
+NM_STATE="/var/lib/NetworkManager/NetworkManager.state"
+if grep -qs '^WirelessEnabled=true' "${NM_STATE}"; then
+    log_info "NetworkManager state has the WiFi radio enabled"
+else
+    log_warn "Warning: ${NM_STATE} does not enable the WiFi radio, the editor's Network page will find no networks on an Ethernet-first Pi"
+    VERIFY_OK=false
+fi
+
+# WiFi provisioning: script present and parseable, unit enabled, unit verifies.
+WIFI_SCRIPT="/opt/home-screens/bin/wifi-provision.sh"
+if [ -x "${WIFI_SCRIPT}" ] && bash -n "${WIFI_SCRIPT}" 2>/dev/null; then
+    log_info "wifi-provision.sh present and parses"
+else
+    log_warn "Warning: ${WIFI_SCRIPT} missing, not executable, or does not parse; wifi.txt would be ignored"
+    VERIFY_OK=false
+fi
+if [ ! -e /etc/systemd/system/multi-user.target.wants/home-screens-wifi.service ]; then
+    log_warn "Warning: home-screens-wifi.service not enabled; wifi.txt would be ignored"
+    VERIFY_OK=false
+fi
+if command -v systemd-analyze >/dev/null 2>&1; then
+    if WIFI_ANALYZE="$(systemd-analyze verify --man=false home-screens-wifi.service 2>&1)"; then
+        log_info "systemd-analyze verify home-screens-wifi.service: clean"
+    else
+        log_warn "Warning: home-screens-wifi.service does not verify: ${WIFI_ANALYZE}"
+        VERIFY_OK=false
+    fi
 fi
 
 # Does the unit plus its drop-in actually parse? The existence check above

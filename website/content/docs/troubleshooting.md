@@ -45,8 +45,8 @@ Every answer here starts with what to check in the editor or on the phone, then 
 
 If you used `wifi.txt` and the Pi never came online:
 
-1. Put the card back in your computer. Is `wifi.txt` still there? If so, the Pi never read it. Check the name: it must be exactly `wifi.txt`, not `wifi.txt.txt`, which Windows likes to create.
-2. Check the `SSID=` and `PASSWORD=` lines for typos. Do not put quotes around them.
+1. Put the card back in your computer. Is `wifi.txt` still there? Then the Pi could not use it. Check the name first: it must be exactly `wifi.txt`, not `wifi.txt.txt`, which Windows likes to create. Then check the `SSID=` and `PASSWORD=` lines for typos; the password must be at least 8 characters. The Pi tries the file again on every boot, so fix it, put the card back, and boot.
+2. Is `wifi.txt` gone? Then the Pi saved the network and is trying to join it. A wrong password looks like this. Boot with a cable, or write a new `wifi.txt` with the right password; the Pi replaces the saved one.
 3. **Use a cable for now.** Plug in a network cable, boot, and set up WiFi from the editor's **Settings > Network** page.
 
 ### I cannot find my Pi on the network

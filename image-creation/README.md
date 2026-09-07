@@ -57,6 +57,25 @@ Output lands in `image-creation/out/` as `home-screens-<version>.img.xz` plus a 
 | `--keep-work` | Leave the work image and mounts for inspection |
 | `--skip-xz` | Produce a raw `.img` without compressing |
 
+### Publishing an image
+
+A green build proves the filesystem, not the device: two images shipped with every
+finalize check passing, one with a kiosk that never started and one with no sudo
+grant. So the release workflow never attaches an image to a release. It keeps the
+image as the `pi-image` artifact for 30 days and prints an acceptance checklist in
+the job summary.
+
+1. Download the artifact from the release run, flash it, and run the checklist on a
+   real Pi with a screen: first and second boot, WiFi from the editor and from
+   `wifi.txt`, a settings save across reboot, SSH and `sudo -k -n true`, an update
+   to the previous release and back, and a power pull during an update.
+2. Run the **Promote Pi image** workflow with that run's id and the release tag, and
+   tick the checklist box. It downloads the exact artifact you tested, checks the
+   checksum and that the filename matches the tag, and attaches it to the release.
+
+`rebuild_from_tag` with `attach` still attaches directly, for re-cutting an image
+that already shipped; leave `attach` off to go through the checklist instead.
+
 ### Bumping the base OS
 
 Three values at the top of `build-image-ci.sh` move together. Note the release directory is dated a day *after* the image inside it:

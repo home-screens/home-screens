@@ -773,6 +773,11 @@ case "${action}" in
     SERVICE_FILE="/etc/systemd/system/home-screens.service"
     # ExecStartPre recovers from an interrupted atomic deploy — if APP_DIR was
     # removed (mid-swap power loss) but the rollback still exists, restore it.
+    # The '-' on WorkingDirectory is what lets that run: systemd changes
+    # directory for every Exec line, ExecStartPre included, and without the
+    # prefix a missing APP_DIR fails the unit before the restore command ever
+    # starts. With it, ExecStartPre runs from / and ExecStart then finds the
+    # restored directory.
     DESIRED_SERVICE="[Unit]
 Description=Home Screens Next.js Server
 After=network-online.target
@@ -781,7 +786,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=${USER}
-WorkingDirectory=${WORKING_DIR}
+WorkingDirectory=-${WORKING_DIR}
 ExecStartPre=/bin/bash -c '[ -d ${APP_DIR} ] || [ ! -d ${APP_DIR}.rollback ] || mv ${APP_DIR}.rollback ${APP_DIR}'
 ExecStart=${EXEC_START}
 Restart=on-failure

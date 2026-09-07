@@ -41,6 +41,25 @@ echo "preserve_hostname: true" > /etc/cloud/cloud.cfg.d/99-home-screens-hostname
 log_info "Disabling cloud-init network management"
 echo "network: {config: disabled}" > /etc/cloud/cloud.cfg.d/99-home-screens-network.cfg
 
+# Pi OS ships NetworkManager with the WiFi radio switched off
+# (WirelessEnabled=false in its state file) and leaves it to the first-boot
+# wizard or Imager to turn it on when a country is chosen. On this image the
+# only thing that ever did that was the wifi.txt path, so a Pi started on
+# Ethernet had no way to add WiFi from the editor: scans returned nothing.
+# NetworkManager persists this flag and restores it on every boot, so the
+# image ships with it on. The regulatory domain is set when a network is
+# joined (wifi.txt today, the editor's Network page later), not here.
+log_info "Enabling the WiFi radio in NetworkManager's saved state"
+NM_STATE="/var/lib/NetworkManager/NetworkManager.state"
+mkdir -p "$(dirname "${NM_STATE}")"
+if [ -f "${NM_STATE}" ]; then
+    sed -i '/^WirelessEnabled=/d' "${NM_STATE}"
+    grep -q '^\[main\]' "${NM_STATE}" || printf '[main]\n' >> "${NM_STATE}"
+else
+    printf '[main]\n' > "${NM_STATE}"
+fi
+sed -i '/^\[main\]/a WirelessEnabled=true' "${NM_STATE}"
+
 log_info "Creating home-screens user"
 if ! id "hs" &>/dev/null; then
     useradd -m -s /bin/bash hs

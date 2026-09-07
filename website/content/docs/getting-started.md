@@ -62,13 +62,13 @@ COUNTRY=US
 | Line | Required | Meaning |
 |---|---|---|
 | `SSID` | Yes | Your WiFi network name |
-| `PASSWORD` | No | Your WiFi password. Leave the line out for an open network. |
-| `COUNTRY` | No | Two-letter country code (defaults to `US`) |
+| `PASSWORD` | No | Your WiFi password, exactly as typed, spaces included. Leave the line out for an open network. |
+| `COUNTRY` | No | Two-letter country code such as `US`, `GB` or `DK` (defaults to `US`). Set it: it decides which WiFi channels the Pi may use. |
 | `HIDDEN` | No | `true` if your network is hidden (defaults to `false`) |
 
 4. Save the file, eject the card, and put it in the Pi.
 
-On its first boot the Pi reads `wifi.txt`, joins your network, and **deletes the file** so your password is not left sitting on the card.
+When it boots, the Pi reads `wifi.txt`, saves the network, and **deletes the file** so your password is not left sitting on the card. If something in the file could not be used (a missing `SSID` line, a password shorter than 8 characters), the file stays where it is: fix it and boot again.
 
 ### First boot
 

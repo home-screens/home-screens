@@ -1,0 +1,75 @@
+name: Promote Pi image
+
+# Publishes a Pi image that the release workflow built and a person has since
+# tested on hardware. The release workflow never attaches images itself: a
+# green build proves the filesystem, not the device. This workflow takes the
+# exact artifact from that run (not a rebuild), checks its checksum and that
+# its name matches the release, and attaches it.
+#
+# Inputs: the release run's id (in its URL and in its job summary) and the
+# release tag. The checklist box is a deliberate speed bump, not a record.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Id of the Release workflow run whose pi-image artifact was tested'
+        required: true
+        type: string
+      tag:
+        description: 'Release tag to attach the image to, e.g. v1.12.1'
+        required: true
+        type: string
+      checklist_passed:
+        description: 'Every line of the acceptance checklist passed on a real Pi with this exact image'
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  promote:
+    name: Attach tested image to release
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Refuse without the checklist
+        if: ${{ !inputs.checklist_passed }}
+        run: |
+          echo "::error::Tick the checklist box only after every line passed on hardware. Nothing was published."
+          exit 1
+
+      - name: Download the tested artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download "${{ inputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name pi-image --dir out
+          ls -la out
+
+      # The artifact must be the one the release built: checksum intact and the
+      # version in its name equal to the tag it is about to be attached to.
+      - name: Verify checksum and version
+        env:
+          TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          sha256sum -c ./*.img.xz.sha256
+          IMG="$(ls ./*.img.xz)"
+          case "${IMG}" in
+            "./home-screens-${TAG}.img.xz") echo "Image ${IMG} matches ${TAG}" ;;
+            *) echo "::error::Artifact ${IMG} is not the image for ${TAG}"; exit 1 ;;
+          esac
+          gh release view "${TAG}" --repo "${{ github.repository }}" --json tagName >/dev/null
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ inputs.tag }}" out/*.img.xz out/*.img.xz.sha256 \
+            --repo "${{ github.repository }}" --clobber
+          echo "Published $(ls out/*.img.xz) to ${{ inputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
