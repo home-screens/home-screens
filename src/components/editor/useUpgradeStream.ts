@@ -10,6 +10,8 @@ export interface ProgressData {
   progress: number;
   message: string;
   error?: string;
+  /** Set on a failed preflight when the fix is the device password (see SudoPasswordPrompt). */
+  needsSudoPassword?: boolean;
 }
 
 export type StepState = 'done' | 'active' | 'pending' | 'error';
@@ -118,6 +120,7 @@ function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
       progress: data.progress,
       message: data.message,
       error: data.error,
+      needsSudoPassword: data.needsSudoPassword === true,
     });
 
     if (

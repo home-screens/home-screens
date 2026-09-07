@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate } from '@/i18n';
 
 /* ─── Props ────────────────────────────────── */
@@ -23,6 +24,7 @@ export default function HostnameSection({
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [needsSudo, setNeedsSudo] = useState(false);
 
   // Sync local value when the current hostname changes (e.g. after a refresh)
   useEffect(() => {
@@ -53,6 +55,8 @@ export default function HostnameSection({
 
         // Clear success message after 3s
         setTimeout(() => setSuccessMsg(null), 3000);
+      } else if (data.needsSudoPassword) {
+        setNeedsSudo(true);
       } else {
         setErrorMsg(data.error ?? t('settings.networkPage.hostname.defaultErrorMessage'));
       }
@@ -103,6 +107,16 @@ export default function HostnameSection({
       )}
       {errorMsg && (
         <p className="mt-1.5 text-xs text-hs-danger">{errorMsg}</p>
+      )}
+      {needsSudo && (
+        <SudoPasswordPrompt
+          compact
+          onGranted={() => {
+            setNeedsSudo(false);
+            handleSave();
+          }}
+          onCancel={() => setNeedsSudo(false)}
+        />
       )}
     </section>
   );

@@ -2471,6 +2471,18 @@
     "collapseTitle": "Skjul indstillingspanelet",
     "expandTitle": "Vis indstillingspanelet"
   },
+  "sudoPrompt": {
+    "title": "Tillad Home Screens at ændre denne enhed",
+    "body": "Opdateringer, WiFi-ændringer og omdøbning af denne enhed skal kunne køre systemkommandoer uden at blive bedt om en adgangskode. Indtast enhedens adgangskode én gang, så sætter Home Screens det op for altid.",
+    "imageHint": "På det færdige Home Screens image er adgangskoden screens, medmindre du har ændret den.",
+    "passwordLabel": "Enhedens adgangskode",
+    "passwordPlaceholder": "Adgangskode",
+    "allowButton": "Tillad",
+    "workingButton": "Sætter op...",
+    "wrongPassword": "Den adgangskode virkede ikke.",
+    "tooManyTries": "For mange forsøg. Vent {minutes} minutter og prøv igen.",
+    "genericError": "Det kunne ikke sættes op. Prøv igen."
+  },
   "upgradeModal": {
     "titleUpgrade": "Opdaterer til {tag}",
     "titleRollback": "Går tilbage til {tag}",

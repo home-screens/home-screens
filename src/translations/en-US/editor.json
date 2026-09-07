@@ -2471,6 +2471,18 @@
     "collapseTitle": "Hide the settings panel",
     "expandTitle": "Show the settings panel"
   },
+  "sudoPrompt": {
+    "title": "Allow Home Screens to make changes to this device",
+    "body": "Updating, changing WiFi and renaming this device all need to run system commands without being asked for a password. Enter the device password once and Home Screens sets that up for good.",
+    "imageHint": "On the ready-made Home Screens image the password is screens, unless you changed it.",
+    "passwordLabel": "Device password",
+    "passwordPlaceholder": "Password",
+    "allowButton": "Allow",
+    "workingButton": "Setting up...",
+    "wrongPassword": "That password did not work.",
+    "tooManyTries": "Too many tries. Wait {minutes} minutes and try again.",
+    "genericError": "Could not set this up. Try again."
+  },
   "upgradeModal": {
     "titleUpgrade": "Upgrading to {tag}",
     "titleRollback": "Rolling back to {tag}",

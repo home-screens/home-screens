@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { requireSudo } from '@/lib/sudo-grant';
 import { nmcli, nmcliSudo } from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
 import { parseTerseFields } from '@/lib/network-parse';
@@ -99,6 +100,9 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   if (!uuidResult.valid) {
     return NextResponse.json({ error: uuidResult.error }, { status: 400 });
   }
+
+  const sudo = await requireSudo();
+  if (sudo) return sudo;
 
   // 2. Delete the saved connection
   try {

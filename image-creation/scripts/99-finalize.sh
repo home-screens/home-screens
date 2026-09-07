@@ -409,6 +409,28 @@ if [ "${USERCONF_STATE}" = "enabled" ]; then
     VERIFY_OK=false
 fi
 
+# The service runs as ${APP_USER} and reaches root through sudo for updates,
+# WiFi changes and hostname changes; the updater's preflight runs `sudo -n true`
+# before anything else. Pi OS only grants that to the account its first-boot
+# wizard creates, so stage 01 writes the grant for ${APP_USER} itself. A
+# missing or unparseable file is silently ignored by sudo and the image ships
+# with an updater that cannot update (issue #47), so check all three: present,
+# parses, carries the grant.
+SUDOERS_DROPIN="/etc/sudoers.d/010_${APP_USER}-nopasswd"
+if [ ! -f "${SUDOERS_DROPIN}" ]; then
+    log_warn "Warning: ${SUDOERS_DROPIN} missing, ${APP_USER} cannot sudo without a password and in-app updates fail their preflight"
+    VERIFY_OK=false
+elif ! SUDOERS_CHECK="$(visudo -cf "${SUDOERS_DROPIN}" 2>&1)"; then
+    log_warn "Warning: ${SUDOERS_DROPIN} does not parse, sudo will ignore it: ${SUDOERS_CHECK}"
+    VERIFY_OK=false
+elif ! grep -qE "^${APP_USER}[[:space:]]+ALL=\(ALL(:ALL)?\)[[:space:]]+NOPASSWD:[[:space:]]*ALL[[:space:]]*$" "${SUDOERS_DROPIN}"; then
+    log_warn "Warning: ${SUDOERS_DROPIN} does not grant ${APP_USER} NOPASSWD: ALL:"
+    sed 's/^/    /' "${SUDOERS_DROPIN}"
+    VERIFY_OK=false
+else
+    log_info "${SUDOERS_DROPIN} grants ${APP_USER} passwordless sudo"
+fi
+
 # Does the unit plus its drop-in actually parse? The existence check above
 # passes a malformed drop-in happily, and the unit then fails to start with a
 # parse error.

@@ -493,6 +493,37 @@ describe('runUpgrade — git path', () => {
     expect(mockSpawn).toHaveBeenCalledTimes(1);
   });
 
+  it('carries needsSudoPassword from a failed preflight into the error event', async () => {
+    mockSpawn.mockReturnValue(
+      createFakeChild(
+        JSON.stringify({ ok: false, error: 'No passwordless sudo', needsSudoPassword: true }),
+      ),
+    );
+    const errors: Array<Record<string, unknown>> = [];
+    upgradeModule.subscribeToEvents((e) => {
+      if (e.type === 'progress' && e.step === 'error') errors.push(e as unknown as Record<string, unknown>);
+    });
+
+    await expect(upgradeModule.runUpgrade('v1.2.0')).rejects.toThrow('No passwordless sudo');
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatchObject({ error: 'No passwordless sudo', needsSudoPassword: true });
+  });
+
+  it('omits needsSudoPassword when a preflight fails for another reason', async () => {
+    mockSpawn.mockReturnValue(
+      createFakeChild(JSON.stringify({ ok: false, error: 'Not enough disk space', needsSudoPassword: false })),
+    );
+    const errors: Array<Record<string, unknown>> = [];
+    upgradeModule.subscribeToEvents((e) => {
+      if (e.type === 'progress' && e.step === 'error') errors.push(e as unknown as Record<string, unknown>);
+    });
+
+    await expect(upgradeModule.runUpgrade('v1.2.0')).rejects.toThrow('Not enough disk space');
+
+    expect(errors[0]).not.toHaveProperty('needsSudoPassword');
+  });
+
   it('emits preflight warning as output event when warning is present', async () => {
     setupSpawnForSuccess({
       preflight: JSON.stringify({ ok: true, dirty: false, warning: 'Low disk space' }),

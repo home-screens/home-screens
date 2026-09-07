@@ -217,7 +217,13 @@ The Pi brings the browser and the screen manager back on their own a second late
 
 **If you are comfortable with a terminal**
 
-4. Drive the same steps by hand. Home Screens installs to `/opt/home-screens/current` and runs pre-built releases, so there is nothing to compile:
+4. **The update stops and asks for the device password.** The account that runs Home Screens has to be able to use `sudo` without a password prompt, and this device is not set up that way. Type the device password into the box (on the pre-built image it is `screens` unless you changed it) and the update carries on. You only do this once, and it also unblocks WiFi and name changes in Settings. Older versions cannot ask, so on those sign in over SSH (user `hs`, password `screens` on the pre-built image) and run:
+   ```bash
+   echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/010_$USER-nopasswd
+   sudo chmod 0440 /etc/sudoers.d/010_$USER-nopasswd
+   ```
+   Type the account password when `sudo` asks, then **Check for Updates** again. Earlier pre-built images did not include this for `hs`.
+5. Drive the same steps by hand. Home Screens installs to `/opt/home-screens/current` and runs pre-built releases, so there is nothing to compile:
    ```bash
    cd /opt/home-screens/current
    bash scripts/upgrade.sh preflight
@@ -226,8 +232,8 @@ The Pi brings the browser and the screen manager back on their own a second late
    bash scripts/upgrade.sh restart
    ```
    Replace `v1.8.0` with the version you want. As a last resort, re-run the installer with `--version <tag>`.
-5. Read the log: `journalctl -u home-screens -n 100 --no-pager`.
-6. Put a saved copy of the settings back. The names include the version they came from, and `restore-backup` checks the file before replacing anything:
+6. Read the log: `journalctl -u home-screens -n 100 --no-pager`.
+7. Put a saved copy of the settings back. The names include the version they came from, and `restore-backup` checks the file before replacing anything:
    ```bash
    ls /opt/home-screens/current/data/backups/
    cd /opt/home-screens/current

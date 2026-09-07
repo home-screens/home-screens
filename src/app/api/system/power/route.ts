@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { spawn, execSync } from 'child_process';
 import { errorResponse, withAuth, parseJsonBody } from '@/lib/api-utils';
+import { requireSudo } from '@/lib/sudo-grant';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,15 +16,14 @@ export const POST = withAuth(async (request) => {
   if (body instanceof NextResponse) return body;
   const { action } = body;
 
-  if (action === 'restart-service') {
-    return restartService();
+  if (action !== 'restart-service' && action !== 'reboot') {
+    return NextResponse.json({ error: 'Invalid action. Use "reboot" or "restart-service".' }, { status: 400 });
   }
 
-  if (action === 'reboot') {
-    return rebootSystem();
-  }
+  const sudo = await requireSudo();
+  if (sudo) return sudo;
 
-  return NextResponse.json({ error: 'Invalid action. Use "reboot" or "restart-service".' }, { status: 400 });
+  return action === 'restart-service' ? restartService() : rebootSystem();
 }, 'Power action failed');
 
 function restartService(): NextResponse {

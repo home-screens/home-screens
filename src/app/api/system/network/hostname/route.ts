@@ -4,6 +4,7 @@ import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { readFile } from 'fs/promises';
 import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { requireSudo } from '@/lib/sudo-grant';
 import { validateHostname } from '@/lib/network-validation';
 import { logger } from '@/lib/logger';
 
@@ -26,6 +27,9 @@ export const PUT = withAuth(async (request: NextRequest) => {
   if (!hostnameResult.valid) {
     return NextResponse.json({ error: hostnameResult.error }, { status: 400 });
   }
+
+  const sudo = await requireSudo();
+  if (sudo) return sudo;
 
   // 2. Set the hostname via hostnamectl
   try {

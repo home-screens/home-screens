@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
 import { withAuth, getClientIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { requireSudo } from '@/lib/sudo-grant';
 import {
   nmcliSudo,
   nmcli,
@@ -119,6 +120,9 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (!ssidResult.valid) {
     return NextResponse.json({ error: ssidResult.error }, { status: 400 });
   }
+
+  const sudo = await requireSudo();
+  if (sudo) return sudo;
 
   // 2. Validate password if provided
   if (password !== undefined && password !== null) {

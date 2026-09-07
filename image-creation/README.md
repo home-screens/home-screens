@@ -274,6 +274,7 @@ When `HS_LOCAL=true`, the build uses the parent directory of `image-creation/` a
 - **Username:** `hs`
 - **Password:** `screens`
 - **SSH:** Enabled with password authentication
+- **Sudo:** No password, granted in `/etc/sudoers.d/010_hs-nopasswd`. The service runs updates, WiFi changes and hostname changes through sudo as `hs`, and the updater's preflight refuses to start without it.
 
 ### Packages
 

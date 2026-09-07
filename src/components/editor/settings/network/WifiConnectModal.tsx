@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import ModalFrame from '@/components/ui/ModalFrame';
+import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
 
@@ -45,6 +46,7 @@ export default function WifiConnectModal({
   const [iface, setIface] = useState(selectedIface);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsSudo, setNeedsSudo] = useState(false);
   const [hiddenSsidInput, setHiddenSsidInput] = useState(hiddenSsid ?? '');
 
   const effectiveSsid = network ? ssid : hiddenSsidInput;
@@ -86,6 +88,12 @@ export default function WifiConnectModal({
         if (data.requiresConfirmation) {
           setConnecting(false);
           onManagementWarning(data.warning, () => doConnectRef.current?.(true));
+          return;
+        }
+
+        if (data.needsSudoPassword) {
+          setNeedsSudo(true);
+          setConnecting(false);
           return;
         }
 
@@ -186,6 +194,17 @@ export default function WifiConnectModal({
                 ))}
               </select>
             </div>
+          )}
+
+          {needsSudo && (
+            <SudoPasswordPrompt
+              compact
+              onGranted={() => {
+                setNeedsSudo(false);
+                doConnectRef.current?.();
+              }}
+              onCancel={() => setNeedsSudo(false)}
+            />
           )}
 
           {/* Error */}

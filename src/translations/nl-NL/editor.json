@@ -2471,6 +2471,18 @@
     "collapseTitle": "Instellingenpaneel verbergen",
     "expandTitle": "Instellingenpaneel tonen"
   },
+  "sudoPrompt": {
+    "title": "Home Screens toestaan om wijzigingen aan dit apparaat te maken",
+    "body": "Bijwerken, wifi wijzigen en dit apparaat hernoemen moeten systeemopdrachten uitvoeren zonder om een wachtwoord te vragen. Voer het apparaatwachtwoord één keer in en Home Screens regelt dat voorgoed.",
+    "imageHint": "Op de kant-en-klare Home Screens image is het wachtwoord screens, tenzij je het hebt gewijzigd.",
+    "passwordLabel": "Apparaatwachtwoord",
+    "passwordPlaceholder": "Wachtwoord",
+    "allowButton": "Toestaan",
+    "workingButton": "Bezig met instellen...",
+    "wrongPassword": "Dat wachtwoord werkte niet.",
+    "tooManyTries": "Te veel pogingen. Wacht {minutes} minuten en probeer het opnieuw.",
+    "genericError": "Dit kon niet worden ingesteld. Probeer het opnieuw."
+  },
   "upgradeModal": {
     "titleUpgrade": "Upgraden naar {tag}",
     "titleRollback": "Terugdraaien naar {tag}",

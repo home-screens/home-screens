@@ -10,6 +10,20 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+// The route asks for passwordless sudo before touching the system; ready by
+// default here, and a test can flip it to exercise the 409 that opens the
+// editor's password prompt.
+const { sudoState } = vi.hoisted(() => ({ sudoState: { ready: true } }));
+vi.mock('@/lib/sudo-grant', async () => {
+  const { NextResponse } = await import('next/server');
+  return {
+    requireSudo: async () =>
+      sudoState.ready
+        ? null
+        : NextResponse.json({ ok: false, error: 'needs password', needsSudoPassword: true }, { status: 409 }),
+  };
+});
+
 vi.mock('@/lib/api-utils', async () => {
   const actual = await vi.importActual<typeof import('@/lib/api-utils')>('@/lib/api-utils');
   return { ...actual, withAuth: (handler: unknown) => handler };
@@ -82,6 +96,15 @@ describe('PUT /api/system/network/hostname', () => {
     state.hostnamectlShouldFail = false;
     state.avahiShouldFail = false;
     state.teeWrites = [];
+    sudoState.ready = true;
+  });
+
+  it('answers 409 with needsSudoPassword before running anything when sudo is not ready', async () => {
+    sudoState.ready = false;
+    const res = await PUT(putRequest({ hostname: 'living-room' }));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ ok: false, needsSudoPassword: true });
+    expect(execFileMock).not.toHaveBeenCalled();
   });
 
   it('rejects an empty hostname with 400 and runs no commands', async () => {

@@ -2471,6 +2471,18 @@
     "collapseTitle": "Masquer le panneau des réglages",
     "expandTitle": "Afficher le panneau des réglages"
   },
+  "sudoPrompt": {
+    "title": "Autoriser Home Screens à modifier cet appareil",
+    "body": "Les mises à jour, les changements de WiFi et le renommage de cet appareil doivent exécuter des commandes système sans demander de mot de passe. Saisissez le mot de passe de l'appareil une seule fois et Home Screens s'en charge définitivement.",
+    "imageHint": "Sur l'image Home Screens prête à l'emploi, le mot de passe est screens, sauf si vous l'avez changé.",
+    "passwordLabel": "Mot de passe de l'appareil",
+    "passwordPlaceholder": "Mot de passe",
+    "allowButton": "Autoriser",
+    "workingButton": "Configuration...",
+    "wrongPassword": "Ce mot de passe n'a pas fonctionné.",
+    "tooManyTries": "Trop de tentatives. Attendez {minutes} minutes et réessayez.",
+    "genericError": "Impossible de configurer cela. Réessayez."
+  },
   "upgradeModal": {
     "titleUpgrade": "Mise à niveau vers {tag}",
     "titleRollback": "Retour arrière vers {tag}",

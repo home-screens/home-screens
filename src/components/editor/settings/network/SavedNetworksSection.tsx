@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
+import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import type { SavedNetwork } from '@/lib/network-types';
 
@@ -41,6 +42,8 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   const [error, setError] = useState<string | null>(null);
   const [forgettingId, setForgettingId] = useState<string | null>(null);
   const [confirmForgetId, setConfirmForgetId] = useState<string | null>(null);
+  // Connection id whose forget stalled on the device password; retried after the grant
+  const [sudoRetryId, setSudoRetryId] = useState<string | null>(null);
   const [showPasswords, setShowPasswords] = useState(false);
 
   /* ── Fetch saved networks ──────────────────── */
@@ -83,6 +86,9 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
         });
         if (res.ok) {
           setNetworks((prev) => prev.filter((n) => n.id !== connectionId));
+        } else {
+          const data = await res.json().catch(() => ({}));
+          if (data.needsSudoPassword) setSudoRetryId(connectionId);
         }
       } catch {
         // Silently fail — network will remain in list
@@ -147,6 +153,19 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
             : t('settings.networkPage.savedNetworks.showPasswords')}
         </button>
       </div>
+      {sudoRetryId && (
+        <div className="mb-3">
+          <SudoPasswordPrompt
+            compact
+            onGranted={() => {
+              const id = sudoRetryId;
+              setSudoRetryId(null);
+              handleForget(id);
+            }}
+            onCancel={() => setSudoRetryId(null)}
+          />
+        </div>
+      )}
       <div className="space-y-1">
         {networks.map((network) => (
           <div

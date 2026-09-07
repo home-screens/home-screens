@@ -51,6 +51,23 @@ else
     log_info "User 'hs' already exists"
 fi
 
+# Pi OS gives the account its first-boot wizard creates passwordless sudo
+# through /etc/sudoers.d/010_pi-nopasswd (userconf-pi renames the entry to
+# that account). hs comes from useradd and never goes through the wizard, so
+# it only gets the %sudo group rule, which asks for a password. The
+# home-screens service runs as hs and calls sudo for updates (systemctl
+# restart, setup-system), WiFi changes and hostname changes; the updater's
+# preflight runs `sudo -n true` first and refuses to start without this.
+# Same shape and name as the Pi OS file so it reads as the standard grant.
+log_info "Granting hs passwordless sudo (the service runs updates and network changes through sudo)"
+SUDOERS_DROPIN="/etc/sudoers.d/010_hs-nopasswd"
+mkdir -p /etc/sudoers.d
+echo "hs ALL=(ALL) NOPASSWD: ALL" > "${SUDOERS_DROPIN}"
+chmod 0440 "${SUDOERS_DROPIN}"
+# A sudoers file that does not parse is silently ignored by sudo, which would
+# put the image right back where it started. Fail the build instead.
+visudo -cf "${SUDOERS_DROPIN}" >/dev/null
+
 # Raspberry Pi OS ships getty@tty1 DISABLED and userconfig.service ENABLED:
 # the first-boot wizard is what enables getty@tty1 once an account exists (see
 # `systemctl disable userconfig` / `systemctl enable getty@tty1` in

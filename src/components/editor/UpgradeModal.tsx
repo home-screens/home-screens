@@ -5,6 +5,7 @@ import { ArrowUp, RotateCcw, Check, X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import ModalFrame from '@/components/ui/ModalFrame';
+import SudoPasswordPrompt from './SudoPasswordPrompt';
 import { useTranslate } from '@/i18n';
 import {
   useUpgradeStream,
@@ -109,13 +110,26 @@ interface Props {
   onClose: () => void;
 }
 
-export default function UpgradeModal({
+/**
+ * The stream hook connects and triggers on mount only, so a fresh attempt
+ * (after the device password prompt wrote the sudo grant) is a remount of
+ * the body with a new key rather than a restart inside the hook.
+ */
+export default function UpgradeModal(props: Props) {
+  const [attempt, setAttempt] = useState(0);
+  return (
+    <UpgradeAttempt key={attempt} {...props} onRetry={() => setAttempt((n) => n + 1)} />
+  );
+}
+
+function UpgradeAttempt({
   targetTag,
   isRollback,
   currentVersion,
   onComplete,
   onClose,
-}: Props) {
+  onRetry,
+}: Props & { onRetry: () => void }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
 
@@ -342,11 +356,18 @@ export default function UpgradeModal({
           </div>
         </div>
 
-        {/* Error detail */}
-        {failed && progress.error && (
-          <div className="px-6 py-3 border-t border-hs-border bg-hs-danger/10 flex-shrink-0">
-            <p className="text-xs text-hs-danger font-mono break-all">{progress.error}</p>
+        {/* Error detail, or the device password prompt when that is the fix */}
+        {failed && progress.needsSudoPassword ? (
+          <div className="px-6 py-3 border-t border-hs-border flex-shrink-0">
+            <SudoPasswordPrompt onGranted={onRetry} />
           </div>
+        ) : (
+          failed &&
+          progress.error && (
+            <div className="px-6 py-3 border-t border-hs-border bg-hs-danger/10 flex-shrink-0">
+              <p className="text-xs text-hs-danger font-mono break-all">{progress.error}</p>
+            </div>
+          )
         )}
 
         <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-t border-hs-border-strong flex-shrink-0">

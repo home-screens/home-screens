@@ -9,6 +9,20 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
+// The route asks for passwordless sudo before touching the system; ready by
+// default here, and a test can flip it to exercise the 409 that opens the
+// editor's password prompt.
+const { sudoState } = vi.hoisted(() => ({ sudoState: { ready: true } }));
+vi.mock('@/lib/sudo-grant', async () => {
+  const { NextResponse } = await import('next/server');
+  return {
+    requireSudo: async () =>
+      sudoState.ready
+        ? null
+        : NextResponse.json({ ok: false, error: 'needs password', needsSudoPassword: true }, { status: 409 }),
+  };
+});
+
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async () => {}),
   requireDisplayAuth: vi.fn(async () => {}),

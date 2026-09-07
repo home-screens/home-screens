@@ -6,6 +6,8 @@ set -euo pipefail
 #
 # Usage: upgrade.sh <action> [args...]
 #   upgrade.sh preflight              - Check if upgrade is possible
+#   upgrade.sh sudo-check             - Passwordless sudo ready (repairs it with the image default)
+#   upgrade.sh grant-sudo             - Write the passwordless sudo grant; password on stdin
 #   upgrade.sh backup                 - Backup config to data/backups/
 #   upgrade.sh download <tag>         - Download release tarball from GitHub
 #   upgrade.sh deploy                 - Atomic swap of staged files into place
@@ -60,6 +62,61 @@ hs_daemon_reload() {
   sudo systemctl daemon-reload
 }
 
+# Passwordless sudo for the account running the service.
+#
+# Every privileged thing the app does (restart, setup-system, WiFi and hostname
+# changes) goes through sudo, and Raspberry Pi OS only grants NOPASSWD to the
+# account its first-boot wizard creates. Images built before September 2026
+# shipped the hs account without it (issue #47). These helpers let the app
+# repair that itself: silently with the image's default password, otherwise
+# with a password the person types into the editor. The password only ever
+# travels on stdin (never argv, never a log line) and every sudo -S call uses
+# -k so a cached credential can never make a missing grant look present.
+HS_IMAGE_ACCOUNT="hs"
+HS_IMAGE_DEFAULT_PASSWORD="screens"
+
+hs_sudo_ready() {
+  sudo -n true 2>/dev/null
+}
+
+# Write the NOPASSWD grant for the current account using a password read from
+# stdin. Same file name and shape as the grant Pi OS writes for its own user.
+# The file goes through a temp path and visudo so a bad write can never lock
+# sudo, and the function only reports success once sudo -n actually works.
+hs_write_sudo_grant() {
+  local user grant target
+  user="$(id -un)"
+  grant="${user} ALL=(ALL) NOPASSWD: ALL"
+  target="/etc/sudoers.d/010_${user}-nopasswd"
+  sudo -S -k -p '' sh -c '
+    set -e
+    tmp="$(mktemp /etc/sudoers.d/.010-nopasswd.XXXXXX)"
+    printf "%s\n" "$1" > "${tmp}"
+    chmod 0440 "${tmp}"
+    visudo -cf "${tmp}" >/dev/null
+    mv "${tmp}" "$2"
+  ' sh "${grant}" "${target}" 2>/dev/null || return 1
+  hs_sudo_ready
+}
+
+# Try the image default without asking anyone. Only for the image account:
+# any other account would just add a failed-auth line to the journal on every
+# check. The password is verified against a harmless command first so a
+# wrong default fails before anything is written.
+hs_sudo_heal_default() {
+  [ "$(id -un)" = "${HS_IMAGE_ACCOUNT}" ] || return 1
+  printf '%s\n' "${HS_IMAGE_DEFAULT_PASSWORD}" | sudo -S -k -p '' true 2>/dev/null || return 1
+  printf '%s\n' "${HS_IMAGE_DEFAULT_PASSWORD}" | hs_write_sudo_grant
+}
+
+# Ready, or repaired silently. Returns 1 when a password is needed.
+hs_sudo_check() {
+  hs_sudo_ready && return 0
+  hs_sudo_heal_default
+}
+
+HS_SUDO_NEEDS_PASSWORD_MSG="This device is not set up to let Home Screens make system changes without a password."
+
 action="${1:-}"
 shift || true
 
@@ -79,9 +136,13 @@ case "${action}" in
       errors="${errors}Cannot reach GitHub (check network connectivity). "
     fi
 
-    # Check passwordless sudo (needed for restart and setup-system)
-    if ! sudo -n true 2>/dev/null; then
-      errors="${errors}Passwordless sudo not available (required for restart/setup-system). "
+    # Check passwordless sudo (needed for restart and setup-system). The
+    # check repairs the grant itself when the image default password still
+    # works; otherwise the flag tells the editor to ask for the password.
+    needs_sudo_password="false"
+    if ! hs_sudo_check; then
+      needs_sudo_password="true"
+      errors="${errors}${HS_SUDO_NEEDS_PASSWORD_MSG} "
     fi
 
     # Check Node.js major version matches .node-version if it exists (warning only)
@@ -95,7 +156,7 @@ case "${action}" in
     fi
 
     if [ -n "${errors}" ]; then
-      echo "{\"ok\":false,\"error\":\"${errors}\"}"
+      echo "{\"ok\":false,\"error\":\"${errors}\",\"needsSudoPassword\":${needs_sudo_password}}"
     else
       # Check git status for legacy fallback
       dirty="false"
@@ -109,6 +170,36 @@ case "${action}" in
         warning_field=",\"warning\":\"${node_warning}\""
       fi
       echo "{\"ok\":true,\"dirty\":${dirty},\"diskMB\":$(( available_kb / 1024 ))${warning_field}}"
+    fi
+    ;;
+
+  sudo-check)
+    if hs_sudo_check; then
+      echo '{"ok":true}'
+    else
+      echo "{\"ok\":false,\"needsPassword\":true,\"error\":\"${HS_SUDO_NEEDS_PASSWORD_MSG}\"}"
+    fi
+    ;;
+
+  grant-sudo)
+    # One password line on stdin. Never passed as an argument.
+    IFS= read -r password || password=""
+    if [ -z "${password}" ]; then
+      echo '{"ok":false,"error":"Enter the password for this device."}'
+      exit 0
+    fi
+    if hs_sudo_ready; then
+      echo '{"ok":true,"alreadyGranted":true}'
+      exit 0
+    fi
+    if ! printf '%s\n' "${password}" | sudo -S -k -p '' true 2>/dev/null; then
+      echo '{"ok":false,"wrongPassword":true,"error":"That password did not work."}'
+      exit 0
+    fi
+    if printf '%s\n' "${password}" | hs_write_sudo_grant; then
+      echo '{"ok":true}'
+    else
+      echo '{"ok":false,"error":"The password worked, but the change could not be saved. Check that sudo and visudo are installed on this device."}'
     fi
     ;;
 

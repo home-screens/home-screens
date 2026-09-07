@@ -2471,6 +2471,18 @@
     "collapseTitle": "Ocultar o painel de configurações",
     "expandTitle": "Mostrar o painel de configurações"
   },
+  "sudoPrompt": {
+    "title": "Permitir que o Home Screens faça alterações neste dispositivo",
+    "body": "Atualizar, mudar o WiFi e renomear este dispositivo precisam executar comandos do sistema sem pedir senha. Digite a senha do dispositivo uma vez e o Home Screens deixa isso configurado de vez.",
+    "imageHint": "Na imagem pronta do Home Screens a senha é screens, a menos que você a tenha alterado.",
+    "passwordLabel": "Senha do dispositivo",
+    "passwordPlaceholder": "Senha",
+    "allowButton": "Permitir",
+    "workingButton": "Configurando...",
+    "wrongPassword": "Essa senha não funcionou.",
+    "tooManyTries": "Muitas tentativas. Aguarde {minutes} minutos e tente novamente.",
+    "genericError": "Não foi possível configurar isso. Tente novamente."
+  },
   "upgradeModal": {
     "titleUpgrade": "Atualizando para {tag}",
     "titleRollback": "Revertendo para {tag}",

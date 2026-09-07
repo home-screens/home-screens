@@ -46,6 +46,8 @@ type AuditEvent =
   | { action: 'plugin_auth_revoke'; pluginId: string }
   | { action: 'plugin_token_refresh'; pluginId: string }
   | { action: 'session_revoke_all' }
+  | { action: 'sudo_grant_success'; ip: string }
+  | { action: 'sudo_grant_failure'; ip: string }
   | { action: 'ip_allowlist_change'; ip: string; entryCount: number }
   | { action: 'credential_backup_export'; encrypted: boolean; sections: number }
   | { action: 'credential_backup_denied'; ip: string }

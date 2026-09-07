@@ -2471,6 +2471,18 @@
     "collapseTitle": "Ocultar el panel de ajustes",
     "expandTitle": "Mostrar el panel de ajustes"
   },
+  "sudoPrompt": {
+    "title": "Permitir que Home Screens haga cambios en este dispositivo",
+    "body": "Actualizar, cambiar el WiFi y renombrar este dispositivo requieren ejecutar comandos del sistema sin que se pida una contraseña. Introduce la contraseña del dispositivo una vez y Home Screens lo deja configurado para siempre.",
+    "imageHint": "En la imagen lista para usar de Home Screens la contraseña es screens, salvo que la hayas cambiado.",
+    "passwordLabel": "Contraseña del dispositivo",
+    "passwordPlaceholder": "Contraseña",
+    "allowButton": "Permitir",
+    "workingButton": "Configurando...",
+    "wrongPassword": "Esa contraseña no ha funcionado.",
+    "tooManyTries": "Demasiados intentos. Espera {minutes} minutos y vuelve a intentarlo.",
+    "genericError": "No se ha podido configurar. Inténtalo de nuevo."
+  },
   "upgradeModal": {
     "titleUpgrade": "Actualizando a {tag}",
     "titleRollback": "Volviendo a {tag}",

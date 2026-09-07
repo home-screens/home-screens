@@ -2471,6 +2471,18 @@
     "collapseTitle": "Einstellungsbereich ausblenden",
     "expandTitle": "Einstellungsbereich anzeigen"
   },
+  "sudoPrompt": {
+    "title": "Home Screens erlauben, Änderungen an diesem Gerät vorzunehmen",
+    "body": "Updates, WLAN-Änderungen und das Umbenennen dieses Geräts müssen Systembefehle ausführen, ohne nach einem Passwort gefragt zu werden. Gib das Gerätepasswort einmal ein, und Home Screens richtet das dauerhaft ein.",
+    "imageHint": "Auf dem fertigen Home Screens Image lautet das Passwort screens, sofern du es nicht geändert hast.",
+    "passwordLabel": "Gerätepasswort",
+    "passwordPlaceholder": "Passwort",
+    "allowButton": "Erlauben",
+    "workingButton": "Wird eingerichtet...",
+    "wrongPassword": "Dieses Passwort hat nicht funktioniert.",
+    "tooManyTries": "Zu viele Versuche. Warte {minutes} Minuten und versuche es erneut.",
+    "genericError": "Das konnte nicht eingerichtet werden. Versuche es erneut."
+  },
   "upgradeModal": {
     "titleUpgrade": "Aktualisierung auf {tag}",
     "titleRollback": "Zurücksetzen auf {tag}",

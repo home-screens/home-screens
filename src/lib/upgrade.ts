@@ -33,6 +33,18 @@ interface UpgradeProgress {
   progress: number;
   message: string;
   error?: string;
+  /** The preflight found no passwordless sudo; the editor asks for the device password and retries. */
+  needsSudoPassword?: boolean;
+}
+
+/** A preflight failure that carries what the editor needs to offer a fix. */
+export class PreflightError extends Error {
+  needsSudoPassword: boolean;
+  constructor(message: string, needsSudoPassword: boolean) {
+    super(message);
+    this.name = 'PreflightError';
+    this.needsSudoPassword = needsSudoPassword;
+  }
 }
 
 /** Discriminated union for SSE events */
@@ -235,7 +247,7 @@ function preflightStep(
       const preflightOut = await runUpgradeScript('preflight', [], streamTo('preflight'));
       const preflight = parseResult(preflightOut);
       if (!preflight.ok) {
-        throw new Error(preflight.error as string);
+        throw new PreflightError(preflight.error as string, preflight.needsSudoPassword === true);
       }
       if (preflight.warning) {
         emitOutput('preflight', `Warning: ${preflight.warning}`);
@@ -362,7 +374,8 @@ async function runGuardedPipeline({ steps, onError }: GuardedPipelineOptions): P
     // Skip emitting if cancelUpgrade() already emitted the error
     if (!currentUpgrade.cancelled) {
       const message = error instanceof Error ? error.message : String(error);
-      emit({ step: 'error', progress: 0, message, error: message });
+      const needsSudoPassword = error instanceof PreflightError && error.needsSudoPassword;
+      emit({ step: 'error', progress: 0, message, error: message, ...(needsSudoPassword ? { needsSudoPassword } : {}) });
     }
 
     if (onError) {
