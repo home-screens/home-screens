@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Necesita una clave gratuita",
     "starterHeading": "Fondos que vienen con Home Screens",
+    "groups": {
+      "theme": "A juego con un tema de pantalla completa",
+      "color": "Colores",
+      "pattern": "Patrones"
+    },
+    "inUse": "en uso",
     "starters": {
       "midnight": "Medianoche",
       "dusk": "Anochecer",
@@ -2181,7 +2187,21 @@
       "charcoal": "Carbón",
       "sunrise": "Amanecer",
       "plum": "Ciruela",
-      "aurora": "Aurora boreal"
+      "aurora": "Aurora boreal",
+      "ocean": "Océano",
+      "ember": "Brasa",
+      "ink": "Tinta",
+      "moss": "Musgo",
+      "copper": "Cobre",
+      "lavender": "Lavanda",
+      "cloud": "Nube",
+      "sand": "Arena",
+      "sage": "Salvia",
+      "blush": "Rubor",
+      "pattern-dots": "Puntos",
+      "pattern-grid": "Cuadrícula",
+      "pattern-diagonal": "Diagonal",
+      "pattern-paper": "Papel"
     },
     "yourPicturesHeading": "Tus propias fotos",
     "sourceKeyMissing": "Esta fuente necesita una clave de API que no está puesta, así que la pantalla se queda con la última imagen. Añade la clave en Ajustes, o elige otra fuente."

@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="l0" x1="0" y1="0" x2="0.65" y2="1">
-      <stop offset="0" stop-color="#0f3443"/>
-      <stop offset="1" stop-color="#34e89e"/>
+      <stop offset="0" stop-color="#fdf1f2"/>
+      <stop offset="0.6" stop-color="#f6d4d8"/>
+      <stop offset="1" stop-color="#e9b3ba"/>
     </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="#0f3443"/>
+  <rect width="100%" height="100%" fill="#fdf1f2"/>
   <rect width="100%" height="100%" fill="url(#l0)"/>
 </svg>

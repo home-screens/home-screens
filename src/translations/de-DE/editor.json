@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Braucht einen kostenlosen Schlüssel",
     "starterHeading": "Hintergründe, die bei Home Screens dabei sind",
+    "groups": {
+      "theme": "Passend zu einem Vollbild-Design",
+      "color": "Farben",
+      "pattern": "Muster"
+    },
+    "inUse": "in Benutzung",
     "starters": {
       "midnight": "Mitternacht",
       "dusk": "Abenddämmerung",
@@ -2181,7 +2187,21 @@
       "charcoal": "Anthrazit",
       "sunrise": "Sonnenaufgang",
       "plum": "Pflaume",
-      "aurora": "Polarlicht"
+      "aurora": "Polarlicht",
+      "ocean": "Ozean",
+      "ember": "Glut",
+      "ink": "Tinte",
+      "moss": "Moos",
+      "copper": "Kupfer",
+      "lavender": "Lavendel",
+      "cloud": "Wolke",
+      "sand": "Sand",
+      "sage": "Salbei",
+      "blush": "Rosé",
+      "pattern-dots": "Punkte",
+      "pattern-grid": "Raster",
+      "pattern-diagonal": "Diagonal",
+      "pattern-paper": "Papier"
     },
     "yourPicturesHeading": "Deine eigenen Bilder",
     "sourceKeyMissing": "Für diese Quelle fehlt ein API-Schlüssel, deshalb behält der Bildschirm sein letztes Bild. Trage den Schlüssel in den Einstellungen ein oder wähle eine andere Quelle."

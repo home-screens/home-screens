@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Precisa de uma chave gratuita",
     "starterHeading": "Planos de fundo que já vêm com o Home Screens",
+    "groups": {
+      "theme": "Combina com um tema de tela cheia",
+      "color": "Cores",
+      "pattern": "Padrões"
+    },
+    "inUse": "em uso",
     "starters": {
       "midnight": "Meia-noite",
       "dusk": "Anoitecer",
@@ -2181,7 +2187,21 @@
       "charcoal": "Grafite",
       "sunrise": "Amanhecer",
       "plum": "Ameixa",
-      "aurora": "Aurora boreal"
+      "aurora": "Aurora boreal",
+      "ocean": "Oceano",
+      "ember": "Brasa",
+      "ink": "Tinta",
+      "moss": "Musgo",
+      "copper": "Cobre",
+      "lavender": "Lavanda",
+      "cloud": "Nuvem",
+      "sand": "Areia",
+      "sage": "Sálvia",
+      "blush": "Rosado",
+      "pattern-dots": "Pontos",
+      "pattern-grid": "Grade",
+      "pattern-diagonal": "Diagonal",
+      "pattern-paper": "Papel"
     },
     "yourPicturesHeading": "Suas próprias fotos",
     "sourceKeyMissing": "Esta fonte precisa de uma chave de API que ainda não foi configurada, então a tela continua com a última imagem. Adicione a chave em Configurações ou escolha outra fonte."

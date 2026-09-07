@@ -1,18 +1,64 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Button from '@/components/ui/Button';
-import { useTranslate } from '@/i18n';
-import { STARTER_BACKGROUNDS } from '@/lib/starter-backgrounds';
+import FullscreenThemePreview from '@/components/ui/FullscreenThemePreview';
+import { themeTileClass } from '@/components/editor/settings/shared/FullscreenThemeTile';
+import { useTranslate, tOrFallback } from '@/i18n';
+import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import {
+  starterBackgroundsIn,
+  type StarterBackground,
+  type StarterBackgroundGroup,
+} from '@/lib/starter-backgrounds';
 import { logger } from '@/lib/logger';
 
 const log = logger('backgrounds');
 
 interface Props {
   selectedScreenId: string;
+}
+
+const GROUP_STORAGE_PREFIX = 'hs-background-group-';
+
+function readGroupOpen(id: string): boolean {
+  try {
+    return localStorage.getItem(GROUP_STORAGE_PREFIX + id) !== 'closed';
+  } catch {
+    return true;
+  }
+}
+
+/** One collapsible heading in the shipped set. Open by default; the choice sticks per browser. */
+function StarterGroup({ id, title, count, children }: { id: StarterBackgroundGroup; title: string; count: number; children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+  useEffect(() => { setOpen(readGroupOpen(id)); }, [id]);
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    try { localStorage.setItem(GROUP_STORAGE_PREFIX + id, next ? 'open' : 'closed'); } catch { /* private mode */ }
+  };
+  const Chevron = open ? ChevronDown : ChevronRight;
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        data-testid={`starter-group-${id}`}
+        className="flex w-full items-center gap-1 py-1 text-[10px] text-hs-text-faint hover:text-hs-text-muted"
+      >
+        <Chevron size={11} />
+        <span>{title}</span>
+        <span className="ml-auto">{count}</span>
+      </button>
+      {open && <div className="mt-1">{children}</div>}
+    </div>
+  );
 }
 
 export default function LocalBackgrounds({ selectedScreenId }: Props) {
@@ -102,7 +148,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
     setDeleting(null);
   };
 
-  if (!currentScreen) return null;
+  if (!currentScreen || !config) return null;
 
   // Picking any background turns rotation off: a rotating screen would paint
   // over the choice within the hour, which reads as "it didn't save".
@@ -114,42 +160,112 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
     updateScreen(selectedScreenId, updates);
   };
 
+  // Tiles follow the selected display's orientation, so a landscape wall's
+  // thumbnails are landscape too.
+  const dims = getActiveDimensions(config, selectedDisplayId);
+  const landscape = dims.width > dims.height;
+  const tileAspect = landscape ? 'aspect-video' : 'aspect-[9/16]';
+  const tileGrid = landscape ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-4 gap-1.5';
+  const isCurrent = (path: string) => currentScreen.backgroundImage === path;
+  const tileBorder = (path: string) => (isCurrent(path) ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong');
+
+  // The theme the selected display paints its fullscreen modules with: its
+  // own override first, then the shared default, then the shipped default.
+  const display = selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined;
+  const themeInUse = display?.settings?.fullscreenTheme ?? config.settings.fullscreenTheme ?? 'linen';
+  const themeWalls = starterBackgroundsIn('theme');
+  const orderedThemeWalls = [
+    ...themeWalls.filter((bg) => bg.themeId === themeInUse),
+    ...themeWalls.filter((bg) => bg.themeId !== themeInUse),
+  ];
+  const colorWalls = starterBackgroundsIn('color');
+  const patternWalls = starterBackgroundsIn('pattern');
+
+  const wallTile = (bg: StarterBackground) => {
+    const name = t(`backgroundPicker.starters.${bg.id}`);
+    return (
+      <div key={bg.id}>
+        <button
+          onClick={() => pick(bg.path)}
+          title={name}
+          data-testid={`starter-background-${bg.id}`}
+          className={`block w-full overflow-hidden rounded border ${tileAspect} ${tileBorder(bg.path)}`}
+        >
+          {/* The thumbnail is the wall's own file, so it cannot drift from what the display paints. */}
+          <img src={bg.path} alt="" className="h-full w-full object-cover" />
+        </button>
+        <div className={`mt-0.5 truncate text-center text-[9px] leading-tight ${isCurrent(bg.path) ? 'text-hs-accent-hover' : 'text-hs-text-muted'}`}>
+          {name}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <p className="text-[10px] text-hs-text-faint">{t('backgroundPicker.starterHeading')}</p>
-      <div className="grid grid-cols-3 gap-2">
-        <button
-          onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
-          className={`aspect-[9/16] rounded border text-[10px] text-hs-text-faint ${
-            !currentScreen.backgroundImage ? 'border-hs-accent' : 'border-hs-border-strong'
-          }`}
-        >
-          {t('settings.localBackgrounds.none')}
-        </button>
-        {STARTER_BACKGROUNDS.map((bg) => (
-          <button
-            key={bg.id}
-            onClick={() => pick(bg.path)}
-            title={t(`backgroundPicker.starters.${bg.id}`)}
-            data-testid={`starter-background-${bg.id}`}
-            className={`relative aspect-[9/16] w-full overflow-hidden rounded border ${
-              currentScreen.backgroundImage === bg.path ? 'border-hs-accent' : 'border-hs-border-strong'
-            }`}
-            style={{ backgroundImage: bg.swatch }}
-          >
-            <span className="absolute inset-x-0 bottom-0 bg-black/45 px-1 py-0.5 text-[9px] leading-tight text-white">
-              {t(`backgroundPicker.starters.${bg.id}`)}
-            </span>
-          </button>
-        ))}
-      </div>
+
+      <StarterGroup id="theme" title={t('backgroundPicker.groups.theme')} count={themeWalls.length}>
+        <div className="grid grid-cols-2 gap-1.5">
+          {orderedThemeWalls.map((bg) => {
+            const theme = FULLSCREEN_THEMES.find((th) => th.id === bg.themeId);
+            if (!theme) return null;
+            const selected = isCurrent(bg.path);
+            const inUse = theme.id === themeInUse;
+            const group = tOrFallback(t, `settings.defaultDisplayPage.themeGroups.${theme.group}`, theme.group);
+            return (
+              <button
+                key={bg.id}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => pick(bg.path)}
+                data-testid={`starter-background-${bg.id}`}
+                data-in-use={inUse ? 'true' : undefined}
+                className={`flex items-center gap-1.5 rounded-lg border px-1.5 py-1.5 text-left transition-colors ${themeTileClass(selected)}`}
+              >
+                <FullscreenThemePreview tokens={theme.tokens} size="sm" />
+                <div className="min-w-0">
+                  <div className={`truncate text-[10px] font-semibold ${selected ? 'text-hs-accent-hover' : 'text-hs-text-body'}`}>{theme.name}</div>
+                  <div className="truncate text-[9px] text-hs-text-faint">
+                    <span className="capitalize">{group}</span>
+                    {inUse && <span> · {t('backgroundPicker.inUse')}</span>}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </StarterGroup>
+
+      <StarterGroup id="color" title={t('backgroundPicker.groups.color')} count={colorWalls.length}>
+        <div className={tileGrid}>
+          <div>
+            <button
+              onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
+              data-testid="starter-background-none"
+              className={`block w-full rounded border text-[10px] text-hs-text-faint ${tileAspect} ${
+                !currentScreen.backgroundImage ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'
+              }`}
+            >
+              {t('settings.localBackgrounds.none')}
+            </button>
+            <div className="mt-0.5 text-[9px] leading-tight">&nbsp;</div>
+          </div>
+          {colorWalls.map(wallTile)}
+        </div>
+      </StarterGroup>
+
+      <StarterGroup id="pattern" title={t('backgroundPicker.groups.pattern')} count={patternWalls.length}>
+        <div className={tileGrid}>{patternWalls.map(wallTile)}</div>
+      </StarterGroup>
+
       <p className="mt-3 text-[10px] text-hs-text-faint">{t('backgroundPicker.yourPicturesHeading')}</p>
       <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         {localBackgrounds.map((bg) => (
           <div key={bg} className="relative group">
             <button
               onClick={() => pick(bg)}
-              className={`aspect-[9/16] w-full rounded border overflow-hidden ${
+              className={`${tileAspect} w-full rounded border overflow-hidden ${
                 currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
               }`}
             >

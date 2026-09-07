@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Kræver en gratis nøgle",
     "starterHeading": "Baggrunde, der følger med Home Screens",
+    "groups": {
+      "theme": "Passer til et fuldskærmstema",
+      "color": "Farver",
+      "pattern": "Mønstre"
+    },
+    "inUse": "i brug",
     "starters": {
       "midnight": "Midnat",
       "dusk": "Skumring",
@@ -2181,7 +2187,21 @@
       "charcoal": "Koksgrå",
       "sunrise": "Solopgang",
       "plum": "Blomme",
-      "aurora": "Nordlys"
+      "aurora": "Nordlys",
+      "ocean": "Hav",
+      "ember": "Glød",
+      "ink": "Blæk",
+      "moss": "Mos",
+      "copper": "Kobber",
+      "lavender": "Lavendel",
+      "cloud": "Sky",
+      "sand": "Sand",
+      "sage": "Salvie",
+      "blush": "Rosa",
+      "pattern-dots": "Prikker",
+      "pattern-grid": "Gitter",
+      "pattern-diagonal": "Diagonal",
+      "pattern-paper": "Papir"
     },
     "yourPicturesHeading": "Dine egne billeder",
     "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde."

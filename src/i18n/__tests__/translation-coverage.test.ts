@@ -302,6 +302,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // Wall names that are the same word in Danish.
+    'editor|backgroundPicker.starters.pattern-diagonal',
+    'editor|backgroundPicker.starters.sand',
     'core|launcher.editor.title',
     // "Person" is the same word in this language.
     'editor|configSections.fullscreen-chore-chart.layoutByPerson',
@@ -320,6 +323,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|displayHero.stateOffline',
   ]),
   'de-DE': new Set([
+    // Wall names that are the same word in German.
+    'editor|backgroundPicker.starters.pattern-diagonal',
+    'editor|backgroundPicker.starters.sand',
     'core|launcher.editor.title',
     // "Person" is the same word in this language.
     'editor|configSections.fullscreen-chore-chart.layoutByPerson',
@@ -388,6 +394,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.routineName',
   ]),
   'es-ES': new Set([
+    // "Diagonal" is the same word in Spanish.
+    'editor|backgroundPicker.starters.pattern-diagonal',
     'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
@@ -711,6 +719,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.title',
   ]),
   'pt-BR': new Set([
+    // "Diagonal" is the same word in Portuguese.
+    'editor|backgroundPicker.starters.pattern-diagonal',
     'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',

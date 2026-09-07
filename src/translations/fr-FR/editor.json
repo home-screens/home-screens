@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Nécessite une clé gratuite",
     "starterHeading": "Les arrière-plans fournis avec Home Screens",
+    "groups": {
+      "theme": "Assorti à un thème plein écran",
+      "color": "Couleurs",
+      "pattern": "Motifs"
+    },
+    "inUse": "utilisé",
     "starters": {
       "midnight": "Minuit",
       "dusk": "Crépuscule",
@@ -2181,7 +2187,21 @@
       "charcoal": "Anthracite",
       "sunrise": "Lever de soleil",
       "plum": "Prune",
-      "aurora": "Aurore boréale"
+      "aurora": "Aurore boréale",
+      "ocean": "Océan",
+      "ember": "Braise",
+      "ink": "Encre",
+      "moss": "Mousse",
+      "copper": "Cuivre",
+      "lavender": "Lavande",
+      "cloud": "Nuage",
+      "sand": "Sable",
+      "sage": "Sauge",
+      "blush": "Rosé",
+      "pattern-dots": "Points",
+      "pattern-grid": "Grille",
+      "pattern-diagonal": "Diagonale",
+      "pattern-paper": "Papier"
     },
     "yourPicturesHeading": "Vos propres images",
     "sourceKeyMissing": "Cette source a besoin d'une clé API qui n'est pas encore configurée, l'écran garde donc sa dernière image. Ajoutez la clé dans les Paramètres, ou choisissez une autre source."

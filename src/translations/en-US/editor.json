@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Needs a free key",
     "starterHeading": "Backgrounds that come with Home Screens",
+    "groups": {
+      "theme": "Match a full-screen theme",
+      "color": "Colors",
+      "pattern": "Patterns"
+    },
+    "inUse": "in use",
     "starters": {
       "midnight": "Midnight",
       "dusk": "Dusk",
@@ -2181,7 +2187,21 @@
       "charcoal": "Charcoal",
       "sunrise": "Sunrise",
       "plum": "Plum",
-      "aurora": "Aurora"
+      "aurora": "Aurora",
+      "ocean": "Ocean",
+      "ember": "Ember",
+      "ink": "Ink",
+      "moss": "Moss",
+      "copper": "Copper",
+      "lavender": "Lavender",
+      "cloud": "Cloud",
+      "sand": "Sand",
+      "sage": "Sage",
+      "blush": "Blush",
+      "pattern-dots": "Dots",
+      "pattern-grid": "Grid",
+      "pattern-diagonal": "Diagonal",
+      "pattern-paper": "Paper"
     },
     "yourPicturesHeading": "Your own pictures",
     "sourceKeyMissing": "This source needs an API key that is not set up, so the screen keeps its last picture. Add the key in Settings, or pick another source."

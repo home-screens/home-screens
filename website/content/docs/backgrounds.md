@@ -18,6 +18,18 @@ The **Background** section appears in the editor's right sidebar only when no mo
 
 ---
 
+## Backgrounds that come with Home Screens
+
+The **Backgrounds** tab starts with a set of walls that need no key and no upload. They are tiny drawings rather than photos, so they look sharp on any display, portrait or landscape. They come in three groups, and each group folds away if you don't need it:
+
+- **Match a full-screen theme**: one wall for each of the twelve full-screen themes, painted from the same colors the theme uses. Give a regular screen this wall and it sits next to a full-screen calendar or weather screen without a visible change of color. The theme your display uses (from **Settings > Screen**, or the display's own override) is listed first and marked "in use".
+- **Colors**: eighteen gradients, from deep and moody (Midnight, Ember, Ink) to soft and light (Cloud, Sand, Sage, Blush).
+- **Patterns**: four quiet textures (Dots, Grid, Diagonal, and a light Paper) for a wall with a little texture behind your modules.
+
+Click any of them to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
+
+---
+
 ## Setting a static background
 
 To set a background in the editor:

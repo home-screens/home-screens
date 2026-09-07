@@ -18,6 +18,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "docs:shots": "tsx website/scripts/capture-docs-shots.mts",
+    "backgrounds:build": "tsx scripts/build-starter-backgrounds.ts",
     "config:check": "node scripts/check-config.mjs",
     "fa:copy": "node scripts/copy-font-awesome.mjs",
     "postinstall": "node scripts/copy-font-awesome.mjs"

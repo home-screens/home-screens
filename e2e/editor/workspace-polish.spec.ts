@@ -273,6 +273,48 @@ test.describe('background picker', () => {
     });
     expect((await getConfig(request)).screens[0].backgroundImage).toBe('/backgrounds/themes/dusk.svg');
   });
+
+  test('offers a wall for every full-screen theme, the one in use first', async ({ page, request }) => {
+    const config = baseConfig();
+    config.settings.fullscreenTheme = 'aurora';
+    await putConfig(request, config);
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+
+    const themeGroup = page.getByTestId('starter-group-theme');
+    await expect(themeGroup).toContainText('12');
+    const themeWalls = page.locator('[data-testid^="starter-background-theme-"]');
+    await expect(themeWalls).toHaveCount(12);
+    // The display's theme leads the group and says so.
+    await expect(themeWalls.first()).toHaveAttribute('data-testid', 'starter-background-theme-aurora');
+    await expect(themeWalls.first()).toContainText('in use');
+    await expect(page.getByTestId('starter-background-theme-linen')).not.toContainText('in use');
+
+    await autosaved(page, async () => {
+      await page.getByTestId('starter-background-theme-horizon').click();
+    });
+    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/backgrounds/themes/theme-horizon.svg');
+    await expect(page.getByTestId('starter-background-theme-horizon')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('groups the shipped walls and remembers a collapsed group', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+
+    await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
+    await expect(page.getByTestId('starter-background-pattern-dots')).toBeVisible();
+
+    await page.getByTestId('starter-group-pattern').click();
+    await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
+    await page.reload();
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await expect(page.getByTestId('starter-group-pattern')).toBeVisible();
+    await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
+    await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
+  });
 });
 
 test.describe('side panels on a small laptop', () => {

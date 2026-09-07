@@ -2173,6 +2173,12 @@
     },
     "needsKey": "Heeft een gratis sleutel nodig",
     "starterHeading": "Achtergronden die bij Home Screens zitten",
+    "groups": {
+      "theme": "Passend bij een volledig-scherm thema",
+      "color": "Kleuren",
+      "pattern": "Patronen"
+    },
+    "inUse": "in gebruik",
     "starters": {
       "midnight": "Middernacht",
       "dusk": "Schemering",
@@ -2181,7 +2187,21 @@
       "charcoal": "Antraciet",
       "sunrise": "Zonsopgang",
       "plum": "Pruimpaars",
-      "aurora": "Noorderlicht"
+      "aurora": "Noorderlicht",
+      "ocean": "Oceaan",
+      "ember": "Gloed",
+      "ink": "Inkt",
+      "moss": "Mos",
+      "copper": "Koper",
+      "lavender": "Lavendel",
+      "cloud": "Wolk",
+      "sand": "Zand",
+      "sage": "Salie",
+      "blush": "Blos",
+      "pattern-dots": "Stippen",
+      "pattern-grid": "Raster",
+      "pattern-diagonal": "Diagonaal",
+      "pattern-paper": "Papier"
     },
     "yourPicturesHeading": "Je eigen foto's",
     "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron."
