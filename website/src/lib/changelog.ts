@@ -106,7 +106,7 @@ export interface LatestImageRelease {
 // and this repo is a static export with no network at build time. Add a tag here
 // when a release ships an image; remove it if the image is later withdrawn.
 const IMAGE_RELEASE_TAGS = new Set([
-  'v1.11.0',
+  'v1.12.2',
   'v1.8.0',
   'v1.7.0',
   'v1.6.0',
