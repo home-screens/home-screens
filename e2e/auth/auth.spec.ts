@@ -4,9 +4,9 @@ import { writeSandboxFile } from '../helpers/sandbox';
 const PASSWORD = 'e2e-password-123';
 const SECURITY_URL = '/editor/settings?section=defaults&page=security';
 
-// Direct-to-disk disabled auth state (mirrors enforcement.spec.ts). Both the
-// proxy IP/auth gate and the auth-state reader cache auth.json for 5s, so the
-// teardown writes this then polls until the caches expire.
+// Direct-to-disk disabled auth state (mirrors enforcement.spec.ts). The proxy
+// gate and the auth-state reader both key their cache on the file's stat, so
+// the teardown writes this then polls to prove the server saw it.
 const DISABLED_AUTH = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
 test.describe.configure({ mode: 'serial' });

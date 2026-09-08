@@ -9,7 +9,9 @@ export async function getConfig(request: APIRequestContext): Promise<ScreenConfi
 
 export async function putConfig(request: APIRequestContext, config: ScreenConfiguration): Promise<void> {
   const res = await request.put('/api/config', { data: config });
-  expect(res.ok()).toBe(true);
+  // Status and body in the message: a bare ok() assertion hid what the server
+  // answered every time this setup call failed in a full run.
+  expect(res.ok(), `PUT /api/config answered ${res.status()}: ${(await res.text()).slice(0, 300)}`).toBe(true);
 }
 
 /**

@@ -1,4 +1,6 @@
 import crypto from 'crypto';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { createJsonStore } from './json-store';
 
 /* ─── Types ──────────────────────────────────── */
@@ -35,8 +37,10 @@ const SCRYPT_KEYLEN = 64;
 
 const DISABLED_STATE: AuthState = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
+const AUTH_FILE = 'data/auth.json';
+
 const authStore = createJsonStore<AuthState>({
-  path: 'data/auth.json',
+  path: AUTH_FILE,
   defaultValue: DISABLED_STATE,
   chmod: 0o600,
   errorHandling: 'throw-corrupt',
@@ -59,17 +63,37 @@ async function writeAuthState(state: AuthState): Promise<void> {
  */
 export const writeAuthStateRaw = writeAuthState;
 
-/* ─── Cached reads (short TTL for requireSession hot path) ── */
+/* ─── Cached reads (requireSession hot path) ─────── */
 
-let cachedState: { state: AuthState; at: number } | null = null;
-const CACHE_TTL = 5_000; // 5 seconds
+let cachedState: { state: AuthState; signature: string } | null = null;
+let unreadableStats = 0;
+
+/**
+ * Identity of auth.json on disk: inode, size and mtime, so a write from
+ * anywhere (this process, the reset script, a restored backup, a test
+ * rewriting the file) is seen on the next request instead of up to 5s later.
+ * The proxy (src/proxy.ts) keys its own cache the same way, so the two never
+ * disagree about whether a password is set. A stat that fails for a reason
+ * other than "no file" gets a one-off signature and forces a real read, whose
+ * own error handling decides what to do.
+ */
+async function authFileSignature(): Promise<string> {
+  try {
+    const st = await fs.stat(path.join(process.cwd(), AUTH_FILE));
+    return `${st.ino}:${st.size}:${st.mtimeMs}`;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return 'missing';
+    return `unreadable:${++unreadableStats}`;
+  }
+}
 
 async function getCachedAuthState(): Promise<AuthState> {
-  if (cachedState && Date.now() - cachedState.at < CACHE_TTL) {
+  const signature = await authFileSignature();
+  if (cachedState && cachedState.signature === signature) {
     return cachedState.state;
   }
   const state = await readAuthState();
-  cachedState = { state, at: Date.now() };
+  cachedState = { state, signature };
   return state;
 }
 
@@ -317,8 +341,7 @@ export async function requireDisplayAuth(request: Request, clientIp?: string): P
   // enabled auth before the display token feature was added.
   if (!state.displayToken) {
     await regenerateDisplayToken();
-    state = await readAuthState();
-    cachedState = { state, at: Date.now() };
+    state = await getCachedAuthState();
   }
 
   function tokenMatches(candidate: string): boolean {

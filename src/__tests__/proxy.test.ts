@@ -7,15 +7,28 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
  * cleared from outside. To get a fresh cache for each test group, we use
  * `vi.resetModules()` + dynamic `import()` in beforeEach.
  *
- * The fs.readFileSync mock is set up via vi.doMock before each fresh import.
+ * The fs mock (readFileSync + statSync) is set up via vi.doMock before each
+ * fresh import. The proxy keys its cache on the file's stat, so a test that
+ * wants a re-read changes `mockStatSync`'s answer; one that wants the cache
+ * to hold leaves it alone.
  * NextResponse is mocked to return recognizable objects we can assert against.
  *
  * The proxy uses real `Response.json()` for 401s (global, not mocked) and
  * NextResponse.next() / NextResponse.redirect() for pass-through and redirects.
  */
 
-// Shared mock for readFileSync — reassigned per-group
+// Shared mocks for readFileSync / statSync — reassigned per-group
 let mockReadFileSync: ReturnType<typeof vi.fn>;
+let mockStatSync: ReturnType<typeof vi.fn>;
+
+/** A stat answer the proxy turns into a cache key; bump `ino` to "change" the file. */
+function fakeStat(ino = 1) {
+  return { ino, size: 100, mtimeMs: 1_000 };
+}
+
+function fsMock() {
+  return { readFileSync: mockReadFileSync, statSync: mockStatSync };
+}
 
 // Type for our proxy function
 type ProxyFn = (request: unknown) => unknown;
@@ -148,9 +161,8 @@ async function loadProxyWithAuth(
     }
   }
 
-  vi.doMock('fs', () => ({
-    readFileSync: mockReadFileSync,
-  }));
+  mockStatSync = vi.fn().mockReturnValue(fakeStat());
+  vi.doMock('fs', fsMock);
 
   vi.doMock('next/server', () => ({
     NextResponse: {
@@ -685,7 +697,8 @@ describe('proxy — generic error (no code property) — fail closed', () => {
     vi.resetModules();
     mockReadFileSync = vi.fn().mockImplementation(() => { throw new Error('unexpected'); });
 
-    vi.doMock('fs', () => ({ readFileSync: mockReadFileSync }));
+    mockStatSync = vi.fn().mockReturnValue(fakeStat());
+    vi.doMock('fs', fsMock);
     vi.doMock('next/server', () => ({
       NextResponse: {
         next: () => ({ _type: 'next' }),
@@ -711,7 +724,7 @@ describe('proxy — auth check caching', () => {
     vi.useRealTimers();
   });
 
-  it('caches the auth check — does not re-read file on every request', async () => {
+  it('caches the auth check — does not re-read an unchanged file', async () => {
     const proxy = await loadProxyWithAuth('enabled');
 
     proxy(makeRequest('/api/weather'));
@@ -724,46 +737,37 @@ describe('proxy — auth check caching', () => {
     expect(mockReadFileSync).toHaveBeenCalledTimes(1);
   });
 
-  it('re-reads auth.json after cache TTL expires (5 seconds)', async () => {
-    vi.useFakeTimers();
-
+  it('re-reads auth.json as soon as the file on disk changes', async () => {
     const proxy = await loadProxyWithAuth('enabled');
 
     proxy(makeRequest('/api/weather'));
     expect(mockReadFileSync).toHaveBeenCalledTimes(1);
 
-    // Advance time past the 5-second TTL
-    vi.advanceTimersByTime(5001);
+    mockStatSync.mockReturnValue(fakeStat(2));
 
     proxy(makeRequest('/api/weather'));
     expect(mockReadFileSync).toHaveBeenCalledTimes(2);
   });
 
-  it('picks up auth state change after cache expires', async () => {
-    vi.useFakeTimers();
-
+  it('picks up an auth state change on the very next request', async () => {
     // Start with auth disabled (no file)
     const proxy = await loadProxyWithAuth('no-file');
+    mockStatSync.mockReturnValue(undefined);
 
     // Auth disabled: editor passes through
     expect(isPassThrough(proxy(makeRequest('/editor')))).toBe(true);
 
-    // "Enable" auth by changing what readFileSync returns
+    // "Enable" auth: the file appears with a password in it
     mockReadFileSync.mockReturnValue(
       JSON.stringify({ passwordHash: 'hash', salt: 's', cookieSecret: 'c' }),
     );
+    mockStatSync.mockReturnValue(fakeStat(7));
 
-    // Still cached as disabled
-    expect(isPassThrough(proxy(makeRequest('/editor')))).toBe(true);
-
-    // Expire cache
-    vi.advanceTimersByTime(5001);
-
-    // Now picks up the change — editor is protected
+    // No clock to wait out: the next request sees it and the editor is protected
     expect(isRedirect(proxy(makeRequest('/editor')))).not.toBeNull();
   });
 
-  it('does not re-read within the 5-second window', async () => {
+  it('time alone never invalidates the cache', async () => {
     vi.useFakeTimers();
 
     const proxy = await loadProxyWithAuth('enabled');
@@ -771,10 +775,19 @@ describe('proxy — auth check caching', () => {
     proxy(makeRequest('/api/weather'));
     expect(mockReadFileSync).toHaveBeenCalledTimes(1);
 
-    vi.advanceTimersByTime(4999);
+    vi.advanceTimersByTime(60_000);
 
     proxy(makeRequest('/api/weather'));
     expect(mockReadFileSync).toHaveBeenCalledTimes(1);
+  });
+
+  it('a stat failure other than a missing file forces a fresh read every time', async () => {
+    const proxy = await loadProxyWithAuth('enabled');
+    mockStatSync.mockImplementation(() => { throw new Error('EACCES'); });
+
+    proxy(makeRequest('/api/weather'));
+    proxy(makeRequest('/api/weather'));
+    expect(mockReadFileSync).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -886,9 +899,8 @@ async function loadProxyWithConfig(config: Record<string, unknown>): Promise<Pro
 
   mockReadFileSync = vi.fn().mockReturnValue(JSON.stringify(config));
 
-  vi.doMock('fs', () => ({
-    readFileSync: mockReadFileSync,
-  }));
+  mockStatSync = vi.fn().mockReturnValue(fakeStat());
+  vi.doMock('fs', fsMock);
 
   vi.doMock('next/server', () => ({
     NextResponse: {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readFileSync } from 'fs';
+import { readFileSync, statSync } from 'fs';
 import path from 'path';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { isDisallowedCrossOriginWrite, parseAllowedOrigins } from '@/lib/same-origin';
@@ -13,17 +13,38 @@ interface AuthConfig {
   ipRestrictAccess: boolean;
 }
 
-let authConfigCache: { value: AuthConfig; at: number } | null = null;
-const AUTH_CACHE_TTL = 5_000; // 5 seconds
+let authConfigCache: { value: AuthConfig; signature: string } | null = null;
+let unreadableStats = 0;
 
 /**
- * Read auth config from data/auth.json with a short TTL cache.
- * Uses synchronous read since Next.js proxy must return synchronously.
+ * Identity of auth.json on disk. Every writer replaces the file (the store's
+ * tmp + rename, the reset script's rename) or rewrites it in place, so any
+ * change moves at least one of inode, size and mtime. A stat that fails for a
+ * reason other than "no file" gets a one-off signature: the cache never
+ * answers for a file it could not look at.
+ */
+function authFileSignature(filePath: string): string {
+  try {
+    const st = statSync(filePath, { throwIfNoEntry: false });
+    return st ? `${st.ino}:${st.size}:${st.mtimeMs}` : 'missing';
+  } catch {
+    return `unreadable:${++unreadableStats}`;
+  }
+}
+
+/**
+ * Read auth config from data/auth.json, cached against the file's identity
+ * rather than a clock. The auth-state reader in src/lib/auth.ts keeps its own
+ * cache of the same file; a timed cache on each meant the two could disagree
+ * for up to 5s after a write, and this gate kept answering 401 to cookie-less
+ * writes after the password had already been turned off.
+ * Uses synchronous calls since Next.js proxy must return synchronously.
  * Returns auth-enabled flag plus IP allowlist state for access restriction.
  */
 function getAuthConfig(): AuthConfig {
-  const now = Date.now();
-  if (authConfigCache && now - authConfigCache.at < AUTH_CACHE_TTL) {
+  const filePath = path.join(process.cwd(), 'data', 'auth.json');
+  const signature = authFileSignature(filePath);
+  if (authConfigCache && authConfigCache.signature === signature) {
     return authConfigCache.value;
   }
 
@@ -31,7 +52,6 @@ function getAuthConfig(): AuthConfig {
   let ipAllowlist: string[] = [];
   let ipRestrictAccess = false;
   try {
-    const filePath = path.join(process.cwd(), 'data', 'auth.json');
     const data = JSON.parse(readFileSync(filePath, 'utf-8'));
     enabled = data.passwordHash !== null && data.passwordHash !== undefined;
     if (Array.isArray(data.ipAllowlist)) {
@@ -51,7 +71,7 @@ function getAuthConfig(): AuthConfig {
   }
 
   const value: AuthConfig = { enabled, ipAllowlist, ipRestrictAccess };
-  authConfigCache = { value, at: now };
+  authConfigCache = { value, signature };
   return value;
 }
 

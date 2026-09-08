@@ -14,15 +14,15 @@ import type { APIRequestContext } from '@playwright/test';
 const PASSWORD = 'e2e-enforce-pw-123';
 
 // Direct-to-disk disabled auth state. Both the proxy IP gate (src/proxy.ts) and
-// the auth-state reader (src/lib/auth.ts) cache auth.json for 5s, and only the
-// in-process writeAuthState() busts the auth cache — a bare file write does not
-// — so callers must poll until both caches expire before trusting new state.
+// the auth-state reader (src/lib/auth.ts) cache auth.json against the file's
+// stat, so a bare file write is seen on the next request; the polls below prove
+// both gates saw it rather than waiting out a clock.
 const DISABLED_AUTH = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
 test.describe.configure({ mode: 'serial' });
 
 /**
- * Reset auth to disabled + unrestricted, then wait out the proxy + auth caches.
+ * Reset auth to disabled + unrestricted, then prove both gates saw it.
  * `/api/displays` is the IP-gate probe (403 while restricted, reachable once the
  * gate reopens); `/api/auth/status` is always exempt and reports auth-enabled.
  */
@@ -153,7 +153,7 @@ test('IP bypassAuth lets an allowlisted IP skip display auth while the editor st
 
   // A bare context with no cookie and no bearer token — normally 401 on a display
   // route (see the display-token spec above) — is now accepted purely on its IP.
-  // Poll because the proxy/auth config caches are up to 5s stale after the PUT.
+  // Poll so the assertion is about the state the gates report, not the PUT.
   const anon = await playwright.request.newContext({ baseURL });
   await expect
     .poll(async () => (await anon.get('/api/display/commands?display=main')).status(), { timeout: 12_000 })
@@ -184,7 +184,7 @@ test('IP allowlist: a lockout is warned, can be forced, and is then enforced', a
   expect((await admin.post('/api/auth/login', { data: { password: PASSWORD } })).ok()).toBe(true);
 
   // Baseline: restriction ON but our own IP (127.0.0.1) is allowed, so we stay
-  // reachable. Poll because the proxy's auth-config cache is up to 5s stale.
+  // reachable. Poll so the assertion is about what the gate reports.
   expect(
     (await admin.put('/api/auth/ip-allowlist', {
       data: { allowlist: ['127.0.0.1/32'], bypassAuth: false, restrictAccess: true },
@@ -218,6 +218,6 @@ test('IP allowlist: a lockout is warned, can be forced, and is then enforced', a
   expect((await admin.get('/api/auth/status')).status()).toBe(200);
 
   await admin.dispose();
-  // afterAll rewrites auth.json to disabled and waits out the caches, restoring
+  // afterAll rewrites auth.json to disabled and confirms both gates saw it, restoring
   // reachability for any spec file that reuses this worker's server.
 });
