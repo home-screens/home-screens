@@ -24,7 +24,7 @@ export function mapConfigModules(
   config: ScreenConfiguration,
   visit: (mod: Module) => Module,
 ): Pick<ScreenConfiguration, 'screens' | 'displays'> {
-  const migrateScreen = (screen: Screen): Screen => {
+  return mapConfigScreens(config, (screen) => {
     if (!Array.isArray(screen.modules)) return screen;
     let changed = false;
     const modules = screen.modules.map((mod) => {
@@ -33,8 +33,18 @@ export function mapConfigModules(
       return next;
     });
     return changed ? { ...screen, modules } : screen;
-  };
+  });
+}
 
+/**
+ * Map `migrateScreen` over every screen in the config, on the legacy
+ * top-level `screens` and on every display's own `screens`. Same identity
+ * rules as `mapConfigModules`.
+ */
+export function mapConfigScreens(
+  config: ScreenConfiguration,
+  migrateScreen: (screen: Screen) => Screen,
+): Pick<ScreenConfiguration, 'screens' | 'displays'> {
   return {
     screens: Array.isArray(config.screens) ? config.screens.map(migrateScreen) : config.screens,
     // Multi-display configs own their screens per display; the legacy

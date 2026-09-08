@@ -271,7 +271,7 @@ test.describe('background picker', () => {
     await autosaved(page, async () => {
       await page.getByTestId('starter-background-dusk').click();
     });
-    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/backgrounds/themes/dusk.svg');
+    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/dusk.svg');
   });
 
   test('offers a wall for every full-screen theme, the one in use first', async ({ page, request }) => {
@@ -294,7 +294,7 @@ test.describe('background picker', () => {
     await autosaved(page, async () => {
       await page.getByTestId('starter-background-theme-horizon').click();
     });
-    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/backgrounds/themes/theme-horizon.svg');
+    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/theme-horizon.svg');
     await expect(page.getByTestId('starter-background-theme-horizon')).toHaveAttribute('aria-pressed', 'true');
   });
 

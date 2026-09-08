@@ -175,7 +175,7 @@ function familyTemplateScreen(): Screen {
   const screen: Screen = tpl.screens[0];
   screen.id = 'screen-family';
   screen.name = 'Family';
-  screen.backgroundImage = '/backgrounds/themes/dusk.svg';
+  screen.backgroundImage = '/starter-backgrounds/dusk.svg';
   for (const mod of screen.modules as ModuleInstance[]) {
     if (mod.type === 'countdown') {
       mod.config = { ...mod.config, events: [{ id: 'cd-1', name: 'Grandma visits', date: isoDate(new Date(Date.now() + 3 * 86400_000)) }] };
@@ -223,7 +223,7 @@ function multiDisplayConfig(): ScreenConfiguration {
   const hallway = makeScreen('screen-hallway', 'Hallway', [
     Object.assign(buildModuleInstance('clock', { view: 'digital' }), { position: { x: 40, y: 40 }, size: { w: 900, h: 300 } }),
     Object.assign(buildModuleInstance('weather', { view: 'daily' }), { position: { x: 40, y: 380 }, size: { w: 1840, h: 640 } }),
-  ], { backgroundImage: '/backgrounds/themes/midnight.svg' });
+  ], { backgroundImage: '/starter-backgrounds/midnight.svg' });
   (config as unknown as Record<string, unknown>).displays = [
     { id: 'main', name: 'Kitchen wall', screens: config.screens, displayWidth: 1080, displayHeight: 1920, displayTransform: '90' },
     { id: 'hallway', name: 'Hallway', screens: [hallway], displayWidth: 1920, displayHeight: 1080, displayTransform: 'normal' },

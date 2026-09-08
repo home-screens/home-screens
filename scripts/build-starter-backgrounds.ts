@@ -1,6 +1,6 @@
 /**
  * Writes every shipped background in `src/lib/starter-backgrounds.ts` to
- * `public/backgrounds/themes/` as an SVG. Run after editing the catalog or a
+ * `public/starter-backgrounds/` as an SVG. Run after editing the catalog or a
  * fullscreen theme's background tokens:
  *
  *   npm run backgrounds:build

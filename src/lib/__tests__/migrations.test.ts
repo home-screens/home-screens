@@ -62,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 10', () => {
-    expect(getLatestSchemaVersion()).toBe(10);
+  it('getLatestSchemaVersion returns 11', () => {
+    expect(getLatestSchemaVersion()).toBe(11);
   });
 });
 
@@ -298,17 +298,18 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(10);
-    // v2 through v10 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(9);
+    expect(result.version).toBe(11);
+    // v2 through v11 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(10);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
     // touches sleep blocks with a dim schedule (this fixture has none), and
     // v8 only touches calendar modules carrying the prerelease keys, and v9
     // only touches fullscreen-calendar modules carrying the retired default
-    // accent, and v10 only touches news modules (this fixture has none). No
-    // display registry is injected — single-display mode stays single-display.
+    // accent, v10 only touches news modules (this fixture has none), and v11
+    // only touches screens on a `/backgrounds/themes/` wall (this one has
+    // none). No display registry is injected — single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
@@ -325,9 +326,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(10);
-    // Only v4 through v10 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(7);
+    expect(result.version).toBe(11);
+    // Only v4 through v11 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(8);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -723,8 +724,82 @@ describe('migration v10: news modules follow a list of feeds', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(10);
-    expect(migrationsRun.at(-1)).toMatch(/^v10: /);
+    expect(result.version).toBe(getLatestSchemaVersion());
+    expect(migrationsRun).toContainEqual(expect.stringMatching(/^v10: /));
     expect(moduleConfig(result).feeds).toEqual([{ id: 'n1-feed-1', url: 'https://example.com/rss' }]);
+  });
+});
+
+describe('migration v11: starter backgrounds moved to /starter-backgrounds/', () => {
+  it('repoints a screen on a shipped wall and leaves other backgrounds alone', () => {
+    const config = makeConfig(10);
+    config.screens = [
+      { ...config.screens[0], id: 'a', backgroundImage: '/backgrounds/themes/dusk.svg' },
+      { ...config.screens[0], id: 'b', backgroundImage: '/backgrounds/themes/theme-horizon.svg' },
+      { ...config.screens[0], id: 'c', backgroundImage: '/api/backgrounds/serve?file=family.jpg' },
+      { ...config.screens[0], id: 'd', backgroundImage: 'https://example.com/wall.jpg' },
+      { ...config.screens[0], id: 'e', backgroundImage: '' },
+    ];
+
+    const { config: result } = migrateUp(config, 11);
+
+    expect(result.version).toBe(11);
+    expect(result.screens.map((s) => s.backgroundImage)).toEqual([
+      '/starter-backgrounds/dusk.svg',
+      '/starter-backgrounds/theme-horizon.svg',
+      '/api/backgrounds/serve?file=family.jpg',
+      'https://example.com/wall.jpg',
+      '',
+    ]);
+  });
+
+  it('leaves a user file under the old themes folder where it is', () => {
+    // themes/ was a user folder too; only the shipped file names moved.
+    const config = makeConfig(10);
+    const own = { ...config.screens[0], id: 'own', backgroundImage: '/backgrounds/themes/family.jpg' };
+    const nested = { ...config.screens[0], id: 'nested', backgroundImage: '/backgrounds/themes/christmas/clip.mp4' };
+    const lookalike = { ...config.screens[0], id: 'look', backgroundImage: '/backgrounds/themes/dusk.svg.bak' };
+    config.screens = [own, nested, lookalike];
+
+    const { config: result } = migrateUp(config, 11);
+
+    expect(result.screens).toEqual([own, nested, lookalike]);
+  });
+
+  it('walks every display\'s own screens as well as the legacy top-level screens', () => {
+    const config: ScreenConfiguration = {
+      ...makeConfig(10),
+      displays: [
+        {
+          id: 'kitchen', name: 'Kitchen', displayWidth: 1080, displayHeight: 1920,
+          screens: [{ ...makeConfig(10).screens[0], backgroundImage: '/backgrounds/themes/midnight.svg' }],
+        },
+      ],
+    };
+
+    const { config: result } = migrateUp(config, 11);
+
+    expect(result.displays?.[0].screens[0].backgroundImage).toBe('/starter-backgrounds/midnight.svg');
+  });
+
+  it('keeps an untouched screen\'s identity and tolerates a missing backgroundImage', () => {
+    const config = makeConfig(10);
+    const untouched = { ...config.screens[0], id: 'x', backgroundImage: undefined as unknown as string };
+    config.screens = [untouched];
+
+    const { config: result } = migrateUp(config, 11);
+
+    expect(result.screens[0]).toEqual(untouched);
+  });
+
+  it('is part of the full chain from v1', () => {
+    const config = makeConfig(1);
+    config.screens[0].backgroundImage = '/backgrounds/themes/plum.svg';
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(result.version).toBe(11);
+    expect(migrationsRun.at(-1)).toMatch(/^v11: /);
+    expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
 });

@@ -48,7 +48,6 @@ data/*
 # user-uploaded backgrounds
 public/backgrounds/*
 !public/backgrounds/default.svg
-!public/backgrounds/themes/
 
 # cloudflare worker
 infrastructure/telemetry-worker/node_modules

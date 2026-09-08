@@ -26,7 +26,7 @@ describe('starter background catalog', () => {
 
   it('keeps the original eight walls at their shipped paths', () => {
     for (const id of ['midnight', 'dusk', 'forest', 'deep-blue', 'charcoal', 'sunrise', 'plum', 'aurora']) {
-      expect(STARTER_BACKGROUNDS.find((bg) => bg.id === id)?.path).toBe(`/backgrounds/themes/${id}.svg`);
+      expect(STARTER_BACKGROUNDS.find((bg) => bg.id === id)?.path).toBe(`/starter-backgrounds/${id}.svg`);
     }
   });
 

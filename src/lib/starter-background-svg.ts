@@ -1,6 +1,6 @@
 /**
  * Turns a starter background's paint description into the SVG file that
- * ships in `public/backgrounds/themes/`.
+ * ships in `public/starter-backgrounds/`.
  *
  * The SVGs carry no width, height or viewBox on purpose. Chromium treats an
  * SVG with no intrinsic size as "as big as the box it is painted into", so

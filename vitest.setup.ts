@@ -48,7 +48,7 @@ function sandboxPublicDir(root: string, box: string): void {
     symlinkSync(path.join(root, 'public', entry), path.join(box, 'public', entry));
   }
   mkdirSync(path.join(box, 'public', 'backgrounds'));
-  for (const entry of ['default.svg', 'themes']) {
+  for (const entry of ['default.svg']) {
     try {
       symlinkSync(path.join(root, 'public', 'backgrounds', entry), path.join(box, 'public', 'backgrounds', entry));
     } catch { /* asset absent in this checkout — tests that need it will say so */ }

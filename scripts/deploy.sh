@@ -88,8 +88,6 @@ rsync -azP --delete \
   --include 'data/secrets.example.json' \
   --exclude 'data/*' \
   --include 'public/backgrounds/default.svg' \
-  --include 'public/backgrounds/themes/' \
-  --include 'public/backgrounds/themes/**' \
   --exclude 'public/backgrounds/*' \
   --exclude '.emulate' \
   --exclude 'scripts/emulate-install.sh' \

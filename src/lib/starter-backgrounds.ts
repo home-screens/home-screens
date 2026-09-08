@@ -4,7 +4,7 @@
  * A fresh install used to open the background picker on Unsplash, dead-end in
  * "add a free API key", and offer nothing else, so the first thing anyone
  * wants to change ("make the wall not black") needed a signup first. These
- * walls live in `public/backgrounds/themes/` as tiny SVGs, need no key, and
+ * walls live in `public/starter-backgrounds/` as tiny SVGs, need no key, and
  * paint at any display size.
  *
  * Three groups:
@@ -30,7 +30,7 @@ export interface StarterBackground {
   /** Stable id; also the picker's test id suffix and the i18n key for named walls. */
   id: string;
   group: StarterBackgroundGroup;
-  /** File name under `public/backgrounds/themes/`. */
+  /** File name under `public/starter-backgrounds/`. */
   file: string;
   /** The path stored in `Screen.backgroundImage`. */
   path: string;
@@ -39,11 +39,13 @@ export interface StarterBackground {
   paint: WallPaint;
 }
 
-export const STARTER_BACKGROUNDS_DIR = 'public/backgrounds/themes';
+export const STARTER_BACKGROUNDS_DIR = 'public/starter-backgrounds';
+/** URL prefix the files are served under; the path every catalog entry stores. */
+export const STARTER_BACKGROUNDS_URL = '/starter-backgrounds';
 
 function entry(id: string, group: StarterBackgroundGroup, paint: WallPaint, themeId?: string): StarterBackground {
   const file = `${id}.svg`;
-  return { id, group, file, path: `/backgrounds/themes/${file}`, paint, ...(themeId ? { themeId } : {}) };
+  return { id, group, file, path: `${STARTER_BACKGROUNDS_URL}/${file}`, paint, ...(themeId ? { themeId } : {}) };
 }
 
 /**
@@ -61,8 +63,8 @@ const THEME_WALLS: StarterBackground[] = FULLSCREEN_THEMES.map((theme) =>
   entry(`theme-${theme.id}`, 'theme', { bg: theme.tokens.bg, bgImage: theme.tokens.bgImage }, theme.id),
 );
 
-// The first eight keep the ids and paths they shipped with, so existing
-// configs that point at `/backgrounds/themes/dusk.svg` keep their wall.
+// The first eight keep the ids and file names they shipped with; schema
+// migration v11 moved their paths out of `/backgrounds/themes/`.
 const COLOR_WALLS: StarterBackground[] = [
   entry('midnight', 'color', slope('#0f2027', '#203a43 55%', '#2c5364')),
   entry('dusk', 'color', slope('#3a1c71', '#d76d77 60%', '#ffaf7b')),

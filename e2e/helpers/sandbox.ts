@@ -36,7 +36,7 @@ export function createSandbox(dataFiles: Record<string, unknown> = {}): string {
     symlinkSync(path.join(REPO_ROOT, 'public', entry), path.join(sandbox, 'public', entry));
   }
   mkdirSync(path.join(sandbox, 'public', 'backgrounds'));
-  for (const entry of ['default.svg', 'themes']) {
+  for (const entry of ['default.svg']) {
     try {
       symlinkSync(path.join(REPO_ROOT, 'public', 'backgrounds', entry), path.join(sandbox, 'public', 'backgrounds', entry));
     } catch { /* asset absent in this checkout */ }
