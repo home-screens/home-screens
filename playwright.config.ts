@@ -9,7 +9,13 @@ import { defineConfig } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: false, // files parallel across workers; tests within a file share the worker's server sequentially
+  // Tests spread across workers individually, not per file. Each worker boots
+  // its own sandboxed server (e2e/fixtures.ts), so tests in one file share
+  // nothing across workers; files that do depend on order declare
+  // `test.describe.configure({ mode: 'serial' })`, which this respects. Per
+  // file scheduling left module-style.spec.ts (38 tests at ~15s each) running
+  // alone on one worker for the last five minutes of every full run.
+  fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   // Local: scale to the machine (each worker is a full next-server + browser,
