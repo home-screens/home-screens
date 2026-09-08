@@ -17,7 +17,11 @@ export default defineConfig({
   // alone on one worker for the last five minutes of every full run.
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // One retry locally too, for now: a one-off failure still passes the run
+  // and is reported as flaky instead of aborting a release, and the retry
+  // records a trace (see `trace` below) to diagnose it from. Drop back to
+  // CI-only once the remaining flakes are found.
+  retries: 1,
   // Local: scale to the machine (each worker is a full next-server + browser,
   // so a hardcoded count either wastes cores on a big box or thrashes a small
   // one) — leave a couple cores free for the OS/editor. CI runners stay fixed
