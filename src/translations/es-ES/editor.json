@@ -654,7 +654,8 @@
           "restored": "¡Restaurada! Recarga el editor para ver los cambios.",
           "error": "Error: {error}",
           "failed": "No se pudo restaurar la copia"
-        }
+        },
+        "lastStableHelp": "Tus ajustes de antes de la primera compilación de acceso anticipado o de prueba. Restáuralos si vuelves a una versión normal y no puede leer tus ajustes."
       },
       "backupPassword": {
         "setTitle": "Elige una contraseña",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Pega tu clave de API de TomTom",
         "keyHelp": "Gratis en developer.tomtom.com; se necesita la Routing API. Alternativa a Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Mayor límite de peticiones para comprobar versiones",
-        "optionalBadge": "Opcional",
-        "tokenLabel": "Token de acceso personal",
-        "tokenPlaceholder": "Pega tu token de GitHub",
-        "tokenHelp": "Aumenta el límite de peticiones de 60 a 5.000 por hora. Créalo en github.com/settings/tokens (no hacen falta scopes)."
-      },
       "status": {
         "notConfigured": "Sin configurar",
         "connected": "Conectado",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Avanzado",
         "toggleLabel": "Mostrar opciones avanzadas",
-        "help": "Muestra controles para desarrolladores: canal pre-release, token de GitHub y modo desarrollador de plugins."
+        "help": "Muestra controles para desarrolladores: compilaciones de prueba, detalles de la compilación y modo desarrollador de plugins."
       },
       "version": {
         "heading": "Versión",
-        "branchLabel": "Rama: {channel}",
+        "branchLabel": "Rama: {branch}",
         "installedFromRelease": "Instalada desde release",
-        "stableChannel": "Canal estable",
-        "prereleaseChannel": "Canal pre-release",
         "checkButton": "Buscar actualizaciones",
         "checking": "Comprobando…",
-        "currentLabel": "Estás en la versión {version}"
+        "currentLabel": "Estás en la versión {version}",
+        "rcBuildBadge": "Candidata a versión",
+        "betaBuildBadge": "Compilación beta",
+        "nightlyBuildBadge": "Compilación de prueba"
       },
       "upgradeInProgress": {
         "title": "Actualización en curso",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Actualización disponible: v{version}",
-        "prereleaseTitle": "Pre-release disponible: v{version}",
+        "rcTitle": "Candidata a versión disponible: v{version}",
+        "betaTitle": "Beta disponible: v{version}",
         "currentLine": "Estás en la v{version}",
         "updateButton": "Actualizar ahora",
-        "installButton": "Instalar"
+        "installButton": "Instalar",
+        "nightlyTitle": "Compilación de prueba disponible: v{version}",
+        "downgradeTitle": "Cambiar a la v{version}",
+        "downgradeLine": "Estás en la v{version}, más reciente que lo que ofrece tu elección de actualizaciones. Al cambiar se instala la versión anterior.",
+        "switchButton": "Cambiar"
+      },
+      "channel": {
+        "heading": "Qué actualizaciones recibir",
+        "stable": {
+          "label": "Estándar",
+          "help": "Solo versiones probadas. La opción adecuada para la mayoría de hogares."
+        },
+        "rc": {
+          "label": "Acceso anticipado",
+          "help": "Candidatas a versión una o dos semanas antes de convertirse en versiones normales. Terminadas, poco probadas."
+        },
+        "beta": {
+          "label": "Beta",
+          "help": "Betas de la próxima versión mientras aún se pule. Funcionalmente completas, pero con asperezas."
+        },
+        "nightly": {
+          "label": "Compilaciones de prueba",
+          "help": "Una compilación nueva del código más reciente casi cada noche. Hay cosas que se rompen y puede que tengas que volver a una versión normal."
+        },
+        "nightlyWarning": "Las compilaciones de prueba pueden cambiar tus ajustes guardados de forma que la versión normal no pueda leerlos. Se guarda una copia de tus ajustes de antes de tu primera compilación de prueba en la página Copias y datos."
       },
       "updateNotification": {
         "heading": "Notificación de actualización",

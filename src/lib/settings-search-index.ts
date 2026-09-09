@@ -91,7 +91,6 @@ export function isSettingsFieldReachable(
 // Named predicates so the intent reads at each use site and the conditions
 // stay in one place if a guard changes.
 const singleDisplayOnly = (ctx: SettingsFieldVisibilityContext) => !ctx.isMultiDisplay;
-const advancedOnly = (ctx: SettingsFieldVisibilityContext) => ctx.advancedMode;
 const hasProfiles = (ctx: SettingsFieldVisibilityContext) => ctx.profileCount > 0;
 const hasTransition = (ctx: SettingsFieldVisibilityContext) => ctx.transitionEffect !== 'none';
 
@@ -174,7 +173,6 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'integrations', fieldId: 'integrations.nasa', labelKey: 'settings.integrationsPage.nasa.name' },
   { pageId: 'integrations', fieldId: 'integrations.todoist', labelKey: 'settings.integrationsPage.todoist.name' },
   { pageId: 'integrations', fieldId: 'integrations.tomtom', labelKey: 'settings.integrationsPage.tomtom.name' },
-  { pageId: 'integrations', fieldId: 'integrations.github', labelKey: 'settings.integrationsPage.github.name', visibleWhen: advancedOnly },
 
   { pageId: 'network', fieldId: 'network.hiddenNetworkConnect', labelKey: 'settings.networkPage.hiddenNetwork.connectButton' },
   { pageId: 'network', fieldId: 'network.hostname', labelKey: 'settings.networkPage.hostname.heading' },
@@ -193,7 +191,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'system', fieldId: 'system.advancedMode', labelKey: 'settings.systemPage.advanced.toggleLabel' },
   { pageId: 'system', fieldId: 'system.version', labelKey: 'settings.systemPage.version.heading' },
   { pageId: 'system', fieldId: 'system.checkForUpdates', labelKey: 'settings.systemPage.version.checkButton' },
-  { pageId: 'system', fieldId: 'system.updateChannel', labelKey: 'settings.systemPage.version.stableChannel', visibleWhen: advancedOnly },
+  { pageId: 'system', fieldId: 'system.updateChannel', labelKey: 'settings.systemPage.channel.heading' },
   { pageId: 'system', fieldId: 'system.updateNotification', labelKey: 'settings.systemPage.updateNotification.enableLabel' },
   { pageId: 'system', fieldId: 'system.changelog', labelKey: 'settings.systemPage.changelog.heading' },
   { pageId: 'system', fieldId: 'system.rollback', labelKey: 'settings.systemPage.history.heading' },

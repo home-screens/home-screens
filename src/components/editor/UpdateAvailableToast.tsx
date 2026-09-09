@@ -6,6 +6,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { settingsPath } from '@/lib/settings-route';
 import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import { useTranslate } from '@/i18n';
+import { parseUpdateChannel } from '@/lib/semver';
 import { X, Download } from 'lucide-react';
 
 export default function UpdateAvailableToast() {
@@ -13,7 +14,7 @@ export default function UpdateAvailableToast() {
   const router = useRouter();
 
   const enabled = useEditorStore((s) => s.config?.settings?.updateNotification?.enabled ?? false);
-  const channel = useEditorStore((s) => s.config?.settings?.updateChannel === 'dev' ? 'dev' : 'stable');
+  const channel = useEditorStore((s) => parseUpdateChannel(s.config?.settings?.updateChannel));
 
   const { shouldShow, latestVersion, handleDismiss } = useUpdateNotification({
     enabled,

@@ -7,6 +7,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import type { ChangelogRelease, VersionResponse } from '@/lib/version';
+import { parseUpdateChannel, type UpdateChannel } from '@/lib/semver';
 
 const log = logger('system-settings');
 
@@ -31,14 +32,14 @@ export interface SystemActions {
   /** Release whose full notes are open in the changelog dialog, if any. */
   openRelease: ChangelogRelease | null;
   powerState: PowerState;
-  channel: 'stable' | 'dev';
+  channel: UpdateChannel;
   advancedMode: boolean;
   updateNotificationEnabled: boolean;
   updateNotifSaveError: boolean;
   handleCheckUpdates: () => void;
   handleOpenChangelog: () => void;
   handleOpenRelease: (release: ChangelogRelease | null) => void;
-  handleToggleChannel: () => Promise<void>;
+  handleSetChannel: (next: UpdateChannel) => Promise<void>;
   handleToggleAdvanced: () => Promise<void>;
   handleToggleUpdateNotification: (enabled: boolean) => Promise<void>;
   handleUpgrade: (tag: string) => Promise<void>;
@@ -67,10 +68,9 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
   const [openRelease, setOpenRelease] = useState<ChangelogRelease | null>(null);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
   const [updateNotifSaveError, setUpdateNotifSaveError] = useState(false);
-  const [channel, setChannel] = useState<'stable' | 'dev'>(() => {
-    const cfg = useEditorStore.getState().config;
-    return cfg?.settings?.updateChannel === 'dev' ? 'dev' : 'stable';
-  });
+  const [channel, setChannel] = useState<UpdateChannel>(() =>
+    parseUpdateChannel(useEditorStore.getState().config?.settings?.updateChannel),
+  );
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
   const updateNotificationEnabled = useEditorStore((s) => s.config?.settings?.updateNotification?.enabled ?? false);
 
@@ -78,7 +78,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     try {
       const params = new URLSearchParams();
       if (forceCheck) params.set('check', 'true');
-      if (channel === 'dev') params.set('channel', 'dev');
+      params.set('channel', channel);
       const query = params.toString();
       const vRes = await editorFetch(`/api/system/version${query ? `?${query}` : ''}`);
 
@@ -96,8 +96,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
 
   const fetchChangelog = useCallback(async () => {
     try {
-      const params = channel === 'dev' ? '?channel=dev' : '';
-      const res = await editorFetch(`/api/system/changelog${params}`);
+      const res = await editorFetch(`/api/system/changelog?channel=${channel}`);
       if (res.ok) {
         const data = await res.json();
         setReleases(data.releases ?? []);
@@ -130,8 +129,8 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     setOpenRelease(release);
   }
 
-  async function handleToggleChannel() {
-    const next = channel === 'stable' ? 'dev' : 'stable';
+  async function handleSetChannel(next: UpdateChannel) {
+    if (next === channel) return;
     setChannel(next);
     updateSettings({ updateChannel: next });
     try {
@@ -267,7 +266,7 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     handleCheckUpdates,
     handleOpenChangelog,
     handleOpenRelease,
-    handleToggleChannel,
+    handleSetChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,
     handleUpgrade,

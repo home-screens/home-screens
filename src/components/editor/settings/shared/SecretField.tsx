@@ -20,7 +20,6 @@ export type SecretKey =
   | 'google_client_secret'
   | 'google_web_client_id'
   | 'google_web_client_secret'
-  | 'github_token'
   | 'immich_url'
   | 'immich_api_key'
   | 'microsoft_client_id'

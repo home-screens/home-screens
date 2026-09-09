@@ -257,13 +257,19 @@ function preflightStep(
   };
 }
 
-function backupStep(progress: number): PipelineStep {
+/**
+ * Snapshot config before touching anything. The target tag rides along so
+ * the script can also pin a copy when a release build is about to be
+ * replaced by a prerelease one: nightlies carry unreleased migrations, and
+ * the rotating backups age out inside a week of daily installs.
+ */
+function backupStep(progress: number, targetTag: string): PipelineStep {
   return {
     step: 'backup',
     progress,
     message: 'Backing up configuration...',
     run: async () => {
-      const backupOut = await runUpgradeScript('backup', [], streamTo('backup'));
+      const backupOut = await runUpgradeScript('backup', [targetTag], streamTo('backup'));
       const backup = parseResult(backupOut);
       if (!backup.ok) {
         throw new Error(`Backup failed: ${backup.error}`);
@@ -507,7 +513,7 @@ async function runTarballUpgrade(targetTag: string): Promise<void> {
 
   const steps: PipelineStep[] = [
     preflightStep(5),
-    backupStep(10),
+    backupStep(10, targetTag),
     {
       step: 'download',
       progress: 20,
@@ -575,7 +581,7 @@ async function runGitUpgrade(targetTag: string): Promise<void> {
     preflightStep(5, (result) => {
       isDirty = result.dirty as boolean;
     }),
-    backupStep(10),
+    backupStep(10, targetTag),
     {
       step: 'migrate-remote',
       progress: 15,
@@ -670,7 +676,7 @@ export async function runRollback(targetTag: string): Promise<void> {
       progress: 10,
       message: 'Backing up current configuration...',
       run: async () => {
-        await runUpgradeScript('backup', [], streamTo('backup'));
+        await runUpgradeScript('backup', [targetTag], streamTo('backup'));
       },
     },
     {

@@ -654,7 +654,8 @@
           "restored": "Restored! Reload the editor to see changes.",
           "error": "Error: {error}",
           "failed": "Failed to restore backup"
-        }
+        },
+        "lastStableHelp": "Your settings from before the first early access or test build. Restore this if you go back to a normal release and it can't read your settings."
       },
       "backupPassword": {
         "setTitle": "Choose a password",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Paste your TomTom API key",
         "keyHelp": "Free at developer.tomtom.com. On your key, enable Geocoding API, Reverse Geocoding API, and Routing API (per-key, not just account-wide). Alternative to Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Higher rate limit for version checks",
-        "optionalBadge": "Optional",
-        "tokenLabel": "Personal Access Token",
-        "tokenPlaceholder": "Paste your GitHub token",
-        "tokenHelp": "Increases rate limit from 60 to 5,000 req/hr. Create at github.com/settings/tokens (no scopes needed)."
-      },
       "status": {
         "notConfigured": "Not configured",
         "connected": "Connected",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Advanced",
         "toggleLabel": "Show advanced options",
-        "help": "Reveals developer-facing controls: pre-release channel, GitHub token, and plugin developer mode."
+        "help": "Reveals developer-facing controls: test builds, build details, and plugin developer mode."
       },
       "version": {
         "heading": "Version",
-        "branchLabel": "Branch: {channel}",
+        "branchLabel": "Branch: {branch}",
         "installedFromRelease": "Installed from release",
-        "stableChannel": "Stable channel",
-        "prereleaseChannel": "Pre-release channel",
         "checkButton": "Check for Updates",
         "checking": "Checking…",
-        "currentLabel": "You're on version {version}"
+        "currentLabel": "You're on version {version}",
+        "rcBuildBadge": "Release candidate",
+        "betaBuildBadge": "Beta build",
+        "nightlyBuildBadge": "Test build"
       },
       "upgradeInProgress": {
         "title": "Upgrade in progress",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Update available: v{version}",
-        "prereleaseTitle": "Pre-release available: v{version}",
+        "rcTitle": "Release candidate available: v{version}",
+        "betaTitle": "Beta available: v{version}",
         "currentLine": "You are on v{version}",
         "updateButton": "Update Now",
-        "installButton": "Install"
+        "installButton": "Install",
+        "nightlyTitle": "Test build available: v{version}",
+        "downgradeTitle": "Switch to v{version}",
+        "downgradeLine": "You're on v{version}, which is newer than your update choice offers. Switching installs the older version.",
+        "switchButton": "Switch"
+      },
+      "channel": {
+        "heading": "Which updates to get",
+        "stable": {
+          "label": "Normal",
+          "help": "Tested releases only. The right choice for most homes."
+        },
+        "rc": {
+          "label": "Early access",
+          "help": "Release candidates a week or two before they become normal releases. Finished, lightly tested."
+        },
+        "beta": {
+          "label": "Beta",
+          "help": "Betas of the next version while it is still being shaken out. Feature complete, but expect rough edges."
+        },
+        "nightly": {
+          "label": "Test builds",
+          "help": "A fresh build from the latest code, most nights. Things break, and you may need to go back to a normal release."
+        },
+        "nightlyWarning": "Test builds can change your saved settings in ways the normal version can't read. A copy of your settings from before your first test build is kept on the Backups & data page."
       },
       "updateNotification": {
         "heading": "Update Notification",

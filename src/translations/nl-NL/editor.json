@@ -654,7 +654,8 @@
           "restored": "Teruggezet! Herlaad de editor om de wijzigingen te zien.",
           "error": "Fout: {error}",
           "failed": "Back-up terugzetten mislukt"
-        }
+        },
+        "lastStableHelp": "Je instellingen van vóór de eerste vroege-toegang- of testbuild. Zet deze terug als je teruggaat naar een normale versie en die je instellingen niet kan lezen."
       },
       "backupPassword": {
         "setTitle": "Kies een wachtwoord",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Plak je TomTom API-sleutel",
         "keyHelp": "Gratis op developer.tomtom.com; Routing API vereist. Alternatief voor Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Hogere rate limit voor versiecontroles",
-        "optionalBadge": "Optioneel",
-        "tokenLabel": "Persoonlijk toegangstoken",
-        "tokenPlaceholder": "Plak je GitHub-token",
-        "tokenHelp": "Verhoogt de rate limit van 60 naar 5.000 verzoeken/uur. Maak aan op github.com/settings/tokens (geen scopes nodig)."
-      },
       "status": {
         "notConfigured": "Niet geconfigureerd",
         "connected": "Verbonden",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Geavanceerd",
         "toggleLabel": "Geavanceerde opties tonen",
-        "help": "Toont knoppen voor ontwikkelaars: pre-release-kanaal, GitHub-token en plugin-ontwikkelaarsmodus."
+        "help": "Toont opties voor ontwikkelaars: testbuilds, builddetails en de ontwikkelaarsmodus voor plugins."
       },
       "version": {
         "heading": "Versie",
-        "branchLabel": "Branch: {channel}",
+        "branchLabel": "Branch: {branch}",
         "installedFromRelease": "Geïnstalleerd vanaf release",
-        "stableChannel": "Stabiel kanaal",
-        "prereleaseChannel": "Pre-release-kanaal",
         "checkButton": "Controleren op updates",
         "checking": "Controleren…",
-        "currentLabel": "Je gebruikt versie {version}"
+        "currentLabel": "Je gebruikt versie {version}",
+        "rcBuildBadge": "Kandidaatversie",
+        "betaBuildBadge": "Bètabuild",
+        "nightlyBuildBadge": "Testbuild"
       },
       "upgradeInProgress": {
         "title": "Upgrade bezig",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Update beschikbaar: v{version}",
-        "prereleaseTitle": "Pre-release beschikbaar: v{version}",
+        "rcTitle": "Kandidaatversie beschikbaar: v{version}",
+        "betaTitle": "Bèta beschikbaar: v{version}",
         "currentLine": "Je gebruikt v{version}",
         "updateButton": "Nu bijwerken",
-        "installButton": "Installeren"
+        "installButton": "Installeren",
+        "nightlyTitle": "Testbuild beschikbaar: v{version}",
+        "downgradeTitle": "Overstappen naar v{version}",
+        "downgradeLine": "Je gebruikt v{version}, nieuwer dan wat je updatekeuze aanbiedt. Overstappen installeert de oudere versie.",
+        "switchButton": "Overstappen"
+      },
+      "channel": {
+        "heading": "Welke updates je krijgt",
+        "stable": {
+          "label": "Normaal",
+          "help": "Alleen geteste versies. De juiste keuze voor de meeste gezinnen."
+        },
+        "rc": {
+          "label": "Vroege toegang",
+          "help": "Kandidaatversies een week of twee voordat ze normale versies worden. Af, licht getest."
+        },
+        "beta": {
+          "label": "Bèta",
+          "help": "Bèta's van de volgende versie terwijl die nog wordt bijgeschaafd. Functioneel compleet, maar verwacht ruwe randjes."
+        },
+        "nightly": {
+          "label": "Testbuilds",
+          "help": "Bijna elke nacht een verse build van de nieuwste code. Er gaan dingen kapot en je moet misschien terug naar een normale versie."
+        },
+        "nightlyWarning": "Testbuilds kunnen je opgeslagen instellingen zo veranderen dat de normale versie ze niet meer kan lezen. Een kopie van je instellingen van vóór je eerste testbuild wordt bewaard op de pagina Back-ups en gegevens."
       },
       "updateNotification": {
         "heading": "Updatemelding",

@@ -102,9 +102,9 @@ describe('useSecretStatus', () => {
     expect(result.current.loading).toBe(false);
 
     await act(async () => {
-      resolveSecond(jsonResponse({ github_token: true }));
+      resolveSecond(jsonResponse({ todoist_token: true }));
     });
-    await waitFor(() => expect(result.current.status).toEqual({ github_token: true }));
+    await waitFor(() => expect(result.current.status).toEqual({ todoist_token: true }));
     expect(result.current.error).toBe(false);
     expect(result.current.loading).toBe(false);
   });

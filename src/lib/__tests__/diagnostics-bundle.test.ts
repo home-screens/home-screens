@@ -24,7 +24,7 @@ async function collectZipEntries(stream: Readable): Promise<Set<string>> {
 
 function minimalInput(): BundleInput {
   return {
-    meta: { version: '1.2.0', generatedAt: '2026-04-17T12:00:00Z', node: 'v22.0.0', platform: 'darwin' },
+    meta: { version: '1.2.0', buildChannel: 'stable', updateChannel: 'stable', build: null, generatedAt: '2026-04-17T12:00:00Z', node: 'v22.0.0', platform: 'darwin' },
     redactedConfig: { version: 1, settings: {}, screens: [] } as never,
     secretsStatus: { openweathermap_key: true, weatherapi_key: false },
     systemStats: { disk: {}, os: {}, memory: {}, app: {} } as never,

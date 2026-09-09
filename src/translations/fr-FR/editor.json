@@ -654,7 +654,8 @@
           "restored": "Restauré ! Recharge l'éditeur pour voir les changements.",
           "error": "Erreur : {error}",
           "failed": "Échec de la restauration de la sauvegarde"
-        }
+        },
+        "lastStableHelp": "Tes réglages d'avant le premier build en avant-première ou de test. Restaure-les si tu reviens à une version normale et qu'elle ne sait pas lire tes réglages."
       },
       "backupPassword": {
         "setTitle": "Choisissez un mot de passe",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Colle ta clé API TomTom",
         "keyHelp": "Gratuit sur developer.tomtom.com ; Routing API requise. Alternative à Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Limite de débit plus élevée pour les vérifications de version",
-        "optionalBadge": "Facultatif",
-        "tokenLabel": "Jeton d’accès personnel",
-        "tokenPlaceholder": "Colle ton token GitHub",
-        "tokenHelp": "Augmente la limite de débit de 60 à 5 000 req/h. Crée-le sur github.com/settings/tokens (aucun scope requis)."
-      },
       "status": {
         "notConfigured": "Non configuré",
         "connected": "Connecté",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Avancé",
         "toggleLabel": "Afficher les options avancées",
-        "help": "Révèle les contrôles destinés aux développeurs : canal pré-version, token GitHub et mode développeur de plugin."
+        "help": "Affiche les réglages destinés aux développeurs : builds de test, détails du build et mode développeur des plugins."
       },
       "version": {
         "heading": "Version",
-        "branchLabel": "Branche : {channel}",
+        "branchLabel": "Branche : {branch}",
         "installedFromRelease": "Installé depuis une release",
-        "stableChannel": "Canal stable",
-        "prereleaseChannel": "Canal pré-version",
         "checkButton": "Vérifier les mises à jour",
         "checking": "Vérification…",
-        "currentLabel": "Vous êtes en version {version}"
+        "currentLabel": "Vous êtes en version {version}",
+        "rcBuildBadge": "Version candidate",
+        "betaBuildBadge": "Build bêta",
+        "nightlyBuildBadge": "Build de test"
       },
       "upgradeInProgress": {
         "title": "Mise à niveau en cours",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Mise à jour disponible : v{version}",
-        "prereleaseTitle": "Pré-version disponible : v{version}",
+        "rcTitle": "Version candidate disponible : v{version}",
+        "betaTitle": "Bêta disponible : v{version}",
         "currentLine": "Tu es en v{version}",
         "updateButton": "Mettre à jour maintenant",
-        "installButton": "Installer"
+        "installButton": "Installer",
+        "nightlyTitle": "Build de test disponible : v{version}",
+        "downgradeTitle": "Passer à la v{version}",
+        "downgradeLine": "Tu es en v{version}, plus récente que ce que ton choix de mises à jour propose. Passer installe la version plus ancienne.",
+        "switchButton": "Passer"
+      },
+      "channel": {
+        "heading": "Quelles mises à jour recevoir",
+        "stable": {
+          "label": "Standard",
+          "help": "Uniquement les versions testées. Le bon choix pour la plupart des foyers."
+        },
+        "rc": {
+          "label": "Avant-première",
+          "help": "Les versions candidates une ou deux semaines avant de devenir des versions normales. Terminées, peu testées."
+        },
+        "beta": {
+          "label": "Bêta",
+          "help": "Les bêtas de la prochaine version pendant qu'elle se stabilise. Fonctionnellement complètes, mais avec des imperfections."
+        },
+        "nightly": {
+          "label": "Builds de test",
+          "help": "Un build tout frais du code le plus récent, presque chaque nuit. Des choses cassent, et il faudra peut-être revenir à une version normale."
+        },
+        "nightlyWarning": "Les builds de test peuvent modifier tes réglages enregistrés d'une façon que la version normale ne sait pas lire. Une copie de tes réglages d'avant ton premier build de test est conservée sur la page Sauvegardes et données."
       },
       "updateNotification": {
         "heading": "Notification de mise à jour",

@@ -68,6 +68,19 @@ describe('GET /api/system/backups', () => {
     expect(readFileMock).not.toHaveBeenCalled();
   });
 
+  it('accepts the prerelease-versioned and pinned snapshot names', async () => {
+    // A snapshot taken on a test build carries that build's dash-suffixed
+    // version; the pinned pre-prerelease copy has a fixed name.
+    for (const name of ['config-v1.12.3-dev.20260908-20260908-031500.json', 'config-v1.13.0-rc.1-20260908-031500.json', 'last-stable-config.json']) {
+      const res = await GET(getRequest(`?download=${name}`));
+      expect(res.status, name).toBe(200);
+    }
+    for (const name of ['config-v1.12.3-dev.20260908.json', 'last-stable-config.json.bak', '../last-stable-config.json']) {
+      const res = await GET(getRequest(`?download=${encodeURIComponent(name)}`));
+      expect(res.status, name).toBe(400);
+    }
+  });
+
   it('streams a valid backup file for download', async () => {
     const res = await GET(getRequest(`?download=${VALID_NAME}`));
     expect(res.status).toBe(200);

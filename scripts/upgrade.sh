@@ -8,7 +8,7 @@ set -euo pipefail
 #   upgrade.sh preflight              - Check if upgrade is possible
 #   upgrade.sh sudo-check             - Passwordless sudo ready (repairs it with the image default)
 #   upgrade.sh grant-sudo             - Write the passwordless sudo grant; password on stdin
-#   upgrade.sh backup                 - Backup config to data/backups/
+#   upgrade.sh backup [target-tag]    - Backup config to data/backups/ (pins a copy when leaving a release build)
 #   upgrade.sh download <tag>         - Download release tarball from GitHub
 #   upgrade.sh deploy                 - Atomic swap of staged files into place
 #   upgrade.sh finalize-deploy [port] - Wait for new release to be healthy then drop rollback
@@ -33,6 +33,9 @@ BACKUP_DIR="${APP_DIR}/data/backups"
 CONFIG_FILE="${APP_DIR}/data/config.json"
 SERVICE_NAME="home-screens"
 MAX_BACKUPS=6
+# Config snapshot pinned the last time a release build was replaced by an
+# early-access or test build. Never rotated; see the backup action.
+LAST_STABLE_BACKUP="last-stable-config.json"
 
 # cd may fail if APP_DIR was removed by an interrupted deploy — the preflight
 # action's recovery check handles this, so we must not abort here.
@@ -204,18 +207,46 @@ case "${action}" in
     ;;
 
   backup)
+    # Optional: the tag about to be installed. When a release build is about
+    # to be replaced by an early-access or test build, the current config is
+    # also pinned as LAST_STABLE_BACKUP, which the rotation below never
+    # touches. Test builds carry unreleased settings migrations, and the
+    # rotating snapshots age out inside a week of daily installs, so this is
+    # the copy a release build is guaranteed to be able to read.
+    target_tag="${1:-}"
     mkdir -p "${BACKUP_DIR}"
     if [ -f "${CONFIG_FILE}" ]; then
       timestamp=$(date +%Y%m%d-%H%M%S)
-      version=$(node -p "require('./package.json').version" 2>/dev/null || echo "unknown")
+      # node may be off PATH under systemd; the sed fallback reads the same
+      # field without it, and an unreadable file yields "unknown".
+      version=$(node -p "require('./package.json').version" 2>/dev/null \
+        || sed -n 's/^ *"version": *"\([^"]*\)".*/\1/p' package.json 2>/dev/null | head -n 1 \
+        || true)
+      [ -n "${version}" ] || version="unknown"
       backup_name="config-v${version}-${timestamp}.json"
       cp "${CONFIG_FILE}" "${BACKUP_DIR}/${backup_name}"
 
-      # Prune old backups, keep latest MAX_BACKUPS
+      # Pin only when the running version is provably a release build
+      # (X.Y.Z, no suffix). Anything else, "unknown" included, must not
+      # overwrite the pin: a test build whose version could not be read is
+      # still a test build, and its config is the one the pin exists to
+      # protect against.
+      pinned=false
+      if [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        case "${target_tag}" in
+          *-*)
+            cp "${CONFIG_FILE}" "${BACKUP_DIR}/${LAST_STABLE_BACKUP}"
+            pinned=true
+            ;;
+        esac
+      fi
+
+      # Prune old backups, keep latest MAX_BACKUPS. The pinned copy has its
+      # own name outside this glob on purpose.
       # shellcheck disable=SC2012
       ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null | tail -n +$(( MAX_BACKUPS + 1 )) | xargs -r rm -f
 
-      echo "{\"ok\":true,\"file\":\"${backup_name}\"}"
+      echo "{\"ok\":true,\"file\":\"${backup_name}\",\"pinnedStable\":${pinned}}"
     else
       echo "{\"ok\":true,\"file\":null}"
     fi
@@ -619,7 +650,10 @@ case "${action}" in
     mkdir -p "${BACKUP_DIR}"
     files="["
     first=true
-    for f in $(ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null); do
+    # The pinned pre-prerelease copy lists first when present, then the
+    # rotating snapshots newest first.
+    # shellcheck disable=SC2012
+    for f in $(ls -1 "${BACKUP_DIR}/${LAST_STABLE_BACKUP}" 2>/dev/null; ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null); do
       name=$(basename "$f")
       size=$(wc -c < "$f" | tr -d ' ')
       modified=$(date -r "$f" +%Y-%m-%dT%H:%M:%S 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo "unknown")

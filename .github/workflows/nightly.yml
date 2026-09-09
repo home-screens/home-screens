@@ -1,0 +1,138 @@
+name: Nightly
+
+# A test build from main, most nights, published as a GitHub prerelease that
+# installs through Settings > System like any release. It is what the
+# "Test builds" update choice offers.
+#
+# Guards, in order:
+#   - main's CI run for this commit must have passed; a red main is never an
+#     installable artifact.
+#   - nothing new since the last nightly means no build.
+#   - the tag is date-stamped, not counted: a commit counter resets at every
+#     release tag and would rank an older nightly above a newer one until
+#     the older one was pruned.
+#
+# Version shape: vX.Y.Z-dev.YYYYMMDD, decided by scripts/nightly-version.sh
+# (which explains the base rule and is covered by scripts/__tests__). A
+# second build on the same day gets a .2 suffix. The Pi image is not built:
+# it is a two-hour ARM job, and nightly users install through the upgrade
+# flow.
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 08:00 UTC = 2-3am Central, an hour before the E2E schedule
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Build even if nothing changed since the last nightly'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+env:
+  KEEP_NIGHTLIES: 14
+
+jobs:
+  prepare:
+    name: Decide whether to build
+    runs-on: ubuntu-24.04
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+      version: ${{ steps.decide.outputs.version }}
+      sha: ${{ steps.decide.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Require a green CI run for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA="$(git rev-parse HEAD)"
+          CONCLUSION="$(gh run list --repo "${{ github.repository }}" --workflow ci.yml \
+            --branch main --commit "${SHA}" --json conclusion,status \
+            --jq 'map(select(.status == "completed")) | .[0].conclusion // ""')"
+          if [ "${CONCLUSION}" != "success" ]; then
+            echo "::error::CI for ${SHA} on main is '${CONCLUSION:-not finished}', not success. No nightly from a red main."
+            exit 1
+          fi
+
+      - name: Decide version
+        id: decide
+        env:
+          FORCE: ${{ inputs.force || 'false' }}
+        run: bash scripts/nightly-version.sh >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: prepare
+    if: ${{ needs.prepare.outputs.build == 'true' }}
+    uses: ./.github/workflows/build-tarball.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      ref: ${{ needs.prepare.outputs.sha }}
+
+  publish:
+    name: Publish prerelease
+    needs: [prepare, build]
+    if: ${{ needs.prepare.outputs.build == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: standalone-tarball
+          path: .
+
+      # `make_latest: false` keeps install.sh's releases/latest lookup, and
+      # the app's own stable resolution, from ever landing on a nightly.
+      # Generated notes list the commits since the previous tag, which for a
+      # nightly is usually the previous nightly.
+      - name: Create GitHub prerelease
+        uses: softprops/action-gh-release@v2.5.0
+        with:
+          tag_name: ${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ needs.prepare.outputs.sha }}
+          name: ${{ needs.prepare.outputs.version }}
+          files: |
+            home-screens-*.tar.gz
+            home-screens-*.tar.gz.sha256
+          generate_release_notes: true
+          draft: false
+          prerelease: true
+          make_latest: false
+
+  prune:
+    name: Prune old nightlies
+    needs: [prepare, publish]
+    if: ${{ needs.prepare.outputs.build == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      # The app only searches the newest 30 releases, and the Settings list
+      # shows 20, so unbounded nightlies would bury every real release and
+      # fail their own upgrade precheck once they aged out of the window.
+      # Release and tag go together: a tag with no release would still be
+      # counted by the nightly version logic above.
+      - name: Delete nightlies beyond the newest KEEP_NIGHTLIES
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --repo "${{ github.repository }}" --limit 200 \
+            --json tagName,isPrerelease,createdAt \
+            --jq 'map(select(.isPrerelease and (.tagName | test("-dev\\.")))) | sort_by(.createdAt) | reverse | .[env.KEEP_NIGHTLIES | tonumber:] | .[].tagName' \
+          | while read -r TAG; do
+              [ -z "${TAG}" ] && continue
+              echo "Deleting ${TAG}"
+              gh release delete "${TAG}" --repo "${{ github.repository }}" --cleanup-tag --yes
+            done

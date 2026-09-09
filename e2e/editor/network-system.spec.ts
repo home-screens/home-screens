@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { Page, Route } from '@playwright/test';
-import { putConfig } from '../helpers/api';
+import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig } from '../helpers/config-fixtures';
 
 /**
@@ -65,11 +65,14 @@ const DIAGNOSTICS = {
 const VERSION_UP_TO_DATE = {
   current: '1.2.3',
   currentCommit: 'abc1234',
+  currentChannel: 'stable',
+  updateChannel: 'stable',
   latest: null,
   latestCommit: null,
   updateAvailable: false,
+  isDowngrade: false,
   installedVia: 'git',
-  channel: 'main',
+  branch: 'main',
   tags: [
     { tag: 'v1.2.3', version: '1.2.3', commit: 'abc1234' },
     { tag: 'v1.2.2', version: '1.2.2', commit: 'def5678' },
@@ -106,7 +109,37 @@ const CHANGELOG = {
 const BACKUPS = {
   backups: [
     { name: 'config-backup-2026-07-01.json', size: 4096, modified: '2026-07-01T12:00:00Z' },
+    // The copy upgrade.sh pins before the first early-access or test build.
+    { name: 'last-stable-config.json', size: 4096, modified: '2026-06-30T12:00:00Z' },
   ],
+};
+
+/** A nightly build whose owner picked the normal channel again: the
+ * channel's newest is below what is running, so the offer is a step back. */
+const VERSION_DOWNGRADE = {
+  ...VERSION_UP_TO_DATE,
+  current: '1.3.0-dev.20260908',
+  currentChannel: 'nightly',
+  latest: '1.2.3',
+  latestCommit: 'abc1234',
+  updateAvailable: true,
+  isDowngrade: true,
+};
+
+const VERSION_BETA_AVAILABLE = {
+  ...VERSION_UP_TO_DATE,
+  updateChannel: 'beta',
+  latest: '1.3.0-beta.1',
+  latestCommit: 'ccc7777',
+  updateAvailable: true,
+};
+
+const VERSION_NIGHTLY_AVAILABLE = {
+  ...VERSION_UP_TO_DATE,
+  updateChannel: 'nightly',
+  latest: '1.2.4-dev.20260908',
+  latestCommit: 'bbb8888',
+  updateAvailable: true,
 };
 
 /* ─── Stub harness ─────────────────────────────────────────────────────── */
@@ -563,10 +596,13 @@ test.describe('Defaults › System', () => {
 
     await expect(page.getByRole('heading', { name: 'Automatic snapshots' })).toBeVisible();
     await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Download' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Download' }).first()).toBeVisible();
     // exact — the Full Backup section's "Restore Backup" button lives on the
     // same page now, and role-name matching is substring by default.
-    await expect(page.getByRole('button', { name: 'Restore', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Restore', exact: true }).first()).toBeVisible();
+    // The pinned pre-prerelease copy says what it is for; the rotating ones don't.
+    await expect(page.getByText('last-stable-config.json')).toBeVisible();
+    await expect(page.getByText(/Your settings from before the first early access or test build/)).toHaveCount(1);
 
     assertNoRealSystemCall(stubs);
   });
@@ -622,6 +658,110 @@ test.describe('Defaults › System', () => {
     assertNoRealSystemCall(stubs);
   });
 
+  test('the update choice offers Normal, Early access and Beta to everyone, Test builds behind advanced options', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page);
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    // Not behind "Show advanced options": candidates and betas exist to get
+    // ordinary homes onto them early. Test builds are a developer control.
+    const group = page.getByRole('radiogroup', { name: 'Which updates to get' });
+    await expect(group).toBeVisible();
+    await expect(group.getByRole('radio', { name: /Normal/ })).toBeChecked();
+    await expect(group.getByRole('radio', { name: /Early access/ })).not.toBeChecked();
+    await expect(group.getByRole('radio', { name: /^Beta/ })).not.toBeChecked();
+    await expect(group.getByRole('radio', { name: /Test builds/ })).toHaveCount(0);
+
+    // Early access saves and re-runs the version check scoped to that channel.
+    const recheckRc = page.waitForRequest((req) =>
+      req.url().includes('/api/system/version') && req.url().includes('channel=rc'),
+    );
+    await group.getByRole('radio', { name: /Early access/ }).check();
+    await recheckRc;
+    await expect.poll(async () => (await getConfig(request)).settings.updateChannel).toBe('rc');
+
+    // Beta is its own tier above release candidates, saved under its own id.
+    const recheckBeta = page.waitForRequest((req) =>
+      req.url().includes('/api/system/version') && req.url().includes('channel=beta'),
+    );
+    await group.getByRole('radio', { name: /^Beta/ }).check();
+    await recheckBeta;
+    await expect.poll(async () => (await getConfig(request)).settings.updateChannel).toBe('beta');
+
+    // Advanced mode reveals Test builds; picking it warns in plain words.
+    await page.locator('[data-field-id="system.advancedMode"]').click();
+    const testBuilds = group.getByRole('radio', { name: /Test builds/ });
+    await expect(testBuilds).toBeVisible();
+    await expect(page.getByText(/Test builds can change your saved settings/)).toHaveCount(0);
+    const recheckNightly = page.waitForRequest((req) =>
+      req.url().includes('/api/system/version') && req.url().includes('channel=nightly'),
+    );
+    await testBuilds.check();
+    await recheckNightly;
+    await expect(page.getByText(/Test builds can change your saved settings/)).toBeVisible();
+    await expect.poll(async () => (await getConfig(request)).settings.updateChannel).toBe('nightly');
+
+    // Turning advanced mode back off must not strand the device on a channel
+    // it can no longer see: the option stays while it is the one in use.
+    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await expect(page.locator('[data-field-id="system.advancedMode"]')).toHaveAttribute('aria-checked', 'false');
+    await expect(testBuilds).toBeChecked();
+
+    // Stepping back to Normal clears the warning, saves, and the option goes.
+    await group.getByRole('radio', { name: /Normal/ }).check();
+    await expect(page.getByText(/Test builds can change your saved settings/)).toHaveCount(0);
+    await expect.poll(async () => (await getConfig(request)).settings.updateChannel).toBe('stable');
+    await expect(group.getByRole('radio', { name: /Test builds/ })).toHaveCount(0);
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('a beta offered on the beta channel is labelled as one', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page, { version: VERSION_BETA_AVAILABLE });
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    await expect(page.getByText('Beta available: v1.3.0-beta.1')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Install' })).toBeVisible();
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('a test build offered on the test-builds channel is labelled as one', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page, { version: VERSION_NIGHTLY_AVAILABLE });
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    await expect(page.getByText('Test build available: v1.2.4-dev.20260908')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Install' })).toBeVisible();
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('a nightly build on the normal channel is offered the stable as a switch, not an update', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    const stubs = await setupSystemStubs(page, { version: VERSION_DOWNGRADE });
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+
+    // The running build says what it is next to its number.
+    await expect(page.getByText("You're on version 1.3.0-dev.20260908")).toBeVisible();
+    await expect(page.getByTestId('system-build-badge')).toHaveText('Test build');
+
+    // The offer is the channel's newest, which is a lower number, and the
+    // copy says so rather than calling it an update.
+    const banner = page.getByTestId('system-update-banner');
+    await expect(banner.getByText('Switch to v1.2.3')).toBeVisible();
+    await expect(banner.getByText(/which is newer than your update choice offers/)).toBeVisible();
+    await expect(banner.getByRole('button', { name: 'Switch' })).toBeVisible();
+    await expect(page.getByText("You're on the latest version")).toHaveCount(0);
+
+    assertNoRealSystemCall(stubs);
+  });
+
   test('restoring a config backup confirms, POSTs to the stub, and reports success', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     const stubs = await setupSystemStubs(page);
@@ -630,7 +770,7 @@ test.describe('Defaults › System', () => {
     await page.goto('/editor/settings?section=defaults&page=data');
 
     // exact — avoids the Full Backup section's "Restore Backup" button.
-    await page.getByRole('button', { name: 'Restore', exact: true }).click();
+    await page.getByRole('button', { name: 'Restore', exact: true }).first().click();
 
     // Confirm dialog (ConfirmModal, mounted in the editor layout).
     const dialog = page.getByRole('dialog');

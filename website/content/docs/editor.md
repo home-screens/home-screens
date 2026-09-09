@@ -314,10 +314,7 @@ The two phone addresses (the kids' chores page and the family remote) with QR co
 
 Keys and logins that unlock extra content, one card per service, each showing whether it is set up. They are stored on the Pi and never sent anywhere else. Weather keys are the exception and live on their provider's card under **Settings > Weather**.
 
-Which service needs which key is listed under [API keys](/docs/calendars#api-keys). Two gotchas worth repeating:
-
-- **TomTom**: the Geocoding, Reverse Geocoding, and Routing APIs must be enabled **on the key itself**, not just on your account, or the traffic module fails with an unhelpful error.
-- **GitHub token**: only appears when **Show advanced options** is on (System & updates).
+Which service needs which key is listed under [API keys](/docs/calendars#api-keys). One gotcha worth repeating: for **TomTom**, the Geocoding, Reverse Geocoding, and Routing APIs must be enabled **on the key itself**, not just on your account, or the traffic module fails with an unhelpful error.
 
 ### Security
 
@@ -350,12 +347,13 @@ A live page: the display's state, current screen and last check-in; **Storage** 
 
 ### System & updates
 
-- **Version** says **You're on version** so-and-so. **Check for Updates** looks for a newer release and offers **Update Now**; the update downloads a pre-built release, swaps it in and restarts, with no build step on the Pi.
+- **Version** says **You're on version** so-and-so, with a **Release candidate**, **Beta build** or **Test build** tag when that is what is running. **Check for Updates** looks for a newer release and offers **Update Now**; the update downloads a pre-built release, swaps it in and restarts, with no build step on the Pi.
+- **Which updates to get**: **Normal** (tested releases only), **Early access** (release candidates, finished and lightly tested), **Beta** (feature complete, still being shaken out) or, with **Show advanced options** on, **Test builds** (a fresh build from the latest code most nights; things break). Each choice also sees everything below it. Test builds can change your saved settings in ways a normal release can't read, so a copy from before your first test build is kept on the Backups & data page.
 - **Update Notification**: **Notify me when an update is available** shows a note in the editor and on the family remote. Off by default; a dismissed note stays dismissed for that release only.
 - **Changelog**: **View Changelog** for each release's notes.
 - **If an update caused trouble** lists earlier versions with **Go back to this** on each. Going back downloads that release again, so it needs an internet connection; older versions may not understand newer settings.
 - **If something seems stuck**: **Restart Home Screens** (a few seconds) and **Restart the whole device** (a minute or two).
-- **Advanced**: **Show advanced options** reveals the **Stable channel** / **Pre-release channel** switch here, the GitHub token card on the API keys page, and the Developer tab in the Plugins panel.
+- **Advanced**: **Show advanced options** reveals the **Test builds** choice and the commit and branch under the version here, and the Developer tab in the Plugins panel.
 
 ### Automation
 

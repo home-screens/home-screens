@@ -654,7 +654,8 @@
           "restored": "Wiederhergestellt! Lade den Editor neu, um die Änderungen zu sehen.",
           "error": "Fehler: {error}",
           "failed": "Backup konnte nicht wiederhergestellt werden"
-        }
+        },
+        "lastStableHelp": "Deine Einstellungen von vor dem ersten Vorab- oder Test-Build. Stelle sie wieder her, wenn du zu einer normalen Version zurückgehst und sie deine Einstellungen nicht lesen kann."
       },
       "backupPassword": {
         "setTitle": "Passwort wählen",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Füge deinen TomTom-API-Schlüssel ein",
         "keyHelp": "Kostenlos unter developer.tomtom.com; Routing API erforderlich. Alternative zu Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Höheres Anfragelimit für Versionsprüfungen",
-        "optionalBadge": "Optional",
-        "tokenLabel": "Persönlicher Zugriffstoken",
-        "tokenPlaceholder": "Füge deinen GitHub-Token ein",
-        "tokenHelp": "Erhöht das Anfragelimit von 60 auf 5.000 Anfragen/Stunde. Erstelle unter github.com/settings/tokens (keine Scopes nötig)."
-      },
       "status": {
         "notConfigured": "Nicht konfiguriert",
         "connected": "Verbunden",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Erweitert",
         "toggleLabel": "Erweiterte Optionen anzeigen",
-        "help": "Zeigt entwicklerseitige Steuerelemente: Pre-Release-Kanal, GitHub-Token und Plugin-Entwicklermodus."
+        "help": "Zeigt entwicklerseitige Steuerelemente: Test-Builds, Build-Details und Plugin-Entwicklermodus."
       },
       "version": {
         "heading": "Version",
-        "branchLabel": "Branch: {channel}",
+        "branchLabel": "Branch: {branch}",
         "installedFromRelease": "Aus Release installiert",
-        "stableChannel": "Stable-Kanal",
-        "prereleaseChannel": "Pre-Release-Kanal",
         "checkButton": "Nach Updates suchen",
         "checking": "Wird geprüft …",
-        "currentLabel": "Du nutzt Version {version}"
+        "currentLabel": "Du nutzt Version {version}",
+        "rcBuildBadge": "Release-Kandidat",
+        "betaBuildBadge": "Beta-Build",
+        "nightlyBuildBadge": "Test-Build"
       },
       "upgradeInProgress": {
         "title": "Aktualisierung läuft",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Update verfügbar: v{version}",
-        "prereleaseTitle": "Pre-Release verfügbar: v{version}",
+        "rcTitle": "Release-Kandidat verfügbar: v{version}",
+        "betaTitle": "Beta verfügbar: v{version}",
         "currentLine": "Du bist auf v{version}",
         "updateButton": "Jetzt aktualisieren",
-        "installButton": "Installieren"
+        "installButton": "Installieren",
+        "nightlyTitle": "Test-Build verfügbar: v{version}",
+        "downgradeTitle": "Zu v{version} wechseln",
+        "downgradeLine": "Du bist auf v{version}, das neuer ist als das, was deine Update-Auswahl anbietet. Beim Wechsel wird die ältere Version installiert.",
+        "switchButton": "Wechseln"
+      },
+      "channel": {
+        "heading": "Welche Updates du bekommst",
+        "stable": {
+          "label": "Standard",
+          "help": "Nur getestete Versionen. Die richtige Wahl für die meisten Haushalte."
+        },
+        "rc": {
+          "label": "Vorab",
+          "help": "Release-Kandidaten ein bis zwei Wochen, bevor sie zu normalen Versionen werden. Fertig, leicht getestet."
+        },
+        "beta": {
+          "label": "Beta",
+          "help": "Betas der nächsten Version, solange sie noch reift. Funktional komplett, aber mit Ecken und Kanten."
+        },
+        "nightly": {
+          "label": "Test-Builds",
+          "help": "Fast jede Nacht ein frischer Build aus dem neuesten Code. Es geht Dinge kaputt, und du musst vielleicht zu einer normalen Version zurück."
+        },
+        "nightlyWarning": "Test-Builds können deine gespeicherten Einstellungen so verändern, dass die normale Version sie nicht mehr lesen kann. Eine Kopie deiner Einstellungen von vor dem ersten Test-Build bleibt auf der Seite Backups & Daten erhalten."
       },
       "updateNotification": {
         "heading": "Update-Benachrichtigung",

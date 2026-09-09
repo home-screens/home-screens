@@ -39,108 +39,26 @@ jobs:
   build:
     name: Build & Release
     # A rebuild takes its payload from an already-published release, so there is
-    # nothing to compile. The image job handles the skip.
-    if: ${{ (inputs.rebuild_from_tag || '') == '' }}
-    runs-on: ubuntu-24.04-arm
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+    # nothing to compile. The image job handles the skip. Nightly tags belong to
+    # the Nightly workflow, which publishes them without a Pi image.
+    if: ${{ (inputs.rebuild_from_tag || '') == '' && !contains(github.ref_name, '-dev.') }}
+    uses: ./.github/workflows/build-tarball.yml
+    with:
+      version: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+
+  publish:
+    name: Publish release
+    needs: build
+    if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-dev.') }}
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve version
-        id: version
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: '.node-version'
-          cache: npm
-
-      # Node 22 bundles npm 10; raise it to the engines floor in package.json.
-      - run: |
-          npm install -g "npm@$(node -p 'require("./package.json").engines.npm' | tr -d '>=^~ ')"
-
-      - run: npm ci
-
-      - run: npm run build
-
-      # Assemble standalone tarball
-      - name: Assemble tarball
-        run: |
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
-          cp -r scripts .next/standalone/scripts
-          cp .node-version .next/standalone/.node-version
-
-          # Bundle the config-check CLI so `npm run config:check` works on
-          # installs with no dev dependencies or src/ tree. The launcher
-          # (scripts/check-config.mjs) prefers this artifact when present.
-          npx esbuild scripts/check-config.ts --bundle --platform=node \
-            --format=cjs --outfile=.next/standalone/scripts/check-config.cjs
-
-          # Ship an empty data/ dir, never a seeded config.json. The app
-          # writes data/config.json from DEFAULT_CONFIG (src/lib/config.ts)
-          # on first read; install.sh and the image builder (stage
-          # 04-install-app.sh) each write their own seed when the file is
-          # absent, because setup-system and firstboot only patch an existing
-          # file. A hand-rolled seed here silently outranks all of them and
-          # goes stale: this one still pinned schema version 1, the removed
-          # calendar.maxEvents field, and the keyed weatherapi provider, so
-          # every fresh install landed on a weather provider that needs an
-          # API key.
-          mkdir -p .next/standalone/data
-
-          # package.json with corrected start script for tarball root
-          node -e "
-            const pkg = require('./package.json');
-            pkg.scripts.start = 'node server.js';
-            require('fs').writeFileSync(
-              '.next/standalone/package.json',
-              JSON.stringify(pkg, null, 2)
-            );
-          "
-
-          TAG="${{ steps.version.outputs.version }}"
-          tar -czf "home-screens-${TAG}.tar.gz" -C .next/standalone .
-
-      # Generate SHA-256 sidecar for artifact integrity verification.
-      # install.sh and upgrade.sh download this alongside the tarball and
-      # verify before extraction. Closes the gap where HTTPS provides
-      # transport integrity but not artifact integrity (compromised GitHub
-      # account or replaced asset would otherwise go undetected).
-      - name: Compute checksum
-        run: |
-          TAG="${{ steps.version.outputs.version }}"
-          sha256sum "home-screens-${TAG}.tar.gz" > "home-screens-${TAG}.tar.gz.sha256"
-          cat "home-screens-${TAG}.tar.gz.sha256"
-
-      # Fail if tarball exceeds 60MB
-      - name: Size gate
-        run: |
-          size=$(stat -c%s home-screens-*.tar.gz)
-          echo "Tarball size: $(( size / 1024 / 1024 ))MB ($size bytes)"
-          if [ "$size" -gt 62914560 ]; then
-            echo "::error::Tarball exceeds 60MB budget"
-            exit 1
-          fi
-
-      # Hand the tarball to the image job. It installs this exact artifact
-      # rather than rebuilding, so the image contains the same bytes users
-      # download and the same bytes the checksum above covers.
-      - name: Upload tarball artifact
-        uses: actions/upload-artifact@v4
+      - name: Download tarball
+        uses: actions/download-artifact@v4
         with:
           name: standalone-tarball
-          path: |
-            home-screens-*.tar.gz
-            home-screens-*.tar.gz.sha256
-          retention-days: 1
-          if-no-files-found: error
+          path: .
 
       - name: Check for release notes
         id: notes
@@ -150,8 +68,9 @@ jobs:
             echo "path=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
           fi
 
+      # A release candidate is a prerelease on GitHub, which keeps it out of
+      # releases/latest; the app's "Early access" choice finds it by its tag.
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2.5.0
         with:
           files: |
@@ -164,10 +83,13 @@ jobs:
 
   image:
     name: Build Pi image
-    needs: build
-    # `always()` so a rebuild still runs with the build job skipped. Guard on
-    # the result explicitly, or a genuinely failed build would still be imaged.
-    if: ${{ always() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    needs: [build, publish]
+    # `always()` so a rebuild still runs with the build and publish jobs
+    # skipped. Guard on both results explicitly: a genuinely failed build
+    # must not be imaged, and a failed release publish must not spend two
+    # hours producing an image, and a checklist telling someone to promote
+    # it, for a release that does not exist.
+    if: ${{ always() && (needs.build.result == 'success' || needs.build.result == 'skipped') && (needs.publish.result == 'success' || needs.publish.result == 'skipped') && !contains(github.ref_name, '-dev.') }}
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 120
     steps:

@@ -1,10 +1,10 @@
 /**
  * Route-level tests for `GET /api/system/changelog`.
  *
- * Mocks `fetchGitHubReleases` (the cached-releases fast path) and, via the
- * `api-utils` mock, `fetchWithTimeout` (the direct GitHub fallback). Covers the
- * cached-releases success path, the direct-API fallback when the cache is empty,
- * and the 502 when both the releases and tags endpoints fail. Auth stubbed at
+ * Mocks `getChannelReleases` (the channel-scoped, cached release feed) and,
+ * via the `api-utils` mock, `fetchWithTimeout` (the bare-tags fallback).
+ * Covers the release-feed success path with channel plumbing, the tags
+ * fallback when the feed is empty, and the 502 when the tags call fails too. Auth stubbed at
  * `requireSession`; `withAuth` / `fetchWithTimeout` come from a partial mock.
  */
 
@@ -26,17 +26,17 @@ vi.mock('@/lib/api-utils', async () => {
 
 vi.mock('@/lib/version', async () => {
   const actual = await vi.importActual<typeof import('@/lib/version')>('@/lib/version');
-  return { ...actual, fetchGitHubReleases: vi.fn() };
+  return { ...actual, getChannelReleases: vi.fn() };
 });
 
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
-import { fetchGitHubReleases } from '@/lib/version';
+import { getChannelReleases } from '@/lib/version';
 
-const mockFetchReleases = vi.mocked(fetchGitHubReleases);
+const mockFetchReleases = vi.mocked(getChannelReleases);
 
-function getRequest(): NextRequest {
-  return new NextRequest('http://localhost/api/system/changelog', { method: 'GET' });
+function getRequest(query = ''): NextRequest {
+  return new NextRequest(`http://localhost/api/system/changelog${query}`, { method: 'GET' });
 }
 
 function jsonResponse(ok: boolean, data: unknown) {
@@ -48,7 +48,7 @@ describe('GET /api/system/changelog', () => {
     vi.clearAllMocks();
   });
 
-  it('maps cached GitHub releases', async () => {
+  it('maps the channel release feed and scopes it to the requested channel', async () => {
     mockFetchReleases.mockResolvedValue([
       {
         tag_name: 'v1.2.0',
@@ -58,8 +58,11 @@ describe('GET /api/system/changelog', () => {
         html_url: 'https://github.com/home-screens/home-screens/releases/tag/v1.2.0',
       },
     ] as never);
-    const res = await GET(getRequest());
+    const res = await GET(getRequest('?channel=beta'));
     expect(res.status).toBe(200);
+    // The page is required: a one-entry history from releases/latest alone
+    // would be mistaken for the whole list.
+    expect(mockFetchReleases).toHaveBeenCalledWith('beta', { requirePage: true });
     const body = await res.json();
     expect(body.releases[0]).toEqual({
       tag: 'v1.2.0',
@@ -72,26 +75,28 @@ describe('GET /api/system/changelog', () => {
     expect(fetchWithTimeoutMock).not.toHaveBeenCalled();
   });
 
-  it('falls back to a direct releases fetch when the cache is empty', async () => {
+  it('falls back to bare tags when the release feed is empty, still scoped to the channel', async () => {
     mockFetchReleases.mockResolvedValue([]);
     fetchWithTimeoutMock.mockResolvedValueOnce(
       jsonResponse(true, [
-        { tag_name: 'v2.0.0', name: 'Two', body: '', published_at: '2026-02-01T00:00:00Z', draft: false, prerelease: false },
+        { name: 'v2.0.1-dev.20260908' },
+        { name: 'v2.0.0' },
+        { name: 'v2.0.0-beta.3' },
+        { name: 'v2.0.0-rc.1' },
       ]),
     );
-    const res = await GET(getRequest());
+    const res = await GET(getRequest('?channel=rc'));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.releases[0].tag).toBe('v2.0.0');
-    // No html_url in the payload → the canonical tag page is synthesized.
+    expect(body.releases.map((r: { tag: string }) => r.tag)).toEqual(['v2.0.0', 'v2.0.0-rc.1']);
+    // Tags carry no notes or dates; the canonical tag page is synthesized.
+    expect(body.releases[0].published).toBeNull();
     expect(body.releases[0].url).toBe('https://github.com/home-screens/home-screens/releases/tag/v2.0.0');
   });
 
-  it('returns 502 when both releases and tags endpoints fail', async () => {
-    mockFetchReleases.mockResolvedValue([]);
-    fetchWithTimeoutMock
-      .mockResolvedValueOnce(jsonResponse(false, {})) // releases not ok
-      .mockResolvedValueOnce(jsonResponse(false, {})); // tags not ok
+  it('returns 502 when the release feed throws and the tags endpoint fails', async () => {
+    mockFetchReleases.mockRejectedValue(new Error('GitHub API returned 403'));
+    fetchWithTimeoutMock.mockResolvedValueOnce(jsonResponse(false, {})); // tags not ok
     const res = await GET(getRequest());
     expect(res.status).toBe(502);
     expect((await res.json()).error).toMatch(/Failed to fetch changelog/);

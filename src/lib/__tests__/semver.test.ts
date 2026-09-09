@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { compareSemver, isPrerelease } from '../semver';
+import { channelIncludes, classifyVersion, compareSemver, isPrerelease, parseUpdateChannel } from '../semver';
 
 describe('isPrerelease', () => {
   it('returns false for stable versions', () => {
@@ -92,5 +92,93 @@ describe('compareSemver', () => {
     it('handles version 0.0.0', () => {
       expect(compareSemver('0.0.0', '0.0.1')).toBeLessThan(0);
     });
+  });
+});
+
+describe('classifyVersion', () => {
+  it('reads a bare version as stable', () => {
+    expect(classifyVersion('1.12.2')).toBe('stable');
+    expect(classifyVersion('0.1.0')).toBe('stable');
+  });
+
+  it('reads release candidates as rc and betas as beta', () => {
+    expect(classifyVersion('1.13.0-rc.1')).toBe('rc');
+    expect(classifyVersion('1.13.0-RC.1')).toBe('rc');
+    expect(classifyVersion('1.13.0-beta.2')).toBe('beta');
+  });
+
+  it('reads dev builds, alphas and any unknown suffix as nightly', () => {
+    expect(classifyVersion('1.12.3-dev.20260908')).toBe('nightly');
+    expect(classifyVersion('1.12.3-dev.20260908.2')).toBe('nightly');
+    expect(classifyVersion('2.0.0-alpha')).toBe('nightly');
+    expect(classifyVersion('1.2.3-test')).toBe('nightly');
+  });
+});
+
+describe('channelIncludes', () => {
+  it('stable sees stable only', () => {
+    expect(channelIncludes('stable', '1.12.2')).toBe(true);
+    expect(channelIncludes('stable', '1.13.0-rc.1')).toBe(false);
+    expect(channelIncludes('stable', '1.13.0-beta.1')).toBe(false);
+    expect(channelIncludes('stable', '1.12.3-dev.20260908')).toBe(false);
+  });
+
+  it('rc sees candidates and stable, not betas', () => {
+    expect(channelIncludes('rc', '1.12.2')).toBe(true);
+    expect(channelIncludes('rc', '1.13.0-rc.1')).toBe(true);
+    expect(channelIncludes('rc', '1.13.0-beta.1')).toBe(false);
+    expect(channelIncludes('rc', '1.12.3-dev.20260908')).toBe(false);
+  });
+
+  it('beta sees betas, candidates and stable', () => {
+    expect(channelIncludes('beta', '1.12.2')).toBe(true);
+    expect(channelIncludes('beta', '1.13.0-rc.1')).toBe(true);
+    expect(channelIncludes('beta', '1.13.0-beta.1')).toBe(true);
+    expect(channelIncludes('beta', '1.12.3-dev.20260908')).toBe(false);
+  });
+
+  it('nightly sees everything', () => {
+    expect(channelIncludes('nightly', '1.12.2')).toBe(true);
+    expect(channelIncludes('nightly', '1.13.0-rc.1')).toBe(true);
+    expect(channelIncludes('nightly', '1.13.0-beta.1')).toBe(true);
+    expect(channelIncludes('nightly', '1.12.3-dev.20260908')).toBe(true);
+  });
+});
+
+describe('parseUpdateChannel', () => {
+  it('passes the four known channels through', () => {
+    expect(parseUpdateChannel('stable')).toBe('stable');
+    expect(parseUpdateChannel('rc')).toBe('rc');
+    expect(parseUpdateChannel('beta')).toBe('beta');
+    expect(parseUpdateChannel('nightly')).toBe('nightly');
+  });
+
+  it('falls back to stable for anything else', () => {
+    expect(parseUpdateChannel(undefined)).toBe('stable');
+    expect(parseUpdateChannel(null)).toBe('stable');
+    expect(parseUpdateChannel('canary')).toBe('stable');
+    // The two-channel era's value is migrated on disk (v12), not coerced here.
+    expect(parseUpdateChannel('dev')).toBe('stable');
+    expect(parseUpdateChannel(42)).toBe('stable');
+  });
+});
+
+describe('compareSemver across nightly stamps', () => {
+  it('orders date-stamped nightlies by date, then by same-day run', () => {
+    expect(compareSemver('1.12.3-dev.20260909', '1.12.3-dev.20260908')).toBeGreaterThan(0);
+    expect(compareSemver('1.12.3-dev.20260908.2', '1.12.3-dev.20260908')).toBeGreaterThan(0);
+  });
+
+  it('keeps a nightly cut after a release above that release and its candidates', () => {
+    // The nightly base is the next patch above the newest tag, so a build
+    // from main after v1.13.0-rc.1 outranks the candidate and the release.
+    expect(compareSemver('1.13.1-dev.20260908', '1.13.0-rc.1')).toBeGreaterThan(0);
+    expect(compareSemver('1.13.1-dev.20260908', '1.13.0')).toBeGreaterThan(0);
+  });
+
+  it('orders a beta below the candidate and release of the same version', () => {
+    expect(compareSemver('1.13.0-beta.2', '1.13.0-rc.1')).toBeLessThan(0);
+    expect(compareSemver('1.13.0-beta.2', '1.13.0')).toBeLessThan(0);
+    expect(compareSemver('1.13.0-beta.2', '1.13.0-beta.1')).toBeGreaterThan(0);
   });
 });

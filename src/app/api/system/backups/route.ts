@@ -9,7 +9,10 @@ export const dynamic = 'force-dynamic';
 
 const SCRIPT_PATH = path.join(process.cwd(), 'scripts', 'upgrade.sh');
 const BACKUP_DIR = path.join(process.cwd(), 'data', 'backups');
-const BACKUP_NAME_RE = /^config-v[\d.]+-\d{8}-\d{6}\.json$/;
+// Rotating snapshots carry the version they were taken on, which on a
+// prerelease build has its own dash-separated suffix (1.12.3-dev.20260908).
+// The pinned copy from before the first prerelease install has a fixed name.
+const BACKUP_NAME_RE = /^(config-v\d+\.\d+\.\d+(-[A-Za-z0-9.]+)?-\d{8}-\d{6}\.json|last-stable-config\.json)$/;
 
 function run(action: string, args: string[] = []): Promise<string> {
   return new Promise((resolve, reject) => {

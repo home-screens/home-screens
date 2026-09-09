@@ -62,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 11', () => {
-    expect(getLatestSchemaVersion()).toBe(11);
+  it('getLatestSchemaVersion returns 12', () => {
+    expect(getLatestSchemaVersion()).toBe(12);
   });
 });
 
@@ -298,9 +298,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(11);
-    // v2 through v11 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(10);
+    expect(result.version).toBe(12);
+    // v2 through v12 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(11);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -309,7 +309,8 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     // only touches fullscreen-calendar modules carrying the retired default
     // accent, v10 only touches news modules (this fixture has none), and v11
     // only touches screens on a `/backgrounds/themes/` wall (this one has
-    // none). No display registry is injected — single-display mode stays single-display.
+    // none), and v12 only rewrites a `dev` update channel (this one has none
+    // set). No display registry is injected — single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
     expect(result.settings).toEqual(config.settings);
     expect(result.displays).toBeUndefined();
@@ -326,9 +327,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(11);
-    // Only v4 through v11 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(8);
+    expect(result.version).toBe(12);
+    // Only v4 through v12 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(9);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -798,8 +799,49 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(11);
-    expect(migrationsRun.at(-1)).toMatch(/^v11: /);
+    expect(result.version).toBe(12);
+    expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
+  });
+});
+
+describe('migration v12: retired dev update channel renamed to rc', () => {
+  it('rewrites a stored dev channel to rc', () => {
+    const config = makeConfig(11);
+    (config.settings as unknown as Record<string, unknown>).updateChannel = 'dev';
+
+    const { config: result, migrationsRun } = migrateUp(config, 12);
+
+    expect(result.version).toBe(12);
+    expect(result.settings.updateChannel).toBe('rc');
+    expect(migrationsRun).toEqual([expect.stringMatching(/^v12: /)]);
+  });
+
+  it('leaves every current channel value alone', () => {
+    for (const channel of ['stable', 'rc', 'beta', 'nightly'] as const) {
+      const config = makeConfig(11);
+      config.settings.updateChannel = channel;
+      const { config: result } = migrateUp(config, 12);
+      expect(result.settings.updateChannel).toBe(channel);
+    }
+  });
+
+  it('leaves a config with no channel set alone', () => {
+    const config = makeConfig(11);
+    const { config: result } = migrateUp(config, 12);
+    expect(result.version).toBe(12);
+    expect(result.settings).toEqual(config.settings);
+    expect('updateChannel' in result.settings).toBe(false);
+  });
+
+  it('is part of the full chain from v1', () => {
+    const config = makeConfig(1);
+    (config.settings as unknown as Record<string, unknown>).updateChannel = 'dev';
+
+    const { config: result, migrationsRun } = migrateUp(config);
+
+    expect(result.version).toBe(12);
+    expect(migrationsRun.at(-1)).toMatch(/^v12: /);
+    expect(result.settings.updateChannel).toBe('rc');
   });
 });

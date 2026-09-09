@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { VersionResponse } from '@/lib/version';
+import type { UpdateChannel } from '@/lib/semver';
 import type { UpdateNotificationState } from '@/lib/update-notification-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -14,7 +15,7 @@ interface UseUpdateNotificationOptions {
   /** Re-check version + dismissal state on this interval (ms). Defaults to 3_600_000 (1 hour). */
   pollIntervalMs?: number;
   /** Mirrors the user's updateChannel setting — defaults to 'stable'. */
-  channel?: 'stable' | 'dev';
+  channel?: UpdateChannel;
 }
 
 interface UseUpdateNotificationResult {
@@ -70,10 +71,15 @@ export function useUpdateNotification({
   const shouldShow = useMemo(() => {
     if (!enabled) return false;
     if (!versionInfo?.updateAvailable) return false;
+    // A step back (a nightly owner who picked the normal channel again) is
+    // an offer the System page makes with its own "Switch to" copy. It is
+    // not a new release, and neither this toast nor the remote banner has
+    // any words for it, so neither announces it.
+    if (versionInfo.isDowngrade) return false;
     if (latestTag == null) return false;
     if (latestTag === lastDismissedVersion) return false;
     return true;
-  }, [enabled, versionInfo?.updateAvailable, latestTag, lastDismissedVersion]);
+  }, [enabled, versionInfo?.updateAvailable, versionInfo?.isDowngrade, latestTag, lastDismissedVersion]);
 
   const handleDismiss = useCallback(() => {
     if (latestTag == null) return;

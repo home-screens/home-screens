@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:shell": "bash scripts/__tests__/reporter.test.sh && bash scripts/__tests__/kiosk-update.test.sh && bash scripts/__tests__/kiosk-power-agent.test.sh",
+    "test:shell": "bash scripts/__tests__/reporter.test.sh && bash scripts/__tests__/kiosk-update.test.sh && bash scripts/__tests__/kiosk-power-agent.test.sh && bash scripts/__tests__/nightly-version.test.sh",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "docs:shots": "tsx website/scripts/capture-docs-shots.mts",

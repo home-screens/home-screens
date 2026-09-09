@@ -82,7 +82,6 @@ describe('GET /api/secrets', () => {
       google_client_secret: false,
       google_web_client_id: false,
       google_web_client_secret: false,
-      github_token: false,
       immich_url: false,
       immich_api_key: false,
       microsoft_client_id: false,

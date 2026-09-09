@@ -1,17 +1,22 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { fetchGitHubReleases, GITHUB_REPO, releasePageUrl } from '@/lib/version';
+import { getChannelReleases, GITHUB_REPO, releasePageUrl } from '@/lib/version';
 import type { ChangelogRelease } from '@/lib/version';
+import { channelIncludes, parseUpdateChannel } from '@/lib/semver';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withAuth(async (request: NextRequest) => {
-  const includePrerelease = request.nextUrl.searchParams.get('channel') === 'dev';
+  const channel = parseUpdateChannel(request.nextUrl.searchParams.get('channel'));
 
-  // Try cached GitHub releases first
+  // The channel-scoped release feed is the same cached lookup the version
+  // check uses, so the changelog and the update banner always agree on
+  // which builds exist, including the stable that `releases/latest` carries
+  // when the release page is full of nightlies. The page is required here:
+  // a history answered by `releases/latest` alone is one entry long.
   try {
-    const releases = await fetchGitHubReleases({ includePrerelease });
+    const releases = await getChannelReleases(channel, { requirePage: true });
     if (releases.length > 0) {
       return NextResponse.json({
         releases: releases.map(
@@ -26,67 +31,32 @@ export const GET = withAuth(async (request: NextRequest) => {
       });
     }
   } catch {
-    // Fall through to direct API call
+    // Fall through to the tags listing
   }
 
-  // Fallback: direct API call (may hit rate limit if releases cache failed)
-  const res = await fetchWithTimeout(
-    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=10`,
+  // Fallback: bare tags, which exist even when no release was ever published
+  const tagsRes = await fetchWithTimeout(
+    `https://api.github.com/repos/${GITHUB_REPO}/tags?per_page=30`,
     {
       headers: { Accept: 'application/vnd.github.v3+json' },
       next: { revalidate: 3600 },
     },
   );
 
-  if (!res.ok) {
-    // Fall back to tags if no releases
-    const tagsRes = await fetchWithTimeout(
-      `https://api.github.com/repos/${GITHUB_REPO}/tags?per_page=10`,
-      {
-        headers: { Accept: 'application/vnd.github.v3+json' },
-        next: { revalidate: 3600 },
-      },
-    );
-
-    if (!tagsRes.ok) {
-      return NextResponse.json({ error: 'Failed to fetch changelog' }, { status: 502 });
-    }
-
-    const allTags = await tagsRes.json();
-    const filteredTags = includePrerelease
-      ? allTags
-      : allTags.filter((tag: { name: string }) => !tag.name.replace(/^v/, '').includes('-'));
-    return NextResponse.json({
-      releases: filteredTags.map(
-        (tag: { name: string }): ChangelogRelease => ({
-          tag: tag.name,
-          name: tag.name,
-          body: '',
-          published: null,
-          url: releasePageUrl(tag.name),
-        }),
-      ),
-    });
+  if (!tagsRes.ok) {
+    return NextResponse.json({ error: 'Failed to fetch changelog' }, { status: 502 });
   }
 
-  const allReleases = await res.json();
-  const filteredReleases = includePrerelease
-    ? allReleases.filter((r: { draft: boolean }) => !r.draft)
-    : allReleases.filter((r: { draft: boolean; prerelease: boolean }) => !r.draft && !r.prerelease);
+  const allTags: { name: string }[] = await tagsRes.json();
+  const visible = allTags.filter((tag) => channelIncludes(channel, tag.name.replace(/^v/, '')));
   return NextResponse.json({
-    releases: filteredReleases.map(
-      (r: {
-        tag_name: string;
-        name: string;
-        body: string;
-        published_at: string;
-        html_url?: string;
-      }): ChangelogRelease => ({
-        tag: r.tag_name,
-        name: r.name || r.tag_name,
-        body: r.body || '',
-        published: r.published_at,
-        url: r.html_url || releasePageUrl(r.tag_name),
+    releases: visible.map(
+      (tag): ChangelogRelease => ({
+        tag: tag.name,
+        name: tag.name,
+        body: '',
+        published: null,
+        url: releasePageUrl(tag.name),
       }),
     ),
   });

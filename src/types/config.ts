@@ -1,4 +1,5 @@
 import type { RewardData } from '@/lib/reward-data';
+import type { UpdateChannel } from '@/lib/semver';
 
 export type BuiltinModuleType =
   | 'clock'
@@ -402,7 +403,8 @@ export interface GlobalSettings {
   activeProfile?: string;
   transitionEffect?: TransitionEffect;
   transitionDuration?: number;
-  updateChannel?: 'stable' | 'dev';
+  /** Which builds the update check offers. See `UpdateChannel` in `@/lib/semver`. */
+  updateChannel?: UpdateChannel;
   advancedMode?: boolean;
   alerts?: AlertSettings;
   telemetryEnabled?: boolean;

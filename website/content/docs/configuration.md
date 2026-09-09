@@ -70,7 +70,6 @@ Supported secret keys:
 | `nasa_api_key` | Background rotation (NASA APOD) |
 | `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
 | `immich_api_key` | Immich API key (Account Settings → API Keys) |
-| `github_token` | GitHub API rate limit for version checks |
 
 ## Schema
 
@@ -139,9 +138,11 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   activeProfile?: string          // Currently active profile ID
   transitionEffect?: TransitionEffect  // Screen transition effect
   transitionDuration?: number     // Transition duration in seconds (default: 0.6)
-  updateChannel?: 'stable' | 'dev'    // Update channel for system upgrades
-  advancedMode?: boolean              // Reveal developer surfaces (release-channel switcher,
-                                       // GitHub PAT card, Plugins → Developer tab). Default false.
+  updateChannel?: 'stable' | 'rc' | 'beta' | 'nightly'  // Which builds the update check offers
+                                                         // (default: stable). Each channel also
+                                                         // sees everything more stable than itself.
+  advancedMode?: boolean              // Reveal developer surfaces (the Test builds choice,
+                                       // build details, Plugins > Developer tab). Default false.
 
   alerts?: {                      // Display alert overlay settings
     enabled: boolean

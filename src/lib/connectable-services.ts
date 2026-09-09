@@ -30,8 +30,6 @@ export interface ConnectableService {
   keys: SecretKey[];
   /** Defaults to `keys` when a service has no optional extras. */
   requiredKeys?: SecretKey[];
-  /** Hidden until "Show advanced options" is on. */
-  advancedOnly?: boolean;
 }
 
 export const CONNECTABLE_SERVICES: ConnectableService[] = [
@@ -57,7 +55,6 @@ export const CONNECTABLE_SERVICES: ConnectableService[] = [
   { id: 'nasa', label: 'NASA', initials: 'NA', page: 'integrations', keys: ['nasa_api_key'] },
   { id: 'todoist', label: 'Todoist', initials: 'TD', page: 'integrations', keys: ['todoist_token'] },
   { id: 'tomtom', label: 'TomTom', initials: 'TT', page: 'integrations', keys: ['tomtom_key'] },
-  { id: 'github', label: 'GitHub', initials: 'GH', page: 'integrations', keys: ['github_token'], advancedOnly: true },
   { id: 'openweathermap', label: weatherProviderName('openweathermap'), initials: 'OW', page: 'weather', keys: ['openweathermap_key'] },
   { id: 'weatherapi', label: weatherProviderName('weatherapi'), initials: 'WA', page: 'weather', keys: ['weatherapi_key'] },
   { id: 'pirateweather', label: weatherProviderName('pirateweather'), initials: 'PW', page: 'weather', keys: ['pirateweather_key'] },
@@ -69,14 +66,9 @@ export function requiredKeysOf(service: ConnectableService): SecretKey[] {
   return service.requiredKeys ?? service.keys;
 }
 
-/** Services shown on a given settings page, honouring the advanced-mode gate. */
-export function servicesForPage(
-  page: ConnectableService['page'],
-  advancedMode: boolean,
-): ConnectableService[] {
-  return CONNECTABLE_SERVICES.filter(
-    (s) => s.page === page && (advancedMode || !s.advancedOnly),
-  );
+/** Services shown on a given settings page. */
+export function servicesForPage(page: ConnectableService['page']): ConnectableService[] {
+  return CONNECTABLE_SERVICES.filter((s) => s.page === page);
 }
 
 /** True when every key the service needs is present in the configured set. */

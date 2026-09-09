@@ -105,7 +105,14 @@ sudo systemctl start home-screens
 
 ### How do I get early builds?
 
-By default Home Screens only offers tested releases. To try new features early, go to **Settings > System & updates**, turn on **Show advanced options**, and switch the channel from **Stable** to **Pre-release**. Pre-release builds can contain unfinished work; switch back to Stable to return to the latest stable release.
+By default Home Screens only offers tested releases. **Settings > System & updates** has a **Which updates to get** choice:
+
+- **Normal**: tested releases only. The right choice for most homes.
+- **Early access**: release candidates a week or two before they become normal releases. Finished, lightly tested.
+- **Beta**: betas of the next version while it is still being shaken out. Feature complete, but expect rough edges.
+- **Test builds** (only shown with **Show advanced options** on): a fresh build from the latest code, most nights. Things break, and test builds can change your saved settings in ways a normal release can't read. A copy of your settings from before your first test build is kept on the **Backups & data** page as `last-stable-config.json`; restore it if you go back to a normal release and it can't read your settings.
+
+Each choice also sees everything above it in that list, so someone on Early access or Beta is still offered the next normal release when it comes out. Test builds are different: they run ahead of the next release, so a device on them is not offered that release, only the next test build. Pick **Normal** again to be offered the newest tested release, even though its version number is lower than the test build you are on.
 
 ### How do I remove Home Screens?
 

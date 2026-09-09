@@ -654,7 +654,8 @@
           "restored": "Restaurado! Recarregue o editor para ver as mudanças.",
           "error": "Erro: {error}",
           "failed": "Falha ao restaurar o backup"
-        }
+        },
+        "lastStableHelp": "Seus ajustes de antes do primeiro build de acesso antecipado ou de teste. Restaure se você voltar para uma versão normal e ela não conseguir ler seus ajustes."
       },
       "backupPassword": {
         "setTitle": "Escolha uma senha",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Cole sua chave de API da TomTom",
         "keyHelp": "Gratuita em developer.tomtom.com; Routing API necessária. Alternativa ao Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Limite de requisição maior para verificação de versões",
-        "optionalBadge": "Opcional",
-        "tokenLabel": "Token de acesso pessoal",
-        "tokenPlaceholder": "Cole seu token do GitHub",
-        "tokenHelp": "Aumenta o limite de 60 para 5.000 req/h. Crie em github.com/settings/tokens (sem escopos necessários)."
-      },
       "status": {
         "notConfigured": "Não configurado",
         "connected": "Conectado",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Avançado",
         "toggleLabel": "Mostrar opções avançadas",
-        "help": "Revela controles para desenvolvedores: canal pré-lançamento, token do GitHub e modo de desenvolvedor de plugins."
+        "help": "Mostra controles para desenvolvedores: builds de teste, detalhes do build e modo desenvolvedor de plugins."
       },
       "version": {
         "heading": "Versão",
-        "branchLabel": "Canal: {channel}",
+        "branchLabel": "Ramo: {branch}",
         "installedFromRelease": "Instalado a partir de release",
-        "stableChannel": "Canal estável",
-        "prereleaseChannel": "Canal pré-lançamento",
         "checkButton": "Verificar atualizações",
         "checking": "Verificando…",
-        "currentLabel": "Você está na versão {version}"
+        "currentLabel": "Você está na versão {version}",
+        "rcBuildBadge": "Candidata a versão",
+        "betaBuildBadge": "Build beta",
+        "nightlyBuildBadge": "Build de teste"
       },
       "upgradeInProgress": {
         "title": "Atualização em andamento",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Atualização disponível: v{version}",
-        "prereleaseTitle": "Pré-lançamento disponível: v{version}",
+        "rcTitle": "Candidata a versão disponível: v{version}",
+        "betaTitle": "Beta disponível: v{version}",
         "currentLine": "Você está na v{version}",
         "updateButton": "Atualizar agora",
-        "installButton": "Instalar"
+        "installButton": "Instalar",
+        "nightlyTitle": "Build de teste disponível: v{version}",
+        "downgradeTitle": "Mudar para a v{version}",
+        "downgradeLine": "Você está na v{version}, mais nova do que a sua escolha de atualizações oferece. Mudar instala a versão mais antiga.",
+        "switchButton": "Mudar"
+      },
+      "channel": {
+        "heading": "Quais atualizações receber",
+        "stable": {
+          "label": "Padrão",
+          "help": "Só versões testadas. A escolha certa para a maioria das casas."
+        },
+        "rc": {
+          "label": "Acesso antecipado",
+          "help": "Candidatas a versão uma ou duas semanas antes de virarem versões normais. Prontas, pouco testadas."
+        },
+        "beta": {
+          "label": "Beta",
+          "help": "Betas da próxima versão enquanto ela ainda está sendo lapidada. Completas em recursos, mas com arestas."
+        },
+        "nightly": {
+          "label": "Builds de teste",
+          "help": "Um build novo do código mais recente quase toda noite. Coisas quebram, e talvez você precise voltar para uma versão normal."
+        },
+        "nightlyWarning": "Builds de teste podem mudar seus ajustes salvos de um jeito que a versão normal não consegue ler. Uma cópia dos seus ajustes de antes do primeiro build de teste fica guardada na página Backups e dados."
       },
       "updateNotification": {
         "heading": "Notificação de atualização",

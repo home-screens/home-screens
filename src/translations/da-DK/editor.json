@@ -654,7 +654,8 @@
           "restored": "Gendannet! Genindlæs editoren for at se ændringerne.",
           "error": "Fejl: {error}",
           "failed": "Kunne ikke gendanne sikkerhedskopien"
-        }
+        },
+        "lastStableHelp": "Dine indstillinger fra før det første tidlig adgang- eller test-build. Gendan dem, hvis du går tilbage til en normal udgivelse, og den ikke kan læse dine indstillinger."
       },
       "backupPassword": {
         "setTitle": "Vælg en adgangskode",
@@ -1143,14 +1144,6 @@
         "keyPlaceholder": "Indsæt din TomTom-API-nøgle",
         "keyHelp": "Free at developer.tomtom.com; Routing API required. Alternative to Google Maps."
       },
-      "github": {
-        "name": "GitHub",
-        "description": "Højere grænse for versionstjek",
-        "optionalBadge": "Valgfri",
-        "tokenLabel": "Personlig adgangstoken",
-        "tokenPlaceholder": "Indsæt din GitHub-token",
-        "tokenHelp": "Hæver grænsen fra 60 til 5.000 forespørgsler i timen. Opret den på github.com/settings/tokens (ingen scopes nødvendige)."
-      },
       "status": {
         "notConfigured": "Ikke konfigureret",
         "connected": "Forbundet",
@@ -1369,17 +1362,18 @@
       "advanced": {
         "heading": "Avanceret",
         "toggleLabel": "Vis avancerede indstillinger",
-        "help": "Viser indstillinger for udviklere: kanal for forhåndsversioner, GitHub-token og udviklertilstand for plugins."
+        "help": "Viser indstillinger for udviklere: test-builds, build-detaljer og udviklertilstand for plugins."
       },
       "version": {
         "heading": "Version",
-        "branchLabel": "Gren: {channel}",
+        "branchLabel": "Gren: {branch}",
         "installedFromRelease": "Installeret fra en udgivelse",
-        "stableChannel": "Stabil kanal",
-        "prereleaseChannel": "Kanal for forhåndsversioner",
         "checkButton": "Søg efter opdateringer",
         "checking": "Søger…",
-        "currentLabel": "Du bruger version {version}"
+        "currentLabel": "Du bruger version {version}",
+        "rcBuildBadge": "Udgivelseskandidat",
+        "betaBuildBadge": "Beta-build",
+        "nightlyBuildBadge": "Test-build"
       },
       "upgradeInProgress": {
         "title": "Opdatering i gang",
@@ -1388,10 +1382,35 @@
       },
       "updateAvailable": {
         "updateTitle": "Opdatering tilgængelig: v{version}",
-        "prereleaseTitle": "Forhåndsversion tilgængelig: v{version}",
+        "rcTitle": "Udgivelseskandidat tilgængelig: v{version}",
+        "betaTitle": "Beta tilgængelig: v{version}",
         "currentLine": "Du kører v{version}",
         "updateButton": "Opdatér nu",
-        "installButton": "Installér"
+        "installButton": "Installér",
+        "nightlyTitle": "Test-build tilgængelig: v{version}",
+        "downgradeTitle": "Skift til v{version}",
+        "downgradeLine": "Du kører v{version}, som er nyere end det, dit opdateringsvalg tilbyder. Skift installerer den ældre version.",
+        "switchButton": "Skift"
+      },
+      "channel": {
+        "heading": "Hvilke opdateringer du får",
+        "stable": {
+          "label": "Almindelig",
+          "help": "Kun testede udgivelser. Det rigtige valg for de fleste hjem."
+        },
+        "rc": {
+          "label": "Tidlig adgang",
+          "help": "Udgivelseskandidater en uge eller to, før de bliver normale udgivelser. Færdige, let testede."
+        },
+        "beta": {
+          "label": "Beta",
+          "help": "Betaer af den næste version, mens den stadig slibes til. Funktionelt komplette, men med skarpe kanter."
+        },
+        "nightly": {
+          "label": "Test-builds",
+          "help": "Et frisk build af den nyeste kode næsten hver nat. Ting går i stykker, og du skal måske tilbage til en normal udgivelse."
+        },
+        "nightlyWarning": "Test-builds kan ændre dine gemte indstillinger, så den normale version ikke kan læse dem. En kopi af dine indstillinger fra før dit første test-build gemmes på siden Sikkerhedskopier og data."
       },
       "updateNotification": {
         "heading": "Opdateringsnotifikation",

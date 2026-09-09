@@ -28,6 +28,9 @@ import { readTelemetryData } from '@/lib/telemetry';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { redactConfig } from '@/lib/config-redactor';
 import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
+import { getPackageVersion } from '@/lib/version';
+import { readBuildInfo } from '@/lib/build-info';
+import { classifyVersion, parseUpdateChannel } from '@/lib/semver';
 import {
   clearConsoleLog,
   enqueueCommand,
@@ -208,6 +211,8 @@ export const GET = withAuth(async (request) => {
     journal,
     plugins,
     hubHardware,
+    packageVersion,
+    buildInfo,
   ] = await Promise.all([
     Promise.resolve(getAllDisplayStatuses()),
     solicitConsoleLogs(displayIds),
@@ -225,6 +230,8 @@ export const GET = withAuth(async (request) => {
     runJournalctl(),
     loadPlugins(),
     getLocalHardwareStats().catch(() => null),
+    getPackageVersion().catch(() => process.env.npm_package_version ?? 'unknown'),
+    readBuildInfo(),
   ]);
 
   const knownSecretValues = Object.values(secretsResolved).filter(
@@ -265,7 +272,12 @@ export const GET = withAuth(async (request) => {
 
   const stream = composeDiagnosticsBundle({
     meta: {
-      version: process.env.npm_package_version ?? 'unknown',
+      version: packageVersion,
+      // A report from a test build reads differently from one on a release,
+      // and the reporter's channel says whether they chose to be there.
+      buildChannel: classifyVersion(packageVersion),
+      updateChannel: parseUpdateChannel(config.settings?.updateChannel),
+      build: buildInfo,
       generatedAt: new Date().toISOString(),
       node: process.version,
       platform: `${os.platform()}-${os.arch()}`,

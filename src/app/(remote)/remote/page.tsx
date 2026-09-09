@@ -3,6 +3,7 @@ import { readChoreData } from '@/lib/chore-data';
 import { getAllScreens, getDisplayProfiles } from '@/lib/display-filter';
 import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import RemoteClient from './RemoteClient';
+import { parseUpdateChannel } from '@/lib/semver';
 
 const MEAL_MODULE_TYPES = ['meal-planner', 'fullscreen-meal-planner'];
 const PHOTO_MODULE_TYPES = ['fullscreen-photo', 'photo-slideshow'];
@@ -82,8 +83,7 @@ export default async function RemotePage() {
   const updateNotification = {
     enabled: config.settings.updateNotification?.enabled ?? false,
   };
-  const updateChannel: 'stable' | 'dev' =
-    config.settings.updateChannel === 'dev' ? 'dev' : 'stable';
+  const updateChannel = parseUpdateChannel(config.settings.updateChannel);
 
   return (
     <RemoteClient

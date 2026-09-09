@@ -287,8 +287,9 @@ async function installStubs(page: Page): Promise<void> {
   await page.route('**/api/system/version*', (route) => route.fulfill({
     status: 200, contentType: 'application/json',
     body: JSON.stringify({
-      current: APP_VERSION, currentCommit: '', latest: APP_VERSION, latestCommit: '', updateAvailable: false,
-      installedVia: 'tarball', channel: 'release', upgradeRunning: false,
+      current: APP_VERSION, currentCommit: '', currentChannel: 'stable', updateChannel: 'stable',
+      latest: APP_VERSION, latestCommit: '', updateAvailable: false, isDowngrade: false,
+      installedVia: 'tarball', branch: 'release', upgradeRunning: false,
       tags: [{ tag: `v${APP_VERSION}`, version: APP_VERSION, commit: '', hasTarball: true }],
     }),
   }));

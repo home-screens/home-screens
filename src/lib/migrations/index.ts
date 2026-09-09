@@ -6,6 +6,7 @@ import { v7ToV8 } from './v7-to-v8';
 import { v8ToV9 } from './v8-to-v9';
 import { v9ToV10 } from './v9-to-v10';
 import { v10ToV11 } from './v10-to-v11';
+import { v11ToV12 } from './v11-to-v12';
 
 interface Migration {
   version: number;
@@ -86,6 +87,8 @@ const migrations: Migration[] = [
   // Migration 011: starter backgrounds moved out of public/backgrounds; a
   // screen's `/backgrounds/themes/...` wall is repointed to `/starter-backgrounds/`.
   v10ToV11,
+  // Migration 012: the retired `dev` update channel is rewritten to `rc`.
+  v11ToV12,
 ];
 
 /** @internal Get all migrations sorted by version */

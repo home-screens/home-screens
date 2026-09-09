@@ -23,6 +23,9 @@ interface DataSectionProps {
   onSettingsImported: () => void;
 }
 
+/** Name of the snapshot `upgrade.sh backup` pins when a release build is about to be replaced by a prerelease one. */
+const LAST_STABLE_BACKUP = 'last-stable-config.json';
+
 interface ConfigBackupFile {
   name: string;
   size: number;
@@ -547,11 +550,19 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                   key={b.name}
                   className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
                     <span className="text-xs text-hs-text-faint ml-2">
                       {t('settings.dataPage.configBackups.sizeKb', { size: (b.size / 1024).toFixed(1) })}
                     </span>
+                    {/* The copy pinned before the first early-access or test
+                        build. The rotation never removes it, and it is the one
+                        a normal release is guaranteed to read. */}
+                    {b.name === LAST_STABLE_BACKUP && (
+                      <span className="block text-xs text-hs-text-faint mt-0.5">
+                        {t('settings.dataPage.configBackups.lastStableHelp')}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <a

@@ -43,7 +43,7 @@ const INFO = {
   latestCommit: 'def5678',
   updateAvailable: true,
   installedVia: 'git',
-  channel: 'main',
+  branch: 'main',
 } as never;
 
 describe('GET /api/system/version', () => {
@@ -74,10 +74,17 @@ describe('GET /api/system/version', () => {
     expect(body.tags).toHaveLength(20);
   });
 
-  it('passes force + prerelease flags through on check=true&channel=dev', async () => {
-    await GET(getRequest('?check=true&channel=dev'));
-    expect(mockInfo).toHaveBeenCalledWith({ force: true, includePrerelease: true });
-    expect(mockTags).toHaveBeenCalledWith({ force: true, includePrerelease: true });
+  it('passes force + channel through on check=true&channel=nightly', async () => {
+    await GET(getRequest('?check=true&channel=nightly'));
+    expect(mockInfo).toHaveBeenCalledWith({ force: true, channel: 'nightly' });
+    expect(mockTags).toHaveBeenCalledWith({ force: true, channel: 'nightly' });
+  });
+
+  it('maps unknown channel values to stable', async () => {
+    await GET(getRequest('?channel=dev'));
+    expect(mockInfo).toHaveBeenCalledWith({ force: false, channel: 'stable' });
+    await GET(getRequest('?channel=canary'));
+    expect(mockInfo).toHaveBeenLastCalledWith({ force: false, channel: 'stable' });
   });
 
   it('returns 500 when version lookup throws', async () => {

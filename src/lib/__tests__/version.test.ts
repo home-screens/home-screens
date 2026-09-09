@@ -170,34 +170,51 @@ describe('buildVersionInfo', () => {
     { tag: 'v1.0.0', version: '1.0.0', commit: 'aaa9012' },
   ];
 
-  it('returns updateAvailable=true when latest tag > current version', () => {
-    const info = buildVersionInfo(sampleTags, '1.5.0', 'ccc3456', 'git', 'main');
+  it('returns updateAvailable=true when the newest tag is above the current version', () => {
+    const info = buildVersionInfo(sampleTags, '1.5.0', 'ccc3456', 'git', 'main', 'stable');
     expect(info.updateAvailable).toBe(true);
+    expect(info.isDowngrade).toBe(false);
     expect(info.latest).toBe('2.0.0');
     expect(info.latestCommit).toBe('abc1234');
   });
 
-  it('returns updateAvailable=false when current is latest', () => {
-    const info = buildVersionInfo(sampleTags, '2.0.0', 'abc1234', 'git', 'main');
+  it('returns updateAvailable=false when current is the newest', () => {
+    const info = buildVersionInfo(sampleTags, '2.0.0', 'abc1234', 'git', 'main', 'stable');
     expect(info.updateAvailable).toBe(false);
+    expect(info.isDowngrade).toBe(false);
   });
 
-  it('returns correct latestVersion from first tag', () => {
-    const info = buildVersionInfo(sampleTags, '1.0.0', 'aaa9012', 'git', 'main');
+  it('offers the newest in-channel version as a downgrade when the running build is above it', () => {
+    // A nightly user who picked the normal channel again: the channel's
+    // newest is 2.0.0, which is below the nightly they are running.
+    const info = buildVersionInfo(sampleTags, '2.0.1-dev.20260908', 'ccc3456', 'tarball', 'release', 'stable');
+    expect(info.updateAvailable).toBe(true);
+    expect(info.isDowngrade).toBe(true);
     expect(info.latest).toBe('2.0.0');
+    expect(info.currentChannel).toBe('nightly');
+    expect(info.updateChannel).toBe('stable');
+  });
+
+  it('classifies the running build by version shape', () => {
+    expect(buildVersionInfo([], '1.0.0', 'x', 'git', 'main', 'stable').currentChannel).toBe('stable');
+    expect(buildVersionInfo([], '1.0.0-rc.1', 'x', 'git', 'main', 'rc').currentChannel).toBe('rc');
+    expect(buildVersionInfo([], '1.0.0-beta.1', 'x', 'git', 'main', 'beta').currentChannel).toBe('beta');
+    expect(buildVersionInfo([], '1.0.1-dev.20260908', 'x', 'git', 'main', 'nightly').currentChannel).toBe('nightly');
   });
 
   it('handles empty tags array', () => {
-    const info = buildVersionInfo([], '1.0.0', 'unknown', 'unknown', 'unknown');
+    const info = buildVersionInfo([], '1.0.0', 'unknown', 'unknown', 'unknown', 'stable');
     expect(info.updateAvailable).toBe(false);
+    expect(info.isDowngrade).toBe(false);
     expect(info.latest).toBeNull();
     expect(info.latestCommit).toBeNull();
   });
 
   it('populates installedVia and branch in result', () => {
-    const info = buildVersionInfo(sampleTags, '1.0.0', 'ccc3456', 'tarball', 'release');
+    const info = buildVersionInfo(sampleTags, '1.0.0', 'ccc3456', 'tarball', 'release', 'beta');
     expect(info.installedVia).toBe('tarball');
-    expect(info.channel).toBe('release');
+    expect(info.branch).toBe('release');
+    expect(info.updateChannel).toBe('beta');
     expect(info.current).toBe('1.0.0');
     expect(info.currentCommit).toBe('ccc3456');
   });

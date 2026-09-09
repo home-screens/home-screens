@@ -10,9 +10,17 @@ import { Readable } from 'stream';
 import type { ScreenConfiguration } from '@/types/config';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from '@/lib/hardware-stats';
+import type { UpdateChannel } from '@/lib/semver';
+import type { BuildInfo } from '@/lib/build-info';
 
 export interface BundleMeta {
   version: string;
+  /** Which channel the running build belongs to, by version shape. */
+  buildChannel: UpdateChannel;
+  /** The channel the user has chosen for updates. */
+  updateChannel: UpdateChannel;
+  /** Provenance stamped into the tarball by CI; null on git checkouts. */
+  build: BuildInfo | null;
   generatedAt: string;
   node: string;
   platform: string;
@@ -57,7 +65,8 @@ function renderReadme(input: BundleInput): string {
   return `# Home Screens diagnostics bundle
 
 Generated: ${input.meta.generatedAt}
-Version:   ${input.meta.version}
+Version:   ${input.meta.version} (${input.meta.buildChannel} build, updates from the ${input.meta.updateChannel} channel)
+Build:     ${input.meta.build ? `${input.meta.build.sha.slice(0, 12)} at ${input.meta.build.builtAt}` : 'no build-info.json (git checkout or pre-stamp tarball)'}
 Platform:  ${input.meta.platform} (node ${input.meta.node})
 
 ## Contents

@@ -12,16 +12,25 @@ set -euo pipefail
 #   ./scripts/release.sh preminor    # 0.3.0 → 0.4.0-rc.0
 #   ./scripts/release.sh premajor    # 0.3.0 → 1.0.0-rc.0
 #   ./scripts/release.sh prerelease  # 0.4.0-rc.0 → 0.4.0-rc.1
+#   ./scripts/release.sh --beta preminor   # 0.3.0 → 0.4.0-beta.0 (the Beta update choice)
+#   ./scripts/release.sh --beta prerelease # 0.4.0-beta.0 → 0.4.0-beta.1
+#   ./scripts/release.sh prerelease  # 0.4.0-beta.1 → 0.4.0-rc.0 (beta graduates to a candidate)
 #   ./scripts/release.sh --no-push minor  # commit + tag, but don't push
+#
+# Prerelease ids are what the app's update channels key on: -beta.N is
+# offered to the Beta choice, -rc.N to Early access, and a bare version to
+# everyone. Nightlies (-dev.YYYYMMDD) come from CI, never from here.
 
 NO_PUSH=false
 ASSUME_YES=false
+PREID="rc"
 BUMP=""
 
 for arg in "$@"; do
   case "$arg" in
     --no-push) NO_PUSH=true ;;
     --yes|-y) ASSUME_YES=true ;;
+    --beta) PREID="beta" ;;
     *) BUMP="$arg" ;;
   esac
 done
@@ -63,10 +72,13 @@ if ! npm run test:e2e 2>&1 | sed 's/^/  [e2e] /'; then
 fi
 echo "All checks passed."
 
-# Pre-release bumps use --preid rc (e.g., 0.4.0-rc.0)
+# Pre-release bumps carry the channel id (e.g., 0.4.0-rc.0 or 0.4.0-beta.0)
 PRE_ARGS=()
 if [[ "$BUMP" == pre* ]]; then
-  PRE_ARGS=(--preid rc)
+  PRE_ARGS=(--preid "$PREID")
+elif [[ "$PREID" != "rc" ]]; then
+  echo "Error: --beta only applies to a pre* bump."
+  exit 1
 fi
 
 # Bump version in package.json without committing or tagging

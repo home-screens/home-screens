@@ -814,7 +814,6 @@ Returns which API keys are configured (as booleans, not the actual values). Requ
   "google_client_secret": true,
   "google_web_client_id": false,
   "google_web_client_secret": false,
-  "github_token": false,
   "immich_url": false,
   "immich_api_key": false
 }
@@ -2210,24 +2209,27 @@ Returns the current application version, available tags, and upgrade status. Req
 | Parameter | Type | Description |
 |---|---|---|
 | `check` | string | Set to `"true"` to force-check for updates |
-| `channel` | string | Set to `"dev"` to include prerelease versions |
+| `channel` | string | Which builds to consider: `stable` (default), `rc`, `beta`, or `nightly`. Each channel also sees everything more stable than itself. |
 
 **Response:**
 ```json
 {
-  "current": "0.10.0",
+  "current": "1.12.2",
   "currentCommit": "a3b2e17",
-  "latest": "0.11.0",
+  "currentChannel": "stable",
+  "updateChannel": "stable",
+  "latest": "1.13.0",
   "latestCommit": "f91d40c",
   "updateAvailable": true,
+  "isDowngrade": false,
   "installedVia": "tarball",
-  "channel": "release",
-  "tags": [{ "tag": "v0.11.0", "version": "0.11.0", "commit": "", "hasTarball": true }],
+  "branch": "release",
+  "tags": [{ "tag": "v1.13.0", "version": "1.13.0", "commit": "", "hasTarball": true }],
   "upgradeRunning": false
 }
 ```
 
-`tags` holds the 20 most recent versions, not the whole history. `latest` and `latestCommit` are `null` when no newer version could be found.
+`currentChannel` is the channel the running build belongs to, by the shape of its version; `updateChannel` is the one the lookup was scoped to. `latest` is the newest version inside that channel, so `updateAvailable` is `true` whenever it differs from `current`, and `isDowngrade` says when installing it would be a step back (a test build whose owner picked the normal channel again). `tags` holds the 20 most recent versions in the channel, not the whole history. `latest` and `latestCommit` are `null` when nothing could be resolved. `branch` is the git branch for git installs and `release` for tarball installs.
 
 ### GET /api/system/update-notification
 

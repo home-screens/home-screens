@@ -86,7 +86,6 @@ Most of Home Screens needs no key at all. Keys that are needed live on **Setting
 | Unsplash | Free stock photo backgrounds (50 requests an hour on the free plan) |
 | NASA | The Astronomy Picture of the Day as a background. The image library search works without a key. |
 | Todoist | The Todoist module |
-| GitHub | Only for update checks, and only shown with **Show advanced options** on. Raises a rate limit you are unlikely to hit. |
 
 ## Next steps
 

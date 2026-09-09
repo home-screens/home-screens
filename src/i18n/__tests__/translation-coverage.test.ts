@@ -44,6 +44,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|backgroundPicker.immich.personLabel',
   'editor|backgroundPicker.statusGroup',
   'editor|backgroundPicker.tabs.nasa',
+  // "Beta" is the same software term in every shipped language; the update
+  // choice's other labels are translated words.
+  'editor|settings.systemPage.channel.beta.label',
   // Brand names of the rotation sources, spelled the same everywhere.
   'editor|backgroundPicker.sources.unsplash',
   'editor|backgroundPicker.sources.immich',
@@ -159,7 +162,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.displaysIndex.statusOnline',
   'editor|settings.header.backToEditor',
   'editor|settings.header.theme.system',
-  'editor|settings.integrationsPage.github.name',
   'editor|settings.integrationsPage.google.name',
   'editor|settings.integrationsPage.immich.name',
   'editor|settings.integrationsPage.microsoft.name',
@@ -355,7 +357,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|registry.types.text',
     'editor|settings.alertFormFields.positionLabel',
     'editor|settings.displaysIndex.formNameLabel',
-    'editor|settings.integrationsPage.github.optionalBadge',
     'editor|settings.integrationsPage.microsoft.clientIdLabel',
     'editor|settings.networkPage.hostname.heading',
     'editor|settings.perDisplayPage.overview.transitionLabels.crossfade',

@@ -1,8 +1,12 @@
 import { execFile } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { getSecret } from './secrets';
-import { compareSemver, isPrerelease } from '@/lib/semver';
+import {
+  channelIncludes,
+  classifyVersion,
+  compareSemver,
+  type UpdateChannel,
+} from '@/lib/semver';
 import { fetchWithTimeout } from '@/lib/api-utils';
 
 export const GITHUB_REPO = 'home-screens/home-screens';
@@ -10,11 +14,25 @@ export const GITHUB_REPO = 'home-screens/home-screens';
 export interface VersionInfo {
   current: string;
   currentCommit: string;
+  /** Which channel the running build belongs to, by the shape of its version. */
+  currentChannel: UpdateChannel;
+  /** The channel the lookup was scoped to. */
+  updateChannel: UpdateChannel;
+  /** Newest version inside `updateChannel`, or null when nothing resolved. */
   latest: string | null;
   latestCommit: string | null;
+  /**
+   * True when `latest` is not the version that is running. Inside a channel
+   * "newest" is the install target whether it is numerically above or below
+   * the current build: a user stepping back from nightly to stable must be
+   * offered the lower number.
+   */
   updateAvailable: boolean;
+  /** `latest` sorts below `current`, so installing it is a step back. */
+  isDowngrade: boolean;
   installedVia: 'git' | 'tarball' | 'unknown';
-  channel: string;
+  /** Git branch for git installs, `release` for tarballs, `unknown` otherwise. */
+  branch: string;
 }
 
 export interface TagInfo {
@@ -32,9 +50,9 @@ export interface VersionResponse extends VersionInfo {
 }
 
 /** One entry in GET /api/system/changelog's `releases` array. Shared with
- * SystemSection's changelog panel so the route's three payload branches
- * (cached releases, direct API, tags fallback) cannot drift from what the
- * UI renders. `published` is null on the tags fallback, which has no dates. */
+ * SystemSection's changelog panel so the route's payload branches
+ * (channel releases, tags fallback) cannot drift from what the UI renders.
+ * `published` is null on the tags fallback, which has no dates. */
 export interface ChangelogRelease {
   tag: string;
   name: string;
@@ -49,7 +67,7 @@ export function releasePageUrl(tag: string): string {
   return `https://github.com/${GITHUB_REPO}/releases/tag/${encodeURIComponent(tag)}`;
 }
 
-interface GitHubRelease {
+export interface GitHubRelease {
   tag_name: string;
   name: string;
   body: string;
@@ -123,83 +141,227 @@ async function getCurrentBranch(): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// GitHub API — primary version source (works without git)
+// GitHub API: primary version source (works without git)
 // ---------------------------------------------------------------------------
 
-let cachedGitHubReleases: {
-  releases: GitHubRelease[];
-  etag: string | null;
-  fetchedAt: number;
-} | null = null;
+const GITHUB_HEADERS: Readonly<Record<string, string>> = {
+  Accept: 'application/vnd.github.v3+json',
+};
 
 const GITHUB_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-async function getGitHubHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github.v3+json',
-  };
-  try {
-    const token = await getSecret('github_token');
-    if (token) headers.Authorization = `Bearer ${token}`;
-  } catch {
-    // secrets module not available
-  }
-  return headers;
+/**
+ * How long a failed refresh may keep serving the last good answer. Past this
+ * the failure surfaces so the git fallback gets its turn; an answer older
+ * than this is no longer "what was true recently".
+ */
+const GITHUB_STALE_MAX_MS = 6 * 60 * 60 * 1000;
+
+/** How many releases the list call pages. Nightlies are pruned to well
+ * under this, so the newest of every channel stays inside one page. */
+export const RELEASE_PAGE_SIZE = 30;
+
+interface CacheEntry<T> {
+  value: T;
+  etag: string | null;
+  fetchedAt: number;
 }
 
-/** Fetch releases from GitHub API with ETag caching.
- *  By default only stable releases are returned. Pass includePrerelease
- *  to also return releases marked as pre-release on GitHub. */
-export async function fetchGitHubReleases(options?: {
+/**
+ * One GitHub GET with an ETag cache and a single in-flight request.
+ *
+ * Serves the cache inside the TTL, revalidates with If-None-Match after it,
+ * and hands a fresh body to `parse` otherwise. `onMissing` turns a 404 into
+ * a value instead of an error, for lookups where "nothing there" is an
+ * answer (no stable release cut yet).
+ *
+ * Concurrent callers share one request: the version route asks for the
+ * channel twice per hit (info and tags), and without this each cache miss
+ * fired every GitHub call twice and let a failing sibling write its stale
+ * copy back over the fresh one.
+ *
+ * A failed background refresh serves the stale cache for up to
+ * `GITHUB_STALE_MAX_MS` rather than throwing: the two lookups behind a
+ * channel are merged, and a channel answered by only one of them is a
+ * different, wrong answer (see `getChannelReleases`). A forced check never
+ * serves stale. The user asked for a live answer, and throwing lets the git
+ * fallback offer a tag that GitHub is refusing to list.
+ */
+class GitHubResource<T> {
+  private cache: CacheEntry<T> | null = null;
+  private inflight: Promise<T> | null = null;
+
+  constructor(
+    private readonly url: string,
+    private readonly parse: (body: unknown) => T,
+    private readonly onMissing?: () => T,
+  ) {}
+
+  get(force: boolean): Promise<T> {
+    const cache = this.cache;
+    if (!force && cache && Date.now() - cache.fetchedAt < GITHUB_CACHE_TTL_MS) {
+      return Promise.resolve(cache.value);
+    }
+    // The request is shared; the stale policy is not. A forced check that
+    // joins a background refresh must still fail when that refresh fails,
+    // or it inherits the stale answer it exists to bypass.
+    if (!this.inflight) {
+      this.inflight = this.refresh().finally(() => {
+        this.inflight = null;
+      });
+    }
+    return this.inflight.catch((err: unknown) => {
+      if (!force && cache && Date.now() - cache.fetchedAt < GITHUB_STALE_MAX_MS) {
+        return cache.value;
+      }
+      throw err;
+    });
+  }
+
+  /** One live GET. Updates the cache on success and throws on any failure. */
+  private async refresh(): Promise<T> {
+    const cache = this.cache;
+    const headers: Record<string, string> = { ...GITHUB_HEADERS };
+    if (cache?.etag) headers['If-None-Match'] = cache.etag;
+
+    // 304 is not a transient status, so the ETag path is unaffected by the
+    // retry wrapper.
+    const res = await fetchWithTimeout(this.url, { headers });
+
+    if (res.status === 304 && cache) {
+      cache.fetchedAt = Date.now();
+      return cache.value;
+    }
+    if (res.status === 404 && this.onMissing) {
+      const value = this.onMissing();
+      this.cache = { value, etag: null, fetchedAt: Date.now() };
+      return value;
+    }
+    if (!res.ok) {
+      throw new Error(`GitHub API returned ${res.status}`);
+    }
+
+    const value = this.parse(await res.json());
+    this.cache = { value, etag: res.headers.get('etag'), fetchedAt: Date.now() };
+    return value;
+  }
+}
+
+/** The newest page of releases, every channel mixed, drafts dropped. */
+const releasePage = new GitHubResource<GitHubRelease[]>(
+  `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=${RELEASE_PAGE_SIZE}`,
+  (body) => (body as GitHubRelease[]).filter((r) => !r.draft),
+);
+
+/**
+ * GitHub's own notion of the latest release, which excludes prereleases and
+ * anything published with `make_latest: false`. This is how stable resolves:
+ * once nightlies publish daily the paged list fills with them and the newest
+ * stable falls off the end, and a stable device that only read the page would
+ * stop seeing updates without any error.
+ */
+const latestStable = new GitHubResource<GitHubRelease | null>(
+  `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
+  (body) => {
+    const release = body as GitHubRelease;
+    return release.draft ? null : release;
+  },
+  () => null,
+);
+
+/**
+ * The newest page of releases, every channel mixed, drafts dropped. Callers
+ * scope it with `getChannelReleases`; this is the raw feed.
+ */
+export function fetchGitHubReleases(options?: { force?: boolean }): Promise<GitHubRelease[]> {
+  return releasePage.get(options?.force ?? false);
+}
+
+/** The release GitHub calls latest, or null when no stable has shipped. */
+export function fetchLatestStableRelease(options?: { force?: boolean }): Promise<GitHubRelease | null> {
+  return latestStable.get(options?.force ?? false);
+}
+
+export interface ChannelReleaseOptions {
   force?: boolean;
-  includePrerelease?: boolean;
-}): Promise<GitHubRelease[]> {
-  const { force = false, includePrerelease = false } = options ?? {};
+  /**
+   * Require the release page even on stable. The version check can answer
+   * stable from `releases/latest` alone, but a caller listing history (the
+   * changelog) would mistake that single release for the whole list.
+   */
+  requirePage?: boolean;
+}
 
-  if (
-    !force &&
-    cachedGitHubReleases &&
-    Date.now() - cachedGitHubReleases.fetchedAt < GITHUB_CACHE_TTL_MS
-  ) {
-    const cached = cachedGitHubReleases.releases;
-    return includePrerelease ? cached : cached.filter((r) => !r.prerelease);
+/**
+ * Releases visible from a channel, newest first. Merges the release page
+ * with `releases/latest` so the current stable is always present, then keeps
+ * only the releases the channel offers (see `channelOffers`).
+ *
+ * Each source is required where it is the only one that can answer:
+ *   - the page is the only source of prereleases, so every prerelease
+ *     channel needs it. Answered from `releases/latest` alone, a nightly
+ *     user would be offered the stable as a step back while still on the
+ *     nightly channel.
+ *   - `releases/latest` is the only source guaranteed to hold the newest
+ *     stable once nightlies fill the page, so stable needs it. Answered from
+ *     the page alone, a device could be offered an older stable as a step
+ *     back for doing nothing.
+ * Both sources serve their stale cache on a failed background refresh before
+ * any of this applies, so the throw is for a cold cache or a forced check.
+ */
+export async function getChannelReleases(
+  channel: UpdateChannel,
+  options?: ChannelReleaseOptions,
+): Promise<GitHubRelease[]> {
+  const { force = false, requirePage = false } = options ?? {};
+  const [page, latest] = await Promise.allSettled([
+    releasePage.get(force),
+    latestStable.get(force),
+  ]);
+  if (page.status === 'rejected' && (channel !== 'stable' || requirePage)) {
+    throw page.reason;
+  }
+  if (latest.status === 'rejected' && channel === 'stable') {
+    throw latest.reason;
   }
 
-  const headers = await getGitHubHeaders();
-  if (cachedGitHubReleases?.etag) {
-    headers['If-None-Match'] = cachedGitHubReleases.etag;
+  const byTag = new Map<string, GitHubRelease>();
+  if (latest.status === 'fulfilled' && latest.value) {
+    byTag.set(latest.value.tag_name, latest.value);
+  }
+  if (page.status === 'fulfilled') {
+    for (const r of page.value) byTag.set(r.tag_name, r);
   }
 
-  // 304 is not a transient status, so the ETag path below is unaffected by
-  // the retry wrapper.
-  const res = await fetchWithTimeout(
-    `https://api.github.com/repos/${GITHUB_REPO}/releases?per_page=30`,
-    { headers },
-  );
+  return [...byTag.values()]
+    .filter((r) => channelOffers(channel, r))
+    .sort((a, b) => compareSemver(versionOfTag(b.tag_name), versionOfTag(a.tag_name)));
+}
 
-  if (res.status === 304 && cachedGitHubReleases) {
-    cachedGitHubReleases.fetchedAt = Date.now();
-    const cached = cachedGitHubReleases.releases;
-    return includePrerelease ? cached : cached.filter((r) => !r.prerelease);
-  }
+/**
+ * Whether a channel offers a release. Tag shape decides (`channelIncludes`),
+ * with one override: a stable-shaped release that GitHub marks as a
+ * pre-release has been withdrawn. Ticking "Set as a pre-release" on a
+ * published release is the kill switch for a bad build. It hides the
+ * release from every channel within the cache hour, and a device already
+ * on it is offered the previous stable as a switch back, all without
+ * deleting the release itself.
+ */
+function channelOffers(channel: UpdateChannel, release: GitHubRelease): boolean {
+  const version = versionOfTag(release.tag_name);
+  if (release.prerelease && classifyVersion(version) === 'stable') return false;
+  return channelIncludes(channel, version);
+}
 
-  if (!res.ok) {
-    throw new Error(`GitHub API returned ${res.status}`);
-  }
-
-  const releases: GitHubRelease[] = await res.json();
-  const etag = res.headers.get('etag');
-  const nonDraft = releases.filter((r) => !r.draft);
-
-  cachedGitHubReleases = { releases: nonDraft, etag, fetchedAt: Date.now() };
-  return includePrerelease ? nonDraft : nonDraft.filter((r) => !r.prerelease);
+function versionOfTag(tag: string): string {
+  return tag.replace(/^v/, '');
 }
 
 /** @internal Convert GitHub releases to TagInfo array, sorted by semver descending */
 export function releasesToTags(releases: GitHubRelease[]): TagInfo[] {
   const tags: TagInfo[] = releases.map((r) => ({
     tag: r.tag_name,
-    version: r.tag_name.replace(/^v/, ''),
+    version: versionOfTag(r.tag_name),
     commit: '', // GitHub releases don't include commit SHA directly
     hasTarball: r.assets.some((a) => a.name.startsWith('home-screens-') && a.name.endsWith('.tar.gz')),
   }));
@@ -208,15 +370,33 @@ export function releasesToTags(releases: GitHubRelease[]): TagInfo[] {
   return tags;
 }
 
-/** Check if a specific tag has a pre-built tarball on GitHub Releases */
+function releaseHasTarball(release: GitHubRelease, tag: string): boolean {
+  return release.assets.some((a) => a.name === `home-screens-${tag}.tar.gz`);
+}
+
+/**
+ * Check if a specific tag has a pre-built tarball on GitHub Releases. Reads
+ * the cached page first; a tag outside it (an older stable behind a run of
+ * nightlies, or the stable a nightly user is stepping back to) is looked up
+ * directly rather than being declared tarball-less, which would push the
+ * upgrade onto the git path and fail every tarball install.
+ */
 export async function hasReleaseTarball(tag: string): Promise<boolean> {
   try {
-    const releases = await fetchGitHubReleases({ includePrerelease: true });
+    const releases = await fetchGitHubReleases();
     const release = releases.find((r) => r.tag_name === tag);
-    if (!release) return false;
-    return release.assets.some(
-      (a) => a.name === `home-screens-${tag}.tar.gz`,
+    if (release) return releaseHasTarball(release, tag);
+  } catch {
+    // Fall through to the direct lookup.
+  }
+  try {
+    const res = await fetchWithTimeout(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/${encodeURIComponent(tag)}`,
+      { headers: { ...GITHUB_HEADERS } },
     );
+    if (!res.ok) return false;
+    const release: GitHubRelease = await res.json();
+    return !release.draft && releaseHasTarball(release, tag);
   } catch {
     return false;
   }
@@ -275,15 +455,17 @@ async function getGitVersionTags(): Promise<TagInfo[]> {
 // Unified API — tries GitHub first, falls back to git
 // ---------------------------------------------------------------------------
 
-/** Get version tags — prefers GitHub API, falls back to git */
-export async function getVersionTags(options?: {
+export interface VersionLookupOptions {
   force?: boolean;
-  includePrerelease?: boolean;
-}): Promise<TagInfo[]> {
-  const { force = false, includePrerelease = false } = options ?? {};
+  channel?: UpdateChannel;
+}
+
+/** Version tags visible from a channel. Prefers the GitHub API, falls back to git. */
+export async function getVersionTags(options?: VersionLookupOptions): Promise<TagInfo[]> {
+  const { force = false, channel = 'stable' } = options ?? {};
 
   try {
-    const releases = await fetchGitHubReleases({ force, includePrerelease });
+    const releases = await getChannelReleases(channel, { force });
     if (releases.length > 0) {
       return releasesToTags(releases);
     }
@@ -294,7 +476,7 @@ export async function getVersionTags(options?: {
   if (await isGitRepo()) {
     if (force) await fetchRemoteTags(true);
     const tags = await getGitVersionTags();
-    return includePrerelease ? tags : tags.filter((t) => !isPrerelease(t.version));
+    return tags.filter((t) => channelIncludes(channel, t.version));
   }
 
   return [];
@@ -321,34 +503,38 @@ async function detectInstallMethod(): Promise<'git' | 'tarball' | 'unknown'> {
   }
 }
 
-/** @internal Assemble a VersionInfo result from resolved tags and metadata */
+/**
+ * @internal Assemble a VersionInfo result from channel-scoped tags (newest
+ * first) and metadata about the running build.
+ */
 export function buildVersionInfo(
   tags: TagInfo[],
   current: string,
   commit: string,
   installedVia: 'git' | 'tarball' | 'unknown',
   branch: string,
+  channel: UpdateChannel,
 ): VersionInfo {
   const latest = tags.length > 0 ? tags[0] : null;
-  const updateAvailable = latest !== null && compareSemver(latest.version, current) > 0;
+  const cmp = latest ? compareSemver(latest.version, current) : 0;
 
   return {
     current,
     currentCommit: commit,
+    currentChannel: classifyVersion(current),
+    updateChannel: channel,
     latest: latest?.version ?? null,
     latestCommit: latest?.commit ?? null,
-    updateAvailable,
+    updateAvailable: latest !== null && cmp !== 0,
+    isDowngrade: latest !== null && cmp < 0,
     installedVia,
-    channel: branch,
+    branch,
   };
 }
 
-/** Get full version info */
-export async function getVersionInfo(options?: {
-  force?: boolean;
-  includePrerelease?: boolean;
-}): Promise<VersionInfo> {
-  const { force = false, includePrerelease = false } = options ?? {};
+/** Get full version info, scoped to a channel */
+export async function getVersionInfo(options?: VersionLookupOptions): Promise<VersionInfo> {
+  const { force = false, channel = 'stable' } = options ?? {};
   const [current, commit, installedVia] = await Promise.all([
     getPackageVersion(),
     getCurrentCommit(),
@@ -357,11 +543,11 @@ export async function getVersionInfo(options?: {
 
   // Try GitHub API first
   try {
-    const releases = await fetchGitHubReleases({ force, includePrerelease });
+    const releases = await getChannelReleases(channel, { force });
     if (releases.length > 0) {
       const tags = releasesToTags(releases);
       const branch = installedVia === 'git' ? await getCurrentBranch() : 'release';
-      return buildVersionInfo(tags, current, commit, installedVia, branch);
+      return buildVersionInfo(tags, current, commit, installedVia, branch, channel);
     }
   } catch {
     // GitHub API unavailable, fall through
@@ -370,13 +556,10 @@ export async function getVersionInfo(options?: {
   // Fallback to git
   if (installedVia === 'git') {
     await fetchRemoteTags();
-    let tags = await getGitVersionTags();
-    if (!includePrerelease) {
-      tags = tags.filter((t) => !isPrerelease(t.version));
-    }
+    const tags = (await getGitVersionTags()).filter((t) => channelIncludes(channel, t.version));
     const branch = await getCurrentBranch();
-    return buildVersionInfo(tags, current, commit, installedVia, branch);
+    return buildVersionInfo(tags, current, commit, installedVia, branch, channel);
   }
 
-  return buildVersionInfo([], current, commit, installedVia, 'unknown');
+  return buildVersionInfo([], current, commit, installedVia, 'unknown', channel);
 }

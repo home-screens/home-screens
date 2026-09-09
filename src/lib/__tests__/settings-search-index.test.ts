@@ -129,15 +129,12 @@ describe('conditionally-rendered field gating', () => {
     transitionEffect: 'fade',
   };
 
-  it('hides advanced-mode-only fields on a default install', () => {
-    // Nothing on the destination page lets the user reveal these, so offering
-    // them is a guaranteed dead end.
-    for (const fieldId of ['integrations.github', 'system.updateChannel']) {
-      const entry = SETTINGS_FIELD_INDEX.find((f) => f.fieldId === fieldId)!;
-      expect(entry, `${fieldId} missing from the index`).toBeDefined();
-      expect(isSettingsFieldReachable(entry, DEFAULT_INSTALL)).toBe(false);
-      expect(isSettingsFieldReachable(entry, { ...DEFAULT_INSTALL, advancedMode: true })).toBe(true);
-    }
+  it('keeps the update choice reachable without advanced mode', () => {
+    // Which builds to be offered is a user decision, not a developer control,
+    // so it never hid behind "Show advanced options" once it grew three options.
+    const entry = SETTINGS_FIELD_INDEX.find((f) => f.fieldId === 'system.updateChannel')!;
+    expect(entry).toBeDefined();
+    expect(isSettingsFieldReachable(entry, DEFAULT_INSTALL)).toBe(true);
   });
 
   it('hides canvas geometry fields on a multi-display install', () => {

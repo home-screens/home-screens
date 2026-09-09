@@ -36,6 +36,7 @@ import TimersTab from './components/TimersTab';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
 import TabNotSetUp from './components/TabNotSetUp';
+import type { UpdateChannel } from '@/lib/semver';
 
 interface RemoteInitialData {
   screens: Array<{ id: string; name: string }>;
@@ -53,7 +54,7 @@ interface RemoteInitialData {
   photoDirectory: string;
   backupReminder: { enabled: boolean; intervalDays: number };
   updateNotification: { enabled: boolean };
-  updateChannel: 'stable' | 'dev';
+  updateChannel: UpdateChannel;
   /** Multi-display registry. Empty in single-display installs. */
   displays: Array<{ id: string; name: string }>;
   /**

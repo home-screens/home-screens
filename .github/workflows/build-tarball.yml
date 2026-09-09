@@ -1,0 +1,179 @@
+name: Build tarball
+
+# The one place the standalone tarball is assembled. Release and Nightly both
+# call this, so the standalone layout, the version stamp, the checksum and the
+# size gate cannot drift between a tagged release and a test build.
+#
+# The version is stamped into package.json before the build rather than
+# trusted from the checkout: `getPackageVersion()` on the device reads that
+# file, and the update check compares it against release tags, so the two
+# have to agree by construction. A human bumping package.json before tagging
+# still works (the stamp is a no-op); a nightly, which no human bumps, gets
+# the version the workflow computed.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Tag-shaped version for the artifact, e.g. v1.12.3 or v1.12.3-dev.20260908'
+        required: true
+        type: string
+      ref:
+        description: 'Commit or ref to build; defaults to the calling workflow''s sha'
+        required: false
+        type: string
+        default: ''
+    outputs:
+      version:
+        description: 'The version the tarball was built as'
+        value: ${{ jobs.build.outputs.version }}
+
+jobs:
+  build:
+    name: Build tarball
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! printf '%s' "${VERSION}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$'; then
+            echo "::error::Version '${VERSION}' is not tag-shaped (vX.Y.Z or vX.Y.Z-suffix). upgrade.sh derives the asset name from it and parseTagParam rejects anything else."
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      # Node 22 bundles npm 10; raise it to the engines floor in package.json.
+      - run: |
+          npm install -g "npm@$(node -p 'require("./package.json").engines.npm' | tr -d '>=^~ ')"
+
+      - run: npm ci
+
+      # Stamp before the build, not after: next.config.mjs reads package.json
+      # at build time and bakes the version into the client bundle (the
+      # plugin store's compatibility check reads it there), and two routes
+      # import package.json statically. Stamping only the tarball copy left
+      # the server reporting the nightly version while the compiled assets
+      # still carried the previous release's, so plugins gated on the newer
+      # version were hidden even though the server would have accepted them.
+      - name: Stamp version into package.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = process.env.VERSION.replace(/^v/, '');
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+          node -p "'package.json version: ' + require('./package.json').version"
+
+      - run: npm run build
+
+      # Assemble standalone tarball
+      - name: Assemble tarball
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_SHA: ${{ inputs.ref || github.sha }}
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          cp -r scripts .next/standalone/scripts
+          cp .node-version .next/standalone/.node-version
+
+          # Bundle the config-check CLI so `npm run config:check` works on
+          # installs with no dev dependencies or src/ tree. The launcher
+          # (scripts/check-config.mjs) prefers this artifact when present.
+          npx esbuild scripts/check-config.ts --bundle --platform=node \
+            --format=cjs --outfile=.next/standalone/scripts/check-config.cjs
+
+          # Ship an empty data/ dir, never a seeded config.json. The app
+          # writes data/config.json from DEFAULT_CONFIG (src/lib/config.ts)
+          # on first read; install.sh and the image builder (stage
+          # 04-install-app.sh) each write their own seed when the file is
+          # absent, because setup-system and firstboot only patch an existing
+          # file. A hand-rolled seed here silently outranks all of them and
+          # goes stale: this one still pinned schema version 1, the removed
+          # calendar.maxEvents field, and the keyed weatherapi provider, so
+          # every fresh install landed on a weather provider that needs an
+          # API key.
+          mkdir -p .next/standalone/data
+
+          # package.json (already stamped above, so the runtime version and
+          # the compiled assets agree) with the start script corrected for
+          # the tarball root.
+          node -e "
+            const pkg = require('./package.json');
+            pkg.scripts.start = 'node server.js';
+            require('fs').writeFileSync(
+              '.next/standalone/package.json',
+              JSON.stringify(pkg, null, 2)
+            );
+          "
+
+          # Build provenance for diagnostics. Kept out of the version string:
+          # a +sha suffix would fail parseTagParam and need URL-encoding in
+          # every asset URL.
+          node -e "
+            const v = process.env.VERSION.replace(/^v/, '');
+            const suffix = v.includes('-') ? v.slice(v.indexOf('-') + 1).split('.')[0].toLowerCase() : '';
+            const channel = suffix === '' ? 'stable'
+              : suffix === 'rc' ? 'rc'
+              : suffix === 'beta' ? 'beta' : 'nightly';
+            require('fs').writeFileSync('.next/standalone/build-info.json', JSON.stringify({
+              tag: process.env.VERSION,
+              version: v,
+              channel,
+              sha: (require('child_process').execSync('git rev-parse HEAD').toString().trim()),
+              builtAt: new Date().toISOString(),
+            }, null, 2) + '\n');
+          "
+          cat .next/standalone/build-info.json
+
+          tar -czf "home-screens-${VERSION}.tar.gz" -C .next/standalone .
+
+      # Generate SHA-256 sidecar for artifact integrity verification.
+      # install.sh and upgrade.sh download this alongside the tarball and
+      # verify before extraction. Closes the gap where HTTPS provides
+      # transport integrity but not artifact integrity (compromised GitHub
+      # account or replaced asset would otherwise go undetected).
+      - name: Compute checksum
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          sha256sum "home-screens-${VERSION}.tar.gz" > "home-screens-${VERSION}.tar.gz.sha256"
+          cat "home-screens-${VERSION}.tar.gz.sha256"
+
+      # Fail if tarball exceeds 60MB
+      - name: Size gate
+        run: |
+          size=$(stat -c%s home-screens-*.tar.gz)
+          echo "Tarball size: $(( size / 1024 / 1024 ))MB ($size bytes)"
+          if [ "$size" -gt 62914560 ]; then
+            echo "::error::Tarball exceeds 60MB budget"
+            exit 1
+          fi
+
+      # Hand the tarball to the caller. Release attaches it and images it,
+      # nightly attaches it. Either way the bytes users download are the
+      # bytes the checksum above covers.
+      - name: Upload tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-tarball
+          path: |
+            home-screens-*.tar.gz
+            home-screens-*.tar.gz.sha256
+          retention-days: 1
+          if-no-files-found: error

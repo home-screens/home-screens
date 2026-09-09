@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import ChangelogModal from './ChangelogModal';
 import Toggle from '@/components/ui/Toggle';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { UPDATE_CHANNELS, classifyVersion, type UpdateChannel } from '@/lib/semver';
 import { useSystemActions } from './useSystemActions';
 
 interface Props {
@@ -35,7 +36,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     handleCheckUpdates,
     handleOpenChangelog,
     handleOpenRelease,
-    handleToggleChannel,
+    handleSetChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,
     handleUpgrade,
@@ -64,7 +65,37 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     );
   }
 
-  const latestIsPrerelease = versionInfo.latest?.includes('-') ?? false;
+  // The banner's tone follows what the channel resolved, not the size of
+  // the number: a nightly user stepping back to the normal channel is offered
+  // a lower version and the copy has to say so.
+  const offeredChannels = UPDATE_CHANNELS.filter(
+    (option) => option !== 'nightly' || advancedMode || channel === 'nightly',
+  );
+  const latestChannel = versionInfo.latest ? classifyVersion(versionInfo.latest) : 'stable';
+  const bannerTone: 'update' | 'downgrade' | 'rc' | 'beta' | 'nightly' = versionInfo.isDowngrade
+    ? 'downgrade'
+    : latestChannel === 'stable'
+      ? 'update'
+      : latestChannel;
+  const bannerIsWarning = bannerTone !== 'update';
+  const BANNER_TITLE_KEY: Record<typeof bannerTone, string> = {
+    update: 'settings.systemPage.updateAvailable.updateTitle',
+    downgrade: 'settings.systemPage.updateAvailable.downgradeTitle',
+    rc: 'settings.systemPage.updateAvailable.rcTitle',
+    beta: 'settings.systemPage.updateAvailable.betaTitle',
+    nightly: 'settings.systemPage.updateAvailable.nightlyTitle',
+  };
+  const bannerTitle = versionInfo.latest
+    ? t(BANNER_TITLE_KEY[bannerTone], { version: versionInfo.latest })
+    : '';
+  const bannerLine = bannerTone === 'downgrade'
+    ? t('settings.systemPage.updateAvailable.downgradeLine', { version: versionInfo.current })
+    : t('settings.systemPage.updateAvailable.currentLine', { version: versionInfo.current });
+  const bannerButton = bannerTone === 'downgrade'
+    ? t('settings.systemPage.updateAvailable.switchButton')
+    : bannerTone === 'update'
+      ? t('settings.systemPage.updateAvailable.updateButton')
+      : t('settings.systemPage.updateAvailable.installButton');
 
   return (
     <div className="space-y-0 divide-y divide-hs-border-strong [&>section]:py-5 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
@@ -74,29 +105,29 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         </h3>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-hs-text-primary text-sm">
-              {t('settings.systemPage.version.currentLabel', { version: versionInfo.current })}
+            <p className="text-hs-text-primary text-sm flex items-center gap-2 flex-wrap">
+              <span>{t('settings.systemPage.version.currentLabel', { version: versionInfo.current })}</span>
+              {/* A prerelease build says so next to its number, so a bug
+                  report screenshot from a test build is readable at a glance. */}
+              {versionInfo.currentChannel !== 'stable' && (
+                <span
+                  data-testid="system-build-badge"
+                  className="text-[10px] uppercase tracking-wider bg-hs-warning/20 text-hs-warning px-1.5 py-0.5 rounded"
+                >
+                  {t(`settings.systemPage.version.${versionInfo.currentChannel}BuildBadge`)}
+                </span>
+              )}
             </p>
-            {/* The commit hash, the git branch and the release channel are
-                build details, and "Show advanced options" already describes
-                itself as revealing developer-facing controls. They were the
-                first three facts on the page for everyone. */}
+            {/* The commit hash and the git branch are build details, and
+                "Show advanced options" already describes itself as revealing
+                developer-facing controls. They were the first facts on the
+                page for everyone. */}
             {advancedMode && (
               <p className="text-xs text-hs-text-faint mt-0.5 font-mono">
                 {versionInfo.currentCommit !== 'unknown' && <>({versionInfo.currentCommit}){' · '}</>}
                 {versionInfo.installedVia === 'git'
-                  ? t('settings.systemPage.version.branchLabel', { channel: versionInfo.channel })
+                  ? t('settings.systemPage.version.branchLabel', { branch: versionInfo.branch })
                   : t('settings.systemPage.version.installedFromRelease')}
-                {' · '}
-                <button
-                  onClick={handleToggleChannel}
-                  data-field-id="system.updateChannel"
-                  className="text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                >
-                  {channel === 'stable'
-                    ? t('settings.systemPage.version.stableChannel')
-                    : t('settings.systemPage.version.prereleaseChannel')}
-                </button>
               </p>
             )}
           </div>
@@ -136,24 +167,25 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         )}
 
         {versionInfo.updateAvailable && versionInfo.latest && (
-          <div className={`mt-3 rounded-lg border p-3 ${
-            latestIsPrerelease
-              ? 'bg-hs-warning/20 border-hs-warning/30'
-              : 'bg-hs-accent-soft border-hs-accent/30'
-          }`}>
-            <div className="flex items-center justify-between">
+          <div
+            data-testid="system-update-banner"
+            className={`mt-3 rounded-lg border p-3 ${
+              bannerIsWarning
+                ? 'bg-hs-warning/20 border-hs-warning/30'
+                : 'bg-hs-accent-soft border-hs-accent/30'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <p className={`text-sm font-medium ${
-                  latestIsPrerelease ? 'text-hs-warning' : 'text-hs-accent-hover'
+                  bannerIsWarning ? 'text-hs-warning' : 'text-hs-accent-hover'
                 }`}>
-                  {latestIsPrerelease
-                    ? t('settings.systemPage.updateAvailable.prereleaseTitle', { version: versionInfo.latest })
-                    : t('settings.systemPage.updateAvailable.updateTitle', { version: versionInfo.latest })}
+                  {bannerTitle}
                 </p>
                 <p className={`text-xs mt-0.5 ${
-                  latestIsPrerelease ? 'text-hs-warning/70' : 'text-hs-accent-hover/70'
+                  bannerIsWarning ? 'text-hs-warning/70' : 'text-hs-accent-hover/70'
                 }`}>
-                  {t('settings.systemPage.updateAvailable.currentLine', { version: versionInfo.current })}
+                  {bannerLine}
                 </p>
               </div>
               <Button
@@ -161,9 +193,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                 size="sm"
                 onClick={() => handleUpgrade(`v${versionInfo.latest}`)}
               >
-                {latestIsPrerelease
-                  ? t('settings.systemPage.updateAvailable.installButton')
-                  : t('settings.systemPage.updateAvailable.updateButton')}
+                {bannerButton}
               </Button>
             </div>
           </div>
@@ -173,6 +203,54 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
           <p className="text-xs text-hs-success/80 mt-2 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-hs-success inline-block" />
             {t('settings.systemPage.upToDate')}
+          </p>
+        )}
+      </section>
+
+      {/* Which builds the update check offers. Normal, Early access and Beta
+          are for everyone: candidates and betas exist to get ordinary homes
+          onto them early. Test builds are a developer control and hide
+          behind advanced mode, except that a device already on them keeps
+          the option visible so it can always be switched off. */}
+      <section data-field-id="system.updateChannel">
+        <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+          {t('settings.systemPage.channel.heading')}
+        </h3>
+        <div role="radiogroup" aria-label={t('settings.systemPage.channel.heading')} className="space-y-2">
+          {offeredChannels.map((option: UpdateChannel) => {
+            const selected = channel === option;
+            return (
+              <label
+                key={option}
+                className={`flex items-start gap-3 rounded-md border px-3 py-2.5 cursor-pointer transition-colors ${
+                  selected
+                    ? 'bg-hs-accent-soft border-hs-accent/40'
+                    : 'bg-hs-input border-hs-border hover:border-hs-border-strong'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="update-channel"
+                  value={option}
+                  checked={selected}
+                  onChange={() => handleSetChannel(option)}
+                  className="accent-hs-accent mt-0.5"
+                />
+                <span className="min-w-0">
+                  <span className="block text-sm text-hs-text-primary">
+                    {t(`settings.systemPage.channel.${option}.label`)}
+                  </span>
+                  <span className="block text-xs text-hs-text-faint mt-0.5">
+                    {t(`settings.systemPage.channel.${option}.help`)}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        {channel === 'nightly' && (
+          <p className="mt-2 text-xs text-hs-warning" role="note">
+            {t('settings.systemPage.channel.nightlyWarning')}
           </p>
         )}
       </section>

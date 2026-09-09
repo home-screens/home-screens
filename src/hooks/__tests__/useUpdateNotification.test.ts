@@ -90,6 +90,28 @@ describe('useUpdateNotification', () => {
     await waitFor(() => expect(result.current.shouldShow).toBe(true));
   });
 
+  it('shouldShow is false when the offer is a step back, not a new release', async () => {
+    // A nightly owner who picked the normal channel again: the System page
+    // offers the stable as a switch, but the toast and remote banner only
+    // know how to say "Update available", so they stay quiet.
+    const fetchFn = makeFetchMock({
+      '/api/system/version': {
+        ...VERSION_UPDATE_AVAILABLE,
+        current: '1.7.0-dev.20260908',
+        latest: '1.6.0',
+        isDowngrade: true,
+      },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.latestVersion).toBe('1.6.0'));
+    expect(result.current.shouldShow).toBe(false);
+  });
+
   it('shouldShow is false when the latest tag matches lastDismissedVersion', async () => {
     const fetchFn = makeFetchMock({
       '/api/system/version': VERSION_UPDATE_AVAILABLE,
