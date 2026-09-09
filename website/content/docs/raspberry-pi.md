@@ -162,7 +162,9 @@ Treat this as a stopgap. It does not update your saved settings, so the next upg
 
 ## Screen keeps going black
 
-First check whether the screen is genuinely powered off or just showing black. Home Screens dims and sleeps by drawing a black layer over the page; the monitor stays on and lit the whole time. So if the panel is still backlit, this is the sleep schedule, and you can change it in **Settings > Screen > Sleep & dimming**. If the panel has actually powered down, that is your monitor or the Wayland compositor, not Home Screens.
+First check whether the screen is genuinely powered off or just showing black. Home Screens dims and sleeps by drawing a black layer over the page; unless you turned on **Switch the screen's power off too** in **Settings > Screen > Sleep & dimming**, the monitor stays on and lit the whole time. So if the panel is still backlit, this is the sleep schedule, and you can change it on that page. If the panel has actually powered down and that setting is off, that is your monitor or the Wayland compositor, not Home Screens.
+
+When the setting is on, a small helper in the kiosk session (`scripts/kiosk-power-agent.sh`) asks the hub every few seconds whether this display should be powered and drives the panel with `wlopm`, which uses the compositor's output power protocol so the browser window, rotation and resolution survive. The hub answers "off" only while the display's own browser reports that it is asleep and is still checking in; a display that stops checking in gets its screen back within a minute and a half, and the helper always restores power when it exits. Pis set up by the installer or the ready-made image have `wlopm`; a display-only Pi installed earlier gets the helper through its normal self-update and installs the package on the same pass.
 
 The compositor (labwc) should prevent screen blanking. To inspect the display state, run:
 

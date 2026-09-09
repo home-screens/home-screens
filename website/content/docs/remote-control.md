@@ -48,7 +48,7 @@ Five tabs along the bottom: **Control**, **Timers**, **Chores**, **Meals** and *
 
 - The card at the top says which screen the wall is showing and whether the display is **Active**, **Dimmed** or **Asleep**. It refreshes every few seconds, faster right after you tap something.
 - **Arrows** move to the previous or next screen.
-- **Sleep Display** blacks the wall out; the same button wakes it again.
+- **Sleep Display** blacks the wall out (and cuts the screen's power, if that display has **Switch the screen's power off too** turned on); the same button wakes it again.
 - **Send Alert** puts a message on the wall: an info, warning or urgent banner, with a title and how long it stays. **Persistent** keeps it up until someone dismisses it.
 - **Brightness** dims the wall from full down to off.
 - With more than one display, a **Send to** row at the top picks which display these controls talk to, or **All** of them at once. Screen navigation works one display at a time.

@@ -10,6 +10,7 @@ import {
   ALERT_OVERRIDE_FIELDS,
 } from '@/lib/display-override-fields';
 import { declaredCanvasDimensions } from '@/lib/display-filter';
+import { resolvePanelPowerEnabled } from '@/lib/panel-power';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate, tOrFallback, type TranslateFn } from '@/i18n';
 import { settingsHref } from '@/lib/settings-route';
@@ -48,6 +49,13 @@ interface OverviewSubtabProps {
  * tells the user not just *which* fields they overrode, but how far
  * each one drifts from the shared default.
  */
+/**
+ * How recently the panel power agent must have polled to count as working.
+ * It polls every 3s; 30s rides out a kiosk restart without flashing the
+ * "hasn't checked in" note.
+ */
+const PANEL_POWER_AGENT_FRESH_MS = 30_000;
+
 export default function OverviewSubtab({
   config,
   display,
@@ -79,6 +87,14 @@ export default function OverviewSubtab({
   const overrideSummaries = findDisplaysOverridingFields(config, allOverrideFields);
   const myOverrides = overrideSummaries.find((s) => s.displayId === display.id);
 
+  // Panel power-off is the one sleep control that reaches the hardware, and
+  // the only symptom of a Pi that cannot do it (old display software, no
+  // wlopm) is "nothing happens". The agent's check-in rides the status
+  // heartbeat, so this display can say whether it is actually working.
+  const panelPowerEnabled = resolvePanelPowerEnabled(config, display.id);
+  const panelPower = heartbeat?.status?.panelPower;
+  const panelPowerWorking = Boolean(panelPower && Date.now() - panelPower.agentSeen < PANEL_POWER_AGENT_FRESH_MS);
+
   return (
     <>
       <div className="grid grid-cols-3 gap-3 mb-5">
@@ -100,6 +116,26 @@ export default function OverviewSubtab({
         </KvCard>
         <KvCard label={t('settings.perDisplayPage.overview.screensLabel')}>{screenCount}</KvCard>
       </div>
+
+      {panelPowerEnabled && (
+        <div
+          className="mb-5 rounded-lg border border-hs-border bg-hs-panel/40 px-4 py-3 text-sm text-hs-text-muted"
+          data-testid="panel-power-status"
+        >
+          <span className="text-xs font-semibold uppercase tracking-wider text-hs-text-secondary mr-2">
+            {t('settings.perDisplayPage.overview.panelPowerLabel')}
+          </span>
+          {panelPowerWorking && panelPower
+            ? t('settings.perDisplayPage.overview.panelPowerWorking', {
+                state: t(
+                  panelPower.applied === 'off'
+                    ? 'settings.perDisplayPage.overview.panelPowerOff'
+                    : 'settings.perDisplayPage.overview.panelPowerOn',
+                ),
+              })
+            : t('settings.perDisplayPage.overview.panelPowerMissing')}
+        </div>
+      )}
 
       <div className="rounded-lg border border-hs-border bg-hs-panel/40 p-4">
         <div className="text-xs font-semibold text-hs-text-secondary uppercase tracking-wider mb-3">

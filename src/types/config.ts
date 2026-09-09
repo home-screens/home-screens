@@ -346,6 +346,14 @@ export interface SleepSettings {
    * dimAfterMinutes alone.
    */
   wakeHoldMinutes?: number;
+  /**
+   * Cut power to the panel itself (not just paint black) while the display
+   * is asleep. Opt-in, absent means false: it depends on a Raspberry Pi
+   * kiosk running the power agent, and some monitors never come back from
+   * a signal loss without help. Only `asleep` cuts power; `dimmed` keeps
+   * the panel on because the screensaver is meant to be seen.
+   */
+  panelPowerOff?: boolean;
 }
 
 export type ScreensaverMode = 'clock' | 'blank' | 'off';

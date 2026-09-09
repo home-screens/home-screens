@@ -82,6 +82,7 @@ describe('settings-form transforms', () => {
         sleepStartTime: '23:30',
         sleepEndTime: '06:30',
         wakeHoldMinutes: 15,
+        panelPowerOff: true,
         screensaverMode: 'blank',
       },
       alerts: {
@@ -96,6 +97,19 @@ describe('settings-form transforms', () => {
     const config = toConfigSettings(custom);
     const back = toFormState(config as GlobalSettings);
     expect(back).toEqual(custom);
+  });
+
+  it('panelPowerOff is absent by default, absent when off, and true when on', () => {
+    // Absent means false, and configs that never touched it stay byte-identical.
+    const legacy = toConfigSettings(FORM_DEFAULTS) as GlobalSettings;
+    legacy.sleep = { enabled: true, dimAfterMinutes: 15, sleepAfterMinutes: 30, dimBrightness: 40 };
+    expect(toFormState(legacy).sleep.panelPowerOff).toBe(false);
+    const off = toConfigSettings({ ...FORM_DEFAULTS, sleep: { ...FORM_DEFAULTS.sleep, sleepEnabled: true } });
+    expect(off.sleep).not.toHaveProperty('panelPowerOff');
+
+    const on = toConfigSettings({ ...FORM_DEFAULTS, sleep: { ...FORM_DEFAULTS.sleep, sleepEnabled: true, panelPowerOff: true } });
+    expect(on.sleep?.panelPowerOff).toBe(true);
+    expect(toFormState(on as GlobalSettings).sleep.panelPowerOff).toBe(true);
   });
 
   it('schedule disabled in form drops the persisted schedule', () => {

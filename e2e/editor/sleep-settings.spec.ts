@@ -100,6 +100,10 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   // Dim schedule times: set the "Dim at" time.
   await page.locator('label', { hasText: 'Dim at' }).locator('input[type="time"]').fill('22:30');
 
+  // Panel power-off: the one control that reaches the hardware. Off by
+  // default and absent from the config until switched on.
+  await page.locator('label', { hasText: "Switch the screen's power off too" }).getByRole('switch').click();
+
   // All edits collapse into the debounced /api/config PUT — poll the persisted
   // config rather than waiting on a single response.
   await expect
@@ -114,6 +118,9 @@ test('Defaults › Sleep: editing schedule, dim level, and screensaver persists 
   await expect
     .poll(async () => (await getConfig(request)).settings.sleep?.wakeHoldMinutes)
     .toBe(0);
+  await expect
+    .poll(async () => (await getConfig(request)).settings.sleep?.panelPowerOff)
+    .toBe(true);
 });
 
 test.describe('per-display sleep override', () => {

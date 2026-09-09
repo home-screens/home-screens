@@ -65,8 +65,21 @@ export interface DisplayStatus {
   displayState: 'active' | 'dimmed' | 'asleep';
   timestamp: number;
   cacheStats?: CacheStats;
-  /** Server-side heartbeat: when this display was last seen polling. */
+  /**
+   * Server-side heartbeat: when anything reporting under this display id was
+   * last heard from, the browser or the Pi's hardware reporter alike. This is
+   * the editor's "online" signal.
+   */
   lastSeen?: number;
+  /**
+   * When the display's BROWSER was last heard from: its command poll or its
+   * status heartbeat, never the hardware reporter or the panel power agent.
+   * Panel power keys off this one. A crashed browser leaves `displayState`
+   * frozen at whatever it last said, and the reporter's 30s tick keeps
+   * `lastSeen` fresh regardless, so `lastSeen` alone would hold a dead tab's
+   * panel off forever.
+   */
+  browserSeen?: number;
   /**
    * Viewport dimensions self-reported by the display's browser. Captured
    * from `window.innerWidth`/`innerHeight` on each status POST — these are
@@ -93,6 +106,18 @@ export interface DisplayStatus {
   timerSessionId?: string | null;
   /** Alerts currently on screen, so the remote can offer to clear them. */
   activeAlerts?: number;
+  /**
+   * Panel power agent check-in (see `panel-power.ts`). `applied` is the power
+   * state the kiosk-session agent last set with wlopm; `agentSeen` is when it
+   * last polled. Absent when no agent has ever asked, which is how the editor
+   * tells "power-off is on but this Pi cannot do it" from "working".
+   */
+  panelPower?: PanelPowerReport;
+}
+
+export interface PanelPowerReport {
+  applied: 'on' | 'off';
+  agentSeen: number;
 }
 
 /** Sentinel queue key for displays that poll without an explicit `displayId`. */
@@ -539,9 +564,11 @@ export function drainCommands(displayId?: string): DisplayCommand[] {
     if (knownDisplays.size < MAX_KNOWN_DISPLAYS || knownDisplays.has(displayId)) {
       knownDisplays.add(displayId);
       const existing = statusMap.get(displayId);
+      const now = Date.now();
       statusMap.set(displayId, {
         ...(existing ?? makeEmptyStatus()),
-        lastSeen: Date.now(),
+        lastSeen: now,
+        browserSeen: now,
       });
     }
     // If we've hit the cap and this is a new ID, we still drain (no harm
@@ -625,11 +652,13 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
   if (isStubHeartbeat(status)) {
     if (existing && !isStubHeartbeat(existing)) {
       // Existing real status → only refresh liveness + hw/browser extras.
+    // `browserSeen` is deliberately NOT refreshed: this is the reporter.
       statusMap.set(id, {
         ...existing,
         reportedViewport: incomingViewport ?? existing.reportedViewport,
         hwStats: status.hwStats ?? existing.hwStats,
         browserStats: status.browserStats ?? existing.browserStats,
+        panelPower: status.panelPower ?? existing.panelPower,
         lastSeen: Date.now(),
       });
       return;
@@ -642,6 +671,7 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
       ...(existing ?? makeEmptyStatus()),
       hwStats: status.hwStats ?? existing?.hwStats,
       browserStats: status.browserStats ?? existing?.browserStats,
+      panelPower: status.panelPower ?? existing?.panelPower,
       reportedViewport: incomingViewport ?? existing?.reportedViewport,
       lastSeen: Date.now(),
     });
@@ -651,14 +681,36 @@ export function setDisplayStatus(status: DisplayStatus, displayId?: string): voi
   // Preserve reportedViewport across updates when the new status doesn't
   // carry one — the display reports it on every POST in practice, but we
   // don't want to drop the value if a single report happens to omit it.
+  const now = Date.now();
   statusMap.set(id, {
     ...status,
     reportedViewport: incomingViewport ?? existing?.reportedViewport,
     hwStats: status.hwStats ?? existing?.hwStats,
     browserStats: status.browserStats ?? existing?.browserStats,
+    panelPower: status.panelPower ?? existing?.panelPower,
     // Heartbeat is "now" — when the report arrives. Math.max with the
     // previous lastSeen would be redundant since Date.now() is monotonic.
-    lastSeen: Date.now(),
+    lastSeen: now,
+    browserSeen: now,
+  });
+}
+
+/**
+ * Record a panel power agent's check-in without touching liveness. The agent
+ * is a bash loop in the kiosk session, not the browser, so its poll must not
+ * refresh `lastSeen`: the power decision itself keys off browser liveness,
+ * and an agent that kept the heartbeat fresh could hold a dead tab's panel
+ * off forever. A display with no status yet gets an empty one so the
+ * check-in is visible to the editor before the first browser heartbeat.
+ */
+export function recordPanelPowerAgent(displayId: string | undefined, applied: 'on' | 'off'): void {
+  if (displayId !== undefined && !isValidDisplayId(displayId)) return;
+  const id = displayId ?? DEFAULT_DISPLAY_KEY;
+  const existing = statusMap.get(id);
+  if (!existing && statusMap.size >= MAX_KNOWN_DISPLAYS) return;
+  statusMap.set(id, {
+    ...(existing ?? makeEmptyStatus()),
+    panelPower: { applied, agentSeen: Date.now() },
   });
 }
 

@@ -87,6 +87,7 @@ export const GET = withDisplayAuth(async (request) => {
               brightness: status.brightness,
               timerSessionId: status.timerSessionId,
               activeAlerts: status.activeAlerts,
+              panelPower: status.panelPower,
             }
           : null,
         // Two fields lifted out of hwStats rather than the whole snapshot —

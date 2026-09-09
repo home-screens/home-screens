@@ -902,7 +902,12 @@
           "blur": "Unschärfe",
           "crossfade": "Crossfade",
           "none": "Keiner"
-        }
+        },
+        "panelPowerLabel": "Bildschirmstrom",
+        "panelPowerWorking": "Funktioniert. Der Bildschirm ist {state}.",
+        "panelPowerOn": "an",
+        "panelPowerOff": "aus",
+        "panelPowerMissing": "Dieses Display hat sich noch nicht für die Bildschirmstrom-Steuerung gemeldet. Es braucht die neueste Display-Software und das Paket wlopm."
       },
       "identity": {
         "displayNameLabel": "Display-Name",
@@ -1048,7 +1053,10 @@
         "off": "Aus",
         "idleNote": "+ dimmt nach {minutes} ruhigen Minuten, jederzeit"
       },
-      "disabledHelp": "Schalte das ein, um Zeiten festzulegen. Im Moment bleibt das Display Tag und Nacht hell."
+      "disabledHelp": "Schalte das ein, um Zeiten festzulegen. Im Moment bleibt das Display Tag und Nacht hell.",
+      "powerSectionTitle": "Wenn ausgeschaltet",
+      "panelPowerOffLabel": "Auch den Bildschirm vom Strom trennen",
+      "panelPowerOffHelp": "Für Raspberry-Pi-Displays. Der Bildschirm wird komplett dunkel und braucht ein paar Sekunden, bis er nach dem Aufwecken wieder da ist. Lass das aus, wenn dein Bildschirm nicht von selbst wieder angeht."
     },
     "integrationsPage": {
       "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät und werden nirgendwohin gesendet.",

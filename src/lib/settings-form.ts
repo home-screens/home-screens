@@ -65,6 +65,7 @@ export interface SleepState {
   sleepStartTime: string;
   sleepEndTime: string;
   wakeHoldMinutes: number;
+  panelPowerOff: boolean;
   screensaverMode: string;
 }
 
@@ -117,6 +118,7 @@ export const FORM_DEFAULTS: SettingsState = {
     sleepStartTime: '23:00',
     sleepEndTime: '06:00',
     wakeHoldMinutes: DEFAULT_WAKE_HOLD_MINUTES,
+    panelPowerOff: false,
     screensaverMode: 'clock',
   },
   alerts: { alertsEnabled: true, alertsPosition: 'top', alertsMaxVisible: 3, alertsDefaultDuration: 0, alertsScale: 1 },
@@ -147,6 +149,7 @@ export function sleepConfigToForm(
     sleepStartTime: sleep?.schedule?.startTime ?? FORM_DEFAULTS.sleep.sleepStartTime,
     sleepEndTime: sleep?.schedule?.endTime ?? FORM_DEFAULTS.sleep.sleepEndTime,
     wakeHoldMinutes: sleep?.wakeHoldMinutes ?? DEFAULT_WAKE_HOLD_MINUTES,
+    panelPowerOff: sleep?.panelPowerOff ?? false,
     screensaverMode: screensaver?.mode ?? FORM_DEFAULTS.sleep.screensaverMode,
   };
 }
@@ -165,6 +168,8 @@ export function sleepFormToConfig(sleep: SleepState): {
       ...(sleep.dimScheduleEnabled ? { dimSchedule: { startTime: sleep.dimStartTime, endTime: sleep.dimEndTime } } : {}),
       ...(sleep.sleepScheduleEnabled ? { schedule: { startTime: sleep.sleepStartTime, endTime: sleep.sleepEndTime } } : {}),
       wakeHoldMinutes: sleep.wakeHoldMinutes,
+      // Omitted while false so configs that never touched it stay as they were.
+      ...(sleep.panelPowerOff ? { panelPowerOff: true } : {}),
     },
     screensaver: {
       mode: sleep.screensaverMode as ScreensaverSettings['mode'],

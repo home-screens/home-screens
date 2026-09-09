@@ -2872,6 +2872,20 @@ curl -fsS "http://<hub>:3000/api/display/kiosk-bootstrap?display=<id>" | bash
 
 After it runs once, that Pi updates itself from `/api/display/kiosk-bundle` from then on. Same adoption gate as the bundle endpoint; because the response is piped into bash, errors come back as shell `echo`/`exit` lines rather than JSON.
 
+### GET /api/display/power-state
+
+**Client protocol.** Polled every few seconds by the panel power helper in a Pi's kiosk session (`scripts/kiosk-power-agent.sh`). Answers whether that display's screen should be powered right now:
+
+```bash
+curl "http://<hub>:3000/api/display/power-state?display=kitchen&applied=on"
+```
+
+```json
+{ "power": "off" }
+```
+
+`off` only when all three hold: the display's sleep settings have **Switch the screen's power off too** turned on, its browser's last heartbeat said `asleep`, and that heartbeat is less than 90 seconds old. Anything else, including a display that has never reported, answers `on`, so a crashed browser always gets its screen back. The optional `applied` parameter (`on` or `off`) is the state the helper currently has set; the hub records it with the display's status so the editor can show whether screen power control is working. Same adoption gate as `hw-stats`; in single-display mode, `display=main` reads the hub's own display.
+
 ---
 
 ## Geocoding

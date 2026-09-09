@@ -319,6 +319,10 @@ Toggle **Dim in the evening** to force the display to dim during a fixed window 
 
 Toggle **Turn off overnight** to force the display fully off during a fixed window (e.g. 00:00 to 06:00). Touching the display (or waking it from the remote) during the window brings it back for the **After a wake-up, stay on for** setting (5 minutes by default), then the schedule takes over again. It wakes automatically when the window ends. Supports overnight spans.
 
+### Powering the screen off
+
+Sleep normally means a black layer over the page; the screen itself stays lit. Turn on **Switch the screen's power off too** (under "While turned off") and a Raspberry Pi display cuts the screen's power whenever it is asleep, from any cause: the overnight schedule, idle time, the remote's Sleep button, or a rule. Dimming never cuts power, because the screensaver is meant to be seen. Waking works exactly as before, with a few extra seconds while the screen resyncs. The setting is off by default because some screens do not come back from a signal loss on their own; see [Screen does not come back after sleep](/docs/troubleshooting#display-is-blank) if yours is one of them.
+
 ### Sleep priority
 
 ```

@@ -79,6 +79,8 @@ install -m 0755 "${BASH_SOURCE[0]:-$0}"                    "${APP_DIR}/scripts/k
 
 ROTATE_SRC="$(find_src rotate-display.sh)"
 [ -n "${ROTATE_SRC}" ] && install -m 0755 "${ROTATE_SRC}" "${APP_DIR}/scripts/rotate-display.sh"
+POWER_SRC="$(find_src kiosk-power-agent.sh)"
+[ -n "${POWER_SRC}" ] && install -m 0755 "${POWER_SRC}" "${APP_DIR}/scripts/kiosk-power-agent.sh"
 
 SPLASH_SRC=""
 if [ -f "${SRC_DIR}/share/connecting.html" ]; then

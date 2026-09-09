@@ -63,9 +63,13 @@ If neither name opens (a few routers do not support these names), open your rout
 
 **Check in the editor first**
 
-1. **Is it asleep?** Home Screens dims and sleeps by drawing black over the picture, so the panel stays lit. Open **Settings > Screen > Sleep & dimming** and look at the timeline: if now is inside a sleep or dim window, that is what you are seeing. Wake it from the family remote to check.
+1. **Is it asleep?** Home Screens dims and sleeps by drawing black over the picture, so the panel stays lit unless you turned on **Switch the screen's power off too**. Open **Settings > Screen > Sleep & dimming** and look at the timeline: if now is inside a sleep or dim window, that is what you are seeing. Wake it from the family remote to check.
 2. **Is it empty?** A display with nothing on it shows a faint "Nothing on this screen yet" with the address to open. That is not a fault; add a screen or turn one back on. (If you would rather an empty display stayed dark, turn off **Setup message** under Settings > Screen > Rotation & appearance.)
 3. **Does the hub still see it?** **Settings > Status** shows when the display last checked in. A display that has not been seen for minutes is off, unplugged from the network, or crashed.
+
+**Screen does not come back after sleep**
+
+With **Switch the screen's power off too** turned on, the Pi cuts the screen's signal while the display sleeps and restores it on wake. Most monitors resync within a few seconds. A few never do: some TVs drop into standby and need their own remote or an HDMI-CEC command, and one known compositor bug (labwc issue 3352) left a Pi 5 with a Philips monitor dark until the kiosk restarted. If your screen stays black after a wake, turn the setting off in **Settings > Screen > Sleep & dimming** and the display goes back to painting black over the picture. A display's page under **Per display** shows whether screen power control is working at all; a display that has never checked in needs the latest display software and the `wlopm` package.
 
 **Check on the Pi**
 

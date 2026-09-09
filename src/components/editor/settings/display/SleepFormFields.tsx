@@ -18,6 +18,7 @@ export interface SleepFormValues {
   sleepStartTime: string;
   sleepEndTime: string;
   wakeHoldMinutes: number;
+  panelPowerOff: boolean;
   screensaverMode: string;
 }
 
@@ -67,6 +68,7 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
     sleepStartTime,
     sleepEndTime,
     wakeHoldMinutes,
+    panelPowerOff,
     screensaverMode,
   } = values;
 
@@ -297,6 +299,28 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
               </select>
             </label>
             <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.dimmedSectionHelp')}</p>
+          </div>
+
+          {/* ── While turned off ───────────────────────────────────── */}
+          {/* Sleep itself is a black layer over the page; this is the one
+              control that reaches the hardware. It rides the browser's
+              reported sleep state, so every sleep source (idle, schedule,
+              remote, rules) and every wake source works the same. Opt-in:
+              it needs the kiosk's power agent and a screen that comes back
+              from a signal loss on its own. */}
+          <div className="rounded-lg border border-hs-border-strong p-3.5 space-y-3">
+            <p className="text-[11px] uppercase tracking-wider text-hs-text-faint">
+              {t('settings.sleepFormFields.powerSectionTitle')}
+            </p>
+            <div data-field-id="sleep.panelPowerOff">
+              <Toggle
+                label={t('settings.sleepFormFields.panelPowerOffLabel')}
+                checked={panelPowerOff}
+                onChange={(v) => onChange({ panelPowerOff: v })}
+                disabled={disabled}
+              />
+            </div>
+            <p className="text-xs text-hs-text-faint">{t('settings.sleepFormFields.panelPowerOffHelp')}</p>
           </div>
         </>
       )}

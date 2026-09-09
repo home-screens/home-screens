@@ -34,6 +34,7 @@ export const KIOSK_BUNDLE_ENTRIES: readonly KioskBundleEntry[] = [
   { path: 'kiosk-launcher-display.sh', source: 'scripts/kiosk-launcher-display.sh', mode: 0o755 },
   { path: 'kiosk-update-install.sh', source: 'scripts/kiosk-update-install.sh', mode: 0o755 },
   { path: 'kiosk-update.sh', source: 'scripts/kiosk-update.sh', mode: 0o755 },
+  { path: 'kiosk-power-agent.sh', source: 'scripts/kiosk-power-agent.sh', mode: 0o755 },
   { path: 'rotate-display.sh', source: 'scripts/rotate-display.sh', mode: 0o755 },
   { path: 'share/connecting.html', source: 'scripts/share/connecting.html', mode: 0o644 },
   {

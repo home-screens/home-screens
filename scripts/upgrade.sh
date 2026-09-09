@@ -662,7 +662,7 @@ case "${action}" in
     # 0. Ensure required system packages are installed
     # fonts-dejavu-core is what the generic-family aliases below point at. It
     # is present on Desktop images already; Lite needs it named explicitly.
-    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr fonts-noto-color-emoji fonts-dejavu-core plymouth plymouth-themes vim"
+    REQUIRED_PACKAGES="chromium labwc wtype wlr-randr wlopm fonts-noto-color-emoji fonts-dejavu-core plymouth plymouth-themes vim"
     missing=""
     for pkg in ${REQUIRED_PACKAGES}; do
       if ! dpkg -s "${pkg}" &>/dev/null; then
@@ -948,6 +948,14 @@ fi
 # Hide cursor — triggers the HideCursor keybind defined in labwc rc.xml.
 # The cursor reappears on mouse movement and stays hidden during touch.
 (sleep 2 && wtype -M logo -k h -m logo) &
+
+# Panel power agent: cuts the screen'"'"'s power while the hub says this display
+# is asleep (Sleep & dimming > "Switch the screen'"'"'s power off too"). Watches
+# our pid, which the exec below hands to Chromium, so it lives and dies with
+# the browser.
+if [ -x "${APP_DIR}/scripts/kiosk-power-agent.sh" ]; then
+  "${APP_DIR}/scripts/kiosk-power-agent.sh" "$$" &
+fi
 
 # Clear Chromium crash state so kiosk mode is not overridden by a restore dialog.
 CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"

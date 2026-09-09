@@ -275,11 +275,12 @@ Three tabs: **Rotation & appearance**, **Sleep & dimming**, and **Alerts**. Most
 - **Dim and sleep schedules** support overnight spans, `23:00–06:00` works and wraps past midnight as you'd expect.
 - **After a wake-up, stay on for** (shown when a schedule is on), how long the display stays awake when someone touches it or wakes it from the remote during a scheduled dim or sleep window, before the schedule takes over again. Defaults to 5 minutes; set it to the minimum for the old behavior of going right back to sleep.
 - **Screensaver** picks what shows during the *dimmed* state, before full sleep: a drifting clock, blank, or off (no clock, the display still dims).
+- **Switch the screen's power off too** (under "While turned off") cuts the screen's power whenever the display is asleep, instead of only painting it black. It works on Raspberry Pi displays set up by the installer, and it follows every way a display can go to sleep: the overnight schedule, idle time, the remote, and rules. The screen takes a few seconds to come back when someone wakes it. Leave it off if your screen does not come back on by itself after losing its signal.
 - **Touchscreen Pause** (on by default), double-tapping the active pagination dot on the display pauses screen rotation; double-tap again to resume. An optional auto-resume timeout (default 5 minutes) restarts rotation on its own.
 - **Swipe to change screens** (on by default), flick left anywhere on the display for the next screen, or right for the previous one. Vertical swipes are left alone so scrolling content like the chore chart keeps working.
 - **Theme** sets the color scheme used by the full-screen modules, not the editor.
 
-Sleep and dimming draw a black layer over the page rather than powering the panel down, so a dimmed display is still backlit. That distinction matters when [diagnosing a black screen](/docs/troubleshooting#display-is-blank).
+Out of the box, sleep and dimming draw a black layer over the page rather than powering the panel down, so a dimmed or sleeping display is still backlit. **Switch the screen's power off too** is what changes that for sleep; dimming always keeps the screen lit. The distinction matters when [diagnosing a black screen](/docs/troubleshooting#display-is-blank).
 
 ### Location & language
 

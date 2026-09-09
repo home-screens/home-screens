@@ -902,7 +902,12 @@
           "blur": "Blur",
           "crossfade": "Crossfade",
           "none": "Geen"
-        }
+        },
+        "panelPowerLabel": "Schermstroom",
+        "panelPowerWorking": "Werkt. Het scherm is {state}.",
+        "panelPowerOn": "aan",
+        "panelPowerOff": "uit",
+        "panelPowerMissing": "Dit display heeft zich nog niet gemeld voor de schermstroomregeling. Het heeft de nieuwste displaysoftware en het pakket wlopm nodig."
       },
       "identity": {
         "displayNameLabel": "Displaynaam",
@@ -1048,7 +1053,10 @@
         "off": "Uit",
         "idleNote": "+ dimt na {minutes} rustige minuten, op elk moment"
       },
-      "disabledHelp": "Zet dit aan om tijden in te stellen. Nu blijft het scherm dag en nacht fel."
+      "disabledHelp": "Zet dit aan om tijden in te stellen. Nu blijft het scherm dag en nacht fel.",
+      "powerSectionTitle": "Wanneer uitgeschakeld",
+      "panelPowerOffLabel": "Ook de stroom van het scherm uitzetten",
+      "panelPowerOffHelp": "Voor Raspberry Pi-displays. Het scherm gaat helemaal op zwart en heeft een paar seconden nodig om terug te komen als iemand het wekt. Laat dit uit als je scherm niet vanzelf weer aangaat."
     },
     "integrationsPage": {
       "description": "Sleutels en logins die extra inhoud vrijgeven: agenda’s, foto’s, verkeer, nieuws. Ze blijven op dit apparaat en gaan nergens heen.",

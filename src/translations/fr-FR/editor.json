@@ -902,7 +902,12 @@
           "blur": "Flou",
           "crossfade": "Fondu enchaîné",
           "none": "Aucune"
-        }
+        },
+        "panelPowerLabel": "Alimentation de l'écran",
+        "panelPowerWorking": "Fonctionne. L'écran est {state}.",
+        "panelPowerOn": "allumé",
+        "panelPowerOff": "éteint",
+        "panelPowerMissing": "Cet affichage ne s'est pas encore signalé pour le contrôle de l'alimentation de l'écran. Il lui faut le logiciel d'affichage le plus récent et le paquet wlopm."
       },
       "identity": {
         "displayNameLabel": "Nom de l'affichage",
@@ -1048,7 +1053,10 @@
         "off": "Éteint",
         "idleNote": "+ s'atténue après {minutes} minutes de calme, à toute heure"
       },
-      "disabledHelp": "Activez ceci pour définir des horaires. Pour l'instant, l'écran reste allumé jour et nuit."
+      "disabledHelp": "Activez ceci pour définir des horaires. Pour l'instant, l'écran reste allumé jour et nuit.",
+      "powerSectionTitle": "Quand il est éteint",
+      "panelPowerOffLabel": "Couper aussi l'alimentation de l'écran",
+      "panelPowerOffHelp": "Pour les affichages Raspberry Pi. L'écran devient complètement noir et met quelques secondes à revenir quand quelqu'un le réveille. Laissez ceci désactivé si votre écran ne se rallume pas tout seul."
     },
     "integrationsPage": {
       "description": "Clés et identifiants qui débloquent du contenu supplémentaire : agendas, photos, trafic, actualités. Ils restent sur cet appareil et ne sont envoyés nulle part.",

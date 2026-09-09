@@ -902,7 +902,12 @@
           "blur": "Sløring",
           "crossfade": "Krydstoning",
           "none": "Ingen"
-        }
+        },
+        "panelPowerLabel": "Skærmstrøm",
+        "panelPowerWorking": "Virker. Skærmen er {state}.",
+        "panelPowerOn": "tændt",
+        "panelPowerOff": "slukket",
+        "panelPowerMissing": "Dette display har endnu ikke meldt sig til styring af skærmstrøm. Det skal have den nyeste displaysoftware og pakken wlopm."
       },
       "identity": {
         "displayNameLabel": "Navn på display",
@@ -1048,7 +1053,10 @@
         "off": "Slukket",
         "idleNote": "+ dæmpes efter {minutes} stille minutter, når som helst"
       },
-      "disabledHelp": "Slå det til for at vælge tidspunkter. Lige nu er skærmen lys hele døgnet."
+      "disabledHelp": "Slå det til for at vælge tidspunkter. Lige nu er skærmen lys hele døgnet.",
+      "powerSectionTitle": "Når det er slukket",
+      "panelPowerOffLabel": "Sluk også for strømmen til skærmen",
+      "panelPowerOffHelp": "Til Raspberry Pi-displays. Skærmen bliver helt mørk og bruger et par sekunder på at komme tilbage, når nogen vækker den. Lad dette være slået fra, hvis din skærm ikke tænder igen af sig selv."
     },
     "integrationsPage": {
       "description": "Nøgler og logins, der låser op for ekstra indhold: kalendere, billeder, trafik, nyheder. De bliver på denne enhed og sendes ingen steder hen.",

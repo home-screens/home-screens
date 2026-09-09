@@ -902,7 +902,12 @@
           "blur": "Desfoque",
           "crossfade": "Crossfade",
           "none": "Nenhuma"
-        }
+        },
+        "panelPowerLabel": "Energia da tela",
+        "panelPowerWorking": "Funcionando. A tela está {state}.",
+        "panelPowerOn": "ligada",
+        "panelPowerOff": "desligada",
+        "panelPowerMissing": "Esta tela ainda não se comunicou para o controle de energia. Ela precisa do software de tela mais recente e do pacote wlopm."
       },
       "identity": {
         "displayNameLabel": "Nome da tela",
@@ -1048,7 +1053,10 @@
         "off": "Desligada",
         "idleNote": "+ escurece após {minutes} minutos sem uso, a qualquer hora"
       },
-      "disabledHelp": "Ative isto para definir horários. Agora o display fica aceso dia e noite."
+      "disabledHelp": "Ative isto para definir horários. Agora o display fica aceso dia e noite.",
+      "powerSectionTitle": "Enquanto está desligada",
+      "panelPowerOffLabel": "Desligar também a energia da tela",
+      "panelPowerOffHelp": "Para telas com Raspberry Pi. A tela fica totalmente escura e leva alguns segundos para voltar quando alguém a acorda. Deixe isso desligado se a sua tela não volta a ligar sozinha."
     },
     "integrationsPage": {
       "description": "Chaves e acessos que liberam conteúdo extra: calendários, fotos, trânsito, notícias. Ficam neste aparelho e não são enviados a lugar nenhum.",

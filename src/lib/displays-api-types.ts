@@ -42,7 +42,7 @@ export interface DisplayApiEntry {
    */
   status: Pick<
     DisplayStatus,
-    'currentScreen' | 'displayState' | 'activeProfile' | 'screenCount' | 'brightness' | 'timerSessionId' | 'activeAlerts'
+    'currentScreen' | 'displayState' | 'activeProfile' | 'screenCount' | 'brightness' | 'timerSessionId' | 'activeAlerts' | 'panelPower'
   > | null;
   /**
    * The state of this Pi's local shell layer (kiosk launcher, splash,

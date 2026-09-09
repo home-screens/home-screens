@@ -50,6 +50,8 @@ clear_chromium_crash_state
 disable_chromium_translate_prompt
 
 echo "Launching Chromium in app mode..."
+# No panel power agent here: it needs a labwc session and wlopm, and this
+# script also runs on developer machines. The kiosk launchers spawn it.
 # Flags come from lib/common.sh. The Pi-only list is deliberately not used
 # here: this script also runs on developer machines, where --ozone-platform=wayland
 # would fail.

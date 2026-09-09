@@ -25,8 +25,26 @@ log() {
   logger -t home-screens-kiosk-update "privileged: $*" 2>/dev/null || true
 }
 
+# Packages the shell layer has grown to need since a Pi was flashed. The
+# bundle can ship scripts but not apt packages, and this helper is the only
+# root the spoke has, so it installs them here: a fixed list, no caller
+# input, so the sudoers grant stays one reviewable capability. Best-effort
+# and bounded: a spoke with no route to the archive just keeps its black
+# overlay (the power agent waits for wlopm rather than exiting). This runs
+# before the staging check so the updater can call the helper with nothing
+# staged, on its nightly tick, purely to retry a package that failed before.
+for pkg in wlopm; do
+  if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
+    if timeout 180 apt-get install -y -qq -o DPkg::Lock::Timeout=60 "${pkg}" >/dev/null 2>&1; then
+      log "installed package ${pkg}"
+    else
+      log "could not install package ${pkg}; will retry on the next update"
+    fi
+  fi
+done
+
 if [ ! -d "${STAGING}" ]; then
-  log "no staging directory — nothing to do"
+  log "no staging directory — nothing more to do"
   exit 0
 fi
 

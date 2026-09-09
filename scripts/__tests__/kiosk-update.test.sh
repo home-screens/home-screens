@@ -64,6 +64,7 @@ build_bundle() {
   printf '#!/usr/bin/env bash\n%s\n' "${launcher_body}" > "${STAGE}/kiosk-launcher-display.sh"
   printf '#!/usr/bin/env bash\n# updater v%s\nexit 0\n' "${version}" > "${STAGE}/kiosk-update.sh"
   printf '#!/usr/bin/env bash\nexit 0\n' > "${STAGE}/kiosk-update-install.sh"
+  printf '#!/usr/bin/env bash\n# power agent v%s\nexit 0\n' "${version}" > "${STAGE}/kiosk-power-agent.sh"
   printf '<html>NEW SPLASH %s</html>\n' "${version}" > "${STAGE}/share/connecting.html"
   printf '#!/usr/bin/env bash\nexit 0\n' > "${STAGE}/system/reporter.sh"
 
@@ -71,9 +72,15 @@ build_bundle() {
   write_manifest "${version}" "$(sha256sum "${STATE}/bundle.tar.gz" | cut -d' ' -f1)" "false"
 }
 
+# The manifest lists the bundle's files like the real hub does; the updater
+# checks them against the disk before trusting the version stamp.
 write_manifest() {
   jq -n --arg v "$1" --arg s "$2" --argjson r "$3" \
-    '{version: $v, sha256: $s, restartAdvised: $r, files: []}' > "${STATE}/manifest.json"
+    '{version: $v, sha256: $s, restartAdvised: $r, files: [
+       {path: "kiosk-launcher-display.sh"}, {path: "kiosk-update.sh"},
+       {path: "kiosk-update-install.sh"}, {path: "kiosk-power-agent.sh"},
+       {path: "share/connecting.html"}, {path: "system/reporter.sh"}
+     ]}' > "${STATE}/manifest.json"
 }
 
 stamp() { cat "${APP_DIR}/data/kiosk-bundle.version" 2>/dev/null || echo ""; }
@@ -124,6 +131,22 @@ install -m 0755 "${SCRIPTS_DIR}/kiosk-update.sh" "${UPDATER}"
 echo "Test 5: a second run with the same version is a no-op"
 rc=0; "${UPDATER}" --timeout 5 || rc=$?
 [ "${rc}" -eq 0 ] || fail "expected exit 0 on an up-to-date spoke, got ${rc}"
+
+echo "Test 5b: a current stamp does not excuse a file the manifest lists but the disk lacks"
+# This is the shape of every Pi that was updated by an OLDER updater: that
+# generation swapped in only the files it knew about, then stamped the new
+# version. The new script (here: the power agent) must still arrive.
+grep -q 'power agent v2.0.0' "${APP_DIR}/scripts/kiosk-power-agent.sh" \
+  || fail "power agent was not installed by the first apply"
+rm -f "${APP_DIR}/scripts/kiosk-power-agent.sh"
+rc=0; "${UPDATER}" --timeout 5 || rc=$?
+[ "${rc}" -eq 10 ] || fail "expected a reapply (exit 10) for an incomplete install, got ${rc}"
+grep -q 'power agent v2.0.0' "${APP_DIR}/scripts/kiosk-power-agent.sh" \
+  || fail "power agent was not restored by the reapply"
+[ "$(stamp)" = "2.0.0" ] || fail "stamp changed on a reapply (got '$(stamp)')"
+install -m 0755 "${SCRIPTS_DIR}/kiosk-update.sh" "${UPDATER}"
+rc=0; "${UPDATER}" --timeout 5 || rc=$?
+[ "${rc}" -eq 0 ] || fail "expected a no-op once the install is complete, got ${rc}"
 
 echo "Test 6: a checksum mismatch changes nothing"
 build_bundle "3.0.0"

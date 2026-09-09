@@ -38,6 +38,7 @@ PACKAGES_DISPLAY="
     labwc
     wtype
     wlr-randr
+    wlopm
 "
 
 # Fonts

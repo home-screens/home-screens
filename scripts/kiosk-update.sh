@@ -144,11 +144,60 @@ fi
 LOCAL_VERSION=""
 [ -r "${STAMP_FILE}" ] && LOCAL_VERSION="$(head -c 128 "${STAMP_FILE}" | tr -d '[:space:]')"
 
-if [ "${REMOTE_VERSION}" = "${LOCAL_VERSION}" ]; then
-  exit 0
-fi
+# "<name in bundle>" → "<path on disk>" for the user-space files this script
+# owns, or nothing for a file it does not (the system/ half belongs to the
+# privileged helper). One mapping, used both to decide whether an install is
+# complete and to swap files in, so the two can never disagree. The launcher
+# lands as kiosk-launcher.sh because that path is what ~/.bash_profile execs
+# on every Pi in the field.
+dest_for() {
+  case "$1" in
+    kiosk-launcher-display.sh) echo "${APP_DIR}/scripts/kiosk-launcher.sh" ;;
+    kiosk-update.sh)           echo "${APP_DIR}/scripts/kiosk-update.sh" ;;
+    kiosk-update-install.sh)   echo "${APP_DIR}/scripts/kiosk-update-install.sh" ;;
+    kiosk-power-agent.sh)      echo "${APP_DIR}/scripts/kiosk-power-agent.sh" ;;
+    rotate-display.sh)         echo "${APP_DIR}/scripts/rotate-display.sh" ;;
+    share/connecting.html)     echo "${APP_DIR}/share/connecting.html" ;;
+    *) ;;
+  esac
+}
 
-log "hub is on ${REMOTE_VERSION}, this display has ${LOCAL_VERSION:-none} — updating"
+# A file the hub's manifest lists that is missing here. The stamp alone is
+# not proof of a complete install: the updater that applied a version only
+# knew the files of ITS OWN generation, so a bundle that introduced a new
+# script (the panel power agent, say) lands without it and gets stamped
+# anyway. Checking the manifest against the disk makes the next check notice
+# and reapply, rather than waiting for some later version bump.
+missing_file() {
+  local name dest
+  while IFS= read -r name; do
+    [ -n "${name}" ] || continue
+    dest="$(dest_for "${name}")"
+    if [ -n "${dest}" ] && [ ! -f "${dest}" ]; then
+      echo "${name}"
+      return 0
+    fi
+  done < <(printf '%s' "${MANIFEST}" | jq -r '.files[]?.path // empty' 2>/dev/null || true)
+  return 1
+}
+
+if [ "${REMOTE_VERSION}" = "${LOCAL_VERSION}" ]; then
+  if MISSING="$(missing_file)"; then
+    log "display software ${LOCAL_VERSION} is missing ${MISSING} — reapplying"
+  else
+    # Current and complete. The nightly tick still gives the privileged
+    # helper a turn: it also installs any apt packages the shell layer has
+    # grown to need, and a spoke that was offline when they first came up
+    # would otherwise never retry. The boot-time check skips this so a slow
+    # or absent archive never delays the display coming up.
+    if [ "${RESTART_IF_ADVISED}" = "true" ] && [ -x "${PRIV_HELPER}" ]; then
+      sudo -n "${PRIV_HELPER}" 2>/dev/null || true
+    fi
+    exit 0
+  fi
+else
+  log "hub is on ${REMOTE_VERSION}, this display has ${LOCAL_VERSION:-none} — updating"
+fi
 
 # --- 2. Download + verify ---------------------------------------------------
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/hs-kiosk-update.XXXXXX")"
@@ -210,20 +259,20 @@ install_file() {
   mv -f "${src}" "${dest}"
 }
 
-# "<name in bundle>|<name on disk>". The launcher lands as kiosk-launcher.sh
-# because that path is what ~/.bash_profile execs on every Pi in the field.
-for entry in \
-  "rotate-display.sh|rotate-display.sh" \
-  "kiosk-update-install.sh|kiosk-update-install.sh" \
-  "kiosk-launcher-display.sh|kiosk-launcher.sh"
+# Destinations come from dest_for above. kiosk-update.sh is deliberately not
+# in this list: it replaces itself last, below.
+for from in \
+  rotate-display.sh \
+  kiosk-power-agent.sh \
+  kiosk-update-install.sh \
+  kiosk-launcher-display.sh
 do
-  IFS='|' read -r from to <<< "${entry}"
   [ -f "${EXTRACT}/${from}" ] || continue
-  install_file "${EXTRACT}/${from}" "${APP_DIR}/scripts/${to}" 0755
+  install_file "${EXTRACT}/${from}" "$(dest_for "${from}")" 0755
 done
 
 if [ -f "${EXTRACT}/share/connecting.html" ]; then
-  install_file "${EXTRACT}/share/connecting.html" "${APP_DIR}/share/connecting.html" 0644
+  install_file "${EXTRACT}/share/connecting.html" "$(dest_for share/connecting.html)" 0644
 fi
 
 # Root-owned destinations (/usr/local/bin, /etc/systemd/system). Stage them at
@@ -258,7 +307,7 @@ fi
 # on the next invocation, so a bad-but-parseable updater can't take down the
 # run that installed it.
 if [ -f "${EXTRACT}/kiosk-update.sh" ]; then
-  install_file "${EXTRACT}/kiosk-update.sh" "${APP_DIR}/scripts/kiosk-update.sh" 0755
+  install_file "${EXTRACT}/kiosk-update.sh" "$(dest_for kiosk-update.sh)" 0755
 fi
 
 # The stamp is the record of "this display is fully on version X", and every

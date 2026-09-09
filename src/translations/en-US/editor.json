@@ -902,7 +902,12 @@
           "blur": "Blur",
           "crossfade": "Crossfade",
           "none": "None"
-        }
+        },
+        "panelPowerLabel": "Screen power",
+        "panelPowerWorking": "Working. The screen is {state}.",
+        "panelPowerOn": "on",
+        "panelPowerOff": "off",
+        "panelPowerMissing": "This display hasn't checked in for screen power control. It needs the latest display software and the wlopm package."
       },
       "identity": {
         "displayNameLabel": "Display name",
@@ -1048,7 +1053,10 @@
         "off": "Off",
         "idleNote": "+ dims after {minutes} quiet minutes, any time"
       },
-      "disabledHelp": "Turn this on to set times. Right now the display stays bright all day and night."
+      "disabledHelp": "Turn this on to set times. Right now the display stays bright all day and night.",
+      "powerSectionTitle": "While turned off",
+      "panelPowerOffLabel": "Switch the screen's power off too",
+      "panelPowerOffHelp": "For Raspberry Pi displays. The screen goes completely dark and takes a few seconds to come back when someone wakes it. Leave this off if your screen doesn't come back on by itself."
     },
     "integrationsPage": {
       "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They are stored on this device and never sent anywhere else.",

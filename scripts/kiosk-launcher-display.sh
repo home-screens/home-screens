@@ -87,6 +87,15 @@ fi
 
 (sleep 2 && wtype -M logo -k h -m logo) &
 
+# Panel power agent: cuts the screen's power while the hub says this display
+# is asleep (Sleep & dimming > "Switch the screen's power off too"). It
+# watches our pid, which the exec below hands to Chromium, so it lives and
+# dies with the browser. Must stay after the update-check block above: it
+# would otherwise be started twice by a relaunching boot.
+if [ -x "${APP_DIR}/scripts/kiosk-power-agent.sh" ]; then
+  "${APP_DIR}/scripts/kiosk-power-agent.sh" "$$" &
+fi
+
 CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"
 if [ -f "${CHROME_PREFS}" ]; then
   sed -i 's/"exit_type":"[^"]*"/"exit_type":"Normal"/; s/"exited_cleanly":false/"exited_cleanly":true/' "${CHROME_PREFS}"

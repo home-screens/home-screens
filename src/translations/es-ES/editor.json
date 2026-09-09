@@ -902,7 +902,12 @@
           "blur": "Desenfoque",
           "crossfade": "Fundido cruzado",
           "none": "Ninguno"
-        }
+        },
+        "panelPowerLabel": "Alimentación de la pantalla",
+        "panelPowerWorking": "Funciona. La pantalla está {state}.",
+        "panelPowerOn": "encendida",
+        "panelPowerOff": "apagada",
+        "panelPowerMissing": "Este display aún no se ha comunicado para el control de alimentación de la pantalla. Necesita el software de display más reciente y el paquete wlopm."
       },
       "identity": {
         "displayNameLabel": "Nombre del display",
@@ -1048,7 +1053,10 @@
         "off": "Apagado",
         "idleNote": "+ se atenúa tras {minutes} minutos sin uso, a cualquier hora"
       },
-      "disabledHelp": "Actívalo para fijar horarios. Ahora mismo la pantalla se queda encendida día y noche."
+      "disabledHelp": "Actívalo para fijar horarios. Ahora mismo la pantalla se queda encendida día y noche.",
+      "powerSectionTitle": "Mientras está apagado",
+      "panelPowerOffLabel": "Cortar también la alimentación de la pantalla",
+      "panelPowerOffHelp": "Para displays con Raspberry Pi. La pantalla se queda completamente a oscuras y tarda unos segundos en volver cuando alguien la despierta. Déjalo desactivado si tu pantalla no vuelve a encenderse sola."
     },
     "integrationsPage": {
       "description": "Claves y accesos que desbloquean contenido extra: calendarios, fotos, tráfico, noticias. Se guardan en este dispositivo y no se envían a ningún sitio.",

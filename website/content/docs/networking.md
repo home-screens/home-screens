@@ -242,7 +242,7 @@ curl -X POST http://<ip>:3000/api/display/brightness \
   -d '{"value": 50}'
 ```
 
-Brightness works by fading a black layer over the page, not by changing the panel's backlight. At `0` the screen is drawn fully black but the monitor is still powered on and lit.
+Brightness works by fading a black layer over the page, not by changing the panel's backlight. At `0` the screen is drawn fully black; the monitor stays powered on and lit unless the display has **Switch the screen's power off too** turned on, in which case brightness `0` counts as asleep and the screen's power is cut too.
 
 **Profile**: switch to a named profile:
 

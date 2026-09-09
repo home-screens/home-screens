@@ -769,7 +769,7 @@ stub_gui_packages() {
   #
   # Said out loud rather than quietly narrowing what the run covers: this rig
   # does NOT verify that the kiosk packages install on Raspberry Pi OS.
-  warn "chromium/labwc/wtype/wlr-randr are stubbed — package install is NOT covered here."
+  warn "chromium/labwc/wtype/wlr-randr/wlopm are stubbed — package install is NOT covered here."
   # dpkg-deb, not equivs: equivs shells out to dpkg-buildpackage once per
   # package, which took longer inside the emulated VM than the entire rest of
   # the run. A hand-built control file is the same result in a second.
@@ -777,7 +777,7 @@ stub_gui_packages() {
   if ! out=$(ssh_script <<'GUIPKGS'
 set -e
 rm -rf ~/stubpkgs && mkdir -p ~/stubpkgs && cd ~/stubpkgs
-for pkg in chromium labwc wtype wlr-randr fonts-noto-color-emoji; do
+for pkg in chromium labwc wtype wlr-randr wlopm fonts-noto-color-emoji; do
   mkdir -p "${pkg}/DEBIAN"
   cat > "${pkg}/DEBIAN/control" <<EOF
 Package: ${pkg}
@@ -811,7 +811,7 @@ install_kiosk_stubs() {
   local out
   if ! out=$(ssh_script <<'STUBS'
 set -e
-for b in chromium wlr-randr wtype labwc; do
+for b in chromium wlr-randr wtype labwc wlopm; do
   printf '#!/bin/sh\necho "$(basename $0) $*" >> /tmp/kiosk-argv.log\nexit 0\n' > "/tmp/stub-${b}"
   sudo install -m 0755 "/tmp/stub-${b}" "/usr/local/bin/${b}"
 done
@@ -957,6 +957,11 @@ grep -q -- '--autoplay-policy=no-user-gesture-required' /tmp/kiosk-argv.log
 grep -q -- '--remote-debugging-port=9222' /tmp/kiosk-argv.log
 grep -q -- "--app=${HUB_URL}/display/${SPOKE_DISPLAY_ID}" /tmp/kiosk-argv.log
 LAUNCH
+
+  # The power agent is backgrounded by the launcher and asserts the panel on
+  # as its first act, so its presence shows up in the same argv log.
+  spoke_check "launcher starts the panel power agent" \
+    ssh_cmd "grep -q '^wlopm --on' /tmp/kiosk-argv.log"
 
   # --- The hub's view of it ----------------------------------------------
 
