@@ -99,6 +99,12 @@ jobs:
       # the app's own stable resolution, from ever landing on a nightly.
       # Generated notes list the commits since the previous tag, which for a
       # nightly is usually the previous nightly.
+      #
+      # Publishing creates the tag, as github-actions[bot]. The repository's
+      # "releases: owner-only tags" ruleset restricts v* tags to the owner and
+      # must keep excluding refs/tags/v*-dev.* or this step fails with
+      # "Too many retries" after uploading, leaving an untagged draft behind.
+      # The same exclusion lets the prune job below delete old nightly tags.
       - name: Create GitHub prerelease
         uses: softprops/action-gh-release@v2.5.0
         with:
@@ -108,6 +114,7 @@ jobs:
           files: |
             home-screens-*.tar.gz
             home-screens-*.tar.gz.sha256
+          fail_on_unmatched_files: true
           generate_release_notes: true
           draft: false
           prerelease: true
