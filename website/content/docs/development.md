@@ -33,7 +33,7 @@ data/                        # All runtime state; never committed
   config.json                # Live configuration file
   secrets.json               # API keys
   meals.json                 # Meal planner state + shared settings
-  todo-state.json            # Interactive todo tap state
+  todos.json                 # Shared to-do lists
   icloud-accounts.json       # iCloud CalDAV credentials
   plugins/                   # Installed plugin bundles + installed.json
   plugin-secrets/            # Per-plugin secret stores
@@ -189,7 +189,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Weather** | `weather`, `rain-map` | Weather data ({% $stats.weatherProviderCount %} providers) and rain radar tiles |
 | **Calendar** | `calendar`, `calendar/status`, `calendars`, `icloud/accounts`, `icloud/calendars`, `holidays` | Google Calendar events and per-source health, iCloud CalDAV accounts and calendars, holiday feeds |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `standings`, `todoist`, `air-quality`, `traffic`, `nasa` | External data proxies |
-| **Family data** | `chores`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/state`, `todo/toggle` | Local chore, reward, meal-plan, timer-routine, and interactive-todo state |
+| **Family data** | `chores`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/lists` | Local chore, reward, meal-plan, timer-routine, and to-do list state |
 | **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only Pis |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/migrate-config`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
 | **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | WiFi scan and connect, hostname, static IP, and connectivity checks |

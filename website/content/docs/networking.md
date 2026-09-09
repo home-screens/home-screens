@@ -539,7 +539,7 @@ data/meals.json               # Meal planner data (saved meals, weekly plan, gro
 data/chores.json              # Chore chart members and chore definitions
 data/chore-completions.json   # Chore history: who did what, and when
 data/rewards.json             # Chore rewards data (definitions, balances, redemptions)
-data/todo-state.json          # Which todo items are ticked off
+data/todos.json               # Shared to-do lists
 data/backup-state.json        # Backup reminder tracking
 ```
 

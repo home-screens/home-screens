@@ -706,8 +706,23 @@
   "todo": {
     "name": "Liste de tâches",
     "defaultTitle": "À faire",
-    "noTasksYet": "Ajoute des tâches dans l'éditeur et elles apparaîtront ici",
-    "tapHint": "Touchez une case pour la cocher"
+    "noTasksYet": "Ajoute des choses sur ton téléphone et elles apparaîtront ici",
+    "tapHint": "Touchez une case pour la cocher",
+    "noListsYet": "Pas encore de liste. Crée-en une sur ton téléphone.",
+    "pickAList": "Choisis une liste dans l'éditeur",
+    "upNext": "À suivre",
+    "allDone": "Tout est fait",
+    "andMore": "et {n} de plus",
+    "nLeft": "{n} à faire",
+    "of": "sur",
+    "done": "faits",
+    "startsFreshDaily": "Repart de zéro chaque jour",
+    "startsFreshWeekly": "Repart de zéro chaque semaine",
+    "due": {
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "overdue": "En retard"
+    }
   },
   "traffic": {
     "name": "Trafic / trajet",

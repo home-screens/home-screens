@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} pligter, {tickets} billetter"
     }
   },
+  "todoListModal": {
+    "title": "Rediger liste",
+    "itemCount": "{open} at gøre · {done} gjort",
+    "nameLabel": "Navn",
+    "loadError": "Listen kunne ikke hentes. Luk den og åbn den igen.",
+    "listGone": "Listen findes ikke længere. Vælg en anden.",
+    "empty": "Der er ikke noget på listen endnu",
+    "itemTextLabel": "Punkt",
+    "itemDoneLabel": "Gjort: {text}",
+    "removeItemLabel": "Fjern {text}",
+    "addPlaceholder": "Tilføj noget...",
+    "uncheckAll": "Fjern alle flueben",
+    "removeDone": "Fjern færdige punkter",
+    "removeDoneConfirm": {
+      "title": "Fjern færdige punkter",
+      "message": "Fjern {count} færdige punkter fra \"{name}\"?",
+      "confirmLabel": "Fjern"
+    }
+  },
   "mealPlannerModal": {
     "title": "Madplan",
     "subtitleMealsPlanned": "{meals} måltider · {planned} planlagt",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Live-forhåndsvisning"
     },
     "todo": {
-      "title": "Listens navn",
+      "viewList": "Liste",
+      "viewFocus": "Fokus",
+      "viewProgress": "Fremdrift",
+      "viewBoard": "Tavle",
+      "viewCompact": "Kompakt",
+      "list": "Liste",
+      "pickAList": "Vælg en liste",
+      "listsUnavailable": "Dine lister kunne ikke hentes",
+      "editItems": "Rediger punkter",
+      "newList": "Ny liste",
+      "newListName": "Navn på den nye liste",
+      "newListPlaceholder": "Indkøb",
+      "create": "Opret",
+      "title": "Overskrift",
       "defaultTitle": "Huskeliste",
-      "items": "Punkter",
-      "newItemText": "Nyt punkt",
-      "interactive": "Tillad tryk for at markere (touchskærm)"
+      "showTitle": "Vis overskrift",
+      "completedPlacement": "Færdige punkter",
+      "completedBottom": "Nederst",
+      "completedInline": "Hvor de er",
+      "completedHidden": "Skjult",
+      "showDueDates": "Vis frister",
+      "interactive": "Tryk for at sætte flueben"
     },
     "todoist": {
       "apiToken": "API-token",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Tilføj billeder fra en telefon"
+      },
+      "lists": {
+        "remote": "Rediger lister fra en telefon"
       }
     },
     "dialog": {
       "title": {
         "chores": "Pligter på en telefon",
         "meals": "Måltider på en telefon",
-        "photos": "Billeder på en telefon"
+        "photos": "Billeder på en telefon",
+        "lists": "Lister på en telefon"
       },
       "lede": "Scan med telefonens kamera, eller skriv adressen. Virker på alle enheder på jeres wifi derhjemme.",
       "passwordHint": "I kan bede om en adgangskode under Indstillinger, i Sikkerhed.",

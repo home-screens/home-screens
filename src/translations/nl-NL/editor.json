@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} klusjes, {tickets} tickets"
     }
   },
+  "todoListModal": {
+    "title": "Lijst bewerken",
+    "itemCount": "{open} te doen · {done} gedaan",
+    "nameLabel": "Naam",
+    "loadError": "Deze lijst kon niet worden geladen. Sluit hem en open hem opnieuw.",
+    "listGone": "Deze lijst bestaat niet meer. Kies een andere.",
+    "empty": "Nog niets op deze lijst",
+    "itemTextLabel": "Item",
+    "itemDoneLabel": "Gedaan: {text}",
+    "removeItemLabel": "{text} verwijderen",
+    "addPlaceholder": "Voeg iets toe...",
+    "uncheckAll": "Alles uitvinken",
+    "removeDone": "Gedane items verwijderen",
+    "removeDoneConfirm": {
+      "title": "Gedane items verwijderen",
+      "message": "{count} gedane items uit \"{name}\" verwijderen?",
+      "confirmLabel": "Verwijderen"
+    }
+  },
   "mealPlannerModal": {
     "title": "Maaltijdplanner",
     "subtitleMealsPlanned": "{meals} maaltijden · {planned} gepland",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Live voorbeeld"
     },
     "todo": {
-      "title": "Naam van de lijst",
+      "viewList": "Lijst",
+      "viewFocus": "Focus",
+      "viewProgress": "Voortgang",
+      "viewBoard": "Bord",
+      "viewCompact": "Compact",
+      "list": "Lijst",
+      "pickAList": "Kies een lijst",
+      "listsUnavailable": "Je lijsten konden niet worden geladen",
+      "editItems": "Items bewerken",
+      "newList": "Nieuwe lijst",
+      "newListName": "Naam van de nieuwe lijst",
+      "newListPlaceholder": "Boodschappen",
+      "create": "Aanmaken",
+      "title": "Kop",
       "defaultTitle": "Te doen",
-      "items": "Items",
-      "newItemText": "Nieuw item",
-      "interactive": "Tikken om af te vinken toestaan (touchscreen)"
+      "showTitle": "Kop tonen",
+      "completedPlacement": "Gedane items",
+      "completedBottom": "Onderaan",
+      "completedInline": "Op hun plek",
+      "completedHidden": "Verborgen",
+      "showDueDates": "Deadlines tonen",
+      "interactive": "Tikken om af te vinken"
     },
     "todoist": {
       "apiToken": "API-token",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Foto's toevoegen op een telefoon"
+      },
+      "lists": {
+        "remote": "Lijsten bewerken vanaf een telefoon"
       }
     },
     "dialog": {
       "title": {
         "chores": "Klusjes op een telefoon",
         "meals": "Maaltijden op een telefoon",
-        "photos": "Foto's op een telefoon"
+        "photos": "Foto's op een telefoon",
+        "lists": "Lijsten op een telefoon"
       },
       "lede": "Scan met de camera van je telefoon of typ het adres in. Werkt op elk apparaat op je wifi thuis.",
       "passwordHint": "Je kunt om een wachtwoord vragen bij Instellingen, onder Beveiliging.",

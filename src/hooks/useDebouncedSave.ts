@@ -54,6 +54,8 @@ interface UseDebouncedSaveReturn {
    * Safe to call when no save is pending — it will just run the saver once.
    */
   flush: () => void;
+  /** Whether an edit is waiting for its debounce. */
+  hasPending: () => boolean;
 }
 
 /**
@@ -182,5 +184,7 @@ export function useDebouncedSave(options: UseDebouncedSaveOptions): UseDebounced
     saverRef.current?.flush();
   }, []);
 
-  return { flush };
+  const hasPending = useCallback(() => saverRef.current?.hasPending() ?? false, []);
+
+  return { flush, hasPending };
 }

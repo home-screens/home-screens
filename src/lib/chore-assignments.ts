@@ -1,3 +1,4 @@
+import { localISODate } from './timezone';
 import type { ChoreDefinition, ChoreMember } from '@/types/config';
 
 /**
@@ -21,9 +22,7 @@ export interface ResolvedAssignment {
 // ── Date plumbing ──────────────────────────────────────────────────
 
 /** Format a Date as YYYY-MM-DD in local time (avoids UTC drift from toISOString) */
-export function localDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+export const localDateStr = localISODate;
 
 /** Get today's date as YYYY-MM-DD in local time */
 export function todayStr(): string {

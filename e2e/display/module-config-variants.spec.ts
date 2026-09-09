@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedChores, seedMeals, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { CONFIG_VARIANTS, type ConfigVariant } from '../helpers/config-variants';
@@ -20,7 +20,7 @@ import { CONFIG_VARIANTS, type ConfigVariant } from '../helpers/config-variants'
  * module), and the id keeps the variant addressable without colliding with the
  * anchor's `data-module-type="text"`.
  */
-async function renderVariant(page: Page, request: APIRequestContext, variant: ConfigVariant): Promise<void> {
+async function renderVariant(page: Page, request: APIRequestContext, sandboxDir: string, variant: ConfigVariant): Promise<void> {
   const pageErrors: string[] = [];
   page.on('pageerror', (e) => pageErrors.push(String(e)));
 
@@ -37,6 +37,7 @@ async function renderVariant(page: Page, request: APIRequestContext, variant: Co
 
   if (variant.seed === 'chores') await seedChores(request, variant.seedData ?? undefined);
   if (variant.seed === 'meals') await seedMeals(request, variant.seedData ?? undefined);
+  if (variant.seed === 'todos') seedTodos(sandboxDir, (variant.seedData as Parameters<typeof seedTodos>[1]) ?? undefined);
 
   const variantModule = buildModuleInstance(variant.type, variant.config);
   variantModule.id = `${variant.type}-v`;
@@ -69,8 +70,8 @@ async function renderVariant(page: Page, request: APIRequestContext, variant: Co
 for (const kind of ['network-free', 'networked', 'local-data'] as const) {
   test.describe(`config variants · ${kind}`, () => {
     for (const variant of CONFIG_VARIANTS.filter((v) => v.kind === kind)) {
-      test(`${variant.type} · ${variant.name}`, async ({ page, request }) => {
-        await renderVariant(page, request, variant);
+      test(`${variant.type} · ${variant.name}`, async ({ page, request, sandboxDir }) => {
+        await renderVariant(page, request, sandboxDir, variant);
       });
     }
   });

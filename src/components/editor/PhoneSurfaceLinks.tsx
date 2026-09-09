@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ChevronRight, Copy, ListChecks, Check, Images, Smartphone, UtensilsCrossed } from 'lucide-react';
+import { ChevronRight, Copy, ListChecks, ListTodo, Check, Images, Smartphone, UtensilsCrossed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
@@ -21,6 +21,7 @@ const CHIP_ICONS: Record<PhoneContext, Partial<Record<PhoneSurface, LucideIcon>>
   chores: { chores: ListChecks, remote: Smartphone },
   meals: { remote: UtensilsCrossed },
   photos: { remote: Images },
+  lists: { remote: ListTodo },
 };
 
 interface PhoneSurfaceLinksProps {
@@ -50,7 +51,7 @@ export default function PhoneSurfaceLinks({ context }: PhoneSurfaceLinksProps) {
           return (
             <a
               key={surface}
-              href={phoneSurfaceUrl(surface, origin)}
+              href={phoneSurfaceUrl(surface, origin, context)}
               target="_blank"
               rel="noopener noreferrer"
               // A plain left click opens the code — the useful thing on the
@@ -79,7 +80,7 @@ export default function PhoneSurfaceLinks({ context }: PhoneSurfaceLinksProps) {
                 <span className="mt-px block truncate text-[10.5px] leading-tight text-hs-text-faint">
                   {surface === 'chores'
                     ? t('phoneSurfaces.chips.choresSubtitle')
-                    : phoneSurfaceLabel(surface, origin)}
+                    : phoneSurfaceLabel(surface, origin, context)}
                 </span>
               </span>
               <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 text-hs-text-faint" aria-hidden="true" />
@@ -131,7 +132,7 @@ function PhoneSurfaceDialog({ context, onClose }: { context: PhoneContext; onClo
 
         <div className={`grid gap-2.5 ${surfaces.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
           {surfaces.map((surface) => (
-            <PhoneSurfaceDialogCard key={surface} surface={surface} origin={origin} />
+            <PhoneSurfaceDialogCard key={surface} surface={surface} context={context} origin={origin} />
           ))}
         </div>
 
@@ -143,7 +144,7 @@ function PhoneSurfaceDialog({ context, onClose }: { context: PhoneContext; onClo
   );
 }
 
-function PhoneSurfaceDialogCard({ surface, origin }: { surface: PhoneSurface; origin: string }) {
+function PhoneSurfaceDialogCard({ surface, context, origin }: { surface: PhoneSurface; context: PhoneContext; origin: string }) {
   const t = useTranslate('editor');
   const isKid = surface === 'chores';
 
@@ -160,16 +161,16 @@ function PhoneSurfaceDialogCard({ surface, origin }: { surface: PhoneSurface; or
         {t(`phoneSurfaces.surfaces.${surface}.audience`)}
       </p>
       <div className="flex justify-center">
-        <PhoneSurfaceQrCode surface={surface} origin={origin} size={112} />
+        <PhoneSurfaceQrCode surface={surface} context={context} origin={origin} size={112} />
       </div>
       <p className={`mt-2 font-mono text-[10px] ${isKid ? 'text-hs-kid' : 'text-hs-accent-hover'}`}>
-        {phoneSurfaceLabel(surface, origin)}
+        {phoneSurfaceLabel(surface, origin, context)}
       </p>
       <p className="mt-1.5 text-[10.5px] leading-snug text-hs-text-faint">
         {t(`phoneSurfaces.surfaces.${surface}.description`)}
       </p>
       <div className="mt-2 flex justify-center">
-        <CopyLinkButton surface={surface} origin={origin} />
+        <CopyLinkButton surface={surface} context={context} origin={origin} />
       </div>
     </div>
   );
@@ -180,16 +181,16 @@ function PhoneSurfaceDialogCard({ surface, origin }: { surface: PhoneSurface; or
  * plain HTTP `navigator.clipboard` is absent and `copyText` falls back to a
  * hidden textarea, which can itself be refused.
  */
-export function CopyLinkButton({ surface, origin }: { surface: PhoneSurface; origin: string }) {
+export function CopyLinkButton({ surface, context, origin }: { surface: PhoneSurface; context?: PhoneContext; origin: string }) {
   const t = useTranslate('editor');
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    if (await copyText(phoneSurfaceUrl(surface, origin))) {
+    if (await copyText(phoneSurfaceUrl(surface, origin, context))) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  }, [surface, origin]);
+  }, [surface, context, origin]);
 
   return (
     <button

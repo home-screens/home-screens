@@ -6,8 +6,12 @@ import { dismissToast, useRemoteToast } from '../remote-toast';
  * Renders the current remote toast just above the tab bar. Tap to dismiss.
  * `role="status"` keeps it polite for screen readers — these are outcomes,
  * not interruptions.
+ *
+ * `raisedBy` lifts it further when a tab pins its own bar above the tab bar
+ * (the Lists tab's add bar), so an error never lands on top of the field
+ * the person is typing into.
  */
-export default function RemoteToast() {
+export default function RemoteToast({ raisedBy = 0 }: { raisedBy?: number }) {
   const toast = useRemoteToast();
 
   return (
@@ -15,7 +19,7 @@ export default function RemoteToast() {
       role="status"
       aria-live="polite"
       className="pointer-events-none fixed left-0 right-0 z-[90] flex justify-center px-5"
-      style={{ bottom: 'calc(5.75rem + env(safe-area-inset-bottom))' }}
+      style={{ bottom: `calc(5.75rem + ${raisedBy}px + env(safe-area-inset-bottom))` }}
     >
       {toast && (
         <button

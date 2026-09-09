@@ -1,3 +1,4 @@
+import { E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import {
@@ -400,13 +401,59 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     expect: child('iframe[scrolling="yes"]'),
   },
 
-  // -- todo --
+  // -- todo (lists live in the shared store; the seed puts DONE ITEM after
+  // ACTIVE ITEM, and the row proves each placement rearranges or drops it) --
   {
-    type: 'todo', name: 'completed-item', kind: 'network-free',
-    config: { title: 'E2E TODO', items: [{ id: 'a', text: 'ACTIVE ITEM', completed: false }, { id: 'b', text: 'DONE ITEM', completed: true }] },
+    type: 'todo', name: 'completed-inline', kind: 'local-data', seed: 'todos',
+    seedData: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'b', text: 'DONE ITEM', completed: true },
+      { id: 'a', text: 'ACTIVE ITEM', completed: false },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, completedPlacement: 'inline' },
     expect: async (mod) => {
-      await expect(mod.locator('span.line-clamp-2', { hasText: 'DONE ITEM' })).toHaveCSS('text-decoration-line', 'line-through');
-      await expect(mod.locator('span.line-clamp-2', { hasText: 'ACTIVE ITEM' })).toHaveCSS('text-decoration-line', 'none');
+      // Store order kept: the done item stays first instead of sinking.
+      await expect(mod.locator('[data-testid="todo-item"]')).toHaveText([/DONE ITEM/, /ACTIVE ITEM/]);
+    },
+  },
+  {
+    type: 'todo', name: 'completed-bottom', kind: 'local-data', seed: 'todos',
+    seedData: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'b', text: 'DONE ITEM', completed: true },
+      { id: 'a', text: 'ACTIVE ITEM', completed: false },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, completedPlacement: 'bottom' },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-testid="todo-item"]')).toHaveText([/ACTIVE ITEM/, /DONE ITEM/]);
+    },
+  },
+  {
+    type: 'todo', name: 'completed-hidden', kind: 'local-data', seed: 'todos',
+    config: { listId: E2E_TODO_LIST_ID, completedPlacement: 'hidden' },
+    expect: async (mod) => {
+      await expect(mod).toContainText('ACTIVE ITEM');
+      await expect(mod).not.toContainText('DONE ITEM');
+    },
+  },
+  {
+    // A due date on the seeded item renders a chip; the toggle removes it.
+    type: 'todo', name: 'due-dates-off', kind: 'local-data', seed: 'todos',
+    seedData: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'a', text: 'ACTIVE ITEM', completed: false, dueDate: '2000-01-01' },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, showDueDates: false },
+    expect: async (mod) => {
+      await expect(mod).toContainText('ACTIVE ITEM');
+      await expect(mod.locator('[data-testid="todo-due"]')).toHaveCount(0);
+    },
+  },
+  {
+    type: 'todo', name: 'due-dates-on', kind: 'local-data', seed: 'todos',
+    seedData: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'a', text: 'ACTIVE ITEM', completed: false, dueDate: '2000-01-01' },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, showDueDates: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-testid="todo-due"]')).toHaveAttribute('data-tone', 'overdue');
     },
   },
 

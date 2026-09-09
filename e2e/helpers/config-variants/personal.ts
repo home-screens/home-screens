@@ -1,3 +1,4 @@
+import { E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, lacks, child, redStyle } from './shared';
@@ -284,9 +285,10 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
 
   // =========================== TODO (network-free) ===========================
   {
-    // accentColor fills the completed item's check box.
-    type: 'todo', name: 'accent-color', kind: 'network-free',
-    config: { title: 'E2E TODO', items: [{ id: 'x', text: 'DONE ITEM', completed: true }], accentColor: '#ff0000' },
+    // accentColor fills the completed item's check box (the static glyph,
+    // so the row turns tapping off).
+    type: 'todo', name: 'accent-color', kind: 'local-data', seed: 'todos',
+    config: { listId: E2E_TODO_LIST_ID, accentColor: '#ff0000', interactive: false },
     expect: child('rect[fill="#ff0000"]'),
   },
 

@@ -706,8 +706,23 @@
   "todo": {
     "name": "To-Do List",
     "defaultTitle": "To Do",
-    "noTasksYet": "Add tasks in the editor and they show up here",
-    "tapHint": "Tap a box to check it off"
+    "noTasksYet": "Add things on your phone and they show up here",
+    "noListsYet": "No lists yet. Make one on your phone.",
+    "pickAList": "Pick a list in the editor",
+    "tapHint": "Tap a box to check it off",
+    "upNext": "Up next",
+    "allDone": "All done",
+    "andMore": "and {n} more",
+    "nLeft": "{n} left",
+    "of": "of",
+    "done": "done",
+    "startsFreshDaily": "Starts fresh every day",
+    "startsFreshWeekly": "Starts fresh every week",
+    "due": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "overdue": "Overdue"
+    }
   },
   "traffic": {
     "name": "Traffic / Commute",

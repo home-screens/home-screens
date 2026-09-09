@@ -1,4 +1,5 @@
 import type { ModuleType } from '@/types/config';
+import { E2E_TODO_LIST_ID } from './api';
 
 /**
  * Multi-view coverage data. Each high-view module lists every view it should
@@ -18,7 +19,7 @@ export interface ViewSpec {
   views: string[];
   kind: 'network-free' | 'networked' | 'local-data';
   stubKey?: string;
-  seed?: 'chores' | 'meals';
+  seed?: 'chores' | 'meals' | 'todos';
   config?: Record<string, unknown>;
 }
 
@@ -32,6 +33,8 @@ export const VIEW_MATRIX: ViewSpec[] = [
     views: ['all', 'next'] },
   { type: 'multi-month', key: 'view', kind: 'network-free', views: ['vertical', 'horizontal'] },
   { type: 'affirmations', key: 'view', kind: 'network-free', views: ['elegant', 'card', 'minimal', 'typewriter'] },
+  { type: 'todo', key: 'view', kind: 'local-data', seed: 'todos', config: { listId: E2E_TODO_LIST_ID },
+    views: ['list', 'focus', 'progress', 'board', 'compact'] },
   { type: 'sunrise-sunset', key: 'view', kind: 'network-free', views: ['default', 'arc', 'circle'] },
   { type: 'shape', key: 'view', kind: 'network-free', views: [
     'divider', 'double-line', 'wave', 'zigzag', 'dotted-row', 'rectangle', 'circle', 'triangle',

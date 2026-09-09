@@ -8,5 +8,9 @@ export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     const { installClientIpStamping } = await import('./lib/server-ip-patch');
     installClientIpStamping();
+    // Clear temp files from a write that died mid-flight (a full card, a
+    // power cut). Nothing else ever removes them.
+    const { sweepStaleTempFiles } = await import('./lib/json-store');
+    sweepStaleTempFiles().catch(() => {});
   }
 }

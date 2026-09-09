@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedChores, seedMeals } from '../helpers/api';
+import { seedChores, seedMeals, seedTodos } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -73,11 +73,12 @@ async function largestType(page: Page, type: ModuleType): Promise<{ max: number;
   }, type);
 }
 
-async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[1], type: ModuleType, size: { w: number; h: number }) {
+async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[1], sandboxDir: string, type: ModuleType, size: { w: number; h: number }) {
   const fx = MODULE_FIXTURES[type];
   await stubModuleData(page);
   if (fx.seed === 'chores') await seedChores(request);
   if (fx.seed === 'meals') await seedMeals(request);
+  if (fx.seed === 'todos') seedTodos(sandboxDir);
   const mod = buildModuleInstance(type, fx.config);
   mod.size = size;
   const display = await renderOnDisplay(page, request, baseConfig({
@@ -114,8 +115,8 @@ async function settledType(page: Page, type: ModuleType): Promise<{ max: number;
 }
 
 for (const type of AUTOSIZED_MODULES) {
-  test(`${type} sizes its type for its box`, async ({ page, request }) => {
-    await renderAt(page, request, type, SMALL);
+  test(`${type} sizes its type for its box`, async ({ page, request, sandboxDir }) => {
+    await renderAt(page, request, sandboxDir, type, SMALL);
     // Polled, not slept on: the measure-and-fit pass converges over a render or
     // two and the web font swap can move it again.
     await expect
@@ -126,7 +127,7 @@ for (const type of AUTOSIZED_MODULES) {
       .toBeGreaterThanOrEqual(AUTOSIZE_EXEMPTIONS[type]?.fill ? 0 : MIN_FILL);
     const small = await settledType(page, type);
 
-    await renderAt(page, request, type, LARGE);
+    await renderAt(page, request, sandboxDir, type, LARGE);
     const exempt = AUTOSIZE_EXEMPTIONS[type] ?? {};
     if (!exempt.fill) {
       await expect

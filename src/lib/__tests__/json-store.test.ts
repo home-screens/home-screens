@@ -75,8 +75,9 @@ describe('write', () => {
     const raw = await fs.readFile(path.join(tmpDir, 'data', 'nested', 'test.json'), 'utf-8');
     expect(JSON.parse(raw)).toEqual({ hello: 'world' });
 
-    // No leftover .tmp file
-    await expect(fs.access(path.join(tmpDir, 'data', 'nested', 'test.json.tmp'))).rejects.toThrow();
+    // No leftover temp file of any name (each write picks a unique one).
+    const leftovers = (await fs.readdir(path.join(tmpDir, 'data', 'nested'))).filter((f) => f.endsWith('.tmp'));
+    expect(leftovers).toEqual([]);
   });
 
   it('serializes concurrent writes', async () => {

@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Contrôle",
     "chores": "Tâches",
+    "lists": "Listes",
     "meals": "Repas",
     "photos": "Photos",
     "timers": "Minuteurs"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "En attente qu'un écran le prenne…",
     "notShowing": "Aucun écran ne l'affiche encore. Vérifie qu'un écran est allumé."
   },
+  "lists": {
+    "title": "Listes",
+    "chipsLabel": "Tes listes",
+    "settingsButton": "Réglages de la liste",
+    "summary": {
+      "progress": "{done} sur {total} faits",
+      "empty": "Rien pour le moment"
+    },
+    "doneGroup": "Faits ({count})",
+    "due": {
+      "today": "Aujourd'hui",
+      "tomorrow": "Demain",
+      "overdue": "En retard"
+    },
+    "item": {
+      "edit": "Modifier {text}",
+      "move": "Déplacer {text}"
+    },
+    "addBar": {
+      "placeholder": "Ajouter à {list}",
+      "submit": "Ajouter"
+    },
+    "empty": {
+      "title": "Rien sur cette liste pour le moment",
+      "body": "Tape la première chose ci-dessous. Chaque ajout apparaît sur le mur quelques secondes plus tard."
+    },
+    "allDone": {
+      "title": "Tout est fait",
+      "daily": "Repart de zéro chaque jour",
+      "weekly": "Repart de zéro chaque {day}"
+    },
+    "firstList": {
+      "title": "Crée ta première liste",
+      "placeholder": "Nom de ta première liste",
+      "body": "Courses, valise, choses à faire avant l'école. Une fois créée, choisis-la pour le module Liste de tâches dans l'éditeur."
+    },
+    "newList": {
+      "title": "Nouvelle liste",
+      "placeholder": "Nom de la liste",
+      "submit": "Créer la liste"
+    },
+    "colourSwatch": "Couleur {number}",
+    "itemSheet": {
+      "title": "Modifier l'élément",
+      "textLabel": "Élément",
+      "dueLabel": "Échéance",
+      "dueNone": "Aucune",
+      "duePick": "Choisir un jour",
+      "dayLabel": "Jour",
+      "save": "Enregistrer",
+      "delete": "Supprimer l'élément"
+    },
+    "listSheet": {
+      "nameLabel": "Nom de la liste",
+      "colourLabel": "Couleur",
+      "repeatLabel": "Repartir de zéro",
+      "repeatNever": "Jamais",
+      "repeatDaily": "Chaque jour",
+      "repeatWeekly": "Chaque semaine",
+      "repeatDayLabel": "Quel jour",
+      "repeatHelp": "Décoche tout selon un rythme. Pratique pour une valise ou une liste d'avant l'école ; laisse sur Jamais pour les courses.",
+      "tidyLabel": "Ranger",
+      "uncheckAll": "Tout décocher",
+      "removeDone": "Retirer les éléments faits",
+      "save": "Enregistrer",
+      "delete": "Supprimer la liste",
+      "confirmDelete": {
+        "title": "Supprimer {name} ?",
+        "description": "Tout ce qui est sur cette liste part avec elle. Impossible de revenir en arrière."
+      }
+    },
+    "share": {
+      "button": "Partager",
+      "copied": "Copié !",
+      "nothingOpen": "Tout est fait !"
+    },
+    "errors": {
+      "generic": "Quelque chose n'a pas marché. Réessaie."
+    },
+    "loadError": "Impossible de charger tes listes. Vérifie que le hub est allumé et réessaie.",
+    "retry": "Réessayer"
+  },
   "formOverlay": {
     "discard": {
       "title": "Abandonner les modifications ?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Pas encore de tableau de tâches",
       "body": "Les tâches apparaîtront ici dès qu'un tableau de tâches sera sur l'un de vos écrans."
+    },
+    "lists": {
+      "title": "Pas encore de liste",
+      "body": "Les listes apparaissent ici dès qu'un module Liste de tâches est sur un de tes écrans."
     },
     "meals": {
       "title": "Pas encore de planificateur de repas",

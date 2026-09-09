@@ -1,3 +1,4 @@
+import { localISODate } from './timezone';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize, TimeFormat } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
@@ -181,12 +182,7 @@ export function alignToWeekStart(date: Date, weekStartDay: 'sunday' | 'monday'):
 // ── Date utilities (ISO date string helpers for multi-week plans) ────
 
 /** Format a Date as ISO date string "2026-04-04" */
-export function toISODate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
+export const toISODate = localISODate;
 
 /** Parse an ISO date string back to a Date (noon local time to avoid DST boundary issues) */
 export function fromISODate(s: string): Date {

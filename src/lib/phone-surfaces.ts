@@ -26,7 +26,7 @@ export const PHONE_SURFACE_PATHS: Record<PhoneSurface, string> = {
  * offered and which copy the chip carries — a chip in the photo module should
  * say "add photos", not name a URL.
  */
-export const PHONE_CONTEXTS = ['chores', 'meals', 'photos'] as const;
+export const PHONE_CONTEXTS = ['chores', 'meals', 'photos', 'lists'] as const;
 
 export type PhoneContext = (typeof PHONE_CONTEXTS)[number];
 
@@ -38,6 +38,15 @@ export const SURFACES_BY_CONTEXT: Record<PhoneContext, readonly PhoneSurface[]> 
   chores: ['chores', 'remote'],
   meals: ['remote'],
   photos: ['remote'],
+  lists: ['remote'],
+};
+
+/** The `/remote` tab each context belongs to (see `BottomTabBar`). */
+const CONTEXT_TABS: Record<PhoneContext, string> = {
+  chores: 'chores',
+  meals: 'meals',
+  photos: 'photos',
+  lists: 'lists',
 };
 
 /**
@@ -49,8 +58,12 @@ export const SURFACES_BY_CONTEXT: Record<PhoneContext, readonly PhoneSurface[]> 
  * path when the origin is not known yet (pre-mount; see `useOrigin`), which
  * still renders as a working same-origin link.
  */
-export function phoneSurfaceUrl(surface: PhoneSurface, origin: string): string {
-  return origin ? `${origin}${PHONE_SURFACE_PATHS[surface]}` : PHONE_SURFACE_PATHS[surface];
+export function phoneSurfaceUrl(surface: PhoneSurface, origin: string, context?: PhoneContext): string {
+  const base = origin ? `${origin}${PHONE_SURFACE_PATHS[surface]}` : PHONE_SURFACE_PATHS[surface];
+  // The family remote opens on Control; a link advertised from the Lists
+  // section should arrive at Lists. `/chores` has one screen and takes none.
+  const tab = surface === 'remote' && context ? CONTEXT_TABS[context] : undefined;
+  return tab ? `${base}?tab=${tab}` : base;
 }
 
 /**
@@ -58,6 +71,6 @@ export function phoneSurfaceUrl(surface: PhoneSurface, origin: string): string {
  * shown next to a QR code, where `http://` is noise that pushes the part that
  * matters (host and path) out of the available width.
  */
-export function phoneSurfaceLabel(surface: PhoneSurface, origin: string): string {
-  return phoneSurfaceUrl(surface, origin).replace(/^https?:\/\//, '');
+export function phoneSurfaceLabel(surface: PhoneSurface, origin: string, context?: PhoneContext): string {
+  return phoneSurfaceUrl(surface, origin, context).replace(/^https?:\/\//, '');
 }

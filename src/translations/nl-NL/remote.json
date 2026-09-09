@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Bediening",
     "chores": "Klusjes",
+    "lists": "Lijsten",
     "meals": "Maaltijden",
     "photos": "Foto's",
     "timers": "Timers"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Wachten tot een scherm hem oppakt…",
     "notShowing": "Nog geen scherm laat hem zien. Controleer of er een scherm aanstaat."
   },
+  "lists": {
+    "title": "Lijsten",
+    "chipsLabel": "Je lijsten",
+    "settingsButton": "Lijstinstellingen",
+    "summary": {
+      "progress": "{done} van {total} gedaan",
+      "empty": "Nog niets"
+    },
+    "doneGroup": "Gedaan ({count})",
+    "due": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "overdue": "Te laat"
+    },
+    "item": {
+      "edit": "{text} bewerken",
+      "move": "{text} verplaatsen"
+    },
+    "addBar": {
+      "placeholder": "Toevoegen aan {list}",
+      "submit": "Toevoegen"
+    },
+    "empty": {
+      "title": "Nog niets op deze lijst",
+      "body": "Typ hieronder het eerste. Alles wat je toevoegt staat een paar seconden later op de muur."
+    },
+    "allDone": {
+      "title": "Alles gedaan",
+      "daily": "Begint elke dag opnieuw",
+      "weekly": "Begint elke {day} opnieuw"
+    },
+    "firstList": {
+      "title": "Maak je eerste lijst",
+      "placeholder": "Naam van je eerste lijst",
+      "body": "Boodschappen, een paklijst, dingen voor school. Zodra hij bestaat, kies je hem in de editor voor de Takenlijst-module."
+    },
+    "newList": {
+      "title": "Nieuwe lijst",
+      "placeholder": "Naam van de lijst",
+      "submit": "Lijst maken"
+    },
+    "colourSwatch": "Kleur {number}",
+    "itemSheet": {
+      "title": "Item bewerken",
+      "textLabel": "Item",
+      "dueLabel": "Deadline",
+      "dueNone": "Geen",
+      "duePick": "Kies een dag",
+      "dayLabel": "Dag",
+      "save": "Opslaan",
+      "delete": "Item verwijderen"
+    },
+    "listSheet": {
+      "nameLabel": "Naam van de lijst",
+      "colourLabel": "Kleur",
+      "repeatLabel": "Opnieuw beginnen",
+      "repeatNever": "Nooit",
+      "repeatDaily": "Elke dag",
+      "repeatWeekly": "Elke week",
+      "repeatDayLabel": "Welke dag",
+      "repeatHelp": "Vinkt alles volgens een schema uit. Handig voor een paklijst of een lijst voor school; laat het uit voor boodschappen.",
+      "tidyLabel": "Opruimen",
+      "uncheckAll": "Alles uitvinken",
+      "removeDone": "Gedane items verwijderen",
+      "save": "Opslaan",
+      "delete": "Lijst verwijderen",
+      "confirmDelete": {
+        "title": "{name} verwijderen?",
+        "description": "Alles op deze lijst gaat mee. Dit kan niet ongedaan worden gemaakt."
+      }
+    },
+    "share": {
+      "button": "Delen",
+      "copied": "Gekopieerd!",
+      "nothingOpen": "Alles gedaan!"
+    },
+    "errors": {
+      "generic": "Er ging iets mis. Probeer het opnieuw."
+    },
+    "loadError": "Je lijsten konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
+    "retry": "Opnieuw"
+  },
   "formOverlay": {
     "discard": {
       "title": "Wijzigingen weggooien?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Nog geen klusjeskaart",
       "body": "Klusjes verschijnen hier zodra er een klusjeskaart op een van je schermen staat."
+    },
+    "lists": {
+      "title": "Nog geen takenlijst",
+      "body": "Lijsten verschijnen hier zodra er een Takenlijst-module op een van je schermen staat."
     },
     "meals": {
       "title": "Nog geen maaltijdplanner",

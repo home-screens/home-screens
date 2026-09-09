@@ -24,6 +24,7 @@ export const navigation = [
       { title: 'Calendars', href: '/docs/calendars' },
       { title: 'Chores and rewards', href: '/docs/chores' },
       { title: 'Meals', href: '/docs/meals' },
+      { title: 'Lists', href: '/docs/lists' },
       { title: 'Photos and backgrounds', href: '/docs/backgrounds' },
       { title: 'News', href: '/docs/news' },
     ],

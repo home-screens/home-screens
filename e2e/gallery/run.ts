@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedChores, seedMeals, todayCalendarEvents } from '../helpers/api';
+import { seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { PLACEHOLDER, QUARANTINE, galleryInstant, mountClientSide, pinRandom, settle } from '../helpers/deterministic-render';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
@@ -30,7 +30,7 @@ export function runGallery(label: string): void {
       const fx = MODULE_FIXTURES[type];
       const quarantined = QUARANTINE[type];
 
-      test(`${type}`, async ({ page, request }) => {
+      test(`${type}`, async ({ page, request, sandboxDir }) => {
         test.skip(!!quarantined, `quarantined: ${quarantined}`);
 
         await page.clock.setFixedTime(galleryInstant());
@@ -43,6 +43,7 @@ export function runGallery(label: string): void {
         }
         if (fx.seed === 'chores') await seedChores(request);
         if (fx.seed === 'meals') await seedMeals(request);
+        if (fx.seed === 'todos') seedTodos(sandboxDir);
 
         const def = getModuleDefinition(type);
         const mod = applyScenario(
@@ -89,7 +90,7 @@ export function runGallery(label: string): void {
     // Non-default views a fix has touched (see VIEW_VARIANTS).
     for (const variant of VIEW_VARIANTS) {
       const fx = MODULE_FIXTURES[variant.type];
-      test(`${variant.type} (${variant.name})`, async ({ page, request }) => {
+      test(`${variant.type} (${variant.name})`, async ({ page, request, sandboxDir }) => {
         await page.clock.setFixedTime(galleryInstant());
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await pinRandom(page);
@@ -103,6 +104,7 @@ export function runGallery(label: string): void {
         await stubModuleData(page, Object.keys(overrides).length ? { overrides } : {});
         if (fx.seed === 'chores') await seedChores(request);
         if (fx.seed === 'meals') await seedMeals(request);
+        if (fx.seed === 'todos') seedTodos(sandboxDir);
 
         const def = getModuleDefinition(variant.type);
         const mod = applyScenario(

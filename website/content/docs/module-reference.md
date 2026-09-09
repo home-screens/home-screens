@@ -656,17 +656,20 @@ Historical events that happened on today's date. Fetches from two data sources, 
 
 ### To-Do List
 
-A checklist with completable items.
+Shows one of the family's shared lists (see [Lists](/docs/lists)). Items live in `data/todos.json`, not on the module, so the same list can sit on any number of screens and the phone, the wall and the editor always agree.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `title` | string | `"To Do"` | List title |
-| `items` | array | `[]` | Items with `id`, `text`, and `completed` fields |
-| `accentColor` | string | `"#000000"` | Accent color for checkboxes, strikethrough, and progress indicator |
-| `interactive` | boolean | `false` | Render items as tap targets on the display so anyone at the kiosk can check or uncheck them. Taps are stored separately from the editor's item list, so an editor save never wipes them, and every display showing the same list stays in sync (within about 5 seconds). |
-| `showTitle` | boolean | `true` | Show the title text. The done count stays either way |
+| `listId` | string | none | Which shared list to show. Unset renders a "pick a list" placeholder. Ignored by the board view |
+| `view` | string | `"list"` | `list`, `focus` (next three in big type), `progress` (ring), `board` (every list as a column) or `compact` |
+| `title` | string | `""` | Heading override. Empty shows the list's own name |
+| `showTitle` | boolean | `true` | Show the heading. The done count stays either way |
+| `accentColor` | string | `"#3b82f6"` | Accent for checkboxes, strikethrough and the progress ring |
+| `interactive` | boolean | `true` | Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared list, never to the layout |
+| `completedPlacement` | string | `"bottom"` | Where done items go: `bottom` (sink under the open ones), `inline` (stay put) or `hidden` |
+| `showDueDates` | boolean | `true` | Due-day chips (Today, Tomorrow, Overdue, a weekday, a date) on items that carry a date |
 
-Items can be added, edited, and checked off in the editor. With `interactive` on, they can also be checked off directly on a touchscreen display.
+When every item is done the heading shows a green tick and "All done" in every view. A list with a repeat schedule says when it starts fresh.
 
 ### Todoist
 

@@ -1,10 +1,12 @@
 'use client';
 
 import { QRCodeSVG } from 'qrcode.react';
-import { phoneSurfaceUrl, type PhoneSurface } from '@/lib/phone-surfaces';
+import { phoneSurfaceUrl, type PhoneContext, type PhoneSurface } from '@/lib/phone-surfaces';
 
 interface PhoneSurfaceQrCodeProps {
   surface: PhoneSurface;
+  /** Sends the code to the tab this link is advertised from. */
+  context?: PhoneContext;
   /** Origin the editor was reached on; `''` before mount (see `useOrigin`). */
   origin: string;
   size: number;
@@ -20,7 +22,7 @@ interface PhoneSurfaceQrCodeProps {
  * path scans to something unopenable, which is worse than a code appearing a
  * tick late.
  */
-export default function PhoneSurfaceQrCode({ surface, origin, size }: PhoneSurfaceQrCodeProps) {
+export default function PhoneSurfaceQrCode({ surface, context, origin, size }: PhoneSurfaceQrCodeProps) {
   if (!origin) {
     return (
       <div
@@ -34,7 +36,7 @@ export default function PhoneSurfaceQrCode({ surface, origin, size }: PhoneSurfa
   return (
     <div className="shrink-0 rounded-md bg-white p-1.5 leading-none">
       <QRCodeSVG
-        value={phoneSurfaceUrl(surface, origin)}
+        value={phoneSurfaceUrl(surface, origin, context)}
         size={size}
         level="M"
         bgColor="#ffffff"

@@ -1,3 +1,4 @@
+import { E2E_TODO_LIST_ID } from './api';
 import { expect, type Locator, type Page } from '@playwright/test';
 import type { ModuleType } from '@/types/config';
 
@@ -21,6 +22,8 @@ export interface EmptyStateFixture {
   stubBody?: unknown;
   /** Render WITHOUT matrixSettings() location (drives LocationRequired). */
   noLocation?: boolean;
+  /** Seed the shared to-do store with these lists (todos rows only). */
+  todoSeed?: import('./api').TodoSeed;
   /** Config overrides merged over the registry defaultConfig. */
   config?: Record<string, unknown>;
   /** Assertion proving the empty state (and its kid-friendly copy) rendered. */
@@ -80,9 +83,21 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     expect: showsCopy('Add a news feed in the editor and headlines show here'),
   },
   {
-    type: 'todo', name: 'no-items', kind: 'network-free',
-    config: { title: 'E2E TODO', items: [] },
-    expect: showsCopy('Add tasks in the editor and they show up here'),
+    // No list picked (the registry default): the module says where to pick one.
+    type: 'todo', name: 'no-list', kind: 'local-data',
+    config: {},
+    expect: showsCopy('Pick a list in the editor'),
+  },
+  {
+    type: 'todo', name: 'no-items', kind: 'local-data',
+    todoSeed: { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [] }] },
+    config: { listId: E2E_TODO_LIST_ID },
+    expect: showsCopy('Add things on your phone and they show up here'),
+  },
+  {
+    type: 'todo', name: 'board-no-lists', kind: 'local-data',
+    config: { view: 'board' },
+    expect: showsCopy('No lists yet'),
   },
   {
     type: 'sticky-note', name: 'empty-content', kind: 'network-free',

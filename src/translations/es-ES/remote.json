@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Control",
     "chores": "Tareas",
+    "lists": "Listas",
     "meals": "Comidas",
     "photos": "Fotos",
     "timers": "Temporizadores"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Esperando a que una pantalla lo muestre…",
     "notShowing": "Ninguna pantalla lo muestra todavía. Comprueba que hay una pantalla encendida."
   },
+  "lists": {
+    "title": "Listas",
+    "chipsLabel": "Tus listas",
+    "settingsButton": "Ajustes de la lista",
+    "summary": {
+      "progress": "{done} de {total} hechos",
+      "empty": "Nada todavía"
+    },
+    "doneGroup": "Hechos ({count})",
+    "due": {
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "overdue": "Atrasado"
+    },
+    "item": {
+      "edit": "Editar {text}",
+      "move": "Mover {text}"
+    },
+    "addBar": {
+      "placeholder": "Añadir a {list}",
+      "submit": "Añadir"
+    },
+    "empty": {
+      "title": "Todavía no hay nada en esta lista",
+      "body": "Escribe lo primero abajo. Cada cosa que añadas aparece en la pared unos segundos después."
+    },
+    "allDone": {
+      "title": "Todo hecho",
+      "daily": "Empieza de cero cada día",
+      "weekly": "Empieza de cero cada {day}"
+    },
+    "firstList": {
+      "title": "Crea tu primera lista",
+      "placeholder": "Nombre de tu primera lista",
+      "body": "La compra, la maleta, cosas antes del cole. Cuando exista, elígela para el módulo de Lista de tareas en el editor."
+    },
+    "newList": {
+      "title": "Nueva lista",
+      "placeholder": "Nombre de la lista",
+      "submit": "Crear lista"
+    },
+    "colourSwatch": "Color {number}",
+    "itemSheet": {
+      "title": "Editar elemento",
+      "textLabel": "Elemento",
+      "dueLabel": "Para cuándo",
+      "dueNone": "Sin fecha",
+      "duePick": "Elegir un día",
+      "dayLabel": "Día",
+      "save": "Guardar",
+      "delete": "Eliminar elemento"
+    },
+    "listSheet": {
+      "nameLabel": "Nombre de la lista",
+      "colourLabel": "Color",
+      "repeatLabel": "Empezar de cero",
+      "repeatNever": "Nunca",
+      "repeatDaily": "Cada día",
+      "repeatWeekly": "Cada semana",
+      "repeatDayLabel": "Qué día",
+      "repeatHelp": "Desmarca todo según un horario. Va bien para una maleta o una lista de antes del cole; déjalo en Nunca para la compra.",
+      "tidyLabel": "Ordenar",
+      "uncheckAll": "Desmarcar todo",
+      "removeDone": "Quitar los hechos",
+      "save": "Guardar",
+      "delete": "Eliminar lista",
+      "confirmDelete": {
+        "title": "¿Eliminar {name}?",
+        "description": "Todo lo que hay en esta lista se va con ella. No se puede deshacer."
+      }
+    },
+    "share": {
+      "button": "Compartir",
+      "copied": "¡Copiado!",
+      "nothingOpen": "¡Todo hecho!"
+    },
+    "errors": {
+      "generic": "Algo ha fallado. Inténtalo de nuevo."
+    },
+    "loadError": "No se pudieron cargar tus listas. Comprueba que el hub está encendido y vuelve a intentarlo.",
+    "retry": "Reintentar"
+  },
   "formOverlay": {
     "discard": {
       "title": "¿Descartar los cambios?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Aún no hay tabla de tareas",
       "body": "Las tareas aparecerán aquí en cuanto haya una tabla de tareas en alguna de tus pantallas."
+    },
+    "lists": {
+      "title": "Aún no hay lista",
+      "body": "Las listas aparecen aquí cuando hay un módulo de Lista de tareas en una de tus pantallas."
     },
     "meals": {
       "title": "Aún no hay planificador de comidas",

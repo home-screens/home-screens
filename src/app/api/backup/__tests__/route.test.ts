@@ -56,6 +56,17 @@ beforeEach(async () => {
   await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
 });
 
+describe('POST /api/backup with malformed to-do lists', () => {
+  it('refuses the bundle before writing anything', async () => {
+    const res = await POST(postReq({ _type: 'home-screens-backup', _version: 2, todos: [] }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/lists array/);
+    // The store still serves reads afterwards.
+    const { readTodoData } = await import('@/lib/todo-data');
+    expect((await readTodoData()).lists).toEqual([]);
+  });
+});
+
 describe('GET /api/backup', () => {
   it('exports a bundle with the envelope and every data section', async () => {
     const res = await GET(getReq());
@@ -102,6 +113,7 @@ describe('GET /api/backup', () => {
         'meals',
         'rewards',
         'routines',
+        'todos',
       ].sort(),
     );
     // Nothing in the serialized bundle looks like a bearer/api key value.

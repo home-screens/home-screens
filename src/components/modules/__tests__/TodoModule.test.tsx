@@ -3,8 +3,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, fireEvent, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { DEFAULT_MODULE_STYLE, type TodoConfig, type ModuleStyle } from '@/types/config';
-import type { TodoState } from '@/lib/todo-data';
+import { DEFAULT_MODULE_STYLE, type TodoConfig, type ModuleStyle, type ChoreMember } from '@/types/config';
+import type { TodoList, TodoListItem } from '@/types/todos';
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 
@@ -16,12 +16,17 @@ class ResizeObserverStub {
 }
 (globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
 
-// Drive the runtime-state poll deterministically. `useFetchData` is mocked so a
-// test can push a "poll result" via `mockTodoState` + a rerender, and the empty
-// url contract (non-interactive modules) returns null so they never merge.
-let mockTodoState: TodoState | null = null;
+// Drive the lists poll deterministically: a test sets `mockLists` (null =
+// first fetch still in flight) and rerenders to deliver a "poll result".
+// The members URL answers from `mockMembers`; the empty url contract returns null.
+let mockLists: { lists: TodoList[] } | null = null;
+let mockMembers: { members: ChoreMember[] } | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
-  useFetchData: (url: string) => [url ? mockTodoState : null, null],
+  useFetchData: (url: string) => {
+    if (url === '/api/todo/lists') return [mockLists, null, null];
+    if (url === '/api/chores/data') return [mockMembers, null, null];
+    return [null, null, null];
+  },
 }));
 
 const displayFetch = vi.fn();
@@ -29,7 +34,13 @@ vi.mock('@/lib/display-fetch', () => ({
   displayFetch: (...args: unknown[]) => displayFetch(...args),
 }));
 
-import TodoModule from '../TodoModule';
+const cacheSet = vi.fn();
+vi.mock('@/lib/display-cache', () => ({
+  displayCache: { set: (...args: unknown[]) => cacheSet(...args) },
+}));
+
+import TodoModule, { arrangeItems, describeDue } from '../TodoModule';
+import { toTZWallTime } from '@/lib/timezone';
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
 
@@ -37,218 +48,313 @@ function Wrapper({ children }: { children: ReactNode }) {
   return <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>{children}</I18nProvider>;
 }
 
-function makeConfig(overrides: Partial<TodoConfig> = {}): TodoConfig {
+function item(id: string, text: string, completed = false, extra: Partial<TodoListItem> = {}): TodoListItem {
+  return { id, text, completed, createdAt: '2026-09-01T00:00:00.000Z', ...extra };
+}
+
+function list(id: string, name: string, items: TodoListItem[], extra: Partial<TodoList> = {}): TodoList {
   return {
-    title: 'Chores',
-    accentColor: '#000000',
-    items: [
-      { id: 'i1', text: 'Take out trash', completed: false },
-      { id: 'i2', text: 'Feed the cat', completed: true },
-    ],
-    ...overrides,
+    id,
+    name,
+    slug: id,
+    items,
+    repeat: 'never',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-01T00:00:00.000Z',
+    ...extra,
   };
 }
 
-/** Render an interactive, fully-addressed todo module. */
-function renderInteractive(extra: Partial<TodoConfig> = {}) {
-  return render(
-    <TodoModule
-      config={makeConfig({ interactive: true, ...extra })}
-      style={style}
-      displayId="kitchen"
-      screenId="s1"
-      moduleId="m1"
-    />,
-    { wrapper: Wrapper },
-  );
+const groceries = () => list('groceries', 'Groceries', [
+  item('i1', 'Take out trash'),
+  item('i2', 'Feed the cat', true),
+  item('i3', 'Buy oat milk'),
+]);
+
+function makeConfig(overrides: Partial<TodoConfig> = {}): TodoConfig {
+  return { listId: 'groceries', view: 'list', accentColor: '#3b82f6', ...overrides };
 }
+
+function renderStatic(config: Partial<TodoConfig> = {}) {
+  return render(<TodoModule config={makeConfig(config)} style={style} />, { wrapper: Wrapper });
+}
+
+/** Render an interactive, fully-addressed todo module (as the display does). */
+function renderInteractive(extra: Partial<TodoConfig> = {}) {
+  const config = makeConfig({ interactive: true, ...extra });
+  const el = (c: TodoConfig) => (
+    <TodoModule config={c} style={style} displayId="kitchen" screenId="s1" moduleId="m1" />
+  );
+  const utils = render(el(config), { wrapper: Wrapper });
+  return { ...utils, rerenderSame: () => utils.rerender(el(config)) };
+}
+
+const itemTexts = (container: HTMLElement) =>
+  Array.from(container.querySelectorAll('[data-testid="todo-item"]')).map((el) => el.textContent?.trim());
 
 beforeEach(() => {
   displayFetch.mockReset();
-  mockTodoState = null;
+  cacheSet.mockReset();
+  mockLists = { lists: [groceries()] };
+  mockMembers = null;
 });
 afterEach(() => cleanup());
 
-describe('TodoModule', () => {
-  it('renders static (no buttons) when not interactive', () => {
-    const { container } = render(<TodoModule config={makeConfig()} style={style} />, { wrapper: Wrapper });
-    expect(container.querySelectorAll('button')).toHaveLength(0);
+describe('arrangeItems', () => {
+  const items = [item('a', 'A', true), item('b', 'B'), item('c', 'C', true), item('d', 'D')];
+  it('sinks done items below open ones, keeping relative order', () => {
+    expect(arrangeItems(items, 'bottom').map((i) => i.id)).toEqual(['b', 'd', 'a', 'c']);
+    expect(arrangeItems(items, undefined).map((i) => i.id)).toEqual(['b', 'd', 'a', 'c']);
+  });
+  it('keeps store order inline', () => {
+    expect(arrangeItems(items, 'inline').map((i) => i.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+  it('drops done items when hidden', () => {
+    expect(arrangeItems(items, 'hidden').map((i) => i.id)).toEqual(['b', 'd']);
+  });
+});
+
+describe('describeDue', () => {
+  const t = (key: string) => key;
+  const now = new Date(2026, 8, 9, 14, 30); // Wed 9 Sep 2026, local
+  it('names overdue, today and tomorrow', () => {
+    expect(describeDue('2026-09-08', now, t, 'en-US')).toEqual({ label: 'todo.due.overdue', tone: 'overdue' });
+    expect(describeDue('2026-09-09', now, t, 'en-US')).toEqual({ label: 'todo.due.today', tone: 'today' });
+    expect(describeDue('2026-09-10', now, t, 'en-US')).toEqual({ label: 'todo.due.tomorrow', tone: 'neutral' });
+  });
+  it('uses the weekday inside the coming week and a short date past it', () => {
+    expect(describeDue('2026-09-12', now, t, 'en-US')).toEqual({ label: 'Sat', tone: 'neutral' });
+    expect(describeDue('2026-09-15', now, t, 'en-US')).toEqual({ label: 'Tue', tone: 'neutral' });
+    expect(describeDue('2026-09-16', now, t, 'en-US')).toEqual({ label: 'Sep 16', tone: 'neutral' });
+  });
+  it('ignores a malformed date', () => {
+    expect(describeDue('soon', now, t, 'en-US')).toBeNull();
+  });
+  it('reckons today in the display timezone, not the machine clock', () => {
+    // 01:00 UTC on the 10th is 20:00 on the 9th in Chicago: an item due the
+    // 9th is still Today there, and Overdue only by the UTC clock.
+    const instant = new Date('2026-09-10T01:00:00.000Z');
+    const chicago = toTZWallTime(instant, 'America/Chicago');
+    expect(describeDue('2026-09-09', chicago, t, 'en-US')?.tone).toBe('today');
+    const utc = toTZWallTime(instant, 'UTC');
+    expect(describeDue('2026-09-09', utc, t, 'en-US')?.tone).toBe('overdue');
+  });
+  it('never calls a done item overdue', () => {
+    expect(describeDue('2026-09-08', now, t, 'en-US', true)).toEqual({ label: 'Sep 8', tone: 'neutral' });
+  });
+});
+
+describe('TodoModule all-done state', () => {
+  it('replaces the count with the green check and All done, keeps items struck through', () => {
+    mockLists = { lists: [list('groceries', 'Before school', [item('a', 'Brush teeth', true), item('b', 'Pack lunch', true)], { repeat: 'daily' })] };
+    const { getByTestId, container, queryByTestId } = renderStatic();
+    expect(getByTestId('todo-all-done').textContent).toBe('All done');
+    expect(container.textContent).not.toContain('2/2');
+    expect(itemTexts(container)).toEqual(['Brush teeth', 'Pack lunch']);
+    expect(getByTestId('todo-repeat').textContent).toBe('Starts fresh every day');
+    cleanup();
+    mockLists = { lists: [list('groceries', 'Weekly', [item('a', 'Vacuum', true)], { repeat: 'weekly' })] };
+    expect(renderStatic().getByTestId('todo-repeat').textContent).toBe('Starts fresh every week');
+    cleanup();
+    mockLists = { lists: [list('groceries', 'Once', [item('a', 'Vacuum', true)])] };
+    renderStatic();
+    expect(queryByTestId('todo-repeat')).toBeNull();
   });
 
-  it('renders static when interactive flag is set but instance address is missing', () => {
+  it('is not shown while anything is open, and the repeat line stays hidden until then', () => {
+    mockLists = { lists: [list('groceries', 'Before school', [item('a', 'Brush teeth', true), item('b', 'Pack lunch')], { repeat: 'daily' })] };
+    const { queryByTestId } = renderStatic();
+    expect(queryByTestId('todo-all-done')).toBeNull();
+    expect(queryByTestId('todo-repeat')).toBeNull();
+  });
+
+  it('shows in the focus, progress, compact and board views too', () => {
+    mockLists = { lists: [list('groceries', 'Groceries', [item('a', 'Eggs', true)])] };
+    for (const view of ['focus', 'progress', 'compact', 'board'] as const) {
+      const { getByTestId } = renderStatic({ view });
+      expect(getByTestId('todo-all-done').textContent).toBe('All done');
+      cleanup();
+    }
+  });
+});
+
+describe('TodoModule empty states', () => {
+  it('asks for a list when none is picked or the picked one is gone', () => {
+    const none = renderStatic({ listId: undefined });
+    expect(none.container.textContent).toContain('Pick a list in the editor');
+    none.unmount();
+    const gone = renderStatic({ listId: 'deleted' });
+    expect(gone.container.textContent).toContain('Pick a list in the editor');
+  });
+
+  it('says the list is empty when it has no items', () => {
+    mockLists = { lists: [list('groceries', 'Groceries', [])] };
+    const { container } = renderStatic();
+    expect(container.textContent).toContain('Add things on your phone and they show up here');
+  });
+
+  it('board with no lists at all points at the phone', () => {
+    mockLists = { lists: [] };
+    const { container } = renderStatic({ view: 'board' });
+    expect(container.textContent).toContain('No lists yet. Make one on your phone.');
+  });
+});
+
+describe('TodoModule other views', () => {
+  it('focus: Up next, the first three open items in descending size, and N more, N left', () => {
+    mockLists = { lists: [list('groceries', 'Groceries', [
+      item('a', 'Oat milk'), item('b', 'Bananas'), item('c', 'Candles'), item('d', 'Dog food'), item('e', 'Sunscreen'), item('f', 'Eggs', true),
+    ])] };
+    const { container, getByText } = renderStatic({ view: 'focus' });
+    getByText('Up next');
+    expect(itemTexts(container)).toEqual(['Oat milk', 'Bananas', 'Candles']);
+    const rows = container.querySelectorAll<HTMLElement>('[data-testid="todo-item"]');
+    expect(rows[0].style.fontSize).toBe('1.55em');
+    expect(rows[1].style.fontSize).toBe('1.15em');
+    getByText('and 2 more');
+    getByText('5 left');
+  });
+
+  it('progress: done of total in the ring, the name and the open items', () => {
+    const { container, getByText } = renderStatic({ view: 'progress' });
+    expect(container.querySelectorAll('circle')).toHaveLength(2);
+    expect(container.textContent).toContain('1of3');
+    getByText('done');
+    getByText('Groceries');
+    expect(itemTexts(container)).toEqual(['Take out trash,', 'Buy oat milk']);
+  });
+
+  it('compact: dense rows with no checkboxes or tap targets even when interactive', () => {
+    const { container } = renderInteractive({ view: 'compact' });
+    expect(container.querySelectorAll('button')).toHaveLength(0);
+    expect(container.querySelectorAll('svg')).toHaveLength(0);
+    expect(itemTexts(container)).toEqual(['Take out trash', 'Buy oat milk', 'Feed the cat']);
+  });
+
+  it('board: every list as a column with its count and first five items, ignoring listId', () => {
+    mockLists = { lists: [
+      groceries(),
+      list('cabin', 'Cabin trip', ['Sleeping bags', 'Headlamps', 'Marshmallows', 'Board games', 'Bug spray', 'Cooler', 'Swimsuits'].map((t, i) => item(`c${i}`, t)), { color: '#a78bfa' }),
+    ] };
+    const { getAllByTestId, getByText } = renderStatic({ view: 'board', listId: 'nope' });
+    const cols = getAllByTestId('todo-board-column');
+    expect(cols).toHaveLength(2);
+    expect(cols[0].textContent).toContain('Groceries');
+    expect(cols[0].textContent).toContain('2 left');
+    expect(cols[1].querySelectorAll('[data-testid="todo-item"]')).toHaveLength(5);
+    getByText('and 2 more');
+    expect((cols[1].querySelector('span') as HTMLElement).style.backgroundColor).toBe('rgb(167, 139, 250)');
+  });
+});
+
+describe('TodoModule tap to check off', () => {
+  const itemUrl = '/api/todo/lists/groceries/items/i1';
+  const okResponse = (completed: boolean) => ({
+    ok: true,
+    json: async () => ({ lists: [list('groceries', 'Groceries', [item('i1', 'Take out trash', completed), item('i2', 'Feed the cat', true), item('i3', 'Buy oat milk')])] }),
+  });
+  /** A checked row sinks below the open ones, so rows are found by name, never by index. */
+  const row = (container: HTMLElement, text: string) =>
+    Array.from(container.querySelectorAll<HTMLButtonElement>('button[data-testid="todo-item"]')).find((b) => b.textContent?.includes(text)) as HTMLButtonElement;
+  const pressed = (container: HTMLElement, text: string) => row(container, text).getAttribute('aria-pressed');
+
+  it('stays static when interactive is set but the instance address is missing', () => {
     // The editor preview passes config.interactive but no screenId/moduleId.
-    const { container } = render(<TodoModule config={makeConfig({ interactive: true })} style={style} />, { wrapper: Wrapper });
+    const { container } = renderStatic({ interactive: true });
     expect(container.querySelectorAll('button')).toHaveLength(0);
   });
 
-  it('renders a button per item, reflecting authored completion when no runtime state exists', () => {
+  it('renders a button per row reflecting completion', () => {
     const { container } = renderInteractive();
-    const buttons = container.querySelectorAll('button');
-    expect(buttons).toHaveLength(2);
-    // aria-pressed reflects the authored defaults.
-    expect(buttons[0].getAttribute('aria-pressed')).toBe('false');
-    expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
+    expect(container.querySelectorAll('button[data-testid="todo-item"]')).toHaveLength(3);
+    expect(pressed(container, 'Take out trash')).toBe('false');
+    expect(pressed(container, 'Feed the cat')).toBe('true');
   });
 
-  it('merges runtime overrides over authored defaults', () => {
-    // i1 was completed at runtime (overriding its authored false); i2 has no
-    // runtime entry and falls back to its authored true.
-    mockTodoState = { completed: { i1: true } };
-    const { container } = renderInteractive();
-    const buttons = container.querySelectorAll('button');
-    expect(buttons[0].getAttribute('aria-pressed')).toBe('true');
-    expect(buttons[1].getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('optimistically flips on click before the request resolves', () => {
+  it('optimistically flips on tap, PATCHes the item, and sinks the row', () => {
     displayFetch.mockReturnValue(new Promise(() => {})); // never resolves
     const { container } = renderInteractive();
-    const firstBtn = container.querySelectorAll('button')[0];
-    expect(firstBtn.getAttribute('aria-pressed')).toBe('false');
-    fireEvent.click(firstBtn);
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-    // Posted to the toggle endpoint with the full instance address.
-    expect(displayFetch).toHaveBeenCalledWith('/api/todo/toggle', expect.objectContaining({ method: 'POST' }));
-    const body = JSON.parse(displayFetch.mock.calls[0][1].body);
-    expect(body).toMatchObject({ displayId: 'kitchen', screenId: 's1', moduleId: 'm1', itemId: 'i1' });
+    fireEvent.click(row(container, 'Take out trash'));
+    expect(pressed(container, 'Take out trash')).toBe('true');
+    // Done items keep store order below the open ones.
+    expect(itemTexts(container)).toEqual(['Buy oat milk', 'Take out trash', 'Feed the cat']);
+    expect(displayFetch).toHaveBeenCalledWith(itemUrl, expect.objectContaining({ method: 'PATCH' }));
+    expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ completed: true });
   });
 
-  it('reconciles to the server completion value on success', async () => {
-    displayFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ completed: { i1: true } }),
-    });
+  it('unchecks a done item with completed: false', () => {
+    displayFetch.mockReturnValue(new Promise(() => {}));
     const { container } = renderInteractive();
-    await act(async () => {
-      fireEvent.click(container.querySelectorAll('button')[0]);
-    });
-    await waitFor(() => {
-      expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-    });
+    fireEvent.click(row(container, 'Feed the cat'));
+    expect(pressed(container, 'Feed the cat')).toBe('false');
+    expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ completed: false });
+  });
+
+  it('reconciles to the server value and primes the shared cache on success', async () => {
+    displayFetch.mockResolvedValue(okResponse(true));
+    const { container } = renderInteractive();
+    await act(async () => { fireEvent.click(row(container, 'Take out trash')); });
+    await waitFor(() => expect(pressed(container, 'Take out trash')).toBe('true'));
+    expect(cacheSet).toHaveBeenCalledWith('/api/todo/lists', expect.objectContaining({ lists: expect.any(Array) }), 5_000);
   });
 
   it('reverts only the tapped item when the request fails', async () => {
     displayFetch.mockResolvedValue({ ok: false });
     const { container } = renderInteractive();
-    await act(async () => {
-      fireEvent.click(container.querySelectorAll('button')[0]);
-    });
-    await waitFor(() => {
-      // Reverted back to its authored uncompleted state.
-      expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('false');
-    });
-    // The sibling (i2) was never touched.
-    expect(container.querySelectorAll('button')[1].getAttribute('aria-pressed')).toBe('true');
+    await act(async () => { fireEvent.click(row(container, 'Take out trash')); });
+    await waitFor(() => expect(pressed(container, 'Take out trash')).toBe('false'));
+    expect(pressed(container, 'Feed the cat')).toBe('true');
+    expect(pressed(container, 'Buy oat milk')).toBe('false');
   });
 
-  it('does not let a stale poll clobber an in-flight optimistic flip (no flicker)', async () => {
-    displayFetch.mockReturnValue(new Promise(() => {})); // toggle never resolves → stays in flight
-    const { container, rerender } = renderInteractive();
-
-    // Optimistic flip of i1.
-    fireEvent.click(container.querySelectorAll('button')[0]);
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-
-    // A poll lands that predates the tap — i1 still shows as not completed.
-    // Because the toggle is in flight, the poll must NOT revert the optimistic value.
-    mockTodoState = { completed: {} };
-    await act(async () => {
-      rerender(
-        <TodoModule
-          config={makeConfig({ interactive: true })}
-          style={style}
-          displayId="kitchen"
-          screenId="s1"
-          moduleId="m1"
-        />,
-      );
-    });
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
+  it('does not let a stale poll clobber an in-flight flip', async () => {
+    displayFetch.mockReturnValue(new Promise(() => {}));
+    const { container, rerenderSame } = renderInteractive();
+    fireEvent.click(row(container, 'Take out trash'));
+    expect(pressed(container, 'Take out trash')).toBe('true');
+    // A poll that predates the tap lands while the request is in flight.
+    mockLists = { lists: [groceries()] };
+    await act(async () => { rerenderSame(); });
+    expect(pressed(container, 'Take out trash')).toBe('true');
   });
 
-  it('reflects an external completion arriving via a later poll (cross-display sync)', async () => {
-    const { container, rerender } = renderInteractive();
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('false');
-
-    // Another display toggled i1; the poll surfaces it here.
-    mockTodoState = { completed: { i1: true } };
-    await act(async () => {
-      rerender(
-        <TodoModule
-          config={makeConfig({ interactive: true })}
-          style={style}
-          displayId="kitchen"
-          screenId="s1"
-          moduleId="m1"
-        />,
-      );
-    });
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
+  it('holds a confirmed flip through a stale poll inside the override window', async () => {
+    displayFetch.mockResolvedValue(okResponse(true));
+    const { container, rerenderSame } = renderInteractive();
+    await act(async () => { fireEvent.click(row(container, 'Take out trash')); });
+    await waitFor(() => expect(pressed(container, 'Take out trash')).toBe('true'));
+    mockLists = { lists: [groceries()] }; // read before our write landed
+    await act(async () => { rerenderSame(); });
+    expect(pressed(container, 'Take out trash')).toBe('true');
   });
 
-  it('ignores a double tap while a toggle is in flight', () => {
-    displayFetch.mockReturnValue(new Promise(() => {})); // never resolves
+  it('reflects a check-off arriving from another surface via a later poll', async () => {
+    const { container, rerenderSame } = renderInteractive();
+    expect(pressed(container, 'Take out trash')).toBe('false');
+    mockLists = { lists: [list('groceries', 'Groceries', [item('i1', 'Take out trash', true), item('i2', 'Feed the cat', true), item('i3', 'Buy oat milk')])] };
+    await act(async () => { rerenderSame(); });
+    expect(pressed(container, 'Take out trash')).toBe('true');
+    expect(itemTexts(container)).toEqual(['Buy oat milk', 'Take out trash', 'Feed the cat']);
+  });
+
+  it('ignores a double tap while a request is in flight', () => {
+    displayFetch.mockReturnValue(new Promise(() => {}));
     const { container } = renderInteractive();
-    const firstBtn = () => container.querySelectorAll('button')[0];
-    fireEvent.click(firstBtn());
-    fireEvent.click(firstBtn()); // second tap should be ignored
-    // Only one request fired, and the item stayed in its single optimistic state.
+    fireEvent.click(row(container, 'Take out trash'));
+    fireEvent.click(row(container, 'Take out trash'));
     expect(displayFetch).toHaveBeenCalledTimes(1);
-    expect(firstBtn().getAttribute('aria-pressed')).toBe('true');
+    expect(pressed(container, 'Take out trash')).toBe('true');
   });
 
-  it('holds a confirmed toggle through a stale poll (post-toggle override window)', async () => {
-    // The toggle succeeds and the server confirms i1 completed.
-    displayFetch.mockResolvedValue({ ok: true, json: async () => ({ completed: { i1: true } }) });
-    const { container, rerender } = renderInteractive();
-    await act(async () => {
-      fireEvent.click(container.querySelectorAll('button')[0]);
-    });
-    await waitFor(() => {
-      expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-    });
-
-    // A poll that read the store BEFORE our write landed arrives with i1 absent.
-    // The pending guard is already cleared, but the override window must keep
-    // the stale poll from reverting the confirmed completion.
-    mockTodoState = { completed: {} };
-    await act(async () => {
-      rerender(
-        <TodoModule
-          config={makeConfig({ interactive: true })}
-          style={style}
-          displayId="kitchen"
-          screenId="s1"
-          moduleId="m1"
-        />,
-      );
-    });
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('drops runtime overrides from the rendered items when interactive is turned off', async () => {
-    // i1 was completed at runtime while interactive.
-    mockTodoState = { completed: { i1: true } };
-    const { container, rerender } = renderInteractive();
-    expect(container.querySelectorAll('button')[0].getAttribute('aria-pressed')).toBe('true');
-
-    // Admin disables tap mode in the editor; the config poll delivers interactive:false.
-    await act(async () => {
-      rerender(
-        <TodoModule
-          config={makeConfig({ interactive: false })}
-          style={style}
-          displayId="kitchen"
-          screenId="s1"
-          moduleId="m1"
-        />,
-      );
-    });
-    // Now static (no buttons) and the first item reflects its AUTHORED default
-    // (not completed → no strikethrough), not the stale runtime override.
-    expect(container.querySelectorAll('button')).toHaveLength(0);
-    const firstSpan = container.querySelector('.line-clamp-2') as HTMLElement;
-    expect(firstSpan.style.textDecoration).toBe('none');
+  it("checks off in the board view against the item's own list", () => {
+    displayFetch.mockReturnValue(new Promise(() => {}));
+    mockLists = { lists: [groceries(), list('cabin', 'Cabin trip', [item('c1', 'Cooler')])] };
+    const { getAllByTestId } = renderInteractive({ view: 'board' });
+    const cols = getAllByTestId('todo-board-column');
+    const cooler = cols[1].querySelector('button') as HTMLButtonElement;
+    fireEvent.click(cooler);
+    expect(cooler.getAttribute('aria-pressed')).toBe('true');
+    expect(displayFetch).toHaveBeenCalledWith('/api/todo/lists/cabin/items/c1', expect.objectContaining({ method: 'PATCH' }));
   });
 });
 
@@ -276,35 +382,42 @@ describe('TodoModule touch treatment', () => {
   });
 
   it('static lists keep the small check glyph; interactive lists get the tap checkbox', () => {
-    const plain = render(<TodoModule config={makeConfig()} style={style} />, { wrapper: Wrapper });
+    const plain = renderStatic();
     expect(plain.queryAllByTestId('tap-checkbox')).toHaveLength(0);
     expect(plain.queryByTestId('todo-tap-hint')).toBeNull();
     plain.unmount();
 
     const { getAllByTestId } = renderInteractive();
     const boxes = getAllByTestId('tap-checkbox');
-    expect(boxes).toHaveLength(2);
+    expect(boxes).toHaveLength(3);
     expect(boxes[0].style.width).toBe('38px');
     expect(boxes[0].hasAttribute('data-checked')).toBe(false);
-    expect(boxes[1].hasAttribute('data-checked')).toBe(true);
-    // The authored black accent is swapped for a visible fill on the checked box.
-    expect(boxes[1].style.backgroundColor).toBe('rgb(59, 130, 246)');
+    expect(boxes[2].hasAttribute('data-checked')).toBe(true);
+    expect(boxes[2].style.backgroundColor).toBe('rgb(59, 130, 246)');
   });
 
-  it('marks the row and box pressed while the toggle request is in flight', async () => {
+  it('swaps the pre-v2 black accent for a visible fill', () => {
+    const { getAllByTestId } = renderInteractive({ accentColor: '#000000' });
+    expect(getAllByTestId('tap-checkbox')[2].style.backgroundColor).toBe('rgb(59, 130, 246)');
+  });
+
+  it('marks the row and box pressed while the request is in flight', async () => {
     let settle: (value: Response) => void = () => {};
     displayFetch.mockReturnValue(new Promise<Response>((resolve) => { settle = resolve; }));
-    const { getByRole, getAllByTestId } = renderInteractive();
+    const { getByRole } = renderInteractive();
     const row = getByRole('button', { name: /Take out trash/ });
     fireEvent.click(row);
     expect(row.hasAttribute('data-pressed')).toBe(true);
-    expect(getAllByTestId('tap-checkbox')[0].hasAttribute('data-pressed')).toBe(true);
+    expect(row.querySelector('[data-testid="tap-checkbox"]')?.hasAttribute('data-pressed')).toBe(true);
 
     await act(async () => {
-      settle({ ok: true, json: async () => ({ completed: { i1: true } }) } as unknown as Response);
+      settle({
+        ok: true,
+        json: async () => ({ lists: [list('groceries', 'Groceries', [item('i1', 'Take out trash', true), item('i2', 'Feed the cat', true), item('i3', 'Buy oat milk')])] }),
+      } as unknown as Response);
     });
     await waitFor(() => expect(row.hasAttribute('data-pressed')).toBe(false));
-    expect(getAllByTestId('tap-checkbox')[0].hasAttribute('data-checked')).toBe(true);
+    expect(getByRole('button', { name: /Take out trash/ }).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('shows the tap hint once per display and never again', () => {

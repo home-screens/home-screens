@@ -706,8 +706,23 @@
   "todo": {
     "name": "Lista de tareas",
     "defaultTitle": "Tareas",
-    "noTasksYet": "Añade tareas en el editor y aparecerán aquí",
-    "tapHint": "Toca una casilla para marcarla"
+    "noTasksYet": "Añade cosas desde tu móvil y aparecerán aquí",
+    "tapHint": "Toca una casilla para marcarla",
+    "noListsYet": "Aún no hay listas. Crea una desde tu móvil.",
+    "pickAList": "Elige una lista en el editor",
+    "upNext": "A continuación",
+    "allDone": "Todo hecho",
+    "andMore": "y {n} más",
+    "nLeft": "{n} pendientes",
+    "of": "de",
+    "done": "hechos",
+    "startsFreshDaily": "Empieza de cero cada día",
+    "startsFreshWeekly": "Empieza de cero cada semana",
+    "due": {
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "overdue": "Atrasado"
+    }
   },
   "traffic": {
     "name": "Tráfico / trayecto",

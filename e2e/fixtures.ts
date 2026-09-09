@@ -23,6 +23,18 @@ export const test = base.extend<{ baseURL: string; sandboxDir: string }, WorkerF
   sandboxDir: async ({ server }, use) => {
     await use(server.sandboxDir);
   },
+  // The To-Do module shows a one-shot "Tap a box" pill on a display that has
+  // never seen it, for 4s plus a fade. Every spec gets a fresh browser
+  // profile, so without this it would be on screen during the first seconds
+  // of every render: the style matrix would compare screenshots against a
+  // fading overlay and gallery captures would bake it in. Specs that want
+  // the hint remove the flag themselves.
+  page: async ({ page }, use) => {
+    await page.addInitScript(() => {
+      try { window.localStorage.setItem('hs:todo-tap-hint-seen', '1'); } catch { /* storage blocked */ }
+    });
+    await use(page);
+  },
 });
 
 export { expect } from '@playwright/test';

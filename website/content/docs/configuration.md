@@ -27,7 +27,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
-| `data/todo-state.json` | Checked-off state for interactive todo modules | `/api/todo/state` |
+| `data/todos.json` | Shared to-do lists (items, due days, people, repeats) | `/api/todo/lists` |
 | `data/routines.json` | Saved timer routines (the steps, not a running timer) | `/api/timers/routines` |
 | `data/timer-session.json` | The one timer running right now, as a snapshot plus timestamps so displays can count down on their own | `/api/timers/session` |
 | `data/google-picker-tokens.json` | Google Photos Picker tokens, kept separate from the Calendar tokens above | (internal) |
@@ -671,9 +671,9 @@ Completions live in a **separate** file, `data/chore-completions.json`, served b
 }
 ```
 
-### data/todo-state.json
+### data/todos.json
 
-For a To-Do module with `interactive` on, each item's `completed` value in `config.json` is only the *starting* state. Taps are persisted here instead, keyed by item id, via `/api/todo/state` and `/api/todo/toggle`. That keeps completions out of `config.json` so an editor save can't wipe them, and lets every display showing the same list stay in step.
+The family's shared to-do lists (see [Lists](/docs/lists)). Each list has a name, a colour, an optional start-fresh repeat, and its items with done state, due day and who it is for. A To-Do module only stores which list it shows, so editing a screen never touches a list and the same list can sit on any number of screens. The phone, the wall and the editor all write through `/api/todo/lists`.
 
 ## Display Resolution Presets
 

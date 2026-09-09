@@ -10,6 +10,42 @@ import { logger } from '@/lib/logger';
 const log = logger('fetch-data');
 
 /**
+ * One network request per URL, however many modules want it.
+ *
+ * Every instance of a module polls on its own interval, and several cards can
+ * follow the same feed (three to-do lists, two chore charts). Mounted
+ * together they poll together, so without this the hub answers the same
+ * question three times every few seconds. Subscribers share whichever request
+ * is already in flight and each applies the result to its own state.
+ *
+ * The shared request is deliberately not abortable by one subscriber: another
+ * may still be waiting on it, and the answer is worth caching either way.
+ * Unmounted subscribers drop the result instead (see the `aborted` checks).
+ */
+type SharedResult =
+  | { kind: 'ok'; json: unknown }
+  | { kind: 'http'; res: Response }
+  | { kind: 'network' };
+
+const inFlight = new Map<string, Promise<SharedResult>>();
+
+function sharedFetch(url: string): Promise<SharedResult> {
+  const existing = inFlight.get(url);
+  if (existing) return existing;
+  const p = (async (): Promise<SharedResult> => {
+    try {
+      const res = await displayFetch(url);
+      if (!res.ok) return { kind: 'http', res };
+      return { kind: 'ok', json: await res.json() };
+    } catch {
+      return { kind: 'network' };
+    }
+  })().finally(() => inFlight.delete(url));
+  inFlight.set(url, p);
+  return p;
+}
+
+/**
  * Fetch + poll a display data URL. Returns [data, error, updatedAt].
  *
  * `data` keeps the last successful payload across failed refreshes (a Wi-Fi
@@ -71,23 +107,22 @@ export function useFetchData<T>(
     const controller = new AbortController();
 
     async function fetchAndCache() {
-      try {
-        const res = await displayFetch(url, { signal: controller.signal });
-        if (controller.signal.aborted) return;
-        if (res.ok) {
-          const json = await res.json();
-          setData(json);
-          setError(null);
-          setUpdatedAt(Date.now());
-          displayCache.set(url, json, refreshMs);
-        } else {
-          fail(await readFetchError(res, `API error ${res.status}`));
-        }
-      } catch {
-        // Don't set error state for intentional aborts (unmount / URL change)
-        if (controller.signal.aborted) return;
-        fail(transientError(t('errors.fetchFailed')));
+      const result = await sharedFetch(url);
+      // Unmounted, or pointed at another URL, while the request was out.
+      if (controller.signal.aborted) return;
+      if (result.kind === 'ok') {
+        setData(result.json as T);
+        setError(null);
+        setUpdatedAt(Date.now());
+        displayCache.set(url, result.json, refreshMs);
+        return;
       }
+      if (result.kind === 'http') {
+        // Cloned: subscribers sharing this response each read its body.
+        fail(await readFetchError(result.res.clone(), `API error ${result.res.status}`));
+        return;
+      }
+      fail(transientError(t('errors.fetchFailed')));
     }
 
     // The wall never prints the developer-facing message, so it is logged

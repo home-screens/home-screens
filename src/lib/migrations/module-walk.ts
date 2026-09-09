@@ -15,6 +15,19 @@ import type { ScreenConfiguration, Screen } from '@/types/config';
 type Module = Screen['modules'][number];
 
 /**
+ * Where a module was found. In multi-display mode the top-level `screens`
+ * array is a frozen snapshot that no display renders (see
+ * `getDisplayScreens`), so a migration that creates something per module
+ * (rather than rewriting one in place) must not treat it as live.
+ */
+export interface ModuleSite {
+  /** 'legacy' = the top-level `screens` array; 'display' = a display's own. */
+  owner: 'legacy' | 'display';
+  /** True when this module renders somewhere: always in legacy single-display mode. */
+  live: boolean;
+}
+
+/**
  * Map `visit` over every module in the config. Returns the `screens` and
  * `displays` fields to spread into the migrated config; untouched screens
  * and displays keep their identity so a migration that changes nothing is
@@ -22,13 +35,14 @@ type Module = Screen['modules'][number];
  */
 export function mapConfigModules(
   config: ScreenConfiguration,
-  visit: (mod: Module) => Module,
+  visit: (mod: Module, site: ModuleSite) => Module,
 ): Pick<ScreenConfiguration, 'screens' | 'displays'> {
-  return mapConfigScreens(config, (screen) => {
+  const hasDisplays = Array.isArray(config.displays) && config.displays.length > 0;
+  return mapConfigScreens(config, (screen, site) => {
     if (!Array.isArray(screen.modules)) return screen;
     let changed = false;
     const modules = screen.modules.map((mod) => {
-      const next = visit(mod);
+      const next = visit(mod, { owner: site, live: site === 'display' || !hasDisplays });
       if (next !== mod) changed = true;
       return next;
     });
@@ -43,16 +57,16 @@ export function mapConfigModules(
  */
 export function mapConfigScreens(
   config: ScreenConfiguration,
-  migrateScreen: (screen: Screen) => Screen,
+  migrateScreen: (screen: Screen, site: 'legacy' | 'display') => Screen,
 ): Pick<ScreenConfiguration, 'screens' | 'displays'> {
   return {
-    screens: Array.isArray(config.screens) ? config.screens.map(migrateScreen) : config.screens,
+    screens: Array.isArray(config.screens) ? config.screens.map((s) => migrateScreen(s, 'legacy')) : config.screens,
     // Multi-display configs own their screens per display; the legacy
     // top-level `screens` array is still populated, so both must be walked.
     ...(Array.isArray(config.displays)
       ? {
           displays: config.displays.map((d) =>
-            Array.isArray(d.screens) ? { ...d, screens: d.screens.map(migrateScreen) } : d,
+            Array.isArray(d.screens) ? { ...d, screens: d.screens.map((s) => migrateScreen(s, 'display')) } : d,
           ),
         }
       : {}),

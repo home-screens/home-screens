@@ -325,6 +325,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|displayHero.stateOffline',
   ]),
   'de-DE': new Set([
+    // 'Name' is the German word too
+    'editor|todoListModal.nameLabel',
     // Wall names that are the same word in German.
     'editor|backgroundPicker.starters.pattern-diagonal',
     'editor|backgroundPicker.starters.sand',
@@ -395,6 +397,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.routineName',
   ]),
   'es-ES': new Set([
+    // 'Color' is the Spanish word too
+    'remote|lists.colourSwatch',
+    'remote|lists.listSheet.colourLabel',
     // "Diagonal" is the same word in Spanish.
     'editor|backgroundPicker.starters.pattern-diagonal',
     'core|launcher.editor.title',
@@ -458,6 +463,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minutesShort',
   ]),
   'fr-FR': new Set([
+    // 'Focus' and 'Compact' are the French words too
+    'editor|configSections.todo.viewFocus',
+    'editor|configSections.todo.viewCompact',
     'core|timer.minutesShort',
     'editor|backgroundPicker.intervals.minutes',
     'editor|backgroundPicker.sourceLabel',
@@ -592,6 +600,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.stepMinutes',
   ]),
   'nl-NL': new Set([
+    'remote|lists.itemSheet.textLabel',
+    // 'Focus', 'Compact' and 'Item' are the Dutch words too
+    'editor|configSections.todo.viewFocus',
+    'editor|configSections.todo.viewCompact',
+    'editor|todoListModal.itemTextLabel',
     'core|launcher.editor.title',
     // '1D' / '5D' chart captions: day = día / dag / dia / dag, so the letter matches en-US
     'modules|stock-ticker.chartLabels.day',
@@ -622,7 +635,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.text.effect',
     'editor|configSections.text.sections.effect',
     'editor|configSections.text.sections.marquee',
-    'editor|configSections.todo.items',
     'editor|configSections.todoist.groupBy.project',
     'editor|configSections.traffic.labelPlaceholder',
     'editor|configSections.traffic.routes',
@@ -720,6 +732,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.title',
   ]),
   'pt-BR': new Set([
+    'remote|lists.itemSheet.textLabel',
+    // 'Item' is the Portuguese word too
+    'editor|todoListModal.itemTextLabel',
     // "Diagonal" is the same word in Portuguese.
     'editor|backgroundPicker.starters.pattern-diagonal',
     'core|launcher.editor.title',

@@ -17,6 +17,7 @@ describe('phone surfaces', () => {
       expect(SURFACES_BY_CONTEXT.chores).toEqual(['chores', 'remote']);
       expect(SURFACES_BY_CONTEXT.meals).toEqual(['remote']);
       expect(SURFACES_BY_CONTEXT.photos).toEqual(['remote']);
+      expect(SURFACES_BY_CONTEXT.lists).toEqual(['remote']);
     });
 
     it('covers every declared context', () => {

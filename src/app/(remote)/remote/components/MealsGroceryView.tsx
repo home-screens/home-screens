@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { GROCERY_CATEGORY_ICONS } from '@/lib/grocery-utils';
 import { useTranslate } from '@/i18n';
+import { shareOrCopyText } from './share-text';
 
 interface MealsGroceryViewProps {
   groceryList: Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>;
@@ -40,29 +41,8 @@ export default function MealsGroceryView({
   const [shareLabel, setShareLabel] = useState<'idle' | 'copied'>('idle');
 
   const handleShare = useCallback(async () => {
-    const text = buildShareText();
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-    } catch (e) {
-      // AbortError = user cancelled share sheet — fall through to copy
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-    }
-    // Clipboard fallback (works over HTTP unlike navigator.clipboard)
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
+    const outcome = await shareOrCopyText(buildShareText());
+    if (outcome !== 'copied') return;
     setShareLabel('copied');
     setTimeout(() => setShareLabel('idle'), 2000);
   }, [buildShareText]);

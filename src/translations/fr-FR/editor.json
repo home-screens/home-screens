@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} tâches, {tickets} tickets"
     }
   },
+  "todoListModal": {
+    "title": "Modifier la liste",
+    "itemCount": "{open} à faire · {done} faits",
+    "nameLabel": "Nom",
+    "loadError": "Impossible de charger cette liste. Ferme-la et rouvre-la.",
+    "listGone": "Cette liste n'existe plus. Choisis-en une autre.",
+    "empty": "Rien sur cette liste pour le moment",
+    "itemTextLabel": "Élément",
+    "itemDoneLabel": "Fait : {text}",
+    "removeItemLabel": "Retirer {text}",
+    "addPlaceholder": "Ajouter quelque chose...",
+    "uncheckAll": "Tout décocher",
+    "removeDone": "Retirer les éléments faits",
+    "removeDoneConfirm": {
+      "title": "Retirer les éléments faits",
+      "message": "Retirer {count} éléments faits de « {name} » ?",
+      "confirmLabel": "Retirer"
+    }
+  },
   "mealPlannerModal": {
     "title": "Planificateur de repas",
     "subtitleMealsPlanned": "{meals} repas · {planned} prévus",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Aperçu en direct"
     },
     "todo": {
-      "title": "Nom de la liste",
+      "viewList": "Liste",
+      "viewFocus": "Focus",
+      "viewProgress": "Progression",
+      "viewBoard": "Tableau",
+      "viewCompact": "Compact",
+      "list": "Liste",
+      "pickAList": "Choisir une liste",
+      "listsUnavailable": "Impossible de charger tes listes",
+      "editItems": "Modifier les éléments",
+      "newList": "Nouvelle liste",
+      "newListName": "Nom de la nouvelle liste",
+      "newListPlaceholder": "Courses",
+      "create": "Créer",
+      "title": "Titre",
       "defaultTitle": "À faire",
-      "items": "Éléments",
-      "newItemText": "Nouvel élément",
-      "interactive": "Autoriser le pointage tactile (écran tactile)"
+      "showTitle": "Afficher le titre",
+      "completedPlacement": "Éléments faits",
+      "completedBottom": "En bas",
+      "completedInline": "À leur place",
+      "completedHidden": "Masqués",
+      "showDueDates": "Afficher les échéances",
+      "interactive": "Toucher pour cocher"
     },
     "todoist": {
       "apiToken": "Jeton API",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Ajouter des photos depuis un téléphone"
+      },
+      "lists": {
+        "remote": "Modifier les listes depuis un téléphone"
       }
     },
     "dialog": {
       "title": {
         "chores": "Les tâches sur un téléphone",
         "meals": "Les repas sur un téléphone",
-        "photos": "Les photos sur un téléphone"
+        "photos": "Les photos sur un téléphone",
+        "lists": "Listes sur un téléphone"
       },
       "lede": "Scannez avec l'appareil photo du téléphone, ou saisissez l'adresse. Fonctionne sur tout appareil connecté à votre wifi.",
       "passwordHint": "Vous pouvez demander un mot de passe dans Réglages, section Sécurité.",

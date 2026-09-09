@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedChores, seedMeals, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { VIEW_MATRIX, type ViewSpec } from '../helpers/view-matrix';
@@ -17,7 +17,7 @@ import { VIEW_MATRIX, type ViewSpec } from '../helpers/view-matrix';
  * The `*View` unions in src/types/config.ts are held in lockstep with VIEW_MATRIX
  * by the ratchet in e2e/meta/coverage.spec.ts.
  */
-async function renderView(page: Page, request: APIRequestContext, spec: ViewSpec, view: string): Promise<void> {
+async function renderView(page: Page, request: APIRequestContext, sandboxDir: string, spec: ViewSpec, view: string): Promise<void> {
   const pageErrors: string[] = [];
   page.on('pageerror', (e) => pageErrors.push(String(e)));
 
@@ -26,6 +26,7 @@ async function renderView(page: Page, request: APIRequestContext, spec: ViewSpec
 
   if (spec.seed === 'chores') await seedChores(request);
   if (spec.seed === 'meals') await seedMeals(request);
+  if (spec.seed === 'todos') seedTodos(sandboxDir);
 
   const instance = buildModuleInstance(spec.type, { ...(spec.config ?? {}), [spec.key]: view });
   await putConfig(request, baseConfig({
@@ -41,8 +42,8 @@ async function renderView(page: Page, request: APIRequestContext, spec: ViewSpec
 for (const spec of VIEW_MATRIX) {
   test.describe(`${spec.type} views`, () => {
     for (const view of spec.views) {
-      test(`${spec.type} · ${view}`, async ({ page, request }) => {
-        await renderView(page, request, spec, view);
+      test(`${spec.type} · ${view}`, async ({ page, request, sandboxDir }) => {
+        await renderView(page, request, sandboxDir, spec, view);
       });
     }
   });

@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedChores, seedMeals, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES, type ModuleFixture } from '../helpers/module-fixtures';
@@ -32,7 +32,7 @@ import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 /** Same-instance shot; motion finished, caret hidden. */
 const shoot = (target: Locator) => target.screenshot({ animations: 'disabled', caret: 'hide' });
 
-async function prepare(page: Page, request: Parameters<typeof putConfig>[0], fx: ModuleFixture | undefined) {
+async function prepare(page: Page, request: Parameters<typeof putConfig>[0], sandboxDir: string, fx: ModuleFixture | undefined) {
   await page.clock.setFixedTime(galleryInstant());
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await pinRandom(page);
@@ -45,6 +45,7 @@ async function prepare(page: Page, request: Parameters<typeof putConfig>[0], fx:
   }
   if (fx?.seed === 'chores') await seedChores(request);
   if (fx?.seed === 'meals') await seedMeals(request);
+  if (fx?.seed === 'todos') seedTodos(sandboxDir);
 }
 
 async function probeEveryControl(
@@ -105,9 +106,9 @@ for (const type of styleMatrixTypes()) {
   const fx = MODULE_FIXTURES[type];
   const quarantined = QUARANTINE[type];
 
-  test(`${type} honours every Style control`, async ({ page, request }) => {
+  test(`${type} honours every Style control`, async ({ page, request, sandboxDir }) => {
     test.skip(!!quarantined, `quarantined: ${quarantined}`);
-    await prepare(page, request, fx);
+    await prepare(page, request, sandboxDir, fx);
     const mod = buildModuleInstance(type, fx.config);
     // The fixture's own assertion is the wait for real content: probing a
     // loading state would compare the wrong tree entirely.
@@ -123,7 +124,7 @@ for (const type of styleMatrixTypes()) {
  */
 test(`${FIXTURE_PLUGIN_TYPE} honours every Style control`, async ({ page, request, sandboxDir }) => {
   seedFixturePlugin(sandboxDir, { styled: true });
-  await prepare(page, request, undefined);
+  await prepare(page, request, sandboxDir, undefined);
   const mod = {
     id: 'plugin-style-1',
     type: FIXTURE_PLUGIN_TYPE,

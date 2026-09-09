@@ -6,6 +6,7 @@ import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
 import { readRoutinesFile, writeRoutinesFile } from '@/lib/timer-data';
+import { readTodoData, writeTodoData, foldInLegacyTodoItemsNow, validateTodoData, settleTodoMigration } from '@/lib/todo-data';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
 import { validateDisplays } from '@/lib/display-filter';
@@ -31,13 +32,18 @@ export const dynamic = 'force-dynamic';
 
 // GET — export a full backup bundle
 export const GET = withAuth(async () => {
-  const [config, chores, completions, meals, rewards, routines] = await Promise.all([
+  // The fold rewrites config.json, so let it finish before the reads below:
+  // in parallel the very first export after an upgrade could pair a
+  // pre-fold config with post-fold lists and back up neither faithfully.
+  await settleTodoMigration();
+  const [config, chores, completions, meals, rewards, routines, todos] = await Promise.all([
     readConfig(),
     readChoreData(),
     readCompletions(),
     readMealData(),
     readRewardData(),
     readRoutinesFile(),
+    readTodoData(),
   ]);
 
   const bundle = {
@@ -52,6 +58,7 @@ export const GET = withAuth(async () => {
     meals,
     rewards,
     routines,
+    todos,
   };
 
   // Record backup timestamp (fire-and-forget) — write both fields directly
@@ -98,6 +105,7 @@ interface RestoreBundle {
   meals?: Parameters<typeof writeMealData>[0];
   rewards?: Parameters<typeof writeRewardData>[0];
   routines?: Parameters<typeof writeRoutinesFile>[0];
+  todos?: Parameters<typeof writeTodoData>[0];
   screens?: unknown;
   settings?: unknown;
 }
@@ -177,6 +185,12 @@ export const POST = withAuth(async (request: NextRequest) => {
   });
   if (body instanceof NextResponse) return body;
 
+  // Settle any pending to-do migration first: reading the store can rewrite
+  // config.json (folding inline items into lists), and a snapshot taken
+  // before that would pair a pre-migration config with post-migration lists
+  // on rollback, leaving the flag set and the items never folded again.
+  await readTodoData().catch(() => {});
+
   // New bundle format
   if (body._type === 'home-screens-backup') {
     // Strip the transient passphrase before anything else reads the body, so
@@ -186,6 +200,12 @@ export const POST = withAuth(async (request: NextRequest) => {
 
     if (body.config !== undefined) {
       const err = validateRestoredConfig(body.config);
+      if (err) return NextResponse.json({ error: err }, { status: 400 });
+    }
+    // Same gate for the lists: the file is written whole, and a malformed one
+    // would break every read after the restore.
+    if (body.todos !== undefined) {
+      const err = validateTodoData(body.todos);
       if (err) return NextResponse.json({ error: err }, { status: 400 });
     }
 
@@ -208,6 +228,9 @@ export const POST = withAuth(async (request: NextRequest) => {
       meals: body.meals ? await readMealData() : null,
       rewards: body.rewards ? await readRewardData() : null,
       routines: body.routines ? await readRoutinesFile() : null,
+      // A restored config can fold inline to-do items into todos.json even
+      // when the bundle carries no `todos`, so the snapshot covers both.
+      todos: body.todos || body.config ? await readTodoData() : null,
     };
     // Credential snapshot covers exactly the sections about to be written,
     // including the empty ones — "there were no secrets before" is what a
@@ -245,6 +268,19 @@ export const POST = withAuth(async (request: NextRequest) => {
       if (body.routines) {
         await writeRoutinesFile(body.routines);
         rollbacks.push(() => writeRoutinesFile(snapshots.routines!));
+      }
+      // Registered whenever a snapshot was taken, before either thing that
+      // can change the file: the bundle's own `todos`, and the fold a
+      // restored pre-lists config triggers below.
+      if (snapshots.todos) rollbacks.push(() => writeTodoData(snapshots.todos!));
+      if (body.todos) {
+        await writeTodoData(body.todos);
+      }
+      // A bundle from before lists were shared carries to-do items inline on
+      // its modules; the one-time upgrade fold-in has already run on this hub
+      // and would not look again, so fold them now.
+      if (body.config) {
+        await foldInLegacyTodoItemsNow();
       }
       // Credentials go last: applying `auth` replaces the cookie secret and
       // invalidates the session cookie this very request is holding, so
@@ -297,7 +333,19 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (body.screens && Array.isArray(body.screens) && body.settings) {
     const err = validateRestoredConfig(body);
     if (err) return NextResponse.json({ error: err }, { status: 400 });
+    // These are the bundles most likely to carry to-do items inline on
+    // their modules; fold them. The fold writes lists before it touches
+    // config, so a failure part-way can leave lists behind: both files are
+    // snapshotted and both go back.
+    const previousConfig = await readConfig();
+    const previousTodos = await readTodoData();
     await writeConfig(body as unknown as ScreenConfiguration);
+    try {
+      await foldInLegacyTodoItemsNow();
+    } catch (err) {
+      await Promise.allSettled([writeConfig(previousConfig), writeTodoData(previousTodos)]);
+      throw err;
+    }
     return NextResponse.json({ restored: { config: true } });
   }
 

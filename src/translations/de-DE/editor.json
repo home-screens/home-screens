@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} Aufgaben, {tickets} Tickets"
     }
   },
+  "todoListModal": {
+    "title": "Liste bearbeiten",
+    "itemCount": "{open} offen · {done} erledigt",
+    "nameLabel": "Name",
+    "loadError": "Die Liste konnte nicht geladen werden. Schließe sie und öffne sie noch einmal.",
+    "listGone": "Diese Liste gibt es nicht mehr. Wähle eine andere.",
+    "empty": "Noch nichts auf dieser Liste",
+    "itemTextLabel": "Eintrag",
+    "itemDoneLabel": "Erledigt: {text}",
+    "removeItemLabel": "{text} entfernen",
+    "addPlaceholder": "Etwas hinzufügen...",
+    "uncheckAll": "Alle abwählen",
+    "removeDone": "Erledigte entfernen",
+    "removeDoneConfirm": {
+      "title": "Erledigte entfernen",
+      "message": "{count} erledigte Einträge aus \"{name}\" entfernen?",
+      "confirmLabel": "Entfernen"
+    }
+  },
   "mealPlannerModal": {
     "title": "Mahlzeitenplaner",
     "subtitleMealsPlanned": "{meals} Mahlzeiten · {planned} eingeplant",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Live-Vorschau"
     },
     "todo": {
-      "title": "Name der Liste",
+      "viewList": "Liste",
+      "viewFocus": "Fokus",
+      "viewProgress": "Fortschritt",
+      "viewBoard": "Tafel",
+      "viewCompact": "Kompakt",
+      "list": "Liste",
+      "pickAList": "Liste wählen",
+      "listsUnavailable": "Deine Listen konnten nicht geladen werden",
+      "editItems": "Einträge bearbeiten",
+      "newList": "Neue Liste",
+      "newListName": "Name der neuen Liste",
+      "newListPlaceholder": "Einkäufe",
+      "create": "Anlegen",
+      "title": "Überschrift",
       "defaultTitle": "Aufgaben",
-      "items": "Einträge",
-      "newItemText": "Neuer Eintrag",
-      "interactive": "Antippen zum Abhaken erlauben (Touchscreen)"
+      "showTitle": "Überschrift anzeigen",
+      "completedPlacement": "Erledigte Einträge",
+      "completedBottom": "Ganz unten",
+      "completedInline": "An ihrem Platz",
+      "completedHidden": "Ausgeblendet",
+      "showDueDates": "Fälligkeit anzeigen",
+      "interactive": "Antippen zum Abhaken"
     },
     "todoist": {
       "apiToken": "API-Token",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Fotos am Handy hinzufügen"
+      },
+      "lists": {
+        "remote": "Listen vom Handy aus bearbeiten"
       }
     },
     "dialog": {
       "title": {
         "chores": "Aufgaben am Handy",
         "meals": "Mahlzeiten am Handy",
-        "photos": "Fotos am Handy"
+        "photos": "Fotos am Handy",
+        "lists": "Listen auf dem Handy"
       },
       "lede": "Mit der Handykamera scannen oder die Adresse eintippen. Funktioniert auf jedem Gerät im WLAN zu Hause.",
       "passwordHint": "Unter Einstellungen, Bereich Sicherheit, könnt ihr ein Passwort verlangen.",

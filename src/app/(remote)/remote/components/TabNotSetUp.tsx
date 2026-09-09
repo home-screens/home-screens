@@ -1,14 +1,15 @@
 'use client';
 
-import { Images, ListChecks, UtensilsCrossed } from 'lucide-react';
+import { Images, ListChecks, ListTodo, UtensilsCrossed } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 
-/** The three tabs that depend on a module existing somewhere in the config. */
-export type GatedTab = 'chores' | 'meals' | 'photos';
+/** The four tabs that depend on a module existing somewhere in the config. */
+export type GatedTab = 'chores' | 'lists' | 'meals' | 'photos';
 
 const ICONS = {
   chores: ListChecks,
+  lists: ListTodo,
   meals: UtensilsCrossed,
   photos: Images,
 } as const;

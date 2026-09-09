@@ -105,7 +105,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 
 ### Personal
 
-- **To-Do List** ([reference](/docs/module-reference#to-do-list)): a list you type in the editor. Turn on **Interactive** and it can be ticked off on a touchscreen; ticks are kept apart from the list itself, so editing the list never clears them. Needs nothing.
+- **To-Do List** ([reference](/docs/module-reference#to-do-list)): one of the family's shared lists, kept on your phone under **Lists** in the family remote. Views: **List**, **Focus**, **Progress**, **Board** (every list side by side) and **Compact**. Due days show on the wall. Needs nothing. See [Lists](/docs/lists).
 - **Todoist** ([reference](/docs/module-reference#todoist)): your Todoist tasks. Views: **List**, **Board** and **Focus**. Needs a Todoist token on the API keys page.
 - **Sticky Note** ([reference](/docs/module-reference#sticky-note)): a note for the family. Needs nothing.
 - **Greeting** ([reference](/docs/module-reference#greeting)): "Good morning, Taylor" and a line for the time of day. Needs nothing.
@@ -139,7 +139,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 If your display is a touchscreen, a handful of modules do more than just show information.
 
 - **Chore Chart** and **Full-Screen Chore Chart**: kids tap a chore to check it off, right on the wall. **On by default.** The Full-Screen version can also show a rewards store where they spend the tickets they've earned.
-- **To-Do List**: tap an item to tick it. **Off by default**; turn on *Interactive* in the module's settings. Ticks are kept separately from the list you type in the editor, so editing the list never wipes them, and every display showing the same list stays in step.
+- **To-Do List**: tap an item to tick it. **On by default** for new modules; *Tap to check off* in the module's settings turns it off. A tick goes to the shared list, so the phone and every display showing that list stay in step.
 - **Todoist**: tap a task to complete it in Todoist itself. **Off by default.**
 - **Meal Planner** and **Full-Screen Meal Planner**: tap a meal that has a saved recipe link to get a QR code you scan with your phone, or open the recipe page right on the display.
 - **News Headlines** and **Full-Screen News**: tap a story to get a QR code that opens it on your phone, or the story's summary. **On by default**; change or turn it off under *When a story is tapped*.

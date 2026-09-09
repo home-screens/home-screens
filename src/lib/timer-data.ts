@@ -10,7 +10,7 @@ import type { Routine, TimerSession } from '@/types/timers';
  * - `data/timer-session.json` — the single active session. Hot runtime state:
  *   kept out of routines.json so a running timer's writes can't contend with
  *   someone editing routines, and out of config.json for the usual
- *   editor-write-contention reason (see todo-data.ts).
+ *   editor-write-contention reason (see meal-data.ts).
  *
  * There is intentionally ONE active session at a time — this is a family
  * display, and "starting a timer" replacing the previous one is the behavior

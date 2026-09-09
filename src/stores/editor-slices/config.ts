@@ -25,6 +25,25 @@ function saveFailure(message: string, extra: Omit<SaveFailure, keyof Error>): Sa
   return Object.assign(new Error(message), extra);
 }
 
+/**
+ * The config in a successful PUT response, when the hub stored something
+ * other than what was sent. Null when it matches (the usual case), when the
+ * body is not a config, or when it cannot be read at all: a normalisation
+ * we fail to parse is not worth failing a save that already landed.
+ */
+async function readStoredConfig(
+  res: Response,
+  sent: ScreenConfiguration,
+): Promise<ScreenConfiguration | null> {
+  try {
+    const body = await res.clone().json();
+    if (!body || !Array.isArray(body.screens) || !body.settings) return null;
+    return JSON.stringify(body) === JSON.stringify(sent) ? null : (body as ScreenConfiguration);
+  } catch {
+    return null;
+  }
+}
+
 /** The revision header off a response (tolerant of minimal test doubles). */
 function readRevision(res: Response): string | null {
   return res.headers?.get?.(CONFIG_REVISION_HEADER) ?? null;
@@ -159,6 +178,14 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
         }
         // Only clear dirty if no new changes occurred during save
         const { config: current } = get();
+        // The hub can normalise what it stored (it moves a pre-lists todo
+        // module's inline items into a shared list and points the module at
+        // it). Adopt that answer, or the store keeps editing a shape the
+        // hub no longer has: the module would read as "pick a list" and the
+        // next save would undo whatever the user picked. Skipped when the
+        // user edited during the save, since their copy is newer; the fold
+        // is idempotent, so the next save's answer is adopted instead.
+        const stored = current === configSnapshot ? await readStoredConfig(res, configSnapshot) : null;
         set({
           isSaving: false,
           isDirty: current !== configSnapshot,
@@ -166,6 +193,7 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
           saveErrorKind: null,
           saveConflict: null,
           configRevision: readRevision(res) ?? sentRevision,
+          ...(stored ? { config: stored } : {}),
         });
       } catch (err) {
         const failure = err as SaveFailure;

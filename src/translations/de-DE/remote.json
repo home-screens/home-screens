@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Steuerung",
     "chores": "Aufgaben",
+    "lists": "Listen",
     "meals": "Mahlzeiten",
     "photos": "Fotos",
     "timers": "Timer"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Warte, bis ein Display ihn übernimmt…",
     "notShowing": "Noch kein Display zeigt ihn an. Prüfe, ob ein Display eingeschaltet ist."
   },
+  "lists": {
+    "title": "Listen",
+    "chipsLabel": "Deine Listen",
+    "settingsButton": "Listeneinstellungen",
+    "summary": {
+      "progress": "{done} von {total} erledigt",
+      "empty": "Noch nichts"
+    },
+    "doneGroup": "Erledigt ({count})",
+    "due": {
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "overdue": "Überfällig"
+    },
+    "item": {
+      "edit": "{text} bearbeiten",
+      "move": "{text} verschieben"
+    },
+    "addBar": {
+      "placeholder": "Zu {list} hinzufügen",
+      "submit": "Hinzufügen"
+    },
+    "empty": {
+      "title": "Noch nichts auf dieser Liste",
+      "body": "Tippe unten das Erste ein. Alles, was du hinzufügst, erscheint ein paar Sekunden später an der Wand."
+    },
+    "allDone": {
+      "title": "Alles erledigt",
+      "daily": "Beginnt jeden Tag von vorn",
+      "weekly": "Beginnt jeden {day} von vorn"
+    },
+    "firstList": {
+      "title": "Lege deine erste Liste an",
+      "placeholder": "Name deiner ersten Liste",
+      "body": "Einkäufe, eine Packliste, Dinge vor der Schule. Sobald sie da ist, wähle sie im Editor für das Aufgabenlisten-Modul."
+    },
+    "newList": {
+      "title": "Neue Liste",
+      "placeholder": "Name der Liste",
+      "submit": "Liste anlegen"
+    },
+    "colourSwatch": "Farbe {number}",
+    "itemSheet": {
+      "title": "Eintrag bearbeiten",
+      "textLabel": "Eintrag",
+      "dueLabel": "Fällig",
+      "dueNone": "Keine",
+      "duePick": "Tag wählen",
+      "dayLabel": "Tag",
+      "save": "Speichern",
+      "delete": "Eintrag löschen"
+    },
+    "listSheet": {
+      "nameLabel": "Name der Liste",
+      "colourLabel": "Farbe",
+      "repeatLabel": "Neu beginnen",
+      "repeatNever": "Nie",
+      "repeatDaily": "Jeden Tag",
+      "repeatWeekly": "Jede Woche",
+      "repeatDayLabel": "An welchem Tag",
+      "repeatHelp": "Hakt alles nach einem Zeitplan wieder ab. Gut für eine Packliste oder eine Liste vor der Schule; für Einkäufe lass es aus.",
+      "tidyLabel": "Aufräumen",
+      "uncheckAll": "Alle abwählen",
+      "removeDone": "Erledigte entfernen",
+      "save": "Speichern",
+      "delete": "Liste löschen",
+      "confirmDelete": {
+        "title": "{name} löschen?",
+        "description": "Alles auf dieser Liste geht mit. Das lässt sich nicht rückgängig machen."
+      }
+    },
+    "share": {
+      "button": "Teilen",
+      "copied": "Kopiert!",
+      "nothingOpen": "Alles erledigt!"
+    },
+    "errors": {
+      "generic": "Etwas ist schiefgelaufen. Versuch es noch einmal."
+    },
+    "loadError": "Deine Listen konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
+    "retry": "Noch einmal"
+  },
   "formOverlay": {
     "discard": {
       "title": "Änderungen verwerfen?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Noch keine Aufgabentafel",
       "body": "Aufgaben erscheinen hier, sobald eine Aufgabentafel auf einem deiner Bildschirme liegt."
+    },
+    "lists": {
+      "title": "Noch keine Aufgabenliste",
+      "body": "Listen erscheinen hier, sobald ein Aufgabenlisten-Modul auf einem deiner Bildschirme liegt."
     },
     "meals": {
       "title": "Noch kein Essensplan",

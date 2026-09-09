@@ -2,6 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { getModuleDefinition, getAllModuleDefinitions } from '@/lib/module-registry';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance, ModuleType } from '@/types/config';
+import { E2E_TODO_LIST_ID } from './api';
 
 /**
  * A per-module E2E fixture. Mirrors the app's own module-registry pattern: one
@@ -22,7 +23,7 @@ export interface ModuleFixture {
   /** Stub key (see e2e/helpers/stubs.ts STUBS) — networked modules only. */
   stubKey?: string;
   /** Which local API to seed before rendering — local-data modules only. */
-  seed?: 'chores' | 'meals';
+  seed?: 'chores' | 'meals' | 'todos';
   /** Config overrides merged over the registry defaultConfig. */
   config?: Record<string, unknown>;
   /** Assertion proving the module rendered its expected content. */
@@ -188,11 +189,12 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
   // Word + italic part-of-speech line (the module's two-part layout).
   'word-of-day': { type: 'word-of-day', kind: 'network-free', expect: matchesText(/noun|verb|adjective|adverb/) },
   affirmations: { type: 'affirmations', kind: 'network-free', expect: rendersText },
-  // Non-interactive todo carries its items inline in config — no fetch.
+  // Lists live in the shared store (data/todos.json); the row points at the
+  // seeded list by id.
   todo: {
-    type: 'todo', kind: 'network-free',
-    config: { title: 'E2E TODO', items: [{ id: 't1', text: 'E2E TASK', completed: false }] },
-    expect: containsText('E2E TASK'),
+    type: 'todo', kind: 'local-data', seed: 'todos',
+    config: { listId: E2E_TODO_LIST_ID },
+    expect: containsText('ACTIVE ITEM'),
   },
 
   // ---- Networked ----

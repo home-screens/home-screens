@@ -1,3 +1,5 @@
+import { E2E_TODO_LIST_ID } from '../api';
+import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { lacks } from './shared';
 
@@ -36,10 +38,19 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
     expect: lacks('Global markets rally on tech surge', 'E2E NEWS TITLE'),
   },
   {
-    // The whole title row goes (title + done count), the items stay.
-    type: 'todo', name: 'hide-title', kind: 'network-free',
-    config: { title: 'E2E TODO', items: [{ id: 'a', text: 'ACTIVE ITEM', completed: false }], showTitle: false },
+    // The heading goes (the seeded list is named E2E TODO), the items stay.
+    type: 'todo', name: 'hide-title', kind: 'local-data', seed: 'todos',
+    config: { listId: E2E_TODO_LIST_ID, showTitle: false },
     expect: lacks('ACTIVE ITEM', 'E2E TODO'),
+  },
+  {
+    // The title field overrides the list's own name as the heading.
+    type: 'todo', name: 'title-override', kind: 'local-data', seed: 'todos',
+    config: { listId: E2E_TODO_LIST_ID, title: 'E2E OVERRIDE' },
+    expect: async (mod) => {
+      await expect(mod).toContainText('E2E OVERRIDE');
+      await expect(mod).not.toContainText('E2E TODO');
+    },
   },
   {
     type: 'todoist', name: 'hide-title', kind: 'networked', stubKey: 'todoist',

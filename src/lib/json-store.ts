@@ -21,6 +21,30 @@ interface JsonStoreOptions<T> {
   errorHandling?: 'default' | 'throw-corrupt';
 }
 
+let tmpSeq = 0;
+
+/**
+ * Delete `data/*.tmp` files left behind by a write that died between
+ * creating its temp file and renaming it (a full card, a power cut). Each
+ * write cleans up after itself, so anything still here predates this
+ * process. Boot-time only: a running write's temp file lives for
+ * milliseconds, and this runs before any of them.
+ */
+export async function sweepStaleTempFiles(dir = 'data'): Promise<void> {
+  const root = path.join(process.cwd(), dir);
+  let entries: string[];
+  try {
+    entries = await fs.readdir(root);
+  } catch {
+    return; // no data dir yet
+  }
+  await Promise.all(
+    entries
+      .filter((name) => name.endsWith('.tmp'))
+      .map((name) => fs.unlink(path.join(root, name)).catch(() => {})),
+  );
+}
+
 export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
   let writeQueue: Promise<void> = Promise.resolve();
 
@@ -48,10 +72,22 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
     if (opts.backup) {
       try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
     }
-    const tmp = filePath + '.tmp';
-    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-    if (opts.chmod != null) await fs.chmod(tmp, opts.chmod);
-    await fs.rename(tmp, filePath);
+    // A temp name unique to this write. The production build shares one
+    // store instance across routes, so its queue already serializes writes;
+    // the webpack dev server does not (each route bundle gets its own
+    // instance), and there a shared `.tmp` name let two writes tear each
+    // other mid-rename and leave the file unparseable. Distinct names make
+    // that last-writer-wins. A failed write removes its own temp file so a
+    // full card cannot leave a trail of them behind.
+    const tmp = `${filePath}.${process.pid}.${++tmpSeq}.tmp`;
+    try {
+      await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
+      if (opts.chmod != null) await fs.chmod(tmp, opts.chmod);
+      await fs.rename(tmp, filePath);
+    } catch (err) {
+      await fs.unlink(tmp).catch(() => {});
+      throw err;
+    }
   }
 
   function write(data: T): Promise<void> {

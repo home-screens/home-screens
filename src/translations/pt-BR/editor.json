@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} tarefas, {tickets} tickets"
     }
   },
+  "todoListModal": {
+    "title": "Editar lista",
+    "itemCount": "{open} a fazer · {done} feitos",
+    "nameLabel": "Nome",
+    "loadError": "Não foi possível carregar esta lista. Feche e abra de novo.",
+    "listGone": "Esta lista não existe mais. Escolha outra.",
+    "empty": "Nada nesta lista ainda",
+    "itemTextLabel": "Item",
+    "itemDoneLabel": "Feito: {text}",
+    "removeItemLabel": "Remover {text}",
+    "addPlaceholder": "Adicione algo...",
+    "uncheckAll": "Desmarcar tudo",
+    "removeDone": "Remover itens feitos",
+    "removeDoneConfirm": {
+      "title": "Remover itens feitos",
+      "message": "Remover {count} itens feitos de \"{name}\"?",
+      "confirmLabel": "Remover"
+    }
+  },
   "mealPlannerModal": {
     "title": "Planejador de refeições",
     "subtitleMealsPlanned": "{meals} refeições · {planned} planejadas",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Prévia ao vivo"
     },
     "todo": {
-      "title": "Nome da lista",
+      "viewList": "Lista",
+      "viewFocus": "Foco",
+      "viewProgress": "Progresso",
+      "viewBoard": "Quadro",
+      "viewCompact": "Compacta",
+      "list": "Lista",
+      "pickAList": "Escolha uma lista",
+      "listsUnavailable": "Não foi possível carregar suas listas",
+      "editItems": "Editar itens",
+      "newList": "Nova lista",
+      "newListName": "Nome da nova lista",
+      "newListPlaceholder": "Compras",
+      "create": "Criar",
+      "title": "Título",
       "defaultTitle": "A fazer",
-      "items": "Itens",
-      "newItemText": "Novo item",
-      "interactive": "Permitir marcar com toque (tela sensível ao toque)"
+      "showTitle": "Mostrar título",
+      "completedPlacement": "Itens feitos",
+      "completedBottom": "No final",
+      "completedInline": "Onde estão",
+      "completedHidden": "Ocultos",
+      "showDueDates": "Mostrar prazos",
+      "interactive": "Tocar para marcar"
     },
     "todoist": {
       "apiToken": "Token de API",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Adicionar fotos pelo celular"
+      },
+      "lists": {
+        "remote": "Editar listas pelo celular"
       }
     },
     "dialog": {
       "title": {
         "chores": "Tarefas no celular",
         "meals": "Refeições no celular",
-        "photos": "Fotos no celular"
+        "photos": "Fotos no celular",
+        "lists": "Listas no celular"
       },
       "lede": "Escaneie com a câmera do celular ou digite o endereço. Funciona em qualquer aparelho no wifi de casa.",
       "passwordHint": "Você pode pedir uma senha em Configurações, na parte de Segurança.",

@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} tareas, {tickets} tickets"
     }
   },
+  "todoListModal": {
+    "title": "Editar lista",
+    "itemCount": "{open} pendientes · {done} hechos",
+    "nameLabel": "Nombre",
+    "loadError": "No se pudo cargar esta lista. Ciérrala y vuelve a abrirla.",
+    "listGone": "Esta lista ya no existe. Elige otra.",
+    "empty": "Todavía no hay nada en esta lista",
+    "itemTextLabel": "Elemento",
+    "itemDoneLabel": "Hecho: {text}",
+    "removeItemLabel": "Quitar {text}",
+    "addPlaceholder": "Añade algo...",
+    "uncheckAll": "Desmarcar todo",
+    "removeDone": "Quitar los hechos",
+    "removeDoneConfirm": {
+      "title": "Quitar los hechos",
+      "message": "¿Quitar {count} elementos hechos de \"{name}\"?",
+      "confirmLabel": "Quitar"
+    }
+  },
   "mealPlannerModal": {
     "title": "Planificador de comidas",
     "subtitleMealsPlanned": "{meals} comidas · {planned} planeadas",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Vista previa en vivo"
     },
     "todo": {
-      "title": "Nombre de la lista",
+      "viewList": "Lista",
+      "viewFocus": "Enfoque",
+      "viewProgress": "Progreso",
+      "viewBoard": "Tablero",
+      "viewCompact": "Compacta",
+      "list": "Lista",
+      "pickAList": "Elige una lista",
+      "listsUnavailable": "No se pudieron cargar tus listas",
+      "editItems": "Editar elementos",
+      "newList": "Nueva lista",
+      "newListName": "Nombre de la nueva lista",
+      "newListPlaceholder": "Compra",
+      "create": "Crear",
+      "title": "Título",
       "defaultTitle": "Por hacer",
-      "items": "Elementos",
-      "newItemText": "Nuevo elemento",
-      "interactive": "Permitir marcar con toque (pantalla táctil)"
+      "showTitle": "Mostrar título",
+      "completedPlacement": "Elementos hechos",
+      "completedBottom": "Al final",
+      "completedInline": "Donde están",
+      "completedHidden": "Ocultos",
+      "showDueDates": "Mostrar fechas",
+      "interactive": "Tocar para marcar"
     },
     "todoist": {
       "apiToken": "Token de API",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Añadir fotos desde el móvil"
+      },
+      "lists": {
+        "remote": "Editar listas desde el móvil"
       }
     },
     "dialog": {
       "title": {
         "chores": "Las tareas en el móvil",
         "meals": "Las comidas en el móvil",
-        "photos": "Las fotos en el móvil"
+        "photos": "Las fotos en el móvil",
+        "lists": "Listas en el móvil"
       },
       "lede": "Escanea con la cámara del móvil o escribe la dirección. Funciona en cualquier dispositivo de tu wifi.",
       "passwordHint": "Puedes pedir una contraseña en Ajustes, en el apartado Seguridad.",

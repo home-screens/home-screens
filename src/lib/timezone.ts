@@ -100,6 +100,17 @@ export function listTimezoneValues(): string[] {
  *
  * If no timezone is provided, returns `new Date()` (system default).
  */
+/**
+ * A Date's own calendar day as `YYYY-MM-DD`. The canonical spelling: pass a
+ * `toTZWallTime` result to get a day in some other zone.
+ */
+export function localISODate(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function createTZDate(timezone?: string): Date {
   return toTZWallTime(new Date(), timezone);
 }

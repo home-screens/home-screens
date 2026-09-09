@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Controle",
     "chores": "Tarefas",
+    "lists": "Listas",
     "meals": "Refeições",
     "photos": "Fotos",
     "timers": "Timers"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Aguardando uma tela assumir…",
     "notShowing": "Nenhuma tela está mostrando ainda. Confira se alguma tela está ligada."
   },
+  "lists": {
+    "title": "Listas",
+    "chipsLabel": "Suas listas",
+    "settingsButton": "Configurações da lista",
+    "summary": {
+      "progress": "{done} de {total} feitos",
+      "empty": "Nada ainda"
+    },
+    "doneGroup": "Feitos ({count})",
+    "due": {
+      "today": "Hoje",
+      "tomorrow": "Amanhã",
+      "overdue": "Atrasado"
+    },
+    "item": {
+      "edit": "Editar {text}",
+      "move": "Mover {text}"
+    },
+    "addBar": {
+      "placeholder": "Adicionar em {list}",
+      "submit": "Adicionar"
+    },
+    "empty": {
+      "title": "Nada nesta lista ainda",
+      "body": "Digite a primeira coisa abaixo. Cada item que você adiciona aparece na parede alguns segundos depois."
+    },
+    "allDone": {
+      "title": "Tudo feito",
+      "daily": "Recomeça todo dia",
+      "weekly": "Recomeça toda {day}"
+    },
+    "firstList": {
+      "title": "Crie sua primeira lista",
+      "placeholder": "Nome da sua primeira lista",
+      "body": "Compras, mala de viagem, coisas antes da escola. Depois de criada, escolha a lista para o módulo de Lista de tarefas no editor."
+    },
+    "newList": {
+      "title": "Nova lista",
+      "placeholder": "Nome da lista",
+      "submit": "Criar lista"
+    },
+    "colourSwatch": "Cor {number}",
+    "itemSheet": {
+      "title": "Editar item",
+      "textLabel": "Item",
+      "dueLabel": "Prazo",
+      "dueNone": "Nenhum",
+      "duePick": "Escolher um dia",
+      "dayLabel": "Dia",
+      "save": "Salvar",
+      "delete": "Excluir item"
+    },
+    "listSheet": {
+      "nameLabel": "Nome da lista",
+      "colourLabel": "Cor",
+      "repeatLabel": "Recomeçar",
+      "repeatNever": "Nunca",
+      "repeatDaily": "Todo dia",
+      "repeatWeekly": "Toda semana",
+      "repeatDayLabel": "Em que dia",
+      "repeatHelp": "Desmarca tudo em um horário. Bom para uma mala de viagem ou uma lista de antes da escola; deixe em Nunca para as compras.",
+      "tidyLabel": "Arrumar",
+      "uncheckAll": "Desmarcar tudo",
+      "removeDone": "Remover itens feitos",
+      "save": "Salvar",
+      "delete": "Excluir lista",
+      "confirmDelete": {
+        "title": "Excluir {name}?",
+        "description": "Tudo que está nesta lista vai junto. Não dá para desfazer."
+      }
+    },
+    "share": {
+      "button": "Compartilhar",
+      "copied": "Copiado!",
+      "nothingOpen": "Tudo feito!"
+    },
+    "errors": {
+      "generic": "Algo deu errado. Tente de novo."
+    },
+    "loadError": "Não foi possível carregar suas listas. Veja se o hub está ligado e tente de novo.",
+    "retry": "Tentar de novo"
+  },
   "formOverlay": {
     "discard": {
       "title": "Descartar alterações?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Ainda não há quadro de tarefas",
       "body": "As tarefas aparecem aqui assim que houver um quadro de tarefas em alguma das suas telas."
+    },
+    "lists": {
+      "title": "Nenhuma lista ainda",
+      "body": "As listas aparecem aqui quando houver um módulo de Lista de tarefas em uma das suas telas."
     },
     "meals": {
       "title": "Ainda não há planejador de refeições",

@@ -33,7 +33,7 @@ export interface ConfigVariant {
    */
   extraStubs?: Record<string, unknown>;
   /** Which local API to seed before rendering — local-data rows only. */
-  seed?: 'chores' | 'meals';
+  seed?: 'chores' | 'meals' | 'todos';
   /**
    * Custom payload for the seed PUT (replaces the default CHORE_DATA /
    * mealData() fixture). Lets a row prove fields the default seed can't reach

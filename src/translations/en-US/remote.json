@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Control",
     "chores": "Chores",
+    "lists": "Lists",
     "meals": "Meals",
     "photos": "Photos",
     "timers": "Timers"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Waiting for a display to pick it up…",
     "notShowing": "No display is showing this yet. Check that a display is on."
   },
+  "lists": {
+    "title": "Lists",
+    "chipsLabel": "Your lists",
+    "settingsButton": "List settings",
+    "summary": {
+      "progress": "{done} of {total} done",
+      "empty": "Nothing yet"
+    },
+    "doneGroup": "Done ({count})",
+    "due": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "overdue": "Overdue"
+    },
+    "item": {
+      "edit": "Edit {text}",
+      "move": "Move {text}"
+    },
+    "addBar": {
+      "placeholder": "Add to {list}",
+      "submit": "Add"
+    },
+    "empty": {
+      "title": "Nothing on this list yet",
+      "body": "Type the first thing below. Each one you add shows up on the wall a few seconds later."
+    },
+    "allDone": {
+      "title": "All done",
+      "daily": "Starts fresh every day",
+      "weekly": "Starts fresh every {day}"
+    },
+    "firstList": {
+      "title": "Make your first list",
+      "placeholder": "Name your first list",
+      "body": "Groceries, a packing list, things to do before school. Once it exists, pick it for the To-Do module in the editor."
+    },
+    "newList": {
+      "title": "New list",
+      "placeholder": "List name",
+      "submit": "Make list"
+    },
+    "colourSwatch": "Color {number}",
+    "itemSheet": {
+      "title": "Edit item",
+      "textLabel": "Item",
+      "dueLabel": "Due",
+      "dueNone": "None",
+      "duePick": "Pick a day",
+      "dayLabel": "Day",
+      "save": "Save",
+      "delete": "Delete item"
+    },
+    "listSheet": {
+      "nameLabel": "List name",
+      "colourLabel": "Color",
+      "repeatLabel": "Start fresh",
+      "repeatNever": "Never",
+      "repeatDaily": "Every day",
+      "repeatWeekly": "Every week",
+      "repeatDayLabel": "Which day",
+      "repeatHelp": "Unchecks everything on a schedule. Good for a packing list or a before-school list; leave it off for groceries.",
+      "tidyLabel": "Tidy up",
+      "uncheckAll": "Uncheck all",
+      "removeDone": "Remove done items",
+      "save": "Save",
+      "delete": "Delete list",
+      "confirmDelete": {
+        "title": "Delete {name}?",
+        "description": "Everything on this list goes with it. This cannot be undone."
+      }
+    },
+    "share": {
+      "button": "Share",
+      "copied": "Copied!",
+      "nothingOpen": "All done!"
+    },
+    "errors": {
+      "generic": "Something went wrong. Try again."
+    },
+    "loadError": "Couldn't load your lists. Check the hub is on and try again.",
+    "retry": "Try again"
+  },
   "formOverlay": {
     "discard": {
       "title": "Discard changes?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "No chore chart yet",
       "body": "Chores show up here once a chore chart is on one of your screens."
+    },
+    "lists": {
+      "title": "No to-do list yet",
+      "body": "Lists show up here once a To-Do module is on one of your screens."
     },
     "meals": {
       "title": "No meal planner yet",

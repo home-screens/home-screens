@@ -704,13 +704,11 @@ test('quote: picking an accent color preset persists', async ({ page, request })
 // Covers todo, sticky-note, todoist, garbage-day, affirmations, meal-planner,
 // chore-chart.
 
-test('todo: editing the list name persists', async ({ page, request }) => {
-  await selectModule(page, request, buildModuleInstance('todo', {
-    items: [{ id: 't1', text: 'E2E TASK', completed: false }],
-  }));
+test('todo: editing the heading persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('todo'));
 
   await autosaved(page, async () => {
-    await page.getByLabel('List name', { exact: true }).fill('MY TODOS');
+    await page.getByLabel('Heading', { exact: true }).fill('MY TODOS');
   });
 
   expect((await moduleConfig(request, 'todo')).title).toBe('MY TODOS');

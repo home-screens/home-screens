@@ -3,7 +3,7 @@ title: On your phone
 nextjs:
   metadata:
     title: Home Screens on your phone
-    description: Two addresses for the family. The family remote lets grown-ups run chores, meals, timers and photos and control the wall. The kids' page lets children check off today's chores. Nothing to install.
+    description: Two addresses for the family. The family remote lets grown-ups run chores, lists, meals, timers and photos and control the wall. The kids' page lets children check off today's chores. Nothing to install.
     alternates:
       canonical: /docs/remote-control
 ---
@@ -16,7 +16,7 @@ Home Screens has two phone pages. Nothing needs installing; both open in the pho
 |---|---|---|
 | Address | `/chores` | `/remote` |
 | Who | Children, or a shared tablet in the kitchen | Grown-ups |
-| What it does | Today's chores and the rewards store. Nothing else can be changed. | Chores, meals, timers, photos, and control of the wall |
+| What it does | Today's chores and the rewards store. Nothing else can be changed. | Chores, lists, meals, timers, photos, and control of the wall |
 | Password | Never asks for one, on purpose | Asks once you set one |
 
 Opening the plain address (`http://home-screens.local:3000` on the pre-built image) on a phone shows a menu with both, plus the display itself.
@@ -40,7 +40,7 @@ Until you set one, anyone on your WiFi can open the family remote and the editor
 
 ## The family remote
 
-Five tabs along the bottom: **Control**, **Timers**, **Chores**, **Meals** and **Photos**. Chores, Meals and Photos come alive once the matching module is on a screen; until then they explain what to add.
+Six tabs along the bottom: **Control**, **Timers**, **Chores**, **Lists**, **Meals** and **Photos**. Chores, Lists, Meals and Photos come alive once the matching module is on a screen; until then they explain what to add.
 
 ### Control the wall
 
@@ -59,9 +59,10 @@ The **Timers** tab starts a big countdown that takes over the whole wall, made f
 
 A **routine** is a saved list of timed steps, each with its own emoji and length: get dressed, brush teeth, shoes on. Steps run one after another; a step can instead be set to **Wait for a Done tap** on the wall before the next one starts. While a timer runs, the tab shows pause, skip, add a minute, and stop. One timer runs at a time for the whole house; starting another asks first. With more than one display, **Show on** picks which walls the timer takes over.
 
-### Chores, Meals, Photos
+### Chores, Lists, Meals, Photos
 
 - **Chores** is where grown-ups add people, chores and rewards, and fix a missed day. See [Chores and rewards](/docs/chores).
+- **Lists** holds the family's to-do lists: add, tick, reorder, give things a due day or a person, and make new lists. See [Lists](/docs/lists).
 - **Meals** holds the meal library, the weekly plan and the grocery list. See [Meals](/docs/meals).
 - **Photos** appears when a Full-Screen Photo Viewer is on a screen. Upload photos from the phone, make folders, browse them, and delete pictures. It is the same library the photo modules and rotating backgrounds read from.
 
@@ -91,6 +92,8 @@ It stays open even when a password is set, so a bookmark on a tablet just works.
 | The gear (backup, restore, restart, reboot) | Signed in |
 | Chores: checking off today and spending tickets | Open to anyone on your network |
 | Chores: adding or editing people, chores, rewards, balances, earlier days | Signed in |
+| Lists: ticking an item | Signed in, or the wall itself |
+| Lists: adding, editing, moving or removing, and making or deleting lists | Signed in |
 | Meals: changing anything | Signed in |
 | Photos | Signed in |
 

@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedChores, seedMeals, todayCalendarEvents } from '../helpers/api';
+import { seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, fixturesByKind, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -24,9 +24,10 @@ for (const fx of fixturesByKind('networked')) {
 
 /** Render matrix — local-data modules, seeded via their real APIs. */
 for (const fx of fixturesByKind('local-data')) {
-  test(`local-data module renders: ${fx.type}`, async ({ page, request }) => {
+  test(`local-data module renders: ${fx.type}`, async ({ page, request, sandboxDir }) => {
     if (fx.seed === 'chores') await seedChores(request);
     if (fx.seed === 'meals') await seedMeals(request);
+    if (fx.seed === 'todos') seedTodos(sandboxDir);
     const config = baseConfig({
       screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, fx.config)])],
       settings: matrixSettings(),

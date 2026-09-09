@@ -8,6 +8,9 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // `next dev` otherwise appends a block of AI-agent rules to CLAUDE.md on
+  // every start, dirtying the file that carries this project's own guidance.
+  agentRules: false,
   // Pin the file-tracing root to this project directory. Without this, Next.js
   // walks upward looking for the first parent lockfile and picks THAT as the
   // implicit workspace root — so if a stray package-lock.json sits in

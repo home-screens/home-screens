@@ -1,8 +1,6 @@
 import { test, expect } from '../fixtures';
 import { getConfig, putConfig } from '../helpers/api';
-import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import type { ModuleInstance } from '@/types/config';
+import { baseConfig } from '../helpers/config-fixtures';
 
 /**
  * Request-level (no browser) error-path coverage for API route handlers. Each
@@ -118,45 +116,37 @@ test.describe('data routes reject malformed bodies', () => {
   });
 });
 
-test.describe('POST /api/todo/toggle', () => {
-  // A config with one interactive todo module the toggle route can validate against.
-  function todoModule(): ModuleInstance {
-    return {
-      id: 'todo-1',
-      type: 'todo',
-      position: { x: 0, y: 0 },
-      size: { w: 400, h: 400 },
-      zIndex: 1,
-      style: { ...DEFAULT_MODULE_STYLE },
-      config: {
-        title: 'Tasks',
-        interactive: true,
-        items: [{ id: 'item-known', text: 'Walk the dog', completed: false }],
-      },
-    } as unknown as ModuleInstance;
-  }
-
-  test('rejects a body missing ids with 400', async ({ request }) => {
-    const res = await request.post('/api/todo/toggle', { data: { screenId: 'screen-1' } });
+test.describe('/api/todo/lists', () => {
+  test('creating a list without a name is a 400 with a plain message', async ({ request }) => {
+    const res = await request.post('/api/todo/lists', { data: { name: '   ' } });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toContain('Missing screenId, moduleId, or itemId');
+    expect((await res.json()).error).toBe('Give the list a name');
   });
 
-  test('returns 404 for an unknown item UUID on a real module', async ({ request }) => {
-    await putConfig(request, baseConfig({ screens: [makeScreen('screen-1', 'Screen 1', [todoModule()])] }));
-    const res = await request.post('/api/todo/toggle', {
-      data: { screenId: 'screen-1', moduleId: 'todo-1', itemId: 'does-not-exist' },
-    });
+  test('changing a list that does not exist is a 404', async ({ request }) => {
+    const res = await request.patch('/api/todo/lists/no-such-list', { data: { name: 'X' } });
     expect(res.status()).toBe(404);
-    expect((await res.json()).error).toBe('Item not found');
+    expect((await res.json()).error).toBe('That list is gone');
   });
 
-  test('returns 404 for an unknown screen', async ({ request }) => {
-    const res = await request.post('/api/todo/toggle', {
-      data: { screenId: 'ghost-screen', moduleId: 'todo-1', itemId: 'item-known' },
-    });
+  test('adding to a list that does not exist is a 404', async ({ request }) => {
+    const res = await request.post('/api/todo/lists/no-such-list/items', { data: { text: 'Milk' } });
     expect(res.status()).toBe(404);
-    expect((await res.json()).error).toBe('Screen not found');
+    expect((await res.json()).error).toBe('That list is gone');
+  });
+
+  test('a malformed item change is a 400', async ({ request }) => {
+    const create = await request.post('/api/todo/lists', { data: { name: 'Smoke' } });
+    const { lists } = (await create.json()) as { lists: Array<{ id: string; name: string }> };
+    const list = lists.find((l) => l.name === 'Smoke')!;
+    const add = await request.post(`/api/todo/lists/${list.id}/items`, { data: { text: 'Milk' } });
+    const added = (await add.json()) as { lists: Array<{ id: string; items: Array<{ id: string }> }> };
+    const item = added.lists.find((l) => l.id === list.id)!.items[0];
+    const res = await request.patch(`/api/todo/lists/${list.id}/items/${item.id}`, { data: { completed: 'yes' } });
+    expect(res.status()).toBe(400);
+    expect((await res.json()).error).toBe('completed must be true or false');
+    // Tidy up so later specs in this worker start from an empty store.
+    await request.delete(`/api/todo/lists/${list.id}`);
   });
 });
 

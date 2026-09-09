@@ -1,9 +1,9 @@
-import type { APIRequestContext } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
-import { seedChores, seedMeals } from '../helpers/api';
+import { seedChores, seedMeals, seedTodos, E2E_TODO_LIST_ID } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
 
@@ -13,33 +13,36 @@ function isoToday(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-test('interactive todo: tapping an item toggles and persists it', async ({ page, request }) => {
-  const todo = buildModuleInstance('todo', {
-    title: 'Tasks',
-    interactive: true,
-    items: [{ id: 'i1', text: 'TAP ME', completed: false }],
-  });
+/** The seeded list, read back through the same route the wall polls. */
+async function todoItems(request: APIRequestContext): Promise<Record<string, boolean>> {
+  const res = await request.get('/api/todo/lists');
+  const { lists } = (await res.json()) as { lists: Array<{ id: string; items: Array<{ id: string; completed: boolean }> }> };
+  const list = lists.find((l) => l.id === E2E_TODO_LIST_ID);
+  return Object.fromEntries((list?.items ?? []).map((it) => [it.id, it.completed]));
+}
+
+const itemPatched = (page: Page) => page.waitForResponse(
+  (r) => r.url().includes('/api/todo/lists/') && r.request().method() === 'PATCH' && r.ok(),
+);
+
+test('interactive todo: tapping an item checks it off and persists it', async ({ page, request, sandboxDir }) => {
+  seedTodos(sandboxDir);
+  const todo = buildModuleInstance('todo', { listId: E2E_TODO_LIST_ID, interactive: true });
   const display = await renderOnDisplay(page, request, baseConfig({
     screens: [makeScreen('s1', 'S1', [todo])],
   }));
 
-  const item = display.module('todo').getByText('TAP ME');
-  const toggled = page.waitForResponse(
-    (r) => r.url().includes('/api/todo/toggle') && r.request().method() === 'POST' && r.ok(),
-  );
-  await item.click();
-  await toggled;
+  const row = display.module('todo').getByRole('button', { name: /ACTIVE ITEM/ });
+  await expect(row).toHaveAttribute('aria-pressed', 'false');
+  const patched = itemPatched(page);
+  await row.click();
+  await patched;
 
-  // Persisted in data/todo-state.json (created on first toggle).
-  await expect
-    .poll(async () => {
-      const res = await request.get('/api/todo/state');
-      return (await res.json()).completed as Record<string, boolean>;
-    })
-    .toMatchObject({ i1: true });
+  // Persisted in the shared store (data/todos.json), where every surface reads it.
+  await expect.poll(() => todoItems(request)).toMatchObject({ a: true });
 
   // Optimistic + server-confirmed: the row reports itself pressed.
-  await expect(display.module('todo').getByRole('button', { name: /TAP ME/ })).toHaveAttribute('aria-pressed', 'true');
+  await expect(row).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('display-control: tapping Next enqueues a next-screen command', async ({ page, request }) => {
@@ -607,50 +610,36 @@ test.describe('todoist tap-to-complete', () => {
 });
 
 /**
- * Interactive todo persistence beyond the happy-path toggle above: un-toggling a
- * completed item writes `false`, and two items in the same module toggle
- * independently. State lives in data/todo-state.json via /api/todo/toggle.
+ * Interactive todo persistence beyond the happy-path tap above: un-checking a
+ * done item writes `false`, and two items on the same list toggle
+ * independently. State lives in data/todos.json via the item PATCH route.
  */
-test.describe('todo toggle', () => {
-  test('un-toggling a completed item persists false', async ({ page, request }) => {
-    const todo = buildModuleInstance('todo', {
-      title: 'Chores',
-      interactive: true,
-      items: [{ id: 'todo-untoggle-1', text: 'ALREADY DONE', completed: true }],
-    });
+test.describe('todo tap', () => {
+  test('un-checking a done item persists false', async ({ page, request, sandboxDir }) => {
+    seedTodos(sandboxDir);
+    const todo = buildModuleInstance('todo', { listId: E2E_TODO_LIST_ID, interactive: true });
     const display = await renderOnDisplay(page, request, baseConfig({
       screens: [makeScreen('s1', 'S1', [todo])],
     }));
 
-    // Authored default is completed → the row reports itself pressed.
-    const row = display.module('todo').getByRole('button', { name: /ALREADY DONE/ });
+    // Seeded as done: the row reports itself pressed.
+    const row = display.module('todo').getByRole('button', { name: /DONE ITEM/ });
     await expect(row).toHaveAttribute('aria-pressed', 'true');
 
-    const toggled = page.waitForResponse(
-      (r) => r.url().includes('/api/todo/toggle') && r.request().method() === 'POST' && r.ok(),
-    );
+    const patched = itemPatched(page);
     await row.click();
-    await toggled;
+    await patched;
 
-    // Persisted as false, not merely absent.
-    await expect
-      .poll(async () => {
-        const res = await request.get('/api/todo/state');
-        return (await res.json()).completed as Record<string, boolean>;
-      })
-      .toMatchObject({ 'todo-untoggle-1': false });
+    await expect.poll(() => todoItems(request)).toMatchObject({ b: false });
     await expect(row).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('two items toggle independently', async ({ page, request }) => {
-    const todo = buildModuleInstance('todo', {
-      title: 'Chores',
-      interactive: true,
-      items: [
-        { id: 'todo-indep-a', text: 'FIRST ITEM', completed: false },
-        { id: 'todo-indep-b', text: 'SECOND ITEM', completed: false },
-      ],
-    });
+  test('two items toggle independently', async ({ page, request, sandboxDir }) => {
+    seedTodos(sandboxDir, { lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'indep-a', text: 'FIRST ITEM' },
+      { id: 'indep-b', text: 'SECOND ITEM' },
+    ] }] });
+    const todo = buildModuleInstance('todo', { listId: E2E_TODO_LIST_ID, interactive: true });
     const display = await renderOnDisplay(page, request, baseConfig({
       screens: [makeScreen('s1', 'S1', [todo])],
     }));
@@ -661,37 +650,23 @@ test.describe('todo toggle', () => {
     await expect(second).toHaveAttribute('aria-pressed', 'false');
 
     // Tap only the first item.
-    const firstToggled = page.waitForResponse(
-      (r) => r.url().includes('/api/todo/toggle') && r.request().method() === 'POST' && r.ok(),
-    );
+    let patched = itemPatched(page);
     await first.click();
-    await firstToggled;
+    await patched;
 
     await expect(first).toHaveAttribute('aria-pressed', 'true');
     // The second item is untouched, in the DOM and in the store.
     await expect(second).toHaveAttribute('aria-pressed', 'false');
-    await expect
-      .poll(async () => {
-        const res = await request.get('/api/todo/state');
-        return (await res.json()).completed as Record<string, boolean>;
-      })
-      .toMatchObject({ 'todo-indep-a': true });
+    await expect.poll(() => todoItems(request)).toMatchObject({ 'indep-a': true, 'indep-b': false });
 
-    // Now tap the second — the first stays completed.
-    const secondToggled = page.waitForResponse(
-      (r) => r.url().includes('/api/todo/toggle') && r.request().method() === 'POST' && r.ok(),
-    );
+    // Now tap the second: the first stays done.
+    patched = itemPatched(page);
     await second.click();
-    await secondToggled;
+    await patched;
 
     await expect(second).toHaveAttribute('aria-pressed', 'true');
     await expect(first).toHaveAttribute('aria-pressed', 'true');
-    await expect
-      .poll(async () => {
-        const res = await request.get('/api/todo/state');
-        return (await res.json()).completed as Record<string, boolean>;
-      })
-      .toMatchObject({ 'todo-indep-a': true, 'todo-indep-b': true });
+    await expect.poll(() => todoItems(request)).toMatchObject({ 'indep-a': true, 'indep-b': true });
   });
 });
 

@@ -706,8 +706,23 @@
   "todo": {
     "name": "Lista de tarefas",
     "defaultTitle": "Tarefas",
-    "noTasksYet": "Adicione tarefas no editor e elas aparecem aqui",
-    "tapHint": "Toque em uma caixa para marcar"
+    "noTasksYet": "Adicione coisas pelo celular e elas aparecem aqui",
+    "tapHint": "Toque em uma caixa para marcar",
+    "noListsYet": "Nenhuma lista ainda. Crie uma pelo celular.",
+    "pickAList": "Escolha uma lista no editor",
+    "upNext": "A seguir",
+    "allDone": "Tudo feito",
+    "andMore": "e mais {n}",
+    "nLeft": "{n} restantes",
+    "of": "de",
+    "done": "feitos",
+    "startsFreshDaily": "Recomeça todo dia",
+    "startsFreshWeekly": "Recomeça toda semana",
+    "due": {
+      "today": "Hoje",
+      "tomorrow": "Amanhã",
+      "overdue": "Atrasado"
+    }
   },
   "traffic": {
     "name": "Trânsito / Trajeto",

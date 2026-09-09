@@ -706,8 +706,23 @@
   "todo": {
     "name": "Takenlijst",
     "defaultTitle": "Taken",
-    "noTasksYet": "Voeg in de editor taken toe, dan verschijnen ze hier",
-    "tapHint": "Tik op een vakje om het af te vinken"
+    "noTasksYet": "Voeg dingen toe op je telefoon en ze verschijnen hier",
+    "tapHint": "Tik op een vakje om het af te vinken",
+    "noListsYet": "Nog geen lijsten. Maak er een op je telefoon.",
+    "pickAList": "Kies een lijst in de editor",
+    "upNext": "Hierna",
+    "allDone": "Alles gedaan",
+    "andMore": "en nog {n}",
+    "nLeft": "{n} te gaan",
+    "of": "van",
+    "done": "gedaan",
+    "startsFreshDaily": "Begint elke dag opnieuw",
+    "startsFreshWeekly": "Begint elke week opnieuw",
+    "due": {
+      "today": "Vandaag",
+      "tomorrow": "Morgen",
+      "overdue": "Te laat"
+    }
   },
   "traffic": {
     "name": "Verkeer / Forenzen",

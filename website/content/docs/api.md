@@ -841,41 +841,67 @@ Deletes an API key or credential. Requires a valid session. As with `PUT`, an un
 
 ---
 
-## To-Do
+## To-Do lists
 
-### GET /api/todo/state
+Shared lists live in `data/todos.json` (see [Lists](/docs/lists)). Every write answers with the full `lists` array so a client reconciles against server truth in one step. Validation failures come back as `400 { "error": "<plain message>" }`; a missing list or item is a `404`.
 
-Returns the runtime completion map for interactive To-Do items, keyed by item ID. To-Do modules with `interactive` enabled poll this endpoint so a tap on one display surfaces on every other display within the poll interval. The map is global; each module filters it to its own item IDs client-side. Completion state lives in `data/todo-state.json`, separate from `config.json`, so editor saves never clobber taps. Requires display auth.
-
-**Response:**
+A list:
 ```json
 {
-  "completed": {
-    "item-uuid-1": true,
-    "item-uuid-2": false
-  }
+  "id": "uuid",
+  "name": "Groceries",
+  "slug": "groceries",
+  "color": "#4ade80",
+  "items": [
+    { "id": "uuid", "text": "Oat milk", "completed": false, "createdAt": "2026-09-09T12:00:00.000Z", "dueDate": "2026-09-10", "assigneeIds": ["member-id"] }
+  ],
+  "repeat": "never",
+  "repeatDay": 0,
+  "lastResetAt": "2026-09-09T00:00:00.000Z",
+  "createdAt": "2026-09-01T12:00:00.000Z",
+  "updatedAt": "2026-09-09T12:00:00.000Z"
 }
 ```
 
-An absent key means the item uses its authored default from the editor.
+`repeat` is `never`, `daily` or `weekly` (with `repeatDay`, 0 = Sunday). A due repeat is applied on read, so a daily list comes back unchecked after midnight. Limits: 64 lists, 500 items per list, 200 characters per item, 60 per list name.
 
-### POST /api/todo/toggle
+### GET /api/todo/lists
 
-Atomically flips one To-Do item's completion state. The addressed module must exist, be a To-Do module, and have `interactive` enabled, a stale or forged request cannot flip a read-only instance. Returns the full updated state map so the tapping client can reconcile its optimistic update against server truth. Requires display auth.
+Every list. Display access, since the wall polls it (about every 5 seconds).
 
-**Body:**
-```json
-{
-  "displayId": "kitchen",
-  "screenId": "screen-1",
-  "moduleId": "module-uuid",
-  "itemId": "item-uuid"
-}
-```
+**Response:** `{ "lists": [ ... ] }`
 
-`displayId` is optional in legacy single-display mode but required to disambiguate in multi-display mode; an unknown `displayId` returns 404 rather than falling back.
+### POST /api/todo/lists
 
-**Response:** the full updated completion map (same shape as `GET /api/todo/state`).
+Creates a list. Requires a valid session.
+
+**Body:** `{ "name": "Groceries", "color": "#4ade80", "repeat": "never", "repeatDay": 0 }` (only `name` is required).
+
+### PATCH /api/todo/lists/{listId}
+
+Changes a list. Requires a valid session. Any of:
+
+- `name`, `color`, `repeat`, `repeatDay`
+- `itemOrder`: the full new order of item ids. It must name every item exactly once; anything else is a `409`, since the list changed under the caller.
+- `action`: `"uncheck-all"` or `"clear-completed"`
+
+### DELETE /api/todo/lists/{listId}
+
+Removes the list and everything on it. Requires a valid session.
+
+### POST /api/todo/lists/{listId}/items
+
+Adds an item. Requires a valid session.
+
+**Body:** `{ "text": "Oat milk", "dueDate": "2026-09-10", "assigneeIds": ["member-id"], "position": "top" }` (only `text` is required; `position` defaults to the end).
+
+### PATCH /api/todo/lists/{listId}/items/{itemId}
+
+Changes an item: any of `text`, `completed`, `dueDate` (`""` clears it), `assigneeIds` (`[]` clears them). Display access, because a tap on the wall lands here with the display token; a phone uses its session.
+
+### DELETE /api/todo/lists/{listId}/items/{itemId}
+
+Removes one item. Requires a valid session.
 
 ---
 

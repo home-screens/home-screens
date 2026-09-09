@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedChores, seedMeals } from '../helpers/api';
+import { putConfig, seedChores, seedMeals, seedTodos } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { EMPTY_STATE_FIXTURES, type EmptyStateFixture } from '../helpers/empty-state-fixtures';
@@ -18,7 +18,7 @@ import { EMPTY_STATE_FIXTURES, type EmptyStateFixture } from '../helpers/empty-s
  * the fixture. Each screen carries an anchor text module so the page has a
  * visible module to wait on before asserting the empty render.
  */
-async function renderEmptyState(page: Page, fixture: EmptyStateFixture, request: Parameters<typeof putConfig>[0]): Promise<void> {
+async function renderEmptyState(page: Page, fixture: EmptyStateFixture, request: Parameters<typeof putConfig>[0], sandboxDir: string): Promise<void> {
   const pageErrors: string[] = [];
   page.on('pageerror', (e) => pageErrors.push(String(e)));
 
@@ -32,6 +32,7 @@ async function renderEmptyState(page: Page, fixture: EmptyStateFixture, request:
   if (fixture.kind === 'local-data') {
     await seedChores(request, { members: [], chores: [] });
     await seedMeals(request, { savedMeals: [], plan: [] });
+    seedTodos(sandboxDir, fixture.todoSeed ?? { lists: [] });
   }
 
   const mod = buildModuleInstance(fixture.type, fixture.config ?? {});
@@ -60,8 +61,8 @@ async function renderEmptyState(page: Page, fixture: EmptyStateFixture, request:
 
 test.describe('module empty states', () => {
   for (const fixture of EMPTY_STATE_FIXTURES) {
-    test(`${fixture.type} · ${fixture.name}`, async ({ page, request }) => {
-      await renderEmptyState(page, fixture, request);
+    test(`${fixture.type} · ${fixture.name}`, async ({ page, request, sandboxDir }) => {
+      await renderEmptyState(page, fixture, request, sandboxDir);
     });
   }
 });

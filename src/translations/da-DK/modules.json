@@ -706,8 +706,23 @@
   "todo": {
     "name": "Huskeliste",
     "defaultTitle": "Huskeliste",
-    "noTasksYet": "Tilføj opgaver i editoren, så vises de her",
-    "tapHint": "Tryk på en boks for at sætte flueben"
+    "noTasksYet": "Tilføj ting på din telefon, så dukker de op her",
+    "tapHint": "Tryk på en boks for at sætte flueben",
+    "noListsYet": "Ingen lister endnu. Lav en på din telefon.",
+    "pickAList": "Vælg en liste i editoren",
+    "upNext": "Næste",
+    "allDone": "Alt er gjort",
+    "andMore": "og {n} mere",
+    "nLeft": "{n} tilbage",
+    "of": "af",
+    "done": "gjort",
+    "startsFreshDaily": "Starter forfra hver dag",
+    "startsFreshWeekly": "Starter forfra hver uge",
+    "due": {
+      "today": "I dag",
+      "tomorrow": "I morgen",
+      "overdue": "Forsinket"
+    }
   },
   "traffic": {
     "name": "Trafik / pendling",

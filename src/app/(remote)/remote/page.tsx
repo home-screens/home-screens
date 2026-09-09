@@ -62,6 +62,7 @@ export default async function RemotePage() {
   const hasMeals = allScreens.some((s) =>
     s.modules.some((m) => MEAL_MODULE_TYPES.includes(m.type)),
   );
+  const hasLists = allScreens.some((s) => s.modules.some((m) => m.type === 'todo'));
 
   let photoDirectory = '';
   let hasPhotos = false;
@@ -87,7 +88,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
+      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasLists, hasMeals, hasPhotos, photoDirectory, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
     />
   );
 }

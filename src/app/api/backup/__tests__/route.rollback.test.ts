@@ -37,6 +37,11 @@ vi.mock('@/lib/reward-data', () => ({
   readRewardData: vi.fn(),
   writeRewardData: vi.fn(),
 }));
+vi.mock('@/lib/todo-data', () => ({
+  readTodoData: vi.fn().mockResolvedValue({ lists: [], migratedFromConfig: true }),
+  writeTodoData: vi.fn().mockResolvedValue(undefined),
+  foldInLegacyTodoItemsNow: vi.fn().mockResolvedValue({ lists: [], migratedFromConfig: true }),
+}));
 vi.mock('@/lib/backup-state', () => ({
   readBackupState: vi.fn(),
   writeBackupState: vi.fn().mockResolvedValue(undefined),
@@ -53,6 +58,7 @@ import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { readRewardData, writeRewardData } from '@/lib/reward-data';
 import { snapshotCredentials, applyCredentials } from '@/lib/backup-credentials';
+import { readTodoData, writeTodoData, foldInLegacyTodoItemsNow } from '@/lib/todo-data';
 
 const snapshotConfig = { snapshot: 'config', screens: [], settings: {} };
 const snapshotChores = { snapshot: 'chores' };
@@ -215,5 +221,25 @@ describe('POST /api/backup — credential rollback', () => {
     expect(snapshotCredentials).not.toHaveBeenCalled();
     expect(applyCredentials).not.toHaveBeenCalled();
     expect((await res.json()).credentials).toBeUndefined();
+  });
+});
+
+describe('legacy-format restore', () => {
+  it('puts both config.json and todos.json back when the fold fails', async () => {
+    const previousTodos = { lists: [{ id: 'keep', name: 'Keep', slug: 'keep', items: [], repeat: 'never', createdAt: 'x', updatedAt: 'x' }], migratedFromConfig: true };
+    vi.mocked(readConfig).mockResolvedValue(snapshotConfig as never);
+    vi.mocked(readTodoData).mockResolvedValue(previousTodos as never);
+    vi.mocked(foldInLegacyTodoItemsNow).mockRejectedValueOnce(new Error('disk full'));
+
+    const res = await POST(new NextRequest('http://localhost/api/backup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ screens: [{ id: 's1', name: 'S1', modules: [] }], settings: {} }),
+    }));
+    expect(res.status).toBe(500);
+    // The restored config was written, then the snapshot went back over it.
+    const configWrites = vi.mocked(writeConfig).mock.calls.map((c) => c[0]);
+    expect(configWrites[configWrites.length - 1]).toBe(snapshotConfig);
+    expect(vi.mocked(writeTodoData)).toHaveBeenCalledWith(previousTodos);
   });
 });

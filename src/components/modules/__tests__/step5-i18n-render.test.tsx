@@ -29,6 +29,18 @@ class ResizeObserverStub {
   disconnect = vi.fn();
 }
 (globalThis as unknown as { ResizeObserver: typeof ResizeObserverStub }).ResizeObserver = ResizeObserverStub;
+// No module here needs live data: the todo list comes back empty from the
+// shared-lists URL, and every other URL stays null as a failed fetch would.
+vi.mock('@/hooks/useFetchData', () => ({
+  useFetchData: (url: string) => [
+    url === '/api/todo/lists'
+      ? { lists: [{ id: 'empty-list', name: 'Empty', slug: 'empty', items: [], repeat: 'never', createdAt: '', updatedAt: '' }] }
+      : null,
+    null,
+    null,
+  ],
+}));
+
 import { I18nProvider } from '@/i18n/provider';
 import { __resetLoaderForTests } from '@/i18n/loader';
 import enUSModules from '@/translations/en-US/modules.json';
@@ -62,9 +74,12 @@ function withProvider(locale: 'en-US' | 'de-DE', children: React.ReactNode) {
   );
 }
 
+// The module reads its list from the shared store; an existing list with no
+// items is the synchronous empty state under test.
 const emptyTodoConfig: TodoConfig = {
+  listId: 'empty-list',
+  view: 'list',
   title: '',
-  items: [],
 };
 
 const greetingConfig: GreetingConfig = {
@@ -108,7 +123,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('en-US', <TodoModule config={emptyTodoConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('Add tasks in the editor and they show up here');
+      expect(container.textContent).toContain('Add things on your phone and they show up here');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
 
@@ -116,7 +131,7 @@ describe('Step 5 module i18n render contract', () => {
       const { container } = render(
         withProvider('de-DE', <TodoModule config={emptyTodoConfig} style={DEFAULT_MODULE_STYLE} />),
       );
-      expect(container.textContent).toContain('Füge im Editor Aufgaben hinzu, dann erscheinen sie hier');
+      expect(container.textContent).toContain('Füge Dinge auf deinem Handy hinzu, dann erscheinen sie hier');
       expect(container.textContent ?? '').not.toMatch(RAW_KEY_PATTERN);
     });
   });

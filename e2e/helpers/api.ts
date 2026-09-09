@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
 import { expect, type APIRequestContext } from '@playwright/test';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -92,6 +94,65 @@ export async function seedMeals(request: APIRequestContext, data: unknown = meal
     data: isEmpty ? { ...d, force: true } : data,
   });
   expect(res.ok()).toBe(true);
+}
+
+/** The list every todo fixture points at. */
+export const E2E_TODO_LIST_ID = 'e2e-todo-list';
+
+export interface TodoSeedItem {
+  id: string;
+  text: string;
+  completed?: boolean;
+  dueDate?: string;
+}
+
+export interface TodoSeed {
+  lists?: Array<{ id?: string; name: string; color?: string; repeat?: 'never' | 'daily' | 'weekly'; items: TodoSeedItem[] }>;
+}
+
+/** Default seed: one list, one open item, one done item. */
+export function todoSeed(): TodoSeed {
+  return {
+    lists: [{
+      id: E2E_TODO_LIST_ID,
+      name: 'E2E TODO',
+      items: [
+        { id: 'a', text: 'ACTIVE ITEM', completed: false },
+        { id: 'b', text: 'DONE ITEM', completed: true },
+      ],
+    }],
+  };
+}
+
+/**
+ * Seed the shared to-do store. Unlike chores and meals this writes the
+ * worker's private `data/todos.json` directly: the API mints list ids, and
+ * a fixture row has to name its list up front (`listId` in the module
+ * config), so the ids must be chosen here. The server reads the file on
+ * every request, so the next poll sees it.
+ */
+export function seedTodos(sandboxDir: string, seed: TodoSeed = todoSeed()): void {
+  const now = new Date().toISOString();
+  const lists = (seed.lists ?? []).map((l, i) => ({
+    id: l.id ?? `e2e-todo-list-${i}`,
+    name: l.name,
+    slug: l.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'list',
+    color: l.color,
+    items: l.items.map((it) => ({
+      id: it.id,
+      text: it.text,
+      completed: !!it.completed,
+      completedAt: it.completed ? now : undefined,
+      createdAt: now,
+      dueDate: it.dueDate,
+    })),
+    repeat: l.repeat ?? 'never',
+    createdAt: now,
+    updatedAt: now,
+  }));
+  const dataDir = path.join(sandboxDir, 'data');
+  mkdirSync(dataDir, { recursive: true });
+  writeFileSync(path.join(dataDir, 'todos.json'), JSON.stringify({ lists, migratedFromConfig: true }, null, 2));
 }
 
 /**

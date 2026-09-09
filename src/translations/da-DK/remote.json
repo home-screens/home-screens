@@ -2,6 +2,7 @@
   "tabs": {
     "control": "Kontrol",
     "chores": "Pligter",
+    "lists": "Lister",
     "meals": "Måltider",
     "photos": "Billeder",
     "timers": "Timere"
@@ -615,6 +616,88 @@
     "waitingForDisplay": "Venter på, at en skærm tager den…",
     "notShowing": "Ingen skærm viser den endnu. Tjek, at en skærm er tændt."
   },
+  "lists": {
+    "title": "Lister",
+    "chipsLabel": "Dine lister",
+    "settingsButton": "Listeindstillinger",
+    "summary": {
+      "progress": "{done} af {total} gjort",
+      "empty": "Intet endnu"
+    },
+    "doneGroup": "Gjort ({count})",
+    "due": {
+      "today": "I dag",
+      "tomorrow": "I morgen",
+      "overdue": "Forsinket"
+    },
+    "item": {
+      "edit": "Rediger {text}",
+      "move": "Flyt {text}"
+    },
+    "addBar": {
+      "placeholder": "Tilføj til {list}",
+      "submit": "Tilføj"
+    },
+    "empty": {
+      "title": "Der er ikke noget på listen endnu",
+      "body": "Skriv det første herunder. Alt, du tilføjer, dukker op på væggen få sekunder efter."
+    },
+    "allDone": {
+      "title": "Alt er gjort",
+      "daily": "Starter forfra hver dag",
+      "weekly": "Starter forfra hver {day}"
+    },
+    "firstList": {
+      "title": "Lav din første liste",
+      "placeholder": "Navn på din første liste",
+      "body": "Indkøb, en pakkeliste, ting før skole. Når den findes, vælger du den til Huskeliste-modulet i editoren."
+    },
+    "newList": {
+      "title": "Ny liste",
+      "placeholder": "Listens navn",
+      "submit": "Lav liste"
+    },
+    "colourSwatch": "Farve {number}",
+    "itemSheet": {
+      "title": "Rediger punkt",
+      "textLabel": "Punkt",
+      "dueLabel": "Frist",
+      "dueNone": "Ingen",
+      "duePick": "Vælg en dag",
+      "dayLabel": "Dag",
+      "save": "Gem",
+      "delete": "Slet punkt"
+    },
+    "listSheet": {
+      "nameLabel": "Listens navn",
+      "colourLabel": "Farve",
+      "repeatLabel": "Start forfra",
+      "repeatNever": "Aldrig",
+      "repeatDaily": "Hver dag",
+      "repeatWeekly": "Hver uge",
+      "repeatDayLabel": "Hvilken dag",
+      "repeatHelp": "Fjerner alle flueben efter en plan. Godt til en pakkeliste eller en liste før skole; lad den være slået fra til indkøb.",
+      "tidyLabel": "Ryd op",
+      "uncheckAll": "Fjern alle flueben",
+      "removeDone": "Fjern færdige punkter",
+      "save": "Gem",
+      "delete": "Slet liste",
+      "confirmDelete": {
+        "title": "Slet {name}?",
+        "description": "Alt på listen forsvinder med den. Det kan ikke fortrydes."
+      }
+    },
+    "share": {
+      "button": "Del",
+      "copied": "Kopieret!",
+      "nothingOpen": "Alt er gjort!"
+    },
+    "errors": {
+      "generic": "Noget gik galt. Prøv igen."
+    },
+    "loadError": "Dine lister kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
+    "retry": "Prøv igen"
+  },
   "formOverlay": {
     "discard": {
       "title": "Vil du kassere ændringerne?",
@@ -638,6 +721,10 @@
     "chores": {
       "title": "Der er ikke noget pligtskema endnu",
       "body": "Pligter dukker op her, så snart der er et pligtskema på en af dine skærme."
+    },
+    "lists": {
+      "title": "Ingen liste endnu",
+      "body": "Lister dukker op her, når et Huskeliste-modul er på en af dine skærme."
     },
     "meals": {
       "title": "Der er ikke nogen madplan endnu",

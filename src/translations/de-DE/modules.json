@@ -706,8 +706,23 @@
   "todo": {
     "name": "Aufgabenliste",
     "defaultTitle": "Aufgaben",
-    "noTasksYet": "Füge im Editor Aufgaben hinzu, dann erscheinen sie hier",
-    "tapHint": "Tippe auf ein Kästchen, um es abzuhaken"
+    "noTasksYet": "Füge Dinge auf deinem Handy hinzu, dann erscheinen sie hier",
+    "tapHint": "Tippe auf ein Kästchen, um es abzuhaken",
+    "noListsYet": "Noch keine Listen. Lege eine auf deinem Handy an.",
+    "pickAList": "Wähle im Editor eine Liste",
+    "upNext": "Als Nächstes",
+    "allDone": "Alles erledigt",
+    "andMore": "und {n} weitere",
+    "nLeft": "{n} offen",
+    "of": "von",
+    "done": "erledigt",
+    "startsFreshDaily": "Beginnt jeden Tag von vorn",
+    "startsFreshWeekly": "Beginnt jede Woche von vorn",
+    "due": {
+      "today": "Heute",
+      "tomorrow": "Morgen",
+      "overdue": "Überfällig"
+    }
   },
   "traffic": {
     "name": "Verkehr & Pendelwege",

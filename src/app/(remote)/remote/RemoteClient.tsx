@@ -33,6 +33,8 @@ import BottomTabBar from './components/BottomTabBar';
 import RemoteToast from './components/RemoteToast';
 import ChoresTab from './components/ChoresTab';
 import TimersTab from './components/TimersTab';
+import ListsTab from './components/ListsTab';
+import { ADD_BAR_HEIGHT } from './components/ListsAddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
 import TabNotSetUp from './components/TabNotSetUp';
@@ -49,6 +51,8 @@ interface RemoteInitialData {
   choreConfig: ChoreChartConfig | null;
   /** Household members and chores from `data/chores.json`, not module config. */
   choreData: ChoreData;
+  /** A To-Do module exists on some screen, so the Lists tab has somewhere to show. */
+  hasLists: boolean;
   hasMeals: boolean;
   hasPhotos: boolean;
   photoDirectory: string;
@@ -68,6 +72,9 @@ interface RemoteInitialData {
     { profiles: Array<{ id: string; name: string }>; activeProfile?: string }
   >;
 }
+
+/** Tabs `?tab=` may name, mirroring the bottom bar. */
+const TABS = ['control', 'timers', 'chores', 'lists', 'meals', 'photos'];
 
 /** How long the reconnecting banner may stand after a hub restart / reboot before giving up. */
 const RECONNECT_WINDOW_MS: Record<PowerAction, number> = {
@@ -90,6 +97,9 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   // TimersTab, because switching tabs unmounts TimersTab — a deliberate
   // selection must survive a detour through Chores and back.
   const [timerTargetIds, setTimerTargetIds] = useState<string[]>([]);
+  // Lists-tab selected list, held here for the same reason as the timer
+  // targets: ListsTab unmounts on a tab switch and the pick should survive.
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
 
   // Status poll picks up the per-display heartbeat when targeting a specific
   // display. Under "All" it follows the first registered display so hub
@@ -113,9 +123,26 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   });
 
   const [activeTab, setActiveTab] = useState<string>('control');
+  // `?tab=lists` opens straight on that tab: the editor advertises the phone
+  // surfaces per feature, and a "edit lists from a phone" link that lands on
+  // Control makes the reader hunt. Applied after mount (not during render) so
+  // the server and client agree on the first paint, and mirrored back into
+  // the URL so a reload or a shared link keeps the tab.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('tab');
+    if (wanted && wanted !== 'control' && TABS.includes(wanted)) setActiveTab(wanted);
+  }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if ((url.searchParams.get('tab') ?? 'control') === activeTab) return;
+    if (activeTab === 'control') url.searchParams.delete('tab');
+    else url.searchParams.set('tab', activeTab);
+    window.history.replaceState(null, '', url);
+  }, [activeTab]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
   const hasChores = initialData.choreConfig !== null;
+  const hasLists = initialData.hasLists;
   const hasMeals = initialData.hasMeals;
   const hasPhotos = initialData.hasPhotos;
 
@@ -407,6 +434,15 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
               </div>
               <div className="h-20" />
             </>
+          ) : activeTab === 'lists' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                {hasLists
+                  ? <ListsTab selectedListId={selectedListId} onSelectList={setSelectedListId} />
+                  : <TabNotSetUp kind="lists" />}
+              </div>
+              <div className="h-20" />
+            </>
           ) : activeTab === 'meals' ? (
             <>
               <div className="px-4 pb-8 pt-4">
@@ -426,7 +462,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           ) : null}
         </div>
 
-        <RemoteToast />
+        <RemoteToast raisedBy={activeTab === 'lists' && hasLists ? ADD_BAR_HEIGHT : 0} />
         <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
       </div>
     </DisplayTargetContext.Provider>

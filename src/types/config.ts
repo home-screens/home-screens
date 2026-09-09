@@ -1147,33 +1147,36 @@ export interface QuoteConfig {
 }
 
 // Todo module config
-export interface TodoItem {
-  id: string;
-  text: string;
-  /**
-   * Authored *default* completion, set in the editor. In interactive mode this
-   * is only the seed value: once a kiosk user taps an item, its live completion
-   * lives in the runtime `todo-state.json` store (keyed by item id) and
-   * overrides this default. See `lib/todo-data.ts`.
-   */
-  completed: boolean;
-}
+export type TodoView = 'list' | 'focus' | 'progress' | 'board' | 'compact';
+/** Where checked-off items go: sink below the open ones, stay in place, or leave the wall. */
+export type TodoCompletedPlacement = 'bottom' | 'inline' | 'hidden';
 
+/**
+ * A To-Do module shows one shared list from `data/todos.json` (see
+ * `types/todos.ts` and `lib/todo-data.ts`). Items are never stored on the
+ * module: the phone remote, the wall and the editor all edit the store, so a
+ * check-off from a phone never touches `config.json` and one list can sit on
+ * any number of screens.
+ */
 export interface TodoConfig {
-  title: string;
-  /** Show the title text (the done count stays). Omitted = shown. */
+  /** The shared list to show. Unset renders the "pick a list" empty state. Ignored by the board view. */
+  listId?: string;
+  view: TodoView;
+  /** Overrides the list's own name as the heading. Empty = the list name. */
+  title?: string;
+  /** Show the heading (the done count stays). Omitted = shown. */
   showTitle?: boolean;
-  items: TodoItem[];
   accentColor?: string;
   /**
-   * When true, the module renders each item as a tap target on the display so a
-   * kiosk user can check/uncheck it. The tap persists to the runtime
-   * `todo-state.json` store (NOT back into `config.json`, which the editor owns
-   * and would clobber on save) and syncs to every display showing the same item
-   * via the `/api/todo/state` poll. Defaults to false — existing read-only todos
-   * stay read-only until opted in.
+   * Render each item as a tap target so a kiosk user can check it off on the
+   * wall. A tap writes to the shared store, not to `config.json`. Defaults
+   * to true for new modules; instances created before lists were shared keep
+   * whatever they had.
    */
   interactive?: boolean;
+  completedPlacement?: TodoCompletedPlacement;
+  /** Due-day chips ("Today", "Overdue") next to items that carry a date. */
+  showDueDates?: boolean;
 }
 
 // Sticky note module config

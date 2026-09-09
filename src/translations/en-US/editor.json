@@ -2355,6 +2355,25 @@
       "memberLine": "{chores} chores, {tickets} tickets"
     }
   },
+  "todoListModal": {
+    "title": "Edit list",
+    "itemCount": "{open} to do · {done} done",
+    "nameLabel": "Name",
+    "loadError": "Couldn't load this list. Try closing and opening it again.",
+    "listGone": "This list is gone. Pick another one.",
+    "empty": "Nothing on this list yet",
+    "itemTextLabel": "Item",
+    "itemDoneLabel": "Done: {text}",
+    "removeItemLabel": "Remove {text}",
+    "addPlaceholder": "Add something...",
+    "uncheckAll": "Uncheck all",
+    "removeDone": "Remove done items",
+    "removeDoneConfirm": {
+      "title": "Remove done items",
+      "message": "Remove {count} done items from \"{name}\"?",
+      "confirmLabel": "Remove"
+    }
+  },
   "mealPlannerModal": {
     "title": "Meal Planner",
     "subtitleMealsPlanned": "{meals} meals · {planned} planned",
@@ -3743,11 +3762,28 @@
       "stateTokenPreview": "Live preview"
     },
     "todo": {
-      "title": "List name",
+      "viewList": "List",
+      "viewFocus": "Focus",
+      "viewProgress": "Progress",
+      "viewBoard": "Board",
+      "viewCompact": "Compact",
+      "list": "List",
+      "pickAList": "Pick a list",
+      "listsUnavailable": "Couldn't load your lists",
+      "editItems": "Edit items",
+      "newList": "New list",
+      "newListName": "New list name",
+      "newListPlaceholder": "Groceries",
+      "create": "Create",
+      "title": "Heading",
       "defaultTitle": "To Do",
-      "items": "Items",
-      "newItemText": "New item",
-      "interactive": "Allow tap to check off (touchscreen)"
+      "showTitle": "Show title",
+      "completedPlacement": "Done items",
+      "completedBottom": "At the bottom",
+      "completedInline": "Where they are",
+      "completedHidden": "Hidden",
+      "showDueDates": "Show due dates",
+      "interactive": "Tap to check off"
     },
     "todoist": {
       "apiToken": "API Token",
@@ -4267,13 +4303,17 @@
       },
       "photos": {
         "remote": "Add photos from a phone"
+      },
+      "lists": {
+        "remote": "Edit lists from a phone"
       }
     },
     "dialog": {
       "title": {
         "chores": "Chores on a phone",
         "meals": "Meals on a phone",
-        "photos": "Photos on a phone"
+        "photos": "Photos on a phone",
+        "lists": "Lists on a phone"
       },
       "lede": "Scan with a phone camera, or type the address in. Works on any device on your home wifi.",
       "passwordHint": "You can ask for a password in Settings, under Security.",
