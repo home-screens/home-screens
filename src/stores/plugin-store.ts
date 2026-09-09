@@ -13,8 +13,17 @@ import { logger } from '@/lib/logger';
 const log = logger('plugin-store');
 
 interface PluginState {
-  /** True until initial plugin loading completes */
+  /** True while a load pass is running (the first one and every reload after) */
   loading: boolean;
+  /**
+   * True once any load pass has finished, successfully or not.
+   *
+   * `loading` alone cannot tell "the tab has no plugins yet" from "the plugin
+   * set is being swapped": both are true during a reload. Surfaces that blank
+   * themselves while plugins load need the first meaning only, blanking on a
+   * reload tears down whatever the user was doing to trigger it.
+   */
+  hasLoaded: boolean;
   /** Loaded plugins keyed by moduleType (e.g. "plugin:weather-radar") */
   plugins: Map<string, LoadedPlugin>;
   /** Load failures keyed by pluginId */
@@ -68,6 +77,7 @@ let reloadPending = false;
 
 export const usePluginStore = create<PluginState>((set, get) => ({
   loading: true,
+  hasLoaded: false,
   plugins: new Map(),
   errors: new Map(),
   pluginSettings: new Map(),
@@ -96,7 +106,7 @@ export const usePluginStore = create<PluginState>((set, get) => ({
         log.error('Failed to load plugins:', err);
         return false;
       } finally {
-        set({ loading: false });
+        set({ loading: false, hasLoaded: true });
         loadPromise = null;
       }
     })();

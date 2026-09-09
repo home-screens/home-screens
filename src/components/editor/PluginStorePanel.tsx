@@ -218,6 +218,12 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
             <button
               key={tabId}
               type="button"
+              // The active tab was a background colour and nothing else: no
+              // state for assistive tech, and nothing a test can wait on. That
+              // matters here because an install/uninstall remounts this panel
+              // and snaps it back to Browse, so "did my click land?" is a real
+              // question with a real answer only once it is published.
+              aria-pressed={tab === tabId}
               onClick={() => setTab(tabId)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                 tab === tabId

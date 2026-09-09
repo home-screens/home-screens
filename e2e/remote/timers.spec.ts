@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { postHeartbeat, putConfig } from '../helpers/api';
+import { confirmSheet } from '../helpers/remote';
 import { baseConfig } from '../helpers/config-fixtures';
 import type { MaterializedTimerSession, Routine } from '@/types/timers';
 
@@ -156,9 +157,8 @@ test('starting a second timer asks before replacing the running one', async ({ p
   await page.getByRole('button', { name: '1 min', exact: true }).click();
   await expect(page.getByText('A timer is already running. Starting a new one will stop it.')).toBeVisible();
 
-  // The sheet's confirm is also labelled "Start"; it renders after the quick
-  // section's own Start button.
-  await page.getByRole('button', { name: 'Start', exact: true }).last().click();
+  // The sheet's confirm is also labelled "Start"; scope to the sheet.
+  await confirmSheet(page).getByRole('button', { name: 'Start', exact: true }).click();
 
   await expect
     .poll(async () => (await getSession(request))?.steps[0].durationSec)

@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, seedMeals } from '../helpers/api';
+import { confirmSheet } from '../helpers/remote';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 
@@ -210,12 +211,10 @@ test('deleting a saved meal removes it and clears its planned slots', async ({ p
   await expect(page.getByText('Edit Meal')).toBeVisible();
 
   // The overlay footer's "Delete Meal" opens a confirm sheet whose confirm
-  // button carries the same label. Before the sheet mounts there's exactly one
-  // such button (the overlay's); once the sheet appears there are two, and the
-  // sheet's — rendered after the overlay in the DOM — is the last.
+  // button carries the same label; scope to the sheet to tell them apart.
   await page.getByRole('button', { name: 'Delete Meal', exact: true }).click();
   await expect(page.getByText('Delete "Sloppy Joes"?')).toBeVisible();
-  await page.getByRole('button', { name: 'Delete Meal', exact: true }).last().click();
+  await confirmSheet(page).getByRole('button', { name: 'Delete Meal', exact: true }).click();
 
   await expect
     .poll(async () => {

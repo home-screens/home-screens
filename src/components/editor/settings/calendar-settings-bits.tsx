@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useCalendarFetchQuery } from '../useCalendarFetchQuery';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
@@ -79,7 +79,14 @@ export type SourceHealthMap = Map<string, CalendarSourceStatus>;
  */
 export function useCalendarSourceHealth(): { health: SourceHealthMap; recordSourceHealth: (status: CalendarSourceStatus) => void } {
   const [health, setHealth] = useState<SourceHealthMap>(() => new Map());
+  // Statuses this page probed itself, stamped with when the probe landed.
+  // `apply` below replaces the whole map, so without this a feed added while
+  // the mount-time fetch was still in flight showed its "Updated" badge and
+  // then lost it the moment that older answer arrived. Only a fetch that
+  // STARTED before the probe is overruled, a later one is genuinely newer.
+  const recordedRef = useRef(new Map<string, { at: number; status: CalendarSourceStatus }>());
   const recordSourceHealth = useCallback((status: CalendarSourceStatus) => {
+    recordedRef.current.set(status.id, { at: Date.now(), status });
     setHealth((prev) => new Map(prev).set(status.id, status));
   }, []);
   // Widest window any display on the hub renders, for the cold-start fallback
@@ -89,9 +96,14 @@ export function useCalendarSourceHealth(): { health: SourceHealthMap; recordSour
 
   useEffect(() => {
     const controller = new AbortController();
+    const startedAt = Date.now();
     const apply = (list: CalendarSourceStatus[]) => {
       if (controller.signal.aborted) return;
-      setHealth(new Map(list.map((s) => [s.id, s])));
+      const next = new Map(list.map((s) => [s.id, s] as const));
+      for (const [id, recorded] of recordedRef.current) {
+        if (recorded.at > startedAt) next.set(id, recorded.status);
+      }
+      setHealth(next);
     };
     (async () => {
       try {

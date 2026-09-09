@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { putConfig, seedChores } from '../helpers/api';
+import { confirmSheet } from '../helpers/remote';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
 
 /**
@@ -134,8 +135,8 @@ test('admin deletes a member and it round-trips', async ({ page, request }) => {
   await page.getByRole('button', { name: 'Edit Avery' }).click();
   await page.getByRole('button', { name: 'Delete Member' }).click();
   // The overlay's delete button and the ConfirmSheet's confirm both read
-  // "Delete Member"; the sheet renders last.
-  await page.getByRole('button', { name: 'Delete Member' }).last().click();
+  // "Delete Member", scope to the sheet so the click waits for it.
+  await confirmSheet(page).getByRole('button', { name: 'Delete Member' }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).members.length)
@@ -184,7 +185,7 @@ test('admin deletes a chore and it round-trips', async ({ page, request }) => {
 
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
   await page.getByRole('button', { name: 'Delete Chore' }).click();
-  await page.getByRole('button', { name: 'Delete Chore' }).last().click(); // ConfirmSheet
+  await confirmSheet(page).getByRole('button', { name: 'Delete Chore' }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).chores.length)
@@ -301,8 +302,7 @@ test('admin redeems a reward and it records a redemption', async ({ page, reques
   // Redeem is the default rewards sub-view; the reward row is a button named
   // for the reward, enabled because the balance (5) covers the cost (2).
   await page.getByRole('button', { name: /Movie Night/ }).click();
-  // ConfirmSheet confirm is the last "Redeem …" button.
-  await page.getByRole('button', { name: /Redeem/ }).last().click();
+  await confirmSheet(page).getByRole('button', { name: /Redeem/ }).click();
 
   await expect
     .poll(async () => {

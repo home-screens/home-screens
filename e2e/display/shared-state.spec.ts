@@ -339,7 +339,11 @@ test('the Text module resolves state tokens, filters, and template variables, en
  * purge holds the last value first (routine restarts must not blink).
  */
 test('uninstalling a plugin purges its shared-state keys on reload; the gated module hides after the grace window', async ({ page, request, sandboxDir }) => {
-  test.setTimeout(50_000);
+  // 22s of the budget is real waiting the test cannot compress: 4s for the
+  // display's first plugin-hash poll, up to 3s for the reload poll, then the
+  // 15s tombstone grace. Nothing is asserted mid-grace, so the bound below is
+  // "eventually gone", not a race the timing pins down.
+  test.setTimeout(70_000);
   const gate: ModuleVisibility = {
     conditions: [{ kind: 'state', sourceKey: FIXTURE_STATE_KEY, equals: 'on' }],
     whenUnknown: 'hide',
@@ -363,7 +367,7 @@ test('uninstalling a plugin purges its shared-state keys on reload; the gated mo
   // Through the grace window the gate still reads 'on', so the module stays.
   // Once the tombstone expires the key is unknown and whenUnknown:hide drops
   // it — the reload (≤3s) + grace (15s) fits comfortably under this bound.
-  await expect(page.locator('[data-module-id="gated"]')).toHaveCount(0, { timeout: 25_000 });
+  await expect(page.locator('[data-module-id="gated"]')).toHaveCount(0, { timeout: 40_000 });
 });
 
 /**

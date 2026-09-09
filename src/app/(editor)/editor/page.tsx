@@ -79,6 +79,7 @@ export default function EditorPage() {
   );
 
   const pluginLoading = usePluginStore((s) => s.loading);
+  const pluginsEverLoaded = usePluginStore((s) => s.hasLoaded);
 
   useEffect(() => {
     // Zustand is a module-level singleton, so if the user is navigating
@@ -204,7 +205,13 @@ export default function EditorPage() {
     if (selectedModuleId) setPanelCollapsed(false);
   }, [selectedModuleId, setPanelCollapsed]);
 
-  if (!config || pluginLoading) {
+  // Only the FIRST plugin load blanks the editor. A reload, which every
+  // install, uninstall, enable and disable in the plugin panel triggers, used
+  // to hit this too, unmounting the whole page (the panel with it) and bringing
+  // it back with the panel reset to its Browse tab. A module whose plugin is
+  // momentarily unregistered renders its own placeholder (DraggableModule), so
+  // there is nothing to hide during a swap.
+  if (!config || (pluginLoading && !pluginsEverLoaded)) {
     return (
       <div className="h-screen flex items-center justify-center text-hs-text-faint">
         {t('page.loading')}

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig, seedMeals } from '../helpers/api';
+import { getConfig, putConfig, seedChores, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen, textModule, choreChartModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, selectModule, moduleConfig } from '../helpers/editor';
@@ -166,6 +166,41 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
         return (data.members as Array<{ name: string }>).map((m) => m.name);
       })
       .toContain('Robin');
+  });
+
+  test('nothing is editable until the chore data lands', async ({ page, request }) => {
+    // The modal starts with empty members/chores and REPLACES them when its
+    // load resolves, while `useDebouncedSave` stays dormant until then. So a
+    // member added in that window was discarded by the load and never saved,
+    // silently, on a slow hub. Holding the columns back is the fix; this test
+    // holds the load open to prove the window is closed.
+    await seedChores(request);
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [choreChartModule()])],
+    }));
+
+    let releaseLoad = () => {};
+    const loadHeld = new Promise<void>((resolve) => { releaseLoad = resolve; });
+    await page.route('**/api/chores/data', async (route) => {
+      if (route.request().method() === 'GET') await loadHeld;
+      return route.continue();
+    });
+
+    await page.goto('/editor');
+    await expect(page.getByTestId('editor-canvas')).toBeVisible();
+    await page.locator('[data-module-id="chore-chart-1"]').click();
+    await page.getByRole('button', { name: 'Edit Chore Chart' }).click();
+    await expect(page.getByRole('heading', { name: 'Chore Chart', exact: true })).toBeVisible();
+
+    // Open, titled, and inert: no add controls to type into yet.
+    await expect(page.getByRole('button', { name: 'Add Member' })).toHaveCount(0);
+
+    releaseLoad();
+    await expect(page.getByRole('button', { name: 'Add Member' })).toBeVisible();
+    // The seeded chart is what appeared, i.e. the columns waited for real data
+    // rather than rendering an empty chart first (the header counts what the
+    // columns are showing).
+    await expect(page.getByText('1 members · 1 chores')).toBeVisible();
   });
 });
 

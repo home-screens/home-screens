@@ -89,6 +89,30 @@ async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[
   await fx.expect(display.module(type), page);
 }
 
+/**
+ * `largestType` twice in a row with the same answer.
+ *
+ * The type follows the box through a ResizeObserver callback, so there is a
+ * frame between "the card is 900px now" and "the text is sized for 900px". A
+ * single read can land in it, and the fill polls below cannot catch that: they
+ * divide the stale font size by the NEW box height, and the floor they check
+ * (4%) is low enough for the stale value to clear it. That is exactly how
+ * word-of-day once reported 44.8px in the 900px box and 52.1px in the 220px
+ * one, the small box's reading was the settled one, the large box's was not.
+ */
+async function settledType(page: Page, type: ModuleType): Promise<{ max: number; boxH: number }> {
+  let previous = await largestType(page, type);
+  let current = previous;
+  await expect
+    .poll(async () => {
+      previous = current;
+      current = await largestType(page, type);
+      return current.max === previous.max && current.boxH === previous.boxH && current.boxH > 0;
+    }, { message: `${type} never stopped resizing its type` })
+    .toBe(true);
+  return current;
+}
+
 for (const type of AUTOSIZED_MODULES) {
   test(`${type} sizes its type for its box`, async ({ page, request }) => {
     await renderAt(page, request, type, SMALL);
@@ -100,7 +124,7 @@ for (const type of AUTOSIZED_MODULES) {
         return boxH > 0 ? max / boxH : 0;
       }, { message: `${type} type is lost in a ${SMALL.w}x${SMALL.h} box` })
       .toBeGreaterThanOrEqual(AUTOSIZE_EXEMPTIONS[type]?.fill ? 0 : MIN_FILL);
-    const small = await largestType(page, type);
+    const small = await settledType(page, type);
 
     await renderAt(page, request, type, LARGE);
     const exempt = AUTOSIZE_EXEMPTIONS[type] ?? {};
@@ -112,7 +136,7 @@ for (const type of AUTOSIZED_MODULES) {
         }, { message: `${type} type is lost in a ${LARGE.w}x${LARGE.h} box` })
         .toBeGreaterThanOrEqual(MIN_FILL);
     }
-    const large = await largestType(page, type);
+    const large = await settledType(page, type);
 
     if (exempt.growth) {
       expect(large.max, `${type} is listed as fixed-size (${exempt.growth}) but grew with its box`)

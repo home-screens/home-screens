@@ -17,15 +17,21 @@ export default defineConfig({
   // alone on one worker for the last five minutes of every full run.
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  // One retry locally too, for now: a one-off failure still passes the run
-  // and is reported as flaky instead of aborting a release, and the retry
-  // records a trace (see `trace` below) to diagnose it from. Drop back to
-  // CI-only once the remaining flakes are found.
-  retries: 1,
+  // CI only. The local retry was a stopgap while the flakes were unknown; they
+  // turned out to be two product races, two tests with no slack in their
+  // budget, and a laptop that was sleeping through its own test runs (the
+  // sleeps cost 22-28 tests a run, in bursts). So a local failure is a real
+  // failure again, with one caveat worth knowing before you debug one: if the
+  // failures arrive in a burst at one point in the run and pass in isolation,
+  // check `pmset -g log` for a 'Clamshell Sleep' first. A 27s nap kills whatever
+  // every worker had in flight, and no test can defend against that.
+  retries: process.env.CI ? 1 : 0,
   // Local: scale to the machine (each worker is a full next-server + browser,
   // so a hardcoded count either wastes cores on a big box or thrashes a small
-  // one) — leave a couple cores free for the OS/editor. CI runners stay fixed
-  // since the shard count already tunes total parallelism there.
+  // one), leave a couple cores free for the OS/editor. Measured on a 14-core
+  // Mac with the machine kept awake: 12 workers 3.3 min, 6 workers 8.0 min.
+  // CI runners stay fixed since the shard count already tunes total
+  // parallelism there.
   workers: process.env.CI ? 2 : Math.max(2, os.cpus().length - 2),
   timeout: 30_000,
   expect: { timeout: 10_000 }, // display live-update assertions ride a 3s config poll

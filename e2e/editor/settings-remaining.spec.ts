@@ -42,6 +42,43 @@ test('Defaults › Calendar: adding an iCal feed checks the link, then persists 
   await expect(page.getByTestId('ical-feed-block').locator('[data-source-health="ok"]')).toContainText('Updated');
 });
 
+test('Defaults › Calendar: a slower health fetch cannot wipe the badge the link check just earned', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.route('**/api/calendar/check', (route) => route.fulfill({ json: { ok: true, eventCount: 3 } }));
+
+  // The page's own health read, held open until the feed has been added and
+  // badged. It answers with a list that predates the feed and calls it
+  // failing, the state of the world BEFORE the check, arriving after it.
+  let releaseStatus = () => {};
+  const statusHeld = new Promise<void>((resolve) => { releaseStatus = resolve; });
+  let servedStatus = false;
+  await page.route('**/api/calendar/status', async (route) => {
+    await statusHeld;
+    const sources = (await getConfig(request)).settings.calendar.icalSources ?? [];
+    servedStatus = true;
+    return route.fulfill({
+      json: { sourceStatus: sources.map((s) => ({ id: s.id, name: s.name, ok: false, fetchedAt: null, error: 'stale' })) },
+    });
+  });
+
+  await page.goto('/editor/settings?section=defaults&page=calendar');
+  await page.getByRole('button', { name: '+ Add Feed' }).click();
+  await autosaved(page, async () => {
+    await page.getByPlaceholder('Feed name (e.g. Work, Sports)').fill('Work');
+    await page.getByPlaceholder('https://example.com/calendar.ics').fill('https://example.com/feed.ics');
+    await page.getByRole('button', { name: 'Add', exact: true }).click();
+  });
+  const badge = page.getByTestId('ical-feed-block').locator('[data-source-health="ok"]');
+  await expect(badge).toContainText('Updated');
+
+  releaseStatus();
+  await expect.poll(() => servedStatus).toBe(true);
+  // Still "Updated": the check is the newer fact, and the answer to a question
+  // asked before it cannot overwrite it.
+  await expect(badge).toContainText('Updated');
+  await expect(page.getByTestId('ical-feed-block').locator('[data-source-health="failing"]')).toHaveCount(0);
+});
+
 test('Defaults › Calendar: a link that is not a calendar stays in the form with the reason', async ({ page, request }) => {
   await putConfig(request, baseConfig());
   await page.route('**/api/calendar/check', (route) =>

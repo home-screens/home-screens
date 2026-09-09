@@ -895,6 +895,7 @@ export default function ChoreChartModal({
   onClose,
 }: ChoreChartModalProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const [members, setMembers] = useState<ChoreMember[]>([]);
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -1009,6 +1010,17 @@ export default function ChoreChartModal({
           {t('common.saveError')}
         </div>
       )}
+      {/* Nothing is editable until the store is in hand. The columns start
+          empty, and the load below replaces whatever is in state when it
+          lands, so a member typed into an "empty" chart before then was both
+          discarded by the load AND never saved (the debounced saver is
+          dormant while `loaded` is false). An error still renders the columns:
+          the banner above already says the changes won't be saved. */}
+      {!loaded && !loadError ? (
+        <div className="flex flex-1 min-h-0 items-center justify-center text-sm text-hs-text-faint">
+          {tCore('loading')}
+        </div>
+      ) : (
       <div className="flex flex-1 min-h-0">
           <MemberColumn
             members={members}
@@ -1044,7 +1056,7 @@ export default function ChoreChartModal({
             setEditingChoreId={setEditingChoreId}
           />
         </div>
-
+      )}
     </CRUDModalShell>
   );
 }

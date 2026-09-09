@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext } from '@playwright/test';
 import { putConfig } from '../helpers/api';
+import { confirmSheet } from '../helpers/remote';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
 
 /** Local YYYY-MM-DD for today, matching how the chore store keys completions. */
@@ -124,8 +125,7 @@ test('kid redeems a reward and the balance decrements with a history entry', asy
     (r) => r.url().includes('/api/rewards') && r.request().method() === 'POST' && r.ok(),
   );
   await page.getByRole('button', { name: /Movie Night/ }).click();
-  // The ConfirmSheet's "Redeem — 2 tickets" button is the last Redeem match.
-  await page.getByRole('button', { name: /Redeem/ }).last().click();
+  await confirmSheet(page).getByRole('button', { name: /Redeem/ }).click();
   await redeemed;
 
   await expect

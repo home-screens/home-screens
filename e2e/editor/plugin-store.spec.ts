@@ -200,8 +200,22 @@ test.beforeEach(async ({ sandboxDir }) => {
  * it afterward; this helper clicks the always-present Installed tab button and
  * auto-waits through the remount.
  */
+/**
+ * Select the Installed tab and make sure the selection stuck.
+ *
+ * An install or uninstall reloads the plugin store, which remounts this panel
+ * with its tab state back on Browse. A single click can land just before that
+ * remount and be thrown away, leaving the spec waiting on Installed content
+ * that is not on screen. So click until the tab reports itself pressed.
+ */
 async function selectInstalledTab(dialog: ReturnType<Page['getByRole']>): Promise<void> {
-  await dialog.getByRole('button', { name: 'Installed' }).click();
+  const tab = dialog.getByRole('button', { name: 'Installed', exact: true });
+  await expect
+    .poll(async () => {
+      if ((await tab.getAttribute('aria-pressed')) !== 'true') await tab.click();
+      return tab.getAttribute('aria-pressed');
+    }, { message: 'the Installed tab never stayed selected' })
+    .toBe('true');
 }
 
 // ---------------------------------------------------------------------------
@@ -286,8 +300,12 @@ test('installing from a URL downloads a real tarball and lists it as an installe
     await modal.getByRole('button', { name: 'Install', exact: true }).click();
     await installedResponse;
 
-    // The successful install fires a plugin reload, so the editor flashes its
-    // loader and the panel remounts on Browse — re-select Installed to see it.
+    // The modal stays up on its post-install summary until it is dismissed
+    // (it is the only place the installed version and checksum are shown), so
+    // close it before touching the panel underneath.
+    await modal.getByRole('button', { name: 'Done', exact: true }).click();
+    await expect(modal).toBeHidden();
+
     await selectInstalledTab(dialog);
     await expect(dialog.getByText(FIXTURE_PLUGIN_ID)).toBeVisible();
     await expect(dialog.getByText('External')).toBeVisible();

@@ -44,7 +44,16 @@ export default function ConfirmSheet({
       }}
       onClick={onCancel}
     >
+      {/* A real dialog role, so the confirm button can be addressed as "the
+          button inside the sheet" rather than "the last button with this
+          label". The trigger and the confirm deliberately share their
+          wording, and the label-only form silently resolves to the trigger
+          during the render that opens the sheet. */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        data-testid="confirm-sheet"
         style={{
           width: '100%',
           background: 'var(--hs-bg-panel)',

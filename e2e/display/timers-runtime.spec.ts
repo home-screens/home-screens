@@ -224,6 +224,9 @@ test('a session targeting other displays never takes over this one', async ({ pa
 });
 
 test('pausing from the hub freezes the countdown on the display; resuming restarts it', async ({ page, request }) => {
+  // Real clock (see below), so the happy path alone spends ~20s waiting on 3s
+  // session polls plus a 3s freeze check, too close to the default 30s.
+  test.setTimeout(60_000);
   // NOT converted to page.clock: resume shifts the step anchor by the pause
   // duration as the SERVER's real clock measured it (pause/resume are plain
   // HTTP POSTs, timestamped server-side). Faking only the client's clock would

@@ -53,7 +53,15 @@ export default function FormOverlay({
   };
 
   return (
+    // A real dialog role: the overlay's submit button and the trigger that
+    // opened it share their wording ("Add Member", "Add Chore"), so anything
+    // addressing the submit by label alone resolves to the trigger during the
+    // render that opens the overlay.
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      data-testid="form-overlay"
       style={{
         position: 'fixed',
         inset: 0,
