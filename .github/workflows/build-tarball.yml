@@ -92,6 +92,28 @@ jobs:
           cp -r scripts .next/standalone/scripts
           cp .node-version .next/standalone/.node-version
 
+          # Drop the trees the file tracer swept in but the server never
+          # reads. Next decides what lands in .next/standalone by statically
+          # analysing fs calls, and this app resolves data/, public/, scripts/
+          # and src/translations/ from process.cwd() at runtime. A path the
+          # tracer cannot fold at build time becomes a wildcard under the
+          # project root, so whole trees ride along: on 2026-09-10 that was
+          # website/, docs/, e2e/ and all of src/, 20MB compressed, and the
+          # nightly died on the size gate below. next.config.mjs's
+          # outputFileTracingExcludes cannot do this job because Next skips
+          # collect-build-traces entirely for Turbopack builds. Everything
+          # removed here is either dev-only or copied in explicitly above.
+          rm -rf .next/standalone/{website,docs,e2e,RELEASE_NOTES,infrastructure,image-creation}
+          if [ -d .next/standalone/src ]; then
+            find .next/standalone/src -mindepth 1 -maxdepth 1 ! -name translations -exec rm -rf {} +
+          fi
+          # src/translations is a real runtime dependency: src/i18n/file-reader.ts
+          # reads it for /api/i18n and for server-rendered locale blobs.
+          if [ ! -f .next/standalone/src/translations/en-US/core.json ]; then
+            echo "::error::Pruned too much: src/translations is missing from the standalone output"
+            exit 1
+          fi
+
           # Bundle the config-check CLI so `npm run config:check` works on
           # installs with no dev dependencies or src/ tree. The launcher
           # (scripts/check-config.mjs) prefers this artifact when present.

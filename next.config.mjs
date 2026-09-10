@@ -42,23 +42,27 @@ const nextConfig = {
     // excludes, so this wins.
     '/api/calendars': ['./node_modules/googleapis/build/src/apis/docs/**/*'],
   },
-  // The auto-generated `_not-found` page has no custom not-found.tsx to
-  // anchor its trace, so Next's file tracer falls back to sweeping the
-  // entire project root into the standalone output — source, tests, docs,
-  // the marketing site, historical release notes, none of which the server
-  // reads from disk at runtime. Only src/translations/*.json is a real
-  // runtime dependency (src/i18n/file-reader.ts reads it for /api/i18n), so
+  // Next's file tracer sweeps trees the server never reads from disk into
+  // the standalone output: source, tests, docs, the marketing site,
+  // historical release notes. Only src/translations/*.json is a real runtime
+  // dependency (src/i18n/file-reader.ts reads it for /api/i18n), so
   // everything else under src/ is safe to drop.
   //
-  // CAUTION: the tracer matches these globs as unanchored substrings
-  // (picomatch contains: true), so a pattern like './docs/**' also deletes
-  // any node_modules path containing a 'docs/' segment — that stripped the
-  // Google Docs API out of googleapis and broke calendar in v1.11.0-rc.1
-  // (countered by the googleapis entry in outputFileTracingIncludes above).
-  // Before adding a pattern here, check no dependency ships runtime code
-  // under a matching path segment, and rebuild + verify .next/standalone.
-  // The '/**' key (all routes) also avoids Next's internal 'next-server'
-  // entry, which a bare '*' key would additionally match.
+  // INERT ON THIS BUILD: Next 16 skips collect-build-traces entirely for
+  // Turbopack builds, and that module is the only thing that reads these
+  // two options, so neither the excludes below nor the includes above have
+  // any effect on `next build`. The tarball is pruned in
+  // .github/workflows/build-tarball.yml instead. Kept here so the intent
+  // survives if the Turbopack tracer ever grows the same hook.
+  //
+  // CAUTION if it ever goes live again: the tracer matches these globs as
+  // unanchored substrings (picomatch contains: true), so a pattern like
+  // './docs/**' also deletes any node_modules path containing a 'docs/'
+  // segment. That stripped the Google Docs API out of googleapis and broke
+  // calendar in v1.11.0-rc.1 (countered by the googleapis entry in
+  // outputFileTracingIncludes above). The '/**' key (all routes) also
+  // avoids Next's internal 'next-server' entry, which a bare '*' key would
+  // additionally match.
   outputFileTracingExcludes: {
     '/**': [
       './src/app/**',
