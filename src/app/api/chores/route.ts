@@ -5,9 +5,10 @@ import { publicErrorResponse, parseJsonBody, isValidISODate } from '@/lib/api-ut
 import { readChoreData } from '@/lib/chore-data';
 import { readFamilyData } from '@/lib/family-data';
 import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
-import { creditPoints, debitPointsExact } from '@/lib/reward-data';
+import { commitDataTransaction, type TransactionChange } from '@/lib/data-transaction';
+import { planPointsMove } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
-import { updateCompletionsAtomic } from '@/lib/chore-completion-data';
+import { planCompletionsUpdate, updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { CHORE_HISTORY_DAYS } from '@/components/modules/chore-chart/types';
 
 export const dynamic = 'force-dynamic';
@@ -99,20 +100,20 @@ export const POST = async (request: NextRequest) => {
   // directional no-ops — a repeated "I finished the dishes" from a voice
   // caller must never flip the chore back off or move points twice.
   let changed = false;
-  const result = await updateCompletionsAtomic((data) => {
+  const completionsPlan = await planCompletionsUpdate((data) => {
     const existing = data.completions.findIndex(
       (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
     );
 
     // Directional requests are idempotent: already in the requested state →
-    // return the same reference, which updateAtomic treats as "skip the write".
+    // return the same reference, which planUpdate reports as "no change".
     if (direction === 'complete' && existing >= 0) return data;
     if (direction === 'uncomplete' && existing < 0) return data;
     changed = true;
 
-    // Return a new object so updateAtomic's reference-equality check sees a
-    // change and persists the write. Mutating `data` in-place would look like
-    // a no-op to the store.
+    // Return a new object so the reference-equality check sees a change and
+    // the plan carries an after-image. Mutating `data` in-place would look
+    // like a no-op to the store.
     const completions =
       existing >= 0
         ? data.completions.filter((_, i) => i !== existing)
@@ -121,33 +122,37 @@ export const POST = async (request: NextRequest) => {
     return { completions };
   });
 
+  const result = completionsPlan.result;
   const wasAdded = result.completions.some(
     (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
   );
 
-  // Credit on add, exact-debit on remove. Awaited so the response reflects the
-  // post-write state and surfaces the warning if balance went negative.
+  // Credit on add, exact-debit on remove. Both files are PLANNED here and
+  // published together below: they were two independent durable writes, so a
+  // power cut between them recorded the chore and credited nothing.
   const choreData = await choreDataPromise;
   const chore = choreData.chores.find((c) => c.id === choreId);
   let warning: string | undefined;
-  // Capture the post-write RewardData from the mutation itself rather than
-  // re-reading from disk. Both creditPoints and debitPointsExact resolve only
-  // AFTER their write commits through reward-data.ts's shared opQueue, so the
-  // returned snapshot is race-free — a concurrent toggle from another kid
-  // can't interleave between the write and our read.
+  // The post-write RewardData comes from the plan itself rather than a re-read.
+  // Nothing can interleave: the whole handler holds the cross-file coordinator,
+  // which is also what lets the two plans be committed as one unit.
   let rewards: RewardData | undefined;
+  const changes: TransactionChange[] = [];
+  if (completionsPlan.change) changes.push(completionsPlan.change);
+
   if (changed && chore && chore.points > 0) {
-    if (wasAdded) {
-      rewards = await creditPoints(memberId, chore.points);
-    } else {
-      const debitResult = await debitPointsExact(memberId, chore.points);
-      rewards = debitResult.data;
-      if (debitResult.wentNegative) {
-        const memberName = family.members.find((m) => m.id === memberId)?.name ?? 'They';
-        warning = `${memberName}'s balance is now ${debitResult.balance} — they'll need to earn ${Math.abs(debitResult.balance)} points before redeeming again.`;
-      }
+    const move = await planPointsMove(memberId, wasAdded ? chore.points : -chore.points);
+    if (move.change) changes.push(move.change);
+    rewards = move.data;
+    if (!wasAdded && move.wentNegative) {
+      const memberName = family.members.find((m) => m.id === memberId)?.name ?? 'They';
+      warning = `${memberName}'s balance is now ${move.balance} — they'll need to earn ${Math.abs(move.balance)} points before redeeming again.`;
     }
   }
+
+  // One journal commit: the completion and the points it moved both land, or
+  // neither does. Recovery replays it at the start of the next transaction.
+  if (changes.length) await commitDataTransaction({ kind: 'chore-toggle', changes });
 
   // When no credit/debit happened (0-point chore or chore-not-found) we omit
   // `rewards` — balances didn't change, so the client has no reason to refresh

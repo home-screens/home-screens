@@ -17,6 +17,18 @@ vi.mock('@/lib/config', async (importOriginal) => {
   };
 });
 
+// The cached read is the same document here; the route's own caching choice
+// is not what these tests are about, and a module-level TTL cache would leak
+// between cases.
+vi.mock('@/lib/config-cache', () => ({
+  readConfigCached: async () => {
+    const { readConfig } = await import('@/lib/config');
+    return readConfig();
+  },
+  invalidateConfigReadCache: vi.fn(),
+  __resetConfigReadCacheForTests: vi.fn(),
+}));
+
 vi.mock('@/lib/kiosk', () => ({
   syncKioskConf: vi.fn().mockResolvedValue(undefined),
   applyDisplaySettings: vi.fn().mockResolvedValue(true),
@@ -76,6 +88,85 @@ describe('GET /api/config', () => {
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(json.error).toBeDefined();
+  });
+});
+
+/* ─── Per-display scoping ─────────────────────────
+ * A wall polls this every 3 seconds. It used to receive every display's
+ * screens and filter client-side, so a 4-screen display downloaded and diffed
+ * a 41-screen sibling's layout forever.
+ */
+
+const multiDisplayConfig = {
+  screens: [],
+  settings: { displayWidth: 1080, displayHeight: 1920 },
+  displays: [
+    {
+      id: 'kitchen',
+      name: 'Kitchen',
+      screens: [{ id: 'k1', name: 'Kitchen screen', modules: [{ id: 'm1', type: 'clock' }] }],
+      displayWidth: 1080,
+    },
+    {
+      id: 'office',
+      name: 'Office',
+      screens: [
+        { id: 'o1', name: 'Office one', modules: [] },
+        { id: 'o2', name: 'Office two', modules: [] },
+      ],
+    },
+  ],
+};
+
+describe('GET /api/config?display=', () => {
+  beforeEach(() => {
+    vi.mocked(readConfig).mockResolvedValue(multiDisplayConfig as never);
+  });
+
+  it('sends the requested display in full', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config?display=kitchen'));
+    const json = await res.json();
+
+    const kitchen = json.displays.find((d: { id: string }) => d.id === 'kitchen');
+    expect(kitchen.screens).toHaveLength(1);
+    expect(kitchen.screens[0].modules).toHaveLength(1);
+    expect(kitchen.displayWidth).toBe(1080);
+  });
+
+  it('trims every other display to the id and name display-control needs', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config?display=kitchen'));
+    const json = await res.json();
+
+    // Still enumerable as a target...
+    expect(json.displays.map((d: { id: string }) => d.id)).toEqual(['kitchen', 'office']);
+    const office = json.displays.find((d: { id: string }) => d.id === 'office');
+    expect(office.name).toBe('Office');
+    // ...but its layout is not on the wire.
+    expect(office.screens).toEqual([]);
+  });
+
+  it('still sends the whole document\'s revision, not the scoped body\'s', async () => {
+    // The editor compares its PUT against this header. A hash over a scoped
+    // body would never match the document a save is applied to.
+    const res = await GET(new NextRequest('http://localhost/api/config?display=kitchen'));
+    expect(res.headers.get(CONFIG_REVISION_HEADER)).toBe(
+      configRevision(multiDisplayConfig as never),
+    );
+  });
+
+  it('leaves no matching display for an unknown id, so the client self-heals', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config?display=nope'));
+    const json = await res.json();
+
+    expect(json.displays.find((d: { id: string }) => d.id === 'nope')).toBeUndefined();
+    expect(json.displays.every((d: { screens: unknown[] }) => d.screens.length === 0)).toBe(true);
+  });
+
+  it('returns the untouched document when no display is asked for', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config'));
+    const json = await res.json();
+
+    expect(json.displays).toEqual(multiDisplayConfig.displays);
   });
 });
 

@@ -1,4 +1,4 @@
-import { onDataTransactionCommit, withDataTransaction } from './data-transaction';
+import { durableWriteFile, onDataTransactionCommit, withDataTransaction } from './data-transaction';
 /**
  * Plugin auth engine: token storage, OAuth2 flows, and provider adapters.
  *
@@ -83,9 +83,18 @@ export async function readPluginTokensRaw(pluginId: string): Promise<PluginToken
 // commits while the generation it started under is still current. The
 // json-store write queue cannot provide this: it orders the file writes, not
 // the stale read that produced one.
+// Only a journal that wrote a plugin's own tokens file bumps that plugin: a
+// chore toggle or a list edit commits a journal too, and bumping every plugin
+// on those would throw away a refresh that finished underneath them.
 const tokenGenerations = new Map<string, number>();
-onDataTransactionCommit(() => {
-  for (const id of tokenStores.keys()) tokenGenerations.set(id, (tokenGenerations.get(id) ?? 0) + 1);
+const tokensDir = path.normalize(TOKENS_DIR);
+onDataTransactionCommit((paths) => {
+  for (const changed of paths) {
+    const normalized = path.normalize(changed);
+    if (path.dirname(normalized) !== tokensDir || path.extname(normalized) !== '.json') continue;
+    const id = path.basename(normalized, '.json');
+    tokenGenerations.set(id, (tokenGenerations.get(id) ?? 0) + 1);
+  }
 });
 
 function tokenGeneration(pluginId: string): number {
@@ -134,11 +143,15 @@ export async function savePendingAuth(
   ttlMs: number = PENDING_TTL_MS,
 ): Promise<void> {
   const filePath = pendingPath(pluginId);
-  await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-  const tmp = filePath + '.tmp';
-  await fs.writeFile(tmp, JSON.stringify({ ...state, expiresAt: Date.now() + ttlMs }), 'utf-8');
-  await fs.chmod(tmp, 0o600);
-  await fs.rename(tmp, filePath);
+  // durableWriteFile rather than a hand-rolled temp+rename: it fsyncs the file
+  // and the directory entry, and its temp name is pid+uuid so two auth starts
+  // for the same plugin cannot collide on a shared `.tmp`.
+  await durableWriteFile(
+    filePath,
+    JSON.stringify({ ...state, expiresAt: Date.now() + ttlMs }),
+    0o600,
+    0o700,
+  );
 }
 
 /** Load pending state; expired or missing state returns null (and is cleaned up). */
@@ -188,17 +201,26 @@ async function getStateSigningSecret(): Promise<string> {
   return fileSecretPromise;
 }
 
+const STATE_SECRET_BYTES = 32;
+/** A complete secret is exactly `STATE_SECRET_BYTES` of lowercase hex. */
+const STATE_SECRET_RE = new RegExp(`^[0-9a-f]{${STATE_SECRET_BYTES * 2}}$`);
+
 async function readOrCreateFileSecret(): Promise<string> {
   const filePath = path.join(process.cwd(), STATE_SECRET_FILE);
   try {
     const existing = (await fs.readFile(filePath, 'utf-8')).trim();
-    if (existing) return existing;
+    // A truncated secret is worse than a missing one: it reads back fine, so
+    // every callback then fails timingSafeEqual with nothing to indicate why.
+    // Anything that is not a whole secret is treated as absent and regenerated,
+    // which costs at most the auth flows already in flight.
+    if (STATE_SECRET_RE.test(existing)) return existing;
   } catch {
     // fall through to generation
   }
-  const secret = crypto.randomBytes(32).toString('hex');
-  await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-  await fs.writeFile(filePath, secret, { encoding: 'utf-8', mode: 0o600 });
+  const secret = crypto.randomBytes(STATE_SECRET_BYTES).toString('hex');
+  // Durable write: the old plain writeFile truncated in place, so losing power
+  // mid-write left exactly the partial secret described above.
+  await durableWriteFile(filePath, secret, 0o600, 0o700);
   return secret;
 }
 

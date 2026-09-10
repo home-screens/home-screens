@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { audit, writeQueue } from '../audit';
+import { audit, auditProxyDenied, resetProxyDenialSuppression, writeQueue } from '../audit';
 
 // Each test gets its own tmp cwd so parallel workers can't race the real
 // data/audit.log. The audit module resolves its path lazily via process.cwd(),
@@ -20,6 +20,7 @@ beforeEach(async () => {
   // mkdir and ENOENT on appendFile.
   await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true });
   AUDIT_PATH = path.join(tmpDir, 'data', 'audit.log');
+  resetProxyDenialSuppression();
 });
 
 afterEach(async () => {
@@ -74,7 +75,7 @@ describe('audit', () => {
     audit({ action: 'display_token_regenerate' });
     audit({ action: 'plugin_install', pluginId: 'p1', version: '2.0.0' });
     audit({ action: 'plugin_uninstall', pluginId: 'p1' });
-    audit({ action: 'plugin_proxy', pluginId: 'p1', domain: 'api.example.com', method: 'GET', status: 200 });
+    audit({ action: 'plugin_proxy_denied', pluginId: 'p1', domain: 'api.example.com', reason: 'domain_not_allowed' });
     audit({ action: 'session_revoke_all' });
     await flush();
 
@@ -84,3 +85,79 @@ describe('audit', () => {
   });
 });
 
+/* ─── Proxy denials ───────────────────────────────
+ * The proxy used to log every successful request, which buried the whole file
+ * under one plugin's polling loop. Only refusals are audited now, and a plugin
+ * retrying a blocked host must not be able to recreate that.
+ */
+
+describe('auditProxyDenied', () => {
+  async function readEntries(): Promise<Array<Record<string, unknown>>> {
+    await writeQueue;
+    const content = await fs.readFile(AUDIT_PATH, 'utf-8').catch(() => '');
+    return content.trim() ? content.trim().split('\n').map((l) => JSON.parse(l)) : [];
+  }
+
+  it('records the hostname, plugin and reason', async () => {
+    auditProxyDenied('p1', 'https://attacker.example/steal?token=abc', 'domain_not_allowed');
+
+    const [entry] = await readEntries();
+    expect(entry.action).toBe('plugin_proxy_denied');
+    expect(entry.pluginId).toBe('p1');
+    expect(entry.domain).toBe('attacker.example');
+    expect(entry.reason).toBe('domain_not_allowed');
+    // The path and query are plugin-controlled and must not reach the log.
+    expect(JSON.stringify(entry)).not.toContain('token=abc');
+    expect(JSON.stringify(entry)).not.toContain('steal');
+  });
+
+  it('logs an unparseable URL as a placeholder rather than the raw string', async () => {
+    auditProxyDenied('p1', 'http://[::bad::url', 'ssrf_blocked');
+
+    const [entry] = await readEntries();
+    expect(entry.domain).toBe('(unparseable)');
+    expect(JSON.stringify(entry)).not.toContain('bad::url');
+  });
+
+  it('suppresses an identical denial inside the quiet window', async () => {
+    for (let i = 0; i < 50; i++) {
+      auditProxyDenied('p1', 'https://blocked.example/x', 'domain_not_allowed');
+    }
+
+    expect(await readEntries()).toHaveLength(1);
+  });
+
+  it('logs again once the quiet window has elapsed', async () => {
+    let clock = Date.now();
+    const spy = vi.spyOn(Date, 'now').mockImplementation(() => clock);
+    try {
+      auditProxyDenied('p1', 'https://blocked.example/x', 'domain_not_allowed');
+      clock += 5 * 60 * 1000 + 1;
+      auditProxyDenied('p1', 'https://blocked.example/x', 'domain_not_allowed');
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(await readEntries()).toHaveLength(2);
+  });
+
+  it('does not let one suppressed denial hide a different plugin, host or reason', async () => {
+    auditProxyDenied('p1', 'https://blocked.example/x', 'domain_not_allowed');
+    auditProxyDenied('p2', 'https://blocked.example/x', 'domain_not_allowed');
+    auditProxyDenied('p1', 'https://other.example/x', 'domain_not_allowed');
+    auditProxyDenied('p1', 'https://blocked.example/x', 'ssrf_blocked');
+    auditProxyDenied('p1', 'https://blocked.example/x', 'redirect_ssrf_blocked');
+
+    expect(await readEntries()).toHaveLength(5);
+  });
+
+  it('stays bounded when a plugin walks a list of hostnames', async () => {
+    // 600 distinct hosts against a 500-entry cap: the map clears once rather
+    // than growing without bound, and every denial is still recorded.
+    for (let i = 0; i < 600; i++) {
+      auditProxyDenied('p1', `https://host-${i}.example/x`, 'domain_not_allowed');
+    }
+
+    expect(await readEntries()).toHaveLength(600);
+  });
+});

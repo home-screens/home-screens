@@ -29,7 +29,7 @@ interface CoordinatorState {
   context: AsyncLocalStorage<Context>;
   queues: Map<string, Promise<void>>;
   retryAfter: Map<string, number>;
-  listeners: Set<() => void>;
+  listeners: Set<(paths: readonly string[]) => void>;
 }
 const key = Symbol.for('home-screens.data-transaction.v1');
 const globals = globalThis as typeof globalThis & { [key]?: CoordinatorState };
@@ -68,11 +68,18 @@ function resolveTarget(relative: string): string {
   return resolved;
 }
 
-export function onDataTransactionCommit(listener: () => void): () => void {
+/**
+ * Runs after every applied journal (commit, rollback or recovery) with the
+ * data-relative paths it wrote. A listener guarding one file must check
+ * that its file is among them: a chore toggle commits a journal too, and a
+ * credential store that treated every commit as its own file changing
+ * would discard a token refresh that finished under an unrelated write.
+ */
+export function onDataTransactionCommit(listener: (paths: readonly string[]) => void): () => void {
   state.listeners.add(listener);
   return () => { state.listeners.delete(listener); };
 }
-function invalidate() { for (const listener of state.listeners) listener(); }
+function invalidate(paths: readonly string[]) { for (const listener of state.listeners) listener(paths); }
 
 /** Durable atomic writer: file sync, rename, then parent-directory sync. */
 export async function durableWriteFile(filePath: string, contents: string, mode?: number, dirMode?: number): Promise<void> {
@@ -188,7 +195,7 @@ async function replay(journal: Journal) {
   }
   await durableRemove(resolveTarget(DATA_JOURNAL_PATH));
   state.retryAfter.delete(context().root);
-  invalidate();
+  invalidate(journal.changes.map((change) => change.path));
 }
 async function recover() {
   const raw = await readTransactionFile(DATA_JOURNAL_PATH);

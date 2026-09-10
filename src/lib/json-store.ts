@@ -1,7 +1,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
-import { durableRemove, durableWriteFile, withDataTransaction, getDataRoot } from './data-transaction';
+import { durableRemove, durableWriteFile, withDataTransaction, getDataRoot, readTransactionFile } from './data-transaction';
+import type { TransactionChange } from './data-transaction';
 
 interface JsonStoreOptions<T> {
   /** File path relative to process.cwd() */
@@ -149,6 +150,54 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
   }
 
   /**
+   * Compute this store's next on-disk image WITHOUT publishing it, so a caller
+   * can hand it to `commitDataTransaction` together with another store's and
+   * have a crash land both files or neither. Two stores each doing their own
+   * `updateAtomic` are individually atomic but not atomic with each other.
+   *
+   * Runs in the same per-file queue as `updateAtomic`, so the read still sees
+   * prior queued writes. The caller must already hold the cross-file
+   * coordinator: nothing may write either file between planning and
+   * committing, or the commit's before-image check rejects the transaction.
+   * `readTransactionFile` throws outside `withDataTransaction`, so a caller
+   * that forgets fails loudly rather than racing.
+   *
+   * `change` is null when the mutator returns the reference it was given (the
+   * store's usual no-op signal), so the caller can leave the file out of the
+   * transaction entirely. Note the journal supersedes the `.bak` sidecar on
+   * this path: it keeps a full before-image, which a copy never did.
+   */
+  function planUpdate(
+    mutator: (current: T) => T | Promise<T>,
+  ): Promise<{ change: TransactionChange | null; result: T }> {
+    let holder: { change: TransactionChange | null; result: T } | undefined;
+    const next = writeQueue.then(async () => {
+      // The exact bytes on disk, which is what the commit compares against.
+      // Read inside the queue so it agrees with `read()` below.
+      const before = await readTransactionFile(opts.path);
+      const current = await read();
+      const mutated = await mutator(current);
+      holder = mutated === current
+        ? { change: null, result: mutated }
+        : {
+            change: {
+              path: opts.path,
+              before,
+              after: JSON.stringify(mutated, null, 2),
+              mode: opts.chmod,
+              dirMode: opts.dirMode,
+            },
+            result: mutated,
+          };
+    });
+    writeQueue = next.catch(() => {});
+    return next.then(() => {
+      if (!holder) throw new Error('planUpdate: unexpected missing result');
+      return holder;
+    });
+  }
+
+  /**
    * Queue deletion of the backing file (e.g. uninstall/cleanup flows).
    * Serialized through the same queue as `write`/`updateAtomic`, so an
    * earlier queued write can't land after the removal and resurrect the
@@ -172,6 +221,7 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
     read: () => coordinate(read),
     write: (data: T) => coordinate(() => write(data)),
     updateAtomic: (mutator: (current: T) => T | Promise<T>) => coordinate(() => updateAtomic(mutator)),
+    planUpdate: (mutator: (current: T) => T | Promise<T>) => coordinate(() => planUpdate(mutator)),
     remove: () => coordinate(remove),
     get filePath() { return resolvedPath(); },
   };

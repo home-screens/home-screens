@@ -4,7 +4,7 @@ import { withDisplayAuth, parseJsonBody, createTTLCache } from '@/lib/api-utils'
 import { getInstalledPlugins } from '@/lib/plugins';
 import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { getPluginSecret } from '@/lib/plugin-secrets';
-import { audit } from '@/lib/audit';
+import { auditProxyDenied } from '@/lib/audit';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import {
   isAllowedDomain,
@@ -192,6 +192,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     );
   }
   if (!isAllowedDomain(body.url, allowedDomains, allowLan)) {
+    auditProxyDenied(safeId, body.url, 'domain_not_allowed');
     return NextResponse.json(
       { error: 'Upstream domain not in plugin allowedDomains' },
       { status: 403 },
@@ -201,6 +202,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   // allow RFC1918 / mDNS but still block loopback + cloud-metadata IPs.
   const safeCheck = allowLan ? isSafeLocalOrExternalUrl : isSafeExternalUrl;
   if (!(await safeCheck(body.url))) {
+    auditProxyDenied(safeId, body.url, 'ssrf_blocked');
     return NextResponse.json(
       { error: 'Upstream URL resolves to a blocked address' },
       { status: 403 },
@@ -299,7 +301,7 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       }
     }
     const followed = await followRedirectsWithValidation({
-      url, method, payload, headers, allowedDomains, allowLan, safeCheck,
+      pluginId: safeId, url, method, payload, headers, allowedDomains, allowLan, safeCheck,
     });
     return { followed, injected };
   }
@@ -353,9 +355,6 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
       proxyCache.set(cacheKey, { body: new TextDecoder().decode(rawBuffer), contentType }, cacheTtl);
     }
   }
-
-  const domain = new URL(body.url).hostname;
-  audit({ action: 'plugin_proxy', pluginId: safeId, domain, method, status: upstreamRes.status });
 
   return new NextResponse(rawBuffer, {
     status: upstreamRes.status,

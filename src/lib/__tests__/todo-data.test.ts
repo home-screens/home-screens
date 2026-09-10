@@ -352,6 +352,92 @@ describe('repeat schedules', () => {
   });
 });
 
+describe('completed item expiry', () => {
+  const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
+  const item = (over: Partial<TodoList['items'][number]>) => ({
+    id: 'i', text: 'Milk', completed: false, createdAt: '2026-01-01T00:00:00.000Z', ...over,
+  });
+
+  it('drops completed items past the TTL and keeps the rest', () => {
+    const data = migrated([list({
+      items: [
+        item({ id: 'stale', completed: true, completedAt: daysAgo(mod.COMPLETED_TTL_DAYS + 1) }),
+        item({ id: 'recent', completed: true, completedAt: daysAgo(1) }),
+        item({ id: 'open', completed: false }),
+      ],
+    })]);
+    const now = new Date();
+    const out = mod.expireCompletedItems(data, now);
+    expect(out).not.toBe(data);
+    expect(out.lists[0].items.map((i) => i.id)).toEqual(['recent', 'open']);
+    expect(out.lists[0].updatedAt).toBe(now.toISOString());
+  });
+
+  it('leaves an open item alone no matter how old it is', () => {
+    const data = migrated([list({
+      items: [item({ id: 'ancient', completed: false, createdAt: daysAgo(3650) })],
+    })]);
+    expect(mod.expireCompletedItems(data, new Date())).toBe(data);
+  });
+
+  it('keeps a completed item with no usable timestamp', () => {
+    // Pre-v2 fold-ins and hand-edited files have no completedAt. There is no
+    // evidence they are old, so deleting them would be guessing.
+    const data = migrated([list({
+      items: [
+        item({ id: 'no-stamp', completed: true }),
+        item({ id: 'bad-stamp', completed: true, completedAt: 'not-a-date' }),
+      ],
+    })]);
+    expect(mod.expireCompletedItems(data, new Date())).toBe(data);
+  });
+
+  it('returns the same reference when nothing expires, so no write happens', () => {
+    const data = migrated([list({
+      items: [item({ id: 'recent', completed: true, completedAt: daysAgo(1) })],
+    })]);
+    expect(mod.expireCompletedItems(data, new Date())).toBe(data);
+  });
+
+  it('sweeps on the next write, without a manual clear-completed', async () => {
+    await writeData('todos.json', migrated([list({
+      id: 'groceries',
+      items: [
+        item({ id: 'stale', completed: true, completedAt: daysAgo(mod.COMPLETED_TTL_DAYS + 5) }),
+        item({ id: 'open', completed: false }),
+      ],
+    })]));
+
+    // Any write through the store runs the sweep on the mutator's input.
+    await mod.updateTodoData((current) => ({ ...current }));
+
+    const onDisk = await readJson<TodoData>('todos.json');
+    expect(onDisk.lists[0].items.map((i) => i.id)).toEqual(['open']);
+  });
+
+  it('sweeps on read too, so a reorder of what was shown is accepted', async () => {
+    await writeData('todos.json', migrated([list({
+      id: 'groceries',
+      items: [
+        item({ id: 'stale', completed: true, completedAt: daysAgo(mod.COMPLETED_TTL_DAYS + 5) }),
+        item({ id: 'a', completed: false }),
+        item({ id: 'b', completed: false }),
+      ],
+    })]));
+
+    // The phone reads, then sends back the order of the ids it was shown.
+    // With the sweep only on writes, the read still listed `stale` and the
+    // reorder failed as a permutation of a different list.
+    const seen = await mod.readTodoData();
+    expect(seen.lists[0].items.map((i) => i.id)).toEqual(['a', 'b']);
+    const onDisk = await readJson<TodoData>('todos.json');
+    expect(onDisk.lists[0].items.map((i) => i.id)).toEqual(['a', 'b']);
+
+    await mod.updateTodoData((current) => mod.updateList(current, 'groceries', { itemOrder: ['b', 'a'] }));
+    expect((await mod.readTodoData()).lists[0].items.map((i) => i.id)).toEqual(['b', 'a']);
+  });
+});
+
 describe('list operations', () => {
   it('creates a list with a unique slug and validates the name', () => {
     const { data, list: made } = mod.createList(migrated([list()]), { name: '  Groceries ' });

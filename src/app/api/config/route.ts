@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readConfig, updateConfigAtomic, configRevision } from '@/lib/config';
+import { readConfigCached } from '@/lib/config-cache';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { settleTodoMigration } from '@/lib/todo-data';
 import { saveImportedConfig } from '@/lib/family-import';
@@ -12,7 +13,7 @@ import { syncKioskConf, applyDisplaySettings } from '@/lib/kiosk';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateDisplays, validateAllSchedules } from '@/lib/display-filter';
-import type { ScreenConfiguration } from '@/types/config';
+import type { ScreenConfiguration, DisplayNode } from '@/types/config';
 import { logger } from '@/lib/logger';
 
 const log = logger('kiosk');
@@ -23,16 +24,50 @@ function withRevision(config: ScreenConfiguration): Record<string, string> {
   return { [CONFIG_REVISION_HEADER]: configRevision(config) };
 }
 
-export const GET = withDisplayAuth(async () => {
+/**
+ * Trim every display except `displayId` down to the identity the display
+ * client actually reads from a sibling: `display-control` targets other
+ * displays by id and labels them by name, and nothing on the wall reads
+ * another display's screens.
+ *
+ * `screens: []` on a sibling therefore means "not sent", not "empty". Only
+ * the requested display's node is complete, which is what
+ * `filterConfigForDisplay` resolves against. Anything that needs a real
+ * sibling node must read the unfiltered config.
+ */
+function scopeToDisplay(config: ScreenConfiguration, displayId: string): ScreenConfiguration {
+  const displays = config.displays?.map<DisplayNode>((display) =>
+    display.id === displayId ? display : { id: display.id, name: display.name, screens: [] },
+  );
+  return { ...config, displays };
+}
+
+export const GET = withDisplayAuth(async (request: NextRequest) => {
+  // A kiosk asks for its own slice; the editor asks for the whole document.
+  const displayId = new URL(request.url).searchParams.get('display');
+
   // Before reading: the upgrade fold rewrites config.json, and a revision
   // handed out just before it runs is stale by the time the editor saves.
   const config = await withFamilyData(async () => {
     await settleTodoMigration();
-    return readConfig();
+    // A wall polls this every 3 seconds forever, so serve it from the 1.5s
+    // cache and skip re-parsing the whole document per tick. The editor's
+    // read stays uncached: its revision has to be computed from bytes just
+    // read or a save can be compared against a stale hash.
+    return displayId ? readConfigCached() : readConfig();
   });
   // Start detached telemetry only after leaving the family transaction.
   maybeSendBeacon(config).catch(() => {});
-  return NextResponse.json(config, { headers: withRevision(config) });
+
+  // The revision is always the WHOLE document's hash, filtered response or
+  // not: it is the editor's compare-and-swap token, and a hash over a scoped
+  // body would never match what PUT compares against.
+  const headers = withRevision(config);
+  if (!displayId) return NextResponse.json(config, { headers });
+
+  // An unknown id leaves no matching node, so the client's filter returns null
+  // and it self-heals to /display. That is the existing deleted-display path.
+  return NextResponse.json(scopeToDisplay(config, displayId), { headers });
 }, 'Failed to read config');
 
 /**

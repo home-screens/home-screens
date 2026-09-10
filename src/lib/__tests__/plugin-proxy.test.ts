@@ -11,7 +11,15 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   };
 });
 
+// A refused redirect is a security event, so assert it reaches the audit log
+// rather than only that the request was stopped.
+vi.mock('@/lib/audit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/audit')>();
+  return { ...actual, auditProxyDenied: vi.fn() };
+});
+
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { auditProxyDenied } from '@/lib/audit';
 import {
   isAllowedDomain,
   followRedirectsWithValidation,
@@ -57,6 +65,7 @@ const alwaysSafe = vi.fn(async () => true);
 
 function baseOpts(overrides: Partial<Parameters<typeof followRedirectsWithValidation>[0]> = {}) {
   return {
+    pluginId: 'test-plugin',
     url: 'https://api.example.com/start',
     method: 'GET',
     payload: undefined as string | undefined,
@@ -132,6 +141,16 @@ describe('followRedirectsWithValidation', () => {
     expect(fetchWithTimeout).toHaveBeenCalledTimes(2);
   });
 
+  it('does not audit a redirect that stays inside allowedDomains', async () => {
+    scriptFetch([
+      { redirect: 'https://api.example.com/next', status: 302 },
+      { body: '{"ok":true}' },
+    ]);
+    const result = await followRedirectsWithValidation(baseOpts());
+    expect(result.ok).toBe(true);
+    expect(auditProxyDenied).not.toHaveBeenCalled();
+  });
+
   it('rejects a redirect that escapes allowedDomains (403)', async () => {
     scriptFetch([{ redirect: 'https://attacker.com/exfil', status: 302 }]);
     const result = await followRedirectsWithValidation(baseOpts());
@@ -140,6 +159,13 @@ describe('followRedirectsWithValidation', () => {
       expect(result.error.status).toBe(403);
       const json = await result.error.json();
       expect(json.error).toBe('Redirect target not in plugin allowedDomains');
+    }
+    expect(auditProxyDenied).toHaveBeenCalledWith(
+      'test-plugin',
+      'https://attacker.com/exfil',
+      'redirect_domain_not_allowed',
+    );
+    {
     }
   });
 
@@ -156,6 +182,13 @@ describe('followRedirectsWithValidation', () => {
       expect(result.error.status).toBe(403);
       const json = await result.error.json();
       expect(json.error).toBe('Redirect target resolves to a blocked address');
+    }
+    expect(auditProxyDenied).toHaveBeenCalledWith(
+      'test-plugin',
+      'https://sub.example.com/secret',
+      'redirect_ssrf_blocked',
+    );
+    {
     }
   });
 

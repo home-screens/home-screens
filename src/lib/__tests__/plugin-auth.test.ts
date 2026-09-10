@@ -163,6 +163,36 @@ describe('plugin-auth state signing', () => {
     expect(await verifyAuthFlowState('not-a-real-state')).toBeNull();
   });
 
+  it('regenerates a truncated secret instead of signing with it forever', async () => {
+    // A power cut during the old plain writeFile left a partial secret. It read
+    // back as a non-empty string, so every callback failed timingSafeEqual with
+    // nothing on disk to indicate why. A secret that is not a whole one is now
+    // treated as absent.
+    const secretPath = path.join(tmpDir, 'data', 'plugin-tokens', '.state-secret');
+    await fs.mkdir(path.dirname(secretPath), { recursive: true, mode: 0o700 });
+    await fs.writeFile(secretPath, 'deadbeef', 'utf-8'); // 8 chars, not 64
+
+    const { signAuthFlowState, verifyAuthFlowState } = await import('../plugin-auth');
+    const state = await signAuthFlowState('spotify');
+    expect(await verifyAuthFlowState(state)).toBe('spotify');
+
+    const written = (await fs.readFile(secretPath, 'utf-8')).trim();
+    expect(written).toMatch(/^[0-9a-f]{64}$/);
+    expect(written).not.toBe('deadbeef');
+  });
+
+  it('keeps a well-formed secret across restarts', async () => {
+    const secretPath = path.join(tmpDir, 'data', 'plugin-tokens', '.state-secret');
+    const existing = 'a'.repeat(64);
+    await fs.mkdir(path.dirname(secretPath), { recursive: true, mode: 0o700 });
+    await fs.writeFile(secretPath, existing, 'utf-8');
+
+    const { signAuthFlowState } = await import('../plugin-auth');
+    await signAuthFlowState('spotify');
+
+    expect((await fs.readFile(secretPath, 'utf-8')).trim()).toBe(existing);
+  });
+
   it('concurrent first-time signs share one persisted secret', async () => {
     const { signAuthFlowState } = await import('../plugin-auth');
     // Both start before the .state-secret file exists. Un-serialized, each
@@ -308,6 +338,29 @@ describe('plugin refresh queued behind restore', () => {
     });
     expect(await pending).toBeNull();
     expect(await loadPluginTokens('p1')).toEqual(fresh);
+  });
+
+  it('keeps a refresh that finished under a journal for some other file', async () => {
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    const { withDataTransaction, readTransactionFile, commitDataTransaction } = await import('../data-transaction');
+    await savePluginTokens('p1', { access_token: 'old', refresh_token: 'old-refresh', token_type: 'Bearer', expiry_date: 0 });
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn(async () => { await gate; return jsonResponse({ access_token: 'refreshed-old', refresh_token: 'rotated', expires_in: 3600 }); });
+    vi.stubGlobal('fetch', fetchMock);
+    const pending = getValidAccessToken('p1');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    // A chore toggle's journal lands while the token response is in flight.
+    const other = 'data/chore-completions.json';
+    await withDataTransaction(async () => {
+      const before = await readTransactionFile(other);
+      await commitDataTransaction({ kind: 'chore-toggle', changes: [{ path: other, before, after: '{"completions":[]}' }] });
+    });
+    release();
+    expect(await pending).toBe('refreshed-old');
+    expect(await loadPluginTokens('p1')).toMatchObject({ access_token: 'refreshed-old', refresh_token: 'rotated' });
   });
 });
 

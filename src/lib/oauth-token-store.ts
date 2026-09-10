@@ -1,3 +1,4 @@
+import path from 'path';
 import { createJsonStore } from './json-store';
 import { onDataTransactionCommit, withDataTransaction } from './data-transaction';
 import { fetchWithTimeout } from './api-utils';
@@ -75,8 +76,15 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   // back over the new one, so a refresh only commits while the generation it
   // started under is still current. The write queue below cannot provide
   // this: it orders the file writes, not the stale read that produced one.
+  // Only a journal that wrote THIS tokens file counts: a chore toggle or a
+  // list edit commits a journal too, and bumping on those would throw away
+  // a refresh that finished underneath them, which with a provider that
+  // rotates refresh tokens means reconnecting the account.
   let generation = 0;
-  onDataTransactionCommit(() => { generation += 1; });
+  const ownPath = path.normalize(opts.tokensPath);
+  onDataTransactionCommit((paths) => {
+    if (paths.some((p) => path.normalize(p) === ownPath)) generation += 1;
+  });
 
   // Same store the other secret files use (secrets.json, auth.json): writes
   // are queued, tmp+rename atomic (so a power cut on the Pi can't leave a

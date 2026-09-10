@@ -97,7 +97,14 @@ export function useLiveConfig(
      */
     async function syncConfig(): Promise<boolean> {
       try {
-        const res = await displayFetch('/api/config');
+        // Ask for this display's slice. The response keeps every display's
+        // id and name (display-control targets siblings by id) but only this
+        // one's screens, so a wall no longer downloads and diffs every other
+        // display's layout every 3 seconds. Without a displayId the whole
+        // document comes back, which is what single-display mode wants.
+        const res = await displayFetch(
+          displayId ? `/api/config?display=${encodeURIComponent(displayId)}` : '/api/config',
+        );
         if (!res.ok || !mounted) return false;
         const text = await res.text();
         // Only update state when the JSON actually changed

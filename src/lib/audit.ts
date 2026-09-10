@@ -30,6 +30,18 @@ function getRotatedPath(): string {
 
 /* ─── Event types ────────────────────────────── */
 
+/**
+ * Why the proxy refused a plugin's request. Each of these is the sandbox
+ * boundary being tested and holding, which is the only part of proxying that
+ * is an audit event: a plugin reaching a host inside the allowlist you
+ * approved at install time is the plugin doing exactly what you consented to.
+ */
+export type ProxyDenialReason =
+  | 'domain_not_allowed'
+  | 'ssrf_blocked'
+  | 'redirect_domain_not_allowed'
+  | 'redirect_ssrf_blocked';
+
 type AuditEvent =
   | { action: 'login_success'; ip: string }
   | { action: 'login_failure'; ip: string }
@@ -39,7 +51,7 @@ type AuditEvent =
   | { action: 'plugin_install'; pluginId: string; version: string }
   | { action: 'plugin_install_external'; pluginId: string; version: string; tarballUrl: string }
   | { action: 'plugin_uninstall'; pluginId: string }
-  | { action: 'plugin_proxy'; pluginId: string; domain: string; method: string; status: number }
+  | { action: 'plugin_proxy_denied'; pluginId: string; domain: string; reason: ProxyDenialReason }
   | { action: 'plugin_auth_start'; pluginId: string; flow: string }
   | { action: 'plugin_auth_complete'; pluginId: string }
   | { action: 'plugin_auth_failure'; pluginId: string; error: string }
@@ -95,3 +107,53 @@ async function appendAndRotate(line: string): Promise<void> {
   }
 }
 
+/* ─── Proxy denials ──────────────────────────── */
+
+/**
+ * A plugin retrying a blocked host can reach the proxy rate limit (up to 240
+ * requests/minute with `localNetwork`) and bury every other entry in the file.
+ * That is exactly what made the old per-request `plugin_proxy` event useless,
+ * so log the first of each distinct denial and then stay quiet about that one.
+ *
+ * This is deliberately not a counter: how often a plugin was refused is a
+ * debugging question, not an audit one. The entry says it happened.
+ */
+const DENIAL_QUIET_MS = 5 * 60 * 1000;
+
+/**
+ * Cleared wholesale once full, so a plugin walking a list of hostnames cannot
+ * grow the map without bound. Re-logging a denial is the safe direction to
+ * fail in.
+ */
+const DENIAL_MAX_TRACKED = 500;
+
+const denialSeen = new Map<string, number>();
+
+/**
+ * Hostname only. An unparseable URL never reached anything, and the raw string
+ * is plugin-controlled, so it has no business being written into the log.
+ */
+function denialHost(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return '(unparseable)';
+  }
+}
+
+/** Record a refused proxy request, at most once per plugin/host/reason per window. */
+export function auditProxyDenied(pluginId: string, url: string, reason: ProxyDenialReason): void {
+  const domain = denialHost(url);
+  const key = `${pluginId}|${domain}|${reason}`;
+  const now = Date.now();
+  const last = denialSeen.get(key);
+  if (last !== undefined && now - last < DENIAL_QUIET_MS) return;
+  if (denialSeen.size >= DENIAL_MAX_TRACKED) denialSeen.clear();
+  denialSeen.set(key, now);
+  audit({ action: 'plugin_proxy_denied', pluginId, domain, reason });
+}
+
+/** @internal Exposed so tests start from a clean suppression window. */
+export function resetProxyDenialSuppression(): void {
+  denialSeen.clear();
+}

@@ -22,3 +22,9 @@ const store = createJsonStore<CompletionsData>({
 export const readCompletions = store.read;
 export const writeCompletions = store.write;
 export const updateCompletionsAtomic = store.updateAtomic;
+
+/**
+ * Plan a toggle without publishing it, so the caller can commit it in the same
+ * transaction as the reward points it moves. See `planUpdate` in json-store.
+ */
+export const planCompletionsUpdate = store.planUpdate;

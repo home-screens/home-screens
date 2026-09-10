@@ -190,33 +190,37 @@ describe('debitPoints', () => {
   });
 });
 
-describe('debitPointsExact', () => {
-  it('subtracts from an existing balance', async () => {
+describe('planPointsMove', () => {
+  it('plans a credit without publishing it', async () => {
     await mod.creditPoints('alice', 10);
-    const result = await mod.debitPointsExact('alice', 3);
-    expect(result.balance).toBe(7);
-    expect(result.wentNegative).toBe(false);
-    expect(result.data.balances.alice).toBe(7);
+    const plan = await mod.planPointsMove('alice', 5);
+
+    expect(plan.balance).toBe(15);
+    expect(plan.wentNegative).toBe(false);
+    expect(plan.change?.path).toBe('data/rewards.json');
+    // Planned, not written: disk still holds the pre-move balance until the
+    // caller commits the change alongside whatever else it is publishing.
+    expect((await readRewardsFile()).balances.alice).toBe(10);
+    expect(JSON.parse(plan.change!.after!).balances.alice).toBe(15);
   });
 
   it('allows the balance to go negative and signals it', async () => {
     await mod.creditPoints('alice', 2);
-    const result = await mod.debitPointsExact('alice', 5);
-    expect(result.balance).toBe(-3);
-    expect(result.wentNegative).toBe(true);
-    expect(result.data.balances.alice).toBe(-3);
+    const plan = await mod.planPointsMove('alice', -5);
+    expect(plan.balance).toBe(-3);
+    expect(plan.wentNegative).toBe(true);
   });
 
   it('treats a missing member as a zero starting balance', async () => {
-    const result = await mod.debitPointsExact('ghost', 5);
-    expect(result.balance).toBe(-5);
-    expect(result.wentNegative).toBe(true);
-    expect(result.data.balances.ghost).toBe(-5);
+    const plan = await mod.planPointsMove('ghost', -5);
+    expect(plan.balance).toBe(-5);
+    expect(plan.wentNegative).toBe(true);
   });
 
   it('blocks redemptions while the balance is negative', async () => {
     await mod.creditPoints('alice', 2);
-    await mod.debitPointsExact('alice', 10); // alice now at -8
+    await mod.debitPoints('alice', 10); // floors at 0
+    await mod.writeRewardData({ rewards: [MOVIE_NIGHT], balances: { alice: -8 }, redemptions: [] });
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
   });
 });
@@ -283,5 +287,96 @@ describe('enqueueOp serialization', () => {
     // Subsequent ops should still work
     const result = await mod.creditPoints('alice', 10);
     expect(result.balances.alice).toBe(13);
+  });
+});
+
+/* ─── Purge persistence ───────────────────────────
+ * `readRewardData` only purges the copy it returns. Every mutation used to
+ * spread the raw on-disk value, so a credit or a redemption wrote the expired
+ * rows straight back and the 90-day window never actually took effect on disk.
+ */
+
+describe('redemption purge persistence', () => {
+  const NOW = new Date('2026-04-08T12:00:00Z');
+  const stale = (id: string) => ({
+    id,
+    rewardId: 'r',
+    rewardName: 'Old',
+    memberId: 'a',
+    memberName: 'A',
+    cost: 1,
+    redeemedAt: new Date(NOW.getTime() - 91 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+  const recent = (id: string) => ({
+    id,
+    rewardId: 'r',
+    rewardName: 'New',
+    memberId: 'a',
+    memberName: 'A',
+    cost: 1,
+    redeemedAt: new Date(NOW.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  async function seedStale(): Promise<void> {
+    await writeRewardsFile({
+      rewards: [MOVIE_NIGHT],
+      balances: { alice: 15 },
+      redemptions: [stale('gone'), recent('kept')],
+    });
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  }
+
+  it('drops expired redemptions from disk on creditPoints', async () => {
+    await seedStale();
+    await mod.creditPoints('alice', 3);
+
+    const onDisk = await readRewardsFile();
+    expect(onDisk.redemptions.map((r) => r.id)).toEqual(['kept']);
+    expect(onDisk.balances.alice).toBe(18);
+  });
+
+  it('drops expired redemptions from disk on debitPoints', async () => {
+    await seedStale();
+    await mod.debitPoints('alice', 2);
+
+    const onDisk = await readRewardsFile();
+    expect(onDisk.redemptions.map((r) => r.id)).toEqual(['kept']);
+    expect(onDisk.balances.alice).toBe(13);
+  });
+
+  it('drops expired redemptions from the planned image on planPointsMove', async () => {
+    await seedStale();
+    const plan = await mod.planPointsMove('alice', -20);
+
+    const planned = JSON.parse(plan.change!.after!);
+    expect(planned.redemptions.map((r: { id: string }) => r.id)).toEqual(['kept']);
+    expect(planned.balances.alice).toBe(-5);
+  });
+
+  it('drops expired redemptions from disk on redeemReward', async () => {
+    await seedStale();
+    await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
+
+    const onDisk = await readRewardsFile();
+    // The expired row is gone; the brand new one is kept alongside the recent one.
+    expect(onDisk.redemptions.map((r) => r.id)).toContain('kept');
+    expect(onDisk.redemptions.map((r) => r.id)).not.toContain('gone');
+    expect(onDisk.redemptions).toHaveLength(2);
+    expect(onDisk.balances.alice).toBe(5);
+  });
+
+  it('leaves the bytes alone on the raw restore write', async () => {
+    // writeRewardData is the restore path: it must land exactly what it is
+    // given, expired rows included, rather than silently editing a backup.
+    await seedStale();
+    await mod.writeRewardData({
+      rewards: [],
+      balances: {},
+      redemptions: [stale('from-backup')],
+    });
+
+    const onDisk = await readRewardsFile();
+    expect(onDisk.redemptions.map((r) => r.id)).toEqual(['from-backup']);
   });
 });

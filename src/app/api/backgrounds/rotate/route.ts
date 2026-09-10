@@ -11,11 +11,10 @@ import { fetchICloudMedia } from '@/lib/icloud-media';
 import { writeLibraryFile, MAX_IMPORT_IMAGE_BYTES } from '@/lib/library-files';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { findScreenById } from '@/lib/display-filter';
+import { createJsonStore } from '@/lib/json-store';
 import type { BackgroundRotation } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
-
-const CACHE_FILE = path.join(process.cwd(), 'data', 'background-cache.json');
 
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 
@@ -31,19 +30,22 @@ interface CacheEntry {
 
 type BackgroundCache = Record<string, CacheEntry>;
 
-async function readCache(): Promise<BackgroundCache> {
-  try {
-    const data = await fs.readFile(CACHE_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch {
-    return {};
-  }
-}
-
-async function writeCache(cache: BackgroundCache): Promise<void> {
-  await fs.mkdir(path.dirname(CACHE_FILE), { recursive: true });
-  await fs.writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), 'utf-8');
-}
+/**
+ * Rotation bookkeeping, not durable data: nothing backs it up or restores it,
+ * and losing it costs one extra upstream fetch. `transient` gives it the
+ * store's per-file queue and atomic rename without taking the global data
+ * lock or paying two fsyncs on a path that runs on every screen rotation.
+ *
+ * It has to be a store rather than a read/modify/write pair because the fetch
+ * between the two takes seconds: a plain write-back persisted a snapshot taken
+ * before the network call and clobbered any entry another screen's rotation
+ * had committed in the meantime.
+ */
+const cacheStore = createJsonStore<BackgroundCache>({
+  path: 'data/background-cache.json',
+  defaultValue: {},
+  transient: true,
+});
 
 /** Only files the rotation savers below wrote themselves — user uploads and
  *  iCloud imports never carry this prefix, so pruning can't touch them. */
@@ -249,7 +251,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json({ path: screen.backgroundImage || null });
   }
 
-  const cache = await readCache();
+  const cache = await cacheStore.read();
   const entry = cache[screenId];
   const intervalMs = (rotation.intervalMinutes || 60) * 60 * 1000;
   const now = Date.now();
@@ -290,7 +292,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     }
 
     if (newPath) {
-      cache[screenId] = {
+      const entry: CacheEntry = {
         path: newPath,
         source,
         query: rotation.query,
@@ -299,8 +301,13 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         immichFilters,
         icloudAlbum,
       };
-      await writeCache(cache);
-      await pruneRotationFiles(cache);
+      // Merge into whatever is on disk now, not into the snapshot read before
+      // the fetch above, so a rotation that finished for another screen while
+      // this one was waiting on the network keeps its entry.
+      const merged = await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: entry }));
+      // Prune against the merged view; pruning against the stale snapshot
+      // would delete files the other screen just claimed.
+      await pruneRotationFiles(merged);
       return NextResponse.json({ path: newPath, fresh: true });
     }
   } catch {

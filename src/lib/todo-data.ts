@@ -58,15 +58,20 @@ export class TodoError extends Error {
 // ── Reads and writes ──
 
 /**
- * Read every list, folding in pre-v2 inline items on first use and firing
- * any due repeat schedule. Both are persisted, so they happen once rather
- * than on every poll.
+ * Read every list, folding in pre-v2 inline items on first use, firing any
+ * due repeat schedule and sweeping expired done items. All three are
+ * persisted, so they happen once rather than on every poll, and a read
+ * never shows an item a write would have swept first: the phone reorders
+ * and unchecks what it was shown, so the two have to agree.
  */
 async function readTodoDataUnlocked(): Promise<TodoData> {
   const current = await store.read();
   if (current.migratedFromConfig) {
     foldDone = true;
-    if (!anyRepeatDue(current.lists, new Date(), await householdTimezone())) return current;
+    const now = new Date();
+    if (!anyRepeatDue(current.lists, now, await householdTimezone()) && expireCompletedItems(current, now) === current) {
+      return current;
+    }
   }
   return updateTodoData((data) => data);
 }
@@ -111,8 +116,13 @@ async function updateTodoDataUnlocked(
   return store.updateAtomic(async (current) => {
     let data = current;
     let forced = false;
-    const reset = applyDueRepeats(data, new Date(), await householdTimezone());
+    // One `now` for both passes so an item cannot be unchecked by the repeat
+    // and expired by the sweep in the same cycle on two different clocks.
+    const now = new Date();
+    const reset = applyDueRepeats(data, now, await householdTimezone());
     if (reset !== data) { data = reset; forced = true; }
+    const expired = expireCompletedItems(data, now);
+    if (expired !== data) { data = expired; forced = true; }
     const result = await mutator(data);
     if (result === data && !forced) return current;
     return result;
@@ -228,6 +238,36 @@ function repeatIsDue(list: TodoList, now: Date, fallbackTimezone?: string): bool
 
 function anyRepeatDue(lists: TodoList[], now: Date, timezone?: string): boolean {
   return lists.some((l) => repeatIsDue(l, now, timezone));
+}
+
+/**
+ * Completed items are dropped once they are this old. Repeating lists uncheck
+ * on their own boundary, so this only ever reaches a `never` list that nobody
+ * clears by hand: a grocery list checked off week after week grew forever and
+ * would eventually hit the hard `maxItemsPerList` cap, at which point adding
+ * an item starts failing. Shorter than the 90 days chores and rewards keep,
+ * because nothing computes streaks or history from a finished to-do.
+ */
+export const COMPLETED_TTL_DAYS = 30;
+
+/** Drop completed items past `COMPLETED_TTL_DAYS`, returning `data` when none are. */
+export function expireCompletedItems(data: TodoData, now: Date): TodoData {
+  const cutoff = now.getTime() - COMPLETED_TTL_DAYS * 24 * 60 * 60 * 1000;
+  let touched = false;
+  const lists = data.lists.map((list) => {
+    const kept = list.items.filter((item) => {
+      if (!item.completed) return true;
+      // No usable timestamp means a pre-v2 fold-in or a hand-edited file.
+      // Keep it: there is no evidence it is old, and guessing deletes real work.
+      if (!item.completedAt) return true;
+      const at = Date.parse(item.completedAt);
+      return Number.isNaN(at) || at >= cutoff;
+    });
+    if (kept.length === list.items.length) return list;
+    touched = true;
+    return { ...list, items: kept, updatedAt: now.toISOString() };
+  });
+  return touched ? { ...data, lists } : data;
 }
 
 /** Uncheck every item on each list whose repeat boundary has passed since its last reset. */

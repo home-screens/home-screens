@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { isBlockedHost } from '@/lib/url-safety';
+import { auditProxyDenied } from './audit';
 
 // --- Constants ---
 
@@ -41,6 +42,8 @@ export function isAllowedDomain(url: string, allowedDomains: string[], allowLan:
 // --- Redirect following with per-hop SSRF re-validation ---
 
 export interface FollowRedirectsOptions {
+  /** Sanitized plugin id, so a refused redirect names the plugin in the audit log. */
+  pluginId: string;
   /** Already-validated initial upstream URL. */
   url: string;
   method: string;
@@ -71,7 +74,7 @@ export type FollowRedirectsResult =
 export async function followRedirectsWithValidation(
   opts: FollowRedirectsOptions,
 ): Promise<FollowRedirectsResult> {
-  const { headers, allowedDomains, allowLan, safeCheck } = opts;
+  const { pluginId, headers, allowedDomains, allowLan, safeCheck } = opts;
   let isBodyMethod = opts.method !== 'GET' && opts.method !== 'HEAD';
   let currentUrl = opts.url;
   let currentMethod = opts.method;
@@ -111,6 +114,7 @@ export async function followRedirectsWithValidation(
     }
     // Re-run the same validation we applied to the initial URL
     if (!isAllowedDomain(nextUrl, allowedDomains, allowLan)) {
+      auditProxyDenied(pluginId, nextUrl, 'redirect_domain_not_allowed');
       return {
         ok: false,
         error: NextResponse.json(
@@ -120,6 +124,7 @@ export async function followRedirectsWithValidation(
       };
     }
     if (!(await safeCheck(nextUrl))) {
+      auditProxyDenied(pluginId, nextUrl, 'redirect_ssrf_blocked');
       return {
         ok: false,
         error: NextResponse.json(
