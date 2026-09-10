@@ -30,6 +30,8 @@ export interface ItemPatch {
   completed?: boolean;
   /** Empty string clears the due date. */
   dueDate?: string;
+  /** Family member ids; an empty array clears. */
+  assigneeIds?: string[];
 }
 
 interface Options {
@@ -236,6 +238,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
           ...(patch.text !== undefined ? { text: patch.text.trim() || it.text } : {}),
           ...(patch.completed !== undefined ? { completed: patch.completed } : {}),
           ...(patch.dueDate !== undefined ? { dueDate: patch.dueDate || undefined } : {}),
+          ...(patch.assigneeIds !== undefined ? { assigneeIds: patch.assigneeIds.length > 0 ? patch.assigneeIds : undefined } : {}),
         })),
         (r) => ({ url: `/api/todo/lists/${r(listId)}/items/${r(itemId)}`, method: 'PATCH', body: { ...patch } }),
       );

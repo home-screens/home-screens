@@ -22,7 +22,7 @@ A tick on any of the three shows up on the others a few seconds later.
 
 In the editor, drag **To-Do List** from the **Personal** group onto a screen. In its settings, pick a **List** (or make a new one right there with **New list**) and a **View**:
 
-- **List**: the classic checklist, with a due-day chip on anything that has a date.
+- **List**: the classic checklist, with a due-day chip on anything that has a date and the initials of whoever it is for.
 - **Focus**: the next three things in big type, for a small box or a sidebar.
 - **Progress**: a ring with "3 of 8" in the middle and the rest in small print, easy to read from across the room.
 - **Board**: every list side by side, one column each, for a wide box.
@@ -39,6 +39,7 @@ Open the family remote and tap **Lists**. Your lists sit across the top as chips
 Tap a row to tick it. Done things collect in a **Done** group at the bottom that folds away. Drag the handle on the left to reorder. The pencil on a row opens it:
 
 - **Due**: today, tomorrow, or pick a day. The wall shows a chip, and an overdue chip turns amber.
+- **Who**: the people it is for, from your family under **Settings > Family**. The row and the wall show their initials in their colours. If no one is there yet, the row says so and takes you to add someone.
 - **Delete item**.
 
 ## 3. Lists themselves

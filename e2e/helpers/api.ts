@@ -117,10 +117,14 @@ export interface TodoSeedItem {
   text: string;
   completed?: boolean;
   dueDate?: string;
+  /** Family member ids; see `TodoSeed.members`. */
+  assigneeIds?: string[];
 }
 
 export interface TodoSeed {
   lists?: Array<{ id?: string; name: string; color?: string; repeat?: 'never' | 'daily' | 'weekly'; items: TodoSeedItem[] }>;
+  /** Written to the family roster (`data/family.json`), the store initials are read from. */
+  members?: Array<{ id: string; name: string; color?: string; emoji?: string }>;
 }
 
 /** Default seed: one list, one open item, one done item. */
@@ -158,6 +162,7 @@ export function seedTodos(sandboxDir: string, seed: TodoSeed = todoSeed()): void
       completedAt: it.completed ? now : undefined,
       createdAt: now,
       dueDate: it.dueDate,
+      assigneeIds: it.assigneeIds,
     })),
     repeat: l.repeat ?? 'never',
     createdAt: now,
@@ -166,7 +171,13 @@ export function seedTodos(sandboxDir: string, seed: TodoSeed = todoSeed()): void
   const dataDir = path.join(sandboxDir, 'data');
   mkdirSync(dataDir, { recursive: true });
   writeFileSync(path.join(dataDir, 'todos.json'), JSON.stringify({ lists, migratedFromConfig: true }, null, 2));
+  if (seed.members) {
+    seedFamily(sandboxDir, seed.members.map((m, i) => ({ color: SEED_MEMBER_COLORS[i % SEED_MEMBER_COLORS.length], ...m })));
+  }
 }
+
+/** Default swatches for seeded members that name none (the roster's own first few). */
+const SEED_MEMBER_COLORS = ['#f472b6', '#60a5fa', '#4ade80', '#fbbf24', '#a78bfa'];
 
 /**
  * A single calendar event spanning today, for stubbing `/api/calendar`. The

@@ -3783,6 +3783,7 @@
       "completedInline": "Donde están",
       "completedHidden": "Ocultos",
       "showDueDates": "Mostrar fechas",
+      "showAssignees": "Mostrar para quién",
       "interactive": "Tocar para marcar"
     },
     "todoist": {

@@ -2,20 +2,69 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { CSSProperties } from 'react';
 import { Pencil } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { classifyDue, formatDueLabel } from '@/lib/todo-due-labels';
 import type { TodoListItem } from '@/types/todos';
+import type { FamilyMember } from '@/types/family';
+
+/** Initials shown per row before the "+N" bubble (the five-plus-members rule). */
+const MAX_INITIALS = 2;
+const BUBBLE_PX = 22;
+const OVERLAP_PX = 6;
 
 interface ListsItemRowProps {
   item: TodoListItem;
   todayISO: string;
+  members: ReadonlyMap<string, FamilyMember>;
   onToggle: () => void;
   onEdit: () => void;
 }
 
+/** Up to two initials in member colours, then "+N"; the full names sit in the tooltip. */
+function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<string, FamilyMember> }) {
+  const known = ids.map((id) => members.get(id)).filter((m): m is FamilyMember => !!m);
+  if (known.length === 0) return null;
+  const shown = known.slice(0, MAX_INITIALS);
+  const extra = known.length - shown.length;
+  const bubble: CSSProperties = {
+    width: BUBBLE_PX,
+    height: BUBBLE_PX,
+    borderRadius: '50%',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 11,
+    fontWeight: 800,
+    marginLeft: -OVERLAP_PX,
+    // The ring is the row's own background, so overlapping bubbles read as
+    // separate coins rather than one blob.
+    boxShadow: '0 0 0 2px var(--hs-bg-panel)',
+    flex: 'none',
+  };
+  return (
+    <span
+      data-testid="todo-assignees"
+      title={known.map((m) => m.name).join(', ')}
+      style={{ display: 'inline-flex', flex: 'none', paddingLeft: OVERLAP_PX, paddingRight: 2 }}
+    >
+      {shown.map((m) => (
+        <span key={m.id} style={{ ...bubble, background: m.color, color: '#111' }} aria-hidden="true">
+          {m.name.trim().charAt(0).toUpperCase()}
+        </span>
+      ))}
+      {extra > 0 && (
+        <span style={{ ...bubble, background: 'var(--hs-bg-card)', color: 'var(--hs-text-muted)' }} aria-hidden="true">
+          +{extra}
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** One 52px row: grip, checkbox with the text, due chip, initials, pencil. */
-export default function ListsItemRow({ item, todayISO, onToggle, onEdit }: ListsItemRowProps) {
+export default function ListsItemRow({ item, todayISO, members, onToggle, onEdit }: ListsItemRowProps) {
   const t = useTranslate('remote');
   const locale = useFormattingLocale();
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
@@ -165,6 +214,9 @@ export default function ListsItemRow({ item, todayISO, onToggle, onEdit }: Lists
           >
             {dueLabel}
           </span>
+        )}
+        {item.assigneeIds && item.assigneeIds.length > 0 && (
+          <Assignees ids={item.assigneeIds} members={members} />
         )}
       </button>
 

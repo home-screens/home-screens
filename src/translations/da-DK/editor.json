@@ -3783,6 +3783,7 @@
       "completedInline": "Hvor de er",
       "completedHidden": "Skjult",
       "showDueDates": "Vis frister",
+      "showAssignees": "Vis hvem",
       "interactive": "Tryk for at sætte flueben"
     },
     "todoist": {

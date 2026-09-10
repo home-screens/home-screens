@@ -1180,6 +1180,8 @@ export interface TodoConfig {
   completedPlacement?: TodoCompletedPlacement;
   /** Due-day chips ("Today", "Overdue") next to items that carry a date. */
   showDueDates?: boolean;
+  /** Initials of the people an item is for, in their colours. */
+  showAssignees?: boolean;
 }
 
 // Sticky note module config

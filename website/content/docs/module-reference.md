@@ -668,6 +668,7 @@ Shows one of the family's shared lists (see [Lists](/docs/lists)). Items live in
 | `interactive` | boolean | `true` | Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared list, never to the layout |
 | `completedPlacement` | string | `"bottom"` | Where done items go: `bottom` (sink under the open ones), `inline` (stay put) or `hidden` |
 | `showDueDates` | boolean | `true` | Due-day chips (Today, Tomorrow, Overdue, a weekday, a date) on items that carry a date |
+| `showAssignees` | boolean | `true` | Initials, in their colours, of the people an item is for (two, then "+N"); people come from Settings > Family |
 
 When every item is done the heading shows a green tick and "All done" in every view. A list with a repeat schedule says when it starts fresh.
 

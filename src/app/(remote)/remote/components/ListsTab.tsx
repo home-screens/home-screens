@@ -20,6 +20,8 @@ import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
 import { useTodoLists } from '../hooks/useTodoLists';
 import ListsItemRow from './ListsItemRow';
 import ListsItemSheet from './ListsItemSheet';
+import { FamilySettingsView } from './SettingsSheet';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import ListsListSheet, { weekdayNames } from './ListsListSheet';
 import ListsNewListSheet from './ListsNewListSheet';
 import ListsAddBar, { ADD_BAR_HEIGHT } from './ListsAddBar';
@@ -69,8 +71,13 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
   const locale = useFormattingLocale();
   const api = useTodoLists({ selectedListId, onSelectList });
   const { lists, loaded, loadError, selectedList } = api;
+  // The shared roster: a save on the Family screen publishes to this hook,
+  // so the Who row and the row initials update without a reload.
+  const { members } = useFamilyData();
+  const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [familyOpen, setFamilyOpen] = useState(false);
   const [listSheetOpen, setListSheetOpen] = useState(false);
   const [newListOpen, setNewListOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsed);
@@ -313,7 +320,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                     <ListsItemRow
                       key={item.id}
                       item={item}
-                                  todayISO={todayISO}
+                      todayISO={todayISO}
+                      members={membersById}
                       onToggle={() => api.toggleItem(selectedList.id, item.id)}
                       onEdit={() => setEditingItemId(item.id)}
                     />
@@ -355,7 +363,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                           <ListsItemRow
                             key={item.id}
                             item={item}
-                                              todayISO={todayISO}
+                            todayISO={todayISO}
+                            members={membersById}
                             onToggle={() => api.toggleItem(selectedList.id, item.id)}
                             onEdit={() => setEditingItemId(item.id)}
                           />
@@ -380,6 +389,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
           key={editingItem.id}
           item={editingItem}
           todayISO={todayISO}
+          members={members}
+          onAddPeople={() => setFamilyOpen(true)}
           onSave={(patch) => {
             api.updateItem(selectedList.id, editingItem.id, patch);
             setEditingItemId(null);
@@ -391,6 +402,8 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
           onClose={() => setEditingItemId(null)}
         />
       )}
+      {/* Over the item sheet, so the sheet is still there on the way back. */}
+      {familyOpen && <FamilySettingsView zIndex={300} onBack={() => setFamilyOpen(false)} />}
 
       {listSheetOpen && selectedList && (
         <ListsListSheet

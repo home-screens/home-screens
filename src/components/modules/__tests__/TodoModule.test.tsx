@@ -20,13 +20,17 @@ class ResizeObserverStub {
 
 // Drive the lists poll deterministically: a test sets `mockLists` (null =
 // first fetch still in flight) and rerenders to deliver a "poll result".
-// The members URL answers from `mockMembers`; the empty url contract returns null.
+// The family URL answers from `mockMembers`; the empty url contract returns
+// null. `requestedUrls` records what the module asked for, so a test can
+// prove the roster is not fetched until an item names someone.
 let mockLists: { lists: TodoList[] } | null = null;
 let mockMembers: { members: FamilyMember[] } | null = null;
+const requestedUrls = new Set<string>();
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: (url: string) => {
+    if (url) requestedUrls.add(url);
     if (url === '/api/todo/lists') return [mockLists, null, null];
-    if (url === '/api/chores/data') return [mockMembers, null, null];
+    if (url === '/api/family') return [mockMembers, null, null];
     return [null, null, null];
   },
 }));
@@ -52,6 +56,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 function item(id: string, text: string, completed = false, extra: Partial<TodoListItem> = {}): TodoListItem {
   return { id, text, completed, createdAt: '2026-09-01T00:00:00.000Z', ...extra };
+}
+
+function member(id: string, name: string, color: string): FamilyMember {
+  return { id, name, color, createdAt: '2026-09-01T00:00:00.000Z', updatedAt: '2026-09-01T00:00:00.000Z' };
 }
 
 function list(id: string, name: string, items: TodoListItem[], extra: Partial<TodoList> = {}): TodoList {
@@ -99,6 +107,7 @@ beforeEach(() => {
   cacheSet.mockReset();
   mockLists = { lists: [groceries()] };
   mockMembers = null;
+  requestedUrls.clear();
 });
 afterEach(() => cleanup());
 
@@ -374,6 +383,58 @@ function makeLocalStorage(): Storage {
     get length() { return store.size; },
   } as Storage;
 }
+
+describe('TodoModule assignees', () => {
+  const roster = () => ({ members: [member('m1', 'ava', '#f472b6'), member('m2', 'Ben', '#60a5fa'), member('m3', 'Cy', '#4ade80')] });
+  const bubbles = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('[data-testid="todo-assignees"] span')) as HTMLElement[];
+
+  it('renders an initial per person in their colour, capped at two with +N', () => {
+    mockMembers = roster();
+    mockLists = { lists: [list('groceries', 'Groceries', [item('i1', 'Walk the dog', false, { assigneeIds: ['m1', 'm2', 'm3'] })])] };
+    const { container } = renderStatic();
+    const b = bubbles(container);
+    expect(b.map((el) => el.textContent)).toEqual(['A', 'B', '+1']);
+    expect(b[0].style.backgroundColor).toBe('rgb(244, 114, 182)');
+    expect(b[0].title).toBe('ava');
+    expect(requestedUrls.has('/api/family')).toBe(true);
+  });
+
+  it('skips ids that are no longer on the roster, and draws nothing when none are', () => {
+    mockMembers = roster();
+    mockLists = { lists: [list('groceries', 'Groceries', [
+      item('i1', 'Walk the dog', false, { assigneeIds: ['gone', 'm2'] }),
+      item('i2', 'Feed the cat', false, { assigneeIds: ['gone'] }),
+    ])] };
+    const { container } = renderStatic();
+    expect(container.querySelectorAll('[data-testid="todo-assignees"]')).toHaveLength(1);
+    expect(bubbles(container).map((el) => el.textContent)).toEqual(['B']);
+  });
+
+  it('shows none when the toggle is off, and never asks for the roster', () => {
+    mockMembers = roster();
+    mockLists = { lists: [list('groceries', 'Groceries', [item('i1', 'Walk the dog', false, { assigneeIds: ['m1'] })])] };
+    const { container } = renderStatic({ showAssignees: false });
+    expect(container.querySelectorAll('[data-testid="todo-assignees"]')).toHaveLength(0);
+    expect(requestedUrls.has('/api/family')).toBe(false);
+  });
+
+  it('does not fetch the roster while no visible item names anyone', () => {
+    mockMembers = roster();
+    renderStatic();
+    expect(requestedUrls.has('/api/family')).toBe(false);
+  });
+
+  it('shows initials in the board view against every list', () => {
+    mockMembers = roster();
+    mockLists = { lists: [
+      list('groceries', 'Groceries', [item('i1', 'Milk')]),
+      list('chores', 'Chores', [item('c1', 'Bins', false, { assigneeIds: ['m3'] })]),
+    ] };
+    const { container } = renderStatic({ view: 'board' });
+    expect(bubbles(container).map((el) => el.textContent)).toEqual(['C']);
+  });
+});
 
 describe('TodoModule touch treatment', () => {
   beforeEach(() => {

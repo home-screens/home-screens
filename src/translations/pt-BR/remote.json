@@ -668,6 +668,8 @@
       "dueNone": "Nenhum",
       "duePick": "Escolher um dia",
       "dayLabel": "Dia",
+      "whoLabel": "Para quem",
+      "whoAdd": "Adicionar alguém",
       "save": "Salvar",
       "delete": "Excluir item"
     },

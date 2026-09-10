@@ -3,6 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import type { TodoConfig, TodoCompletedPlacement, ModuleStyle } from '@/types/config';
 import type { TodoList, TodoListItem } from '@/types/todos';
+import type { FamilyMember } from '@/types/family';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
 import { TEXT_OPACITY, DIVIDER, ink, hasAccentColor } from '@/lib/constants';
@@ -17,11 +18,17 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
-import { todoListsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 
 /** Poll interval for the shared lists, from the registry so prefetch and the
  *  hook stay in lockstep. */
 const TODO_TTL_MS = FETCH_KEY_REGISTRY['todo']?.ttlMs ?? 5_000;
+/** Members change about never; one poll a minute keeps initials current. */
+const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
+/** Initials shown per item before the "+N" bubble (the five-plus-members rule). */
+const MAX_INITIALS = 2;
+/** Width of the ring that separates overlapping initial bubbles, in px. */
+const RING_PX = 2;
 /** The all-done green: a filled ring and its label, the same on every card. */
 const ALL_DONE_GREEN = '#22c55e';
 /** Overdue chips take the warning amber from the phone surface. */
@@ -38,6 +45,9 @@ const TAP_HINT_SHOW_MS = 4_000;
 const TAP_HINT_FADE_MS = 1_200;
 
 type ListsPayload = { lists: TodoList[] };
+type FamilyPayload = { members: FamilyMember[] };
+
+const NO_MEMBERS: ReadonlyMap<string, FamilyMember> = new Map();
 
 /**
  * One-time hint for a tappable list: shown on the first interactive render
@@ -182,6 +192,45 @@ function DueChip({ label, tone, accentColor }: { label: string; tone: DueTone; a
   );
 }
 
+/** Up to two initials in member colours, then a "+N" bubble. */
+function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<string, FamilyMember> }) {
+  const known = ids.map((id) => members.get(id)).filter((m): m is FamilyMember => !!m);
+  if (known.length === 0) return null;
+  const shown = known.slice(0, MAX_INITIALS);
+  const extra = known.length - shown.length;
+  const bubble = 'inline-flex items-center justify-center rounded-full shrink-0 font-extrabold';
+  const bubbleStyle = { width: '1.12em', height: '1.12em', fontSize: '0.48em', marginLeft: '-0.24em' } as const;
+  const ring = `0 0 0 ${RING_PX}px ${ink(0.15)}`;
+  return (
+    // The ring around each bubble is drawn OUTSIDE its box, and the last
+    // bubble sits flush against the row's edge, where the list's own
+    // `overflow: hidden` (which keeps part-rows from showing) would slice it
+    // flat. `RING_PX` of padding gives the ring its room back.
+    <span
+      data-testid="todo-assignees"
+      className="inline-flex shrink-0"
+      style={{ paddingLeft: '0.24em', paddingRight: RING_PX }}
+    >
+      {shown.map((m) => (
+        <span
+          key={m.id}
+          className={bubble}
+          title={m.name}
+          // Dark on the member's colour: chip ink, not card ink.
+          style={{ ...bubbleStyle, backgroundColor: m.color, color: '#111', boxShadow: ring }}
+        >
+          {m.name.trim().charAt(0).toUpperCase()}
+        </span>
+      ))}
+      {extra > 0 && (
+        <span className={bubble} style={{ ...bubbleStyle, backgroundColor: ink(0.15), color: ink(0.7) }}>
+          +{extra}
+        </span>
+      )}
+    </span>
+  );
+}
+
 /** Title row: the list name and either the count or the all-done badge. */
 function Header({ title, showTitle, done, total, right, t }: {
   title: string;
@@ -295,6 +344,8 @@ function MoreLine({ n, t }: { n: number; t: TranslateFn }) {
 interface RowContext {
   accentColor: string;
   showDueDates: boolean;
+  showAssignees: boolean;
+  members: ReadonlyMap<string, FamilyMember>;
   now: Date;
   locale: string;
   t: TranslateFn;
@@ -328,6 +379,9 @@ function RowBody({ item, ctx, tappable, pressed, boxSize }: {
         {item.text}
       </span>
       {due && <DueChip label={due.label} tone={due.tone} accentColor={ctx.accentColor} />}
+      {ctx.showAssignees && item.assigneeIds && item.assigneeIds.length > 0 && (
+        <Assignees ids={item.assigneeIds} members={ctx.members} />
+      )}
     </>
   );
 }
@@ -404,6 +458,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   const view = config.view ?? 'list';
   const placement = config.completedPlacement ?? 'bottom';
   const showDueDates = config.showDueDates !== false;
+  const showAssignees = config.showAssignees !== false;
 
   // Interactive only when opted in AND the renderer threaded the instance
   // address. The editor preview (no screenId/moduleId) stays static. Only the
@@ -460,6 +515,17 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
     [lists, config.listId],
   );
 
+  // The roster is fetched only while some visible item names someone, so a
+  // household that never assigns anything never makes the request. Several
+  // cards cost one: useFetchData shares a request per URL.
+  const visibleLists = view === 'board' ? lists : list ? [list] : [];
+  const needsMembers = showAssignees
+    && visibleLists.some((l) => l.items.some((it) => it.assigneeIds && it.assigneeIds.length > 0));
+  const [membersData] = useFetchData<FamilyPayload>(needsMembers ? familyUrl() : '', MEMBERS_TTL_MS);
+  const members = useMemo<ReadonlyMap<string, FamilyMember>>(
+    () => (membersData?.members ? new Map(membersData.members.map((m) => [m.id, m])) : NO_MEMBERS),
+    [membersData],
+  );
 
   const toggle = useCallback(
     (listId: string, item: TodoListItem) => {
@@ -501,7 +567,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   // shipped image keeps the OS on UTC, so an item due today would read
   // Overdue from early evening onwards otherwise.
   const now = createTZDate(timezone);
-  const ctx: RowContext = { accentColor, showDueDates, now, locale, t };
+  const ctx: RowContext = { accentColor, showDueDates, showAssignees, members, now, locale, t };
 
   // First fetch still in flight: a plain card, never a crash. A failed fetch
   // falls through to the empty states below rather than a blank card forever.

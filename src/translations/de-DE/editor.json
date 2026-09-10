@@ -3783,6 +3783,7 @@
       "completedInline": "An ihrem Platz",
       "completedHidden": "Ausgeblendet",
       "showDueDates": "Fälligkeit anzeigen",
+      "showAssignees": "Zeigen, für wen",
       "interactive": "Antippen zum Abhaken"
     },
     "todoist": {

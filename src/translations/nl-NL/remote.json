@@ -668,6 +668,8 @@
       "dueNone": "Geen",
       "duePick": "Kies een dag",
       "dayLabel": "Dag",
+      "whoLabel": "Voor wie",
+      "whoAdd": "Iemand toevoegen",
       "save": "Opslaan",
       "delete": "Item verwijderen"
     },

@@ -100,6 +100,53 @@ test('the item sheet edits the text, sets a due day, and deletes', async ({ page
   await expect.poll(async () => (await seededList(request)).items.map((i) => i.id)).toEqual(['b']);
 });
 
+test('the Who row assigns a family member', async ({ page, request, sandboxDir }) => {
+  seedTodos(sandboxDir, {
+    members: [{ id: 'm1', name: 'Zed' }],
+    lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [{ id: 'a', text: 'ACTIVE ITEM' }] }],
+  });
+  await openLists(page);
+  await page.getByRole('button', { name: 'Edit ACTIVE ITEM' }).click();
+  const sheet = page.getByRole('dialog');
+  await sheet.getByRole('button', { name: 'Zed' }).click();
+  await sheet.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect.poll(async () => (await seededList(request)).items[0].assigneeIds).toEqual(['m1']);
+  await expect(item(page, 'ACTIVE ITEM').getByTestId('todo-assignees')).toHaveText('Z');
+  await expect(item(page, 'ACTIVE ITEM').getByTestId('todo-assignees')).toHaveAttribute('title', 'Zed');
+
+  // Tapping the chip again takes the person off, and the bubble goes.
+  await page.getByRole('button', { name: 'Edit ACTIVE ITEM' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Zed' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
+  await expect.poll(async () => (await seededList(request)).items[0].assigneeIds).toBeUndefined();
+  await expect(item(page, 'ACTIVE ITEM').getByTestId('todo-assignees')).toHaveCount(0);
+});
+
+test('an empty roster says so in the Who row and opens Family to add someone', async ({ page, request }) => {
+  // The default seed writes no family.json, so the household has no one yet.
+  await openLists(page);
+  await page.getByRole('button', { name: 'Edit ACTIVE ITEM' }).click();
+  const sheet = page.getByTestId('todo-item-sheet');
+  await expect(sheet.getByTestId('todo-who-empty')).toContainText('No one here yet');
+  await sheet.getByRole('button', { name: 'Add someone' }).click();
+
+  const family = page.getByRole('dialog', { name: 'Family', exact: true });
+  await expect(family).toBeVisible();
+  await family.getByRole('button', { name: 'Add person' }).click();
+  await family.getByLabel('Name', { exact: true }).fill('Casey');
+  await family.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(family.getByRole('status')).toHaveText('Family saved.');
+  await family.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(family).toHaveCount(0);
+
+  // The sheet stayed underneath, and the new person is already a chip.
+  await sheet.getByRole('button', { name: 'Casey' }).click();
+  await sheet.getByRole('button', { name: 'Save', exact: true }).click();
+  const casey = (await (await request.get('/api/family')).json()).members[0].id as string;
+  await expect.poll(async () => (await seededList(request)).items[0].assigneeIds).toEqual([casey]);
+  await expect(item(page, 'ACTIVE ITEM').getByTestId('todo-assignees')).toHaveText('C');
+});
+
 test('a new list is made from the chips row and becomes the selected one', async ({ page, request }) => {
   await openLists(page);
   await page.getByRole('button', { name: 'New list' }).click();

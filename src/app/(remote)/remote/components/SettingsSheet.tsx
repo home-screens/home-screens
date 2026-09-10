@@ -26,11 +26,16 @@ interface SettingsSheetProps {
   onPowerAction: (action: PowerAction) => void;
 }
 
-function FamilySettingsView({ onBack }: { onBack: () => void }) {
+/**
+ * The full-screen Family screen. Opened from the Settings sheet's Family row
+ * and from the Lists tab's item sheet when the roster is empty; the latter
+ * sits over a bottom sheet, so it passes a higher `zIndex`.
+ */
+export function FamilySettingsView({ onBack, zIndex = 120 }: { onBack: () => void; zIndex?: number }) {
   const t = useTranslate('core');
   const tRemote = useTranslate('remote');
   const ref = useFocusTrap<HTMLDivElement>();
-  return <div ref={ref} role="dialog" aria-modal="true" aria-label={t('family.title')} className="fixed inset-0 z-[120] flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]">
+  return <div ref={ref} role="dialog" aria-modal="true" aria-label={t('family.title')} style={{ zIndex }} className="fixed inset-0 flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]">
     <header className="flex w-full max-w-[640px] items-center gap-3 border-b border-hs-border p-4 pt-[max(16px,env(safe-area-inset-top))]">
       <button className="flex min-h-12 min-w-12 items-center gap-1 text-sm text-hs-text-muted" onClick={onBack}><ChevronLeft size={20} />{t('actions.back')}</button>
       <h2 className="flex-1 pr-16 text-center text-lg font-bold text-hs-text-primary">{t('family.title')}</h2>

@@ -456,6 +456,28 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('[data-testid="todo-due"]')).toHaveAttribute('data-tone', 'overdue');
     },
   },
+  {
+    // A seeded item is for Zed: the toggle removes the initial bubble.
+    type: 'todo', name: 'assignees-off', kind: 'local-data', seed: 'todos',
+    seedData: { members: [{ id: 'm1', name: 'Zed' }], lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'a', text: 'ACTIVE ITEM', completed: false, assigneeIds: ['m1'] },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, showAssignees: false },
+    expect: async (mod) => {
+      await expect(mod).toContainText('ACTIVE ITEM');
+      await expect(mod.locator('[data-testid="todo-assignees"]')).toHaveCount(0);
+    },
+  },
+  {
+    type: 'todo', name: 'assignees-on', kind: 'local-data', seed: 'todos',
+    seedData: { members: [{ id: 'm1', name: 'Zed' }], lists: [{ id: E2E_TODO_LIST_ID, name: 'E2E TODO', items: [
+      { id: 'a', text: 'ACTIVE ITEM', completed: false, assigneeIds: ['m1'] },
+    ] }] },
+    config: { listId: E2E_TODO_LIST_ID, showAssignees: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-testid="todo-assignees"]').first()).toHaveText('Z');
+    },
+  },
 
   // -- display-control --
   // The widget sizes itself to its box, and the default box is too narrow for

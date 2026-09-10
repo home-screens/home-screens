@@ -193,6 +193,11 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
         onChange={(v) => set({ showDueDates: v })}
       />
       <Toggle
+        label={t('configSections.todo.showAssignees')}
+        checked={c.showAssignees ?? true}
+        onChange={(v) => set({ showAssignees: v })}
+      />
+      <Toggle
         label={t('configSections.todo.interactive')}
         checked={!!c.interactive}
         onChange={(v) => set({ interactive: v })}

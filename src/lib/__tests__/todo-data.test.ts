@@ -467,6 +467,19 @@ describe('item operations', () => {
     expect(mod.deleteItem(base, 'l1', 'a').lists[0].items).toEqual([]);
     expect(() => mod.deleteItem(base, 'l1', 'zz')).toThrow(/item is gone/);
   });
+
+  it('keeps the people an item is for, deduped, and clears them on an empty list', () => {
+    const base = migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x' }] })]);
+    const { item } = mod.addItem(base, 'l1', { text: 'Walk the dog', assigneeIds: ['m1', 'm2', 'm1'] });
+    expect(item.assigneeIds).toEqual(['m1', 'm2']);
+    expect(mod.addItem(base, 'l1', { text: 'x' }).item.assigneeIds).toBeUndefined();
+    const assigned = mod.updateItem(base, 'l1', 'a', { assigneeIds: ['m2'] });
+    expect(assigned.lists[0].items[0].assigneeIds).toEqual(['m2']);
+    const cleared = mod.updateItem(assigned, 'l1', 'a', { assigneeIds: [] });
+    expect(cleared.lists[0].items[0].assigneeIds).toBeUndefined();
+    expect(() => mod.addItem(base, 'l1', { text: 'x', assigneeIds: 'm1' })).toThrow(/list of ids/);
+    expect(() => mod.updateItem(base, 'l1', 'a', { assigneeIds: [1] })).toThrow(mod.TodoError);
+  });
 });
 
 describe('validateTodoData', () => {
@@ -481,6 +494,8 @@ describe('validateTodoData', () => {
     expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', dueDate: '2026-02-30' }] })]))).toMatch(/dueDate/);
     expect(mod.validateTodoData(migrated([list(), list()]))).toMatch(/repeats the id/);
     expect(mod.validateTodoData(migrated([list({ repeatTimezone: 'not a zone' })]))).toMatch(/repeatTimezone/);
+    expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', assigneeIds: ['m1'] }] })]))).toBeNull();
+    expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', assigneeIds: 'm1' as never }] })]))).toMatch(/assigneeIds/);
   });
 });
 

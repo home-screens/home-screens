@@ -668,6 +668,8 @@
       "dueNone": "None",
       "duePick": "Pick a day",
       "dayLabel": "Day",
+      "whoLabel": "Who",
+      "whoAdd": "Add someone",
       "save": "Save",
       "delete": "Delete item"
     },

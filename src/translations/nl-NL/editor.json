@@ -3783,6 +3783,7 @@
       "completedInline": "Op hun plek",
       "completedHidden": "Verborgen",
       "showDueDates": "Deadlines tonen",
+      "showAssignees": "Tonen voor wie",
       "interactive": "Tikken om af te vinken"
     },
     "todoist": {

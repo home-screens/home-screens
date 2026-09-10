@@ -3783,6 +3783,7 @@
       "completedInline": "Where they are",
       "completedHidden": "Hidden",
       "showDueDates": "Show due dates",
+      "showAssignees": "Show who",
       "interactive": "Tap to check off"
     },
     "todoist": {

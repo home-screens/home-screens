@@ -19,6 +19,8 @@ export interface TodoListItem {
   createdAt: string;
   /** YYYY-MM-DD, local calendar date. */
   dueDate?: string;
+  /** Family member ids (see `types/family.ts`). Unknown ids are ignored at render. */
+  assigneeIds?: string[];
 }
 
 export interface TodoList {

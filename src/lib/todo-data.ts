@@ -178,6 +178,9 @@ export function validateTodoData(raw: unknown): string | null {
       if (typeof item.createdAt !== 'string') return `${at} is missing createdAt`;
       if (item.completedAt !== undefined && typeof item.completedAt !== 'string') return `${at}: completedAt must be a timestamp`;
       if (item.dueDate !== undefined && (typeof item.dueDate !== 'string' || !isValidISODate(item.dueDate))) return `${at}: dueDate must be YYYY-MM-DD`;
+      if (item.assigneeIds !== undefined && (!Array.isArray(item.assigneeIds) || item.assigneeIds.some((a) => typeof a !== 'string'))) {
+        return `${at}: assigneeIds must be a list of ids`;
+      }
     }
   }
   return null;
@@ -294,9 +297,18 @@ function cleanDueDate(raw: unknown): string | undefined {
   return raw;
 }
 
-// ── Repeat schedules ──
-
-
+/**
+ * Family member ids for an item. Unknown ids are kept: the roster is another
+ * store, and a person removed later is stripped by the family cascade.
+ */
+function cleanAssignees(raw: unknown): string[] | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (!Array.isArray(raw) || raw.some((id) => typeof id !== 'string')) {
+    throw new TodoError(400, 'People must be a list of ids');
+  }
+  const ids = Array.from(new Set(raw as string[])).slice(0, 32);
+  return ids.length > 0 ? ids : undefined;
+}
 
 function cleanColor(raw: unknown): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
@@ -448,6 +460,7 @@ export function deleteList(data: TodoData, listId: string): TodoData {
 export interface AddItemInput {
   text: unknown;
   dueDate?: unknown;
+  assigneeIds?: unknown;
   /** Insert at the top instead of the end. */
   position?: unknown;
 }
@@ -464,6 +477,7 @@ export function addItem(data: TodoData, listId: string, input: AddItemInput, now
     completed: false,
     createdAt: iso,
     dueDate: cleanDueDate(input.dueDate),
+    assigneeIds: cleanAssignees(input.assigneeIds),
   };
   const items = input.position === 'top' ? [item, ...list.items] : [...list.items, item];
   return { data: replaceList(data, { ...list, items, updatedAt: iso }), item };
@@ -473,6 +487,8 @@ export interface UpdateItemInput {
   text?: unknown;
   completed?: unknown;
   dueDate?: unknown;
+  /** An empty array clears. */
+  assigneeIds?: unknown;
 }
 
 export function updateItem(data: TodoData, listId: string, itemId: string, input: UpdateItemInput, now = new Date()): TodoData {
@@ -489,6 +505,7 @@ export function updateItem(data: TodoData, listId: string, itemId: string, input
     }
   }
   if (input.dueDate !== undefined) item = { ...item, dueDate: cleanDueDate(input.dueDate) };
+  if (input.assigneeIds !== undefined) item = { ...item, assigneeIds: cleanAssignees(input.assigneeIds) };
   if (item === list.items[idx]) return data;
   const items = list.items.slice();
   items[idx] = item;

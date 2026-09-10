@@ -668,6 +668,8 @@
       "dueNone": "Ingen",
       "duePick": "Vælg en dag",
       "dayLabel": "Dag",
+      "whoLabel": "Til hvem",
+      "whoAdd": "Tilføj nogen",
       "save": "Gem",
       "delete": "Slet punkt"
     },

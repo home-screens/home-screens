@@ -958,6 +958,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       interactive: true,
       completedPlacement: 'bottom',
       showDueDates: true,
+      showAssignees: true,
     },
     defaultSize: { w: 440, h: 420 },
   },

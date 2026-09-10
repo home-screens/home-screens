@@ -105,7 +105,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 
 ### Personal
 
-- **To-Do List** ([reference](/docs/module-reference#to-do-list)): one of the family's shared lists, kept on your phone under **Lists** in the family remote. Views: **List**, **Focus**, **Progress**, **Board** (every list side by side) and **Compact**. Due days show on the wall. Needs nothing. See [Lists](/docs/lists).
+- **To-Do List** ([reference](/docs/module-reference#to-do-list)): one of the family's shared lists, kept on your phone under **Lists** in the family remote. Views: **List**, **Focus**, **Progress**, **Board** (every list side by side) and **Compact**. Due days and who each thing is for show on the wall. Needs nothing. See [Lists](/docs/lists).
 - **Todoist** ([reference](/docs/module-reference#todoist)): your Todoist tasks. Views: **List**, **Board** and **Focus**. Needs a Todoist token on the API keys page.
 - **Sticky Note** ([reference](/docs/module-reference#sticky-note)): a note for the family. Needs nothing.
 - **Greeting** ([reference](/docs/module-reference#greeting)): "Good morning, Taylor" and a line for the time of day. Needs nothing.
