@@ -1,3 +1,4 @@
+import { seedHouseholdChores } from '../helpers/api';
 import { test, expect } from '../fixtures';
 import { LOCALES } from '@/i18n/manifest';
 import { putConfig } from '../helpers/api';
@@ -31,7 +32,7 @@ const CHORE_DATA = {
 };
 
 for (const locale of Object.keys(LOCALES)) {
-  test(`/chores kid view renders translated chrome in ${locale}`, async ({ page, request }) => {
+  test(`/chores kid view renders translated chrome in ${locale}`, async ({ page, request, sandboxDir }) => {
     const today = LOCALE_TODAY[locale];
     expect(today, `add a LOCALE_TODAY entry for ${locale}`).toBeDefined();
 
@@ -39,7 +40,7 @@ for (const locale of Object.keys(LOCALES)) {
       screens: [makeScreen('s1', 'S1', [choreChartModule()])],
       settings: { locale },
     }));
-    const seeded = await request.put('/api/chores/data', { data: CHORE_DATA });
+    const seeded = await seedHouseholdChores(request, sandboxDir, CHORE_DATA);
     expect(seeded.ok()).toBe(true);
 
     await page.goto('/chores');
@@ -58,14 +59,14 @@ for (const locale of Object.keys(LOCALES)) {
  * surface where a raw key does the most damage: a child reading
  * `choresTab.subNav.today` has no way to know it means "still loading".
  */
-test('/chores renders translated chrome with no i18n fetch available', async ({ page, request }) => {
+test('/chores renders translated chrome with no i18n fetch available', async ({ page, request, sandboxDir }) => {
   await page.route('**/api/i18n/**', (route) => route.abort());
 
   await putConfig(request, baseConfig({
     screens: [makeScreen('s1', 'S1', [choreChartModule()])],
     settings: { locale: 'de-DE' },
   }));
-  const seeded = await request.put('/api/chores/data', { data: CHORE_DATA });
+  const seeded = await seedHouseholdChores(request, sandboxDir, CHORE_DATA);
   expect(seeded.ok()).toBe(true);
 
   await page.goto('/chores');

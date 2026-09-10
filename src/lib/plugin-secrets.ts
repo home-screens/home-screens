@@ -4,12 +4,13 @@ import { sanitizePluginId, getPluginManifest } from '@/lib/plugin-utils';
 import { createJsonStore } from '@/lib/json-store';
 
 type PluginSecretsStore = Record<string, string>;
+export const SECRETS_DIR = path.join('data', 'plugin-secrets');
 
 // Secrets live *outside* the plugin directory so an upgrade — which wipes
 // and replaces `data/plugins/{pluginId}/` wholesale — can't destroy them.
 function pluginSecretsPath(pluginId: string): string {
   const safeId = sanitizePluginId(pluginId);
-  return path.join(process.cwd(), 'data', 'plugin-secrets', `${safeId}.json`);
+  return path.join(process.cwd(), SECRETS_DIR, `${safeId}.json`);
 }
 
 // Pre-fix location: inside the plugin's own directory. Kept for one-shot
@@ -32,7 +33,7 @@ function storeFor(pluginId: string) {
   let store = stores.get(safeId);
   if (!store) {
     store = createJsonStore<PluginSecretsStore>({
-      path: path.join('data', 'plugin-secrets', `${safeId}.json`),
+      path: path.join(SECRETS_DIR, `${safeId}.json`),
       defaultValue: {},
       chmod: 0o600,
       dirMode: 0o700,

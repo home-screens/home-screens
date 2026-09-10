@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Schließen"
+  },
+  "family": {
+    "title": "Familie",
+    "add": "Person hinzufügen",
+    "edit": "Person bearbeiten",
+    "emoji": "Emoji (freiwillig)",
+    "color": "Farbe",
+    "emptyTitle": "Noch niemand hier",
+    "emptyDescription": "Füge die Personen in deinem Haushalt hinzu. Sie stehen dann in Aufgaben, Belohnungen und Kalendern zur Verfügung.",
+    "loadFailed": "Deine Familie konnte nicht geladen werden.",
+    "saveFailed": "Deine Familie konnte nicht gespeichert werden.",
+    "retry": "Erneut versuchen",
+    "saved": "Familie gespeichert.",
+    "saving": "Wird gespeichert…",
+    "conflict": "Die Familie wurde während deiner Bearbeitung geändert. Die aktuelle Liste wird angezeigt. Bitte führe deine Änderung erneut aus.",
+    "removeTitle": "{name} entfernen?",
+    "removeDescription": "Wenn du {name} entfernst, werden Aufgabenverteilung, Zeitpläne, erledigte Aufgaben, Tickets und der Zugang zu Belohnungen für diese Person gelöscht. Auch die Auswahl ihrer Kalender wird vergessen. Aufgaben, für die niemand mehr zuständig ist, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "remove": "Person entfernen",
+    "editName": "{name} bearbeiten",
+    "moveUp": "{name} nach oben",
+    "moveDown": "{name} nach unten",
+    "pagination": "Familienseiten",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {page} von {total}",
+    "limit": "Du kannst bis zu {count} Personen hinzufügen. Bereits vorhandene Personen bleiben erhalten und können weiterhin bearbeitet oder entfernt werden.",
+    "choreCount": {
+      "one": "{count} Aufgabe",
+      "other": "{count} Aufgaben"
+    },
+    "removeChoreCount": {
+      "one": "{name} hat {count} zugewiesene Aufgabe.",
+      "other": "{name} hat {count} zugewiesene Aufgaben."
+    }
   }
 }

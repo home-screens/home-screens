@@ -514,6 +514,9 @@
         "confirmBody": "Während des Neustarts steht alles still. Diese Fernbedienung verbindet sich in etwa einer Minute wieder.",
         "confirmButton": "Neu starten"
       }
+    },
+    "family": {
+      "description": "Verwalte die Personen in deinem Haushalt."
     }
   },
   "photosTab": {

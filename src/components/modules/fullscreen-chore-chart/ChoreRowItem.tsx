@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
 import AssigneeDot from './AssigneeDot';
@@ -33,7 +35,7 @@ interface ChoreRowItemProps {
   showTimeOfDay?: boolean;
   isFirst: boolean;
   showPoints: boolean;
-  memberMap: Map<string, ChoreMember>;
+  memberMap: Map<string, FamilyMember>;
   initialsMap: Map<string, string>;
   allowTouch: boolean;
   onToggle: (params: ToggleParams) => void;

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readConfig, writeConfig, updateConfigAtomic, configRevision } from '@/lib/config';
+import { readConfig, updateConfigAtomic, configRevision } from '@/lib/config';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
-import { appendFoldedLists, foldConfigTodos, readTodoData, settleTodoMigration } from '@/lib/todo-data';
+import { settleTodoMigration } from '@/lib/todo-data';
+import { saveImportedConfig } from '@/lib/family-import';
+import { readTransactionFile, withDataTransaction } from '@/lib/data-transaction';
+import { settleFamilyMigration } from '@/lib/family-data';
+import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
 import { getAllScreens } from '@/lib/display-filter';
 import { syncKioskConf, applyDisplaySettings } from '@/lib/kiosk';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
@@ -22,9 +26,12 @@ function withRevision(config: ScreenConfiguration): Record<string, string> {
 export const GET = withDisplayAuth(async () => {
   // Before reading: the upgrade fold rewrites config.json, and a revision
   // handed out just before it runs is stale by the time the editor saves.
-  await settleTodoMigration();
-  const config = await readConfig();
-  maybeSendBeacon(config).catch(() => {}); // fire-and-forget daily telemetry
+  const config = await withFamilyData(async () => {
+    await settleTodoMigration();
+    return readConfig();
+  });
+  // Start detached telemetry only after leaving the family transaction.
+  maybeSendBeacon(config).catch(() => {});
   return NextResponse.json(config, { headers: withRevision(config) });
 }, 'Failed to read config');
 
@@ -36,7 +43,7 @@ export const GET = withDisplayAuth(async () => {
  * "load theirs / keep mine" instead of silently undoing someone else's edit.
  * Clients that send no revision keep the old last-writer-wins behaviour.
  */
-export const PUT = withAuth(async (request: NextRequest) => {
+export const PUT = withAuth(async (request: NextRequest) => withDataTransaction(async () => {
   const body = await parseJsonBody<ScreenConfiguration>(request);
   if (body instanceof NextResponse) return body;
   if (!body || !Array.isArray(body.screens) || !body.settings) {
@@ -46,6 +53,12 @@ export const PUT = withAuth(async (request: NextRequest) => {
     );
   }
   const config = body;
+
+  const mappings = config.settings.calendar?.personSources;
+  if (mappings !== undefined && (!mappings || typeof mappings !== 'object' || Array.isArray(mappings)
+    || Object.values(mappings).some((ids) => !Array.isArray(ids) || ids.some((id) => typeof id !== 'string')))) {
+    return NextResponse.json({ error: 'Calendar ownership must list calendar source ids for each person.' }, { status: 400 });
+  }
 
   // Validate the multi-display registry if present. The validator enforces
   // unique URL-safe slugs and that screen/profile cross-references resolve.
@@ -66,55 +79,39 @@ export const PUT = withAuth(async (request: NextRequest) => {
   // save that lands between our read and our write is seen, not clobbered.
   const expected = request.headers.get(CONFIG_REVISION_HEADER);
   const seen: { prev: ScreenConfiguration | null; conflict: ScreenConfiguration | null } = { prev: null, conflict: null };
-  // A layout exported before to-do lists were shared still carries items
-  // inline on its todo modules (importLayout never strips them). They are
-  // folded into shared lists here, as part of the save, so the config the
-  // editor gets back is the one on disk and its revision holds. The lists
-  // are written BEFORE the config: a config pointing at lists that never
-  // landed is a broken layout, while lists nobody points at yet are only a
-  // wasted write, and the retry folds onto them by content anyway. If the
-  // store cannot be read or written the save is refused outright.
-  let saved: ScreenConfiguration = config;
-  if (getAllScreens(config).some((s) => s.modules.some((m) => m.type === 'todo' && Array.isArray((m.config as { items?: unknown }).items)))) {
-    // Check the revision before minting anything. The compare-and-swap below
-    // is still the real gate, but without this a save that was going to be
-    // refused would leave the lists it minted behind with nothing pointing
-    // at them.
-    const current = await readConfig().catch(() => null);
-    if (expected && current && configRevision(current) !== expected) {
-      return NextResponse.json(
-        { error: 'The layout was changed somewhere else since it was loaded.', config: current },
-        { status: 409, headers: withRevision(current) },
-      );
-    }
-    try {
-      const folded = foldConfigTodos(config, (await readTodoData()).lists);
-      await appendFoldedLists(folded.created);
-      saved = folded.config;
-    } catch (err) {
-      log.error('Could not move this layout\'s to-do items into shared lists:', err);
-      return NextResponse.json(
-        { error: 'Your to-do lists could not be updated, so the layout was not saved. Try again in a moment.' },
-        { status: 500 },
-      );
-    }
+  // A validated editor copy can repair syntactically broken config data.
+  // Only the replaced config may be corrupt: lock/recovery/permission errors
+  // still fail, and the journal keeps its exact corrupt before-image.
+  const raw = await readTransactionFile('data/config.json');
+  let corrupt = false;
+  if (raw !== null) {
+    try { JSON.parse(raw); } catch { corrupt = true; }
   }
-  try {
-    await updateConfigAtomic((current) => {
-      seen.prev = current;
-      if (expected && configRevision(current) !== expected) {
-        seen.conflict = current;
-        return current;
+  if (!corrupt) await settleFamilyMigration();
+  const current = corrupt ? null : await readConfig();
+  if (current && expected && configRevision(current) !== expected) {
+    return NextResponse.json(
+      { error: 'The layout was changed somewhere else since it was loaded.', config: current },
+      { status: 409, headers: withRevision(current) },
+    );
+  }
+  let saved: ScreenConfiguration = config;
+  const legacy = config.settings.calendar?.people !== undefined
+    || getAllScreens(config).some((screen) => screen.modules.some((mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items)));
+  if (legacy || corrupt) {
+    seen.prev = current;
+    saved = await saveImportedConfig(config);
+  } else {
+    const references = await validateMemberReferences(Object.keys(config.settings.calendar?.personSources ?? {}));
+    if (references) return references;
+    await updateConfigAtomic((latest) => {
+      seen.prev = latest;
+      if (expected && configRevision(latest) !== expected) {
+        seen.conflict = latest;
+        return latest;
       }
       return saved;
     });
-  } catch (err) {
-    // The file on disk can't be read (hand-edited into bad JSON, a failed
-    // migration): there is nothing to compare against, and refusing would
-    // leave the editor's good copy the only one that can't be written. Save
-    // it the old way; if the write itself fails, that error still surfaces.
-    log.warn('config.json unreadable, overwriting with the editor\'s copy:', err);
-    await writeConfig(saved);
   }
   if (seen.conflict) {
     return NextResponse.json(
@@ -138,4 +135,4 @@ export const PUT = withAuth(async (request: NextRequest) => {
   }
 
   return NextResponse.json(saved, { headers: withRevision(saved) });
-}, 'Failed to write config');
+}), 'Failed to write config');

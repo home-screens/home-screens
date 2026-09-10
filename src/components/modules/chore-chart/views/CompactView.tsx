@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreMember, ChoreDefinition } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
 import { choreTapSize, partitionMembers } from '../layout';
@@ -14,7 +16,7 @@ import { usePressedKey } from '../../shared/usePressedKey';
 interface CompactViewProps {
   config: ChoreChartConfig;
   data: {
-    members: ChoreMember[];
+    members: FamilyMember[];
     chores: ChoreDefinition[];
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
@@ -65,7 +67,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
     { done: 0, total: 0 },
   );
 
-  const checkbox = (chore: ChoreDefinition, member: ChoreMember) => {
+  const checkbox = (chore: ChoreDefinition, member: FamilyMember) => {
     const done = completionSet.has(completionKey(chore.id, member.id, today));
     const key = `${chore.id}:${member.id}`;
     return (

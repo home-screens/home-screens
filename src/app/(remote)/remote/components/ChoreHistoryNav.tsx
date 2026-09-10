@@ -1,8 +1,10 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
-import type { ChoreMember, ChoreDefinition } from '@/types/config';
+import type { ChoreDefinition } from '@/types/config';
 import {
   CHORE_HISTORY_DAYS,
   addDaysISO,
@@ -23,7 +25,7 @@ interface ChoreHistoryNavProps {
   viewingDate: string;
   /** Real "today" as YYYY-MM-DD, flipped at midnight by the parent. */
   realToday: string;
-  members: ChoreMember[];
+  members: FamilyMember[];
   chores: ChoreDefinition[];
   completionSet: Set<string>;
   accentColor: string;

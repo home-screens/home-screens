@@ -101,15 +101,15 @@ The up next view is a fixed box, so when descriptions would push its last row of
 - **month-grid**: Traditional month calendar grid with event dots/names in each cell and today highlighted.
 - **day-timeline**: Single-day vertical timeline with event blocks, location details, and hour markers.
 - **agenda**: Scrollable list of upcoming events across multiple days, grouped by date.
-- **family-grid**: People as rows, the week as columns. Each person set up under **Settings > Calendar > People** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
+- **family-grid**: People as rows, the week as columns. Each person set up under **Settings > Family** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
 - **up-next**: The next event, big: title, time, place, countdown (or progress while it is running), then short lists for later today, earlier today, and tomorrow.
 - **free-time**: One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
 
-**People:** the family grid and free time views read the household list under **Settings > Calendar > People**: a name, a color, and which calendars belong to each person. A calendar picked for nobody is shared.
+**People:** the family grid and free time views read the household list under **Settings > Family**. Choose each person’s calendars under **Settings > Calendar > Whose calendars?** A calendar picked for nobody is shared.
 
 ### Full-Screen Chore Chart
 
-A fullscreen ambient chore chart display designed to fill the entire screen. Reads members and chores from shared data (`data/chores.json`) so the fullscreen display, module views, and remote Chores tab all share the same source of truth. Automatically sizes to the display dimensions and pins to position (0,0).
+A fullscreen ambient chore chart display designed to fill the entire screen. Reads members from `data/family.json` and chores from `data/chores.json` so the fullscreen display, module views, and remote Chores tab all share the same source of truth. Automatically sizes to the display dimensions and pins to position (0,0).
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -807,7 +807,7 @@ A chore tracking module for families or housemates. Assign chores to members wit
 | `accentColor` | string | `"#f59e0b"` | Accent color for highlights |
 | `showTitle` | boolean | `true` | Show the built-in view title ("Family Chores", "Star Chart", and so on) |
 
-**Members and chores are shared household data**, not module options. They live in `data/chores.json` and are edited from the editor's **Edit chore chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week.
+**Members and chores are shared household data**, not module options. Members live in `data/family.json` and chores in `data/chores.json`. The family roster is available under **Settings > Family** even without a chore chart. Both are also edited from the editor's **Edit chore chart** button or from `/remote` > Chores, so every chore module on every display shows the same people and the same list. Each member has an `id`, `name`, `emoji`, and `color`. Each chore has an `id`, `name`, `emoji`, `points`, `frequency` (`daily`, `weekly`, `biweekly`, or `once`), `daysOfWeek`, `timeOfDay`, `specificDate` (YYYY-MM-DD, required when `frequency` is `once`), `assigneeIds`, `rotation`, and, when `rotation` is `schedule`, a `schedule` map of member ID to days-of-week.
 
 **View details:**
 

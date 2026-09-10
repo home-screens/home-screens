@@ -1,8 +1,10 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import React from 'react';
 import { Star } from 'lucide-react';
-import type { ChoreMember } from '@/types/config';
+
 import type { WeekDayData } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 
@@ -10,7 +12,7 @@ interface StarChartProps {
   /** Canvas scale: 1 = the sizes authored for a 1080-wide panel. */
   k: number;
   weekData: WeekDayData[];
-  members: ChoreMember[];
+  members: FamilyMember[];
 }
 
 /**

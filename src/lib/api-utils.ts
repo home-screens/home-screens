@@ -6,6 +6,7 @@ import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
+import { FamilyError, isFamilyDataError } from './family-errors';
 
 const log = logger('api');
 /**
@@ -33,6 +34,10 @@ export function errorResponse(
   if (error instanceof SetupError) {
     log.warn(fallbackMessage, error.message);
     return setupErrorResponse(error.message, error.needs, error.service, error.page);
+  }
+  if (isFamilyDataError(error)) {
+    log.warn(fallbackMessage, error.message);
+    return NextResponse.json({ error: error.message, ...(error instanceof FamilyError ? error.current : undefined) }, { status: error.status });
   }
   const detail = error instanceof Error ? error.message : undefined;
   log.error(fallbackMessage, error);
@@ -85,6 +90,12 @@ export function publicErrorResponse(
   status = 500,
 ): NextResponse {
   log.error(fallbackMessage, error);
+  if (isFamilyDataError(error)) {
+    const message = error.status === 503
+      ? 'Family data is waiting to recover. Please try again in a minute.'
+      : 'Family data needs attention. Open Settings to review it or restore a backup.';
+    return NextResponse.json({ error: message }, { status: error.status });
+  }
   return NextResponse.json({ error: fallbackMessage }, { status });
 }
 

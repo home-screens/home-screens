@@ -120,6 +120,10 @@ elif [[ "$HS_LOCAL" == "true" ]]; then
     cp -r scripts "${STAGING_DIR}/scripts"
     [ -f .node-version ] && cp .node-version "${STAGING_DIR}/.node-version"
 
+    # Offline restore must work without the source tree or dev dependencies.
+    npx esbuild scripts/restore-snapshot.ts --bundle --platform=node \
+      --format=cjs --outfile="${STAGING_DIR}/scripts/restore-snapshot.cjs"
+
     # No seed config here: the shared "Seed config" step below writes it,
     # so the local-build and tarball paths produce the same file.
     mkdir -p "${STAGING_DIR}/data"

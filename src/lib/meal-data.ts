@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType } from '@/types/config';
 import { createJsonStore } from './json-store';
+import { withDataTransaction } from './data-transaction';
 import { readConfig } from './config';
 import { getAllScreens } from './display-filter';
 import { toISODate, DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from './meal-constants';
@@ -281,7 +282,7 @@ async function parseAndMigrate(
 
 // ── Read ────────────────────────────────────────
 
-export async function readMealData(): Promise<MealData> {
+async function readMealDataUnlocked(): Promise<MealData> {
   let parsed: unknown;
   try {
     const raw = await fs.readFile(mealStore.filePath, 'utf-8');
@@ -301,7 +302,7 @@ export async function readMealData(): Promise<MealData> {
     // writer lands, subsequent readers see the migrated file and skip
     // the backfill entirely. If the write fails we still return the
     // in-memory migrated data; the next read will retry the migration.
-    mealStore.updateAtomic(async (current) => {
+    await mealStore.updateAtomic(async (current) => {
       // Re-parse current in case a concurrent writer already migrated it.
       const { data: reparsed, migrated: stillNeeds } = await parseAndMigrate(current);
       return stillNeeds ? reparsed : current;
@@ -364,3 +365,7 @@ export function prunePlan(plan: PlannedMeal[]): PlannedMeal[] {
 // ── Write (queued, atomic) ────────────────────
 
 export const writeMealData = mealStore.write;
+
+export function readMealData(): Promise<MealData> {
+  return withDataTransaction(readMealDataUnlocked);
+}

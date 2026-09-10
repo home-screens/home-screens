@@ -171,8 +171,10 @@ interface FullscreenCalendarModuleProps {
   sourceStatus?: CalendarSourceStatus[];
   /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
   calendarSetup?: CalendarSetupNeed;
-  /** Attached only while Settings > Calendar > People is non-empty (see buildModuleProps). */
+  /** People with assigned calendars from Settings > Family (see buildModuleProps). */
   people?: CalendarPerson[];
+  /** Avoid rendering source fallback rows before the configured people arrive. */
+  peopleState?: 'loading' | 'failed';
 }
 
 export default function FullscreenCalendarModule({
@@ -190,6 +192,7 @@ export default function FullscreenCalendarModule({
   sourceStatus,
   calendarSetup,
   people,
+  peopleState,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -302,7 +305,9 @@ export default function FullscreenCalendarModule({
   const hasContent = hasEvents
     || ((config.view === 'family-grid' || config.view === 'free-time') && (people?.length ?? 0) > 0)
     || (wantsExtras && hasExtras(extras, weekDates));
-  const isLoading = loading && !hasContent;
+  const personView = config.view === 'family-grid' || config.view === 'free-time';
+  const peopleUnavailable = personView && !!peopleState;
+  const isLoading = (loading && !hasContent) || (personView && peopleState === 'loading');
 
   // Failure ≠ empty: while the shared calendar fetch is failing, the events
   // on screen are the kept last-good payload — badge them as not updating
@@ -448,11 +453,11 @@ export default function FullscreenCalendarModule({
           />
         ) : isLoading ? (
           <SkeletonLoading scale={scale} />
-        ) : neverLoaded || !hasContent ? (
+        ) : neverLoaded || peopleUnavailable || !hasContent ? (
           // A fetch that has never succeeded is an outage even when the view
           // has settings-derived content (people rows, meals/chores): drawing
           // every person with zero events would read as a free week.
-          <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} fetchFailed={neverLoaded} />
+          <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} fetchFailed={neverLoaded || peopleUnavailable} />
         ) : (
           <AnimatePresence mode="wait">
             <motion.div

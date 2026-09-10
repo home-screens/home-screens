@@ -1,7 +1,9 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import { useState } from 'react';
-import type { ChoreMember } from '@/types/config';
+
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { useTranslate } from '@/i18n';
@@ -14,7 +16,7 @@ import ConfirmSheet from './ConfirmSheet';
 
 interface RewardFormOverlayProps {
   reward: RewardDefinition | null; // null = add mode
-  members: ChoreMember[];
+  members: FamilyMember[];
   onSave: (reward: RewardDefinition) => void;
   onDelete?: (id: string) => void;
   onBack: () => void;

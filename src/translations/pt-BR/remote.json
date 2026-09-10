@@ -514,6 +514,9 @@
         "confirmBody": "Tudo para enquanto ele reinicia. Este controle reconecta em cerca de um minuto.",
         "confirmButton": "Reiniciar aparelho"
       }
+    },
+    "family": {
+      "description": "Gerencie as pessoas da sua casa."
     }
   },
   "photosTab": {

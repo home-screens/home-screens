@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { launchServer, type HsServer } from '../../e2e/helpers/server';
-import { baseConfig, choreChartModule, makeScreen } from '../../e2e/helpers/config-fixtures';
+import { baseConfig, makeScreen } from '../../e2e/helpers/config-fixtures';
 import { buildModuleInstance } from '../../e2e/helpers/module-fixtures';
 import { putConfig } from '../../e2e/helpers/api';
 import { richWeather } from '../../e2e/helpers/weather-payload';

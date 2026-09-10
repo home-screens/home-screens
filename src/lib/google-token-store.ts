@@ -34,6 +34,7 @@ export interface GoogleTokenStoreOptions {
 }
 
 export interface GoogleTokenStore {
+  readonly filePath: string;
   loadTokens(): Promise<StoredGoogleTokens | null>;
   saveTokens(tokens: StoredGoogleTokens): Promise<void>;
   /** Throws with `missingCredentialsMessage` when either secret is unset. */
@@ -84,5 +85,5 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
     hasCredentials,
   });
 
-  return { ...store, getClientCredentials, hasCredentials };
+  return { ...store, get filePath() { return store.filePath; }, getClientCredentials, hasCredentials };
 }

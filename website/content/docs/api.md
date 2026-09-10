@@ -378,50 +378,40 @@ Every member appears, including those with no chores that day (empty `chores` ar
 
 ### GET /api/chores/data
 
-Returns the shared chore member and chore definition data from `data/chores.json`. This is the source of truth used by the chore chart module, the fullscreen chore chart module, and the remote Chores tab. Display access.
-
-**Response:**
-```json
-{
-  "members": [
-    { "id": "member-1", "name": "Alice", "emoji": "🦊", "color": "#f59e0b" }
-  ],
-  "chores": [
-    {
-      "id": "chore-1",
-      "name": "Make bed",
-      "emoji": "🛏️",
-      "points": 2,
-      "frequency": "daily",
-      "daysOfWeek": [1, 2, 3, 4, 5],
-      "timeOfDay": "morning",
-      "assigneeIds": ["member-1"],
-      "rotation": "fixed"
-    }
-  ]
-}
-```
+Returns `{ "chores": [...] }` from `data/chores.json`. Display access. Each definition contains `id`, `name`, `emoji`, `points`, frequency fields, `assigneeIds`, rotation and an optional schedule. Member IDs refer to the roster returned by `/api/family`.
 
 ### PUT /api/chores/data
 
-Updates the shared chore member and definition data. Requires a valid session.
+Replaces the chore definitions. Requires a valid session. Send `{ "chores": [...] }`. An empty replacement of non-empty chore data requires `force: true`. Payloads containing the former `members` field are rejected with a refresh-required error; use `/api/family` for family edits. Assignments must refer to current family members.
 
-**Body:**
+**Response:** The saved `{ "chores": [...] }` object.
+
+## Family
+
+### GET /api/family
+
+Returns the shared household roster and its revision. Display access. Migration and any pending transaction recovery finish before a response is served.
+
 ```json
 {
-  "members": [ ... ],
-  "chores": [ ... ],
-  "force": false
+  "members": [
+    { "id": "member-1", "name": "Alice", "emoji": "🦊", "color": "#f59e0b", "createdAt": "2026-09-09T12:00:00.000Z", "updatedAt": "2026-09-09T12:00:00.000Z" }
+  ],
+  "revision": "opaque-revision"
 }
 ```
 
-Both `members` and `chores` must be arrays. The full set replaces the existing data.
+### PUT /api/family
 
-If **both** arrays are empty and there is existing data to lose, the write is refused with `409 { "error": "Refusing to overwrite non-empty chore data with empty payload. Send { force: true } to confirm." }`. Send `force: true` to go ahead anyway. Sending one empty array alongside a non-empty one is a normal write and is not blocked.
+Requires a valid session. Send the replacement `members`, the `revision` returned by the last GET or PUT, and `removedIds`. Ordinary additions, edits and reorders send an empty `removedIds` array. For a confirmed deletion, `removedIds` must exactly list the current members absent from the replacement.
 
-Removing a member here also clears their point balance and redemption history from the reward data, so the two stores don't drift apart.
+A missing revision is rejected. A stale revision returns `409` with the current members and revision; refresh the editing view and ask the user to reapply their change. Never automatically retry a stale whole-roster replacement.
 
-**Response:** The saved `{ members, chores }` object.
+New members receive server-generated IDs and timestamps. Existing creation timestamps, aliases and migration metadata are server-owned. New additions stop at 64 members. Reads and edits preserve larger migrated rosters.
+
+Deleting a member also removes their chore assignments and schedule keys, completion records, ticket balance, reward membership and calendar mappings. These changes are committed and recovered together.
+
+**Response:** The saved `{ "members": [...], "revision": "..." }`.
 
 ---
 
@@ -2423,7 +2413,7 @@ Before composing the bundle, the hub broadcasts `dump-console-log` to every adop
 
 ### GET/POST /api/backup
 
-Full household backup bundle, exports `config`, `chores`, `choreCompletions`, `meals`, and `rewards` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+Full household backup bundle, exports `config`, `family`, `chores`, `choreCompletions`, `meals`, `rewards`, `routines`, and `todos` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
 GET never returns credentials. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. This is what **Settings > Backups & data > Save a copy** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
@@ -2431,7 +2421,7 @@ To restore a bundle whose `credentials` section is encrypted, add a transient `_
 
 A restore body is capped at 25 MB. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
 
-**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, `true` for the ones the bundle actually contained. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family`, `true` for the ones the bundle actually contained. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
 
 ### POST /api/backup/credentials
 

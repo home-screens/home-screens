@@ -1,5 +1,5 @@
+import type { FamilyMember } from '@/types/family';
 import type {
-  ChoreMember,
   ChoreDefinition,
   ChoreTimeOfDay,
 } from '@/types/config';
@@ -82,10 +82,7 @@ export function getTimeOfDayLabelKey(timeOfDay: ChoreTimeOfDay): string {
   return `chore-chart.timeOfDay.${timeOfDay}`;
 }
 
-export const MEMBER_COLORS = [
-  '#f472b6', '#60a5fa', '#4ade80', '#fbbf24', '#a78bfa',
-  '#fb923c', '#22d3ee', '#f87171', '#34d399', '#e879f9',
-];
+export { MEMBER_COLORS } from '@/types/family';
 
 // ── Utility functions ──────────────────────────────────────────────
 
@@ -196,7 +193,7 @@ export function addMonthsClamped(
 export function computeDayEntries(
   earliestDate: string,
   latestDate: string,
-  members: ChoreMember[],
+  members: FamilyMember[],
   chores: ChoreDefinition[],
   completionSet: Set<string>,
 ): DayEntry[] {
@@ -312,7 +309,7 @@ export function computeStreak(
 }
 
 /**
- * Pure CRUD helpers for the chore-chart members and chores arrays.
+ * Pure CRUD helpers for the chore definitions array.
  *
  * Both `ChoreChartModal` (editor, stateful) and `ChoresManageView` (/remote,
  * controlled-by-parent) need the same mutation semantics. They have
@@ -325,21 +322,6 @@ export function computeStreak(
  * because /remote runs over plain HTTP on the LAN, where
  * `crypto.randomUUID` is unavailable in insecure contexts.
  */
-export function addMemberToList(
-  members: ChoreMember[],
-  data: Omit<ChoreMember, 'id'>,
-): ChoreMember[] {
-  return [...members, { ...data, id: uuid() }];
-}
-
-export function updateMemberInList(
-  members: ChoreMember[],
-  id: string,
-  data: Omit<ChoreMember, 'id'>,
-): ChoreMember[] {
-  return members.map((m) => (m.id === id ? { ...data, id } : m));
-}
-
 export function addChoreToList(
   chores: ChoreDefinition[],
   data: Omit<ChoreDefinition, 'id'>,
@@ -360,40 +342,4 @@ export function removeChoreFromList(
   id: string,
 ): ChoreDefinition[] {
   return chores.filter((c) => c.id !== id);
-}
-
-/**
- * Remove a member and cascade: strip them from all chore assigneeIds,
- * then delete any chores left with no assignees.
- */
-export function cascadeDeleteMember(
-  members: ChoreMember[],
-  chores: ChoreDefinition[],
-  memberId: string,
-): { members: ChoreMember[]; chores: ChoreDefinition[] } {
-  return {
-    members: members.filter((m) => m.id !== memberId),
-    chores: chores
-      .map((c) => {
-        const updated = { ...c, assigneeIds: c.assigneeIds.filter((a) => a !== memberId) };
-        if (updated.schedule) {
-          const { [memberId]: _, ...rest } = updated.schedule;
-          const remaining = Object.keys(rest).length;
-          if (remaining === 0) {
-            updated.schedule = undefined;
-            updated.rotation = 'fixed';
-          } else if (remaining === 1 && updated.rotation === 'schedule') {
-            updated.daysOfWeek = Object.values(rest)[0];
-            updated.schedule = undefined;
-            updated.rotation = 'fixed';
-          } else {
-            updated.schedule = rest;
-            // Recalculate daysOfWeek from remaining schedule entries
-            updated.daysOfWeek = [...new Set(Object.values(rest).flat())].sort((a, b) => a - b);
-          }
-        }
-        return updated;
-      })
-      .filter((c) => c.assigneeIds.length > 0),
-  };
 }

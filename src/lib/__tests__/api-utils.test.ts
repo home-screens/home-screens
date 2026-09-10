@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { errorResponse, publicErrorResponse, createTTLCache, createRateLimiter, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
+import { DataTransactionError, FamilyError, FamilyMergeError } from '../family-errors';
 
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
@@ -21,6 +22,29 @@ const mockRequireDisplayAuth = vi.mocked(requireDisplayAuth);
 
 describe('errorResponse', () => {
   silenceConsole();
+
+  it.each([
+    new DataTransactionError('Recovery is pending for data/config.json.'),
+    new FamilyMergeError('Two identities conflict.'),
+  ])('preserves known family error status and actionable message', async (error) => {
+    const response = errorResponse(error, 'fallback');
+    expect(response.status).toBe(error.status);
+    expect(await response.json()).toEqual({ error: error.message });
+  });
+
+  it('returns the current family snapshot with a revision conflict', async () => {
+    const current = { members: [], revision: 'current-revision' };
+    const response = errorResponse(new FamilyError('Refresh and apply your changes again.', 409, current), 'fallback');
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: 'Refresh and apply your changes again.', ...current });
+  });
+
+  it('does not treat arbitrary errors carrying a status as family errors', async () => {
+    const error = Object.assign(new Error('unrelated failure'), { status: 409 });
+    const response = errorResponse(error, 'fallback');
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: 'fallback', detail: 'unrelated failure' });
+  });
 
   it('returns fallback message with error detail for Error instances', async () => {
     const response = errorResponse(new Error('something broke'), 'fallback');
@@ -75,6 +99,20 @@ describe('errorResponse', () => {
 
 describe('publicErrorResponse', () => {
   silenceConsole();
+
+  it.each([
+    new DataTransactionError('/private/install/data/config.json failed recovery'),
+    new FamilyMergeError('/private/install/data/family.json has conflicting identities'),
+    new FamilyError('/private/install/data/family.json changed', 409, { members: [], revision: 'private-revision' }),
+  ])('keeps typed family status without exposing paths or private state', async (error) => {
+    const response = publicErrorResponse(error, 'fallback');
+    expect(response.status).toBe(error.status);
+    const body = await response.json();
+    expect(Object.keys(body)).toEqual(['error']);
+    expect(body.error).not.toContain('/private');
+    expect(body.error).not.toContain('private-revision');
+    expect(body.error).toContain('Family data');
+  });
 
   it('never emits a detail field, even for Error instances', async () => {
     const response = publicErrorResponse(

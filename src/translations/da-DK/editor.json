@@ -414,7 +414,8 @@
         "displays": "Displays",
         "screen": "Skærm",
         "automation": "Automatisering",
-        "phone": "På din telefon"
+        "phone": "På din telefon",
+        "family": "Familie"
       },
       "groups": {
         "screen": "Skærm",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Personer",
-        "help": "Giv hvert familiemedlem et navn, og vælg deres kalendere. Familieoversigten og Fritid viser én række pr. person; kalendere uden person tæller som fælles.",
-        "namePlaceholder": "Navn (f.eks. Ella)",
-        "addPerson": "+ Tilføj person",
-        "calendars": "Kalendere",
+        "heading": "Hvis kalendere?",
+        "help": "Vælg kalendere til hvert familiemedlem. Kalendere uden tilknytning deles med alle.",
         "noSources": "Forbind først en kalender ovenfor, og vælg derefter hvilke der hører til denne person.",
-        "noCalendarsPicked": "Ingen kalendere valgt",
-        "remove": "Fjern {name}",
-        "noPeople": "Ingen personer endnu."
+        "noPeople": "Tilføj personer på familiesiden, og vælg deres kalendere her.",
+        "manageFamily": "Administrer familie"
       },
       "areas": {
         "sources": "Hvor begivenhederne kommer fra",
@@ -2154,6 +2151,9 @@
         "action": "Udskriv",
         "sheetTitle": "Home Screens på din telefon"
       }
+    },
+    "familyPage": {
+      "description": "Tilføj din husstand én gang. Navne, farver og emojis følger hver person i pligter, belønninger og kalendere."
     }
   },
   "backgroundPicker": {

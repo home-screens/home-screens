@@ -1,12 +1,14 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import React from 'react';
 import { Ticket } from 'lucide-react';
-import type { ChoreMember } from '@/types/config';
+
 import { onAccentFor } from '@/lib/fullscreen-themes';
 
 interface MemberPickerProps {
-  members: ChoreMember[];
+  members: FamilyMember[];
   balances: Record<string, number>;
   selectedId: string | null;
   onSelect: (memberId: string) => void;

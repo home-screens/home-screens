@@ -1,8 +1,10 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Minus } from 'lucide-react';
-import type { ChoreMember } from '@/types/config';
+
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
@@ -20,7 +22,7 @@ interface RewardsData {
 }
 
 interface RewardsViewProps {
-  members: ChoreMember[];
+  members: FamilyMember[];
   accentColor: string;
   isAdmin?: boolean;
   /**
@@ -367,7 +369,7 @@ function RedeemSection({
   onRedeem,
 }: {
   t: ReturnType<typeof useTranslate>;
-  members: ChoreMember[];
+  members: FamilyMember[];
   selectedMemberId: string;
   onSelectMember: (id: string) => void;
   /** Grown-ups pick any member here; kids spend only as the member picked on Today. */
@@ -663,7 +665,7 @@ function BalancesSection({
 }: {
   t: ReturnType<typeof useTranslate>;
   data: RewardsData | null;
-  members: ChoreMember[];
+  members: FamilyMember[];
   onAdjust: (memberId: string, amount: number) => void;
 }) {
   return (

@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Afvis"
+  },
+  "family": {
+    "title": "Familie",
+    "add": "Tilføj person",
+    "edit": "Rediger person",
+    "emoji": "Emoji (valgfri)",
+    "color": "Farve",
+    "emptyTitle": "Ingen endnu",
+    "emptyDescription": "Tilføj personerne i din husstand. De bliver tilgængelige i pligter, belønninger og kalendere.",
+    "loadFailed": "Din familie kunne ikke indlæses.",
+    "saveFailed": "Din familie kunne ikke gemmes.",
+    "retry": "Prøv igen",
+    "saved": "Familie gemt.",
+    "saving": "Gemmer…",
+    "conflict": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
+    "removeTitle": "Fjern {name}?",
+    "removeDescription": "Når du fjerner {name}, slettes personens opgavetildelinger, planer, historik, billetter og adgang til belønninger. Valget af personens kalendere glemmes også. Opgaver uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
+    "remove": "Fjern person",
+    "editName": "Rediger {name}",
+    "moveUp": "Flyt {name} op",
+    "moveDown": "Flyt {name} ned",
+    "pagination": "Familiesider",
+    "previous": "Forrige",
+    "next": "Næste",
+    "page": "Side {page} af {total}",
+    "limit": "Du kan tilføje op til {count} personer. Alle, der allerede er her, bevares og kan stadig redigeres eller fjernes.",
+    "choreCount": {
+      "one": "{count} opgave",
+      "other": "{count} opgaver"
+    },
+    "removeChoreCount": {
+      "one": "{name} har {count} tildelt opgave.",
+      "other": "{name} har {count} tildelte opgaver."
+    }
   }
 }

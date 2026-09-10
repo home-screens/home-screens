@@ -16,7 +16,8 @@ vi.mock('@/lib/auth', async (importActual) => ({
 import { GET, POST } from '@/app/api/backup/route';
 import { POST as POST_CREDENTIALS } from '@/app/api/backup/credentials/route';
 import { readConfig, writeConfig } from '@/lib/config';
-import { readChoreData, writeChoreData } from '@/lib/chore-data';
+import { readFamilyData, writeFamilyData } from '@/lib/family-data';
+import { writeChoreData } from '@/lib/chore-data';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
 import { readAuthState, writeAuthStateRaw, isAuthEnabled } from '@/lib/auth';
 import { readSecrets, writeSecrets } from '@/lib/secrets';
@@ -31,7 +32,7 @@ const cleanConfig = {
   settings: { rotationIntervalMs: 30000, displayWidth: 1080, displayHeight: 1920 },
 } as unknown as ScreenConfiguration;
 
-const emptyChores: ChoreData = { members: [], chores: [] };
+const emptyChores: ChoreData = { chores: [] };
 
 function getReq(): NextRequest {
   return new NextRequest('http://localhost/api/backup');
@@ -51,6 +52,7 @@ beforeEach(async () => {
   // don't leak into one another (the sandbox data/ is shared across a file).
   await writeConfig(cleanConfig);
   await writeChoreData(emptyChores);
+  await writeFamilyData({ members: [], migrated: true });
   await writeBackupState({ lastBackupDate: null, lastDismissedDate: null });
   await writeSecrets({});
   await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
@@ -114,6 +116,7 @@ describe('GET /api/backup', () => {
         'rewards',
         'routines',
         'todos',
+        'family',
       ].sort(),
     );
     // Nothing in the serialized bundle looks like a bearer/api key value.
@@ -142,7 +145,7 @@ describe('POST /api/backup — restore', () => {
     } as unknown as ScreenConfiguration;
     const seededChores = {
       members: [{ id: 'm1', name: 'Alex' }],
-      chores: [{ id: 'c1', name: 'Dishes' }],
+      chores: [{ id: 'c1', name: 'Dishes', assigneeIds: ['m1'] }],
     } as unknown as ChoreData;
 
     await writeConfig(seededConfig);
@@ -153,8 +156,9 @@ describe('POST /api/backup — restore', () => {
     // Wipe both stores.
     await writeConfig(cleanConfig);
     await writeChoreData(emptyChores);
+  await writeFamilyData({ members: [], migrated: true });
     expect((await readConfig()).screens[0].id).toBe('default');
-    expect((await readChoreData()).members).toHaveLength(0);
+    expect((await readFamilyData()).members).toHaveLength(0);
 
     // Restore from the exported bundle.
     const res = await POST(postReq(bundle));
@@ -162,6 +166,8 @@ describe('POST /api/backup — restore', () => {
     const json = await res.json();
     expect(json.restored).toEqual({
       config: true,
+      family: true,
+      todos: true,
       chores: true,
       choreCompletions: true,
       meals: true,
@@ -170,13 +176,13 @@ describe('POST /api/backup — restore', () => {
     });
 
     expect((await readConfig()).screens[0].id).toBe('roundtrip-screen');
-    const restoredChores = await readChoreData();
+    const restoredChores = await readFamilyData();
     expect(restoredChores.members).toHaveLength(1);
     expect(restoredChores.members[0].id).toBe('m1');
   });
 
   it('only restores the sections present in a partial bundle', async () => {
-    await writeChoreData({ members: [{ id: 'keep' }], chores: [] } as unknown as ChoreData);
+    await writeChoreData({ members: [{ id: 'keep', name: 'Keep' }], chores: [] } as unknown as ChoreData);
 
     const res = await POST(
       postReq({
@@ -190,7 +196,7 @@ describe('POST /api/backup — restore', () => {
     expect(json.restored.chores).toBe(false);
 
     // Chores were not in the bundle, so they must be untouched.
-    expect((await readChoreData()).members[0].id).toBe('keep');
+    expect((await readFamilyData()).members[0].id).toBe('keep');
   });
 
   it('restores a legacy config-only file (no envelope)', async () => {

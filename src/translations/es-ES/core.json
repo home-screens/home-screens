@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Descartar"
+  },
+  "family": {
+    "title": "Familia",
+    "add": "Añadir persona",
+    "edit": "Editar persona",
+    "emoji": "Emoji (opcional)",
+    "color": "Color",
+    "emptyTitle": "Aún no hay nadie",
+    "emptyDescription": "Añade a las personas de tu hogar. Estarán disponibles en tareas, recompensas y calendarios.",
+    "loadFailed": "No se pudo cargar tu familia.",
+    "saveFailed": "No se pudo guardar tu familia.",
+    "retry": "Reintentar",
+    "saved": "Familia guardada.",
+    "saving": "Guardando…",
+    "conflict": "Alguien cambió la familia mientras la editabas. Se muestra la lista actual. Vuelve a realizar tu cambio.",
+    "removeTitle": "¿Eliminar a {name}?",
+    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de vales y acceso a recompensas. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
+    "remove": "Eliminar persona",
+    "editName": "Editar a {name}",
+    "moveUp": "Subir a {name}",
+    "moveDown": "Bajar a {name}",
+    "pagination": "Páginas de la familia",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {page} de {total}",
+    "limit": "Puedes añadir hasta {count} personas. Todas las personas existentes se conservan y se pueden seguir editando o eliminando.",
+    "choreCount": {
+      "one": "{count} tarea",
+      "other": "{count} tareas"
+    },
+    "removeChoreCount": {
+      "one": "{name} tiene {count} tarea asignada.",
+      "other": "{name} tiene {count} tareas asignadas."
+    }
   }
 }

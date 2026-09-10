@@ -61,7 +61,7 @@ Apple lets you make a password just for Home Screens, so your real Apple ID pass
 
 ## Who is who
 
-Under **People** on the same page, add each family member with a name and a colour, and pick which calendars are theirs. The Full-Screen Calendar's **family grid** and **free time** views draw one row per person from this list. A calendar you do not give to anyone counts as shared by the whole house. The other calendar views do not use this list, so you only need it for those two.
+Add your household under **Settings > Family** (see [Family](/docs/family)), then return to **Settings > Calendar > Whose calendars?** and pick which calendars are theirs. The Full-Screen Calendar's **family grid** and **free time** views draw one row per person from this list. A calendar you do not give to anyone counts as shared by the whole house. The other calendar views do not use this list, so you only need it for those two.
 
 ## Public holidays
 

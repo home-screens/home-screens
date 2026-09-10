@@ -414,7 +414,8 @@
         "displays": "Displays",
         "screen": "Screen",
         "automation": "Automation",
-        "phone": "On your phone"
+        "phone": "On your phone",
+        "family": "Family"
       },
       "groups": {
         "screen": "Screen",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "People",
-        "help": "Give each family member a name and pick their calendars. The family grid and free time views show one row per person; calendars picked for nobody count as shared.",
-        "namePlaceholder": "Name (e.g. Ella)",
-        "addPerson": "+ Add person",
-        "calendars": "Calendars",
+        "heading": "Whose calendars?",
+        "help": "Choose which calendars belong to each family member. Calendars assigned to nobody are shared with everyone.",
         "noSources": "Connect a calendar above first, then pick which ones belong to this person.",
-        "noCalendarsPicked": "No calendars picked",
-        "remove": "Remove {name}",
-        "noPeople": "No people yet."
+        "noPeople": "Add people on the Family page, then choose their calendars here.",
+        "manageFamily": "Manage family"
       },
       "areas": {
         "sources": "Where events come from",
@@ -2154,6 +2151,9 @@
         "action": "Print",
         "sheetTitle": "Home Screens on your phone"
       }
+    },
+    "familyPage": {
+      "description": "Add your household once. Names, colors and emoji follow each person across chores, rewards and calendars."
     }
   },
   "backgroundPicker": {

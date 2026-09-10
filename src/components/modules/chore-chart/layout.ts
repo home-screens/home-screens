@@ -1,4 +1,6 @@
-import type { ChoreMember } from '@/types/config';
+
+import type { FamilyMember } from '@/types/family';
+
 import { TAP_CHECKBOX_SIZE } from '../shared/TapCheckbox';
 import type { MemberStats } from './types';
 
@@ -42,21 +44,21 @@ export function fitPerRow(availableWidth: number, itemWidth: number, gap: number
 
 export interface MemberPartition {
   /** Has at least one chore today. */
-  active: ChoreMember[];
+  active: FamilyMember[];
   /** Nothing today, but chores on another day this week: a real day off. */
-  dayOff: ChoreMember[];
+  dayOff: FamilyMember[];
   /** No chores at all this week (the parents, usually): not part of the chart. */
-  idle: ChoreMember[];
+  idle: FamilyMember[];
 }
 
 /**
  * Sort members into the three states a chart has to treat differently.
  * Order within each group follows the household's member order.
  */
-export function partitionMembers(members: ChoreMember[], memberStats: Map<string, MemberStats>): MemberPartition {
-  const active: ChoreMember[] = [];
-  const dayOff: ChoreMember[] = [];
-  const idle: ChoreMember[] = [];
+export function partitionMembers(members: FamilyMember[], memberStats: Map<string, MemberStats>): MemberPartition {
+  const active: FamilyMember[] = [];
+  const dayOff: FamilyMember[] = [];
+  const idle: FamilyMember[] = [];
   for (const member of members) {
     const stats = memberStats.get(member.id);
     if (stats && stats.total > 0) active.push(member);
@@ -67,7 +69,7 @@ export function partitionMembers(members: ChoreMember[], memberStats: Map<string
 }
 
 /** Members that take part in the chart this week: everyone but the idle ones. */
-export function weekMembers(members: ChoreMember[], memberStats: Map<string, MemberStats>): ChoreMember[] {
+export function weekMembers(members: FamilyMember[], memberStats: Map<string, MemberStats>): FamilyMember[] {
   return members.filter((m) => (memberStats.get(m.id)?.weekAssigned ?? 0) > 0);
 }
 

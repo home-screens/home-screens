@@ -123,12 +123,18 @@ describe('PUT /api/config', () => {
     expect(res.headers.get(CONFIG_REVISION_HEADER)).toBe(configRevision(onDisk as never));
   });
 
-  it('overwrites an unreadable config.json instead of refusing every save', async () => {
-    vi.mocked(updateConfigAtomic).mockRejectedValue(new SyntaxError('Unexpected token'));
-    const res = await PUT(makePutRequest(dummyConfig, 'stale-rev'));
+  it('refuses an unreadable config instead of overwriting through a failed transaction', async () => {
+    vi.mocked(readConfig).mockRejectedValue(new SyntaxError('Unexpected token'));
+    const res = await PUT(makePutRequest(dummyConfig));
 
-    expect(res.status).toBe(200);
-    expect(writeConfig).toHaveBeenCalledWith(dummyConfig);
+    expect(res.status).toBe(500);
+    expect(writeConfig).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid calendar ownership values before writing', async () => {
+    const res = await PUT(makePutRequest({ ...dummyConfig, settings: { ...dummyConfig.settings, calendar: { personSources: { alex: 'not-an-array' } } } }));
+    expect(res.status).toBe(400);
+    expect(writeConfig).not.toHaveBeenCalled();
   });
 
   it('returns 400 when screens is missing', async () => {

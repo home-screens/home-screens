@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from 'child_process';
 import { createInterface } from 'readline';
 import path from 'path';
 import { readConfig, writeConfig } from './config';
+import { withDataTransaction } from './data-transaction';
 import { migrateUp, getLatestSchemaVersion } from './migrations';
 import { hasReleaseTarball, GITHUB_REPO } from './version';
 
@@ -258,7 +259,9 @@ function preflightStep(
 }
 
 /**
- * Snapshot config before touching anything. The target tag rides along so
+ * Snapshot config before touching anything, while the coordinator excludes
+ * concurrent edits and recovers pending transactions. Do not trigger a fresh
+ * family migration before preserving this pre-upgrade snapshot. The target tag rides along so
  * the script can also pin a copy when a release build is about to be
  * replaced by a prerelease one: nightlies carry unreleased migrations, and
  * the rotating backups age out inside a week of daily installs.
@@ -269,7 +272,7 @@ function backupStep(progress: number, targetTag: string): PipelineStep {
     progress,
     message: 'Backing up configuration...',
     run: async () => {
-      const backupOut = await runUpgradeScript('backup', [targetTag], streamTo('backup'));
+      const backupOut = await withDataTransaction(() => runUpgradeScript('backup', [targetTag], streamTo('backup')));
       const backup = parseResult(backupOut);
       if (!backup.ok) {
         throw new Error(`Backup failed: ${backup.error}`);
@@ -283,7 +286,7 @@ function migrateStep(progress: number): PipelineStep {
     step: 'migrate',
     progress,
     message: 'Migrating configuration...',
-    run: async () => {
+    run: () => withDataTransaction(async () => {
       const config = await readConfig();
       const targetSchemaVersion = getLatestSchemaVersion();
       if ((config.version ?? 0) < targetSchemaVersion) {
@@ -293,7 +296,7 @@ function migrateStep(progress: number): PipelineStep {
       } else {
         emitOutput('migrate', 'Schema is up to date — no migration needed');
       }
-    },
+    }),
   };
 }
 
@@ -535,13 +538,19 @@ async function runTarballUpgrade(targetTag: string): Promise<void> {
       progress: 60,
       message: 'Installing update...',
       run: async () => {
+        // Native/runtime provisioning may take minutes; finish it before
+        // excluding normal config and household reads during the short swap.
+        const prepared = parseResult(await runUpgradeScript('prepare-deploy', [], streamTo('deploy')));
+        if (!prepared.ok) throw new Error(prepared.error as string);
         currentUpgrade.deploying = true;
         try {
-          const deployOut = await runUpgradeScript('deploy', [], streamTo('deploy'));
-          const deploy = parseResult(deployOut);
-          if (!deploy.ok) {
-            throw new Error(deploy.error as string);
-          }
+          await withDataTransaction(async () => {
+            const deploy = parseResult(await runUpgradeScript('deploy', ['--runtime-ready'], streamTo('deploy')));
+            if (!deploy.ok) throw new Error(deploy.error as string);
+            // getcwd follows the renamed inode. Rejoin the current release
+            // before releasing readers that still use relative paths.
+            process.chdir(APP_DIR);
+          });
         } finally {
           currentUpgrade.deploying = false;
         }
@@ -676,7 +685,7 @@ export async function runRollback(targetTag: string): Promise<void> {
       progress: 10,
       message: 'Backing up current configuration...',
       run: async () => {
-        await runUpgradeScript('backup', [targetTag], streamTo('backup'));
+        await withDataTransaction(() => runUpgradeScript('backup', [targetTag], streamTo('backup')));
       },
     },
     {

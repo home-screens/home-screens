@@ -414,7 +414,8 @@
         "displays": "Affichages",
         "screen": "Écran",
         "automation": "Automatisation",
-        "phone": "Sur votre téléphone"
+        "phone": "Sur votre téléphone",
+        "family": "Famille"
       },
       "groups": {
         "screen": "Écran",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Personnes",
-        "help": "Donnez un nom à chaque membre de la famille et choisissez ses calendriers. La grille familiale et le temps libre affichent une ligne par personne ; les calendriers sans personne sont partagés.",
-        "namePlaceholder": "Nom (ex. Ella)",
-        "addPerson": "+ Ajouter une personne",
-        "calendars": "Calendriers",
+        "heading": "À qui sont les calendriers ?",
+        "help": "Choisissez les calendriers de chaque membre de la famille. Les calendriers sans attribution sont partagés avec tout le monde.",
         "noSources": "Connectez d'abord un calendrier ci-dessus, puis choisissez ceux de cette personne.",
-        "noCalendarsPicked": "Aucun calendrier choisi",
-        "remove": "Retirer {name}",
-        "noPeople": "Aucune personne pour l'instant."
+        "noPeople": "Ajoutez des personnes sur la page Famille, puis choisissez leurs calendriers ici.",
+        "manageFamily": "Gérer la famille"
       },
       "areas": {
         "sources": "D'où viennent les événements",
@@ -2154,6 +2151,9 @@
         "action": "Imprimer",
         "sheetTitle": "Home Screens sur votre téléphone"
       }
+    },
+    "familyPage": {
+      "description": "Ajoutez votre foyer une seule fois. Noms, couleurs et emojis accompagnent chaque personne dans les tâches, les récompenses et les calendriers."
     }
   },
   "backgroundPicker": {

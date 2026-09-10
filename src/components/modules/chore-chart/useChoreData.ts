@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import type { ChoreMember, ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+import type { ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import { useFetchData } from '@/hooks/useFetchData';
 import type { FetchError } from '@/lib/fetch-error';
 import { displayFetch } from '@/lib/display-fetch';
@@ -31,7 +33,7 @@ const log = logger('chores');
 const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
 
 /** Display-only settings accepted by useChoreData — no members/chores,
- *  those are fetched from the shared /api/chores/data endpoint. */
+ *  those are fetched separately from /api/family and /api/chores/data. */
 export interface ChoreDataConfig {
   weekStartDay: 'sunday' | 'monday';
   showPoints: boolean;
@@ -45,7 +47,6 @@ interface ChoresResponse {
 }
 
 interface ChoreDataResponse {
-  members: ChoreMember[];
   chores: ChoreDefinition[];
 }
 
@@ -56,7 +57,7 @@ interface RewardsResponse {
 }
 
 interface ChoreDataState {
-  members: ChoreMember[];
+  members: FamilyMember[];
   chores: ChoreDefinition[];
   rewards: RewardDefinition[];
   todayAssignments: ResolvedAssignment[];
@@ -79,7 +80,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), choreChartTtl);
-  const [fetchedChoreData] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
+  const [fetchedChoreData, choreDataError] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
   const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
   // Mirror fetchedRewards into local state so toggleComplete can overwrite it
@@ -92,7 +93,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   // override window just long enough for the next poll to catch up.
   const rewardsOverrideUntil = useRef<number>(0);
 
-  const members = useMemo(() => fetchedChoreData?.members ?? [], [fetchedChoreData]);
+  const { members, loading: familyLoading, error: familyError } = useFamilyData();
   const chores = useMemo(() => fetchedChoreData?.chores ?? [], [fetchedChoreData]);
 
   useEffect(() => {
@@ -106,8 +107,8 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     setRewards(fetchedRewards);
   }, [fetchedRewards]);
 
-  const isLoading = (!fetchedCompletions && !completionsError) || !fetchedChoreData;
-  const error = completionsError;
+  const isLoading = (!fetchedCompletions && !completionsError) || (!fetchedChoreData && !choreDataError) || familyLoading;
+  const error = completionsError ?? choreDataError ?? familyError;
 
   const completionSet = useMemo(() => {
     const set = new Set<string>();

@@ -133,7 +133,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                 style={MOBILE_INPUT_STYLE}
               />
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(48px, 1fr))', gap: 6 }}>
               {filtered.map((name) => {
                 const def = getIconDef(name);
                 if (!def) return null;
@@ -145,6 +145,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
                     key={name}
                     type="button"
                     className="press-scale-sm"
+                    aria-pressed={isSelected}
                     onClick={() => {
                       onChange(isSelected ? '' : lucideVal);
                       setOpen(false);
@@ -247,6 +248,7 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
               key={name}
               type="button"
               onClick={() => onChange(lucideVal)}
+              aria-pressed={isSelected}
               className={`flex flex-col items-center gap-0.5 rounded-lg transition-all px-1.5 py-1.5 ${
                 isSelected
                   ? 'ring-2 ring-white ring-offset-1 ring-offset-hs-panel scale-105'

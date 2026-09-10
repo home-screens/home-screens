@@ -1,10 +1,11 @@
+import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
 import { buildExtrasIndex, hasExtras, EMPTY_EXTRAS } from '@/lib/calendar-extras';
-import type { ChoreDefinition, ChoreMember } from '@/types/config';
+import type { ChoreDefinition } from '@/types/config';
 
-const members: ChoreMember[] = [
-  { id: 'm1', name: 'Ella', emoji: '🦊', color: '#db2777' },
-  { id: 'm2', name: 'Owen', emoji: '🐻', color: '#ea580c' },
+const members: FamilyMember[] = [
+  { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'm1', name: 'Ella', emoji: '🦊', color: '#db2777' },
+  { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'm2', name: 'Owen', emoji: '🐻', color: '#ea580c' },
 ];
 const chores: ChoreDefinition[] = [
   { id: 'c1', name: 'Feed the dog', emoji: '🐶', points: 1, frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m1', 'm2'], rotation: 'fixed' },

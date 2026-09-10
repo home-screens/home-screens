@@ -1,245 +1,120 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { NextRequest } from 'next/server';
 
-// Fully mock every store so we can deterministically force a mid-bundle write
-// failure and assert the route rolls back the writes that already landed.
-vi.mock('@/lib/auth', () => ({
-  requireSession: vi.fn(),
-  requireDisplayAuth: vi.fn(),
-  isAuthEnabled: vi.fn().mockResolvedValue(false),
+vi.mock('@/lib/auth', async (original) => ({
+  ...await original<typeof import('@/lib/auth')>(),
+  requireSession: vi.fn(), requireDisplayAuth: vi.fn(), isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
-// Credential collect/apply is mocked here for the same reason every other
-// store is: this suite forces write failures at chosen points. Its own
-// rollback behaviour is asserted in the credential cases at the bottom.
-vi.mock('@/lib/backup-credentials', () => ({
-  collectCredentials: vi.fn(),
-  snapshotCredentials: vi.fn(),
-  applyCredentials: vi.fn(),
-}));
+import { POST } from '../route';
+import { readFamilyData } from '@/lib/family-data';
+import { getLatestSchemaVersion } from '@/lib/migrations';
 
-vi.mock('@/lib/config', () => ({
-  readConfig: vi.fn(),
-  writeConfig: vi.fn(),
-}));
-vi.mock('@/lib/chore-data', () => ({
-  readChoreData: vi.fn(),
-  writeChoreData: vi.fn(),
-}));
-vi.mock('@/lib/chore-completion-data', () => ({
-  readCompletions: vi.fn(),
-  writeCompletions: vi.fn(),
-}));
-vi.mock('@/lib/meal-data', () => ({
-  readMealData: vi.fn(),
-  writeMealData: vi.fn(),
-}));
-vi.mock('@/lib/reward-data', () => ({
-  readRewardData: vi.fn(),
-  writeRewardData: vi.fn(),
-}));
-vi.mock('@/lib/todo-data', () => ({
-  readTodoData: vi.fn().mockResolvedValue({ lists: [], migratedFromConfig: true }),
-  writeTodoData: vi.fn().mockResolvedValue(undefined),
-  foldInLegacyTodoItemsNow: vi.fn().mockResolvedValue({ lists: [], migratedFromConfig: true }),
-}));
-vi.mock('@/lib/backup-state', () => ({
-  readBackupState: vi.fn(),
-  writeBackupState: vi.fn().mockResolvedValue(undefined),
-}));
-// validateDisplays passes so the restore reaches the write phase.
-vi.mock('@/lib/display-filter', () => ({
-  validateDisplays: vi.fn().mockReturnValue(null),
-}));
-
-import { POST } from '@/app/api/backup/route';
-import { readConfig, writeConfig } from '@/lib/config';
-import { readChoreData, writeChoreData } from '@/lib/chore-data';
-import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
-import { readMealData, writeMealData } from '@/lib/meal-data';
-import { readRewardData, writeRewardData } from '@/lib/reward-data';
-import { snapshotCredentials, applyCredentials } from '@/lib/backup-credentials';
-import { readTodoData, writeTodoData, foldInLegacyTodoItemsNow } from '@/lib/todo-data';
-
-const snapshotConfig = { snapshot: 'config', screens: [], settings: {} };
-const snapshotChores = { snapshot: 'chores' };
-const snapshotCompletions = { snapshot: 'completions' };
-
-const bundle = {
-  _type: 'home-screens-backup',
-  config: { restored: 'config', screens: [{ id: 'x', modules: [] }], settings: {} },
-  chores: { restored: 'chores' },
-  choreCompletions: { restored: 'completions' },
-  meals: { restored: 'meals' },
-  rewards: { restored: 'rewards' },
-};
-
-/** A bundle carrying a plaintext credential section, for the cases below. */
-const credentialBundle = {
-  ...bundle,
-  credentials: { encrypted: false, data: { secrets: { openweathermap_key: 'from-backup' } } },
-};
-
-/** What snapshotCredentials returns — the pre-restore state to roll back to. */
-const credentialSnapshot = { secrets: { openweathermap_key: 'pre-restore' } };
-
-function postReq(body: unknown): NextRequest {
-  return new NextRequest('http://localhost/api/backup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+const iso = '2026-01-01T00:00:00.000Z';
+const member = { id: 'alex', name: 'Alex', color: '#60a5fa', createdAt: iso, updatedAt: iso };
+const config = { version: getLatestSchemaVersion(), settings: {}, screens: [{ id: 'before', name: 'Before', modules: [] }] };
+const files = ['config.json', 'family.json', 'chores.json', 'chore-completions.json', 'rewards.json', 'meals.json', 'todos.json', 'secrets.json', 'google-tokens.json'];
+const write = (file: string, value: unknown) => fs.writeFile(path.join(process.cwd(), 'data', file), JSON.stringify(value, null, 2));
+const read = (file: string) => fs.readFile(path.join(process.cwd(), 'data', file), 'utf8');
+const body = () => ({
+  _type: 'home-screens-backup', config: { ...config, screens: [{ id: 'after', name: 'After', modules: [] }] },
+  family: { members: [{ ...member, name: 'Alex restored' }], migrated: true },
+  chores: { chores: [] }, choreCompletions: { completions: [] },
+  rewards: { rewards: [], balances: { alex: 20 }, redemptions: [] },
+  meals: { savedMeals: [], plan: [], groceryChecked: [], settings: {} },
+});
+const request = (value: unknown) => new NextRequest('http://localhost/api/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
+const credentialBody = () => ({ ...body(), credentials: { encrypted: false, data: { secrets: { openweathermap_key: 'new-key' }, oauthTokens: { google: { access_token: 'new-token' } } } } });
+let before: string[];
+beforeEach(async () => {
+  vi.restoreAllMocks();
+  await fs.rm(path.join(process.cwd(), 'data'), { recursive: true, force: true });
+  await fs.mkdir(path.join(process.cwd(), 'data'));
+  await write('config.json', config);
+  await write('family.json', { members: [member], migrated: true });
+  await write('chores.json', { chores: [] });
+  await write('chore-completions.json', { completions: [] });
+  await write('rewards.json', { rewards: [], balances: { alex: 5 }, redemptions: [] });
+  await write('meals.json', { savedMeals: [], plan: [], groceryChecked: [], settings: {} });
+  await write('todos.json', { lists: [], migratedFromConfig: true });
+  await write('secrets.json', { openweathermap_key: 'old-key' });
+  await write('google-tokens.json', { access_token: 'old-token' });
+  await readFamilyData();
+  before = await Promise.all(files.map(read));
+});
+afterEach(() => vi.restoreAllMocks());
+function failOnceAt(file: string) {
+  const rename = fs.rename.bind(fs);
+  let failed = false;
+  const writes: string[] = [];
+  vi.spyOn(fs, 'rename').mockImplementation(async (from, to) => {
+    writes.push(path.basename(String(to)));
+    if (!failed && String(to) === path.join(process.cwd(), 'data', file)) {
+      failed = true; throw new Error('simulated disk failure');
+    }
+    return rename(from, to);
   });
+  return writes;
+}
+async function expectRollback() {
+  expect(await Promise.all(files.map(read))).toEqual(before);
+  await expect(fs.access(path.join(process.cwd(), 'data/family-transaction.json'))).rejects.toThrow();
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  // Snapshots the handler captures before writing.
-  vi.mocked(readConfig).mockResolvedValue(snapshotConfig as never);
-  vi.mocked(readChoreData).mockResolvedValue(snapshotChores as never);
-  vi.mocked(readCompletions).mockResolvedValue(snapshotCompletions as never);
-  vi.mocked(readMealData).mockResolvedValue({ snapshot: 'meals' } as never);
-  vi.mocked(readRewardData).mockResolvedValue({ snapshot: 'rewards' } as never);
-
-  // Every write succeeds by default; individual tests override.
-  vi.mocked(writeConfig).mockResolvedValue(undefined);
-  vi.mocked(writeChoreData).mockResolvedValue(undefined);
-  vi.mocked(writeCompletions).mockResolvedValue(undefined);
-  vi.mocked(writeMealData).mockResolvedValue(undefined);
-  vi.mocked(writeRewardData).mockResolvedValue(undefined);
-
-  vi.mocked(snapshotCredentials).mockResolvedValue(credentialSnapshot);
-  vi.mocked(applyCredentials).mockResolvedValue({ applied: ['secrets'], skipped: [] });
-});
-
-describe('POST /api/backup — cross-file rollback', () => {
-  it('rolls back landed writes when a later write fails', async () => {
-    // Meals is the 4th write in the sequence; fail it.
-    vi.mocked(writeMealData).mockRejectedValueOnce(new Error('disk full'));
-
-    const res = await POST(postReq(bundle));
-
-    // The route rethrows, so withAuth turns it into a 500.
-    expect(res.status).toBe(500);
-
-    // Forward writes ran in order up to (and including) the failing one.
-    expect(writeConfig).toHaveBeenNthCalledWith(1, bundle.config);
-    expect(writeChoreData).toHaveBeenNthCalledWith(1, bundle.chores);
-    expect(writeCompletions).toHaveBeenNthCalledWith(1, bundle.choreCompletions);
-    expect(writeMealData).toHaveBeenCalledWith(bundle.meals);
-
-    // The write AFTER the failure never fired.
-    expect(writeRewardData).not.toHaveBeenCalled();
-
-    // Rollback restored each landed file with its pre-restore snapshot.
-    expect(writeConfig).toHaveBeenNthCalledWith(2, snapshotConfig);
-    expect(writeChoreData).toHaveBeenNthCalledWith(2, snapshotChores);
-    expect(writeCompletions).toHaveBeenNthCalledWith(2, snapshotCompletions);
+describe('whole restore journal', () => {
+  it('rolls every landed content file back when a later write fails', async () => {
+    failOnceAt('rewards.json');
+    expect((await POST(request(body()))).status).toBe(500);
+    await expectRollback();
   });
-
-  it('does not roll back the config when the very first write fails', async () => {
-    vi.mocked(writeConfig).mockRejectedValueOnce(new Error('disk full'));
-
-    const res = await POST(postReq(bundle));
-
-    expect(res.status).toBe(500);
-    // The failed write is the only writeConfig call — no rollback write,
-    // since the failing write itself either renamed or didn't touch the file.
-    expect(writeConfig).toHaveBeenCalledTimes(1);
-    expect(writeChoreData).not.toHaveBeenCalled();
+  it('preserves all originals when the first destination write fails', async () => {
+    failOnceAt('family.json');
+    expect((await POST(request(body()))).status).toBe(500);
+    await expectRollback();
   });
-
-  it('commits every write and reports success when nothing fails', async () => {
-    const res = await POST(postReq(bundle));
-
-    expect(res.status).toBe(200);
-    expect((await res.json()).restored).toEqual({
-      config: true,
-      chores: true,
-      choreCompletions: true,
-      meals: true,
-      rewards: true,
-      // This bundle carries no routines — flag present but false.
-      routines: false,
-    });
-    // Each store written exactly once (no rollback path taken).
-    expect(writeConfig).toHaveBeenCalledTimes(1);
-    expect(writeChoreData).toHaveBeenCalledTimes(1);
-    expect(writeCompletions).toHaveBeenCalledTimes(1);
-    expect(writeMealData).toHaveBeenCalledTimes(1);
-    expect(writeRewardData).toHaveBeenCalledTimes(1);
+  it('commits all content and reports the restored sections', async () => {
+    const response = await POST(request(body()));
+    expect(response.status).toBe(200);
+    expect((await response.json()).restored.family).toBe(true);
+    expect(JSON.parse(await read('config.json')).screens[0].id).toBe('after');
+    expect(JSON.parse(await read('rewards.json')).balances.alex).toBe(20);
+    expect(JSON.parse(await read('family.json')).members[0].name).toBe('Alex restored');
   });
-});
-
-describe('POST /api/backup — credential rollback', () => {
-  it('applies credentials last, after every data file has landed', async () => {
-    const res = await POST(postReq(credentialBundle));
-
-    expect(res.status).toBe(200);
-    expect(applyCredentials).toHaveBeenCalledTimes(1);
-    // Ordering matters: applying `auth` invalidates the caller's own session
-    // cookie, so it must not run before the data writes have committed.
-    expect(vi.mocked(writeRewardData).mock.invocationCallOrder[0]).toBeLessThan(
-      vi.mocked(applyCredentials).mock.invocationCallOrder[0],
-    );
-    expect((await res.json()).credentials).toEqual({ applied: ['secrets'], skipped: [] });
+  it('plans credentials and publishes them after content', async () => {
+    const writes = failOnceAt('never-written.json');
+    const response = await POST(request(credentialBody()));
+    expect(response.status).toBe(200);
+    expect(writes.indexOf('secrets.json')).toBeGreaterThan(writes.indexOf('rewards.json'));
+    expect(JSON.parse(await read('secrets.json')).openweathermap_key).toBe('new-key');
+    expect((await response.json()).credentials.applied).toEqual(['secrets', 'oauthTokens']);
   });
-
-  it('snapshots only the sections the payload carries', async () => {
-    await POST(postReq(credentialBundle));
-    expect(snapshotCredentials).toHaveBeenCalledWith(['secrets']);
+  it('rolls credentials and content back after a partial credential write', async () => {
+    failOnceAt('google-tokens.json');
+    expect((await POST(request(credentialBody()))).status).toBe(500);
+    await expectRollback();
   });
-
-  it('rolls the credentials back when applying them fails partway', async () => {
-    vi.mocked(applyCredentials).mockRejectedValueOnce(new Error('disk full'));
-
-    const res = await POST(postReq(credentialBundle));
-    expect(res.status).toBe(500);
-
-    // The rollback is registered BEFORE the call, because applyCredentials is
-    // itself multi-write — a failure partway leaves files already written.
-    expect(applyCredentials).toHaveBeenNthCalledWith(2, credentialSnapshot, {
-      enforceIpGuard: false,
-      prunePlugins: true,
-    });
-    // And the data files were reverted too.
-    expect(writeConfig).toHaveBeenNthCalledWith(2, snapshotConfig);
-    expect(writeChoreData).toHaveBeenNthCalledWith(2, snapshotChores);
+  it('never publishes new credentials when an earlier content write fails', async () => {
+    const writes = failOnceAt('rewards.json');
+    expect((await POST(request(credentialBody()))).status).toBe(500);
+    // Rollback may rewrite old credential images, but no new value survives.
+    expect(writes.indexOf('secrets.json')).toBeGreaterThan(writes.indexOf('rewards.json'));
+    await expectRollback();
   });
-
-  it('never applies credentials when an earlier data write fails', async () => {
-    vi.mocked(writeMealData).mockRejectedValueOnce(new Error('disk full'));
-
-    const res = await POST(postReq(credentialBundle));
-    expect(res.status).toBe(500);
-    expect(applyCredentials).not.toHaveBeenCalled();
-    // Nothing to roll back on the credential side either.
-    expect(snapshotCredentials).toHaveBeenCalledTimes(1);
+  it('does not touch absent credential sections', async () => {
+    expect((await POST(request(body()))).status).toBe(200);
+    expect(await read('secrets.json')).toBe(before[7]);
+    expect(await read('google-tokens.json')).toBe(before[8]);
   });
-
-  it('never touches the credential path for a bundle without that section', async () => {
-    const res = await POST(postReq(bundle));
-    expect(res.status).toBe(200);
-    expect(snapshotCredentials).not.toHaveBeenCalled();
-    expect(applyCredentials).not.toHaveBeenCalled();
-    expect((await res.json()).credentials).toBeUndefined();
+  it('rolls config and lists back if a legacy config fold cannot publish', async () => {
+    const legacy = { ...config, screens: [{ id: 'legacy', name: 'Legacy', modules: [{ id: 'todo', type: 'todo', config: { title: 'Shopping', items: [{ id: 'milk', text: 'Milk', completed: false }] } }] }] };
+    failOnceAt('todos.json');
+    expect((await POST(request(legacy))).status).toBe(500);
+    await expectRollback();
   });
-});
-
-describe('legacy-format restore', () => {
-  it('puts both config.json and todos.json back when the fold fails', async () => {
-    const previousTodos = { lists: [{ id: 'keep', name: 'Keep', slug: 'keep', items: [], repeat: 'never', createdAt: 'x', updatedAt: 'x' }], migratedFromConfig: true };
-    vi.mocked(readConfig).mockResolvedValue(snapshotConfig as never);
-    vi.mocked(readTodoData).mockResolvedValue(previousTodos as never);
-    vi.mocked(foldInLegacyTodoItemsNow).mockRejectedValueOnce(new Error('disk full'));
-
-    const res = await POST(new NextRequest('http://localhost/api/backup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ screens: [{ id: 's1', name: 'S1', modules: [] }], settings: {} }),
-    }));
-    expect(res.status).toBe(500);
-    // The restored config was written, then the snapshot went back over it.
-    const configWrites = vi.mocked(writeConfig).mock.calls.map((c) => c[0]);
-    expect(configWrites[configWrites.length - 1]).toBe(snapshotConfig);
-    expect(vi.mocked(writeTodoData)).toHaveBeenCalledWith(previousTodos);
+  it('rejects malformed restored family data before changing files', async () => {
+    const response = await POST(request({ ...body(), family: { members: [{ id: 'bad' }] } }));
+    expect(response.status).toBe(400);
+    await expectRollback();
   });
 });

@@ -1,3 +1,4 @@
+import type { FamilyMember } from '@/types/family';
 import { type CalendarFetchStatus, type CalendarPerson, type CalendarSettings, type CalendarSourceStatus, type ModuleType, type TimeFormat } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
@@ -24,6 +25,8 @@ export interface SharedDisplayData {
   weatherErrors: Partial<Record<string, FetchError>>;
   calendarData: unknown;
   calendarStatus: CalendarFetchStatus;
+  familyMembers?: FamilyMember[];
+  familyState?: 'loading' | 'failed';
 }
 
 const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
@@ -56,8 +59,9 @@ export interface PreviewSettings {
   units: 'metric' | 'imperial';
   fullscreenTheme: string | undefined;
   timeFormat: TimeFormat | undefined;
-  /** Settings > Calendar > People, for the per-person calendar views. */
+  /** Settings > Family, for the per-person calendar views. */
   calendarPeople: CalendarPerson[] | undefined;
+  calendarPeopleState?: 'loading' | 'failed';
   /** Whether Settings > Calendar names anything to fetch (see `hasAnyCalendarSource`). */
   calendarConfigured: boolean;
 }
@@ -116,8 +120,9 @@ export interface ModuleDataSource {
   calendarStatus: CalendarFetchStatus | null;
   /** Per-source health from the calendar payload; null when absent. */
   calendarSourceStatus: CalendarSourceStatus[] | null;
-  /** Household people (Settings > Calendar); null when none are set up. */
+  /** People with assigned calendars; null when none are set up. */
   calendarPeople: CalendarPerson[] | null;
+  calendarPeopleState?: 'loading' | 'failed';
   /**
    * False when Settings > Calendar names nothing to fetch. The shared fetch
    * never starts in that case, so without this flag a calendar module could
@@ -221,6 +226,7 @@ export function buildModuleProps(
   }
   // Only attached while people exist, so a household without them builds the
   // same props as before and the per-person views take their fallback path.
+  if (needsCalendar && source.calendarPeopleState) props.peopleState = source.calendarPeopleState;
   if (needsCalendar && source.calendarPeople && source.calendarPeople.length > 0) {
     props.people = source.calendarPeople;
   }
@@ -285,6 +291,17 @@ export function extractCalendarEvents(calendarData: unknown): unknown[] | null {
   return ((calendarData as Record<string, unknown>).events as unknown[] | undefined) ?? [];
 }
 
+/** Join the household identity with the calendar-owned source mapping. */
+export function calendarPeopleForFamily(
+  members: readonly FamilyMember[],
+  personSources: Record<string, string[]> | undefined,
+): CalendarPerson[] {
+  return members.flatMap(({ id, name, color }) => {
+    const sourceIds = personSources?.[id] ?? [];
+    return sourceIds.length > 0 ? [{ id, name, color, sourceIds }] : [];
+  });
+}
+
 /** Adapter: kiosk display. Coordinates come from settings, payloads from the
  *  once-per-display shared fetch. */
 export function toDisplaySource(
@@ -325,7 +342,8 @@ export function toDisplaySource(
     calendarSourceStatus: calendarData && !Array.isArray(calendarData)
       ? ((calendarData as Record<string, unknown>).sourceStatus as CalendarSourceStatus[] | undefined) ?? null
       : null,
-    calendarPeople: settings.calendar?.people ?? null,
+    calendarPeople: calendarPeopleForFamily(sharedData.familyMembers ?? [], settings.calendar?.personSources),
+    calendarPeopleState: Object.values(settings.calendar?.personSources ?? {}).some((ids) => ids.length > 0) ? sharedData.familyState : undefined,
     calendarConfigured: hasAnyCalendarSource(settings.calendar),
     availableDisplays,
     renderDisplayId: address.renderDisplayId,
@@ -372,6 +390,7 @@ export function toEditorSource(
     calendarStatus: null,
     calendarSourceStatus: previewData.calendarSourceStatus,
     calendarPeople: settings?.calendarPeople ?? null,
+    calendarPeopleState: settings?.calendarPeopleState,
     // No settings yet means the editor is still loading, not that the
     // household has no calendars: never flash the setup card over that.
     calendarConfigured: settings ? settings.calendarConfigured : true,

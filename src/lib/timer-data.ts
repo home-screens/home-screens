@@ -37,6 +37,7 @@ const routinesStore = createJsonStore<RoutinesFile>({
 const sessionStore = createJsonStore<SessionFile>({
   path: 'data/timer-session.json',
   defaultValue: { session: null },
+  transient: true,
 });
 
 export const readRoutinesFile = routinesStore.read;

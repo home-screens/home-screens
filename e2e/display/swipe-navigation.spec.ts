@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { seedChores } from '../helpers/api';
+import { seedHouseholdChores } from '../helpers/api';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
 
 /**
@@ -226,14 +226,14 @@ test.describe('real touch input', () => {
     await expect(page.getByText(C, { exact: true })).toBeVisible();
   });
 
-  test('a real-touch flick starting on a chore list scroll region still navigates', async ({ page, request }) => {
+  test('a real-touch flick starting on a chore list scroll region still navigates', async ({ page, request, sandboxDir }) => {
     // Regression: the fullscreen chore chart's vertical scroll containers
     // carried touch-action: manipulation, which permits horizontal pan
     // claiming — a flick starting on the list died in pointercancel on real
     // touchscreens while the rest of the screen navigated fine. The
     // containers now declare pan-y (vertical scroll keeps working; sideways
     // flicks stay with the swipe hook).
-    await seedChores(request);
+    await seedHouseholdChores(request, sandboxDir);
     const chart: ModuleInstance = {
       ...buildModuleInstance('fullscreen-chore-chart'),
       position: { x: 0, y: 0 },

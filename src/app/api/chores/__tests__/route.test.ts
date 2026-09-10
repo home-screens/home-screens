@@ -48,6 +48,23 @@ vi.mock('@/lib/reward-data', () => ({
   debitPointsExact: vi.fn(),
 }));
 
+vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/lib/data-transaction', () => ({
+  assertStillOwned: async () => {},
+  durableRemove: async (file: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.rm(file, { force: true });
+  },
+  getDataRoot: () => process.cwd(),
+  onDataTransactionCommit: vi.fn(),
+  withDataTransaction: (operation: () => Promise<unknown>) => operation(),
+  durableWriteFile: async (file: string, data: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.writeFile(file, data);
+  },
+}));
+
+import { readFamilyData } from '@/lib/family-data';
 import { GET, POST } from '@/app/api/chores/route';
 import { readChoreData } from '@/lib/chore-data';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
@@ -112,7 +129,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   fakeFs.clear();
 
-  vi.mocked(readChoreData).mockResolvedValue(choreDataFixture as never);
+  vi.mocked(readChoreData).mockResolvedValue({ chores: choreDataFixture.chores } as never);
+  vi.mocked(readFamilyData).mockResolvedValue({ members: choreDataFixture.members } as never);
   // Mutations return the post-write RewardData from the shared opQueue —
   // the route embeds this snapshot in the POST response so clients can
   // update balances instantly without a second read (which would race).

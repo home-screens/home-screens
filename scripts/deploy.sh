@@ -105,14 +105,16 @@ rsync -azP --delete \
   --exclude '/node_modules' \
   "$PROJECT_DIR/.next/" "$HOST:$REMOTE_DIR/.next/"
 
-# --- Bundle config-check CLI ---
+# --- Bundle offline CLIs ---
 # The Pi installs with --omit=dev (no tsx), so ship the self-contained bundle
 # that the launcher (scripts/check-config.mjs) prefers when present.
-step "Bundling config-check CLI..."
+step "Bundling offline CLIs..."
 CHECK_CONFIG_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/hs-check-config.XXXXXX")"
 (cd "$PROJECT_DIR" && npx esbuild scripts/check-config.ts --bundle --platform=node \
   --format=cjs --outfile="$CHECK_CONFIG_TMPDIR/check-config.cjs" --log-level=warning)
-rsync -azP "$CHECK_CONFIG_TMPDIR/check-config.cjs" "$HOST:$REMOTE_DIR/scripts/check-config.cjs"
+(cd "$PROJECT_DIR" && npx esbuild scripts/restore-snapshot.ts --bundle --platform=node \
+  --format=cjs --outfile="$CHECK_CONFIG_TMPDIR/restore-snapshot.cjs" --log-level=warning)
+rsync -azP "$CHECK_CONFIG_TMPDIR/check-config.cjs" "$CHECK_CONFIG_TMPDIR/restore-snapshot.cjs" "$HOST:$REMOTE_DIR/scripts/"
 rm -rf "$CHECK_CONFIG_TMPDIR"
 
 # --- Install dependencies ---

@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreChartConfig} from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
 import { balanceRows, choreTapSize, fitPerRow, partitionMembers } from '../layout';
@@ -13,7 +15,7 @@ import { usePressedKey } from '../../shared/usePressedKey';
 interface BoardViewProps {
   config: ChoreChartConfig;
   data: {
-    members: ChoreMember[];
+    members: FamilyMember[];
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
@@ -38,7 +40,7 @@ const MIN_COLUMN_EM = 6;
 const COLUMN_GAP = 8;
 
 interface MemberColumnProps {
-  member: ChoreMember;
+  member: FamilyMember;
   stats: MemberStats | undefined;
   showPoints: boolean;
   children: React.ReactNode;

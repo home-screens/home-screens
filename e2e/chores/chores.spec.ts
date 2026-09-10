@@ -1,3 +1,4 @@
+import { seedHouseholdChores } from '../helpers/api';
 import { test, expect } from '../fixtures';
 import type { APIRequestContext } from '@playwright/test';
 import { putConfig } from '../helpers/api';
@@ -36,11 +37,11 @@ const CHORE_DATA = {
   }],
 };
 
-test.beforeEach(async ({ request }) => {
+test.beforeEach(async ({ request, sandboxDir }) => {
   await putConfig(request, baseConfig({
     screens: [makeScreen('s1', 'S1', [choreChartModule()])],
   }));
-  const res = await request.put('/api/chores/data', { data: CHORE_DATA });
+  const res = await seedHouseholdChores(request, sandboxDir, CHORE_DATA);
   expect(res.ok()).toBe(true);
 });
 
@@ -99,10 +100,8 @@ test('/chores shows the empty state when no chore module is configured', async (
 // specs use their own member/reward IDs because reward balances and chore
 // completions persist per-worker across tests.
 
-test('kid redeems a reward and the balance decrements with a history entry', async ({ page, request }) => {
-  await request.put('/api/chores/data', {
-    data: { members: [{ id: 'm-kr', name: 'Remy', emoji: '🦊', color: '#f59e0b' }], chores: [] },
-  });
+test('kid redeems a reward and the balance decrements with a history entry', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, { members: [{ id: 'm-kr', name: 'Remy', emoji: '🦊', color: '#f59e0b' }], chores: [] });
   await request.put('/api/rewards/data', {
     data: {
       rewards: [{
@@ -140,10 +139,8 @@ test('kid redeems a reward and the balance decrements with a history entry', asy
   await expect(page.getByText('Movie Night')).toBeVisible();
 });
 
-test('an unaffordable reward is shown disabled in the kid view', async ({ page, request }) => {
-  await request.put('/api/chores/data', {
-    data: { members: [{ id: 'm-af', name: 'Kai', emoji: '🦊', color: '#f59e0b' }], chores: [] },
-  });
+test('an unaffordable reward is shown disabled in the kid view', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, { members: [{ id: 'm-af', name: 'Kai', emoji: '🦊', color: '#f59e0b' }], chores: [] });
   await request.put('/api/rewards/data', {
     data: {
       rewards: [{
@@ -163,14 +160,12 @@ test('an unaffordable reward is shown disabled in the kid view', async ({ page, 
   await expect(rewardBtn).toBeDisabled();
 });
 
-test('kid sees a previously-redeemed reward in the History tab', async ({ page, request }) => {
+test('kid sees a previously-redeemed reward in the History tab', async ({ page, request, sandboxDir }) => {
   // Unlike the redeem-flow spec above (which redeems through the UI then checks
   // History), this seeds the redemption entirely through the API and asserts the
   // kid can *read back* an existing history entry. Unique IDs keep the redemption
   // out of the other rewards specs (redemptions persist per-worker).
-  await request.put('/api/chores/data', {
-    data: { members: [{ id: 'm-hist', name: 'Pip', emoji: '🦊', color: '#f59e0b' }], chores: [] },
-  });
+  await seedHouseholdChores(request, sandboxDir, { members: [{ id: 'm-hist', name: 'Pip', emoji: '🦊', color: '#f59e0b' }], chores: [] });
   await request.put('/api/rewards/data', {
     data: {
       rewards: [{
@@ -197,17 +192,15 @@ test('kid sees a previously-redeemed reward in the History tab', async ({ page, 
 
 // ── Kid completion toggle & multi-member view ─────────────────────────
 
-test('kid unchecks a completed chore and the completion is removed', async ({ page, request }) => {
-  await request.put('/api/chores/data', {
-    data: {
+test('kid unchecks a completed chore and the completion is removed', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'm-uc', name: 'Devon', emoji: '🦊', color: '#f59e0b' }],
       chores: [{
         id: 'c-uc', name: 'Water the plants', emoji: '🌱', points: 1,
         frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
         assigneeIds: ['m-uc'], rotation: 'fixed',
       }],
-    },
-  });
+    });
   const today = todayISO();
   // Normalize to "not completed" (completions persist per-worker; a CI retry
   // could start already checked).
@@ -248,7 +241,7 @@ test('kid unchecks a completed chore and the completion is removed', async ({ pa
   await expect.poll(async () => completionExists(request, 'c-uc', 'm-uc', today)).toBe(false);
 });
 
-test('five-member kid view filters chores by member and keeps an aggregate day summary', async ({ page, request }) => {
+test('five-member kid view filters chores by member and keeps an aggregate day summary', async ({ page, request, sandboxDir }) => {
   const members = [
     { id: 'k1', name: 'Ada', emoji: '', color: '#f472b6' },
     { id: 'k2', name: 'Bram', emoji: '', color: '#60a5fa' },
@@ -261,8 +254,7 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime',
     assigneeIds: [memberId], rotation: 'fixed',
   });
-  await request.put('/api/chores/data', {
-    data: {
+  await seedHouseholdChores(request, sandboxDir, {
       members,
       chores: [
         mkChore('kc1', 'Set the table', 'k1'),
@@ -271,8 +263,7 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
         mkChore('kc4', 'Wipe counters', 'k4'),
         mkChore('kc5', 'Take out recycling', 'k5'),
       ],
-    },
-  });
+    });
 
   await page.goto('/chores');
 
@@ -309,9 +300,8 @@ test('five-member kid view filters chores by member and keeps an aggregate day s
   ).toBeVisible();
 });
 
-test('kid view opens on the first member who has chores today, not the first member', async ({ page, request }) => {
-  await request.put('/api/chores/data', {
-    data: {
+test('kid view opens on the first member who has chores today, not the first member', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
       members: [
         { id: 'p1', name: 'Big Guns', emoji: '', color: '#94a3b8' }, // a grown-up, no chores
         { id: 'k9', name: 'Tenley', emoji: '', color: '#f472b6' },
@@ -320,23 +310,20 @@ test('kid view opens on the first member who has chores today, not the first mem
         id: 'kc9', name: 'Make the bed', emoji: '', points: 1, frequency: 'daily',
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['k9'], rotation: 'fixed',
       }],
-    },
-  });
+    });
   await page.goto('/chores');
   await expect(page.getByText('Make the bed')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tenley', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('finishing the last chore celebrates and the ticket balance shows on Today', async ({ page, request }) => {
-  await request.put('/api/chores/data', {
-    data: {
+test('finishing the last chore celebrates and the ticket balance shows on Today', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'm-cel', name: 'Wren', emoji: '', color: '#4ade80' }],
       chores: [{
         id: 'c-cel', name: 'Feed the cat', emoji: '', points: 2, frequency: 'daily',
         daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-cel'], rotation: 'fixed',
       }],
-    },
-  });
+    });
   const today = todayISO();
   if (await completionExists(request, 'c-cel', 'm-cel', today)) {
     await request.post('/api/chores', { data: { choreId: 'c-cel', memberId: 'm-cel', date: today } });

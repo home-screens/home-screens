@@ -19,6 +19,7 @@ const PAGE_DOCS: Partial<Record<DefaultPageId, string>> = {
   location: `${DOCS_BASE}/editor#global-settings`,
   weather: `${DOCS_BASE}/weather`,
   calendar: `${DOCS_BASE}/calendars`,
+  family: `${DOCS_BASE}/family`,
   meals: `${DOCS_BASE}/meals`,
   phone: `${DOCS_BASE}/remote-control`,
   integrations: `${DOCS_BASE}/calendars#api-keys`,

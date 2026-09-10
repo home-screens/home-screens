@@ -6,8 +6,22 @@ import { PassThrough } from 'stream';
 
 // Mock child_process.spawn — returns a fake ChildProcess
 const mockSpawn = vi.fn();
+const mockWithDataTransaction = vi.fn();
+let transactionDepth = 0;
+const scriptAccess: { action: string; depth: number }[] = [];
+vi.mock('@/lib/data-transaction', () => ({
+  assertStillOwned: async () => {},
+  durableRemove: async (file: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.rm(file, { force: true });
+  },
+  withDataTransaction: (...args: unknown[]) => mockWithDataTransaction(...args),
+}));
 vi.mock('child_process', () => ({
-  spawn: (...args: unknown[]) => mockSpawn(...args),
+  spawn: (...args: unknown[]) => {
+    scriptAccess.push({ action: (args[1] as string[])[1], depth: transactionDepth });
+    return mockSpawn(...args);
+  },
   // readline is NOT mocked — it uses the real createInterface
 }));
 
@@ -131,6 +145,12 @@ function setupSpawnForSuccess(overrides?: Record<string, string>) {
 }
 
 function resetMockDefaults() {
+  transactionDepth = 0;
+  scriptAccess.length = 0;
+  mockWithDataTransaction.mockImplementation(async (operation: () => Promise<unknown>) => {
+    transactionDepth++;
+    try { return await operation(); } finally { transactionDepth--; }
+  });
   mockReadConfig.mockResolvedValue(structuredClone(MOCK_CONFIG));
   mockWriteConfig.mockResolvedValue(undefined);
   mockGetLatestSchemaVersion.mockReturnValue(1);
@@ -150,6 +170,9 @@ let upgradeModule: typeof import('../upgrade');
 
 beforeEach(async () => {
   vi.resetAllMocks();
+  vi.spyOn(process, 'chdir').mockImplementation(() => {
+    expect(transactionDepth).toBeGreaterThan(0);
+  });
   resetMockDefaults();
 
   // Re-import to get fresh singleton state
@@ -996,5 +1019,28 @@ describe('runUpgrade — git stash behavior', () => {
       (call: unknown[]) => (call[1] as string[])?.[1] === 'stash-pop',
     );
     expect(stashPopCall).toBeDefined();
+  });
+});
+
+
+describe('upgrade data snapshots', () => {
+  it.each(['git-upgrade', 'tarball-upgrade', 'git-rollback'] as const)('%s holds the coordinator through snapshot script completion', async (kind) => {
+    setupSpawnForSuccess();
+    mockHasReleaseTarball.mockResolvedValue(kind === 'tarball-upgrade');
+    mockReadConfig.mockImplementation(async () => {
+      expect(transactionDepth).toBeGreaterThan(0);
+      return structuredClone(MOCK_CONFIG);
+    });
+    if (kind === 'git-rollback') await upgradeModule.runRollback('v1.1.0');
+    else await upgradeModule.runUpgrade('v1.2.0');
+    const snapshots = scriptAccess.filter(({ action }) => action === 'backup' || action === 'deploy');
+    expect(snapshots.map(({ action }) => action)).toEqual(kind === 'tarball-upgrade' ? ['backup', 'deploy'] : ['backup']);
+    expect(snapshots.every(({ depth }) => depth > 0)).toBe(true);
+    if (kind === 'tarball-upgrade') {
+      expect(scriptAccess.find(({ action }) => action === 'prepare-deploy')).toEqual({ action: 'prepare-deploy', depth: 0 });
+      expect(process.chdir).toHaveBeenCalledWith('/opt/home-screens/current');
+      expect(mockSpawn.mock.calls.find((call) => (call[1] as string[])[1] === 'deploy')?.[1]).toContain('--runtime-ready');
+    }
+    expect(transactionDepth).toBe(0);
   });
 });

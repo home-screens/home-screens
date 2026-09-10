@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+
 import type { WeekDayData } from '@/components/modules/chore-chart/types';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 
@@ -8,7 +10,7 @@ interface WeekStripProps {
   /** Canvas scale: 1 = the sizes authored for a 1080-wide panel. */
   k: number;
   weekData: WeekDayData[];
-  members: ChoreMember[];
+  members: FamilyMember[];
 }
 
 /**

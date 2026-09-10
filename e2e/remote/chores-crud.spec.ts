@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { putConfig, seedChores } from '../helpers/api';
+import { putConfig, seedHouseholdChores } from '../helpers/api';
 import { confirmSheet } from '../helpers/remote';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
 
@@ -48,10 +48,12 @@ const MEMBER_AND_CHORE = {
 async function getChoreData(request: APIRequestContext) {
   const res = await request.get('/api/chores/data');
   expect(res.ok()).toBe(true);
-  return res.json() as Promise<{
+  const family = await request.get('/api/family');
+  expect(family.ok()).toBe(true);
+  return { ...(await res.json()), members: (await family.json()).members } as {
     members: Array<{ id: string; name: string }>;
     chores: Array<{ id: string; name: string; assigneeIds: string[]; rotation: string }>;
-  }>;
+  };
 }
 
 /** Enter Chores tab → Manage sub-view (admin-only). */
@@ -70,16 +72,16 @@ test.beforeEach(async ({ request }) => {
 
 // ── Members ───────────────────────────────────────────────────────────
 
-test('admin adds a member and it round-trips to chores.json', async ({ page, request }) => {
+test('admin adds a member and it round-trips to family.json', async ({ page, request }) => {
   await page.goto('/remote');
   await openManage(page);
 
   await page.getByRole('button', { name: 'Members' }).click();
-  await page.getByRole('button', { name: 'Add Member' }).click();
-  await page.getByPlaceholder('Enter name...').fill('Charlie');
+  await page.getByRole('button', { name: 'Add person' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Charlie');
   // The list-add and overlay-save buttons share the name "Add Member"; the
   // overlay renders after the list, so the save is the last match.
-  await page.getByRole('button', { name: 'Add Member' }).last().click();
+  await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).members.map((m) => m.name))
@@ -91,7 +93,7 @@ test('admin adds a member and it round-trips to chores.json', async ({ page, req
 // branch, which is unreachable from here: the member vanished on reload with
 // nothing on screen to say why.
 test('a failed member save warns in the sub-view where the edit happened', async ({ page }) => {
-  await page.route('**/api/chores/data', async (route) => {
+  await page.route('**/api/family', async (route) => {
     if (route.request().method() === 'PUT') {
       await route.fulfill({ status: 500, contentType: 'application/json', body: '{"error":"nope"}' });
       return;
@@ -103,40 +105,39 @@ test('a failed member save warns in the sub-view where the edit happened', async
   await openManage(page);
 
   await page.getByRole('button', { name: 'Members' }).click();
-  await page.getByRole('button', { name: 'Add Member' }).click();
-  await page.getByPlaceholder('Enter name...').fill('Charlie');
-  await page.getByRole('button', { name: 'Add Member' }).last().click();
+  await page.getByRole('button', { name: 'Add person' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Charlie');
+  await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
 
   // Not getByRole('alert') — Next's route announcer is also role="alert".
-  await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+  await expect(page.getByTestId('family-manager').getByRole('status')).toHaveText('nope');
 });
 
-test('admin edits a member name and it round-trips', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('admin edits a member name and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await openManage(page);
 
   await page.getByRole('button', { name: 'Members' }).click();
   await page.getByRole('button', { name: 'Edit Avery' }).click();
-  await page.getByPlaceholder('Enter name...').fill('Avery Rose');
-  await page.getByRole('button', { name: 'Save Member' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Avery Rose');
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).members.map((m) => m.name))
     .toContain('Avery Rose');
 });
 
-test('admin deletes a member and it round-trips', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('admin deletes a member and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await openManage(page);
 
   await page.getByRole('button', { name: 'Members' }).click();
-  await page.getByRole('button', { name: 'Edit Avery' }).click();
-  await page.getByRole('button', { name: 'Delete Member' }).click();
+  await page.getByRole('button', { name: 'Remove Avery?' }).click();
   // The overlay's delete button and the ConfirmSheet's confirm both read
   // "Delete Member", scope to the sheet so the click waits for it.
-  await confirmSheet(page).getByRole('button', { name: 'Delete Member' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Remove person' }).click();
 
   await expect
     .poll(async () => (await getChoreData(request)).members.length)
@@ -145,9 +146,9 @@ test('admin deletes a member and it round-trips', async ({ page, request }) => {
 
 // ── Chores ────────────────────────────────────────────────────────────
 
-test('admin adds a chore assigned to a member and it round-trips', async ({ page, request }) => {
+test('admin adds a chore assigned to a member and it round-trips', async ({ page, request, sandboxDir }) => {
   // "Add Chore" is a no-op with zero members, so seed one first.
-  await seedChores(request, ONE_MEMBER);
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await openManage(page);
 
@@ -164,8 +165,8 @@ test('admin adds a chore assigned to a member and it round-trips', async ({ page
     .toEqual(['m1']);
 });
 
-test('admin edits a chore name and it round-trips', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE);
+test('admin edits a chore name and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
   await page.goto('/remote');
   await openManage(page);
 
@@ -178,24 +179,61 @@ test('admin edits a chore name and it round-trips', async ({ page, request }) =>
     .toContain('Feed the cat');
 });
 
-test('admin deletes a chore and it round-trips', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE);
+test('admin explicitly deletes the last chore with force and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
   await page.goto('/remote');
   await openManage(page);
 
   await page.getByRole('button', { name: 'Edit Feed the dog' }).click();
   await page.getByRole('button', { name: 'Delete Chore' }).click();
+  const saved = page.waitForResponse((response) => response.url().endsWith('/api/chores/data') && response.request().method() === 'PUT');
   await confirmSheet(page).getByRole('button', { name: 'Delete Chore' }).click();
+  const response = await saved;
+  expect(response.request().postDataJSON()).toEqual({ chores: [], force: true });
+  expect(response.ok()).toBe(true);
 
   await expect
     .poll(async () => (await getChoreData(request)).chores.length)
     .toBe(0);
 });
 
+for (const [label, reloadBody] of [['malformed', {}], ['empty', { chores: [] }]] as const) {
+  test(`a family rename followed by ${label} chore data cannot force an empty overwrite`, async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
+    await page.goto('/remote');
+    await openManage(page);
+    await page.getByRole('button', { name: 'Members' }).click();
+    await page.getByRole('button', { name: 'Edit Avery' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Avery Rose');
+
+    // Only corrupt the browser's post-save reload. The real store retains a
+    // chore, and its real PUT guard must refuse the resulting empty autosave.
+    await page.route('**/api/chores/data', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(reloadBody) });
+      } else await route.fallback();
+    });
+    const saved = page.waitForResponse((response) => response.url().endsWith('/api/chores/data') && response.request().method() === 'PUT');
+    await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
+    const response = await saved;
+    expect(response.request().postDataJSON()).toEqual({ chores: [], force: false });
+    expect(response.status()).toBe(409);
+    await expect(page.getByText('Failed to save. Please try again.')).toBeVisible();
+
+    const persisted = await getChoreData(request);
+    expect(persisted.chores).toEqual(MEMBER_AND_CHORE.chores);
+    expect(persisted.members[0].name).toBe('Avery Rose');
+    await page.unroute('**/api/chores/data');
+    await page.reload();
+    await openManage(page);
+    await expect(page.getByRole('button', { name: 'Edit Feed the dog' })).toBeVisible();
+  });
+}
+
 // ── Rotation ──────────────────────────────────────────────────────────
 
-test('a single-assignee chore saves as fixed rotation', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('a single-assignee chore saves as fixed rotation', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await openManage(page);
 
@@ -216,8 +254,8 @@ test('a single-assignee chore saves as fixed rotation', async ({ page, request }
     .toBe('fixed');
 });
 
-test('a multi-assignee chore can be set to rotate daily and it round-trips', async ({ page, request }) => {
-  await seedChores(request, TWO_MEMBERS);
+test('a multi-assignee chore can be set to rotate daily and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, TWO_MEMBERS);
   await page.goto('/remote');
   await openManage(page);
 
@@ -245,8 +283,8 @@ test('a multi-assignee chore can be set to rotate daily and it round-trips', asy
 
 // ── Points display ────────────────────────────────────────────────────
 
-test('the Today list shows a chore\'s ticket value', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE); // 3-point fixed daily chore
+test('the Today list shows a chore\'s ticket value', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE); // 3-point fixed daily chore
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   // Today is the default sub-view; the ticket pill renders when showPoints is on.
@@ -256,8 +294,8 @@ test('the Today list shows a chore\'s ticket value', async ({ page, request }) =
 
 // ── Rewards ───────────────────────────────────────────────────────────
 
-test('admin creates a reward and it round-trips to rewards.json', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('admin creates a reward and it round-trips to rewards.json', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/remote');
   await page.getByRole('button', { name: 'Chores', exact: true }).click();
   // Outer chores sub-nav → Rewards (unambiguous: RewardsView isn't mounted yet).
@@ -281,8 +319,8 @@ test('admin creates a reward and it round-trips to rewards.json', async ({ page,
     .toBe(5);
 });
 
-test('admin redeems a reward and it records a redemption', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('admin redeems a reward and it records a redemption', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   // Seed a reward and a balance directly so this spec is independent of the
   // create-reward flow.
   await request.put('/api/rewards/data', {
@@ -316,8 +354,8 @@ test('admin redeems a reward and it records a redemption', async ({ page, reques
 
 // ── Dual-context invariant + kid-friendly language ────────────────────
 
-test('kid /chores view hides all management affordances', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE);
+test('kid /chores view hides all management affordances', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
   await page.goto('/chores');
 
   // The chore is visible (kids see today's list) …
@@ -325,11 +363,11 @@ test('kid /chores view hides all management affordances', async ({ page, request
   // … but the Manage sub-view and its add controls are gone.
   await expect(page.getByRole('button', { name: 'Manage', exact: true })).toBeHidden();
   await expect(page.getByRole('button', { name: 'Add Chore' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Add Member' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Add person' })).toHaveCount(0);
 });
 
-test('kid /chores rewards view exposes only redeem and history, not management', async ({ page, request }) => {
-  await seedChores(request, ONE_MEMBER);
+test('kid /chores rewards view exposes only redeem and history, not management', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ONE_MEMBER);
   await page.goto('/chores');
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
 
@@ -340,8 +378,8 @@ test('kid /chores rewards view exposes only redeem and history, not management',
   await expect(page.getByRole('button', { name: 'Add Reward' })).toHaveCount(0);
 });
 
-test('kid cannot check off a chore on a past day', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE); // fixed daily chore — appears on every day
+test('kid cannot check off a chore on a past day', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE); // fixed daily chore, appears on every day
 
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
@@ -368,8 +406,8 @@ test('kid cannot check off a chore on a past day', async ({ page, request }) => 
   expect(completions.some((c) => c.choreId === 'c1' && c.date === yISO)).toBe(false);
 });
 
-test('the chore & reward management UI avoids developer jargon', async ({ page, request }) => {
-  await seedChores(request, MEMBER_AND_CHORE);
+test('the chore & reward management UI avoids developer jargon', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, MEMBER_AND_CHORE);
   await page.goto('/remote');
 
   // These family surfaces are used by kids; no "admin"/"permission"/"backfill".
@@ -448,8 +486,8 @@ const BACKDATE_DATA = {
   }],
 };
 
-test('admin can backdate a completion on a past day and it persists', async ({ page, request }) => {
-  await seedChores(request, BACKDATE_DATA);
+test('admin can backdate a completion on a past day and it persists', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, BACKDATE_DATA);
   const { iso, label } = yesterdayInfo();
   // Normalize to "not completed" — a CI retry (retries=1) could start with the
   // completion already present, and re-toggling would remove it instead.
@@ -477,8 +515,8 @@ test('admin can backdate a completion on a past day and it persists', async ({ p
   await expect(page.getByRole('button', { name: 'Completed: Wipe the table' })).toBeVisible();
 });
 
-test('admin sees the editing-a-past-day banner when viewing history', async ({ page, request }) => {
-  await seedChores(request, BACKDATE_DATA);
+test('admin sees the editing-a-past-day banner when viewing history', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, BACKDATE_DATA);
   const { label, bannerLabel } = yesterdayInfo();
 
   await page.goto('/remote');
@@ -496,8 +534,8 @@ test('admin sees the editing-a-past-day banner when viewing history', async ({ p
 
 // ── Rewards: balances + reward form edit/delete (admin) ───────────────
 
-test('admin adjusts a ticket balance up and down from the Balances tab', async ({ page, request }) => {
-  await seedChores(request, {
+test('admin adjusts a ticket balance up and down from the Balances tab', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-bal', name: 'Sasha', emoji: '🐼', color: '#3b82f6' }],
     chores: [],
   });
@@ -527,8 +565,8 @@ test('admin adjusts a ticket balance up and down from the Balances tab', async (
   await expect.poll(readBalance).toBe(before + 1);
 });
 
-test('admin edits a reward through the reward form and it round-trips', async ({ page, request }) => {
-  await seedChores(request, {
+test('admin edits a reward through the reward form and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-rw', name: 'Toby', emoji: '🦊', color: '#f59e0b' }],
     chores: [],
   });
@@ -563,8 +601,8 @@ test('admin edits a reward through the reward form and it round-trips', async ({
     .toEqual(['Pizza Party', 8]);
 });
 
-test('admin deletes a reward through the reward form and it round-trips', async ({ page, request }) => {
-  await seedChores(request, {
+test('admin deletes a reward through the reward form and it round-trips', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-rd', name: 'Nina', emoji: '🐼', color: '#3b82f6' }],
     chores: [],
   });
@@ -635,8 +673,8 @@ const ROLLBACK_DATA = {
   }],
 };
 
-test('a failed chore toggle rolls the check back and the retry succeeds', async ({ page, request }) => {
-  await seedChores(request, ROLLBACK_DATA);
+test('a failed chore toggle rolls the check back and the retry succeeds', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, ROLLBACK_DATA);
   const today = todayISO();
   // Normalize to "not completed" — a CI retry could start with the completion
   // already present, and the toggle would then be an un-complete.
@@ -677,8 +715,8 @@ test('a failed chore toggle rolls the check back and the retry succeeds', async 
   await expect.poll(async () => completionExists(request, 'c-rb', 'm-rb', today)).toBe(true);
 });
 
-test('a failed reward save warns and drops the reward back out of the list', async ({ page, request }) => {
-  await seedChores(request, {
+test('a failed reward save warns and drops the reward back out of the list', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-err', name: 'Wren', emoji: '🐼', color: '#3b82f6' }],
     chores: [],
   });
@@ -736,8 +774,8 @@ test('a failed reward save warns and drops the reward back out of the list', asy
 
 // ── Member avatar + color pickers (admin) ─────────────────────────────
 
-test('member avatar and color picks persist through the member form', async ({ page, request }) => {
-  await seedChores(request, {
+test('member avatar and color picks persist through the member form', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-av', name: 'Pat', emoji: '🦊', color: '#f59e0b' }],
     chores: [],
   });
@@ -747,26 +785,16 @@ test('member avatar and color picks persist through the member form', async ({ p
   await page.getByRole('button', { name: 'Members' }).click();
   await page.getByRole('button', { name: 'Edit Pat' }).click();
 
-  // Avatar picker: the crown icon carries the visible label "Royal" and stores
-  // as "lucide:crown". (Members render initials when no avatar is picked — the
-  // no-emoji-in-assignee-dots convention — but an explicit avatar still persists.)
-  await page.getByRole('button', { name: /^Avatar:/ }).click(); // open the collapsed picker
-  await page.getByRole('button', { name: 'Royal', exact: true }).click();
+  await page.getByLabel('Emoji (optional)').fill('👑');
+  await page.getByRole('button', { name: 'Color: #a78bfa', exact: true }).click();
 
-  // Color picker: the preset swatches carry no accessible name, so pick a known
-  // index off the shared swatch class (MEMBER_COLORS[4] === '#a78bfa'). The count
-  // guard fails loudly if the member overlay ever grows other press-scale-xs buttons.
-  const swatches = page.locator('.press-scale-xs');
-  await expect(swatches).toHaveCount(10);
-  await swatches.nth(4).click();
-
-  await page.getByRole('button', { name: 'Save Member' }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
 
   await expect
     .poll(async () => {
-      const members = (await (await request.get('/api/chores/data')).json()).members as Array<{ id: string; emoji: string; color: string }>;
+      const members = (await (await request.get('/api/family')).json()).members as Array<{ id: string; emoji: string; color: string }>;
       const m = members.find((x) => x.id === 'm-av');
       return m ? [m.emoji, m.color] : null;
     })
-    .toEqual(['lucide:crown', '#a78bfa']);
+    .toEqual(['👑', '#a78bfa']);
 });

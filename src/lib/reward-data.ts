@@ -154,20 +154,3 @@ export function redeemReward(
     };
   });
 }
-
-/** Remove a member's balance and strip them from reward memberIds.
- *  Redemption history is preserved (denormalized names). */
-export function rewardCascadeDeleteMember(memberId: string): Promise<RewardData> {
-  return store.updateAtomic((data) => {
-    const { [memberId]: _, ...remainingBalances } = data.balances;
-    return {
-      ...data,
-      balances: remainingBalances,
-      rewards: data.rewards.map((r) =>
-        r.memberIds.length > 0
-          ? { ...r, memberIds: r.memberIds.filter((id) => id !== memberId) }
-          : r,
-      ),
-    };
-  });
-}

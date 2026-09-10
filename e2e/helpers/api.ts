@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
-import { expect, type APIRequestContext } from '@playwright/test';
+import { expect, type APIResponse, type APIRequestContext } from '@playwright/test';
 import type { ScreenConfiguration } from '@/types/config';
 
 export async function getConfig(request: APIRequestContext): Promise<ScreenConfiguration> {
@@ -49,19 +49,32 @@ export const CHORE_DATA = {
   }],
 };
 
-export async function seedChores(request: APIRequestContext, data: unknown = CHORE_DATA): Promise<void> {
-  // Clearing the store needs `force`, same as ChoresTab's own save: the route
-  // refuses an empty payload over non-empty data. Specs that seed an empty
-  // store (the empty-state suite) are doing it deliberately, and the worker's
-  // sandbox persists across tests, so without this they 409 whenever an
-  // earlier spec left chores behind.
-  const d = data as { members?: unknown[]; chores?: unknown[] } | null;
-  const isEmpty = Array.isArray(d?.members) && d.members.length === 0
-    && Array.isArray(d?.chores) && d.chores.length === 0;
+/** Seed fixed identities in the worker's isolated store, before navigating. */
+export function seedFamily(sandboxDir: string, members: unknown[] = CHORE_DATA.members): void {
+  const now = '2026-01-01T00:00:00.000Z';
+  const directory = path.join(sandboxDir, 'data');
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, 'family.json'), JSON.stringify({
+    members: members.map((member) => ({ createdAt: now, updatedAt: now, ...(member as object) })),
+    migrated: true,
+  }, null, 2));
+}
+
+/** Chore definitions only: members belong to seedFamily and /api/family. */
+export async function seedChores(request: APIRequestContext, data: unknown = { chores: CHORE_DATA.chores }): Promise<APIResponse> {
+  const d = data as { chores: unknown[] };
   const res = await request.put('/api/chores/data', {
-    data: isEmpty ? { ...d, force: true } : data,
+    data: { chores: d.chores, force: d.chores.length === 0 },
   });
-  expect(res.ok()).toBe(true);
+  expect(res.ok(), `PUT /api/chores/data answered ${res.status()}: ${(await res.text()).slice(0, 300)}`).toBe(true);
+  return res;
+}
+
+/** Seed the two stores together while keeping deterministic fixture references. */
+export async function seedHouseholdChores(request: APIRequestContext, sandboxDir: string, data: unknown = CHORE_DATA): Promise<APIResponse> {
+  const d = data as { members: unknown[]; chores: unknown[] };
+  seedFamily(sandboxDir, d.members);
+  return seedChores(request, { chores: d.chores });
 }
 
 /** Local YYYY-MM-DD for a date offset from today, matching how the meal planner keys plan entries. */

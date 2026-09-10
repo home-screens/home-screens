@@ -514,6 +514,9 @@
         "confirmBody": "Todo se detiene mientras se reinicia. Este mando se reconecta en aproximadamente un minuto.",
         "confirmButton": "Reiniciar dispositivo"
       }
+    },
+    "family": {
+      "description": "Gestiona las personas de tu hogar."
     }
   },
   "photosTab": {

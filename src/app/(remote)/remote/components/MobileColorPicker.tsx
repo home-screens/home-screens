@@ -13,6 +13,7 @@ export default function MobileColorPicker({
   onChange: (v: string) => void;
 }) {
   const t = useTranslate('remote');
+  const isPreset = MEMBER_COLORS.some((color) => color === value);
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={LABEL_STYLE}>{t('mobileColorPicker.colorLabel')}</div>
@@ -21,11 +22,13 @@ export default function MobileColorPicker({
           <button
             key={c}
             type="button"
+            aria-label={`${t('mobileColorPicker.colorLabel')}: ${c}`}
+            aria-pressed={value === c}
             className="press-scale-xs"
             onClick={() => onChange(c)}
             style={{
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 48,
               borderRadius: '50%',
               backgroundColor: c,
               border: 'none',
@@ -38,29 +41,30 @@ export default function MobileColorPicker({
         ))}
         <label
           style={{
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            border: !MEMBER_COLORS.includes(value)
+            border: !isPreset
               ? '3px solid var(--hs-text-primary)'
               : '2px dashed var(--hs-border-strong)',
-            backgroundColor: !MEMBER_COLORS.includes(value) ? value : 'transparent',
+            backgroundColor: !isPreset ? value : 'transparent',
             position: 'relative',
           }}
           title={t('mobileColorPicker.customColorTitle')}
         >
-          {MEMBER_COLORS.includes(value) && (
+          {isPreset && (
             <Plus size={16} color="var(--hs-text-faint)" />
           )}
           <input
             type="color"
+            aria-label={t('mobileColorPicker.customColorTitle')}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+            style={{ opacity: 0, width: '100%', height: '100%', inset: 0, position: 'absolute', cursor: 'pointer' }}
           />
         </label>
       </div>

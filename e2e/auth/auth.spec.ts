@@ -9,6 +9,8 @@ const SECURITY_URL = '/editor/settings?section=defaults&page=security';
 // the teardown writes this then polls to prove the server saw it.
 const DISABLED_AUTH = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
+// These serial cases intentionally retain auth state, without family data.
+test.use({ isolateFamily: false });
 test.describe.configure({ mode: 'serial' });
 
 // This file enables a password partway through and never turns it back off on

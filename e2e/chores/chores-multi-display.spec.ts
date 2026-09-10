@@ -1,3 +1,4 @@
+import { seedHouseholdChores } from '../helpers/api';
 import { test, expect } from '../fixtures';
 import { putConfig } from '../helpers/api';
 import { baseConfig, choreChartModule, makeScreen, textModule } from '../helpers/config-fixtures';
@@ -46,8 +47,8 @@ function displayOwnedConfig() {
   });
 }
 
-test.beforeEach(async ({ request }) => {
-  const res = await request.put('/api/chores/data', { data: CHORE_DATA });
+test.beforeEach(async ({ request, sandboxDir }) => {
+  const res = await seedHouseholdChores(request, sandboxDir, CHORE_DATA);
   expect(res.ok()).toBe(true);
 });
 

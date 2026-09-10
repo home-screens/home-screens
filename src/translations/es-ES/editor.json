@@ -414,7 +414,8 @@
         "displays": "Displays",
         "screen": "Pantalla",
         "automation": "Automatización",
-        "phone": "En tu móvil"
+        "phone": "En tu móvil",
+        "family": "Familia"
       },
       "groups": {
         "screen": "Pantalla",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Personas",
-        "help": "Pon nombre a cada miembro de la familia y elige sus calendarios. La cuadrícula familiar y el tiempo libre muestran una fila por persona; los calendarios sin persona cuentan como compartidos.",
-        "namePlaceholder": "Nombre (p. ej. Ella)",
-        "addPerson": "+ Añadir persona",
-        "calendars": "Calendarios",
+        "heading": "¿De quién son los calendarios?",
+        "help": "Elige los calendarios de cada miembro de la familia. Los calendarios sin asignar se comparten con todos.",
         "noSources": "Conecta primero un calendario arriba y luego elige cuáles son de esta persona.",
-        "noCalendarsPicked": "Sin calendarios elegidos",
-        "remove": "Quitar a {name}",
-        "noPeople": "Todavía no hay personas."
+        "noPeople": "Añade personas en la página Familia y elige aquí sus calendarios.",
+        "manageFamily": "Gestionar familia"
       },
       "areas": {
         "sources": "De dónde vienen los eventos",
@@ -2154,6 +2151,9 @@
         "action": "Imprimir",
         "sheetTitle": "Home Screens en tu móvil"
       }
+    },
+    "familyPage": {
+      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, recompensas y calendarios."
     }
   },
   "backgroundPicker": {

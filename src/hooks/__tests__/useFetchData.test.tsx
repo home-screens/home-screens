@@ -8,24 +8,35 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { displayCache } from '@/lib/display-cache';
 
-vi.mock('@/i18n', () => ({ useTranslate: () => (key: string) => key }));
+const translate = vi.hoisted(() => (key: string) => key);
+vi.mock('@/i18n', () => ({ useTranslate: () => translate }));
 
 let hubUp = true;
 const responses = new Map<string, unknown>();
+let heldRequest: Promise<unknown> | null = null;
+let requestCount = 0;
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string) => {
+    requestCount++;
+    if (heldRequest) {
+      const pending = heldRequest;
+      heldRequest = null;
+      return { ok: true, json: async () => pending };
+    }
     if (!hubUp) throw new Error('offline');
     return { ok: true, json: async () => responses.get(url) ?? { url } };
   },
 }));
 
-import { useFetchData } from '../useFetchData';
+import { useFetchData, publishFetchData } from '../useFetchData';
 
 beforeEach(() => {
   hubUp = true;
+  heldRequest = null;
+  requestCount = 0;
   responses.clear();
   displayCache.clear();
 });
@@ -93,5 +104,47 @@ describe('useFetchData across URL changes', () => {
     rerender({ url: DAY2, key: 'sources-b' });
     await waitFor(() => expect(result.current[1]).not.toBeNull());
     expect(result.current[0]).toBeNull();
+  });
+});
+
+
+describe('useFetchData after a mutation', () => {
+  it('publishes a mutation response immediately to every subscriber while refresh is pending', async () => {
+    const url = '/api/family';
+    responses.set(url, { revision: 'before-save' });
+    const { result } = renderHook(() => ({
+      first: useFetchData<{ revision: string }>(url, 60000),
+      second: useFetchData<{ revision: string }>(url, 60000),
+    }));
+    await waitFor(() => expect(result.current.first[0]?.revision).toBe('before-save'));
+    let finishRefresh!: (value: unknown) => void;
+    heldRequest = new Promise((resolve) => { finishRefresh = resolve; });
+    act(() => publishFetchData(url, { revision: 'saved' }, 60000));
+    expect(result.current.first[0]?.revision).toBe('saved');
+    expect(result.current.second[0]?.revision).toBe('saved');
+    await act(async () => { finishRefresh({ revision: 'even-newer' }); });
+    expect(result.current.first[0]?.revision).toBe('even-newer');
+    expect(result.current.second[0]?.revision).toBe('even-newer');
+  });
+
+  it('supersedes an old shared request once and cannot let its late result undo the mutation', async () => {
+    const url = '/api/family';
+    let releaseOld!: (value: unknown) => void;
+    heldRequest = new Promise((resolve) => { releaseOld = resolve; });
+    const { result } = renderHook(() => ({
+      first: useFetchData<{ revision: string }>(url, 60000),
+      second: useFetchData<{ revision: string }>(url, 60000),
+    }));
+    await waitFor(() => expect(requestCount).toBe(1));
+    responses.set(url, { revision: 'after-save' });
+    act(() => displayCache.invalidate(url));
+    await waitFor(() => expect(result.current.first[0]?.revision).toBe('after-save'));
+    expect(result.current.second[0]?.revision).toBe('after-save');
+    expect(requestCount).toBe(2);
+
+    await act(async () => { releaseOld({ revision: 'before-save' }); });
+    expect(result.current.first[0]?.revision).toBe('after-save');
+    expect(result.current.second[0]?.revision).toBe('after-save');
+    expect(displayCache.get<{ revision: string }>(url)?.data.revision).toBe('after-save');
   });
 });

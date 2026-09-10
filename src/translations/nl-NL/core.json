@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Sluiten"
+  },
+  "family": {
+    "title": "Gezin",
+    "add": "Persoon toevoegen",
+    "edit": "Persoon bewerken",
+    "emoji": "Emoji (optioneel)",
+    "color": "Kleur",
+    "emptyTitle": "Nog niemand toegevoegd",
+    "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij taken, beloningen en agenda’s.",
+    "loadFailed": "Je gezin kon niet worden geladen.",
+    "saveFailed": "Je gezin kon niet worden opgeslagen.",
+    "retry": "Opnieuw proberen",
+    "saved": "Gezin opgeslagen.",
+    "saving": "Opslaan…",
+    "conflict": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",
+    "removeTitle": "{name} verwijderen?",
+    "removeDescription": "Als je {name} verwijdert, worden de toegewezen taken, schema’s, geschiedenis, tickets en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Taken waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "remove": "Persoon verwijderen",
+    "editName": "{name} bewerken",
+    "moveUp": "{name} omhoog",
+    "moveDown": "{name} omlaag",
+    "pagination": "Gezinspagina’s",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "page": "Pagina {page} van {total}",
+    "limit": "Je kunt maximaal {count} personen toevoegen. Iedereen die er al is, blijft behouden en kan nog worden bewerkt of verwijderd.",
+    "choreCount": {
+      "one": "{count} taak",
+      "other": "{count} taken"
+    },
+    "removeChoreCount": {
+      "one": "{name} heeft {count} toegewezen taak.",
+      "other": "{name} heeft {count} toegewezen taken."
+    }
   }
 }

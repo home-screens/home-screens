@@ -62,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 12', () => {
-    expect(getLatestSchemaVersion()).toBe(12);
+  it('getLatestSchemaVersion returns 13', () => {
+    expect(getLatestSchemaVersion()).toBe(13);
   });
 });
 
@@ -298,9 +298,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(12);
-    // v2 through v12 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(11);
+    expect(result.version).toBe(13);
+    // v2 through v13 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(12);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -327,9 +327,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(12);
-    // Only v4 through v12 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(9);
+    expect(result.version).toBe(13);
+    // Only v4 through v13 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(10);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -799,7 +799,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(12);
+    expect(result.version).toBe(13);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -840,8 +840,25 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(12);
-    expect(migrationsRun.at(-1)).toMatch(/^v12: /);
+    expect(result.version).toBe(13);
+    expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
+    expect(migrationsRun.at(-1)).toMatch(/^v13: /);
     expect(result.settings.updateChannel).toBe('rc');
+  });
+});
+
+
+describe('migration v13: preserve family inputs for the coordinated fold', () => {
+  it('keeps legacy people and existing source mappings verbatim', () => {
+    const config = makeConfig(12);
+    const people = [{ id: 'calendar-alex', name: 'Alex', color: '#aabbcc', sourceIds: ['school'] }];
+    const personSources = { 'family-alex': ['work'] };
+    config.settings.calendar = { ...config.settings.calendar, people, personSources };
+    const before = structuredClone(config);
+    const { config: migrated } = migrateUp(config);
+    expect(migrated.version).toBe(13);
+    expect(migrated.settings.calendar.people).toEqual(people);
+    expect(migrated.settings.calendar.personSources).toEqual(personSources);
+    expect(config).toEqual(before);
   });
 });

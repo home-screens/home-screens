@@ -1,12 +1,18 @@
 import { createHash } from 'crypto';
+import path from 'node:path';
 import type { ScreenConfiguration } from '@/types/config';
 import { CONFIG_FILE_PATH } from './constants';
 import { createJsonStore } from './json-store';
+import { withDataTransaction, onDataTransactionCommit, readTransactionFile, durableWriteFile, getDataRoot } from './data-transaction';
+import { planConfigMigrationBackup } from './config-migration-backup';
 import { migrateUp, getLatestSchemaVersion } from './migrations';
 // Circular with config-cache (it reads via readConfig, we invalidate it on
 // write) — safe because both sides only touch the other at call time, never
 // during module init.
 import { invalidateConfigReadCache } from './config-cache';
+import { logger } from './logger';
+
+const log = logger('config');
 
 // DEFAULT_CONFIG must track the latest schema version. `version` pulls from
 // `getLatestSchemaVersion()` so adding a new migration automatically updates
@@ -57,45 +63,27 @@ const configStore = createJsonStore<ScreenConfiguration>({
   errorHandling: 'throw-corrupt',
 });
 
-// Guard to prevent multiple concurrent migrate-on-boot writes
-let migrating = false;
+// Journal writes bypass this store's public methods, so invalidate on recovery too.
+onDataTransactionCommit(invalidateConfigReadCache);
 
-export async function readConfig(): Promise<ScreenConfiguration> {
-  // Delegate read + error handling to the store. ENOENT → DEFAULT_CONFIG;
-  // any other failure (corrupt JSON, permission denied) propagates as a
-  // thrown error so callers can fail closed instead of overwriting state.
-  const config = await configStore.read();
-
-  // Migrate-on-boot: if the config schema is behind the current code's
-  // latest version, apply migrations lazily. This catches schema upgrades
-  // that the old code's migrateStep couldn't know about during a tarball
-  // upgrade (where migration runs from the old version's code).
-  const target = getLatestSchemaVersion();
-  if ((config.version ?? 0) < target) {
-    try {
-      const { config: migrated } = migrateUp(config, target);
-      // Fire-and-forget persist — don't block the read on disk I/O.
-      // The guard prevents duplicate writes from concurrent requests.
-      // Goes through updateConfigAtomic (not bare writeConfig) so the
-      // write re-reads inside the queue and re-checks the version: if a
-      // concurrent PUT /api/config landed first, its (already-migrated)
-      // save is observed and this becomes a no-op instead of clobbering
-      // the editor's save with this stale pre-migration snapshot.
-      if (!migrating) {
-        migrating = true;
-        updateConfigAtomic((current) => current)
-          .catch(() => {})
-          .finally(() => { migrating = false; });
+export function readConfig(): Promise<ScreenConfiguration> {
+  return withDataTransaction(async () => {
+    const config = await configStore.read();
+    if ((config.version ?? 0) < getLatestSchemaVersion()) {
+      // Persist while still holding the coordinator. Detached writes could
+      // otherwise land after a family transaction releases its lock.
+      try {
+        return await updateConfigAtomic((current) => current);
+      } catch (error) {
+        // The original parsed config remains useful when a schema migration
+        // or its persistence fails. Mutating callers still use the strict
+        // updateConfigAtomic path and cannot silently overwrite these errors.
+        log.error('Could not migrate configuration; using the saved configuration.', error);
+        return config;
       }
-      return migrated;
-    } catch {
-      // Migration failed — return the un-migrated config rather than defaults
-      // so read-mutate-write callers don't silently clobber user data.
-      return config;
     }
-  }
-
-  return config;
+    return config;
+  });
 }
 
 /**
@@ -147,6 +135,16 @@ export function updateConfigAtomic(
       const result = await mutator(migrated);
       if (result === migrated && !wasMigrated) {
         return current;
+      }
+      if (wasMigrated) {
+        // A source/manual upgrade may reach this path without the updater's
+        // snapshot step. Keep the exact original bytes before publishing any
+        // migrated config; a failed backup must prevent the rewrite.
+        const raw = await readTransactionFile(CONFIG_FILE_PATH);
+        if (raw !== null) {
+          const backup = planConfigMigrationBackup(raw);
+          await durableWriteFile(path.join(getDataRoot(), backup.path), backup.after!, backup.mode);
+        }
       }
       return result;
     })

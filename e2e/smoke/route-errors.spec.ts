@@ -72,12 +72,12 @@ test.describe('PUT /api/secrets', () => {
 });
 
 test.describe('data routes reject malformed bodies', () => {
-  test('PUT /api/chores/data rejects non-array members and stays readable', async ({ request }) => {
+  test('PUT /api/chores/data rejects non-array chores and stays readable', async ({ request }) => {
     const res = await request.put('/api/chores/data', {
-      data: { members: {}, chores: {} },
+      data: { chores: {} },
     });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('members must be an array');
+    expect((await res.json()).error).toBe('chores must be an array');
 
     // Store is not corrupted — a follow-up read still works.
     const after = await request.get('/api/chores/data');
@@ -87,7 +87,7 @@ test.describe('data routes reject malformed bodies', () => {
   test('PUT /api/chores/data rejects a top-level array body with 400', async ({ request }) => {
     const res = await request.put('/api/chores/data', { data: [] });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('members must be an array');
+    expect((await res.json()).error).toBe('chores must be an array');
   });
 
   test('PUT /api/rewards/data rejects a non-array rewards field with 400', async ({ request }) => {

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withDisplayAuth, isValidISODate } from '@/lib/api-utils';
+import { readFamilyData } from '@/lib/family-data';
+import { withFamilyData } from '@/lib/family-api';
 import { readChoreData } from '@/lib/chore-data';
 import { readCompletions } from '@/lib/chore-completion-data';
 import {
@@ -23,7 +25,7 @@ export const dynamic = 'force-dynamic';
  * Optional `?date=YYYY-MM-DD` resolves a different day (any date: the
  * assignment rules are pure date math and the read is side-effect free).
  */
-export const GET = withDisplayAuth(async (request: NextRequest) => {
+export const GET = withDisplayAuth(async (request: NextRequest) => withFamilyData(async () => {
   const dateParam = request.nextUrl.searchParams.get('date');
   if (dateParam !== null && !isValidISODate(dateParam)) {
     return NextResponse.json(
@@ -33,9 +35,10 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   }
   const date = dateParam ?? todayStr();
 
-  const [data, completionData] = await Promise.all([
+  const [data, completionData, family] = await Promise.all([
     readChoreData(),
     readCompletions(),
+    readFamilyData(),
   ]);
   const done = new Set(
     completionData.completions.map((c) =>
@@ -43,7 +46,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     ),
   );
 
-  const members = data.members.map((m) => ({
+  const members = family.members.map((m) => ({
     id: m.id,
     name: m.name,
     chores: choresAssignedTo(data.chores, m.id, date).map((c) => ({
@@ -56,4 +59,4 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   }));
 
   return NextResponse.json({ date, members });
-}, "Failed to resolve the day's chores");
+}), "Failed to resolve the day's chores");

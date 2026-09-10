@@ -514,6 +514,9 @@
         "confirmBody": "Everything stops while it reboots. This remote reconnects in about a minute.",
         "confirmButton": "Reboot"
       }
+    },
+    "family": {
+      "description": "Manage the people in your household."
     }
   },
   "photosTab": {

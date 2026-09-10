@@ -786,16 +786,17 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('SHARED EVENT')(mod); await expect(mod).not.toContainText('FAMILY DESC E2E'); },
   },
   {
-    // People from settings become rows even when their calendars are empty
+    // Family members become rows even when their calendars are empty
     // this week; the stub's 'src-a' event belongs to Alpha Person.
     type: 'fullscreen-calendar', name: 'family-people-rows', kind: 'networked', stubKey: 'calendar',
     stubBody: TOMORROW_MORNING,
+    familyMembers: [
+      { id: 'p1', name: 'Alpha Person', color: '#db2777' },
+      { id: 'p2', name: 'Quiet Person', color: '#059669' },
+    ],
     settings: { calendar: {
       googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], daysAhead: 7,
-      people: [
-        { id: 'p1', name: 'Alpha Person', color: '#db2777', sourceIds: ['src-a'] },
-        { id: 'p2', name: 'Quiet Person', color: '#059669', sourceIds: ['src-none'] },
-      ],
+      personSources: { p1: ['src-a'], p2: ['src-none'] },
     } },
     config: { view: 'family-grid' },
     expect: async (mod) => {

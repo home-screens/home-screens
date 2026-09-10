@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  calendarPeopleForFamily,
   buildModuleProps,
   resolveProvider,
   toDisplaySource,
@@ -8,7 +9,8 @@ import {
   type PreviewSettings,
   type SharedDisplayData,
 } from '../module-props';
-import type { CalendarSettings, ModuleType } from '@/types/config';
+import { buildPersonRows, eventsForRow } from '../calendar-people';
+import type { CalendarEvent, CalendarSettings, ModuleType } from '@/types/config';
 
 /**
  * The display and the editor canvas render the same module components from
@@ -282,5 +284,48 @@ describe('resolveProvider', () => {
 
   it('honours a weather module override', () => {
     expect(resolveProvider({ type: 'weather', config: { provider: 'yr' } }, 'noaa')).toBe('yr');
+  });
+});
+
+describe('calendar family roster join', () => {
+  const familyMembers = [
+    { id: 'm1', name: 'Alex renamed', color: '#aabbcc', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-02T00:00:00.000Z' },
+    { id: 'm2', name: 'Quiet person', color: '#ddeeff', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+  ];
+
+  it('takes names, colors and order from family, with source ownership from calendar settings', () => {
+    const source = toDisplaySource({
+      ...displaySettings,
+      calendar: { ...CALENDAR_SETTINGS, personSources: { m1: ['work', 'school'], removed: ['old'] } },
+    }, LOCATION, { ...emptyShared(), familyMembers });
+    expect(source.calendarPeople).toEqual([
+      { id: 'm1', name: 'Alex renamed', color: '#aabbcc', sourceIds: ['work', 'school'] },
+    ]);
+  });
+
+  it('keeps a calendar assigned to two people on both rows and unassigned events on Everyone', () => {
+    const people = calendarPeopleForFamily(familyMembers, { m1: ['school'], m2: ['school'] });
+    const events = [{ id: 'class', sourceId: 'school' }, { id: 'dinner', sourceId: 'shared' }] as CalendarEvent[];
+    const rows = buildPersonRows(events, people, { everyoneLabel: 'Everyone', everyoneColor: '#999999', includeEveryone: true });
+    expect(rows.map((row) => row.name)).toEqual(['Everyone', 'Alex renamed', 'Quiet person']);
+    expect(rows.map((row) => eventsForRow(events, row, rows).map((event) => event.id))).toEqual([['dinner'], ['class'], ['class']]);
+  });
+
+  it('passes cold roster readiness only when calendar ownership is configured, for both renderers', () => {
+    const shared = { ...emptyShared(), familyState: 'loading' as const };
+    const settings = { ...displaySettings, calendar: { ...CALENDAR_SETTINGS, personSources: { m1: ['school'] } } };
+    const displayProps = buildModuleProps(instance('fullscreen-calendar'), toDisplaySource(settings, LOCATION, shared));
+    expect(displayProps.peopleState).toBe('loading');
+    expect(buildModuleProps(instance('fullscreen-calendar'), toDisplaySource(displaySettings, LOCATION, shared)).peopleState).toBeUndefined();
+    const editorProps = buildModuleProps(instance('fullscreen-calendar'), toEditorSource({ ...previewSettings, calendarPeopleState: 'failed' }, { weatherErrors: {}, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null }));
+    expect(editorProps.peopleState).toBe('failed');
+  });
+
+  it('does not render a removed person from a stale source mapping', () => {
+    const source = toDisplaySource({
+      ...displaySettings,
+      calendar: { ...CALENDAR_SETTINGS, personSources: { removed: ['old'] } },
+    }, LOCATION, { ...emptyShared(), familyMembers: [] });
+    expect(source.calendarPeople).toEqual([]);
   });
 });

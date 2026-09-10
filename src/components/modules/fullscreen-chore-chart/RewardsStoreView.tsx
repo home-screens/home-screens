@@ -1,8 +1,10 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { ArrowLeft, Ticket, Users } from 'lucide-react';
-import type { ChoreMember } from '@/types/config';
+
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
 import { displayFetch } from '@/lib/display-fetch';
 import { formatTimeAgoLocalized } from '@/lib/chore-constants';
@@ -20,7 +22,7 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
 
 interface RewardsStoreViewProps {
-  members: ChoreMember[];
+  members: FamilyMember[];
   rewards: RewardDefinition[];
   balances: Record<string, number>;
   /** Every redemption the hub still holds; the feed sorts and trims it. */

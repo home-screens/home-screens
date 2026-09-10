@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES, type ModuleFixture } from '../helpers/module-fixtures';
@@ -43,7 +43,7 @@ async function prepare(page: Page, request: Parameters<typeof putConfig>[0], san
     const overrides = fx.stubKey === 'calendar' ? { calendar: todayCalendarEvents() } : undefined;
     await stubModuleData(page, { overrides });
   }
-  if (fx?.seed === 'chores') await seedChores(request);
+  if (fx?.seed === 'chores') await seedHouseholdChores(request, sandboxDir);
   if (fx?.seed === 'meals') await seedMeals(request);
   if (fx?.seed === 'todos') seedTodos(sandboxDir);
 }

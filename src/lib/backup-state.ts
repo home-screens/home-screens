@@ -8,6 +8,7 @@ export interface BackupState {
 const store = createJsonStore<BackupState>({
   path: 'data/backup-state.json',
   defaultValue: { lastBackupDate: null, lastDismissedDate: null },
+  transient: true,
 });
 
 export const readBackupState = store.read;

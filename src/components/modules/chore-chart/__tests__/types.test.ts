@@ -1,3 +1,5 @@
+
+import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
 import {
   localDateStr,
@@ -10,12 +12,9 @@ import {
   todayStr,
   addDaysISO,
   getWeekDatesFor,
-  addMemberToList,
-  updateMemberInList,
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
-  cascadeDeleteMember,
   parseISO,
   addMonthsClamped,
   computeDayEntries,
@@ -30,7 +29,7 @@ import {
   CHORE_HISTORY_DAYS,
   type ResolvedAssignment,
 } from '../types';
-import type { ChoreDefinition, ChoreMember } from '@/types/config';
+import type { ChoreDefinition} from '@/types/config';
 
 /** Build a completion Set from [choreId, memberId, date] triples. */
 function completionsFrom(triples: Array<[string, string, string]>): Set<string> {
@@ -443,56 +442,6 @@ describe('completionKey', () => {
 // apart again: id generation on add, id preservation on update, referential
 // freshness on remove, and no input mutation.
 
-describe('addMemberToList', () => {
-  const template: Omit<ChoreMember, 'id'> = { name: 'Bob', emoji: '', color: '#60a5fa' };
-
-  it('appends a new member with a generated id', () => {
-    const existing: ChoreMember[] = [
-      { id: 'a', name: 'Alice', emoji: '', color: '#f472b6' },
-    ];
-    const result = addMemberToList(existing, template);
-    expect(result).toHaveLength(2);
-    expect(result[0]).toEqual(existing[0]);
-    expect(result[1]).toMatchObject(template);
-    expect(result[1].id).toBeTruthy();
-    expect(result[1].id).not.toBe('a');
-  });
-
-  it('returns a new array and leaves the original untouched', () => {
-    const existing: ChoreMember[] = [];
-    const result = addMemberToList(existing, template);
-    expect(existing).toEqual([]);
-    expect(result).not.toBe(existing);
-  });
-});
-
-describe('updateMemberInList', () => {
-  const members: ChoreMember[] = [
-    { id: 'a', name: 'Alice', emoji: '', color: '#f472b6' },
-    { id: 'b', name: 'Bob', emoji: '', color: '#60a5fa' },
-  ];
-
-  it('replaces the matching member and preserves its id', () => {
-    const result = updateMemberInList(members, 'a', {
-      name: 'Alicia',
-      emoji: 'star',
-      color: '#fbbf24',
-    });
-    expect(result[0]).toEqual({ id: 'a', name: 'Alicia', emoji: 'star', color: '#fbbf24' });
-    expect(result[1]).toEqual(members[1]);
-  });
-
-  it('returns a fresh array when the id is missing, without mutating', () => {
-    const result = updateMemberInList(members, 'missing', {
-      name: 'Ghost',
-      emoji: '',
-      color: '#000',
-    });
-    expect(result).toEqual(members);
-    expect(result).not.toBe(members);
-  });
-});
-
 describe('addChoreToList', () => {
   it('appends a new chore with a generated id', () => {
     const { id: _drop, ...data } = makeChore({ name: 'Vacuum' });
@@ -547,116 +496,6 @@ describe('removeChoreFromList', () => {
     const result = removeChoreFromList(chores, 'missing');
     expect(result).toEqual(chores);
     expect(result).not.toBe(chores);
-  });
-});
-
-describe('cascadeDeleteMember', () => {
-  const makeMember = (id: string, name: string): ChoreMember => ({
-    id,
-    name,
-    emoji: '',
-    color: '#fff',
-  });
-
-  it('removes the member from the members list', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
-    const chores = [makeChore({ id: 'c1', assigneeIds: ['a'] })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.members).toEqual([makeMember('b', 'Bob')]);
-  });
-
-  it('removes the member from all chore assigneeIds', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
-    const chores = [makeChore({ id: 'c1', assigneeIds: ['a', 'b'] })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.chores[0].assigneeIds).toEqual(['b']);
-  });
-
-  it('deletes chores with no remaining assignees', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
-    const chores = [
-      makeChore({ id: 'c1', assigneeIds: ['a'] }),
-      makeChore({ id: 'c2', assigneeIds: ['a', 'b'] }),
-    ];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.chores).toHaveLength(1);
-    expect(result.chores[0].id).toBe('c2');
-    expect(result.chores[0].assigneeIds).toEqual(['b']);
-  });
-
-  it('returns empty chores when deleting the last member', () => {
-    const members = [makeMember('a', 'Alice')];
-    const chores = [
-      makeChore({ id: 'c1', assigneeIds: ['a'] }),
-      makeChore({ id: 'c2', assigneeIds: ['a'] }),
-    ];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.members).toEqual([]);
-    expect(result.chores).toEqual([]);
-  });
-
-  it('leaves unrelated chores untouched', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
-    const chores = [makeChore({ id: 'c1', assigneeIds: ['b'] })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.chores).toEqual(chores);
-  });
-
-  it('removes the member from schedule when rotation is schedule', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
-    const chores = [makeChore({
-      id: 'c1',
-      assigneeIds: ['a', 'b', 'c'],
-      rotation: 'schedule',
-      schedule: { a: [1, 2], b: [3, 4], c: [5, 6] },
-    })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.chores[0].schedule).toEqual({ b: [3, 4], c: [5, 6] });
-    expect(result.chores[0].assigneeIds).toEqual(['b', 'c']);
-  });
-
-  it('falls back to fixed rotation when schedule becomes empty after cascade', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob')];
-    const chores = [makeChore({
-      id: 'c1',
-      assigneeIds: ['a'],
-      rotation: 'schedule',
-      schedule: { a: [1, 2] },
-    })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    // Chore has no assignees → gets deleted entirely
-    expect(result.chores).toHaveLength(0);
-  });
-
-  it('falls back to fixed when schedule has one member left after cascade', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
-    const chores = [makeChore({
-      id: 'c1',
-      assigneeIds: ['a', 'b'],
-      rotation: 'schedule',
-      schedule: { a: [1], b: [3] },
-    })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    expect(result.chores[0].rotation).toBe('fixed');
-    expect(result.chores[0].schedule).toBeUndefined();
-    expect(result.chores[0].assigneeIds).toEqual(['b']);
-    // daysOfWeek must be recalculated to only Bob's days, not the old union
-    expect(result.chores[0].daysOfWeek).toEqual([3]);
-  });
-
-  it('recalculates daysOfWeek when removing a member from a multi-member schedule', () => {
-    const members = [makeMember('a', 'Alice'), makeMember('b', 'Bob'), makeMember('c', 'Charlie')];
-    const chores = [makeChore({
-      id: 'c1',
-      assigneeIds: ['a', 'b', 'c'],
-      rotation: 'schedule',
-      schedule: { a: [1, 2], b: [3, 4], c: [5] },
-      daysOfWeek: [1, 2, 3, 4, 5],
-    })];
-    const result = cascadeDeleteMember(members, chores, 'a');
-    // Schedule should only have Bob and Charlie's days now
-    expect(result.chores[0].schedule).toEqual({ b: [3, 4], c: [5] });
-    expect(result.chores[0].daysOfWeek).toEqual([3, 4, 5]);
   });
 });
 
@@ -715,8 +554,8 @@ describe('addMonthsClamped', () => {
 });
 
 describe('computeDayEntries', () => {
-  const alice: ChoreMember = { id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
-  const bob: ChoreMember = { id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
+  const alice: FamilyMember = { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
+  const bob: FamilyMember = { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
 
   it('returns one entry per day in the inclusive range', () => {
     const entries = computeDayEntries('2026-04-05', '2026-04-09', [], [], new Set());
@@ -893,8 +732,8 @@ describe('isDayFullyComplete', () => {
 });
 
 describe('resolveAssignmentsFor', () => {
-  const alice: ChoreMember = { id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
-  const bob: ChoreMember = { id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
+  const alice: FamilyMember = { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'alice', name: 'Alice', emoji: '', color: '#fff' };
+  const bob: FamilyMember = { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'bob', name: 'Bob', emoji: '', color: '#fff' };
 
   it('produces one row per applicable (chore, assignee) with completion flags', () => {
     const chore = makeChore({ id: 'c1', assigneeIds: ['alice', 'bob'] });

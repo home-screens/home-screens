@@ -1,5 +1,6 @@
+import type { FamilyMember } from '@/types/family';
 import { localISODate } from './timezone';
-import type { ChoreDefinition, ChoreMember } from '@/types/config';
+import type { ChoreDefinition } from '@/types/config';
 
 /**
  * The pure chore assignment/completion core: "does this person owe this
@@ -134,7 +135,7 @@ export function choresAssignedTo(
  *  and skips ids that aren't real members (stale rotation entries). */
 export function resolveAssignmentsFor(
   chores: ChoreDefinition[],
-  members: ChoreMember[],
+  members: FamilyMember[],
   date: string,
   completionSet: Set<string>,
 ): ResolvedAssignment[] {

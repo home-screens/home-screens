@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
@@ -63,8 +64,9 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   ];
 
   const [showModal, setShowModal] = useState(false);
-  const { data: choreData, refetch: refetchCounts } = useEditorData<{ members?: unknown[]; chores?: unknown[] }>('/api/chores/data');
-  const counts = { members: choreData?.members?.length ?? 0, chores: choreData?.chores?.length ?? 0 };
+  const { data: choreData, refetch: refetchCounts } = useEditorData<{ chores?: unknown[] }>('/api/chores/data');
+  const { members } = useFamilyData();
+  const counts = { members: members.length, chores: choreData?.chores?.length ?? 0 };
 
   const isChoreBoard = (c.view ?? 'chores') === 'chores';
 

@@ -171,6 +171,10 @@ export function choresDataUrl(): string {
   return '/api/chores/data';
 }
 
+export function familyUrl(): string {
+  return '/api/family';
+}
+
 export function rewardsUrl(): string {
   return '/api/rewards';
 }
@@ -192,6 +196,7 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   buildUrl: (config: AnyConfig) => string | null;
   ttlMs: number;
 }> = {
+  family:         { buildUrl: familyUrl, ttlMs: 60_000 },
   'stock-ticker': { buildUrl: stocksUrl, ttlMs: 30_000 },        // server: 30s
   crypto:         { buildUrl: cryptoUrl, ttlMs: 30_000 },         // server: 30s
   news:           { buildUrl: newsUrl, ttlMs: 300_000 },           // server: 5min

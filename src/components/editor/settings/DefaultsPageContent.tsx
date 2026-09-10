@@ -10,6 +10,7 @@ import TimeFormatFields from '@/components/editor/settings/TimeFormatFields';
 import WeatherSection from '@/components/editor/settings/WeatherSection';
 import IntegrationsSection from '@/components/editor/settings/IntegrationsSection';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
+import FamilyManager from '@/components/family/FamilyManager';
 import MealsSection from '@/components/editor/settings/MealsSection';
 import PhoneSection from '@/components/editor/settings/PhoneSection';
 import AutomationSection from '@/components/editor/settings/AutomationSection';
@@ -66,6 +67,7 @@ const PAGE_HEADERS: Record<
   location: { descriptionKey: 'settings.locationAndLanguagePage.description', savesAutomatically: true },
   weather: { descriptionKey: 'settings.weatherPage.description' },
   calendar: { descriptionKey: 'settings.calendarPage.description', savesAutomatically: true },
+  family: { descriptionKey: 'settings.familyPage.description' },
   meals: { descriptionKey: 'settings.mealsPage.description', savesAutomatically: true },
   phone: { descriptionKey: 'settings.phonePage.description' },
   integrations: { descriptionKey: 'settings.integrationsPage.description' },
@@ -161,6 +163,8 @@ export default function DefaultsPageContent({
         onChange={(updates) => updateGroup('calendar', updates)}
       />
     ),
+
+    family: <FamilyManager />,
 
     meals: <MealsSection />,
 

@@ -1,6 +1,9 @@
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import type { ScreenConfiguration } from '@/types/config';
 import { createResolverCache } from './api-utils';
 import { readConfig } from './config';
+import { withDataTransaction, getDataRoot } from './data-transaction';
 
 /**
  * Short-TTL cached view over `readConfig()` for hot polling paths —
@@ -33,10 +36,25 @@ const cache = createResolverCache<ScreenConfiguration>(
   () => readConfig(),
 );
 
+let cacheSignature: string | null = null;
+
 export async function readConfigCached(): Promise<ScreenConfiguration> {
   // The resolver's null branch is "the resolver returned null"; readConfig
   // always returns a config (or throws), so it is unreachable here.
-  return (await cache.fetch('config')) as ScreenConfiguration;
+  return withDataTransaction(async () => {
+    // A different server process can commit a journal too. Keying by the
+    // atomic file identity prevents pairing its new roster with old settings.
+    let signature = 'missing';
+    try {
+      const stat = await fs.stat(path.join(getDataRoot(), 'data/config.json'));
+      signature = `${stat.ino}:${stat.size}:${stat.mtimeMs}`;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    const key = `${getDataRoot()}:${signature}`;
+    if (cacheSignature !== key) { cache.clear(); cacheSignature = key; }
+    return (await cache.fetch(key)) as ScreenConfiguration;
+  });
 }
 
 /** Called by config.ts after every write so cached reads never lag a save. */
@@ -45,5 +63,6 @@ export function invalidateConfigReadCache(): void {
 }
 
 export function __resetConfigReadCacheForTests(): void {
+  cacheSignature = null;
   cache.clear();
 }

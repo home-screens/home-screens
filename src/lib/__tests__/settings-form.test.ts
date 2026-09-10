@@ -64,7 +64,7 @@ describe('settings-form transforms', () => {
         selectedCalendarIds: ['cal-a', 'cal-b'],
         icalSources: [{ id: 'ical-1', type: 'ical', name: 'Holidays', url: 'https://example.com/holidays.ics', color: '#3b82f6', enabled: true }],
         icloudSources: [{ id: 'ic-1', accountId: 'acct-1', kind: 'calendar', url: 'https://caldav.icloud.com/123/calendars/home/', name: 'Home', color: '#ef4444', enabled: true }],
-        people: [],
+        personSources: { alex: ['cal-a', 'ical-1'] },
         daysAhead: 14,
         holidayCountry: 'US',
         hideDeclined: true,

@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
 import { publicErrorResponse, parseJsonBody, isValidISODate } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
+import { readFamilyData } from '@/lib/family-data';
+import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
 import { creditPoints, debitPointsExact } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
 import { updateCompletionsAtomic } from '@/lib/chore-completion-data';
@@ -47,6 +49,7 @@ export const GET = async () => {
 
 export const POST = async (request: NextRequest) => {
   try {
+  return await withFamilyData(async () => {
   const body = await parseJsonBody<ChoreToggleRequest>(request);
   if (body instanceof NextResponse) return body;
   const { choreId, memberId, date, direction } = body;
@@ -84,6 +87,10 @@ export const POST = async (request: NextRequest) => {
       { status: 400 },
     );
   }
+
+  const references = await validateMemberReferences([memberId]);
+  if (references) return references;
+  const family = await readFamilyData();
 
   // Read chore data in parallel with toggle (needed for point value lookup)
   const choreDataPromise = readChoreData();
@@ -136,7 +143,7 @@ export const POST = async (request: NextRequest) => {
       const debitResult = await debitPointsExact(memberId, chore.points);
       rewards = debitResult.data;
       if (debitResult.wentNegative) {
-        const memberName = choreData.members.find((m) => m.id === memberId)?.name ?? 'They';
+        const memberName = family.members.find((m) => m.id === memberId)?.name ?? 'They';
         warning = `${memberName}'s balance is now ${debitResult.balance} — they'll need to earn ${Math.abs(debitResult.balance)} points before redeeming again.`;
       }
     }
@@ -152,6 +159,7 @@ export const POST = async (request: NextRequest) => {
     changed,
     ...(rewards ? { rewards } : {}),
     ...(warning ? { warning } : {}),
+  });
   });
   } catch (error) {
     return publicErrorResponse(error, 'Failed to update chore completions');

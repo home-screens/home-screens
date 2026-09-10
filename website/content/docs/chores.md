@@ -28,9 +28,9 @@ The chart is empty until you add people and chores, which happens on a phone.
 
 ## 2. Add your family
 
-Open the family remote (Settings > On your phone shows the address and a QR code), tap **Chores**, then **Manage**. Add each person with a name, an emoji and a colour. The colour follows them everywhere: the board column, the phone pill, the progress bar.
+Open **Settings > Family** in the editor, or open the family remote and tap **Settings > Family**. Add each person with a name, an optional emoji and a colour. The same [family list](/docs/family) is used by chores, rewards and calendars; you can also edit it from **Chores > Manage > Members**.
 
-There is no limit on people. The wall and the phone are built for big families; with five or more, the board keeps one column each and the summary line counts how many finished today rather than trying to show a face per person.
+You can add up to 64 people. Existing larger families are preserved. With five or more people, the board keeps one column each and the summary line counts how many finished today rather than trying to show a face per person.
 
 ## 3. Add chores
 

@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { Flame, Star, Ticket } from 'lucide-react';
@@ -9,7 +11,7 @@ import type { MemberChipDetail } from './MemberStrip';
 import type { ChoreRow, ToggleParams } from './helpers';
 
 interface MemberBandHeaderProps {
-  member: ChoreMember;
+  member: FamilyMember;
   stats: MemberStats | undefined;
   /** Band height in px, fixed by the name size. */
   height: number;
@@ -106,7 +108,7 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
           color: 'white',
         }}
       >
-        <ChoreIcon value={member.emoji} size={avatar * 0.55} color="white" bare />
+        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: fontSize * 0.5, minWidth: 0 }}>
@@ -127,7 +129,7 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
 }
 
 interface MemberBandProps {
-  member: ChoreMember;
+  member: FamilyMember;
   stats: MemberStats | undefined;
   rows: ChoreRow[];
   /** Chore-name size for the rows. */
@@ -147,7 +149,7 @@ interface MemberBandProps {
   showTimeOfDay: boolean;
   weekData: WeekDayData[];
   detail: MemberChipDetail;
-  memberMap: Map<string, ChoreMember>;
+  memberMap: Map<string, FamilyMember>;
   initialsMap: Map<string, string>;
   allowTouch: boolean;
   onToggle: (params: ToggleParams) => void;

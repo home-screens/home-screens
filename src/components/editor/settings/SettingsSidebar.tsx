@@ -21,6 +21,7 @@ import {
   Shield,
   Smartphone,
   UtensilsCrossed,
+  Users,
   Wifi,
   Zap,
   type LucideIcon,
@@ -134,6 +135,7 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; gro
   location: { labelKey: 'location', icon: MapPin, group: 'screen' },
   weather: { labelKey: 'weather', icon: CloudSun, group: 'content' },
   calendar: { labelKey: 'calendar', icon: Calendar, group: 'content' },
+  family: { labelKey: 'family', icon: Users, group: 'content' },
   meals: { labelKey: 'meals', icon: UtensilsCrossed, group: 'content' },
   // Sits with the feature pages it points at, not down in Maintenance beside
   // the footer's external links: /chores and /remote are first-party surfaces,

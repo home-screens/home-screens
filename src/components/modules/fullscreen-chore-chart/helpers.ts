@@ -1,5 +1,7 @@
+
+import type { FamilyMember } from '@/types/family';
 import { Sunrise, Sun, Sunset, Clock } from 'lucide-react';
-import type { ChoreMember, ChoreTimeOfDay } from '@/types/config';
+import type { ChoreTimeOfDay } from '@/types/config';
 import { TIME_OF_DAY_META, type ResolvedAssignment } from '@/components/modules/chore-chart/types';
 
 export interface ChoreRow {
@@ -117,7 +119,7 @@ export function buildChoreRows(assignments: ResolvedAssignment[], memberOrder?: 
  * finger.
  */
 export function buildMemberRows(
-  members: ChoreMember[],
+  members: FamilyMember[],
   assignments: ResolvedAssignment[],
   showTimeOfDay: boolean,
 ): Map<string, ChoreRow[]> {

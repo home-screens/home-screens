@@ -22,6 +22,7 @@ export const navigation = [
     links: [
       { title: 'Weather', href: '/docs/weather' },
       { title: 'Calendars', href: '/docs/calendars' },
+      { title: 'Family', href: '/docs/family' },
       { title: 'Chores and rewards', href: '/docs/chores' },
       { title: 'Meals', href: '/docs/meals' },
       { title: 'Lists', href: '/docs/lists' },

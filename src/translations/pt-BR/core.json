@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Dispensar"
+  },
+  "family": {
+    "title": "Família",
+    "add": "Adicionar pessoa",
+    "edit": "Editar pessoa",
+    "emoji": "Emoji (opcional)",
+    "color": "Cor",
+    "emptyTitle": "Ainda não há ninguém",
+    "emptyDescription": "Adicione as pessoas da sua casa. Elas estarão disponíveis nas tarefas, recompensas e calendários.",
+    "loadFailed": "Não foi possível carregar sua família.",
+    "saveFailed": "Não foi possível salvar sua família.",
+    "retry": "Tentar novamente",
+    "saved": "Família salva.",
+    "saving": "Salvando…",
+    "conflict": "Alguém alterou a família enquanto você editava. A lista atual está sendo exibida. Faça sua alteração novamente.",
+    "removeTitle": "Remover {name}?",
+    "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tíquetes e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
+    "remove": "Remover pessoa",
+    "editName": "Editar {name}",
+    "moveUp": "Mover {name} para cima",
+    "moveDown": "Mover {name} para baixo",
+    "pagination": "Páginas da família",
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page": "Página {page} de {total}",
+    "limit": "Você pode adicionar até {count} pessoas. Todas as pessoas existentes são preservadas e ainda podem ser editadas ou removidas.",
+    "choreCount": {
+      "one": "{count} tarefa",
+      "other": "{count} tarefas"
+    },
+    "removeChoreCount": {
+      "one": "{name} tem {count} tarefa atribuída.",
+      "other": "{name} tem {count} tarefas atribuídas."
+    }
   }
 }

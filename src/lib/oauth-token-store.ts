@@ -1,4 +1,5 @@
 import { createJsonStore } from './json-store';
+import { onDataTransactionCommit, withDataTransaction } from './data-transaction';
 import { fetchWithTimeout } from './api-utils';
 import { logger } from './logger';
 
@@ -40,6 +41,7 @@ export interface OAuthTokenStoreOptions {
 }
 
 export interface OAuthTokenStore {
+  readonly filePath: string;
   loadTokens(): Promise<StoredOAuthTokens | null>;
   saveTokens(tokens: StoredOAuthTokens): Promise<void>;
   /** Passive credential presence check, supplied by the provider — no network. */
@@ -74,6 +76,7 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   // started under is still current. The write queue below cannot provide
   // this: it orders the file writes, not the stale read that produced one.
   let generation = 0;
+  onDataTransactionCommit(() => { generation += 1; });
 
   // Same store the other secret files use (secrets.json, auth.json): writes
   // are queued, tmp+rename atomic (so a power cut on the Pi can't leave a
@@ -118,19 +121,24 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
       log.error('Token refresh failed:', data.error_description || data.error || res.status);
       return null;
     }
-    if (generation !== startedAt) {
-      log.warn('Token refresh discarded: the stored grant was replaced while it was in flight');
-      return null;
-    }
-    await saveTokens({
-      ...tokens,
-      access_token: data.access_token,
-      expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
-      // Providers rarely return a new refresh token on refresh — keep the old one.
-      refresh_token: data.refresh_token || tokens.refresh_token,
-      scope: data.scope ?? tokens.scope,
+    return withDataTransaction(async () => {
+      // Check AFTER acquiring the same lock as restore. A network response
+      // can arrive while restore holds the lock, before its generation bump.
+      // The persisted comparison also covers a restore in another process.
+      const current = await loadTokens();
+      if (generation !== startedAt || JSON.stringify(current) !== JSON.stringify(tokens)) {
+        log.warn('Token refresh discarded: the stored grant was replaced while it was in flight');
+        return null;
+      }
+      await saveTokens({
+        ...tokens,
+        access_token: data.access_token,
+        expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
+        refresh_token: data.refresh_token || tokens.refresh_token,
+        scope: data.scope ?? tokens.scope,
+      });
+      return data.access_token;
     });
-    return data.access_token;
   }
 
   async function getAccessToken(): Promise<string | null> {
@@ -193,6 +201,7 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
   }
 
   return {
+    get filePath() { return store.filePath; },
     loadTokens,
     saveTokens,
     hasCredentials: opts.hasCredentials,

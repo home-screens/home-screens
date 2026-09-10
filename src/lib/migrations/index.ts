@@ -7,6 +7,7 @@ import { v8ToV9 } from './v8-to-v9';
 import { v9ToV10 } from './v9-to-v10';
 import { v10ToV11 } from './v10-to-v11';
 import { v11ToV12 } from './v11-to-v12';
+import { v12ToV13 } from './v12-to-v13';
 
 interface Migration {
   version: number;
@@ -89,6 +90,7 @@ const migrations: Migration[] = [
   v10ToV11,
   // Migration 012: the retired `dev` update channel is rewritten to `rc`.
   v11ToV12,
+  v12ToV13,
 ];
 
 /** @internal Get all migrations sorted by version */

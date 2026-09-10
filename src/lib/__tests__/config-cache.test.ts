@@ -37,6 +37,7 @@ describe('readConfigCached', () => {
     );
     const a = readConfigCached();
     const b = readConfigCached();
+    await vi.waitFor(() => expect(readConfig).toHaveBeenCalled());
     release(CONFIG);
     expect(await a).toBe(CONFIG);
     expect(await b).toBe(CONFIG);
@@ -73,11 +74,12 @@ describe('readConfigCached', () => {
     const b = readConfigCached();
     // Attach handlers before rejecting so neither surfaces as unhandled.
     const results = Promise.allSettled([a, b]);
+    await vi.waitFor(() => expect(readConfig).toHaveBeenCalled());
     fail(new Error('boom'));
     const [ra, rb] = await results;
     expect(ra.status).toBe('rejected');
     expect(rb.status).toBe('rejected');
-    expect(readConfig).toHaveBeenCalledTimes(1);
+    expect(readConfig).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -101,6 +103,7 @@ describe('invalidateConfigReadCache', () => {
       }),
     );
     const preWriteRead = readConfigCached();
+    await vi.waitFor(() => expect(readConfig).toHaveBeenCalled());
     invalidateConfigReadCache();
     release(CONFIG);
     expect(await preWriteRead).toBe(CONFIG);
@@ -122,6 +125,7 @@ describe('TTL accounting', () => {
       }),
     );
     const first = readConfigCached();
+    await vi.waitFor(() => expect(readConfig).toHaveBeenCalled());
     vi.advanceTimersByTime(1_000); // a slow disk read
     release(CONFIG);
     await first;

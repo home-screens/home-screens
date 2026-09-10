@@ -1,5 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { randomUUID } from 'node:crypto';
+import { assertStillOwned, durableRemove, durableWriteFile, withDataTransaction, getDataRoot } from './data-transaction';
 
 interface JsonStoreOptions<T> {
   /** File path relative to process.cwd() */
@@ -13,6 +15,9 @@ interface JsonStoreOptions<T> {
   /** Mode for the containing directory when it has to be created
    *  (e.g., 0o700 so a secrets tree stays unreadable to other users) */
   dirMode?: number;
+  /** Runtime-only state that is never part of a journal or backup restore.
+   * Uses its per-file queue and atomic rename without global lock/fsync. */
+  transient?: boolean;
   /**
    * Read error strategy:
    * - 'default': return defaultValue for any error
@@ -20,8 +25,6 @@ interface JsonStoreOptions<T> {
    */
   errorHandling?: 'default' | 'throw-corrupt';
 }
-
-let tmpSeq = 0;
 
 /**
  * Delete `data/*.tmp` files left behind by a write that died between
@@ -31,7 +34,11 @@ let tmpSeq = 0;
  * milliseconds, and this runs before any of them.
  */
 export async function sweepStaleTempFiles(dir = 'data'): Promise<void> {
-  const root = path.join(process.cwd(), dir);
+  return withDataTransaction(() => sweepStaleTempFilesLocked(dir));
+}
+
+async function sweepStaleTempFilesLocked(dir: string): Promise<void> {
+  const root = path.join(getDataRoot(), dir);
   let entries: string[];
   try {
     entries = await fs.readdir(root);
@@ -50,7 +57,7 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
 
   // Resolve lazily so tests can override process.cwd() per test case
   function resolvedPath(): string {
-    return path.join(process.cwd(), opts.path);
+    return path.join(getDataRoot(), opts.path);
   }
 
   async function read(): Promise<T> {
@@ -68,25 +75,26 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
 
   async function writeImpl(data: T): Promise<void> {
     const filePath = resolvedPath();
-    await fs.mkdir(path.dirname(filePath), { recursive: true, mode: opts.dirMode });
     if (opts.backup) {
+      // The backup lands under the data root like any other write, so it needs
+      // the same permission to be there: without this a writer that lost the
+      // lock would overwrite the copy belonging to whoever took it over.
+      await assertStillOwned();
       try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
     }
-    // A temp name unique to this write. The production build shares one
-    // store instance across routes, so its queue already serializes writes;
-    // the webpack dev server does not (each route bundle gets its own
-    // instance), and there a shared `.tmp` name let two writes tear each
-    // other mid-rename and leave the file unparseable. Distinct names make
-    // that last-writer-wins. A failed write removes its own temp file so a
-    // full card cannot leave a trail of them behind.
-    const tmp = `${filePath}.${process.pid}.${++tmpSeq}.tmp`;
+    const contents = JSON.stringify(data, null, 2);
+    if (!opts.transient) {
+      await durableWriteFile(filePath, contents, opts.chmod, opts.dirMode);
+      return;
+    }
+    await fs.mkdir(path.dirname(filePath), { recursive: true, mode: opts.dirMode });
+    const tmp = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
     try {
-      await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf-8');
-      if (opts.chmod != null) await fs.chmod(tmp, opts.chmod);
+      await fs.writeFile(tmp, contents, { mode: opts.chmod ?? 0o666, flag: 'wx' });
       await fs.rename(tmp, filePath);
-    } catch (err) {
+    } catch (error) {
       await fs.unlink(tmp).catch(() => {});
-      throw err;
+      throw error;
     }
   }
 
@@ -152,21 +160,23 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
    */
   function remove(): Promise<void> {
     const next = writeQueue.then(async () => {
-      try {
-        await fs.unlink(resolvedPath());
-      } catch (err: unknown) {
-        if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
-      }
+      // Through the coordinator, not a bare unlink: removing a file is as much
+      // a publication as writing one, and a writer that has lost the lock must
+      // not delete what its successor just wrote.
+      await durableRemove(resolvedPath());
     });
     writeQueue = next.catch(() => {});
     return next;
   }
 
+  const coordinate = <R>(operation: () => Promise<R>): Promise<R> => opts.transient ? operation() : withDataTransaction(operation);
   return {
-    read,
-    write,
-    updateAtomic,
-    remove,
+    // Acquire the cross-file coordinator BEFORE entering a per-file queue.
+    // Nested store calls share its context instead of waiting on themselves.
+    read: () => coordinate(read),
+    write: (data: T) => coordinate(() => write(data)),
+    updateAtomic: (mutator: (current: T) => T | Promise<T>) => coordinate(() => updateAtomic(mutator)),
+    remove: () => coordinate(remove),
     get filePath() { return resolvedPath(); },
   };
 }

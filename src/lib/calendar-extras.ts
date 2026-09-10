@@ -1,4 +1,5 @@
-import type { ChoreCompletion, ChoreDefinition, ChoreMember, MealSettings, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+import type { ChoreCompletion, ChoreDefinition, MealSettings, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
 import { completionKey, resolveAssignmentsFor } from '@/lib/chore-assignments';
 import { SLOT_ORDER, resolveMealWithEntry } from '@/lib/meal-constants';
 
@@ -33,7 +34,7 @@ export interface DayExtras {
 
 export interface ExtrasIndex {
   byDate: Record<string, DayExtras>;
-  members: Record<string, Pick<ChoreMember, 'name' | 'color' | 'emoji'>>;
+  members: Record<string, Pick<FamilyMember, 'name' | 'color' | 'emoji'>>;
 }
 
 export const EMPTY_EXTRAS: ExtrasIndex = { byDate: {}, members: {} };
@@ -45,7 +46,7 @@ export interface MealsSource {
 }
 
 export interface ChoresSource {
-  members: ChoreMember[];
+  members: FamilyMember[];
   chores: ChoreDefinition[];
   completions: ChoreCompletion[];
 }

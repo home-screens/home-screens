@@ -27,12 +27,19 @@ type SharedResult =
   | { kind: 'http'; res: Response }
   | { kind: 'network' };
 
-const inFlight = new Map<string, Promise<SharedResult>>();
+interface SharedRequest {
+  promise: Promise<SharedResult>;
+  invalidated: boolean;
+}
+const inFlight = new Map<string, SharedRequest>();
+// Every subscriber receives the same invalidation event. Only the first one
+// supersedes the old request; the rest join its newly started replacement.
+const handledInvalidations = new WeakSet<Event>();
 
-function sharedFetch(url: string): Promise<SharedResult> {
+function sharedFetch(url: string): SharedRequest {
   const existing = inFlight.get(url);
   if (existing) return existing;
-  const p = (async (): Promise<SharedResult> => {
+  const request: SharedRequest = { invalidated: false, promise: (async (): Promise<SharedResult> => {
     try {
       const res = await displayFetch(url);
       if (!res.ok) return { kind: 'http', res };
@@ -40,9 +47,19 @@ function sharedFetch(url: string): Promise<SharedResult> {
     } catch {
       return { kind: 'network' };
     }
-  })().finally(() => inFlight.delete(url));
-  inFlight.set(url, p);
-  return p;
+  })().finally(() => {
+    // A superseded request can finish after its replacement has started.
+    if (inFlight.get(url) === request) inFlight.delete(url);
+  }) };
+  inFlight.set(url, request);
+  return request;
+}
+
+/** Publish an authoritative mutation response, superseding pre-mutation reads. */
+export function publishFetchData<T>(url: string, data: T, ttlMs: number): void {
+  displayCache.invalidate(url);
+  displayCache.set(url, data, ttlMs);
+  window.dispatchEvent(new CustomEvent('displaycache:replace', { detail: { url, data, at: Date.now() } }));
 }
 
 /**
@@ -107,9 +124,10 @@ export function useFetchData<T>(
     const controller = new AbortController();
 
     async function fetchAndCache() {
-      const result = await sharedFetch(url);
+      const request = sharedFetch(url);
+      const result = await request.promise;
       // Unmounted, or pointed at another URL, while the request was out.
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || request.invalidated) return;
       if (result.kind === 'ok') {
         setData(result.json as T);
         setError(null);
@@ -119,7 +137,8 @@ export function useFetchData<T>(
       }
       if (result.kind === 'http') {
         // Cloned: subscribers sharing this response each read its body.
-        fail(await readFetchError(result.res.clone(), `API error ${result.res.status}`));
+        const failure = await readFetchError(result.res.clone(), `API error ${result.res.status}`);
+        if (!controller.signal.aborted && !request.invalidated) fail(failure);
         return;
       }
       fail(transientError(t('errors.fetchFailed')));
@@ -139,9 +158,24 @@ export function useFetchData<T>(
 
     // Re-fetch immediately when this URL's cache is invalidated
     function onInvalidate(e: Event) {
-      if ((e as CustomEvent).detail === url) fetchAndCache();
+      if ((e as CustomEvent).detail !== url) return;
+      if (!handledInvalidations.has(e)) {
+        handledInvalidations.add(e);
+        const previous = inFlight.get(url);
+        if (previous) previous.invalidated = true;
+        inFlight.delete(url);
+      }
+      fetchAndCache();
+    }
+    function onReplace(event: Event) {
+      const replacement = (event as CustomEvent<{ url: string; data: T; at: number }>).detail;
+      if (replacement.url !== url) return;
+      setData(replacement.data);
+      setError(null);
+      setUpdatedAt(replacement.at);
     }
     window.addEventListener('displaycache:invalidate', onInvalidate);
+    window.addEventListener('displaycache:replace', onReplace);
 
     // Check cache INSIDE the effect (not at render time) to avoid stale closures
     const cached = displayCache.get<T>(url);
@@ -152,7 +186,7 @@ export function useFetchData<T>(
       if (!cached.stale) {
         // Fresh cache — skip initial fetch, just set up polling
         const interval = setInterval(fetchAndCache, refreshMs);
-        return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
+        return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); window.removeEventListener('displaycache:replace', onReplace); };
       }
       // Stale cache — show stale data, revalidate in background
     }
@@ -160,7 +194,7 @@ export function useFetchData<T>(
     // Cold start or stale: fetch now
     fetchAndCache();
     const interval = setInterval(fetchAndCache, refreshMs);
-    return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); };
+    return () => { controller.abort(); clearInterval(interval); window.removeEventListener('displaycache:invalidate', onInvalidate); window.removeEventListener('displaycache:replace', onReplace); };
   }, [url, refreshMs, t]);
 
   return [data, error, updatedAt];

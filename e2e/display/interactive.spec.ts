@@ -3,7 +3,7 @@ import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
-import { seedChores, seedMeals, seedTodos, E2E_TODO_LIST_ID } from '../helpers/api';
+import { seedHouseholdChores, seedMeals, seedTodos, E2E_TODO_LIST_ID } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
 
@@ -111,8 +111,8 @@ test('the same module renders when whenUnknown=show', async ({ page, request }) 
  * per-worker across tests) can't leak a stale completion into the next.
  */
 test.describe('chore-chart on display', () => {
-  test('allowDisplayComplete true: tapping a chore persists via /api/chores', async ({ page, request }) => {
-    await seedChores(request, {
+  test('allowDisplayComplete true: tapping a chore persists via /api/chores', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'cm-a', name: 'Riley', emoji: '🦊', color: '#f59e0b' }],
       chores: [{
         id: 'cc-a', name: 'Water the plants', emoji: '🪴', points: 1,
@@ -143,8 +143,8 @@ test.describe('chore-chart on display', () => {
       .toContainEqual(expect.objectContaining({ choreId: 'cc-a', memberId: 'cm-a' }));
   });
 
-  test('allowDisplayComplete false: tapping a chore is inert', async ({ page, request }) => {
-    await seedChores(request, {
+  test('allowDisplayComplete false: tapping a chore is inert', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'cm-b', name: 'Sky', emoji: '🐢', color: '#10b981' }],
       chores: [{
         id: 'cc-b', name: 'Take out the trash', emoji: '🗑️', points: 1,
@@ -900,8 +900,8 @@ async function readCompletions(
  * because completions persist per-worker across tests.
  */
 test.describe('chore-chart tap-to-complete across views', () => {
-  test('today view: tapping a chore persists via /api/chores', async ({ page, request }) => {
-    await seedChores(request, {
+  test('today view: tapping a chore persists via /api/chores', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'cct-m', name: 'Marlow', emoji: '🐰', color: '#f59e0b' }],
       chores: [{
         id: 'cct-c', name: 'Sort the mail', emoji: '📬', points: 1,
@@ -929,8 +929,8 @@ test.describe('chore-chart tap-to-complete across views', () => {
       .toContainEqual(expect.objectContaining({ choreId: 'cct-c', memberId: 'cct-m' }));
   });
 
-  test('compact view: tapping a chore cell persists via /api/chores', async ({ page, request }) => {
-    await seedChores(request, {
+  test('compact view: tapping a chore cell persists via /api/chores', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'ccc-m', name: 'Juno', emoji: '🐝', color: '#10b981' }],
       chores: [{
         id: 'ccc-c', name: 'Wipe the table', emoji: '🧽', points: 1,
@@ -974,8 +974,8 @@ test.describe('chore-chart tap-to-complete across views', () => {
  * value drifts).
  */
 test.describe('fullscreen-chore-chart on display', () => {
-  test('chores view: tapping an assignee dot persists the completion', async ({ page, request }) => {
-    await seedChores(request, {
+  test('chores view: tapping an assignee dot persists the completion', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'fcc-m', name: 'Wren', emoji: '🦉', color: '#f59e0b' }],
       chores: [{
         id: 'fcc-c', name: 'Refill the water', emoji: '💧', points: 1,
@@ -1004,8 +1004,8 @@ test.describe('fullscreen-chore-chart on display', () => {
       .toContainEqual(expect.objectContaining({ choreId: 'fcc-c', memberId: 'fcc-m' }));
   });
 
-  test('rewards-store: redeeming an affordable reward debits the balance and records it', async ({ page, request }) => {
-    await seedChores(request, {
+  test('rewards-store: redeeming an affordable reward debits the balance and records it', async ({ page, request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, {
       members: [{ id: 'rwm-m', name: 'Sol', emoji: '🌞', color: '#f59e0b' }],
       chores: [{
         id: 'rwm-c', name: 'Make the bed', emoji: '🛏️', points: 1,

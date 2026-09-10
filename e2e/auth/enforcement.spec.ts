@@ -19,6 +19,8 @@ const PASSWORD = 'e2e-enforce-pw-123';
 // both gates saw it rather than waiting out a clock.
 const DISABLED_AUTH = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };
 
+// These serial cases intentionally retain auth state, without family data.
+test.use({ isolateFamily: false });
 test.describe.configure({ mode: 'serial' });
 
 /**

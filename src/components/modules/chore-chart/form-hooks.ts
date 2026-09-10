@@ -1,15 +1,16 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import { useMemo, useState } from 'react';
 import type {
-  ChoreMember,
   ChoreDefinition,
   ChoreResetFrequency,
   ChoreTimeOfDay,
   ChoreRotation,
 } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
-import { MEMBER_COLORS, todayStr } from './types';
+import { todayStr } from './types';
 import {
   getChoreValidationHintKind,
   type ChoreValidationHintKind,
@@ -17,7 +18,7 @@ import {
 import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 
 /**
- * Shared form state for chore and member forms.
+ * Shared form state for chore forms.
  *
  * Two near-identical form overlays exist — one tailwind desktop modal in the
  * editor (`ChoreChartModal`) and one inline-styled mobile overlay in the
@@ -25,32 +26,6 @@ import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
  * manipulation, and submit logic; only presentation differs. These hooks are
  * that shared logic so the two surfaces can never drift.
  */
-
-export interface MemberFormState {
-  name: string;
-  emoji: string;
-  color: string;
-  setName: (v: string) => void;
-  setEmoji: (v: string) => void;
-  setColor: (v: string) => void;
-  canSave: boolean;
-  submit: (onSubmit: (data: Omit<ChoreMember, 'id'>) => void) => void;
-}
-
-export function useMemberForm(initial?: ChoreMember): MemberFormState {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [emoji, setEmoji] = useState(initial?.emoji ?? '');
-  const [color, setColor] = useState(initial?.color ?? MEMBER_COLORS[0]);
-
-  const canSave = name.trim().length > 0;
-
-  const submit = (onSubmit: (data: Omit<ChoreMember, 'id'>) => void) => {
-    if (!canSave) return;
-    onSubmit({ name: name.trim(), emoji, color });
-  };
-
-  return { name, emoji, color, setName, setEmoji, setColor, canSave, submit };
-}
 
 export interface ChoreFormState {
   name: string;
@@ -81,7 +56,7 @@ export interface ChoreFormState {
 
   scheduleMembers: string[];
   scheduleDays: number[];
-  unscheduledMembers: ChoreMember[];
+  unscheduledMembers: FamilyMember[];
 
   canSave: boolean;
   validationHintKind: ChoreValidationHintKind | null;
@@ -90,7 +65,7 @@ export interface ChoreFormState {
 
 export function useChoreForm(
   initial: ChoreDefinition | undefined,
-  members: ChoreMember[],
+  members: FamilyMember[],
 ): ChoreFormState {
   const [name, setName] = useState(initial?.name ?? '');
   const [emoji, setEmoji] = useState(initial?.emoji ?? DEFAULT_CHORE_ICON);

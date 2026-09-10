@@ -31,7 +31,8 @@ import { usePreviewData } from './usePreviewData';
 import DraggableModule from './DraggableModule';
 import ModuleContextMenu, { type ModuleMenuState } from './ModuleContextMenu';
 import SelectionOverlay from './SelectionOverlay';
-import { toEditorSource, type PreviewSettings } from '@/lib/module-props';
+import { useFamilyData } from '@/hooks/useFamilyData';
+import { calendarPeopleForFamily, toEditorSource, type PreviewSettings } from '@/lib/module-props';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import CanvasToolbar from './CanvasToolbar';
 import StartFromTemplateButton from './StartFromTemplateButton';
@@ -225,6 +226,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   // Stable identity while settings are untouched so the memoized module
   // previews don't re-render on unrelated canvas re-renders (polls, clock).
+  const { members: familyMembers, revision: familyRevision, error: familyError } = useFamilyData();
   const settings = config?.settings;
   const previewSettings: PreviewSettings | null = useMemo(() => {
     if (!settings) return null;
@@ -238,10 +240,12 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       units: settings.weather.units,
       fullscreenTheme: settings.fullscreenTheme,
       timeFormat: settings.timeFormat,
-      calendarPeople: settings.calendar?.people,
+      calendarPeople: calendarPeopleForFamily(familyMembers, settings.calendar?.personSources),
+      calendarPeopleState: !familyRevision && Object.values(settings.calendar?.personSources ?? {}).some((ids) => ids.length > 0)
+        ? familyError ? 'failed' : 'loading' : undefined,
       calendarConfigured: hasAnyCalendarSource(settings.calendar),
     };
-  }, [settings]);
+  }, [settings, familyMembers, familyRevision, familyError]);
 
   // One normalized source for every module preview, built with the same
   // adapter contract the display uses. Memoized because ModulePreview is

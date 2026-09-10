@@ -232,18 +232,21 @@ The Pi brings the browser and the screen manager back on their own a second late
    cd /opt/home-screens/current
    bash scripts/upgrade.sh preflight
    bash scripts/upgrade.sh download v1.8.0
+   sudo systemctl stop home-screens
    bash scripts/upgrade.sh deploy
-   bash scripts/upgrade.sh restart
+   sudo systemctl start home-screens
+   bash scripts/upgrade.sh finalize-deploy
    ```
    Replace `v1.8.0` with the version you want. As a last resort, re-run the installer with `--version <tag>`.
 6. Read the log: `journalctl -u home-screens -n 100 --no-pager`.
-7. Put a saved copy of the settings back. The names include the version they came from, and `restore-backup` checks the file before replacing anything:
+7. Put a saved copy of the settings back, even if the server cannot start. Run this as the Home Screens account, without putting `sudo` before the restore command. The command refuses root or a different account before changing files and shows how to run it as the data owner. The names include the version they came from, and `restore-backup` validates the snapshot and restores settings, family identities and inline lists together under the same lock and recovery journal as the app:
    ```bash
    ls /opt/home-screens/current/data/backups/
    cd /opt/home-screens/current
    bash scripts/upgrade.sh restore-backup config-v1.8.0-20260725-101500.json
+   sudo systemctl restart home-screens
    ```
-   The same thing is available without a shell under **Settings > Backups & data**.
+   The same thing is available without a shell under **Settings > Backups & data**. Before a settings or family migration, including one triggered at startup, Home Screens saves the original settings with `migration` in the filename. These originals are kept permanently alongside the rotating upgrade snapshots, and the same offline command can restore them.
 
 ---
 

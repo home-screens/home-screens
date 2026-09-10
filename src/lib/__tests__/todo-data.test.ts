@@ -211,19 +211,19 @@ describe('fold-in of pre-v2 inline items', () => {
     await expect(mod.readTodoData()).resolves.toBeTruthy();
   });
 
-  it('writes the lists before touching config or the old tap store', async () => {
+  it('preserves both sources when the coordinator cannot acquire its lock', async () => {
     await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [
       legacyModule('m1', 'Groceries', [{ id: 'i1', text: 'Milk', completed: false }]),
     ] }] });
     await writeData('todo-state.json', { completed: { i1: true } });
-    // Make config.json unwritable for the strip step: the directory is
-    // read-only, so the temp-file rename fails after the lists landed.
-    await fs.chmod(path.join(tmpDir, 'data'), 0o500);
+    // The stable lock lives beside the release directory, so it survives a
+    // deploy. A directory where the lock file belongs can never be claimed or
+    // read, so this fails before any migration work can start.
+    await fs.mkdir(`${tmpDir}.data.lock`);
     try {
-      const data = await mod.readTodoData();
-      expect(data.migratedFromConfig).toBeUndefined();
+      await expect(mod.readTodoData()).rejects.toThrow();
     } finally {
-      await fs.chmod(path.join(tmpDir, 'data'), 0o700);
+      await fs.rmdir(`${tmpDir}.data.lock`);
     }
     // Both sources survive; nothing was lost, and the retry finishes the job.
     expect(await exists('todo-state.json')).toBe(true);

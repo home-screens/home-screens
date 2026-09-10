@@ -283,6 +283,34 @@ describe('plugin-auth refresh racing a replaced grant', () => {
   });
 });
 
+describe('plugin refresh queued behind restore', () => {
+  it.each(['journal', 'another-process'] as const)('does not overwrite a %s grant replacement', async (mode) => {
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    const { withDataTransaction, readTransactionFile, commitDataTransaction } = await import('../data-transaction');
+    const tokensFile = 'data/plugin-tokens/p1.json';
+    await savePluginTokens('p1', { access_token: 'old', refresh_token: 'old-refresh', token_type: 'Bearer', expiry_date: 0 });
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn(async () => { await gate; return jsonResponse({ access_token: 'refreshed-old', expires_in: 3600 }); });
+    vi.stubGlobal('fetch', fetchMock);
+    const pending = getValidAccessToken('p1');
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    const fresh = { access_token: 'restored', refresh_token: 'new-refresh', token_type: 'Bearer', expiry_date: Date.now() + 3_600_000 };
+    await withDataTransaction(async () => {
+      const before = await readTransactionFile(tokensFile);
+      release();
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      const after = JSON.stringify(fresh);
+      if (mode === 'journal') await commitDataTransaction({ kind: 'backup-restore', changes: [{ path: tokensFile, before, after }] });
+      else await fs.writeFile(path.join(tmpDir, tokensFile), after);
+    });
+    expect(await pending).toBeNull();
+    expect(await loadPluginTokens('p1')).toEqual(fresh);
+  });
+});
+
 describe('plugin-auth authorization_code callback', () => {
   it('applies tokenResponseTransform to a non-standard token response', async () => {
     await seedManifest('p1', {

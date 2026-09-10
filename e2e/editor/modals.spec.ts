@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { test, expect } from '../fixtures';
-import { getConfig, putConfig, seedChores, seedMeals } from '../helpers/api';
+import { getConfig, putConfig, seedHouseholdChores, seedMeals } from '../helpers/api';
 import { baseConfig, makeScreen, textModule, choreChartModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { autosaved, selectModule, moduleConfig } from '../helpers/editor';
@@ -146,35 +146,35 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     // Modal is open (its heading reads "Chore Chart" — distinct from the
     // palette entry and canvas module label of the same name).
     await expect(page.getByRole('heading', { name: 'Chore Chart', exact: true })).toBeVisible();
-    await page.getByRole('button', { name: 'Add Member' }).click();
-    await page.getByPlaceholder('Name...').fill('Robin');
+    await page.getByRole('button', { name: 'Add person' }).click();
+    await page.getByLabel('Name', { exact: true }).fill('Robin');
 
     // The debounced save PUTs to /api/chores/data once the member list changes.
     const saved = page.waitForResponse(
-      (r) => r.url().includes('/api/chores/data') && r.request().method() === 'PUT' && r.ok(),
+      (r) => r.url().includes('/api/family') && r.request().method() === 'PUT' && r.ok(),
     );
     // The form's submit button shares the "Add Member" label; the form one is
     // the second occurrence (the column trigger is now hidden while the form
     // is open, so a fresh lookup resolves to the submit button).
-    await page.getByRole('button', { name: 'Add Member' }).click();
+    await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
     await saved;
 
     await expect
       .poll(async () => {
-        const res = await request.get('/api/chores/data');
+        const res = await request.get('/api/family');
         const data = await res.json();
         return (data.members as Array<{ name: string }>).map((m) => m.name);
       })
       .toContain('Robin');
   });
 
-  test('nothing is editable until the chore data lands', async ({ page, request }) => {
+  test('nothing is editable until the chore data lands', async ({ page, request, sandboxDir }) => {
     // The modal starts with empty members/chores and REPLACES them when its
     // load resolves, while `useDebouncedSave` stays dormant until then. So a
     // member added in that window was discarded by the load and never saved,
     // silently, on a slow hub. Holding the columns back is the fix; this test
     // holds the load open to prove the window is closed.
-    await seedChores(request);
+    await seedHouseholdChores(request, sandboxDir);
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Screen 1', [choreChartModule()])],
     }));
@@ -193,10 +193,10 @@ test.describe('ChoreChartModal (editor-side chore manager)', () => {
     await expect(page.getByRole('heading', { name: 'Chore Chart', exact: true })).toBeVisible();
 
     // Open, titled, and inert: no add controls to type into yet.
-    await expect(page.getByRole('button', { name: 'Add Member' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Add person' })).toHaveCount(0);
 
     releaseLoad();
-    await expect(page.getByRole('button', { name: 'Add Member' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add person' })).toBeVisible();
     // The seeded chart is what appeared, i.e. the columns waited for real data
     // rather than rendering an empty chart first (the header counts what the
     // columns are showing).

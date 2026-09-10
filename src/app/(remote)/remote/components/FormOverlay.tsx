@@ -9,6 +9,7 @@ export default function FormOverlay({
   title,
   backLabel,
   dirty = false,
+  backDisabled = false,
   onBack,
   children,
   footer,
@@ -22,6 +23,7 @@ export default function FormOverlay({
    * to rebuild.
    */
   dirty?: boolean;
+  backDisabled?: boolean;
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
@@ -90,12 +92,13 @@ export default function FormOverlay({
       >
         <button
           onClick={handleBack}
+          disabled={backDisabled}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 4,
-            minWidth: 44,
-            minHeight: 44,
+            minWidth: 48,
+            minHeight: 48,
             color: 'var(--hs-text-muted)',
             fontSize: 14,
             fontWeight: 500,

@@ -1,14 +1,16 @@
 'use client';
 
 import { useMemo } from 'react';
+import type { FamilyMember } from '@/types/family';
 import { useFetchData } from '@/hooks/useFetchData';
-import { choresDataUrl, choresUrl, mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { choresDataUrl, choresUrl, familyUrl, mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { buildExtrasIndex, EMPTY_EXTRAS, type ExtrasIndex } from '@/lib/calendar-extras';
-import type { ChoreCompletion, ChoreDefinition, ChoreMember, PlannedMeal, SavedMeal } from '@/types/config';
+import type { ChoreCompletion, ChoreDefinition, PlannedMeal, SavedMeal } from '@/types/config';
 
 interface MealsResponse { savedMeals?: SavedMeal[]; plan?: PlannedMeal[]; settings?: unknown }
-interface ChoreDataResponse { members?: ChoreMember[]; chores?: ChoreDefinition[] }
+interface ChoreDataResponse { chores?: ChoreDefinition[] }
+interface FamilyResponse { members?: FamilyMember[] }
 interface CompletionsResponse { completions?: ChoreCompletion[] }
 
 /**
@@ -29,6 +31,7 @@ export function useCalendarExtras(
   const choresTtl = 60_000;
   const [meals] = useFetchData<MealsResponse>(enabled.meals ? mealsDataUrl() : '', mealsTtl);
   const [choreData] = useFetchData<ChoreDataResponse>(enabled.chores ? choresDataUrl() : '', 60_000);
+  const [family] = useFetchData<FamilyResponse>(enabled.chores ? familyUrl() : '', FETCH_KEY_REGISTRY.family.ttlMs);
   const [completions] = useFetchData<CompletionsResponse>(enabled.chores ? choresUrl() : '', choresTtl);
 
   // The date list is rebuilt by the caller each render; key on its content
@@ -37,7 +40,7 @@ export function useCalendarExtras(
   // identities even when nothing changed, and a fresh ExtrasIndex would
   // re-render the whole memoized week list for identical data.
   const datesKey = dates.join(',');
-  const contentKey = JSON.stringify([meals, choreData, completions]);
+  const contentKey = JSON.stringify([meals, choreData, completions, family]);
   return useMemo(() => {
     if (!enabled.meals && !enabled.chores) return EMPTY_EXTRAS;
     const dateList = datesKey ? datesKey.split(',') : [];
@@ -47,7 +50,7 @@ export function useCalendarExtras(
         ? { plan: meals.plan ?? [], savedMeals: meals.savedMeals ?? [], settings: normalizeMealSettings(meals.settings) }
         : null,
       chores: enabled.chores && choreData
-        ? { members: choreData.members ?? [], chores: choreData.chores ?? [], completions: completions?.completions ?? [] }
+        ? { members: family?.members ?? [], chores: choreData.chores ?? [], completions: completions?.completions ?? [] }
         : null,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- meals/choreData/completions are represented by contentKey

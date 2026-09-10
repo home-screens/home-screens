@@ -514,6 +514,9 @@
         "confirmBody": "Alles stopt tijdens het opstarten. Deze afstandsbediening verbindt over ongeveer een minuut opnieuw.",
         "confirmButton": "Opnieuw opstarten"
       }
+    },
+    "family": {
+      "description": "Beheer de mensen in je huishouden."
     }
   },
   "photosTab": {

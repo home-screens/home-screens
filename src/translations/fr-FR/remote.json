@@ -514,6 +514,9 @@
         "confirmBody": "Tout s'arrête pendant le redémarrage. Cette télécommande se reconnecte dans environ une minute.",
         "confirmButton": "Redémarrer l'appareil"
       }
+    },
+    "family": {
+      "description": "Gérez les personnes de votre foyer."
     }
   },
   "photosTab": {

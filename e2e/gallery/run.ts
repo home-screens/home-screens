@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { seedHouseholdChores, seedMeals, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { PLACEHOLDER, QUARANTINE, galleryInstant, mountClientSide, pinRandom, settle } from '../helpers/deterministic-render';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
@@ -41,7 +41,7 @@ export function runGallery(label: string): void {
           const overrides = fx.stubKey === 'calendar' ? { calendar: todayCalendarEvents() } : undefined;
           await stubModuleData(page, { overrides });
         }
-        if (fx.seed === 'chores') await seedChores(request);
+        if (fx.seed === 'chores') await seedHouseholdChores(request, sandboxDir);
         if (fx.seed === 'meals') await seedMeals(request);
         if (fx.seed === 'todos') seedTodos(sandboxDir);
 
@@ -102,7 +102,7 @@ export function runGallery(label: string): void {
           ...(variant.stubOverrides ?? {}),
         };
         await stubModuleData(page, Object.keys(overrides).length ? { overrides } : {});
-        if (fx.seed === 'chores') await seedChores(request);
+        if (fx.seed === 'chores') await seedHouseholdChores(request, sandboxDir);
         if (fx.seed === 'meals') await seedMeals(request);
         if (fx.seed === 'todos') seedTodos(sandboxDir);
 

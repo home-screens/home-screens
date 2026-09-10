@@ -1,3 +1,5 @@
+
+import type { FamilyMember } from '@/types/family';
 // @vitest-environment jsdom
 
 import { describe, it, expect } from 'vitest';
@@ -5,15 +7,15 @@ import { render } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 import { BoardView } from '../views/BoardView';
-import type { ChoreMember, ChoreDefinition } from '@/types/config';
+import type { ChoreDefinition } from '@/types/config';
 import type { MemberStats } from '../types';
 
 function wrap(children: React.ReactNode) {
   return <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>{children}</I18nProvider>;
 }
 
-function member(id: string): ChoreMember {
-  return { id, name: `Member ${id}`, emoji: '', color: '#8b5cf6' };
+function member(id: string): FamilyMember {
+  return { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id, name: `Member ${id}`, emoji: '', color: '#8b5cf6' };
 }
 
 function chore(id: string): ChoreDefinition {

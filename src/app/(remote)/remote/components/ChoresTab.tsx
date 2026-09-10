@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import type { FamilyMember } from '@/types/family';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Sunrise, Sun, Sunset, Clock, Settings } from 'lucide-react';
 import type {
   ChoreChartConfig,
-  ChoreMember,
   ChoreDefinition,
   ChoreCompletion,
   ChoreTimeOfDay,
@@ -67,7 +68,7 @@ function rememberMember(id: string) {
 }
 
 /** The first member who actually has something to do on `day`, else the first member. */
-function defaultMemberFor(members: ChoreMember[], chores: ChoreDefinition[], day: string): string {
+function defaultMemberFor(members: FamilyMember[], chores: ChoreDefinition[], day: string): string {
   const dayOfWeek = new Date(day + 'T00:00:00').getDay();
   for (const member of members) {
     const hasChore = chores.some(
@@ -96,8 +97,11 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
   // ── Lifted state (shared between Today + Manage views) ──
-  const [members, setMembers] = useState<ChoreMember[]>(choreData.members ?? []);
+  const { members } = useFamilyData();
   const [chores, setChores] = useState<ChoreDefinition[]>(choreData.chores ?? []);
+  // Only the exact empty list produced by a deliberate last-chore deletion
+  // may bypass the server guard. Missing props or reload data never grant it.
+  const intentionalEmpty = useRef<ChoreDefinition[] | null>(null);
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
@@ -129,16 +133,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   // (initial state comes from props), and `flushOnUnmount` ensures any pending
   // save in the debounce window runs before the component unmounts.
   useDebouncedSave({
-    values: [members, chores],
+    values: [chores],
     flushOnUnmount: true,
     save: () =>
       editorFetch('/api/chores/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          members,
           chores,
-          force: members.length === 0 && chores.length === 0,
+          force: chores === intentionalEmpty.current,
         }),
       }).then(throwIfNotOk),
     // Without `throwIfNotOk` above a 500 resolved and this never fired: the new
@@ -160,17 +163,19 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     };
   }, []);
 
-  // Restore this device's remembered member once, after mount (localStorage
+  const restoredMemberRef = useRef(false);
+
+  // Restore this device's remembered member once the roster arrives, after mount (localStorage
   // is not available during the server render). An id that no longer exists
   // is ignored and the "first member with chores" default stands.
   useEffect(() => {
+    if (restoredMemberRef.current || members.length === 0) return;
+    restoredMemberRef.current = true;
     const remembered = readRememberedMember();
     if (remembered && members.some((m) => m.id === remembered)) {
       setSelectedMemberId(remembered);
     }
-    // Intentionally mount-only: later member edits are handled below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [members]);
 
   const selectMember = useCallback((id: string) => {
     setSelectedMemberId(id);
@@ -189,9 +194,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   // Keep selectedMemberId valid when members change
   useEffect(() => {
     if (members.length > 0 && !members.find((m) => m.id === selectedMemberId)) {
-      setSelectedMemberId(members[0].id);
+      const remembered = readRememberedMember();
+      setSelectedMemberId(remembered && members.some((m) => m.id === remembered) ? remembered : defaultMemberFor(members, chores, initialDate));
     }
-  }, [members, selectedMemberId]);
+  }, [members, selectedMemberId, chores, initialDate]);
 
   // Fetch completions
   const fetchCompletions = useCallback(async () => {
@@ -503,8 +509,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         <ChoresManageView
           members={members}
           chores={chores}
-          onMembersChange={setMembers}
-          onChoresChange={setChores}
+          onFamilyChanged={() => {
+            void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((data) => setChores(data.chores ?? [])).catch(() => setLastWarning(t('choresTab.saveFailed')));
+            void fetchCompletions();
+            void fetchBalances();
+          }}
+          onChoresChange={(next) => {
+            intentionalEmpty.current = chores.length > 0 && next.length === 0 ? next : null;
+            setChores(next);
+          }}
         />
       ) : members.length === 0 || chores.length === 0 ? (
         /* Empty state */

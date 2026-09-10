@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
 import { readRewardData, redeemReward } from '@/lib/reward-data';
-import { readChoreData } from '@/lib/chore-data';
+import { readFamilyData } from '@/lib/family-data';
+import { withFamilyData } from '@/lib/family-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,7 @@ export const GET = async () => {
 /** POST — redeem a reward for a member. */
 export const POST = async (request: NextRequest) => {
   try {
+    return await withFamilyData(async () => {
     const body = await parseJsonBody<{ rewardId?: string; memberId?: string }>(request);
     if (body instanceof NextResponse) return body;
     const { rewardId, memberId } = body;
@@ -63,9 +65,10 @@ export const POST = async (request: NextRequest) => {
     }
 
     // Look up member name for denormalized snapshot
-    const choreData = await readChoreData();
-    const member = choreData.members.find((m) => m.id === memberId);
-    const memberName = member?.name ?? 'Unknown';
+    const family = await readFamilyData();
+    const member = family.members.find((m) => m.id === memberId);
+    if (!member) return NextResponse.json({ error: 'This person was removed. Refresh and choose again.' }, { status: 409 });
+    const memberName = member.name;
 
     let result;
     try {
@@ -77,6 +80,7 @@ export const POST = async (request: NextRequest) => {
       throw err;
     }
     return NextResponse.json({ balances: result.balances, redemptions: result.redemptions });
+    });
   } catch (error) {
     return publicErrorResponse(error, 'Failed to redeem reward');
   }

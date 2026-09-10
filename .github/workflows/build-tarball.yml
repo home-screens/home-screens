@@ -98,6 +98,21 @@ jobs:
           npx esbuild scripts/check-config.ts --bundle --platform=node \
             --format=cjs --outfile=.next/standalone/scripts/check-config.cjs
 
+          # Restore works even when the server cannot start, without tsx/src.
+          # Everything is bundled in: next/server is not guaranteed to be
+          # traced into a standalone build for an additional CLI.
+          npx esbuild scripts/restore-snapshot.ts --bundle --platform=node \
+            --format=cjs --outfile=.next/standalone/scripts/restore-snapshot.cjs
+
+          # The bundle has to run with no source tree, tsx or dev dependencies.
+          # scripts/__tests__/snapshot-restore.test.ts covers what it then does.
+          smoke_dir=$(mktemp -d)
+          mkdir -p "$smoke_dir/scripts" "$smoke_dir/data/backups"
+          cp .next/standalone/scripts/restore-snapshot.{cjs,mjs} .next/standalone/scripts/restore-ownership.mjs "$smoke_dir/scripts/"
+          printf '%s\n' '{"version":13,"screens":[],"settings":{}}' > "$smoke_dir/data/backups/last-stable-config.json"
+          node "$smoke_dir/scripts/restore-snapshot.mjs" last-stable-config.json
+          rm -rf "$smoke_dir" "$smoke_dir.data.lock"
+
           # Ship an empty data/ dir, never a seeded config.json. The app
           # writes data/config.json from DEFAULT_CONFIG (src/lib/config.ts)
           # on first read; install.sh and the image builder (stage

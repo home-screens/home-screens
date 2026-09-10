@@ -414,7 +414,8 @@
         "displays": "Displays",
         "screen": "Scherm",
         "automation": "Automatisering",
-        "phone": "Op je telefoon"
+        "phone": "Op je telefoon",
+        "family": "Gezin"
       },
       "groups": {
         "screen": "Scherm",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Personen",
-        "help": "Geef elk gezinslid een naam en kies zijn of haar agenda's. Het gezinsrooster en Vrije tijd tonen één rij per persoon; agenda's zonder persoon gelden als gedeeld.",
-        "namePlaceholder": "Naam (bijv. Ella)",
-        "addPerson": "+ Persoon toevoegen",
-        "calendars": "Agenda's",
+        "heading": "Van wie zijn de agenda’s?",
+        "help": "Kies de agenda’s van elk gezinslid. Agenda’s zonder toewijzing worden met iedereen gedeeld.",
         "noSources": "Koppel eerst hierboven een agenda en kies dan welke bij deze persoon horen.",
-        "noCalendarsPicked": "Geen agenda's gekozen",
-        "remove": "{name} verwijderen",
-        "noPeople": "Nog geen personen."
+        "noPeople": "Voeg mensen toe op de pagina Gezin en kies hier hun agenda’s.",
+        "manageFamily": "Gezin beheren"
       },
       "areas": {
         "sources": "Waar afspraken vandaan komen",
@@ -2154,6 +2151,9 @@
         "action": "Afdrukken",
         "sheetTitle": "Home Screens op je telefoon"
       }
+    },
+    "familyPage": {
+      "description": "Voeg je huishouden één keer toe. Namen, kleuren en emoji’s volgen elke persoon bij taken, beloningen en agenda’s."
     }
   },
   "backgroundPicker": {

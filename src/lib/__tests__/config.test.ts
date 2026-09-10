@@ -201,17 +201,20 @@ describe('writeConfig — write queue serialization', () => {
   it('two concurrent writeConfig() calls are serialized (second waits for first)', async () => {
     const order: string[] = [];
 
-    // Use a deferred promise to control when the first writeFile resolves
+    // Pause the first rename before its staged contents are published.
     let releaseFirst!: () => void;
     const firstGate = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    let markStarted!: () => void;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
 
-    const origWriteFile = fsModule.promises.writeFile.bind(fsModule.promises);
+    const origWriteFile = fsModule.promises.rename.bind(fsModule.promises);
     let callCount = 0;
 
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementation(async (...args: Parameters<typeof fsModule.promises.writeFile>) => {
+    vi.spyOn(fsModule.promises, 'rename').mockImplementation(async (...args: Parameters<typeof fsModule.promises.rename>) => {
       callCount++;
       if (callCount === 1) {
         order.push('first-start');
+        markStarted();
         await firstGate;
         const result = await origWriteFile(...args);
         order.push('first-end');
@@ -226,8 +229,8 @@ describe('writeConfig — write queue serialization', () => {
     const p1 = writeConfig(makeConfig('first'));
     const p2 = writeConfig(makeConfig('second'));
 
-    // Let the event loop tick — first write should have started, second should not
-    await new Promise((r) => setTimeout(r, 10));
+    // Wait for the actual publish boundary instead of relying on disk speed.
+    await started;
     expect(order).toContain('first-start');
     expect(order).not.toContain('second-start');
 
@@ -241,10 +244,10 @@ describe('writeConfig — write queue serialization', () => {
   });
 
   it('if first write fails, second write still executes', async () => {
-    const origWriteFile = fsModule.promises.writeFile.bind(fsModule.promises);
+    const origWriteFile = fsModule.promises.rename.bind(fsModule.promises);
     let callCount = 0;
 
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementation(async (...args: Parameters<typeof fsModule.promises.writeFile>) => {
+    vi.spyOn(fsModule.promises, 'rename').mockImplementation(async (...args: Parameters<typeof fsModule.promises.rename>) => {
       callCount++;
       if (callCount === 1) {
         throw new Error('Simulated disk failure');
@@ -301,11 +304,13 @@ describe('readConfig — migration race conditions', () => {
     };
     await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(outdated));
 
-    // Track how many times writeFile is called (one call per writeConfig invocation)
-    const origWriteFile = fsModule.promises.writeFile.bind(fsModule.promises);
+    // Count the single config rewrite separately from its recovery snapshot.
+    const origWriteFile = fsModule.promises.rename.bind(fsModule.promises);
     let writeFileCount = 0;
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementation(async (...args: Parameters<typeof fsModule.promises.writeFile>) => {
-      writeFileCount++;
+    const publications: string[] = [];
+    vi.spyOn(fsModule.promises, 'rename').mockImplementation(async (...args: Parameters<typeof fsModule.promises.rename>) => {
+      publications.push(String(args[1]));
+      if (String(args[1]).endsWith('/config.json')) writeFileCount++;
       return origWriteFile(...args);
     });
 
@@ -318,10 +323,14 @@ describe('readConfig — migration race conditions', () => {
       expect(cfg.screens[0].id).toBe('old');
     }
 
-    // The migration guard should have limited the fire-and-forget writes to at most one
-    // Give the fire-and-forget write time to complete
-    await new Promise((r) => setTimeout(r, 50));
-    expect(writeFileCount).toBeLessThanOrEqual(1);
+    // The first coordinated read persists migration before releasing its lock.
+    expect(writeFileCount).toBe(1);
+    const snapshots = await fs.readdir(path.join(configDir, 'backups'));
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]).toContain('-migration.0.');
+    const backup = path.join(configDir, 'backups', snapshots[0]);
+    expect(await fs.readFile(backup, 'utf8')).toBe(JSON.stringify(outdated));
+    expect(publications.indexOf(backup)).toBeLessThan(publications.indexOf(path.join(configDir, 'config.json')));
   });
 
   it('migrate-on-boot persist cannot clobber a concurrent editor save', async () => {
@@ -364,9 +373,11 @@ describe('readConfig — migration race conditions', () => {
       version: getLatestSchemaVersion(),
       screens: [{ id: 'editor-save', name: 'Saved', backgroundImage: '', modules: [] }],
     };
-    await writeConfig(editorSave as never); // lands while the read is paused
+    // The editor save must wait for the whole read+migration critical section.
+    const savePromise = writeConfig(editorSave as never);
     release();
-    const migrated = await readPromise; // enqueues the migration persist
+    const migrated = await readPromise;
+    await savePromise;
     expect(migrated.version).toBe(getLatestSchemaVersion());
 
     // Drain the queue behind the migration persist, then confirm the
@@ -391,17 +402,14 @@ describe('readConfig — migration race conditions', () => {
     };
     await fs.writeFile(path.join(configDir, 'config.json'), JSON.stringify(outdated));
 
-    // Make the migration write fail
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementationOnce(async () => {
+    // Make the pre-migration backup fail. Config must not be rewritten.
+    vi.spyOn(fsModule.promises, 'rename').mockImplementationOnce(async () => {
       throw new Error('Disk full');
     });
 
-    const config = await readConfig();
-
-    // Should still return the migrated config (migration succeeded in memory,
-    // only the persist-to-disk part failed)
-    expect(config.version).toBeGreaterThanOrEqual(1);
-    expect(config.screens[0].id).toBe('stable');
+    // Readers can still render the original saved layout when persistence
+    // fails. They must never receive an unpersisted migrated revision.
+    await expect(readConfig()).resolves.toEqual(outdated);
 
     // Restore mocks and verify the original file on disk is untouched
     vi.restoreAllMocks();
@@ -441,12 +449,12 @@ describe('writeConfig — atomic write edge cases', () => {
     expect(parsed.screens[0].id).toBe('after-rename-fail');
   });
 
-  it('partial write failure (writeFile fails) does not leave corrupt config', async () => {
+  it('failure before publishing does not leave corrupt config', async () => {
     // Write a known-good config first
     await writeConfig(makeConfig('good'));
 
-    // Make the next writeFile fail mid-write (tmp file should not replace real config)
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementationOnce(async () => {
+    // Fail the publish step; the staged file must not replace the real config.
+    vi.spyOn(fsModule.promises, 'rename').mockImplementationOnce(async () => {
       throw new Error('Disk write error');
     });
 
@@ -506,10 +514,10 @@ describe('writeConfig / readConfig — error recovery', () => {
   });
 
   it('three sequential failures followed by a success — queue is not permanently broken', async () => {
-    const origWriteFile = fsModule.promises.writeFile.bind(fsModule.promises);
+    const origWriteFile = fsModule.promises.rename.bind(fsModule.promises);
     let callCount = 0;
 
-    vi.spyOn(fsModule.promises, 'writeFile').mockImplementation(async (...args: Parameters<typeof fsModule.promises.writeFile>) => {
+    vi.spyOn(fsModule.promises, 'rename').mockImplementation(async (...args: Parameters<typeof fsModule.promises.rename>) => {
       callCount++;
       if (callCount <= 3) {
         throw new Error(`Failure #${callCount}`);
@@ -586,9 +594,9 @@ describe('updateConfigAtomic — no-op detection', () => {
   it('skips the disk write when the mutator returns its input unchanged in steady state', async () => {
     await writeRaw(makeSteadyStateConfig());
 
-    // Spy on writeFile after the seed write so we only count writes from
+    // Spy on rename after the seed write so we only count writes from
     // updateConfigAtomic itself.
-    const writeSpy = vi.spyOn(fs, 'writeFile');
+    const writeSpy = vi.spyOn(fs, 'rename');
 
     // Mutator returns its input unchanged — the canonical validation-error
     // signal used by POST /api/display/profile.
@@ -601,14 +609,13 @@ describe('updateConfigAtomic — no-op detection', () => {
   it('still writes when the mutator returns a new reference (happy path)', async () => {
     await writeRaw(makeSteadyStateConfig());
 
-    const writeSpy = vi.spyOn(fs, 'writeFile');
+    const writeSpy = vi.spyOn(fs, 'rename');
     await updateConfigAtomic((config) => ({
       ...config,
       settings: { ...config.settings, rotationIntervalMs: 12345 },
     }));
 
-    // The atomic write goes through the temp-file dance: writeFile(tmp)
-    // then rename, so at least one writeFile call is expected.
+    // The staged file becomes visible only through its atomic rename.
     expect(writeSpy).toHaveBeenCalled();
     writeSpy.mockRestore();
 
@@ -634,7 +641,7 @@ describe('updateConfigAtomic — no-op detection', () => {
       screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
     });
 
-    const writeSpy = vi.spyOn(fs, 'writeFile');
+    const writeSpy = vi.spyOn(fs, 'rename');
     await updateConfigAtomic((config) => config);
     expect(writeSpy).toHaveBeenCalled();
     writeSpy.mockRestore();
@@ -670,5 +677,71 @@ describe('write invalidation of the short-TTL read cache', () => {
     const after = await readConfigCached();
     expect(after.screens.map((s) => s.id)).toEqual(['atomic']);
     __resetConfigReadCacheForTests();
+  });
+});
+
+/**
+ * The family fold, not the schema migration, is what removes
+ * `settings.calendar.people`. Both readConfig() and updateConfigAtomic() run
+ * registered migrations automatically and can persist the result, so an
+ * ordinary config read on a not-yet-folded install must leave the legacy
+ * roster on disk for the coordinated transaction to consume.
+ */
+describe('v12 to v13 keeps the legacy family inputs for the coordinated fold', () => {
+  const people = [{ id: 'calendar-alex', name: 'Alex', color: '#aabbcc', sourceIds: ['school'] }];
+  const legacy = {
+    version: 12,
+    settings: {
+      rotationIntervalMs: 30000,
+      displayWidth: 1080,
+      displayHeight: 1920,
+      latitude: 0,
+      longitude: 0,
+      weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial' },
+      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7, people, personSources: { 'calendar-alex': ['work'] } },
+    },
+    screens: [{ id: 'default', name: 'Default', backgroundImage: '', modules: [] }],
+  };
+  async function seedLegacy() {
+    await fs.mkdir(path.join(tmpDir, 'data'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data/config.json'), JSON.stringify(legacy, null, 2));
+  }
+  const onDisk = async () => JSON.parse(await fs.readFile(path.join(tmpDir, 'data/config.json'), 'utf8'));
+
+  it('readConfig returns and persists the schema bump without touching people', async () => {
+    await seedLegacy();
+    const config = await readConfig();
+    expect(config.version).toBe(getLatestSchemaVersion());
+    expect(config.settings.calendar.people).toEqual(people);
+    expect(config.settings.calendar.personSources).toEqual({ 'calendar-alex': ['work'] });
+    const saved = await onDisk();
+    expect(saved.version).toBe(getLatestSchemaVersion());
+    expect(saved.settings.calendar.people).toEqual(people);
+    expect(saved.settings.calendar.personSources).toEqual({ 'calendar-alex': ['work'] });
+  });
+
+  it('updateConfigAtomic hands the mutator a migrated config that still carries people', async () => {
+    await seedLegacy();
+    let seen: unknown;
+    await updateConfigAtomic((current) => {
+      seen = current.settings.calendar.people;
+      return { ...current, settings: { ...current.settings, rotationIntervalMs: 45000 } };
+    });
+    expect(seen).toEqual(people);
+    const saved = await onDisk();
+    expect(saved.settings.rotationIntervalMs).toBe(45000);
+    expect(saved.settings.calendar.people).toEqual(people);
+  });
+
+  it('leaves the fold to the family transaction, which is what strips them', async () => {
+    await seedLegacy();
+    await readConfig();
+    expect((await onDisk()).settings.calendar.people).toEqual(people);
+    const { settleFamilyMigration } = await import('../family-data');
+    await settleFamilyMigration();
+    const folded = await onDisk();
+    expect(folded.settings.calendar.people).toBeUndefined();
+    // The saved mapping keeps its order and the folded sourceIds are appended.
+    expect(folded.settings.calendar.personSources).toEqual({ 'calendar-alex': ['work', 'school'] });
   });
 });

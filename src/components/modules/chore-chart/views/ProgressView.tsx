@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreChartConfig} from '@/types/config';
 import type { MemberStats } from '../types';
 import { balanceRows, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -10,7 +12,7 @@ import ChoreIcon from '../ChoreIcon';
 interface ProgressViewProps {
   config: ChoreChartConfig;
   data: {
-    members: ChoreMember[];
+    members: FamilyMember[];
     memberStats: Map<string, MemberStats>;
   };
   /** Measured box width in px (0 until measured). */

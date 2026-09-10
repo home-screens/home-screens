@@ -1,0 +1,34 @@
+import { test, expect } from '../fixtures';
+import { putConfig, seedFamily } from '../helpers/api';
+import { baseConfig } from '../helpers/config-fixtures';
+
+test('remote Settings opens Family without a chore chart and saves a person', async ({ page, request, sandboxDir }) => {
+  seedFamily(sandboxDir, []);
+  await putConfig(request, baseConfig());
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Settings', exact: true }).click();
+  await page.getByRole('button', { name: /Family.*Manage the people/ }).click();
+  const family = page.getByRole('dialog', { name: 'Family', exact: true });
+  await expect(family).toBeVisible();
+  await family.getByRole('button', { name: 'Add person' }).click();
+  await family.getByLabel('Name', { exact: true }).fill('Casey');
+  const form = family.getByRole('dialog', { name: 'Add person', exact: true });
+  await expect(form).toBeVisible();
+  await form.getByRole('button', { name: 'Icon: None', exact: true }).click();
+  const icon = form.getByRole('button', { name: 'Cat', exact: true });
+  const iconBox = await icon.boundingBox();
+  expect(iconBox?.width).toBeGreaterThanOrEqual(48);
+  expect(iconBox?.height).toBeGreaterThanOrEqual(48);
+  await icon.click();
+  const color = form.getByRole('button', { name: 'Color: #fbbf24', exact: true });
+  const colorBox = await color.boundingBox();
+  expect(colorBox?.width).toBeGreaterThanOrEqual(48);
+  expect(colorBox?.height).toBeGreaterThanOrEqual(48);
+  await color.click();
+  await family.getByRole('button', { name: 'Save', exact: true }).click();
+  await expect(family.getByRole('status')).toHaveText('Family saved.');
+  expect((await (await request.get('/api/family')).json()).members).toEqual([expect.objectContaining({ name: 'Casey', emoji: 'lucide:cat', color: '#fbbf24' })]);
+  await family.getByRole('button', { name: 'Back', exact: true }).click();
+  await expect(family).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Close settings' })).toBeVisible();
+});

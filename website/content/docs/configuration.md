@@ -22,7 +22,8 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/secrets.json` | API keys for external integrations (weather, calendar, photos, etc.) | `/api/secrets` |
 | `data/auth.json` | Password hash and session secret for editor authentication | (internal) |
 | `data/meals.json` | Meal library, weekly plan, checked-off grocery items, household meal settings | `/api/meals/data` |
-| `data/chores.json` | Chore definitions and family members | `/api/chores/data` |
+| `data/family.json` | Shared family members and legacy identity aliases | `/api/family` |
+| `data/chores.json` | Chore definitions | `/api/chores/data` |
 | `data/chore-completions.json` | Chore completion history (last 90 days) | `/api/chores` |
 | `data/rewards.json` | Reward definitions, point balances, redemption history | `/api/rewards/data` |
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
@@ -215,25 +216,14 @@ The `displays` field is opt-in. When it is undefined or empty, Home Screens runs
   googleCalendarIds: string[]      // Multiple calendar IDs
   icalSources: ICalSource[]        // iCal/ICS feed sources
   icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
-  people?: CalendarPerson[]        // Household list; powers the family grid and free time views
+  personSources?: Record<string, string[]> // Family member ID → calendar source IDs
   daysAhead: number                // Days to look ahead
   holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
   hideDeclined?: boolean           // Google only: skip events the signed-in account declined
 }
 ```
 
-### CalendarPerson
-
-```typescript
-{
-  id: string
-  name: string
-  color: string                    // Used for this person's row and event bars
-  sourceIds: string[]              // Calendar source IDs belonging to this person
-}
-```
-
-Set up under **Settings > Calendar > People**. A calendar that no person claims counts as shared by the whole household. Only the Full-Screen Calendar's family grid and free time views read this list; every other view ignores it.
+The family grid and free time views join `personSources` against `data/family.json`. Manage people under **Settings > Family** and their calendars under **Settings > Calendar > Whose calendars?** A calendar that no person claims is shared by the whole household. Legacy `people` records are preserved by the schema upgrade until the coordinated family migration folds them safely.
 
 ### ICalSource
 
@@ -625,25 +615,40 @@ Each `PlannedMeal` uses an ISO date string to support multi-week planning:
 
 Old configs that used `day: number` (day-of-week index) are automatically migrated to ISO date format on first read.
 
+### data/family.json
+
+The shared household roster, edited under **Settings > Family** or `/remote` > Settings > Family. `/api/family` returns its members and a revision required for writes.
+
+```typescript
+interface FamilyMember {
+  id: string
+  name: string
+  emoji?: string
+  color: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface FamilyData {
+  members: FamilyMember[]
+  migrated?: boolean
+  aliasIds?: Record<string, string> // Legacy calendar ID → member ID
+}
+```
+
+Chore identities survive migration and legacy restore by ID. Calendar identities are matched by ID or alias first, then by a unique normalized name. Existing rosters over 64 people and long legacy names are retained. The authoring API limits new additions to 64 people and new names to 40 characters.
+
 ### data/chores.json
 
-Family members and chore definitions, served by `/api/chores/data` and edited from the `/remote` Chores tab.
+Chore definitions, served by `/api/chores/data` and edited from the `/remote` Chores tab. Family members are read separately from `/api/family`.
 
 ```typescript
 {
-  members: ChoreMember[]
   chores: ChoreDefinition[]
 }
 ```
 
 ```typescript
-interface ChoreMember {
-  id: string
-  name: string
-  emoji: string
-  color: string
-}
-
 interface ChoreDefinition {
   id: string
   name: string

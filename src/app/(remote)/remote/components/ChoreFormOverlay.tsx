@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
+import type { FamilyMember } from '@/types/family';
 import type {
-  ChoreMember,
   ChoreDefinition,
   ChoreResetFrequency,
   ChoreTimeOfDay,
@@ -11,6 +11,7 @@ import type {
 } from '@/types/config';
 import { getTimeOfDayLabelKey } from '@/components/modules/chore-chart/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
+import FamilyManager from '@/components/family/FamilyManager';
 import ChoreIcon, { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
@@ -39,7 +40,7 @@ export default function ChoreFormOverlay({
   onBack,
 }: {
   initial?: ChoreDefinition;
-  members: ChoreMember[];
+  members: FamilyMember[];
   onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void;
   onDelete?: () => void;
   onBack: () => void;
@@ -191,6 +192,8 @@ export default function ChoreFormOverlay({
             </select>
           </div>
         </div>
+
+        {members.length === 0 && <div style={{ marginBottom: 24 }}><FamilyManager variant="mobile" /></div>}
 
         {rotation !== 'schedule' && (
           <div style={{ marginBottom: 24 }}>

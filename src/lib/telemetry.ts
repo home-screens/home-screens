@@ -110,6 +110,7 @@ interface TelemetryBeacon {
 const store = createJsonStore<TelemetryData | null>({
   path: TELEMETRY_FILE,
   defaultValue: null,
+  transient: true,
 });
 
 export const readTelemetryData = store.read;

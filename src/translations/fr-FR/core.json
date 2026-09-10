@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Fermer"
+  },
+  "family": {
+    "title": "Famille",
+    "add": "Ajouter une personne",
+    "edit": "Modifier la personne",
+    "emoji": "Emoji (facultatif)",
+    "color": "Couleur",
+    "emptyTitle": "Personne pour le moment",
+    "emptyDescription": "Ajoutez les membres de votre foyer. Ils seront disponibles dans les tâches, les récompenses et les calendriers.",
+    "loadFailed": "Impossible de charger votre famille.",
+    "saveFailed": "Impossible d’enregistrer votre famille.",
+    "retry": "Réessayer",
+    "saved": "Famille enregistrée.",
+    "saving": "Enregistrement…",
+    "conflict": "La famille a été modifiée pendant votre saisie. La liste actuelle est affichée. Veuillez refaire votre modification.",
+    "removeTitle": "Supprimer {name} ?",
+    "removeDescription": "Supprimer {name} efface ses attributions de tâches, plannings, historique, solde de tickets et accès aux récompenses. Le choix de ses calendriers est aussi oublié. Les tâches sans personne pour les faire sont supprimées. Cette action est irréversible.",
+    "remove": "Supprimer la personne",
+    "editName": "Modifier {name}",
+    "moveUp": "Monter {name}",
+    "moveDown": "Descendre {name}",
+    "pagination": "Pages de la famille",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page {page} sur {total}",
+    "limit": "Vous pouvez ajouter jusqu’à {count} personnes. Les personnes déjà présentes sont conservées et peuvent toujours être modifiées ou supprimées.",
+    "choreCount": {
+      "one": "{count} tâche",
+      "other": "{count} tâches"
+    },
+    "removeChoreCount": {
+      "one": "{name} a {count} tâche attribuée.",
+      "other": "{name} a {count} tâches attribuées."
+    }
   }
 }

@@ -7,6 +7,8 @@ import { test, expect } from '../fixtures';
 // previous one, so the file runs serially in a single worker. Browser cookies
 // are function-scoped (fresh context per test), which is why every test after
 // the first re-logs-in.
+// Authentication is intentionally retained between these serial cases.
+test.use({ isolateFamily: false });
 test.describe.configure({ mode: 'serial' });
 
 const PASSWORD = 'e2e-security-page-pw';

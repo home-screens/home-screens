@@ -25,6 +25,8 @@ const backupInput = 'input[type="file"][accept=".json"]';
 // Enables an editor password partway through and never clears it on its own;
 // the afterAll below restores the no-auth baseline for any spec that reuses
 // this worker's server.
+// Authentication is intentionally retained between these serial cases.
+test.use({ isolateFamily: false });
 test.describe.configure({ mode: 'serial' });
 
 const DISABLED_AUTH = { passwordHash: null, salt: null, cookieSecret: null, displayToken: null };

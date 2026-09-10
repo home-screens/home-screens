@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { CalendarPerson, ICalSource, ICloudSource } from '@/types/config';
+import type { ICalSource, ICloudSource } from '@/types/config';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
@@ -25,7 +25,7 @@ interface CalendarSettings {
   selectedCalendarIds: string[];
   icalSources: ICalSource[];
   icloudSources: ICloudSource[];
-  people: CalendarPerson[];
+  personSources: Record<string, string[]>;
   daysAhead: number;
   holidayCountry?: string;
   hideDeclined: boolean;
@@ -37,7 +37,7 @@ interface Props {
 }
 
 export default function CalendarSection({ values, onChange }: Props) {
-  const { selectedCalendarIds, icalSources, icloudSources, people, daysAhead, holidayCountry, hideDeclined } = values;
+  const { selectedCalendarIds, icalSources, icloudSources, personSources, daysAhead, holidayCountry, hideDeclined } = values;
   const t = useTranslate('editor');
 
   const [availableCountries, setAvailableCountries] = useState<HolidayCountry[]>([]);
@@ -403,8 +403,8 @@ export default function CalendarSection({ values, onChange }: Props) {
         description={t('settings.calendarPage.people.help')}
         testId="calendar-area-people"
       >
-        <div data-field-id="calendar.people">
-          <CalendarPeopleManager people={people} onChange={(next) => onChange({ people: next })} />
+        <div data-field-id="calendar.personSources">
+          <CalendarPeopleManager personSources={personSources} onChange={(next) => onChange({ personSources: next })} />
         </div>
       </SettingsArea>
 

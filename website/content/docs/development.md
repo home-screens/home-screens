@@ -34,6 +34,13 @@ data/                        # All runtime state; never committed
   secrets.json               # API keys
   meals.json                 # Meal planner state + shared settings
   todos.json                 # Shared to-do lists
+  family.json                # Shared household identities and aliases
+  chores.json                # Chore definitions (member IDs refer to family.json)
+  chore-completions.json     # Completion history
+  rewards.json               # Rewards and member ticket balances
+  family-transaction.json    # Pending durable transaction; removed after verification
+  family-migration.json      # First migration evidence
+  family-migrations/         # Immutable evidence from later legacy folds
   icloud-accounts.json       # iCloud CalDAV credentials
   plugins/                   # Installed plugin bundles + installed.json
   plugin-secrets/            # Per-plugin secret stores
@@ -415,6 +422,8 @@ A new route needs test coverage of its own, or the `ROUTE_DECISIONS` ratchet fro
 ## Setup
 
 Home Screens runs on any machine with Node.js 22 or newer, so you can try it on a laptop before buying a Pi, or develop on one.
+
+Prebuilt Raspberry Pi releases name a Node major in their bundled `.node-version` (currently 22), and the installer provisions at least that version. A newer Node already on the device is left alone.
 
 ```bash
 git clone https://github.com/home-screens/home-screens.git

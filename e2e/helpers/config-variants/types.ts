@@ -40,6 +40,8 @@ export interface ConfigVariant {
    * (meal tags/difficulty, multi-chore ordering).
    */
   seedData?: unknown;
+  /** Household roster for calendar views; persisted separately from settings. */
+  familyMembers?: Array<{ id: string; name: string; color: string; emoji?: string }>;
   /**
    * Extra modules rendered on the same screen as the variant module — for
    * fields that react to ANOTHER module's runtime output (e.g. greeting's

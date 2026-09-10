@@ -2,7 +2,8 @@
  * Route-level tests for `/api/system/backups` (GET list/download + POST restore).
  *
  * Mocks `child_process.execFile` (the `upgrade.sh` shell-out used for listing
- * and restoring) and `fs/promises.readFile` (for the download branch). The real
+ * for listing) and `fs/promises.readFile` (for snapshot reads). Restores use
+ * the coordinated import service, never the script. The real
  * `parseJsonBody` runs. Covers the path-traversal guard on filenames, the
  * download success / not-found branches, and the restore success / rejection.
  * Auth stubbed at `requireSession`.
@@ -16,7 +17,9 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 // execFile('bash', [script, action, ...args], opts, cb) — router keyed on action.
-const { execRouter, readFileMock } = vi.hoisted(() => ({
+const { execRouter, readFileMock, saveImportedConfigMock, access } = vi.hoisted(() => ({
+  access: { depth: 0 },
+  saveImportedConfigMock: vi.fn(),
   execRouter: { fn: (_action: string) => '' as string | Error },
   readFileMock: vi.fn(async () => Buffer.from('{"backup":true}')),
 }));
@@ -31,6 +34,19 @@ vi.mock('child_process', () => ({
 }));
 
 vi.mock('fs/promises', () => ({ readFile: readFileMock }));
+vi.mock('@/lib/data-transaction', () => ({
+  assertStillOwned: async () => {},
+  durableRemove: async (file: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.rm(file, { force: true });
+  },
+  onDataTransactionCommit: vi.fn(),
+  withDataTransaction: async (operation: () => Promise<unknown>) => {
+    access.depth++;
+    try { return await operation(); } finally { access.depth--; }
+  },
+}));
+vi.mock('@/lib/family-import', () => ({ saveImportedConfig: saveImportedConfigMock }));
 
 import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
@@ -99,6 +115,11 @@ describe('GET /api/system/backups', () => {
 describe('POST /api/system/backups', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    readFileMock.mockResolvedValue(Buffer.from(JSON.stringify({ version: 13, screens: [], settings: {} })));
+    saveImportedConfigMock.mockImplementation(async (config) => {
+      expect(access.depth).toBe(1);
+      return config;
+    });
   });
 
   it('rejects a missing name with 400', async () => {
@@ -113,17 +134,33 @@ describe('POST /api/system/backups', () => {
     expect((await res.json()).error).toMatch(/Invalid backup filename/);
   });
 
-  it('restores a valid backup', async () => {
-    execRouter.fn = () => JSON.stringify({ ok: true, restored: VALID_NAME });
+  it('restores a validated snapshot through the coordinated import service', async () => {
+    execRouter.fn = () => { throw new Error('Restore must not invoke upgrade.sh'); };
     const res = await POST(postRequest({ name: VALID_NAME }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ ok: true });
+    expect(await res.json()).toEqual({ ok: true, restored: VALID_NAME });
+    expect(saveImportedConfigMock).toHaveBeenCalledWith({ version: 13, screens: [], settings: {} });
+    expect(access.depth).toBe(0);
   });
 
-  it('surfaces a restore failure reported by the script as 400', async () => {
-    execRouter.fn = () => JSON.stringify({ ok: false, error: 'checksum mismatch' });
+  it('returns 404 for a missing snapshot without attempting an import', async () => {
+    readFileMock.mockRejectedValueOnce(Object.assign(new Error('missing'), { code: 'ENOENT' }));
+    const res = await POST(postRequest({ name: VALID_NAME }));
+    expect(res.status).toBe(404);
+    expect(saveImportedConfigMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['{', '{}', 'null', '{"screens":[],"settings":[]}', '{"screens":[null],"settings":{}}'])('rejects malformed snapshot %s before mutation', async (contents) => {
+    readFileMock.mockResolvedValueOnce(Buffer.from(contents));
     const res = await POST(postRequest({ name: VALID_NAME }));
     expect(res.status).toBe(400);
-    expect((await res.json()).error).toBe('checksum mismatch');
+    expect(saveImportedConfigMock).not.toHaveBeenCalled();
+  });
+
+  it('does not return success if the coordinated import fails', async () => {
+    saveImportedConfigMock.mockRejectedValueOnce(new Error('write failed'));
+    const res = await POST(postRequest({ name: VALID_NAME }));
+    expect(res.status).toBe(500);
+    expect(access.depth).toBe(0);
   });
 });

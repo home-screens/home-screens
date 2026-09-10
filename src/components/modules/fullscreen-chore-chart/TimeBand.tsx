@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreMember, ChoreTimeOfDay } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreTimeOfDay } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import ChoreRowItem from './ChoreRowItem';
 import { TOD_ICONS, type ChoreRow, type ToggleParams } from './helpers';
@@ -69,7 +71,7 @@ interface TimeBandProps {
   showHeader: boolean;
   showPoints: boolean;
   currentTod: ChoreTimeOfDay | null;
-  memberMap: Map<string, ChoreMember>;
+  memberMap: Map<string, FamilyMember>;
   initialsMap: Map<string, string>;
   allowTouch: boolean;
   onToggle: (params: ToggleParams) => void;

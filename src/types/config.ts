@@ -312,7 +312,10 @@ export interface CalendarSettings {
   googleCalendarIds: string[];
   icalSources: ICalSource[];
   icloudSources?: ICloudSource[];
+  /** Legacy input, preserved until the family migration durably folds it. */
   people?: CalendarPerson[];
+  /** Calendar ownership keyed by the shared family member id. */
+  personSources?: Record<string, string[]>;
   daysAhead: number;
   holidayCountry?: string; // ISO 3166-1 alpha-2 country code (e.g. 'US')
   hideDeclined?: boolean; // Google only: skip events the signed-in account declined
@@ -1866,13 +1869,6 @@ export type ChoreTimeOfDay = 'morning' | 'afternoon' | 'evening' | 'anytime';
 export type ChoreRotation = 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule';
 export type ChoreResetFrequency = 'daily' | 'weekly' | 'biweekly' | 'once';
 
-export interface ChoreMember {
-  id: string;
-  name: string;
-  emoji: string;
-  color: string;
-}
-
 export interface ChoreDefinition {
   id: string;
   name: string;
@@ -2081,4 +2077,3 @@ export interface VideoConfig {
   /** Safety cap that force-advances a stalled clip; 0/undefined = uncapped (loop covers it). */
   maxDurationMs?: number;
 }
-

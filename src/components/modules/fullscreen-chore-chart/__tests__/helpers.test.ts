@@ -292,9 +292,9 @@ describe('splitInOrder', () => {
 
 describe('buildMemberRows', () => {
   const members = [
-    { id: 'a', name: 'Ann', emoji: '', color: '#f00' },
-    { id: 'b', name: 'Ben', emoji: '', color: '#0f0' },
-    { id: 'c', name: 'Cal', emoji: '', color: '#00f' },
+    { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'a', name: 'Ann', emoji: '', color: '#f00' },
+    { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'b', name: 'Ben', emoji: '', color: '#0f0' },
+    { createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id: 'c', name: 'Cal', emoji: '', color: '#00f' },
   ];
   const dishes = makeChore({ id: 'dishes', name: 'Dishes', timeOfDay: 'evening' });
   const bed = makeChore({ id: 'bed', name: 'Make bed', timeOfDay: 'morning' });

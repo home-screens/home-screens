@@ -414,7 +414,8 @@
         "displays": "Displays",
         "screen": "Bildschirm",
         "automation": "Automatisierung",
-        "phone": "Auf dem Handy"
+        "phone": "Auf dem Handy",
+        "family": "Familie"
       },
       "groups": {
         "screen": "Bildschirm",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Personen",
-        "help": "Gib jedem Familienmitglied einen Namen und wähle seine Kalender. Familienraster und Freie Zeit zeigen eine Zeile pro Person; Kalender ohne Person gelten als gemeinsam.",
-        "namePlaceholder": "Name (z. B. Ella)",
-        "addPerson": "+ Person hinzufügen",
-        "calendars": "Kalender",
+        "heading": "Wem gehören die Kalender?",
+        "help": "Wähle die Kalender für jedes Familienmitglied. Nicht zugeordnete Kalender werden mit allen geteilt.",
         "noSources": "Verbinde zuerst oben einen Kalender und wähle dann, welche zu dieser Person gehören.",
-        "noCalendarsPicked": "Keine Kalender gewählt",
-        "remove": "{name} entfernen",
-        "noPeople": "Noch keine Personen."
+        "noPeople": "Füge Personen auf der Familienseite hinzu und wähle hier ihre Kalender.",
+        "manageFamily": "Familie verwalten"
       },
       "areas": {
         "sources": "Woher die Termine kommen",
@@ -2154,6 +2151,9 @@
         "action": "Drucken",
         "sheetTitle": "Home Screens auf dem Handy"
       }
+    },
+    "familyPage": {
+      "description": "Füge deinen Haushalt einmal hinzu. Namen, Farben und Emojis begleiten jede Person in Aufgaben, Belohnungen und Kalendern."
     }
   },
   "backgroundPicker": {

@@ -414,7 +414,8 @@
         "displays": "Telas",
         "screen": "Tela",
         "automation": "Automação",
-        "phone": "No seu celular"
+        "phone": "No seu celular",
+        "family": "Família"
       },
       "groups": {
         "screen": "Tela",
@@ -569,15 +570,11 @@
         }
       },
       "people": {
-        "heading": "Pessoas",
-        "help": "Dê um nome a cada membro da família e escolha seus calendários. A grade da família e o tempo livre mostram uma linha por pessoa; calendários sem pessoa contam como compartilhados.",
-        "namePlaceholder": "Nome (ex.: Ella)",
-        "addPerson": "+ Adicionar pessoa",
-        "calendars": "Calendários",
+        "heading": "De quem são os calendários?",
+        "help": "Escolha os calendários de cada membro da família. Calendários sem atribuição são compartilhados com todos.",
         "noSources": "Conecte um calendário acima primeiro e depois escolha quais pertencem a esta pessoa.",
-        "noCalendarsPicked": "Nenhum calendário escolhido",
-        "remove": "Remover {name}",
-        "noPeople": "Nenhuma pessoa ainda."
+        "noPeople": "Adicione pessoas na página Família e escolha os calendários delas aqui.",
+        "manageFamily": "Gerenciar família"
       },
       "areas": {
         "sources": "De onde vêm os eventos",
@@ -2154,6 +2151,9 @@
         "action": "Imprimir",
         "sheetTitle": "Home Screens no seu celular"
       }
+    },
+    "familyPage": {
+      "description": "Adicione sua família uma única vez. Nomes, cores e emojis acompanham cada pessoa nas tarefas, recompensas e calendários."
     }
   },
   "backgroundPicker": {

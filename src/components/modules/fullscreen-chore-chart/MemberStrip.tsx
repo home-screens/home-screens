@@ -1,4 +1,6 @@
-import type { ChoreMember } from '@/types/config';
+
+import type { FamilyMember } from '@/types/family';
+
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
 import { balanceRows, fitPerRow } from '@/components/modules/chore-chart/layout';
 import { Flame, Star, Ticket } from 'lucide-react';
@@ -14,7 +16,7 @@ import { useTranslate } from '@/i18n';
 export type MemberChipDetail = 'stars' | 'bar';
 
 interface MemberChipProps {
-  member: ChoreMember;
+  member: FamilyMember;
   stats: MemberStats | undefined;
   weekData: WeekDayData[];
   detail: MemberChipDetail;
@@ -74,7 +76,7 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
           color: 'white',
         }}
       >
-        <ChoreIcon value={member.emoji} size={avatar * 0.55} color="white" bare />
+        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare />
       </div>
       {compact ? (
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
@@ -122,10 +124,10 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
 
 interface MemberStripProps {
   /** Members with a chore today; each gets a chip. */
-  members: ChoreMember[];
+  members: FamilyMember[];
   /** Members with chores on other days this week but none today: named in
    *  one quiet line under the chips instead of a 0/0 card each. */
-  dayOff?: ChoreMember[];
+  dayOff?: FamilyMember[];
   memberStats: Map<string, MemberStats>;
   weekData: WeekDayData[];
   detail: MemberChipDetail;

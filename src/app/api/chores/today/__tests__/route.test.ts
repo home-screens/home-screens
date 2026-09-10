@@ -16,6 +16,22 @@ vi.mock('@/lib/chore-completion-data', () => ({
   readCompletions: vi.fn(),
 }));
 
+vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('@/lib/data-transaction', () => ({
+  assertStillOwned: async () => {},
+  durableRemove: async (file: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.rm(file, { force: true });
+  },
+  onDataTransactionCommit: vi.fn(),
+  withDataTransaction: (operation: () => Promise<unknown>) => operation(),
+  durableWriteFile: async (file: string, data: string) => {
+    const { promises: fs } = await import('fs');
+    await fs.writeFile(file, data);
+  },
+}));
+
+import { readFamilyData } from '@/lib/family-data';
 import { GET } from '@/app/api/chores/today/route';
 import { readChoreData } from '@/lib/chore-data';
 import { readCompletions } from '@/lib/chore-completion-data';
@@ -78,7 +94,8 @@ type TodayResponse = {
 
 describe('GET /api/chores/today', () => {
   beforeEach(() => {
-    vi.mocked(readChoreData).mockResolvedValue(choreData as never);
+    vi.mocked(readChoreData).mockResolvedValue({ chores: choreData.chores } as never);
+  vi.mocked(readFamilyData).mockResolvedValue({ members: choreData.members } as never);
     vi.mocked(readCompletions).mockResolvedValue({ completions: [] } as never);
   });
 

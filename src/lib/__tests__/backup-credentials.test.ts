@@ -7,7 +7,9 @@ import {
   snapshotCredentials,
   applyCredentials,
   listPluginCredentialIds,
+  planCredentialRestore,
 } from '@/lib/backup-credentials';
+import { commitDataTransaction, withDataTransaction } from '@/lib/data-transaction';
 import { readSecrets, writeSecrets } from '@/lib/secrets';
 import { writeICloudAccountsFile } from '@/lib/icloud-accounts';
 import { googleCalendarTokenStore, googlePickerTokenStore } from '@/lib/google-token-stores';
@@ -44,6 +46,27 @@ async function resetStores(): Promise<void> {
 }
 
 beforeEach(resetStores);
+
+describe('journaled credential restore locations and permissions', () => {
+  it('uses the OAuth stores own paths and creates private plugin directories', async () => {
+    await withDataTransaction(async () => {
+      const planned = await planCredentialRestore({
+        oauthTokens: { google: { access_token: 'new-calendar' }, googlePicker: { access_token: 'new-picker' } },
+        pluginSecrets: { demo: { api_key: 'sample' } },
+        pluginTokens: { demo: { access_token: 'sample', token_type: 'Bearer', expiry_date: 0 } },
+      }, '127.0.0.1');
+      expect(planned.changes.map((change) => path.join(process.cwd(), change.path))).toEqual(expect.arrayContaining([
+        googleCalendarTokenStore.filePath, googlePickerTokenStore.filePath,
+      ]));
+      await commitDataTransaction({ kind: 'credential-test', changes: planned.changes });
+    });
+    expect(await googleCalendarTokenStore.loadTokens()).toEqual({ access_token: 'new-calendar' });
+    for (const dir of [SECRETS_DIR, TOKENS_DIR]) {
+      expect((await fs.stat(path.join(process.cwd(), dir))).mode & 0o777).toBe(0o700);
+      expect((await fs.stat(path.join(process.cwd(), dir, 'demo.json'))).mode & 0o777).toBe(0o600);
+    }
+  });
+});
 
 describe('listPluginCredentialIds', () => {
   it('returns an empty list when the directory does not exist', async () => {

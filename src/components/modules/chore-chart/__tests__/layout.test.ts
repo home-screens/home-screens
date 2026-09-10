@@ -1,13 +1,15 @@
+
+import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
 import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, starIconSize, weekMembers } from '../layout';
 import type { MemberStats } from '../types';
-import type { ChoreMember } from '@/types/config';
+
 
 function stats(total: number, weekAssigned: number): MemberStats {
   return { total, completed: 0, percentage: 0, streak: 0, weeklyPoints: 0, weeklyPointsTotal: 0, rewardBalance: 0, weekAssigned };
 }
 
-const member = (id: string): ChoreMember => ({ id, name: id, emoji: '', color: '#fff' });
+const member = (id: string): FamilyMember => ({ createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z', id, name: id, emoji: '', color: '#fff' });
 
 describe('balanceRows', () => {
   it('keeps everything on one row when it fits', () => {

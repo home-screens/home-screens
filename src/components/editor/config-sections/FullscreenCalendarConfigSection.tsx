@@ -16,7 +16,7 @@ import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement, HourWindowMode } from '@/types/config';
 import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
-import { useEditorStore } from '@/stores/editor-store';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
 
@@ -122,7 +122,8 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   // View-shape flags come from the shared registry, so the editor's gating
   // can never disagree with what the view actually renders.
   const { isListView, isPersonView, isSingleDay: isSingleDayView, isTimeGrid, weather: viewWeather } = viewTraits(view);
-  const peopleCount = useEditorStore((s) => s.config?.settings?.calendar?.people?.length ?? 0);
+  const { members } = useFamilyData();
+  const peopleCount = members.length;
 
   const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
   const groups = useCalendarGroupLabels();

@@ -267,38 +267,6 @@ describe('redeemReward', () => {
   });
 });
 
-describe('rewardCascadeDeleteMember', () => {
-  it('removes the member balance', async () => {
-    await mod.creditPoints('alice', 10);
-    await mod.creditPoints('bob', 5);
-    const result = await mod.rewardCascadeDeleteMember('alice');
-    expect(result.balances).toEqual({ bob: 5 });
-  });
-
-  it('strips the member from restricted-reward memberIds', async () => {
-    await mod.updateRewardDefinitions([ICE_CREAM]); // memberIds: ['alice', 'bob']
-    const result = await mod.rewardCascadeDeleteMember('alice');
-    expect(result.rewards[0].memberIds).toEqual(['bob']);
-  });
-
-  it('leaves open rewards (empty memberIds) untouched', async () => {
-    await mod.updateRewardDefinitions([MOVIE_NIGHT]); // memberIds: []
-    const result = await mod.rewardCascadeDeleteMember('alice');
-    expect(result.rewards[0].memberIds).toEqual([]);
-  });
-
-  it('preserves redemption history after deletion (denormalized names survive)', async () => {
-    await mod.creditPoints('alice', 15);
-    await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
-
-    const result = await mod.rewardCascadeDeleteMember('alice');
-
-    expect(result.balances.alice).toBeUndefined();
-    expect(result.redemptions).toHaveLength(1);
-    expect(result.redemptions[0].memberName).toBe('Alice');
-  });
-});
-
 describe('enqueueOp serialization', () => {
   it('serializes concurrent credits so none are lost', async () => {
     // Fire a batch of concurrent credit operations. If the op queue were

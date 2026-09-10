@@ -9,6 +9,7 @@
  */
 
 import { promises as fs } from 'fs';
+import { getDataRoot, readTransactionFile, type TransactionChange } from './data-transaction';
 import path from 'path';
 
 import { readSecrets, writeSecrets, isValidSecretKey, type SecretKey } from './secrets';
@@ -23,6 +24,7 @@ import {
   readAllPluginSecrets,
   writeAllPluginSecrets,
   deleteAllPluginSecrets,
+  SECRETS_DIR,
 } from './plugin-secrets';
 import {
   readPluginTokensRaw,
@@ -34,7 +36,7 @@ import { readAuthState, writeAuthStateRaw, type AuthState } from './auth';
 import { isIpAllowed } from './ip-allowlist';
 import { sanitizePluginId } from './plugin-utils';
 import { logger } from './logger';
-import type { StoredOAuthTokens } from './oauth-token-store';
+import type { StoredOAuthTokens, OAuthTokenStore } from './oauth-token-store';
 import type { PluginTokens } from './plugin-auth-types';
 import type {
   CredentialApplyResult,
@@ -45,12 +47,10 @@ import type {
 
 const log = logger('backup-credentials');
 
-const SECRETS_DIR = path.join('data', 'plugin-secrets');
-
 /** The three host-owned OAuth grants and the store that owns each file. */
 const OAUTH_STORES: Record<
   OAuthGrantName,
-  { loadTokens(): Promise<StoredOAuthTokens | null>; saveTokens(t: StoredOAuthTokens): Promise<void> }
+  Pick<OAuthTokenStore, 'filePath' | 'loadTokens' | 'saveTokens'>
 > = {
   google: googleCalendarTokenStore,
   googlePicker: googlePickerTokenStore,
@@ -328,6 +328,8 @@ function authStateIsCoherent(auth: AuthState): boolean {
 /* ─── Apply ───────────────────────────────────── */
 
 export interface ApplyCredentialsOptions {
+  /** Internal: collect durable restore images without publishing any writes. */
+  plannedChanges?: TransactionChange[];
   /**
    * The IP the restore request came from. Used by the lockout guard: restoring
    * `ipRestrictAccess` from a device that isn't on the restored allowlist would
@@ -354,14 +356,22 @@ export async function applyCredentials(
   const { clientIp, enforceIpGuard = true, prunePlugins = false } = opts;
   const applied: CredentialSection[] = [];
   const skipped: string[] = [];
+  const save = async (file: string, value: unknown, writer: () => Promise<void>, dirMode?: number) => {
+    if (opts.plannedChanges) {
+      opts.plannedChanges.push({ path: file, before: await readTransactionFile(file), after: value === undefined ? null : JSON.stringify(value, null, 2), mode: 0o600, ...(dirMode === undefined ? {} : { dirMode }) });
+    } else await writer();
+  };
+
 
   if (payload.secrets !== undefined) {
-    await writeSecrets(sanitizeSecrets(payload.secrets));
+    const value = sanitizeSecrets(payload.secrets);
+    await save('data/secrets.json', value, () => writeSecrets(value));
     applied.push('secrets');
   }
 
   if (payload.icloudAccounts !== undefined) {
-    await writeICloudAccountsFile(sanitizeICloud(payload.icloudAccounts));
+    const value = sanitizeICloud(payload.icloudAccounts);
+    await save('data/icloud-accounts.json', value, () => writeICloudAccountsFile(value));
     applied.push('icloudAccounts');
   }
 
@@ -373,7 +383,8 @@ export async function applyCredentials(
       const tokens = grants[name];
       // `{}` is how disconnect() clears a grant — writing it is what makes a
       // rollback able to undo a grant the restore had newly created.
-      await OAUTH_STORES[name].saveTokens(tokens ?? {});
+      const file = path.relative(getDataRoot(), OAUTH_STORES[name].filePath);
+      await save(file, tokens ?? {}, () => OAUTH_STORES[name].saveTokens(tokens ?? {}));
       wroteAny = true;
     }
     if (wroteAny) applied.push('oauthTokens');
@@ -382,11 +393,15 @@ export async function applyCredentials(
   if (payload.pluginSecrets !== undefined) {
     const map = sanitizePluginMap<Record<string, string>>(payload.pluginSecrets);
     for (const [id, secrets] of Object.entries(map)) {
-      await writeAllPluginSecrets(id, secrets);
+      await save(path.join(SECRETS_DIR, `${id}.json`), secrets, () => writeAllPluginSecrets(id, secrets), 0o700);
+      const legacy = path.join(LEGACY_PLUGINS_DIR, id, 'secrets.json');
+      if (opts.plannedChanges && await readTransactionFile(legacy) !== null) {
+        await save(legacy, undefined, async () => {});
+      }
     }
     if (prunePlugins) {
       for (const id of await listPluginCredentialIds(SECRETS_DIR)) {
-        if (!(id in map)) await deleteAllPluginSecrets(id);
+        if (!(id in map)) await save(path.join(SECRETS_DIR, `${id}.json`), undefined, () => deleteAllPluginSecrets(id), 0o700);
       }
     }
     applied.push('pluginSecrets');
@@ -395,11 +410,11 @@ export async function applyCredentials(
   if (payload.pluginTokens !== undefined) {
     const map = sanitizePluginMap<PluginTokens>(payload.pluginTokens);
     for (const [id, tokens] of Object.entries(map)) {
-      await savePluginTokens(id, tokens);
+      await save(path.join(TOKENS_DIR, `${id}.json`), tokens, () => savePluginTokens(id, tokens), 0o700);
     }
     if (prunePlugins) {
       for (const id of await listPluginCredentialIds(TOKENS_DIR)) {
-        if (!(id in map)) await deletePluginTokens(id);
+        if (!(id in map)) await save(path.join(TOKENS_DIR, `${id}.json`), undefined, () => deletePluginTokens(id), 0o700);
       }
     }
     applied.push('pluginTokens');
@@ -422,10 +437,17 @@ export async function applyCredentials(
         next = { ...next, ipRestrictAccess: false };
         skipped.push('auth.ipRestrictAccess');
       }
-      await writeAuthStateRaw(next);
+      await save('data/auth.json', next, () => writeAuthStateRaw(next));
       applied.push('auth');
     }
   }
 
   return { applied, skipped };
+}
+
+/** Reuse credential validation and IP protection while staging a whole restore. */
+export async function planCredentialRestore(payload: CredentialPayload, clientIp: string): Promise<{ changes: TransactionChange[]; result: CredentialApplyResult }> {
+  const changes: TransactionChange[] = [];
+  const result = await applyCredentials(payload, { clientIp, plannedChanges: changes });
+  return { changes, result };
 }

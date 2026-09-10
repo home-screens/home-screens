@@ -1,29 +1,31 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readConfig, writeConfig } from '@/lib/config';
-import { readChoreData, writeChoreData } from '@/lib/chore-data';
-import { readCompletions, writeCompletions } from '@/lib/chore-completion-data';
-import { readMealData, writeMealData } from '@/lib/meal-data';
-import { readRewardData, writeRewardData } from '@/lib/reward-data';
-import { readRoutinesFile, writeRoutinesFile } from '@/lib/timer-data';
-import { readTodoData, writeTodoData, foldInLegacyTodoItemsNow, validateTodoData, settleTodoMigration } from '@/lib/todo-data';
+import { readConfig } from '@/lib/config';
+import { readChoreData } from '@/lib/chore-data';
+import { readCompletions } from '@/lib/chore-completion-data';
+import { readMealData } from '@/lib/meal-data';
+import { readRewardData } from '@/lib/reward-data';
+import { readRoutinesFile, validateRoutines } from '@/lib/timer-data';
+import { readTodoData, validateTodoData, settleTodoMigration } from '@/lib/todo-data';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
 import { validateDisplays } from '@/lib/display-filter';
-import { applyCredentials, snapshotCredentials } from '@/lib/backup-credentials';
+import { planCredentialRestore } from '@/lib/backup-credentials';
+import { withFamilyData } from '@/lib/family-api';
+import { readFamilyData, familyValidationError } from '@/lib/family-data';
+import { planFamilyRestore, type FamilyRestoreContent } from '@/lib/family-import';
+import { commitDataTransaction, withDataTransaction } from '@/lib/data-transaction';
 import {
   decryptCredentials,
   BadPassphraseError,
   MalformedEnvelopeError,
 } from '@/lib/backup-crypto';
 import {
-  CREDENTIAL_SECTIONS,
   isCredentialEnvelope,
   isEncryptedEnvelope,
   type CredentialApplyResult,
   type CredentialEnvelope,
   type CredentialPayload,
-  type CredentialSection,
 } from '@/lib/backup-credentials-types';
 import { audit } from '@/lib/audit';
 import type { ScreenConfiguration } from '@/types/config';
@@ -31,12 +33,12 @@ import type { ScreenConfiguration } from '@/types/config';
 export const dynamic = 'force-dynamic';
 
 // GET — export a full backup bundle
-export const GET = withAuth(async () => {
+export const GET = withAuth(async () => withFamilyData(async () => {
   // The fold rewrites config.json, so let it finish before the reads below:
   // in parallel the very first export after an upgrade could pair a
   // pre-fold config with post-fold lists and back up neither faithfully.
   await settleTodoMigration();
-  const [config, chores, completions, meals, rewards, routines, todos] = await Promise.all([
+  const [config, chores, completions, meals, rewards, routines, todos, family] = await Promise.all([
     readConfig(),
     readChoreData(),
     readCompletions(),
@@ -44,6 +46,7 @@ export const GET = withAuth(async () => {
     readRewardData(),
     readRoutinesFile(),
     readTodoData(),
+    readFamilyData(),
   ]);
 
   const bundle = {
@@ -59,17 +62,18 @@ export const GET = withAuth(async () => {
     rewards,
     routines,
     todos,
+    family,
   };
 
-  // Record backup timestamp (fire-and-forget) — write both fields directly
+  // Record backup timestamp before releasing the snapshot lock; write both fields directly
   // to avoid a read-modify-write race with concurrent dismiss POSTs
-  writeBackupState({
+  await writeBackupState({
     lastBackupDate: new Date().toISOString(),
     lastDismissedDate: null,
   }).catch(() => {});
 
   return NextResponse.json(bundle);
-}, 'Failed to create backup');
+}), 'Failed to create backup');
 
 // Shape + displays validation — mirror /api/config PUT so a restore can't
 // persist a config that the editor would reject. Without this gate, a
@@ -84,13 +88,16 @@ function validateRestoredConfig(config: unknown): string | null {
   if (!Array.isArray(c.screens) || !c.settings) {
     return 'Invalid config: must include screens array and settings';
   }
+  const mappings = c.settings.calendar?.personSources;
+  if (mappings !== undefined && (!mappings || typeof mappings !== 'object' || Array.isArray(mappings)
+    || Object.values(mappings).some((ids) => !Array.isArray(ids) || ids.some((id) => typeof id !== 'string')))) return 'Calendar ownership must list calendar source ids for each person.';
   return validateDisplays(config as ScreenConfiguration);
 }
 
 // Fields a restore bundle may carry. Each optional file mirrors the type its
 // writer expects; screens/settings let the legacy config-only format be
 // recognized before it is written as a full ScreenConfiguration.
-interface RestoreBundle {
+interface RestoreBundle extends FamilyRestoreContent {
   _type?: unknown;
   /**
    * Transient: the password for an encrypted `credentials` section. Never
@@ -99,38 +106,14 @@ interface RestoreBundle {
    */
   _passphrase?: unknown;
   credentials?: unknown;
-  config?: ScreenConfiguration;
-  chores?: Parameters<typeof writeChoreData>[0];
-  choreCompletions?: Parameters<typeof writeCompletions>[0];
-  meals?: Parameters<typeof writeMealData>[0];
-  rewards?: Parameters<typeof writeRewardData>[0];
-  routines?: Parameters<typeof writeRoutinesFile>[0];
-  todos?: Parameters<typeof writeTodoData>[0];
   screens?: unknown;
   settings?: unknown;
 }
 
-// POST — restore from a backup bundle (or a legacy config-only file).
-//
-// Two safety properties beyond the raw writes:
-//  1. Validate any incoming config (shape + displays) BEFORE any disk write,
-//     so a bad bundle can't clobber config.json past the point of no return.
-//  2. Snapshot the current on-disk state of every file we're about to touch,
-//     run writes sequentially, and on any failure roll back the writes that
-//     already landed. Each individual write is already atomic via tmp+rename
-//     (json-store), but there's no cross-file transaction — without rollback
-//     a mid-bundle failure leaves mixed old/new data across config, chores,
-//     meals, rewards.
-// A backup bundle is pure JSON (config + chores + meals + rewards) — this app
-// stores no user-uploaded media — so even a very large family's export is a
-// few MB at most. Cap the restore upload well above that but firmly bounded so
-// the endpoint can't be used to exhaust memory with an oversized body.
+// Restore is planned completely before publication. Content, credentials and
+// any legacy folds share a durable journal; handled failures record rollback
+// before restoring before-images, and a restart resumes the saved decision.
 const MAX_RESTORE_BYTES = 25 * 1024 * 1024; // 25 MB
-
-/** Which credential sections a decrypted payload actually carries. */
-function sectionsPresentIn(payload: CredentialPayload): CredentialSection[] {
-  return CREDENTIAL_SECTIONS.filter((section) => payload[section] !== undefined);
-}
 
 /**
  * A sentence for anything that prints `error` verbatim, plus the machine code
@@ -179,17 +162,15 @@ async function resolveCredentials(
   }
 }
 
-export const POST = withAuth(async (request: NextRequest) => {
+export const POST = withAuth(async (request: NextRequest) => withDataTransaction(async () => {
   const body = await parseJsonBody<RestoreBundle>(request, {
     maxBytes: MAX_RESTORE_BYTES,
   });
   if (body instanceof NextResponse) return body;
 
-  // Settle any pending to-do migration first: reading the store can rewrite
-  // config.json (folding inline items into lists), and a snapshot taken
-  // before that would pair a pre-migration config with post-migration lists
-  // on rollback, leaving the flag set and the items never folded again.
-  await readTodoData().catch(() => {});
+  // Pending journals recover under the coordinator. Do not migrate or read
+  // current sources before validating the replacement: a good full backup
+  // must be able to repair corrupt files it replaces.
 
   // New bundle format
   if (body._type === 'home-screens-backup') {
@@ -219,103 +200,27 @@ export const POST = withAuth(async (request: NextRequest) => {
       credentialPayload = resolved;
     }
 
-    // Snapshot current state of every file we're about to touch BEFORE any
-    // write, so we can roll back to a consistent pre-restore state on failure.
-    const snapshots = {
-      config: body.config ? await readConfig() : null,
-      chores: body.chores ? await readChoreData() : null,
-      completions: body.choreCompletions ? await readCompletions() : null,
-      meals: body.meals ? await readMealData() : null,
-      rewards: body.rewards ? await readRewardData() : null,
-      routines: body.routines ? await readRoutinesFile() : null,
-      // A restored config can fold inline to-do items into todos.json even
-      // when the bundle carries no `todos`, so the snapshot covers both.
-      todos: body.todos || body.config ? await readTodoData() : null,
-    };
-    // Credential snapshot covers exactly the sections about to be written,
-    // including the empty ones — "there were no secrets before" is what a
-    // rollback has to be able to reinstate.
-    const credentialSnapshot = credentialPayload
-      ? await snapshotCredentials(sectionsPresentIn(credentialPayload))
-      : null;
-
-    // Track which writes actually landed (post-await) so rollback only
-    // reverts files that were actually mutated — the failing write itself
-    // either completed the rename or didn't touch the file.
-    const rollbacks: Array<() => Promise<void>> = [];
-    let credentialResult: CredentialApplyResult | null = null;
-    try {
-      if (body.config) {
-        await writeConfig(body.config);
-        rollbacks.push(() => writeConfig(snapshots.config!));
-      }
-      if (body.chores) {
-        await writeChoreData(body.chores);
-        rollbacks.push(() => writeChoreData(snapshots.chores!));
-      }
-      if (body.choreCompletions) {
-        await writeCompletions(body.choreCompletions);
-        rollbacks.push(() => writeCompletions(snapshots.completions!));
-      }
-      if (body.meals) {
-        await writeMealData(body.meals);
-        rollbacks.push(() => writeMealData(snapshots.meals!));
-      }
-      if (body.rewards) {
-        await writeRewardData(body.rewards);
-        rollbacks.push(() => writeRewardData(snapshots.rewards!));
-      }
-      if (body.routines) {
-        await writeRoutinesFile(body.routines);
-        rollbacks.push(() => writeRoutinesFile(snapshots.routines!));
-      }
-      // Registered whenever a snapshot was taken, before either thing that
-      // can change the file: the bundle's own `todos`, and the fold a
-      // restored pre-lists config triggers below.
-      if (snapshots.todos) rollbacks.push(() => writeTodoData(snapshots.todos!));
-      if (body.todos) {
-        await writeTodoData(body.todos);
-      }
-      // A bundle from before lists were shared carries to-do items inline on
-      // its modules; the one-time upgrade fold-in has already run on this hub
-      // and would not look again, so fold them now.
-      if (body.config) {
-        await foldInLegacyTodoItemsNow();
-      }
-      // Credentials go last: applying `auth` replaces the cookie secret and
-      // invalidates the session cookie this very request is holding, so
-      // everything else must already be on disk by then.
-      if (credentialPayload) {
-        // Registered BEFORE the call, not after. Unlike the single-file
-        // writes above, applyCredentials is itself multi-write and can fail
-        // partway through; the snapshot is already taken, and re-applying it
-        // when nothing was written is a harmless no-op.
-        rollbacks.push(async () => {
-          await applyCredentials(credentialSnapshot!, {
-            enforceIpGuard: false,
-            // Undo plugin credential files the restore newly created.
-            prunePlugins: true,
-          });
-        });
-        credentialResult = await applyCredentials(credentialPayload, {
-          clientIp: getClientIP(request),
-        });
-        audit({
-          action: 'credential_backup_restore',
-          sections: credentialResult.applied.length,
-          skipped: credentialResult.skipped,
-        });
-      }
-    } catch (err) {
-      // Best-effort rollback in reverse order. allSettled so one failed
-      // revert doesn't block the others — surface the original error either way.
-      await Promise.allSettled(rollbacks.reverse().map((fn) => fn()));
-      throw err;
+    if (body.family !== undefined) {
+      const error = familyValidationError(body.family);
+      if (error) return NextResponse.json({ error }, { status: 400 });
     }
+    const invalid = validateContentSections(body);
+    if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
+    const planned = await planFamilyRestore(body);
+    let credentialResult: CredentialApplyResult | null = null;
+    if (credentialPayload) {
+      const credentials = await planCredentialRestore(credentialPayload, getClientIP(request));
+      planned.changes.push(...credentials.changes);
+      credentialResult = credentials.result;
+    }
+    await commitDataTransaction({ kind: 'backup-restore', changes: planned.changes, evidence: planned.evidence, rollbackOnError: true });
+    if (credentialResult) audit({ action: 'credential_backup_restore', sections: credentialResult.applied.length, skipped: credentialResult.skipped });
 
     return NextResponse.json({
       restored: {
         config: !!body.config,
+        family: !!body.family,
+        todos: !!body.todos,
         chores: !!body.chores,
         choreCompletions: !!body.choreCompletions,
         meals: !!body.meals,
@@ -333,19 +238,8 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (body.screens && Array.isArray(body.screens) && body.settings) {
     const err = validateRestoredConfig(body);
     if (err) return NextResponse.json({ error: err }, { status: 400 });
-    // These are the bundles most likely to carry to-do items inline on
-    // their modules; fold them. The fold writes lists before it touches
-    // config, so a failure part-way can leave lists behind: both files are
-    // snapshotted and both go back.
-    const previousConfig = await readConfig();
-    const previousTodos = await readTodoData();
-    await writeConfig(body as unknown as ScreenConfiguration);
-    try {
-      await foldInLegacyTodoItemsNow();
-    } catch (err) {
-      await Promise.allSettled([writeConfig(previousConfig), writeTodoData(previousTodos)]);
-      throw err;
-    }
+    const planned = await planFamilyRestore({ config: body as unknown as ScreenConfiguration });
+    await commitDataTransaction({ kind: 'backup-restore', changes: planned.changes, evidence: planned.evidence, rollbackOnError: true });
     return NextResponse.json({ restored: { config: true } });
   }
 
@@ -353,4 +247,28 @@ export const POST = withAuth(async (request: NextRequest) => {
     { error: 'Unrecognized backup format' },
     { status: 400 },
   );
-}, 'Failed to restore backup');
+}), 'Failed to restore backup');
+
+function validateContentSections(body: FamilyRestoreContent): string | null {
+  const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+  const stringArray = (value: unknown): value is string[] => Array.isArray(value) && value.every((entry) => typeof entry === 'string');
+  if (body.chores !== undefined && (!record(body.chores) || !Array.isArray(body.chores.chores)
+    || body.chores.chores.some((chore) => !record(chore) || typeof chore.id !== 'string' || !stringArray(chore.assigneeIds)
+      || (chore.schedule !== undefined && (!record(chore.schedule) || Object.values(chore.schedule).some((days) => !Array.isArray(days) || days.some((day) => !Number.isInteger(day) || day < 0 || day > 6))))))) return 'Chore data needs valid chores and assignee lists.';
+  if (body.choreCompletions !== undefined && (!record(body.choreCompletions) || !Array.isArray(body.choreCompletions.completions)
+    || body.choreCompletions.completions.some((entry) => !record(entry) || typeof entry.choreId !== 'string' || typeof entry.memberId !== 'string' || typeof entry.date !== 'string'))) return 'Chore history needs valid completion entries.';
+  if (body.rewards !== undefined && (!record(body.rewards) || !Array.isArray(body.rewards.rewards) || !record(body.rewards.balances) || !Array.isArray(body.rewards.redemptions)
+    || Object.values(body.rewards.balances).some((value) => typeof value !== 'number' || !Number.isFinite(value))
+    || body.rewards.rewards.some((reward) => !record(reward) || typeof reward.id !== 'string' || typeof reward.name !== 'string' || !stringArray(reward.memberIds) || typeof reward.cost !== 'number' || !Number.isFinite(reward.cost))
+    || body.rewards.redemptions.some((redemption) => !record(redemption) || typeof redemption.redeemedAt !== 'string'))) return 'Rewards need valid choices, balances and history.';
+  if (body.meals !== undefined && (!record(body.meals) || !Array.isArray(body.meals.savedMeals) || !Array.isArray(body.meals.plan)
+    || (body.meals.groceryChecked !== undefined && !stringArray(body.meals.groceryChecked))
+    || body.meals.savedMeals.some((meal) => !record(meal) || typeof meal.id !== 'string' || typeof meal.name !== 'string')
+    || body.meals.plan.some((meal) => !record(meal) || (typeof meal.date !== 'string' && typeof meal.day !== 'number')))) return 'Meals need valid saved meals and a plan.';
+  if (body.routines !== undefined) {
+    if (!record(body.routines)) return 'Routines must be an object.';
+    const error = validateRoutines(body.routines.routines);
+    if (error) return error;
+  }
+  return null;
+}

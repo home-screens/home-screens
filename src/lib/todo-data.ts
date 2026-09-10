@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createJsonStore } from './json-store';
+import { withDataTransaction } from './data-transaction';
 import { readConfig, updateConfigAtomic } from './config';
 import { readConfigCached } from './config-cache';
 import { toTZWallTime } from './timezone';
@@ -61,7 +62,7 @@ export class TodoError extends Error {
  * any due repeat schedule. Both are persisted, so they happen once rather
  * than on every poll.
  */
-export async function readTodoData(): Promise<TodoData> {
+async function readTodoDataUnlocked(): Promise<TodoData> {
   const current = await store.read();
   if (current.migratedFromConfig) {
     foldDone = true;
@@ -97,7 +98,7 @@ let foldDone = false;
  * mutator's input, so every writer sees current data. Returning the input
  * unchanged skips the disk write unless a fold-in or repeat ran.
  */
-export async function updateTodoData(
+async function updateTodoDataUnlocked(
   mutator: (current: TodoData) => TodoData | Promise<TodoData>,
 ): Promise<TodoData> {
   // The upgrade fold-in runs on its own, ahead of the queue: it has to write
@@ -753,7 +754,7 @@ async function runFold(force: boolean): Promise<void> {
  * refused with a conflict nobody caused. Free after the first call in a
  * process.
  */
-export async function settleTodoMigration(): Promise<void> {
+async function settleTodoMigrationUnlocked(): Promise<void> {
   if (foldDone) return;
   await foldLegacyItemsOnce();
 }
@@ -763,8 +764,22 @@ export async function settleTodoMigration(): Promise<void> {
  * one-time upgrade pass (a restored pre-lists backup, say). Cheap when
  * nothing needs moving.
  */
-export async function foldInLegacyTodoItemsNow(): Promise<TodoData> {
+async function foldInLegacyTodoItemsNowUnlocked(): Promise<TodoData> {
   foldRetryAfter = 0;
   await foldLegacyItemsOnce(true);
   return store.read();
+}
+
+// A fold spans config and lists; acquire before either file's queue.
+export function readTodoData(): Promise<TodoData> {
+  return withDataTransaction(readTodoDataUnlocked);
+}
+export function updateTodoData(mutator: (current: TodoData) => TodoData | Promise<TodoData>): Promise<TodoData> {
+  return withDataTransaction(() => updateTodoDataUnlocked(mutator));
+}
+export function settleTodoMigration(): Promise<void> {
+  return withDataTransaction(settleTodoMigrationUnlocked);
+}
+export function foldInLegacyTodoItemsNow(): Promise<TodoData> {
+  return withDataTransaction(foldInLegacyTodoItemsNowUnlocked);
 }

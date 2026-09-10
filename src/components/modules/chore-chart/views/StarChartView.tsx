@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreChartConfig} from '@/types/config';
 import { todayStr, type MemberStats, type WeekDayData } from '../types';
 import { balanceRows, fitPerRow, starIconSize, starLegendIconSize, weekMembers } from '../layout';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -11,7 +13,7 @@ import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 interface StarChartViewProps {
   config: ChoreChartConfig;
   data: {
-    members: ChoreMember[];
+    members: FamilyMember[];
     memberStats: Map<string, MemberStats>;
     weekData: WeekDayData[];
   };

@@ -1,3 +1,4 @@
+import { onDataTransactionCommit, withDataTransaction } from './data-transaction';
 /**
  * Plugin auth engine: token storage, OAuth2 flows, and provider adapters.
  *
@@ -83,6 +84,9 @@ export async function readPluginTokensRaw(pluginId: string): Promise<PluginToken
 // json-store write queue cannot provide this: it orders the file writes, not
 // the stale read that produced one.
 const tokenGenerations = new Map<string, number>();
+onDataTransactionCommit(() => {
+  for (const id of tokenStores.keys()) tokenGenerations.set(id, (tokenGenerations.get(id) ?? 0) + 1);
+});
 
 function tokenGeneration(pluginId: string): number {
   return tokenGenerations.get(sanitizePluginId(pluginId)) ?? 0;
@@ -645,13 +649,16 @@ function refreshSerialized(
   const promise = (async () => {
     try {
       const renewed = await refreshTokens(pluginId, auth, tokens);
-      if (tokenGeneration(pluginId) !== startedAt) {
-        log.warn(`Token refresh discarded for plugin ${pluginId}: the stored grant was replaced while it was in flight`);
-        return null;
-      }
-      await savePluginTokens(pluginId, renewed);
-      audit({ action: 'plugin_token_refresh', pluginId });
-      return renewed;
+      return await withDataTransaction(async () => {
+        const current = await loadPluginTokens(pluginId);
+        if (tokenGeneration(pluginId) !== startedAt || JSON.stringify(current) !== JSON.stringify(tokens)) {
+          log.warn(`Token refresh discarded for plugin ${pluginId}: the stored grant was replaced while it was in flight`);
+          return null;
+        }
+        await savePluginTokens(pluginId, renewed);
+        audit({ action: 'plugin_token_refresh', pluginId });
+        return renewed;
+      });
     } catch (err) {
       log.error(`Token refresh failed for plugin ${pluginId}:`, err instanceof Error ? err.message : err);
       return null;

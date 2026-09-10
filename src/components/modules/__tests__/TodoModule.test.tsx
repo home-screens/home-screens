@@ -1,9 +1,11 @@
+
+import type { FamilyMember } from '@/types/family';
 // @vitest-environment jsdom
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup, fireEvent, waitFor, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { DEFAULT_MODULE_STYLE, type TodoConfig, type ModuleStyle, type ChoreMember } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type TodoConfig, type ModuleStyle} from '@/types/config';
 import type { TodoList, TodoListItem } from '@/types/todos';
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
@@ -20,7 +22,7 @@ class ResizeObserverStub {
 // first fetch still in flight) and rerenders to deliver a "poll result".
 // The members URL answers from `mockMembers`; the empty url contract returns null.
 let mockLists: { lists: TodoList[] } | null = null;
-let mockMembers: { members: ChoreMember[] } | null = null;
+let mockMembers: { members: FamilyMember[] } | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: (url: string) => {
     if (url === '/api/todo/lists') return [mockLists, null, null];

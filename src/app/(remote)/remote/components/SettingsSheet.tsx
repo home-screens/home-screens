@@ -7,6 +7,9 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import type { SystemStats } from '@/lib/system-stats-types';
 import ConfirmSheet from './ConfirmSheet';
+import FamilyManager from '@/components/family/FamilyManager';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { ChevronLeft, Users } from 'lucide-react';
 
 export type PowerAction = 'restart-service' | 'reboot';
 
@@ -21,6 +24,22 @@ interface SettingsSheetProps {
    * that follows is expected, not a lost connection.
    */
   onPowerAction: (action: PowerAction) => void;
+}
+
+function FamilySettingsView({ onBack }: { onBack: () => void }) {
+  const t = useTranslate('core');
+  const tRemote = useTranslate('remote');
+  const ref = useFocusTrap<HTMLDivElement>();
+  return <div ref={ref} role="dialog" aria-modal="true" aria-label={t('family.title')} className="fixed inset-0 z-[120] flex flex-col items-center bg-hs-body pb-[env(safe-area-inset-bottom)]">
+    <header className="flex w-full max-w-[640px] items-center gap-3 border-b border-hs-border p-4 pt-[max(16px,env(safe-area-inset-top))]">
+      <button className="flex min-h-12 min-w-12 items-center gap-1 text-sm text-hs-text-muted" onClick={onBack}><ChevronLeft size={20} />{t('actions.back')}</button>
+      <h2 className="flex-1 pr-16 text-center text-lg font-bold text-hs-text-primary">{t('family.title')}</h2>
+    </header>
+    <div className="w-full max-w-[640px] flex-1 overflow-y-auto p-5">
+      <p className="mb-5 text-sm text-hs-text-muted">{tRemote('settingsSheet.family.description')}</p>
+      <FamilyManager variant="mobile" />
+    </div>
+  </div>;
 }
 
 function UsageBar({ used, total, label, color }: { used: number; total: number; label: string; color: string }) {
@@ -73,6 +92,7 @@ function PowerRow({
 export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onPowerAction }: SettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
+  const [familyOpen, setFamilyOpen] = useState(false);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +127,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
   useEffect(() => {
     if (open && !loading) fetchStats();
     if (open) {
+      setFamilyOpen(false);
       setBackupDone(false);
       setConfirmPower(null);
       setRestoreState('idle');
@@ -204,8 +225,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
         // Slid off-screen is still "in the page" to assistive tech; take the
         // closed sheet out of the tree so its controls can't be reached.
-        aria-hidden={!open}
-        inert={!open}
+        aria-hidden={!open || familyOpen}
+        inert={!open || familyOpen}
       >
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
@@ -268,6 +289,14 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
 
         <div className="px-5 pb-5">
           <h3 className="text-xs font-semibold text-hs-text-faint uppercase tracking-wider mb-2">{t('settingsSheet.data.heading')}</h3>
+          <PowerRow
+            label={tCore('family.title')}
+            description={t('settingsSheet.family.description')}
+            onClick={() => setFamilyOpen(true)}
+            iconBg="bg-hs-accent-soft"
+            iconColor="text-hs-accent"
+            icon={<Users size={18} />}
+          />
           <button
             onClick={handleBackup}
             disabled={backupBusy || backupDone}
@@ -377,6 +406,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
           </div>
         </div>
       </div>
+
+      {open && familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
 
       {confirmPower && (
         <ConfirmSheet

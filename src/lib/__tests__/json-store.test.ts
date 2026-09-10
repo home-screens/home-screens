@@ -271,16 +271,16 @@ describe('updateAtomic', () => {
   });
 
   it('no-op signal: returning the input reference unchanged skips the disk write', async () => {
-    // Spy on `fs.writeFile` to count actual disk writes — the no-op
-    // optimization is observable as "fewer writeFile calls."
-    const writeSpy = vi.spyOn(fs, 'writeFile');
+    // Spy on `fs.rename` to count actual disk writes; the no-op
+    // optimization is observable as "fewer published images."
+    const writeSpy = vi.spyOn(fs, 'rename');
 
     const store = createJsonStore<{ v: number }>({
       path: 'data/counter.json',
       defaultValue: { v: 0 },
     });
 
-    // Seed initial state — this consumes one writeFile call.
+    // Seed initial state, this consumes one rename call.
     await store.write({ v: 99 });
     const baselineWrites = writeSpy.mock.calls.length;
 

@@ -10,14 +10,15 @@ set -euo pipefail
 #   upgrade.sh grant-sudo             - Write the passwordless sudo grant; password on stdin
 #   upgrade.sh backup [target-tag]    - Backup config to data/backups/ (pins a copy when leaving a release build)
 #   upgrade.sh download <tag>         - Download release tarball from GitHub
-#   upgrade.sh deploy                 - Atomic swap of staged files into place
+#   upgrade.sh prepare-deploy         - Verify/provision the staged release runtime
+#   upgrade.sh deploy [--runtime-ready] - Atomic swap of staged files into place
 #   upgrade.sh finalize-deploy [port] - Wait for new release to be healthy then drop rollback
 #   upgrade.sh restart                - Restart the systemd service (spawns finalize-deploy)
 #   upgrade.sh health-check           - Verify server is responding
 #   upgrade.sh setup-system           - Apply system config (services, kiosk, boot target)
 #   upgrade.sh ensure-runtime         - Raise Node and npm to the engines floor in package.json
 #   upgrade.sh list-backups           - List config backups
-#   upgrade.sh restore-backup <file>  - Restore a config backup
+#   upgrade.sh restore-backup <file>  - Safely restore a settings snapshot offline
 #
 # Legacy git-based actions (fallback for pre-tarball releases):
 #   upgrade.sh fetch                  - Fetch latest tags from remote
@@ -29,6 +30,12 @@ set -euo pipefail
 #   upgrade.sh stash-pop              - Pop stashed changes
 
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Recovery performs its read-only ownership check before sourcing any saved
+# kiosk settings or entering the general upgrade actions below.
+if [ "${1:-}" = "restore-backup" ]; then
+  shift
+  exec node "${APP_DIR}/scripts/restore-snapshot.mjs" "$@"
+fi
 BACKUP_DIR="${APP_DIR}/data/backups"
 CONFIG_FILE="${APP_DIR}/data/config.json"
 SERVICE_NAME="home-screens"
@@ -148,13 +155,17 @@ case "${action}" in
       errors="${errors}${HS_SUDO_NEEDS_PASSWORD_MSG} "
     fi
 
-    # Check Node.js major version matches .node-version if it exists (warning only)
+    # Report a runtime mismatch; tarball deployment provisions the target major.
     node_warning=""
     if [ -f "${APP_DIR}/.node-version" ]; then
       expected_major=$(cat "${APP_DIR}/.node-version" | tr -d '[:space:]')
       actual_major=$(node -v 2>/dev/null | sed 's/v//' | cut -d. -f1)
       if [ -n "${expected_major}" ] && [ -n "${actual_major}" ] && [ "${actual_major}" != "${expected_major}" ]; then
-        node_warning="Node.js v${actual_major} detected (v${expected_major} recommended)"
+        if [ -f "${APP_DIR}/server.js" ]; then
+          node_warning="Node.js v${actual_major} detected; the system runtime will be set to v${expected_major} before restart, which also affects other Node applications"
+        else
+          node_warning="Node.js v${actual_major} detected (v${expected_major} recommended for source builds)"
+        fi
       fi
     fi
 
@@ -241,10 +252,13 @@ case "${action}" in
         esac
       fi
 
-      # Prune old backups, keep latest MAX_BACKUPS. The pinned copy has its
-      # own name outside this glob on purpose.
+      # Rotate ordinary upgrade snapshots only. Migration originals and the
+      # last-stable pin must remain available for recovery indefinitely.
       # shellcheck disable=SC2012
-      ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null | tail -n +$(( MAX_BACKUPS + 1 )) | xargs -r rm -f
+      ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null \
+        | awk '!/[.-]migration\.[0-9]+\.[a-f0-9]{32}-[0-9]{8}-[0-9]{6}\.json$/' \
+        | tail -n +$(( MAX_BACKUPS + 1 )) \
+        | while IFS= read -r obsolete; do rm -f -- "$obsolete"; done
 
       echo "{\"ok\":true,\"file\":\"${backup_name}\",\"pinnedStable\":${pinned}}"
     else
@@ -317,12 +331,141 @@ case "${action}" in
     echo "{\"ok\":true,\"staging\":\"${staging_dir}\"}"
     ;;
 
+  prepare-deploy)
+    staging_dir="${APP_DIR}.staging"
+    if [ ! -d "${staging_dir}" ]; then
+      echo '{"ok":false,"error":"No staged upgrade found"}'
+      exit 1
+    fi
+    echo '{"ok":true}'
+    ;;
+
   deploy)
     staging_dir="${APP_DIR}.staging"
     if [ ! -d "${staging_dir}" ]; then
       echo '{"ok":false,"error":"No staged upgrade found"}'
       exit 1
     fi
+
+    # The manual path has to claim the data lock itself before replacing the
+    # running tree; the web path already holds it.
+    case "${1:-}" in
+      --runtime-ready) ;; # app prepared the runtime and already holds the data lock
+      '')
+        # Manual upgrades must stop the service; the web workflow holds its
+        # coordinator instead. Keep that check before any runtime change.
+        if command -v systemctl &>/dev/null && systemctl is-active --quiet "${SERVICE_NAME}"; then
+          echo '{"ok":false,"error":"Stop home-screens with sudo systemctl stop home-screens before a manual deploy."}'
+          exit 1
+        fi
+        # The same lock the app takes, same file format (src/lib/data-lock.ts).
+        # One writer wins the hard link; the file says who holds it, and a
+        # holder whose process is gone is replaced straight away. No heartbeat
+        # and nothing running in the background, so a deploy killed outright
+        # leaves nothing to clean up: its process id stops existing, which is
+        # the whole signal the next writer needs.
+        lock_file="${APP_DIR}.data.lock"
+        lock_host=$(hostname)
+        lock_now=$(date +%s)
+        # Must match bootId() in src/lib/data-lock.ts exactly. Linux publishes
+        # an identifier unrelated to the clock, which is what a Pi needs: with
+        # no battery-backed clock its time jumps when the network comes up, and
+        # a boot time worked out from the clock jumps with it.
+        if [ -r /proc/sys/kernel/random/boot_id ]; then
+          lock_boot=$(tr -d '[:space:]' < /proc/sys/kernel/random/boot_id)
+        else
+          lock_boot_sec=$(sysctl -n kern.boottime 2>/dev/null | sed -n 's/^{ *sec *= *\([0-9][0-9]*\).*/\1/p' || true)
+          lock_boot="t${lock_boot_sec}"
+          if [ -z "${lock_boot_sec}" ]; then
+            echo '{"ok":false,"error":"Could not work out when this machine last started, so the update stopped rather than risk two updates at once."}'
+            exit 1
+          fi
+        fi
+        lock_token="deploy-$$-${lock_now}-${RANDOM}${RANDOM}"
+        lock_staging="${lock_file}.staging.$$.${RANDOM}${RANDOM}"
+        # Never write through a leftover name: if it were still hard-linked to
+        # the live lock, this would rewrite that lock in place.
+        rm -f "${lock_staging}"
+        ( umask 077; printf 'token=%s\npid=%s\nboot=%s\nhost=%s\nat=%s\n' \
+          "${lock_token}" "$$" "${lock_boot}" "${lock_host}" "$(( lock_now * 1000 ))" > "${lock_staging}" )
+        lock_held=""
+        for _ in $(seq 1 300); do
+          if ln "${lock_staging}" "${lock_file}" 2>/dev/null; then
+            # Read back before trusting it, exactly as the app does: another
+            # writer reclaiming what it believed abandoned can move this aside
+            # a moment after it appears.
+            if [ "$(sed -n 's/^token=//p' "${lock_file}" 2>/dev/null || true)" = "${lock_token}" ]; then
+              lock_held=1
+              break
+            fi
+            continue
+          fi
+          # One read, so the fields cannot come from two different records.
+          lock_record=$(cat "${lock_file}" 2>/dev/null || true)
+          if [ -z "${lock_record}" ]; then continue; fi
+          owner_token=$(printf '%s\n' "${lock_record}" | sed -n 's/^token=//p')
+          owner_pid=$(printf '%s\n' "${lock_record}" | sed -n 's/^pid=//p')
+          owner_boot=$(printf '%s\n' "${lock_record}" | sed -n 's/^boot=//p')
+          owner_host=$(printf '%s\n' "${lock_record}" | sed -n 's/^host=//p')
+          owner_at=$(printf '%s\n' "${lock_record}" | sed -n 's/^at=//p')
+          # These decide, in this order, exactly what stillOwned() decides in
+          # src/lib/data-lock.ts. Any disagreement between the two lets a
+          # deploy and the server both believe the lock is theirs.
+          lock_alive=1
+          if [ -z "${owner_token}" ] || [ -z "${owner_host}" ] || [ -z "${owner_boot}" ] \
+             || ! [[ "${owner_pid}" =~ ^[0-9]+$ ]] || ! [[ "${owner_at}" =~ ^-?[0-9]+$ ]] \
+             || [ "${owner_pid}" -le 0 ]; then
+            # Nothing below judges the record on elapsed time: see stillOwned()
+            # in src/lib/data-lock.ts for why a clock is never consulted.
+            # Nobody can be identified from it, which only a writer that died
+            # mid-take leaves behind.
+            lock_alive=""
+          elif [ "${owner_host}" = "${lock_host}" ]; then
+            lock_same_boot=""
+            case "${owner_boot}${lock_boot}" in
+              t*)
+                # Both derived from the clock: compare loosely, as the app does.
+                if [ "${owner_boot#t}" != "${owner_boot}" ] && [ "${lock_boot#t}" != "${lock_boot}" ]; then
+                  boot_delta=$(( ${owner_boot#t} - ${lock_boot#t} ))
+                  [ "${boot_delta}" -ge 0 ] || boot_delta=$(( -boot_delta ))
+                  [ "${boot_delta}" -gt 30 ] || lock_same_boot=1
+                fi
+                ;;
+            esac
+            [ -n "${lock_same_boot}" ] || [ "${owner_boot}" != "${lock_boot}" ] || lock_same_boot=1
+            if [ -z "${lock_same_boot}" ]; then
+              lock_alive=""
+            elif ! kill -0 "${owner_pid}" 2>/dev/null; then
+              lock_alive=""
+            fi
+          fi
+          # A writer on another machine cannot be asked whether it is alive, so
+          # it keeps its lock until the backstop above expires.
+          if [ -n "${lock_alive}" ]; then
+            sleep 1
+            continue
+          fi
+          # Finished with. Move it aside and drop it, so of several contenders
+          # exactly one clears it. Judging and moving are two steps, so this can
+          # occasionally take a lock claimed in between; that writer finds out
+          # at its next ownership check and stops before writing, which is what
+          # the app relies on too.
+          if mv "${lock_file}" "${lock_file}.abandoned.$$" 2>/dev/null; then
+            rm -f "${lock_file}.abandoned.$$"
+          fi
+        done
+        rm -f "${lock_staging}"
+        if [ -z "${lock_held}" ]; then
+          echo '{"ok":false,"error":"Something else is using the settings files. Wait a moment and try again."}'
+          exit 1
+        fi
+        # Only ever remove a lock that is still ours: once it belongs to the
+        # next writer, taking it away would let a third one in alongside them.
+        trap 'if [ "$(sed -n "s/^token=//p" "${lock_file}" 2>/dev/null || true)" = "${lock_token}" ]; then rm -f "${lock_file}"; fi; rm -f "${lock_staging}" "${lock_file}.abandoned.$$" 2>/dev/null; true' EXIT
+        ;;
+
+      *) echo '{"ok":false,"error":"Unknown deploy option"}'; exit 1 ;;
+    esac
 
     rollback_dir="${APP_DIR}.rollback"
 
@@ -364,6 +507,15 @@ case "${action}" in
     #    After the swap, the rollback dir still contains the old user data.
     #    finalize-deploy will remove rollback (and that stale data copy)
     #    once the new release passes its health check.
+    #
+    #    Prove the lock is still ours immediately before publishing, the same
+    #    way the app does before each write. Copying the data can take minutes,
+    #    which is long enough for this deploy to have been taken over.
+    if [ -n "${lock_token:-}" ] \
+       && [ "$(sed -n 's/^token=//p' "${lock_file}" 2>/dev/null || true)" != "${lock_token}" ]; then
+      echo '{"ok":false,"error":"Something else took over the settings files while this update was preparing, so nothing was changed."}'
+      exit 1
+    fi
     mv "${APP_DIR}" "${rollback_dir}"
     mv "${staging_dir}" "${APP_DIR}"
 
@@ -666,26 +818,6 @@ case "${action}" in
     done
     files="${files}]"
     echo "${files}"
-    ;;
-
-  restore-backup)
-    backup_name="${1:-}"
-    if [ -z "${backup_name}" ]; then
-      echo "{\"ok\":false,\"error\":\"No backup file specified\"}"
-      exit 1
-    fi
-    backup_path="${BACKUP_DIR}/${backup_name}"
-    if [ ! -f "${backup_path}" ]; then
-      echo "{\"ok\":false,\"error\":\"Backup file not found\"}"
-      exit 1
-    fi
-    # Validate it's valid JSON
-    if ! node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf-8'))" -- "${backup_path}" 2>/dev/null; then
-      echo "{\"ok\":false,\"error\":\"Backup file is not valid JSON\"}"
-      exit 1
-    fi
-    cp "${backup_path}" "${CONFIG_FILE}"
-    echo "{\"ok\":true,\"restored\":\"${backup_name}\"}"
     ;;
 
   setup-system)

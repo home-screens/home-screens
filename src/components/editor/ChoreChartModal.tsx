@@ -3,28 +3,26 @@
 import { useState, useEffect, useMemo } from 'react';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
+import FamilyManager from '@/components/family/FamilyManager';
+import { useFamilyData } from '@/hooks/useFamilyData';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
+import type { FamilyMember } from '@/types/family';
 import type {
-  ChoreMember,
   ChoreDefinition,
   ChoreResetFrequency,
   ChoreTimeOfDay,
   ChoreRotation,
 } from '@/types/config';
 import {
-  MEMBER_COLORS,
   getOrderedDays,
   resolveAssignee,
   choreAppliesToday,
   localDateStr,
-  cascadeDeleteMember,
-  addMemberToList,
-  updateMemberInList,
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
@@ -32,11 +30,10 @@ import {
 } from '@/components/modules/chore-chart/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import ChoreIcon, {
-  MEMBER_ICONS,
   CHORE_ICONS,
 } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
-import { useChoreForm, useMemberForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
+import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { buildChoreSummaryLine } from '@/components/modules/chore-chart/chore-form-presentation';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 
@@ -46,89 +43,6 @@ interface ChoreChartModalProps {
   weekStartDay: 'sunday' | 'monday';
   accentColor: string;
   onClose: () => void;
-}
-
-// ── Member Form ───────────────────────────────────────────────────
-
-function MemberForm({
-  initial,
-  submitLabel,
-  onSubmit,
-  onCancel,
-}: {
-  initial?: ChoreMember;
-  submitLabel: string;
-  onSubmit: (data: Omit<ChoreMember, 'id'>) => void;
-  onCancel: () => void;
-}) {
-  const t = useTranslate('editor');
-  const tCore = useTranslate('core');
-  const f = useMemberForm(initial);
-  const submit = () => f.submit(onSubmit);
-
-  return (
-    <div className="bg-hs-card/60 rounded-lg p-3 space-y-3 border border-hs-border-strong">
-      <input
-        type="text"
-        placeholder={t('choreChartModal.memberForm.namePlaceholder')}
-        value={f.name}
-        onChange={(e) => f.setName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
-        className={MODAL_INPUT_CLASS}
-        autoFocus
-      />
-
-      <IconPicker
-        value={f.emoji}
-        onChange={f.setEmoji}
-        icons={MEMBER_ICONS}
-        label={t('choreChartModal.memberForm.avatarLabel')}
-        variant="desktop"
-      />
-
-      {/* Color picker */}
-      <div className="space-y-1.5">
-        <span className="text-xs text-hs-text-muted">{t('fields.color')}</span>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {MEMBER_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => f.setColor(c)}
-              className={`w-6 h-6 rounded-full transition-all ${
-                f.color === c ? 'ring-2 ring-white ring-offset-2 ring-offset-hs-panel scale-110' : ''
-              }`}
-              style={{ backgroundColor: c }}
-            />
-          ))}
-          <label
-            className="w-6 h-6 rounded-full cursor-pointer transition-all flex items-center justify-center border-2 border-dashed border-hs-border-strong hover:border-hs-text-secondary relative"
-            style={!MEMBER_COLORS.includes(f.color) ? { backgroundColor: f.color, borderStyle: 'solid', borderColor: 'white' } : undefined}
-            title={t('choreChartModal.memberForm.customColorTitle')}
-          >
-            {MEMBER_COLORS.includes(f.color) && (
-              <span className="text-hs-text-faint text-[10px] font-bold leading-none">+</span>
-            )}
-            <input
-              type="color"
-              value={f.color}
-              onChange={(e) => f.setColor(e.target.value)}
-              className="opacity-0 w-0 h-0 absolute"
-            />
-          </label>
-        </div>
-      </div>
-
-      <div className="flex gap-2 pt-1">
-        <Button variant="primary" size="sm" onClick={submit} className="flex-1">
-          {submitLabel}
-        </Button>
-        <Button size="sm" onClick={onCancel}>
-          {tCore('actions.cancel')}
-        </Button>
-      </div>
-    </div>
-  );
 }
 
 // ── Chore Form ────────────────────────────────────────────────────
@@ -141,7 +55,7 @@ function ChoreForm({
   onCancel,
 }: {
   initial?: ChoreDefinition;
-  members: ChoreMember[];
+  members: FamilyMember[];
   submitLabel: string;
   onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void;
   onCancel: () => void;
@@ -371,6 +285,8 @@ function ChoreForm({
         </div>
       )}
 
+      {members.length === 0 && <FamilyManager />}
+
       {/* Rotation (only when 2+ assignees and not a one-time chore) */}
       {frequency !== 'once' && (assigneeIds.length >= 2 || rotation === 'schedule') && (
         <label className="flex flex-col gap-0.5">
@@ -418,7 +334,7 @@ function WeeklyPreview({
   accentColor,
 }: {
   chores: ChoreDefinition[];
-  members: ChoreMember[];
+  members: FamilyMember[];
   weekStartDay: 'sunday' | 'monday';
   accentColor: string;
 }) {
@@ -553,127 +469,11 @@ function WeeklyPreview({
   );
 }
 
-// ── Member Column ────────────────────────────────────────────────
-
-interface MemberColumnProps {
-  members: ChoreMember[];
-  showAddMember: boolean;
-  editingMemberId: string | null;
-  setShowAddMember: (v: boolean) => void;
-  setEditingMemberId: (v: string | null) => void;
-  addMember: (data: Omit<ChoreMember, 'id'>) => void;
-  updateMember: (id: string, data: Omit<ChoreMember, 'id'>) => void;
-  deleteMember: (id: string) => void;
-}
-
-function MemberColumn({
-  members,
-  showAddMember,
-  editingMemberId,
-  setShowAddMember,
-  setEditingMemberId,
-  addMember,
-  updateMember,
-  deleteMember,
-}: MemberColumnProps) {
-  const t = useTranslate('editor');
-  return (
-    <div className="w-[260px] border-r border-hs-border-strong flex flex-col">
-      <div className="px-3 py-2 border-b border-hs-border-strong/50">
-        <span className="text-xs font-semibold text-hs-text-muted uppercase tracking-wider">
-          {t('choreChartModal.members.columnTitle')}
-        </span>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-        {members.length === 0 && !showAddMember && (
-          <div className="flex flex-col items-center justify-center py-6 gap-2">
-            <p className="text-xs text-hs-text-faint">{t('choreChartModal.members.empty')}</p>
-          </div>
-        )}
-
-        {members.map((member) =>
-          editingMemberId === member.id ? (
-            <MemberForm
-              key={member.id}
-              initial={member}
-              submitLabel={t('choreChartModal.members.saveSubmit')}
-              onSubmit={(data) => updateMember(member.id, data)}
-              onCancel={() => setEditingMemberId(null)}
-            />
-          ) : (
-            <div
-              key={member.id}
-              className="group flex items-center gap-2.5 bg-hs-hover hover:bg-hs-card/70 rounded-lg p-2.5 transition-colors border border-transparent hover:border-hs-border-strong/50"
-            >
-              <span className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: member.color }}>
-                {member.emoji ? (
-                  <ChoreIcon value={member.emoji} size={20} color={member.color} />
-                ) : (
-                  <span className="w-5 h-5 rounded-full" style={{ backgroundColor: member.color }} />
-                )}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-hs-text-body truncate">{member.name}</div>
-              </div>
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingMemberId(member.id);
-                    setShowAddMember(false);
-                  }}
-                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-text-body hover:bg-hs-card transition-colors text-xs"
-                  aria-label={t('choreChartModal.members.editAriaLabel', { name: member.name })}
-                >
-                  &#9998;
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteMember(member.id)}
-                  className="w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:text-hs-danger hover:bg-hs-card transition-colors text-xs"
-                  aria-label={t('choreChartModal.members.deleteAriaLabel', { name: member.name })}
-                >
-                  &times;
-                </button>
-              </div>
-            </div>
-          ),
-        )}
-
-        {showAddMember && (
-          <MemberForm
-            submitLabel={t('choreChartModal.members.addSubmit')}
-            onSubmit={addMember}
-            onCancel={() => setShowAddMember(false)}
-          />
-        )}
-      </div>
-
-      {!showAddMember && (
-        <div className="p-3 border-t border-hs-border-strong/50">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="w-full"
-            onClick={() => {
-              setShowAddMember(true);
-              setEditingMemberId(null);
-            }}
-          >
-            + {t('choreChartModal.members.addButton')}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Chore Column ─────────────────────────────────────────────────
 
 interface ChoreColumnProps {
   chores: ChoreDefinition[];
-  members: ChoreMember[];
+  members: FamilyMember[];
   choreSearch: string;
   showAddChore: boolean;
   editingChoreId: string | null;
@@ -815,7 +615,7 @@ function ChoreColumn({
 
 interface PreviewColumnProps {
   chores: ChoreDefinition[];
-  members: ChoreMember[];
+  members: FamilyMember[];
   showAddChore: boolean;
   editingChoreId: string | null;
   weekStartDay: 'sunday' | 'monday';
@@ -896,13 +696,11 @@ export default function ChoreChartModal({
 }: ChoreChartModalProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const [members, setMembers] = useState<ChoreMember[]>([]);
+  const { members } = useFamilyData();
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [saveError, setSaveError] = useState(false);
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
   const [choreSearch, setChoreSearch] = useState('');
@@ -914,7 +712,6 @@ export default function ChoreChartModal({
         return res.json();
       })
       .then((data) => {
-        setMembers(data.members ?? []);
         setChores(data.chores ?? []);
         setLoaded(true);
       })
@@ -922,13 +719,13 @@ export default function ChoreChartModal({
   }, []);
 
   const { flush: flushSave } = useDebouncedSave({
-    values: [members, chores],
+    values: [chores],
     enabled: loaded,
     save: () =>
       editorFetch('/api/chores/data', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ members, chores }),
+        body: JSON.stringify({ chores, force: chores.length === 0 }),
       })
         .then(throwIfNotOk)
         .then(() => {
@@ -942,32 +739,6 @@ export default function ChoreChartModal({
       setSaveError(true);
     },
   });
-
-  // ── Member CRUD ──
-  const addMember = (data: Omit<ChoreMember, 'id'>) => {
-    setMembers((prev) => addMemberToList(prev, data));
-    setShowAddMember(false);
-  };
-
-  const updateMember = (id: string, data: Omit<ChoreMember, 'id'>) => {
-    setMembers((prev) => updateMemberInList(prev, id, data));
-    setEditingMemberId(null);
-  };
-
-  const deleteMember = async (id: string) => {
-    const member = members.find((m) => m.id === id);
-    if (!member) return;
-    const ok = await useConfirmStore.getState().confirm({
-      title: t('choreChartModal.members.deleteConfirm.title'),
-      message: t('choreChartModal.members.deleteConfirm.message', { name: member.name }),
-      confirmLabel: t('choreChartModal.members.deleteConfirm.confirmLabel'),
-      variant: 'danger',
-    });
-    if (!ok) return;
-    const result = cascadeDeleteMember(members, chores, id);
-    setMembers(result.members);
-    setChores(result.chores);
-  };
 
   // ── Chore CRUD ──
   const addChore = (data: Omit<ChoreDefinition, 'id'>) => {
@@ -1022,16 +793,11 @@ export default function ChoreChartModal({
         </div>
       ) : (
       <div className="flex flex-1 min-h-0">
-          <MemberColumn
-            members={members}
-            showAddMember={showAddMember}
-            editingMemberId={editingMemberId}
-            setShowAddMember={setShowAddMember}
-            setEditingMemberId={setEditingMemberId}
-            addMember={addMember}
-            updateMember={updateMember}
-            deleteMember={deleteMember}
-          />
+          <div className="w-[300px] shrink-0 overflow-y-auto border-r border-hs-border-strong p-3">
+            <FamilyManager chores={chores} onChanged={() => {
+              void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((data) => setChores(data.chores ?? [])).catch(() => setLoadError(true));
+            }} />
+          </div>
           <ChoreColumn
             chores={chores}
             members={members}

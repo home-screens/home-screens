@@ -1,9 +1,11 @@
 'use client';
 
+import type { FamilyMember } from '@/types/family';
+
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
-import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay, ChoreMember } from '@/types/config';
+import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay} from '@/types/config';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
@@ -93,7 +95,7 @@ interface Section {
   key: string;
   rows: ChoreRow[];
   tod?: ChoreTimeOfDay;
-  member?: ChoreMember;
+  member?: FamilyMember;
 }
 
 export default function FullscreenChoreChartModule({

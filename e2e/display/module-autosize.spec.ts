@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedChores, seedMeals, seedTodos } from '../helpers/api';
+import { seedHouseholdChores, seedMeals, seedTodos } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -76,7 +76,7 @@ async function largestType(page: Page, type: ModuleType): Promise<{ max: number;
 async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[1], sandboxDir: string, type: ModuleType, size: { w: number; h: number }) {
   const fx = MODULE_FIXTURES[type];
   await stubModuleData(page);
-  if (fx.seed === 'chores') await seedChores(request);
+  if (fx.seed === 'chores') await seedHouseholdChores(request, sandboxDir);
   if (fx.seed === 'meals') await seedMeals(request);
   if (fx.seed === 'todos') seedTodos(sandboxDir);
   const mod = buildModuleInstance(type, fx.config);

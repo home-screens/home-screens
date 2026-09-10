@@ -206,5 +206,39 @@
   },
   "alerts": {
     "dismiss": "Dismiss"
+  },
+  "family": {
+    "title": "Family",
+    "add": "Add person",
+    "edit": "Edit person",
+    "emoji": "Emoji (optional)",
+    "color": "Color",
+    "emptyTitle": "No one here yet",
+    "emptyDescription": "Add the people in your household. They will be available in chores, rewards and calendars.",
+    "loadFailed": "Could not load your family.",
+    "saveFailed": "Could not save your family.",
+    "retry": "Try again",
+    "saved": "Family saved.",
+    "saving": "Saving…",
+    "conflict": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",
+    "removeTitle": "Remove {name}?",
+    "removeDescription": "Removing {name} clears their chore assignments, schedules, completion history, ticket balance and reward access, and forgets which calendars are theirs. Chores with no one left are deleted. This cannot be undone.",
+    "remove": "Remove person",
+    "editName": "Edit {name}",
+    "moveUp": "Move {name} up",
+    "moveDown": "Move {name} down",
+    "pagination": "Family pages",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {total}",
+    "limit": "You can add up to {count} people. Everyone already here stays and can still be edited or removed.",
+    "choreCount": {
+      "one": "{count} chore",
+      "other": "{count} chores"
+    },
+    "removeChoreCount": {
+      "one": "{name} is assigned to {count} chore.",
+      "other": "{name} is assigned to {count} chores."
+    }
   }
 }

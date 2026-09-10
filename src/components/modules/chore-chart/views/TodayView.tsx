@@ -1,6 +1,8 @@
 'use client';
 
-import type { ChoreChartConfig, ChoreTimeOfDay, ChoreMember } from '@/types/config';
+import type { FamilyMember } from '@/types/family';
+
+import type { ChoreChartConfig, ChoreTimeOfDay} from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '../types';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -15,7 +17,7 @@ import { usePressedKey } from '../../shared/usePressedKey';
 interface TodayViewProps {
   config: ChoreChartConfig;
   data: {
-    members: ChoreMember[];
+    members: FamilyMember[];
     todayAssignments: ResolvedAssignment[];
     memberStats: Map<string, MemberStats>;
     toggleComplete: (choreId: string, memberId: string) => Promise<void>;
