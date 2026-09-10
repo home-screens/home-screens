@@ -3,8 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ListTodo } from 'lucide-react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl } from '@/lib/fetch-keys';
+import {
+  addItemRequest,
+  deleteItemRequest,
+  listActionRequest,
+  sendTodoWrite,
+  updateItemRequest,
+  updateListRequest,
+  type TodoListsPayload,
+  type TodoWriteRequest,
+} from '@/lib/todo-client';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
@@ -18,29 +27,9 @@ interface TodoListModalProps {
   onClose: () => void;
 }
 
-type ListsResponse = { lists: TodoList[] };
-
 /** A row's text field: quiet until focused, so the list reads as a list and not a form. */
 const ROW_INPUT_CLASS =
   'w-full px-2 py-1 text-sm bg-transparent border border-transparent rounded-md focus:outline-none focus:border-hs-border-strong focus:bg-hs-input transition-colors';
-
-/**
- * Send one write to the to-do API and hand back the lists it answers with.
- * A 4xx carries `{ error }` in plain language from the store's validation;
- * anything else (network, 500) becomes the generic save error. Rejects so
- * callers can show the message and leave their optimistic state alone.
- */
-async function todoRequest(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown, fallback = ''): Promise<TodoList[]> {
-  const res = await editorFetch(url, {
-    method,
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  });
-  const json = (await res.json().catch(() => null)) as (ListsResponse & { error?: string }) | null;
-  if (!res.ok || !json?.lists) throw new Error(json?.error || fallback);
-  displayCache.invalidate(todoListsUrl());
-  return json.lists;
-}
 
 // ── Item row ──────────────────────────────────────────────────────
 
@@ -142,14 +131,13 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   const inFlight = useRef(0);
   const droppedResponse = useRef(false);
 
-  const listUrl = `${todoListsUrl()}/${encodeURIComponent(listId)}`;
   const saveFailed = t('common.saveError');
 
   useEffect(() => {
     editorFetch(todoListsUrl())
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<ListsResponse>;
+        return res.json() as Promise<TodoListsPayload>;
       })
       .then((data) => {
         const found = data.lists.find((l) => l.id === listId);
@@ -190,7 +178,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   const reconcile = useCallback(() => {
     const seqAtStart = requestSeq.current;
     editorFetch(todoListsUrl())
-      .then((res) => (res.ok ? (res.json() as Promise<ListsResponse>) : null))
+      .then((res) => (res.ok ? (res.json() as Promise<TodoListsPayload>) : null))
       .then((data) => {
         if (!data) return;
         if (seqAtStart !== requestSeq.current) {
@@ -204,11 +192,11 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
 
   /** Run one write and adopt its answer unless a later write has been sent since. */
   const write = useCallback(
-    async (method: 'POST' | 'PATCH' | 'DELETE', url: string, body?: unknown): Promise<boolean> => {
+    async (req: TodoWriteRequest): Promise<boolean> => {
       const seq = ++requestSeq.current;
       inFlight.current += 1;
       try {
-        const lists = await todoRequest(url, method, body, saveFailed);
+        const { lists } = await sendTodoWrite(editorFetch, req, saveFailed);
         if (seq !== requestSeq.current) {
           droppedResponse.current = true;
           return true;
@@ -239,7 +227,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     save: () => {
       const trimmed = name.trim();
       if (!trimmed || trimmed === listRef.current?.name) return;
-      return write('PATCH', listUrl, { name: trimmed });
+      return write(updateListRequest(listId, { name: trimmed }));
     },
   });
 
@@ -248,18 +236,18 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     setList((prev) =>
       prev ? { ...prev, items: prev.items.map((i) => (i.id === itemId ? { ...i, completed } : i)) } : prev,
     );
-    void write('PATCH', `${listUrl}/items/${encodeURIComponent(itemId)}`, { completed });
+    void write(updateItemRequest(listId, itemId, { completed }));
   };
 
   const saveItemText = (itemId: string, text: string) => {
     const current = listRef.current?.items.find((i) => i.id === itemId);
     const trimmed = text.trim();
     if (!current || !trimmed || trimmed === current.text) return;
-    void write('PATCH', `${listUrl}/items/${encodeURIComponent(itemId)}`, { text: trimmed });
+    void write(updateItemRequest(listId, itemId, { text: trimmed }));
   };
 
   const deleteItem = (itemId: string) => {
-    void write('DELETE', `${listUrl}/items/${encodeURIComponent(itemId)}`);
+    void write(deleteItemRequest(listId, itemId));
   };
 
   const addItem = async () => {
@@ -271,13 +259,13 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     // been typed since.
     setDraft('');
     addInputRef.current?.focus();
-    const ok = await write('POST', `${listUrl}/items`, { text });
+    const ok = await write(addItemRequest(listId, text));
     if (!ok) setDraft((current) => current || text);
   };
 
   // ── Bulk actions ──
   const uncheckAll = () => {
-    void write('PATCH', listUrl, { action: 'uncheck-all' });
+    void write(listActionRequest(listId, 'uncheck-all'));
   };
 
   const removeDone = async () => {
@@ -290,7 +278,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       variant: 'danger',
     });
     if (!ok) return;
-    void write('PATCH', listUrl, { action: 'clear-completed' });
+    void write(listActionRequest(listId, 'clear-completed'));
   };
 
   const items = list?.items ?? [];

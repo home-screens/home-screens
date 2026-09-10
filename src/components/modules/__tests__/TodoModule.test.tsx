@@ -40,9 +40,11 @@ vi.mock('@/lib/display-fetch', () => ({
   displayFetch: (...args: unknown[]) => displayFetch(...args),
 }));
 
-const cacheSet = vi.fn();
+// The wall writes through `todo-client`, which hands the response straight to
+// every subscriber via `displayCache.replace` rather than seeding and waiting.
+const cacheReplace = vi.fn();
 vi.mock('@/lib/display-cache', () => ({
-  displayCache: { set: (...args: unknown[]) => cacheSet(...args) },
+  displayCache: { replace: (...args: unknown[]) => cacheReplace(...args) },
 }));
 
 import TodoModule, { arrangeItems, describeDue } from '../TodoModule';
@@ -104,7 +106,7 @@ const itemTexts = (container: HTMLElement) =>
 
 beforeEach(() => {
   displayFetch.mockReset();
-  cacheSet.mockReset();
+  cacheReplace.mockReset();
   mockLists = { lists: [groceries()] };
   mockMembers = null;
   requestedUrls.clear();
@@ -301,12 +303,12 @@ describe('TodoModule tap to check off', () => {
     expect(JSON.parse(displayFetch.mock.calls[0][1].body)).toEqual({ completed: false });
   });
 
-  it('reconciles to the server value and primes the shared cache on success', async () => {
+  it('reconciles to the server value and hands the lists to every other card', async () => {
     displayFetch.mockResolvedValue(okResponse(true));
     const { container } = renderInteractive();
     await act(async () => { fireEvent.click(row(container, 'Take out trash')); });
     await waitFor(() => expect(pressed(container, 'Take out trash')).toBe('true'));
-    expect(cacheSet).toHaveBeenCalledWith('/api/todo/lists', expect.objectContaining({ lists: expect.any(Array) }), 5_000);
+    expect(cacheReplace).toHaveBeenCalledWith('/api/todo/lists', expect.objectContaining({ lists: expect.any(Array) }), 5_000);
   });
 
   it('reverts only the tapped item when the request fails', async () => {

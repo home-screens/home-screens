@@ -17,12 +17,9 @@ import { createTZDate } from '@/lib/timezone';
 import { useFetchData } from '@/hooks/useFetchData';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
-import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
 
-/** Poll interval for the shared lists, from the registry so prefetch and the
- *  hook stay in lockstep. */
-const TODO_TTL_MS = FETCH_KEY_REGISTRY['todo']?.ttlMs ?? 5_000;
 /** Members change about never; one poll a minute keeps initials current. */
 const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
 /** Initials shown per item before the "+N" bubble (the five-plus-members rule). */
@@ -44,7 +41,6 @@ const TAP_HINT_SEEN_KEY = 'hs:todo-tap-hint-seen';
 const TAP_HINT_SHOW_MS = 4_000;
 const TAP_HINT_FADE_MS = 1_200;
 
-type ListsPayload = { lists: TodoList[] };
 type FamilyPayload = { members: FamilyMember[] };
 
 const NO_MEMBERS: ReadonlyMap<string, FamilyMember> = new Map();
@@ -466,7 +462,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
   const interactive = !!config.interactive && !!screenId && !!moduleId;
   const tappable = interactive && (view === 'list' || view === 'board');
 
-  const [fetched, fetchError] = useFetchData<ListsPayload>(todoListsUrl(), TODO_TTL_MS);
+  const [fetched, fetchError] = useFetchData<TodoListsPayload>(todoListsUrl(), TODO_LISTS_TTL_MS);
   const serverLists = useMemo(() => fetched?.lists ?? [], [fetched]);
 
   // Optimistic completion overrides (itemId to completed), applied over the
@@ -535,25 +531,20 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
       void press(item.id, () => runToggle(item.id, {
         apply: () => setOverrides((prev) => ({ ...prev, [item.id]: next })),
         request: async () => {
-          const res = await displayFetch(
-            `/api/todo/lists/${encodeURIComponent(listId)}/items/${encodeURIComponent(item.id)}`,
-            {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ completed: next }),
-            },
+          // `sendTodoWrite` primes the shared cache with the lists the write
+          // answers with, so sibling todo cards and the next poll see
+          // post-write state. Holding local state for one TTL on top of that
+          // stops a stale in-flight poll reverting this confirmed flip.
+          const { lists } = await sendTodoWrite(
+            displayFetch,
+            updateItemRequest(listId, item.id, { completed: next }),
+            'Failed to update the item',
           );
-          if (!res.ok) throw new Error('Failed to update the item');
-          const data: ListsPayload = await res.json();
-          const serverItem = data.lists?.find((l) => l.id === listId)?.items.find((it) => it.id === item.id);
+          const serverItem = lists.find((l) => l.id === listId)?.items.find((it) => it.id === item.id);
           if (serverItem) {
             setOverrides((prev) => ({ ...prev, [item.id]: serverItem.completed }));
           }
-          // Prime the shared cache so sibling todo instances and the next poll
-          // see post-write state, and hold local state for one TTL so a stale
-          // in-flight poll can't revert this confirmed flip.
-          displayCache.set(todoListsUrl(), data, TODO_TTL_MS);
-          overrideUntilRef.current = Date.now() + TODO_TTL_MS;
+          overrideUntilRef.current = Date.now() + TODO_LISTS_TTL_MS;
         },
         // Surgical revert: only this item goes back to what it showed before
         // the tap (the double-tap guard blocks a second flip in between).

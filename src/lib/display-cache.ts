@@ -70,6 +70,24 @@ class DisplayDataCache {
     });
   }
 
+  /**
+   * Store data AND hand it straight to everything already showing this URL.
+   *
+   * For a write whose response is the new truth: the caller already holds
+   * what a re-fetch would return, so `invalidate` would spend a request
+   * re-asking, and a bare `set` would leave subscribers on their old copy
+   * until each one's next poll. This does neither — subscribers adopt the
+   * data on the spot and nothing goes over the wire.
+   */
+  replace(url: string, data: unknown, ttlMs: number): void {
+    this.set(url, data, ttlMs);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('displaycache:replace', { detail: { url, data, at: Date.now() } }),
+      );
+    }
+  }
+
   /** True if entry is missing or past TTL */
   private isStale(url: string): boolean {
     const entry = this.cache.get(url);

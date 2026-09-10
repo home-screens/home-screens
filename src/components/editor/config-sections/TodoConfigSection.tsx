@@ -13,8 +13,8 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorData } from '@/hooks/useEditorData';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl } from '@/lib/fetch-keys';
+import { createListRequest, sendTodoWrite } from '@/lib/todo-client';
 import { useTranslate } from '@/i18n';
 import { TODO_LIMITS, type TodoList } from '@/types/todos';
 import type { ModuleInstance, TodoConfig, TodoView, TodoCompletedPlacement } from '@/types/config';
@@ -65,27 +65,16 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
     setBusy(true);
     setCreateError(null);
     try {
-      const res = await editorFetch(todoListsUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      const json = (await res.json().catch(() => null)) as { lists?: TodoList[]; created?: TodoList; error?: string } | null;
-      if (!res.ok || !json?.lists) {
-        setCreateError(json?.error || t('common.saveError'));
-        return;
-      }
       // The route names the list it made. Diffing the lists instead would
       // pick up one a phone created meanwhile.
-      const created = json.created;
-      displayCache.invalidate(todoListsUrl());
+      const { created } = await sendTodoWrite(editorFetch, createListRequest(name), t('common.saveError'));
       refetch();
       if (created) set({ listId: created.id });
       setNewName('');
       setCreating(false);
     } catch (e) {
       if (isSessionExpired(e)) return;
-      setCreateError(t('common.saveError'));
+      setCreateError(e instanceof Error && e.message ? e.message : t('common.saveError'));
     } finally {
       setBusy(false);
     }

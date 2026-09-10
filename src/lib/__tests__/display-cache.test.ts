@@ -171,7 +171,20 @@ describe('displayCache', () => {
     });
   });
 
-  // ── clear ────────────────────────────────────────────────────────
+  // ── replace ─────────────────────────────────────────────────────
+
+  describe('replace', () => {
+    it('stores the data as a fresh entry', () => {
+      displayCache.replace('/api/todo/lists', { lists: [{ id: 'l1' }] }, 5_000);
+      expect(displayCache.get('/api/todo/lists')).toEqual({
+        data: { lists: [{ id: 'l1' }] },
+        stale: false,
+        fetchedAt: expect.any(Number),
+      });
+    });
+
+    // The subscriber-notification half needs a DOM: display-cache-replace-event.test.ts.
+  });
 
   describe('invalidateByPrefix', () => {
     it('drops every entry under the prefix and leaves the rest', () => {
@@ -192,6 +205,8 @@ describe('displayCache', () => {
       expect(displayCache.get('/api/weather')).not.toBeNull();
     });
   });
+
+  // ── clear ────────────────────────────────────────────────────────
 
   describe('clear', () => {
     it('removes all cached entries', () => {
