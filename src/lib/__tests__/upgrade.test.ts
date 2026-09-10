@@ -10,7 +10,6 @@ const mockWithDataTransaction = vi.fn();
 let transactionDepth = 0;
 const scriptAccess: { action: string; depth: number }[] = [];
 vi.mock('@/lib/data-transaction', () => ({
-  assertStillOwned: async () => {},
   durableRemove: async (file: string) => {
     const { promises: fs } = await import('fs');
     await fs.rm(file, { force: true });

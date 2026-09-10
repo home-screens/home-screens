@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
-import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -9,7 +9,6 @@ import { buildSync } from 'esbuild';
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 let bundleDirectory: string;
 let directory: string;
-const children = new Set<ChildProcess>();
 beforeAll(() => {
   bundleDirectory = mkdtempSync(path.join(tmpdir(), 'hs-snapshot-bundle-'));
   buildSync({ entryPoints: [path.join(repo, 'scripts/restore-snapshot.ts')], bundle: true, platform: 'node', format: 'cjs', outfile: path.join(bundleDirectory, 'restore-snapshot.cjs'), tsconfig: path.join(repo, 'tsconfig.json') });
@@ -25,27 +24,40 @@ beforeEach(() => {
   put('backups/last-stable-config.json', { version: 13, screens: [], settings: {}, marker: 'saved' });
 });
 afterEach(() => {
-  for (const child of children) child.kill('SIGKILL');
-  children.clear();
   rmSync(directory, { recursive: true, force: true });
-  rmSync(`${directory}.data.lock`, { recursive: true, force: true });
 });
 const put = (filename: string, value: unknown) => writeFileSync(path.join(directory, 'data', filename), JSON.stringify(value));
 const read = (filename: string) => JSON.parse(readFileSync(path.join(directory, 'data', filename), 'utf8'));
-function restore(name = 'last-stable-config.json') {
-  // Generous: a snapshot left behind by a killed holder waits out the lock's
-  // staleness window before this can break it and continue.
-  return spawnSync('bash', [path.join(directory, 'scripts/upgrade.sh'), 'restore-backup', name], { cwd: tmpdir(), encoding: 'utf8', timeout: 40_000 });
+function restore(name = 'last-stable-config.json', options: { serviceActive?: boolean } = {}) {
+  const env = { ...process.env };
+  if (options.serviceActive !== undefined) {
+    // Stand in for systemctl so this never consults the real machine.
+    const bin = path.join(directory, 'bin');
+    mkdirSync(bin, { recursive: true });
+    writeFileSync(path.join(bin, 'systemctl'), `#!/bin/sh\nexit ${options.serviceActive ? 0 : 3}\n`, { mode: 0o755 });
+    env.PATH = `${bin}:${process.env.PATH}`;
+  }
+  return spawnSync('bash', [path.join(directory, 'scripts/upgrade.sh'), 'restore-backup', name], { cwd: tmpdir(), encoding: 'utf8', timeout: 40_000, env });
 }
-function finish(child: ChildProcess) {
-  let output = '';
-  child.stdout!.on('data', (chunk: Buffer) => { output += chunk.toString(); });
-  child.stderr!.on('data', (chunk: Buffer) => { output += chunk.toString(); });
-  return new Promise<{ code: number | null; output: string }>((resolve, reject) => {
-    child.once('error', reject);
-    child.once('exit', (code) => { children.delete(child); resolve({ code, output }); });
+
+describe('offline restore while the app is running', () => {
+  // Nothing locks these files across processes. The app is a single process
+  // that serializes its own writes, so a restore only has to be sure it is not
+  // running alongside one; that check is the whole of what keeps them apart.
+  it('refuses while the service is up, and changes nothing', () => {
+    const result = restore('last-stable-config.json', { serviceActive: true });
+    expect(result.status).toBe(1);
+    expect(result.stdout + result.stderr).toContain('sudo systemctl stop home-screens');
+    expect(read('config.json').marker).toBe('current');
+    expect(existsSync(path.join(directory, 'data/family.json'))).toBe(false);
   });
-}
+
+  it('proceeds once the service is stopped', () => {
+    const result = restore('last-stable-config.json', { serviceActive: false });
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    expect(read('config.json').marker).toBe('saved');
+  });
+});
 
 describe('offline snapshot restore', () => {
   it('restores from the shipped bundle without a server or source tree', () => {
@@ -131,28 +143,7 @@ describe('offline snapshot restore', () => {
     expect(existsSync(path.join(directory, 'data/family-transaction.json'))).toBe(false);
   }, 45_000);
 
-  it('waits for a live holder, then breaks the lock the holder died still holding', async () => {
-    const holder = spawn(process.execPath, ['--import', 'tsx', path.join(repo, 'src/lib/__tests__/fixtures/family-process.ts'), directory, 'hold'], { cwd: repo, stdio: ['ignore', 'pipe', 'pipe'] });
-    children.add(holder);
-    const holding = finish(holder);
-    await new Promise<void>((resolve, reject) => { holder.stdout!.once('data', () => resolve()); holder.once('error', reject); });
-    const contender = spawn('bash', [path.join(directory, 'scripts/upgrade.sh'), 'restore-backup', 'last-stable-config.json'], { cwd: tmpdir(), stdio: ['ignore', 'pipe', 'pipe'] });
-    children.add(contender);
-    const restoring = finish(contender);
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    expect(read('config.json').marker).toBe('current');
-    expect(contender.exitCode).toBeNull();
-    // A killed holder cannot unlock, so its lock has to age out first. This is
-    // the recovery path after a power cut, and it must end in a restore.
-    holder.kill('SIGKILL');
-    await holding;
-    const result = await restoring;
-    expect(result.code, result.output).toBe(0);
-    expect(read('config.json').marker).toBe('saved');
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
-  }, 45_000);
 });
-
 
 /** UID injection is confined to a child process: no sudo, account changes or
  * chown on the developer machine. */
@@ -192,7 +183,6 @@ describe('offline restore account ownership', () => {
     expect(JSON.parse(result.stdout).error).toContain('without sudo as root');
     expect(JSON.parse(result.stdout).error).toContain(`sudo -u '#${statSync(path.join(directory, 'data')).uid}'`);
     expect(dataState()).toEqual(before);
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
   });
 
   it.each(['bundle', 'source', 'bundled-launcher', 'source-launcher'] as const)('refuses a different non-root owner through %s without changing file ownership', (entry) => {
@@ -202,7 +192,6 @@ describe('offline restore account ownership', () => {
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(JSON.parse(result.stdout).error).toContain('Home Screens account');
     expect(dataState()).toEqual(before);
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
   });
 
   it.each(['bundle', 'source'] as const)('uses the app owner without creating missing data through %s', (entry) => {
@@ -211,14 +200,12 @@ describe('offline restore account ownership', () => {
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(JSON.parse(result.stdout).error).toContain('without sudo as root');
     expect(existsSync(path.join(directory, 'data'))).toBe(false);
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
   });
 
   it('refuses effective root even when the real UID matches the data owner', () => {
     const result = command('bundle', statSync(path.join(directory, 'data')).uid, 0);
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(JSON.parse(result.stdout).error).toContain('without sudo as root');
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
   });
 
   it('refuses sudo-style shell invocation before sourcing saved kiosk settings', () => {
@@ -230,7 +217,6 @@ describe('offline restore account ownership', () => {
     expect(result.status, result.stdout + result.stderr).toBe(1);
     expect(JSON.parse(result.stdout).error).toContain('without sudo as root');
     expect(existsSync(sourced)).toBe(false);
-    expect(existsSync(`${directory}.data.lock`)).toBe(false);
   });
 
   it('lets the data owner restore from the direct source entry', () => {

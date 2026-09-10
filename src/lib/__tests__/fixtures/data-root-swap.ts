@@ -22,9 +22,7 @@ async function main() {
       process.chdir(current);
       await fs.rm(rollback, { recursive: true });
       process.stdout.write('swapped\n');
-      await new Promise<void>((resolve) => process.stdin.once('data', () => resolve()));
     });
-    process.stdin.pause();
   } else {
     const result = await withDataTransaction(() => store.read());
     process.stdout.write(`acquired:${result.count}\n`);

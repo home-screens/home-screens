@@ -29,7 +29,6 @@ beforeEach(async () => {
 afterEach(async () => {
   vi.restoreAllMocks();
   await fs.rm(root, { recursive: true, force: true });
-  await fs.rm(`${root}.data.lock`, { force: true });
 });
 
 describe('/api/family', () => {

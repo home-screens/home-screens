@@ -27,21 +27,15 @@ function start(action: string) {
   return { child, done, output: () => output };
 }
 
-it('keeps nested access and competing processes on one lock through a release rename and rollback deletion', async () => {
+it('keeps nested writes on the pinned pathname through a release rename and rollback deletion', async () => {
   directory = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-data-root-swap-'));
   await fs.mkdir(path.join(directory, 'current/data'), { recursive: true });
+  // The release directory is renamed out from under this process mid-write, so
+  // its working directory still points at the old inode. Everything inside has
+  // to keep using the pathname pinned at startup, or the write lands in the
+  // rollback tree and is deleted with it.
   const owner = start('owner');
-  await expect.poll(owner.output).toBe('swapped\n');
-  // The rename moved the release out from under the owner. The lock is a
-  // sibling, so it stayed put and the owner still holds this exact one.
-  const lock = path.join(directory, 'current.data.lock');
-  expect((await fs.readFile(lock, 'utf8'))).toContain('token=');
-  const contender = start('contender');
-  await new Promise((resolve) => setTimeout(resolve, 200));
-  expect(contender.output()).toBe('');
-  owner.child.stdin.write('release\n');
   expect(await owner.done).toMatchObject({ code: 0 });
+  const contender = start('contender');
   expect(await contender.done).toEqual({ code: 0, output: 'acquired:7\n' });
-  // Releasing removes it, so the next writer can claim the same pathname.
-  await expect(fs.stat(lock)).rejects.toMatchObject({ code: 'ENOENT' });
 }, 10_000);

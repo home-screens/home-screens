@@ -9,30 +9,7 @@ const stage = process.argv[4];
 process.chdir(directory);
 
 async function main() {
-  if (action === 'hold') {
-    await withDataTransaction(async () => {
-      process.stdout.write('locked\n');
-      await new Promise<void>(() => { setInterval(() => {}, 1000); });
-    });
-  } else if (action === 'stall') {
-    // Holds the lock, then publishes only when told to, so a test can stop
-    // this process long enough for someone else to take the lock over.
-    await withDataTransaction(async () => {
-      process.stdout.write('held\n');
-      // Destroy, or the stdin pipe keeps this process alive after it is done.
-      await new Promise<void>((resolve) => process.stdin.once('data', () => { process.stdin.destroy(); resolve(); }));
-      const before = await readTransactionFile('data/count.json');
-      await commitDataTransaction({ kind: 'count', changes: [{ path: 'data/count.json', before, after: '1' }] });
-      process.stdout.write('published\n');
-    });
-  } else if (action === 'set') {
-    await withDataTransaction(async () => commitDataTransaction({ kind: 'count', changes: [
-      { path: 'data/count.json', before: await readTransactionFile('data/count.json'), after: stage },
-    ] }));
-    process.stdout.write('set\n');
-  } else if (action === 'acquire') {
-    await withDataTransaction(() => { process.stdout.write('acquired\n'); });
-  } else if (action === 'increment') {
+  if (action === 'increment') {
     for (let n = 0; n < 5; n++) {
       await withDataTransaction(async () => {
         const before = await readTransactionFile('data/count.json');

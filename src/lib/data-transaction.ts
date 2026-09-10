@@ -2,7 +2,6 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash, randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { acquireDataLock, DataLockBusyError, type DataLockHandle } from './data-lock';
 import { DataTransactionError } from './family-errors';
 export { DataTransactionError } from './family-errors';
 
@@ -31,13 +30,10 @@ interface CoordinatorState {
   queues: Map<string, Promise<void>>;
   retryAfter: Map<string, number>;
   listeners: Set<() => void>;
-  /** The lock this process holds for each root it is writing. */
-  holders?: Map<string, DataLockHandle>;
 }
 const key = Symbol.for('home-screens.data-transaction.v1');
 const globals = globalThis as typeof globalThis & { [key]?: CoordinatorState };
-const state: CoordinatorState = globals[key] ??= { context: new AsyncLocalStorage<Context>(), queues: new Map(), retryAfter: new Map(), listeners: new Set(), holders: new Map() };
-const holders = (state.holders ??= new Map());
+const state: CoordinatorState = globals[key] ??= { context: new AsyncLocalStorage<Context>(), queues: new Map(), retryAfter: new Map(), listeners: new Set() };
 
 /** Pin the application pathname at server/CLI startup, before a release swap
  * can move the working-directory inode into the rollback tree. */
@@ -79,28 +75,7 @@ export function onDataTransactionCommit(listener: () => void): () => void {
 function invalidate() { for (const listener of state.listeners) listener(); }
 
 /** Durable atomic writer: file sync, rename, then parent-directory sync. */
-/**
- * Refuses to publish anything unless this process still holds the lock.
- * Checked at each write rather than once per operation: a write that lands
- * after the lock was lost has already happened, and reporting it does not
- * take it back.
- *
- * Transient stores opt out of the coordinator entirely, so they have no
- * ownership to lose and are left alone.
- */
-export async function assertStillOwned(): Promise<void> {
-  const ctx = state.context.getStore();
-  if (!ctx?.active) return;
-  const held = holders.get(ctx.root);
-  if (!held) return;
-  try { await held.assertOwned(); }
-  catch (cause) {
-    throw new DataTransactionError('Another update took over the settings files, so this one stopped before writing.', 503, { cause });
-  }
-}
-
 export async function durableWriteFile(filePath: string, contents: string, mode?: number, dirMode?: number): Promise<void> {
-  await assertStillOwned();
   const directory = path.dirname(filePath);
   const firstCreated = await fs.mkdir(directory, { recursive: true, mode: dirMode });
   // Sync newly-created directory entries up to their existing ancestor.
@@ -121,10 +96,6 @@ export async function durableWriteFile(filePath: string, contents: string, mode?
     await handle.writeFile(contents, 'utf8');
     await handle.sync();
     await handle.close(); handle = undefined;
-    // Again, immediately before the step that publishes. Staging the file can
-    // take a while on slow storage, and ownership checked only at the start
-    // would say nothing about whether this write is still allowed to land.
-    await assertStillOwned();
     await fs.rename(tmp, filePath);
     await syncDirectory(directory);
   } catch (error) {
@@ -138,7 +109,6 @@ async function syncDirectory(directory: string) {
   try { await handle.sync(); } finally { await handle.close(); }
 }
 export async function durableRemove(filePath: string) {
-  await assertStillOwned();
   try { await fs.unlink(filePath); } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return;
     throw error;
@@ -263,18 +233,17 @@ export async function commitDataTransaction(plan: DataTransactionPlan): Promise<
 }
 
 /**
- * How long a writer waits for somebody who genuinely still holds the lock.
- * A lock whose owner is gone is reclaimed at once, so this is never spent
- * waiting on a crash; it only bounds waiting on live work.
- */
-const LOCK_WAIT_MS = 30_000;
-
-/**
- * Global AsyncLocalStorage joins nested calls across route bundles. The process
- * queue keeps contenders from this same process off the file lock entirely,
- * so the only contention it ever sees is between processes.
- * The lock is a sibling of the release directory. Copying or deleting a
- * release must never clone or unlink it during a rolling restart.
+ * Global AsyncLocalStorage joins nested calls across route bundles, and the
+ * per-root queue serializes everything else, so a multi-file change is never
+ * interleaved with another one.
+ *
+ * That queue is the whole of the mutual exclusion, and it is enough because
+ * the app is a single process: `node server.js`, no cluster. The other two
+ * things that write this directory are `upgrade.sh deploy` and the offline
+ * restore, and both refuse to run while the service is up. What this cannot
+ * survive is losing power partway through, which is what the journal above is
+ * for: recovery runs at the start of every transaction and finishes or undoes
+ * whatever the last one left behind.
  */
 export async function withDataTransaction<T>(operation: () => Promise<T> | T): Promise<T> {
   const inherited = state.context.getStore();
@@ -282,35 +251,13 @@ export async function withDataTransaction<T>(operation: () => Promise<T> | T): P
   const root = getDataRoot();
   const prior = state.queues.get(root) ?? Promise.resolve();
   const run = prior.then(async () => {
-    // The lock sits beside the release directory, so a release swap never
-    // moves it and both the server and a deploy contend for the same one.
-    let held: DataLockHandle;
-    try {
-      held = await acquireDataLock(`${root}.data.lock`, { waitMs: LOCK_WAIT_MS });
-    } catch (error) {
-      // Somebody is genuinely working; trying again later is the right advice.
-      if (error instanceof DataLockBusyError) throw new DataTransactionError('Another update is already running. Please try again in a moment.', 503, { cause: error });
-      // Anything else is a lock that cannot be taken at all, and no amount of
-      // trying again will change that.
-      throw new DataTransactionError('Home Screens could not get to its saved settings, so nothing was changed.', 500, { cause: error });
-    }
-    holders.set(root, held);
-    let outcome: { ok: true; value: T } | { ok: false; error: unknown };
-    try {
-      const firstCreated = await fs.mkdir(path.join(root, 'data'), { recursive: true });
-      if (firstCreated) await syncDirectory(path.dirname(firstCreated));
-      const ctx: Context = { root, active: true };
-      outcome = { ok: true, value: await state.context.run(ctx, async () => {
-        try { await recover(); return await operation(); }
-        finally { ctx.active = false; }
-      }) };
-    } catch (error) { outcome = { ok: false, error }; }
-    // Always released, whatever went wrong above, or the next writer waits on
-    // a lock this process is no longer using.
-    holders.delete(root);
-    await held.release().catch(() => {});
-    if (!outcome.ok) throw outcome.error;
-    return outcome.value;
+    const firstCreated = await fs.mkdir(path.join(root, 'data'), { recursive: true });
+    if (firstCreated) await syncDirectory(path.dirname(firstCreated));
+    const ctx: Context = { root, active: true };
+    return await state.context.run(ctx, async () => {
+      try { await recover(); return await operation(); }
+      finally { ctx.active = false; }
+    });
   });
   const tail = run.then(() => {}, () => {});
   state.queues.set(root, tail);

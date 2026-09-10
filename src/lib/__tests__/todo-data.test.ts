@@ -211,31 +211,6 @@ describe('fold-in of pre-v2 inline items', () => {
     await expect(mod.readTodoData()).resolves.toBeTruthy();
   });
 
-  it('preserves both sources when the coordinator cannot acquire its lock', async () => {
-    await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [
-      legacyModule('m1', 'Groceries', [{ id: 'i1', text: 'Milk', completed: false }]),
-    ] }] });
-    await writeData('todo-state.json', { completed: { i1: true } });
-    // The stable lock lives beside the release directory, so it survives a
-    // deploy. A directory where the lock file belongs can never be claimed or
-    // read, so this fails before any migration work can start.
-    await fs.mkdir(`${tmpDir}.data.lock`);
-    try {
-      await expect(mod.readTodoData()).rejects.toThrow();
-    } finally {
-      await fs.rmdir(`${tmpDir}.data.lock`);
-    }
-    // Both sources survive; nothing was lost, and the retry finishes the job.
-    expect(await exists('todo-state.json')).toBe(true);
-    const cfg = await readJson<{ screens: Array<{ modules: Array<{ config: Record<string, unknown> }> }> }>('config.json');
-    expect(Array.isArray(cfg.screens[0].modules[0].config.items)).toBe(true);
-    const done = await mod.foldInLegacyTodoItemsNow();
-    expect(done.migratedFromConfig).toBe(true);
-    expect(done.lists).toHaveLength(1);
-    expect(done.lists[0].items[0].completed).toBe(true);
-    expect(await exists('todo-state.json')).toBe(false);
-  });
-
   it('strips an empty legacy items array without minting an unnamed list', async () => {
     await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [
       legacyModule('m1', 'To Do', []), legacyModule('m2', 'To Do', []),

@@ -3,7 +3,6 @@ import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('@/lib/data-transaction', () => ({
-  assertStillOwned: async () => {},
   durableRemove: async (file: string) => {
     const { promises: fs } = await import('fs');
     await fs.rm(file, { force: true });

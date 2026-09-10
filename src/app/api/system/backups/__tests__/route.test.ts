@@ -35,7 +35,6 @@ vi.mock('child_process', () => ({
 
 vi.mock('fs/promises', () => ({ readFile: readFileMock }));
 vi.mock('@/lib/data-transaction', () => ({
-  assertStillOwned: async () => {},
   durableRemove: async (file: string) => {
     const { promises: fs } = await import('fs');
     await fs.rm(file, { force: true });

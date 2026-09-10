@@ -1,7 +1,7 @@
 /** Offline restore uses the same migration, journal and lock as Settings. */
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { assertRestoreOwner } from './restore-ownership.mjs';
+import { assertRestoreOwner, assertServiceStopped } from './restore-ownership.mjs';
 import type { ScreenConfiguration } from '@/types/config';
 
 const BACKUP_NAME_RE = /^(config-v\d+\.\d+\.\d+(-[A-Za-z0-9.]+)?-\d{8}-\d{6}\.json|last-stable-config\.json)$/;
@@ -13,8 +13,9 @@ async function main() {
     throw new Error('Use: bash scripts/upgrade.sh restore-backup <name from data/backups/>');
   }
   await assertRestoreOwner(process.cwd(), name);
-  // Direct source/bundle invocation must also refuse unsafe accounts before
-  // loading native code or anything that can recover or mutate saved data.
+  assertServiceStopped();
+  // Direct source/bundle invocation must also refuse an unsafe account, or a
+  // running app, before loading anything that can recover or change saved data.
   const { withDataTransaction, commitDataTransaction, getDataRoot, pinDataRoot } = await import('@/lib/data-transaction');
   const { planFamilyRestore } = await import('@/lib/family-import');
   const { validateAllSchedules, validateDisplays } = await import('@/lib/display-filter');

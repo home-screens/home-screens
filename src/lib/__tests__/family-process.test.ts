@@ -77,49 +77,4 @@ describe('family transaction process isolation', () => {
     expect((await read('rewards.json')).balances).toEqual({ b: 4 });
   }, 45_000);
 
-  it('serializes writers in distinct processes without dropping an update', async () => {
-    const results = await Promise.all([finish(start('increment')), finish(start('increment')), finish(start('increment'))]);
-    for (const result of results) expect(result, result.output).toMatchObject({ code: 0 });
-    expect(await read('count.json')).toBe(15);
-  }, 15_000);
-
-  it('refuses to publish once its lock has been taken over', async () => {
-    const stalled = spawn(process.execPath, ['--import', 'tsx', runner, directory, 'stall'], { cwd: repo, stdio: ['pipe', 'pipe', 'pipe'] });
-    children.add(stalled);
-    const stalling = finish(stalled);
-    await new Promise<void>((resolve, reject) => {
-      stalled.stdout!.once('data', () => resolve()); stalled.once('error', reject);
-    });
-    // Lose the lock out from under a writer that is still running. However it
-    // happens, from here on this process must behave as though it never held
-    // it: a paused writer keeps its lock, so this is the case that matters.
-    await fs.rm(`${directory}.data.lock`);
-    const taker = await finish(start('set', '10'));
-    expect(taker, taker.output).toMatchObject({ code: 0 });
-    expect(await read('count.json')).toBe(10);
-    stalled.stdin!.write('go\n');
-    const resumed = await stalling;
-    // The stale value must never reach disk. Reporting it afterwards is not a
-    // substitute for not writing it.
-    expect(resumed.output).not.toContain('published');
-    expect(resumed.code).not.toBe(0);
-    expect(await read('count.json')).toBe(10);
-  }, 45_000);
-
-  it('holds competing readers until a killed holder is taken over', async () => {
-    const holder = start('hold');
-    const doneHolding = finish(holder);
-    await new Promise<void>((resolve, reject) => {
-      holder.stdout!.once('data', () => resolve()); holder.once('error', reject); holder.once('exit', () => reject(new Error('Holder exited before acquiring lock')));
-    });
-    const contender = start('acquire');
-    let acquired = false;
-    contender.stdout!.on('data', () => { acquired = true; });
-    const contenderResult = finish(contender);
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    expect(acquired).toBe(false);
-    holder.kill('SIGKILL');
-    await doneHolding;
-    expect(await contenderResult).toMatchObject({ code: 0, output: 'acquired\n' });
-  }, 45_000);
 });

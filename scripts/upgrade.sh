@@ -347,10 +347,10 @@ case "${action}" in
       exit 1
     fi
 
-    # The manual path has to claim the data lock itself before replacing the
-    # running tree; the web path already holds it.
+    # A manual deploy has to be sure the app is not running before it replaces
+    # the tree underneath it; the web path has already stopped it.
     case "${1:-}" in
-      --runtime-ready) ;; # app prepared the runtime and already holds the data lock
+      --runtime-ready) ;; # the app arranged this and is no longer writing
       '')
         # Manual upgrades must stop the service; the web workflow holds its
         # coordinator instead. Keep that check before any runtime change.
@@ -358,110 +358,11 @@ case "${action}" in
           echo '{"ok":false,"error":"Stop home-screens with sudo systemctl stop home-screens before a manual deploy."}'
           exit 1
         fi
-        # The same lock the app takes, same file format (src/lib/data-lock.ts).
-        # One writer wins the hard link; the file says who holds it, and a
-        # holder whose process is gone is replaced straight away. No heartbeat
-        # and nothing running in the background, so a deploy killed outright
-        # leaves nothing to clean up: its process id stops existing, which is
-        # the whole signal the next writer needs.
-        lock_file="${APP_DIR}.data.lock"
-        lock_host=$(hostname)
-        lock_now=$(date +%s)
-        # Must match bootId() in src/lib/data-lock.ts exactly. Linux publishes
-        # an identifier unrelated to the clock, which is what a Pi needs: with
-        # no battery-backed clock its time jumps when the network comes up, and
-        # a boot time worked out from the clock jumps with it.
-        if [ -r /proc/sys/kernel/random/boot_id ]; then
-          lock_boot=$(tr -d '[:space:]' < /proc/sys/kernel/random/boot_id)
-        else
-          lock_boot_sec=$(sysctl -n kern.boottime 2>/dev/null | sed -n 's/^{ *sec *= *\([0-9][0-9]*\).*/\1/p' || true)
-          lock_boot="t${lock_boot_sec}"
-          if [ -z "${lock_boot_sec}" ]; then
-            echo '{"ok":false,"error":"Could not work out when this machine last started, so the update stopped rather than risk two updates at once."}'
-            exit 1
-          fi
-        fi
-        lock_token="deploy-$$-${lock_now}-${RANDOM}${RANDOM}"
-        lock_staging="${lock_file}.staging.$$.${RANDOM}${RANDOM}"
-        # Never write through a leftover name: if it were still hard-linked to
-        # the live lock, this would rewrite that lock in place.
-        rm -f "${lock_staging}"
-        ( umask 077; printf 'token=%s\npid=%s\nboot=%s\nhost=%s\nat=%s\n' \
-          "${lock_token}" "$$" "${lock_boot}" "${lock_host}" "$(( lock_now * 1000 ))" > "${lock_staging}" )
-        lock_held=""
-        for _ in $(seq 1 300); do
-          if ln "${lock_staging}" "${lock_file}" 2>/dev/null; then
-            # Read back before trusting it, exactly as the app does: another
-            # writer reclaiming what it believed abandoned can move this aside
-            # a moment after it appears.
-            if [ "$(sed -n 's/^token=//p' "${lock_file}" 2>/dev/null || true)" = "${lock_token}" ]; then
-              lock_held=1
-              break
-            fi
-            continue
-          fi
-          # One read, so the fields cannot come from two different records.
-          lock_record=$(cat "${lock_file}" 2>/dev/null || true)
-          if [ -z "${lock_record}" ]; then continue; fi
-          owner_token=$(printf '%s\n' "${lock_record}" | sed -n 's/^token=//p')
-          owner_pid=$(printf '%s\n' "${lock_record}" | sed -n 's/^pid=//p')
-          owner_boot=$(printf '%s\n' "${lock_record}" | sed -n 's/^boot=//p')
-          owner_host=$(printf '%s\n' "${lock_record}" | sed -n 's/^host=//p')
-          owner_at=$(printf '%s\n' "${lock_record}" | sed -n 's/^at=//p')
-          # These decide, in this order, exactly what stillOwned() decides in
-          # src/lib/data-lock.ts. Any disagreement between the two lets a
-          # deploy and the server both believe the lock is theirs.
-          lock_alive=1
-          if [ -z "${owner_token}" ] || [ -z "${owner_host}" ] || [ -z "${owner_boot}" ] \
-             || ! [[ "${owner_pid}" =~ ^[0-9]+$ ]] || ! [[ "${owner_at}" =~ ^-?[0-9]+$ ]] \
-             || [ "${owner_pid}" -le 0 ]; then
-            # Nothing below judges the record on elapsed time: see stillOwned()
-            # in src/lib/data-lock.ts for why a clock is never consulted.
-            # Nobody can be identified from it, which only a writer that died
-            # mid-take leaves behind.
-            lock_alive=""
-          elif [ "${owner_host}" = "${lock_host}" ]; then
-            lock_same_boot=""
-            case "${owner_boot}${lock_boot}" in
-              t*)
-                # Both derived from the clock: compare loosely, as the app does.
-                if [ "${owner_boot#t}" != "${owner_boot}" ] && [ "${lock_boot#t}" != "${lock_boot}" ]; then
-                  boot_delta=$(( ${owner_boot#t} - ${lock_boot#t} ))
-                  [ "${boot_delta}" -ge 0 ] || boot_delta=$(( -boot_delta ))
-                  [ "${boot_delta}" -gt 30 ] || lock_same_boot=1
-                fi
-                ;;
-            esac
-            [ -n "${lock_same_boot}" ] || [ "${owner_boot}" != "${lock_boot}" ] || lock_same_boot=1
-            if [ -z "${lock_same_boot}" ]; then
-              lock_alive=""
-            elif ! kill -0 "${owner_pid}" 2>/dev/null; then
-              lock_alive=""
-            fi
-          fi
-          # A writer on another machine cannot be asked whether it is alive, so
-          # it keeps its lock until the backstop above expires.
-          if [ -n "${lock_alive}" ]; then
-            sleep 1
-            continue
-          fi
-          # Finished with. Move it aside and drop it, so of several contenders
-          # exactly one clears it. Judging and moving are two steps, so this can
-          # occasionally take a lock claimed in between; that writer finds out
-          # at its next ownership check and stops before writing, which is what
-          # the app relies on too.
-          if mv "${lock_file}" "${lock_file}.abandoned.$$" 2>/dev/null; then
-            rm -f "${lock_file}.abandoned.$$"
-          fi
-        done
-        rm -f "${lock_staging}"
-        if [ -z "${lock_held}" ]; then
-          echo '{"ok":false,"error":"Something else is using the settings files. Wait a moment and try again."}'
-          exit 1
-        fi
-        # Only ever remove a lock that is still ours: once it belongs to the
-        # next writer, taking it away would let a third one in alongside them.
-        trap 'if [ "$(sed -n "s/^token=//p" "${lock_file}" 2>/dev/null || true)" = "${lock_token}" ]; then rm -f "${lock_file}"; fi; rm -f "${lock_staging}" "${lock_file}.abandoned.$$" 2>/dev/null; true' EXIT
+        # Nothing else is needed to keep writers apart: the app is a single
+        # process that serializes its own writes, and the check above is what
+        # stops this one running alongside it. The offline restore refuses for
+        # the same reason. A power cut partway through is a different problem,
+        # and the journal the app recovers on startup covers that.
         ;;
 
       *) echo '{"ok":false,"error":"Unknown deploy option"}'; exit 1 ;;
@@ -507,15 +408,6 @@ case "${action}" in
     #    After the swap, the rollback dir still contains the old user data.
     #    finalize-deploy will remove rollback (and that stale data copy)
     #    once the new release passes its health check.
-    #
-    #    Prove the lock is still ours immediately before publishing, the same
-    #    way the app does before each write. Copying the data can take minutes,
-    #    which is long enough for this deploy to have been taken over.
-    if [ -n "${lock_token:-}" ] \
-       && [ "$(sed -n 's/^token=//p' "${lock_file}" 2>/dev/null || true)" != "${lock_token}" ]; then
-      echo '{"ok":false,"error":"Something else took over the settings files while this update was preparing, so nothing was changed."}'
-      exit 1
-    fi
     mv "${APP_DIR}" "${rollback_dir}"
     mv "${staging_dir}" "${APP_DIR}"
 

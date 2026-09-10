@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
-import { assertStillOwned, durableRemove, durableWriteFile, withDataTransaction, getDataRoot } from './data-transaction';
+import { durableRemove, durableWriteFile, withDataTransaction, getDataRoot } from './data-transaction';
 
 interface JsonStoreOptions<T> {
   /** File path relative to process.cwd() */
@@ -76,10 +76,6 @@ export function createJsonStore<T>(opts: JsonStoreOptions<T>) {
   async function writeImpl(data: T): Promise<void> {
     const filePath = resolvedPath();
     if (opts.backup) {
-      // The backup lands under the data root like any other write, so it needs
-      // the same permission to be there: without this a writer that lost the
-      // lock would overwrite the copy belonging to whoever took it over.
-      await assertStillOwned();
       try { await fs.copyFile(filePath, filePath + '.bak'); } catch { /* no existing file */ }
     }
     const contents = JSON.stringify(data, null, 2);
