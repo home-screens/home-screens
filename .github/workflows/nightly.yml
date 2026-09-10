@@ -38,7 +38,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  KEEP_NIGHTLIES: 14
+  # Only the current nightly is kept. See the prune job at the bottom.
+  KEEP_NIGHTLIES: 1
 
 jobs:
   prepare:
@@ -126,9 +127,17 @@ jobs:
     if: ${{ needs.prepare.outputs.build == 'true' }}
     runs-on: ubuntu-24.04
     steps:
-      # The app only searches the newest 30 releases, and the Settings list
-      # shows 20, so unbounded nightlies would bury every real release and
-      # fail their own upgrade precheck once they aged out of the window.
+      # Nightlies pile up on the repository's releases page with no way to
+      # hide them (GitHub has no per-release visibility flag, and a draft's
+      # assets need auth to download, so a draft is not installable), and
+      # they would bury every real release: the app only searches the newest
+      # 30 releases and the Settings list shows 20. So only the current one
+      # is kept. That is safe for versioning because scripts/nightly-version.sh
+      # reads nothing but the newest v*-dev.* tag, which prune always leaves.
+      # It does mean a nightly that boots but is broken falls all the way back
+      # to the last stable release: upgrade.sh keeps a local rollback tree,
+      # but finalize-deploy deletes it once the new install answers a health
+      # check. Raise this if anyone outside the project runs the channel.
       # Release and tag go together: a tag with no release would still be
       # counted by the nightly version logic above.
       - name: Delete nightlies beyond the newest KEEP_NIGHTLIES
