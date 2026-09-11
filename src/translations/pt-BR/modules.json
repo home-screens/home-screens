@@ -164,7 +164,8 @@
       "agenda": "Programação",
       "familyGrid": "Família",
       "upNext": "A seguir",
-      "freeTime": "Tempo livre"
+      "freeTime": "Tempo livre",
+      "rolling": "Contínuo"
     },
     "zones": {
       "morning": "Manhã",
