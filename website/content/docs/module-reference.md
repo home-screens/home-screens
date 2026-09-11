@@ -32,7 +32,8 @@ A fullscreen ambient calendar display inspired by Skylight, designed to fill the
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, or `free-time` |
+| `view` | string | `"schedule"` | Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, `free-time`, or `rolling` |
+| `rollingWeeksToShow` | number | `6` | Rolling weeks view: weeks to render, 1–8 |
 | `density` | string | `"cozy"` | Layout density: `cozy` or `snug` |
 | `typographySize` | string | `"medium"` | Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` |
 | `accentColor` | string |, | Accent color for event indicators and highlights. Leave empty to follow the theme's own accent; set a color to pin it |
@@ -104,6 +105,7 @@ The up next view is a fixed box, so when descriptions would push its last row of
 - **family-grid**: People as rows, the week as columns. Each person set up under **Settings > Family** gets a row; events on calendars that belong to nobody sit once on an Everyone row. Without people, every calendar with an event this week gets its own row.
 - **up-next**: The next event, big: title, time, place, countdown (or progress while it is running), then short lists for later today, earlier today, and tomorrow.
 - **free-time**: One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
+- **rolling**: The next few weeks as a grid whose top-left cell is always today. Weekday columns shift one left each midnight, weekends are shaded, and each new month is marked on its first day. `rollingWeeksToShow` sets the week count (1–8, default 6).
 
 **People:** the family grid and free time views read the household list under **Settings > Family**. Choose each person’s calendars under **Settings > Calendar > Whose calendars?** A calendar picked for nobody is shared.
 
@@ -292,13 +294,13 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `viewMode` | string | `"daily"` | View mode: `daily`, `agenda`, `week`, `multi-week`, or `month` |
+| `viewMode` | string | `"daily"` | View mode: `daily`, `agenda`, `week`, `multi-week`, `month`, or `rolling` |
 | `daysToShow` | number | `3` | Number of days ahead to display |
 | `showTime` | boolean | `true` | Show event times |
 | `showLocation` | boolean | `false` | Show event locations |
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/multi-week/month views |
-| `weeksToShow` | number | `6` | Multi-week view: how many weeks to show (2–12), starting with the current week |
+| `weeksToShow` | number | `6` | Multi-week and rolling views: how many weeks to show, 2–12 in multi-week (starting with the current week) and 1–8 in rolling (starting today) |
 | `gridMaxEventsPerCell` | number | `4` | Week/multi-week/month grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week and month cells |
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
 | `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
@@ -327,7 +329,7 @@ Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calenda
 
 **Colored event style:** In `colored` mode, timed events drop the dot and pill and render their start time plus title in the calendar's own color, the time prefix is constant-width and zero-padded (e.g. `08:05 AM`) and follows the household **Time format** setting. All-day events render as solid calendar-color pills with white or near-black text depending on the color's brightness. Day cells list all-day events first, then timed events by start time, in both styles.
 
-**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker.
+**Grid themes:** The multi-week and month views share one grid and one theme. `banner` is the original look. The three newer themes share a cleaner grid, a month heading at the top, small day numbers with a filled badge on today, a ring around today's cell, and multi-day events drawn as one connected bar, and differ in how events render: `clean` shows a short colored time next to a bold title, `minimal` drops times so full titles always fit (best at 6+ weeks or across the room), and `vivid` fills every event with its calendar color for maximum pop. In the month view the days before and after the month are dimmed; in the multi-week view the days already passed this week are dimmed and each new month is marked on its first day. Calendar modules start on `banner`; switch the theme under the View Mode picker. The rolling weeks view (`viewMode: "rolling"`, 1–8 weeks via `weeksToShow`) uses the same themes; its top-left cell is always today, weekend cells are shaded under every theme (banner included), and each new month is marked on its first day.
 
 ### Countdown
 
