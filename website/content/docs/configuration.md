@@ -83,234 +83,69 @@ The configuration has the following structure:
 
 ### Top Level
 
-```typescript
-{
-  version: number             // Config schema version (for migrations)
-  settings: GlobalSettings    // System-wide settings
-  screens: Screen[]           // Array of display screens (used in single-display mode)
-  profiles?: Profile[]        // Named screen groups with optional schedules
-  rules?: DisplayRule[]       // Display rules for single-display mode (multi-display rules live on each DisplayNode)
-  displays?: DisplayNode[]    // Multi-display registry (omitted = single-display mode)
-}
-```
+{% type-reference name="ScreenConfiguration" /%}
 
 The `displays` field is opt-in. When it is undefined or empty, Home Screens runs in single-display mode and renders `screens` directly, this is the default for fresh installs and the unchanged behavior for any existing config that predates the multi-display feature. When `displays` is populated, each entry has its own owned screens, dimensions, and rotation; see [DisplayNode](#display-node-multi-display) below and the [Multi-display guide](/docs/multi-display) for the full multi-display flow.
 
 ### GlobalSettings
 
-```typescript
-{
-  rotationIntervalMs: number    // Screen rotation interval (default: 30000)
-  displayWidth: number          // Canvas width in pixels (default: 1080)
-  displayHeight: number         // Canvas height in pixels (default: 1920)
-  displayTransform?: 'normal' | '90' | '180' | '270'  // Screen rotation (default: '90', portrait)
+{% type-reference name="GlobalSettings" /%}
 
-  latitude: number              // Global location latitude
-  longitude: number             // Global location longitude
-  locationName?: string         // Human-readable location name
-  timezone?: string             // IANA timezone (e.g. "America/Chicago")
+#### SleepSettings
 
-  weather: WeatherSettings      // See WeatherSettings below
-  calendar: CalendarSettings    // See CalendarSettings below
+{% type-reference name="SleepSettings" /%}
 
-  sleep?: {
-    enabled: boolean
-    idleDimEnabled?: boolean    // Dim/sleep on inactivity (absent = true)
-    dimAfterMinutes: number     // Auto-dim after inactivity
-    sleepAfterMinutes: number   // Auto-sleep after inactivity
-    dimBrightness: number       // Dim level (0-100)
-    dimSchedule?: {             // Scheduled dimming
-      startTime: string         // "HH:mm" format
-      endTime: string           // "HH:mm" format
-    }
-    schedule?: {                // Scheduled sleep
-      startTime: string         // "HH:mm" format
-      endTime: string           // "HH:mm" format
-    }
-    wakeHoldMinutes?: number    // How long a wake during a schedule window
-                                // keeps the display on (absent = 5, 0 = none)
-  }
+#### ScreensaverSettings
 
-  screensaver?: {
-    mode: string                // "clock", "blank", or "off"
-  }
+{% type-reference name="ScreensaverSettings" /%}
 
-  cursorHideSeconds?: number      // Seconds of idle before cursor hides (default: 3)
-  activeProfile?: string          // Currently active profile ID
-  transitionEffect?: TransitionEffect  // Screen transition effect
-  transitionDuration?: number     // Transition duration in seconds (default: 0.6)
-  updateChannel?: 'stable' | 'rc' | 'beta' | 'nightly'  // Which builds the update check offers
-                                                         // (default: stable). Each channel also
-                                                         // sees everything more stable than itself.
-  advancedMode?: boolean              // Reveal developer surfaces (the Test builds choice,
-                                       // build details, Plugins > Developer tab). Default false.
+#### AlertSettings
 
-  alerts?: {                      // Display alert overlay settings
-    enabled: boolean
-    position: 'top' | 'bottom'
-    maxVisible: number
-    defaultDuration: number       // ms, 0 means use per-type defaults
-    scale?: number                // 0.75–2.0, default 1.0, scales alert dimensions
-  }
+{% type-reference name="AlertSettings" /%}
 
-  pauseEnabled?: boolean          // Allow double-tap on pagination dot to pause rotation (default true)
-  pauseTimeoutSeconds?: number    // Auto-resume after this many seconds (0 = never, default 300)
-  swipeEnabled?: boolean          // Flick left/right on the touchscreen to change screens (default true)
-  setupHintEnabled?: boolean      // Show the faint setup watermark naming the editor address on a
-                                  // display with no screens to show (default true)
+#### BackupReminderSettings
 
-  backupReminder?: {
-    enabled: boolean              // Show a reminder when backup is overdue (default true)
-    intervalDays: number          // Days between reminders (default 7)
-  }
+{% type-reference name="BackupReminderSettings" /%}
 
-  telemetryEnabled?: boolean      // Enable anonymous usage telemetry (on by default)
+#### UpdateNotificationSettings
 
-  updateNotification?: {
-    enabled: boolean              // Show a banner when a new release is available
-  }
-
-  fullscreenTheme?: string        // Global theme preset for fullscreen modules. One of
-                                  // "linen", "paper", "mist", "sandstone", "vellum", "bloom"
-                                  // (light) or "charcoal", "midnight", "slate", "aurora",
-                                  // "obsidian", "horizon" (dark).
-
-  locale?: string                 // BCP-47 tag (e.g. "en-US", "de-DE"). Defaults to "en-US".
-                                  // Controls display language, dictionary lookup, and (unless
-                                  // formattingLocale overrides it) date/number formatting.
-  formattingLocale?: string       // Optional BCP-47 override that affects ONLY date/number
-                                  // formatting, leaves the active dictionary unchanged.
-                                  // Falls back to `locale` when omitted.
-  timeFormat?: '12h' | '24h'      // Household 12/24-hour preference. Every module that
-                                  // shows a time follows it (calendar and fullscreen
-                                  // calendar including event popups, weather, sports,
-                                  // sunrise-sunset, moon-phase, the fullscreen photo
-                                  // clock, todoist due times), and the meal planner
-                                  // follows it unless its own timeFormat override is
-                                  // set. Clocks follow it when their `hourFormat` is
-                                  // `inherit` (the default for new clocks); older
-                                  // clocks without that key keep their `format24h`.
-                                  // Absent = 12h, except in modules that read the
-                                  // locale's hour cycle when unset (todoist and the
-                                  // photo clock). Global-only like `locale`.
-}
-```
+{% type-reference name="UpdateNotificationSettings" /%}
 
 ### WeatherSettings
 
-```typescript
-{
-  provider: 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo' | 'yr' | 'smhi' | 'metoffice' | 'envcanada'
-  latitude: number            // Weather-specific latitude (overrides global)
-  longitude: number           // Weather-specific longitude (overrides global)
-  units: 'metric' | 'imperial'
-  radarServerUrl?: string     // Rain map radar server (LibreWXR); blank = public instance
-}
-```
+{% type-reference name="WeatherSettings" /%}
 
 ### CalendarSettings
 
-```typescript
-{
-  googleCalendarId: string         // Primary calendar ID (legacy)
-  googleCalendarIds: string[]      // Multiple calendar IDs
-  icalSources: ICalSource[]        // iCal/ICS feed sources
-  icloudSources?: ICloudSource[]   // iCloud calendars picked from connected accounts
-  personSources?: Record<string, string[]> // Family member ID → calendar source IDs
-  daysAhead: number                // Days to look ahead
-  holidayCountry?: string          // ISO 3166-1 alpha-2 country code (e.g. "US")
-  hideDeclined?: boolean           // Google only: skip events the signed-in account declined
-}
-```
+{% type-reference name="CalendarSettings" /%}
 
 The family grid and free time views join `personSources` against `data/family.json`. Manage people under **Settings > Family** and their calendars under **Settings > Calendar > Whose calendars?** A calendar that no person claims is shared by the whole household. Legacy `people` records are preserved by the schema upgrade until the coordinated family migration folds them safely.
 
 ### ICalSource
 
-```typescript
-{
-  id: string
-  type: 'ical'
-  name: string
-  url: string
-  color: string
-  enabled: boolean
-}
-```
+{% type-reference name="ICalSource" /%}
 
 ### ICloudSource
 
-```typescript
-{
-  id: string
-  accountId: string                // ICloudAccount.id in data/icloud-accounts.json
-  kind: 'calendar' | 'birthdays'   // A CalDAV calendar, or contact birthdays via CardDAV
-  url: string                      // CalDAV calendar URL; empty for kind 'birthdays'
-  name: string
-  color: string                    // Apple's calendar color, preserved from iCloud
-  enabled: boolean
-}
-```
+{% type-reference name="ICloudSource" /%}
 
 Account credentials (Apple ID + app-specific password) are **not** stored in the config file, they live in `data/icloud-accounts.json` and are referenced by `accountId`.
 
 ### TransitionEffect
 
-```typescript
-type TransitionEffect =
-  | 'fade' | 'slide' | 'slide-up' | 'zoom'
-  | 'flip' | 'blur' | 'crossfade' | 'none';
-```
+{% type-reference name="TransitionEffect" /%}
 
 ### Screen
 
-```typescript
-{
-  id: string                    // Unique ID (UUID)
-  name: string                  // Display name (shown in editor tabs)
-  enabled?: boolean             // Whether the screen is shown on display (default: true)
-  backgroundImage: string       // Path to background image
-  backgroundRotation?: {        // Optional background rotation
-    enabled: boolean
-    source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud'  // Image source
-    query: string               // Unsplash search query (ignored for other sources)
-    intervalMinutes: number
-    immichAlbumId?: string      // Immich album filter
-    immichPersonId?: string     // Immich person (face) filter
-    immichFavoritesOnly?: boolean  // Only use Immich favorites
-    icloudAlbumUrl?: string     // iCloud shared album link or bare token (icloud source)
-  }
-  modules: ModuleInstance[]     // Modules on this screen
-  rotationDurationMs?: number   // Per-screen override of settings.rotationIntervalMs.
-                                // undefined = inherit; 0 = sticky (no auto-rotation,
-                                // manual advance only); positive = exact ms.
-  schedule?: ModuleSchedule     // Optional show/hide schedule for the whole screen.
-                                // Filtered out of the rotation pool before profile
-                                // resolution; falls back to all enabled screens if
-                                // no scheduled screen currently matches.
-}
-```
+{% type-reference name="Screen" /%}
+
+#### BackgroundRotation
+
+{% type-reference name="BackgroundRotation" /%}
 
 ### ModuleInstance
 
-```typescript
-{
-  id: string                    // Unique ID (UUID)
-  type: ModuleType              // Module type (e.g. "clock", "weather")
-  enabled?: boolean             // false = hidden on display and excluded from
-                                // shared-data fetches; omitted/true = shown
-  position: { x: number, y: number }   // Top-left position in pixels
-  size: { w: number, h: number }       // Width and height in pixels
-  zIndex: number                        // Stacking order
-  config: Record<string, unknown>       // Module-specific configuration
-  style: ModuleStyle                    // Visual styling
-  schedule?: ModuleSchedule             // Optional show/hide schedule
-  visibility?: ModuleVisibility         // Optional conditions over shared state
-  backgroundProvider?: boolean          // true = never rendered on screen; mounts
-                                        // once in a hidden layer so its data loop
-                                        // (and published state) survives rotation
-}
-```
+{% type-reference name="ModuleInstance" /%}
 
 The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met.
 
@@ -318,48 +153,19 @@ The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combine
 
 Controls when a module (or profile) is active based on day of week and time window.
 
-```typescript
-{
-  daysOfWeek?: number[]    // 0=Sun, 1=Mon, ... 6=Sat (omit = every day)
-  startTime?: string       // "06:00" (omit = from midnight)
-  endTime?: string         // "09:00" (omit = until midnight)
-  invert?: boolean         // if true, HIDE during this window instead of show
-}
-```
+{% type-reference name="ModuleSchedule" /%}
 
 ### ModuleVisibility
 
 Shows or hides a module based on values published to the shared state bus. Most values come from plugins, via the SDK's `publishState`. Marking a plugin instance `backgroundProvider` keeps it publishing across screen rotation; the flag has no state-publishing effect on built-in modules, which do not publish anything of their own. Home Screens itself publishes a small set of built-in `calendar.*` values from the display's shared calendar fetch (next event, how many events today, whether something is on right now) whenever a calendar source is configured, those need no module on screen and survive rotation. Conditions follow Home Assistant-style semantics.
 
-```typescript
-{
-  conditions: VisibilityCondition[]   // Implicit AND across the array; met = show
-  whenUnknown?: 'show' | 'hide'       // Outcome while any referenced key is not yet
-                                      // published (default 'hide'); evaluated before
-                                      // the condition tree
-}
-```
+{% type-reference name="ModuleVisibility" /%}
 
-```typescript
-type VisibilityCondition =
-  | { kind: 'state';   sourceKey: string, equals?: string | string[], notEquals?: string | string[] }
-  | {
-      kind: 'numeric'; sourceKey: string
-      above?: number, aboveInclusive?: boolean   // aboveInclusive: >= instead of >
-      below?: number, belowInclusive?: boolean   // belowInclusive: <= instead of <
-    }
-  | {
-      // Local time-of-day / day-of-week gate, no shared-state key, so it
-      // fences a condition tree (or a rule) by the clock. daysOfWeek/startTime/
-      // endTime use the same format as ModuleSchedule (no `invert` here, wrap
-      // in a `not` condition to invert instead). All fields absent means
-      // "always true"; this kind never evaluates to unknown.
-      kind: 'time'; daysOfWeek?: number[], startTime?: string, endTime?: string
-    }
-  | { kind: 'and';     conditions: VisibilityCondition[] }
-  | { kind: 'or';      conditions: VisibilityCondition[] }
-  | { kind: 'not';     conditions: VisibilityCondition[] }
-```
+#### VisibilityCondition
+
+Each condition is one of these shapes, told apart by its `kind`:
+
+{% type-reference name="VisibilityCondition" /%}
 
 `sourceKey` references a published state key (plugin keys are prefixed `plugin:<id>:`, built-in ones are not). Conditions are edited visually in the editor's module Visibility panel; the key picker lists the built-in values first, under **Built-in**, followed by the keys plugins declare in their manifest's `providesState` field or compute from their config via a `deriveProvidedKeys` export. Check the **Or equal to** box next to a numeric bound to make it inclusive. See the [Plugins guide](/docs/plugin-development#shared-state-and-visibility-conditions) for the publishing side.
 
@@ -369,14 +175,7 @@ Save-time limits: at most 32 conditions per module (leaves and groups combined) 
 
 Named groups of screens that can be activated manually or on a schedule.
 
-```typescript
-{
-  id: string                    // Unique ID (UUID)
-  name: string                  // Display name (e.g. "Morning", "Evening")
-  screenIds: string[]           // Subset of screen IDs to show
-  schedule?: ModuleSchedule     // Optional schedule for auto-activation
-}
-```
+{% type-reference name="Profile" /%}
 
 Profiles support overnight windows (e.g. 23:00–06:00). Scheduled profiles take precedence: at each tick the first profile in list order whose schedule matches, and that still resolves to at least one screen, wins. `settings.activeProfile` is the fallback used when no scheduled profile matches. If neither produces screens, all screens are shown.
 
@@ -384,16 +183,7 @@ Profiles support overnight windows (e.g. 23:00–06:00). Scheduled profiles take
 
 A condition → action rule owned by a display. Rules reuse the `VisibilityCondition` tree and evaluator unchanged, but are edge-triggered: a rule fires only on the false→true transition of its conditions, never while they merely stay true, so a reboot or a restarting state producer never slams the display onto an alert screen for a condition that has been true for hours. Rules live under **Settings > Automation > Rules** and are per-display in multi-display setups.
 
-```typescript
-{
-  id: string                      // Unique ID (UUID)
-  name: string                    // e.g. "Doorbell → front camera"
-  enabled?: boolean                // Default true
-  when: VisibilityCondition[]     // Implicit AND, same tree as ModuleVisibility
-  action: RuleAction
-  cooldownSeconds?: number        // Seconds after a firing before it can re-fire. Default 0.
-}
-```
+{% type-reference name="DisplayRule" /%}
 
 When multiple rules could fire at once, the first one in list order wins; reorder rules by dragging their cards. In multi-display setups, a rule can be copied to another display, since screens are per-display, a copied `showScreen` action arrives with its target screen cleared, ready to point at a screen on the new display.
 
@@ -401,62 +191,19 @@ Save-time limit: at most 64 rules per display. The `when` tree obeys the same co
 
 ### RuleAction
 
-```typescript
-type RuleAction =
-  | {
-      kind: 'showScreen'
-      screenId: string             // Resolved against the owning display's screens
-      mode: 'while' | 'for'        // 'while': pinned as long as the condition holds
-                                    // (minimum 5s hold, to smooth out flapping sensors)
-                                    // 'for': shown for `seconds`, then rotation resumes
-      seconds?: number              // Required when mode is 'for'
-    }
-  | { kind: 'wake' }                // Wake from sleep; no-op if already awake
-  | { kind: 'sleep' }               // Sleep, exactly like the remote sleep command; ends any active takeover
-```
+{% type-reference name="RuleAction" /%}
 
 ### DisplayNode (multi-display)
 
 A named display device. Each display owns its own list of screens, designed at its own resolution and orientation. Used in multi-display deployments where one server drives multiple Pi displays. See the [Multi-display guide](/docs/multi-display) for the install and adoption flow.
 
-```typescript
-{
-  id: string                       // URL-safe slug used as the route segment: /display/<id>
-  name: string                     // Human-readable label shown in the editor
-  screens: Screen[]                // Owned screens for this display, designed at its resolution
-  displayWidth?: number            // Canvas width in pixels (overrides GlobalSettings.displayWidth)
-  displayHeight?: number           // Canvas height in pixels (overrides GlobalSettings.displayHeight)
-  displayTransform?: 'normal' | '90' | '180' | '270'  // Per-display rotation
-  profiles?: Profile[]             // Owned profiles for this display
-  activeProfile?: string           // Per-display active profile (falls back to settings.activeProfile)
-  settings?: DisplayNodeSettings   // Per-display setting overrides
-  rules?: DisplayRule[]            // Owned rules for this display (see DisplayRule above)
-}
-```
+{% type-reference name="DisplayNode" /%}
 
 Like `screens`, the `profiles` field is owned by the display: owned profile `screenIds` reference the display's own `screens`, not the global pool. When the first additional display is added to a single-display install, the existing `config.profiles` and `config.settings.activeProfile` migrate onto the auto-created `main` display alongside its screens; subsequent displays start with `profiles: []` so they build fresh against their own screens. In multi-display mode profiles are always per-display, there is no "shared pool" escape hatch, because a pool profile's `screenIds` would silently diverge from each display's owned screens as soon as either one is edited.
 
 `DisplayNodeSettings` is a subset of `GlobalSettings` that can be overridden per display. Nested objects (`sleep`, `screensaver`, `alerts`) are full-replacement, not deep-merged, override the whole object or omit it:
 
-```typescript
-{
-  displayWidth?: number
-  displayHeight?: number
-  displayTransform?: 'normal' | '90' | '180' | '270'
-  rotationIntervalMs?: number
-  transitionEffect?: TransitionEffect
-  transitionDuration?: number
-  sleep?: SleepSettings
-  screensaver?: ScreensaverSettings
-  alerts?: AlertSettings
-  fullscreenTheme?: string
-  cursorHideSeconds?: number
-  pauseEnabled?: boolean
-  pauseTimeoutSeconds?: number
-  swipeEnabled?: boolean
-  setupHintEnabled?: boolean
-}
-```
+{% type-reference name="DisplayNodeSettings" /%}
 
 Per-display location overrides (`latitude`, `longitude`, `locationName`, `timezone`) are intentionally **not** available: the weather, air-quality, and calendar API routes read location via `readConfig()` directly rather than through `filterConfigForDisplay`, so a per-display override would only affect client rendering while the upstream fetch still used the hub's coordinates.
 
@@ -484,79 +231,11 @@ Per-display dimension fields (top-level on the DisplayNode) override the equival
 
 There are {% $stats.moduleCount %} built-in module types. Plugin modules use the `plugin:<name>` format.
 
-```typescript
-type BuiltinModuleType =
-  | 'clock'
-  | 'calendar'
-  | 'weather'
-  | 'countdown'
-  | 'dad-joke'
-  | 'text'
-  | 'image'
-  | 'video'
-  | 'quote'
-  | 'todo'
-  | 'sticky-note'
-  | 'greeting'
-  | 'news'
-  | 'stock-ticker'
-  | 'crypto'
-  | 'word-of-day'
-  | 'history'
-  | 'moon-phase'
-  | 'sunrise-sunset'
-  | 'photo-slideshow'
-  | 'qr-code'
-  | 'year-progress'
-  | 'traffic'
-  | 'sports'
-  | 'air-quality'
-  | 'todoist'
-  | 'rain-map'
-  | 'multi-month'
-  | 'garbage-day'
-  | 'standings'
-  | 'affirmations'
-  | 'date'
-  | 'display-control'
-  | 'meal-planner'
-  | 'iframe'
-  | 'icon'
-  | 'shape'
-  | 'chore-chart'
-  | 'fullscreen-calendar'
-  | 'fullscreen-chore-chart'
-  | 'fullscreen-meal-planner'
-  | 'fullscreen-photo';
-
-type PluginModuleType = `plugin:${string}`;
-
-type ModuleType = BuiltinModuleType | PluginModuleType;
-```
+{% type-reference name="BuiltinModuleType" /%}
 
 ### ModuleStyle
 
-```typescript
-{
-  opacity: number               // 0–1
-  borderRadius: number          // Pixels
-  padding: number               // Pixels
-  backgroundColor: string      // CSS color (e.g. "rgba(0,0,0,0.4)")
-  textColor: string             // CSS color (e.g. "#ffffff")
-  fontFamily: string            // Font registry id (default "inter"); see the list below
-  fontSize: number              // Text size in pixels (the smallest size, on modules that fit text
-                                //   to the box); stands as it is when textScale is absent
-  textScale?: number            // Text size, 10-450, percent of what the module shows on its own
-                                //   (the fitted size, or the base pixel size); absent = fontSize stands
-  fontWeight?: number           // Numeric weight 100–900; omitted = normal (400)
-  title?: string                // Centered title strip above the module content; omitted or empty = no strip
-  titleFontSize?: number        // Title font size in pixels; omitted = same as fontSize
-  backdropBlur: number          // Backdrop blur in pixels
-  borderWidth: number           // Border width in pixels
-  borderColor: string           // CSS color for border
-  shadowSize: number            // Box shadow size in pixels
-}
-```
+{% type-reference name="ModuleStyle" /%}
 
 `title` and `titleFontSize` only apply to modules that render the standard card frame. Plugin modules and Display Control draw their content without the card, so a title strip can never appear on them, the editor hides the Card Title fields for those modules, and both keys are dropped from a plugin manifest's `defaultStyle` when a module is placed.
 
@@ -574,44 +253,27 @@ Three features deliberately keep their data **outside** `config.json`. The per-m
 
 The meal library, weekly plan, grocery check-offs, and household-wide planning settings, written atomically via `/api/meals/data`. Settings live here rather than on each module so `/remote` and every meal-planner instance agree.
 
-```typescript
-{
-  settings: MealSettings      // Household-wide planning settings (enabled slots, week start, slot times, time format)
-  savedMeals: SavedMeal[]     // Meal library (name, emoji, tags, prep/cook time, difficulty, ingredients, etc.)
-  plan: PlannedMeal[]         // Weekly schedule entries
-  groceryChecked: string[]    // Ingredient names that have been checked off. The grocery
-                              // list itself is derived from the planned meals' ingredients
-                              // and is not stored.
-}
-```
+{% type-reference name="MealData" /%}
+
+#### SavedMeal
+
+Each entry in `savedMeals`:
+
+{% type-reference name="SavedMeal" /%}
+
+Each of its `ingredients`:
+
+{% type-reference name="MealIngredient" /%}
 
 `MealSettings` is edited from the `/remote` Meals tab so every meal module on every display stays consistent:
 
-```typescript
-{
-  enabledSlots: ('breakfast' | 'lunch' | 'dinner' | 'snack')[]
-  weekStartDay: 'sunday' | 'monday'
-  defaultSlotTimes: { breakfast?: string; lunch?: string; dinner?: string; snack?: string }  // "HH:MM" 24h
-  timeFormat?: '12h' | '24h'   // Absent = follow GlobalSettings.timeFormat
-}
-```
+{% type-reference name="MealSettings" /%}
 
 `timeFormat` is optional: when omitted (the default), meal times follow the household `GlobalSettings.timeFormat`; an explicit `'12h'`/`'24h'` wins everywhere meals are shown. Versions before this setting existed wrote `'12h'` into every file whether or not the user had touched the picker, so on first read after upgrading, a stored `'12h'` is treated as never-configured and removed once (a `timeFormatLegacyStripped` marker in the file keeps a later deliberate `'12h'` pick from being stripped again). A stored `'24h'` was always deliberate and survives as an explicit override.
 
 Each `PlannedMeal` uses an ISO date string to support multi-week planning:
 
-```typescript
-{
-  date: string                // ISO date (e.g. "2026-04-04")
-  slot: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  mealId?: string             // References a SavedMeal.id
-  customText?: string         // Freeform text (e.g. "Eating out", "Leftovers")
-  notes?: string
-  time?: string               // Serving time, "HH:MM" 24h. Overrides
-                              // settings.defaultSlotTimes[slot] for this one entry,
-                              // so Tuesday's dinner can be at 18:30 and Friday's at 19:00.
-}
-```
+{% type-reference name="PlannedMeal" /%}
 
 Old configs that used `day: number` (day-of-week index) are automatically migrated to ISO date format on first read.
 
@@ -619,22 +281,11 @@ Old configs that used `day: number` (day-of-week index) are automatically migrat
 
 The shared household roster, edited under **Settings > Family** or `/remote` > Settings > Family. `/api/family` returns its members and a revision required for writes.
 
-```typescript
-interface FamilyMember {
-  id: string
-  name: string
-  emoji?: string
-  color: string
-  createdAt: string
-  updatedAt: string
-}
+{% type-reference name="FamilyData" /%}
 
-interface FamilyData {
-  members: FamilyMember[]
-  migrated?: boolean
-  aliasIds?: Record<string, string> // Legacy calendar ID → member ID
-}
-```
+Each entry in `members`:
+
+{% type-reference name="FamilyMember" /%}
 
 Chore identities survive migration and legacy restore by ID. Calendar identities are matched by ID or alias first, then by a unique normalized name. Existing rosters over 64 people and long legacy names are retained. The authoring API limits new additions to 64 people and new names to 40 characters.
 
@@ -642,39 +293,17 @@ Chore identities survive migration and legacy restore by ID. Calendar identities
 
 Chore definitions, served by `/api/chores/data` and edited from the `/remote` Chores tab. Family members are read separately from `/api/family`.
 
-```typescript
-{
-  chores: ChoreDefinition[]
-}
-```
+{% type-reference name="ChoreData" /%}
 
-```typescript
-interface ChoreDefinition {
-  id: string
-  name: string
-  emoji: string
-  points: number            // 0 or greater (a 0-point chore has no reward impact)
-  frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
-  specificDate?: string     // Only used when frequency === 'once'. ISO YYYY-MM-DD.
-  daysOfWeek: number[]
-  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'anytime'
-  assigneeIds: string[]
-  rotation: 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule'
-  schedule?: Record<string, number[]>  // memberId → days-of-week (0–6).
-                                        // Only used when rotation === 'schedule'.
-                                        // Lets you assign different members to
-                                        // different days, e.g. Alice Mon/Wed,
-                                        // Bob Tue/Thu, everyone Fri–Sun.
-}
-```
+{% type-reference name="ChoreDefinition" /%}
 
 Completions live in a **separate** file, `data/chore-completions.json`, served by `/api/chores`:
 
-```typescript
-{
-  completions: { choreId: string; memberId: string; date: string }[]  // date is YYYY-MM-DD
-}
-```
+{% type-reference name="CompletionsData" /%}
+
+Each entry in `completions`:
+
+{% type-reference name="ChoreCompletion" /%}
 
 ### data/todos.json
 
@@ -697,7 +326,7 @@ In the editor you pick a resolution and an orientation separately: four presets,
 
 ## Config Migrations
 
-Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load. The current schema version is **10**.
+Config files include a `version` number. When the schema changes between releases, migrations in `src/lib/migrations/` automatically transform older configs to the current format on load. The current schema version is **{% $schemaVersion %}**.
 
 Migration runs when the config is read and the result is written back to disk automatically, so `version` in `data/config.json` updates itself the first time newer code reads an older config. If a migration fails, the un-migrated config is returned as-is rather than falling back to defaults, so a bad upgrade can never quietly replace your setup with an empty one.
 
@@ -746,7 +375,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 10,
+  "version": 13,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

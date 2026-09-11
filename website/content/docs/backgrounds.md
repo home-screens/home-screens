@@ -269,4 +269,4 @@ Portrait-oriented images work best for the default portrait display layout. Unsp
 
 - [Modules](/docs/modules#media-and-display): the Photo Slideshow and Full-Screen Photo Viewer
 - [On your phone](/docs/remote-control): uploading photos from the family remote
-- For developers: the per-screen fields are in the [Configuration reference](/docs/configuration#screen) and the endpoints under [Backgrounds](/docs/api#backgrounds) in the API reference
+- For developers: the per-screen fields are in the [Configuration reference](/docs/configuration#screen) and the endpoints under [All endpoints](/docs/api#all-endpoints) in the API reference

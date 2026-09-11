@@ -186,7 +186,7 @@ A fresh install does not ship coordinates: `settings.weather.latitude` and `long
 
 ### API Routes
 
-API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are 120 route files; the table below groups them by area. Request and response shapes for each one are documented on the [API Reference](/docs/api) page, which is the authoritative list.
+API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for external services. There are {% $routeCount %} route files; the table below groups them by area. The [API Reference](/docs/api) documents the ones scripts and home automation call and lists every route with the access it needs, generated from the route files. For the rest, the route file is the reference.
 
 | Category | Routes | Purpose |
 |---|---|---|

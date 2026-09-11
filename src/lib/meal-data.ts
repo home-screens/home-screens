@@ -12,17 +12,28 @@ const log = logger('meal-settings-migration');
 // ── Data shape ────────────────────────────────
 
 export interface MealData {
+  /** The meal library (see SavedMeal below) */
   savedMeals: SavedMeal[];
+  /** Planned meals, one entry per day and slot (see PlannedMeal) */
   plan: PlannedMeal[];
-  /** Ingredient names that have been checked off */
+  /**
+   * Ingredient names checked off the grocery list. The list itself is built from the planned meals
+   * and is not stored
+   *
+   * Ingredient names that have been checked off
+   */
   groceryChecked: string[];
   /**
+   * Household meal settings (see MealSettings)
+   *
    * Shared planning settings (which slots are enabled, week start day, default
    * serving times). These used to live on each module's config — moved here so
    * that /remote and all meal-planner module instances stay in sync.
    */
   settings: MealSettings;
   /**
+   * Set once the app has cleared an old time-format default from `settings`; leave it alone
+   *
    * One-time migration marker: the legacy-default '12h' has been stripped
    * from `settings.timeFormat`. Guards against re-stripping a fresh explicit
    * '12h' picked after the migration — see parseAndMigrate.

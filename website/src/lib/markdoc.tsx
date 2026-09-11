@@ -6,6 +6,7 @@ import yaml from 'js-yaml'
 import React from 'react'
 
 import * as markdocConfig from '@/markdoc/config'
+import { expandGeneratedTags, loadDocsSchema } from '@/markdoc/generated.mjs'
 import nodes from '@/markdoc/nodes'
 import tags from '@/markdoc/tags'
 
@@ -99,7 +100,9 @@ export function readFrontmatter(collection: string, slug: string): Frontmatter {
  */
 export function renderMarkdoc(collection: string, slug: string) {
   const source = fs.readFileSync(contentPath(collection, slug), 'utf8')
-  const ast = Markdoc.parse(source)
+  // The Reference pages' generated tables become ordinary nodes here, so the
+  // table of contents below sees their headings (see markdoc/generated.mjs).
+  const ast = expandGeneratedTags(Markdoc.parse(source))
 
   const frontmatter = (ast.attributes.frontmatter
     ? yaml.load(ast.attributes.frontmatter)
@@ -116,6 +119,8 @@ export function renderMarkdoc(collection: string, slug: string) {
     tags: tagSchema,
     variables: {
       ...markdocConfig.variables,
+      schemaVersion: loadDocsSchema().schemaVersion,
+      routeCount: loadDocsSchema().routes.length,
       markdoc: { frontmatter },
     },
   })

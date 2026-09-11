@@ -6,6 +6,8 @@ import * as path from 'path'
 import { createLoader } from 'simple-functional-loader'
 import * as url from 'url'
 
+import { expandGeneratedTags, schemaPath } from './generated.mjs'
+
 const __filename = url.fileURLToPath(import.meta.url)
 const slugify = slugifyWithCounter()
 
@@ -135,6 +137,9 @@ export function buildSearchData(contentDir, cache = new Map()) {
   // Docs only: blog posts share words with every guide and were outranking
   // the page that answers the question.
   let files = glob.sync('docs/**/*.md', { cwd: contentDir })
+  // A page with generated tables changes when schema.json does, even if its
+  // markdown did not.
+  let schemaStamp = fs.statSync(schemaPath(contentDir)).mtimeMs
   return files.map((file) => {
     // content/docs/index.md -> /docs, content/docs/api.md -> /docs/api
     let url = `/${file.replace(/\.md$/, '').replace(/\/index$/, '')}`
@@ -142,14 +147,14 @@ export function buildSearchData(contentDir, cache = new Map()) {
 
     let sections
 
-    if (cache.get(file)?.[0] === md) {
+    if (cache.get(file)?.[0] === md && cache.get(file)?.[2] === schemaStamp) {
       sections = cache.get(file)[1]
     } else {
-      let ast = Markdoc.parse(md)
+      let ast = expandGeneratedTags(Markdoc.parse(md), contentDir)
       let title = ast.attributes?.frontmatter?.match(/^title:\s*(.*?)\s*$/m)?.[1]
       sections = [[title, null, [], null]]
       extractSections(ast, sections)
-      cache.set(file, [md, sections])
+      cache.set(file, [md, sections, schemaStamp])
     }
 
     return { url, sections }
