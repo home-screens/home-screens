@@ -131,6 +131,39 @@ describe('prefs-cleanup copies match clear_chromium_crash_state', () => {
   });
 });
 
+describe('labwc fullscreen-rule heal is identical in every launcher path', () => {
+  // --kiosk makes Chromium request fullscreen itself; the labwc window rule
+  // older installs carry toggles it straight back off. Each place that starts
+  // Chromium under a live labwc must strip the rule and reload labwc first,
+  // and the copies must not drift.
+  const HEAL = [
+    'LABWC_RC="${HOME}/.config/labwc/rc.xml"',
+    `if [ -f "\${LABWC_RC}" ] && grep -q 'ToggleFullscreen' "\${LABWC_RC}"; then`,
+    `  sed -i '/ToggleFullscreen/d' "\${LABWC_RC}"`,
+    '  pkill -HUP -x labwc 2>/dev/null || true',
+    'fi',
+  ].join('\n');
+
+  it('kiosk-launcher-display.sh heals before exec', () => {
+    const source = read('kiosk-launcher-display.sh');
+    expect(source).toContain(HEAL);
+    expect(source.indexOf(HEAL)).toBeLessThan(source.indexOf('exec chromium \\'));
+  });
+
+  it('upgrade.sh carries it in the hub launcher heredoc and the relaunch fallback', () => {
+    // The relaunch fallback is nested inside a case arm, so compare with all
+    // leading indentation removed from both sides.
+    const flat = (text: string) => text.replace(/^ +/gm, '');
+    const source = flat(read('upgrade.sh').replaceAll(`'"'"'`, "'"));
+    expect(source.split(flat(HEAL)).length - 1).toBe(2);
+  });
+
+  it('neither rc.xml template still fires ToggleFullscreen', () => {
+    expect(read('install.sh')).not.toContain('<action name="ToggleFullscreen"/>');
+    expect(read('upgrade.sh')).not.toContain('<action name="ToggleFullscreen"/>');
+  });
+});
+
 describe('translate-prompt copies match disable_chromium_translate_prompt', () => {
   // Chromium's "Translate this page?" bubble is gated on the translate.enabled
   // profile pref, not on any command-line flag (--disable-translate has been a

@@ -136,6 +136,17 @@ else
   ) &
 fi
 
+# Chromium's --kiosk flag requests fullscreen itself. labwc configs written
+# before that flag fired ToggleFullscreen on every new window, which flipped
+# Chromium's fullscreen straight back off and left its app title strip on
+# screen. labwc has no non-toggle fullscreen action, so the rule has to go:
+# strip it from an older rc.xml and reload labwc before Chromium maps.
+LABWC_RC="${HOME}/.config/labwc/rc.xml"
+if [ -f "${LABWC_RC}" ] && grep -q 'ToggleFullscreen' "${LABWC_RC}"; then
+  sed -i '/ToggleFullscreen/d' "${LABWC_RC}"
+  pkill -HUP -x labwc 2>/dev/null || true
+fi
+
 # Flag list must stay in step with the hub launcher in upgrade.sh and with
 # start-display.sh. --remote-debugging-port is what lets a deploy reload the
 # page over CDP instead of killing and relaunching the browser.
@@ -147,6 +158,7 @@ exec chromium \
   --disable-session-crashed-bubble \
   --autoplay-policy=no-user-gesture-required \
   --overscroll-history-navigation=0 \
+  --kiosk \
   --check-for-update-interval=31536000 \
   --password-store=basic \
   --ozone-platform=wayland \

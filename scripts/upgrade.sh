@@ -592,6 +592,16 @@ case "${action}" in
 
       pkill chromium 2>/dev/null || true
       sleep 2
+      # Chromium's --kiosk flag requests fullscreen itself. labwc configs written
+      # before that flag fired ToggleFullscreen on every new window, which flipped
+      # Chromium's fullscreen straight back off and left its app title strip on
+      # screen. labwc has no non-toggle fullscreen action, so the rule has to go:
+      # strip it from an older rc.xml and reload labwc before Chromium maps.
+      LABWC_RC="${HOME}/.config/labwc/rc.xml"
+      if [ -f "${LABWC_RC}" ] && grep -q 'ToggleFullscreen' "${LABWC_RC}"; then
+        sed -i '/ToggleFullscreen/d' "${LABWC_RC}"
+        pkill -HUP -x labwc 2>/dev/null || true
+      fi
       # Detect whether dbus-run-session is needed at runtime rather than
       # relying solely on kiosk.conf — self-healing if the config is missing.
       NEED_DBUS=false
@@ -619,6 +629,7 @@ case "${action}" in
           --enable-zero-copy
           --num-raster-threads=2
           --force-gpu-mem-available-mb=256
+          --kiosk
           --check-for-update-interval=31536000
           --password-store=basic
           --ozone-platform=wayland
@@ -1046,8 +1057,18 @@ for _i in $(seq 1 120); do
   sleep 1
 done
 
-# Launch Chromium in app mode (chromeless window — no tabs, no address bar).
-# labwc'"'"'s window rule handles fullscreen via ToggleFullscreen.
+# Chromium'"'"'s --kiosk flag requests fullscreen itself. labwc configs written
+# before that flag fired ToggleFullscreen on every new window, which flipped
+# Chromium'"'"'s fullscreen straight back off and left its app title strip on
+# screen. labwc has no non-toggle fullscreen action, so the rule has to go:
+# strip it from an older rc.xml and reload labwc before Chromium maps.
+LABWC_RC="${HOME}/.config/labwc/rc.xml"
+if [ -f "${LABWC_RC}" ] && grep -q '"'"'ToggleFullscreen'"'"' "${LABWC_RC}"; then
+  sed -i '"'"'/ToggleFullscreen/d'"'"' "${LABWC_RC}"
+  pkill -HUP -x labwc 2>/dev/null || true
+fi
+
+# Launch Chromium in app mode. --kiosk makes it fullscreen on its own.
 # --remote-debugging-port enables programmatic page reload after deploys/upgrades
 # GPU flags improve animation/transition smoothness on the Pi
 exec chromium \
@@ -1058,6 +1079,7 @@ exec chromium \
   --disable-session-crashed-bubble \
   --autoplay-policy=no-user-gesture-required \
   --overscroll-history-navigation=0 \
+  --kiosk \
   --check-for-update-interval=31536000 \
   --password-store=basic \
   --ozone-platform=wayland \
@@ -1084,9 +1106,7 @@ exec chromium \
     DESIRED_RC='<?xml version="1.0"?>
 <labwc_config>
   <windowRules>
-    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes">
-      <action name="ToggleFullscreen"/>
-    </windowRule>
+    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes" />
   </windowRules>
   <keyboard>
     <keybind key="W-h">
@@ -1098,6 +1118,11 @@ exec chromium \
     if [ ! -f "${LABWC_DIR}/rc.xml" ] || [ "$(cat "${LABWC_DIR}/rc.xml")" != "${DESIRED_RC}" ]; then
       echo "${DESIRED_RC}" > "${LABWC_DIR}/rc.xml"
       changed="${changed}labwc-rc,"
+      # A running labwc keeps its rules in memory, so reload it: otherwise a
+      # Chromium relaunch under this session would still meet the old rules
+      # (the ToggleFullscreen rule undoes --kiosk's fullscreen). No labwc runs
+      # inside the image-build chroot, and pkill's miss is harmless there.
+      pkill -HUP -x labwc 2>/dev/null || true
     fi
 
     # 8c. Remove stale Chromium launch from labwc autostart (if present).

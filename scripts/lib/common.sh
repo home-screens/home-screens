@@ -170,7 +170,15 @@ CHROMIUM_KIOSK_FLAGS=(
   --force-gpu-mem-available-mb=256
 )
 
+# --kiosk is what turns off the page context menu: on a touchscreen a long
+# press otherwise opens Chromium's own menu (Back, Reload, Save as, Inspect)
+# and lets someone leaning on the wall leave the display. Chromium gates the
+# menu on this exact switch (RenderViewContextMenuViews::Show returns early),
+# and no other flag or policy covers it. Pi-only because it also forces
+# fullscreen with no keyboard exit and refuses the DevTools window, neither of
+# which a developer running start-display.sh wants.
 CHROMIUM_KIOSK_PI_FLAGS=(
+  --kiosk
   --check-for-update-interval=31536000
   --password-store=basic
   --ozone-platform=wayland

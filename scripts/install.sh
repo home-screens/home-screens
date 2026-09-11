@@ -328,9 +328,7 @@ if [ "${DISPLAY_ONLY}" = "true" ]; then
 <?xml version="1.0"?>
 <labwc_config>
   <windowRules>
-    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes">
-      <action name="ToggleFullscreen"/>
-    </windowRule>
+    <windowRule identifier="*" serverDecoration="no" skipTaskbar="yes" skipWindowSwitcher="yes" />
   </windowRules>
   <keyboard>
     <keybind key="W-h">
