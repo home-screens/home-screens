@@ -30,11 +30,16 @@ export async function launchServer(dataFiles: Record<string, unknown> = {}): Pro
   }
   const sandboxDir = createSandbox(dataFiles);
   const port = await getFreePort();
+  // The server pins its data root from HOME_SCREENS_DIR ahead of cwd, so a
+  // stray export in the developer's shell would point this worker at the real
+  // data/ instead of its sandbox.
+  const childEnv: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: 'production', HS_TRUSTED_PROXIES: '127.0.0.1' };
+  delete childEnv.HOME_SCREENS_DIR;
   const child = spawn(
     path.join(REPO_ROOT, 'node_modules', '.bin', 'next'),
     ['start', '-p', String(port), '-H', '127.0.0.1'],
     // HS_TRUSTED_PROXIES trusts the loopback peer so specs can bucket rate-limit state under a fake X-Forwarded-For IP without poisoning the shared 127.0.0.1 peer bucket for other files on this worker.
-    { cwd: sandboxDir, env: { ...process.env, NODE_ENV: 'production', HS_TRUSTED_PROXIES: '127.0.0.1' }, stdio: 'pipe' },
+    { cwd: sandboxDir, env: childEnv, stdio: 'pipe' },
   );
   let stderr = '';
   child.stderr?.on('data', (d) => { stderr += String(d); });

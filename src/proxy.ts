@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { readFileSync, statSync } from 'fs';
 import path from 'path';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
+import { getDataRoot } from '@/lib/data-root';
 import { isDisallowedCrossOriginWrite, parseAllowedOrigins } from '@/lib/same-origin';
 
 /* ─── Cached auth config ─────────────────────── */
@@ -42,7 +43,7 @@ function authFileSignature(filePath: string): string {
  * Returns auth-enabled flag plus IP allowlist state for access restriction.
  */
 function getAuthConfig(): AuthConfig {
-  const filePath = path.join(process.cwd(), 'data', 'auth.json');
+  const filePath = path.join(getDataRoot(), 'data', 'auth.json');
   const signature = authFileSignature(filePath);
   if (authConfigCache && authConfigCache.signature === signature) {
     return authConfigCache.value;

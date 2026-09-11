@@ -20,6 +20,12 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// getDataRoot() consults HOME_SCREENS_DIR ahead of process.cwd(), so a stray
+// export in the developer's shell would send every store write to the real
+// data/ while the cwd-based writers stayed in the sandbox. Chdir alone does
+// not contain that, so drop the variable before anything resolves a path.
+delete process.env.HOME_SCREENS_DIR;
+
 // Derive the repo root from this file's location, NOT process.cwd() — when a
 // worker process is reused across test files, cwd is already a sandbox.
 const repoRoot = path.dirname(fileURLToPath(import.meta.url));

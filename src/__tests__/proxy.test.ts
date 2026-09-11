@@ -1109,3 +1109,35 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
     expect(await is403IpRestricted(result)).toBe(true);
   });
 });
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Data root — the gate must read the auth.json the stores write
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+describe('proxy — auth.json resolves from the data root, not the cwd', () => {
+  const origEnv = process.env.HOME_SCREENS_DIR;
+
+  afterEach(() => {
+    if (origEnv === undefined) delete process.env.HOME_SCREENS_DIR;
+    else process.env.HOME_SCREENS_DIR = origEnv;
+  });
+
+  /*
+   * The store writes auth.json under the pinned data root; this gate used to
+   * read it from process.cwd(). On a non-default install path the two are
+   * different directories, the read ENOENTs, and a missing file means "no
+   * password" — so the gate fails OPEN and admits cookie-less writes. The
+   * stat signature ENOENTs to a stable 'missing' too, so the cache never
+   * re-checks and it stays open for the life of the process.
+   */
+  it('reads auth.json under HOME_SCREENS_DIR when it differs from the cwd', async () => {
+    process.env.HOME_SCREENS_DIR = '/srv/home-screens';
+    const proxy = await loadProxyWithAuth('enabled');
+
+    proxy(makeRequest('/editor'));
+
+    const expected = ['/srv/home-screens', 'data', 'auth.json'].join('/');
+    expect(mockStatSync).toHaveBeenCalledWith(expected, expect.anything());
+    expect(mockReadFileSync).toHaveBeenCalledWith(expected, 'utf-8');
+  });
+});

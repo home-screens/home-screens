@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createJsonStore } from './json-store';
+import { getDataRoot } from './data-root';
 
 /* ─── Types ──────────────────────────────────── */
 
@@ -79,7 +80,7 @@ let unreadableStats = 0;
  */
 async function authFileSignature(): Promise<string> {
   try {
-    const st = await fs.stat(path.join(process.cwd(), AUTH_FILE));
+    const st = await fs.stat(path.join(getDataRoot(), AUTH_FILE));
     return `${st.ino}:${st.size}:${st.mtimeMs}`;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return 'missing';

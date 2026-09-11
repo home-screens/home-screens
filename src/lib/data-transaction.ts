@@ -3,7 +3,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { DataTransactionError } from './family-errors';
+import { getDataRoot as pinnedDataRoot } from './data-root';
 export { DataTransactionError } from './family-errors';
+export { pinDataRoot } from './data-root';
 
 export const DATA_JOURNAL_PATH = 'data/family-transaction.json';
 export interface TransactionChange { path: string; before: string | null; after: string | null; mode?: number; dirMode?: number }
@@ -25,7 +27,6 @@ interface Journal extends DataTransactionPlan {
 }
 interface Context { root: string; active: boolean }
 interface CoordinatorState {
-  root?: string;
   context: AsyncLocalStorage<Context>;
   queues: Map<string, Promise<void>>;
   retryAfter: Map<string, number>;
@@ -35,17 +36,12 @@ const key = Symbol.for('home-screens.data-transaction.v1');
 const globals = globalThis as typeof globalThis & { [key]?: CoordinatorState };
 const state: CoordinatorState = globals[key] ??= { context: new AsyncLocalStorage<Context>(), queues: new Map(), retryAfter: new Map(), listeners: new Set() };
 
-/** Pin the application pathname at server/CLI startup, before a release swap
- * can move the working-directory inode into the rollback tree. */
-export function pinDataRoot(root = process.env.HOME_SCREENS_DIR || process.cwd()): void {
-  const resolved = path.resolve(root);
-  if (state.root && state.root !== resolved) throw new Error('The application data root is already set.');
-  state.root = resolved;
-}
-
+/** The root this call should use: inside a transaction, the one that
+ *  transaction started with, so a re-pin or a cwd move cannot shift it
+ *  halfway through. Outside one, whatever data-root resolves. */
 export function getDataRoot(): string {
   const inherited = state.context.getStore();
-  return inherited?.active ? inherited.root : state.root ?? process.env.HOME_SCREENS_DIR ?? process.cwd();
+  return inherited?.active ? inherited.root : pinnedDataRoot();
 }
 
 const hash = (contents: string | null) => createHash('sha256').update(contents === null ? 'absent' : `file:${contents}`).digest('hex');
