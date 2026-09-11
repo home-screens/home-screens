@@ -72,7 +72,8 @@ export function collectSections(
     if (isH2Node(node) || isH3Node(node)) {
       const title = getNodeText(node)
       if (title) {
-        const id = slugify(title)
+        // An explicit `{% #id %}` wins, as it does for the rendered heading.
+        const id = node.attributes.id ?? slugify(title)
         if (isH3Node(node)) {
           if (!sections[sections.length - 1]) {
             throw new Error(

@@ -4,6 +4,7 @@ import { settleFamilyMigration } from './family-data';
 import { withDataTransaction } from './data-transaction';
 
 export interface ChoreData {
+  /** Chore definitions (see ChoreDefinition) */
   chores: ChoreDefinition[];
 }
 

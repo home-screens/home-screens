@@ -2,6 +2,10 @@ import type { ChoreCompletion } from '@/types/config';
 import { createJsonStore } from './json-store';
 
 export interface CompletionsData {
+  /**
+   * Chores done, one entry per person per day (see ChoreCompletion). Entries older than 90 days are
+   * removed
+   */
   completions: ChoreCompletion[];
 }
 

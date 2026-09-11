@@ -18,7 +18,7 @@ const log = logger('config');
 // `getLatestSchemaVersion()` so adding a new migration automatically updates
 // fresh installs — otherwise they'd trigger an unnecessary migrate-on-boot
 // write on first read. Any new required fields still need to be added here.
-const DEFAULT_CONFIG: ScreenConfiguration = {
+export const DEFAULT_CONFIG: ScreenConfiguration = {
   version: getLatestSchemaVersion(),
   settings: {
     rotationIntervalMs: 30000,
