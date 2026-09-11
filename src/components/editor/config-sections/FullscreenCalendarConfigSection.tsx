@@ -394,7 +394,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         {view === 'day-timeline' && (
           <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
         )}
-        {(view === 'schedule' || view === 'month-grid') && (
+        {(view === 'schedule' || view === 'month-grid' || view === 'rolling') && (
           <Toggle
             label={t('configSections.fullscreen-calendar.wrapEventTitles')}
             checked={c.wrapEventTitles === true}
