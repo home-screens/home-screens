@@ -1112,7 +1112,8 @@ describe('rolling view', () => {
     );
     const cells = container.querySelectorAll('div.grid.flex-1 > div');
     // Rolling anchors at today (Jul 15) with no week-number cells, so flat
-    // cell 15 + 17 days = Aug 1 is the only month start in the 3-week window.
+    // cell 17 (Jul 15 + 17 days = Aug 1) is the only month start in the
+    // 3-week window.
     expect((cells[17] as HTMLElement).textContent).toContain('Aug');
   });
 });

@@ -301,12 +301,12 @@ Shows upcoming events from any iCal feed, Google Calendar (via iCal URL or OAuth
 | `maxEvents` | number | `20` | Maximum number of events to display |
 | `showWeekNumbers` | boolean | `false` | Show week numbers in week/multi-week/month views |
 | `weeksToShow` | number | `6` | Multi-week and rolling views: how many weeks to show, 2–12 in multi-week (starting with the current week) and 1–8 in rolling (starting today) |
-| `gridMaxEventsPerCell` | number | `4` | Week/multi-week/month grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week and month cells |
+| `gridMaxEventsPerCell` | number | `4` | Week/multi-week/month/rolling grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week, month and rolling cells |
 | `startDay` | string | `"sunday"` | First day of the week in the week/multi-week/month grids: `sunday` or `monday` |
-| `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below) |
+| `gridEventStyle` | string | `"classic"` | Event rendering in the week/multi-week/month/rolling grids: `classic` (colored dot on a light pill) or `colored` (see below) |
 | `gridEventPillBackground` | boolean | `false` | Colored style: faint background behind timed events |
-| `gridTheme` | string | `"banner"` | Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
-| `gridDayLabelScale` | number | `1` | Week/multi-week/month grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell |
+| `gridTheme` | string | `"banner"` | Multi-week, month and rolling grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them |
+| `gridDayLabelScale` | number | `1` | Week/multi-week/month/rolling grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell |
 | `sourceFilter` | array |, | Calendar source IDs this module shows (empty or unset = all sources merged). Use it to give one screen a single family member's calendar |
 | `dailyShowDescription` | boolean | `false` | Show the event description under the title (daily view) |
 | `agendaShowDescription` | boolean | `false` | Show the event description under the title (agenda view) |

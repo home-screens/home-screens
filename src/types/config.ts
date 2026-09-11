@@ -916,29 +916,31 @@ export interface CalendarConfig {
   // multi-week (row 1 = the current week), 1-8 on rolling (row 1 starts
   // today, so weekday columns shift one left each midnight).
   weeksToShow?: number;
-  // Grid views (week / month / multi-week): event pills per day cell before
-  // "+N more", 2-10. Unset = 5 on the week grid (its cells run a full column
-  // tall), 4 on the shorter month and multi-week cells.
+  // Grid views (week / month / multi-week / rolling): event pills per day
+  // cell before "+N more", 2-10. Unset = 5 on the week grid (its cells run a
+  // full column tall), 4 on the shorter month, multi-week and rolling cells.
   gridMaxEventsPerCell?: number;
   // Grid views (week / month / multi-week): first column day. Default sunday.
+  // Rolling ignores it — nothing is week-anchored; its columns follow today.
   startDay?: WeekStartDay;
-  // Grid views (week / month / multi-week): event rendering style.
+  // Grid views (week / month / multi-week / rolling): event rendering style.
   // 'classic' (default) = colored dot + faint light pill + default text.
   // 'colored' = timed events render time + title in the calendar's color
   // with no background; all-day events render a solid calendar-color pill.
   gridEventStyle?: 'classic' | 'colored';
   // Colored style only: faint light pill background behind timed events.
   gridEventPillBackground?: boolean;
-  // Month + multi-week grid theme (the two views share one renderer and
-  // differ only in range). 'banner' (default when unset) is the original
-  // look: tinted day-number strips, padded times, pills driven by
-  // gridEventStyle. 'clean' / 'minimal' / 'vivid' share the modern skeleton
-  // (month or month-range header, corner day numbers, today ring, stitched
-  // multi-day pills) and differ only in pill treatment — they supersede
-  // gridEventStyle and gridEventPillBackground for these views.
+  // Month, multi-week and rolling grid theme (the three share one renderer;
+  // rolling anchors at today, the others at the month or week start).
+  // 'banner' (default when unset) is the original look: tinted day-number
+  // strips, padded times, pills driven by gridEventStyle. 'clean' /
+  // 'minimal' / 'vivid' share the modern skeleton (month or month-range
+  // header, corner day numbers, today ring, stitched multi-day pills) and
+  // differ only in pill treatment — they supersede gridEventStyle and
+  // gridEventPillBackground for these views.
   gridTheme?: CalendarGridTheme;
-  // Grid views (week / month / multi-week): multiplier on the day-name and
-  // day-number type only, 0.8-2, default 1. Every size in these views is an
+  // Grid views (week / month / multi-week / rolling): multiplier on the
+  // day-name and day-number type only, 0.8-2, default 1. Every size in these views is an
   // `em` off the module font size, so growing the module to read the dates
   // from across the room grows the event pills with it and costs rows per
   // cell. This scales the date furniture alone (headers, day numbers, week
