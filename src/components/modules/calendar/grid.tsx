@@ -147,7 +147,7 @@ type GridSkeletonProps = GridViewProps & { grid: ResolvedGrid; t: TranslateFn; l
 interface ResolvedGrid {
   kind: 'month' | 'weeks' | 'rolling';
   weeks: Date[][];
-  /** The month name on the month grid, the month range on the rolling grid. */
+  /** The month name on the month grid, the month range on the multi-week and rolling grids. */
   title: string;
   isMuted(date: Date, isToday: boolean): boolean;
   marksMonthStart(date: Date): boolean;
@@ -247,7 +247,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
 
   return (
     <div className={`flex flex-col h-full ${GRID_GAP}`}>
-      {/* The rolling grid never had a title under the banner look; the month grid keeps its own. */}
+      {/* Only the month grid gets a title under the banner look. */}
       {grid.kind === 'month' && <GridTitle>{grid.title}</GridTitle>}
       <DayOfWeekHeaderRow dates={weeks[0]} config={config} locale={locale} />
 
@@ -400,7 +400,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
 /** Shared skeleton for the modern themes ('clean' | 'minimal' | 'vivid'):
  * month (or month-range) header, quiet corner day numbers with a solid badge
  * on today only, an accent ring on the today cell, weekend shading, bold
- * "MMM d" labels under an accent hairline where the rolling grid crosses into
+ * "MMM d" labels under an accent hairline where a grid crosses into
  * a new month, stitched multi-day pills, and a chip-styled overflow row. The
  * theme only swaps the pill treatment (GridPill); gridEventStyle /
  * gridEventPillBackground do not apply here. data-grid-theme carries the

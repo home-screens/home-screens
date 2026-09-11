@@ -1111,7 +1111,8 @@ describe('rolling view', () => {
       <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 3 })} style={style} events={events} /></Wrapper>,
     );
     const cells = container.querySelectorAll('div.grid.flex-1 > div');
-    const monthStart = Array.from(cells).find((c) => (c.textContent ?? '').includes('Aug'));
-    expect(monthStart).toBeDefined();
+    // Rolling anchors at today (Jul 15) with no week-number cells, so flat
+    // cell 15 + 17 days = Aug 1 is the only month start in the 3-week window.
+    expect((cells[17] as HTMLElement).textContent).toContain('Aug');
   });
 });

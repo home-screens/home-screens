@@ -106,9 +106,9 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;
-    // Both fullscreen grids honor startDay (the rolling view is the
-    // exception: it anchors at today); the window follows the same
-    // convention so their leading days are always inside the fetch.
+    // The fullscreen grids honor startDay; the window follows the same
+    // convention so their leading days are always inside the fetch
+    // (rolling below anchors at today instead).
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
     if (view === 'month-grid') return gridWindow('month-grid', now, weekStartsOn);
     if (view === 'rolling') {

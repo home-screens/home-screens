@@ -31,7 +31,7 @@ afterEach(cleanup);
 
 describe('RollingWeeksView', () => {
   it('renders 7 x weeks cells anchored at today, today’s column accented', () => {
-    const { container } = render(
+    const { container, getByText } = render(
       <RollingWeeksView events={[ev('e1', 'Soccer', '2026-09-11T10:00:00', '2026-09-11T11:00:00')]}
         config={{ ...config, rollingWeeksToShow: 2 } as FullscreenCalendarConfig}
         scale={scale} today={today} now={now} />,
@@ -40,6 +40,7 @@ describe('RollingWeeksView', () => {
     const cells = container.querySelectorAll('[role="gridcell"]');
     expect(cells).toHaveLength(14);
     expect(cells[0].getAttribute('aria-label')).toContain('September 11');
+    expect(getByText('Soccer')).toBeDefined();
     const headers = container.querySelectorAll('[role="columnheader"]');
     expect(headers).toHaveLength(7);
     expect(headers[0].getAttribute('style')).toContain('--cal-accent');
@@ -76,6 +77,14 @@ describe('RollingWeeksView', () => {
     const cells = container.querySelectorAll('[role="gridcell"]');
     expect(cells).toHaveLength(28);
     expect(cells[20].textContent).toContain('Oct'); // Oct 1
+
+    cleanup();
+    const base = render(
+      <RollingWeeksView events={[]} config={config}
+        scale={scale} today={today} now={now} />,
+      { wrapper: Wrapper },
+    );
+    expect(base.container.querySelectorAll('[role="gridcell"]')).toHaveLength(42);
   });
 });
 
