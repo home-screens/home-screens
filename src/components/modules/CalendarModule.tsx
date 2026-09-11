@@ -8,7 +8,7 @@ import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { EventDetailOverlay } from './shared/EventDetailOverlay';
 import { CalendarLegend } from './shared/CalendarLegend';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
-import { isEventUpcoming, listViewCutoff, clampWeeksToShow, isGridView, weekStartsOnFor } from '@/lib/calendar-utils';
+import { isEventUpcoming, listViewCutoff, clampRollingWeeks, clampWeeksToShow, isGridView, weekStartsOnFor } from '@/lib/calendar-utils';
 import { buildLegend, viewDayWindow, type LegendSource } from '@/lib/calendar-legend';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
@@ -119,6 +119,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       : viewMode === 'week' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
       : viewMode === 'month' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
       : viewMode === 'multi-week' ? viewDayWindow({ kind: 'weeks', today, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) })
+      : viewMode === 'rolling' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampRollingWeeks(config.weeksToShow) * 7 })
       : null; // agenda
     return buildLegend(allEvents, window, timezone, t('calendar.publicHolidays'));
   }, [legendPlacement, viewMode, config.startDay, config.daysToShow, config.weeksToShow, today, allEvents, timezone, t]);
