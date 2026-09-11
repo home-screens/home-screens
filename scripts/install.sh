@@ -68,13 +68,48 @@ if [ -z "${_SCRIPT_DIR}" ] || [ ! -f "${_SCRIPT_DIR}/lib/common.sh" ]; then
   _HS_BOOTSTRAP_TMP="${_TMP}" exec bash "${_TMP}/install.sh" "$@"
 fi
 
-# Clean up bootstrap temp dir if we were re-launched by the guard above.
-if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
-  trap 'rm -rf "${_HS_BOOTSTRAP_TMP}"' EXIT
-fi
-
 INSTALL_BASE="/opt/home-screens"
 APP_DIR="${INSTALL_BASE}/current"
+# Where the user's own files wait while a re-install replaces the app tree.
+# A sibling of current/ (like .staging and .rollback) so moving a photo
+# library that can run to gigabytes is a rename on the same disk rather than
+# a copy into /tmp.
+PRESERVE_DIR="${APP_DIR}.preserve"
+
+# Put back whatever the install step moved aside. Safe to call when nothing
+# was staged, and safe to call twice.
+restore_user_files() {
+  [ -d "${PRESERVE_DIR}" ] || return 0
+  mkdir -p "${APP_DIR}"
+  if [ -d "${PRESERVE_DIR}/data" ]; then
+    rm -rf "${APP_DIR}/data"
+    mv "${PRESERVE_DIR}/data" "${APP_DIR}/data"
+  fi
+  if [ -d "${PRESERVE_DIR}/backgrounds" ]; then
+    mkdir -p "${APP_DIR}/public"
+    rm -rf "${APP_DIR}/public/backgrounds"
+    mv "${PRESERVE_DIR}/backgrounds" "${APP_DIR}/public/backgrounds"
+  fi
+  local f
+  shopt -s nullglob
+  for f in "${PRESERVE_DIR}"/.env*; do
+    mv "${f}" "${APP_DIR}/"
+  done
+  shopt -u nullglob
+  rmdir "${PRESERVE_DIR}" 2>/dev/null || true
+}
+
+# Runs however the script exits, so a failure between tearing down the old
+# tree and extracting the new one still hands the user their files back.
+_hs_cleanup() {
+  restore_user_files
+  if [ -n "${_HS_BOOTSTRAP_TMP:-}" ]; then
+    rm -rf "${_HS_BOOTSTRAP_TMP}"
+  fi
+  return 0
+}
+trap _hs_cleanup EXIT
+
 REPO="home-screens/home-screens"
 NODE_MAJOR=22
 
@@ -479,10 +514,23 @@ if [ ! -d "${INSTALL_BASE}" ]; then
   sudo chown "${USER}:${USER}" "${INSTALL_BASE}"
 fi
 
-# Preserve any existing data/ directory from a prior install.
+# Move the user's own files aside so they survive the rm -rf below. The
+# release tarball carries only the app, so anything they made (their
+# settings, their uploaded photos, their .env) has to be carried across by
+# hand. Same set upgrade.sh preserves across a release swap.
+restore_user_files  # fold in a leftover from a run that was killed outright
+mkdir -p "${PRESERVE_DIR}"
 if [ -d "${APP_DIR}/data" ]; then
-  mv "${APP_DIR}/data" "/tmp/home-screens-data-$$"
+  mv "${APP_DIR}/data" "${PRESERVE_DIR}/data"
 fi
+if [ -d "${APP_DIR}/public/backgrounds" ]; then
+  mv "${APP_DIR}/public/backgrounds" "${PRESERVE_DIR}/backgrounds"
+fi
+shopt -s nullglob
+for _env in "${APP_DIR}"/.env*; do
+  mv "${_env}" "${PRESERVE_DIR}/"
+done
+shopt -u nullglob
 
 rm -rf "${APP_DIR}"
 mkdir -p "${APP_DIR}"
@@ -491,11 +539,7 @@ info "Extracting..."
 tar -xzf "/tmp/${ASSET_NAME}" -C "${APP_DIR}"
 rm -f "/tmp/${ASSET_NAME}"
 
-# Restore user data if we saved it
-if [ -d "/tmp/home-screens-data-$$" ]; then
-  rm -rf "${APP_DIR}/data"
-  mv "/tmp/home-screens-data-$$" "${APP_DIR}/data"
-fi
+restore_user_files
 
 # Validate
 if [ ! -f "${APP_DIR}/server.js" ] || [ ! -f "${APP_DIR}/package.json" ]; then
