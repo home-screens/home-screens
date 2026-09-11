@@ -3,7 +3,7 @@
 import { memo, useMemo } from 'react';
 import { isSameDay, isSameMonth, addDays, getWeek, differenceInCalendarDays } from 'date-fns';
 import {
-  parseEventWallTime, eventsForDay, weekStartsOnFor, weekNumberOptions, clampWeeksToShow, clampGridMaxEventsPerCell,
+  parseEventWallTime, eventsForDay, weekStartsOnFor, weekNumberOptions, clampWeeksToShow, clampRollingWeeks, clampGridMaxEventsPerCell,
   clampGridDayLabelScale,
   formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, isAllDayEvent, isWeekendDay,
 } from '@/lib/calendar-utils';
@@ -40,7 +40,10 @@ export function gridTemplateFor(config: CalendarConfig): string {
   // (empty header cell ≈ 0px vs two week-number digits) and shifts every
   // weekday label off the day column below it. It tracks the day-label scale
   // so a larger week number still fits its column.
-  if (!(config.showWeekNumbers ?? false)) return 'repeat(7, 1fr)';
+  // Rolling rows are not ISO weeks (a today-anchored row spans two calendar
+  // weeks; one number would mislabel half the row), so the column never
+  // applies there.
+  if (config.viewMode === 'rolling' || !(config.showWeekNumbers ?? false)) return 'repeat(7, 1fr)';
   return `${scaledEm(1.6, clampGridDayLabelScale(config.gridDayLabelScale))} repeat(7, 1fr)`;
 }
 
@@ -74,7 +77,10 @@ function DayOfWeekHeaderRow({ dates, config, locale, today, accentColor }: {
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
   return (
     <div className={`grid ${GRID_GAP}`} style={{ gridTemplateColumns: gridTemplateFor(config) }}>
-      {(config.showWeekNumbers ?? false) && <div />}
+      {/* The spacer must follow gridTemplateFor's rolling exception or the
+          weekday labels shift off the day columns below (which have no
+          WeekNumberCell to pad them back). */}
+      {(config.showWeekNumbers ?? false) && config.viewMode !== 'rolling' && <div />}
       {dates.map((d) => {
         const highlight = today != null && accentColor != null && d.getDay() === today.getDay();
         return (
@@ -133,13 +139,15 @@ type GridSkeletonProps = GridViewProps & { grid: ResolvedGrid; t: TranslateFn; l
  *  whole weeks: out-of-month days render muted and nothing marks a month
  *  start (the title already names the month). Weeks = `weeksToShow` rows
  *  from the current week: past days render muted and every 1st carries its
- *  month name plus an accent rule. The day math is `viewDayWindow`'s, the
- *  same authority the fetch and legend windows use, so the grid can never
- *  disagree with them. */
+ *  month name plus an accent rule. Rolling = `weeksToShow` rows of 7
+ *  starting today: weekday columns rotate daily, weekend shading is
+ *  date-derived, no past days exist and week numbers never apply. The day
+ *  math is `viewDayWindow`'s, the same authority the fetch and legend
+ *  windows use, so the grid can never disagree with them. */
 interface ResolvedGrid {
-  kind: 'month' | 'weeks';
+  kind: 'month' | 'weeks' | 'rolling';
   weeks: Date[][];
-  /** The month name on the month grid, the month range on the rolling grid. */
+  /** The month name on the month grid, the month range on the multi-week and rolling grids. */
   title: string;
   isMuted(date: Date, isToday: boolean): boolean;
   marksMonthStart(date: Date): boolean;
@@ -149,15 +157,18 @@ interface ResolvedGrid {
  *  doesn't rebuild up to 84 cells' worth of dates. */
 function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): ResolvedGrid {
   const todayMs = today.getTime();
-  const kind = config.viewMode === 'month' ? 'month' : 'weeks';
-  const count = clampWeeksToShow(config.weeksToShow);
+  const kind = config.viewMode === 'month' ? 'month' : config.viewMode === 'rolling' ? 'rolling' : 'weeks';
+  const weekCount = clampWeeksToShow(config.weeksToShow);
+  const rollingDays = clampRollingWeeks(config.weeksToShow) * 7;
   const { startDay } = config;
   return useMemo(() => {
     const anchor = new Date(todayMs);
     const weekStartsOn = weekStartsOnFor(startDay);
     const { start, end } = kind === 'month'
       ? viewDayWindow({ kind: 'month-grid', today: anchor, weekStartsOn })
-      : viewDayWindow({ kind: 'weeks', today: anchor, weekStartsOn, count });
+      : kind === 'rolling'
+        ? viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: rollingDays })
+        : viewDayWindow({ kind: 'weeks', today: anchor, weekStartsOn, count: weekCount });
     const weeks = Array.from({ length: differenceInCalendarDays(end, start) / 7 }, (_, w) =>
       Array.from({ length: 7 }, (_, d) => addDays(start, w * 7 + d)));
     if (kind === 'month') {
@@ -169,6 +180,16 @@ function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): R
         marksMonthStart: () => false,
       };
     }
+    if (kind === 'rolling') {
+      return {
+        kind,
+        weeks,
+        title: formatMonthRangeLabel(start, addDays(end, -1), locale),
+        // The view starts today, so no past days exist to dim.
+        isMuted: () => false,
+        marksMonthStart: (date) => date.getDate() === 1,
+      };
+    }
     return {
       kind,
       weeks,
@@ -176,7 +197,7 @@ function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): R
       isMuted: (date, isToday) => date < anchor && !isToday,
       marksMonthStart: (date) => date.getDate() === 1,
     };
-  }, [todayMs, startDay, kind, count, locale]);
+  }, [todayMs, startDay, kind, weekCount, rollingDays, locale]);
 }
 
 function GridTitle({ children }: { children: string }) {
@@ -208,7 +229,7 @@ export function GridView(props: GridViewProps) {
 }
 
 function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid }: GridSkeletonProps) {
-  const showWeekNumbers = config.showWeekNumbers ?? false;
+  const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
   const gridTemplate = gridTemplateFor(config);
@@ -226,7 +247,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
 
   return (
     <div className={`flex flex-col h-full ${GRID_GAP}`}>
-      {/* The rolling grid never had a title under the banner look; the month grid keeps its own. */}
+      {/* Only the month grid gets a title under the banner look. */}
       {grid.kind === 'month' && <GridTitle>{grid.title}</GridTitle>}
       <DayOfWeekHeaderRow dates={weeks[0]} config={config} locale={locale} />
 
@@ -247,7 +268,9 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                   key={date.toISOString()}
                   className="flex flex-col p-0.5 overflow-hidden rounded"
                   style={mergeCellDecor({
-                    backgroundColor: isToday ? withAlpha(accentColor, '1f') : ink(0.02),
+                    backgroundColor: isToday
+                      ? withAlpha(accentColor, '1f')
+                      : grid.kind === 'rolling' && isWeekendDay(date) ? ink(0.05) : ink(0.02),
                     ...(marksMonthStart ? { backgroundImage: `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent)` } : {}),
                     opacity: isMuted ? TEXT_OPACITY.tertiary : 1,
                   }, decor)}
@@ -377,13 +400,13 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
 /** Shared skeleton for the modern themes ('clean' | 'minimal' | 'vivid'):
  * month (or month-range) header, quiet corner day numbers with a solid badge
  * on today only, an accent ring on the today cell, weekend shading, bold
- * "MMM d" labels under an accent hairline where the rolling grid crosses into
+ * "MMM d" labels under an accent hairline where a grid crosses into
  * a new month, stitched multi-day pills, and a chip-styled overflow row. The
  * theme only swaps the pill treatment (GridPill); gridEventStyle /
  * gridEventPillBackground do not apply here. data-grid-theme carries the
  * active theme for tests. */
 function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
-  const showWeekNumbers = config.showWeekNumbers ?? false;
+  const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
   const gridTemplate = gridTemplateFor(config);

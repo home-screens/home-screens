@@ -164,7 +164,8 @@
       "agenda": "Agenda",
       "familyGrid": "Familie",
       "upNext": "Næste",
-      "freeTime": "Fritid"
+      "freeTime": "Fritid",
+      "rolling": "Rullende"
     },
     "zones": {
       "morning": "Morgen",

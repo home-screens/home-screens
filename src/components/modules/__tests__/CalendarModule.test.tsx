@@ -1061,3 +1061,59 @@ describe('CalendarModule feed health', () => {
     expect(tappable.getAllByTestId('event-chevron')).toHaveLength(1);
   });
 });
+
+describe('rolling view', () => {
+  it('anchors row 1 at today, 7 columns, no week-number column', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 2, showWeekNumbers: true })} style={style} events={events} /></Wrapper>,
+    );
+    const header = container.querySelector('.grid');
+    expect(header?.childElementCount).toBe(7);
+    const rows = container.querySelectorAll('div.grid.flex-1');
+    expect(rows).toHaveLength(2);
+    for (const row of Array.from(rows)) {
+      expect(row.childElementCount).toBe(7);
+    }
+    // NOW is Wed Jul 15: cell 1 is today, cell 4 is Sat Jul 18.
+    expect((rows[0].children[0] as HTMLElement).textContent).toContain('15');
+    expect((rows[0].children[3] as HTMLElement).textContent).toContain('18');
+  });
+
+  it('keeps today’s already-ended events and drops yesterday (outside the window)', () => {
+    const { queryByText } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling' })} style={style} events={events} /></Wrapper>,
+    );
+    expect(queryByText('Ended Today Standup')).not.toBeNull();
+    expect(queryByText('Yesterday Retro')).toBeNull();
+  });
+
+  it('shades weekend cells under the banner theme', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 1, gridTheme: 'banner' })} style={style} events={events} /></Wrapper>,
+    );
+    const cells = container.querySelectorAll('div.grid.flex-1 > div');
+    expect((cells[3] as HTMLElement).getAttribute('style')).toContain('5%');   // Sat
+    expect((cells[4] as HTMLElement).getAttribute('style')).toContain('5%');   // Sun
+    expect((cells[1] as HTMLElement).getAttribute('style')).toContain('2%');   // Thu
+  });
+
+  it('shades weekend cells on the modern themes', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 1, gridTheme: 'clean' })} style={style} events={events} /></Wrapper>,
+    );
+    const cells = container.querySelectorAll('div.grid.flex-1 > div');
+    expect((cells[3] as HTMLElement).getAttribute('style')).toContain('0.065'); // Sat
+    expect((cells[1] as HTMLElement).getAttribute('style')).toContain('0.045'); // Thu
+  });
+
+  it('marks the month start when the window crosses a 1st', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'rolling', weeksToShow: 3 })} style={style} events={events} /></Wrapper>,
+    );
+    const cells = container.querySelectorAll('div.grid.flex-1 > div');
+    // Rolling anchors at today (Jul 15) with no week-number cells, so flat
+    // cell 17 (Jul 15 + 17 days = Aug 1) is the only month start in the
+    // 3-week window.
+    expect((cells[17] as HTMLElement).textContent).toContain('Aug');
+  });
+});

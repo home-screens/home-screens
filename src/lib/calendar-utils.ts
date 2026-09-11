@@ -12,6 +12,16 @@ export function clampWeeksToShow(value: number | undefined): number {
   return Math.min(12, Math.max(2, value as number));
 }
 
+/** Clamp a rolling-weeks grid's week count to its 1-8 range. Shared by the
+ *  compact view (applied to `weeksToShow`), the fullscreen view and its
+ *  editor (`rollingWeeksToShow`), and both fetch windows. Default 6 when
+ *  unset or not a number — the same default as `clampWeeksToShow`, so one
+ *  mental model covers both multi-week grids. */
+export function clampRollingWeeks(value: number | undefined): number {
+  if (!Number.isFinite(value)) return 6;
+  return Math.min(8, Math.max(1, value as number));
+}
+
 /** Clamp a grid's gridMaxEventsPerCell to its 2-10 range. Unset or not a
  * number (same hand-edited-config caveat as clampWeeksToShow) falls back to
  * the view's own default: 5 on the week grid, whose cells run a full column
@@ -38,13 +48,14 @@ export function clampGridDayLabelScale(value: number | undefined): number {
 /** Grid views render their full visible range (wall-calendar semantics);
  * list views stay upcoming-only. */
 export function isGridView(viewMode: string | undefined): boolean {
-  return viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week';
+  return viewMode === 'week' || viewMode === 'month' || viewMode === 'multi-week' || viewMode === 'rolling';
 }
 
-/** The month and multi-week grids share one renderer and one `gridTheme`
- * (the week grid keeps its own single-row layout, styled by gridEventStyle). */
+/** The month, multi-week and rolling grids share one renderer and one
+ * `gridTheme` (the week grid keeps its own single-row layout, styled by
+ * gridEventStyle). */
 export function isThemedGridView(viewMode: string | undefined): boolean {
-  return viewMode === 'month' || viewMode === 'multi-week';
+  return viewMode === 'month' || viewMode === 'multi-week' || viewMode === 'rolling';
 }
 
 /**

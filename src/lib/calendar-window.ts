@@ -1,5 +1,5 @@
 import { addDays, startOfDay } from 'date-fns';
-import { clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampRollingWeeks, clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
@@ -49,8 +49,12 @@ interface ModuleWindow {
  * within a millisecond of the old inclusive end-of-day instants; the fetch
  * window's ±1-day padding absorbs the difference.
  */
-function gridWindow(kind: 'week' | 'weeks' | 'month-grid', now: Date, weekStartsOn: 0 | 1, count?: number): ModuleWindow {
-  return viewDayWindow({ kind, today: now, weekStartsOn, count });
+function gridWindow(kind: 'days' | 'week' | 'weeks' | 'month-grid', now: Date, weekStartsOn: 0 | 1, count?: number): ModuleWindow {
+  // 'days' (rolling weeks) anchors at today itself, not a week start. The
+  // anchor must be day-truncated here because this caller passes a full
+  // `now`, and window boundaries stay day-resolution so the fetch URL is
+  // stable across renders.
+  return viewDayWindow({ kind, today: kind === 'days' ? startOfDay(now) : now, weekStartsOn, count });
 }
 
 /**
@@ -72,15 +76,22 @@ function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date):
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
-    // Every grid honors startDay; the window follows the same convention so
-    // past days of the displayed range are always inside the fetch. The
-    // clamp mirrors the multi-week view's so hand-edited configs can't
-    // starve the clamped rows.
+    // Every grid honors startDay (the rolling view is the exception: it
+    // anchors at today); the window follows the same convention so past
+    // days of the displayed range are always inside the fetch. The clamp
+    // mirrors the multi-week view's so hand-edited configs can't starve
+    // the clamped rows.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<CalendarConfig>).startDay);
     if (view === 'month') return gridWindow('month-grid', now, weekStartsOn);
     if (view === 'week') return gridWindow('week', now, weekStartsOn);
     if (view === 'multi-week') {
       return gridWindow('weeks', now, weekStartsOn, clampWeeksToShow((mod.config as Partial<CalendarConfig>).weeksToShow));
+    }
+    if (view === 'rolling') {
+      // Rolling rows start at today and ignore startDay (nothing is
+      // week-anchored); the clamp mirrors the view's so hand-edited configs
+      // can't starve the clamped rows. 'days' counts days, hence * 7.
+      return gridWindow('days', now, weekStartsOn, clampRollingWeeks((mod.config as Partial<CalendarConfig>).weeksToShow) * 7);
     }
     if (view === 'agenda') return agendaWindow(mod.config as Partial<CalendarConfig>, now);
     // Daily lists today forward, so the server's upcoming-only default covers
@@ -95,10 +106,14 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;
-    // Both fullscreen grids honor startDay; the window follows the same
-    // convention so their leading days are always inside the fetch.
+    // The fullscreen grids honor startDay; the window follows the same
+    // convention so their leading days are always inside the fetch
+    // (rolling below anchors at today instead).
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
     if (view === 'month-grid') return gridWindow('month-grid', now, weekStartsOn);
+    if (view === 'rolling') {
+      return gridWindow('days', now, weekStartsOn, clampRollingWeeks((mod.config as Partial<FullscreenCalendarConfig>).rollingWeeksToShow) * 7);
+    }
     if (view === 'week-list' || view === 'family-grid') return gridWindow('week', now, weekStartsOn);
     // Up next lists today's finished events under "Earlier" and free time
     // draws the whole day's busy blocks, so both need today from midnight.

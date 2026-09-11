@@ -7,8 +7,10 @@ import {
   isEventUpcoming,
   applyTitleFilter,
   clampWeeksToShow,
+  clampRollingWeeks,
   clampGridMaxEventsPerCell,
   defaultGridMaxEventsPerCell,
+  isGridView,
   isThemedGridView,
   isWeekendDay,
   weekNumberOptions,
@@ -976,12 +978,16 @@ describe('clampGridMaxEventsPerCell', () => {
 });
 
 describe('isThemedGridView', () => {
-  it('covers exactly the two views that share the themed grid renderer', () => {
+  it('covers exactly the three views that share the themed grid renderer', () => {
     expect(isThemedGridView('month')).toBe(true);
     expect(isThemedGridView('multi-week')).toBe(true);
+    expect(isThemedGridView('rolling')).toBe(true);
     expect(isThemedGridView('week')).toBe(false);
     expect(isThemedGridView('daily')).toBe(false);
     expect(isThemedGridView(undefined)).toBe(false);
+    // isGridView's only direct coverage rides along here: every themed view
+    // is a grid view, rolling included.
+    expect(isGridView('rolling')).toBe(true);
   });
 });
 
@@ -995,5 +1001,21 @@ describe('isWeekendDay', () => {
     for (const d of ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28']) {
       expect(isWeekendDay(new Date(`${d}T12:00:00`))).toBe(false);
     }
+  });
+});
+
+describe('clampRollingWeeks', () => {
+  it('defaults to 6 when unset or not a number', () => {
+    expect(clampRollingWeeks(undefined)).toBe(6);
+    expect(clampRollingWeeks('six' as unknown as number)).toBe(6);
+    expect(clampRollingWeeks(NaN)).toBe(6);
+  });
+
+  it('clamps to the 1-8 range', () => {
+    expect(clampRollingWeeks(0)).toBe(1);
+    expect(clampRollingWeeks(1)).toBe(1);
+    expect(clampRollingWeeks(8)).toBe(8);
+    expect(clampRollingWeeks(12)).toBe(8);
+    expect(clampRollingWeeks(99)).toBe(8);
   });
 });

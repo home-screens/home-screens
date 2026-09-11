@@ -1,8 +1,8 @@
-import { addDays, endOfWeek, startOfWeek } from 'date-fns';
-import { CalendarClock, Columns3, Grid3X3, Hourglass, List, ScrollText, Users, Zap, type LucideIcon } from 'lucide-react';
+import { addDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
+import { CalendarClock, CalendarRange, Columns3, Grid3X3, Hourglass, List, ScrollText, Users, Zap, type LucideIcon } from 'lucide-react';
 import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampRollingWeeks, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import type { FullscreenCalendarConfig, FullscreenCalendarView, WeatherPlacement } from '@/types/config';
 import { autoScheduleDays } from './view-support';
@@ -66,6 +66,22 @@ function weekRangeTitle(today: Date, weekStartsOn: 0 | 1, locale: string): strin
     return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'MMMM d, yyyy', { locale })}`;
   }
   return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
+}
+
+/** "September 11 – October 22, 2026" for the rolling window starting today
+ *  (`weeks` rows of 7). Same formatting rules as the schedule title: both
+ *  month names when the range crosses a month, both full dates across a
+ *  year. Exported so the view's aria label and the trait share one string. */
+export function rollingRangeTitle(today: Date, weeks: number, locale: string): string {
+  const start = startOfDay(today);
+  const endDay = addDays(start, weeks * 7 - 1);
+  if (start.getFullYear() !== endDay.getFullYear()) {
+    return `${formatDateSync(start, 'MMMM d, yyyy', { locale })} – ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
+  }
+  if (start.getMonth() !== endDay.getMonth()) {
+    return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
+  }
+  return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
 }
 
 /** The schedule view's resolved first column and column count — the same
@@ -166,6 +182,17 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     headerTitle: ({ t }) => t('fullscreen-calendar.headerFreeTime'),
     legendWindow: ({ today, weekStartsOn, config }) =>
       viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.freeTimeShowTomorrow !== false ? 2 : 1 }),
+  },
+  rolling: {
+    icon: CalendarRange,
+    labelKey: 'fullscreen-calendar.viewLabels.rolling',
+    emptyKey: 'fullscreen-calendar.noUpcomingEvents',
+    isTimeGrid: false, isListView: false, isPersonView: false, isSingleDay: false,
+    weather: { days: false, events: false },
+    headerTitle: ({ today, locale, config }) =>
+      rollingRangeTitle(today, clampRollingWeeks(config.rollingWeeksToShow), locale),
+    legendWindow: ({ today, weekStartsOn, config }) =>
+      viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampRollingWeeks(config.rollingWeeksToShow) * 7 }),
   },
 };
 

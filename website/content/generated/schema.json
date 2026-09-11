@@ -37,10 +37,11 @@
               "agenda",
               "family-grid",
               "up-next",
-              "free-time"
+              "free-time",
+              "rolling"
             ]
           },
-          "description": "Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, or `free-time`",
+          "description": "Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`, `up-next`, `free-time`, or `rolling`",
           "default": "schedule"
         },
         {
@@ -103,7 +104,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Subtle background tint on weekend columns/rows",
+          "description": "Subtle background tint on weekend columns, rows, or (rolling view) cells",
           "default": true
         },
         {
@@ -437,6 +438,16 @@
           "default": false
         },
         {
+          "name": "rollingWeeksToShow",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Rolling weeks view: how many weeks to show (1–8), always starting with today in the top-left",
+          "defaultText": "6"
+        },
+        {
           "name": "upNextLaterCount",
           "optional": true,
           "type": {
@@ -663,7 +674,8 @@
         "agenda",
         "family-grid",
         "up-next",
-        "free-time"
+        "free-time",
+        "rolling"
       ]
     },
     {
@@ -1973,10 +1985,11 @@
               "agenda",
               "week",
               "multi-week",
-              "month"
+              "month",
+              "rolling"
             ]
           },
-          "description": "View mode: `daily`, `agenda`, `week`, `multi-week`, or `month`",
+          "description": "View mode: `daily`, `agenda`, `week`, `multi-week`, `month`, or `rolling`",
           "default": "daily"
         },
         {
@@ -2036,7 +2049,8 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Multi-week view: how many weeks to show (2–12), starting with the current week",
+          "description": "Multi-week and rolling views: how many weeks to show, 2–12 in multi-week (starting with the current week) and 1–8 in rolling (starting today)",
+          "defaultText": "6",
           "default": 6
         },
         {
@@ -2046,7 +2060,7 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Week/multi-week/month grids: event pills per day cell before \"+N more\" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week and month cells",
+          "description": "Week/multi-week/month/rolling grids: event pills per day cell before \"+N more\" (2–10). Unset shows 5 in the week grid and 4 in the shorter multi-week, month and rolling cells",
           "default": 4
         },
         {
@@ -2060,7 +2074,7 @@
               "monday"
             ]
           },
-          "description": "First day of the week in the week/multi-week/month grids: `sunday` or `monday`",
+          "description": "First day of the week in the week/multi-week/month grids: `sunday` or `monday` (the rolling view ignores it; its columns follow today)",
           "default": "sunday"
         },
         {
@@ -2074,7 +2088,7 @@
               "colored"
             ]
           },
-          "description": "Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or `colored` (see below)",
+          "description": "Event rendering in the week/multi-week/month/rolling grids: `classic` (colored dot on a light pill) or `colored` (see below)",
           "defaultText": "\"classic\""
         },
         {
@@ -2100,7 +2114,7 @@
               "vivid"
             ]
           },
-          "description": "Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them",
+          "description": "Multi-week, month and rolling grid look: `banner` (the original tinted day strips), `clean` (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their own events, so `gridEventStyle` doesn't apply to them",
           "default": "banner"
         },
         {
@@ -2110,7 +2124,7 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Week/multi-week/month grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell",
+          "description": "Week/multi-week/month/rolling grids: size of the date furniture (day names, day numbers, week numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font size, so this makes the dates readable from across the room without costing rows per cell",
           "defaultText": "1"
         },
         {
@@ -2299,7 +2313,8 @@
         "agenda",
         "week",
         "multi-week",
-        "month"
+        "month",
+        "rolling"
       ]
     },
     {

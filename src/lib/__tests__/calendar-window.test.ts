@@ -223,6 +223,38 @@ describe('getCalendarFetchWindow', () => {
     );
     expect(win!.timeMin).toBe(addDays(new Date(2026, 0, 26), -1).toISOString());
   });
+
+  it('anchors the rolling window at today, ignoring startDay, for both modules', () => {
+    const compact = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'rolling', weeksToShow: 3, startDay: 'monday' })])],
+      NOW, DAYS_AHEAD,
+    );
+    expect(compact!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
+    // 3 weeks (21 days) + one day of padding
+    expect(compact!.timeMax).toBe(addDays(startOfDay(NOW), 22).toISOString());
+
+    const fullscreen = getCalendarFetchWindow(
+      [makeScreen([makeModule('fullscreen-calendar', { view: 'rolling', rollingWeeksToShow: 3, startDay: 'monday' })])],
+      NOW, DAYS_AHEAD,
+    );
+    expect(fullscreen!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
+    expect(fullscreen!.timeMax).toBe(addDays(startOfDay(NOW), 22).toISOString());
+  });
+
+  it('defaults the rolling window to 6 weeks and clamps to 1-8', () => {
+    const def = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'rolling' })])], NOW, DAYS_AHEAD,
+    );
+    expect(def!.timeMax).toBe(addDays(startOfDay(NOW), 43).toISOString());
+    const hi = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'rolling', weeksToShow: 99 })])], NOW, DAYS_AHEAD,
+    );
+    expect(hi!.timeMax).toBe(addDays(startOfDay(NOW), 57).toISOString());
+    const lo = getCalendarFetchWindow(
+      [makeScreen([makeModule('calendar', { viewMode: 'rolling', weeksToShow: 1 })])], NOW, DAYS_AHEAD,
+    );
+    expect(lo!.timeMax).toBe(addDays(startOfDay(NOW), 8).toISOString());
+  });
 });
 
 describe('buildCalendarUrl', () => {

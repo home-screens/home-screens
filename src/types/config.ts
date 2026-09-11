@@ -1246,7 +1246,7 @@ export interface ClockConfig {
 // Fullscreen calendar module config (Skylight-inspired ambient display)
 export type FullscreenCalendarView =
   | 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
-  | 'family-grid' | 'up-next' | 'free-time';
+  | 'family-grid' | 'up-next' | 'free-time' | 'rolling';
 // Time-grid hour range: the configured fixed hours, or a window of
 // `rollingHours` that slides with the clock so what is next stays full size.
 export type HourWindowMode = 'fixed' | 'rolling';
@@ -1361,7 +1361,7 @@ export type ScheduleStartAnchor = 'today' | 'start-of-week' | 'next-weekend';
 export interface FullscreenCalendarConfig {
   /**
    * Display style: `schedule`, `week-list`, `month-grid`, `day-timeline`, `agenda`, `family-grid`,
-   * `up-next`, or `free-time`
+   * `up-next`, `free-time`, or `rolling`
    */
   view: FullscreenCalendarView;
   /** Layout density: `cozy` or `snug` */
@@ -1378,7 +1378,7 @@ export interface FullscreenCalendarConfig {
   // today's-column rows only): same name, two view-specific behaviors.
   /** Reduce opacity of past events */
   dimPastEvents: boolean;
-  /** Subtle background tint on weekend columns/rows */
+  /** Subtle background tint on weekend columns, rows, or (rolling view) cells */
   shadeWeekends: boolean;
   /**
    * Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to
@@ -1564,6 +1564,14 @@ export interface FullscreenCalendarConfig {
    */
   familyShowDescription?: boolean;
 
+  // Rolling weeks view: weeks rendered, 1-8 (row 1 starts today)
+  /**
+   * Rolling weeks view: how many weeks to show (1–8), always starting with today in the top-left
+   *
+   * @default 6
+   */
+  rollingWeeksToShow?: number;
+
   // Up next view
   /**
    * Up next view: how many more events from the same day to list under the big one (0–6)
@@ -1677,12 +1685,12 @@ export interface FullscreenCalendarConfig {
 }
 
 // Calendar module config
-export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month';
+export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month' | 'rolling';
 
 export type CalendarGridTheme = 'banner' | 'clean' | 'minimal' | 'vivid';
 
 export interface CalendarConfig {
-  /** View mode: `daily`, `agenda`, `week`, `multi-week`, or `month` */
+  /** View mode: `daily`, `agenda`, `week`, `multi-week`, `month`, or `rolling` */
   viewMode: CalendarViewMode;
   /** Number of days ahead to display */
   daysToShow: number;
@@ -1694,27 +1702,35 @@ export interface CalendarConfig {
   maxEvents: number;
   /** Show week numbers in week/multi-week/month views */
   showWeekNumbers: boolean;
-  // Multi-week grid view: total weeks rendered, 2-12 (row 1 = current week)
-  /** Multi-week view: how many weeks to show (2–12), starting with the current week */
-  weeksToShow?: number;
-  // Grid views (week / month / multi-week): event pills per day cell before
-  // "+N more", 2-10. Unset = 5 on the week grid (its cells run a full column
-  // tall), 4 on the shorter month and multi-week cells.
+  // Grid views (multi-week / rolling): total weeks rendered. 2-12 on
+  // multi-week (row 1 = the current week), 1-8 on rolling (row 1 starts
+  // today, so weekday columns shift one left each midnight).
   /**
-   * Week/multi-week/month grids: event pills per day cell before "+N more" (2–10). Unset shows 5 in
-   * the week grid and 4 in the shorter multi-week and month cells
+   * Multi-week and rolling views: how many weeks to show, 2–12 in multi-week (starting with the
+   * current week) and 1–8 in rolling (starting today)
+   *
+   * @default 6
+   */
+  weeksToShow?: number;
+  // Grid views (week / month / multi-week / rolling): event pills per day
+  // cell before "+N more", 2-10. Unset = 5 on the week grid (its cells run a
+  // full column tall), 4 on the shorter month, multi-week and rolling cells.
+  /**
+   * Week/multi-week/month/rolling grids: event pills per day cell before "+N more" (2–10). Unset
+   * shows 5 in the week grid and 4 in the shorter multi-week, month and rolling cells
    */
   gridMaxEventsPerCell?: number;
   // Grid views (week / month / multi-week): first column day. Default sunday.
-  /** First day of the week in the week/multi-week/month grids: `sunday` or `monday` */
+  // Rolling ignores it — nothing is week-anchored; its columns follow today.
+  /** First day of the week in the week/multi-week/month grids: `sunday` or `monday` (the rolling view ignores it; its columns follow today) */
   startDay?: WeekStartDay;
-  // Grid views (week / month / multi-week): event rendering style.
+  // Grid views (week / month / multi-week / rolling): event rendering style.
   // 'classic' (default) = colored dot + faint light pill + default text.
   // 'colored' = timed events render time + title in the calendar's color
   // with no background; all-day events render a solid calendar-color pill.
   /**
-   * Event rendering in the week/multi-week/month grids: `classic` (colored dot on a light pill) or
-   * `colored` (see below)
+   * Event rendering in the week/multi-week/month/rolling grids: `classic` (colored dot on a light
+   * pill) or `colored` (see below)
    *
    * @default "classic"
    */
@@ -1726,31 +1742,33 @@ export interface CalendarConfig {
    * @default false
    */
   gridEventPillBackground?: boolean;
-  // Month + multi-week grid theme (the two views share one renderer and
-  // differ only in range). 'banner' (default when unset) is the original
-  // look: tinted day-number strips, padded times, pills driven by
-  // gridEventStyle. 'clean' / 'minimal' / 'vivid' share the modern skeleton
-  // (month or month-range header, corner day numbers, today ring, stitched
-  // multi-day pills) and differ only in pill treatment — they supersede
-  // gridEventStyle and gridEventPillBackground for these views.
+  // Month, multi-week and rolling grid theme (the three share one renderer;
+  // rolling anchors at today, the others at the month or week start).
+  // 'banner' (default when unset) is the original look: tinted day-number
+  // strips, padded times, pills driven by gridEventStyle. 'clean' /
+  // 'minimal' / 'vivid' share the modern skeleton (month or month-range
+  // header, corner day numbers, today ring, stitched multi-day pills) and
+  // differ only in pill treatment — they supersede gridEventStyle and
+  // gridEventPillBackground for these views.
   /**
-   * Multi-week and month grid look: `banner` (the original tinted day strips), `clean` (month
-   * header, quiet day numbers, compact times next to bold titles), `minimal` (titles only, with a
-   * colored edge per calendar), or `vivid` (solid color pills). The three newer looks style their
-   * own events, so `gridEventStyle` doesn't apply to them
+   * Multi-week, month and rolling grid look: `banner` (the original tinted day strips), `clean`
+   * (month header, quiet day numbers, compact times next to bold titles), `minimal` (titles only,
+   * with a colored edge per calendar), or `vivid` (solid color pills). The three newer looks style
+   * their own events, so `gridEventStyle` doesn't apply to them
    */
   gridTheme?: CalendarGridTheme;
-  // Grid views (week / month / multi-week): multiplier on the day-name and
-  // day-number type only, 0.8-2, default 1. Every size in these views is an
+  // Grid views (week / month / multi-week / rolling): multiplier on the
+  // day-name and day-number type only, 0.8-2, default 1. Every size in these views is an
   // `em` off the module font size, so growing the module to read the dates
   // from across the room grows the event pills with it and costs rows per
   // cell. This scales the date furniture alone (headers, day numbers, week
   // numbers, and the badges sharing their row); event pills keep tracking
   // the module font size by themselves.
   /**
-   * Week/multi-week/month grids: size of the date furniture (day names, day numbers, week numbers,
-   * and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's own font
-   * size, so this makes the dates readable from across the room without costing rows per cell
+   * Week/multi-week/month/rolling grids: size of the date furniture (day names, day numbers, week
+   * numbers, and the badges sharing their row), 0.8 to 2. Event pills keep tracking the module's
+   * own font size, so this makes the dates readable from across the room without costing rows per
+   * cell
    *
    * @default 1
    */

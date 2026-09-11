@@ -48,9 +48,9 @@ export const VIEW_MATRIX: ViewSpec[] = [
   { type: 'stock-ticker', key: 'view', kind: 'networked', stubKey: 'stocks', views: ['cards', 'ticker', 'table', 'compact', 'single'] },
   { type: 'crypto', key: 'view', kind: 'networked', stubKey: 'crypto', views: ['cards', 'ticker', 'table', 'compact'] },
   { type: 'todoist', key: 'viewMode', kind: 'networked', stubKey: 'todoist', views: ['list', 'board', 'focus'] },
-  { type: 'calendar', key: 'viewMode', kind: 'networked', stubKey: 'calendar', views: ['daily', 'agenda', 'week', 'multi-week', 'month'] },
+  { type: 'calendar', key: 'viewMode', kind: 'networked', stubKey: 'calendar', views: ['daily', 'agenda', 'week', 'multi-week', 'month', 'rolling'] },
   { type: 'fullscreen-calendar', key: 'view', kind: 'networked', stubKey: 'calendar', views: [
-    'schedule', 'week-list', 'month-grid', 'day-timeline', 'agenda', 'family-grid', 'up-next', 'free-time'] },
+    'schedule', 'week-list', 'month-grid', 'day-timeline', 'agenda', 'family-grid', 'up-next', 'free-time', 'rolling'] },
   { type: 'chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: [
     'board', 'star-chart', 'today', 'progress', 'compact'] },
   { type: 'fullscreen-chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: ['chores', 'rewards-store'] },

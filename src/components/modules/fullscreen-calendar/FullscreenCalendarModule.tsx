@@ -31,6 +31,7 @@ import { AgendaView } from './AgendaView';
 import { FamilyGridView } from './FamilyGridView';
 import { UpNextView } from './UpNextView';
 import { FreeTimeView } from './FreeTimeView';
+import { RollingWeeksView } from './RollingWeeksView';
 import { EventDetailOverlay } from '../shared/EventDetailOverlay';
 import { CalendarLegend } from '../shared/CalendarLegend';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from '../shared/useFailingSources';
@@ -48,6 +49,7 @@ const MemoAgendaView = memo(AgendaView);
 const MemoFamilyGridView = memo(FamilyGridView);
 const MemoUpNextView = memo(UpNextView);
 const MemoFreeTimeView = memo(FreeTimeView);
+const MemoRollingWeeksView = memo(RollingWeeksView);
 
 // Shared view types/helpers live in view-support (the views import from
 // there, never from this module, so there is no parent↔view import cycle).
@@ -477,6 +479,7 @@ export default function FullscreenCalendarModule({
               {config.view === 'family-grid' && <MemoFamilyGridView {...viewProps} />}
               {config.view === 'up-next' && <MemoUpNextView {...viewProps} />}
               {config.view === 'free-time' && <MemoFreeTimeView {...viewProps} />}
+              {config.view === 'rolling' && <MemoRollingWeeksView {...viewProps} />}
             </motion.div>
           </AnimatePresence>
         )}

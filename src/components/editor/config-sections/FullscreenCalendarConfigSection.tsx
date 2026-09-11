@@ -4,6 +4,7 @@ import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Slider from '@/components/ui/Slider';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { effectiveWeatherPlacement, viewTraits } from '@/components/modules/fullscreen-calendar/view-traits';
@@ -16,6 +17,7 @@ import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement, HourWindowMode } from '@/types/config';
 import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
+import { clampRollingWeeks } from '@/lib/calendar-utils';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
@@ -49,6 +51,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'family-grid', label: t('configSections.fullscreen-calendar.viewFamilyGrid') },
     { value: 'up-next', label: t('configSections.fullscreen-calendar.viewUpNext') },
     { value: 'free-time', label: t('configSections.fullscreen-calendar.viewFreeTime') },
+    { value: 'rolling', label: t('configSections.fullscreen-calendar.viewRolling') },
   ];
 
   const HOUR_WINDOW_OPTIONS: { value: HourWindowMode; label: string }[] = [
@@ -316,6 +319,16 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             />
           </>
         )}
+        {view === 'rolling' && (
+          <Slider
+            label={t('configSections.fullscreen-calendar.rollingWeeks')}
+            value={clampRollingWeeks(c.rollingWeeksToShow)}
+            min={1}
+            max={8}
+            step={1}
+            onChange={(v) => set({ rollingWeeksToShow: v })}
+          />
+        )}
         {view === 'agenda' && (
           <>
             <LabeledInput
@@ -381,7 +394,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         {view === 'day-timeline' && (
           <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
         )}
-        {(view === 'schedule' || view === 'month-grid') && (
+        {(view === 'schedule' || view === 'month-grid' || view === 'rolling') && (
           <Toggle
             label={t('configSections.fullscreen-calendar.wrapEventTitles')}
             checked={c.wrapEventTitles === true}

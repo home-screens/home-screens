@@ -7,7 +7,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
-import { isGridView, isThemedGridView, defaultGridMaxEventsPerCell } from '@/lib/calendar-utils';
+import { clampRollingWeeks, clampWeeksToShow, isGridView, isThemedGridView, defaultGridMaxEventsPerCell } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { useTranslate } from '@/i18n';
 import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
@@ -69,6 +69,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'agenda', label: t('configSections.calendar.viewAgenda') },
     { value: 'week', label: t('configSections.calendar.viewWeek') },
     { value: 'multi-week', label: t('configSections.calendar.viewMultiWeek') },
+    { value: 'rolling', label: t('configSections.calendar.viewRolling') },
     { value: 'month', label: t('configSections.calendar.viewMonth') },
   ] as const;
 
@@ -103,12 +104,14 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_MODES.find((v) => v.value === viewMode)?.label ?? '';
   const isListView = viewMode === 'daily' || viewMode === 'agenda';
+  // The rolling grid clamps its weeks 1-8 and shows no week numbers or fixed week start.
+  const isRolling = viewMode === 'rolling';
   // The modern grid themes own their pill styling, so the grid style select
   // disappears — which can leave the Event rows group with nothing in it.
   const showsGridEventStyle = isGridView(viewMode) && !themeControlsPills;
   // Agenda week separators label their week start with the same startDay the
   // grids use, so the select follows the separators option there.
-  const showsWeekStart = isGridView(viewMode) || (viewMode === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none');
+  const showsWeekStart = (isGridView(viewMode) && !isRolling) || (viewMode === 'agenda' && (c.agendaSeparators ?? 'none') !== 'none');
 
   return (
     <>
@@ -176,12 +179,12 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             onChange={(v) => set({ maxEvents: Number(v) })}
           />
         )}
-        {viewMode === 'multi-week' && (
+        {(viewMode === 'multi-week' || isRolling) && (
           <Slider
             label={t('configSections.calendar.weeksToShow')}
-            value={c.weeksToShow ?? 6}
-            min={2}
-            max={12}
+            value={isRolling ? clampRollingWeeks(c.weeksToShow) : clampWeeksToShow(c.weeksToShow)}
+            min={isRolling ? 1 : 2}
+            max={isRolling ? 8 : 12}
             step={1}
             onChange={(v) => set({ weeksToShow: v })}
           />
@@ -222,7 +225,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
         {viewMode === 'agenda' && (
           <Toggle label={t('configSections.calendar.showFinishedToday')} checked={c.agendaShowFinishedToday === true} onChange={(v) => set({ agendaShowFinishedToday: v })} />
         )}
-        {isGridView(viewMode) && (
+        {isGridView(viewMode) && !isRolling && (
           <Toggle label={t('configSections.calendar.showWeekNumbers')} checked={!!c.showWeekNumbers} onChange={(v) => set({ showWeekNumbers: v })} />
         )}
         {showsWeekStart && (

@@ -164,7 +164,8 @@
       "agenda": "Agenda",
       "familyGrid": "Gezin",
       "upNext": "Hierna",
-      "freeTime": "Vrije tijd"
+      "freeTime": "Vrije tijd",
+      "rolling": "Rollend"
     },
     "zones": {
       "morning": "Ochtend",
