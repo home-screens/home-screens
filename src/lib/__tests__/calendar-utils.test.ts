@@ -7,8 +7,10 @@ import {
   isEventUpcoming,
   applyTitleFilter,
   clampWeeksToShow,
+  clampRollingWeeks,
   clampGridMaxEventsPerCell,
   defaultGridMaxEventsPerCell,
+  isGridView,
   isThemedGridView,
   isWeekendDay,
   weekNumberOptions,
@@ -995,5 +997,26 @@ describe('isWeekendDay', () => {
     for (const d of ['2026-08-24', '2026-08-25', '2026-08-26', '2026-08-27', '2026-08-28']) {
       expect(isWeekendDay(new Date(`${d}T12:00:00`))).toBe(false);
     }
+  });
+});
+
+describe('clampRollingWeeks', () => {
+  it('defaults to 6 when unset or not a number', () => {
+    expect(clampRollingWeeks(undefined)).toBe(6);
+    expect(clampRollingWeeks('six' as unknown as number)).toBe(6);
+    expect(clampRollingWeeks(NaN)).toBe(6);
+  });
+
+  it('clamps to the 1-8 range', () => {
+    expect(clampRollingWeeks(0)).toBe(1);
+    expect(clampRollingWeeks(1)).toBe(1);
+    expect(clampRollingWeeks(8)).toBe(8);
+    expect(clampRollingWeeks(12)).toBe(8);
+    expect(clampRollingWeeks(99)).toBe(8);
+  });
+
+  it('treats the rolling view as a themed grid view', () => {
+    expect(isGridView('rolling')).toBe(true);
+    expect(isThemedGridView('rolling')).toBe(true);
   });
 });

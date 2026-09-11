@@ -685,7 +685,7 @@ export interface ClockConfig {
 // Fullscreen calendar module config (Skylight-inspired ambient display)
 export type FullscreenCalendarView =
   | 'schedule' | 'week-list' | 'month-grid' | 'day-timeline' | 'agenda'
-  | 'family-grid' | 'up-next' | 'free-time';
+  | 'family-grid' | 'up-next' | 'free-time' | 'rolling';
 // Time-grid hour range: the configured fixed hours, or a window of
 // `rollingHours` that slides with the clock so what is next stays full size.
 export type HourWindowMode = 'fixed' | 'rolling';
@@ -857,6 +857,9 @@ export interface FullscreenCalendarConfig {
   familyShowEveryoneRow?: boolean;  // default true; shared events on their own row
   familyShowDescription?: boolean;  // default false; two clamped lines under each chip title
 
+  // Rolling weeks view: weeks rendered, 1-8 (row 1 starts today)
+  rollingWeeksToShow?: number;
+
   // Up next view
   upNextLaterCount?: number;        // 0-6, default 3: rows under the hero
   upNextShowEarlier?: boolean;      // default true: today's finished / running events
@@ -898,7 +901,7 @@ export interface FullscreenCalendarConfig {
 }
 
 // Calendar module config
-export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month';
+export type CalendarViewMode = 'daily' | 'agenda' | 'week' | 'multi-week' | 'month' | 'rolling';
 
 export type CalendarGridTheme = 'banner' | 'clean' | 'minimal' | 'vivid';
 
@@ -909,7 +912,9 @@ export interface CalendarConfig {
   showLocation: boolean;
   maxEvents: number;
   showWeekNumbers: boolean;
-  // Multi-week grid view: total weeks rendered, 2-12 (row 1 = current week)
+  // Grid views (multi-week / rolling): total weeks rendered. 2-12 on
+  // multi-week (row 1 = the current week), 1-8 on rolling (row 1 starts
+  // today, so weekday columns shift one left each midnight).
   weeksToShow?: number;
   // Grid views (week / month / multi-week): event pills per day cell before
   // "+N more", 2-10. Unset = 5 on the week grid (its cells run a full column

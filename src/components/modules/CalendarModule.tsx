@@ -54,6 +54,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   week: WeekView,
   'multi-week': GridView,
   month: GridView,
+  rolling: GridView,
 };
 
 export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus, calendarSetup }: CalendarModuleProps) {
