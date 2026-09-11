@@ -5,7 +5,8 @@ import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { birthdayAge } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventSurface } from '@/lib/calendar-event-surface';
-import { eventGlyph, eventOpacity, dayDecorFor } from '@/lib/calendar-rules';
+import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
+import type { DayDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { clampStyle, resolveTodayHighlight } from './view-support';
@@ -33,7 +34,7 @@ export interface GridCellBodyProps {
   config: FullscreenCalendarConfig;
   today: Date;
   /** Per-day rules decor for this cell; the caller needs it for the wrapper too. */
-  decor: ReturnType<typeof dayDecorFor>;
+  decor: DayDecor;
 }
 
 export function GridCellBody({ day, dayEvents, maxEvents, showMonthName = false, fontSize, scale, config, today, decor }: GridCellBodyProps) {
