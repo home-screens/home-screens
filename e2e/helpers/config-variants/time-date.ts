@@ -21,6 +21,19 @@ function dayEvent(id: string, title: string, dayOffset: number, extra: Record<st
   return { id, title, start: localIso(dayOffset, 12), end: localIso(dayOffset, 13), allDay: false, ...extra };
 }
 
+// Cell indices for the rolling banner-shading row: the grid starts today,
+// so which columns are Sat/Sun depends on the run date. Index 0 (today)
+// never counts as shaded — the today tint wins over the weekend fill.
+const ROLLING_CELL_DOW = Array.from({ length: 14 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() + i);
+  return d.getDay();
+});
+const ROLLING_WEEKEND_IDX = ROLLING_CELL_DOW
+  .map((dow, i) => (dow === 0 || dow === 6) && i > 0 ? i : -1)
+  .filter((i) => i >= 0);
+const ROLLING_WEEKDAY_IDX = ROLLING_CELL_DOW.findIndex((dow, i) => i > 0 && dow !== 0 && dow !== 6);
+
 // --- The matrix ------------------------------------------------------------
 
 export const TIME_DATE_VARIANTS: ConfigVariant[] = [
@@ -784,6 +797,41 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => {
       await expect(mod.locator('.grid').first().locator('div.text-center'))
         .toHaveText(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    },
+  },
+  {
+    // The rolling view anchors row 1 at today: at 2 weeks the window is
+    // today..+13, so a day+13 event renders and a day+15 one has no cell.
+    type: 'calendar', name: 'rolling-view', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('crw-1', 'CAL ROLLING'), dayEvent('crw-2', 'CAL INWIN', 13), dayEvent('crw-3', 'CAL OUTWIN', 15)],
+    config: { viewMode: 'rolling', weeksToShow: 2 },
+    expect: async (mod) => {
+      await expect(mod).toContainText('CAL ROLLING');
+      await expect(mod).toContainText('CAL INWIN');
+      await expect(mod).not.toContainText('CAL OUTWIN');
+    },
+  },
+  {
+    // rolling weeksToShow bounds: 1 week draws today..+6, so a day+10
+    // event has no row (it would at the 6-week default).
+    type: 'calendar', name: 'rolling-weeks-to-show', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('crwt-1', 'CAL NEAR'), dayEvent('crwt-2', 'CAL FARWEEK', 10)],
+    config: { viewMode: 'rolling', weeksToShow: 1 },
+    expect: lacks('CAL NEAR', 'CAL FARWEEK'),
+  },
+  {
+    // Banner + rolling: weekend cells lift to 5% ink while weekday cells
+    // keep 2% (the shading is new for banner in this view only).
+    type: 'calendar', name: 'rolling-banner-weekend-shading', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('crbs-1', 'CAL BANNER')],
+    config: { viewMode: 'rolling', weeksToShow: 2, gridTheme: 'banner' },
+    expect: async (mod) => {
+      const cells = mod.locator('.grid.flex-1 > div');
+      await expect(cells).toHaveCount(14);
+      for (const i of ROLLING_WEEKEND_IDX) {
+        await expect(cells.nth(i)).toHaveAttribute('style', /5%/);
+      }
+      await expect(cells.nth(ROLLING_WEEKDAY_IDX)).toHaveAttribute('style', /2%/);
     },
   },
   {

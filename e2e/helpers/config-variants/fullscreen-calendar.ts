@@ -910,4 +910,34 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     config: { view: 'free-time', freeTimeShowTomorrow: false },
     expect: async (mod) => { await has('Today')(mod); await notMatches(/Tomorrow/)(mod); },
   },
+
+  // ================= ROLLING WEEKS VIEW =================
+
+  {
+    // The rolling view anchors row 1 at today: at 2 weeks a day+13 event
+    // renders, a day+15 one does not.
+    type: 'fullscreen-calendar', name: 'rolling-view', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      { id: 'frw-1', title: 'FSC ROLLING', start: localIso(0, 9, 0), end: localIso(0, 10, 0), allDay: false },
+      { id: 'frw-2', title: 'FSC INWIN', start: localIso(13, 9, 0), end: localIso(13, 10, 0), allDay: false },
+      { id: 'frw-3', title: 'FSC OUTWIN', start: localIso(15, 9, 0), end: localIso(15, 10, 0), allDay: false },
+    ],
+    config: { view: 'rolling', rollingWeeksToShow: 2 },
+    expect: async (mod) => {
+      await expect(mod).toContainText('FSC ROLLING');
+      await expect(mod).toContainText('FSC INWIN');
+      await expect(mod).not.toContainText('FSC OUTWIN');
+    },
+  },
+  {
+    // rollingWeeksToShow bounds the rows: 1 week drops a day+10 event the
+    // 6-week default would show.
+    type: 'fullscreen-calendar', name: 'rolling-weeks-to-show', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      { id: 'frwt-1', title: 'FSC NEAR', start: localIso(0, 9, 0), end: localIso(0, 10, 0), allDay: false },
+      { id: 'frwt-2', title: 'FSC FARWEEK', start: localIso(10, 9, 0), end: localIso(10, 10, 0), allDay: false },
+    ],
+    config: { view: 'rolling', rollingWeeksToShow: 1 },
+    expect: lacks('FSC NEAR', 'FSC FARWEEK'),
+  },
 ];

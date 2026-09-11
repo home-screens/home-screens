@@ -226,6 +226,41 @@ test('calendar: switching Event Style persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'calendar')).gridEventPillBackground).toBe(true);
 });
 
+test('calendar: rolling Weeks to Show slider persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'rolling', weeksToShow: 2 }));
+
+  // The slider re-bounds to 1-8 for rolling (the multi-week grid runs 2-12);
+  // native range inputs carry that as min/max — the source of the implicit
+  // aria-value bounds — so pin the attributes before stepping. 2 + one right → 3.
+  const slider = page.getByRole('slider', { name: 'Weeks to Show' });
+  await expect(slider).toHaveAttribute('min', '1');
+  await expect(slider).toHaveAttribute('max', '8');
+
+  await autosaved(page, async () => {
+    await slider.focus();
+    await slider.press('ArrowRight');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).weeksToShow).toBe(3);
+});
+
+test('fullscreen-calendar: rolling Weeks to Show slider persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-calendar', { view: 'rolling' }));
+
+  // Bounds are always 1-8 here; pinning them guards a regression that a
+  // value-only assertion at default 6 + one right → 7 could not catch.
+  const slider = page.getByRole('slider', { name: 'Weeks to Show' });
+  await expect(slider).toHaveAttribute('min', '1');
+  await expect(slider).toHaveAttribute('max', '8');
+
+  await autosaved(page, async () => {
+    await slider.focus();
+    await slider.press('ArrowRight');
+  });
+
+  expect((await moduleConfig(request, 'fullscreen-calendar')).rollingWeeksToShow).toBe(7);
+});
+
 test('calendar: adding a title filter term persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar'));
 
