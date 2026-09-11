@@ -978,12 +978,16 @@ describe('clampGridMaxEventsPerCell', () => {
 });
 
 describe('isThemedGridView', () => {
-  it('covers exactly the two views that share the themed grid renderer', () => {
+  it('covers exactly the three views that share the themed grid renderer', () => {
     expect(isThemedGridView('month')).toBe(true);
     expect(isThemedGridView('multi-week')).toBe(true);
+    expect(isThemedGridView('rolling')).toBe(true);
     expect(isThemedGridView('week')).toBe(false);
     expect(isThemedGridView('daily')).toBe(false);
     expect(isThemedGridView(undefined)).toBe(false);
+    // isGridView's only direct coverage rides along here: every themed view
+    // is a grid view, rolling included.
+    expect(isGridView('rolling')).toBe(true);
   });
 });
 
@@ -1013,10 +1017,5 @@ describe('clampRollingWeeks', () => {
     expect(clampRollingWeeks(8)).toBe(8);
     expect(clampRollingWeeks(12)).toBe(8);
     expect(clampRollingWeeks(99)).toBe(8);
-  });
-
-  it('treats the rolling view as a themed grid view', () => {
-    expect(isGridView('rolling')).toBe(true);
-    expect(isThemedGridView('rolling')).toBe(true);
   });
 });

@@ -76,10 +76,11 @@ function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date):
 function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
-    // Every grid honors startDay; the window follows the same convention so
-    // past days of the displayed range are always inside the fetch. The
-    // clamp mirrors the multi-week view's so hand-edited configs can't
-    // starve the clamped rows.
+    // Every grid honors startDay (the rolling view is the exception: it
+    // anchors at today); the window follows the same convention so past
+    // days of the displayed range are always inside the fetch. The clamp
+    // mirrors the multi-week view's so hand-edited configs can't starve
+    // the clamped rows.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<CalendarConfig>).startDay);
     if (view === 'month') return gridWindow('month-grid', now, weekStartsOn);
     if (view === 'week') return gridWindow('week', now, weekStartsOn);
@@ -105,7 +106,8 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
   }
   if (mod.type === 'fullscreen-calendar') {
     const view = (mod.config as Partial<FullscreenCalendarConfig>).view;
-    // Both fullscreen grids honor startDay; the window follows the same
+    // Both fullscreen grids honor startDay (the rolling view is the
+    // exception: it anchors at today); the window follows the same
     // convention so their leading days are always inside the fetch.
     const weekStartsOn = weekStartsOnFor((mod.config as Partial<FullscreenCalendarConfig>).startDay);
     if (view === 'month-grid') return gridWindow('month-grid', now, weekStartsOn);
