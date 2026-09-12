@@ -502,6 +502,50 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // Last-day matching: the month grid always shows the current month's
+    // final day, so the rule's badge lands on that cell.
+    type: 'fullscreen-calendar', name: 'day-rules-last-day', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: {
+      view: 'month-grid',
+      dayRules: [{ id: 'd1', match: { lastDayOfMonth: true }, badgeText: 'LAST DAY', badgeColor: '#f97316' }],
+    },
+    expect: async (mod) => {
+      // The grid applies decor to out-month padding cells too, so the last
+      // day of the trailing month badges alongside the current month's.
+      await expect(mod.locator('[data-day-badge]', { hasText: 'LAST DAY' }).first()).toBeVisible();
+    },
+  },
+  {
+    // Nth-weekday matching covers both ends of the union: the first Monday
+    // and the last Sunday of the current month both badge in the month grid.
+    type: 'fullscreen-calendar', name: 'day-rules-nth-weekday', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: {
+      view: 'month-grid',
+      dayRules: [
+        { id: 'd1', match: { weekdayOfMonth: { week: 1, weekday: 1 } }, badgeText: 'FIRST MON' },
+        { id: 'd2', match: { weekdayOfMonth: { week: 'last', weekday: 0 } }, badgeText: 'LAST SUN' },
+      ],
+    },
+    expect: async (mod) => {
+      // Padding cells badge too (see day-rules-last-day), hence .first().
+      await expect(mod.locator('[data-day-badge]', { hasText: 'FIRST MON' }).first()).toBeVisible();
+      await expect(mod.locator('[data-day-badge]', { hasText: 'LAST SUN' }).first()).toBeVisible();
+    },
+  },
+  {
+    // Art dimming writes the scrim alpha into the cell's inline style. The
+    // browser re-serializes CSSOM values with spaced rgba() args, so the
+    // selector matches the serialized form, not the emitted source text.
+    type: 'fullscreen-calendar', name: 'day-rules-art-dim', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: {
+      view: 'month-grid',
+      dayRules: [{ id: 'd1', match: { months: [new Date().getMonth()], dayOfMonth: new Date().getDate() }, backgroundImage: '/starter-day-art/celebrate.svg', backgroundDim: 0.7 }],
+    },
+    expect: async (mod) => {
+      await expect(mod.locator('[style*="rgba(0, 0, 0, 0.7)"]').first()).toBeVisible();
+    },
+  },
+  {
     // A Font Awesome pick stores a `fa:<style>:<name>` token instead of a
     // glyph. Both rule icons and day badges have to render it as the icon
     // font's <i>, not print the token as text.
