@@ -23,7 +23,7 @@ function serveUrl(filename: string, directory?: string) {
   return `/api/backgrounds/serve?file=${encodeURIComponent(filePath)}`;
 }
 
-const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif)$/i;
+const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif|svg)$/i;
 const VIDEO_RE = /\.(mp4|webm|mov)$/i;
 
 export const GET = withDisplayAuth(async (request: NextRequest) => {
@@ -109,7 +109,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   return NextResponse.json(items);
 }, 'Failed to list backgrounds');
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/svg+xml'];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
 export const POST = withAuth(async (request: NextRequest) => {

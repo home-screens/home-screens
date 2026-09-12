@@ -802,3 +802,34 @@ describe('DELETE /api/backgrounds', () => {
     expect(res.status).toBe(404);
   });
 });
+
+// ─── SVG day art ────────────────────────────────────────────────
+
+describe('svg day art', () => {
+  it('accepts svg uploads into the calendar-art folder', async () => {
+    const { POST } = await getHandlers();
+    const res = await POST(
+      makePostRequest(
+        [{ name: 'art.svg', type: 'image/svg+xml', content: Buffer.from('<svg/>') }],
+        'calendar-art',
+      ),
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.path).toBe('/api/backgrounds/serve?file=calendar-art%2Fart.svg');
+    await expect(
+      fs.readFile(path.join(bgsDir, 'calendar-art', 'art.svg'), 'utf8'),
+    ).resolves.toBeTruthy();
+  });
+
+  it('lists svg files in the calendar-art folder', async () => {
+    const dir = path.join(bgsDir, 'calendar-art');
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, 'pumpkin.svg'), '<svg/>');
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ directory: 'calendar-art' }));
+    expect(await res.json()).toEqual([
+      '/api/backgrounds/serve?file=calendar-art%2Fpumpkin.svg',
+    ]);
+  });
+});
