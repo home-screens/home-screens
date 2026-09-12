@@ -479,6 +479,29 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod.locator('[data-day-badge]')).toHaveText('RULE BADGE'); },
   },
   {
+    // Specific-days matching: a rule pinned to today's day-of-month badges
+    // only today's cell in the month grid.
+    type: 'fullscreen-calendar', name: 'day-rules-specific-days', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: {
+      view: 'month-grid',
+      dayRules: [{ id: 'd1', match: { dayOfMonth: new Date().getDate() }, badgeText: 'MATCH DAY', badgeColor: '#f97316' }],
+    },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-badge]', { hasText: 'MATCH DAY' })).toBeVisible();
+    },
+  },
+  {
+    // A picture background resolves to a scrim + cover image on the cell.
+    type: 'fullscreen-calendar', name: 'day-rules-art', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: {
+      view: 'month-grid',
+      dayRules: [{ id: 'd1', match: { months: [new Date().getMonth()], dayOfMonth: new Date().getDate() }, backgroundImage: '/starter-day-art/celebrate.svg' }],
+    },
+    expect: async (mod) => {
+      await expect(mod.locator('[style*="starter-day-art"]').first()).toBeVisible();
+    },
+  },
+  {
     // A Font Awesome pick stores a `fa:<style>:<name>` token instead of a
     // glyph. Both rule icons and day badges have to render it as the icon
     // font's <i>, not print the token as text.
