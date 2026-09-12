@@ -43,6 +43,8 @@ export interface DayBadge {
 
 export interface DayDecor {
   background?: string;
+  backgroundImage?: string;
+  backgroundDim?: number;
   opacity?: number;
   borderColor?: string;
   badges: DayBadge[];
@@ -234,6 +236,8 @@ export function resolveDayDecor(
 ): DayDecor {
   if (!rules || rules.length === 0) return NO_DECOR;
   let background: string | undefined;
+  let backgroundImage: string | undefined;
+  let backgroundDim: number | undefined;
   let opacity: number | undefined;
   let borderColor: string | undefined;
   const badges: DayBadge[] = [];
@@ -244,14 +248,19 @@ export function resolveDayDecor(
         ? autoDayTint(dayEvents, opts.autoTintAlpha ?? 0.18)
         : rule.background;
     }
+    if (backgroundImage == null && rule.backgroundImage) {
+      backgroundImage = rule.backgroundImage;
+      const dim = rule.backgroundDim;
+      backgroundDim = dim == null || !Number.isFinite(dim) ? 0.4 : Math.min(1, Math.max(0, dim));
+    }
     if (opacity == null && rule.opacity != null) opacity = clampOpacity(rule.opacity);
     if (borderColor == null && rule.borderColor) borderColor = rule.borderColor;
     const icon = rule.badgeIcon?.trim();
     const text = rule.badgeText?.trim();
     if (icon || text) badges.push({ icon: icon || undefined, text: text || undefined, color: rule.badgeColor || undefined });
   }
-  if (background == null && opacity == null && borderColor == null && badges.length === 0) return NO_DECOR;
-  return { background, opacity, borderColor, badges };
+  if (background == null && backgroundImage == null && opacity == null && borderColor == null && badges.length === 0) return NO_DECOR;
+  return { background, backgroundImage, backgroundDim, opacity, borderColor, badges };
 }
 
 /**
@@ -317,19 +326,36 @@ export function eventOpacity(ev: Pick<CalendarEvent, 'opacity'>, base: number | 
 }
 
 /**
- * Day-rule look merged over a cell's own inline style: background
- * replaces (both shorthand and the longhand color/image), opacity
+ * Day-rule look merged over a cell's own inline style: colors replace
+ * via the longhands (a gradient auto tint takes the image slot), art
+ * composes as a scrim + cover image over the cell color, opacity
  * multiplies, the border joins any existing box shadow as an inset ring.
  * Returns `base` untouched when the decor sets nothing (identity stays
  * cheap to compare).
  */
 export function mergeCellDecor(base: CSSProperties, decor: DayDecor): CSSProperties {
-  if (decor.background == null && decor.opacity == null && decor.borderColor == null) return base;
+  if (decor.background == null && decor.backgroundImage == null && decor.opacity == null && decor.borderColor == null) return base;
   const out: CSSProperties = { ...base };
-  if (decor.background) {
-    delete out.backgroundColor;
+  if (decor.backgroundImage) {
+    // Art covers the cell with a dimming scrim stacked beneath it; the
+    // scrim keeps event text readable over any art.
+    const dim = decor.backgroundDim ?? 0.4;
+    out.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}),rgba(0,0,0,${dim})), url("${decor.backgroundImage}")`;
+    out.backgroundSize = 'cover';
+    out.backgroundPosition = 'center';
+    if (decor.background && !decor.background.includes('gradient')) {
+      out.backgroundColor = decor.background;
+    }
+  } else if (decor.background) {
     delete out.backgroundImage;
-    out.background = decor.background;
+    if (decor.background.includes('gradient')) {
+      // An auto tint with several colors is itself a background image; it
+      // must cover whatever base color the cell had (shorthand parity).
+      delete out.backgroundColor;
+      out.backgroundImage = decor.background;
+    } else {
+      out.backgroundColor = decor.background;
+    }
   }
   if (decor.opacity != null) {
     const current = typeof base.opacity === 'number' ? base.opacity : 1;

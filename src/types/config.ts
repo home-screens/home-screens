@@ -1336,6 +1336,10 @@ export interface CalendarDayRule {
   match: CalendarDayMatch;
   /** CSS color, or 'auto' = tinted from that day's event colors. */
   background?: string;
+  /** Art painted behind the day cell: a built-in /starter-day-art/... path or a media-library serve URL. */
+  backgroundImage?: string;
+  /** 0-1 dark scrim over the art so text stays readable; default 0.4. */
+  backgroundDim?: number;
   opacity?: number;
   borderColor?: string;
   badgeIcon?: string;

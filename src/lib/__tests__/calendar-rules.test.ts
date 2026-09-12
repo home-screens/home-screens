@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { CSSProperties } from 'react';
 import {
   NO_DECOR,
   applyEventRules,
@@ -7,6 +8,7 @@ import {
   eventOpacity,
   matchesDay,
   matchesEvent,
+  mergeCellDecor,
   resolveDayDecor,
   rulesNeedNow,
 } from '../calendar-rules';
@@ -279,5 +281,75 @@ describe('glyph and opacity helpers', () => {
     expect(eventOpacity({}, 0.4)).toBe(0.4);
     expect(eventOpacity({ opacity: 0.5 }, 0.4)).toBe(0.2);
     expect(eventOpacity({ opacity: 0.5 }, 'var(--x)')).toBe('calc(var(--x) * 0.5)');
+  });
+});
+
+describe('resolveDayDecor: art', () => {
+  it('art is its own first-wins property; dim rides the winning rule', () => {
+    const rules: CalendarDayRule[] = [
+      { id: 'a', match: {}, backgroundImage: '/starter-day-art/x.svg', backgroundDim: 0.7 },
+      { id: 'b', match: {}, backgroundImage: '/starter-day-art/y.svg' },
+    ];
+    const decor = resolveDayDecor(today, [], rules, ctx);
+    expect(decor.backgroundImage).toBe('/starter-day-art/x.svg');
+    expect(decor.backgroundDim).toBe(0.7);
+  });
+
+  it('dim defaults to 0.4 when the winning rule leaves it unset', () => {
+    const decor = resolveDayDecor(today, [], [{ id: 'a', match: {}, backgroundImage: '/x.svg' }], ctx);
+    expect(decor.backgroundDim).toBe(0.4);
+  });
+
+  it('a color from another rule still resolves alongside art', () => {
+    const rules: CalendarDayRule[] = [
+      { id: 'a', match: { when: 'past' }, background: '#123456' },
+      { id: 'b', match: {}, background: '#654321', backgroundImage: '/x.svg' },
+    ];
+    const decor = resolveDayDecor(today, [], rules, ctx);
+    expect(decor.background).toBe('#654321');
+    expect(decor.backgroundImage).toBe('/x.svg');
+  });
+
+  it('non-matching art rules keep the NO_DECOR identity', () => {
+    expect(resolveDayDecor(today, [], [{ id: 'a', match: { when: 'past' }, backgroundImage: '/x.svg' }], ctx)).toBe(NO_DECOR);
+  });
+});
+
+describe('mergeCellDecor', () => {
+  const base: CSSProperties = { backgroundColor: 'red' };
+
+  it('art becomes a scrim + cover image; the base color stays under it', () => {
+    const out = mergeCellDecor(base, { backgroundImage: '/art.svg', backgroundDim: 0.5, badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url("/art.svg")');
+    expect(out.backgroundSize).toBe('cover');
+    expect(out.backgroundPosition).toBe('center');
+    expect(out.backgroundColor).toBe('red');
+  });
+
+  it('dim defaults to 0.4', () => {
+    const out = mergeCellDecor(base, { backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("/a.svg")');
+  });
+
+  it('a color decor replaces the base color', () => {
+    const out = mergeCellDecor(base, { background: '#00ff00', badges: [] });
+    expect(out.backgroundColor).toBe('#00ff00');
+    expect(out.backgroundImage).toBeUndefined();
+  });
+
+  it('a gradient decor (auto tint) takes the image slot and clears the base color', () => {
+    const out = mergeCellDecor(base, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
+    expect(out.backgroundColor).toBeUndefined();
+  });
+
+  it('a plain color decor resolves alongside art and sits under it', () => {
+    const out = mergeCellDecor(base, { background: '#00ff00', backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundColor).toBe('#00ff00');
+    expect(out.backgroundImage).toContain('url("/a.svg")');
+  });
+
+  it('identity when decor sets nothing', () => {
+    expect(mergeCellDecor(base, NO_DECOR)).toBe(base);
   });
 });
