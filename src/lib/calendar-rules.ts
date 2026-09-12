@@ -337,8 +337,9 @@ export function mergeCellDecor(base: CSSProperties, decor: DayDecor): CSSPropert
   if (decor.background == null && decor.backgroundImage == null && decor.opacity == null && decor.borderColor == null) return base;
   const out: CSSProperties = { ...base };
   if (decor.backgroundImage) {
-    // Art covers the cell with a dimming scrim stacked beneath it; the
-    // scrim keeps event text readable over any art.
+    // Art covers the cell with a dimming scrim painted over it (the first
+    // background layer renders on top); the scrim keeps event text
+    // readable over any art.
     const dim = decor.backgroundDim ?? 0.4;
     out.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}),rgba(0,0,0,${dim})), url("${decor.backgroundImage}")`;
     out.backgroundSize = 'cover';

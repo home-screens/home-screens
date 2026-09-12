@@ -349,6 +349,14 @@ describe('mergeCellDecor', () => {
     expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
   });
 
+  it('art wins the image slot over a gradient tint; a shorthand base survives under it', () => {
+    const out = mergeCellDecor({ background: 'blue' } as CSSProperties, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundImage).toContain('url("/a.svg")');
+    expect(out.backgroundImage).not.toContain('180deg');
+    expect(out.backgroundColor).toBeUndefined();
+    expect(out.background).toBe('blue');
+  });
+
   it('a plain color decor resolves alongside art and sits under it', () => {
     const out = mergeCellDecor(base, { background: '#00ff00', backgroundImage: '/a.svg', badges: [] });
     expect(out.backgroundColor).toBe('#00ff00');
