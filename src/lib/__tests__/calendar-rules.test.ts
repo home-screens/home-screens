@@ -300,13 +300,13 @@ describe('resolveDayDecor: art', () => {
     expect(decor.backgroundDim).toBe(0.4);
   });
 
-  it('a color from another rule still resolves alongside art', () => {
+  it('a color from one matching rule pairs with art from another', () => {
     const rules: CalendarDayRule[] = [
-      { id: 'a', match: { when: 'past' }, background: '#123456' },
+      { id: 'a', match: {}, background: '#123456' },
       { id: 'b', match: {}, background: '#654321', backgroundImage: '/x.svg' },
     ];
     const decor = resolveDayDecor(today, [], rules, ctx);
-    expect(decor.background).toBe('#654321');
+    expect(decor.background).toBe('#123456');
     expect(decor.backgroundImage).toBe('/x.svg');
   });
 
@@ -341,6 +341,12 @@ describe('mergeCellDecor', () => {
     const out = mergeCellDecor(base, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', badges: [] });
     expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
     expect(out.backgroundColor).toBeUndefined();
+  });
+
+  it('a gradient decor also clears a shorthand background base', () => {
+    const out = mergeCellDecor({ background: 'blue' } as CSSProperties, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', badges: [] });
+    expect(out.background).toBeUndefined();
+    expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
   });
 
   it('a plain color decor resolves alongside art and sits under it', () => {

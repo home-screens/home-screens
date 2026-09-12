@@ -351,6 +351,7 @@ export function mergeCellDecor(base: CSSProperties, decor: DayDecor): CSSPropert
     if (decor.background.includes('gradient')) {
       // An auto tint with several colors is itself a background image; it
       // must cover whatever base color the cell had (shorthand parity).
+      delete out.background;
       delete out.backgroundColor;
       out.backgroundImage = decor.background;
     } else {
