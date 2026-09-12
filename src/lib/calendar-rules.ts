@@ -166,6 +166,24 @@ export function matchesDay(
   if (match.daysOfWeek && match.daysOfWeek.length > 0 && !match.daysOfWeek.includes(day.getDay())) {
     return false;
   }
+  if (match.months && match.months.length > 0 && !match.months.includes(day.getMonth())) {
+    return false;
+  }
+  if (match.dayOfMonth != null && day.getDate() !== match.dayOfMonth) return false;
+  if (match.lastDayOfMonth === true) {
+    const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
+    if (next.getDate() !== 1) return false;
+  }
+  if (match.weekdayOfMonth) {
+    const { week, weekday } = match.weekdayOfMonth;
+    if (day.getDay() !== weekday) return false;
+    if (week === 'last') {
+      const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 7);
+      if (next.getMonth() === day.getMonth()) return false;
+    } else if (Math.ceil(day.getDate() / 7) !== week) {
+      return false;
+    }
+  }
   if (match.withEvents === 'any' && dayEvents.length === 0) return false;
   if (match.withEvents === 'none' && dayEvents.length > 0) return false;
   if (match.withEvents === 'matching' && !dayEvents.some((ev) => matchesEvent(match.eventMatch, ev, ctx))) {

@@ -153,6 +153,64 @@ describe('matchesDay', () => {
   });
 });
 
+describe('matchesDay: specific date patterns', () => {
+  // August 2026: the 20th is a Thursday, the month has 31 days.
+  const d = (day: number) => new Date(2026, 7, day);
+
+  it('dayOfMonth matches that day of any month', () => {
+    expect(matchesDay({ dayOfMonth: 20 }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 20 }, d(21), [], ctx)).toBe(false);
+  });
+
+  it('dayOfMonth 29-31 skips months that lack the day (no clamping)', () => {
+    expect(matchesDay({ dayOfMonth: 31 }, new Date(2026, 3, 30), [], ctx)).toBe(false); // April
+    expect(matchesDay({ dayOfMonth: 29 }, new Date(2027, 1, 28), [], ctx)).toBe(false); // Feb 2027
+    expect(matchesDay({ dayOfMonth: 29 }, new Date(2028, 1, 29), [], ctx)).toBe(true);  // leap Feb
+  });
+
+  it('months AND dayOfMonth make a yearly date', () => {
+    expect(matchesDay({ months: [11], dayOfMonth: 25 }, new Date(2026, 11, 25), [], ctx)).toBe(true);
+    expect(matchesDay({ months: [11], dayOfMonth: 25 }, new Date(2026, 9, 25), [], ctx)).toBe(false);
+  });
+
+  it('months alone matches every day of that month', () => {
+    expect(matchesDay({ months: [11] }, new Date(2026, 11, 3), [], ctx)).toBe(true);
+    expect(matchesDay({ months: [11] }, new Date(2026, 10, 3), [], ctx)).toBe(false);
+  });
+
+  it('lastDayOfMonth matches the final day at any month length', () => {
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 7, 31), [], ctx)).toBe(true);
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 8, 30), [], ctx)).toBe(true);  // September
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2028, 1, 29), [], ctx)).toBe(true);  // leap February
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 7, 30), [], ctx)).toBe(false);
+  });
+
+  it('lastDayOfMonth AND months (last day of the year)', () => {
+    expect(matchesDay({ lastDayOfMonth: true, months: [11] }, new Date(2026, 11, 31), [], ctx)).toBe(true);
+    expect(matchesDay({ lastDayOfMonth: true, months: [11] }, new Date(2026, 9, 31), [], ctx)).toBe(false);
+  });
+
+  it('weekdayOfMonth matches the nth weekday of the month', () => {
+    expect(matchesDay({ weekdayOfMonth: { week: 3, weekday: 4 } }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ weekdayOfMonth: { week: 4, weekday: 4 } }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ weekdayOfMonth: { week: 3, weekday: 4 } }, d(27), [], ctx)).toBe(false); // 4th Thursday
+    expect(matchesDay({ weekdayOfMonth: { week: 4, weekday: 4 }, months: [10] }, new Date(2026, 10, 26), [], ctx)).toBe(true);
+  });
+
+  it("weekdayOfMonth 'last' matches the final weekday of the month", () => {
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(27), [], ctx)).toBe(true);  // last Thu of Aug 2026
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 1 } }, new Date(2027, 4, 31), [], ctx)).toBe(true);
+  });
+
+  it('specific fields AND with when and daysOfWeek', () => {
+    expect(matchesDay({ dayOfMonth: 20, when: 'today' }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 19, when: 'today' }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ dayOfMonth: 20, daysOfWeek: [4] }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 20, daysOfWeek: [0] }, d(20), [], ctx)).toBe(false);
+  });
+});
+
 describe('resolveDayDecor', () => {
   it('returns the shared empty decor with no rules', () => {
     const a = resolveDayDecor(today, [], undefined, ctx);
