@@ -506,6 +506,8 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | `borderColor` | string | Outline color for the day |
 | `badgeIcon`, `badgeText`, `badgeColor` | string | A small marker drawn on the day |
 
+**Specific days** narrows a rule to fixed dates: a day of every month (payday on the 15th), a fixed date each year (October 31), the last day of the month (any month, or just one), or the nth weekday of the month — 1st through 5th or the last, so "the 4th Thursday of November" works. Days that don't exist in a month never match: the 31st simply skips shorter months. A rule's other choices (a badge, an outline, a background) then apply to exactly those days.
+
 **Matching an event**: every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
 
 | Field | Type | Description |
