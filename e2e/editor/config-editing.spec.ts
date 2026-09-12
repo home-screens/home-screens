@@ -335,6 +335,30 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
   expect(dayRules[0].match).toEqual({ when: 'today' });
   expect(dayRules[0].badgeIcon).toBe('⭐');
 
+  // Specific days: pick a yearly pattern (October 31) and check persistence.
+  await autosaved(page, async () => {
+    await dayCard.getByLabel('Which days').selectOption('specific');
+  });
+  await autosaved(page, async () => {
+    await dayCard.getByLabel('Pattern').selectOption('yearly-day');
+  });
+  await autosaved(page, async () => {
+    // A label's text includes its <option> texts, so plain 'Month' would also
+    // hit the Pattern select ("Day of every month") and exact matching can
+    // never equal "Day" + its 31 option digits — anchor both to the start.
+    await dayCard.getByLabel(/^Month/).selectOption('9');
+    await dayCard.getByLabel(/^Day/).selectOption('31');
+  });
+  let saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
+  expect(saved[0].match).toEqual({ dayOfMonth: 31, months: [9] });
+
+  // Switching back to a plain choice clears the date fields.
+  await autosaved(page, async () => {
+    await dayCard.getByLabel('Which days').selectOption('today');
+  });
+  saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
+  expect(saved[0].match).toEqual({ when: 'today' });
+
   // Removing the only rule clears the list back to undefined, not [].
   await autosaved(page, async () => {
     await dayCard.getByRole('button', { name: 'Remove rule' }).click();
