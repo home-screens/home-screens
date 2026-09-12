@@ -9,6 +9,7 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
+import { starterDayArtPath } from '@/lib/starter-day-art';
 import type {
   CalendarDayRule,
   CalendarEventMatch,
@@ -16,6 +17,7 @@ import type {
   CalendarNthWeek,
   CalendarRuleTextMatch,
 } from '@/types/config';
+import DayArtPicker from '../DayArtPicker';
 import type { CalendarSource } from './CalendarSourceFilter';
 
 /**
@@ -271,7 +273,7 @@ function EventRuleFields({ rule, availableSources, onChange }: {
   );
 }
 
-type DayBgMode = 'none' | 'auto' | 'color';
+type DayBgMode = 'none' | 'auto' | 'color' | 'picture';
 function bgModeOf(background: string | undefined): DayBgMode {
   if (!background) return 'none';
   return background === 'auto' ? 'auto' : 'color';
@@ -314,7 +316,7 @@ function DayRuleFields({ rule, availableSources, onChange }: {
         ? 'yearly-day'
         : 'monthly-day';
   const monthValue = match.months?.length ? String(match.months[0]) : '';
-  const bgMode = bgModeOf(rule.background);
+  const bgMode: DayBgMode = rule.backgroundImage ? 'picture' : bgModeOf(rule.background);
   const hasBadge = rule.badgeIcon != null || rule.badgeText != null || rule.badgeColor != null;
   const matchesEveryDay = Object.keys(match).length === 0;
 
@@ -465,13 +467,38 @@ function DayRuleFields({ rule, availableSources, onChange }: {
       <LabeledSelect
         label={t(`${KEY}.background`)}
         value={bgMode}
-        onChange={(v) => patch({ background: v === 'none' ? undefined : v === 'auto' ? 'auto' : DEFAULT_DAY_BG })}
+        onChange={(v) => {
+          if (v === 'picture') {
+            patch({ backgroundImage: starterDayArtPath('celebrate'), background: undefined });
+          } else {
+            patch({
+              backgroundImage: undefined,
+              backgroundDim: undefined,
+              background: v === 'none' ? undefined : v === 'auto' ? 'auto' : DEFAULT_DAY_BG,
+            });
+          }
+        }}
         options={[
           { value: 'none', label: t(`${KEY}.noChange`) },
           { value: 'auto', label: t(`${KEY}.backgroundAuto`) },
           { value: 'color', label: t(`${KEY}.backgroundColor`) },
+          { value: 'picture', label: t(`${KEY}.backgroundPicture`) },
         ]}
       />
+      {bgMode === 'picture' && (
+        <>
+          <DayArtPicker value={rule.backgroundImage} onChange={(url) => patch({ backgroundImage: url })} />
+          <Slider
+            label={t(`${KEY}.artDimming`)}
+            value={Math.round((rule.backgroundDim ?? 0.4) * 100)}
+            min={0}
+            max={90}
+            step={5}
+            displayValue={`${Math.round((rule.backgroundDim ?? 0.4) * 100)}%`}
+            onChange={(v) => patch({ backgroundDim: v === 40 ? undefined : v / 100 })}
+          />
+        </>
+      )}
       {bgMode === 'color' && (
         <ColorPicker label={t(`${KEY}.color`)} value={rule.background ?? DEFAULT_DAY_BG} onChange={(v) => patch({ background: v })} />
       )}

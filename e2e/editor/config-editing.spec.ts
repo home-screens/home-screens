@@ -360,6 +360,17 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
   saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
   expect(saved[0].match).toEqual({ when: 'today' });
 
+  // Picture background: pick built-in art and check persistence.
+  await autosaved(page, async () => {
+    await dayCard.getByLabel(/^Background/).selectOption('picture');
+  });
+  const artPicker = dayCard.locator('[data-day-art-picker]');
+  await autosaved(page, async () => {
+    await artPicker.locator('[data-art-option="halloween"]').click();
+  });
+  saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
+  expect(saved[0].backgroundImage).toBe('/starter-day-art/halloween.svg');
+
   // Removing the only rule clears the list back to undefined, not [].
   await autosaved(page, async () => {
     await dayCard.getByRole('button', { name: 'Remove rule' }).click();
