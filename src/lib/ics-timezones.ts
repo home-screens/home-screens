@@ -321,6 +321,66 @@ function offsetToTzid(minutes: number): string {
   return `UTC${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}${String(abs % 60).padStart(2, '0')}`;
 }
 
+/**
+ * Date-time properties a floating value may legitimately appear on. `DTSTAMP`,
+ * `CREATED` and `LAST-MODIFIED` are always UTC per RFC 5545 and are left alone.
+ */
+const FLOATING_PROPERTIES = ['DTSTART', 'DTEND', 'RECURRENCE-ID', 'EXDATE', 'RDATE'];
+
+/**
+ * A floating date-time property: no `TZID`, no `VALUE=DATE`, and a value whose
+ * first date-time does not end in `Z`. Captures the property name and parameters
+ * separately so the TZID can be spliced in ahead of the colon.
+ */
+const FLOATING_PROPERTY = new RegExp(
+  `^(${FLOATING_PROPERTIES.join('|')})((?:;[^:\\r\\n]*)?):(\\d{8}T\\d{6})(?![Z\\d])`,
+  'i',
+);
+
+/**
+ * Anchor floating date-times to `zone` by giving them an explicit `TZID`.
+ *
+ * RFC 5545 3.3.5 says a date-time with no `Z` and no `TZID` is floating: it means
+ * the same wall clock wherever it is read. node-ical instead resolves those against
+ * whatever timezone the hub process happens to run in, so a feed of 16:00 matches
+ * renders at 18:00 on a display configured for Europe/Berlin when the hub itself is
+ * on UTC. The observer here is the display, so the display's configured zone is the
+ * right anchor and the hub's own clock should not enter into it.
+ *
+ * Two deliberate exclusions:
+ *
+ *  - Everything inside a VTIMEZONE. Those `DTSTART`s are floating by definition
+ *    (they are local to the zone being defined); pinning them to a TZID would
+ *    corrupt the very rules the block exists to declare.
+ *  - `VALUE=DATE` all-day values, which carry no time to shift.
+ *
+ * This also overrides node-ical's habit of applying a document's first VTIMEZONE to
+ * floating values. That is a heuristic rather than RFC behaviour; a feed that meant
+ * a particular zone had the `TZID` parameter available to say so.
+ */
+function anchorFloatingTimes(unfolded: string, zone: string): { text: string; anchored: number } {
+  let anchored = 0;
+  let inVtimezone = false;
+
+  const lines = unfolded.split(/\r?\n/).map((line) => {
+    if (/^BEGIN:VTIMEZONE[ \t]*$/i.test(line)) inVtimezone = true;
+    else if (/^END:VTIMEZONE[ \t]*$/i.test(line)) inVtimezone = false;
+    else if (!inVtimezone) {
+      const match = line.match(FLOATING_PROPERTY);
+      if (match) {
+        const [, name, params] = match;
+        if (!/;TZID=/i.test(params) && !/;VALUE=DATE(?!-TIME)/i.test(params)) {
+          anchored++;
+          return `${name};TZID=${zone}${params}${line.slice(name.length + params.length)}`;
+        }
+      }
+    }
+    return line;
+  });
+
+  return { text: anchored ? lines.join('\r\n') : unfolded, anchored };
+}
+
 export interface IcsTimezoneNormalization {
   /** The ICS document, rewritten only if something needed repair. */
   text: string;
@@ -330,6 +390,20 @@ export interface IcsTimezoneNormalization {
    * floating local time rather than taking the whole calendar down.
    */
   replacements: Map<string, string | null>;
+  /** How many floating date-times were anchored to the display's timezone. */
+  anchored: number;
+}
+
+/** Options for {@link normalizeIcsTimezones}. */
+export interface IcsTimezoneOptions {
+  /**
+   * IANA zone floating date-times are anchored to, normally the display's
+   * configured timezone. Omitted, floating values keep node-ical's behaviour of
+   * resolving against the hub process's own zone.
+   */
+  floatingZone?: string;
+  /** Year used to match a declared DST profile against the tz database. */
+  referenceYear?: number;
 }
 
 /**
@@ -338,14 +412,23 @@ export interface IcsTimezoneNormalization {
  */
 export function normalizeIcsTimezones(
   icsText: string,
-  referenceYear: number = new Date().getUTCFullYear(),
+  options: IcsTimezoneOptions = {},
 ): IcsTimezoneNormalization {
+  const { floatingZone, referenceYear = new Date().getUTCFullYear() } = options;
+
   // Unfold first (RFC 5545 3.1), the same way node-ical does, so a TZID split across
   // a continuation line is still seen. Unfolded text parses identically downstream.
   const unfolded = icsText.replace(/\r?\n[ \t]/g, '');
 
   const suspect = [...collectTzids(unfolded)].filter(isBareAbbreviation);
-  if (!suspect.length) return { text: icsText, replacements: new Map() };
+  if (!suspect.length) {
+    // Nothing to repair, but floating values still need anchoring: they are what
+    // node-ical would otherwise resolve against the hub's own clock.
+    const { text, anchored } = floatingZone
+      ? anchorFloatingTimes(unfolded, floatingZone)
+      : { text: icsText, anchored: 0 };
+    return { text: anchored ? text : icsText, replacements: new Map(), anchored };
+  }
 
   const vtimezones = collectVtimezoneOffsets(unfolded);
   const replacements = new Map<string, string | null>();
@@ -388,5 +471,11 @@ export function normalizeIcsTimezones(
       return replacement === null ? '' : `TZID:${replacement}`;
     });
 
-  return { text, replacements };
+  // Anchor last, so a TZID just dropped as unresolvable is now floating and picks
+  // up the display's zone instead of falling through to the hub's clock.
+  const { text: anchoredText, anchored } = floatingZone
+    ? anchorFloatingTimes(text, floatingZone)
+    : { text, anchored: 0 };
+
+  return { text: anchoredText, replacements, anchored };
 }

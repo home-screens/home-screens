@@ -154,7 +154,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
       ),
       !icalSources.length ? NO_FAMILY : runFamily(
         // Lazy-import so the route still works when node-ical isn't installed
-        async () => (await import('@/lib/ical-calendar')).fetchICalEvents(icalSources, timeMin, timeMax),
+        async () => (await import('@/lib/ical-calendar')).fetchICalEvents(icalSources, timeMin, timeMax, timezone),
         () => icalSources.map((s): SourceFetchResult =>
           ({ id: s.id, name: s.name, ok: false, error: 'Could not reach the link', messageKey: 'linkUnreachable' })),
         'ICS calendar fetch failed',
@@ -164,7 +164,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
         async () => {
           const { fetchICloudEvents } = await import('@/lib/caldav-calendar');
           const { listICloudAccounts } = await import('@/lib/icloud-accounts');
-          return fetchICloudEvents(icloudSources, await listICloudAccounts(), timeMin, timeMax);
+          return fetchICloudEvents(icloudSources, await listICloudAccounts(), timeMin, timeMax, timezone);
         },
         () => icloudSources.map((s): SourceFetchResult =>
           ({ id: s.id, name: s.name, ok: false, error: "Couldn't reach iCloud", messageKey: 'icloudUnreachable' })),

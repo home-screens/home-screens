@@ -86,7 +86,7 @@ describe('normalizeIcsTimezones', () => {
 
   it('resolves to a real zone when a VTIMEZONE carries real DST rules', () => {
     const ics = calendar([dstVtimezone('CST', '-0600', '-0500'), event('CST')].join('\r\n'));
-    expect(normalizeIcsTimezones(ics, 2026).replacements.get('CST')).toBe('America/Chicago');
+    expect(normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get('CST')).toBe('America/Chicago');
   });
 
   it('drops a zone it cannot resolve instead of leaving an unusable name behind', () => {
@@ -210,6 +210,92 @@ describe('normalizeIcsTimezones', () => {
       expect(text.match(/TZID=UTC-0600/g)).toHaveLength(3);
     });
   });
+  describe('floating date-times', () => {
+    const floatingEvent = [
+      'BEGIN:VEVENT',
+      'UID:m1',
+      'DTSTAMP:20260901T120000Z',
+      'DTSTART:20260912T160000',
+      'DTEND:20260912T180000',
+      'SUMMARY:Turnerkreis Nippes wA',
+      'END:VEVENT',
+    ].join('\r\n');
+
+    it('anchors a floating DTSTART and DTEND to the display timezone', () => {
+      const { text, anchored } = normalizeIcsTimezones(calendar(floatingEvent), { floatingZone: 'Europe/Berlin' });
+      expect(anchored).toBe(2);
+      expect(text).toContain('DTSTART;TZID=Europe/Berlin:20260912T160000');
+      expect(text).toContain('DTEND;TZID=Europe/Berlin:20260912T180000');
+    });
+
+    it('leaves the feed alone when no zone is given', () => {
+      const ics = calendar(floatingEvent);
+      const { text, anchored } = normalizeIcsTimezones(ics);
+      expect(anchored).toBe(0);
+      expect(text).toBe(ics);
+    });
+
+    it('leaves UTC values alone', () => {
+      const ics = calendar(
+        ['BEGIN:VEVENT', 'UID:e1', 'DTSTART:20260912T160000Z', 'DTEND:20260912T180000Z', 'END:VEVENT'].join('\r\n'),
+      );
+      const { text, anchored } = normalizeIcsTimezones(ics, { floatingZone: 'Europe/Berlin' });
+      expect(anchored).toBe(0);
+      expect(text).toBe(ics);
+    });
+
+    it('leaves values that already name a zone alone', () => {
+      const ics = calendar(event('America/Edmonton'));
+      const { text, anchored } = normalizeIcsTimezones(ics, { floatingZone: 'Europe/Berlin' });
+      expect(anchored).toBe(0);
+      expect(text).toBe(ics);
+    });
+
+    it('leaves all-day values alone', () => {
+      const ics = calendar(
+        ['BEGIN:VEVENT', 'UID:e1', 'DTSTART;VALUE=DATE:20260912', 'DTEND;VALUE=DATE:20260913', 'END:VEVENT'].join('\r\n'),
+      );
+      const { text, anchored } = normalizeIcsTimezones(ics, { floatingZone: 'Europe/Berlin' });
+      expect(anchored).toBe(0);
+      expect(text).toBe(ics);
+    });
+
+    it('never touches a VTIMEZONE, whose own DTSTARTs define the zone', () => {
+      const ics = calendar([dstVtimezone('CET', '+0100', '+0200'), floatingEvent].join('\r\n'));
+      const { text } = normalizeIcsTimezones(ics, { floatingZone: 'Europe/Berlin' });
+      expect(text).toContain('DTSTART:19701101T020000');
+      expect(text).toContain('DTSTART:19700308T020000');
+      expect(text).toContain('DTSTART;TZID=Europe/Berlin:20260912T160000');
+    });
+
+    it('anchors EXDATE and RDATE, including a PERIOD value', () => {
+      const ics = calendar(
+        [
+          'BEGIN:VEVENT',
+          'UID:e1',
+          'DTSTART:20260912T160000',
+          'RRULE:FREQ=WEEKLY;COUNT=3',
+          'EXDATE:20260919T160000',
+          'RDATE;VALUE=PERIOD:20261003T160000/PT2H',
+          'END:VEVENT',
+        ].join('\r\n'),
+      );
+      const { text } = normalizeIcsTimezones(ics, { floatingZone: 'Europe/Berlin' });
+      expect(text).toContain('EXDATE;TZID=Europe/Berlin:20260919T160000');
+      expect(text).toContain('RDATE;TZID=Europe/Berlin;VALUE=PERIOD:20261003T160000/PT2H');
+    });
+
+    it('anchors a TZID that had to be dropped as unresolvable', () => {
+      // BST is deliberately absent from the offset table, so the reference is
+      // dropped. Without a zone that lands on the hub's clock; with one it does not.
+      const { text, replacements, anchored } = normalizeIcsTimezones(calendar(event('BST')), {
+        floatingZone: 'Europe/Berlin',
+      });
+      expect(replacements.get('BST')).toBeNull();
+      expect(anchored).toBe(2);
+      expect(text).toContain('DTSTART;TZID=Europe/Berlin:20260810T090000');
+    });
+  });
   describe('VTIMEZONE blocks that declare daylight saving', () => {
     it('picks the zone the abbreviation names when the offsets agree', () => {
       const cases: Array<[string, string, string, string]> = [
@@ -224,21 +310,21 @@ describe('normalizeIcsTimezones', () => {
       ];
       for (const [abbrev, std, dst, expected] of cases) {
         const ics = calendar([dstVtimezone(abbrev, std, dst), event(abbrev)].join('\r\n'));
-        expect(normalizeIcsTimezones(ics, 2026).replacements.get(abbrev), abbrev).toBe(expected);
+        expect(normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get(abbrev), abbrev).toBe(expected);
       }
     });
 
     it('ignores the abbreviation when the declared offsets contradict it', () => {
       // Says CST, but declares Central European offsets. The document wins.
       const ics = calendar([dstVtimezone('CST', '+0100', '+0200'), event('CST')].join('\r\n'));
-      const zone = normalizeIcsTimezones(ics, 2026).replacements.get('CST');
+      const zone = normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get('CST');
       expect(zone).not.toBe('America/Chicago');
       expect(zone).toMatch(/^[A-Za-z]+\//);
     });
 
     it('resolves a name it has never heard of from the declared offsets alone', () => {
       const ics = calendar([dstVtimezone('XYZ', '-0600', '-0500'), event('XYZ')].join('\r\n'));
-      const zone = normalizeIcsTimezones(ics, 2026).replacements.get('XYZ')!;
+      const zone = normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get('XYZ')!;
       expect(zone).toMatch(/^America\//);
       // Whatever zone it picked must genuinely have those offsets.
       const offset = (month: number) => new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' })
@@ -251,8 +337,8 @@ describe('normalizeIcsTimezones', () => {
       // -04:00/-03:00 fits both Halifax (northern) and Santiago (southern).
       const north = calendar([dstVtimezone('QQQ', '-0400', '-0300', true), event('QQQ')].join('\r\n'));
       const south = calendar([dstVtimezone('QQQ', '-0400', '-0300', false), event('QQQ')].join('\r\n'));
-      const northZone = normalizeIcsTimezones(north, 2026).replacements.get('QQQ')!;
-      const southZone = normalizeIcsTimezones(south, 2026).replacements.get('QQQ')!;
+      const northZone = normalizeIcsTimezones(north, { referenceYear: 2026 }).replacements.get('QQQ')!;
+      const southZone = normalizeIcsTimezones(south, { referenceYear: 2026 }).replacements.get('QQQ')!;
       expect(northZone).not.toBe(southZone);
 
       const isDstInJuly = (zone: string) => new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' })
@@ -264,7 +350,7 @@ describe('normalizeIcsTimezones', () => {
     it('still falls back to a fixed offset when no zone matches', () => {
       // No real zone runs a 45-minute DST shift off a -06:00 base.
       const ics = calendar([dstVtimezone('ZZZ', '-0600', '-0515'), event('ZZZ')].join('\r\n'));
-      expect(normalizeIcsTimezones(ics, 2026).replacements.get('ZZZ')).toBe('UTC-0600');
+      expect(normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get('ZZZ')).toBe('UTC-0600');
     });
 
     it('keeps using a fixed offset when the VTIMEZONE declares only one', () => {
@@ -281,7 +367,7 @@ describe('normalizeIcsTimezones', () => {
           event('MDT'),
         ].join('\r\n'),
       );
-      expect(normalizeIcsTimezones(ics, 2026).replacements.get('MDT')).toBe('UTC-0600');
+      expect(normalizeIcsTimezones(ics, { referenceYear: 2026 }).replacements.get('MDT')).toBe('UTC-0600');
     });
   });
 });

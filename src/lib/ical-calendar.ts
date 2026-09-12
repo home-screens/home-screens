@@ -44,17 +44,26 @@ export interface EventSourceMeta {
  * IANA zone are repaired first (see `normalizeIcsTimezones`). Throws on
  * malformed ICS — callers decide how a bad document degrades (skip the feed,
  * skip the object, …).
+ *
+ * `timezone` is the display's configured zone, used to anchor floating
+ * date-times. Without it node-ical resolves those against whatever zone the hub
+ * process runs in, which puts every event of such a feed at the wrong instant
+ * whenever the two differ.
  */
 export function parseICSEvents(
   icsText: string,
   source: EventSourceMeta,
   from: Date,
   to: Date,
+  timezone?: string,
 ): CalendarEvent[] {
-  const { text, replacements } = normalizeIcsTimezones(icsText);
+  const { text, replacements, anchored } = normalizeIcsTimezones(icsText, { floatingZone: timezone });
   if (replacements.size) {
     const summary = [...replacements].map(([tzid, zone]) => `${tzid} -> ${zone ?? 'local time'}`).join(', ');
     log.info(`Repaired non-standard time zones in "${source.name}" (${source.id}): ${summary}`);
+  }
+  if (anchored) {
+    log.info(`Anchored ${anchored} floating time(s) in "${source.name}" (${source.id}) to ${timezone}`);
   }
   const components = ical.sync.parseICS(text);
   const events: CalendarEvent[] = [];
@@ -108,7 +117,12 @@ type SourceOutcome = { events: CalendarEvent[]; results: SourceFetchResult[] };
  * Links that point into the home network are refused unless the source has
  * `homeNetwork: true`, and every redirect hop is checked the same way.
  */
-export async function fetchICalSource(source: ICalSource, from: Date, to: Date): Promise<SourceOutcome> {
+export async function fetchICalSource(
+  source: ICalSource,
+  from: Date,
+  to: Date,
+  timezone?: string,
+): Promise<SourceOutcome> {
   const fail = (error: string, messageKey: string, messageParams?: Record<string, string | number>): SourceOutcome =>
     ({ events: [], results: [{ id: source.id, name: source.name, ok: false, error, messageKey, messageParams }] });
 
@@ -197,7 +211,7 @@ export async function fetchICalSource(source: ICalSource, from: Date, to: Date):
   // Parse and process ICS — wrapped in try/catch so a malformed feed
   // is logged and treated as a failing source
   try {
-    const parsedEvents = parseICSEvents(icsText, source, from, to);
+    const parsedEvents = parseICSEvents(icsText, source, from, to, timezone);
     return { events: parsedEvents, results: [{ id: source.id, name: source.name, ok: true }] };
   } catch (err) {
     log.warn(`Parse failed for source "${source.name}" (${source.id})`, err);
@@ -216,13 +230,14 @@ export async function fetchICalEvents(
   sources: ICalSource[],
   timeMin: string,
   timeMax: string,
+  timezone?: string,
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const from = new Date(timeMin);
   const to = new Date(timeMax);
 
   const { events, results } = await settleSourceFetches(
     sources,
-    (source) => fetchICalSource(source, from, to),
+    (source) => fetchICalSource(source, from, to, timezone),
     (source, reason) => {
       // Unexpected rejections (e.g. fetchWithTimeout network errors)
       log.warn('Source fetch rejected', reason);
@@ -251,7 +266,7 @@ export type ICalCheckResult =
  */
 export async function checkICalUrl(
   url: string,
-  options: { homeNetwork?: boolean } = {},
+  options: { homeNetwork?: boolean; timezone?: string } = {},
 ): Promise<ICalCheckResult> {
   const from = new Date();
   const to = new Date(from);
@@ -266,7 +281,7 @@ export async function checkICalUrl(
     homeNetwork: options.homeNetwork === true,
   };
   try {
-    const { events, results } = await fetchICalSource(probe, from, to);
+    const { events, results } = await fetchICalSource(probe, from, to, options.timezone);
     const result = results[0];
     if (result?.ok) return { ok: true, eventCount: events.length };
     return {

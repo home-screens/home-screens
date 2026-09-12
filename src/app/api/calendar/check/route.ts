@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
+import { readConfig } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,5 +26,10 @@ export const POST = withAuth(async (request) => {
   }
   // Lazy-import so the route still loads when node-ical isn't installed.
   const { checkICalUrl } = await import('@/lib/ical-calendar');
-  return NextResponse.json(await checkICalUrl(url, { homeNetwork: body.homeNetwork === true }));
+  // Same timezone the display fetch uses, so the count reflects what will
+  // actually render rather than what the hub's own clock would produce. A
+  // config this route cannot read is not a reason to refuse to check a link,
+  // which is the one thing someone does when things are already going wrong.
+  const timezone = await readConfig().then((c) => c.settings.timezone, () => undefined);
+  return NextResponse.json(await checkICalUrl(url, { homeNetwork: body.homeNetwork === true, timezone }));
 }, 'Failed to check the calendar link');

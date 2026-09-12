@@ -492,6 +492,7 @@ describe('ICS + Google Calendar merging', () => {
       [expect.objectContaining({ id: 'ics-1', name: 'Active' })],
       expect.any(String),
       expect.any(String),
+      undefined, // settings.timezone, unset in this fixture
     );
   });
 });
@@ -544,6 +545,7 @@ describe('iCloud merging', () => {
       [account],
       expect.any(String),
       expect.any(String),
+      undefined, // settings.timezone, unset in this fixture
     );
   });
 

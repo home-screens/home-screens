@@ -72,6 +72,23 @@ SUMMARY:Afternoon Review
 END:VEVENT
 END:VCALENDAR`;
 
+/**
+ * A league feed of the kind that produced the "end time shows as the start
+ * time" report: the match really is 16:00-18:00 local, and the feed says so in
+ * floating time, with no `Z` and no `TZID`.
+ */
+const FLOATING_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//League//Fixtures//EN
+BEGIN:VEVENT
+UID:match-1
+DTSTAMP:20260901T120000Z
+DTSTART:20260912T160000
+DTEND:20260912T180000
+SUMMARY:Turnerkreis Nippes wA - HSG Siebengebirge-Thomasberg
+END:VEVENT
+END:VCALENDAR`;
+
 const ALL_DAY_ICS = `BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
@@ -706,6 +723,64 @@ END:VCALENDAR`;
         '2026-03-05T15:00:00.000Z',
         '2026-03-12T14:00:00.000Z',
       ]);
+    });
+  });
+  describe('floating times (no Z, no TZID)', () => {
+    const window = ['2026-09-01T00:00:00Z', '2026-10-01T00:00:00Z'] as const;
+
+    it('anchors them to the display timezone, not the hub clock', async () => {
+      mockFetchResponse(FLOATING_ICS);
+
+      const { events } = await fetchICalEvents([makeSource()], ...window, 'Europe/Berlin');
+
+      // 16:00 in Berlin during CEST is 14:00Z. Before the fix this came back as
+      // the hub's own 16:00 instead, rendering on the wall as 18:00 on a UTC hub
+      // — the reported symptom, with the 2h duration intact.
+      expect(events).toHaveLength(1);
+      expect(events[0].start).toBe('2026-09-12T14:00:00.000Z');
+      expect(events[0].end).toBe('2026-09-12T16:00:00.000Z');
+    });
+
+    it('shows the kickoff at its real wall time', async () => {
+      mockFetchResponse(FLOATING_ICS);
+
+      const { events } = await fetchICalEvents([makeSource()], ...window, 'Europe/Berlin');
+
+      const shown = new Intl.DateTimeFormat('de-DE', {
+        timeZone: 'Europe/Berlin', hour: '2-digit', minute: '2-digit', hour12: false,
+      }).format(new Date(events[0].start));
+      expect(shown).toBe('16:00');
+    });
+
+    it('reads the same wall time whatever zone the hub keeps', async () => {
+      // The whole point of the fix: the hub's own clock stops being an input.
+      mockFetchResponse(FLOATING_ICS);
+      const { events: a } = await fetchICalEvents([makeSource()], ...window, 'America/Chicago');
+      mockFetchResponse(FLOATING_ICS);
+      const { events: b } = await fetchICalEvents([makeSource()], ...window, 'Europe/Berlin');
+
+      expect(a[0].start).toBe('2026-09-12T21:00:00.000Z'); // 16:00 CDT
+      expect(b[0].start).toBe('2026-09-12T14:00:00.000Z'); // 16:00 CEST
+    });
+
+    it('falls back to the hub clock when no timezone is configured', async () => {
+      mockFetchResponse(FLOATING_ICS);
+
+      const { events } = await fetchICalEvents([makeSource()], ...window);
+
+      // Unchanged behaviour for a household that never set one: floating 16:00
+      // resolves against whatever zone this process runs in.
+      expect(events[0].start).toBe(new Date(2026, 8, 12, 16, 0, 0).toISOString());
+    });
+
+    it('leaves a feed that names its zone alone', async () => {
+      mockFetchResponse(FLOATING_ICS.replace(/^DT(START|END):/gm, 'DT$1;TZID=Europe/Berlin:'));
+
+      const { events } = await fetchICalEvents([makeSource()], ...window, 'America/Chicago');
+
+      // An explicit TZID wins over the display's zone: the match is in Germany
+      // however far away the wall showing it hangs.
+      expect(events[0].start).toBe('2026-09-12T14:00:00.000Z');
     });
   });
 });

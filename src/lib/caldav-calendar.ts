@@ -128,6 +128,7 @@ export async function fetchICloudEvents(
   accounts: ICloudAccount[],
   timeMin: string,
   timeMax: string,
+  timezone?: string,
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const from = new Date(timeMin);
   const to = new Date(timeMax);
@@ -150,7 +151,7 @@ export async function fetchICloudEvents(
             ({ id: s.id, name: s.name, ok: false, error: 'No iCloud account is connected for this calendar', messageKey: 'icloudNoAccount' })),
         };
       }
-      return fetchAccountEvents(account, accountSources, from, to);
+      return fetchAccountEvents(account, accountSources, from, to, timezone);
     },
     ([, accountSources], reason) => {
       // Account-level failure (auth or network): every source on it fails.
@@ -169,6 +170,7 @@ async function fetchAccountEvents(
   sources: ICloudSource[],
   from: Date,
   to: Date,
+  timezone?: string,
 ): Promise<{ events: CalendarEvent[]; results: SourceFetchResult[] }> {
   const results: SourceFetchResult[] = [];
   const calendarSources = sources.filter((s) => {
@@ -215,7 +217,7 @@ async function fetchAccountEvents(
         for (const obj of objects) {
           if (!obj.data) continue;
           try {
-            sourceEvents.push(...parseICSEvents(obj.data, source, from, to));
+            sourceEvents.push(...parseICSEvents(obj.data, source, from, to, timezone));
           } catch (err) {
             log.warn(`Unparseable event in "${source.name}" (${obj.url})`, err);
           }
