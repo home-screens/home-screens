@@ -14,6 +14,10 @@ const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 const MIME_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  // JPEG spellings some cameras and sites produce; all are image/jpeg.
+  '.jfif': 'image/jpeg',
+  '.pjpeg': 'image/jpeg',
+  '.pjp': 'image/jpeg',
   '.png': 'image/png',
   '.webp': 'image/webp',
   '.gif': 'image/gif',

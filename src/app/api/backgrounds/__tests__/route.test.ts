@@ -832,4 +832,15 @@ describe('svg day art', () => {
       '/api/backgrounds/serve?file=calendar-art%2Fpumpkin.svg',
     ]);
   });
+
+  it('lists jfif files (a JPEG spelling the upload accepts by MIME type)', async () => {
+    const dir = path.join(bgsDir, 'calendar-art');
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, 'pumpkins_dark.jfif'), 'img');
+    const { GET } = await getHandlers();
+    const res = await GET(makeGetRequest({ directory: 'calendar-art' }));
+    expect(await res.json()).toEqual([
+      '/api/backgrounds/serve?file=calendar-art%2Fpumpkins_dark.jfif',
+    ]);
+  });
 });

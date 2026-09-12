@@ -23,7 +23,7 @@ function serveUrl(filename: string, directory?: string) {
   return `/api/backgrounds/serve?file=${encodeURIComponent(filePath)}`;
 }
 
-const IMAGE_RE = /\.(jpe?g|png|webp|gif|avif|svg)$/i;
+const IMAGE_RE = /\.(jpe?g|jfif|pjpeg|pjp|png|webp|gif|avif|svg)$/i;
 const VIDEO_RE = /\.(mp4|webm|mov)$/i;
 
 export const GET = withDisplayAuth(async (request: NextRequest) => {
