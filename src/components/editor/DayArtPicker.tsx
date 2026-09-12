@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { STARTER_DAY_ART } from '@/lib/starter-day-art';
 import { useTranslate } from '@/i18n';
+import { useConfirmStore } from '@/stores/confirm-store';
 
 /**
  * Picture picker for day-look rules: the art that ships with Home Screens,
@@ -13,6 +14,14 @@ import { useTranslate } from '@/i18n';
 
 const KEY = 'configSections.calendarRules';
 const CALENDAR_ART_DIR = 'calendar-art';
+
+/** The library path from a serve URL's `file=` param, decoded and without the
+ *  calendar-art folder prefix (the tab already says whose pictures they are). */
+function fileFromServeUrl(url: string): string | null {
+  const file = new URL(url, 'http://localhost').searchParams.get('file');
+  if (!file) return null;
+  return file.startsWith(`${CALENDAR_ART_DIR}/`) ? file.slice(CALENDAR_ART_DIR.length + 1) : file;
+}
 
 export default function DayArtPicker({ value, onChange }: {
   value: string | undefined;
@@ -61,16 +70,30 @@ export default function DayArtPicker({ value, onChange }: {
   };
 
   const remove = async (url: string) => {
-    const file = new URL(url, 'http://localhost').searchParams.get('file');
+    const file = fileFromServeUrl(url);
     if (!file) return;
-    const res = await editorFetch('/api/backgrounds', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file, directory: CALENDAR_ART_DIR }),
+    // Shared media-library file: confirm first, like every other delete.
+    const confirmed = await useConfirmStore.getState().confirm({
+      title: t(`${KEY}.artDeleteTitle`),
+      message: t(`${KEY}.artDeleteMessage`, { filename: file }),
+      confirmLabel: t(`${KEY}.artDeleteConfirm`),
+      variant: 'danger',
     });
-    if (res.ok) {
+    if (!confirmed) return;
+    try {
+      const res = await editorFetch('/api/backgrounds', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file, directory: CALENDAR_ART_DIR }),
+      });
+      if (!res.ok) {
+        setError(t(`${KEY}.artDeleteFailed`));
+        return;
+      }
       setYours((prev) => prev.filter((u) => u !== url));
       if (value === url) onChange(undefined);
+    } catch {
+      setError(t(`${KEY}.artDeleteFailed`));
     }
   };
 
@@ -119,7 +142,7 @@ export default function DayArtPicker({ value, onChange }: {
               >
                 <span className="h-8 w-11 flex-none rounded bg-cover bg-center" style={{ backgroundImage: `url(${url})` }} />
                 <span className="truncate text-[11px] text-hs-text-muted">
-                  {decodeURIComponent(url.split('file=')[1] ?? '')}
+                  {fileFromServeUrl(url) ?? ''}
                 </span>
               </button>
               <button type="button" aria-label={t(`${KEY}.artDelete`)} onClick={() => void remove(url)} className="px-1 text-xs text-hs-text-muted hover:text-hs-danger">✕</button>
@@ -135,7 +158,7 @@ export default function DayArtPicker({ value, onChange }: {
             {uploading ? t(`${KEY}.artUploading`) : t(`${KEY}.artUpload`)}
           </button>
           <span className="text-[10px] text-hs-text-faint">{t(`${KEY}.artUploadHint`)}</span>
-          {error && <span className="text-[11px] text-hs-warning">{error}</span>}
+          {error && <span className="text-[11px] text-hs-danger">{error}</span>}
           <input
             ref={inputRef}
             type="file"

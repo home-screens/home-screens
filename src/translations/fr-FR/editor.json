@@ -3985,6 +3985,10 @@
       "artUploadHint": "Image ou SVG, jusqu'à 10 Mo",
       "artUploadFailed": "Impossible d'ajouter cette image.",
       "artDelete": "Retirer l'image",
+      "artDeleteTitle": "Retirer cette image ?",
+      "artDeleteMessage": "Retirer {filename} de vos images ?",
+      "artDeleteConfirm": "Retirer",
+      "artDeleteFailed": "Impossible de retirer cette image.",
       "artNames": {
         "birthday": "Anniversaire", "christmas": "Noël", "halloween": "Halloween",
         "new-year": "Nouvel An", "valentines": "Saint-Valentin", "july-4th": "4 juillet",

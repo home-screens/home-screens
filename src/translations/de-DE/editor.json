@@ -3985,6 +3985,10 @@
       "artUploadHint": "Bild oder SVG, bis 10 MB",
       "artUploadFailed": "Dieses Bild konnte nicht hinzugefügt werden.",
       "artDelete": "Bild entfernen",
+      "artDeleteTitle": "Dieses Bild entfernen?",
+      "artDeleteMessage": "{filename} aus deinen Bildern entfernen?",
+      "artDeleteConfirm": "Entfernen",
+      "artDeleteFailed": "Dieses Bild konnte nicht entfernt werden.",
       "artNames": {
         "birthday": "Geburtstag", "christmas": "Weihnachten", "halloween": "Halloween",
         "new-year": "Neujahr", "valentines": "Valentinstag", "july-4th": "4. Juli",

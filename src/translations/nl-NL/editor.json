@@ -3985,6 +3985,10 @@
       "artUploadHint": "Afbeelding of SVG, tot 10 MB",
       "artUploadFailed": "Dit plaatje kon niet worden toegevoegd.",
       "artDelete": "Plaatje verwijderen",
+      "artDeleteTitle": "Dit plaatje verwijderen?",
+      "artDeleteMessage": "{filename} uit jouw plaatjes verwijderen?",
+      "artDeleteConfirm": "Verwijderen",
+      "artDeleteFailed": "Dit plaatje kon niet worden verwijderd.",
       "artNames": {
         "birthday": "Verjaardag", "christmas": "Kerst", "halloween": "Halloween",
         "new-year": "Nieuwjaar", "valentines": "Valentijn", "july-4th": "4 juli",
