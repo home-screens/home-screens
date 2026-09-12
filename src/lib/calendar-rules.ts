@@ -170,6 +170,8 @@ export function matchesDay(
     return false;
   }
   if (match.dayOfMonth != null && day.getDate() !== match.dayOfMonth) return false;
+  // Month-end test: the numeric constructor normalizes overflow, so the next
+  // day landing on the 1st means this was the last.
   if (match.lastDayOfMonth === true) {
     const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
     if (next.getDate() !== 1) return false;
@@ -177,6 +179,8 @@ export function matchesDay(
   if (match.weekdayOfMonth) {
     const { week, weekday } = match.weekdayOfMonth;
     if (day.getDay() !== weekday) return false;
+    // Last occurrence: adding a week stays in the month unless this is the
+    // final one.
     if (week === 'last') {
       const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 7);
       if (next.getMonth() === day.getMonth()) return false;

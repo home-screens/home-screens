@@ -197,6 +197,13 @@ describe('matchesDay: specific date patterns', () => {
     expect(matchesDay({ weekdayOfMonth: { week: 4, weekday: 4 }, months: [10] }, new Date(2026, 10, 26), [], ctx)).toBe(true);
   });
 
+  it('weekdayOfMonth week 5 matches only months that have a fifth occurrence', () => {
+    // January 2027: Fridays fall on the 1st, 8th, 15th, 22nd and 29th.
+    expect(matchesDay({ weekdayOfMonth: { week: 5, weekday: 5 } }, new Date(2027, 0, 29), [], ctx)).toBe(true);
+    // February 2027: Fridays stop at the 26th (4th occurrence).
+    expect(matchesDay({ weekdayOfMonth: { week: 5, weekday: 5 } }, new Date(2027, 1, 26), [], ctx)).toBe(false);
+  });
+
   it("weekdayOfMonth 'last' matches the final weekday of the month", () => {
     expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(27), [], ctx)).toBe(true);  // last Thu of Aug 2026
     expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(20), [], ctx)).toBe(false);
