@@ -1304,10 +1304,28 @@ export interface CalendarEventRule {
 export type CalendarDayWhen = 'today' | 'past' | 'future';
 export type CalendarDayEvents = 'any' | 'none' | 'matching';
 
+/** Which occurrence of a weekday within a month: 1st through 5th, or the last one. */
+export type CalendarNthWeek = 1 | 2 | 3 | 4 | 5 | 'last';
+
+export interface CalendarWeekdayOfMonth {
+  /** 1-5, or 'last' for the final occurrence in the month. */
+  week: CalendarNthWeek;
+  /** 0 = Sunday, matching `daysOfWeek`. */
+  weekday: number;
+}
+
 export interface CalendarDayMatch {
   when?: CalendarDayWhen;
   /** 0 = Sunday. Empty or unset = every day. */
   daysOfWeek?: number[];
+  /** 0 = January. Empty or unset = every month. */
+  months?: number[];
+  /** 1-31. Months without that day simply don't match (no clamping). */
+  dayOfMonth?: number;
+  /** True = the final day of the month, whatever its length. */
+  lastDayOfMonth?: boolean;
+  /** e.g. the 2nd Tuesday, or the last Friday. */
+  weekdayOfMonth?: CalendarWeekdayOfMonth;
   /** 'any' = has at least one event, 'none' = empty day, 'matching' = has an event matching `eventMatch`. */
   withEvents?: CalendarDayEvents;
   eventMatch?: CalendarEventMatch;
@@ -1318,6 +1336,10 @@ export interface CalendarDayRule {
   match: CalendarDayMatch;
   /** CSS color, or 'auto' = tinted from that day's event colors. */
   background?: string;
+  /** Art painted behind the day cell: a built-in /starter-day-art/... path or a media-library serve URL. */
+  backgroundImage?: string;
+  /** 0-1 dark scrim over the art so text stays readable; default 0.4. */
+  backgroundDim?: number;
   opacity?: number;
   borderColor?: string;
   badgeIcon?: string;

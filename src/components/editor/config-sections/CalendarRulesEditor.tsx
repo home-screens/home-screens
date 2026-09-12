@@ -9,12 +9,15 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
+import { starterDayArtPath } from '@/lib/starter-day-art';
 import type {
   CalendarDayRule,
   CalendarEventMatch,
   CalendarEventRule,
+  CalendarNthWeek,
   CalendarRuleTextMatch,
 } from '@/types/config';
+import DayArtPicker from '../DayArtPicker';
 import type { CalendarSource } from './CalendarSourceFilter';
 
 /**
@@ -29,6 +32,15 @@ const KEY = 'configSections.calendarRules';
 const DEFAULT_RULE_COLOR = '#3b82f6';
 const DEFAULT_BADGE_COLOR = '#f97316';
 const DEFAULT_DAY_BG = '#fef3c7';
+
+type DayWhich = 'any' | 'today' | 'past' | 'future' | 'specific';
+type SpecificPattern = 'monthly-day' | 'yearly-day' | 'last-day' | 'nth-weekday';
+
+const MONTH_KEYS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'] as const;
+const ORDINAL_OPTIONS = [
+  { value: '1', key: 'ordFirst' }, { value: '2', key: 'ordSecond' }, { value: '3', key: 'ordThird' },
+  { value: '4', key: 'ordFourth' }, { value: '5', key: 'ordFifth' }, { value: 'last', key: 'ordLast' },
+] as const;
 
 function newId(): string {
   return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -261,7 +273,7 @@ function EventRuleFields({ rule, availableSources, onChange }: {
   );
 }
 
-type DayBgMode = 'none' | 'auto' | 'color';
+type DayBgMode = 'none' | 'auto' | 'color' | 'picture';
 function bgModeOf(background: string | undefined): DayBgMode {
   if (!background) return 'none';
   return background === 'auto' ? 'auto' : 'color';
@@ -282,6 +294,10 @@ function DayRuleFields({ rule, availableSources, onChange }: {
     if (!next.daysOfWeek || next.daysOfWeek.length === 0) delete next.daysOfWeek;
     if (next.withEvents == null) delete next.withEvents;
     if (next.withEvents !== 'matching') delete next.eventMatch;
+    if (next.dayOfMonth == null) delete next.dayOfMonth;
+    if (!next.lastDayOfMonth) delete next.lastDayOfMonth;
+    if (!next.weekdayOfMonth) delete next.weekdayOfMonth;
+    if (!next.months || next.months.length === 0) delete next.months;
     patch({ match: next });
   };
   const days = match.daysOfWeek ?? [];
@@ -289,7 +305,18 @@ function DayRuleFields({ rule, availableSources, onChange }: {
     tCore('days.sunday'), tCore('days.monday'), tCore('days.tuesday'), tCore('days.wednesday'),
     tCore('days.thursday'), tCore('days.friday'), tCore('days.saturday'),
   ];
-  const bgMode = bgModeOf(rule.background);
+  const specificSet = match.dayOfMonth != null || match.lastDayOfMonth === true
+    || match.weekdayOfMonth != null || (match.months?.length ?? 0) > 0;
+  const whichDays: DayWhich = specificSet ? 'specific' : (match.when ?? 'any');
+  const pattern: SpecificPattern = match.weekdayOfMonth
+    ? 'nth-weekday'
+    : match.lastDayOfMonth
+      ? 'last-day'
+      : match.dayOfMonth != null && (match.months?.length ?? 0) > 0
+        ? 'yearly-day'
+        : 'monthly-day';
+  const monthValue = match.months?.length ? String(match.months[0]) : '';
+  const bgMode: DayBgMode = rule.backgroundImage ? 'picture' : bgModeOf(rule.background);
   const hasBadge = rule.badgeIcon != null || rule.badgeText != null || rule.badgeColor != null;
   const matchesEveryDay = Object.keys(match).length === 0;
 
@@ -298,15 +325,105 @@ function DayRuleFields({ rule, availableSources, onChange }: {
       <GroupLabel>{t(`${KEY}.when`)}</GroupLabel>
       <LabeledSelect
         label={t(`${KEY}.whichDays`)}
-        value={match.when ?? 'any'}
-        onChange={(v) => patchMatch({ when: v === 'any' ? undefined : (v as CalendarDayRule['match']['when']) })}
+        value={whichDays}
+        onChange={(v) => {
+          if (v === 'specific') {
+            // Entering specific-days mode seeds a minimal pattern and drops
+            // `when` so the dropdown stays a single choice.
+            if (match.dayOfMonth == null && !match.lastDayOfMonth && !match.weekdayOfMonth) {
+              patchMatch({ when: undefined, dayOfMonth: 1 });
+            } else {
+              patchMatch({ when: undefined });
+            }
+          } else {
+            patchMatch({
+              when: v === 'any' ? undefined : (v as CalendarDayRule['match']['when']),
+              dayOfMonth: undefined,
+              lastDayOfMonth: undefined,
+              weekdayOfMonth: undefined,
+              months: undefined,
+            });
+          }
+        }}
         options={[
           { value: 'any', label: t(`${KEY}.anyDay`) },
           { value: 'today', label: t(`${KEY}.today`) },
           { value: 'past', label: t(`${KEY}.pastDays`) },
           { value: 'future', label: t(`${KEY}.futureDays`) },
+          { value: 'specific', label: t(`${KEY}.specificDays`) },
         ]}
       />
+      {whichDays === 'specific' && (
+        <>
+          <LabeledSelect
+            label={t(`${KEY}.pattern`)}
+            value={pattern}
+            onChange={(v) => {
+              const cleared = { dayOfMonth: undefined, lastDayOfMonth: undefined, weekdayOfMonth: undefined, months: undefined };
+              if (v === 'monthly-day') {
+                patchMatch({ ...cleared, dayOfMonth: match.dayOfMonth ?? 1 });
+              } else if (v === 'yearly-day') {
+                patchMatch({ ...cleared, dayOfMonth: match.dayOfMonth ?? 1, months: match.months?.length ? match.months : [new Date().getMonth()] });
+              } else if (v === 'last-day') {
+                patchMatch({ ...cleared, lastDayOfMonth: true, months: match.months });
+              } else {
+                patchMatch({ ...cleared, months: match.months, weekdayOfMonth: match.weekdayOfMonth ?? { week: 1, weekday: 1 } });
+              }
+            }}
+            options={[
+              { value: 'monthly-day', label: t(`${KEY}.patternMonthlyDay`) },
+              { value: 'yearly-day', label: t(`${KEY}.patternYearlyDay`) },
+              { value: 'last-day', label: t(`${KEY}.patternLastDay`) },
+              { value: 'nth-weekday', label: t(`${KEY}.patternNthWeekday`) },
+            ]}
+          />
+          {(pattern === 'yearly-day' || pattern === 'last-day' || pattern === 'nth-weekday') && (
+            <LabeledSelect
+              label={t(`${KEY}.month`)}
+              value={monthValue}
+              onChange={(v) => patchMatch({ months: v === '' ? undefined : [Number(v)] })}
+              options={[
+                // Yearly needs a real month; the other patterns allow "every month".
+                ...(pattern === 'yearly-day' ? [] : [{ value: '', label: t(`${KEY}.everyMonth`) }]),
+                ...MONTH_KEYS.map((m, i) => ({ value: String(i), label: t(`${KEY}.months.${m}`) })),
+              ]}
+            />
+          )}
+          {(pattern === 'monthly-day' || pattern === 'yearly-day') && (
+            <LabeledSelect
+              label={t(`${KEY}.dayNumber`)}
+              value={String(match.dayOfMonth ?? 1)}
+              onChange={(v) => patchMatch({ dayOfMonth: Number(v) })}
+              options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1), label: String(i + 1) }))}
+            />
+          )}
+          {pattern === 'nth-weekday' && (
+            <div className="flex gap-1.5">
+              <LabeledSelect
+                label={t(`${KEY}.whichOne`)}
+                value={match.weekdayOfMonth ? String(match.weekdayOfMonth.week) : '1'}
+                onChange={(v) => patchMatch({
+                  weekdayOfMonth: {
+                    week: (v === 'last' ? 'last' : Number(v)) as CalendarNthWeek,
+                    weekday: match.weekdayOfMonth?.weekday ?? 1,
+                  },
+                })}
+                options={ORDINAL_OPTIONS.map((o) => ({ value: o.value, label: t(`${KEY}.${o.key}`) }))}
+                fieldClassName="w-2/5"
+              />
+              <LabeledSelect
+                label={t(`${KEY}.weekday`)}
+                value={String(match.weekdayOfMonth?.weekday ?? 1)}
+                onChange={(v) => patchMatch({
+                  weekdayOfMonth: { week: match.weekdayOfMonth?.week ?? 1, weekday: Number(v) },
+                })}
+                options={dayLabels.map((label, dow) => ({ value: String(dow), label }))}
+                fieldClassName="flex-1"
+              />
+            </div>
+          )}
+        </>
+      )}
       <div className="flex flex-col gap-1">
         <span className="text-xs text-hs-text-muted">{t(`${KEY}.daysOfWeek`)}</span>
         <div className="flex gap-1">
@@ -350,13 +467,38 @@ function DayRuleFields({ rule, availableSources, onChange }: {
       <LabeledSelect
         label={t(`${KEY}.background`)}
         value={bgMode}
-        onChange={(v) => patch({ background: v === 'none' ? undefined : v === 'auto' ? 'auto' : DEFAULT_DAY_BG })}
+        onChange={(v) => {
+          if (v === 'picture') {
+            patch({ backgroundImage: starterDayArtPath('celebrate'), background: undefined });
+          } else {
+            patch({
+              backgroundImage: undefined,
+              backgroundDim: undefined,
+              background: v === 'none' ? undefined : v === 'auto' ? 'auto' : DEFAULT_DAY_BG,
+            });
+          }
+        }}
         options={[
           { value: 'none', label: t(`${KEY}.noChange`) },
           { value: 'auto', label: t(`${KEY}.backgroundAuto`) },
           { value: 'color', label: t(`${KEY}.backgroundColor`) },
+          { value: 'picture', label: t(`${KEY}.backgroundPicture`) },
         ]}
       />
+      {bgMode === 'picture' && (
+        <>
+          <DayArtPicker value={rule.backgroundImage} onChange={(url) => patch({ backgroundImage: url })} />
+          <Slider
+            label={t(`${KEY}.artDimming`)}
+            value={Math.round((rule.backgroundDim ?? 0.4) * 100)}
+            min={0}
+            max={90}
+            step={5}
+            displayValue={`${Math.round((rule.backgroundDim ?? 0.4) * 100)}%`}
+            onChange={(v) => patch({ backgroundDim: v === 40 ? undefined : v / 100 })}
+          />
+        </>
+      )}
       {bgMode === 'color' && (
         <ColorPicker label={t(`${KEY}.color`)} value={rule.background ?? DEFAULT_DAY_BG} onChange={(v) => patch({ background: v })} />
       )}

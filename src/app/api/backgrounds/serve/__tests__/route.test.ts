@@ -191,3 +191,26 @@ describe('path safety', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('svg art', () => {
+  it('serves svg as image/svg+xml with a no-scripts CSP header', async () => {
+    const dir = path.join(bgsDir, 'calendar-art');
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, 'party.svg'), '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+    const GET = await getGET();
+    const res = await GET(makeRequest({ file: 'calendar-art/party.svg' }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('image/svg+xml');
+    expect(res.headers.get('Content-Security-Policy')).toBe("default-src 'none'; style-src 'unsafe-inline'");
+  });
+
+  it('serves jfif as image/jpeg (a JPEG spelling)', async () => {
+    const dir = path.join(bgsDir, 'calendar-art');
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, 'photo.jfif'), 'jpeg bytes');
+    const GET = await getGET();
+    const res = await GET(makeRequest({ file: 'calendar-art/photo.jfif' }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('image/jpeg');
+  });
+});

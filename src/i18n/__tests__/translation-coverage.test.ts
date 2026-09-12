@@ -308,6 +308,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|backgroundPicker.starters.pattern-diagonal',
     'editor|backgroundPicker.starters.sand',
     'core|launcher.editor.title',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
     // "Person" is the same word in this language.
     'editor|configSections.fullscreen-chore-chart.layoutByPerson',
     'editor|configSections.financial.symbolLabel',
@@ -338,6 +340,13 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'core|meal.tags.meal-prep',
     'core|meal.tags.vegan',
     'editor|choreChartModal.choreForm.ticketsLabel',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
+    // Month names that are spelled the same in German.
+    'editor|configSections.calendarRules.months.april',
+    'editor|configSections.calendarRules.months.august',
+    'editor|configSections.calendarRules.months.september',
+    'editor|configSections.calendarRules.months.november',
     'editor|configSections.countdown.namePlaceholder',
     'editor|configSections.display-control.layoutPad',
     'editor|configSections.financial.symbolLabel',
@@ -415,6 +424,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
     'editor|configSections.affirmations.categoryMindfulness',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
     'editor|configSections.icon.flipHorizontal',
     'editor|configSections.icon.flipVertical',
     'editor|configSections.shape.orientationHorizontal',
@@ -480,6 +491,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.affirmations.categoryAffirmations',
     'editor|configSections.affirmations.categoryCompliments',
     'editor|configSections.calendar.sources',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
     'editor|configSections.financial.viewCompact',
     'editor|configSections.fullscreen-calendar.sources',
     'editor|configSections.fullscreen-photo.mode',
@@ -620,6 +633,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
     'editor|configSections.affirmations.categoryMindfulness',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
     'editor|configSections.clock.referenceLabel',
     'editor|configSections.display-control.layoutPad',
     'editor|configSections.financial.tickerUnitCoin',
@@ -747,6 +762,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
+    // "Halloween" is the same word in this language.
+    'editor|configSections.calendarRules.artNames.halloween',
     'editor|configSections.fullscreen-photo.transitionFade',
     'editor|configSections.icon.animationFade',
     'editor|configSections.icon.animationFlip',

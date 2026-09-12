@@ -80,7 +80,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
         background: dayFill,
         paddingLeft: dayFill ? scale.bu * 0.8 : undefined,
         paddingRight: dayFill ? scale.bu * 0.8 : undefined,
-        borderRadius: dayFill || decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
+        borderRadius: dayFill || decor.background || decor.backgroundImage || decor.borderColor ? scale.bu * 0.5 : undefined,
       }, decor)}>
         {boundary === 'month' && (
           <MonthSeparator monthStart={date} scale={scale} fontSize={fontSize} locale={locale} />

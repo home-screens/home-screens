@@ -73,7 +73,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
           paddingLeft: isToday && showTodayMarker ? scale.bu * 1.2 : dayFill ? scale.bu * 0.8 : undefined,
           paddingRight: dayFill ? scale.bu * 0.8 : undefined,
           marginLeft: isToday && showTodayMarker ? -scale.bu * 1.5 : undefined,
-          borderRadius: dayFill || decor.background || decor.borderColor ? scale.bu * 0.5 : undefined,
+          borderRadius: dayFill || decor.background || decor.backgroundImage || decor.borderColor ? scale.bu * 0.5 : undefined,
         }, decor)}
       >
         {/* Day header */}

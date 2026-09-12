@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import type { CSSProperties } from 'react';
 import {
   NO_DECOR,
   applyEventRules,
@@ -7,6 +8,7 @@ import {
   eventOpacity,
   matchesDay,
   matchesEvent,
+  mergeCellDecor,
   resolveDayDecor,
   rulesNeedNow,
 } from '../calendar-rules';
@@ -153,6 +155,71 @@ describe('matchesDay', () => {
   });
 });
 
+describe('matchesDay: specific date patterns', () => {
+  // August 2026: the 20th is a Thursday, the month has 31 days.
+  const d = (day: number) => new Date(2026, 7, day);
+
+  it('dayOfMonth matches that day of any month', () => {
+    expect(matchesDay({ dayOfMonth: 20 }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 20 }, d(21), [], ctx)).toBe(false);
+  });
+
+  it('dayOfMonth 29-31 skips months that lack the day (no clamping)', () => {
+    expect(matchesDay({ dayOfMonth: 31 }, new Date(2026, 3, 30), [], ctx)).toBe(false); // April
+    expect(matchesDay({ dayOfMonth: 29 }, new Date(2027, 1, 28), [], ctx)).toBe(false); // Feb 2027
+    expect(matchesDay({ dayOfMonth: 29 }, new Date(2028, 1, 29), [], ctx)).toBe(true);  // leap Feb
+  });
+
+  it('months AND dayOfMonth make a yearly date', () => {
+    expect(matchesDay({ months: [11], dayOfMonth: 25 }, new Date(2026, 11, 25), [], ctx)).toBe(true);
+    expect(matchesDay({ months: [11], dayOfMonth: 25 }, new Date(2026, 9, 25), [], ctx)).toBe(false);
+  });
+
+  it('months alone matches every day of that month', () => {
+    expect(matchesDay({ months: [11] }, new Date(2026, 11, 3), [], ctx)).toBe(true);
+    expect(matchesDay({ months: [11] }, new Date(2026, 10, 3), [], ctx)).toBe(false);
+  });
+
+  it('lastDayOfMonth matches the final day at any month length', () => {
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 7, 31), [], ctx)).toBe(true);
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 8, 30), [], ctx)).toBe(true);  // September
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2028, 1, 29), [], ctx)).toBe(true);  // leap February
+    expect(matchesDay({ lastDayOfMonth: true }, new Date(2026, 7, 30), [], ctx)).toBe(false);
+  });
+
+  it('lastDayOfMonth AND months (last day of the year)', () => {
+    expect(matchesDay({ lastDayOfMonth: true, months: [11] }, new Date(2026, 11, 31), [], ctx)).toBe(true);
+    expect(matchesDay({ lastDayOfMonth: true, months: [11] }, new Date(2026, 9, 31), [], ctx)).toBe(false);
+  });
+
+  it('weekdayOfMonth matches the nth weekday of the month', () => {
+    expect(matchesDay({ weekdayOfMonth: { week: 3, weekday: 4 } }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ weekdayOfMonth: { week: 4, weekday: 4 } }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ weekdayOfMonth: { week: 3, weekday: 4 } }, d(27), [], ctx)).toBe(false); // 4th Thursday
+    expect(matchesDay({ weekdayOfMonth: { week: 4, weekday: 4 }, months: [10] }, new Date(2026, 10, 26), [], ctx)).toBe(true);
+  });
+
+  it('weekdayOfMonth week 5 matches only months that have a fifth occurrence', () => {
+    // January 2027: Fridays fall on the 1st, 8th, 15th, 22nd and 29th.
+    expect(matchesDay({ weekdayOfMonth: { week: 5, weekday: 5 } }, new Date(2027, 0, 29), [], ctx)).toBe(true);
+    // February 2027: Fridays stop at the 26th (4th occurrence).
+    expect(matchesDay({ weekdayOfMonth: { week: 5, weekday: 5 } }, new Date(2027, 1, 26), [], ctx)).toBe(false);
+  });
+
+  it("weekdayOfMonth 'last' matches the final weekday of the month", () => {
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(27), [], ctx)).toBe(true);  // last Thu of Aug 2026
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 4 } }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ weekdayOfMonth: { week: 'last', weekday: 1 } }, new Date(2027, 4, 31), [], ctx)).toBe(true);
+  });
+
+  it('specific fields AND with when and daysOfWeek', () => {
+    expect(matchesDay({ dayOfMonth: 20, when: 'today' }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 19, when: 'today' }, d(20), [], ctx)).toBe(false);
+    expect(matchesDay({ dayOfMonth: 20, daysOfWeek: [4] }, d(20), [], ctx)).toBe(true);
+    expect(matchesDay({ dayOfMonth: 20, daysOfWeek: [0] }, d(20), [], ctx)).toBe(false);
+  });
+});
+
 describe('resolveDayDecor', () => {
   it('returns the shared empty decor with no rules', () => {
     const a = resolveDayDecor(today, [], undefined, ctx);
@@ -214,5 +281,89 @@ describe('glyph and opacity helpers', () => {
     expect(eventOpacity({}, 0.4)).toBe(0.4);
     expect(eventOpacity({ opacity: 0.5 }, 0.4)).toBe(0.2);
     expect(eventOpacity({ opacity: 0.5 }, 'var(--x)')).toBe('calc(var(--x) * 0.5)');
+  });
+});
+
+describe('resolveDayDecor: art', () => {
+  it('art is its own first-wins property; dim rides the winning rule', () => {
+    const rules: CalendarDayRule[] = [
+      { id: 'a', match: {}, backgroundImage: '/starter-day-art/x.svg', backgroundDim: 0.7 },
+      { id: 'b', match: {}, backgroundImage: '/starter-day-art/y.svg' },
+    ];
+    const decor = resolveDayDecor(today, [], rules, ctx);
+    expect(decor.backgroundImage).toBe('/starter-day-art/x.svg');
+    expect(decor.backgroundDim).toBe(0.7);
+  });
+
+  it('dim defaults to 0.4 when the winning rule leaves it unset', () => {
+    const decor = resolveDayDecor(today, [], [{ id: 'a', match: {}, backgroundImage: '/x.svg' }], ctx);
+    expect(decor.backgroundDim).toBe(0.4);
+  });
+
+  it('a color from one matching rule pairs with art from another', () => {
+    const rules: CalendarDayRule[] = [
+      { id: 'a', match: {}, background: '#123456' },
+      { id: 'b', match: {}, background: '#654321', backgroundImage: '/x.svg' },
+    ];
+    const decor = resolveDayDecor(today, [], rules, ctx);
+    expect(decor.background).toBe('#123456');
+    expect(decor.backgroundImage).toBe('/x.svg');
+  });
+
+  it('non-matching art rules keep the NO_DECOR identity', () => {
+    expect(resolveDayDecor(today, [], [{ id: 'a', match: { when: 'past' }, backgroundImage: '/x.svg' }], ctx)).toBe(NO_DECOR);
+  });
+});
+
+describe('mergeCellDecor', () => {
+  const base: CSSProperties = { backgroundColor: 'red' };
+
+  it('art becomes a scrim + cover image; the base color stays under it', () => {
+    const out = mergeCellDecor(base, { backgroundImage: '/art.svg', backgroundDim: 0.5, badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.5)), url("/art.svg")');
+    expect(out.backgroundSize).toBe('cover');
+    expect(out.backgroundPosition).toBe('center');
+    expect(out.backgroundColor).toBe('red');
+  });
+
+  it('dim defaults to 0.4', () => {
+    const out = mergeCellDecor(base, { backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)), url("/a.svg")');
+  });
+
+  it('a color decor replaces the base color', () => {
+    const out = mergeCellDecor(base, { background: '#00ff00', badges: [] });
+    expect(out.backgroundColor).toBe('#00ff00');
+    expect(out.backgroundImage).toBeUndefined();
+  });
+
+  it('a gradient decor (auto tint) takes the image slot and clears the base color', () => {
+    const out = mergeCellDecor(base, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', badges: [] });
+    expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
+    expect(out.backgroundColor).toBeUndefined();
+  });
+
+  it('a gradient decor also clears a shorthand background base', () => {
+    const out = mergeCellDecor({ background: 'blue' } as CSSProperties, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', badges: [] });
+    expect(out.background).toBeUndefined();
+    expect(out.backgroundImage).toBe('linear-gradient(180deg, rgba(1,2,3,0.2))');
+  });
+
+  it('art wins the image slot over a gradient tint; a shorthand base survives under it', () => {
+    const out = mergeCellDecor({ background: 'blue' } as CSSProperties, { background: 'linear-gradient(180deg, rgba(1,2,3,0.2))', backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundImage).toContain('url("/a.svg")');
+    expect(out.backgroundImage).not.toContain('180deg');
+    expect(out.backgroundColor).toBeUndefined();
+    expect(out.background).toBe('blue');
+  });
+
+  it('a plain color decor resolves alongside art and sits under it', () => {
+    const out = mergeCellDecor(base, { background: '#00ff00', backgroundImage: '/a.svg', badges: [] });
+    expect(out.backgroundColor).toBe('#00ff00');
+    expect(out.backgroundImage).toContain('url("/a.svg")');
+  });
+
+  it('identity when decor sets nothing', () => {
+    expect(mergeCellDecor(base, NO_DECOR)).toBe(base);
   });
 });

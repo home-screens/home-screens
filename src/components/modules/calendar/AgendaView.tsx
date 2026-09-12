@@ -87,7 +87,7 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
           : null;
         const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone, isDark: true });
         return (
-        <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.borderColor ? 6 : undefined }, decor)}>
+        <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.backgroundImage || decor.borderColor ? 6 : undefined }, decor)}>
           {boundary === 'month' && (
             <div className="mb-2">
               <p className="font-semibold" style={{ fontSize: '0.9em', color: accentColor }}>

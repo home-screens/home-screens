@@ -43,6 +43,8 @@ export interface DayBadge {
 
 export interface DayDecor {
   background?: string;
+  backgroundImage?: string;
+  backgroundDim?: number;
   opacity?: number;
   borderColor?: string;
   badges: DayBadge[];
@@ -166,6 +168,28 @@ export function matchesDay(
   if (match.daysOfWeek && match.daysOfWeek.length > 0 && !match.daysOfWeek.includes(day.getDay())) {
     return false;
   }
+  if (match.months && match.months.length > 0 && !match.months.includes(day.getMonth())) {
+    return false;
+  }
+  if (match.dayOfMonth != null && day.getDate() !== match.dayOfMonth) return false;
+  // Month-end test: the numeric constructor normalizes overflow, so the next
+  // day landing on the 1st means this was the last.
+  if (match.lastDayOfMonth === true) {
+    const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
+    if (next.getDate() !== 1) return false;
+  }
+  if (match.weekdayOfMonth) {
+    const { week, weekday } = match.weekdayOfMonth;
+    if (day.getDay() !== weekday) return false;
+    // Last occurrence: adding a week stays in the month unless this is the
+    // final one.
+    if (week === 'last') {
+      const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 7);
+      if (next.getMonth() === day.getMonth()) return false;
+    } else if (Math.ceil(day.getDate() / 7) !== week) {
+      return false;
+    }
+  }
   if (match.withEvents === 'any' && dayEvents.length === 0) return false;
   if (match.withEvents === 'none' && dayEvents.length > 0) return false;
   if (match.withEvents === 'matching' && !dayEvents.some((ev) => matchesEvent(match.eventMatch, ev, ctx))) {
@@ -212,6 +236,8 @@ export function resolveDayDecor(
 ): DayDecor {
   if (!rules || rules.length === 0) return NO_DECOR;
   let background: string | undefined;
+  let backgroundImage: string | undefined;
+  let backgroundDim: number | undefined;
   let opacity: number | undefined;
   let borderColor: string | undefined;
   const badges: DayBadge[] = [];
@@ -222,14 +248,19 @@ export function resolveDayDecor(
         ? autoDayTint(dayEvents, opts.autoTintAlpha ?? 0.18)
         : rule.background;
     }
+    if (backgroundImage == null && rule.backgroundImage) {
+      backgroundImage = rule.backgroundImage;
+      const dim = rule.backgroundDim;
+      backgroundDim = dim == null || !Number.isFinite(dim) ? 0.4 : Math.min(1, Math.max(0, dim));
+    }
     if (opacity == null && rule.opacity != null) opacity = clampOpacity(rule.opacity);
     if (borderColor == null && rule.borderColor) borderColor = rule.borderColor;
     const icon = rule.badgeIcon?.trim();
     const text = rule.badgeText?.trim();
     if (icon || text) badges.push({ icon: icon || undefined, text: text || undefined, color: rule.badgeColor || undefined });
   }
-  if (background == null && opacity == null && borderColor == null && badges.length === 0) return NO_DECOR;
-  return { background, opacity, borderColor, badges };
+  if (background == null && backgroundImage == null && opacity == null && borderColor == null && badges.length === 0) return NO_DECOR;
+  return { background, backgroundImage, backgroundDim, opacity, borderColor, badges };
 }
 
 /**
@@ -295,19 +326,38 @@ export function eventOpacity(ev: Pick<CalendarEvent, 'opacity'>, base: number | 
 }
 
 /**
- * Day-rule look merged over a cell's own inline style: background
- * replaces (both shorthand and the longhand color/image), opacity
+ * Day-rule look merged over a cell's own inline style: colors replace
+ * via the longhands (a gradient auto tint takes the image slot), art
+ * composes as a scrim + cover image over the cell color, opacity
  * multiplies, the border joins any existing box shadow as an inset ring.
  * Returns `base` untouched when the decor sets nothing (identity stays
  * cheap to compare).
  */
 export function mergeCellDecor(base: CSSProperties, decor: DayDecor): CSSProperties {
-  if (decor.background == null && decor.opacity == null && decor.borderColor == null) return base;
+  if (decor.background == null && decor.backgroundImage == null && decor.opacity == null && decor.borderColor == null) return base;
   const out: CSSProperties = { ...base };
-  if (decor.background) {
-    delete out.backgroundColor;
+  if (decor.backgroundImage) {
+    // Art covers the cell with a dimming scrim painted over it (the first
+    // background layer renders on top); the scrim keeps event text
+    // readable over any art.
+    const dim = decor.backgroundDim ?? 0.4;
+    out.backgroundImage = `linear-gradient(rgba(0,0,0,${dim}),rgba(0,0,0,${dim})), url("${decor.backgroundImage}")`;
+    out.backgroundSize = 'cover';
+    out.backgroundPosition = 'center';
+    if (decor.background && !decor.background.includes('gradient')) {
+      out.backgroundColor = decor.background;
+    }
+  } else if (decor.background) {
     delete out.backgroundImage;
-    out.background = decor.background;
+    if (decor.background.includes('gradient')) {
+      // An auto tint with several colors is itself a background image; it
+      // must cover whatever base color the cell had (shorthand parity).
+      delete out.background;
+      delete out.backgroundColor;
+      out.backgroundImage = decor.background;
+    } else {
+      out.backgroundColor = decor.background;
+    }
   }
   if (decor.opacity != null) {
     const current = typeof base.opacity === 'number' ? base.opacity : 1;
