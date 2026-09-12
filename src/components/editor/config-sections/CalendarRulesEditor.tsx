@@ -365,7 +365,7 @@ function DayRuleFields({ rule, availableSources, onChange }: {
               } else if (v === 'last-day') {
                 patchMatch({ ...cleared, lastDayOfMonth: true, months: match.months });
               } else {
-                patchMatch({ ...cleared, weekdayOfMonth: match.weekdayOfMonth ?? { week: 1, weekday: 1 } });
+                patchMatch({ ...cleared, months: match.months, weekdayOfMonth: match.weekdayOfMonth ?? { week: 1, weekday: 1 } });
               }
             }}
             options={[

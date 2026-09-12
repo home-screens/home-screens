@@ -336,16 +336,17 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
   expect(dayRules[0].badgeIcon).toBe('⭐');
 
   // Specific days: pick a yearly pattern (October 31) and check persistence.
+  // A label's text includes its <option> texts, so plain 'Month' would also
+  // hit the Pattern select ("Day of every month") and exact matching can
+  // never equal "Day" + its 31 option digits; all three specific-days
+  // locators are start-anchored for that reason.
   await autosaved(page, async () => {
     await dayCard.getByLabel('Which days').selectOption('specific');
   });
   await autosaved(page, async () => {
-    await dayCard.getByLabel('Pattern').selectOption('yearly-day');
+    await dayCard.getByLabel(/^Pattern/).selectOption('yearly-day');
   });
   await autosaved(page, async () => {
-    // A label's text includes its <option> texts, so plain 'Month' would also
-    // hit the Pattern select ("Day of every month") and exact matching can
-    // never equal "Day" + its 31 option digits — anchor both to the start.
     await dayCard.getByLabel(/^Month/).selectOption('9');
     await dayCard.getByLabel(/^Day/).selectOption('31');
   });
