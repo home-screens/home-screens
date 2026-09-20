@@ -70,6 +70,11 @@ interface ChoreDataState {
   /** Every redemption the server still holds (it purges at 90 days), for the store's feed. */
   allRedemptions: RewardRedemption[];
   isLoading: boolean;
+  /** The rewards fetch has neither landed nor failed. Kept apart from
+   *  `isLoading` because only the reward history cannot draw without it. */
+  rewardsLoading: boolean;
+  /** Set only while there are no rewards to show at all, like `error`. */
+  rewardsError: FetchError | null;
   /** Set only while a source has no data at all; a failed refresh of good data is not an error here. */
   error: FetchError | null;
   toggleComplete: (choreId: string, memberId: string) => Promise<void>;
@@ -84,7 +89,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   const [fetchedCompletions, completionsError] = useFetchData<ChoresResponse>(choresUrl(), choreChartTtl);
   const [fetchedChoreData, choreDataError] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
-  const [fetchedRewards] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
+  const [fetchedRewards, rewardsFetchError] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
   // Mirror fetchedRewards into local state so toggleComplete can overwrite it
   // from the POST response for instant balance updates on the same device.
@@ -116,6 +121,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const error = (fetchedCompletions ? null : completionsError)
     ?? (fetchedChoreData ? null : choreDataError)
     ?? (familyLoaded ? null : familyError);
+
+  // `rewards` trails `fetchedRewards` by one render (it is mirrored through an
+  // effect), so read through to the fetch rather than flashing an empty feed.
+  const knownRewards = rewards ?? fetchedRewards;
+  const rewardsLoading = !knownRewards && !rewardsFetchError;
+  const rewardsError = knownRewards ? null : rewardsFetchError;
 
   const completionSet = useMemo(() => {
     const set = new Set<string>();
@@ -259,8 +270,10 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     memberStats,
     weekData,
     recentRedemptions,
-    allRedemptions: rewards?.redemptions ?? EMPTY_REDEMPTIONS,
+    allRedemptions: knownRewards?.redemptions ?? EMPTY_REDEMPTIONS,
     isLoading,
+    rewardsLoading,
+    rewardsError,
     error,
     toggleComplete,
   };

@@ -1,7 +1,7 @@
 
 import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
-import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, starIconSize, weekMembers } from '../layout';
+import { balanceRows, choreTapSize, fitChoreFontSize, fitPerRow, partitionMembers, resolveHistoryLimit, starIconSize, weekMembers } from '../layout';
 import type { MemberStats } from '../types';
 
 
@@ -183,3 +183,36 @@ describe('starIconSize', () => {
   });
 });
 
+
+describe('fitChoreFontSize, reward history', () => {
+  const card = { width: 476, height: 626, requested: 24, sections: 0, view: 'reward-history' };
+
+  it('leaves a short history at the size the household asked for when the card is wide enough', () => {
+    expect(fitChoreFontSize({ ...card, width: 900, rows: 5 })).toBe(24);
+  });
+
+  it('holds the type to what four columns of words can fit across the card', () => {
+    expect(fitChoreFontSize({ ...card, rows: 5 })).toBeCloseTo(476 / 22, 5);
+  });
+
+  it('shrinks a long history so every row it promises fits the card', () => {
+    const fitted = fitChoreFontSize({ ...card, rows: 20 });
+    expect(fitted).toBeLessThan(24);
+    expect(fitted).toBeGreaterThan(11);
+    // A row is 2em plus its 1px rule; the title and the pill strip are 4.1em.
+    expect(20 * (2 * fitted + 1) + 4.1 * fitted).toBeLessThanOrEqual(card.height);
+  });
+});
+
+describe('resolveHistoryLimit', () => {
+  it('falls back to five when the value is missing or not a number', () => {
+    for (const raw of [undefined, null, 'abc', NaN, Infinity]) expect(resolveHistoryLimit(raw)).toBe(5);
+  });
+
+  it('keeps a whole number inside one to fifty', () => {
+    expect(resolveHistoryLimit(12)).toBe(12);
+    expect(resolveHistoryLimit(5.5)).toBe(5);
+    expect(resolveHistoryLimit(0)).toBe(1);
+    expect(resolveHistoryLimit(500)).toBe(50);
+  });
+});

@@ -5,10 +5,11 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
-import LabeledInput from '@/components/ui/LabeledInput';
+import Slider from '@/components/ui/Slider';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { HISTORY_LIMIT, resolveHistoryLimit } from '@/components/modules/chore-chart/layout';
 import ViewSelect from '@/components/editor/ViewSelect';
 import ChoreChartModal from '@/components/editor/ChoreChartModal';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
@@ -83,19 +84,12 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       )}
 
       {c.view === 'reward-history' && (
-        <LabeledInput
+        <Slider
           label={t('configSections.chore-chart.historyLimit')}
-          type="number"
-          value={c.historyLimit ?? 5}
-          min={1}
-          max={50}
-          step={1}
-          onChange={(v) => {
-            const value = Number(v);
-            if (Number.isFinite(value) && value >= 1 && value <= 50) {
-              set({ historyLimit: Math.floor(value) });
-            }
-          }}
+          value={resolveHistoryLimit(c.historyLimit)}
+          min={HISTORY_LIMIT.min}
+          max={HISTORY_LIMIT.max}
+          onChange={(v) => set({ historyLimit: v })}
         />
       )}
 

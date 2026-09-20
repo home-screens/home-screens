@@ -83,6 +83,30 @@ export async function seedHouseholdChores(request: APIRequestContext, sandboxDir
   return seedChores(request, { chores: d.chores });
 }
 
+/**
+ * Three redemptions by the seeded kid, newest first, stamped relative to now
+ * because the store drops anything older than 90 days. Written straight to
+ * `data/rewards.json`: the API only records a redemption by spending a balance.
+ */
+export function seedRedemptions(sandboxDir: string, names: string[] = ['Movie night', 'Ice cream trip', 'Stay up late']): void {
+  const [member] = CHORE_DATA.members;
+  const directory = path.join(sandboxDir, 'data');
+  mkdirSync(directory, { recursive: true });
+  writeFileSync(path.join(directory, 'rewards.json'), JSON.stringify({
+    rewards: [],
+    balances: { [member.id]: 10 },
+    redemptions: names.map((rewardName, i) => ({
+      id: `red-${i}`,
+      rewardId: `reward-${i}`,
+      rewardName,
+      memberId: member.id,
+      memberName: member.name,
+      cost: 5,
+      redeemedAt: new Date(Date.now() - (i + 1) * 3_600_000).toISOString(),
+    })),
+  }, null, 2));
+}
+
 /** Local YYYY-MM-DD for a date offset from today, matching how the meal planner keys plan entries. */
 function isoDate(offsetDays = 0): string {
   const d = new Date();

@@ -46,6 +46,8 @@ export function choreChartModule(): ModuleInstance {
       showTimeOfDay: true,
       allowDisplayComplete: true,
       accentColor: '#8b5cf6',
+      showTitle: true,
+      historyLimit: 5,
     },
   };
 }

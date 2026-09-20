@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedHouseholdChores, seedMeals, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { VIEW_MATRIX, type ViewSpec } from '../helpers/view-matrix';
@@ -24,7 +24,11 @@ async function renderView(page: Page, request: APIRequestContext, sandboxDir: st
   const overrides = spec.stubKey === 'calendar' ? { calendar: todayCalendarEvents() } : undefined;
   await stubModuleData(page, { overrides }); // also blocks external hosts
 
-  if (spec.seed === 'chores') await seedHouseholdChores(request, sandboxDir);
+  if (spec.seed === 'chores') {
+    await seedHouseholdChores(request, sandboxDir);
+    // The reward history draws from redemptions, not chores.
+    seedRedemptions(sandboxDir);
+  }
   if (spec.seed === 'meals') await seedMeals(request);
   if (spec.seed === 'todos') seedTodos(sandboxDir);
   if (spec.seed === 'timetables') seedTimetables(sandboxDir);

@@ -1,4 +1,4 @@
-import type { RewardDefinition } from './reward-data';
+import type { RewardDefinition, RewardRedemption } from './reward-data';
 
 /**
  * Who may redeem what, and for how much.
@@ -44,4 +44,21 @@ export function ticketsStillNeeded(balance: number, reward: RewardDefinition): n
 /** What the balance would be after redeeming, for the confirmation line. */
 export function ticketsAfterRedeeming(balance: number, reward: RewardDefinition): number {
   return Math.max(0, balance - reward.cost);
+}
+
+/**
+ * Redemptions newest first, for every feed that lists them. Returns a copy.
+ * A row whose timestamp cannot be read sorts last rather than poisoning the
+ * comparator: one NaN makes the whole order depend on the engine.
+ */
+export function sortRedemptionsNewestFirst(redemptions: readonly RewardRedemption[]): RewardRedemption[] {
+  const at = (r: RewardRedemption) => {
+    const ms = new Date(r.redeemedAt).getTime();
+    return Number.isNaN(ms) ? -Infinity : ms;
+  };
+  return [...redemptions].sort((a, b) => {
+    const am = at(a);
+    const bm = at(b);
+    return am === bm ? 0 : bm > am ? 1 : -1;
+  });
 }

@@ -308,6 +308,17 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // historyLimit caps the reward history: the seed holds three redemptions,
+    // newest first, and a limit of two drops the oldest.
+    type: 'chore-chart', name: 'history-limit', kind: 'local-data', seed: 'chores',
+    config: { view: 'reward-history', historyLimit: 2 },
+    expect: async (mod) => {
+      await has('Movie night')(mod);
+      await has('Ice cream trip')(mod);
+      await expect(mod).not.toContainText('Stay up late');
+    },
+  },
+  {
     // showPoints:false hides the star-chart's weekly "tickets" totals row.
     type: 'chore-chart', name: 'hide-points', kind: 'local-data', seed: 'chores',
     config: { view: 'star-chart', showPoints: false },

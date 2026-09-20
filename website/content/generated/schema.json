@@ -5019,10 +5019,11 @@
               "star-chart",
               "today",
               "progress",
-              "compact"
+              "compact",
+              "reward-history"
             ]
           },
-          "description": "Display style: `board`, `star-chart`, `today`, `progress`, or `compact`",
+          "description": "Display style: `board`, `star-chart`, `today`, `progress`, `compact`, or `reward-history`",
           "default": "board"
         },
         {
@@ -5098,6 +5099,16 @@
           },
           "description": "Show the built-in view title (\"Family Chores\", \"Star Chart\", and so on)",
           "default": true
+        },
+        {
+          "name": "historyLimit",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Maximum number of redemptions shown in Reward History. Omitted = 5.",
+          "default": 5
         }
       ],
       "views": [
@@ -5105,7 +5116,8 @@
         "star-chart",
         "today",
         "progress",
-        "compact"
+        "compact",
+        "reward-history"
       ]
     },
     {

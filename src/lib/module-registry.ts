@@ -1102,6 +1102,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       allowDisplayComplete: true,
       accentColor: DEFAULT_ACCENT_COLOR,
       showTitle: true,
+      historyLimit: 5,
     },
     defaultSize: { w: 500, h: 650 },
     defaultStyle: { fontSize: 24 },

@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import type { RewardDefinition } from '../reward-data';
+import type { RewardDefinition, RewardRedemption } from '../reward-data';
 import {
   isRewardEligibleFor,
   isRewardOfferedTo,
   canAffordReward,
   ticketsStillNeeded,
   ticketsAfterRedeeming,
+  sortRedemptionsNewestFirst,
 } from '../reward-rules';
 
 const reward = (overrides: Partial<RewardDefinition> = {}): RewardDefinition =>
@@ -60,5 +61,34 @@ describe('ticket counts', () => {
   it('says what would be left over, never a negative number', () => {
     expect(ticketsAfterRedeeming(12, reward({ cost: 10 }))).toBe(2);
     expect(ticketsAfterRedeeming(4, reward({ cost: 10 }))).toBe(0);
+  });
+});
+
+describe('sortRedemptionsNewestFirst', () => {
+  const redemption = (id: string, redeemedAt: string): RewardRedemption =>
+    ({ id, rewardId: 'r-1', rewardName: 'Movie night', memberId: 'kid-1', memberName: 'Kid', cost: 1, redeemedAt });
+
+  it('puts the newest redemption first', () => {
+    const list = [
+      redemption('1', '2026-09-20T01:00:00Z'),
+      redemption('2', '2026-09-20T03:00:00Z'),
+      redemption('3', '2026-09-20T02:00:00Z'),
+    ];
+    expect(sortRedemptionsNewestFirst(list).map((r) => r.id)).toEqual(['2', '3', '1']);
+  });
+
+  it('leaves the list it was given alone', () => {
+    const list = [redemption('old', '2026-09-20T01:00:00Z'), redemption('new', '2026-09-20T02:00:00Z')];
+    sortRedemptionsNewestFirst(list);
+    expect(list.map((r) => r.id)).toEqual(['old', 'new']);
+  });
+
+  it('sorts a row with an unreadable timestamp last instead of scrambling the rest', () => {
+    const list = [
+      redemption('bad', 'not a date'),
+      redemption('1', '2026-09-20T01:00:00Z'),
+      redemption('2', '2026-09-20T03:00:00Z'),
+    ];
+    expect(sortRedemptionsNewestFirst(list).map((r) => r.id)).toEqual(['2', '1', 'bad']);
   });
 });

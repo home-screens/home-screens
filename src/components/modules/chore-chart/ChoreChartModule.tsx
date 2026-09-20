@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { ChoreChartConfig, ModuleStyle } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
-import { balanceRows, fitChoreFontSize, fitPerRow, weekMembers } from './layout';
+import { balanceRows, fitChoreFontSize, fitPerRow, resolveHistoryLimit, weekMembers } from './layout';
 
 /** Mirrors BoardView's own column sizing, for the height estimate. */
 const BOARD_COLUMN_EM = 6;
@@ -61,15 +61,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       return { rows: new Set(assignments.map((a) => a.chore.id)).size, sections: 0 };
     }
     if (view === 'reward-history') {
-      const historyLimit = Math.max(
-        1,
-        Math.min(50, config.historyLimit ?? 5),
-      );
-
-      return {
-        rows: Math.min(data.allRedemptions.length, historyLimit),
-        sections: 0,
-      };
+      return { rows: Math.min(data.allRedemptions.length, resolveHistoryLimit(config.historyLimit)), sections: 0 };
     }
     if (view === 'today') {
       const times = new Set(assignments.map((a) => a.chore.timeOfDay));
@@ -92,6 +84,12 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
   // telling a family their members are gone.
   if (data.isLoading || data.error) {
     return <ModuleLoadingState style={style} message={t('chore-chart.loading')} error={data.error} />;
+  }
+  // The reward history is drawn from the rewards fetch alone, which the other
+  // views treat as optional. Here "not arrived" must not read as "no rewards
+  // redeemed yet".
+  if (view === 'reward-history' && (data.rewardsLoading || data.rewardsError)) {
+    return <ModuleLoadingState style={style} message={t('chore-chart.loading')} error={data.rewardsError} />;
   }
 
   // Family data lives on the phone, not in the editor: the empty state sends

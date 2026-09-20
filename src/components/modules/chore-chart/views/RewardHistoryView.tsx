@@ -5,9 +5,11 @@ import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
 import type { RewardRedemption } from '@/lib/reward-data';
 import { formatTimeAgoLocalized } from '@/lib/chore-constants';
+import { sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
+import { resolveHistoryLimit } from '../layout';
 
 interface RewardHistoryViewProps {
   config: ChoreChartConfig;
@@ -19,16 +21,6 @@ interface RewardHistoryViewProps {
   fontSize: number;
 }
 
-export function sortRewardRedemptions(
-  redemptions: RewardRedemption[],
-): RewardRedemption[] {
-  return [...redemptions].sort(
-    (a, b) =>
-      new Date(b.redeemedAt).getTime()
-      - new Date(a.redeemedAt).getTime(),
-  );
-}
-
 export function RewardHistoryView({
   config,
   data,
@@ -37,14 +29,11 @@ export function RewardHistoryView({
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
 
-  const historyLimit = Math.max(
-    1,
-    Math.min(50, config.historyLimit ?? 5),
-  );
+  const historyLimit = resolveHistoryLimit(config.historyLimit);
 
   const redemptions = useMemo(
     () =>
-      sortRewardRedemptions(data.allRedemptions).slice(0, historyLimit),
+      sortRedemptionsNewestFirst(data.allRedemptions).slice(0, historyLimit),
     [data.allRedemptions, historyLimit],
   );
 
@@ -58,22 +47,22 @@ export function RewardHistoryView({
       className="flex h-full min-h-0 flex-col"
       style={{ fontSize: `${fontSize}px` }}
     >
+      {/* The rule belongs to the title: with the title off, or nothing to
+          list, it would be a stray line above the card's content. */}
       {config.showTitle !== false && (
         <div
-          className="mb-2 shrink-0 font-semibold"
-          style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.secondary }}
+          className="shrink-0 font-semibold"
+          style={{
+            fontSize: '0.8em',
+            opacity: TEXT_OPACITY.secondary,
+            paddingBottom: '0.5em',
+            marginBottom: '0.3em',
+            borderBottom: redemptions.length > 0 ? `1px solid ${DIVIDER.visible}` : undefined,
+          }}
         >
           {t('chore-chart.rewardHistory')}
         </div>
       )}
-
-      <div
-        className="shrink-0"
-        style={{
-          borderBottom: `1px solid ${DIVIDER.visible}`,
-          marginBottom: '0.3em',
-        }}
-      />
 
       {redemptions.length === 0 ? (
         <div
@@ -95,22 +84,30 @@ export function RewardHistoryView({
               <div
                 key={redemption.id}
                 {...{ [CHORE_ROW_ATTR]: '' }}
-                className="grid items-center gap-x-4 border-b px-2 py-2 last:border-b-0"
+                className="grid items-center border-b last:border-b-0"
                 style={{
+                  // All in em, and a fixed line height, so a row is exactly the
+                  // height `fitChoreFontSize` budgets for it (PLAIN_ROW_EM).
+                  padding: '0.35em 0.4em',
+                  columnGap: '0.7em',
+                  lineHeight: 1.3,
                   gridTemplateColumns:
                     config.showPoints !== false
-                      ? 'minmax(0, 1fr) minmax(0, 2fr) auto auto'
-                      : 'minmax(0, 1fr) minmax(0, 2fr) auto',
+                      ? 'minmax(0, 1.3fr) minmax(0, 2fr) auto auto'
+                      : 'minmax(0, 1.3fr) minmax(0, 2fr) auto',
                   borderColor: DIVIDER.visible,
                 }}
               >
-                <div
-                  className="truncate font-semibold"
-                  style={{
-                    color: member?.color,
-                  }}
-                >
-                  {memberName}
+                {/* The person's colour goes on a dot, never on the name: a navy
+                    or pale yellow name is unreadable on the wrong card. */}
+                <div className="flex min-w-0 items-center font-semibold" style={{ gap: '0.4em' }}>
+                  {member?.color && (
+                    <span
+                      className="shrink-0 rounded-full"
+                      style={{ width: '0.55em', height: '0.55em', backgroundColor: member.color }}
+                    />
+                  )}
+                  <span className="truncate">{memberName}</span>
                 </div>
 
                 <div className="truncate font-medium">

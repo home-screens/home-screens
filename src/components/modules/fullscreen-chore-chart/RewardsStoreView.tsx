@@ -20,7 +20,7 @@ import RedeemConfirm from './rewards/RedeemConfirm';
 import RedeemedBanner from './rewards/RedeemedBanner';
 import { useElementBox } from '@/hooks/useElementBox';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
-import { isRewardOfferedTo } from '@/lib/reward-rules';
+import { isRewardOfferedTo, sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 
 interface RewardsStoreViewProps {
   members: FamilyMember[];
@@ -143,9 +143,7 @@ export function RewardsStoreView({
 
   const memberRedemptions = useMemo(
     () => (selectedMemberId
-      ? localRedemptions
-        .filter((r) => r.memberId === selectedMemberId)
-        .sort((a, b) => new Date(b.redeemedAt).getTime() - new Date(a.redeemedAt).getTime())
+      ? sortRedemptionsNewestFirst(localRedemptions.filter((r) => r.memberId === selectedMemberId))
       : []),
     [localRedemptions, selectedMemberId],
   );

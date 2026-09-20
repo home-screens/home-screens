@@ -350,6 +350,7 @@ A chore tracking module for families or housemates. Assign chores to members wit
 - **today**: Today's chores only, grouped by time of day.
 - **progress**: Progress bars showing completion rates per member.
 - **compact**: Condensed view for small module sizes.
+- **reward-history**: The latest rewards the family has redeemed, newest first: who, what, how many tickets, and how long ago. `historyLimit` sets how many to list (1 to 50). The type shrinks so the list fits the card, down to a readable floor; past that the card says how many more are below.
 
 **Rotation modes:**
 

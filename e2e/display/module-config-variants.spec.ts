@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedFamily, seedHouseholdChores, seedMeals, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedFamily, seedHouseholdChores, seedMeals, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { CONFIG_VARIANTS, type ConfigVariant } from '../helpers/config-variants';
@@ -37,6 +37,7 @@ async function renderVariant(page: Page, request: APIRequestContext, sandboxDir:
 
   if (variant.familyMembers) seedFamily(sandboxDir, variant.familyMembers, variant.familyGroups);
   if (variant.seed === 'chores') await seedHouseholdChores(request, sandboxDir, variant.seedData ?? undefined);
+  if (variant.seed === 'chores' && variant.config.view === 'reward-history') seedRedemptions(sandboxDir);
   if (variant.seed === 'meals') await seedMeals(request, variant.seedData ?? undefined);
   if (variant.seed === 'todos') seedTodos(sandboxDir, (variant.seedData as Parameters<typeof seedTodos>[1]) ?? undefined);
   if (variant.seed === 'timetables') seedTimetables(sandboxDir, (variant.seedData as Parameters<typeof seedTimetables>[1]) ?? undefined);

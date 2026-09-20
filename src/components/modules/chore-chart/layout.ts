@@ -120,7 +120,25 @@ const STAR_LEGEND_TOP_PX = 8;
 const STAR_LEGEND_GAP_PX = 4;
 
 /** Padding a row adds around its tap target, in em, per view. */
-const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35, 'reward-history': 0.55 };
+const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35 };
+
+/**
+ * Views whose rows carry no tap target, so a row is a plain line of text: its
+ * whole height in em (a 1.3em line plus 0.35em of padding either side). The
+ * view pads in em for exactly this reason; pixel padding does not shrink with
+ * the fitted type, and the fit then promises rows the card cannot hold.
+ */
+const PLAIN_ROW_EM: Record<string, number> = { 'reward-history': 2.0 };
+/** The hairline under a plain row, which no font size shrinks. */
+const PLAIN_ROW_RULE_PX = 1;
+
+/**
+ * How many em across a list needs before its columns start eating each other.
+ * The reward history is four columns of words (who, what, cost, when), so it
+ * needs far more than a chore row: at 13 a name was cut to "Ta...".
+ */
+const LIST_WIDTH_EM = 13;
+const LIST_WIDTH_EM_BY_VIEW: Record<string, number> = { 'reward-history': 22 };
 
 /** A time-of-day header: its 0.85em line plus its margins. */
 const SECTION_EM = 1.9;
@@ -184,14 +202,15 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
   // view's own padding, and the tap target has a floor of its own, so rows
   // stop shrinking before the type does: solving this in closed form gets the
   // last chore wrong every time, which is why it is searched instead.
+  const rowTall = (f: number) => (view in PLAIN_ROW_EM
+    ? PLAIN_ROW_EM[view] * f + PLAIN_ROW_RULE_PX
+    : choreTapSize(f) + ROW_PADDING_EM[view] * f);
   const tall = (f: number) =>
-    rows * (view === 'reward-history'
-      ? 1.9 * f
-      : choreTapSize(f) + ROW_PADDING_EM[view] * f)
+    rows * rowTall(f)
     + sections * SECTION_EM * f
     + (CHROME_EM[view] + MORE_PILL_EM) * f;
 
-  return search(tall, budget, Math.min(requested, width / 13));
+  return search(tall, budget, Math.min(requested, width / (LIST_WIDTH_EM_BY_VIEW[view] ?? LIST_WIDTH_EM)));
 }
 
 /**
@@ -236,4 +255,17 @@ export function starIconSize(fontSize: number): number {
 
 export function starLegendIconSize(fontSize: number): number {
   return Math.round(Math.max(8, Math.min(14, fontSize * 0.55)));
+}
+
+/** Bounds and default for how many redemptions the reward history lists. */
+export const HISTORY_LIMIT = { min: 1, max: 50, fallback: 5 } as const;
+
+/**
+ * The reward history's row limit as a whole number inside its bounds. Config
+ * can be hand-edited or imported, so anything that is not a finite number
+ * (a string, null, NaN) reads as unset rather than slicing the list to nothing.
+ */
+export function resolveHistoryLimit(raw: unknown): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return HISTORY_LIMIT.fallback;
+  return Math.max(HISTORY_LIMIT.min, Math.min(HISTORY_LIMIT.max, Math.floor(raw)));
 }
