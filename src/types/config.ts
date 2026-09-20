@@ -3851,7 +3851,7 @@ export interface DisplayControlConfig {
 }
 
 // Chore chart module config
-export type ChoreChartView = 'board' | 'star-chart' | 'today' | 'progress' | 'compact';
+export type ChoreChartView = 'board' | 'star-chart' | 'today' | 'progress' | 'compact' | 'reward-history';
 export type ChoreTimeOfDay = 'morning' | 'afternoon' | 'evening' | 'anytime';
 export type ChoreRotation = 'fixed' | 'rotate-daily' | 'rotate-weekly' | 'schedule';
 export type ChoreResetFrequency = 'daily' | 'weekly' | 'biweekly' | 'once';
@@ -3948,7 +3948,7 @@ export interface ChoreToggleResponse {
  * in module config would mean each placed module carried its own private copy.
  */
 export interface ChoreChartConfig {
-  /** Display style: `board`, `star-chart`, `today`, `progress`, or `compact` */
+  /** Display style: `board`, `star-chart`, `today`, `progress`, `compact`, or `reward-history` */
   view: ChoreChartView;
   /** First day of week: `sunday` or `monday` */
   weekStartDay: WeekStartDay;
@@ -3968,6 +3968,8 @@ export interface ChoreChartConfig {
    * Show the built-in view title ("Family Chores", "Star Chart", ...). Omitted = shown.
    */
   showTitle?: boolean;
+  /** Maximum number of redemptions shown in Reward History. Omitted = 5. */
+  historyLimit?: number;
 }
 
 export type FullscreenChoreChartView = 'chores' | 'rewards-store';

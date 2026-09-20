@@ -120,7 +120,7 @@ const STAR_LEGEND_TOP_PX = 8;
 const STAR_LEGEND_GAP_PX = 4;
 
 /** Padding a row adds around its tap target, in em, per view. */
-const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35 };
+const ROW_PADDING_EM: Record<string, number> = { today: 1.0, compact: 0.5, board: 1.35, 'reward-history': 0.55 };
 
 /** A time-of-day header: its 0.85em line plus its margins. */
 const SECTION_EM = 1.9;
@@ -130,7 +130,7 @@ const SECTION_EM = 1.9;
  * more than the others: a member column header above the matrix and a
  * per-member totals legend under it.
  */
-const CHROME_EM: Record<string, number> = { today: 3.7, compact: 9, board: 3.7 };
+const CHROME_EM: Record<string, number> = { today: 3.7, compact: 9, board: 3.7, 'reward-history': 2.4 };
 
 /**
  * The strip `FitRows` keeps for its "N more below" pill. Budgeted on every
@@ -168,7 +168,7 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
     return search(tallStar, height - fixedPx, Math.min(requested, width / STAR_WIDTH_EM));
   }
 
-  const listView = view === 'today' || view === 'board' || view === 'compact';
+  const listView = view === 'today' || view === 'board' || view === 'compact' || view === 'reward-history';
   if (!listView) {
     // The progress rings are one block per member rather than a list, so they
     // key off the box alone.
@@ -185,7 +185,9 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
   // stop shrinking before the type does: solving this in closed form gets the
   // last chore wrong every time, which is why it is searched instead.
   const tall = (f: number) =>
-    rows * (choreTapSize(f) + ROW_PADDING_EM[view] * f)
+    rows * (view === 'reward-history'
+      ? 1.9 * f
+      : choreTapSize(f) + ROW_PADDING_EM[view] * f)
     + sections * SECTION_EM * f
     + (CHROME_EM[view] + MORE_PILL_EM) * f;
 

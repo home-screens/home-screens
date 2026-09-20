@@ -3239,6 +3239,8 @@
       "viewToday": "Heute (nach Tageszeit)",
       "viewProgress": "Fortschritt (Ringe)",
       "viewCompact": "Kompakt (dichtes Raster)",
+      "viewRewardHistory": "Belohnungsverlauf",
+      "historyLimit": "Verlaufslimit",
       "weekStartsOn": "Woche beginnt am",
       "showTickets": "Tickets anzeigen",
       "showStreaks": "Serien anzeigen",

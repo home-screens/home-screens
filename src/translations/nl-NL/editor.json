@@ -3239,6 +3239,8 @@
       "viewToday": "Vandaag (dagdeel)",
       "viewProgress": "Voortgang (ringen)",
       "viewCompact": "Compact (dicht raster)",
+      "viewRewardHistory": "Beloningsgeschiedenis",
+      "historyLimit": "Geschiedenislimiet",
       "weekStartsOn": "Week begint op",
       "showTickets": "Tickets tonen",
       "showStreaks": "Streaks tonen",

@@ -3239,6 +3239,8 @@
       "viewToday": "Hoy (franja del día)",
       "viewProgress": "Progreso (anillos)",
       "viewCompact": "Compacto (cuadrícula densa)",
+      "viewRewardHistory": "Historial de recompensas",
+      "historyLimit": "Límite del historial",
       "weekStartsOn": "La semana empieza el",
       "showTickets": "Mostrar tickets",
       "showStreaks": "Mostrar rachas",

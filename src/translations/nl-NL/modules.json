@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Beloningsgeschiedenis",
+    "noRewardHistory": "Nog geen beloningen ingewisseld",
     "familyChores": "Klusjes voor het gezin",
     "familyProgress": "Voortgang van het gezin",
     "starChart": "Sterrenkaart",

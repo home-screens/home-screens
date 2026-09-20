@@ -3239,6 +3239,8 @@
       "viewToday": "I dag (tidspunkt på dagen)",
       "viewProgress": "Fremgang (ringe)",
       "viewCompact": "Kompakt (tæt gitter)",
+      "viewRewardHistory": "Belønningshistorik",
+      "historyLimit": "Historikgrænse",
       "weekStartsOn": "Ugen starter",
       "showTickets": "Vis billetter",
       "showStreaks": "Vis stimer",

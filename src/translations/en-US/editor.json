@@ -3239,6 +3239,8 @@
       "viewToday": "Today (Time of Day)",
       "viewProgress": "Progress (Rings)",
       "viewCompact": "Compact (Dense Grid)",
+      "viewRewardHistory": "Reward History",
+      "historyLimit": "History Limit",
       "weekStartsOn": "Week Starts On",
       "showTickets": "Show Tickets",
       "showStreaks": "Show Streaks",

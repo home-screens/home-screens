@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Belønningshistorik",
+    "noRewardHistory": "Ingen belønninger indløst endnu",
     "familyChores": "Familiens pligter",
     "familyProgress": "Familiens fremgang",
     "starChart": "Stjerneskema",

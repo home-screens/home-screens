@@ -5,6 +5,7 @@ import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import LabeledInput from '@/components/ui/LabeledInput';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
@@ -27,6 +28,7 @@ type Config = {
   allowDisplayComplete?: boolean;
   accentColor?: string;
   showTitle?: boolean;
+  historyLimit?: number;
 };
 
 export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -44,6 +46,7 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
     { value: 'today', label: t('configSections.chore-chart.viewToday') },
     { value: 'progress', label: t('configSections.chore-chart.viewProgress') },
     { value: 'compact', label: t('configSections.chore-chart.viewCompact') },
+    { value: 'reward-history', label: t('configSections.chore-chart.viewRewardHistory') },
   ];
 
   const WEEK_START_OPTIONS = [
@@ -70,12 +73,31 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
       />
 
       {/* Week Start */}
-      <LabeledSelect
-        label={t('configSections.chore-chart.weekStartsOn')}
-        value={c.weekStartDay ?? 'monday'}
-        onChange={(v) => set({ weekStartDay: v })}
-        options={WEEK_START_OPTIONS}
-      />
+      {c.view !== 'reward-history' && (
+        <LabeledSelect
+          label={t('configSections.chore-chart.weekStartsOn')}
+          value={c.weekStartDay ?? 'monday'}
+          onChange={(v) => set({ weekStartDay: v })}
+          options={WEEK_START_OPTIONS}
+        />
+      )}
+
+      {c.view === 'reward-history' && (
+        <LabeledInput
+          label={t('configSections.chore-chart.historyLimit')}
+          type="number"
+          value={c.historyLimit ?? 5}
+          min={1}
+          max={50}
+          step={1}
+          onChange={(v) => {
+            const value = Number(v);
+            if (Number.isFinite(value) && value >= 1 && value <= 50) {
+              set({ historyLimit: Math.floor(value) });
+            }
+          }}
+        />
+      )}
 
       {/* Display Toggles */}
       <Toggle
@@ -83,21 +105,25 @@ export function ChoreChartConfigSection({ mod, screenId }: { mod: ModuleInstance
         checked={c.showPoints ?? true}
         onChange={(v) => set({ showPoints: v })}
       />
-      <Toggle
-        label={t('configSections.chore-chart.showStreaks')}
-        checked={c.showStreaks ?? true}
-        onChange={(v) => set({ showStreaks: v })}
-      />
-      <Toggle
-        label={t('configSections.chore-chart.showTimeOfDay')}
-        checked={c.showTimeOfDay ?? true}
-        onChange={(v) => set({ showTimeOfDay: v })}
-      />
-      <Toggle
-        label={t('configSections.chore-chart.tapToComplete')}
-        checked={c.allowDisplayComplete ?? true}
-        onChange={(v) => set({ allowDisplayComplete: v })}
-      />
+      {c.view !== 'reward-history' && (
+        <>
+          <Toggle
+            label={t('configSections.chore-chart.showStreaks')}
+            checked={c.showStreaks ?? true}
+            onChange={(v) => set({ showStreaks: v })}
+          />
+          <Toggle
+            label={t('configSections.chore-chart.showTimeOfDay')}
+            checked={c.showTimeOfDay ?? true}
+            onChange={(v) => set({ showTimeOfDay: v })}
+          />
+          <Toggle
+            label={t('configSections.chore-chart.tapToComplete')}
+            checked={c.allowDisplayComplete ?? true}
+            onChange={(v) => set({ allowDisplayComplete: v })}
+          />
+        </>
+      )}
 
       {/* Accent Color */}
       <ColorPicker

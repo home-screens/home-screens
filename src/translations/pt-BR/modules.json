@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Histórico de recompensas",
+    "noRewardHistory": "Nenhuma recompensa resgatada ainda",
     "familyChores": "Tarefas da família",
     "familyProgress": "Progresso da família",
     "starChart": "Quadro de estrelas",

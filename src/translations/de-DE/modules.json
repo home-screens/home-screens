@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Belohnungsverlauf",
+    "noRewardHistory": "Noch keine Belohnungen eingelöst",
     "familyChores": "Familienaufgaben",
     "familyProgress": "Fortschritt der Familie",
     "starChart": "Sterntafel",

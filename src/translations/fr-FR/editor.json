@@ -3239,6 +3239,8 @@
       "viewToday": "Aujourd'hui (par moment de la journée)",
       "viewProgress": "Progression (anneaux)",
       "viewCompact": "Compact (grille dense)",
+      "viewRewardHistory": "Historique des récompenses",
+      "historyLimit": "Limite de l’historique",
       "weekStartsOn": "La semaine commence le",
       "showTickets": "Afficher les tickets",
       "showStreaks": "Afficher les séries",

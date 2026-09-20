@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Historique des récompenses",
+    "noRewardHistory": "Aucune récompense échangée pour le moment",
     "familyChores": "Tâches de la famille",
     "familyProgress": "Progression de la famille",
     "starChart": "Tableau d'étoiles",

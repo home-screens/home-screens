@@ -22,6 +22,7 @@ import { StarChartView } from './views/StarChartView';
 import { TodayView } from './views/TodayView';
 import { ProgressView } from './views/ProgressView';
 import { CompactView } from './views/CompactView';
+import { RewardHistoryView } from './views/RewardHistoryView';
 
 interface ChoreChartModuleProps {
   config: ChoreChartConfig;
@@ -59,6 +60,17 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     if (view === 'compact') {
       return { rows: new Set(assignments.map((a) => a.chore.id)).size, sections: 0 };
     }
+    if (view === 'reward-history') {
+      const historyLimit = Math.max(
+        1,
+        Math.min(50, config.historyLimit ?? 5),
+      );
+
+      return {
+        rows: Math.min(data.allRedemptions.length, historyLimit),
+        sections: 0,
+      };
+    }
     if (view === 'today') {
       const times = new Set(assignments.map((a) => a.chore.timeOfDay));
       return { rows: assignments.length, sections: config.showTimeOfDay === false ? 0 : times.size };
@@ -73,7 +85,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
       return { rows: charted.length, sections: legendRows };
     }
     return { rows: 0, sections: 0 };
-  }, [data, view, config.showTimeOfDay, config.showPoints, box.width, style.fontSize]);
+  }, [data, view, config.showTimeOfDay, config.showPoints, config.historyLimit, box.width, style.fontSize]);
 
   // An empty roster only means a fresh install once the roster has actually
   // arrived. Until then (or when it could not be read) say so, rather than
@@ -84,7 +96,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
 
   // Family data lives on the phone, not in the editor: the empty state sends
   // people to /remote and says which tab.
-  if (data.members.length === 0 || data.chores.length === 0) {
+  if (data.members.length === 0 || (view !== 'reward-history' && data.chores.length === 0)) {
     return (
       <ModuleWrapper style={style}>
         <FamilyEmptyState
@@ -113,6 +125,7 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
         {view === 'today' && <TodayView {...viewProps} timezone={timezone} />}
         {view === 'progress' && <ProgressView {...viewProps} />}
         {view === 'compact' && <CompactView {...viewProps} />}
+        {view === 'reward-history' && <RewardHistoryView {...viewProps} />}
       </div>
     </ModuleWrapper>
   );

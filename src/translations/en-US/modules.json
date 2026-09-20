@@ -417,6 +417,8 @@
     }
   },
   "chore-chart": {
+    "rewardHistory": "Reward History",
+    "noRewardHistory": "No rewards redeemed yet",
     "familyChores": "Family Chores",
     "familyProgress": "Family Progress",
     "starChart": "Star Chart",
