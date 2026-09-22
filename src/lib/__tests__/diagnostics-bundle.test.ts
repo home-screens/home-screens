@@ -49,6 +49,10 @@ function minimalInput(): BundleInput {
     journalctlText: 'Apr 17 12:00:00 myhost home-screens[1]: started',
     plugins: [{ id: 'standings', version: '0.1.0', manifestExcerpt: { id: 'standings' } }],
     telemetryRecent: { installId: 'abc...', lastBeaconAt: '2026-04-16T00:00:00Z' },
+    updates: {
+      autoUpdate: { runDate: '2026-04-17', at: '2026-04-17T09:07:00Z', result: 'skipped', reason: 'up-to-date' },
+      failedUpdate: null,
+    },
     errorsSummary: 'No ERROR lines in last 500 journal entries.\n',
   };
 }
@@ -64,6 +68,7 @@ describe('composeDiagnosticsBundle', () => {
     expect(entries).toContain('logs/journalctl-home-screens.log');
     expect(entries).toContain('plugins.json');
     expect(entries).toContain('telemetry-recent.json');
+    expect(entries).toContain('updates.json');
     expect(entries).toContain('errors-summary.txt');
     expect(entries).toContain('README.md');
   });

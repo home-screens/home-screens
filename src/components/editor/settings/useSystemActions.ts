@@ -8,6 +8,7 @@ import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 import type { ChangelogRelease, VersionResponse } from '@/lib/version';
 import { parseUpdateChannel, type UpdateChannel } from '@/lib/semver';
+import { resolveAutoUpdateSettings } from '@/lib/auto-update-policy';
 import {
   versionChangeDialogKeys,
   versionChangeDirection,
@@ -41,12 +42,17 @@ export interface SystemActions {
   advancedMode: boolean;
   updateNotificationEnabled: boolean;
   updateNotifSaveError: boolean;
+  /** The saved automatic update setting, with the default time filled in. */
+  autoUpdate: { enabled: boolean; time: string };
+  autoUpdateSaveError: boolean;
   handleCheckUpdates: () => void;
   handleOpenChangelog: () => void;
   handleOpenRelease: (release: ChangelogRelease | null) => void;
   handleSetChannel: (next: UpdateChannel) => Promise<void>;
   handleToggleAdvanced: () => Promise<void>;
   handleToggleUpdateNotification: (enabled: boolean) => Promise<void>;
+  handleToggleAutoUpdate: (enabled: boolean) => Promise<void>;
+  handleSetAutoUpdateTime: (time: string) => Promise<void>;
   handleUpgrade: (tag: string) => Promise<void>;
   handleRollback: (tag: string) => Promise<void>;
   /** Clears the "an update was undone" line. Optimistic; the marker is removed in the background. */
@@ -75,11 +81,15 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
   const [openRelease, setOpenRelease] = useState<ChangelogRelease | null>(null);
   const [powerState, setPowerState] = useState<PowerState>({ status: 'idle' });
   const [updateNotifSaveError, setUpdateNotifSaveError] = useState(false);
+  const [autoUpdateSaveError, setAutoUpdateSaveError] = useState(false);
   const [channel, setChannel] = useState<UpdateChannel>(() =>
     parseUpdateChannel(useEditorStore.getState().config?.settings?.updateChannel),
   );
   const advancedMode = useEditorStore((s) => s.config?.settings?.advancedMode ?? false);
   const updateNotificationEnabled = useEditorStore((s) => s.config?.settings?.updateNotification?.enabled ?? false);
+  const savedAutoUpdate = useEditorStore((s) => s.config?.settings?.autoUpdate);
+  const resolvedAutoUpdate = resolveAutoUpdateSettings(savedAutoUpdate);
+  const autoUpdate = { enabled: resolvedAutoUpdate.enabled, time: resolvedAutoUpdate.time };
 
   const fetchAll = useCallback(async (forceCheck = false) => {
     try {
@@ -164,6 +174,30 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     } catch {
       setUpdateNotifSaveError(true);
     }
+  }
+
+  /**
+   * Save a change to the automatic update setting, then re-read the version
+   * route so the "Next check" line follows it.
+   */
+  async function saveAutoUpdate(next: { enabled?: boolean; time?: string }) {
+    const current = useEditorStore.getState().config?.settings?.autoUpdate;
+    updateSettings({ autoUpdate: { enabled: current?.enabled ?? false, ...current, ...next } });
+    setAutoUpdateSaveError(false);
+    try {
+      await saveConfig();
+      await fetchAll();
+    } catch {
+      setAutoUpdateSaveError(true);
+    }
+  }
+
+  async function handleToggleAutoUpdate(enabled: boolean) {
+    await saveAutoUpdate({ enabled });
+  }
+
+  async function handleSetAutoUpdateTime(time: string) {
+    await saveAutoUpdate({ time });
   }
 
   /** Prompt a confirmation dialog and, if confirmed, execute an async action */
@@ -294,12 +328,16 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
     advancedMode,
     updateNotificationEnabled,
     updateNotifSaveError,
+    autoUpdate,
+    autoUpdateSaveError,
     handleCheckUpdates,
     handleOpenChangelog,
     handleOpenRelease,
     handleSetChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,
+    handleToggleAutoUpdate,
+    handleSetAutoUpdateTime,
     handleUpgrade,
     handleRollback,
     handleDismissFailedUpdate,

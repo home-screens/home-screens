@@ -14,5 +14,9 @@ export async function register(): Promise<void> {
     // power cut). Nothing else ever removes them.
     const { sweepStaleTempFiles } = await import('./lib/json-store');
     await sweepStaleTempFiles().catch(() => {});
+    // Installs updates at the owner's chosen time when that is switched on.
+    // Does nothing outside a production server or with HS_DISABLE_AUTO_UPDATE=1.
+    const { startAutoUpdateScheduler } = await import('./lib/auto-update-scheduler');
+    startAutoUpdateScheduler();
   }
 }

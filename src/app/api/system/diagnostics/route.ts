@@ -30,6 +30,8 @@ import { redactConfig } from '@/lib/config-redactor';
 import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { getPackageVersion } from '@/lib/version';
 import { readBuildInfo } from '@/lib/build-info';
+import { readAutoUpdateState } from '@/lib/auto-update-state';
+import { readFailedUpdate } from '@/lib/upgrade-failed-state';
 import { classifyVersion, parseUpdateChannel } from '@/lib/semver';
 import {
   clearConsoleLog,
@@ -213,6 +215,8 @@ export const GET = withAuth(async (request) => {
     hubHardware,
     packageVersion,
     buildInfo,
+    autoUpdate,
+    failedUpdate,
   ] = await Promise.all([
     Promise.resolve(getAllDisplayStatuses()),
     solicitConsoleLogs(displayIds),
@@ -232,6 +236,8 @@ export const GET = withAuth(async (request) => {
     getLocalHardwareStats().catch(() => null),
     getPackageVersion().catch(() => process.env.npm_package_version ?? 'unknown'),
     readBuildInfo(),
+    readAutoUpdateState().catch(() => null),
+    readFailedUpdate(),
   ]);
 
   const knownSecretValues = Object.values(secretsResolved).filter(
@@ -290,6 +296,8 @@ export const GET = withAuth(async (request) => {
     journalctlText: journalText,
     plugins,
     telemetryRecent,
+    // "Why did my wall not update overnight" is answered here.
+    updates: { autoUpdate, failedUpdate },
     errorsSummary: grepErrors(journalText),
   });
 

@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Advanced",
         "toggleLabel": "Show advanced options",
-        "help": "Reveals developer-facing controls: test builds, build details, and plugin developer mode."
+        "help": "Reveals developer-facing controls: test builds, build details, and plugin developer mode.",
+        "autoUpdateNote": "Automatic updates keep running while these are hidden."
       },
       "version": {
         "heading": "Version",
@@ -1547,7 +1548,41 @@
           "label": "Test builds",
           "help": "A fresh build from the latest code, most nights. Things break, and you may need to go back to a normal release."
         },
-        "nightlyWarning": "Test builds can change your saved settings in ways the normal version can't read. A copy of your settings from before your first test build is kept on the Backups & data page."
+        "nightlyWarning": "Test builds can change your saved settings in ways the normal version can't read. A copy of your settings from before your first test build is kept on the Backups & data page.",
+        "nightlyAutoUpdateNote": "If a test build doesn't start, the display goes back to the one it had before and won't try the failed build again."
+      },
+      "autoUpdate": {
+        "heading": "Automatic updates",
+        "description": "Once a day, Home Screens looks for a new version of the updates you picked above and installs it. The screen restarts, which takes about a minute.",
+        "toggleLabel": "Install updates automatically",
+        "timeLabel": "Time of day",
+        "timeHelp": "Pick a time when nobody is looking at the screen.",
+        "lastCheckLabel": "Last check:",
+        "nextCheckLabel": "Next check:",
+        "when": {
+          "today": "today at {time}",
+          "yesterday": "yesterday at {time}",
+          "other": "{date} at {time}"
+        },
+        "next": {
+          "today": "today around {time}",
+          "tomorrow": "tomorrow around {time}"
+        },
+        "status": {
+          "installed": "{when}. Installed {tag}.",
+          "upToDate": "{when}. Already up to date.",
+          "didNotStart": "{when}. {tag} did not start, so this display went back to v{version}. It won't try {tag} again.",
+          "failedBefore": "{when}. Skipped {tag}, which did not start last time.",
+          "needsPassword": "{when}. Could not update: this device needs its password entered once. Install the update from the box above to enter it.",
+          "failed": "{when}. Could not install {tag}. Install it from the box above to try again and see what went wrong.",
+          "unreachable": "{when}. Could not reach the update server. It will try again tomorrow.",
+          "stepBack": "{when}. Skipped {tag} because it is older than this version. Automatic updates only move forward.",
+          "missingStep": "{when}. {tag} needs {step} installed first, and {step} could not be found.",
+          "noDownload": "{when}. Skipped {tag} because it has no ready-made download. You can still install it from the box above.",
+          "alreadyUpdating": "{when}. An update was already being installed.",
+          "interrupted": "{when}. The update to {tag} was interrupted. Install it from the box above to try again.",
+          "notInstalledBuild": "This copy of Home Screens was not installed from a release, so it cannot update itself."
+        }
       },
       "updateNotification": {
         "heading": "Update Notification",

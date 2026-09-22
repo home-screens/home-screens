@@ -184,8 +184,9 @@ function resetMockDefaults() {
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 
-// upgrade.ts uses module-level singleton state (currentUpgrade).
-// We re-import the module each time to get a fresh singleton.
+// upgrade.ts keeps its one-at-a-time state (currentUpgrade) on globalThis so
+// every copy of the module in the process shares it. Drop it and re-import
+// the module each time to get a fresh singleton.
 let upgradeModule: typeof import('../upgrade');
 
 beforeEach(async () => {
@@ -196,6 +197,7 @@ beforeEach(async () => {
   resetMockDefaults();
 
   // Re-import to get fresh singleton state
+  delete (globalThis as Record<symbol, unknown>)[Symbol.for('home-screens.upgrade-state.v1')];
   vi.resetModules();
   upgradeModule = await import('../upgrade');
 

@@ -666,6 +666,22 @@ export interface UpdateNotificationSettings {
   enabled: boolean;
 }
 
+export interface AutoUpdateSettings {
+  /**
+   * Install new versions from the chosen update channel by itself, once a day. Only moves forward,
+   * and never retries a version that did not start
+   *
+   * @default false
+   */
+  enabled: boolean;
+  /**
+   * Time of day to check and install, as `HH:MM` in the display timezone
+   *
+   * @default "04:00"
+   */
+  time?: string;
+}
+
 export interface GlobalSettings {
   /** How long each screen shows before the next one, in milliseconds */
   rotationIntervalMs: number;
@@ -800,6 +816,8 @@ export interface GlobalSettings {
   backupReminder?: BackupReminderSettings;
   /** New-release banner (see UpdateNotificationSettings) */
   updateNotification?: UpdateNotificationSettings;
+  /** Install updates by itself at a set time (see AutoUpdateSettings). Hub only */
+  autoUpdate?: AutoUpdateSettings;
   /**
    * Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets date and number
    * formatting unless `formattingLocale` overrides it

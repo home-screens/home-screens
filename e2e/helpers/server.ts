@@ -30,10 +30,16 @@ export async function launchServer(dataFiles: Record<string, unknown> = {}): Pro
   }
   const sandboxDir = createSandbox(dataFiles);
   const port = await getFreePort();
+  // A sandbox must never install a real update on the machine running the tests.
+  const childEnv: NodeJS.ProcessEnv = {
+    ...process.env,
+    NODE_ENV: 'production',
+    HS_TRUSTED_PROXIES: '127.0.0.1',
+    HS_DISABLE_AUTO_UPDATE: '1',
+  };
   // The server pins its data root from HOME_SCREENS_DIR ahead of cwd, so a
   // stray export in the developer's shell would point this worker at the real
   // data/ instead of its sandbox.
-  const childEnv: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: 'production', HS_TRUSTED_PROXIES: '127.0.0.1' };
   delete childEnv.HOME_SCREENS_DIR;
   const child = spawn(
     path.join(REPO_ROOT, 'node_modules', '.bin', 'next'),

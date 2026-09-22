@@ -190,6 +190,13 @@ describe('conditionally-rendered field gating', () => {
     expect(isSettingsFieldReachable(dots, { ...DEFAULT_INSTALL, dotDefaultsInUse: false })).toBe(true);
   });
 
+  it('finds automatic updates only where the page shows them, with advanced options on', () => {
+    const entry = SETTINGS_FIELD_INDEX.find((f) => f.fieldId === 'system.autoUpdate')!;
+    expect(entry).toBeDefined();
+    expect(isSettingsFieldReachable(entry, DEFAULT_INSTALL)).toBe(false);
+    expect(isSettingsFieldReachable(entry, { ...DEFAULT_INSTALL, advancedMode: true })).toBe(true);
+  });
+
   it('resolves unset screen dots to shown, as the page does', () => {
     expect(FORM_DEFAULTS.display.showPaginationDots).toBe(true);
   });

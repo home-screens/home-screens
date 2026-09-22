@@ -12,6 +12,8 @@ import type { DisplayStatus } from '@/lib/display-commands';
 import type { HardwareStats, BrowserStats, ConsoleLogEntry } from '@/lib/hardware-stats';
 import type { UpdateChannel } from '@/lib/semver';
 import type { BuildInfo } from '@/lib/build-info';
+import type { AutoUpdateState } from '@/lib/auto-update-policy';
+import type { FailedUpdate } from '@/lib/upgrade-failed-state';
 
 export interface BundleMeta {
   version: string;
@@ -57,6 +59,8 @@ export interface BundleInput {
   journalctlText: string;
   plugins: BundlePlugin[];
   telemetryRecent: unknown;
+  /** The last automatic update run and the last update that was undone. */
+  updates: { autoUpdate: AutoUpdateState | null; failedUpdate: FailedUpdate | null };
   errorsSummary: string;
 }
 
@@ -79,6 +83,7 @@ Platform:  ${input.meta.platform} (node ${input.meta.node})
 - \`logs/journalctl-home-screens.log\` — last 500 systemd journal lines
 - \`plugins.json\` — installed plugin manifests
 - \`telemetry-recent.json\` — recent anonymous telemetry
+- \`updates.json\` — last automatic update run, and the last update that was undone
 - \`errors-summary.txt\` — ERROR/WARN grep of journalctl
 
 Displays included:
@@ -127,6 +132,7 @@ export function composeDiagnosticsBundle(input: BundleInput): Readable {
   archive.append(input.journalctlText, { name: 'logs/journalctl-home-screens.log' });
   archive.append(JSON.stringify(input.plugins, null, 2), { name: 'plugins.json' });
   archive.append(JSON.stringify(input.telemetryRecent, null, 2), { name: 'telemetry-recent.json' });
+  archive.append(JSON.stringify(input.updates, null, 2), { name: 'updates.json' });
   archive.append(input.errorsSummary, { name: 'errors-summary.txt' });
   archive.append(renderReadme(input), { name: 'README.md' });
 

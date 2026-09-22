@@ -343,6 +343,8 @@ test('the update-available banner shows, dismisses, and stays dismissed after re
         current: '1.5.0', currentCommit: 'aaa', latest: '1.6.0', latestCommit: 'bbb',
         updateAvailable: true, installedVia: 'git', channel: 'stable',
         tags: [{ tag: 'v1.6.0', version: '1.6.0', commit: 'bbb' }], upgradeRunning: false,
+        lastFailedUpdate: null,
+        autoUpdate: { enabled: false, lastRun: null, nextRun: null, today: '2026-09-22' },
       },
     }));
 

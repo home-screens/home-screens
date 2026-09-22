@@ -83,6 +83,7 @@ const VERSION_UP_TO_DATE = {
   upgradeRunning: false,
   lastFailedUpdate: null,
   localSchema: 13,
+  autoUpdate: { enabled: false, lastRun: null, nextRun: null, today: '2026-09-22' },
 };
 
 /** The newest release declares a floor this device has not reached, so the
@@ -854,6 +855,66 @@ test.describe('Defaults › System', () => {
     await line.getByRole('button', { name: 'Got it' }).click();
     await expect(line).toHaveCount(0);
     expect(stubs.posted['/api/system/update-notification']).toEqual([{ action: 'clearFailedUpdate' }]);
+
+    assertNoRealSystemCall(stubs);
+  });
+
+  test('automatic updates sit behind advanced options, save their switch and time, and say when they last ran', async ({ page, request }) => {
+    await putConfig(request, baseConfig({ settings: { timezone: 'UTC', timeFormat: '12h' } }));
+    const stubs = await setupSystemStubs(page);
+    // Registered after the harness, so it wins: the page re-reads the route
+    // after each save, and the answer follows what was saved.
+    await page.route('**/api/system/version**', async (route) => {
+      const saved = (await getConfig(request)).settings.autoUpdate;
+      await route.fulfill({
+        json: {
+          ...VERSION_NIGHTLY_AVAILABLE,
+          autoUpdate: {
+            enabled: saved?.enabled ?? false,
+            lastRun: { runDate: '2026-09-22', at: '2026-09-22T04:07:00Z', result: 'installed', tag: 'v1.2.4-dev.20260922' },
+            nextRun: saved?.enabled ? { date: '2026-09-23', time: saved.time ?? '04:00' } : null,
+            today: '2026-09-22',
+          },
+        },
+      });
+    });
+
+    await page.goto('/editor/settings?section=defaults&page=system');
+    await expect(page.getByTestId('system-update-banner')).toBeVisible();
+    const section = page.locator('[data-field-id="system.autoUpdate"]');
+    await expect(section).toHaveCount(0);
+
+    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await expect(section.getByText('Automatic updates')).toBeVisible();
+    const toggle = section.getByRole('switch');
+    await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    // Off shows only the description and the switch.
+    await expect(section.locator('input[type="time"]')).toHaveCount(0);
+    await expect(page.getByTestId('system-auto-update-status')).toHaveCount(0);
+
+    await toggle.click();
+    await expect.poll(async () => (await getConfig(request)).settings.autoUpdate).toEqual({ enabled: true });
+    const time = section.locator('input[type="time"]');
+    await expect(time).toHaveValue('04:00');
+    const status = page.getByTestId('system-auto-update-status');
+    await expect(status).toContainText('Last check: today at 4:07 AM. Installed v1.2.4-dev.20260922.');
+    await expect(status).toContainText('Next check: tomorrow around 4:00 AM');
+    await expect(page.getByText('Automatic updates keep running while these are hidden.')).toBeVisible();
+
+    await time.fill('05:30');
+    await expect.poll(async () => (await getConfig(request)).settings.autoUpdate).toEqual({ enabled: true, time: '05:30' });
+    await expect(status).toContainText('Next check: tomorrow around 5:30 AM');
+
+    await page.reload();
+    await expect(section.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+    await expect(section.locator('input[type="time"]')).toHaveValue('05:30');
+
+    // Hiding the advanced options hides the section; it does not switch
+    // automatic updates off.
+    await page.locator('[data-field-id="system.advancedMode"]').click();
+    await expect(section).toHaveCount(0);
+    await expect.poll(async () => (await getConfig(request)).settings.advancedMode).toBe(false);
+    expect((await getConfig(request)).settings.autoUpdate).toEqual({ enabled: true, time: '05:30' });
 
     assertNoRealSystemCall(stubs);
   });

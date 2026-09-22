@@ -114,6 +114,18 @@ By default Home Screens only offers tested releases. **Settings > System & updat
 
 Each choice also sees everything above it in that list, so someone on Early access or Beta is still offered the next normal release when it comes out. Test builds are different: they run ahead of the next release, so a device on them is not offered that release, only the next test build. Pick **Normal** again to be offered the newest tested release, even though its version number is lower than the test build you are on.
 
+### Can Home Screens install updates by itself?
+
+Yes. Turn on **Show advanced options** at the bottom of **Settings > System & updates**, then switch on **Install updates automatically** and pick a **Time of day** when nobody is looking at the screen. Once a day at that time it installs any new version of the updates you picked under **Which updates to get**, and the screen restarts for about a minute.
+
+It is careful about what it installs:
+
+- It only moves forward. Going back to an older version is always something you do yourself.
+- If a new version does not start, the display goes back to the one it had, and that version is not tried again. The next one is.
+- If the device was switched off at the chosen time, it catches up when it is switched back on, as long as that is within six hours. Later than that it waits for the next day, so a screen plugged back in at dinner time does not restart itself.
+
+The status under the switch says when it last looked, what it did, and when it will look next.
+
 ### How do I remove Home Screens?
 
 If you used the pre-built image, flash the card with plain Raspberry Pi OS. If you used the install script and want the Pi back the way it was, take a backup from **Settings > Backups & data** first, then run these over SSH:

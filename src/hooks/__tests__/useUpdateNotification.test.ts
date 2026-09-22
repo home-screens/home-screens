@@ -28,7 +28,9 @@ const VERSION_NO_UPDATE = {
   upgradeRunning: false,
   installedVia: 'git' as const,
   channel: 'stable',
-};
+  lastFailedUpdate: null,
+  autoUpdate: { enabled: false, lastRun: null, nextRun: null, today: '2026-09-22' },
+} as const;
 
 const VERSION_UPDATE_AVAILABLE = {
   updateAvailable: true,
@@ -40,6 +42,15 @@ const VERSION_UPDATE_AVAILABLE = {
   upgradeRunning: false,
   installedVia: 'git' as const,
   channel: 'stable',
+  lastFailedUpdate: null,
+  autoUpdate: { enabled: false, lastRun: null, nextRun: null, today: '2026-09-22' },
+};
+
+/** A release download with automatic updates on and tomorrow's run scheduled. */
+const AUTO_UPDATE_ON = {
+  ...VERSION_UPDATE_AVAILABLE,
+  installedVia: 'tarball' as const,
+  autoUpdate: { enabled: true, lastRun: null, nextRun: { date: '2026-09-23', time: '04:00' }, today: '2026-09-22' },
 };
 
 describe('useUpdateNotification', () => {
@@ -112,6 +123,121 @@ describe('useUpdateNotification', () => {
 
     await waitFor(() => expect(result.current.latestVersion).toBe('1.6.0'));
     expect(result.current.shouldShow).toBe(false);
+  });
+
+  it('shouldShow is false when the hub will install the offer by itself', async () => {
+    const fetchFn = makeFetchMock({
+      '/api/system/version': {
+        ...AUTO_UPDATE_ON,
+      },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.latestVersion).toBe('1.6.0'));
+    expect(result.current.shouldShow).toBe(false);
+  });
+
+  it('shouldShow stays true when automatic updates are on but no run is scheduled', async () => {
+    // A server started with the kill switch, or not a production build.
+    const fetchFn = makeFetchMock({
+      '/api/system/version': { ...AUTO_UPDATE_ON, autoUpdate: { ...AUTO_UPDATE_ON.autoUpdate, nextRun: null } },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+  });
+
+  it('shouldShow stays true on a hub that cannot update itself', async () => {
+    const fetchFn = makeFetchMock({
+      '/api/system/version': { ...AUTO_UPDATE_ON, installedVia: 'git' },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+  });
+
+  it('shouldShow does not break against a server from before automatic updates', async () => {
+    const { autoUpdate: _omitted, ...older } = VERSION_UPDATE_AVAILABLE;
+    const fetchFn = makeFetchMock({
+      '/api/system/version': older,
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+  });
+
+  it('shouldShow stays true for an offer automatic updates will not retry', async () => {
+    // v1.6.0 did not start here and was put back, so the scheduler skips it;
+    // installing it again is a person's call, and the toast says it exists.
+    const fetchFn = makeFetchMock({
+      '/api/system/version': {
+        ...AUTO_UPDATE_ON,
+        lastFailedUpdate: { tag: 'v1.6.0', reason: 'did-not-start', at: '2026-09-22T09:07:00Z' },
+      },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+  });
+
+  it('shouldShow stays true when the hub cannot install it without the device password', async () => {
+    // Automatic updates are on, but last night's run needed a password nobody
+    // can type at 4am. Somebody has to press the button, so the note is news.
+    const fetchFn = makeFetchMock({
+      '/api/system/version': {
+        ...AUTO_UPDATE_ON,
+        autoUpdate: {
+          ...AUTO_UPDATE_ON.autoUpdate,
+          lastRun: { runDate: '2026-09-22', at: '2026-09-22T09:07:00Z', result: 'failed', failure: 'needs-password', tag: 'v1.6.0' },
+        },
+      },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+  });
+
+  it('shouldShow stays true for a version the hub remembers failing', async () => {
+    const fetchFn = makeFetchMock({
+      '/api/system/version': {
+        ...AUTO_UPDATE_ON,
+        autoUpdate: {
+          ...AUTO_UPDATE_ON.autoUpdate,
+          lastRun: { runDate: '2026-09-22', at: '2026-09-22T09:07:00Z', result: 'skipped', reason: 'unreachable', failedTags: ['v1.6.0'] },
+        },
+      },
+      '/api/system/update-notification': { lastDismissedVersion: null },
+    });
+
+    const { result } = renderHook(() =>
+      useUpdateNotification({ enabled: true, fetchFn })
+    );
+
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
   });
 
   it('shouldShow is false while the device is installing an update', async () => {

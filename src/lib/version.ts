@@ -9,6 +9,7 @@ import {
 } from '@/lib/semver';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import type { FailedUpdate } from '@/lib/upgrade-failed-state';
+import type { AutoUpdateInfo } from '@/lib/auto-update-policy';
 import {
   parseReleaseMarkers,
   resolveInstallTarget,
@@ -79,6 +80,8 @@ export interface VersionResponse extends VersionInfo {
   lastFailedUpdate: FailedUpdate | null;
   /** Schema stamped on the saved config, for judging a step back. Null when unreadable. */
   localSchema: number | null;
+  /** The automatic update setting, its last run and when the next one is. */
+  autoUpdate: AutoUpdateInfo;
 }
 
 /** One entry in GET /api/system/changelog's `releases` array. Shared with

@@ -179,8 +179,7 @@ function parseResult(output: string): Record<string, unknown> {
   }
 }
 
-// Global upgrade state — only one upgrade can run at a time
-const currentUpgrade: {
+interface UpgradeState {
   running: boolean;
   cancelled: boolean;
   childProcess: ChildProcess | null;
@@ -188,7 +187,16 @@ const currentUpgrade: {
   listeners: Set<EventCallback>;
   /** True once the deploy step is active — cancel must be blocked */
   deploying: boolean;
-} = {
+}
+
+// Only one upgrade can run at a time, and that has to hold across the whole
+// process. The automatic update scheduler starts from the boot hook, which
+// can load its own copy of this module apart from the one the API routes
+// use; with the state held per copy, a nightly install would be invisible
+// to the Update button and to the progress stream, and both could run.
+const upgradeStateKey = Symbol.for('home-screens.upgrade-state.v1');
+const upgradeGlobals = globalThis as typeof globalThis & { [upgradeStateKey]?: UpgradeState };
+const currentUpgrade: UpgradeState = upgradeGlobals[upgradeStateKey] ??= {
   running: false,
   cancelled: false,
   childProcess: null,

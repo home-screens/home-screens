@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Erweitert",
         "toggleLabel": "Erweiterte Optionen anzeigen",
-        "help": "Zeigt entwicklerseitige Steuerelemente: Test-Builds, Build-Details und Plugin-Entwicklermodus."
+        "help": "Zeigt entwicklerseitige Steuerelemente: Test-Builds, Build-Details und Plugin-Entwicklermodus.",
+        "autoUpdateNote": "Automatische Updates laufen weiter, auch wenn diese Optionen ausgeblendet sind."
       },
       "version": {
         "heading": "Version",
@@ -1547,7 +1548,41 @@
           "label": "Test-Builds",
           "help": "Fast jede Nacht ein frischer Build aus dem neuesten Code. Es geht Dinge kaputt, und du musst vielleicht zu einer normalen Version zurück."
         },
-        "nightlyWarning": "Test-Builds können deine gespeicherten Einstellungen so verändern, dass die normale Version sie nicht mehr lesen kann. Eine Kopie deiner Einstellungen von vor dem ersten Test-Build bleibt auf der Seite Backups & Daten erhalten."
+        "nightlyWarning": "Test-Builds können deine gespeicherten Einstellungen so verändern, dass die normale Version sie nicht mehr lesen kann. Eine Kopie deiner Einstellungen von vor dem ersten Test-Build bleibt auf der Seite Backups & Daten erhalten.",
+        "nightlyAutoUpdateNote": "Wenn ein Test-Build nicht startet, kehrt das Display zum vorherigen zurück und installiert diesen Build nicht noch einmal."
+      },
+      "autoUpdate": {
+        "heading": "Automatische Updates",
+        "description": "Einmal am Tag sucht Home Screens nach einer neuen Version passend zu deiner Update-Auswahl oben und installiert sie. Dabei startet das Display neu, was etwa eine Minute dauert.",
+        "toggleLabel": "Updates automatisch installieren",
+        "timeLabel": "Uhrzeit",
+        "timeHelp": "Wähle eine Uhrzeit, zu der niemand auf das Display schaut.",
+        "lastCheckLabel": "Letzte Prüfung:",
+        "nextCheckLabel": "Nächste Prüfung:",
+        "when": {
+          "today": "heute um {time}",
+          "yesterday": "gestern um {time}",
+          "other": "am {date} um {time}"
+        },
+        "next": {
+          "today": "heute gegen {time}",
+          "tomorrow": "morgen gegen {time}"
+        },
+        "status": {
+          "installed": "{when}. {tag} wurde installiert.",
+          "upToDate": "{when}. Schon auf dem neuesten Stand.",
+          "didNotStart": "{when}. {tag} ist nicht gestartet, deshalb ist dieses Display zu v{version} zurückgekehrt. {tag} wird nicht noch einmal automatisch installiert.",
+          "failedBefore": "{when}. {tag} wurde übersprungen, weil diese Version beim letzten Mal nicht gestartet ist.",
+          "needsPassword": "{when}. Update nicht möglich: Das Gerätepasswort muss einmal eingegeben werden. Installiere das Update über den Hinweis oben, dann wirst du nach dem Passwort gefragt.",
+          "failed": "{when}. {tag} konnte nicht installiert werden. Installiere das Update über den Hinweis oben, um es noch einmal zu versuchen und zu sehen, was schiefgelaufen ist.",
+          "unreachable": "{when}. Der Update-Server war nicht erreichbar. Morgen wird es wieder versucht.",
+          "stepBack": "{when}. {tag} wurde übersprungen, weil diese Version älter ist als die installierte. Automatische Updates installieren nur neuere Versionen.",
+          "missingStep": "{when}. {tag} braucht zuerst {step}, und {step} wurde nicht gefunden.",
+          "noDownload": "{when}. {tag} wurde übersprungen, weil es dafür keinen fertigen Download gibt. Du kannst das Update trotzdem über den Hinweis oben installieren.",
+          "alreadyUpdating": "{when}. Es lief gerade schon ein Update.",
+          "interrupted": "{when}. Das Update auf {tag} wurde unterbrochen. Installiere es über den Hinweis oben, um es noch einmal zu versuchen.",
+          "notInstalledBuild": "Home Screens wurde hier nicht aus einer veröffentlichten Version installiert und kann sich deshalb nicht selbst aktualisieren."
+        }
       },
       "updateNotification": {
         "heading": "Update-Benachrichtigung",

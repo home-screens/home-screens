@@ -7381,6 +7381,15 @@
           "description": "New-release banner (see UpdateNotificationSettings)"
         },
         {
+          "name": "autoUpdate",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "AutoUpdateSettings"
+          },
+          "description": "Install updates by itself at a set time (see AutoUpdateSettings). Hub only"
+        },
+        {
           "name": "locale",
           "optional": true,
           "type": {

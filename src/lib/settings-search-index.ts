@@ -133,6 +133,7 @@ const singleDisplayOnly = (ctx: SettingsFieldVisibilityContext) => !ctx.isMultiD
 const hasProfiles = (ctx: SettingsFieldVisibilityContext) => ctx.profileCount > 0;
 const hasTransition = (ctx: SettingsFieldVisibilityContext) => ctx.transitionEffect !== 'none';
 const hasDots = (ctx: SettingsFieldVisibilityContext) => ctx.dotDefaultsInUse;
+const advancedOnly = (ctx: SettingsFieldVisibilityContext) => ctx.advancedMode;
 
 export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'display.canvasOrientation', labelKey: 'common.orientation', panel: 'appearance', visibleWhen: singleDisplayOnly },
@@ -234,6 +235,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'system', fieldId: 'system.version', labelKey: 'settings.systemPage.version.heading' },
   { pageId: 'system', fieldId: 'system.checkForUpdates', labelKey: 'settings.systemPage.version.checkButton' },
   { pageId: 'system', fieldId: 'system.updateChannel', labelKey: 'settings.systemPage.channel.heading' },
+  { pageId: 'system', fieldId: 'system.autoUpdate', labelKey: 'settings.systemPage.autoUpdate.toggleLabel', visibleWhen: advancedOnly, keywordKeys: ['settings.systemPage.autoUpdate.heading'] },
   { pageId: 'system', fieldId: 'system.updateNotification', labelKey: 'settings.systemPage.updateNotification.enableLabel' },
   { pageId: 'system', fieldId: 'system.changelog', labelKey: 'settings.systemPage.changelog.heading' },
   { pageId: 'system', fieldId: 'system.rollback', labelKey: 'settings.systemPage.history.heading' },

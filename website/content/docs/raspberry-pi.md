@@ -137,6 +137,17 @@ Three things to know about these:
 - A success response means the job **started**, not that it finished. Watch progress with `journalctl -u home-screens -f`, or poll `/api/system/status`.
 - Calling either one while an upgrade is already running returns `409` and does nothing.
 
+## Automatic updates
+
+With **Install updates automatically** on (Settings > System & updates, under advanced options), the hub runs the same pipeline as the Update button by itself, once a day. The details, for when something did not happen overnight:
+
+- The time is read in the display time zone from **Location & language**, not the Pi's own clock, and each hub adds a fixed delay of up to 20 minutes so devices do not all ask GitHub at once.
+- It only takes a newer version from the chosen channel, only one with a ready-made release download, and never one that failed to start on this device. It never asks for the device password; a hub without a working sudo grant records the failure and waits for someone to press Update.
+- A slot missed while the hub was off is taken at the next start if that is within six hours of it. Turning the setting on, or moving the time earlier, does not run a slot that has already passed today.
+- The last run is kept in `data/auto-update-state.json` and copied into the diagnostics download as `updates.json`, next to the record of any update that was undone. Look for `[auto-update]` lines in `journalctl -u home-screens`.
+- Display-only Pis are not affected. They already follow the hub.
+- `HS_DISABLE_AUTO_UPDATE=1` in the service environment turns it off regardless of the setting. The E2E harness sets it for every test server.
+
 ## Changing orientation from the command line
 
 Change orientation in the editor under **Settings > Screen** where you can. It applies straight away with no reboot, and it is saved.

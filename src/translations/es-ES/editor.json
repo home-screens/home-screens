@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Avanzado",
         "toggleLabel": "Mostrar opciones avanzadas",
-        "help": "Muestra controles para desarrolladores: compilaciones de prueba, detalles de la compilación y modo desarrollador de plugins."
+        "help": "Muestra controles para desarrolladores: compilaciones de prueba, detalles de la compilación y modo desarrollador de plugins.",
+        "autoUpdateNote": "Las actualizaciones automáticas siguen funcionando aunque estas opciones estén ocultas."
       },
       "version": {
         "heading": "Versión",
@@ -1547,7 +1548,41 @@
           "label": "Compilaciones de prueba",
           "help": "Una compilación nueva del código más reciente casi cada noche. Hay cosas que se rompen y puede que tengas que volver a una versión normal."
         },
-        "nightlyWarning": "Las compilaciones de prueba pueden cambiar tus ajustes guardados de forma que la versión normal no pueda leerlos. Se guarda una copia de tus ajustes de antes de tu primera compilación de prueba en la página Copias y datos."
+        "nightlyWarning": "Las compilaciones de prueba pueden cambiar tus ajustes guardados de forma que la versión normal no pueda leerlos. Se guarda una copia de tus ajustes de antes de tu primera compilación de prueba en la página Copias y datos.",
+        "nightlyAutoUpdateNote": "Si una compilación de prueba no arranca, la pantalla vuelve a la versión anterior y no intenta instalarla otra vez."
+      },
+      "autoUpdate": {
+        "heading": "Actualizaciones automáticas",
+        "description": "Una vez al día, Home Screens comprueba si hay una versión nueva de las actualizaciones que has elegido arriba y la instala. La pantalla se reinicia, lo que lleva un minuto más o menos.",
+        "toggleLabel": "Instalar actualizaciones automáticamente",
+        "timeLabel": "Hora",
+        "timeHelp": "Elige una hora en la que nadie esté mirando la pantalla.",
+        "lastCheckLabel": "Última comprobación:",
+        "nextCheckLabel": "Próxima comprobación:",
+        "when": {
+          "today": "hoy, {time}",
+          "yesterday": "ayer, {time}",
+          "other": "{date}, {time}"
+        },
+        "next": {
+          "today": "hoy, {time} o poco después",
+          "tomorrow": "mañana, {time} o poco después"
+        },
+        "status": {
+          "installed": "{when}. Se instaló {tag}.",
+          "upToDate": "{when}. Ya estaba al día.",
+          "didNotStart": "{when}. {tag} no arrancó, así que esta pantalla volvió a v{version}. No intentará instalar esa versión otra vez.",
+          "failedBefore": "{when}. No se instaló {tag} porque la última vez no arrancó.",
+          "needsPassword": "{when}. No se pudo actualizar: hay que escribir una vez la contraseña de este dispositivo. Para hacerlo, instala la actualización desde el recuadro de arriba.",
+          "failed": "{when}. No se pudo instalar {tag}. Instálala desde el recuadro de arriba para intentarlo de nuevo y ver qué falló.",
+          "unreachable": "{when}. No se pudo conectar con el servidor de actualizaciones. Lo intentará de nuevo mañana.",
+          "stepBack": "{when}. No se instaló {tag} porque es más antigua que la versión que tienes. Las actualizaciones automáticas nunca vuelven atrás.",
+          "missingStep": "{when}. {tag} necesita primero {step}, y esa versión no se encontró.",
+          "noDownload": "{when}. No se instaló {tag} porque no tiene una descarga preparada. Aun así, puedes instalarla desde el recuadro de arriba.",
+          "alreadyUpdating": "{when}. Ya se estaba instalando una actualización.",
+          "interrupted": "{when}. La actualización a {tag} se interrumpió. Instálala desde el recuadro de arriba para intentarlo de nuevo.",
+          "notInstalledBuild": "Esta copia de Home Screens no se instaló desde una versión publicada, así que no puede actualizarse sola."
+        }
       },
       "updateNotification": {
         "heading": "Notificación de actualización",

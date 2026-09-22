@@ -6,6 +6,7 @@ import { useUpgradeActivityStore } from '@/stores/upgrade-activity-store';
 import type { VersionResponse } from '@/lib/version';
 import type { UpdateChannel } from '@/lib/semver';
 import type { UpdateNotificationState } from '@/lib/update-notification-state';
+import { autoUpdateWillInstall } from '@/lib/auto-update-status';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
 
@@ -89,6 +90,10 @@ export function useUpdateNotification({
     if (versionInfo.upgradeRunning) return false;
     if (upgradingHere) return false;
     if (latestTag == null) return false;
+    // A version the hub installs by itself at its set time is not news. One it
+    // cannot install on its own, because it needs the device password or did
+    // not start here, still is: somebody has to press the button.
+    if (autoUpdateWillInstall({ installedVia: versionInfo.installedVia, autoUpdate: versionInfo.autoUpdate }, latestTag, versionInfo.lastFailedUpdate?.tag ?? null)) return false;
     if (latestTag === lastDismissedVersion) return false;
     return true;
   }, [
@@ -96,6 +101,9 @@ export function useUpdateNotification({
     versionInfo?.updateAvailable,
     versionInfo?.isDowngrade,
     versionInfo?.upgradeRunning,
+    versionInfo?.autoUpdate,
+    versionInfo?.installedVia,
+    versionInfo?.lastFailedUpdate?.tag,
     upgradingHere,
     latestTag,
     lastDismissedVersion,

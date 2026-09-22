@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Avançado",
         "toggleLabel": "Mostrar opções avançadas",
-        "help": "Mostra controles para desenvolvedores: builds de teste, detalhes do build e modo desenvolvedor de plugins."
+        "help": "Mostra controles para desenvolvedores: builds de teste, detalhes do build e modo desenvolvedor de plugins.",
+        "autoUpdateNote": "As atualizações automáticas continuam funcionando mesmo com estas opções escondidas."
       },
       "version": {
         "heading": "Versão",
@@ -1547,7 +1548,41 @@
           "label": "Builds de teste",
           "help": "Um build novo do código mais recente quase toda noite. Coisas quebram, e talvez você precise voltar para uma versão normal."
         },
-        "nightlyWarning": "Builds de teste podem mudar seus ajustes salvos de um jeito que a versão normal não consegue ler. Uma cópia dos seus ajustes de antes do primeiro build de teste fica guardada na página Backups e dados."
+        "nightlyWarning": "Builds de teste podem mudar seus ajustes salvos de um jeito que a versão normal não consegue ler. Uma cópia dos seus ajustes de antes do primeiro build de teste fica guardada na página Backups e dados.",
+        "nightlyAutoUpdateNote": "Se um build de teste não iniciar, a tela volta para o anterior e não tenta esse build de novo."
+      },
+      "autoUpdate": {
+        "heading": "Atualizações automáticas",
+        "description": "Uma vez por dia, o Home Screens procura uma nova versão das atualizações que você escolheu acima e, se encontrar, instala. A tela reinicia, o que leva cerca de um minuto.",
+        "toggleLabel": "Instalar atualizações automaticamente",
+        "timeLabel": "Horário",
+        "timeHelp": "Escolha um horário em que ninguém esteja olhando para a tela.",
+        "lastCheckLabel": "Última verificação:",
+        "nextCheckLabel": "Próxima verificação:",
+        "when": {
+          "today": "hoje às {time}",
+          "yesterday": "ontem às {time}",
+          "other": "{date} às {time}"
+        },
+        "next": {
+          "today": "hoje por volta das {time}",
+          "tomorrow": "amanhã por volta das {time}"
+        },
+        "status": {
+          "installed": "{when}. A {tag} foi instalada.",
+          "upToDate": "{when}. Já estava na versão mais recente.",
+          "didNotStart": "{when}. A {tag} não iniciou, então esta tela voltou para v{version}. Ela não vai tentar essa versão de novo.",
+          "failedBefore": "{when}. A {tag} foi pulada porque não iniciou da última vez.",
+          "needsPassword": "{when}. Não foi possível atualizar: é preciso digitar a senha do dispositivo uma vez. Instale a atualização pela caixa acima e digite a senha lá.",
+          "failed": "{when}. Não foi possível instalar a {tag}. Instale pela caixa acima para tentar de novo e ver o que deu errado.",
+          "unreachable": "{when}. Não foi possível acessar o servidor de atualizações. A próxima tentativa é amanhã.",
+          "stepBack": "{when}. A {tag} foi pulada porque é mais antiga que a versão atual. As atualizações automáticas nunca voltam para uma versão mais antiga.",
+          "missingStep": "{when}. A {tag} precisa primeiro da {step}, e essa versão não foi encontrada.",
+          "noDownload": "{when}. A {tag} foi pulada porque não tem um download pronto. Você ainda pode instalá-la pela caixa acima.",
+          "alreadyUpdating": "{when}. Uma atualização já estava sendo instalada.",
+          "interrupted": "{when}. A atualização para {tag} foi interrompida. Instale pela caixa acima para tentar de novo.",
+          "notInstalledBuild": "Esta cópia do Home Screens não foi instalada a partir de uma versão oficial, então não consegue se atualizar sozinha."
+        }
       },
       "updateNotification": {
         "heading": "Notificação de atualização",

@@ -24,7 +24,14 @@ vi.mock('@/lib/upgrade', () => ({
 }));
 
 vi.mock('@/lib/config', () => ({
-  readConfig: vi.fn(async () => ({ version: 13 })),
+  readConfig: vi.fn(async () => ({
+    version: 13,
+    settings: { timezone: 'UTC', autoUpdate: { enabled: true, time: '03:15' } },
+  })),
+}));
+
+vi.mock('@/lib/auto-update-state', () => ({
+  readAutoUpdateState: vi.fn(async () => null),
 }));
 
 vi.mock('@/lib/upgrade-failed-state', () => ({
@@ -35,6 +42,7 @@ import { NextRequest } from 'next/server';
 import { GET } from '../route';
 import { getVersionInfo, getVersionTags } from '@/lib/version';
 import { isUpgradeRunning } from '@/lib/upgrade';
+import { readAutoUpdateState } from '@/lib/auto-update-state';
 
 const mockInfo = vi.mocked(getVersionInfo);
 const mockTags = vi.mocked(getVersionTags);
@@ -94,6 +102,26 @@ describe('GET /api/system/version', () => {
     expect(mockInfo).toHaveBeenCalledWith({ force: false, channel: 'stable', localSchema: 13 });
     await GET(getRequest('?channel=canary'));
     expect(mockInfo).toHaveBeenLastCalledWith({ force: false, channel: 'stable', localSchema: 13 });
+  });
+
+  it('reports the automatic update setting and last run, without the raw error', async () => {
+    vi.mocked(readAutoUpdateState).mockResolvedValue({
+      runDate: '2026-09-22',
+      at: '2026-09-22T03:20:00Z',
+      result: 'failed',
+      tag: 'v1.1.0',
+      failure: 'error',
+      error: 'download failed: /home/hs/home-screens.staging: No space left on device',
+    });
+    const body = await (await GET(getRequest())).json();
+    expect(body.autoUpdate).toMatchObject({
+      enabled: true,
+      lastRun: { runDate: '2026-09-22', at: '2026-09-22T03:20:00Z', result: 'failed', tag: 'v1.1.0', failure: 'error' },
+    });
+    expect(body.autoUpdate.lastRun).not.toHaveProperty('error');
+    expect(body.autoUpdate.today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // No scheduler runs inside a test process, so no run is promised.
+    expect(body.autoUpdate.nextRun).toBeNull();
   });
 
   it('returns 500 when version lookup throws', async () => {

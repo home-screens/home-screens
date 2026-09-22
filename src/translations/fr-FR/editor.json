@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Avancé",
         "toggleLabel": "Afficher les options avancées",
-        "help": "Affiche les réglages destinés aux développeurs : builds de test, détails du build et mode développeur des plugins."
+        "help": "Affiche les réglages destinés aux développeurs : builds de test, détails du build et mode développeur des plugins.",
+        "autoUpdateNote": "Les mises à jour automatiques restent actives même quand ces réglages sont masqués."
       },
       "version": {
         "heading": "Version",
@@ -1547,7 +1548,41 @@
           "label": "Builds de test",
           "help": "Un build tout frais du code le plus récent, presque chaque nuit. Des choses cassent, et il faudra peut-être revenir à une version normale."
         },
-        "nightlyWarning": "Les builds de test peuvent modifier tes réglages enregistrés d'une façon que la version normale ne sait pas lire. Une copie de tes réglages d'avant ton premier build de test est conservée sur la page Sauvegardes et données."
+        "nightlyWarning": "Les builds de test peuvent modifier tes réglages enregistrés d'une façon que la version normale ne sait pas lire. Une copie de tes réglages d'avant ton premier build de test est conservée sur la page Sauvegardes et données.",
+        "nightlyAutoUpdateNote": "Si un build de test ne démarre pas, l'écran revient au build précédent et ne retente pas celui qui a échoué."
+      },
+      "autoUpdate": {
+        "heading": "Mises à jour automatiques",
+        "description": "Une fois par jour, Home Screens cherche une nouvelle version selon ton choix de mises à jour ci-dessus et l'installe. L'écran redémarre, ce qui prend environ une minute.",
+        "toggleLabel": "Installer les mises à jour automatiquement",
+        "timeLabel": "Heure",
+        "timeHelp": "Choisis une heure où personne ne regarde l'écran.",
+        "lastCheckLabel": "Dernière vérification :",
+        "nextCheckLabel": "Prochaine vérification :",
+        "when": {
+          "today": "aujourd'hui à {time}",
+          "yesterday": "hier à {time}",
+          "other": "le {date} à {time}"
+        },
+        "next": {
+          "today": "aujourd'hui vers {time}",
+          "tomorrow": "demain vers {time}"
+        },
+        "status": {
+          "installed": "{when}. La {tag} a été installée.",
+          "upToDate": "{when}. Déjà à jour.",
+          "didNotStart": "{when}. La {tag} n'a pas démarré, cet écran est donc revenu à la v{version}. Il ne retentera pas cette mise à jour.",
+          "failedBefore": "{when}. La {tag} n'a pas été installée, car elle n'avait pas démarré la dernière fois.",
+          "needsPassword": "{when}. Mise à jour impossible : il faut saisir une fois le mot de passe de l'appareil. Installe la mise à jour depuis l'encadré ci-dessus pour le saisir.",
+          "failed": "{when}. Impossible d'installer la {tag}. Installe-la depuis l'encadré ci-dessus pour réessayer et voir ce qui n'a pas marché.",
+          "unreachable": "{when}. Impossible de joindre le serveur de mises à jour. Nouvel essai demain.",
+          "stepBack": "{when}. La {tag} n'a pas été installée, car elle est plus ancienne que la version actuelle. Les mises à jour automatiques ne reviennent jamais en arrière.",
+          "missingStep": "{when}. La {tag} a d'abord besoin de la {step}, et la {step} est introuvable.",
+          "noDownload": "{when}. La {tag} n'a pas été installée, car elle n'est pas proposée en téléchargement prêt à l'emploi. Tu peux quand même l'installer depuis l'encadré ci-dessus.",
+          "alreadyUpdating": "{when}. Une mise à jour était déjà en cours d'installation.",
+          "interrupted": "{when}. La mise à jour vers {tag} a été interrompue. Installe-la depuis l'encadré ci-dessus pour réessayer.",
+          "notInstalledBuild": "Cette installation de Home Screens ne vient pas d'une version officielle, elle ne peut donc pas se mettre à jour toute seule."
+        }
       },
       "updateNotification": {
         "heading": "Notification de mise à jour",

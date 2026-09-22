@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Avanceret",
         "toggleLabel": "Vis avancerede indstillinger",
-        "help": "Viser indstillinger for udviklere: test-builds, build-detaljer og udviklertilstand for plugins."
+        "help": "Viser indstillinger for udviklere: test-builds, build-detaljer og udviklertilstand for plugins.",
+        "autoUpdateNote": "Automatiske opdateringer kører videre, selv når disse indstillinger er skjult."
       },
       "version": {
         "heading": "Version",
@@ -1547,7 +1548,41 @@
           "label": "Test-builds",
           "help": "Et frisk build af den nyeste kode næsten hver nat. Ting går i stykker, og du skal måske tilbage til en normal udgivelse."
         },
-        "nightlyWarning": "Test-builds kan ændre dine gemte indstillinger, så den normale version ikke kan læse dem. En kopi af dine indstillinger fra før dit første test-build gemmes på siden Sikkerhedskopier og data."
+        "nightlyWarning": "Test-builds kan ændre dine gemte indstillinger, så den normale version ikke kan læse dem. En kopi af dine indstillinger fra før dit første test-build gemmes på siden Sikkerhedskopier og data.",
+        "nightlyAutoUpdateNote": "Hvis et test-build ikke starter, går skærmen tilbage til den forrige version og prøver ikke det test-build igen."
+      },
+      "autoUpdate": {
+        "heading": "Automatiske opdateringer",
+        "description": "Én gang om dagen ser Home Screens efter en ny version af den slags opdateringer, du har valgt ovenfor, og installerer den. Skærmen genstarter, og det tager omkring et minut.",
+        "toggleLabel": "Installér opdateringer automatisk",
+        "timeLabel": "Tidspunkt",
+        "timeHelp": "Vælg et tidspunkt, hvor ingen kigger på skærmen.",
+        "lastCheckLabel": "Seneste tjek:",
+        "nextCheckLabel": "Næste tjek:",
+        "when": {
+          "today": "i dag kl. {time}",
+          "yesterday": "i går kl. {time}",
+          "other": "{date} kl. {time}"
+        },
+        "next": {
+          "today": "i dag omkring kl. {time}",
+          "tomorrow": "i morgen omkring kl. {time}"
+        },
+        "status": {
+          "installed": "{when}. {tag} er installeret.",
+          "upToDate": "{when}. Du kører allerede den nyeste version.",
+          "didNotStart": "{when}. Opdateringen til {tag} startede ikke, så denne skærm gik tilbage til v{version}. {tag} bliver ikke prøvet igen.",
+          "failedBefore": "{when}. {tag} blev sprunget over, fordi den ikke startede sidste gang.",
+          "needsPassword": "{when}. Kunne ikke opdatere, fordi enhedens adgangskode skal indtastes én gang. Installér opdateringen fra boksen ovenfor, så bliver du bedt om adgangskoden.",
+          "failed": "{when}. {tag} kunne ikke installeres. Installér den fra boksen ovenfor for at prøve igen og se, hvad der gik galt.",
+          "unreachable": "{when}. Kunne ikke få forbindelse til opdateringsserveren. Home Screens prøver igen i morgen.",
+          "stepBack": "{when}. {tag} blev sprunget over, fordi den er ældre end denne version. Automatiske opdateringer går kun fremad.",
+          "missingStep": "{when}. {tag} kræver først {step}, og den version blev ikke fundet.",
+          "noDownload": "{when}. {tag} blev sprunget over, fordi der ikke er en færdig pakke at hente. Du kan stadig installere den fra boksen ovenfor.",
+          "alreadyUpdating": "{when}. En opdatering var allerede ved at blive installeret.",
+          "interrupted": "{when}. Opdateringen til {tag} blev afbrudt. Installér den fra boksen ovenfor for at prøve igen.",
+          "notInstalledBuild": "Denne kopi af Home Screens er ikke installeret fra en udgivelse, så den kan ikke opdatere sig selv."
+        }
       },
       "updateNotification": {
         "heading": "Opdateringsnotifikation",

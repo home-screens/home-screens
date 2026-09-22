@@ -101,3 +101,38 @@ describe('the schedule shape options say what they do', () => {
     expect(scheduleEditor.shapeRepeat).not.toBe(scheduleEditor.shapeSpan);
   });
 });
+
+/**
+ * Automatic updates are explained to someone choosing whether their kitchen
+ * wall may restart itself at night. The words for how that is built (a
+ * scheduler, a cron job, a tarball, sudo) say nothing about what they get.
+ */
+const AUTO_UPDATE_JARGON: Array<{ pattern: RegExp; why: string }> = [
+  { pattern: /\bcron\b/i, why: 'say once a day, at the time picked' },
+  { pattern: /schedul/i, why: 'say when it happens, not what makes it happen' },
+  { pattern: /\bdaemon\b|\bservice\b/i, why: 'say Home Screens' },
+  { pattern: /tarball|\bartifact\b/i, why: 'say ready-made download' },
+  { pattern: /\bsudo\b|\bpermission\b/i, why: "say the device's password" },
+  { pattern: /\bchannel\b/i, why: 'the section above is titled "Which updates to get"' },
+];
+
+describe('the automatic update settings say what they do', () => {
+  it('names none of the machinery', () => {
+    const dict = loadDict('en-US', 'editor') as Record<string, unknown>;
+    const systemPage = (dict.settings as Record<string, Record<string, Record<string, unknown>>>).systemPage;
+    const strings: Record<string, unknown> = {
+      ...flatten(systemPage.autoUpdate, 'settings.systemPage.autoUpdate'),
+      'settings.systemPage.channel.nightlyAutoUpdateNote': systemPage.channel.nightlyAutoUpdateNote,
+      'settings.systemPage.advanced.autoUpdateNote': systemPage.advanced.autoUpdateNote,
+    };
+
+    const offenders: string[] = [];
+    for (const [key, value] of Object.entries(strings)) {
+      expect(value, key).toBeTypeOf('string');
+      for (const { pattern, why } of AUTO_UPDATE_JARGON) {
+        if (pattern.test(value as string)) offenders.push(`${key}: "${value}" (${why})`);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+});

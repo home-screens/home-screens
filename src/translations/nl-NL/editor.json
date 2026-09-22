@@ -1490,7 +1490,8 @@
       "advanced": {
         "heading": "Geavanceerd",
         "toggleLabel": "Geavanceerde opties tonen",
-        "help": "Toont opties voor ontwikkelaars: testbuilds, builddetails en de ontwikkelaarsmodus voor plugins."
+        "help": "Toont opties voor ontwikkelaars: testbuilds, builddetails en de ontwikkelaarsmodus voor plugins.",
+        "autoUpdateNote": "Automatische updates blijven werken, ook als deze opties verborgen zijn."
       },
       "version": {
         "heading": "Versie",
@@ -1547,7 +1548,41 @@
           "label": "Testbuilds",
           "help": "Bijna elke nacht een verse build van de nieuwste code. Er gaan dingen kapot en je moet misschien terug naar een normale versie."
         },
-        "nightlyWarning": "Testbuilds kunnen je opgeslagen instellingen zo veranderen dat de normale versie ze niet meer kan lezen. Een kopie van je instellingen van vóór je eerste testbuild wordt bewaard op de pagina Back-ups en gegevens."
+        "nightlyWarning": "Testbuilds kunnen je opgeslagen instellingen zo veranderen dat de normale versie ze niet meer kan lezen. Een kopie van je instellingen van vóór je eerste testbuild wordt bewaard op de pagina Back-ups en gegevens.",
+        "nightlyAutoUpdateNote": "Als een testbuild niet start, gaat het scherm terug naar de vorige versie en slaat het die testbuild voortaan over."
+      },
+      "autoUpdate": {
+        "heading": "Automatische updates",
+        "description": "Home Screens kijkt één keer per dag of er een nieuwe versie is van de updates die je hierboven hebt gekozen, en installeert die dan. Het scherm start daarna opnieuw op; dat duurt ongeveer een minuut.",
+        "toggleLabel": "Updates automatisch installeren",
+        "timeLabel": "Tijdstip",
+        "timeHelp": "Kies een tijd waarop niemand naar het scherm kijkt.",
+        "lastCheckLabel": "Laatste controle:",
+        "nextCheckLabel": "Volgende controle:",
+        "when": {
+          "today": "vandaag om {time}",
+          "yesterday": "gisteren om {time}",
+          "other": "op {date} om {time}"
+        },
+        "next": {
+          "today": "vandaag rond {time}",
+          "tomorrow": "morgen rond {time}"
+        },
+        "status": {
+          "installed": "{when}. {tag} geïnstalleerd.",
+          "upToDate": "{when}. Geen nieuwe versie gevonden.",
+          "didNotStart": "{when}. {tag} is niet gestart, dus dit scherm is teruggegaan naar v{version} en slaat {tag} voortaan over.",
+          "failedBefore": "{when}. {tag} overgeslagen, omdat die de vorige keer niet startte.",
+          "needsPassword": "{when}. Bijwerken lukte niet: je moet het apparaatwachtwoord één keer invoeren. Dat kan door de update via het vak hierboven te installeren.",
+          "failed": "{when}. {tag} kon niet worden geïnstalleerd. Probeer het opnieuw via het vak hierboven, dan zie je ook wat er misging.",
+          "unreachable": "{when}. De updateserver was niet bereikbaar. Morgen wordt het opnieuw geprobeerd.",
+          "stepBack": "{when}. {tag} overgeslagen, omdat die ouder is dan de huidige versie. Automatische updates gaan alleen vooruit.",
+          "missingStep": "{when}. {tag} heeft eerst {step} nodig, en {step} is niet gevonden.",
+          "noDownload": "{when}. {tag} overgeslagen, omdat er geen kant-en-klare download voor is. Via het vak hierboven kun je die nog wel installeren.",
+          "alreadyUpdating": "{when}. Er werd al een update geïnstalleerd.",
+          "interrupted": "{when}. De update naar {tag} is onderbroken. Probeer het opnieuw via het vak hierboven.",
+          "notInstalledBuild": "Deze kopie van Home Screens is niet als officiële versie geïnstalleerd en kan zichzelf daarom niet bijwerken."
+        }
       },
       "updateNotification": {
         "heading": "Updatemelding",

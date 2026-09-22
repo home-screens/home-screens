@@ -58,6 +58,7 @@ const GLOBAL_ONLY: Record<string, string> = {
   telemetryEnabled: 'hub-level consent; a per-display opt-out would be meaningless',
   backupReminder: 'hub maintenance, surfaced in the editor',
   updateNotification: 'hub maintenance, surfaced in the editor',
+  autoUpdate: 'the hub installs its own updates; display-only Pis already follow the hub by themselves',
   locale: 'global-only by design, like timeFormat (see LanguageFields)',
   formattingLocale: 'see locale',
   timeFormat: 'household preference, global-only by design (see TimeFormatFields)',

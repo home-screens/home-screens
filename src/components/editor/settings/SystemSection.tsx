@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ChangelogModal from './ChangelogModal';
+import AutoUpdateSection from './AutoUpdateSection';
 import Toggle from '@/components/ui/Toggle';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { UPDATE_CHANNELS, classifyVersion, compareSemver, type UpdateChannel } from '@/lib/semver';
@@ -34,12 +35,16 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
     advancedMode,
     updateNotificationEnabled,
     updateNotifSaveError,
+    autoUpdate,
+    autoUpdateSaveError,
     handleCheckUpdates,
     handleOpenChangelog,
     handleOpenRelease,
     handleSetChannel,
     handleToggleAdvanced,
     handleToggleUpdateNotification,
+    handleToggleAutoUpdate,
+    handleSetAutoUpdateTime,
     handleUpgrade,
     handleRollback,
     handleDismissFailedUpdate,
@@ -305,9 +310,25 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
         {channel === 'nightly' && (
           <p className="mt-2 text-xs text-hs-warning" role="note">
             {t('settings.systemPage.channel.nightlyWarning')}
+            {autoUpdate.enabled && <> {t('settings.systemPage.channel.nightlyAutoUpdateNote')}</>}
           </p>
         )}
       </section>
+
+      {/* Installing by itself is for people who have opted into the developer
+          controls. Hiding the section does not switch it off; the Advanced
+          help line says so while it is on. */}
+      {advancedMode && (
+        <AutoUpdateSection
+          info={versionInfo.autoUpdate}
+          currentVersion={versionInfo.current}
+          enabled={autoUpdate.enabled}
+          time={autoUpdate.time}
+          saveError={autoUpdateSaveError}
+          onToggle={handleToggleAutoUpdate}
+          onSetTime={handleSetAutoUpdateTime}
+        />
+      )}
 
       {/* Update Notification */}
       <section data-field-id="system.updateNotification">
@@ -506,6 +527,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
             <p className="text-sm text-hs-text-primary">{t('settings.systemPage.advanced.toggleLabel')}</p>
             <p className="text-xs text-hs-text-faint mt-0.5">
               {t('settings.systemPage.advanced.help')}
+              {autoUpdate.enabled && <> {t('settings.systemPage.advanced.autoUpdateNote')}</>}
             </p>
           </div>
           <button
