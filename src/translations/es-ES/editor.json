@@ -2409,7 +2409,18 @@
       "pattern-paper": "Papel"
     },
     "yourPicturesHeading": "Tus propias fotos",
-    "sourceKeyMissing": "Esta fuente necesita una clave de API que no está puesta, así que la pantalla se queda con la última imagen. Añade la clave en Ajustes, o elige otra fuente."
+    "sourceKeyMissing": "Esta fuente necesita una clave de API que no está puesta, así que la pantalla se queda con la última imagen. Añade la clave en Ajustes, o elige otra fuente.",
+    "shadeGroup": "Oscurecimiento",
+    "shadeEnable": "Oscurecer el fondo",
+    "shadeStyleLabel": "Estilo",
+    "shadeStrengthLabel": "Intensidad",
+    "shadeColorLabel": "Color",
+    "shadeStyles": {
+      "even": "Uniforme",
+      "topBottom": "Arriba y abajo",
+      "edges": "Bordes",
+      "both": "Ambos"
+    }
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imágenes",

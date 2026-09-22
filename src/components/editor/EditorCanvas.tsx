@@ -24,7 +24,7 @@ import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvas
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { useTranslate, type TranslateFn } from '@/i18n';
-import type { ModuleInstance } from '@/types/config';
+import type { ModuleInstance, BackgroundShade } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
 import { isScreenEmpty, getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
 import { displayShowsPaginationDots } from '@/lib/pagination-dots';
@@ -39,6 +39,7 @@ import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import CanvasToolbar from './CanvasToolbar';
 import StartFromTemplateButton from './StartFromTemplateButton';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
+import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
 
 /**
  * What an empty screen shows inside the display frame. The first editor visit
@@ -479,6 +480,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
             <PageBackgroundProvider>
               <CanvasBackground
                 screenBackground={activeBackground || currentScreen.backgroundImage}
+                shade={currentScreen.shade}
               />
               {snapEnabled && <GridOverlay scale={effectiveScale} />}
               {isScreenEmpty(currentScreen) && (
@@ -572,20 +574,24 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   );
 }
 
-/** Reads the PageBackgroundContext override and renders the appropriate background */
-function CanvasBackground({ screenBackground }: { screenBackground: string | undefined }) {
+/** Reads the PageBackgroundContext override and renders the appropriate background, plus its shade overlay */
+function CanvasBackground({ screenBackground, shade }: { screenBackground: string | undefined; shade: BackgroundShade | undefined }) {
   const { overrideBackground } = usePageBackground();
   const bg = overrideBackground || screenBackground;
   // A missing file falls back to the solid color, the same as on the wall;
   // the screen settings panel is where the missing path is reported.
   const [broken, setBroken] = useState<string | null>(null);
-  if (!bg || broken === bg) return null;
   return (
-    <img
-      src={bg}
-      alt=""
-      onError={() => setBroken(bg)}
-      className="absolute inset-0 w-full h-full object-cover"
-    />
+    <>
+      {bg && broken !== bg && (
+        <img
+          src={bg}
+          alt=""
+          onError={() => setBroken(bg)}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      )}
+      <BackgroundShadeOverlay shade={shade} />
+    </>
   );
 }

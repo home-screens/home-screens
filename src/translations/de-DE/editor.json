@@ -2409,7 +2409,18 @@
       "pattern-paper": "Papier"
     },
     "yourPicturesHeading": "Deine eigenen Bilder",
-    "sourceKeyMissing": "Für diese Quelle fehlt ein API-Schlüssel, deshalb behält der Bildschirm sein letztes Bild. Trage den Schlüssel in den Einstellungen ein oder wähle eine andere Quelle."
+    "sourceKeyMissing": "Für diese Quelle fehlt ein API-Schlüssel, deshalb behält der Bildschirm sein letztes Bild. Trage den Schlüssel in den Einstellungen ein oder wähle eine andere Quelle.",
+    "shadeGroup": "Abdunklung",
+    "shadeEnable": "Hintergrund abdunkeln",
+    "shadeStyleLabel": "Stil",
+    "shadeStrengthLabel": "Stärke",
+    "shadeColorLabel": "Farbe",
+    "shadeStyles": {
+      "even": "Gleichmäßig",
+      "topBottom": "Oben und unten",
+      "edges": "Ränder",
+      "both": "Beides"
+    }
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",

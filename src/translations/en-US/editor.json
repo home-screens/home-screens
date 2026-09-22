@@ -2344,6 +2344,17 @@
     "title": "Background",
     "statusGroup": "Status",
     "autoRotate": "Auto-rotate",
+    "shadeGroup": "Shade",
+    "shadeEnable": "Shade background",
+    "shadeStyleLabel": "Style",
+    "shadeStrengthLabel": "Strength",
+    "shadeColorLabel": "Color",
+    "shadeStyles": {
+      "even": "Even",
+      "topBottom": "Top and bottom",
+      "edges": "Edges",
+      "both": "Both"
+    },
     "sourceLabel": "Source",
     "searchQueryLabel": "Search query",
     "searchQueryPlaceholder": "nature landscape",

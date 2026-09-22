@@ -8013,6 +8013,15 @@
           "description": "Rotating background images (see BackgroundRotation)"
         },
         {
+          "name": "shade",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "BackgroundShade"
+          },
+          "description": "Dim/vignette overlay drawn over the background (see BackgroundShade)"
+        },
+        {
           "name": "modules",
           "optional": false,
           "type": {

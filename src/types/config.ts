@@ -363,6 +363,18 @@ export interface BackgroundRotation {
   icloudAlbumUrl?: string;
 }
 
+/** Overlay dimming/vignette drawn over a screen's background, between the image and its modules */
+export interface BackgroundShade {
+  /** Turn the shade on */
+  enabled: boolean;
+  /** How the shade is shaped over the background */
+  style: 'even' | 'topBottom' | 'edges' | 'both';
+  /** Overlay intensity, 0-100 */
+  strength: number;
+  /** Shade color (hex or rgb()) */
+  color: string;
+}
+
 export interface Screen {
   /** Unique ID */
   id: string;
@@ -378,6 +390,8 @@ export interface Screen {
   backgroundImage: string;
   /** Rotating background images (see BackgroundRotation) */
   backgroundRotation?: BackgroundRotation;
+  /** Dim/vignette overlay drawn over the background (see BackgroundShade) */
+  shade?: BackgroundShade;
   /** The modules on this screen (see ModuleInstance) */
   modules: ModuleInstance[];
   /**

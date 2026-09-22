@@ -2409,7 +2409,18 @@
       "pattern-paper": "Papier"
     },
     "yourPicturesHeading": "Je eigen foto's",
-    "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron."
+    "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron.",
+    "shadeGroup": "Verduistering",
+    "shadeEnable": "Achtergrond donkerder maken",
+    "shadeStyleLabel": "Stijl",
+    "shadeStrengthLabel": "Sterkte",
+    "shadeColorLabel": "Kleur",
+    "shadeStyles": {
+      "even": "Gelijkmatig",
+      "topBottom": "Boven en onder",
+      "edges": "Randen",
+      "both": "Beide"
+    }
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",

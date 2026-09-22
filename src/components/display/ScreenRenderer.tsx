@@ -40,6 +40,7 @@ import { eventBus } from '@/lib/event-bus';
 import { getLocation } from '@/lib/location';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { resolveModuleStyle } from '@/lib/module-style';
+import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
 
 interface ScreenRendererProps {
   screen: Screen;
@@ -178,6 +179,8 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
           }}
         />
       )}
+
+      <BackgroundShadeOverlay shade={screen.shade} />
 
       {visibleModules.map((mod) => {
         const Component = getModuleComponent(mod.type);

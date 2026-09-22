@@ -2409,7 +2409,18 @@
       "pattern-paper": "Papir"
     },
     "yourPicturesHeading": "Dine egne billeder",
-    "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde."
+    "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde.",
+    "shadeGroup": "Dæmpning",
+    "shadeEnable": "Dæmp baggrunden",
+    "shadeStyleLabel": "Stil",
+    "shadeStrengthLabel": "Styrke",
+    "shadeColorLabel": "Farve",
+    "shadeStyles": {
+      "even": "Jævn",
+      "topBottom": "Top og bund",
+      "edges": "Kanter",
+      "both": "Begge"
+    }
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",
