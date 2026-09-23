@@ -3,6 +3,7 @@ import path from 'path';
 import { test, expect } from '../fixtures';
 import { getConfig } from '../helpers/api';
 import { baseConfig } from '../helpers/config-fixtures';
+import { getLatestSchemaVersion } from '@/lib/migrations';
 
 /**
  * The one spec that starts from a genuinely pre-family install and drives the
@@ -99,7 +100,7 @@ test('a pre-family install folds its chore and calendar rosters on the first req
 
   // Calendar ownership moved to member ids, and the legacy list is gone.
   const config = await getConfig(request);
-  expect(config.version).toBe(13);
+  expect(config.version).toBe(getLatestSchemaVersion());
   expect(config.settings.calendar.people).toBeUndefined();
   expect(config.settings.calendar.personSources).toEqual({ 'legacy-sam': ['school'], 'cal-jordan': ['work'] });
 
