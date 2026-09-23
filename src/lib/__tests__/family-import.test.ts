@@ -5,8 +5,10 @@ import path from 'node:path';
 import type { ScreenConfiguration, ChoreDefinition } from '@/types/config';
 import { planFamilyRestore, type FamilyRestoreContent } from '../family-import';
 import { commitDataTransaction, withDataTransaction } from '../data-transaction';
+import { getLatestSchemaVersion } from '../migrations';
 
 const now = '2026-09-09T12:00:00.000Z';
+const currentSchemaVersion = getLatestSchemaVersion();
 const member = (id: string, name = id) => ({ id, name, color: '#60a5fa', createdAt: now, updatedAt: now });
 const chore = (id: string, assigneeIds: string[]): ChoreDefinition => ({
   id, name: id, emoji: '', points: 1, frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', rotation: 'fixed', assigneeIds,
@@ -14,7 +16,7 @@ const chore = (id: string, assigneeIds: string[]): ChoreDefinition => ({
 let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
 const read = async (file: string) => JSON.parse(await fs.readFile(path.join(root, 'data', file), 'utf8'));
-const config = () => ({ version: 13, screens: [], settings: { calendar: {} } }) as unknown as ScreenConfiguration;
+const config = () => ({ version: currentSchemaVersion, screens: [], settings: { calendar: {} } }) as unknown as ScreenConfiguration;
 const restore = (body: FamilyRestoreContent) => withDataTransaction(async () => {
   const plan = await planFamilyRestore(body);
   await commitDataTransaction({ kind: 'test-restore', changes: plan.changes, evidence: plan.evidence, rollbackOnError: true });
@@ -240,7 +242,7 @@ describe('family restore final state', () => {
     expect(backup.path).toMatch(/^data\/backups\/config-v/);
     expect(backup).toMatchObject({ before: null, after: original, mode: 0o600 });
     expect(await fs.readFile(path.join(root, backup.path), 'utf8')).toBe(original);
-    expect((await read('config.json')).version).toBe(13);
+    expect((await read('config.json')).version).toBe(currentSchemaVersion);
     if (kind === 'family') expect((await read('config.json')).settings.calendar).toEqual({ personSources: { a: ['school'] } });
   });
 
@@ -250,7 +252,7 @@ describe('family restore final state', () => {
     const plan = await restore({ family: { members: [member('a')], migrated: true } });
     expect(plan.changes[0].after).toBe(raw);
     expect(await fs.readFile(path.join(root, plan.changes[0].path), 'utf8')).toBe(raw);
-    expect((await read('config.json')).version).toBe(13);
+    expect((await read('config.json')).version).toBe(currentSchemaVersion);
   });
 
   it('does not publish a planned migration backup when a restore fails validation', async () => {
@@ -278,7 +280,7 @@ describe('family restore final state', () => {
     await restore({ family: { members: [member('b')], migrated: true }, config: config(), chores: { chores: [chore('job', ['b'])] } });
     expect((await read('family.json')).members[0].id).toBe('b');
     expect((await read('chores.json')).chores[0].assigneeIds).toEqual(['b']);
-    expect((await read('config.json')).version).toBe(13);
+    expect((await read('config.json')).version).toBe(currentSchemaVersion);
   });
 
   it('refuses a partial restore that would retain corrupt source data', async () => {

@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { NextRequest } from 'next/server';
 import { withDataTransaction } from '@/lib/data-transaction';
+import { getLatestSchemaVersion } from '@/lib/migrations';
 
 vi.mock('@/lib/auth', () => ({ requireSession: vi.fn(async () => {}), requireDisplayAuth: vi.fn(async () => {}) }));
 // Restoring a named snapshot must never fall back to the old raw shell copy.
@@ -13,7 +14,7 @@ import { POST } from '../route';
 const NAME = 'config-v1.2.3-20260909-120000.json';
 const now = '2026-09-09T12:00:00.000Z';
 const member = { id: 'chore-person', name: 'Renamed Alex', color: '#60a5fa', createdAt: now, updatedAt: now };
-const current = { version: 13, screens: [], settings: { calendar: { personSources: { 'chore-person': ['new-calendar'] } } } };
+const current = { version: getLatestSchemaVersion(), screens: [], settings: { calendar: { personSources: { 'chore-person': ['new-calendar'] } } } };
 const write = (file: string, value: unknown) => fs.writeFile(path.join(process.cwd(), 'data', file), JSON.stringify(value, null, 2));
 const read = async (file: string) => JSON.parse(await fs.readFile(path.join(process.cwd(), 'data', file), 'utf8'));
 const request = () => new NextRequest('http://localhost/api/system/backups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: NAME }) });

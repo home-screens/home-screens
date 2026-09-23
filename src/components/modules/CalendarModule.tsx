@@ -139,6 +139,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
   const gridEventStyle = config.gridEventStyle;
   const gridEventPillBackground = config.gridEventPillBackground;
+  const showEventBackground = config.showEventBackground !== false;
   // Stable identity across clock ticks so the memoized EventCard's shallow
   // compare holds; only a real settings change produces a new object.
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
@@ -151,12 +152,13 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       timeFormat: resolvedTimeFormat,
       gridStyle,
       pillBackground: gridStyle === 'colored' && gridEventPillBackground === true,
+      showBackground: showEventBackground,
       timezone,
       failingSourceIds,
       tapDetails,
       owners,
     };
-  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, timezone, failingSourceIds, tapDetails, owners]);
+  }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners]);
   const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
 
   // Failure ≠ empty: while the shared calendar fetch is failing, kept

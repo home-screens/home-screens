@@ -20,6 +20,7 @@ export interface EventDisplayStyle {
   timeFormat: TimeFormat;
   gridStyle: 'classic' | 'colored';
   pillBackground: boolean;
+  showBackground: boolean;
   timezone?: string;
   /** Sources whose feed is failing; list rows add a "saved" time suffix. */
   failingSourceIds?: ReadonlySet<string>;

@@ -29,6 +29,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     daysToShow?: number;
     showTime?: boolean;
     showLocation?: boolean;
+    showEventBackground?: boolean;
     maxEvents?: number;
     showWeekNumbers?: boolean;
     sourceFilter?: string[];
@@ -263,6 +264,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           <>
             <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
             <Toggle label={t('configSections.calendar.showLocation')} checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
+            <Toggle label={t('configSections.calendar.showEventBackground')} checked={c.showEventBackground !== false} onChange={(v) => set({ showEventBackground: v })} />
           </>
         )}
         {viewMode === 'daily' && (

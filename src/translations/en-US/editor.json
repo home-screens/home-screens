@@ -3270,6 +3270,7 @@
       "weekStartsOn": "Week Starts On",
       "showTime": "Show Time",
       "showLocation": "Show Location",
+      "showEventBackground": "Show event backgrounds",
       "showWeekNumbers": "Show Week Numbers",
       "accentColor": "Accent Color",
       "eventTapDetails": "Tap an event to see details",

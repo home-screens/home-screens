@@ -2061,6 +2061,16 @@
           "default": false
         },
         {
+          "name": "showEventBackground",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Daily and agenda views: show the background surface behind each event row. Defaults to true.",
+          "default": true
+        },
+        {
           "name": "maxEvents",
           "optional": false,
           "type": {

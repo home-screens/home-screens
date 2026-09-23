@@ -1825,6 +1825,8 @@ export interface CalendarConfig {
   showTime: boolean;
   /** Show event locations */
   showLocation: boolean;
+  /** Daily and agenda views: show the background surface behind each event row. Defaults to true. */
+  showEventBackground?: boolean;
   /** Maximum number of events to display */
   maxEvents: number;
   /** Show week numbers in week/multi-week/month views */

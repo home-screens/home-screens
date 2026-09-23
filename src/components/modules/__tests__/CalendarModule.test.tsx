@@ -104,6 +104,29 @@ describe('CalendarModule past-event visibility per view', () => {
   });
 });
 
+describe('CalendarModule list event backgrounds', () => {
+  it('hides the event surface and its side inset when showEventBackground is false', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ showEventBackground: false })} style={style} events={events} /></Wrapper>,
+    );
+    const card = container.querySelector('[data-event-id="tomorrow"]') as HTMLElement;
+
+    expect(card.style.backgroundColor).toBe('transparent');
+    expect(card.style.borderTopStyle).toBe('none');
+    expect(card.style.paddingLeft).toBe('0px');
+  });
+
+  it('keeps the event surface and its side inset by default', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig()} style={style} events={events} /></Wrapper>,
+    );
+    const card = container.querySelector('[data-event-id="tomorrow"]') as HTMLElement;
+
+    expect(card.style.backgroundColor).not.toBe('transparent');
+    expect(card.style.paddingLeft).toBe('10px');
+  });
+});
+
 describe('CalendarModule agenda view: agendaShowFinishedToday', () => {
   // The race-weekend shape from the live display: subscribed motorsport
   // feeds model a weekend as one long timed event (started days ago, still

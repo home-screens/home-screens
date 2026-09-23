@@ -5,7 +5,9 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { familyRevision, readFamilyData, replaceFamilyGroups, replaceFamilyMembers, settleFamilyMigration, type ReplaceFamilyInput } from '../family-data';
 import { withDataTransaction, commitDataTransaction, readTransactionFile, DataTransactionError } from '../data-transaction';
+import { getLatestSchemaVersion } from '../migrations';
 const now = '2026-09-09T12:00:00.000Z';
+const currentSchemaVersion = getLatestSchemaVersion();
 const member = (id: string, name = id) => ({ id, name, color: '#60a5fa', emoji: '🙂', createdAt: now, updatedAt: now });
 let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
@@ -34,7 +36,7 @@ describe('family migration and revisions', () => {
     expect(await fs.readdir(path.join(root, 'data'))).not.toContain('family-migration.json');
   });
   it('does not rewrite a current calendar config merely to add empty mappings', async () => {
-    const saved = { version: 13, settings: { calendar: { sources: [] } }, screens: [] };
+    const saved = { version: currentSchemaVersion, settings: { calendar: { sources: [] } }, screens: [] };
     await put('config.json', saved);
     const before = await fs.readFile(path.join(root, 'data/config.json'), 'utf8');
     const rename = vi.spyOn(fs, 'rename');
@@ -52,7 +54,7 @@ describe('family migration and revisions', () => {
     expect(backups).toHaveLength(1);
     expect(await fs.readFile(path.join(root, 'data/backups', backups[0]), 'utf8')).toBe(raw);
     expect((await fs.stat(path.join(root, 'data/backups', backups[0]))).mode & 0o777).toBe(0o600);
-    expect((await read('config.json')).version).toBe(13);
+    expect((await read('config.json')).version).toBe(currentSchemaVersion);
     expect(await fs.readdir(path.join(root, 'data'))).not.toContain('family-migration.json');
     const published = rename.mock.calls.map(([, destination]) => String(destination)).filter((destination) => !destination.endsWith('/family-transaction.json'));
     expect(published[0]).toBe(path.join(root, 'data/backups', backups[0]));
@@ -62,7 +64,7 @@ describe('family migration and revisions', () => {
   it('uses a settled fast path after stable validation and invalidates it after a commit', async () => {
     await put('family.json', { members: [member('a')], migrated: true });
     await put('chores.json', { chores: [] });
-    await put('config.json', { version: 13, settings: {}, screens: [] });
+    await put('config.json', { version: currentSchemaVersion, settings: {}, screens: [] });
     await settleFamilyMigration();
     const reads = vi.spyOn(fs, 'readFile');
     await settleFamilyMigration();
@@ -129,7 +131,7 @@ describe('family migration and revisions', () => {
   });
   it('cascades a confirmed deletion across all references and keeps redemption history', async () => {
     await put('family.json', { members: [member('a'), member('b')], aliasIds: { old: 'a' }, migrated: true });
-    await put('config.json', { version: 13, settings: { calendar: { personSources: { a: ['source'], b: ['shared'] } } }, screens: [] });
+    await put('config.json', { version: currentSchemaVersion, settings: { calendar: { personSources: { a: ['source'], b: ['shared'] } } }, screens: [] });
     await put('chores.json', { chores: [{ id: 'c', assigneeIds: ['a', 'b'], schedule: { a: [1], b: [2] } }] });
     await put('chore-completions.json', { completions: [{ memberId: 'a' }, { memberId: 'b' }] });
     await put('rewards.json', { balances: { a: 3, b: 4 }, rewards: [{ memberIds: ['a', 'b'] }], redemptions: [{ memberId: 'a', memberName: 'a' }] });

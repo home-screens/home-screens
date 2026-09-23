@@ -3270,6 +3270,7 @@
       "weekStartsOn": "Semana começa em",
       "showTime": "Mostrar horário",
       "showLocation": "Mostrar local",
+      "showEventBackground": "Mostrar fundos dos eventos",
       "showWeekNumbers": "Mostrar números das semanas",
       "accentColor": "Cor de destaque",
       "eventTapDetails": "Toque em um evento para ver os detalhes",
