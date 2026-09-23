@@ -258,6 +258,15 @@ export function choreTapSize(fontSize: number): number {
 }
 
 /**
+ * A chore's icon on the board and compact rows: as tall as the line of text
+ * beside it. A fixed 16px left a family's own picture a 12px speck on a wall
+ * read from across the kitchen, and built-in icons swam in large type.
+ */
+export function choreIconSize(fontSize: number): number {
+  return Math.round(Math.max(16, fontSize * 1.15));
+}
+
+/**
  * An assignee dot on a `today` row. Every person on a shared chore gets one,
  * and each is its own tap target, so it keeps a fingertip floor of its own and
  * stops growing before a row of five dots takes the width the chore name needs.

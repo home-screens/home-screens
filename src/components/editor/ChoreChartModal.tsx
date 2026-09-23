@@ -114,6 +114,7 @@ function ChoreForm({
         icons={CHORE_ICONS}
         label={t('fields.icon')}
         variant="desktop"
+        suggestedName={name}
       />
 
       {/* Points & Frequency */}
@@ -312,7 +313,7 @@ function ChoreForm({
                     className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold text-white shrink-0"
                     style={{ background: member.color }}
                   >
-                    {member.emoji ? <ChoreIcon value={member.emoji} size={14} color="white" /> : member.name[0]}
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={14} color="white" fallback={member.name[0]} /> : member.name[0]}
                   </div>
                   <span className="text-xs font-medium text-hs-text-body w-20 truncate shrink-0">{member.name}</span>
                   <div className="flex gap-0.5 flex-1">

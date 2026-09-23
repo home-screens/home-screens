@@ -6,6 +6,8 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI, GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -94,7 +96,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
                       {/* Meal info */}
                       <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1.5 min-w-0 flex-1">
                         {showEmoji && meal?.emoji && (
-                          <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal?.emoji}</span>
+                          <span className="shrink-0" style={{ fontSize: '0.8em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} pictureSize={GRID_PICTURE_SIZE} /></span>
                         )}
                         <span className="truncate" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                           {name}

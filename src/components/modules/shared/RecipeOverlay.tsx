@@ -7,6 +7,8 @@ import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 const QR_AUTO_DISMISS_MS = 30_000;
 const IFRAME_AUTO_CLOSE_MS = 10 * 60_000;
@@ -70,7 +72,7 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
         cursor: 'pointer',
       }}
     >
-      {meal.emoji && <span style={{ fontSize: '4rem', lineHeight: 1 }}>{meal.emoji}</span>}
+      {meal.emoji && <span style={{ fontSize: '4rem', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
       <span style={{ fontSize: '2rem', fontWeight: 600, textAlign: 'center', maxWidth: '80%' }}>
         {meal.name}
       </span>
@@ -121,7 +123,7 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
           flexShrink: 0,
         }}
       >
-        {meal.emoji && <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{meal.emoji}</span>}
+        {meal.emoji && <span style={{ fontSize: '1.5rem', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
         <span
           style={{
             fontSize: '1.15rem',

@@ -12,6 +12,7 @@ import {
   CloudSun,
   Database,
   Images,
+  ImagePlus,
   KeyRound,
   LayoutGrid,
   MapPin,
@@ -152,6 +153,8 @@ const PAGE_META: Record<DefaultPageId, { labelKey: string; icon: LucideIcon; gro
   // The shared media library (everything uploaded to this hub) sits with
   // the feature pages that consume it (photos, backgrounds, videos).
   media: { labelKey: 'media', icon: Images, group: 'content' },
+  // The household's own icons, uploaded here or from any icon picker.
+  icons: { labelKey: 'icons', icon: ImagePlus, group: 'content' },
   automation: { labelKey: 'automation', icon: Zap, group: 'automation' },
   security: { labelKey: 'security', icon: Shield, group: 'admin' },
   network: { labelKey: 'network', icon: Wifi, group: 'admin' },

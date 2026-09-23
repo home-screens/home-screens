@@ -6,6 +6,8 @@ import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
+import Glyph from '@/components/ui/Glyph';
+import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
 
 /** All selectable categories for ingredient editing (includes seafood, which the grocery list merges into meat) */
 const INGREDIENT_CATEGORIES: GroceryCategory[] = [
@@ -183,7 +185,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       <div className="flex-1 overflow-y-auto p-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-hs-border-strong">
-          <span className="text-4xl">{emoji || DEFAULT_MEAL_EMOJI}</span>
+          <span className="text-4xl"><Glyph value={emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
           <div className="flex-1">
             <div className="text-lg font-bold text-hs-text-body">{name || t('mealPlannerModal.detail.untitledFallback')}</div>
             <div className="flex gap-0.5">
@@ -223,7 +225,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
 
         {/* Emoji grid */}
         <div className="mb-4">
-          <label className={labelClass}>{t('mealPlannerModal.detail.emojiLabel')}</label>
+          <label className={labelClass}>{tCore('actions.icon')}</label>
           <input
             type="text"
             className={`${MODAL_INPUT_CLASS} mb-2`}
@@ -231,6 +233,8 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             value={emojiSearch}
             onChange={(e) => setEmojiSearch(e.target.value)}
           />
+          <EditorCustomIconSection value={emoji} onPick={setEmoji} columns={6} query={emojiSearch} suggestedName={name} />
+          <div className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint mt-2.5 mb-1.5">{tCore('customIcons.everydayEmoji')}</div>
           <div className="grid grid-cols-6 gap-1">
             {filteredEmojis.map((e) => (
               <button

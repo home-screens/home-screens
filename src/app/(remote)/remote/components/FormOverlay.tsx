@@ -72,6 +72,7 @@ export default function FormOverlay({
   onBack,
   children,
   footer,
+  zIndex = 55,
 }: {
   title: string;
   backLabel?: string;
@@ -86,6 +87,8 @@ export default function FormOverlay({
   onBack: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  /** Raise above the Settings sheet (z 101) when opened from it. */
+  zIndex?: number;
 }) {
   const tCore = useTranslate('core');
   const t = useTranslate('remote');
@@ -220,7 +223,7 @@ export default function FormOverlay({
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 55,
+        zIndex,
         backgroundColor: 'var(--hs-bg-body)',
         display: 'flex',
         flexDirection: 'column',

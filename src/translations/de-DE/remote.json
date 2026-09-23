@@ -271,7 +271,6 @@
     "deleteButton": "Mahlzeit löschen",
     "nameLabel": "Name der Mahlzeit",
     "namePlaceholder": "z. B. Hühnchen-Pfanne",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "{emoji} auswählen",
     "prepTimeLabel": "Vorbereitung",
     "cookTimeLabel": "Kochzeit",
@@ -494,7 +493,7 @@
         "label": "Alles sichern",
         "savedLabel": "Backup gespeichert",
         "busyLabel": "Lädt herunter…",
-        "description": "Lade Konfiguration, Aufgaben, Mahlzeiten und Belohnungen herunter"
+        "description": "Lade Aufgaben, Mahlzeiten, Belohnungen und Bilder deiner Familie herunter"
       },
       "restore": {
         "label": "Backup wiederherstellen",

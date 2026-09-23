@@ -22,6 +22,9 @@ export const CHORE_FREQUENCIES: { value: ChoreResetFrequency }[] = [
  */
 export const DEFAULT_CHORE_ICON = 'lucide:sparkles';
 
+/** Icon a brand-new reward starts with. */
+export const DEFAULT_REWARD_ICON = 'lucide:gift';
+
 export const CHORE_ROTATIONS: { value: ChoreRotation }[] = [
   { value: 'fixed' },
   { value: 'rotate-daily' },

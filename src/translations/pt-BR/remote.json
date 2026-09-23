@@ -271,7 +271,6 @@
     "deleteButton": "Excluir refeição",
     "nameLabel": "Nome da refeição",
     "namePlaceholder": "ex: Frango xadrez",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "Selecionar {emoji}",
     "prepTimeLabel": "Tempo de preparo",
     "cookTimeLabel": "Tempo de cozimento",
@@ -494,7 +493,7 @@
         "label": "Fazer backup de tudo",
         "savedLabel": "Backup salvo",
         "busyLabel": "Baixando…",
-        "description": "Baixar configuração, tarefas, refeições e recompensas"
+        "description": "Baixar as tarefas, refeições, recompensas e fotos da família"
       },
       "restore": {
         "label": "Restaurar backup",

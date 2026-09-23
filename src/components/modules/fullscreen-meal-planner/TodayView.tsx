@@ -4,6 +4,8 @@ import type { MealPlannerViewProps } from './meal-planner-utils';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { getDifficultyColor, px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 /**
  * Today's meals, sized for a wall. The hero (the meal that matters right now)
@@ -127,7 +129,7 @@ export default function TodayView({
                 }}
               >
                 {showEmoji && heroMeal?.emoji && (
-                  <span style={{ fontSize: P(heroAlone ? 320 : 250), lineHeight: 1 }}>{heroMeal?.emoji}</span>
+                  <span style={{ fontSize: P(heroAlone ? 320 : 250), lineHeight: 1 }}><Glyph value={heroMeal?.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
                 )}
                 <span style={{
                   fontFamily: headerFont, fontSize: P(heroAlone ? 96 : 84), fontWeight: 400,
@@ -221,7 +223,7 @@ export default function TodayView({
                       style={{ display: 'flex', alignItems: 'center', gap: P(24), flex: 1, minWidth: 0 }}
                     >
                       {showEmoji && meal?.emoji && (
-                        <span style={{ fontSize: P(76), lineHeight: 1, flexShrink: 0 }}>{meal.emoji}</span>
+                        <span style={{ fontSize: P(76), lineHeight: 1, flexShrink: 0 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{

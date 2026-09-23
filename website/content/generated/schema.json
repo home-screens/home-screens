@@ -10088,6 +10088,15 @@
       ]
     },
     {
+      "path": "/api/backup/custom-icons",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backup/reminder",
       "methods": [
         {
@@ -10190,6 +10199,41 @@
         {
           "method": "GET",
           "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/custom-icons",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/custom-icons/{id}",
+      "methods": [
+        {
+          "method": "PATCH",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/custom-icons/serve",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "media"
         }
       ]
     },

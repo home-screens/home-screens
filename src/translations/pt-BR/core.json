@@ -266,5 +266,106 @@
       "limit": "Você pode ter até {count} grupos.",
       "hint": "Os grupos são usados pela legenda de cores do calendário e pelo filtro \"Mostrar apenas\". Uma tarefa também pode ir para um grupo. As recompensas continuam sendo dadas a pessoas."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Seus ícones",
+    "everydayEmoji": "Emojis do dia a dia",
+    "builtInIcons": "Ícones prontos",
+    "add": "Adicionar o seu",
+    "addPictures": "Adicionar fotos",
+    "emptyHint": "Adicione uma foto sua, como a do bolo de fubá da vovó.",
+    "manage": "Gerenciar",
+    "moving": "Imagem animada",
+    "review": {
+      "title": "Adicionar um ícone seu",
+      "preview": "É assim que ele vai aparecer na tela.",
+      "nameLabel": "Nome",
+      "use": "Usar este ícone",
+      "pickAnother": "Escolher outra foto",
+      "working": "Preparando sua foto…",
+      "existing": "Você já tem esta foto: {name}.",
+      "wide": "Esta foto é muito larga, então vai aparecer pequena. Uma foto quadrada fica melhor.",
+      "tall": "Esta foto é muito alta, então vai aparecer pequena. Uma foto quadrada fica melhor.",
+      "tiny": "Esta foto é muito pequena e pode ficar embaçada.",
+      "crop": "Recortar em quadrado"
+    },
+    "errors": {
+      "too-big": "Essa foto é grande demais. Escolha uma com menos de 5 MB.",
+      "not-a-picture": "Aqui só funcionam fotos e imagens (PNG, JPG, WebP ou GIF).",
+      "picture-too-large": "Essa foto é grande demais para usar. Escolha uma menor.",
+      "animation-too-big": "Essa imagem animada é grande demais. Tente uma mais curta.",
+      "library-full": "Você já tem 300 ícones, que é o máximo. Remova um que você não usa para abrir espaço.",
+      "budget-full": "Seus ícones já ocupam todo o espaço disponível. Remova um que você não usa para abrir espaço.",
+      "bad-name": "Dê um nome ao ícone.",
+      "not-found": "Esse ícone não existe mais.",
+      "failed": "Não deu certo. Tente de novo.",
+      "svg-drawing": "Desenhos salvos em SVG não funcionam aqui. Salve como PNG primeiro."
+    },
+    "formats": "PNG, JPG, WebP ou GIF, até 5 MB.",
+    "page": {
+      "title": "Seus ícones",
+      "description": "Fotos que sua família adicionou. Use-as em refeições, tarefas, recompensas, pessoas e rotinas.",
+      "count": {
+        "one": "{count} ícone",
+        "other": "{count} ícones"
+      },
+      "used": "{used} de {max} usados",
+      "inUseLegend": "Em uso em algum lugar",
+      "notUsed": "Sem uso",
+      "usedIn": {
+        "one": "Usado em {count} lugar",
+        "other": "Usado em {count} lugares"
+      },
+      "dropHint": "Solte as fotos aqui",
+      "empty": "Nenhum ícone ainda. Adicione uma foto para usar em refeições, tarefas e muito mais.",
+      "tapHint": "Toque em uma foto para renomear ou remover.",
+      "usedByList": "Usado por: {list}."
+    },
+    "detail": {
+      "added": "Adicionado em {date} · {size}",
+      "usedBy": "Usado por",
+      "save": "Salvar",
+      "remove": "Remover ícone",
+      "rename": "Renomear"
+    },
+    "kinds": {
+      "meal": "Refeição",
+      "chore": "Tarefa",
+      "reward": "Recompensa",
+      "person": "Pessoa",
+      "routine": "Rotina",
+      "screen": "Tela"
+    },
+    "remove": {
+      "title": "Remover {name}?",
+      "inUse": {
+        "one": "Ele é usado em {count} lugar, que vai passar a mostrar um ícone padrão.",
+        "other": "Ele é usado em {count} lugares, que vão passar a mostrar um ícone padrão."
+      },
+      "notUsed": "Não está sendo usado em nenhum lugar.",
+      "confirm": "Remover",
+      "keep": "Manter"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Adicione suas próprias fotos",
+        "one": "{count} foto que você adicionou",
+        "other": "{count} fotos que você adicionou"
+      }
+    },
+    "backup": {
+      "include": "Incluir seus ícones",
+      "includeWithSize": "Incluir seus ícones ({size})",
+      "adds": "Adiciona {size} ao arquivo",
+      "help": "As fotos que você adicionou para refeições, tarefas, recompensas, pessoas e rotinas. Deixe desligado para o arquivo ficar pequeno.",
+      "missing": "Algumas refeições e tarefas usavam seus próprios ícones, que não estavam neste backup. Elas vão voltar a mostrar a imagem de sempre.",
+      "leftOut": "Backup salvo, mas não deu para incluir seus ícones. Tente de novo para incluí-los.",
+      "leftOutWhenOff": "Suas fotos vão ficar de fora",
+      "restoreNoIcons": "Este backup não inclui suas fotos. As refeições e tarefas que usavam alguma delas vão mostrar a imagem de sempre."
+    },
+    "addShort": "Adicionar",
+    "addYourOwnLink": "Adicionar uma foto sua",
+    "photosPrompt": "Quer usar suas próprias fotos nas refeições e tarefas?",
+    "photosButton": "Adicionar aqui"
   }
 }

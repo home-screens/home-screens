@@ -4,6 +4,8 @@ import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor, px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 /**
  * Today's menu as a restaurant board. The courses spread over the whole
@@ -115,7 +117,7 @@ export default function MenuBoardView({
               >
                 {showEmoji && course.meal?.emoji && (
                   <div style={{ fontSize: P(150), lineHeight: 1 }}>
-                    {course.meal?.emoji}
+                    <Glyph value={course.meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} />
                   </div>
                 )}
                 <div style={{

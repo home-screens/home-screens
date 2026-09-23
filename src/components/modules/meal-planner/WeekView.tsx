@@ -7,6 +7,8 @@ import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForR
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementWidth } from '@/hooks/useElementBox';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI, GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -114,7 +116,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                       <>
                         <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1 min-w-0">
                           {showEmoji && meal?.emoji && (
-                            <span className="shrink-0" style={{ fontSize: '0.8em' }}>{meal?.emoji}</span>
+                            <span className="shrink-0" style={{ fontSize: '0.8em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} pictureSize={GRID_PICTURE_SIZE} /></span>
                           )}
                           {/* Two lines at most: rows are tall enough, columns are not. */}
                           <span

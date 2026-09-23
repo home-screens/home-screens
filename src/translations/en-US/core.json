@@ -266,5 +266,106 @@
       "limit": "You can have up to {count} groups.",
       "hint": "Groups are used by the calendar's color key and its \"show only\" filter. A chore can go to a group too. Rewards still assign to people."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Your icons",
+    "everydayEmoji": "Everyday emoji",
+    "builtInIcons": "Built-in icons",
+    "add": "Add your own",
+    "addPictures": "Add pictures",
+    "emptyHint": "Add your own picture, like a photo of Grandma's lasagna.",
+    "manage": "Manage",
+    "moving": "Moving picture",
+    "review": {
+      "title": "Add your own icon",
+      "preview": "This is how it will look on the screen.",
+      "nameLabel": "Name",
+      "use": "Use this icon",
+      "pickAnother": "Pick a different picture",
+      "working": "Getting your picture ready…",
+      "existing": "You already have this picture: {name}.",
+      "wide": "This picture is very wide, so it will look small. A square picture works best.",
+      "tall": "This picture is very tall, so it will look small. A square picture works best.",
+      "tiny": "This picture is very small and may look blurry.",
+      "crop": "Crop to a square"
+    },
+    "errors": {
+      "too-big": "That picture is too big. Pick one under 5 MB.",
+      "not-a-picture": "Only pictures work here (PNG, JPG, WebP or GIF).",
+      "picture-too-large": "That picture is too large to use. Pick a smaller one.",
+      "animation-too-big": "That moving picture is too big. Try a shorter one.",
+      "library-full": "You have 300 icons, which is the most you can keep. Remove one you don't use to make room.",
+      "budget-full": "Your icons are using all of their space. Remove one you don't use to make room.",
+      "bad-name": "Give the icon a name.",
+      "not-found": "That icon is gone.",
+      "failed": "That didn't work. Please try again.",
+      "svg-drawing": "Drawings saved as SVG can't be used. Save it as a PNG first."
+    },
+    "formats": "PNG, JPG, WebP or GIF, up to 5 MB.",
+    "page": {
+      "title": "Your icons",
+      "description": "Pictures your family added. Use them for meals, chores, rewards, people and routines.",
+      "count": {
+        "one": "{count} icon",
+        "other": "{count} icons"
+      },
+      "used": "{used} of {max} used",
+      "inUseLegend": "Being used somewhere",
+      "notUsed": "Not used",
+      "usedIn": {
+        "one": "Used in {count} place",
+        "other": "Used in {count} places"
+      },
+      "dropHint": "Drop pictures here",
+      "empty": "No icons yet. Add a picture to use it for meals, chores and more.",
+      "tapHint": "Tap a picture to rename or remove it.",
+      "usedByList": "Used by: {list}."
+    },
+    "detail": {
+      "added": "Added {date} · {size}",
+      "usedBy": "Used by",
+      "save": "Save",
+      "remove": "Remove icon",
+      "rename": "Rename"
+    },
+    "kinds": {
+      "meal": "Meal",
+      "chore": "Chore",
+      "reward": "Reward",
+      "person": "Person",
+      "routine": "Routine",
+      "screen": "Screen"
+    },
+    "remove": {
+      "title": "Remove {name}?",
+      "inUse": {
+        "one": "It is used in {count} place, which will switch to a standard icon.",
+        "other": "It is used in {count} places, which will switch to a standard icon."
+      },
+      "notUsed": "Nothing is using it.",
+      "confirm": "Remove",
+      "keep": "Keep it"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Add your own pictures",
+        "one": "{count} picture you added",
+        "other": "{count} pictures you added"
+      }
+    },
+    "backup": {
+      "include": "Include your icons",
+      "includeWithSize": "Include your icons ({size})",
+      "adds": "Adds {size} to the file",
+      "help": "The pictures you added for meals, chores, rewards, people and routines. Leave this off to keep the file small.",
+      "missing": "Some meals and chores used your own icons, which were not in this backup. They will show the usual picture instead.",
+      "leftOut": "Saved, but your icons could not be added. Try again to include them.",
+      "leftOutWhenOff": "Your pictures will be left out",
+      "restoreNoIcons": "This backup doesn't include your pictures. Meals and chores that used them will show a standard picture."
+    },
+    "addShort": "Add",
+    "addYourOwnLink": "Add your own picture",
+    "photosPrompt": "Want your own pictures for meals and chores?",
+    "photosButton": "Add them here"
   }
 }

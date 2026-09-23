@@ -1,6 +1,7 @@
 'use client';
 
 import { formatRemaining, formatStepLength, pillStyle, type TimerViewProps } from './shared';
+import Glyph from '@/components/ui/Glyph';
 
 /**
  * "Cascade" — the whole screen is the timer: a warm color column drains
@@ -79,7 +80,7 @@ export default function CascadeTimerView({
 
         {isRoutine && (
           <div style={{ marginTop: 60 * s, display: 'flex', alignItems: 'center', gap: 28 * s, maxWidth: '90%' }}>
-            <div style={{ fontSize: 84 * s, lineHeight: 1 }}>{step.icon}</div>
+            <div style={{ fontSize: 84 * s, lineHeight: 1 }}><Glyph value={step.icon} fallback="⏱️" /></div>
             <div style={{ fontSize: 74 * s, fontWeight: 700, letterSpacing: '-0.02em' }}>{step.label}</div>
           </div>
         )}

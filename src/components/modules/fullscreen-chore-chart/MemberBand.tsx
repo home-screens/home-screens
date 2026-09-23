@@ -109,7 +109,7 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
           color: 'white',
         }}
       >
-        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare />
+        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare fallback={null} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: fontSize * 0.5, minWidth: 0 }}>

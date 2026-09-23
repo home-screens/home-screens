@@ -5,7 +5,7 @@ import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig} from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { sortChores } from '../types';
-import { balanceRows, choreTapSize, fitPerRow, partitionMembers } from '../layout';
+import { balanceRows, choreIconSize, choreTapSize, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
@@ -57,7 +57,7 @@ function MemberColumn({ member, stats, showPoints, children }: MemberColumnProps
         style={{ backgroundColor: `${member.color}18` }}
       >
         <div style={{ fontSize: '1.3em' }} className="flex justify-center">
-          {member.emoji ? <ChoreIcon value={member.emoji} size={28} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
+          {member.emoji ? <ChoreIcon value={member.emoji} size={28} color={member.color} fallback={<span style={{ color: member.color }}>{member.name[0]}</span>} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
         </div>
         <div
           className="truncate px-1"
@@ -180,7 +180,7 @@ export function BoardView({ config, data, width, fontSize, authoredFontSize }: B
                           ) : (
                             <span className="shrink-0" style={{ fontSize: '1.15em', lineHeight: 1.1 }}>{isCompleted ? '✅' : '☐'}</span>
                           )}
-                          {chore.emoji && <span className="shrink-0 flex items-center" style={{ height: '1.25em' }}><ChoreIcon value={chore.emoji} size={16} color="currentColor" /></span>}
+                          {chore.emoji && <span className="shrink-0 flex items-center" style={{ height: '1.25em' }}><ChoreIcon value={chore.emoji} size={choreIconSize(fontSize)} color="currentColor" /></span>}
                           {/* Two lines at most: a long chore name ellipsises instead of
                               stacking one word per line in a narrow column. */}
                           <span

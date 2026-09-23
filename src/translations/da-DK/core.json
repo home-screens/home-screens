@@ -266,5 +266,106 @@
       "limit": "Du kan have op til {count} grupper.",
       "hint": "Grupper bruges af kalenderens farvenøgle og dens filter \"Vis kun\". En pligt kan også gives til en gruppe. Belønninger tildeles stadig personer."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Dine ikoner",
+    "everydayEmoji": "Almindelige emojis",
+    "builtInIcons": "Indbyggede ikoner",
+    "add": "Tilføj dit eget",
+    "addShort": "Tilføj",
+    "addYourOwnLink": "Tilføj dit eget billede",
+    "addPictures": "Tilføj billeder",
+    "emptyHint": "Tilføj dit eget billede, fx et foto af farmors frikadeller.",
+    "manage": "Administrér",
+    "moving": "Levende billede",
+    "review": {
+      "title": "Tilføj dit eget ikon",
+      "preview": "Sådan kommer det til at se ud på skærmen.",
+      "nameLabel": "Navn",
+      "use": "Brug dette ikon",
+      "pickAnother": "Vælg et andet billede",
+      "working": "Gør dit billede klar…",
+      "existing": "Du har allerede dette billede: {name}.",
+      "wide": "Billedet er meget bredt, så det kommer til at se lille ud. Et firkantet billede virker bedst.",
+      "tall": "Billedet er meget højt, så det kommer til at se lille ud. Et firkantet billede virker bedst.",
+      "tiny": "Billedet er meget lille og kan se sløret ud.",
+      "crop": "Beskær til en firkant"
+    },
+    "errors": {
+      "too-big": "Det billede er for stort. Vælg et under 5 MB.",
+      "not-a-picture": "Kun billeder virker her (PNG, JPG, WebP eller GIF).",
+      "picture-too-large": "Det billede er for stort til at bruge. Vælg et mindre.",
+      "animation-too-big": "Det levende billede er for stort. Prøv et kortere.",
+      "library-full": "Du har 300 ikoner, og det er det højeste antal, du kan have. Fjern et, du ikke bruger, for at gøre plads.",
+      "budget-full": "Dine ikoner har brugt al deres plads. Fjern et, du ikke bruger, for at gøre plads.",
+      "bad-name": "Giv ikonet et navn.",
+      "not-found": "Det ikon findes ikke længere.",
+      "failed": "Det virkede ikke. Prøv igen.",
+      "svg-drawing": "Tegninger gemt som SVG kan ikke bruges. Gem den som PNG først."
+    },
+    "formats": "PNG, JPG, WebP eller GIF, op til 5 MB.",
+    "page": {
+      "title": "Dine ikoner",
+      "description": "Billeder, som familien har tilføjet. Brug dem til måltider, pligter, belønninger, personer og rutiner.",
+      "count": {
+        "one": "{count} ikon",
+        "other": "{count} ikoner"
+      },
+      "used": "{used} af {max} brugt",
+      "inUseLegend": "Bruges et sted",
+      "notUsed": "Bruges ikke",
+      "usedIn": {
+        "one": "Bruges {count} sted",
+        "other": "Bruges {count} steder"
+      },
+      "dropHint": "Slip billeder her",
+      "tapHint": "Tryk på et billede for at omdøbe eller fjerne det.",
+      "usedByList": "Bruges af: {list}.",
+      "empty": "Ingen ikoner endnu. Tilføj et billede, og brug det til måltider, pligter og meget mere."
+    },
+    "detail": {
+      "added": "Tilføjet {date} · {size}",
+      "usedBy": "Bruges af",
+      "save": "Gem",
+      "remove": "Fjern ikon",
+      "rename": "Omdøb"
+    },
+    "kinds": {
+      "meal": "Måltid",
+      "chore": "Pligt",
+      "reward": "Belønning",
+      "person": "Person",
+      "routine": "Rutine",
+      "screen": "Skærm"
+    },
+    "remove": {
+      "title": "Fjern {name}?",
+      "inUse": {
+        "one": "Det bruges {count} sted. Der vises et standardikon i stedet.",
+        "other": "Det bruges {count} steder. Der vises et standardikon i stedet."
+      },
+      "notUsed": "Det bruges ikke nogen steder.",
+      "confirm": "Fjern",
+      "keep": "Behold det"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Tilføj dine egne billeder",
+        "one": "{count} billede, du har tilføjet",
+        "other": "{count} billeder, du har tilføjet"
+      }
+    },
+    "backup": {
+      "include": "Tag dine ikoner med",
+      "includeWithSize": "Tag dine ikoner med ({size})",
+      "adds": "Gør filen {size} større",
+      "help": "De billeder, du har tilføjet til måltider, pligter, belønninger, personer og rutiner. Lad den være slået fra for at holde filen lille.",
+      "leftOutWhenOff": "Dine billeder kommer ikke med",
+      "missing": "Nogle måltider og pligter brugte dine egne ikoner, som ikke var med i denne sikkerhedskopi. Der vises det sædvanlige billede i stedet.",
+      "restoreNoIcons": "Denne sikkerhedskopi har ikke dine billeder med. Måltider og pligter, der brugte dem, får et standardbillede i stedet.",
+      "leftOut": "Gemt, men dine ikoner kunne ikke komme med. Prøv igen for at tage dem med."
+    },
+    "photosPrompt": "Vil du have dine egne billeder til måltider og pligter?",
+    "photosButton": "Tilføj dem her"
   }
 }

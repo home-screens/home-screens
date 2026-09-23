@@ -14,6 +14,8 @@ import {
 } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealsViewProps } from './meals-shared';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 interface MealsWeekViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -125,7 +127,7 @@ export default function MealsWeekView({
                   }}
                 >
                   <div style={{ width: 4, height: 28, borderRadius: 2, background: SLOT_META[slot].color }} />
-                  {meal?.emoji && <span style={{ fontSize: 24 }}>{meal.emoji}</span>}
+                  {meal?.emoji && <span style={{ fontSize: 24 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 10, color: 'var(--hs-text-faint)', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>

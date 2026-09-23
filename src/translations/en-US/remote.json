@@ -271,7 +271,6 @@
     "deleteButton": "Delete Meal",
     "nameLabel": "Meal Name",
     "namePlaceholder": "e.g. Chicken Stir Fry",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "Select {emoji}",
     "prepTimeLabel": "Prep Time",
     "cookTimeLabel": "Cook Time",
@@ -494,7 +493,7 @@
         "label": "Backup All Data",
         "savedLabel": "Backup Saved",
         "busyLabel": "Downloading…",
-        "description": "Download config, chores, meals & rewards"
+        "description": "Download your family's chores, meals, rewards and pictures"
       },
       "restore": {
         "label": "Restore Backup",

@@ -9,6 +9,10 @@ import { ALL_EMOJI, EMOJI_GROUPS, findEmoji, searchEmoji, type EmojiEntry } from
 import { faIconValue, parseIconValue } from '@/lib/icon-value';
 import type { FaIconKind } from '@/lib/font-awesome-icons';
 import Glyph from './Glyph';
+import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
+import { useCustomIcons } from '@/hooks/useCustomIcons';
+import type { CustomIconEntry } from '@/lib/custom-icons';
+import { settingsHref } from '@/lib/settings-route';
 import { INPUT_CLASS } from './input-classes';
 import {
   FaIconResults,
@@ -18,7 +22,7 @@ import {
   type FaKindFilter,
 } from './fa-icon-browser';
 
-type Tab = 'emoji' | 'fa';
+type Tab = 'emoji' | 'fa' | 'yours';
 
 /**
  * What the trigger says next to the chip. The chip already shows the glyph,
@@ -26,10 +30,11 @@ type Tab = 'emoji' | 'fa';
  * as a label. Font Awesome names are English in every locale, matching the
  * names the Icon module's grid has always shown on its tiles.
  */
-function triggerLabel(value: string | undefined): string {
+function triggerLabel(value: string | undefined, custom: ReadonlyMap<string, CustomIconEntry>): string {
   const parsed = parseIconValue(value);
   if (!parsed) return '';
   if (parsed.type === 'fa') return parsed.name;
+  if (parsed.type === 'custom') return custom.get(parsed.id)?.name ?? '';
   // Falls back to the raw value for short custom text ("PE") and for an emoji
   // from an older config that isn't in the curated set.
   return findEmoji(parsed.text)?.n ?? parsed.text;
@@ -57,6 +62,7 @@ export default function IconField({ label, value, onChange }: IconFieldProps) {
   const t = useTranslate('editor');
   const id = useId();
   const [open, setOpen] = useState(false);
+  const { byId } = useCustomIcons();
   const close = useCallback(() => setOpen(false), []);
 
   const handlePick = useCallback(
@@ -88,7 +94,7 @@ export default function IconField({ label, value, onChange }: IconFieldProps) {
               {value ? <Glyph value={value} /> : <span className="text-hs-text-faint">+</span>}
             </span>
             <span className={`truncate text-[11px] flex-1 ${value ? 'text-hs-text-body' : 'text-hs-text-faint'}`}>
-              {value ? triggerLabel(value) : t('iconPicker.chooseIconPlaceholder')}
+              {value ? triggerLabel(value, byId) : t('iconPicker.chooseIconPlaceholder')}
             </span>
             {!value && <span className="text-[10px] text-hs-text-faint shrink-0">{t('iconPicker.browse')}</span>}
           </button>
@@ -124,7 +130,9 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
   const searchRef = useRef<HTMLInputElement>(null);
 
   const parsed = parseIconValue(value);
-  const [tab, setTab] = useState<Tab>(parsed?.type === 'fa' ? 'fa' : 'emoji');
+  const tCoreIcons = useTranslate('core');
+  const { icons: customIcons } = useCustomIcons();
+  const [tab, setTab] = useState<Tab>(parsed?.type === 'fa' ? 'fa' : parsed?.type === 'custom' ? 'yours' : 'emoji');
   const [query, setQuery] = useState('');
   const [kindFilter, setKindFilter] = useState<FaKindFilter>('all');
 
@@ -183,6 +191,9 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
             <TabButton active={tab === 'fa'} onClick={() => setTab('fa')} count={catalog.length}>
               {t('iconPicker.tabFontAwesome')}
             </TabButton>
+            <TabButton active={tab === 'yours'} onClick={() => setTab('yours')} count={customIcons.length}>
+              {tCoreIcons('customIcons.yourIcons')}
+            </TabButton>
           </div>
           {tab === 'fa' && (
             <div className="my-3">
@@ -192,7 +203,17 @@ function IconFieldModal({ value, onClose, onPick, onClear }: IconFieldModalProps
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {tab === 'emoji' ? (
+          {tab === 'yours' ? (
+            <>
+              <EditorCustomIconSection value={value} onPick={onPick} showNames query={query} hideHeading />
+              <p className="text-[11.5px] text-hs-text-muted mt-4">
+                {tCoreIcons('customIcons.formats')}{' '}
+                <a href={settingsHref({ kind: 'defaults', page: 'icons' })} className="text-hs-accent-hover hover:underline">
+                  {tCoreIcons('customIcons.manage')}
+                </a>
+              </p>
+            </>
+          ) : tab === 'emoji' ? (
             emojiResults ? (
               emojiResults.length === 0 ? (
                 <p className="text-center text-xs text-hs-text-faint py-12">{t('iconPicker.noMatch', { query })}</p>

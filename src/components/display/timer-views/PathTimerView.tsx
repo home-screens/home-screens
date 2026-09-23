@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { formatRemaining, formatStepLength, pillStyle, type TimerViewProps } from './shared';
+import Glyph from '@/components/ui/Glyph';
 
 const STAR_FIELD = [
   [12, 8, 2.5, 0.8], [78, 5, 2, 0.6], [90, 22, 3, 0.5], [30, 18, 2, 0.55],
@@ -53,7 +54,7 @@ export default function PathTimerView({
       <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ paddingTop: 110 * s, textAlign: 'center' }}>
           <div style={{ fontSize: 52 * s, fontWeight: 700, letterSpacing: '-0.01em', maxWidth: '90vw' }}>
-            {session.icon ? `${title} ${session.icon}` : title}
+            {title}{session.icon && <>{' '}<Glyph value={session.icon} fallback="⏱️" /></>}
           </div>
           {isRoutine && (
             <div style={{ marginTop: 14 * s, fontSize: 32 * s, fontWeight: 500, color: 'rgba(255,255,255,0.55)' }}>
@@ -83,7 +84,7 @@ export default function PathTimerView({
           {prev && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ position: 'relative' }}>
-                <div style={{ ...bubbleStyle(0), backgroundColor: '#17403a', borderColor: '#34d399' }}>{prev.icon}</div>
+                <div style={{ ...bubbleStyle(0), backgroundColor: '#17403a', borderColor: '#34d399' }}><Glyph value={prev.icon} fallback="⏱️" /></div>
                 <div
                   style={{
                     position: 'absolute', top: -6 * s, right: -6 * s, width: 56 * s, height: 56 * s,
@@ -121,7 +122,7 @@ export default function PathTimerView({
                 animation: nudge ? 'hs-timer-pulse 1.6s ease-in-out infinite' : undefined,
               }}
             />
-            <div style={{ fontSize: 130 * s, lineHeight: 1 }}>{step.icon}</div>
+            <div style={{ fontSize: 130 * s, lineHeight: 1 }}><Glyph value={step.icon} fallback="⏱️" pictureSize="0.75em" /></div>
             {step.label && (
               <div style={{ marginTop: 20 * s, fontSize: 56 * s, fontWeight: 700, maxWidth: 460 * s }}>{step.label}</div>
             )}
@@ -141,7 +142,7 @@ export default function PathTimerView({
 
           {upcoming.map((up) => (
             <div key={up.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={bubbleStyle(1)}>{up.icon}</div>
+              <div style={bubbleStyle(1)}><Glyph value={up.icon} fallback="⏱️" /></div>
               <div style={{ marginTop: 14 * s, fontSize: 30 * s, fontWeight: 600, color: 'rgba(255,255,255,0.75)' }}>
                 {up.label}
               </div>

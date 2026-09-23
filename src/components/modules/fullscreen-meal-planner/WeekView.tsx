@@ -5,6 +5,8 @@ import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import FamilyEmptyState from '../FamilyEmptyState';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 export default function WeekView({
   settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode,
@@ -182,7 +184,7 @@ export default function WeekView({
                       >
                         {showEmoji && meal?.emoji && (
                           <span style={{ fontSize: s * 3.2, lineHeight: 1.2 }}>
-                            {meal?.emoji}
+                            <Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} />
                           </span>
                         )}
                         <span style={{

@@ -266,5 +266,106 @@
       "limit": "Du kannst bis zu {count} Gruppen anlegen.",
       "hint": "Gruppen werden von der Farblegende des Kalenders und seinem Filter \"Nur anzeigen\" verwendet. Auch eine Aufgabe kann an eine Gruppe gehen. Belohnungen werden weiterhin Personen zugewiesen."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Eigene Icons",
+    "everydayEmoji": "Alltags-Emojis",
+    "builtInIcons": "Mitgelieferte Icons",
+    "add": "Eigenes hinzufügen",
+    "addShort": "Neu",
+    "addPictures": "Bilder hinzufügen",
+    "addYourOwnLink": "Eigenes Bild hinzufügen",
+    "emptyHint": "Füge ein eigenes Bild hinzu, zum Beispiel ein Foto von Omas Apfelkuchen.",
+    "manage": "Verwalten",
+    "moving": "Bewegtes Bild",
+    "review": {
+      "title": "Eigenes Icon hinzufügen",
+      "preview": "So sieht es auf dem Bildschirm aus.",
+      "nameLabel": "Name",
+      "use": "Dieses Icon verwenden",
+      "pickAnother": "Anderes Bild wählen",
+      "working": "Dein Bild wird vorbereitet…",
+      "existing": "Dieses Bild hast du schon: {name}.",
+      "wide": "Dieses Bild ist sehr breit und wirkt dadurch klein. Am besten passt ein quadratisches Bild.",
+      "tall": "Dieses Bild ist sehr hoch und wirkt dadurch klein. Am besten passt ein quadratisches Bild.",
+      "tiny": "Dieses Bild ist sehr klein und sieht vielleicht unscharf aus.",
+      "crop": "Quadratisch zuschneiden"
+    },
+    "errors": {
+      "too-big": "Das Bild ist zu groß. Wähle eins unter 5 MB.",
+      "not-a-picture": "Hier gehen nur Bilder (PNG, JPG, WebP oder GIF).",
+      "svg-drawing": "Zeichnungen im SVG-Format gehen hier nicht. Speichere die Zeichnung zuerst als PNG.",
+      "picture-too-large": "Das Bild ist zu groß, um es zu verwenden. Wähle ein kleineres.",
+      "animation-too-big": "Das bewegte Bild ist zu groß. Versuch es mit einem kürzeren.",
+      "library-full": "Du hast 300 Icons, mehr gehen nicht. Entferne eins, das du nicht brauchst, um Platz zu machen.",
+      "budget-full": "Deine Icons brauchen schon den ganzen Platz. Entferne eins, das du nicht brauchst, um Platz zu machen.",
+      "bad-name": "Gib dem Icon einen Namen.",
+      "not-found": "Dieses Icon gibt es nicht mehr.",
+      "failed": "Das hat nicht geklappt. Bitte versuch es noch einmal."
+    },
+    "formats": "PNG, JPG, WebP oder GIF, bis 5 MB.",
+    "page": {
+      "title": "Eigene Icons",
+      "description": "Bilder, die deine Familie hinzugefügt hat. Verwende sie für Mahlzeiten, Aufgaben, Belohnungen, Personen und Routinen.",
+      "count": {
+        "one": "{count} Icon",
+        "other": "{count} Icons"
+      },
+      "used": "{used} von {max} belegt",
+      "inUseLegend": "Wird irgendwo verwendet",
+      "notUsed": "Nicht verwendet",
+      "usedIn": {
+        "one": "An {count} Stelle verwendet",
+        "other": "An {count} Stellen verwendet"
+      },
+      "usedByList": "Verwendet von: {list}.",
+      "dropHint": "Bilder hier ablegen",
+      "tapHint": "Tippe auf ein Bild, um es umzubenennen oder zu entfernen.",
+      "empty": "Noch keine Icons. Füge ein Bild hinzu und verwende es für Mahlzeiten, Aufgaben und mehr."
+    },
+    "detail": {
+      "added": "Hinzugefügt: {date} · {size}",
+      "usedBy": "Verwendet von",
+      "save": "Speichern",
+      "remove": "Icon entfernen",
+      "rename": "Umbenennen"
+    },
+    "kinds": {
+      "meal": "Mahlzeit",
+      "chore": "Aufgabe",
+      "reward": "Belohnung",
+      "person": "Person",
+      "routine": "Routine",
+      "screen": "Bildschirm"
+    },
+    "remove": {
+      "title": "{name} entfernen?",
+      "inUse": {
+        "one": "Es wird an {count} Stelle verwendet. Dort erscheint dann ein Standard-Icon.",
+        "other": "Es wird an {count} Stellen verwendet. Dort erscheint dann ein Standard-Icon."
+      },
+      "notUsed": "Es wird nirgends verwendet.",
+      "confirm": "Entfernen",
+      "keep": "Behalten"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Eigene Bilder hinzufügen",
+        "one": "{count} eigenes Bild",
+        "other": "{count} eigene Bilder"
+      }
+    },
+    "photosPrompt": "Möchtest du eigene Bilder für Mahlzeiten und Aufgaben?",
+    "photosButton": "Hier hinzufügen",
+    "backup": {
+      "include": "Eigene Icons mitsichern",
+      "includeWithSize": "Eigene Icons mitsichern ({size})",
+      "adds": "Macht die Datei {size} größer",
+      "help": "Die Bilder, die du für Mahlzeiten, Aufgaben, Belohnungen, Personen und Routinen hinzugefügt hast. Lass das aus, damit die Datei klein bleibt.",
+      "leftOutWhenOff": "Deine eigenen Bilder werden nicht mitgesichert",
+      "missing": "Einige Mahlzeiten und Aufgaben hatten eigene Icons, die nicht in diesem Backup waren. Dort erscheint jetzt das übliche Bild.",
+      "restoreNoIcons": "Deine eigenen Bilder sind in diesem Backup nicht dabei. Mahlzeiten und Aufgaben, die sie verwendet haben, zeigen dann ein Standard-Icon.",
+      "leftOut": "Gesichert, aber die eigenen Icons fehlen. Versuch es noch einmal, damit sie mitgesichert werden."
+    }
   }
 }

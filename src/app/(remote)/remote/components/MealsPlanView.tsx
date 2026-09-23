@@ -14,6 +14,7 @@ import {
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { MealsViewProps } from './meals-shared';
 import MealTimeChip from '@/components/meals/MealTimeChip';
+import Glyph from '@/components/ui/Glyph';
 
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -254,7 +255,7 @@ export default function MealsPlanView({
                           aria-label={t('mealsPlan.slot.changeMealAriaLabel', { meal: mealName, slot: slotLabel })}
                         >
                           <div style={{ width: 3, height: 28, borderRadius: 2, background: SLOT_META[slot].color, flexShrink: 0 }} />
-                          {meal?.emoji && <span style={{ fontSize: 18, flexShrink: 0 }}>{meal.emoji}</span>}
+                          {meal?.emoji && <span style={{ fontSize: 18, flexShrink: 0 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 10, color: SLOT_META[slot].color, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
                               {slotLabel}
@@ -443,7 +444,7 @@ export default function MealsPlanView({
                       fontFamily: 'inherit',
                     }}
                   >
-                    <span style={{ fontSize: 24 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
+                    <span style={{ fontSize: 24 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
                     <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: pickedMealId === meal.id ? '#f59e0b' : 'var(--hs-text-primary)' }}>
                       {meal.name}
                     </span>

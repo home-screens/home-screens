@@ -18,6 +18,9 @@ import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModa
 import { useTranslate } from '@/i18n';
 import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
+import { attachCustomIcons, fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
+import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import { refreshCustomIcons } from '@/hooks/useCustomIcons';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
@@ -44,6 +47,8 @@ function isCredentialErrorCode(value: unknown): value is CredentialErrorCode {
 interface RestoreResponse {
   restored?: Record<string, boolean>;
   credentials?: CredentialApplyResult;
+  /** Restored items pointing at icons the backup did not carry. */
+  missingIcons?: number;
 }
 
 // kind drives styling/role explicitly — don't sniff English prefixes from message.
@@ -55,6 +60,7 @@ interface RestoreStatus {
 
 export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const { importConfig, config, updateSettings, saveConfig, selectedScreenId } = useEditorStore();
 
   const intervalOptions = useMemo(
@@ -83,6 +89,15 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const [includeCredentials, setIncludeCredentials] = useState(false);
   const [protectCredentials, setProtectCredentials] = useState(false);
   const [showExportPasswordModal, setShowExportPasswordModal] = useState(false);
+  // The family's own icons. Unlike keys this choice is remembered (and
+  // shared with the phone's backup), because leaving them in is the safe
+  // default and leaving them out only makes the file smaller.
+  const [includeIcons, setIncludeIcons] = useState(true);
+  const [iconSummary, setIconSummary] = useState<{ count: number; bytes: number } | null>(null);
+  useEffect(() => {
+    setIncludeIcons(getIncludeCustomIcons());
+    void fetchCustomIconBackupSummary(editorFetch).then(setIconSummary);
+  }, []);
 
   // Restore-side password prompt for an encrypted bundle. `pendingRestore`
   // holds the parsed bundle between the file read and a successful unlock.
@@ -185,7 +200,17 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     try {
       const res = await editorFetch('/api/backup');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const bundle = await res.json();
+      let bundle = await res.json();
+      try {
+        bundle = await attachCustomIcons(bundle, editorFetch);
+      } catch {
+        // Don't throw away a good bundle because the pictures failed.
+        const proceed = await useConfirmStore.getState().confirm({
+          message: t('settings.dataPage.alerts.iconsExportFailed'),
+          confirmLabel: t('settings.dataPage.alerts.credentialsExportFailedConfirm'),
+        });
+        if (!proceed) return;
+      }
 
       let withCredentials = false;
       if (includeCredentials) {
@@ -267,6 +292,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const finishRestore = useCallback(async (result: RestoreResponse) => {
     const credentials = result.credentials;
     const notices: string[] = [];
+    if (result.missingIcons) notices.push(tCore('customIcons.backup.missing'));
     if (credentials?.skipped.includes('auth.ipRestrictAccess')) {
       notices.push(t('settings.dataPage.restore.ipRulesNotRestored'));
     }
@@ -304,7 +330,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     // conflict with the restore itself.
     importConfig(JSON.stringify(await configRes.json()), configRes.headers.get(CONFIG_REVISION_HEADER));
     onSettingsImported();
-  }, [importConfig, onSettingsImported, t]);
+  }, [importConfig, onSettingsImported, t, tCore]);
 
   /**
    * Shared restore path for legacy raw-config uploads and bundles alike.
@@ -333,6 +359,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         throw new Error(`HTTP ${res.status}`);
       }
       result = await res.json();
+      void refreshCustomIcons();
     } finally {
       setBackupBusy(false);
     }
@@ -365,6 +392,16 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     } catch {
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
       return;
+    }
+
+    // A backup made with its pictures left out, from a household that used
+    // some: say so before it replaces anything, not after.
+    if (bundle.customIcons === undefined && collectCustomIconIds(bundle).size > 0) {
+      const ok = await useConfirmStore.getState().confirm({
+        message: tCore('customIcons.backup.restoreNoIcons'),
+        confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
+      });
+      if (!ok) return;
     }
 
     if (bundle.credentials !== undefined) {
@@ -400,7 +437,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (isSessionExpired(err)) return;
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.restoreBackupFailed'));
     }
-  }, [postBackupAndReload, t]);
+  }, [postBackupAndReload, t, tCore]);
 
   const handleRestorePassword = useCallback(async (password: string) => {
     if (!pendingRestore) return;
@@ -449,6 +486,25 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           </p>
 
           <div className="space-y-2 mb-3">
+            {iconSummary && iconSummary.count > 0 && (
+              <label className="flex items-start gap-2.5 cursor-pointer" data-field-id="data.fullBackupIncludeIcons">
+                <input
+                  type="checkbox"
+                  checked={includeIcons}
+                  onChange={(e) => {
+                    setIncludeIcons(e.target.checked);
+                    setIncludeCustomIcons(e.target.checked);
+                  }}
+                  className="accent-hs-accent mt-0.5"
+                />
+                <span>
+                  <span className="block text-xs text-hs-text-body">
+                    {tCore('customIcons.backup.includeWithSize', { size: formatIconBytes(iconSummary.bytes) })}
+                  </span>
+                  <span className="block text-xs text-hs-text-faint">{tCore('customIcons.backup.help')}</span>
+                </span>
+              </label>
+            )}
             <label
               className={`flex items-start gap-2.5 ${
                 authEnabled === false ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'

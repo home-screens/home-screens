@@ -125,7 +125,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|imageBrowsers.nasa.categories.saturn',
   'editor|installFromUrlModal.pluginFallbackName',
   'editor|layoutImportModal.countsLine',
-  'editor|mealPlannerModal.detail.emojiLabel',
   'editor|mealPlannerModal.detail.minPlaceholder',
   'editor|mealPlannerModal.detail.recipeUrlPlaceholder',
   'editor|mealPlannerModal.detail.tagsLabel',
@@ -276,7 +275,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|choresManage.choreForm.rotationLabel',
   'remote|choresManage.memberForm.avatarLabel',
   'remote|choresTab.memberAriaLabel',
-  'remote|mealForm.emojiLabel',
   'remote|mealForm.minPlaceholder',
   'remote|mealForm.recipeUrlPlaceholder',
   'remote|mealForm.tagsLabel',
@@ -302,6 +300,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "Person" is the same word in Danish (a label beside an icon's use).
+    'core|customIcons.kinds.person',
     // Wall names that are the same word in Danish.
     'editor|backgroundPicker.starters.pattern-diagonal',
     'editor|backgroundPicker.starters.sand',
@@ -327,6 +327,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|displayHero.stateOffline',
   ]),
   'de-DE': new Set([
+    // "Name", "Person" and "Routine" are the same words in German.
+    'core|customIcons.review.nameLabel',
+    'core|customIcons.kinds.person',
+    'core|customIcons.kinds.routine',
     // "In {group}": the preposition "in" is the same word in this language.
     'modules|chore-chart.choreForm.groupMemberNote',
     // "(optional)" is the German word too.
@@ -479,6 +483,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minutesShort',
   ]),
   'fr-FR': new Set([
+    // "Routine" is the same word in French.
+    'core|customIcons.kinds.routine',
     // "Dates" is the French word too.
     'editor|timetableModal.tabs.dates',
     // 'Focus' and 'Compact' are the French words too
@@ -622,6 +628,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.stepMinutes',
   ]),
   'nl-NL': new Set([
+    // "Routine" is the same word in Dutch.
+    'core|customIcons.kinds.routine',
     // "In {group}": the preposition "in" is the same word in this language.
     'modules|chore-chart.choreForm.groupMemberNote',
     'remote|lists.itemSheet.textLabel',

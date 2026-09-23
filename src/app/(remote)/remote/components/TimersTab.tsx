@@ -11,6 +11,7 @@ import { DEFAULT_TIMER_SOUND } from '@/lib/timer-logic';
 import ConfirmSheet from './ConfirmSheet';
 import RoutineFormOverlay from './RoutineFormOverlay';
 import TimerViewThumb from './TimerViewThumb';
+import Glyph from '@/components/ui/Glyph';
 
 /** Preset quick-timer lengths in seconds — short bursts matter to kids. */
 const QUICK_PRESETS_SEC = [30, 60, 120, 300, 600, 900];
@@ -142,7 +143,7 @@ export default function TimersTab() {
       {running && step && (
         <section className="mx-5 mb-4 p-4 bg-hs-card border border-hs-border-strong rounded-[14px]">
           <div className="flex items-center gap-3">
-            <div className="text-[34px] leading-none">{step.icon}</div>
+            <div className="text-[34px] leading-none"><Glyph value={step.icon} fallback="⏱️" /></div>
             <div className="min-w-0 flex-1">
               <div className="text-[15px] font-bold text-hs-text-primary truncate">{runningTitle}</div>
               <div className="text-[12px] text-hs-text-faint truncate">
@@ -365,7 +366,7 @@ export default function TimersTab() {
                 key={routine.id}
                 className="p-4 bg-hs-card border border-hs-border-strong rounded-[14px] flex items-center gap-3"
               >
-                <div className="text-[30px] leading-none">{routine.icon ?? '⏱️'}</div>
+                <div className="text-[30px] leading-none"><Glyph value={routine.icon ?? '⏱️'} fallback="⏱️" /></div>
                 <div className="min-w-0 flex-1">
                   <div className="text-[15px] font-bold text-hs-text-primary truncate">{routine.name}</div>
                   <div className="text-[12px] text-hs-text-faint">

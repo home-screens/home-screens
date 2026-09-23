@@ -29,6 +29,8 @@ import {
   type CredentialPayload,
 } from '@/lib/backup-credentials-types';
 import { audit } from '@/lib/audit';
+import { planCustomIconRestore, readCustomIcons, sweepCustomIconFiles, verifyCustomIconBackup } from '@/lib/custom-icon-data';
+import { missingCustomIconIds } from '@/lib/custom-icon-usage';
 import type { ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -94,6 +96,8 @@ interface RestoreBundle extends FamilyRestoreContent {
    */
   _passphrase?: unknown;
   credentials?: unknown;
+  /** Optional: the family's own icons, when the export left them in. */
+  customIcons?: unknown;
   screens?: unknown;
   settings?: unknown;
 }
@@ -101,7 +105,8 @@ interface RestoreBundle extends FamilyRestoreContent {
 // Restore is planned completely before publication. Content, credentials and
 // any legacy folds share a durable journal; handled failures record rollback
 // before restoring before-images, and a restart resumes the saved decision.
-const MAX_RESTORE_BYTES = 25 * 1024 * 1024; // 25 MB
+// 100 MB: a full icon library is 60 MB of pictures, a third more as base64.
+const MAX_RESTORE_BYTES = 100 * 1024 * 1024;
 
 /**
  * A sentence for anything that prints `error` verbatim, plus the machine code
@@ -201,6 +206,10 @@ export const POST = withAuth(async (request: NextRequest) => {
     }
     const invalid = validateContentSections(body);
     if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
+    // A bundle without the section leaves the library alone: a small backup
+    // restored on the same device must not cost it its icons.
+    const icons = body.customIcons === undefined ? null : await verifyCustomIconBackup(body.customIcons);
+    if (typeof icons === 'string') return NextResponse.json({ error: icons }, { status: 400 });
     const clientIp = getClientIP(request);
     const credentialResult = await withDataTransaction(async () => {
       const planned = await planFamilyRestore(body);
@@ -210,10 +219,24 @@ export const POST = withAuth(async (request: NextRequest) => {
         planned.changes.push(...credentials.changes);
         result = credentials.result;
       }
+      if (icons) {
+        const change = await planCustomIconRestore(icons);
+        if (change) planned.changes.push(change);
+      }
       await commitDataTransaction({ kind: 'backup-restore', changes: planned.changes, evidence: planned.evidence, rollbackOnError: true });
       return result;
     });
     if (credentialResult) audit({ action: 'credential_backup_restore', sections: credentialResult.applied.length, skipped: credentialResult.skipped });
+    if (icons) await sweepCustomIconFiles().catch(() => {});
+    // Restored meals, chores and screens that point at icons this device does
+    // not have show a standard picture; the family is told why. Only a backup
+    // made without its icons is to blame: one that carried them restores the
+    // library it was made with, and anything else it points at had already
+    // been removed on purpose.
+    const missingIcons = icons ? 0 : missingCustomIconIds(
+      [body.config, body.family, body.chores, body.meals, body.rewards, body.routines],
+      new Set((await readCustomIcons()).map((icon) => icon.id)),
+    ).length;
 
     return NextResponse.json({
       restored: {
@@ -226,7 +249,9 @@ export const POST = withAuth(async (request: NextRequest) => {
         rewards: !!body.rewards,
         routines: !!body.routines,
         timetables: !!body.timetables,
+        customIcons: !!icons,
       },
+      missingIcons,
       // Present only when the bundle carried credentials. The editor needs
       // `applied` to know whether the session it is holding just died (auth),
       // and `skipped` to tell the user what the lockout guard held back.

@@ -10,6 +10,9 @@ import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import { TIMER_VIEW_LABEL_KEYS, timerChipClass } from './TimersTab';
 import TimerViewThumb from './TimerViewThumb';
+import Glyph from '@/components/ui/Glyph';
+import PhoneCustomIconSection from '@/components/custom-icons/PhoneCustomIconSection';
+import { isCustomIconValue } from '@/lib/custom-icons';
 
 const ROUTINE_EMOJI = ['🚀', '🌞', '🌙', '🪥', '👕', '🛏️', '🎒', '📚', '🧹', '🍽️', '🛁', '🧸', '⚽', '🎨', '🐶', '⏱️'];
 
@@ -162,7 +165,10 @@ export default function RoutineFormOverlay({
 
         <div>
           <span className="text-[13px] font-semibold text-hs-text-faint">{t('timers.routineIcon')}</span>
-          <div className="mt-1.5 flex flex-wrap gap-1.5">
+          <div className="mt-1.5">
+            <PhoneCustomIconSection value={icon} onPick={setIcon} accent="var(--hs-accent)" suggestedName={name} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1.5">
             {ROUTINE_EMOJI.map((emoji) => (
               <button
                 key={emoji}
@@ -232,7 +238,7 @@ export default function RoutineFormOverlay({
                         : 'bg-hs-hover border-transparent'
                     }`}
                   >
-                    {step.icon || '⏱️'}
+                    <Glyph value={step.icon || '⏱️'} fallback="⏱️" />
                   </button>
                   <input
                     value={step.label}
@@ -244,8 +250,15 @@ export default function RoutineFormOverlay({
                 </div>
 
                 {pickingIconFor === step.id && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {(STEP_EMOJI.includes(step.icon) ? STEP_EMOJI : [step.icon, ...STEP_EMOJI]).map(
+                  <div className="mt-2">
+                  <PhoneCustomIconSection
+                    value={step.icon}
+                    accent="var(--hs-accent)"
+                    suggestedName={step.label}
+                    onPick={(picked) => { updateStep(step.id, { icon: picked }); setPickingIconFor(null); }}
+                  />
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {(STEP_EMOJI.includes(step.icon) || isCustomIconValue(step.icon) ? STEP_EMOJI : [step.icon, ...STEP_EMOJI]).map(
                       (emoji) => (
                         <button
                           key={emoji}
@@ -264,6 +277,7 @@ export default function RoutineFormOverlay({
                         </button>
                       ),
                     )}
+                  </div>
                   </div>
                 )}
 

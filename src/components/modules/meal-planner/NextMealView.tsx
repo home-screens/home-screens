@@ -5,6 +5,8 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
@@ -73,7 +75,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
         {/* Emoji + name (time/tags/prep stay outside the tap target) */}
         <MealTapTarget meal={meal} mode={recipeTapMode} className="flex flex-col items-center gap-2">
           {(config.showEmoji ?? true) && meal?.emoji && (
-            <span style={{ fontSize: '2.5em', lineHeight: 1 }}>{meal.emoji}</span>
+            <span style={{ fontSize: '2.5em', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
           )}
           <p
             className="font-semibold text-center leading-tight"

@@ -3,6 +3,8 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor, px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 /**
  * The one-glance answer to "when's lunch?" from across the room: a badge,
@@ -99,7 +101,7 @@ export default function NextMealView({
       >
         {showEmoji && meal?.emoji && (
           <span style={{ fontSize: P(380), lineHeight: 1, margin: `${P(20)}px 0` }}>
-            {meal.emoji}
+            <Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} />
           </span>
         )}
         <span style={{

@@ -6,6 +6,8 @@ import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
+import Glyph from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -90,7 +92,7 @@ function SlotCard({
         {name ? (
           <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-start gap-2 w-full">
             {showEmoji && meal?.emoji && (
-              <span className="shrink-0 mt-0.5" style={{ fontSize: '1.4em' }}>{meal?.emoji}</span>
+              <span className="shrink-0 mt-0.5" style={{ fontSize: '1.4em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
             )}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate" style={{ fontSize: '0.95em' }}>

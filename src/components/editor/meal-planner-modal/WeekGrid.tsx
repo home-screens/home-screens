@@ -6,6 +6,7 @@ import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, DEFAU
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import Glyph from '@/components/ui/Glyph';
 
 interface WeekGridProps {
   plan: PlannedMeal[];
@@ -220,7 +221,7 @@ export default function WeekGrid({
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-2xl">{meal?.emoji || DEFAULT_MEAL_EMOJI}</span>
+                          <span className="text-2xl"><Glyph value={meal?.emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
                           <div className="flex-1 min-w-0">
                             <div className="text-xs font-semibold text-hs-text-body truncate">
                               {name}

@@ -266,5 +266,106 @@
       "limit": "Je kunt maximaal {count} groepen maken.",
       "hint": "Groepen worden gebruikt door de kleurlegenda van de kalender en het filter \"Alleen tonen\". Een taak kan ook naar een groep gaan. Beloningen geef je nog steeds aan personen."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Eigen pictogrammen",
+    "everydayEmoji": "Gewone emoji",
+    "builtInIcons": "Standaardpictogrammen",
+    "add": "Zelf toevoegen",
+    "addPictures": "Foto's toevoegen",
+    "emptyHint": "Voeg je eigen foto toe, bijvoorbeeld van oma's stamppot.",
+    "manage": "Beheren",
+    "moving": "Bewegende afbeelding",
+    "review": {
+      "title": "Eigen pictogram toevoegen",
+      "preview": "Zo ziet het eruit op het scherm.",
+      "nameLabel": "Naam",
+      "use": "Dit pictogram gebruiken",
+      "pickAnother": "Andere foto kiezen",
+      "working": "Je foto wordt klaargezet…",
+      "existing": "Deze foto heb je al: {name}.",
+      "wide": "Deze foto is erg breed en ziet er daardoor klein uit. Een vierkante foto werkt het best.",
+      "tall": "Deze foto is erg hoog en ziet er daardoor klein uit. Een vierkante foto werkt het best.",
+      "tiny": "Deze foto is erg klein en kan er wazig uitzien.",
+      "crop": "Vierkant bijsnijden"
+    },
+    "errors": {
+      "too-big": "Die foto is te groot. Kies er een kleiner dan 5 MB.",
+      "not-a-picture": "Hier werken alleen afbeeldingen (PNG, JPG, WebP of GIF).",
+      "picture-too-large": "Die foto is te groot om te gebruiken. Kies een kleinere.",
+      "animation-too-big": "Die bewegende afbeelding is te groot. Probeer een kortere.",
+      "library-full": "Je hebt 300 pictogrammen, meer passen er niet. Verwijder er een die je niet gebruikt om ruimte te maken.",
+      "budget-full": "Je pictogrammen nemen alle ruimte in. Verwijder er een die je niet gebruikt om ruimte te maken.",
+      "bad-name": "Geef het pictogram een naam.",
+      "not-found": "Dat pictogram bestaat niet meer.",
+      "failed": "Dat lukte niet. Probeer het opnieuw.",
+      "svg-drawing": "Tekeningen die als SVG zijn opgeslagen, werken hier niet. Sla de tekening eerst op als PNG."
+    },
+    "formats": "PNG, JPG, WebP of GIF, tot 5 MB.",
+    "page": {
+      "title": "Eigen pictogrammen",
+      "description": "Foto's die je gezin heeft toegevoegd. Gebruik ze voor maaltijden, klusjes, beloningen, personen en routines.",
+      "count": {
+        "one": "{count} pictogram",
+        "other": "{count} pictogrammen"
+      },
+      "used": "{used} van {max} gebruikt",
+      "inUseLegend": "Ergens in gebruik",
+      "notUsed": "Niet in gebruik",
+      "usedIn": {
+        "one": "Op {count} plek gebruikt",
+        "other": "Op {count} plekken gebruikt"
+      },
+      "dropHint": "Sleep foto's hierheen",
+      "empty": "Nog geen pictogrammen. Voeg een foto toe en gebruik die voor maaltijden, klusjes en meer.",
+      "tapHint": "Tik op een foto om de naam te wijzigen of de foto te verwijderen.",
+      "usedByList": "Gebruikt door: {list}."
+    },
+    "detail": {
+      "added": "Toegevoegd op {date} · {size}",
+      "usedBy": "Gebruikt door",
+      "save": "Opslaan",
+      "remove": "Pictogram verwijderen",
+      "rename": "Hernoemen"
+    },
+    "kinds": {
+      "meal": "Maaltijd",
+      "chore": "Klusje",
+      "reward": "Beloning",
+      "person": "Persoon",
+      "routine": "Routine",
+      "screen": "Scherm"
+    },
+    "remove": {
+      "title": "{name} verwijderen?",
+      "inUse": {
+        "one": "Het wordt op {count} plek gebruikt. Daar komt dan een standaardpictogram.",
+        "other": "Het wordt op {count} plekken gebruikt. Daar komt dan een standaardpictogram."
+      },
+      "notUsed": "Het wordt nergens gebruikt.",
+      "confirm": "Verwijderen",
+      "keep": "Houden"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Voeg je eigen foto's toe",
+        "one": "{count} eigen foto toegevoegd",
+        "other": "{count} eigen foto's toegevoegd"
+      }
+    },
+    "backup": {
+      "include": "Eigen pictogrammen meenemen",
+      "includeWithSize": "Eigen pictogrammen meenemen ({size})",
+      "adds": "Maakt het bestand {size} groter",
+      "help": "De foto's die je hebt toegevoegd voor maaltijden, klusjes, beloningen, personen en routines. Laat dit uit om het bestand klein te houden.",
+      "missing": "Sommige maaltijden en klusjes gebruikten eigen pictogrammen die niet in deze back-up zaten. Daar komt nu het gewone pictogram.",
+      "leftOut": "Opgeslagen, maar de eigen pictogrammen konden niet mee. Probeer het nog eens om ze mee te nemen.",
+      "leftOutWhenOff": "Je eigen foto's gaan niet mee",
+      "restoreNoIcons": "Je eigen foto's zitten niet in deze back-up. Maaltijden en klusjes die ze gebruikten, krijgen een standaardpictogram."
+    },
+    "addShort": "Nieuw",
+    "addYourOwnLink": "Eigen foto toevoegen",
+    "photosPrompt": "Wil je eigen foto's gebruiken voor maaltijden en klusjes?",
+    "photosButton": "Hier toevoegen"
   }
 }

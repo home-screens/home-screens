@@ -271,6 +271,7 @@ export default function ChoreFormOverlay({
           icons={CHORE_ICONS}
           label={t('choresManage.choreForm.iconLabel')}
           variant="mobile"
+          suggestedName={name}
         />
 
         {/* The hint sits under the whole row rather than in the narrow left
@@ -422,7 +423,7 @@ export default function ChoreFormOverlay({
                       }}
                     >
                       {m.emoji ? (
-                        <ChoreIcon value={m.emoji} size={18} color={m.color} />
+                        <ChoreIcon value={m.emoji} size={18} color={m.color} fallback={<span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>} />
                       ) : (
                         <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>
                       )}
@@ -485,7 +486,7 @@ export default function ChoreFormOverlay({
                         }}
                       >
                         {member.emoji ? (
-                          <ChoreIcon value={member.emoji} size={16} color={member.color} />
+                          <ChoreIcon value={member.emoji} size={16} color={member.color} fallback={<span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{member.name[0]}</span>} />
                         ) : (
                           <span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{member.name[0]}</span>
                         )}

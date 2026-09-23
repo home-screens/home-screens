@@ -5,7 +5,7 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
-import { choreTapSize, partitionMembers } from '../layout';
+import { choreIconSize, choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
@@ -111,7 +111,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
         <div className="flex-1" />
         {!aggregate && active.map((m) => (
           <span key={m.id} title={m.name} className="flex items-center justify-center" style={{ width: columnWidth }}>
-            {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} /> : <span style={{ color: m.color }}>{m.name[0]}</span>}
+            {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} fallback={<span style={{ color: m.color }}>{m.name[0]}</span>} /> : <span style={{ color: m.color }}>{m.name[0]}</span>}
           </span>
         ))}
       </div>
@@ -134,7 +134,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
               className="flex items-center gap-2"
               style={{ padding: '0.25em 0', fontSize: '1em' }}
             >
-              {chore.emoji && <span className="shrink-0"><ChoreIcon value={chore.emoji} size={16} color="currentColor" /></span>}
+              {chore.emoji && <span className="shrink-0"><ChoreIcon value={chore.emoji} size={choreIconSize(fontSize)} color="currentColor" /></span>}
               <span className="flex-1 truncate" style={{ opacity: TEXT_OPACITY.heading }}>
                 {hinting ? <HoldHint color={config.accentColor ?? '#f59e0b'} /> : chore.name}
               </span>

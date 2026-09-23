@@ -417,6 +417,7 @@
         "data": "Copias y datos",
         "integrations": "Claves de API",
         "media": "Imágenes y vídeos",
+        "icons": "Tus iconos",
         "meals": "Comidas",
         "network": "Red",
         "security": "Seguridad",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Descargar igualmente",
         "plaintextExportTitle": "¿Hacer la copia sin contraseña?",
         "plaintextExportMessage": "Tus claves, cuentas conectadas y la contraseña del editor podrán leerlas todas las personas que abran este archivo. Guárdalo en un sitio privado.",
-        "plaintextExportConfirm": "Hacer la copia igualmente"
+        "plaintextExportConfirm": "Hacer la copia igualmente",
+        "iconsExportFailed": "Tus iconos no se pudieron añadir a esta copia. ¿Descargar el resto de todos modos?"
       },
       "shareLayout": {
         "heading": "Compartir diseño",
@@ -643,7 +645,8 @@
         "protectLabel": "Protegerlas con una contraseña",
         "plaintextWarning": "Cualquiera que abra este archivo puede usar tus cuentas. Guárdalo en un sitio privado.",
         "needsEditorPassword": "Primero hace falta una contraseña, para que el archivo no lo pueda leer cualquiera que lo encuentre.",
-        "savedTo": "Se ha guardado {filename} en tus descargas."
+        "savedTo": "Se ha guardado {filename} en tus descargas.",
+        "includeIconsLabel": "Incluir tus iconos"
       },
       "backupReminder": {
         "heading": "Recordatorio de copia",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Carpeta {name} eliminada",
       "folderNotEmpty": "Esa carpeta todavía tiene archivos. Muévelos o elimínalos primero.",
       "deleteFolderFailed": "No se pudo eliminar la carpeta"
+    },
+    "iconsPage": {
+      "description": "Imágenes que ha añadido tu familia. Úsalas en comidas, tareas, premios, personas, rutinas e iconos de pantalla.",
+      "addPictures": "Añadir tus propias imágenes",
+      "searchWords": "emoji emojis personalizado propio subir pegatina foto imagen dibujo icono iconos"
     },
     "integrationsPage": {
       "description": "Claves y accesos que desbloquean contenido extra: calendarios, fotos, tráfico, noticias. Se guardan en este dispositivo y no se envían a ningún sitio.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "para editar sus detalles",
       "untitledFallback": "Sin título",
       "nameLabel": "Nombre",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Buscar emojis (p. ej. pizza, desayuno, postre)...",
       "noEmojisMatch": "Ningún emoji coincide con «{query}»",
       "prepTimeLabel": "Tiempo de preparación",

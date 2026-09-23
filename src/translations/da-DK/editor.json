@@ -417,6 +417,7 @@
         "data": "Sikkerhedskopier",
         "integrations": "API-nøgler",
         "media": "Billeder & videoer",
+        "icons": "Dine ikoner",
         "meals": "Måltider",
         "network": "Netværk",
         "security": "Sikkerhed",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Hent alligevel",
         "plaintextExportTitle": "Sikkerhedskopiér uden adgangskode?",
         "plaintextExportMessage": "Dine nøgler, tilknyttede konti og din editor-adgangskode kan læses af alle, der åbner filen. Gem den et privat sted.",
-        "plaintextExportConfirm": "Sikkerhedskopiér alligevel"
+        "plaintextExportConfirm": "Sikkerhedskopiér alligevel",
+        "iconsExportFailed": "Dine ikoner kunne ikke lægges i denne sikkerhedskopi. Vil du hente resten alligevel?"
       },
       "shareLayout": {
         "heading": "Del layout",
@@ -640,6 +642,7 @@
         "restoreButton": "Gendan fra en fil",
         "includeCredentialsLabel": "Tag mine nøgler og tilknyttede konti med",
         "includeCredentialsHelp": "Dækker vejr- og kortnøgler, Google, iCloud, Immich, OneDrive, plugin-logins og din editor-adgangskode.",
+        "includeIconsLabel": "Tag dine ikoner med",
         "protectLabel": "Beskyt dem med en adgangskode",
         "plaintextWarning": "Alle, der åbner denne fil, kan bruge dine konti. Gem den et privat sted.",
         "needsEditorPassword": "Kræver først en adgangskode, så filen ikke kan læses af enhver, der finder den.",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Mappen {name} er slettet",
       "folderNotEmpty": "Der er stadig filer i den mappe. Flyt eller slet dem først.",
       "deleteFolderFailed": "Mappen kunne ikke slettes"
+    },
+    "iconsPage": {
+      "description": "Billeder, som familien har tilføjet. Brug dem til måltider, pligter, belønninger, personer, rutiner og skærmikoner.",
+      "addPictures": "Tilføj dine egne billeder",
+      "searchWords": "emoji ikon ikoner billede billeder foto upload uploade klistermærke sticker egne eget"
     },
     "integrationsPage": {
       "description": "Nøgler og logins, der låser op for ekstra indhold: kalendere, billeder, trafik, nyheder. De bliver på denne enhed og sendes ingen steder hen.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "for at redigere detaljerne",
       "untitledFallback": "Uden navn",
       "nameLabel": "Navn",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Søg efter emoji (fx pizza, morgenmad, dessert)…",
       "noEmojisMatch": "Ingen emoji passer til \"{query}\"",
       "prepTimeLabel": "Forberedelsestid",

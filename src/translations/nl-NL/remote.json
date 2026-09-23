@@ -271,7 +271,6 @@
     "deleteButton": "Maaltijd verwijderen",
     "nameLabel": "Naam van de maaltijd",
     "namePlaceholder": "bijv. Kip-roerbak",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "{emoji} selecteren",
     "prepTimeLabel": "Voorbereidingstijd",
     "cookTimeLabel": "Bereidingstijd",
@@ -494,7 +493,7 @@
         "label": "Alles back-uppen",
         "savedLabel": "Back-up opgeslagen",
         "busyLabel": "Downloaden…",
-        "description": "Download configuratie, klusjes, maaltijden en beloningen"
+        "description": "Download de klusjes, maaltijden, beloningen en foto's van je gezin"
       },
       "restore": {
         "label": "Back-up terugzetten",

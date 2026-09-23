@@ -3,6 +3,9 @@ import { readChoreSnapshot } from '@/lib/chore-data';
 import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import ChoresTab from '../remote/components/ChoresTab';
 import ChoresEmptyState from './ChoresEmptyState';
+import CustomIconSeed from '@/components/custom-icons/CustomIconSeed';
+import { readCustomIcons } from '@/lib/custom-icon-data';
+import { withUrls } from '@/lib/custom-icon-http';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +16,9 @@ export default async function ChoresPage() {
   // empty data) so users can manage members/chores from mobile
   const choreData = await readChoreSnapshot();
   const choreConfig = resolveChoreModuleConfig(config);
+  // The kid view is open on the LAN with no credentials, so it cannot fetch
+  // the icon library itself; its pictures come with the page, like the chores.
+  const customIcons = await withUrls(await readCustomIcons());
 
   if (!choreConfig) {
     return <ChoresEmptyState />;
@@ -31,6 +37,7 @@ export default async function ChoresPage() {
       }}
     >
       <div className="mx-auto max-w-3xl">
+        <CustomIconSeed icons={customIcons} />
         <ChoresTab config={choreConfig} choreData={choreData} />
       </div>
     </div>

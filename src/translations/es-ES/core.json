@@ -266,5 +266,106 @@
       "limit": "Puedes tener hasta {count} grupos.",
       "hint": "Los grupos se usan en la leyenda de colores del calendario y en su filtro \"Mostrar solo\". Una tarea también se puede dar a un grupo. Las recompensas se siguen asignando a personas."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Tus iconos",
+    "everydayEmoji": "Emojis de siempre",
+    "builtInIcons": "Iconos incluidos",
+    "add": "Añadir el tuyo",
+    "addPictures": "Añadir imágenes",
+    "emptyHint": "Añade una imagen tuya, como una foto de las croquetas de la abuela.",
+    "manage": "Gestionar",
+    "moving": "Imagen animada",
+    "review": {
+      "title": "Añadir tu propio icono",
+      "preview": "Así se verá en la pantalla.",
+      "nameLabel": "Nombre",
+      "use": "Usar este icono",
+      "pickAnother": "Elegir otra imagen",
+      "working": "Preparando tu imagen…",
+      "existing": "Ya tienes esta imagen: {name}.",
+      "wide": "Esta imagen es muy ancha y se verá pequeña. Queda mejor una imagen cuadrada.",
+      "tall": "Esta imagen es muy alta y se verá pequeña. Queda mejor una imagen cuadrada.",
+      "tiny": "Esta imagen es muy pequeña y puede verse borrosa.",
+      "crop": "Recortar en cuadrado"
+    },
+    "errors": {
+      "too-big": "Esa imagen es demasiado grande. Elige una de menos de 5 MB.",
+      "not-a-picture": "Aquí solo sirven imágenes (PNG, JPG, WebP o GIF).",
+      "picture-too-large": "Esa imagen es demasiado grande para usarla. Elige una más pequeña.",
+      "animation-too-big": "Esa imagen animada es demasiado grande. Prueba con una más corta.",
+      "library-full": "Tienes 300 iconos, que es el máximo que puedes guardar. Quita uno que no uses para hacer sitio.",
+      "budget-full": "Tus iconos ya ocupan todo su espacio. Quita uno que no uses para hacer sitio.",
+      "bad-name": "Ponle un nombre al icono.",
+      "not-found": "Ese icono ya no está.",
+      "failed": "No ha funcionado. Inténtalo de nuevo.",
+      "svg-drawing": "Este dibujo está en SVG y no sirve aquí. Guárdalo primero como PNG."
+    },
+    "formats": "PNG, JPG, WebP o GIF, de hasta 5 MB.",
+    "page": {
+      "title": "Tus iconos",
+      "description": "Imágenes que ha añadido tu familia. Úsalas en comidas, tareas, premios, personas y rutinas.",
+      "count": {
+        "one": "{count} icono",
+        "other": "{count} iconos"
+      },
+      "used": "{used} de {max} usados",
+      "inUseLegend": "Se usa en algún sitio",
+      "notUsed": "Sin usar",
+      "usedIn": {
+        "one": "Se usa en {count} sitio",
+        "other": "Se usa en {count} sitios"
+      },
+      "dropHint": "Suelta las imágenes aquí",
+      "empty": "Aún no hay iconos. Añade una imagen para usarla en comidas, tareas y más.",
+      "tapHint": "Toca una imagen para cambiarle el nombre o quitarla.",
+      "usedByList": "Se usa en: {list}."
+    },
+    "detail": {
+      "added": "Añadido el {date} · {size}",
+      "usedBy": "Usado por",
+      "save": "Guardar",
+      "remove": "Quitar icono",
+      "rename": "Cambiar nombre"
+    },
+    "kinds": {
+      "meal": "Comida",
+      "chore": "Tarea",
+      "reward": "Premio",
+      "person": "Persona",
+      "routine": "Rutina",
+      "screen": "Pantalla"
+    },
+    "remove": {
+      "title": "¿Quitar {name}?",
+      "inUse": {
+        "one": "Se usa en {count} sitio. Allí se pondrá un icono estándar.",
+        "other": "Se usa en {count} sitios. Allí se pondrá un icono estándar."
+      },
+      "notUsed": "No se usa en ningún sitio.",
+      "confirm": "Quitar",
+      "keep": "Mejor no"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Añade tus propias imágenes",
+        "one": "{count} imagen que has añadido",
+        "other": "{count} imágenes que has añadido"
+      }
+    },
+    "backup": {
+      "include": "Incluir tus iconos",
+      "includeWithSize": "Incluir tus iconos ({size})",
+      "adds": "Añade {size} al archivo",
+      "help": "Las imágenes que has añadido para comidas, tareas, premios, personas y rutinas. Déjalo desactivado para que el archivo ocupe poco.",
+      "missing": "Algunas comidas y tareas usaban tus propios iconos, que no estaban en esta copia. Se verá la imagen de siempre en su lugar.",
+      "leftOut": "Copia guardada, pero no se pudieron añadir tus iconos. Vuelve a intentarlo para incluirlos.",
+      "leftOutWhenOff": "Tus imágenes no se incluirán",
+      "restoreNoIcons": "Esta copia no incluye tus imágenes. Las comidas y tareas que las usaban mostrarán la imagen de siempre."
+    },
+    "addShort": "Añadir",
+    "addYourOwnLink": "Añadir una imagen tuya",
+    "photosPrompt": "¿Quieres tus propias imágenes para las comidas y las tareas?",
+    "photosButton": "Añádelas aquí"
   }
 }

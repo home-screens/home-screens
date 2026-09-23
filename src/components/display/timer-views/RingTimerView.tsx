@@ -1,6 +1,7 @@
 'use client';
 
 import { formatRemaining, formatStepLength, pillStyle, stepWindow, type TimerViewProps } from './shared';
+import Glyph from '@/components/ui/Glyph';
 
 /**
  * "Focus Ring" — calm glassy dark view matching the display's overlay
@@ -88,7 +89,7 @@ export default function RingTimerView({
             alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: 90 * s,
           }}
         >
-          <div style={{ fontSize: 110 * s, lineHeight: 1 }}>{step.icon}</div>
+          <div style={{ fontSize: 110 * s, lineHeight: 1 }}><Glyph value={step.icon} fallback="⏱️" /></div>
           {step.label && (
             <div style={{ marginTop: 28 * s, fontSize: 58 * s, fontWeight: 600, letterSpacing: '-0.01em' }}>
               {step.label}
@@ -139,7 +140,7 @@ export default function RingTimerView({
                   opacity: isDone ? 0.45 : isCurrent ? 1 : 0.6,
                 }}
               >
-                <div style={{ fontSize: 56 * s, lineHeight: 1 }}>{chip.icon}</div>
+                <div style={{ fontSize: 56 * s, lineHeight: 1 }}><Glyph value={chip.icon} fallback="⏱️" /></div>
                 <div style={{ fontSize: 28 * s, fontWeight: 600, color: 'rgba(255,255,255,0.85)', textAlign: 'center' }}>
                   {chip.label}
                 </div>

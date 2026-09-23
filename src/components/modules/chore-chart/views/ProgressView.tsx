@@ -130,7 +130,7 @@ export function ProgressView({ config, data, width, fontSize }: ProgressViewProp
                     </div>
                   </div>
                   <div style={{ fontSize: '1.1em' }} className="flex justify-center">
-                    {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} fallback={<span style={{ color: member.color }}>{member.name[0]}</span>} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
                   </div>
                   <div className="truncate max-w-full" title={member.name} style={{ fontSize: '0.65em', fontWeight: 600, color: member.color }}>
                     {member.name}

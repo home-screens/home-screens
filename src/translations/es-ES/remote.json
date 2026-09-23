@@ -271,7 +271,6 @@
     "deleteButton": "Eliminar comida",
     "nameLabel": "Nombre de la comida",
     "namePlaceholder": "p. ej. Pollo salteado",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "Seleccionar {emoji}",
     "prepTimeLabel": "Tiempo de preparación",
     "cookTimeLabel": "Tiempo de cocción",
@@ -494,7 +493,7 @@
         "label": "Hacer copia de todos los datos",
         "savedLabel": "Copia guardada",
         "busyLabel": "Descargando…",
-        "description": "Descargar configuración, tareas, comidas y premios"
+        "description": "Descargar las tareas, comidas, premios e imágenes de tu familia"
       },
       "restore": {
         "label": "Restaurar copia",

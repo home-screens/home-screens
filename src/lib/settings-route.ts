@@ -37,6 +37,7 @@ export const DEFAULT_PAGE_IDS = [
   'phone',
   'integrations',
   'media',
+  'icons',
   'automation',
   'security',
   'network',

@@ -9,7 +9,11 @@ import type { SystemStats } from '@/lib/system-stats-types';
 import ConfirmSheet from './ConfirmSheet';
 import FamilyManager from '@/components/family/FamilyManager';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { ChevronLeft, Users } from 'lucide-react';
+import { ChevronLeft, ImagePlus, Users } from 'lucide-react';
+import CustomIconsOverlay from './CustomIconsOverlay';
+import { fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
+import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import { refreshCustomIcons, useCustomIcons } from '@/hooks/useCustomIcons';
 
 export type PowerAction = 'restart-service' | 'reboot';
 
@@ -18,6 +22,8 @@ interface SettingsSheetProps {
   onClose: () => void;
   onBackup: () => Promise<boolean>;
   backupBusy: boolean;
+  /** The last backup went without the family's icons (they could not be read). */
+  backupIconsLeftOut?: boolean;
   /**
    * The user confirmed a restart or reboot of the hub and it was sent. The
    * parent closes this sheet and shows the reconnecting state — the silence
@@ -94,10 +100,16 @@ function PowerRow({
   );
 }
 
-export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onPowerAction }: SettingsSheetProps) {
+export default function SettingsSheet({ open, onClose, onBackup, backupBusy, backupIconsLeftOut = false, onPowerAction }: SettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const [familyOpen, setFamilyOpen] = useState(false);
+  const [iconsOpen, setIconsOpen] = useState(false);
+  const { icons } = useCustomIcons();
+  const [iconSummary, setIconSummary] = useState<{ count: number; bytes: number } | null>(null);
+  const [includeIcons, setIncludeIcons] = useState(true);
+  /** Restored items pointing at icons that were not in the backup. */
+  const [missingIcons, setMissingIcons] = useState(0);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +123,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
   const restoreDataRef = useRef<string | null>(null);
   /** True when the selected bundle carried keys this sheet chose not to apply. */
   const credentialsSkippedRef = useRef(false);
+  /** The chosen bundle points at pictures it does not carry. */
+  const restoreLacksIconsRef = useRef(false);
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const restoreTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -133,7 +147,12 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
     if (open && !loading) fetchStats();
     if (open) {
       setFamilyOpen(false);
+      setIconsOpen(false);
       setBackupDone(false);
+      setMissingIcons(0);
+      setIncludeIcons(getIncludeCustomIcons());
+      void fetchCustomIconBackupSummary(editorFetch).then(setIconSummary);
+      void refreshCustomIcons();
       setConfirmPower(null);
       setRestoreState('idle');
       restoreDataRef.current = null;
@@ -165,6 +184,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
         // restore everything else, then say so, rather than dead-ending on a
         // `passphrase_required` the user can't act on from a phone.
         credentialsSkippedRef.current = data.credentials !== undefined;
+        // A backup made with its pictures left out, from a household that
+        // used some: say so before it replaces anything.
+        restoreLacksIconsRef.current = data.customIcons === undefined && collectCustomIconIds(data).size > 0;
         if (credentialsSkippedRef.current) delete data.credentials;
 
         restoreDataRef.current = JSON.stringify(data);
@@ -192,6 +214,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
         body: restoreDataRef.current,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = (await res.json().catch(() => ({}))) as { missingIcons?: number };
+      setMissingIcons(result.missingIcons ?? 0);
+      void refreshCustomIcons();
       setRestoreState(credentialsSkippedRef.current ? 'done-without-keys' : 'done');
       restoreDataRef.current = null;
     } catch {
@@ -230,8 +255,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
         style={{ transitionTimingFunction: 'cubic-bezier(0.32, 0.72, 0, 1)' }}
         // Slid off-screen is still "in the page" to assistive tech; take the
         // closed sheet out of the tree so its controls can't be reached.
-        aria-hidden={!open || familyOpen}
-        inert={!open || familyOpen}
+        aria-hidden={!open || familyOpen || iconsOpen}
+        inert={!open || familyOpen || iconsOpen}
       >
         <div className="flex justify-center pt-2.5">
           <div className="w-9 h-[5px] rounded-full bg-hs-border-strong" />
@@ -302,9 +327,43 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
             iconColor="text-hs-accent"
             icon={<Users size={18} />}
           />
+          <PowerRow
+            label={tCore('customIcons.yourIcons')}
+            description={tCore('customIcons.settingsRow.description', { count: icons.length })}
+            onClick={() => setIconsOpen(true)}
+            iconBg="bg-hs-warning/[0.12]"
+            iconColor="text-hs-warning"
+            icon={<ImagePlus size={18} />}
+          />
+          {/* Above the Backup row it changes: read top to bottom, the row
+              downloaded before anyone reached a switch placed under it. The
+              whole row toggles, not just the knob. */}
+          {iconSummary && iconSummary.count > 0 && (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={includeIcons}
+              onClick={() => { setIncludeIcons(!includeIcons); setIncludeCustomIcons(!includeIcons); }}
+              className="w-full flex items-center gap-3 py-3 text-left min-h-[52px]"
+            >
+              <div className="w-9 shrink-0" aria-hidden />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-hs-text-primary">{tCore('customIcons.backup.include')}</div>
+                <div className="text-xs text-hs-text-muted mt-0.5">
+                  {includeIcons
+                    ? tCore('customIcons.backup.adds', { size: formatIconBytes(iconSummary.bytes) })
+                    : tCore('customIcons.backup.leftOutWhenOff')}
+                </div>
+              </div>
+              <span aria-hidden className={`relative w-[46px] h-7 rounded-full shrink-0 transition-colors ${includeIcons ? 'bg-hs-success' : 'bg-hs-border-strong'}`}>
+                <span className={`absolute top-[3px] left-[3px] w-[22px] h-[22px] rounded-full bg-white transition-transform ${includeIcons ? 'translate-x-[18px]' : ''}`} />
+              </span>
+            </button>
+          )}
           <button
             onClick={handleBackup}
-            disabled={backupBusy || backupDone}
+            // Left enabled when the icons were left out, so a tap tries again.
+            disabled={backupBusy || (backupDone && !backupIconsLeftOut)}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
             <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning">
@@ -318,6 +377,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
               </div>
               {!backupBusy && !backupDone && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.backup.description')}</div>
+              )}
+              {!backupBusy && backupDone && backupIconsLeftOut && (
+                <div role="status" className="text-xs text-hs-warning mt-0.5">{tCore('customIcons.backup.leftOut')}</div>
               )}
             </div>
             {!backupBusy && !backupDone && (
@@ -360,6 +422,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
               {restoreState === 'confirming' && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.confirmingDescription')}</div>
               )}
+              {restoreState === 'confirming' && restoreLacksIconsRef.current && (
+                <div className="text-xs text-hs-warning mt-1">{tCore('customIcons.backup.restoreNoIcons')}</div>
+              )}
               {restoreState === 'done-without-keys' && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.doneWithoutKeysDescription')}</div>
               )}
@@ -377,6 +442,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
             className="hidden"
             onChange={handleRestoreFile}
           />
+          {missingIcons > 0 && (restoreState === 'done' || restoreState === 'done-without-keys') && (
+            <p role="status" className="text-sm text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
+              {tCore('customIcons.backup.missing')}
+            </p>
+          )}
         </div>
 
         <div className="px-5 pb-6">
@@ -413,6 +483,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, onP
       </div>
 
       {open && familyOpen && <FamilySettingsView onBack={() => setFamilyOpen(false)} />}
+      {open && iconsOpen && <CustomIconsOverlay onBack={() => setIconsOpen(false)} />}
 
       {confirmPower && (
         <ConfirmSheet

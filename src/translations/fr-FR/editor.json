@@ -417,6 +417,7 @@
         "data": "Sauvegardes et données",
         "integrations": "Clés API",
         "media": "Photos et vidéos",
+        "icons": "Vos icônes",
         "meals": "Repas",
         "network": "Réseau",
         "security": "Sécurité",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Télécharger quand même",
         "plaintextExportTitle": "Sauvegarder sans mot de passe ?",
         "plaintextExportMessage": "Vos clés, vos comptes connectés et votre mot de passe de l'éditeur seront lisibles par toute personne qui ouvre ce fichier. Gardez-le dans un endroit privé.",
-        "plaintextExportConfirm": "Sauvegarder quand même"
+        "plaintextExportConfirm": "Sauvegarder quand même",
+        "iconsExportFailed": "Vos icônes n'ont pas pu être ajoutées à cette sauvegarde. Télécharger le reste quand même ?"
       },
       "shareLayout": {
         "heading": "Partager la mise en page",
@@ -643,7 +645,8 @@
         "protectLabel": "Les protéger par un mot de passe",
         "plaintextWarning": "Toute personne qui ouvre ce fichier peut utiliser vos comptes. Gardez-le dans un endroit privé.",
         "needsEditorPassword": "Nécessite d'abord un mot de passe, pour que le fichier ne soit pas lisible par n'importe qui.",
-        "savedTo": "{filename} enregistré dans vos téléchargements."
+        "savedTo": "{filename} enregistré dans vos téléchargements.",
+        "includeIconsLabel": "Inclure vos icônes"
       },
       "backupReminder": {
         "heading": "Rappel de sauvegarde",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Dossier {name} supprimé",
       "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord.",
       "deleteFolderFailed": "Impossible de supprimer le dossier"
+    },
+    "iconsPage": {
+      "description": "Les images ajoutées par votre famille. Utilisez-les pour les repas, les tâches, les récompenses, les personnes, les routines et les icônes d'écran.",
+      "addPictures": "Ajouter vos propres images",
+      "searchWords": "emoji émoji émoticône personnalisé importer ajouter autocollant sticker photo image icône icone"
     },
     "integrationsPage": {
       "description": "Clés et identifiants qui débloquent du contenu supplémentaire : agendas, photos, trafic, actualités. Ils restent sur cet appareil et ne sont envoyés nulle part.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "pour modifier ses détails",
       "untitledFallback": "Sans titre",
       "nameLabel": "Nom",
-      "emojiLabel": "Émoji",
       "emojiSearchPlaceholder": "Rechercher des émojis (ex. pizza, petit-déjeuner, dessert)…",
       "noEmojisMatch": "Aucun émoji ne correspond à « {query} »",
       "prepTimeLabel": "Temps de prépa",

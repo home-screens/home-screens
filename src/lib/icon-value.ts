@@ -8,11 +8,15 @@
  * upgrade that changes how classes are spelled, and it can never be confused
  * with an emoji, so plain values keep flowing through untouched.
  *
+ * The household's own pictures are a third kind, stored as `custom:<id>`
+ * (see `custom-icons.ts`).
+ *
  * Anything that isn't a well-formed token is treated as text and rendered
  * verbatim — a hand-edited config shows the user exactly what they typed
  * instead of silently blanking.
  */
 import { buildIconClass, type FaIconKind } from '@/lib/font-awesome-icons';
+import { parseCustomIconValue } from '@/lib/custom-icons';
 
 export const FA_VALUE_PREFIX = 'fa:';
 
@@ -20,6 +24,7 @@ const FA_KINDS: readonly FaIconKind[] = ['solid', 'regular', 'brands'];
 
 export type ParsedIconValue =
   | { type: 'fa'; name: string; kind: FaIconKind }
+  | { type: 'custom'; id: string }
   | { type: 'text'; text: string };
 
 function isFaKind(v: string): v is FaIconKind {
@@ -30,6 +35,8 @@ function isFaKind(v: string): v is FaIconKind {
 export function parseIconValue(value: string | null | undefined): ParsedIconValue | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
+  const customId = parseCustomIconValue(trimmed);
+  if (customId) return { type: 'custom', id: customId };
   if (!trimmed.startsWith(FA_VALUE_PREFIX)) return { type: 'text', text: trimmed };
   const rest = trimmed.slice(FA_VALUE_PREFIX.length);
   const sep = rest.indexOf(':');

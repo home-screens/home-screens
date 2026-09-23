@@ -417,6 +417,7 @@
         "data": "Backups & Daten",
         "integrations": "API-Schlüssel",
         "media": "Bilder & Videos",
+        "icons": "Eigene Icons",
         "meals": "Mahlzeiten",
         "network": "Netzwerk",
         "security": "Sicherheit",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Trotzdem herunterladen",
         "plaintextExportTitle": "Ohne Passwort sichern?",
         "plaintextExportMessage": "Deine Schlüssel, verbundenen Konten und dein Editor-Passwort sind für jeden lesbar, der diese Datei öffnet. Bewahre sie an einem privaten Ort auf.",
-        "plaintextExportConfirm": "Trotzdem sichern"
+        "plaintextExportConfirm": "Trotzdem sichern",
+        "iconsExportFailed": "Deine eigenen Icons konnten diesem Backup nicht hinzugefügt werden. Den Rest trotzdem herunterladen?"
       },
       "shareLayout": {
         "heading": "Layout teilen",
@@ -640,6 +642,7 @@
         "restoreButton": "Aus einer Datei wiederherstellen",
         "includeCredentialsLabel": "Meine Schlüssel und verbundenen Konten mitnehmen",
         "includeCredentialsHelp": "Umfasst Wetter- und Kartenschlüssel, Google, iCloud, Immich, OneDrive, Plugin-Logins und dein Editor-Passwort.",
+        "includeIconsLabel": "Eigene Icons mitsichern",
         "protectLabel": "Mit einem Passwort schützen",
         "plaintextWarning": "Wer diese Datei öffnet, kann deine Konten nutzen. Bewahre sie an einem privaten Ort auf.",
         "needsEditorPassword": "Braucht zuerst ein Passwort, damit die Datei nicht von jedem gelesen werden kann, der sie findet.",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Ordner {name} gelöscht",
       "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst.",
       "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden"
+    },
+    "iconsPage": {
+      "description": "Bilder, die deine Familie hinzugefügt hat. Verwende sie für Mahlzeiten, Aufgaben, Belohnungen, Personen, Routinen und Bildschirm-Icons.",
+      "addPictures": "Eigene Bilder hinzufügen",
+      "searchWords": "emoji eigene eigenes hochladen sticker aufkleber foto bild bilder icon symbol"
     },
     "integrationsPage": {
       "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät und werden nirgendwohin gesendet.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "um sie zu bearbeiten",
       "untitledFallback": "Ohne Titel",
       "nameLabel": "Name",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Emojis suchen (z. B. Pizza, Frühstück, Nachtisch)…",
       "noEmojisMatch": "Keine Emojis passen zu „{query}“",
       "prepTimeLabel": "Vorbereitungszeit",

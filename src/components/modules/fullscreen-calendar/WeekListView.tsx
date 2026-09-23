@@ -25,7 +25,8 @@ import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
 import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
-import Glyph from '@/components/ui/Glyph';
+import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
+import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
 export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, owners, extras }: CalendarViewProps) {
   const t = useTranslate('modules');
@@ -212,7 +213,7 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
             {t(getMealSlotLabelKey(meal.slot))}
           </span>
           <span style={{ fontSize: fontSize * 1.0, fontWeight: 600, color: 'var(--cal-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {meal.emoji ? `${meal.emoji} ` : ''}{meal.name}
+            <GlyphPrefix value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} />{meal.name}
           </span>
         </div>
       ))}

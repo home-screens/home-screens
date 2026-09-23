@@ -266,5 +266,106 @@
       "limit": "Vous pouvez créer jusqu'à {count} groupes.",
       "hint": "Les groupes servent à la légende des couleurs du calendrier et à son filtre « Afficher seulement ». Une tâche peut aussi être donnée à un groupe. Les récompenses restent attribuées à des personnes."
     }
+  },
+  "customIcons": {
+    "yourIcons": "Vos icônes",
+    "everydayEmoji": "Émojis courants",
+    "builtInIcons": "Icônes incluses",
+    "add": "Ajouter une icône",
+    "addPictures": "Ajouter des images",
+    "emptyHint": "Ajoutez votre propre image, comme une photo de la tarte aux pommes de mamie.",
+    "manage": "Gérer",
+    "moving": "Image animée",
+    "review": {
+      "title": "Ajouter votre icône",
+      "preview": "Voici comment elle s'affichera à l'écran.",
+      "nameLabel": "Nom",
+      "use": "Utiliser cette icône",
+      "pickAnother": "Choisir une autre image",
+      "working": "Préparation de votre image…",
+      "existing": "Vous avez déjà cette image : {name}.",
+      "wide": "Cette image est très large, elle paraîtra donc petite. Une image carrée rend mieux.",
+      "tall": "Cette image est très haute, elle paraîtra donc petite. Une image carrée rend mieux.",
+      "tiny": "Cette image est très petite et risque d'être floue.",
+      "crop": "Recadrer en carré"
+    },
+    "errors": {
+      "too-big": "Cette image est trop lourde. Choisissez-en une de moins de 5 Mo.",
+      "not-a-picture": "Seules les images fonctionnent ici (PNG, JPG, WebP ou GIF).",
+      "picture-too-large": "Cette image est trop grande pour être utilisée. Choisissez-en une plus petite.",
+      "animation-too-big": "Cette image animée est trop lourde. Essayez-en une plus courte.",
+      "library-full": "Vous avez 300 icônes, c'est le maximum. Supprimez-en une qui ne sert pas pour faire de la place.",
+      "budget-full": "Vos icônes occupent tout l'espace disponible. Supprimez-en une qui ne sert pas pour faire de la place.",
+      "bad-name": "Donnez un nom à l'icône.",
+      "not-found": "Cette icône n'existe plus.",
+      "failed": "Ça n'a pas marché. Réessayez.",
+      "svg-drawing": "Les dessins en SVG ne peuvent pas être utilisés. Enregistrez d'abord le vôtre en PNG."
+    },
+    "formats": "PNG, JPG, WebP ou GIF, jusqu'à 5 Mo.",
+    "page": {
+      "title": "Vos icônes",
+      "description": "Les images ajoutées par votre famille. Utilisez-les pour les repas, les tâches, les récompenses, les personnes et les routines.",
+      "count": {
+        "one": "{count} icône",
+        "other": "{count} icônes"
+      },
+      "used": "{used} utilisés sur {max}",
+      "inUseLegend": "Utilisée quelque part",
+      "notUsed": "Pas utilisée",
+      "usedIn": {
+        "one": "Utilisée à {count} endroit",
+        "other": "Utilisée à {count} endroits"
+      },
+      "dropHint": "Déposez des images ici",
+      "empty": "Aucune icône pour l'instant. Ajoutez une image pour l'utiliser dans les repas, les tâches et plus encore.",
+      "tapHint": "Appuyez sur une image pour la renommer ou la supprimer.",
+      "usedByList": "Utilisée par : {list}."
+    },
+    "detail": {
+      "added": "Ajoutée le {date} · {size}",
+      "usedBy": "Utilisée par",
+      "save": "Enregistrer",
+      "remove": "Supprimer l'icône",
+      "rename": "Renommer"
+    },
+    "kinds": {
+      "meal": "Repas",
+      "chore": "Tâche",
+      "reward": "Récompense",
+      "person": "Personne",
+      "routine": "Routine",
+      "screen": "Écran"
+    },
+    "remove": {
+      "title": "Supprimer {name} ?",
+      "inUse": {
+        "one": "Elle est utilisée à {count} endroit, qui passera à une icône standard.",
+        "other": "Elle est utilisée à {count} endroits, qui passeront à une icône standard."
+      },
+      "notUsed": "Elle n'est utilisée nulle part.",
+      "confirm": "Supprimer",
+      "keep": "La garder"
+    },
+    "settingsRow": {
+      "description": {
+        "zero": "Ajoutez vos propres images",
+        "one": "{count} image ajoutée",
+        "other": "{count} images ajoutées"
+      }
+    },
+    "backup": {
+      "include": "Inclure vos icônes",
+      "includeWithSize": "Inclure vos icônes ({size})",
+      "adds": "Ajoute {size} au fichier",
+      "help": "Les images que vous avez ajoutées pour les repas, les tâches, les récompenses, les personnes et les routines. Laissez désactivé pour garder un fichier léger.",
+      "missing": "Certains repas et tâches utilisaient vos propres icônes, qui n'étaient pas dans cette sauvegarde. Ils afficheront l'image habituelle à la place.",
+      "leftOut": "Sauvegarde faite, mais vos icônes n'ont pas pu être ajoutées. Réessayez pour les inclure.",
+      "leftOutWhenOff": "Vos images ne seront pas incluses",
+      "restoreNoIcons": "Cette sauvegarde ne contient pas vos images. Les repas et les tâches qui les utilisaient afficheront une image standard."
+    },
+    "addShort": "Ajouter",
+    "addYourOwnLink": "Ajouter votre propre image",
+    "photosPrompt": "Envie de vos propres images pour les repas et les tâches ?",
+    "photosButton": "Ajoutez-les ici"
   }
 }

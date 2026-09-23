@@ -1,6 +1,11 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { parseCustomIconValue } from '@/lib/custom-icons';
+import CustomIconImage from '@/components/ui/CustomIconImage';
+import { useCustomIcons } from '@/hooks/useCustomIcons';
+import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 import {
   // Member icons
   User, UserRound, Baby, Crown, Star, Heart, Smile, PersonStanding,
@@ -204,15 +209,27 @@ export function toLucideValue(name: string): string {
 // ── Render component ──────────────────────────────────────────────
 
 interface ChoreIconProps {
-  value: string;             // "lucide:icon-name" or legacy emoji
+  value: string;             // "lucide:icon-name", "custom:<id>" or legacy emoji
   size?: number;
   color?: string;
   className?: string;
   bare?: boolean;
+  /** Drawn instead of a household picture that no longer exists. Left out,
+   *  it is the standard chore icon, so a chore or reward is never blank;
+   *  people pass their initial, and `null` draws nothing. */
+  fallback?: ReactNode;
 }
 
-export default function ChoreIcon({ value, size = 24, color, className, bare }: ChoreIconProps) {
+export default function ChoreIcon({ value, size = 24, color, className, bare, fallback }: ChoreIconProps) {
   if (!value) return null;
+
+  const customId = parseCustomIconValue(value);
+  if (customId) {
+    const shown = fallback === undefined
+      ? <ChoreIcon value={DEFAULT_CHORE_ICON} size={size} color={color} className={className} bare={bare} />
+      : fallback;
+    return <CustomChoreIcon id={customId} size={size} className={className} fallback={shown} />;
+  }
 
   // Support both "lucide:gift" prefixed values and bare names like "gift"
   const resolvedName = isLucideIcon(value) ? lucideIconName(value) : null;
@@ -245,4 +262,30 @@ export default function ChoreIcon({ value, size = 24, color, className, bare }: 
 
   // Legacy emoji fallback
   return <span className={className} style={{ fontSize: size * 0.75 }}>{value}</span>;
+}
+
+/**
+ * The household's own picture. It fills the whole box a built-in icon's
+ * badge takes, with no tint or padding: those suit a thin line icon, but a
+ * full-colour picture drawn at 72% of a badge was a speck a child could not
+ * find on the wall. Its own colours are the point of it. A picture that no
+ * longer exists draws the caller's fallback instead.
+ */
+function CustomChoreIcon({ id, size, className, fallback }: {
+  id: string;
+  size: number;
+  className?: string;
+  fallback: ReactNode;
+}) {
+  const { byId, loaded } = useCustomIcons();
+  if (loaded && !byId.has(id)) return <>{fallback}</>;
+  return (
+    <CustomIconImage
+      id={id}
+      size={size}
+      className={className}
+      style={{ verticalAlign: 'middle', borderRadius: size * 0.18 }}
+      fallback={fallback}
+    />
+  );
 }

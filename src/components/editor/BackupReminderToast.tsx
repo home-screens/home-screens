@@ -8,8 +8,9 @@ import { X, Download } from 'lucide-react';
 
 export default function BackupReminderToast() {
   const t = useTranslate('editor');
+  const tCore = useTranslate('core');
   const reminderSettings = useEditorStore((s) => s.config?.settings?.backupReminder);
-  const { shouldShow, daysSinceBackup, busy, handleBackup, handleDismiss } = useBackupReminder({
+  const { shouldShow, daysSinceBackup, busy, iconsLeftOut, handleBackup, handleDismiss } = useBackupReminder({
     enabled: reminderSettings?.enabled ?? false,
     intervalDays: reminderSettings?.intervalDays ?? 7,
     fetchFn: editorFetch,
@@ -28,7 +29,9 @@ export default function BackupReminderToast() {
       `}</style>
       <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-hs-panel/95 backdrop-blur-sm px-4 py-3 shadow-lg shadow-black/30">
         <div className="text-hs-warning text-sm">
-          {t('backupReminder.message', { count: daysSinceBackup ?? 0 })}
+          {iconsLeftOut
+            ? tCore('customIcons.backup.leftOut')
+            : t('backupReminder.message', { count: daysSinceBackup ?? 0 })}
         </div>
         <button
           onClick={handleBackup}

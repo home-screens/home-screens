@@ -37,6 +37,7 @@ import ListsTab from './components/ListsTab';
 import { ADD_BAR_HEIGHT } from './components/ListsAddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
+import YourIconsPrompt from './components/YourIconsPrompt';
 import TabNotSetUp from './components/TabNotSetUp';
 import type { UpdateChannel } from '@/lib/semver';
 
@@ -365,6 +366,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 shouldShow={backup.shouldShow}
                 daysSinceBackup={backup.daysSinceBackup}
                 busy={backup.busy}
+                iconsLeftOut={backup.iconsLeftOut}
                 onBackup={backup.handleBackup}
                 onDismiss={backup.handleDismiss}
               />
@@ -420,6 +422,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 onClose={() => setSettingsOpen(false)}
                 onBackup={backup.handleBackup}
                 backupBusy={backup.busy}
+                backupIconsLeftOut={backup.iconsLeftOut}
                 onPowerAction={handlePowerAction}
               />
             </>
@@ -456,6 +459,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 {hasPhotos
                   ? <PhotosTab directory={initialData.photoDirectory} />
                   : <TabNotSetUp kind="photos" />}
+                <YourIconsPrompt />
               </div>
               <div className="h-20" />
             </>

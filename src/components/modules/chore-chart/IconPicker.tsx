@@ -5,6 +5,10 @@ import { ChevronDown } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
+import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
+import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
+import { useCustomIcons } from '@/hooks/useCustomIcons';
+import { parseCustomIconValue } from '@/lib/custom-icons';
 
 type Variant = 'desktop' | 'mobile';
 
@@ -14,6 +18,9 @@ interface IconPickerProps {
   icons: string[];
   label: string;
   variant: Variant;
+  /** What a new picture is called to start with: the chore, reward or person
+   *  being edited. */
+  suggestedName?: string;
 }
 
 const SEARCH_THRESHOLD: Record<Variant, number> = {
@@ -59,8 +66,10 @@ function filterIcons(icons: string[], search: string, t: TranslateFn): string[] 
   });
 }
 
-export default function IconPicker({ value, onChange, icons, label, variant }: IconPickerProps) {
+export default function IconPicker({ value, onChange, icons, label, variant, suggestedName }: IconPickerProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
+  const { byId } = useCustomIcons();
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const showSearch = icons.length > SEARCH_THRESHOLD[variant];
@@ -72,8 +81,11 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
     // picked; opening it reveals the grid, and picking closes it again.
     const currentName = storedIconName(value);
     const currentDef = currentName ? getIconDef(currentName) : undefined;
+    const customId = parseCustomIconValue(value);
     const currentLabel = currentDef
       ? t(`chore-chart.iconLabels.${currentName}`)
+      : customId
+        ? byId.get(customId)?.name ?? t('chore-chart.iconPicker.none')
       : value
         ? value
         : t('chore-chart.iconPicker.none');
@@ -122,8 +134,30 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
             }}
           />
         </button>
+        {/* The collapsed row reads as "pick from a list"; say out loud that
+            your own picture is in there too. */}
+        {!open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            style={{
+              background: 'none', border: 'none', padding: '12px 0 4px', minHeight: 44, cursor: 'pointer',
+              fontFamily: 'inherit', fontSize: 14, fontWeight: 500, color: 'var(--hs-accent-hover)',
+            }}
+          >
+            + {tCore('customIcons.addYourOwnLink')}
+          </button>
+        )}
         {open && (
           <div style={{ marginTop: 10 }}>
+            <PhoneCustomIconSection
+              value={value}
+              captions
+              suggestedName={suggestedName}
+              accent="var(--hs-text-primary)"
+              onPick={(picked) => { onChange(picked); setOpen(false); }}
+            />
+            <div style={{ ...PHONE_SUBHEAD_STYLE, marginTop: 12 }}>{tCore('customIcons.builtInIcons')}</div>
             {showSearch && (
               <input
                 type="text"
@@ -236,6 +270,8 @@ export default function IconPicker({ value, onChange, icons, label, variant }: I
         />
       )}
 
+      <EditorCustomIconSection value={value} onPick={onChange} query={search} suggestedName={suggestedName} />
+      <div className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">{tCore('customIcons.builtInIcons')}</div>
       <div className="flex flex-wrap gap-1.5">
         {filtered.map((name) => {
           const def = getIconDef(name);

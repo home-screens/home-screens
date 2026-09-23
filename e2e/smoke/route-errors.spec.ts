@@ -232,9 +232,9 @@ test.describe('POST /api/backup restore', () => {
   });
 
   test('rejects an oversized bundle with 413', async ({ request }) => {
-    // 25 MB cap. A buffer just over it trips the Content-Length fast path
+    // 100 MB cap. A buffer just over it trips the Content-Length fast path
     // before any JSON parsing, so the body content need not be valid JSON.
-    const oversized = Buffer.alloc(25 * 1024 * 1024 + 16, 0x78 /* 'x' */);
+    const oversized = Buffer.alloc(100 * 1024 * 1024 + 16, 0x78 /* 'x' */);
     const res = await request.post('/api/backup', {
       data: oversized,
       headers: { 'content-type': 'application/json' },

@@ -6,6 +6,7 @@ import { INPUT_STYLE, CARD_STYLE } from './meals-shared';
 import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
+import Glyph from '@/components/ui/Glyph';
 
 interface MealsLibraryViewProps {
   savedMeals: SavedMeal[];
@@ -120,7 +121,7 @@ export default function MealsLibraryView({
               fontFamily: 'inherit',
             }}
           >
-            <span style={{ fontSize: 32, flexShrink: 0 }}>{meal.emoji ?? DEFAULT_MEAL_EMOJI}</span>
+            <span style={{ fontSize: 32, flexShrink: 0 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)', marginBottom: 4 }}>

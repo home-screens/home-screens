@@ -217,7 +217,9 @@ describe('POST /api/backup — restore', () => {
       rewards: true,
       routines: true,
       timetables: false,
+      customIcons: false,
     });
+    expect(json.missingIcons).toBe(0);
 
     expect((await readConfig()).screens[0].id).toBe('roundtrip-screen');
     const restoredChores = await readFamilyData();
@@ -364,11 +366,11 @@ describe('POST /api/backup — restore', () => {
   });
 
   it('rejects an oversized body with 413 and writes nothing to disk', async () => {
-    // Build a syntactically valid but oversized (>25 MB) JSON body. The size
+    // Build a syntactically valid but oversized (>100 MB) JSON body. The size
     // cap must trip before the body is parsed or any write is attempted.
     const oversized =
       '{"_type":"home-screens-backup","junk":"' +
-      'x'.repeat(26 * 1024 * 1024) +
+      'x'.repeat(101 * 1024 * 1024) +
       '"}';
 
     const res = await POST(postReq(oversized));

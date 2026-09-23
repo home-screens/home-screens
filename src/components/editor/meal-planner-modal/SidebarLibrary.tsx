@@ -5,6 +5,7 @@ import type { SavedMeal } from '@/types/config';
 import { LIBRARY_FILTERS, type LibraryFilter, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
+import Glyph from '@/components/ui/Glyph';
 
 interface SidebarLibraryProps {
   meals: SavedMeal[];
@@ -162,7 +163,7 @@ export default function SidebarLibrary({
                 }`}
               >
                 <span className="text-2xl w-8 text-center shrink-0">
-                  {meal.emoji || DEFAULT_MEAL_EMOJI}
+                  <Glyph value={meal.emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} />
                 </span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-hs-text-body truncate">

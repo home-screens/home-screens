@@ -271,7 +271,6 @@
     "deleteButton": "Slet måltid",
     "nameLabel": "Navn på måltid",
     "namePlaceholder": "f.eks. kylling i wok",
-    "emojiLabel": "Emoji",
     "emojiSelectAriaLabel": "Vælg {emoji}",
     "prepTimeLabel": "Forberedelsestid",
     "cookTimeLabel": "Tilberedningstid",
@@ -494,7 +493,7 @@
         "label": "Backup alt data",
         "savedLabel": "Backup gemt",
         "busyLabel": "Henter…",
-        "description": "Hent konfiguration, pligter, måltider og belønninger"
+        "description": "Hent familiens pligter, måltider, belønninger og billeder"
       },
       "restore": {
         "label": "Gendan backup",

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
@@ -8,6 +9,8 @@ import { GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
 import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
+import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
+import CustomIconsOverlay from './CustomIconsOverlay';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -29,6 +32,7 @@ export default function MealFormOverlay({
   // so /remote doesn't have to lazy-fetch the 113KB editor.json. Core is
   // already loaded by the remote layout.
   const tCore = useTranslate('core');
+  const [managingIcons, setManagingIcons] = useState(false);
   const {
     editingMeal,
     setEditingMeal,
@@ -126,6 +130,7 @@ export default function MealFormOverlay({
   );
 
   return (
+    <>
     <FormOverlay
       title={editingMeal === 'new' ? t('mealForm.titleNew') : t('mealForm.titleEdit')}
       dirty={dirty}
@@ -146,7 +151,18 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.emojiLabel')}</div>
+        <div style={{ ...LABEL_STYLE, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span>{tCore('actions.icon')}</span>
+          <button
+            type="button"
+            onClick={() => setManagingIcons(true)}
+            style={{ background: 'none', border: 'none', padding: '12px 0 12px 16px', margin: '-12px 0', minHeight: 44, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13, fontWeight: 500, textTransform: 'none', letterSpacing: 0, color: 'var(--hs-accent-hover)' }}
+          >
+            {tCore('customIcons.manage')}
+          </button>
+        </div>
+        <PhoneCustomIconSection value={formEmoji} onPick={setFormEmoji} suggestedName={formName} />
+        <div style={{ ...PHONE_SUBHEAD_STYLE, marginTop: 12 }}>{tCore('customIcons.everydayEmoji')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
           {FOOD_EMOJIS.map((emoji) => (
             <button
@@ -441,5 +457,7 @@ export default function MealFormOverlay({
         </span>
       </button>
     </FormOverlay>
+    {managingIcons && <CustomIconsOverlay onBack={() => setManagingIcons(false)} />}
+    </>
   );
 }

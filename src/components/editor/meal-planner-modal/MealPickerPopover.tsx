@@ -5,6 +5,7 @@ import type { SavedMeal, MealSlotType } from '@/types/config';
 import { dateToDayIndex, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import Glyph from '@/components/ui/Glyph';
 
 interface MealPickerPopoverProps {
   target: { date: string; slot: MealSlotType };
@@ -100,7 +101,7 @@ export default function MealPickerPopover({
                 className="flex items-center gap-3 w-full px-2 py-2.5 rounded-md hover:bg-hs-card transition text-left"
               >
                 <span className="text-2xl shrink-0">
-                  {meal.emoji || DEFAULT_MEAL_EMOJI}
+                  <Glyph value={meal.emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} />
                 </span>
                 <span className="text-sm font-semibold text-hs-text-body flex-1 truncate">
                   {meal.name}

@@ -6,6 +6,8 @@ interface BackupReminderBannerProps {
   shouldShow: boolean;
   daysSinceBackup: number | null;
   busy: boolean;
+  /** The last backup went without the family's icons; ask for another. */
+  iconsLeftOut?: boolean;
   onBackup: () => void;
   onDismiss: () => void;
 }
@@ -14,10 +16,12 @@ export default function BackupReminderBanner({
   shouldShow,
   daysSinceBackup,
   busy,
+  iconsLeftOut = false,
   onBackup,
   onDismiss,
 }: BackupReminderBannerProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
   if (!shouldShow) return null;
 
   // Pluralize via discrete keys so each locale picks the form it needs
@@ -26,7 +30,9 @@ export default function BackupReminderBanner({
   // the parent only renders when it has a real count, so default to 0
   // for the rare null case.
   const days = daysSinceBackup ?? 0;
-  const message = days === 1
+  const message = iconsLeftOut
+    ? tCore('customIcons.backup.leftOut')
+    : days === 1
     ? t('backupReminder.daysAgoSingular', { n: days })
     : t('backupReminder.daysAgoPlural', { n: days });
 

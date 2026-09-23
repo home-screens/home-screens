@@ -12,6 +12,12 @@ export const DEFAULT_ACCENT_COLOR = '#f59e0b';
 export const DEFAULT_MEAL_EMOJI = '🍽️';
 
 /**
+ * A family's own picture in the compact meal grids, relative to the 0.8em an
+ * emoji is drawn at there: an emoji reads at that size, a photo is a speck.
+ */
+export const GRID_PICTURE_SIZE = '1.4em';
+
+/**
  * Typography size options for fullscreen modules.
  *
  * Each option carries an `i18nKey` (resolved against the `editor` namespace

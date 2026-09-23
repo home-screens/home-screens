@@ -76,7 +76,7 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
           color: 'white',
         }}
       >
-        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare />
+        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare fallback={null} />
       </div>
       {compact ? (
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>

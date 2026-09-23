@@ -417,6 +417,7 @@
         "data": "Back-ups & gegevens",
         "integrations": "API-sleutels",
         "media": "Afbeeldingen & video's",
+        "icons": "Eigen pictogrammen",
         "meals": "Maaltijden",
         "network": "Netwerk",
         "security": "Beveiliging",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Toch downloaden",
         "plaintextExportTitle": "Back-up zonder wachtwoord maken?",
         "plaintextExportMessage": "Je sleutels, gekoppelde accounts en je editorwachtwoord zijn leesbaar voor iedereen die dit bestand opent. Bewaar het op een privéplek.",
-        "plaintextExportConfirm": "Toch back-uppen"
+        "plaintextExportConfirm": "Toch back-uppen",
+        "iconsExportFailed": "Je eigen pictogrammen konden niet aan deze back-up worden toegevoegd. De rest toch downloaden?"
       },
       "shareLayout": {
         "heading": "Lay-out delen",
@@ -643,7 +645,8 @@
         "protectLabel": "Beveiligen met een wachtwoord",
         "plaintextWarning": "Iedereen die dit bestand opent, kan je accounts gebruiken. Bewaar het op een privéplek.",
         "needsEditorPassword": "Vraagt eerst om een wachtwoord, zodat het bestand niet leesbaar is voor wie het vindt.",
-        "savedTo": "{filename} opgeslagen in je downloads."
+        "savedTo": "{filename} opgeslagen in je downloads.",
+        "includeIconsLabel": "Eigen pictogrammen meenemen"
       },
       "backupReminder": {
         "heading": "Back-upherinnering",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Map {name} verwijderd",
       "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst.",
       "deleteFolderFailed": "De map kon niet worden verwijderd"
+    },
+    "iconsPage": {
+      "description": "Foto's die je gezin heeft toegevoegd. Gebruik ze voor maaltijden, klusjes, beloningen, personen, routines en schermpictogrammen.",
+      "addPictures": "Eigen foto's toevoegen",
+      "searchWords": "emoji eigen uploaden sticker foto afbeelding plaatje pictogram icoon"
     },
     "integrationsPage": {
       "description": "Sleutels en logins die extra inhoud vrijgeven: agenda’s, foto’s, verkeer, nieuws. Ze blijven op dit apparaat en gaan nergens heen.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "om de details te bewerken",
       "untitledFallback": "Naamloos",
       "nameLabel": "Naam",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Emoji's zoeken (bijv. pizza, ontbijt, dessert)…",
       "noEmojisMatch": "Geen emoji's komen overeen met \"{query}\"",
       "prepTimeLabel": "Voorbereidingstijd",

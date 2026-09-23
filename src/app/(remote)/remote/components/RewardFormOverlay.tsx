@@ -10,6 +10,7 @@ import { useTranslate } from '@/i18n';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
+import { DEFAULT_REWARD_ICON } from '@/lib/chore-constants';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
@@ -33,7 +34,7 @@ export default function RewardFormOverlay({
   const tCore = useTranslate('core');
   const isEdit = reward !== null;
   const [name, setName] = useState(reward?.name ?? '');
-  const [emoji, setEmoji] = useState(reward?.emoji ?? 'lucide:gift');
+  const [emoji, setEmoji] = useState(reward?.emoji ?? DEFAULT_REWARD_ICON);
   const [costStr, setCostStr] = useState(String(reward?.cost ?? 10));
   const [description, setDescription] = useState(reward?.description ?? '');
   const [memberIds, setMemberIds] = useState<string[]>(reward?.memberIds ?? []);
@@ -119,6 +120,7 @@ export default function RewardFormOverlay({
           icons={[...REWARD_ICONS]}
           label={t('rewardForm.iconLabel')}
           variant="mobile"
+          suggestedName={name}
         />
 
         <div style={{ marginBottom: 24 }}>

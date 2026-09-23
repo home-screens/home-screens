@@ -417,6 +417,7 @@
         "data": "Backups & data",
         "integrations": "API keys",
         "media": "Pictures & videos",
+        "icons": "Your icons",
         "meals": "Meals",
         "network": "Network",
         "security": "Security",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Download anyway",
         "plaintextExportTitle": "Back up without a password?",
         "plaintextExportMessage": "Your keys, connected accounts, and editor password will be readable by anyone who opens this file. Keep it somewhere private.",
-        "plaintextExportConfirm": "Back up anyway"
+        "plaintextExportConfirm": "Back up anyway",
+        "iconsExportFailed": "Your icons could not be added to this backup. Download the rest anyway?"
       },
       "shareLayout": {
         "heading": "Share Layout",
@@ -643,7 +645,8 @@
         "protectLabel": "Protect them with a password",
         "plaintextWarning": "Anyone who opens this file can use your accounts. Keep it somewhere private.",
         "needsEditorPassword": "Needs a password first, so the file isn't readable by anyone who finds it.",
-        "savedTo": "Saved {filename} to your downloads."
+        "savedTo": "Saved {filename} to your downloads.",
+        "includeIconsLabel": "Include your icons"
       },
       "backupReminder": {
         "heading": "Backup Reminder",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Folder {name} deleted",
       "folderNotEmpty": "That folder still has files in it. Move or delete them first.",
       "deleteFolderFailed": "Couldn't delete the folder"
+    },
+    "iconsPage": {
+      "description": "Pictures your family added. Use them for meals, chores, rewards, people, routines and screen icons.",
+      "addPictures": "Add your own pictures",
+      "searchWords": "emoji custom upload sticker photo picture icon"
     },
     "integrationsPage": {
       "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They are stored on this device and never sent anywhere else.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "to edit its details",
       "untitledFallback": "Untitled",
       "nameLabel": "Name",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Search emojis (e.g. pizza, breakfast, dessert)...",
       "noEmojisMatch": "No emojis match \"{query}\"",
       "prepTimeLabel": "Prep Time",

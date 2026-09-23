@@ -417,6 +417,7 @@
         "data": "Backups e dados",
         "integrations": "Chaves de API",
         "media": "Fotos e vídeos",
+        "icons": "Seus ícones",
         "meals": "Refeições",
         "network": "Rede",
         "security": "Segurança",
@@ -619,7 +620,8 @@
         "credentialsExportFailedConfirm": "Baixar mesmo assim",
         "plaintextExportTitle": "Fazer backup sem senha?",
         "plaintextExportMessage": "Suas chaves, contas conectadas e a senha do editor poderão ser lidas por qualquer pessoa que abrir este arquivo. Guarde-o em um lugar privado.",
-        "plaintextExportConfirm": "Fazer backup mesmo assim"
+        "plaintextExportConfirm": "Fazer backup mesmo assim",
+        "iconsExportFailed": "Seus ícones não puderam ser adicionados a este backup. Baixar o resto mesmo assim?"
       },
       "shareLayout": {
         "heading": "Compartilhar layout",
@@ -643,7 +645,8 @@
         "protectLabel": "Proteger com uma senha",
         "plaintextWarning": "Qualquer pessoa que abrir este arquivo pode usar suas contas. Guarde-o em um lugar privado.",
         "needsEditorPassword": "Precisa de uma senha antes, para que o arquivo não possa ser lido por quem o encontrar.",
-        "savedTo": "{filename} salvo nos seus downloads."
+        "savedTo": "{filename} salvo nos seus downloads.",
+        "includeIconsLabel": "Incluir seus ícones"
       },
       "backupReminder": {
         "heading": "Lembrete de backup",
@@ -1186,6 +1189,11 @@
       "folderDeleted": "Pasta {name} excluída",
       "folderNotEmpty": "Essa pasta ainda tem arquivos. Mova ou exclua eles primeiro.",
       "deleteFolderFailed": "Não foi possível excluir a pasta"
+    },
+    "iconsPage": {
+      "description": "Fotos que sua família adicionou. Use-as em refeições, tarefas, recompensas, pessoas, rotinas e ícones de tela.",
+      "addPictures": "Adicionar suas próprias fotos",
+      "searchWords": "emoji emojis personalizado enviar upload figurinha adesivo foto imagem ícone icone"
     },
     "integrationsPage": {
       "description": "Chaves e acessos que liberam conteúdo extra: calendários, fotos, trânsito, notícias. Ficam neste aparelho e não são enviados a lugar nenhum.",
@@ -2598,7 +2606,6 @@
       "emptyLine2": "para editar seus detalhes",
       "untitledFallback": "Sem título",
       "nameLabel": "Nome",
-      "emojiLabel": "Emoji",
       "emojiSearchPlaceholder": "Pesquisar emojis (ex: pizza, café da manhã, sobremesa)...",
       "noEmojisMatch": "Nenhum emoji corresponde a \"{query}\"",
       "prepTimeLabel": "Tempo de preparo",

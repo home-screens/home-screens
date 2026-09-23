@@ -423,7 +423,7 @@ function RedeemSection({
             >
               {member.emoji ? (
                 <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} />
+                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>} />
                 </span>
               ) : (
                 <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{member.name[0]}</span>

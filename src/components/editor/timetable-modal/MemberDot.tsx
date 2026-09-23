@@ -32,7 +32,7 @@ export default function MemberDot({ member, size = 22 }: { member: FamilyMember;
       }}
     >
       {member.emoji ? (
-        <ChoreIcon value={member.emoji} color={member.color} size={Math.round(size * 0.6)} bare />
+        <ChoreIcon value={member.emoji} color={member.color} size={Math.round(size * 0.6)} bare fallback={member.name.slice(0, 1)} />
       ) : (
         member.name.slice(0, 1)
       )}

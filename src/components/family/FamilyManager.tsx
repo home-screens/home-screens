@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ChoreIcon, { MEMBER_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
+import { isCustomIconValue } from '@/lib/custom-icons';
 import MobileColorPicker from '@/app/(remote)/remote/components/MobileColorPicker';
 import FormOverlay from '@/app/(remote)/remote/components/FormOverlay';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -167,10 +168,10 @@ export default function FamilyManager({ onChanged, variant = 'desktop', chores, 
           <input id={`${formId}-name`} disabled={busy} autoFocus required maxLength={Math.max(FAMILY_LIMITS.maxNameLength, draft.baseline.members.find((member) => member.id === draft.member.id)?.name.length ?? 0)} value={draft.member.name} onChange={(event) => setDraft({ ...draft, member: { ...draft.member, name: event.target.value } })} className="min-h-12 w-full rounded-lg border border-hs-border-strong bg-hs-panel px-3 text-hs-text-primary" />
         </div>
         <fieldset disabled={busy} className="min-w-0 space-y-4">
-          <IconPicker value={draft.member.emoji ?? ''} onChange={(emoji) => setDraft({ ...draft, member: { ...draft.member, emoji } })} icons={MEMBER_ICONS} label={t('actions.icon')} variant={variant} />
+          <IconPicker value={draft.member.emoji ?? ''} onChange={(emoji) => setDraft({ ...draft, member: { ...draft.member, emoji } })} icons={MEMBER_ICONS} label={t('actions.icon')} variant={variant} suggestedName={draft.member.name} />
           <div className="min-w-0">
             <label className="mb-1 block text-sm text-hs-text-muted" htmlFor={`${formId}-emoji`}>{t('family.emoji')}</label>
-            <input id={`${formId}-emoji`} disabled={busy} maxLength={16} value={draft.member.emoji?.startsWith('lucide:') ? '' : draft.member.emoji ?? ''} onChange={(event) => setDraft({ ...draft, member: { ...draft.member, emoji: event.target.value } })} className="min-h-12 w-full rounded-lg border border-hs-border-strong bg-hs-panel px-3 text-hs-text-primary" />
+            <input id={`${formId}-emoji`} disabled={busy} maxLength={16} value={draft.member.emoji?.startsWith('lucide:') || isCustomIconValue(draft.member.emoji) ? '' : draft.member.emoji ?? ''} onChange={(event) => setDraft({ ...draft, member: { ...draft.member, emoji: event.target.value } })} className="min-h-12 w-full rounded-lg border border-hs-border-strong bg-hs-panel px-3 text-hs-text-primary" />
           </div>
           {variant === 'mobile' ? <MobileColorPicker value={draft.member.color} onChange={(color) => setDraft({ ...draft, member: { ...draft.member, color } })} /> : <div>
             <label className="mb-1 block text-sm text-hs-text-muted" htmlFor={`${formId}-color`}>{t('family.color')}</label>
@@ -233,7 +234,7 @@ export default function FamilyManager({ onChanged, variant = 'desktop', chores, 
           const index = currentPage * PAGE_SIZE + row;
           return (
             <div key={member.id} className="flex flex-wrap items-center gap-2 bg-hs-panel p-3" data-testid="family-member">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg" style={{ backgroundColor: `${member.color}25`, color: member.color }}>{member.emoji ? <ChoreIcon value={member.emoji} color={member.color} size={24} bare /> : member.name.slice(0, 1)}</span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg" style={{ backgroundColor: `${member.color}25`, color: member.color }}>{member.emoji ? <ChoreIcon value={member.emoji} color={member.color} size={24} bare fallback={member.name.slice(0, 1)} /> : member.name.slice(0, 1)}</span>
               <div className="min-w-24 flex-1 break-words"><span className="text-sm font-medium text-hs-text-primary">{member.name}</span>{(choreCounts || hasTimetable) && <p className="mt-1 text-xs text-hs-text-muted">{[choreCounts && t('family.choreCount', { count: choreCounts.get(member.id) ?? 0 }), hasTimetable?.has(member.id) && t('family.hasTimetable')].filter(Boolean).join(' · ')}</p>}</div>
               <div className="flex shrink-0">
                 <Button variant="ghost" className="min-h-12 min-w-12 px-1" disabled={!editable || index === 0} aria-label={t('family.moveUp', { name: member.name })} onClick={() => reorder(index, -1)}><ArrowUp size={16} /></Button>

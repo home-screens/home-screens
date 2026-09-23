@@ -271,7 +271,6 @@
     "deleteButton": "Supprimer le repas",
     "nameLabel": "Nom du repas",
     "namePlaceholder": "ex. Poulet sauté",
-    "emojiLabel": "Émoji",
     "emojiSelectAriaLabel": "Sélectionner {emoji}",
     "prepTimeLabel": "Temps de prépa",
     "cookTimeLabel": "Temps de cuisson",
@@ -494,7 +493,7 @@
         "label": "Sauvegarder toutes les données",
         "savedLabel": "Sauvegarde enregistrée",
         "busyLabel": "Téléchargement…",
-        "description": "Téléchargez la configuration, les tâches, les repas et les récompenses"
+        "description": "Téléchargez les tâches, les repas, les récompenses et les images de votre famille"
       },
       "restore": {
         "label": "Restaurer la sauvegarde",

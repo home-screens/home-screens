@@ -8,6 +8,12 @@ import {
   type TimerView,
 } from '@/types/timers';
 import { uuid } from './uuid';
+import { isCustomIconValue } from './custom-icons';
+
+/** An emoji or short text, or one of the household's own pictures. */
+function validIcon(icon: unknown): boolean {
+  return typeof icon === 'string' && (icon.length <= 16 || isCustomIconValue(icon));
+}
 
 /**
  * Pure timer/session math shared by the server stores (timer-data.ts), the
@@ -206,7 +212,7 @@ export function validateRoutines(routines: unknown): string | null {
     if (typeof r.name !== 'string' || !r.name.trim() || r.name.length > 60) {
       return 'routine name must be 1-60 characters';
     }
-    if (r.icon !== undefined && (typeof r.icon !== 'string' || r.icon.length > 16)) {
+    if (r.icon !== undefined && !validIcon(r.icon)) {
       return 'invalid routine icon';
     }
     if (!TIMER_VIEWS.includes(r.view)) return 'invalid routine view';
@@ -223,7 +229,7 @@ export function validateRoutines(routines: unknown): string | null {
       if (typeof step.label !== 'string' || !step.label.trim() || step.label.length > 60) {
         return 'step name must be 1-60 characters';
       }
-      if (typeof step.icon !== 'string' || step.icon.length > 16) return 'invalid step icon';
+      if (!validIcon(step.icon)) return 'invalid step icon';
       if (
         typeof step.durationSec !== 'number' ||
         !Number.isInteger(step.durationSec) ||

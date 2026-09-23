@@ -29,7 +29,10 @@ export function signMediaToken(
   resource: string,
   ttlMs: number = DEFAULT_MEDIA_TOKEN_TTL_MS,
 ): string {
-  const exp = Date.now() + ttlMs;
+  return signMediaTokenUntil(secret, resource, Date.now() + ttlMs);
+}
+
+function signMediaTokenUntil(secret: string, resource: string, exp: number): string {
   return `${exp}.${hmac(secret, resource, exp).toString('base64url')}`;
 }
 
@@ -54,4 +57,21 @@ export async function mintMediaToken(
   const secret = await getMediaTokenSecret();
   if (!secret) return null;
   return signMediaToken(secret, resource, ttlMs);
+}
+
+/**
+ * Like `mintMediaToken`, but the same token for everyone within a window:
+ * it expires at the end of the window after the current one, so it is valid
+ * for between one and two windows. For URLs a page re-fetches on a timer, so
+ * each refresh hands back the same `src` and an `<img>` never reloads just
+ * because its token was re-minted.
+ */
+export async function mintWindowedMediaToken(
+  resource: string,
+  windowMs: number = DEFAULT_MEDIA_TOKEN_TTL_MS / 2,
+): Promise<string | null> {
+  const secret = await getMediaTokenSecret();
+  if (!secret) return null;
+  const exp = (Math.floor(Date.now() / windowMs) + 2) * windowMs;
+  return signMediaTokenUntil(secret, resource, exp);
 }
