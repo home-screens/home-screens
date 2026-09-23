@@ -3217,6 +3217,7 @@
       "weekStartsOn": "Ugen starter",
       "showTime": "Vis klokkeslæt",
       "showLocation": "Vis sted",
+      "showEventBackground": "Vis baggrunde for begivenheder",
       "showWeekNumbers": "Vis ugenumre",
       "accentColor": "Accentfarve",
       "eventTapDetails": "Tryk på en begivenhed for at se detaljer",

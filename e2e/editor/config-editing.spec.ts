@@ -204,6 +204,18 @@ test('calendar: switching View Mode persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'calendar')).viewMode).toBe('month');
 });
 
+test('calendar: toggling event backgrounds persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar'));
+
+  const background = page.getByRole('switch', { name: 'Show event backgrounds' });
+  await expect(background).toBeChecked();
+  await autosaved(page, async () => {
+    await background.click();
+  });
+
+  expect((await moduleConfig(request, 'calendar')).showEventBackground).toBe(false);
+});
+
 test('calendar: switching Event Style persists', async ({ page, request }) => {
   // The Event style select only renders in the grid views, and the month /
   // multi-week grids show it only under the banner theme (the modern themes

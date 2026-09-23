@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -2059,6 +2059,16 @@
           },
           "description": "Show event locations",
           "default": false
+        },
+        {
+          "name": "showEventBackground",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Daily and agenda views: show the background surface behind each event row. Defaults to true.",
+          "default": true
         },
         {
           "name": "maxEvents",
@@ -6977,7 +6987,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 13
+          "default": 14
         },
         {
           "name": "settings",

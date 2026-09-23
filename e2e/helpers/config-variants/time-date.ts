@@ -665,6 +665,18 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: redBackground('.self-stretch'),
   },
   {
+    // Daily and agenda rows normally use ContentCard's faint surface. Turning
+    // it off removes both pieces that draw the full-width rectangle.
+    type: 'calendar', name: 'event-background-off', kind: 'networked', stubKey: 'calendar',
+    stubBody: [todayEvent('cbg-1', 'CAL NO BACKGROUND')],
+    config: { viewMode: 'daily', showEventBackground: false },
+    expect: async (mod) => {
+      const event = mod.locator('[data-event-id="cbg-1"]').first();
+      await expect(event).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(event).toHaveCSS('border-top-style', 'none');
+    },
+  },
+  {
     // dailyShowDescription renders the sanitized event description in daily view.
     type: 'calendar', name: 'daily-description', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cdd-1', 'CAL DAILY', { description: 'CAL DAILY DESC' })],

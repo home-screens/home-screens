@@ -3217,6 +3217,7 @@
       "weekStartsOn": "Woche beginnt am",
       "showTime": "Uhrzeit anzeigen",
       "showLocation": "Ort anzeigen",
+      "showEventBackground": "Terminhintergründe anzeigen",
       "showWeekNumbers": "Kalenderwochen anzeigen",
       "accentColor": "Akzentfarbe",
       "eventTapDetails": "Termin antippen, um Details zu sehen",

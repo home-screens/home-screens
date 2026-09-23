@@ -3217,6 +3217,7 @@
       "weekStartsOn": "Week begint op",
       "showTime": "Tijd tonen",
       "showLocation": "Locatie tonen",
+      "showEventBackground": "Achtergronden van afspraken tonen",
       "showWeekNumbers": "Weeknummers tonen",
       "accentColor": "Accentkleur",
       "eventTapDetails": "Tik op een afspraak voor details",
