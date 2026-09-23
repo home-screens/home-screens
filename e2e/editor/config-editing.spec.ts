@@ -1277,7 +1277,7 @@ test('weather: editing Days to Show (daily view) persists', async ({ page, reque
 test('weather: toggling daily forecast presentation persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('weather', { view: 'daily' }));
 
-  for (const name of ['Show title', 'Show large first day', 'Use Today and Tmrw labels']) {
+  for (const name of ['Show large first day', 'Use Today and Tmrw labels']) {
     const toggle = page.getByRole('switch', { name });
     await expect(toggle).toBeChecked();
     await autosaved(page, async () => {
@@ -1286,7 +1286,6 @@ test('weather: toggling daily forecast presentation persists', async ({ page, re
   }
 
   expect(await moduleConfig(request, 'weather')).toMatchObject({
-    showTitle: false,
     showFeaturedDay: false,
     showRelativeDayLabels: false,
   });

@@ -68,6 +68,13 @@ export function usePreviewData(): PreviewData {
       && (statusUnknown || NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]),
     );
   }, [requestedProviders, secrets, secretsLoading, statusUnknown]);
+  // Keyed providers with no key saved, judged from the key status alone. Not
+  // "keyed and not fetched": a provider with a key that no module uses yet is
+  // also not fetched, and must not read as missing its key when one switches to it.
+  const missingKeyProviders = useMemo<string[]>(() => {
+    if (secretsLoading || statusUnknown) return [];
+    return ALL_PROVIDERS.filter((p) => !NO_KEY_NEEDED.has(p) && !secrets[PROVIDER_KEY_MAP[p]]);
+  }, [secrets, secretsLoading, statusUnknown]);
 
   useEffect(() => {
     // Wait for the providers list before triggering any weather fetches
@@ -87,10 +94,8 @@ export function usePreviewData(): PreviewData {
       // Keyed providers without a key are never fetched (the route would only
       // answer 400), so the preview says so itself: the same setup card the
       // wall shows, here with a link to where the key goes.
-      for (const p of ALL_PROVIDERS) {
-        if (!providers!.includes(p) && !NO_KEY_NEEDED.has(p)) {
-          errors[p] = setupError('key', weatherProviderName(p), { page: 'weather' });
-        }
+      for (const p of missingKeyProviders) {
+        errors[p] = setupError('key', weatherProviderName(p), { page: 'weather' });
       }
       const results = await Promise.allSettled(
         providers!.map(async (p) => {
@@ -124,7 +129,7 @@ export function usePreviewData(): PreviewData {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [providers, provider, latitude, longitude, units]);
+  }, [providers, missingKeyProviders, provider, latitude, longitude, units]);
 
   // Calendar fetch window derived from the active display's screens — same
   // computation the kiosk uses, so month/week grid views preview with past

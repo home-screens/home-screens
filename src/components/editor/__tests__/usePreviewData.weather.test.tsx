@@ -48,6 +48,7 @@ describe('usePreviewData weather requests', () => {
     cleanup();
     vi.useRealTimers();
     mocks.editorFetch.mockReset();
+    mocks.secretStatus.status = {};
   });
 
   it('does not probe unused regional providers', async () => {
@@ -62,5 +63,17 @@ describe('usePreviewData weather requests', () => {
       .filter((url) => url.startsWith('/api/weather'));
 
     expect(weatherUrls).toEqual(['/api/weather?provider=open-meteo']);
+  });
+
+  it('does not report a missing key for an unused provider whose key is saved', async () => {
+    mocks.secretStatus.status = { pirateweather_key: true };
+    const { result } = renderHook(() => usePreviewData());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    expect(result.current.weatherErrors.pirateweather).toBeUndefined();
+    expect(result.current.weatherErrors.weatherapi).toMatchObject({ kind: 'setup' });
   });
 });

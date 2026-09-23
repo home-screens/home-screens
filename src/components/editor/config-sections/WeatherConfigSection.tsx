@@ -121,7 +121,6 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   const showsHours = view === 'hourly' || view === 'combined';
   const showsDays = view === 'daily' || view === 'combined' || view === 'table';
   const showsCurrent = ['current', 'hourly', 'combined', 'compact'].includes(view);
-  const showsTitle = view === 'hourly' || view === 'daily' || view === 'table';
   // Alerts and precipitation views have no configurable data toggles
   const showsStats = !['alerts', 'precipitation'].includes(view);
 
@@ -143,9 +142,6 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ view: v })}
         options={availableViews}
       />
-      {showsTitle && (
-        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
-      )}
       {/* Outside the showsStats guard on purpose: the alerts and precipitation
           views want the place name most ("which area is this alert for?"). */}
       <Toggle
