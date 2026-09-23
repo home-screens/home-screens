@@ -666,7 +666,8 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
   },
   {
     // Daily and agenda rows normally use ContentCard's faint surface. Turning
-    // it off removes both pieces that draw the full-width rectangle.
+    // it off removes both pieces that draw the full-width rectangle, and the
+    // side inset so the color bar lines up with the day header.
     type: 'calendar', name: 'event-background-off', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cbg-1', 'CAL NO BACKGROUND')],
     config: { viewMode: 'daily', showEventBackground: false },
@@ -674,6 +675,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
       const event = mod.locator('[data-event-id="cbg-1"]').first();
       await expect(event).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
       await expect(event).toHaveCSS('border-top-style', 'none');
+      await expect(event).toHaveCSS('padding-left', '0px');
     },
   },
   {

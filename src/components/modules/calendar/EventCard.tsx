@@ -108,7 +108,9 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       data-event-id={event.id}
       className="flex gap-2"
       style={{
-        padding: '6px 10px',
+        // Without the card surface the side inset has nothing to frame, so the
+        // color bar moves flush with the day and section headers.
+        padding: showBackground ? '6px 10px' : '6px 0',
         opacity: eventOpacity(event, dimmed ? 0.4 : 1),
         boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
         ...(showBackground ? {} : { backgroundColor: 'transparent', borderTop: 'none' }),

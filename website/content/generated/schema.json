@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 14,
+  "schemaVersion": 13,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -6987,7 +6987,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 14
+          "default": 13
         },
         {
           "name": "settings",
