@@ -12,6 +12,7 @@ import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
 import { readFetchError, setupError, type FetchError } from '@/lib/fetch-error';
 import { weatherProviderName } from '@/lib/weather-provider-names';
+import { previewWeatherProviders } from '@/lib/weather-preview-providers';
 
 const log = logger('preview-data');
 
@@ -47,20 +48,26 @@ export function usePreviewData(): PreviewData {
   const latitude = weatherSettings?.latitude;
   const longitude = weatherSettings?.longitude;
   const units = weatherSettings?.units;
+  const requestedProviderKey = useEditorStore((s) => previewWeatherProviders(s.config).join('|'));
+  const requestedProviders = useMemo(
+    () => new Set(requestedProviderKey.split('|').filter(Boolean)),
+    [requestedProviderKey],
+  );
 
-  // Configured-providers list from the shared secret-status store. The store
+  // Available providers from the shared secret-status store. The store
   // keeps `status` identity-stable across refetches unless the payload
-  // actually changed, so this memo — and the weather fan-out effect keyed on
-  // it below — only re-run when a key is really added or removed. Null until
-  // the first status arrives; with no good status ever, fall back to trying
-  // all providers (a failed refetch after a good one keeps the current list).
+  // actually changed. Only providers used by the global setting or a weather
+  // module are fetched: probing every keyless provider sends UK coordinates
+  // to region-limited NOAA, SMHI and Environment Canada endpoints.
   const { status: secrets, loading: secretsLoading, error: secretsError, hasStatus } = useSecretStatus();
   const statusUnknown = secretsError && !hasStatus;
   const providers = useMemo<string[] | null>(() => {
-    if (secretsLoading) return null;
-    if (statusUnknown) return ALL_PROVIDERS;
-    return ALL_PROVIDERS.filter((p) => NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]);
-  }, [secrets, secretsLoading, statusUnknown]);
+    if (secretsLoading || requestedProviders.size === 0) return null;
+    return ALL_PROVIDERS.filter((p) =>
+      requestedProviders.has(p)
+      && (statusUnknown || NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]),
+    );
+  }, [requestedProviders, secrets, secretsLoading, statusUnknown]);
 
   useEffect(() => {
     // Wait for the providers list before triggering any weather fetches

@@ -259,7 +259,7 @@ describe('OpenMeteoProvider', () => {
   describe('getForecast', () => {
     const mockDailyResponse = {
       daily: {
-        time: [1710288000, 1710374400, 1710460800],
+        time: ['2024-03-13', '2024-03-14', '2024-03-15'],
         temperature_2m_max: [72.5, 68.2, 75.9],
         temperature_2m_min: [55.1, 52.8, 58.3],
         weather_code: [0, 61, 71],
@@ -294,7 +294,7 @@ describe('OpenMeteoProvider', () => {
       expect(results[0].low).toBe(55);  // 55.1 → 55
     });
 
-    it('converts epoch dates to YYYY-MM-DD strings', async () => {
+    it('preserves location-local YYYY-MM-DD dates', async () => {
       const provider = new OpenMeteoProvider();
       const results = await provider.getForecast(40.7, -74.0, 'imperial');
       for (const r of results) {
@@ -1542,7 +1542,7 @@ describe('OpenMeteoProvider — edge cases', () => {
   it('handles null wind_speed_10m_max in forecast', async () => {
     fetchSpy.mockResolvedValue(new Response(JSON.stringify({
       daily: {
-        time: [1710288000],
+        time: ['2024-03-13'],
         temperature_2m_max: [72],
         temperature_2m_min: [55],
         weather_code: [0],

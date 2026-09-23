@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { OpenMeteoProvider } from '../open-meteo';
 
-// Open-Meteo returns parallel arrays (unixtime + per-variable). Temps/wind/precip
-// arrive already in the requested unit (temperature_unit=... query param), so the
-// provider only maps WMO codes, rounds a few fields, and filters hourly to
-// time >= now-1h. getHourly and getForecast share one base URL, distinguished by
-// the `hourly=` vs `daily=` query.
+// Open-Meteo returns parallel arrays. Hourly timestamps are Unix instants;
+// daily timestamps stay as location-local ISO dates so UTC conversion cannot
+// move them to the previous day. Temps/wind/precip arrive in the requested unit.
 
 const NOW = Date.parse('2026-04-18T12:00:00Z');
 const T0 = Math.floor(NOW / 1000);
@@ -93,7 +91,7 @@ describe('OpenMeteoProvider', () => {
   it('getForecast maps daily arrays, rounding temps and wind', async () => {
     spy = mockOm({
       daily: {
-        time: [T0, T0 + 86400],
+        time: ['2026-04-18', '2026-04-19'],
         temperature_2m_max: [15.6, 18.2],
         temperature_2m_min: [4.3, 6.9],
         weather_code: [95, 71],
@@ -104,8 +102,11 @@ describe('OpenMeteoProvider', () => {
     });
 
     const out = await new OpenMeteoProvider().getForecast(44.71, -93.42, 'metric');
+    const requestUrl = new URL(String(spy.mock.calls[0][0]));
 
     expect(out).toHaveLength(2);
+    expect(requestUrl.searchParams.get('timeformat')).toBeNull();
+    expect(requestUrl.searchParams.get('timezone')).toBe('auto');
     expect(out[0]).toMatchObject({
       date: '2026-04-18',
       high: 16, // round(15.6)

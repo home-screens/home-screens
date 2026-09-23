@@ -19,7 +19,7 @@ interface OMHourlyResponse {
 }
 
 interface OMDailyResponse {
-  time: number[];
+  time: string[];
   temperature_2m_max: number[];
   temperature_2m_min: number[];
   weather_code: number[];
@@ -87,7 +87,6 @@ export class OpenMeteoProvider implements WeatherProvider {
       temperature_unit: isMetric ? 'celsius' : 'fahrenheit',
       wind_speed_unit: isMetric ? 'kmh' : 'mph',
       precipitation_unit: isMetric ? 'mm' : 'inch',
-      timeformat: 'unixtime',
       forecast_days: '7',
       timezone: 'auto',
     });
@@ -98,8 +97,8 @@ export class OpenMeteoProvider implements WeatherProvider {
     );
     const d = data.daily;
 
-    return d.time.map((epoch, i) => ({
-      date: new Date(epoch * 1000).toISOString().split('T')[0],
+    return d.time.map((date, i) => ({
+      date,
       high: Math.round(d.temperature_2m_max[i]),
       low: Math.round(d.temperature_2m_min[i]),
       icon: this.mapWMOCode(d.weather_code[i], true),
