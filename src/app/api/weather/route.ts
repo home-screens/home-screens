@@ -21,6 +21,7 @@ interface WeatherParams {
   provider: string;
   location: { lat: string; lon: string } | null;
   units: string;
+  timezone?: string;
 }
 
 /**
@@ -56,16 +57,18 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
     const provider = searchParams.get('provider') ?? ws?.provider ?? 'openweathermap';
     const location = await getLocationFromConfig(searchParams, config);
     const units = searchParams.get('units') ?? ws?.units ?? 'imperial';
+    const timezone = config?.settings?.timezone
+      ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    return { type, provider, location, units };
+    return { type, provider, location, units, timezone };
   },
-  cacheKey: ({ provider, location, units, type }) => {
+  cacheKey: ({ provider, location, units, type, timezone }) => {
     const lat = location?.lat ?? '_';
     const lon = location?.lon ?? '_';
-    return `${provider}:${lat}:${lon}:${units}:${type}`;
+    return `${provider}:${lat}:${lon}:${units}:${type}:${timezone ?? '_'}`;
   },
   execute: async (params) => {
-    const { type, provider, location, units } = params;
+    const { type, provider, location, units, timezone } = params;
     if (!location) {
       return NextResponse.json(
         { error: 'Missing required query params: lat, lon' },
@@ -89,7 +92,7 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
     let result: Record<string, unknown>;
 
     if (type === 'forecast') {
-      const forecast = await weatherProvider.getForecast(Number(lat), Number(lon), units);
+      const forecast = await weatherProvider.getForecast(Number(lat), Number(lon), units, timezone);
       result = { forecast };
     } else if (type === 'hourly') {
       const hourly = await weatherProvider.getHourly(Number(lat), Number(lon), units);
@@ -97,7 +100,7 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
     } else {
       const [hourly, forecast] = await Promise.all([
         weatherProvider.getHourly(Number(lat), Number(lon), units),
-        weatherProvider.getForecast(Number(lat), Number(lon), units),
+        weatherProvider.getForecast(Number(lat), Number(lon), units, timezone),
       ]);
       const seen = await noteReading(params, hourly, forecast);
       result = { hourly, forecast: reconcileTodayRange(forecast, hourly, seen) };

@@ -124,6 +124,40 @@ describe('GET /api/weather', () => {
     expect(provider.getHourly).not.toHaveBeenCalled();
   });
 
+  it('passes the configured timezone to forecast providers', async () => {
+    setupDefaults();
+    mockReadConfig.mockResolvedValue({
+      screens: [],
+      settings: { timezone: 'Europe/London' },
+    } as never);
+    const provider = makeMockProvider();
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+
+    await GET(makeRequest({ type: 'forecast', provider: 'metoffice' }));
+
+    expect(provider.getForecast).toHaveBeenCalledWith(
+      40.7,
+      -74.0,
+      'imperial',
+      'Europe/London',
+    );
+  });
+
+  it('uses the device timezone when no timezone override is configured', async () => {
+    setupDefaults();
+    const provider = makeMockProvider();
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+
+    await GET(makeRequest({ type: 'forecast', provider: 'metoffice' }));
+
+    expect(provider.getForecast).toHaveBeenCalledWith(
+      40.7,
+      -74.0,
+      'imperial',
+      Intl.DateTimeFormat().resolvedOptions().timeZone,
+    );
+  });
+
   it('type=hourly calls only getHourly, not getForecast', async () => {
     setupDefaults();
     const provider = makeMockProvider();

@@ -363,9 +363,8 @@ export function toDisplaySource(
   };
 }
 
-/** Adapter: editor canvas preview. Falls back to the global provider's payload
- *  when a module's own provider hasn't been fetched yet, so a freshly-switched
- *  provider still previews something instead of blanking. */
+/** Adapter: editor canvas preview. Provider payloads stay isolated so changing
+ *  a module's source cannot temporarily present the old provider as the new one. */
 export function toEditorSource(
   settings: PreviewSettings | null,
   previewData: PreviewData,
@@ -384,13 +383,7 @@ export function toEditorSource(
     weather: {
       globalProvider,
       units: settings?.units ?? 'imperial',
-      // A provider that has actually failed (no key, rejected key) must show
-      // the same setup card here as on the wall, not borrow another
-      // provider's forecast; the global fallback only covers "still fetching".
-      payloadFor: (provider) =>
-        previewData.weatherByProvider[provider]
-          ?? (previewData.weatherErrors[provider] ? null : previewData.weatherByProvider[globalProvider])
-          ?? null,
+      payloadFor: (provider) => previewData.weatherByProvider[provider] ?? null,
       errorFor: (provider) => previewData.weatherErrors[provider] ?? null,
     },
     calendarEvents: previewData.calendarEvents,

@@ -149,6 +149,25 @@ export function weatherCodeDescription(code: number | undefined): string {
   return WEATHER_CODE_DESCRIPTIONS[code] ?? '';
 }
 
+function dateInTimezone(timestamp: string, timezone?: string): string {
+  const instant = new Date(timestamp);
+  if (!timezone || Number.isNaN(instant.getTime())) return timestamp.split('T')[0];
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(instant);
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((value) => value.type === type)?.value ?? '';
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  } catch {
+    return timestamp.split('T')[0];
+  }
+}
+
 // ── Met Office provider ──────────────────────────────────────────────
 
 /** @internal */
@@ -273,7 +292,7 @@ export class MetOfficeProvider implements WeatherProvider {
       }));
   }
 
-  async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
+  async getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]> {
     // Met Office's daily endpoint returns day/night temperature splits and
     // precipitation probability, but not wind speed or total precipitation
     // amount — those are hourly-only. Fetch both in parallel and aggregate
@@ -286,11 +305,12 @@ export class MetOfficeProvider implements WeatherProvider {
     const dailySeries = dailyData.features[0]?.properties.timeSeries ?? [];
     const hourlySeries = hourlyData.features[0]?.properties.timeSeries ?? [];
     const isMetric = units === 'metric';
+    const today = dateInTimezone(new Date(Date.now()).toISOString(), timezone);
 
     // Bucket hourly stats by date for aggregation
     const hourlyByDate = new Map<string, { winds: number[]; precipMm: number }>();
     for (const h of hourlySeries) {
-      const d = h.time.split('T')[0];
+      const d = dateInTimezone(h.time, timezone);
       let bucket = hourlyByDate.get(d);
       if (!bucket) {
         bucket = { winds: [], precipMm: 0 };
@@ -300,7 +320,16 @@ export class MetOfficeProvider implements WeatherProvider {
       if (h.totalPrecipAmount != null) bucket.precipMm += h.totalPrecipAmount;
     }
 
-    return dailySeries.slice(0, 7).map((e) => {
+    const forecastSeries = dailySeries
+      // The daily endpoint can lead with yesterday's completed row. It is
+      // useful for history consumers but a forecast must begin with today.
+      .filter((entry) => entry.time.split('T')[0] >= today)
+      .slice(0, 7);
+
+    return forecastSeries.map((e) => {
+      // Daily `time` is a calendar-date marker, not an instant to shift into
+      // another zone. Hourly rows above are real instants and are bucketed in
+      // the configured zone.
       const date = e.time.split('T')[0];
       // Daily endpoint gives explicit day/night splits. Use day code for icon
       // when present (the "what the day looks like" signal), falling back to

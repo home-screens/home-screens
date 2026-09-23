@@ -204,12 +204,12 @@ describe('toDisplaySource', () => {
 });
 
 describe('toEditorSource', () => {
-  it("falls back to the global provider's payload while a switched provider is still fetching", () => {
+  it('does not present the global payload as a switched provider while it is fetching', () => {
     const source = toEditorSource(previewSettings, previewData);
-    expect(source.weather.payloadFor('pirateweather')).toEqual(WEATHER_PAYLOAD);
+    expect(source.weather.payloadFor('pirateweather')).toBeNull();
   });
 
-  it('never borrows the global payload for a provider that has actually failed', () => {
+  it('reports a provider failure without borrowing another payload', () => {
     const error = { kind: 'setup' as const, message: 'no key', setup: { needs: 'key' as const, service: 'OpenWeatherMap' } };
     const source = toEditorSource(previewSettings, { ...previewData, weatherErrors: { openweathermap: error } });
     expect(source.weather.payloadFor('openweathermap')).toBeNull();
